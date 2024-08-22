@@ -4,9 +4,8 @@ import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.components.mesh.material.shaders.DecalShader
 import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_COLOR
 import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_EMISSIVE
-import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_METALLIC
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_REFLECTIVITY
 import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_NORMAL
-import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_ROUGHNESS
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.ECSMeshShader
@@ -18,7 +17,6 @@ import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Booleans.withFlag
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
 // todo different blend modes: additive, subtractive, default, ...
@@ -57,19 +55,10 @@ class DecalMaterial : Material() {
 
     @EditorField
     @NotSerializedProperty
-    var writeRoughness: Boolean
-        get() = writeFlags.hasFlag(FLAG_ROUGHNESS)
+    var writeReflectivity: Boolean
+        get() = writeFlags.hasFlag(FLAG_REFLECTIVITY)
         set(value) {
-            writeFlags = writeFlags.withFlag(FLAG_ROUGHNESS, value)
-            shader = getShader()
-        }
-
-    @EditorField
-    @NotSerializedProperty
-    var writeMetallic: Boolean
-        get() = writeFlags.hasFlag(FLAG_METALLIC)
-        set(value) {
-            writeFlags = writeFlags.withFlag(FLAG_METALLIC, value)
+            writeFlags = writeFlags.withFlag(FLAG_REFLECTIVITY, value)
             shader = getShader()
         }
 
@@ -106,7 +95,7 @@ class DecalMaterial : Material() {
 
     private fun getShader(): ECSMeshShader {
         val flags = writeColor.toInt() + writeNormal.toInt(2) +
-                writeEmissive.toInt(4) + writeRoughness.toInt(8) + writeMetallic.toInt(16)
+                writeEmissive.toInt(4) + writeReflectivity.toInt(8)
         return DecalShader.shaderLib[flags]
     }
 }

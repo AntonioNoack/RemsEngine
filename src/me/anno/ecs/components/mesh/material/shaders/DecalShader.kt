@@ -17,6 +17,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
@@ -29,15 +30,13 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
         const val FLAG_COLOR = 1
         const val FLAG_NORMAL = 2
         const val FLAG_EMISSIVE = 4
-        const val FLAG_ROUGHNESS = 8
-        const val FLAG_METALLIC = 16
+        const val FLAG_REFLECTIVITY = 8
 
         private val layers = listOf(
             DeferredLayerType.COLOR,
             DeferredLayerType.NORMAL,
             DeferredLayerType.EMISSIVE,
-            DeferredLayerType.ROUGHNESS,
-            DeferredLayerType.METALLIC
+            DeferredLayerType.REFLECTIVITY
         )
 
         private val layerLib = LazyMap { flags: Int ->
@@ -46,7 +45,7 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
             }
         }
 
-        val shaderLib = LazyMap { flags: Int ->
+        val shaderLib = LazyList(16) { flags: Int ->
             DecalShader(layerLib[flags], flags)
         }
     }
