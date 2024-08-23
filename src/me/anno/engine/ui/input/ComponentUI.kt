@@ -45,6 +45,7 @@ import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.UnknownSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
@@ -77,7 +78,8 @@ import me.anno.ui.input.TextInputML
 import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
-import me.anno.utils.Reflections.getParentClass
+import me.anno.utils.Reflections.getParentClasses
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
@@ -115,12 +117,6 @@ import java.io.Serializable
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.companionObject
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.superclasses
 
 object ComponentUI {
 
@@ -742,21 +738,11 @@ object ComponentUI {
                         val mainType = type0.substring(0, index0).trim()
                         val generics = type0.substring(index0 + 1, index1).trim()
                         when (mainType) {
-                            "Array" -> {
-                                value as List<*>
-                                return object : AnyArrayPanel(title, visibilityKey, generics, style) {
-                                    override fun onChange() {
-                                        property.set(this, values.writeTo(value))
-                                    }
-                                }.apply {
-                                    property.init(this)
-                                    setValues(value.toList())
-                                }
-                            }
                             "List" -> {
                                 value as List<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
+                                        // todo why is the changing sdf materials not visible until refresh??
                                         property.set(this, values)
                                     }
                                 }.apply {
@@ -787,8 +773,6 @@ object ComponentUI {
                                     setValues(value.map { MutablePair(it.key, it.value) })
                                 }
                             }
-                            // todo pair and triple
-                            // other generic types? stacks, queues, ...
                             else -> {
                                 LOGGER.warn("Unknown generic type: $mainType<$generics>")
                             }
@@ -847,9 +831,8 @@ object ComponentUI {
                     type0.endsWith("/SameSceneRef", true) -> {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
-                        // todo find the class somehow...
                         val clazz = Saveable.getClass(type1)
-                        if (clazz != null) {
+                        if (clazz != UnknownSaveable::class) {
                             return SameSceneRefInput(title, visibilityKey, clazz, value, style)
                                 .apply {
                                     property.init(this)
@@ -889,13 +872,11 @@ object ComponentUI {
                             })
                         }
                     }
-                    value is Saveable && Saveable.getClass(type0) != null -> {
+                    value is Saveable && Saveable.getClass(type0) != UnknownSaveable::class -> {
                         return createISaveableInput(title, value, style, property)
                     }
                 }
-
                 LOGGER.warn("Missing knowledge to edit $type0, '$title'")
-
                 return TextPanel(
                     "?? $title : ${if (value != null) value::class.simpleName else null}, type $type0",
                     style
@@ -1047,10 +1028,12 @@ object ComponentUI {
     }
 
     fun instanceOf(clazz: KClass<*>, tested: KClass<*>): Boolean {
-        var clazzI = clazz
-        while (true) {
-            if (clazzI == tested) return true
-            clazzI = getParentClass(clazzI) ?: return false
+        return Recursion.anyRecursive(clazz) { c, remaining ->
+            if (c == tested) true
+            else {
+                remaining.addAll(getParentClasses(c))
+                false
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -93,7 +94,7 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
             if (suggestion.improvements.size > 1) {
                 Menu.openMenu(windowStack,
                     suggestion.improvements.map {
-                        MenuOption(it, "") {
+                        MenuOption(NameDesc(it)) {
                             applySuggestion(suggestion, it)
                         }
                     }

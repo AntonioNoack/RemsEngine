@@ -149,6 +149,9 @@ class AABBf(
     fun getMin(dst: Vector3f = Vector3f()): Vector3f = dst.set(minX, minY, minZ)
     fun getMax(dst: Vector3f = Vector3f()): Vector3f = dst.set(maxX, maxY, maxZ)
 
+    fun getCenter(dst: Vector3f): Vector3f = dst.set(centerX, centerY, centerZ)
+    fun getCenter(dst: Vector3d): Vector3d = dst.set(centerX, centerY, centerZ)
+
     // crazy... why was this not in the library???
     fun set(o: AABBf): AABBf {
         minX = o.minX

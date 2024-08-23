@@ -3,11 +3,13 @@ package me.anno.image.thumbs
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
@@ -35,8 +37,8 @@ import me.anno.image.thumbs.AssetThumbHelper.findModelMatrix
 import me.anno.image.thumbs.AssetThumbHelper.listTextures
 import me.anno.image.thumbs.AssetThumbHelper.removeTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 import me.anno.utils.InternalAPI
 import me.anno.utils.Warning
 import me.anno.utils.hpc.threadLocal
@@ -45,6 +47,7 @@ import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -63,8 +66,23 @@ object AssetThumbnails {
         Thumbs.registerSignatures("vox,maya", AssetThumbnails::generateAssetFrame)
     }
 
-    // todo exclude lights from AABB calculations for thumbnails?
-    //  (except when only having lights, then add a floor)
+    // exclude lights from AABB calculations for thumbnails
+    //  (todo when only lights are present, add a floor and assume 1x1x1 size)
+    fun getBoundsForRendering(entity: Entity): AABBd {
+        val dst = AABBd()
+        entity.forAllComponentsInChildren(Renderable::class) {
+            if (it !is LightComponentBase && it is Component) {
+                val entityI = it.entity
+                if (entityI != null) {
+                    entityI.validateTransform()
+                    val transform = entityI.transform.globalTransform
+                    it.fillSpace(transform, dst)
+                }
+            }
+        }
+        return dst
+    }
+
     @JvmStatic
     fun generateEntityFrame(
         srcFile: FileReference,
@@ -82,8 +100,7 @@ object AssetThumbnails {
             waitForTextures(sceneTextures)
         }
         scene.validateTransform()
-        scene.getBounds()
-        val bounds = scene.getBounds()
+        val bounds = getBoundsForRendering(scene)
         ThumbsRendering.renderToImage(
             srcFile, false,
             dstFile, true,
@@ -94,8 +111,8 @@ object AssetThumbnails {
             val rv = rv
             val cam = rv.editorCamera
             if (!bounds.isEmpty() && bounds.volume.isFinite()) {
-                rv.radius = 100.0 * max(bounds.centerX, max(bounds.centerY, bounds.centerZ))
-                rv.orbitCenter.set(bounds.centerX, bounds.centerY, bounds.centerZ)
+                rv.radius = 100.0 * bounds.maxDelta
+                bounds.getCenter(rv.orbitCenter)
                 rv.updateEditorCameraTransform()
                 rv.setRenderState()
                 // calculate ideal transform like previously

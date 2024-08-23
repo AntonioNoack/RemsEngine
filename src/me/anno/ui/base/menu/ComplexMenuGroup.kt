@@ -1,8 +1,9 @@
 package me.anno.ui.base.menu
 
+import me.anno.language.translation.NameDesc
+
 class ComplexMenuGroup(
-    title: String,
-    description: String,
+    nameDesc: NameDesc,
     isEnabled: Boolean,
     val children: List<ComplexMenuEntry>
-) : ComplexMenuEntry(title, description, isEnabled)
+) : ComplexMenuEntry(nameDesc, isEnabled)

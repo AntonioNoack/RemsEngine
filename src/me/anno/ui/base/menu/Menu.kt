@@ -28,7 +28,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.levenshtein
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * Utility for opening menus, like asking the user questions, or him selecting values for an enum from a dropdown.
@@ -148,7 +147,7 @@ object Menu {
     }
 
     private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, padding: Int, hover: Boolean) {
-        button.tooltip = option.description
+        button.tooltip = option.nameDesc.desc
         button.enableHoverColor = hover
         button.padding.left = padding
         button.padding.right = padding
@@ -182,17 +181,18 @@ object Menu {
         val padding = 4
         for (index in options.indices) {
             val option = options[index]
-            val name = option.title
+            val nameDesc = option.nameDesc
+            val name = nameDesc.name
             val action = (option as? ComplexMenuOption)?.action
             when {
-                name == menuSeparator -> {
+                nameDesc.englishName == menuSeparator -> {
                     if (index != 0) {
                         list += SpacerPanel(0, 1, style)
                     }
                 }
                 option.isEnabled && action != null -> {
                     val magicIndex = keyListeners.findNextFreeIndex(name)
-                    val button = object : TextPanel(name, style) {
+                    val button = object : TextPanel(nameDesc, style) {
                         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                             super.onDraw(x0, y0, x1, y1)
                             if (magicIndex in text.indices) {
@@ -237,7 +237,8 @@ object Menu {
                 else -> {
                     // disabled -> show it grayed-out
                     // if action is a group, add a small arrow
-                    val name1 = if (option is ComplexMenuGroup) "$name →" else name
+                    val name1 = if (option is ComplexMenuGroup)
+                        NameDesc("$name →", nameDesc.desc, "") else nameDesc
                     val button = TextPanel(name1, style)
                     button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
                     button.focusTextColor = button.textColor
@@ -263,6 +264,10 @@ object Menu {
             windowStack.mouseYi - paddingY,
             title, panels, extraKeyListeners
         )
+    }
+
+    fun needsSearch(count: Int): Boolean {
+        return count >= DefaultConfig["ui.search.minItems", 5]
     }
 
     fun openMenuByPanels(
@@ -328,9 +333,8 @@ object Menu {
 
         // while useful for keyboard-only controls, it looks quite stupid to have a searchbar for only two items
         // todo when searching, look into ComplexMenuGroups, too
-        val needsSearch = panels.size >= DefaultConfig["ui.search.minItems", 5]
         val originalOrder = HashMap<Panel, Int>()
-        if (needsSearch) {
+        if (needsSearch(panels.size)) {
             val startIndex = list.children.size + 1
             val suggestions = DefaultConfig["ui.search.spellcheck", true]
             searchPanel = TextInput(Dict["Search", "ui.general.search"], "", suggestions, style)

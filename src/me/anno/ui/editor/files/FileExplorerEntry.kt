@@ -842,13 +842,12 @@ open class FileExplorerEntry(
         val canPasteInto = thisFile.isDirectory
         val canReplace = files.size == 1 && !canPasteInto
         when {
-            canReplace -> explorer!!.pasteFiles(
+            explorer != null && canReplace -> explorer.pasteFiles(
                 files, explorer.folder, listOf(
                     MenuOption(NameDesc("Replace")) {
                         thread(name = "replacing file") {
                             val progress = GFX.someWindow.addProgressBar(
-                                "Replacing",
-                                "Bytes",
+                                "Replacing", "Bytes",
                                 files.sumOf { it.length() }.toDouble()
                             )
                             thisFile.writeFile(
@@ -862,7 +861,7 @@ open class FileExplorerEntry(
                     },
                 )
             )
-            canPasteInto -> explorer!!.pasteFiles(files, thisFile)
+            explorer != null && canPasteInto -> explorer.pasteFiles(files, thisFile)
             else -> super.onPasteFiles(x, y, files)
         }
     }

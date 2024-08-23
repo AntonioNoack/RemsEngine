@@ -80,7 +80,7 @@ Some depend on local files, which you might not have, but most should work, and 
 
 - Entity-Component based system like Unity, plus Systems similar to Bevy
 - 64-bit fp transformations for universe-scale games
-  - on GPU-side, camera is always at (or close-to in VR) origin, FP32
+  - on GPU-side, camera is always close-to/at origin, FP32
 - AABB optimized scene hierarchy
 - mods / plugins from the start: your game is a mod(ule) for the engine
 - in editor: automatic file reload, on file change
@@ -91,7 +91,7 @@ Some depend on local files, which you might not have, but most should work, and 
   - FontManager for textures and sizes
   - PDFCache, VideoCache
   - (File)MetadataCache
-- very basic Lua scripting
+- Lua scripting/limited visual coding support
 
 ### File Formats
 
@@ -229,8 +229,8 @@ Some feature tests:
 - [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
 - [GFX: MarchingCubes.kt](test/src/me/anno/tests/geometry/MarchingCubes.kt)
 - [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
-- [GFX: FSR.kt](test/src/me/anno/tests/shader/FSR.kt)
-- [Debug: JsonFormatterTest.kt](test/src/me/anno/tests/files/JsonFormatterTest.kt)
+- [GFX: FSR.kt](test/src/me/anno/tests/shader/FSR1.kt)
+- [Debug: JsonFormatterTest.kt](test/src/me/anno/tests/io/files/JsonFormatterTest.kt)
 - [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
 - [Snake Game](test/src/me/anno/tests/game/Snake.kt), [Running Web Demo](https://remsengine.phychi.com/jvm2wasm/snake/)

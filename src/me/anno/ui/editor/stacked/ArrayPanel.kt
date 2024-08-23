@@ -21,6 +21,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -29,6 +30,10 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
     visibilityKey: String,
     val newValue: () -> EntryType, style: Style
 ) : TitledListY(title, visibilityKey, style), InputPanel<List<EntryType>> {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ArrayPanel::class)
+    }
 
     // todo when there is a lot of values, unfold them like in Chrome Dev Console:
     //  100 at a time, every power of 10 is grouped
@@ -124,7 +129,11 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
     }
 
     fun set(panel: Panel, value: Any?) {
-        val index = children.indexOf(panel) - 1
+        var index = children.indexOf(panel) - 1
+        if (index !in values.indices) {
+            LOGGER.warn("Invalid index!!", index)
+            index = 0
+        }
         @Suppress("unchecked_cast")
         values[index] = value as EntryType
         onChange()

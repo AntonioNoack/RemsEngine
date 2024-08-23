@@ -170,7 +170,7 @@ interface Hierarchical<V : Hierarchical<V>> {
             if (processDisabled || item.isEnabled) {
                 if (func(item)) item
                 else {
-                    remaining.addAll(children)
+                    remaining.addAll(item.children)
                     null
                 }
             } else null

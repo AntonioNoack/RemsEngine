@@ -3,22 +3,20 @@ package me.anno.ui.base.menu
 import me.anno.language.translation.NameDesc
 
 class MenuOption(
-    val title: String,
-    var description: String,
+    val nameDesc: NameDesc,
     val action: () -> Unit
 ) {
 
-    constructor(title: NameDesc, action: () -> Unit) : this(title.name, title.desc, action)
-
     var isEnabled = true
+    var description = nameDesc.desc
 
-    fun setEnabled(enabled: Boolean, reason: String = description): MenuOption {
+    fun setEnabled(enabled: Boolean, reason: String = nameDesc.desc): MenuOption {
         isEnabled = enabled
         if (!enabled) description = reason
         return this
     }
 
     fun toComplex(): ComplexMenuOption {
-        return ComplexMenuOption(title, description, isEnabled, action)
+        return ComplexMenuOption(NameDesc(nameDesc.name, description, ""), isEnabled, action)
     }
 }

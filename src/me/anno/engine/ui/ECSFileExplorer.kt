@@ -1,26 +1,33 @@
 package me.anno.engine.ui
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
+import me.anno.engine.ui.ECSTreeView.Companion.groupOrder
+import me.anno.engine.ui.ECSTreeView.Companion.optionToMenu
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
-import me.anno.io.files.InvalidRef
 import me.anno.image.thumbs.Thumbs
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.menu.ComplexMenuGroup
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -35,6 +42,7 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.all2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
+import kotlin.reflect.KClass
 
 // done import mesh/material/... for modifications:
 // done create material, mesh, animation etc. folder
@@ -171,31 +179,71 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
         val fileOptions = ArrayList<FileExplorerOption>()
         val folderOptions = ArrayList<FileExplorerOption>()
 
+        fun askPlacePrefab(p: Panel, first: FileReference, name: String, fileContent: String) {
+            askName(p.windowStack, NameDesc("File Name"), name, NameDesc("Create File"), { -1 }, {
+                val name1 = if (it.endsWith(".json")) it.substring(0, it.length - 5) else it
+                val file = findNextFile(first, name1, "json", 1, 0.toChar(), 0)
+                if (file == InvalidRef) {
+                    msg(p.windowStack, NameDesc("Directory is not writable"))
+                } else file.writeText(fileContent)
+                invalidateFileExplorers(p)
+            })
+        }
+
+        fun getFirst(files: List<FileReference>): FileReference {
+            val first = files.firstOrNull()
+            return if (first?.isDirectory == true) first else {
+                LOGGER.warn("Not a directory")
+                InvalidRef
+            }
+        }
+
         @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateFile(name: String, fileContent: String) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
-                val first = files.firstOrNull()
-                if (first?.isDirectory == true) {
-                    askName(p.windowStack, NameDesc("File Name"), name, NameDesc("Create File"), { -1 }, {
-                        val name1 = if (it.endsWith(".json")) it.substring(0, it.length - 5) else it
-                        val file = findNextFile(first, name1, "json", 1, 0.toChar(), 0)
-                        if (file == InvalidRef) {
-                            msg(p.windowStack, NameDesc("Directory is not writable"))
-                        } else file.writeText(fileContent)
-                        invalidateFileExplorers(p)
-                    })
-                } else LOGGER.warn("Not a directory")
+                val first = getFirst(files)
+                if (first != InvalidRef) {
+                    askPlacePrefab(p, first, name, fileContent)
+                }
             })
+        }
+
+        private fun createSampleContent(clazzName: String): String {
+            return Prefab(clazzName).toString()
         }
 
         @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateComponent(name: String, clazzName: String = name) {
-            addOptionToCreateFile(name, Prefab(clazzName).toString())
+            addOptionToCreateFile(name, createSampleContent(clazzName))
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
-        fun addOptionToCreateComponent(name: String, clazzName: String, prefab: FileReference) {
-            addOptionToCreateFile(name, Prefab(clazzName, prefab).toString())
+        fun <V : PrefabSaveable> addComplexButtonToCreate(name: String, clazz: KClass<V>) {
+            folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
+                val first = getFirst(files)
+                if (first != InvalidRef) {
+                    fun onChoseType(sample: PrefabSaveable) {
+                        askPlacePrefab(
+                            p, first, sample.className,
+                            createSampleContent(sample.className)
+                        )
+                    }
+                    Menu.openComplexMenu(
+                        p.windowStack, NameDesc("Choose Type"),
+                        getOptionsByClass(null, clazz)
+                            .groupBy(ECSTreeView.Companion::getMenuGroup)
+                            .map { (group, options) ->
+                                if (options.size > 1) {
+                                    ComplexMenuGroup(
+                                        NameDesc("Add $group"), true,
+                                        options.map { optionToMenu(it, ::onChoseType) })
+                                } else {
+                                    optionToMenu(options.first(), ::onChoseType)
+                                }
+                            }
+                            .sortedBy { groupOrder[it.nameDesc.englishName] ?: it.nameDesc.name }
+                    )
+                }
+            })
         }
 
         init {
@@ -288,10 +336,8 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
             // todo add same options as when right-clicking on tree-view
             // todo create folders for these, because there's too many
             addOptionToCreateComponent("Entity")
-            addOptionToCreateComponent("Material")
-            addOptionToCreateComponent("DecalMaterial")
-            addOptionToCreateComponent("TriplanarMaterial")
-            addOptionToCreateComponent("FurMaterial")
+            addComplexButtonToCreate("Component", Component::class)
+            addComplexButtonToCreate("Material", Material::class)
         }
     }
 }

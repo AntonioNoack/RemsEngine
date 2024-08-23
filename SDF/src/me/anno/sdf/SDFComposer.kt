@@ -29,7 +29,9 @@ import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
 import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.iff
 import org.joml.Vector2f
@@ -285,23 +287,26 @@ object SDFComposer {
     fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BooleanArrayList {
         val flags = BooleanArrayList(max(materials.size, 1))
         if (materials.isNotEmpty()) {
-            tree.simpleTraversal(false) {
-                if (it is SDFComponent && it.positionMappers.any { pm -> pm is UVMapper }) {
-                    it.simpleTraversal(false) { c ->
-                        if (c is SDFShape) {
-                            if (c.materialId < flags.size) {
-                                flags.set(c.materialId)
+            Recursion.processRecursive(tree) { it, remaining ->
+                if (it.isEnabled) {
+                    val needsUVs = it.positionMappers.firstInstanceOrNull2(UVMapper::class) != null
+                    if (needsUVs) {
+                        it.simpleTraversal(false) { c ->
+                            if (c is SDFShape) {
+                                if (c.materialId < flags.size) {
+                                    flags.set(c.materialId)
+                                }
                             }
+                            false
                         }
-                        false
+                    } else if (it is SDFGroup) {
+                        remaining.addAll(it.children)
                     }
                 }
-                false
             }
         }
         return flags
     }
-
 
     fun buildMaterialCode(
         tree: SDFComponent, materials: List<Material?>,

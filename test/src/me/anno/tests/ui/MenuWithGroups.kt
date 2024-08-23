@@ -20,7 +20,7 @@ fun main() {
     testUI3("Menu With Groups") {
         val list = PanelListY(DefaultConfig.style)
         fun option(name: String): ComplexMenuOption {
-            return ComplexMenuOption(name, "", true) {
+            return ComplexMenuOption(NameDesc(name), true) {
                 list += TextPanel(name, DefaultConfig.style)
             }
         }
@@ -28,10 +28,10 @@ fun main() {
             .addLeftClickListener {
                 // open complex menu with groups
                 val g1 = ComplexMenuGroup(
-                    "Living Things", "", true, listOf(
+                    NameDesc("Living Things"), true, listOf(
                         option("Random Plant"),
                         ComplexMenuGroup(
-                            "Animals", "", true, listOf(
+                            NameDesc("Animals"), true, listOf(
                                 option("Scorpion"),
                                 option("Python"),
                                 option("Elephant"),
@@ -41,7 +41,7 @@ fun main() {
                     )
                 )
                 val g2 = ComplexMenuGroup(
-                    "Non-living Things", "", true, listOf(
+                    NameDesc("Non-living Things"), true, listOf(
                         option("Random Car"),
                         option("Random House"),
                     )

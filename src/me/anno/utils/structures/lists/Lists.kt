@@ -4,7 +4,6 @@ import me.anno.utils.callbacks.VtoD
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
@@ -500,12 +499,12 @@ object Lists {
     }
 
     @JvmStatic
-    fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> {
+    fun <V : Any> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V>? {
         return toMutableList().sortByTopology(getDependencies)
     }
 
     @JvmStatic
-    fun <V> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V> {
+    fun <V : Any> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V>? {
         return toMutableList().sortByParent(getParent)
     }
 
@@ -514,63 +513,40 @@ object Lists {
      * and elements with dependencies come after their dependencies;
      * https://en.wikipedia.org/wiki/Topological_sorting
      *
-     * @throws IllegalArgumentException if there is cyclic dependencies
+     * returns null if there is any dependency
      * */
     @JvmStatic
-    fun <V> MutableList<V>.sortByTopology(getDependencies: (V) -> Collection<V>?): List<V> {
-
-        val noPermanentMark = toHashSet()
-        val temporaryMark = HashSet<V>(min(64, size))
-
-        clear()
-
-        fun visit(node: V) {
-            if (node !in noPermanentMark) return
-            if (node in temporaryMark) throw IllegalArgumentException("Found cyclic dependency by $temporaryMark")
-            temporaryMark.add(node)
-            val dependencies = getDependencies(node)
-            if (!dependencies.isNullOrEmpty()) {
-                for (dep in dependencies) {
-                    visit(dep)
-                }
-            }
-            temporaryMark.remove(node)
-            noPermanentMark.remove(node)
-            this.add(node)
-        }
-
-        while (noPermanentMark.isNotEmpty()) {
-            visit(noPermanentMark.first())
-        }
-
-        return this
+    fun <V : Any> MutableList<V>.sortByTopology(getDependencies: (V) -> Collection<V>?): List<V>? {
+        return sortByTopology1(this, getDependencies)
     }
 
-    fun <V> MutableList<V>.sortByParent(getParent: (V) -> V?): List<V> {
-
-        val noPermanentMark = toHashSet()
-        val temporaryMark = HashSet<V>(min(64, size))
-
-        clear()
-
-        fun visit(node: V) {
-            if (node !in noPermanentMark) return
-            if (node in temporaryMark) throw IllegalArgumentException("Found cyclic dependency by $temporaryMark")
-            temporaryMark.add(node)
-            val parent = getParent(node)
-            if (parent != null) {
-                visit(parent)
+    @JvmStatic
+    private fun <V : Any> sortByTopology1(list: MutableList<V>, getDependencies: (V) -> Collection<V>?): List<V>? {
+        return object : TopologicalSort<V, MutableList<V>>(list) {
+            override fun visitDependencies(node: V): Boolean {
+                val dependencies = getDependencies(node)
+                return dependencies != null && dependencies.any { visit(it) }
             }
-            temporaryMark.remove(node)
-            noPermanentMark.remove(node)
-            this.add(node)
-        }
+        }.finish()
+    }
 
-        while (noPermanentMark.isNotEmpty()) {
-            visit(noPermanentMark.first())
-        }
+    /**
+     * returns a list, where parents always come before their children;
+     * returns null, if no such list exists (dependency cycles)
+     * */
+    @JvmStatic
+    fun <V : Any> MutableList<V>.sortByParent(getParent: (V) -> V?): List<V>? {
+        return sortByParent1(this, getParent)
+    }
 
-        return this
+    @JvmStatic
+    private fun <V : Any> sortByParent1(list: MutableList<V>, getParent: (V) -> V?): List<V>? {
+        return object : TopologicalSort<V, MutableList<V>>(list) {
+            override fun visitDependencies(node: V): Boolean {
+                val parent = getParent(node)
+                return parent != null && visit(parent)
+            }
+        }.finish()
     }
 
     @JvmStatic

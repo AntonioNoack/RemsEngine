@@ -486,13 +486,14 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                         .groupBy(::getMenuGroup)
                         .map { (group, options) ->
                             if (options.size > 1) {
-                                ComplexMenuGroup("Add $group", "", true,
+                                ComplexMenuGroup(
+                                    NameDesc("Add $group"), true,
                                     options.map { optionToMenu(parent, it, type) })
                             } else {
                                 optionToMenu(parent, options.first(), type)
                             }
                         }
-                        .sortedBy { groupOrder[it.title] ?: it.title }
+                        .sortedBy { groupOrder[it.nameDesc.englishName] ?: it.nameDesc.name }
                 })
                     .filter { it.isNotEmpty() }
                     .flattenWithSeparator(menuSeparator1.toComplex())
@@ -501,9 +502,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     }
 
     private fun optionToMenu(parent: Saveable, option: Option, type: Char): ComplexMenuOption {
-        val title = option.nameDesc.name
-        return ComplexMenuOption(NameDesc("Add $title", option.nameDesc.desc, "")) {
-            val sample = option.getSample() as PrefabSaveable
+        return Companion.optionToMenu(option) { sample ->
             val prefab1 = Prefab(sample.className)
             addChild(parent, prefab1, type, -1)
         }
@@ -593,15 +592,23 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
 
-        private fun getMenuGroup(option: Option): String {
+        fun getMenuGroup(option: Option): String {
             val sample = option.getSample() as PrefabSaveable
             return getMenuGroup(sample)
         }
 
-        private val groupOrder = listOf(
+        val groupOrder = listOf(
             "Light", "Mesh", "Material",
-            "Text", "SDF", "Collider", "Physics", "Other"
+            "Text", "SDF", "Collider", "Constraint", "Physics", "Other"
         ).withIndex().associate { it.value to it.index.toString() }
+
+        fun optionToMenu(option: Option, onClicked: (PrefabSaveable) -> Unit): ComplexMenuOption {
+            val title = option.nameDesc.name
+            return ComplexMenuOption(NameDesc("Add $title", option.nameDesc.desc, "")) {
+                val sample = option.getSample() as PrefabSaveable
+                onClicked(sample)
+            }
+        }
 
         private fun getMenuGroup(sample: Saveable): String {
             val clazz = sample.className
@@ -613,6 +620,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                 sample is MeshComponentBase -> "Mesh"
                 sample is Material -> "Material"
                 sample is CollidingComponent -> "Collider"
+                clazz.endsWith("Constraint") -> "Constraint"
                 sample is Physics<*, *> -> "Physics"
                 else -> "Other"
             }

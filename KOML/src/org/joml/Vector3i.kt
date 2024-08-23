@@ -279,6 +279,9 @@ open class Vector3i(
     operator fun minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
     operator fun plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
 
+    fun shr(i: Int): Vector3i = set(x shr i, y shr i, z shr i)
+    fun shl(i: Int): Vector3i = set(x shl i, y shl i, z shl i)
+
     override fun hashCode(): Int {
         var result = 1
         result = 31 * result + x

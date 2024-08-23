@@ -10,12 +10,10 @@ object PermutationsTest {
     @Test
     fun testPermutations() {
         val all = HashSet<List<Int>>()
-        var ctr = 0
         val base = listOf(1, 2, 3, 4, 5)
         Permutations.generatePermutations(base) {
-            ctr++
             assertTrue(all.add(it.toList()))
         }
-        assertEquals(base.size.factorial().toInt(), ctr)
+        assertEquals(base.size.factorial().toInt(), all.size)
     }
 }

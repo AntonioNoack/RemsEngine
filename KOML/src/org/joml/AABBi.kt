@@ -139,6 +139,7 @@ class AABBi(
 
     fun getMin(dst: Vector3i = Vector3i()): Vector3i = dst.set(minX, minY, minZ)
     fun getMax(dst: Vector3i = Vector3i()): Vector3i = dst.set(maxX, maxY, maxZ)
+    fun getCenter(dst: Vector3i): Vector3i = dst.set(minX + maxX, minY + maxY, minZ + maxZ).shr(1)
 
     fun set(o: AABBi): AABBi {
         minX = o.minX

@@ -1,12 +1,11 @@
 package me.anno.tests.structures
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.sortedByTopology
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
 
 class TopologicalSortTest {
-    
+
     @Test
     fun okTest() {
         val elements = listOf(2, 1, 4, 3, 0)
@@ -16,7 +15,7 @@ class TopologicalSortTest {
             3 to listOf(2),
             4 to listOf(3)
         )
-        assertEquals(elements.sortedByTopology { dependencies[it] }, listOf(0, 1, 2, 3, 4))
+        assertEquals(listOf(0, 1, 2, 3, 4), elements.sortedByTopology { dependencies[it] })
     }
 
     @Test
@@ -29,6 +28,6 @@ class TopologicalSortTest {
             3 to listOf(2),
             4 to listOf(3)
         )
-        assertFails { elements.sortedByTopology { dependencies[it] } }
+        assertEquals(null, elements.sortedByTopology { dependencies[it] })
     }
 }

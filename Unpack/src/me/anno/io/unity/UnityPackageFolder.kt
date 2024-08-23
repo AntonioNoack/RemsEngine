@@ -19,7 +19,7 @@ class UnityPackageFolder(root: FileReference) : InnerFolder(root) {
     }
 
     override fun getChildImpl(name: String): FileReference {
-        return super.getChild(name).nullIfUndefined()
+        return super.getChildImpl(name).nullIfUndefined()
             ?: project.getGuidFolder(name)
     }
 }

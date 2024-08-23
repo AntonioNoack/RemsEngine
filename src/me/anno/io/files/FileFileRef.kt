@@ -155,7 +155,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun getChildImpl(name: String): FileReference {
         return if (!exists || isDirectory) {
             register(FileFileRef(File(file, name)))
-        } else zipFileForDirectory?.getChild(name) ?: InvalidRef
+        } else zipFileForDirectory?.getChildImpl(name) ?: InvalidRef
     }
 
     override val exists: Boolean

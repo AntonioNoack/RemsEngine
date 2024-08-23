@@ -189,6 +189,9 @@ class AABBd(
     fun getMin(dst: Vector3f): Vector3f = dst.set(minX, minY, minZ)
     fun getMax(dst: Vector3f): Vector3f = dst.set(maxX, maxY, maxZ)
 
+    fun getCenter(dst: Vector3f): Vector3f = dst.set(centerX, centerY, centerZ)
+    fun getCenter(dst: Vector3d): Vector3d = dst.set(centerX, centerY, centerZ)
+
     fun set(o: AABBd): AABBd {
         minX = o.minX
         minY = o.minY
