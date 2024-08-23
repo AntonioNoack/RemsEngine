@@ -10,6 +10,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -117,7 +118,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
             val movie = VideoPanel(source, MediaMetadata.getMeta(source, false)!!, true, DefaultConfig.style)
             movie.looping = LoopingState.PLAY_LOOP
             controls.add(
-                TextButton(">", 1.5f, DefaultConfig.style)
+                TextButton(NameDesc(">"), 1.5f, DefaultConfig.style)
                     .addLeftClickListener {
                         movie.stream.togglePlaying()
                         (it as TextButton).text = if (movie.stream.isPlaying) "||" else ">"

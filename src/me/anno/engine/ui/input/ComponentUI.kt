@@ -87,6 +87,7 @@ import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -155,7 +156,7 @@ object ComponentUI {
             val file = files.first()
             // todo ask file instead
             val ext = if (OS.isWindows) "url" else "desktop"
-            Menu.askName(panel.windowStack, NameDesc(),
+            Menu.askName(panel.windowStack, NameDesc.EMPTY,
                 if (file.isDirectory) file.name
                 else "${file.nameWithoutExtension}.$ext",
                 NameDesc("Link"), { -1 }, { newName ->
@@ -241,7 +242,7 @@ object ComponentUI {
         style: Style
     ): Panel? {
 
-        val title = name?.camelCaseToTitle() ?: ""
+        val title = if (name != null) NameDesc(name.camelCaseToTitle()) else NameDesc.EMPTY
 
         val type0 = property.annotations.firstInstanceOrNull(me.anno.ecs.annotations.Type::class)?.type
         val type1 = type0 ?: when (val value = property.get()) {
@@ -309,36 +310,30 @@ object ComponentUI {
                     setValues(value.map { MutablePair(it.key, it.value) })
                 }
             }
-            else -> {
-                if (value != null && value is Enum<*>) {
-                    val input = EnumInput.createInput(title, value, style)
-                    val values = EnumInput.getEnumConstants(value.javaClass)
-                    input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
-                    return input
-                }
-                if (value is Saveable) {
-                    return createISaveableInput(title, value, style, property)
-                }
-                if (value is ExtendableEnum) {
-                    return createExtendableEnumInput(title, property, value, style)
-                }
-                return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
+            is Enum<*> -> {
+                val input = EnumInput.createInput(title.name, value, style)
+                val values = EnumInput.getEnumConstants(value.javaClass)
+                input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
+                return input
             }
+            is Saveable -> return createISaveableInput(title, value, style, property)
+            is ExtendableEnum -> return createExtendableEnumInput(title, property, value, style)
+            else -> return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
         }
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
     }
 
     private fun createExtendableEnumInput(
-        title: String, property: IProperty<Any?>,
+        nameDesc: NameDesc, property: IProperty<Any?>,
         value: ExtendableEnum, style: Style
     ): Panel {
         val values = value.values
-        val input = EnumInput(NameDesc(title), value.nameDesc, values.map { it.nameDesc }, style)
+        val input = EnumInput(nameDesc, value.nameDesc, values.map { it.nameDesc }, style)
         input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
         return input
     }
 
-    fun createISaveableInput(title: String, saveable: Saveable, style: Style, property: IProperty<Any?>): Panel {
+    fun createISaveableInput(nameDesc: NameDesc, saveable: Saveable, style: Style, property: IProperty<Any?>): Panel {
 
         if (saveable is Inspectable) {
             val panel = PanelListY(style.getChild("deep"))
@@ -364,7 +359,7 @@ object ComponentUI {
                 panel.padding.set(2) // border
                 val panel2 = PanelListY(style)
                 panel.add(panel2)
-                val title2 = title.ifBlank { saveable.className }
+                val title2 = nameDesc.name.ifBlank { saveable.className }
                 // todo list/array-views should have their content visibility be toggleable
                 panel2.add(object : TextPanel(title2, style) {
                     override fun onCopyRequested(x: Float, y: Float) =
@@ -392,7 +387,7 @@ object ComponentUI {
         // serialize saveables for now, this is simple
         // a first variant for editing may be a json editor
         val value0 = JsonFormatter.format(JsonStringWriter.toText(saveable, EngineBase.workspace))
-        val input = TextInputML(title, value0, style)
+        val input = TextInputML(nameDesc, value0, style)
         val textColor = input.base.textColor
         input.addChangeListener {
             if (it == "null") {
@@ -437,20 +432,22 @@ object ComponentUI {
             } else notNullable // some error has happened, e.g. unknown type
         }
 
-        val title = name?.camelCaseToTitle() ?: ""
         val ttt = property.annotations
             .firstInstanceOrNull2(Docs::class)
             ?.description ?: ""
+        val title = if (name != null || !ttt.isBlank2()) {
+            NameDesc(name?.camelCaseToTitle() ?: "", ttt, "")
+        } else NameDesc.EMPTY
         val value = property.get()
         val default = property.getDefault()
 
         when (type0) {
             // native types
-            "Bool", "Boolean" -> return createBooleanInput(title, ttt, value, default, property, style)
+            "Bool", "Boolean" -> return createBooleanInput(title, value, default, property, style)
             "Byte" -> return createByteInput(title, visibilityKey, value, default, property, range, style)
             "Short" -> return createShortInput(title, visibilityKey, value, default, property, range, style)
             "Int", "Integer" -> {
-                return if (title.endsWith("color", true)) {
+                return if (title.englishName.endsWith("color", true)) {
                     ColorInput(title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true, style).apply {
                         alignmentX = AxisAlignment.FILL
                         property.init(this)
@@ -670,11 +667,16 @@ object ComponentUI {
                 // todo operations: translate, rotate, scale
                 for (i in 0 until 4) {
                     panel.add(
-                        FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), NumberType.VEC4, style)
+                        FloatVectorInput(
+                            NameDesc.EMPTY,
+                            visibilityKey,
+                            value.getRow(i, Vector4f()),
+                            NumberType.VEC4,
+                            style
+                        )
                             .addChangeListener { x, y, z, w, _ ->// todo correct change listener
                                 value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                             }
-
                     )
                 }
                 // todo reset listener
@@ -790,7 +792,7 @@ object ComponentUI {
                             addChangeListener { property.set(this, it) }
                         }
 
-                        val openFromProjectButton = TextButton("\uD83D\uDCDA", true, style)
+                        val openFromProjectButton = TextButton(NameDesc("\uD83D\uDCDA"), true, style)
                         openFromProjectButton.setTooltip("Open File from Project")
                         openFromProjectButton.addLeftClickListener { button ->
                             val value1 = property.get() as? FileReference ?: InvalidRef
@@ -805,7 +807,7 @@ object ComponentUI {
                         }
                         list.add(fi)
 
-                        val quickEditButton = object : TextButton("\uD83C\uDFA8", style) {
+                        val quickEditButton = object : TextButton(NameDesc("\uD83C\uDFA8"), style) {
                             override fun onUpdate() {
                                 super.onUpdate()
                                 isInputAllowed = true // hack, to make this always available
@@ -862,7 +864,7 @@ object ComponentUI {
                                         ce.tooltip = if (luaErrorClass.isInstance(func)) {
                                             LOGGER.warn(func.toString())
                                             func.toString()
-                                        } else null
+                                        } else ""
                                     } catch (e: Exception) {
                                         LOGGER.warn("Lua not available?", e)
                                         ce.tooltip = "$e"
@@ -1010,7 +1012,7 @@ object ComponentUI {
         // todo button to create temporary instance?
         // todo button to create instance in project
         // todo search panel
-        val buttons = TextButton("Cancel", style)
+        val buttons = TextButton(NameDesc("Cancel"), style)
             .addLeftClickListener {
                 callback(value1, true)
                 it.window?.close()

@@ -3,6 +3,7 @@ package me.anno.input.controller
 import me.anno.gpu.OSWindow
 import me.anno.input.Input.controllers
 import me.anno.input.controller.ControllerCalibration.Companion.saveCalibration
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.SpyPanel
@@ -64,7 +65,7 @@ object CalibrationProcedure {
         }
         // how can we pair the axes? 0/1 = left x/y, 2/3 = right x/y, 4/5 = sticks
         // to do add a mapping for keys, so there is the name, you click on it, and then press the corresponding key
-        panel.add(TextButton("Save", style).addLeftClickListener {
+        panel.add(TextButton(NameDesc("Save"), style).addLeftClickListener {
             val config = controller.calibration
             for (child in list.children) {
                 if (child is CalibrationPanel) {

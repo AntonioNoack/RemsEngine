@@ -130,7 +130,7 @@ object ExtensionLoader {
         } else {
             LOGGER.warn(
                 "Extension \"${info.name}\" is incompatible " +
-                        "with ${instance?.title} version ${instance?.versionName}!, " +
+                        "with ${instance?.nameDesc?.name} version ${instance?.versionName}!, " +
                         "${info.minVersion} <= $instanceVersion < ${info.maxVersion}"
             )
         }

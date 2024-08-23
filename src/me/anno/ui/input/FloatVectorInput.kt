@@ -6,6 +6,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Input.isShiftDown
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.pow
@@ -31,27 +32,27 @@ import org.joml.Vector4f
 import kotlin.math.max
 
 open class FloatVectorInput(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     val type: NumberType,
     style: Style,
     val createComponent: () -> FloatInput
-) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
+) : TitledListY(nameDesc, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(FloatVectorInput::class)
     }
 
-    constructor(title: String, visibilityKey: String, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style, { FloatInput("", visibilityKey, type, style) })
+    constructor(nameDesc: NameDesc, visibilityKey: String, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style, { FloatInput(NameDesc.EMPTY, visibilityKey, type, style) })
 
-    constructor(style: Style) : this("", "", NumberType.VEC4, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", NumberType.VEC4, style)
 
     @Suppress("unused")
     constructor(
-        title: String, visibilityKey: String, value: Quaternionf,
+        nameDesc: NameDesc, visibilityKey: String, value: Quaternionf,
         type: NumberType = NumberType.QUATERNION, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         if (type.numComponents == 3) {
             // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
             val value2 = value.toEulerAnglesDegrees()
@@ -62,58 +63,58 @@ open class FloatVectorInput(
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector2f,
+        nameDesc: NameDesc, visibilityKey: String, value: Vector2f,
         type: NumberType = NumberType.VEC2, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector3f,
+        nameDesc: NameDesc, visibilityKey: String, value: Vector3f,
         type: NumberType = NumberType.VEC3, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector4f,
+        nameDesc: NameDesc, visibilityKey: String, value: Vector4f,
         type: NumberType = NumberType.VEC4, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Planef,
+        nameDesc: NameDesc, visibilityKey: String, value: Planef,
         type: NumberType = NumberType.PLANE4, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Planed,
+        nameDesc: NameDesc, visibilityKey: String, value: Planed,
         type: NumberType = NumberType.PLANE4D, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector2d,
+        nameDesc: NameDesc, visibilityKey: String, value: Vector2d,
         type: NumberType = NumberType.VEC2D, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector3d,
+        nameDesc: NameDesc, visibilityKey: String, value: Vector3d,
         type: NumberType = NumberType.VEC3D, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector4d,
+        nameDesc: NameDesc, visibilityKey: String, value: Vector4d,
         type: NumberType = NumberType.VEC4D, style: Style
-    ) : this(title, visibilityKey, type, style) {
+    ) : this(nameDesc, visibilityKey, type, style) {
         setValue(value, -1, false)
     }
 

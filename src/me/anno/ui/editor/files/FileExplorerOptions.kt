@@ -201,7 +201,7 @@ object FileExplorerOptions {
         }
         val stack = PanelStack(style)
         stack.add(imagePanel)
-        stack.add(TextButton("Close", style)
+        stack.add(TextButton(NameDesc("Close"), style)
             .addLeftClickListener(Menu::close)
             .apply {
                 alignmentX = AxisAlignment.MIN

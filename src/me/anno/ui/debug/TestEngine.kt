@@ -3,12 +3,12 @@ package me.anno.ui.debug
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineActions
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.ActionManager
 import me.anno.language.translation.NameDesc
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
@@ -17,7 +17,10 @@ import me.anno.ui.base.menu.Menu
 /**
  * engine runtime for testing
  * */
-open class TestEngine(title: String, val createMainPanel: () -> List<Panel>) : EngineBase(title, "Test", 1, true) {
+open class TestEngine(nameDesc: NameDesc, val createMainPanel: () -> List<Panel>) :
+    EngineBase(nameDesc, "Test", 1, true) {
+
+    constructor(title: String, createMainPanel: () -> List<Panel>) : this(NameDesc(title), createMainPanel)
 
     override fun createUI() {
         val ui = PanelListY(style)

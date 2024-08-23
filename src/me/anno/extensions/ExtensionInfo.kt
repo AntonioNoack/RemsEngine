@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.reflect.KClass
 
 class ExtensionInfo() {
@@ -72,7 +73,7 @@ class ExtensionInfo() {
                 "author", "authors" -> authors = value
                 "moddependencies", "mod-dependencies",
                 "plugindependencies", "plugin-dependencies",
-                "dependencies" -> dependencies += value.split(',').filter { it.isNotBlank() }.map { it.trim() }
+                "dependencies" -> dependencies += value.split(',').filter { it.isNotBlank2() }.map { it.trim() }
                 "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> uuid = value
                 "minversion", "min-version" -> minVersion = value.toIntOrDefault(minVersion)
                 "maxversion", "max-version" -> maxVersion = value.toIntOrDefault(maxVersion)

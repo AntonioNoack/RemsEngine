@@ -50,7 +50,7 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
         fun open() {
             action?.invoke()
-            openMenu(windowStack, this.x, this.y + this.height, NameDesc(), actionList.map { (_, minor) ->
+            openMenu(windowStack, this.x, this.y + this.height, NameDesc.EMPTY, actionList.map { (_, minor) ->
                 MenuOption(NameDesc(minor.name, "", "")) { minor.action() }
             })
         }

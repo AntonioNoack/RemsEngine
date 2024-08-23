@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
 
@@ -36,7 +37,7 @@ class CSet() : Change() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // special handling, to save a little space by omitting "name": and "value":
-        if (name.isNotBlank()) {
+        if (name.isNotBlank2()) {
             val value = value
             if (value is PrefabSaveable) {
                 writer.writeObject(null, name, value.prefabPath)

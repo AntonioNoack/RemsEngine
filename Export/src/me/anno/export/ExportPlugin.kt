@@ -145,7 +145,7 @@ class ExportPlugin : Plugin() {
         fun createPresetUI(preset: ExportSettings) {
             body.clear()
             // quick-button
-            body.add(TextButton("Export", style)
+            body.add(TextButton(NameDesc("Export"), style)
                 .addLeftClickListener {
                     runExport(preset)
                 })
@@ -157,16 +157,16 @@ class ExportPlugin : Plugin() {
             }, { createPresetUI(preset) })
             addSeparator(body)
             // buttons
-            body.add(TextButton("Export", style)
+            body.add(TextButton(NameDesc("Export"), style)
                 .addLeftClickListener {
                     runExport(preset)
                 })
-            body.add(TextButton("Save Preset", style)
+            body.add(TextButton(NameDesc("Save Preset"), style)
                 .addLeftClickListener {
                     storePresets(presets)
                     msg(NameDesc("Saved Preset!"))
                 })
-            body.add(TextButton("Save Preset As...", style)
+            body.add(TextButton(NameDesc("Save Preset As..."), style)
                 .addLeftClickListener {
                     askName(ui.windowStack, NameDesc("Preset Name"), preset.name,
                         NameDesc("Save"), { -1 }) {
@@ -178,7 +178,7 @@ class ExportPlugin : Plugin() {
                         reloadUI(newName)
                     }
                 })
-            body.add(TextButton("Delete Preset", style)
+            body.add(TextButton(NameDesc("Delete Preset"), style)
                 .addLeftClickListener {
                     ask(ui.windowStack, NameDesc("Delete ${preset.name}?")) {
                         storePresets(presets.filter { it !== preset })
@@ -202,7 +202,7 @@ class ExportPlugin : Plugin() {
                 // create a new preset -> ask user for name
                 askName(
                     GFX.someWindow.windowStack,
-                    NameDesc(), "Preset Name", NameDesc("Create"), { white }, {
+                    NameDesc.EMPTY, "Preset Name", NameDesc("Create"), { white }, {
                         Menu.close(ui)
                         val newName = it.trim()
                         val newList = presets + ExportSettings().apply { name = newName }

@@ -15,35 +15,32 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class EnumInput(
-    val title: String, withTitle: Boolean, startValue: String,
+    val nameDesc: NameDesc, withTitle: Boolean, startValue: NameDesc,
     val options: List<NameDesc>, style: Style
 ) : PanelListX(style), InputPanel<NameDesc>, TextStyleable {
 
-    constructor(nameDesc: NameDesc, startValue: String, options: List<NameDesc>, style: Style) :
-            this(nameDesc.name, true, startValue, options, style) {
-        tooltip = nameDesc.desc
-    }
-
     constructor(startValue: NameDesc, options: List<NameDesc>, style: Style) :
-            this("", false, startValue.name, options, style)
+            this(NameDesc.EMPTY, false, startValue, options, style)
 
     constructor(name: NameDesc, startValue: NameDesc, options: List<NameDesc>, style: Style) :
-            this(name, startValue.name, options, style)
+            this(name, name.name.isNotBlank2(), startValue, options, style)
 
-    var lastIndex = options.indexOfFirst { it.name == startValue }
+    var lastIndex = options.indexOfFirst { it == startValue }
 
-    val titleView = if (withTitle) TextPanel("$title:", style) else null
+    val titleView = if (withTitle) TextPanel("${nameDesc.name}:", style) else null
     val inputPanel = EnumValuePanel(startValue, this, style)
 
     init {
         titleView?.enableHoverColor = true
         inputPanel.enableHoverColor = true
+        tooltip = nameDesc.desc
     }
 
     override var isInputAllowed = true
@@ -66,16 +63,14 @@ open class EnumInput(
     }
 
     override var value =
-        options.firstOrNull { it.name == startValue }
-            ?: options.firstOrNull { it.englishName == startValue }
-            ?: options.first()
+        options.firstOrNull { it == startValue } ?: options.first()
 
     fun setValue1(option: NameDesc, index: Int, notify: Boolean = true) {
         inputPanel.text = option.name
         inputPanel.tooltip = option.desc
         lastIndex = index
         value = option
-        if (notify) changeListener(option.name, index, options)
+        if (notify) changeListener(option, index, options)
         invalidateLayout() // layout, because the drawn length can change
     }
 
@@ -97,7 +92,7 @@ open class EnumInput(
         }
     }
 
-    var changeListener = { _: String, _: Int, _: List<NameDesc> -> }
+    var changeListener = { _: NameDesc, _: Int, _: List<NameDesc> -> }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titleView?.isInFocus == true || inputPanel.isInFocus
@@ -118,7 +113,7 @@ open class EnumInput(
         inputPanel.text = options[index].name
     }
 
-    fun setChangeListener(listener: (value: String, index: Int, values: List<NameDesc>) -> Unit): EnumInput {
+    fun setChangeListener(listener: (value: NameDesc, index: Int, values: List<NameDesc>) -> Unit): EnumInput {
         changeListener = listener
         return this
     }
@@ -133,7 +128,7 @@ open class EnumInput(
         if (isInputAllowed) openMenu(
             windowStack, this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
-                .with("%1", title.ifBlank2("Value")),
+                .with("%1", nameDesc.name.ifBlank2("Value")),
             options.mapIndexed { index, option ->
                 MenuOption(option) {
                     setValue1(option, index)
@@ -199,8 +194,8 @@ open class EnumInput(
         fun createInput(title: String, value: Enum<*>, style: Style): EnumInput {
             val values = getEnumConstants(value.javaClass)
             val ttt = value::class.simpleName?.camelCaseToTitle() ?: "?"
-            val valueName = enumToNameDesc(value).name
-            return EnumInput(NameDesc(title, ttt, ""), valueName, values.map { enumToNameDesc(it) }, style)
+            val valueName = enumToNameDesc(value)
+            return EnumInput(NameDesc(title, ttt, ""), valueName, values.map(::enumToNameDesc), style)
         }
 
         fun getEnumConstants(clazz: Class<*>): List<Enum<*>> {

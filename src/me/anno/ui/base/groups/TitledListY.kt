@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextStyleable
@@ -7,14 +8,14 @@ import me.anno.ui.input.InputVisibility
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.Strings.isBlank2
 
-open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
+open class TitledListY(val title: NameDesc, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
     PanelListY(sorter, style), TextStyleable {
 
-    constructor(style: Style) : this("", "", null, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", null, style)
 
-    constructor(title: String, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
+    constructor(title: NameDesc, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
 
-    val titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
+    val titleView = if (title.name.isBlank2()) null else TitlePanel(title, this, style)
 
     init {
         if (titleView != null) {

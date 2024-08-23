@@ -87,7 +87,7 @@ class TreeViewEntryPanel<V : Any>(
         this.text.text = name
     }
 
-    override fun setEntryTooltip(ttt: String?) {
+    override fun setEntryTooltip(ttt: String) {
         this.tooltip = ttt
     }
 

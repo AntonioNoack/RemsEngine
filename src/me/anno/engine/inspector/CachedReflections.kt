@@ -9,6 +9,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.ui.input.EnumInput.Companion.getEnumConstants
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.maps.LazyMap
+import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
 import java.lang.reflect.Field
@@ -258,7 +259,7 @@ class CachedReflections private constructor(
                     val m = methods.firstOrNull { it.name == kotlinAnnotationName }
                     if (m != null) annotations += m.annotations.toList()
                     val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
-                    if (serial != null && serial.name.isNotBlank()) {
+                    if (serial != null && serial.name.isNotBlank2()) {
                         betterName = serial.name
                     }
                     if (betterName !in map) {

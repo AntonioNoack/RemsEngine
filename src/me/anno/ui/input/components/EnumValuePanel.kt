@@ -3,12 +3,13 @@ package me.anno.ui.input.components
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Key
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 
-class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) :
-    TextPanel(title, style.getChild("italic")) {
+class EnumValuePanel(nameDesc: NameDesc, private var owner: EnumInput, style: Style) :
+    TextPanel(nameDesc, style.getChild("italic")) {
 
     override fun acceptsChar(char: Int): Boolean {
         val asKey = Key.byId(char)
@@ -23,7 +24,7 @@ class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) 
     override fun isKeyInput() = true
 
     override fun clone(): EnumValuePanel {
-        val clone = EnumValuePanel(text, owner, style)
+        val clone = EnumValuePanel(NameDesc(text, tooltip, ""), owner, style)
         copyInto(clone)
         return clone
     }

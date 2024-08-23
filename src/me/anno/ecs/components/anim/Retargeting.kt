@@ -308,7 +308,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                         }
                     }
                 }.setChangeListener { value, _, _ ->
-                    dstBoneMapping[i] = value
+                    dstBoneMapping[i] = value.englishName
                     val prefab = prefab
                     if (prefab != null) {
                         PrefabInspector.currentInspector?.change(
@@ -322,7 +322,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                     val value = dstBoneRotations[i]
                     val type = NumberType.ROT_YXZ.withDefault(Vector3f(0f))
                     FloatVectorInput(
-                        "Correction", "${bone.name}-rot",
+                        NameDesc("Correction"), "${bone.name}-rot",
                         value.toEulerAnglesDegrees(), type, style
                     ).apply {
                         // property.init(this)

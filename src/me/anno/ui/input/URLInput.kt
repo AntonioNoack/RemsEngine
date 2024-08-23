@@ -1,10 +1,11 @@
 package me.anno.ui.input
 
+import me.anno.engine.EngineBase
+import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.engine.EngineBase
-import me.anno.input.Clipboard.getClipboardContent
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -21,13 +22,13 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
 open class URLInput(
-    title: String, style: Style,
+    nameDesc: NameDesc, style: Style,
     f0: FileReference,
     var extraRightClickOptions: List<FileExplorerOption>,
     var isDirectory: Boolean = false
 ) : PanelListX(style), InputPanel<FileReference> {
 
-    val base = TextInput(title, "", false, f0.absolutePath, style)
+    val base = TextInput(nameDesc, "", false, f0.absolutePath, style)
 
     init {
         base.apply {

@@ -13,7 +13,7 @@ import me.anno.ui.input.EnumInput
 
 fun themeInput(editor: CodeEditor): Panel {
     return EnumInput(
-        NameDesc("Theme"), editor.theme.name,
+        NameDesc("Theme"), NameDesc(editor.theme.name),
         LanguageThemeLib.listOfAll.map { NameDesc(it.name) }, style
     ).setChangeListener { _, index, _ ->
         editor.theme = LanguageThemeLib.listOfAll[index]

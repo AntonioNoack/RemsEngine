@@ -1,19 +1,20 @@
 package me.anno.tests.ui.input
 
-import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Key
+import me.anno.language.translation.NameDesc
 import me.anno.tests.ui.UITests
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.input.IntInput
+import me.anno.ui.input.NumberType
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 fun main() {
     disableRenderDoc()
-    testUI("IntInput", IntInput("Quality", "", NumberType.VIDEO_QUALITY_CRF, style))
+    testUI("IntInput", IntInput(NameDesc("Quality"), "", NumberType.VIDEO_QUALITY_CRF, style))
 }
 
 class IntInputTests : UITests() {
@@ -22,7 +23,7 @@ class IntInputTests : UITests() {
 
         LogManager.disableLogger("SimpleExpressionParser")
 
-        val test = IntInput("Quality", "", NumberType.VIDEO_QUALITY_CRF, style)
+        val test = IntInput(NameDesc("Quality"), "", NumberType.VIDEO_QUALITY_CRF, style)
         prepareUI(test)
 
         test.setValue(20, false)

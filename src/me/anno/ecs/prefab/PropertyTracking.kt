@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.engine.inspector.CachedProperty
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors.axisWColor
@@ -69,7 +70,7 @@ object PropertyTracking {
         }
         val samples = instances.cross(channels, ArrayList(instances.size * channels.size))
         var dynPanel: Panel? = null
-        val button = TextButton("\uD83D\uDC41\uFE0F", true, style)
+        val button = TextButton(NameDesc("\uD83D\uDC41\uFE0F"), true, style)
         button.setTooltip("Start Tracking")
         button.addLeftClickListener {
             button.setTooltip(if (dynPanel == null) "Stop Tracking" else "Track")

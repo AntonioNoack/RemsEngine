@@ -48,6 +48,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
@@ -371,7 +372,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         val desc = if (element is PrefabSaveable) element.description.shorten(maxLength).toString() else ""
         val descLn = if (desc.isEmpty()) desc else desc + "\n"
         return when (element) {
-            is Panel -> element.tooltip ?: desc
+            is Panel -> element.tooltip.ifBlank2(desc)
             is System -> descLn + "System"
             !is Entity -> desc
             else -> descLn + "${element.children.size} E + ${element.components.size} C, " +

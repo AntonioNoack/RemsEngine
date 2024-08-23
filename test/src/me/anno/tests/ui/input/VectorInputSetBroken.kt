@@ -1,10 +1,9 @@
 package me.anno.tests.ui.input
 
-import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.engine.inspector.Inspectable
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -13,6 +12,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.FloatVectorInput
+import me.anno.ui.input.NumberType
 import org.joml.Vector4f
 
 fun main() {
@@ -23,12 +23,12 @@ fun main() {
             inspected: List<Inspectable>, list: PanelListY, style: Style,
             getGroup: (nameDesc: NameDesc) -> SettingCategory
         ) {
-            val vi = FloatVectorInput("Value", "", Vector4f(), NumberType.VEC4, DefaultConfig.style)
+            val vi = FloatVectorInput(NameDesc("Value"), "", Vector4f(), NumberType.VEC4, DefaultConfig.style)
             list.add(vi)
-            list.add(TextButton("Set 1,2,3,4", style).addLeftClickListener {
+            list.add(TextButton(NameDesc("Set 1,2,3,4"), style).addLeftClickListener {
                 vi.setValue(Vector4f(1f, 2f, 3f, 4f), true)
             })
-            list.add(TextButton("Set 4,3,2,1", style).addLeftClickListener {
+            list.add(TextButton(NameDesc("Set 4,3,2,1"), style).addLeftClickListener {
                 vi.setValue(Vector4f(4f, 3f, 2f, 1f), true)
             })
         }

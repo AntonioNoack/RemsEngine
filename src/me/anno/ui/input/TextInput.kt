@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
@@ -11,16 +12,16 @@ import me.anno.ui.Style
 import me.anno.ui.input.components.PureTextInputML
 
 @Suppress("unused")
-open class TextInput(title: String, val visibilityKey: String, enableSpellcheck: Boolean, style: Style) :
+open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellcheck: Boolean, style: Style) :
     PanelContainer(PureTextInput(style.getChild("deep")), Padding(), style), InputPanel<String>, TextStyleable {
 
-    constructor(style: Style) : this("", "", true, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", true, style)
 
-    constructor(title: String, visibilityKey: String, value: String?, style: Style) :
-            this(title, visibilityKey, true, value, style)
+    constructor(nameDesc: NameDesc, visibilityKey: String, value: String?, style: Style) :
+            this(nameDesc, visibilityKey, true, value, style)
 
-    constructor(title: String, visibilityKey: String, enableSuggestions: Boolean, value: String?, style: Style) :
-            this(title, visibilityKey, enableSuggestions, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, enableSuggestions: Boolean, value: String?, style: Style) :
+            this(nameDesc, visibilityKey, enableSuggestions, style) {
         setValue(value ?: "", false)
     }
 
@@ -28,8 +29,9 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
     private var isSelectedListener: (() -> Unit)? = null
 
     init {
+        tooltip = nameDesc.desc
         base.enableSpellcheck = enableSpellcheck
-        base.placeholder = title
+        base.placeholder = nameDesc.name
         base.backgroundColor = backgroundColor
     }
 

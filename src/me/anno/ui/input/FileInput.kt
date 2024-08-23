@@ -34,14 +34,14 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
 open class FileInput(
-    title: String, style: Style,
+    nameDesc: NameDesc, style: Style,
     val f0: FileReference,
     var extraRightClickOptions: List<FileExplorerOption>,
     var isDirectory: Boolean = false,
 ) : PanelListX(style), InputPanel<FileReference>, TextStyleable {
 
-    val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
-    val base = TextInput(title, "", false, f0.toString2(), style)
+    val button = TextButton(NameDesc(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]), true, style)
+    val base = TextInput(nameDesc, "", false, f0.toString2(), style)
     val base2 = base.base
 
     private val buttons = ArrayList<TextButton>()

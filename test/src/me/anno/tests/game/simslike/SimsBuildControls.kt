@@ -1,13 +1,14 @@
 package me.anno.tests.game.simslike
 
 import me.anno.engine.ui.render.RenderView
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 
 class SimsBuildControls(controls: SimsControls, rv: RenderView) : SimsControlBase(controls, rv) {
 
     init {
-        add(TextButton("Play", style)
+        add(TextButton(NameDesc("Play"), style)
             .addLeftClickListener {
                 // switch to play mode
                 sceneView.editControls = controls.playControls

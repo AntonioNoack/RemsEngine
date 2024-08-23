@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderDoc.disableRenderDoc
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.progress.ProgressBar
@@ -24,7 +25,7 @@ fun main() {
         }
     })
     testUI("Progress Bar") {
-        TextButton("Start", style)
+        TextButton(NameDesc("Start"), style)
             .addLeftClickListener {
                 val bar = window.addProgressBar("Sample", "Bytes", 1e6)
                 thread {

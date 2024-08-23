@@ -8,6 +8,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -29,7 +30,7 @@ abstract class TreeView<V : Any>(
     val list = child as PanelListY
     val sample get() = list.children.getOrNull(1) as TreeViewEntryPanel<*>
     val searchPanel = TextInput(
-        Dict["Search Term", "ui.general.searchTerm"], "",
+        NameDesc("Search Term", "", "ui.general.searchTerm"), "",
         false, style.getChild("deep")
     )
 
@@ -281,7 +282,7 @@ abstract class TreeView<V : Any>(
         return if (isIncludedInSearch) {
             panel.setEntrySymbol(getSymbol(element))
             panel.setEntryName(name)
-            panel.setEntryTooltip(ttt.value)
+            panel.setEntryTooltip(ttt.value ?: "")
             val padding = panel.padding
             val left = inset * depth + padding.right
             if (padding.left != left) {

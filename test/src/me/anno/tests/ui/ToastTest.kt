@@ -7,6 +7,6 @@ import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
-    testUI3("Toast", TextButton("Click Me!", style)
+    testUI3("Toast", TextButton(NameDesc("Click Me!"), style)
         .addLeftClickListener { msg(NameDesc("Hello World!")) })
 }

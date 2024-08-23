@@ -55,7 +55,7 @@ abstract class MathNode<V : Enum<V>>(var data: MathNodeData<V>) :
         val typeName = enumType.name.upperSnakeCaseToTitle()
         if (g is GraphEditor) {
             list += EnumInput(
-                "Type", true, typeName,
+                NameDesc("Type"), true, NameDesc(typeName),
                 data.enumValues.map { NameDesc(it.name.upperSnakeCaseToTitle(), data.getGLSL(it), "") }, style
             ).setChangeListener { _, index, _ ->
                 enumType = data.enumValues[index]

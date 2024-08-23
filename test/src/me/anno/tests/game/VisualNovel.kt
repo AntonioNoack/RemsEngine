@@ -21,6 +21,7 @@ import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.Style
@@ -36,6 +37,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.OS.downloads
 import me.anno.utils.OS.pictures
+import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.math.max
 
 /**
@@ -99,7 +101,9 @@ object VisualNovel {
 
         override fun onEnterState(oldState: StateNode?) {
             color = gold
-            val options = (2 until inputs.size).map { (getInput(it) ?: "").toString() }.filter { it.isNotBlank() }
+            val options = (2 until inputs.size)
+                .map { (getInput(it) ?: "").toString() }
+                .filter { it.isNotBlank2() }
             val shownText = (getInput(1) ?: "").toString() + "\n" +
                     options.withIndex().joinToString("") { (idx, it) -> "  [${idx + 1}] $it\n" }
             setText(shownText, options.size, this)
@@ -123,7 +127,7 @@ object VisualNovel {
             val self = this
             val graph = graph as StateMachine
             super.createUI(g, list, style)
-            list.add(TextButton("Start", style)
+            list.add(TextButton(NameDesc("Start"), style)
                 .addLeftClickListener {
                     graph.start(self) // sets self
                     graph.update() // finds first true node
@@ -266,7 +270,7 @@ object VisualNovel {
 
                 if (textTime == 0L) textTime = Time.nanoTime
 
-                val hasText = shownText.isNotBlank()
+                val hasText = shownText.isNotBlank2()
 
                 // draw background
                 val bgImage = TextureCache[background, true]

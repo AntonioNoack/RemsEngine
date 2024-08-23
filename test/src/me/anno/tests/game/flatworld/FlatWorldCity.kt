@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Key
+import me.anno.language.translation.NameDesc
 import me.anno.tests.game.flatworld.buildings.controls.BuildingDeleteControls
 import me.anno.tests.game.flatworld.buildings.controls.BuildingPlaceControls
 import me.anno.tests.game.flatworld.streets.controls.StreetBuildingControls
@@ -103,7 +104,7 @@ fun main() {
         list.add(EditTypeButton(sceneView, "-Street", StreetDeletingControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "+Building", BuildingPlaceControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "-Building", BuildingDeleteControls(world, renderView)))
-        list.add(TextButton("Test Vehicle", style).addLeftClickListener { spawnRandomVehicle(world) })
+        list.add(TextButton(NameDesc("Test Vehicle"), style).addLeftClickListener { spawnRandomVehicle(world) })
         list.alignmentX = AxisAlignment.MAX
         list.alignmentY = AxisAlignment.CENTER
         ui.add(list)

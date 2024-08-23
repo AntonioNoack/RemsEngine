@@ -1,5 +1,6 @@
 package me.anno.engine.ui.input
 
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -16,12 +17,12 @@ import me.anno.utils.types.Defaults
  * UI for editing maps
  * */
 open class AnyMapPanel(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     val keyType: String,
     val valueType: String,
     style: Style
-) : ArrayPanel<MutablePair<Any?, Any?>, Panel>(title, visibilityKey, {
+) : ArrayPanel<MutablePair<Any?, Any?>, Panel>(nameDesc, visibilityKey, {
     MutablePair(Defaults.getDefaultValue(keyType), Defaults.getDefaultValue(valueType))
 }, style) {
 

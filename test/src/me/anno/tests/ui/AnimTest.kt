@@ -24,7 +24,7 @@ fun main() {
         showRedraws = false
         val list = PanelListY(style)
         for (i in Interpolation.entries) {
-            val animContainer = AnimContainer(TextButton(i.displayName, false, style), Padding(10, 0), style)
+            val animContainer = AnimContainer(TextButton(i.nameDesc, false, style), Padding(10, 0), style)
             // in the real world better not mix them
             animContainer.add(MoveAnimation(EventType.HOVER, i, 0f, 0.5f, 1f, 0.5f))
             animContainer.add(ScaleAnimation(EventType.TOUCH, i))

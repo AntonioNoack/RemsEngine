@@ -159,7 +159,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     open fun onDoubleClick(file: FileReference) {}
 
     val searchBar = TextInput(
-        Dict["Search Term", "ui.general.searchTerm"], "", false,
+        NameDesc("Search Term", "", "ui.general.searchTerm"), "", false,
         style.getChild("deep")
     )
     var searchDepth = 3

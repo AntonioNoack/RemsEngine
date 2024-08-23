@@ -10,6 +10,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView1
 import me.anno.engine.ui.render.SceneView
 import me.anno.graph.visual.render.effects.DepthOfFieldNode
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -33,15 +34,15 @@ fun main() {
         val list = PanelListY(style)
         val list2 = PanelListX(style)
         val effect = RenderMode.DEPTH_OF_FIELD.renderGraph!!.nodes.firstInstance2(DepthOfFieldNode::class)
-        list2.add(FloatInput("Point", effect.getFloatInput(1), NumberType.FLOAT_PLUS, style)
+        list2.add(FloatInput(NameDesc("Point"), effect.getFloatInput(1), NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(1, it.toFloat()) })
-        list2.add(FloatInput("Scale", effect.getFloatInput(2), NumberType.FLOAT_PLUS, style)
+        list2.add(FloatInput(NameDesc("Scale"), effect.getFloatInput(2), NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(2, it.toFloat()) })
-        list2.add(FloatInput("RadScale", effect.getFloatInput(3), NumberType.LONG_PLUS, style)
+        list2.add(FloatInput(NameDesc("RadScale"), effect.getFloatInput(3), NumberType.LONG_PLUS, style)
             .setChangeListener { effect.setInput(3, it.toFloat()) })
-        list2.add(FloatInput("MaxSize", effect.getFloatInput(4), NumberType.FLOAT_PLUS, style)
+        list2.add(FloatInput(NameDesc("MaxSize"), effect.getFloatInput(4), NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(4, it.toFloat()) })
-        list2.add(FloatInput("Spherical", effect.getFloatInput(5), NumberType.FLOAT_PLUS, style)
+        list2.add(FloatInput(NameDesc("Spherical"), effect.getFloatInput(5), NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(5, it.toFloat()) })
         list.add(sceneView)
         list.add(list2)

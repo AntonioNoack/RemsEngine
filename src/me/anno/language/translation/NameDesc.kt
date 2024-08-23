@@ -3,11 +3,13 @@ package me.anno.language.translation
 /**
  * translatable name and description in one,
  * because most times they go together
+ *
+ * todo object with typically used NameDescs like Cancel, Close, Accept and such
  * */
 class NameDesc(name: String, description: String, private val dictPath: String) {
 
     constructor(name: String) : this(name, "", "")
-    constructor() : this("", "", "")
+    private constructor() : this("", "", "")
 
     private val iName = name
     private val iDesc = description
@@ -49,6 +51,8 @@ class NameDesc(name: String, description: String, private val dictPath: String) 
     }
 
     companion object {
+
+        val EMPTY = NameDesc()
 
         @JvmStatic
         fun translate(name: String, dictPath: String) = translateName(name, dictPath)

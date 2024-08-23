@@ -111,8 +111,8 @@ object Dict {
         val options = getOptions()
         val currentLanguage = getDefaultOption()
         val input = EnumInput(
-            Dict["Language", "ui.input.language.title"], true,
-            currentLanguage.nameDesc.name,
+            NameDesc("Language", "", "ui.input.language.title"), true,
+            currentLanguage.nameDesc,
             options.map { it.nameDesc },
             style
         )

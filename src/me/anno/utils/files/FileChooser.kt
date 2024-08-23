@@ -22,6 +22,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.types.Strings.isNotBlank2
 
 object FileChooser {
 
@@ -29,7 +30,7 @@ object FileChooser {
 
     @JvmStatic
     fun selectFiles(
-        title: NameDesc, allowFiles: Boolean, allowFolders: Boolean,
+        nameDesc: NameDesc, allowFiles: Boolean, allowFolders: Boolean,
         allowMultiples: Boolean, toSave: Boolean, startFolder: FileReference,
         filters: List<FileExtensionFilter>, callback: (List<FileReference>) -> Unit
     ) {
@@ -38,7 +39,7 @@ object FileChooser {
             return
         }
         createFileChooser(
-            title, allowFiles, allowFolders, allowMultiples, toSave,
+            nameDesc, allowFiles, allowFolders, allowMultiples, toSave,
             startFolder, filters, style, callback
         )
     }
@@ -88,8 +89,8 @@ object FileChooser {
         style: Style, callback: (List<FileReference>) -> Unit
     ): Panel {
 
-        val cancel = TextButton("Cancel", style)
-        val submit = TextButton("Select", style)
+        val cancel = TextButton(NameDesc("Cancel"), style)
+        val submit = TextButton(NameDesc("Select"), style)
         submit.isInputAllowed = allowFolders
 
         val selected = ArrayList<FileReference>()
@@ -105,7 +106,7 @@ object FileChooser {
                 selected.ensureCapacity(words.size)
                 for (i in words.indices) {
                     val word = words[i]
-                    if (word.isNotBlank()) {
+                    if (word.isNotBlank2()) {
                         val file = word.trim().toGlobalFile()
                         selected.add(file)
                     }
@@ -189,7 +190,7 @@ object FileChooser {
 
     @JvmStatic
     private fun createFileChooser(
-        title: NameDesc,
+        nameDesc: NameDesc,
         allowFiles: Boolean, allowDirectories: Boolean,
         allowMultiples: Boolean, toSave: Boolean,
         startDirectory: FileReference,
@@ -206,7 +207,7 @@ object FileChooser {
             // make this window a little smaller than default, so it's more obvious
             val w = OSWindow.defaultWidth * 6 / 7
             val h = OSWindow.defaultHeight * 5 / 7
-            val window = GFXBase.createWindow(title.name, ui, w, h)
+            val window = GFXBase.createWindow(nameDesc.name, ui, w, h)
             window.showFPS = false
             window.windowStack.last()
         } else {

@@ -2,7 +2,6 @@ package me.anno.ui.editor.config
 
 import me.anno.config.DefaultStyle
 import me.anno.io.utils.StringMap
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -19,6 +18,7 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.input.TextInput
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.math.max
 
 /**
@@ -34,7 +34,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
     val contentListUI = PanelListY(style)
     val contentList = ArrayList<Pair<String, Panel>>()
 
-    val searchInput = TextInput(Dict["Search", "ui.general.search"], "", false, deep)
+    val searchInput = TextInput(NameDesc("Search", "", "ui.general.search"), "", false, deep)
 
     fun create() {
         createTopics()
@@ -47,21 +47,21 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         }
         add(topicTree, 1f)
         add(contentListUI, 3f)
-        bottomPanel += TextButton(Dict["Close", "ui.general.close"], deep)
+        bottomPanel += TextButton(NameDesc("Close", "", "ui.general.close"), deep)
             .addLeftClickListener { windowStack.pop().destroy() }
-        bottomPanel += TextButton(Dict["Add Field", "ui.general.addField"], deep)
+        bottomPanel += TextButton(NameDesc("Add Field", "", "ui.general.addField"), deep)
             .addLeftClickListener {
-                val keyPanel = TextInput("Key", "", lastTopic, style)
-                val valuePanel = TextInput("Value", "", "", style)
-                val submit = TextButton("Set", style)
+                val keyPanel = TextInput(NameDesc("Key"), "", lastTopic, style)
+                val valuePanel = TextInput(NameDesc("Value"), "", "", style)
+                val submit = TextButton(NameDesc("Set"), style)
                 submit.addLeftClickListener {
-                    if (keyPanel.value.isNotBlank()) {
+                    if (keyPanel.value.isNotBlank2()) {
                         config[keyPanel.value.trim()] = valuePanel.value
                         createContent(lastNotEmptyTopic)
                     }
                     Menu.close(keyPanel)
                 }
-                val cancel = TextButton("Cancel", false, style)
+                val cancel = TextButton(NameDesc("Cancel"), false, style)
                 cancel.addLeftClickListener { Menu.close(keyPanel) }
                 val buttons = PanelListX(style)
                 buttons += cancel
@@ -77,12 +77,12 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             applySearch(searchInput.value)
         }
         if (isStyle) {
-            bottomPanel += TextButton(Dict["Apply", "ui.general.apply"], deep)
+            bottomPanel += TextButton(NameDesc("Apply", "", "ui.general.apply"), deep)
                 .addLeftClickListener {
                     apply()
                 }
         }
-        bottomPanel += TextButton("Clear All", deep)
+        bottomPanel += TextButton(NameDesc("Clear All"), deep)
             .addLeftClickListener {
                 ask(it.windowStack, NameDesc("This will reset all custom settings. Are you sure?")) {
                     config.clear()

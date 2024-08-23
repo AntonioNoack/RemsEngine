@@ -5,6 +5,7 @@ import me.anno.fonts.FontStats
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
@@ -16,13 +17,12 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 // todo show exact value?
 // todo possibility to set exact value -> maybe via double click, and an ask-menu
 class SliderInput(
     var minValue: Double, var maxValue: Double, var step: Double,
-    override var value: Double, title: String, val visibilityKey: String, style: Style
+    override var value: Double, nameDesc: NameDesc, val visibilityKey: String, style: Style
 ) : PanelListY(style), InputPanel<Double> {
 
     inner class SliderDrawPanel : Panel(style.getChild("deep")) {
@@ -63,7 +63,7 @@ class SliderInput(
         }
     }
 
-    var titleView = TitlePanel(title, this, style)
+    var titleView = TitlePanel(nameDesc, this, style)
 
     var title: String
         get() = titleView.text
@@ -81,6 +81,7 @@ class SliderInput(
         titleView.addLeftClickListener {
             InputVisibility.toggle(visibilityKey, this)
         }
+        tooltip = nameDesc.desc
     }
 
     var sliderColor = style.getColor("textColor", iconGray)

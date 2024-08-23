@@ -1,26 +1,26 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Floats.roundToLongOr
 import kotlin.math.max
 import kotlin.math.round
-import kotlin.math.roundToLong
 
 // must be open for Rem's Studio
 open class IntInput(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     type: NumberType = NumberType.LONG,
     style: Style,
     inputPanel0: NumberInputComponent? = null
-) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
+) : NumberInput<Long>(style, nameDesc, visibilityKey, type, inputPanel0) {
 
     final override var value: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
@@ -39,27 +39,26 @@ open class IntInput(
         }
     }
 
-    constructor(style: Style) : this("", "", NumberType.LONG, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", NumberType.LONG, style)
 
-    @Suppress("unused")
-    constructor(title: String, visibilityKey: String, value0: Int, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value0: Int, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
     @Suppress("unused")
-    constructor(title: String, visibilityKey: String, value0: Long, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value0: Long, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
-    constructor(title: String, visibilityKey: String, value0: Int, style: Style) :
-            this(title, visibilityKey, NumberType.LONG, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value0: Int, style: Style) :
+            this(nameDesc, visibilityKey, NumberType.LONG, style) {
         setValue(value0, false)
     }
 
-    constructor(title: String, visibilityKey: String, value0: Long, style: Style) :
-            this(title, visibilityKey, NumberType.LONG, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value0: Long, style: Style) :
+            this(nameDesc, visibilityKey, NumberType.LONG, style) {
         setValue(value0, false)
     }
 

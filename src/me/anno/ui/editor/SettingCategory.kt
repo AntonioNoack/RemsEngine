@@ -15,7 +15,7 @@ import me.anno.utils.Color.mulAlpha
 import kotlin.math.max
 
 open class SettingCategory private constructor(
-    title: NameDesc, val visibilityKey: String,
+    nameDesc: NameDesc, val visibilityKey: String,
     withScrollbar: Boolean, style: Style
 ) : PanelGroup(style) {
 
@@ -26,7 +26,7 @@ open class SettingCategory private constructor(
     }
 
     @Suppress("LeakingThis")
-    val titlePanel = TitlePanel(title, this, style.getChild("group"))
+    val titlePanel = TitlePanel(nameDesc, this, style.getChild("group"))
 
     val content = PanelListY(style)
     val child = if (withScrollbar) ScrollPanelY(content, Padding.Zero, style) else content

@@ -33,6 +33,7 @@ import me.anno.mesh.blender.impl.BScene
 import me.anno.utils.Clock
 import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Quaterniond
@@ -84,7 +85,7 @@ object BlenderReader {
                     else name
                 }
                 texFolder.createByteChild(newName, rawImageData)
-            } else if (image.name.isNotBlank()) {
+            } else if (image.name.isNotBlank2()) {
                 // prefer external files, if they exist?
                 file.folder.getChild(image.name)
             } else InvalidRef

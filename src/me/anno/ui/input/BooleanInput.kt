@@ -13,20 +13,15 @@ import me.anno.utils.types.Strings.isBlank2
  * Checkbox with title
  * */
 class BooleanInput(
-    title: String,
+    nameDesc: NameDesc,
     startValue: Boolean,
     defaultValue: Boolean,
     style: Style
 ) : PanelListX(style), InputPanel<Boolean>, TextStyleable {
 
-    constructor(style: Style) : this("", false, false, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, false, false, style)
 
-    constructor(nameDesc: NameDesc, startValue: Boolean, defaultValue: Boolean, style: Style) :
-            this(nameDesc.name, startValue, defaultValue, style) {
-        tooltip = description
-    }
-
-    private val titleView = if (title.isBlank2()) null else TextPanel("$title:", style)
+    private val titleView = if (nameDesc.name.isBlank2()) null else TextPanel("${nameDesc.name}:", style)
     private val checkView = Checkbox(startValue, defaultValue, style.getSize("fontSize", 10), style)
 
     init {
@@ -36,6 +31,7 @@ class BooleanInput(
             titleView.padding.right = 5
             titleView.disableFocusColors()
         }
+        tooltip = nameDesc.desc
         this += checkView
     }
 

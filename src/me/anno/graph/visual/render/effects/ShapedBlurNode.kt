@@ -41,10 +41,10 @@ class ShapedBlurNode() : ActionNode(
             waitUntil(true) { filters.isNotEmpty() }
             list.add(
                 EnumInput(
-                    NameDesc("Type"), type,
+                    NameDesc("Type"), NameDesc(type),
                     filters.keys.sorted().map { NameDesc(it) }, style
                 ).setChangeListener { value, _, _ ->
-                    type = value
+                    type = value.englishName
                     g.onChange(false)
                 }
             )

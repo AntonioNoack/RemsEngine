@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isLeftDown
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextStyleable
@@ -11,7 +12,7 @@ import me.anno.utils.types.Strings.isBlank2
 
 abstract class NumberInput<BaseType>(
     style: Style,
-    title: String,
+    nameDesc: NameDesc,
     val visibilityKey: String,
     val type: NumberType = NumberType.FLOAT,
     inputPanel0: NumberInputComponent?
@@ -21,18 +22,19 @@ abstract class NumberInput<BaseType>(
 
     val inputPanel = inputPanel0 ?: NumberInputComponent(visibilityKey, style)
 
-    var titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
+    var titleView = if (nameDesc.name.isBlank2()) null else TitlePanel(nameDesc, this, style)
     var isSelectedListener: (() -> Unit)? = null
 
-    var title = title
+    var title = nameDesc
         set(value) {
             field = value
-            if (titleView == null && !value.isBlank2()) {
+            if (titleView == null && !value.name.isBlank2()) {
                 val titleView = TitlePanel(title, this, style)
                 this.titleView = titleView
                 add(0, titleView)
             }
-            titleView?.text = value
+            titleView?.text = value.name
+            tooltip = value.desc
         }
 
     override var isEnabled: Boolean
@@ -106,8 +108,9 @@ abstract class NumberInput<BaseType>(
         }
         add(inputPanel)
         inputPanel.setCursorToEnd()
-        inputPanel.placeholder = title
+        inputPanel.placeholder = nameDesc.name
         inputPanel.hide()
+        tooltip = nameDesc.desc
     }
 
     fun setIsSelectedListener(listener: () -> Unit): NumberInput<BaseType> {

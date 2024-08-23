@@ -12,12 +12,13 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelStack
 import me.anno.utils.OS.res
 
 class ExportedGame(val config: StringMap) : EngineBase(
-    config["gameTitle", "Rem's Engine"],
+    NameDesc(config["gameTitle", "Rem's Engine"]),
     config["configName", "config"],
     config["versionNumber", 1],
     true // it would be very rare, that we didn't need it

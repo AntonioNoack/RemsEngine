@@ -334,6 +334,11 @@ object Strings {
         return true
     }
 
+    @JvmStatic
+    fun CharSequence.isNotBlank2(): Boolean {
+        return !isBlank2()
+    }
+
     /**
      * allocation free ifBlank()
      * */

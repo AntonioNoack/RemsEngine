@@ -23,7 +23,7 @@ fun main() {
     //  https://stackoverflow.com/questions/40954738/how-to-properly-do-context-sharing-with-glfw -> Framebuffers aren't shared by contexts, because they are considered light-weight
 
     testUI3("FileChooserSave") {
-        TextButton("Click Me", style).addLeftClickListener {
+        TextButton(NameDesc("Click Me"), style).addLeftClickListener {
             FileChooser.openInSeparateWindow = true
             FileChooser.selectFiles(
                 NameDesc("Choose a file"), true, false, true, true,

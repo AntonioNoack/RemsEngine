@@ -21,6 +21,7 @@ import me.anno.graph.visual.node.NodeLibrary
 import me.anno.graph.visual.render.DiscardNode
 import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -113,7 +114,7 @@ class ShaderGraphNode : ActionNode(
     var budget = 1000
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
-        val button = TextButton("Edit", style)
+        val button = TextButton(NameDesc("Edit"), style)
         // todo prevent the start node from being deletable
         if (g is GraphEditor) {
             button.addLeftClickListener {

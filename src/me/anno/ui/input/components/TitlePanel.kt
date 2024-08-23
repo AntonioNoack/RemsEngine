@@ -9,11 +9,7 @@ import me.anno.ui.base.text.TextPanel
  * TextPanel that redirects copy/paste operations to its controlling panel.
  * Copy is most important here.
  * */
-class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(title, style) {
-    constructor(title: NameDesc, owner: Panel, style: Style) : this(title.name, owner, style) {
-        tooltip = title.desc
-    }
-
+class TitlePanel(nameDesc: NameDesc, var owner: Panel, style: Style) : TextPanel(nameDesc, style) {
     override fun onCopyRequested(x: Float, y: Float): Any? {
         return owner.onCopyRequested(x, y)
     }

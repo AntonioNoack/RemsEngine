@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Key
+import me.anno.language.translation.NameDesc
 import me.anno.tests.ui.UITests
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.input.FloatVectorInput
@@ -19,7 +20,7 @@ class VectorInputTabTest : UITests() {
     @Test
     fun testTabPresses() {
         OfficialExtensions.initForTests() // for text generator, which is needed for layout
-        val ui = FloatVectorInput("", "", NumberType.VEC4, DefaultConfig.style)
+        val ui = FloatVectorInput(NameDesc.EMPTY, "", NumberType.VEC4, DefaultConfig.style)
         prepareUI(ui)
         updateUI()
         val inputPanels = ui.listOfVisible

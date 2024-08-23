@@ -16,6 +16,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.image.ImageCache
 import me.anno.io.files.Reference.getReference
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
@@ -340,7 +341,7 @@ fun main() {
         val main = SceneView(PlayMode.EDITING, style)
         main.weight = 1f
         val controls = PanelListY(style)
-        controls.add(IntInput("n", "", n, NumberType.LONG_PLUS, style)
+        controls.add(IntInput(NameDesc("n"), "", n, NumberType.LONG_PLUS, style)
             .setChangeListener {
                 n = it.toInt()
                 validate()

@@ -36,7 +36,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         simsSelectBar.alignmentY = AxisAlignment.MAX
         for (sim in household.sims) {
             simsSelectBar.add(
-                TextButton(sim.name, style)
+                TextButton(NameDesc(sim.name), style)
                     .addLeftClickListener {
                         currentSim = sim
                         rebuildActionStack()
@@ -50,7 +50,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         actionStack.alignmentY = AxisAlignment.MAX
         add(actionStack)
 
-        add(TextButton("Build", style)
+        add(TextButton(NameDesc("Build"), style)
             .addLeftClickListener {
                 // switch to build mode
                 sceneView.editControls = controls.buildControls

@@ -11,6 +11,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -80,7 +81,7 @@ object Tooltips {
         if (delta >= tooltipReactionTimeNanos || lastPanel?.onMovementHideTooltip == false) {
             val pbi = mouseY.toInt() / window.progressbarHeight
             val pb = window.progressBars.getOrNull(pbi)
-            if (pb != null && pb.name.isNotBlank()) {
+            if (pb != null && pb.name.isNotBlank2()) {
                 textPanel.text = pb.name
                 draw(window, pbi * window.progressbarHeight, container)
                 return true

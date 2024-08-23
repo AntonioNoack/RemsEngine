@@ -11,6 +11,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.PipelineStage
+import me.anno.language.translation.NameDesc
 import me.anno.openxr.ecs.VRHandController
 import me.anno.openxr.ecs.VRHandPickup
 import me.anno.openxr.ecs.VRSocket
@@ -27,7 +28,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val scene = Entity("Scene")
     scene.add(CanvasComponent().apply {
-        val ui = TextButton("Test Button", style)
+        val ui = TextButton(NameDesc("Test Button"), style)
         windowStack.add(Window(ui, false, windowStack))
         width = 120
         height = 40

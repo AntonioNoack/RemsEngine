@@ -26,10 +26,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 abstract class ArrayPanel<EntryType, PanelType : Panel>(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     val newValue: () -> EntryType, style: Style
-) : TitledListY(title, visibilityKey, style), InputPanel<List<EntryType>> {
+) : TitledListY(nameDesc, visibilityKey, style), InputPanel<List<EntryType>> {
 
     companion object {
         private val LOGGER = LogManager.getLogger(ArrayPanel::class)

@@ -12,7 +12,7 @@ import me.anno.ui.utils.ThumbnailPanel
 // this was a bug and has been fixed
 fun main() {
     disableRenderDoc()
-    testUI3("TooWideMenu", TextButton("Click Me", style)
+    testUI3("TooWideMenu", TextButton(NameDesc("Click Me"), style)
         .addLeftClickListener {
             openMenuByPanels(
                 it.windowStack, NameDesc("TooWide"),

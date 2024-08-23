@@ -42,7 +42,7 @@ import org.joml.Vector4f
 import kotlin.math.max
 
 open class ColorInput(
-    val title: String,
+    val nameDesc: NameDesc,
     @Suppress("unused_parameter")
     visibilityKey: String,
     oldValue: Vector4f,
@@ -51,9 +51,9 @@ open class ColorInput(
     val contentView: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
 ) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {
 
-    constructor(style: Style) : this("", "", Vector4f(), true, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", Vector4f(), true, style)
 
-    val titleView = TitlePanel(title, contentView, style)
+    val titleView = TitlePanel(nameDesc, contentView, style)
     private val previewField = ColorPreviewField(titleView, 2, style)
         .apply {
             addLeftClickListener { if (isInputAllowed) openColorChooser() }
@@ -114,24 +114,25 @@ open class ColorInput(
     init {
         // switched order for consistent alignment
         this += previewField
-        if (title.isNotEmpty()) this += titleView
+        if (nameDesc.name.isNotEmpty()) this += titleView
         titleView.enableHoverColor = true
         titleView.disableFocusColors()
         contentView.setRGBA(oldValue, -1, false)
         contentView.setChangeRGBListener { r, g, b, a, mask ->
             setValue(Vector4f(r, g, b, a), mask, true)
         }
+        tooltip = nameDesc.desc
     }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        if (title.isEmpty()) titleView.calculateSize(w, h)
+        if (nameDesc.name.isEmpty()) titleView.calculateSize(w, h)
     }
 
     fun openColorChooser() {
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
         val window = window!!
-        val title = NameDesc(title.ifEmpty { "Choose Color" })
+        val title = NameDesc(nameDesc.name.ifEmpty { "Choose Color" })
         val width = min(max(windowStack.width / 5, 200), windowStack.width)
         Menu.openMenuByPanels(
             window.windowStack, window.mouseXi, window.mouseYi, title, listOf(

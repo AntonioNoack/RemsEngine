@@ -158,7 +158,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     class EditPanel(style: Style) : PanelListX(style), ITreeViewEntryPanel {
         override fun setEntrySymbol(symbol: String) {}
         override fun setEntryName(name: String) {}
-        override fun setEntryTooltip(ttt: String?) {}
+        override fun setEntryTooltip(ttt: String) {}
     }
 
     override fun getOrCreateChildPanel(index: Int, element: IntRange): ITreeViewEntryPanel {

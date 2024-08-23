@@ -28,6 +28,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -256,8 +257,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open val onMovementHideTooltip = true
 
-    @Type("String?")
-    var tooltip: String? = null
+    @Type("String")
+    var tooltip: String = ""
 
     @Type("Panel?/SameSceneRef")
     var tooltipPanel: Panel? = null
@@ -534,7 +535,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     fun getTooltipToP(x: Float, y: Float): Any? =
         getTooltipPanel(x, y) ?: getTooltipText(x, y) ?: uiParent?.getTooltipToP(x, y)
 
-    fun setTooltip(tooltipText: String?): Panel {
+    fun setTooltip(tooltipText: String): Panel {
         tooltip = tooltipText
         tooltipPanel = null
         return this
@@ -546,7 +547,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             "${Strings.spaces(tabDepth * 2)}$className(${(weight * 10).roundToIntOr()}, " +
                     "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""})) " +
                     "$x-${x + width}, $y-${y + height} ($minW $minH) ${
-                        if (tooltip == null) "" else "'${tooltip.shorten(20)}' "
+                        if (tooltip.isBlank2()) "" else "'${tooltip.shorten(20)}' "
                     }${getPrintSuffix()}"
         )
     }

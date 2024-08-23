@@ -1,6 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.jvm.HiddenOpenGLContext
+import me.anno.utils.types.Strings.isNotBlank2
 import org.lwjgl.opengl.GL46C
 
 /**
@@ -38,7 +39,7 @@ fun main() {
         GL46C.glCompileShader(shader)
         GL46C.glAttachShader(program, shader)
         val log = GL46C.glGetShaderInfoLog(shader)
-        if (log.isNotBlank()) throw RuntimeException(log)
+        if (log.isNotBlank2()) throw RuntimeException(log)
     }
 
     val program = GL46C.glCreateProgram()
@@ -46,5 +47,5 @@ fun main() {
     compile(program, GL46C.GL_FRAGMENT_SHADER, fragment)
     GL46C.glLinkProgram(program)
     val log = GL46C.glGetProgramInfoLog(program)
-    if (log.isNotBlank()) throw RuntimeException(log) // crashes
+    if (log.isNotBlank2()) throw RuntimeException(log) // crashes
 }

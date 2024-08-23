@@ -20,8 +20,8 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 
-open class TextButton(title: String, var aspectRatio: Float, style: Style) :
-    TextPanel(title, style.getChild("button")), InputPanel<Unit> {
+open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) :
+    TextPanel(nameDesc, style.getChild("button")), InputPanel<Unit> {
 
     companion object {
 
@@ -68,7 +68,6 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     }
 
     init {
-        tooltip = title
         textAlignmentX = AxisAlignment.CENTER
         textAlignmentY = AxisAlignment.CENTER
     }
@@ -78,13 +77,9 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
         return this
     }
 
-    constructor(style: Style) : this("", style)
-    constructor(title: String, style: Style) : this(title, 0f, style)
-    constructor(title: String, isSquare: Boolean, style: Style) : this(title, if (isSquare) 1f else 0f, style)
-
-    constructor(nameDesc: NameDesc, isSquare: Boolean, style: Style) : this(nameDesc.name, isSquare, style) {
-        tooltip = nameDesc.desc
-    }
+    constructor(style: Style) : this(NameDesc.EMPTY, style)
+    constructor(nameDesc: NameDesc, style: Style) : this(nameDesc, 0f, style)
+    constructor(nameDesc: NameDesc, isSquare: Boolean, style: Style) : this(nameDesc, if (isSquare) 1f else 0f, style)
 
     val leftColor = style.getColor("borderColorLeft", black or 0x999999)
     val rightColor = style.getColor("borderColorRight", black or 0x111111)

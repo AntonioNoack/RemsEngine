@@ -6,6 +6,7 @@ import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLExprNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
@@ -32,7 +33,7 @@ class ColorNode : ComputeNode("Color", emptyList(), listOf("Vector4f", "Color", 
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
-        list += ColorInput("Value", "", value, true, style)
+        list += ColorInput(NameDesc("Value"), "", value, true, style)
             .setChangeListener { r, gr, b, a, _ ->
                 value.set(r, gr, b, a)
                 setOutput(1, value.toARGB())

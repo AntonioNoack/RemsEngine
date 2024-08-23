@@ -58,7 +58,7 @@ object InspectorUtils {
                      param.kind
             } */
             val title = action.name.camelCaseToTitle()
-            val button = TextButton(title, style)
+            val button = TextButton(NameDesc(title), style)
                 .addLeftClickListener {
                     // could become a little heavy....
                     for (instance in instances) {
@@ -151,7 +151,7 @@ object InspectorUtils {
     fun showEditorFields(
         list: PanelList, reflections: CachedReflections,
         instances: List<PrefabSaveable>, style: Style,
-        isWritable: Boolean, createProperty: (CachedProperty, List<Inspectable>) -> IProperty<Any?>,
+        isWritable: Boolean, createProperty: (CachedProperty, List<PrefabSaveable>) -> IProperty<Any?>,
     ) {
         if (reflections.editorFields.isEmpty()) return
         val group = SettingCategory(NameDesc("Editor Fields"), style).showContent()
@@ -166,20 +166,20 @@ object InspectorUtils {
         list.add(group)
     }
 
-    private fun showProperty(
+    private fun <V : Inspectable> showProperty(
         list: PanelListY, reflections: CachedReflections,
-        property: CachedProperty, relevantInstances: List<Inspectable>,
+        property: CachedProperty, relevantInstances: List<V>,
         style: Style, isWritable: Boolean,
-        createProperty: (CachedProperty, List<Inspectable>) -> IProperty<Any?>,
+        createProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
     ) {
         val property2 = createProperty(property, relevantInstances)
         showPropertyI(property, property2, reflections, list, isWritable, style)
     }
 
-    fun showProperties(
+    fun <V : Inspectable> showProperties(
         list: PanelList, reflections: CachedReflections,
-        instances: List<Inspectable>, style: Style,
-        isWritable: Boolean,  createProperty: (CachedProperty, List<Inspectable>) -> IProperty<Any?>,
+        instances: List<V>, style: Style,
+        isWritable: Boolean, createProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
     ) {
         val properties = reflections.propertiesByClass
         for (i in properties.indices) {

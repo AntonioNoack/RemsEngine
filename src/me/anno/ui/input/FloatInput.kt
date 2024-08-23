@@ -20,19 +20,14 @@ import kotlin.math.pow
 
 // must be open for Rem's Studio
 open class FloatInput(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     type: NumberType = NumberType.FLOAT,
     style: Style,
     inputPanel0: NumberInputComponent? = null
-) : NumberInput<Double>(style, title, visibilityKey, type, inputPanel0) {
+) : NumberInput<Double>(style, nameDesc, visibilityKey, type, inputPanel0) {
 
-    constructor(nameDesc: NameDesc, type: NumberType, style: Style) :
-            this(nameDesc.name, nameDesc.key, type, style) {
-        tooltip = nameDesc.desc
-    }
-
-    constructor(style: Style) : this("", "", NumberType.FLOAT, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", NumberType.FLOAT, style)
 
     final override var value: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
@@ -51,18 +46,18 @@ open class FloatInput(
         }
     }
 
-    constructor(title: String, visibilityKey: String, value0: Float, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value0: Float, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Float, type: NumberType, style: Style) :
-            this(title, "", type, style) {
+    constructor(nameDesc: NameDesc, value0: Float, type: NumberType, style: Style) :
+            this(nameDesc, "", type, style) {
         setValue(value0, false)
     }
 
-    constructor(title: String, visibilityKey: String, value0: Double, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value0: Double, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value0, -1, false)
     }
 

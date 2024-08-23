@@ -19,6 +19,7 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.UpdatingSimpleTextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -42,19 +43,19 @@ fun main() {
     testUI3("ServerClientWorld") {
         val list = PanelList2D(style)
         val master = PanelListY(style)
-        master.add(TextButton("Join All", style)
+        master.add(TextButton(NameDesc("Join All"), style)
             .addLeftClickListener {
                 list.forAllPanels {
                     if (it is TextButton && it.text == "Join") it.click()
                 }
             })
-        master.add(TextButton("Leave All", style)
+        master.add(TextButton(NameDesc("Leave All"), style)
             .addLeftClickListener {
                 list.forAllPanels {
                     if (it is TextButton && it.text == "Leave") it.click()
                 }
             })
-        master.add(TextButton("Test Button", style)
+        master.add(TextButton(NameDesc("Test Button"), style)
             .addLeftClickListener {
             })
         list.add(master)
@@ -81,12 +82,12 @@ fun createClient(i: Int): Panel {
                 ": ${client.players.size}p ${client.messageLength}m"
     })
 
-    controls.add(TextButton("SendMsg", style)
+    controls.add(TextButton(NameDesc("SendMsg"), style)
         .addLeftClickListener {
             askName(controls.windowStack,
                 NameDesc("Enter Messsage"), "",
                 NameDesc("Send"), { -1 }, {
-                    if (it.isNotBlank()) {
+                    if (it.isNotBlank2()) {
                         client.client?.sendTCP(MessagePacket().apply {
                             this.uuid = clientName
                             message = it.trim()
@@ -95,7 +96,7 @@ fun createClient(i: Int): Panel {
                 })
         })
 
-    val leaveJoinButton = TextButton("Join", style)
+    val leaveJoinButton = TextButton(NameDesc("Join"), style)
     controls.add(leaveJoinButton
         .addLeftClickListener {
             if (client.client != null) {

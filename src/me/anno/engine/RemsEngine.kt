@@ -86,7 +86,7 @@ import org.joml.Matrix4f
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
-open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), WelcomeUI {
+open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, true), WelcomeUI {
 
     override fun loadConfig() {
         DefaultConfig.defineDefaultFileAssociations()
@@ -232,7 +232,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         val project = GameEngineProject.readOrCreate(folder)!!
         currentProject = project
         project.init()
-        val title = "$title - $name"
+        val title = "${nameDesc.name} - $name"
         for (window in GFX.windows) {
             window.title = title
         }

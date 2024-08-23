@@ -18,7 +18,7 @@ fun main() {
     val flipper = PanelFlipper(style)
     // add flippable items
     flipper.swipeSpeed = 1f
-    flipper.add(TextInput("Add your name", "", "Anya", style))
+    flipper.add(TextInput(NameDesc("Add your name"), "", "Anya", style))
     flipper.add(IconPanel(res.getChild("icon.png"), style).apply {
         filtering = Filtering.NEAREST
     })

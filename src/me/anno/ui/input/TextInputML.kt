@@ -3,22 +3,23 @@ package me.anno.ui.input
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
+import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInputML
-import me.anno.ui.Style
 
 @Suppress("unused")
-open class TextInputML(title: String, style: Style) : PanelContainer(
+open class TextInputML(nameDesc: NameDesc, style: Style) : PanelContainer(
     PureTextInputML(
         style.getChild("deep")
     ), Padding(2), style.getChild("deep")
 ), InputPanel<String>, TextStyleable {
 
-    constructor(style: Style) : this("", style)
+    constructor(style: Style) : this(NameDesc.EMPTY, style)
 
-    constructor(title: String, v0: String, style: Style) : this(title, style) {
+    constructor(nameDesc: NameDesc, v0: String, style: Style) : this(nameDesc, style) {
         base.setText(v0, false)
     }
 
@@ -26,8 +27,9 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     val text get() = base.value
 
     init {
-        base.placeholder = title
+        base.placeholder = nameDesc.name
         base.backgroundColor = backgroundColor
+        tooltip = nameDesc.desc
     }
 
     override var textSize: Float
@@ -107,7 +109,7 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     override fun isKeyInput() = true
 
     override fun clone(): TextInputML {
-        val clone = TextInputML(base.placeholder, text, style)
+        val clone = TextInputML(NameDesc(base.placeholder, tooltip, ""), text, style)
         copyInto(clone)
         return clone
     }

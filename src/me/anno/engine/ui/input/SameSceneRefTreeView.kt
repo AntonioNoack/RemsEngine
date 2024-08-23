@@ -55,7 +55,7 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     }
 
     override fun getName(element: PrefabSaveable): String {
-        return SameSceneRefInput.formatDisplay(element, false)
+        return SameSceneRefInput.formatDisplay0(element, false)
     }
 
     override fun destroy(element: PrefabSaveable) {}

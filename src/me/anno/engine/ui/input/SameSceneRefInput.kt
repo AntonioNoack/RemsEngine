@@ -27,12 +27,12 @@ import kotlin.reflect.KClass
  * input panel for drag-dropping references to instances in the same scene
  * */
 class SameSceneRefInput<Type : PrefabSaveable?>(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     val clazz: KClass<*>,
     value0: Type,
     style: Style
-) : TitledListY(title, visibilityKey, style), InputPanel<Type>, TextStyleable {
+) : TitledListY(nameDesc, visibilityKey, style), InputPanel<Type>, TextStyleable {
 
     val list = object : PanelListX(style) {
         override var isEnabled: Boolean
@@ -99,11 +99,11 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             // open tree view to select an element without drag-and-drop
             val oldValue: Type = value
             val panel = SameSceneRefTreeView(this)
-            val acceptButton = TextButton("Accept", style)
+            val acceptButton = TextButton(NameDesc("Accept"), style)
                 .addLeftClickListener {
                     it.window?.close()
                 }
-            val cancelButton = TextButton("Cancel", style)
+            val cancelButton = TextButton(NameDesc("Cancel"), style)
                 .addLeftClickListener {
                     setValue(oldValue, true)
                     it.window?.close()
@@ -145,7 +145,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
         if (notify) {
             changeListener(newValue)
         }
-        valueButton.text = formatDisplay(newValue, true)
+        valueButton.text = formatDisplay0(newValue, true)
         return this
     }
 
@@ -194,10 +194,14 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
     companion object {
         private val LOGGER = LogManager.getLogger(SameSceneRefInput::class)
 
-        fun formatDisplay(value: PrefabSaveable?, forPrimary: Boolean): String {
+        fun formatDisplay0(value: PrefabSaveable?, forPrimary: Boolean): String {
             val prefix = if (forPrimary) "\uD83D\uDCC1 " else ""
             value ?: return "${prefix}null"
             return "$prefix${value.name.ifBlank2(value.className)} #${hex32(hashCode(value))}"
+        }
+
+        fun formatDisplay(value: PrefabSaveable?, forPrimary: Boolean): NameDesc {
+            return NameDesc(formatDisplay0(value, forPrimary))
         }
 
         fun hashCode(value: PrefabSaveable): Int {

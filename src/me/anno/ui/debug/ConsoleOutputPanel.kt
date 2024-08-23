@@ -1,6 +1,5 @@
 package me.anno.ui.debug
 
-import me.anno.Time
 import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
@@ -8,7 +7,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.ActionManager
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -59,7 +57,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         if (button == Key.BUTTON_LEFT) {
             // open console in large with scrollbar
             val wrapper = PanelListY(style)
-            wrapper += TextButton(Dict["Close", "ui.general.close"], false, style)
+            wrapper += TextButton(NameDesc("Close", "", "ui.general.close"), false, style)
                 .addLeftClickListener(Menu::close)
             val listPanel = ConsoleLogFullscreen(style)
             wrapper.add(listPanel.fill(1f))
@@ -149,21 +147,23 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 runGC()
             }
             info.addRightClickListener {
-                Menu.openMenu(it.windowStack, listOf(
-                    MenuOption(NameDesc("Edit Config")) {
-                        RemsEngine.openConfigWindow(it.windowStack)
-                    },
-                    MenuOption(NameDesc("Edit Style")) {
-                        RemsEngine.openStylingWindow(it.windowStack)
-                    },
-                    MenuOption(NameDesc("Edit Keymap")) {
-                        RemsEngine.openConfigWindow(it.windowStack, ActionManager, false)
-                    },
-                    MenuOption(NameDesc("Toggle VSync")) {
-                        EngineBase.enableVSync = !EngineBase.enableVSync
-                    },
-                    MenuOption(NameDesc("Run GC"), ::runGC)
-                ))
+                Menu.openMenu(
+                    it.windowStack, listOf(
+                        MenuOption(NameDesc("Edit Config")) {
+                            RemsEngine.openConfigWindow(it.windowStack)
+                        },
+                        MenuOption(NameDesc("Edit Style")) {
+                            RemsEngine.openStylingWindow(it.windowStack)
+                        },
+                        MenuOption(NameDesc("Edit Keymap")) {
+                            RemsEngine.openConfigWindow(it.windowStack, ActionManager, false)
+                        },
+                        MenuOption(NameDesc("Toggle VSync")) {
+                            EngineBase.enableVSync = !EngineBase.enableVSync
+                        },
+                        MenuOption(NameDesc("Run GC"), ::runGC)
+                    )
+                )
             }
 
             if (bottom) {

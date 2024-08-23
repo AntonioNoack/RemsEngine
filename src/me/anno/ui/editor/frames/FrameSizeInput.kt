@@ -11,30 +11,30 @@ import me.anno.ui.input.IntInput
 
 /** input for width and height; offers presets and a custom input field; used in Rem's Studio */
 @Suppress("unused")
-class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(style) {
+class FrameSizeInput(nameDesc: NameDesc, value0: String, style: Style) : PanelListY(style) {
 
     private val val0 = value0.parseResolution() ?: defaultResolution
 
-    private val typeInput = EnumInput(title, true,
-        val0.toString(), defaultResolutions.map { NameDesc(it.toString()) } +
+    private val typeInput = EnumInput(nameDesc, true,
+        NameDesc(val0.toString()), defaultResolutions.map { NameDesc(it.toString()) } +
                 NameDesc("Custom", "", "ui.frameSizeInput.custom"),
         style)
 
     private val deepStyle = style.getChild("deep")
     private val customInput = PanelListX(deepStyle)
-    private val customX = IntInput("Width", "", 0, deepStyle)
-    private val customY = IntInput("Height", "", 0, deepStyle)
+    private val customX = IntInput(NameDesc("Width"), "", 0, deepStyle)
+    private val customY = IntInput(NameDesc("Height"), "", 0, deepStyle)
 
     init {
         this += typeInput
         typeInput
             .setChangeListener { it, _, _ ->
-                when (it) {
+                when (it.englishName) {
                     "Custom" -> {
                         customInput.isVisible = true
                     }
                     else -> {
-                        val wh = it.split('x')
+                        val wh = it.englishName.split('x')
                         val ws = wh[0].trim().toInt()
                         val hs = wh[1].trim().toInt()
                         update(ws, hs)

@@ -3,9 +3,10 @@ package me.anno.tests.mesh.hexagons
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView
+import me.anno.language.translation.NameDesc
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.debug.TestEngine.Companion.testUI2
@@ -71,27 +72,27 @@ fun main() {
             SceneView.testScene(scene),
             PanelListX(style).apply {
                 for (it in listOf(
-                    TextButton("j+", true, DefaultConfig.style)
+                    TextButton(NameDesc("j+"), true, DefaultConfig.style)
                         .addLeftClickListener {
                             dj++
                             recalculate()
                         },
-                    TextButton("j-", true, DefaultConfig.style)
+                    TextButton(NameDesc("j-"), true, DefaultConfig.style)
                         .addLeftClickListener {
                             dj--
                             recalculate()
                         },
-                    TextButton("k+", true, DefaultConfig.style)
+                    TextButton(NameDesc("k+"), true, DefaultConfig.style)
                         .addLeftClickListener {
                             dk++
                             recalculate()
                         },
-                    TextButton("k-", true, DefaultConfig.style)
+                    TextButton(NameDesc("k-"), true, DefaultConfig.style)
                         .addLeftClickListener {
                             dk--
                             recalculate()
                         },
-                    IntInput("n", "", n, NumberType.LONG_PLUS, style)
+                    IntInput(NameDesc("n"), "", n, NumberType.LONG_PLUS, style)
                         .setChangeListener {
                             n = it.toInt()
                             recalculate()

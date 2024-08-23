@@ -36,7 +36,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
     val newValues = PanelListY(style)
     var lastSelected: List<Inspectable> = emptyList()
 
-    val searchPanel = TextInput("Search Properties", "", true, style)
+    val searchPanel = TextInput(NameDesc("Search Properties"), "", true, style)
 
     init {
         alwaysShowShadowY = true

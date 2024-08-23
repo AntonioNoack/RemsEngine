@@ -102,7 +102,7 @@ class DataSetPanel(
                     MenuOption(NameDesc("Filter By")) {
                         val panels = ArrayList<Panel>()
                         // option to cancel filter
-                        panels.add(TextButton("Remove filter", style)
+                        panels.add(TextButton(NameDesc("Remove filter"), style)
                             .addLeftClickListener {
                                 allowedValues.clear()
                                 recalculateFiltered()
@@ -110,7 +110,7 @@ class DataSetPanel(
                         val presentValues = values.map(instanceToPropString).toHashSet().sorted()
                         for (value in presentValues) {
                             // checkbox for each option
-                            val box = BooleanInput(value, value in allowedValues, false, style)
+                            val box = BooleanInput(NameDesc(value), value in allowedValues, false, style)
                             box.setChangeListener { allowValue ->
                                 if (allowValue) {
                                     allowedValues.add(value)
@@ -122,7 +122,7 @@ class DataSetPanel(
                             panels.add(box)
                         }
 
-                        val okButton = TextButton("Close", style)
+                        val okButton = TextButton(NameDesc("Close"), style)
                         okButton.addLeftClickListener(Menu::close)
                         panels.add(okButton)
                         // todo highlight headers with filters enabled, maybe with a star

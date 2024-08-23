@@ -90,7 +90,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     // todo we could snap rotations, and maybe scale, as well
 
     val drawModeInput = EnumInput(
-        NameDesc("Draw Mode"), renderView.renderMode.nameDesc.name,
+        NameDesc("Draw Mode"), renderView.renderMode.nameDesc,
         RenderMode.values.map { it.nameDesc }, style
     ).setChangeListener { _, index, _ ->
         renderView.renderMode = RenderMode.values[index]
@@ -106,7 +106,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         topLeft.add(TextButton(NameDesc("Play", "Start the game", ""), false, style)
             .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
             .apply { alignmentY = AxisAlignment.MIN })
-        topLeft.add(TextButton("⚙", 1f, style)
+        topLeft.add(TextButton(NameDesc("⚙"), 1f, style)
             .setTooltip("Settings")
             .addLeftClickListener { EditorState.select(settings) }
             .apply { alignmentY = AxisAlignment.MIN })

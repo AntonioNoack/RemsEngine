@@ -31,6 +31,7 @@ import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import me.anno.io.Streams.skipN
 import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
@@ -295,7 +296,7 @@ object MitsubaReader {
 
                 fun decodeColor(v: String): Vector3f? {
                     val vs = v.split(',', ' ', '\t')
-                        .filter { it.isNotBlank() }
+                        .filter { it.isNotBlank2() }
                         .map { it.toFloatOrNull() ?: 1f }
                     return when (vs.size) {
                         1 -> Vector3f(vs[0])
@@ -554,7 +555,7 @@ object MitsubaReader {
                                         }
                                     }
                                 }
-                                if (file.isNotBlank()) {
+                                if (file.isNotBlank2()) {
                                     meshRef = folder.getChild(file).getChild("$index.json")
                                 }
                             }
@@ -565,7 +566,7 @@ object MitsubaReader {
                                         file = v["value"] ?: file
                                     }
                                 }
-                                if (file.isNotBlank()) {
+                                if (file.isNotBlank2()) {
                                     meshRef = folder.getChild(file)
                                 }
                             }
@@ -586,7 +587,7 @@ object MitsubaReader {
                                         "matrix" -> {
                                             val value = node["value"] ?: continue
                                             val v = value.split(' ')
-                                                .filter { it.isNotBlank() }
+                                                .filter { it.isNotBlank2() }
                                                 .map { it.trim().toFloat() }
                                             if (v.size == 16) {
                                                 matrix.set(

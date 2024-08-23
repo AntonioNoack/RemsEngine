@@ -29,6 +29,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.Language
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Window
@@ -37,34 +38,32 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
 import me.anno.utils.Logging
-import me.anno.utils.Logging.hash32
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * base class for UI setup;
  * manages audio, graphics, settings, game loop, and UI
  * */
 abstract class EngineBase(
-    val title: String,
+    val nameDesc: NameDesc,
     val configName: String,
     val versionNumber: Int,
     versionSuffix: String? = null,
     val needsAudio: Boolean = true,
 ) {
 
-    constructor(title: String, versionNumber: Int, versionSuffix: String?, needsAudio: Boolean) :
-            this(title, Strings.filterAlphaNumeric(title), versionNumber, versionSuffix, needsAudio)
+    constructor(nameDesc: NameDesc, versionNumber: Int, versionSuffix: String?, needsAudio: Boolean) :
+            this(nameDesc, Strings.filterAlphaNumeric(nameDesc.englishName), versionNumber, versionSuffix, needsAudio)
 
-    constructor(title: String, configName: String, versionNumber: Int, needsAudio: Boolean) :
-            this(title, configName, versionNumber, null, needsAudio)
+    constructor(nameDesc: NameDesc, configName: String, versionNumber: Int, needsAudio: Boolean) :
+            this(nameDesc, configName, versionNumber, null, needsAudio)
 
-    constructor(title: String, versionNumber: Int, needsAudio: Boolean) :
-            this(title, Strings.filterAlphaNumeric(title), versionNumber, null, needsAudio)
+    constructor(nameDesc: NameDesc, versionNumber: Int, needsAudio: Boolean) :
+            this(nameDesc, Strings.filterAlphaNumeric(nameDesc.englishName), versionNumber, null, needsAudio)
 
     /**
      * version of program as string,
@@ -137,7 +136,7 @@ abstract class EngineBase(
     }
 
     open fun setupNames() {
-        GFX.windows.firstOrNull()?.title = title
+        GFX.windows.firstOrNull()?.title = nameDesc.name
         Engine.projectName = configName
         instance = this
         ConfigBasics.configFolder = OS.home.getChild(".config").getChild(configName)
@@ -168,7 +167,7 @@ abstract class EngineBase(
         tick("extensions")
 
         if (runGraphics) {
-            GFXBase.run(title)
+            GFXBase.run(nameDesc.name)
         }
     }
 

@@ -45,6 +45,7 @@ import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
 
@@ -166,7 +167,7 @@ class PrefabInspector(var reference: FileReference) {
 
         // todo find where an object is coming from within a prefab, and open that file
         if (false) {
-            list += TextButton("Open Prefab", style)
+            list += TextButton(NameDesc("Open Prefab"), style)
                 .addLeftClickListener {
                     val src = instances.first().prefab?.source
                     if (src?.exists == true) {
@@ -202,7 +203,7 @@ class PrefabInspector(var reference: FileReference) {
 
         val inputListener = instances.firstInstanceOrNull(InputListener::class)
         if (inputListener != null) {
-            list.add(TextButton("Test Controls", style)
+            list.add(TextButton(NameDesc("Test Controls"), style)
                 .addLeftClickListener { EditorState.control = inputListener })
         }
 
@@ -216,12 +217,12 @@ class PrefabInspector(var reference: FileReference) {
         showDebugActions(list, reflections, instances, style)
         showDebugProperties(list, reflections, instances, style)
         showEditorFields(list, reflections, instances, style, isWritable) { property, relevantInstances ->
-            PrefabSaveableProperty(this, relevantInstances as List<PrefabSaveable>, property.name, property)
+            PrefabSaveableProperty(this, relevantInstances, property.name, property)
         }
 
         // todo place actions into these groups
         showProperties(list, reflections, instances, style, isWritable) { property, relevantInstances ->
-            PrefabSaveableProperty(this, relevantInstances as List<PrefabSaveable>, property.name, property)
+            PrefabSaveableProperty(this, relevantInstances, property.name, property)
         }
 
         val instance = instances.first()
@@ -305,9 +306,9 @@ class PrefabInspector(var reference: FileReference) {
         val first = instances.firstOrNull() ?: return
         val original = first.getOriginal()
         val text = instances
-            .map(getter).filter { it.isNotBlank() }
+            .map(getter).filter { it.isNotBlank2() }
             .joinToString(", ")
-        val input = TextInput(title, "", text, style).apply {
+        val input = TextInput(NameDesc(title), "", text, style).apply {
             val firstValue = getter(first)
             isBold = instances.any { isChanged(getPath(it), name) }
             isInputAllowed = isWritable && instances.all { getter(it) == firstValue }
@@ -333,7 +334,7 @@ class PrefabInspector(var reference: FileReference) {
     }
 
     private fun showCustomEditModeButton(list: PanelList, customEditModes: List<CustomEditMode>, style: Style) {
-        list.add(object : TextButton("Toggle Edit Mode", style) {
+        list.add(object : TextButton(NameDesc("Toggle Edit Mode"), style) {
 
             var borderColor = 0
 

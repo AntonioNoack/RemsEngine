@@ -125,7 +125,7 @@ fun main() {
 
         for ((index, slot) in inventory.slots.withIndex()) {
             val panel = ItemPanel(slot)
-            panel.setTooltip(TestWorld.blockNames[slot.type]?.name)
+            panel.setTooltip(TestWorld.blockNames[slot.type]?.name ?: "")
             if (index.hasFlag(1)) {
                 panel.backgroundColor = mixARGB(panel.backgroundColor, white, 0.05f)
             }

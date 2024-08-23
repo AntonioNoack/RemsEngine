@@ -35,7 +35,8 @@ object FontListMenu {
 
     fun createFontInput(oldValue: String, style: Style, onChange: (String) -> Unit): EnumInput {
         val fontList = ArrayList<NameDesc>()
-        fontList += NameDesc(oldValue)
+        val oldValueI = NameDesc(oldValue)
+        fontList += oldValueI
         fontList += NameDesc(Menu.menuSeparator)
 
         fun sortFavourites() {
@@ -56,7 +57,7 @@ object FontListMenu {
                 "Font Name",
                 "The style of the text",
                 "obj.font.name"
-            ), oldValue, fontList,
+            ), oldValueI, fontList,
             style
         ) {
             /**
@@ -67,13 +68,13 @@ object FontListMenu {
                 if (DefaultConfig["ui.fonts.previewInEnumInput.enable", true]) {
                     val window = Menu.openMenu(windowStack, this.x, this.y,
                         NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
-                            .with("%1", title),
+                            .with("%1", nameDesc),
                         options.mapIndexed { index, option ->
                             MenuOption(option) {
                                 inputPanel.text = option.name
                                 inputPanel.tooltip = option.desc
                                 lastIndex = index
-                                changeListener(option.name, index, options)
+                                changeListener(option, index, options)
                             }
                         })
                     if (window != null) {
@@ -103,8 +104,8 @@ object FontListMenu {
                 } else super.onMouseClicked(x, y, button, long)
             }
         }.setChangeListener { it, _, _ ->
-            onChange(it)
-            putLastUsedFont(it)
+            onChange(it.englishName)
+            putLastUsedFont(it.englishName)
             sortFavourites()
         }
     }

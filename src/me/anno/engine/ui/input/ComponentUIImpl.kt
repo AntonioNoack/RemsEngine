@@ -39,13 +39,10 @@ import org.joml.Vector4f
 object ComponentUIImpl {
 
     fun createBooleanInput(
-        title: String, ttt: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
-        return BooleanInput(
-            NameDesc(title, ttt, ""), value as Boolean,
-            default as? Boolean ?: false, style
-        ).apply {
+        return BooleanInput(nameDesc, value as Boolean, default as? Boolean ?: false, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) as Boolean }
@@ -57,41 +54,41 @@ object ComponentUIImpl {
     }
 
     fun createByteInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
         val type = NumberType(default as Byte,
             { clamp(AnyToLong.getLong(it, 0), range.minByte().toLong(), range.maxByte().toLong()).toByte() },
             { it })
-        return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toByte() }
+        return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toByte() }
     }
 
     fun createShortInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
         val type = NumberType(default as Short,
             { clamp(AnyToLong.getLong(it, 0), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
             { it })
-        return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toShort() }
+        return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toShort() }
     }
 
     fun createIntInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
         val type = NumberType(default as Int,
             { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()).toInt() },
             { it })
-        return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toInt() }
+        return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toInt() }
     }
 
     private fun createAnyIntInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style, type: NumberType,
         toType: (Long) -> Any
     ): Panel {
-        return IntInput(title, visibilityKey, type, style).apply {
+        return IntInput(nameDesc, visibilityKey, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setValue(AnyToLong.getLong(value, 0), false)
@@ -104,13 +101,13 @@ object ComponentUIImpl {
     }
 
     fun createFloatInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
         val type = NumberType(
             AnyToFloat.getFloat(default, 0f),
             { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
-        return FloatInput(title, visibilityKey, type, style).apply {
+        return FloatInput(nameDesc, visibilityKey, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setValue(value as Float, false)
@@ -123,13 +120,13 @@ object ComponentUIImpl {
     }
 
     fun createDoubleInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
         val type = NumberType(
             AnyToDouble.getDouble(default, 0.0),
             { clamp(AnyToDouble.getDouble(it, 0.0), range.minDouble(), range.maxDouble()) }, { it })
-        return FloatInput(title, visibilityKey, type, style).apply {
+        return FloatInput(nameDesc, visibilityKey, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setValue(value as Double, false)
@@ -142,11 +139,11 @@ object ComponentUIImpl {
     }
 
     fun createVector2fInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         val type = NumberType.VEC2.withDefault(default as? Vector2f ?: Vector2f())
-        return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
+        return FloatVectorInput(nameDesc, visibilityKey, value as Vector2f, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -158,11 +155,11 @@ object ComponentUIImpl {
     }
 
     fun createVector3fInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         val type = NumberType.VEC3.withDefault(default as? Vector3f ?: Vector3f())
-        return FloatVectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
+        return FloatVectorInput(nameDesc, visibilityKey, value as Vector3f, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -174,11 +171,11 @@ object ComponentUIImpl {
     }
 
     fun createVector4fInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         val type = NumberType.VEC4.withDefault(default as? Vector4f ?: Vector4f())
-        return FloatVectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
+        return FloatVectorInput(nameDesc, visibilityKey, value as Vector4f, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -190,11 +187,11 @@ object ComponentUIImpl {
     }
 
     fun createVector2dInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         val type = NumberType.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
-        return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
+        return FloatVectorInput(nameDesc, visibilityKey, value as Vector2d, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -206,11 +203,11 @@ object ComponentUIImpl {
     }
 
     fun createVector3dInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         val type = NumberType.VEC3D.withDefault(default as? Vector3d ?: Vector3d())
-        return FloatVectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
+        return FloatVectorInput(nameDesc, visibilityKey, value as Vector3d, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -222,11 +219,11 @@ object ComponentUIImpl {
     }
 
     fun createVector4dInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         val type = NumberType.VEC4D.withDefault(default as? Vector4d ?: Vector4d())
-        return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
+        return FloatVectorInput(nameDesc, visibilityKey, value as Vector4d, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -238,14 +235,14 @@ object ComponentUIImpl {
     }
 
     fun createAABBfInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         value as AABBf
         default as AABBf
         val typeMin = NumberType.VEC3.withDefault(default.getMin())
-        val panel = TitledListY(title, visibilityKey, style)
-        panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
+        val panel = TitledListY(nameDesc, visibilityKey, style)
+        panel.add(FloatVectorInput(NameDesc.EMPTY, visibilityKey, value.getMin(), typeMin, style).apply {
             property.init(this)
             setResetListener { property.reset(this) }
             askForReset(property) { setValue((it as AABBf).getMin(), false) }
@@ -255,7 +252,7 @@ object ComponentUIImpl {
             }
         })
         val typeMax = NumberType.VEC3D.withDefault(default.getMax())
-        panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
+        panel.add(FloatVectorInput(NameDesc.EMPTY, visibilityKey, value.getMax(), typeMax, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -269,14 +266,14 @@ object ComponentUIImpl {
     }
 
     fun createAABBdInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         value as AABBd
         default as AABBd
         val typeMin = NumberType.VEC3D.withDefault(default.getMin())
-        val panel = TitledListY(title, visibilityKey, style)
-        panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
+        val panel = TitledListY(nameDesc, visibilityKey, style)
+        panel.add(FloatVectorInput(NameDesc.EMPTY, visibilityKey, value.getMin(), typeMin, style).apply {
             property.init(this)
             setResetListener { property.reset(this) }
             askForReset(property) { setValue((it as AABBd).getMin(), false) }
@@ -286,7 +283,7 @@ object ComponentUIImpl {
             }
         })
         val typeMax = NumberType.VEC3D.withDefault(default.getMax())
-        panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
+        panel.add(FloatVectorInput(NameDesc.EMPTY, visibilityKey, value.getMax(), typeMax, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) }
@@ -300,71 +297,71 @@ object ComponentUIImpl {
     }
 
     fun createByteArrayInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return createNumberArrayInput(
-            title, visibilityKey, property, style,
+            nameDesc, visibilityKey, property, style,
             "Byte", (value as? ByteArray)?.asList() ?: emptyList()
         ) { values -> ByteArray(values.size) { values[it] as Byte } }
     }
 
     fun createShortArrayInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return createNumberArrayInput(
-            title, visibilityKey, property, style,
+            nameDesc, visibilityKey, property, style,
             "Short", (value as? ShortArray)?.asList() ?: emptyList()
         ) { values -> ShortArray(values.size) { values[it] as Short } }
     }
 
     fun createIntArrayInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return createNumberArrayInput(
-            title, visibilityKey, property, style,
+            nameDesc, visibilityKey, property, style,
             "Int", (value as? IntArray)?.asList() ?: emptyList()
         ) { values -> IntArray(values.size) { values[it] as Int } }
     }
 
     fun createLongArrayInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return createNumberArrayInput(
-            title, visibilityKey, property, style,
+            nameDesc, visibilityKey, property, style,
             "Long", (value as? LongArray)?.asList() ?: emptyList()
         ) { values -> LongArray(values.size) { values[it] as Long } }
     }
 
     fun createFloatArrayInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return createNumberArrayInput(
-            title, visibilityKey, property, style,
+            nameDesc, visibilityKey, property, style,
             "Float", (value as? FloatArray)?.asList() ?: emptyList()
         ) { values -> FloatArray(values.size) { values[it] as Float } }
     }
 
     fun createDoubleArrayInput(
-        title: String, visibilityKey: String, value: Any?,
+        nameDesc: NameDesc, visibilityKey: String, value: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return createNumberArrayInput(
-            title, visibilityKey, property, style,
+            nameDesc, visibilityKey, property, style,
             "Double", (value as? DoubleArray)?.asList() ?: emptyList()
         ) { values -> DoubleArray(values.size) { values[it] as Double } }
     }
 
     fun createNumberArrayInput(
-        title: String, visibilityKey: String,
+        nameDesc: NameDesc, visibilityKey: String,
         property: IProperty<Any?>, style: Style,
         childType: String, valueAsList: List<Any?>, valuesToArray: (List<Any?>) -> Any,
     ): Panel {
-        return object : AnyArrayPanel(title, visibilityKey, childType, style) {
+        return object : AnyArrayPanel(nameDesc, visibilityKey, childType, style) {
             override fun onChange() {
                 property.set(this, valuesToArray(values))
             }

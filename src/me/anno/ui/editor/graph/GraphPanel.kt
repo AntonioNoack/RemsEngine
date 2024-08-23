@@ -490,7 +490,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             }
             "String" -> {
                 if (old is TextInput) return old.apply { textSize = font.size }
-                return TextInput("", "", (con.currValue ?: "").toString(), style)
+                return TextInput(NameDesc.EMPTY, "", (con.currValue ?: "").toString(), style)
                     .addChangeListener {
                         con.currValue = it
                         onChange(false)
@@ -500,7 +500,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             }
             "File", "FileReference" -> {
                 if (old is FileInput) return old.apply { old.textSize = font.size }
-                return FileInput("", style, con.currValue as? FileReference ?: InvalidRef, emptyList(), false)
+                return FileInput(NameDesc.EMPTY, style, con.currValue as? FileReference ?: InvalidRef, emptyList(), false)
                     .addChangeListener {
                         con.currValue = it
                         onChange(false)

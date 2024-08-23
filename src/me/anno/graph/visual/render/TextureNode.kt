@@ -11,6 +11,7 @@ import me.anno.image.ImageCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
@@ -72,7 +73,7 @@ class TextureNode : CalculationNode(
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
-        list += FileInput("", style, file, emptyList())
+        list += FileInput(NameDesc.EMPTY, style, file, emptyList())
             .addChangeListener {
                 file = it
                 g.onChange(false)

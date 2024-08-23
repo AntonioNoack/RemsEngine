@@ -62,7 +62,7 @@ interface WelcomeUI {
         val style = DefaultConfig.style
         val welcome = PanelListY(style)
 
-        welcome += TextPanel(studio.title, style).apply { font = font.withSize(font.size * 3f) }
+        welcome += TextPanel(studio.nameDesc, style).apply { font = font.withSize(font.size * 3f) }
         welcome += TextPanel(
             NameDesc("Version %1", "Which version is running in this window", "ui.welcome.version")
                 .with("%1", studio.versionName), style
@@ -346,12 +346,12 @@ interface WelcomeUI {
             base.focusTextColor = base.textColor
         }
 
-        nameInput = TextInput("Project Name", "", Dict["New Project", "ui.newProject.defaultName"], style)
+        nameInput = TextInput(NameDesc("Project Name"), "", Dict["New Project", "ui.newProject.defaultName"], style)
         nameInput.setEnterListener { loadNewProject(studio, usableFile, nameInput) }
 
         var lastName = nameInput.value
         fileInput = FileInput(
-            Dict["Project Location", "ui.newProject.location"], style,
+            NameDesc("Project Location", "", "ui.newProject.location"), style,
             EngineBase.workspace.getChild(lastName), emptyList(),
             true
         )

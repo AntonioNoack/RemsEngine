@@ -5,6 +5,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.IntInput
@@ -21,7 +22,7 @@ fun main() {
         }
         renderPanel.weight = 1f
         list.add(renderPanel)
-        list.add(IntInput("Interpolated Frames", "", interFrames, NumberType.LONG_PLUS, style)
+        list.add(IntInput(NameDesc("Interpolated Frames"), "", interFrames, NumberType.LONG_PLUS, style)
             .setChangeListener { interFrames = it.toInt() })
         list
     }

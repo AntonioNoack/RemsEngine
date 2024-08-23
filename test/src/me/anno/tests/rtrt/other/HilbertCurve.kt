@@ -4,6 +4,7 @@ import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves.drawLine
+import me.anno.language.translation.NameDesc
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
@@ -31,7 +32,7 @@ fun main() {
     disableRenderDoc()
     testUI2("Hilbert Curve") {
         var n = 4096
-        val input = IntInput("", "", n, NumberType.LONG_PLUS, style)
+        val input = IntInput(NameDesc.EMPTY, "", n, NumberType.LONG_PLUS, style)
             .setChangeListener { n = it.toInt() }
         val main = TestDrawPanel {
             it.clear()

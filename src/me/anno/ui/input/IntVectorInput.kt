@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
@@ -19,37 +20,36 @@ import org.joml.Vector2i
 import org.joml.Vector3i
 import org.joml.Vector4f
 import org.joml.Vector4i
-import kotlin.math.roundToInt
 
 open class IntVectorInput(
-    title: String,
+    nameDesc: NameDesc,
     visibilityKey: String,
     val type: NumberType,
     style: Style,
     val createComponent: () -> IntInput
-) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i>, TextStyleable {
+) : TitledListY(nameDesc, visibilityKey, style), InputPanel<Vector4i>, TextStyleable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(IntVectorInput::class)
     }
 
-    constructor(title: String, visibilityKey: String, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style, { IntInput("", visibilityKey, type, style) })
+    constructor(nameDesc: NameDesc, visibilityKey: String, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style, { IntInput(NameDesc.EMPTY, visibilityKey, type, style) })
 
-    constructor(style: Style) : this("", "", NumberType.LONG, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, "", NumberType.LONG, style)
 
-    constructor(title: String, visibilityKey: String, value: Vector2i, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value: Vector2i, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    constructor(title: String, visibilityKey: String, value: Vector3i, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value: Vector3i, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    constructor(title: String, visibilityKey: String, value: Vector4i, type: NumberType, style: Style) :
-            this(title, visibilityKey, type, style) {
+    constructor(nameDesc: NameDesc, visibilityKey: String, value: Vector4i, type: NumberType, style: Style) :
+            this(nameDesc, visibilityKey, type, style) {
         setValue(value, -1, false)
     }
 

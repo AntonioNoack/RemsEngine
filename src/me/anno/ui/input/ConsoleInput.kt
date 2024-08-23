@@ -1,14 +1,15 @@
 package me.anno.ui.input
 
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.maths.Maths.clamp
 
 @Suppress("unused")
-class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
-    TextInput(title, "", enableSuggestions, style) {
+class ConsoleInput(nameDesc: NameDesc, enableSuggestions: Boolean, style: Style) :
+    TextInput(nameDesc, "", enableSuggestions, style) {
 
     @Suppress("unused")
-    constructor(style: Style): this("", true, style)
+    constructor(style: Style): this(NameDesc.EMPTY, true, style)
 
     var actionListener: (String) -> Unit = {}
 
