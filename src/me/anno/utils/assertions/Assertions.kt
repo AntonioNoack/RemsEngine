@@ -16,6 +16,10 @@ fun assertContains(value: CharSequence, collection: CharSequence, message: Strin
     if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
 }
 
+fun assertContains(value: Int, collection: IntRange, message: String = "condition failed") {
+    if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
+}
+
 fun assertNotContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
     if (value in collection) throw IllegalStateException("'$value' in '$collection', $message")
 }

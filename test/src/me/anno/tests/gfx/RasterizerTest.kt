@@ -1,10 +1,16 @@
 package me.anno.tests.gfx
 
+import me.anno.maths.geometry.Rasterizer
+import me.anno.tests.maths.DistancesTest.Companion.testAllAxes3f
+import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Triangles.isInsideTriangle
+import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2i
+import org.joml.Vector3f
+import org.joml.Vector3i
 import org.junit.jupiter.api.Test
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -26,6 +32,10 @@ class RasterizerTest {
             Vector2f(2.1f, 6.8f),
             null
         )
+    }
+
+    @Test
+    fun testRasterizerBounded() {
         testRasterizer(
             Vector2f(5.5f, 3.1f),
             Vector2f(1.2f, 2.2f),
@@ -63,5 +73,75 @@ class RasterizerTest {
             }
         }
         assertEquals(emptySet(), pointsInTriangle)
+    }
+
+    @Test
+    fun testRasterizer3dCountVoxels() {
+        // check that the number of voxels is approximately as expected
+        val sizesCount = HashSet<Int>()
+        testAllAxes3f(
+            Vector3f(0f, 0f, 7f),
+            Vector3f(20f, 0f, 0f),
+            Vector3f(0f, 20f, 0f)
+        ) { (a, b, c) ->
+            val area = subCross(a, b, c, Vector3f()).length() * 0.5f
+            sizesCount += testRasterizer3d(
+                a, b, c, null,
+                (area * 0.95f).toInt()..(area * 1.05f).toInt()
+            )
+        }
+        assertEquals(1, sizesCount.size)
+    }
+
+    @Test
+    fun testRasterizer3dInBetweenValues() {
+        // test floating between two values
+        val sizesCount = HashSet<Int>()
+        testAllAxes3f(
+            Vector3f(0f, 0f, 0.5f),
+            Vector3f(20f, 0f, 0.5f),
+            Vector3f(0f, 20f, 0.5f)
+        ) { (a, b, c) ->
+            val area = subCross(a, b, c, Vector3f()).length() * 0.5f
+            sizesCount += testRasterizer3d(
+                a, b, c, null,
+                (area * 0.8f).toInt()..(area * 1.2f).toInt()
+            )
+        }
+        assertEquals(1, sizesCount.size)
+    }
+
+    @Test
+    fun testRasterizer3dSimplePlanes() {
+        // check simple edge cases
+        testAllAxes3f(
+            Vector3f(),
+            Vector3f(20f, 0f, 0f),
+            Vector3f(0f, 20f, 0f)
+        ) { (a, b, c) ->
+            testRasterizer3d(
+                a, b, c,
+                AABBf().union(a).union(b).union(c).scale(0.5f),
+                11 * 11
+            )
+        }
+    }
+
+    fun testRasterizer3d(a: Vector3f, b: Vector3f, c: Vector3f, bounds: AABBf?, allowedRange: IntRange): Int {
+        val found = HashSet<Vector3i>()
+        Rasterizer.rasterize(a, b, c, bounds) { x, y, z ->
+            assertTrue(found.add(Vector3i(x, y, z)))
+        }
+        assertContains(found.size, allowedRange)
+        return found.size
+    }
+
+    fun testRasterizer3d(a: Vector3f, b: Vector3f, c: Vector3f, bounds: AABBf?, expectedCount: Int): Int {
+        val found = HashSet<Vector3i>()
+        Rasterizer.rasterize(a, b, c, bounds) { x, y, z ->
+            assertTrue(found.add(Vector3i(x, y, z)), "duplicate $x,$y,$z")
+        }
+        assertEquals(found.size, expectedCount)
+        return found.size
     }
 }

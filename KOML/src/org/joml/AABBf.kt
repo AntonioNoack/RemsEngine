@@ -659,13 +659,15 @@ class AABBf(
         return radiusAtPoint
     }
 
-    fun scale(sx: Float, sy: Float = sx, sz: Float = sx) {
+    fun scale(s: Float): AABBf = scale(s, s, s)
+    fun scale(sx: Float, sy: Float, sz: Float): AABBf {
         minX *= sx
         minY *= sy
         minZ *= sz
         maxX *= sx
         maxY *= sy
         maxZ *= sz
+        return this
     }
 
     fun collideFront(pos: Vector3f, dir: Vector3f): Float {

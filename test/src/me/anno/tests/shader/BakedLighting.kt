@@ -75,7 +75,7 @@ import me.anno.maths.bvh.TLASNode
 import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
 import me.anno.maths.bvh.shader.TextureRTShaderLib
 import me.anno.sdf.random.SDFRandom.Companion.randLib
-import me.anno.tests.gfx.Rasterizer
+import me.anno.maths.geometry.Rasterizer
 import me.anno.tests.rtrt.engine.commonFunctions
 import me.anno.tests.rtrt.engine.commonUniforms
 import me.anno.ui.base.progress.ProgressBar

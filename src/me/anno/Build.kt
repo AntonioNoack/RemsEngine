@@ -26,7 +26,7 @@ object Build {
     var isLocked = false
         private set
 
-    @JvmStatic
+    @JvmStatic // who is using this?
     var assetsFolder: FileReference = InvalidRef
 
     /**

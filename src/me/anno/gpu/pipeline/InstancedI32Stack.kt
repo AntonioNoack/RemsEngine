@@ -5,7 +5,10 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderState.prevCameraPosition
+import me.anno.engine.ui.render.RenderState.prevWorldScale
+import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -124,10 +127,8 @@ open class InstancedI32Stack(
             nioBytes.limit(nioBytes.capacity())
             val nioInt = nioBytes.asIntBuffer()
             nioInt.limit(nioInt.capacity())
-            // fill the data
-            val cameraPosition = RenderState.cameraPosition
-            val worldScale = RenderState.worldScale
 
+            // fill the data
             var baseIndex = 0
             val batchSize = buffer.vertexCount
             val metadata = instances.metadata
@@ -141,7 +142,10 @@ open class InstancedI32Stack(
                 if (!overrideFinalId) {
                     shader.v4f("finalId", metadata[i * 2 + 1])
                 }
-                shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
+
+                val matrix = instances.matrices[i]
+                shader.m4x3delta("localTransform", matrix, cameraPosition, worldScale)
+                shader.m4x3delta("prevLocalTransform", matrix, prevCameraPosition, prevWorldScale)
 
                 // draw them in batches of size <= batchSize
                 while (baseIndex < totalEndIndex) {

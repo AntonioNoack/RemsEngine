@@ -49,6 +49,7 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
+import me.anno.maths.geometry.Rasterizer
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing

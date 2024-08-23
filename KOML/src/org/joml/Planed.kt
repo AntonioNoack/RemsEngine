@@ -38,12 +38,14 @@ open class Planed(
     }
 
     fun set(pos: Vector3d, dir: Vector3d) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
-
     fun set(src: Planed): Planed = set(src.dirX, src.dirY, src.dirZ, src.distance)
 
     fun dot(x: Double, y: Double, z: Double): Double = x * dirX + y * dirY + z * dirZ + distance
-
     fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)
+
+    fun findX(y: Double, z: Double): Double = -dot(0.0, y, z) / dirX
+    fun findY(x: Double, z: Double): Double = -dot(x, 0.0, z) / dirY
+    fun findZ(x: Double, y: Double): Double = -dot(x, y, 0.0) / dirZ
 
     override fun toString(): String {
         return "Plane($dirX, $dirY, $dirZ, $distance)"
