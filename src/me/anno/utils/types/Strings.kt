@@ -320,18 +320,25 @@ object Strings {
     @JvmStatic
     fun CharSequence.isBlank2(): Boolean {
         for (index in 0 until length + 0) {
-            when (this[index]) {
-                '\u0009', in '\u000a'..'\u000d',
-                '\u0020', '\u0085', '\u00a0',
-                '\u1680', '\u180e',
-                in '\u2000'..'\u200D',
-                '\u2028', '\u2029', '\u202f',
-                '\u205f', '\u2060', '\u3000',
-                '\ufeff' -> Unit
-                else -> return false
+            if (!this[index].isBlank()) {
+                return false
             }
         }
         return true
+    }
+
+    @JvmStatic
+    fun Char.isBlank(): Boolean {
+        return when (this) {
+            '\u0009', in '\u000a'..'\u000d',
+            '\u0020', '\u0085', '\u00a0',
+            '\u1680', '\u180e',
+            in '\u2000'..'\u200D',
+            '\u2028', '\u2029', '\u202f',
+            '\u205f', '\u2060', '\u3000',
+            '\ufeff' -> true
+            else -> false
+        }
     }
 
     @JvmStatic

@@ -126,6 +126,8 @@ object Reference {
         // root
         if (str == "root") return FileRootRef
         val str2 = str.replace('\\', '/')
+        val bundledRef = BundledRef.parse(str2) // is cached, so it's fine to be here
+        if (bundledRef != null) return bundledRef
         // the cache can be a large issue -> avoid if possible
         if (LastModifiedCache.exists(str2)) return createReference(str2)
         return fileCache.getEntry(str2, fileTimeout, true) {
@@ -137,9 +139,8 @@ object Reference {
     private fun createReference(str: String): FileReference {
 
         // internal resource
-        if (str.startsWith(BundledRef.PREFIX, true)) {
-            return BundledRef.parse(str)
-        }
+        val bundledRef = BundledRef.parse(str)
+        if (bundledRef != null) return bundledRef
 
         // web resource
         if (str.startsWith("http://", true) || str.startsWith("https://", true)) {

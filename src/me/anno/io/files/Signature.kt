@@ -282,6 +282,7 @@ class Signature(
             Signature("md5mesh", 0, "MD5Version"),
             Signature("dae", -1, "<COLLADA"),
             Signature("maya", 0, "//Maya ASCII "),
+            Signature("ply", 0, "ply"),
             // scenes and meshes from mitsuba renderer
             Signature("mitsuba-meshes", 0, byteArrayOf(0x1c, 0x04)),
             Signature("mitsuba-scene", 0, "<scene version="),

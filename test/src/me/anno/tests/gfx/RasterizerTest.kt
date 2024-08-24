@@ -139,7 +139,7 @@ class RasterizerTest {
     fun testRasterizer3d(a: Vector3f, b: Vector3f, c: Vector3f, bounds: AABBf?, expectedCount: Int): Int {
         val found = HashSet<Vector3i>()
         Rasterizer.rasterize(a, b, c, bounds) { x, y, z ->
-            assertTrue(found.add(Vector3i(x, y, z)), "duplicate $x,$y,$z")
+            assertTrue(found.add(Vector3i(x, y, z)))
         }
         assertEquals(found.size, expectedCount)
         return found.size

@@ -99,7 +99,7 @@ As this engine is a toolbox, I want to be able to load all kinds of formats:
 
   - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, qoi, xcf (Gimp)
   - Video formats (ffmpeg): wav, mp3, mp4, avi, flv, gif
-  - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh, mitsuba
+  - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, ply, md2, md5mesh, mitsuba
   - Package formats (Apache Compress, JUnRar): zip, tar, tar.gz, rar, 7z, bz2, lz4, xar, oar
   - Metadata formats (custom): json, csv, yaml, xml
   - Others (Apache PDFBox, custom): pdf, tar/text-based Unity-packages

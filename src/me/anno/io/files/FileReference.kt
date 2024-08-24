@@ -79,15 +79,27 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun getChild(name: String): FileReference {
+        return getChildUnsafe(name, true)
+    }
+
+    fun getChildUnsafe(name: String, onlyChildren: Boolean): FileReference {
+        if (this == InvalidRef) return InvalidRef
         val nameI = if ('\\' in name) {
             name.replace('\\', '/')
         } else name
         var i = 0
         var result = this
-        while (result != InvalidRef) {
+        while (true) {
             val ni = nameI.indexOf('/', i)
             if (ni < 0) break
-            result = result.getChildImpl(nameI.substring(i, ni))
+            val nameJ = nameI.substring(i, ni)
+            result = if (nameJ == "..") {
+                if (onlyChildren) InvalidRef
+                else result.getParent()
+            } else result.getChildImpl(nameJ)
+            if (result == InvalidRef) {
+                return InvalidRef
+            }
             i = ni + 1
         }
         if (i < nameI.length) {

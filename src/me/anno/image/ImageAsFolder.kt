@@ -166,7 +166,7 @@ object ImageAsFolder {
     }
 
     private val shouldIgnoreExt = ("rar,bz2,zip,tar,gzip,xz,lz4,7z,xar,oar,java,text,wasm,ttf,woff1,woff2,shell," +
-            "xml,svg,exe,vox,fbx,gltf,obj,blend,mesh-draco,md2,md5mesh,dae,yaml").split(',').toHashSet()
+            "xml,svg,exe,vox,fbx,gltf,obj,blend,mesh-draco,ply,md2,md5mesh,dae,yaml").split(',').toHashSet()
 
     private fun shouldIgnore(signature: String?): Boolean {
         return signature in shouldIgnoreExt

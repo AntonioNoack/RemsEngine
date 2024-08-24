@@ -756,18 +756,10 @@ open class Matrix4x3d {
     }
 
     fun set(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double,
-        m30: Double,
-        m31: Double,
-        m32: Double
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double,
+        m30: Double, m31: Double, m32: Double
     ): Matrix4x3d {
         this.m00 = m00
         this.m10 = m10
@@ -786,36 +778,22 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun set(m: DoubleArray, off: Int = 0): Matrix4x3d {
-        m00 = m[off]
-        m01 = m[off + 1]
-        m02 = m[off + 2]
-        m10 = m[off + 3]
-        m11 = m[off + 4]
-        m12 = m[off + 5]
-        m20 = m[off + 6]
-        m21 = m[off + 7]
-        m22 = m[off + 8]
-        m30 = m[off + 9]
-        m31 = m[off + 10]
-        m32 = m[off + 11]
-        return determineProperties()
+        return set(
+            m[off], m[off + 1], m[off + 2],
+            m[off + 3], m[off + 4], m[off + 5],
+            m[off + 6], m[off + 7], m[off + 8],
+            m[off + 9], m[off + 10], m[off + 11]
+        )
     }
 
     @JvmOverloads
     fun set(m: FloatArray, off: Int = 0): Matrix4x3d {
-        m00 = m[off].toDouble()
-        m01 = m[off + 1].toDouble()
-        m02 = m[off + 2].toDouble()
-        m10 = m[off + 3].toDouble()
-        m11 = m[off + 4].toDouble()
-        m12 = m[off + 5].toDouble()
-        m20 = m[off + 6].toDouble()
-        m21 = m[off + 7].toDouble()
-        m22 = m[off + 8].toDouble()
-        m30 = m[off + 9].toDouble()
-        m31 = m[off + 10].toDouble()
-        m32 = m[off + 11].toDouble()
-        return determineProperties()
+        return set(
+            m[off].toDouble(), m[off + 1].toDouble(), m[off + 2].toDouble(),
+            m[off + 3].toDouble(), m[off + 4].toDouble(), m[off + 5].toDouble(),
+            m[off + 6].toDouble(), m[off + 7].toDouble(), m[off + 8].toDouble(),
+            m[off + 9].toDouble(), m[off + 10].toDouble(), m[off + 11].toDouble()
+        )
     }
 
     fun determinant(): Double {
@@ -5434,5 +5412,4 @@ open class Matrix4x3d {
     fun isIdentity(): Boolean {
         return (flags and 4) != 0
     }
-
 }

@@ -62,7 +62,7 @@ object DefaultConfig : StringMap() {
                     "nsv,f4v,f4p,f4a,f4b,avi,flv,vob,wmv,mkv,ogg,ogv,drc,mov,qt,mts,m2ts,ts,rm,rmvb,viv,asf,amv"
         )
         addImportMappings("Text", "txt")
-        addImportMappings("Mesh", "obj,mtl,fbx,dae,gltf,glb,md2,md5mesh,vox,blend,blend1")
+        addImportMappings("Mesh", "obj,mtl,fbx,dae,gltf,glb,ply,md2,md5mesh,vox,blend,blend1")
         // not yet supported
         // addImportMappings("Markdown", "md")
         addImportMappings("Audio", "mp3,wav,m4a,ogg,opus")

@@ -17,7 +17,6 @@ import me.anno.utils.structures.Callback.Companion.mapCallback
 import me.anno.utils.types.Strings.indexOf2
 import java.io.DataInputStream
 import java.io.InputStream
-import java.io.Serializable
 import java.nio.ByteOrder
 import kotlin.math.min
 
@@ -38,7 +37,7 @@ object NumPyReader {
     fun readNPY(input: InputStream): NumPyData {
 
         val data = DataInputStream(input)
-        for (c in magic) {
+        for (c in NUMPY_MAGIC) {
             if (data.read() != c.code)
                 throw IllegalArgumentException("Invalid header")
         }
@@ -106,5 +105,5 @@ object NumPyReader {
         return NumPyData(descriptor, shape, columnMajor, data1)
     }
 
-    const val magic = "\u0093NUMPY"
+    const val NUMPY_MAGIC = "\u0093NUMPY"
 }

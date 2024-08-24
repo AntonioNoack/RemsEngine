@@ -1,7 +1,6 @@
 package me.anno.io.files
 
 import me.anno.io.files.Reference.appendPath
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.Callback
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -76,10 +75,11 @@ class BundledRef private constructor(
         //  -> let's just cache them all
         private val cache = HashMap<String, FileReference>()
 
-        fun parse(fullPath: String): FileReference {
-            assertTrue(fullPath.startsWith(PREFIX, true))
-            return synchronized(cache) { cache[fullPath] }
-                ?: origin.getChild(fullPath.substring(PREFIX.length))
+        fun parse(absolutePath: String): FileReference? {
+            return if (absolutePath.startsWith(PREFIX, true)) {
+                synchronized(cache) { cache[absolutePath] }
+                    ?: origin.getChild(absolutePath.substring(PREFIX.length))
+            } else null
         }
     }
 }

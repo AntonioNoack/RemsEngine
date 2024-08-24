@@ -21,7 +21,7 @@ class MeshLoaderPlugin : Plugin() {
     override fun onEnable() {
 
         // read as folder
-        InnerFolderCache.registerSignatures("fbx,gltf,dae,draco,md2,md5mesh") { it, c ->
+        InnerFolderCache.registerSignatures("fbx,gltf,dae,draco,md2,md5mesh,ply") { it, c ->
             c.ok(AnimatedMeshesLoader.readAsFolder(it))
         }
         InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
@@ -36,17 +36,10 @@ class MeshLoaderPlugin : Plugin() {
         InnerFolderCache.registerSignatures("mitsuba-scene", MitsubaReader::readSceneAsFolder)
 
         // thumbnails
-        Thumbs.registerSignatures("blend", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("mitsuba-scene", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("mitsuba-meshes", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("maya", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("obj", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("fbx", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("gltf", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("glb", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("dae", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("md2", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("md5mesh", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures(
+            "blend,mitsuba-scene,mitsuba-meshes,maya,obj,fbx,gltf,glb,dae,ply,md2,md5mesh",
+            AssetThumbnails::generateAssetFrame
+        )
         Thumbs.registerFileExtensions("mtl", ::generateMTLThumbnail)
     }
 
@@ -72,7 +65,7 @@ class MeshLoaderPlugin : Plugin() {
 
     override fun onDisable() {
         InnerFolderCache.unregisterSignatures(
-            "fbx,gltf,dae,draco,md2,md5mesh,blend," +
+            "fbx,gltf,dae,draco,md2,md5mesh,blend,ply," +
                     "obj,mtl,maya,mitsuba-meshes,mitsuba-scene"
         )
     }

@@ -14,7 +14,12 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
 
     private val builder = StringBuilder()
     private var hasReachedEnd = false
+
     fun readLine(): String? {
+        return readLineRaw()?.toString()
+    }
+
+    fun readLineRaw(): CharSequence? {
         builder.clear()
         if (hasReachedEnd) {
             return null
@@ -24,9 +29,9 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
                 -1 -> { // eof
                     hasReachedEnd = true
                     reader.close()
-                    return builder.toString()
+                    return builder
                 }
-                '\n'.code -> return builder.toString()
+                '\n'.code -> return builder
                 '\r'.code -> {}// ignored
                 else -> if (builder.length < lineLengthLimit) {
                     builder.append(c.toChar())
@@ -41,9 +46,9 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
                 -1 -> { // eof
                     hasReachedEnd = true
                     reader.close()
-                    return builder.toString()
+                    return builder
                 }
-                '\n'.code -> return builder.toString()
+                '\n'.code -> return builder
                 // everything else is ignored
             }
         }

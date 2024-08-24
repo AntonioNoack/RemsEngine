@@ -13,6 +13,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
@@ -551,7 +552,7 @@ object StaticMeshesLoader {
     }
 
     private fun createTextureLookup(missingFilesLookup: Map<String, FileReference>): List<FileReference> {
-        return missingFilesLookup.values.filter { it.lcExtension in "psd,png,jpg,bmp,svg,ico" && "_Texture_" in it.nameWithoutExtension }
+        return missingFilesLookup.values.filter { it.lcExtension in InnerFolderCache.imageFormats1 && "_Texture_" in it.nameWithoutExtension }
     }
 
     private fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {
