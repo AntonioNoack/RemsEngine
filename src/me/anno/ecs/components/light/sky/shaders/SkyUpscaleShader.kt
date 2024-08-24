@@ -4,6 +4,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.bicubicInterpolation
+import me.anno.gpu.shader.ShaderLib.quatRot
+import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.ITexture2D
@@ -27,10 +29,26 @@ object SkyUpscaleShader : SkyShaderBase("SkyboxUpscaler") {
         return list
     }
 
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+        val stage = ShaderStage(
+            "skyBase-upscale", createFragmentVariables(key), concatDefines(key).toString() +
+                    // sky no longer properly defined for y > 0
+                    "finalNormal = normalize(-normal);\n" +
+                    // sky color can be quite expensive to compute, so only do so if we need it
+                    "#ifdef COLORS\n" +
+                    "   finalColor = vec3(0.0);\n" +
+                    "   finalEmissive = getSkyColor(gl_FragCoord.xy * invResolution);\n" +
+                    "#endif\n" +
+                    "finalPosition = finalNormal * 1e20;\n" +
+                    finalMotionCalculation
+        )
+        stage.add(getSkyColor())
+        return listOf(stage)
+    }
+
     override fun getSkyColor(): String {
         return  bicubicInterpolation +
-                "vec3 getSkyColor(vec3 pos){\n" +
-                "   vec2 uv = gl_FragCoord.xy * invResolution;\n" +
+                "vec3 getSkyColor(vec2 uv){\n" +
                 "   return bicubicInterpolation(skyTex,uv,vec2(dFdx(uv.x),dFdy(uv.y))).rgb;\n" +
                 "}\n"
     }

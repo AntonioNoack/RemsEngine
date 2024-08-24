@@ -25,5 +25,5 @@ enum class DitherMode(val id: Int, val glslSnipped: String) {
     /**
      * use dither2x2() do discard/keep pixels
      * */
-    DITHER2X2(4, "if(dither2x2(finalAlpha)) { discard; }\n")
+    DITHER2X2(4, "if(dither2x2(finalAlpha,gl_FragCoord.xy,gl_SampleID)) { discard; }\n")
 }

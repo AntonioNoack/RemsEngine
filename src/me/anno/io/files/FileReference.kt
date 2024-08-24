@@ -84,7 +84,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     fun getChildUnsafe(name: String, onlyChildren: Boolean): FileReference {
         if (this == InvalidRef) return InvalidRef
-        val nameI = if ('\\' in name) {
+        val nameI = if ('\\' in name) { // please, don't use back-slashes
             name.replace('\\', '/')
         } else name
         var i = 0
@@ -427,8 +427,5 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return path.length > other.length + 1 &&
                 path[other.length] == '/' &&
                 path.startsWith(other)
-    }
-
-    override fun destroy() {
     }
 }

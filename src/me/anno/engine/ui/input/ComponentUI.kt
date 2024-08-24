@@ -318,7 +318,7 @@ object ComponentUI {
             }
             is Saveable -> return createISaveableInput(title, value, style, property)
             is ExtendableEnum -> return createExtendableEnumInput(title, property, value, style)
-            else -> return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
+            else -> return TextPanel("?? ${title.name}, ${if (value != null) value::class else null}", style)
         }
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
     }
@@ -878,9 +878,9 @@ object ComponentUI {
                         return createISaveableInput(title, value, style, property)
                     }
                 }
-                LOGGER.warn("Missing knowledge to edit $type0, '$title'")
+                LOGGER.warn("Missing knowledge to edit $type0, '${title.name}'")
                 return TextPanel(
-                    "?? $title : ${if (value != null) value::class.simpleName else null}, type $type0",
+                    "?? ${title.name} : ${if (value != null) value::class.simpleName else null}, type $type0",
                     style
                 )
             }

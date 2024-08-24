@@ -28,6 +28,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
@@ -358,6 +359,8 @@ class PrefabInspector(var reference: FileReference) {
             val editMode = EditorState.editMode
             val index = customEditModes.indexOf(editMode) + 1
             EditorState.editMode = customEditModes.getOrNull(index)
+        }.apply {
+            alignmentX = AxisAlignment.MIN
         })
     }
 

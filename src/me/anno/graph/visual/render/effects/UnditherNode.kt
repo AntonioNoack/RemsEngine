@@ -76,12 +76,12 @@ class UnditherNode : RenderViewNode(
                     "   float d1 = getDepth(uvi-ivec2(1,0));\n" +
                     "   float d2 = getDepth(uvi+ivec2(0,1));\n" +
                     "   float d3 = getDepth(uvi-ivec2(0,1));\n" +
-                    "   float max = max(max(d0,d1),max(d2,d3));\n" +
-                    "   float min = min(min(d0,d1),min(d2,d3));\n" +
+                    "   float maxV = max(max(d0,d1),max(d2,d3));\n" +
+                    "   float minV = min(min(d0,d1),min(d2,d3));\n" +
                     // only blur if all neighbors are similar, but at the same time different to ourselves
-                    "   if(max < min + 0.2){\n" +
+                    "   if(maxV < minV + 0.2){\n" +
                     "       float dx = getDepth(uvi);\n" +
-                    "       if(dx < min || dx > max){\n" +
+                    "       if(dx < minV || dx > maxV){\n" +
                     "           color = color * 0.5 + 0.125 * (\n" +
                     "               getColor(uvi+ivec2(1,0)) +\n" +
                     "               getColor(uvi-ivec2(1,0)) +\n" +
