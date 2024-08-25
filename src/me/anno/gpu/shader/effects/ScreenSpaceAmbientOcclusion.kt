@@ -199,7 +199,7 @@ object ScreenSpaceAmbientOcclusion {
                     (if (ssgi) "result = vec4(lightSum * strength, 1.0);\n"
                     else "result = vec4(clamp(strength * occlusion, 0.0, 1.0));\n") +
                     "   } else {\n" +
-                    "       result = vec4(0.5);\n" +
+                    "       result = vec4(0.0);\n" +
                     "   }\n" +
                     "}"
         ).apply {
