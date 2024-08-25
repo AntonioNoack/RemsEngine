@@ -131,35 +131,41 @@ object ColorParsing {
     @JvmStatic
     fun String.is01Float() = toFloatOrNull() != null && toFloat() in 0f..1f
 
+    @JvmStatic
+    fun String.isPercentFloat(): Boolean {
+        return if (endsWith("%")) {
+            val float = substring(0, lastIndex).toFloatOrNull()
+            float != null && float in 0f..100f
+        } else false
+    }
+
     /**
-     * @return null for "none", else argb color code
-     * @throws RuntimeException if term could not be parsed
+     * @return argb color code or null on failure
      * */
     @JvmStatic
     fun parseColor(name: String): Int? {
         return when {
             name.startsWith('#') -> parseHex(name.substring(1))
             name.startsWith("0x") -> parseHex(name.substring(2))
-            name.equals("none", true) -> null
             name.startsWith("rgb(") && name.endsWith(")") -> {
                 val parts = name.substring(4, name.length - 1)
                     .split(',')
                     .map { it.trim() }
                 if (parts.size == 3) {
                     val rgb = when {
-                        parts.all { it.endsWith('%') } -> {
-                            parts.map { it.substring(0, it.length - 1).toFloat() / 100f }
+                        parts.all { it.isPercentFloat() } -> {
+                            parts.map { it.substring(0, it.length - 1).toFloat() * 0.01f }
                         }
-                        parts.all { it.toFloatOrNull() != null && it.toFloat() in 0f..1f } -> {
+                        parts.all { it.is01Float() } -> {
                             parts.map { it.toFloat() }
                         }
                         parts.all { it.is255Int() } -> {
                             parts.map { it.toInt() / 255f }
                         }
-                        else -> throw InvalidFormatException("Unknown color $name")
+                        else -> return null
                     }
                     rgba(rgb[0], rgb[1], rgb[2], 1f)
-                } else throw InvalidFormatException("Unknown color $name")
+                } else null
             }
             name.startsWith("rgba(") && name.endsWith(")") -> {
                 val parts = name.substring(5, name.length - 1)
@@ -167,10 +173,10 @@ object ColorParsing {
                     .map { it.trim() }
                 if (parts.size == 4) {
                     val rgba = when {
-                        parts.all { it.endsWith('%') } -> {
+                        parts.all { it.isPercentFloat() } -> {
                             parts.map { it.substring(0, it.length - 1).toFloat() * 0.01f }
                         }
-                        parts.all { it.toFloatOrNull() != null && it.toFloat() in 0f..1f } -> {
+                        parts.all { it.is01Float() } -> {
                             parts.map { it.toFloat() }
                         }
                         parts.all { it.is255Int() } -> {
@@ -184,13 +190,12 @@ object ColorParsing {
                                 parts[3].toFloat(),
                             )
                         }
-                        else -> throw InvalidFormatException("Unknown color $name, $parts")
+                        else -> return null
                     }
                     rgba(rgba[0], rgba[1], rgba[2], rgba[3])
-                } else throw InvalidFormatException("Unknown color $name")
+                } else null
             }
             else -> colorMap[name.trim().lowercase()]?.or(black)
-                ?: throw InvalidFormatException("Unknown color '$name'")
         }
     }
 

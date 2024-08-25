@@ -11,6 +11,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
+import me.anno.utils.Color.black
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.Callback
@@ -92,7 +93,10 @@ open class IntImage(
         }
     }
 
-    override fun getRGB(index: Int): Int = data[index]
+    override fun getRGB(index: Int): Int {
+        return if (hasAlphaChannel) data[index]
+        else (data[index] or black)
+    }
 
     override fun asIntImage(): IntImage = this
 
@@ -151,8 +155,11 @@ open class IntImage(
     }
 
     fun cloneData(): IntArray {
-        val clone = Texture2D.intArrayPool[data.size, false, true]
-        data.copyInto(clone)
+        val clone = Texture2D.intArrayPool[width * height, false, true]
+        for (y in 0 until height) {
+            val i0 = getIndex(0, y)
+            data.copyInto(clone, y * width, i0, i0 + width)
+        }
         return clone
     }
 }

@@ -62,6 +62,9 @@ abstract class Image(
      * */
     abstract fun getRGB(index: Int): Int
 
+    /**
+     * return r/g/b/a value at shift(r=16,g=8,b=0,a=24) as a float [0,255]
+     * */
     fun getValueAt(x: Float, y: Float, shift: Int): Float {
         val xf = floor(x)
         val yf = floor(y)

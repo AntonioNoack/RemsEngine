@@ -2,7 +2,7 @@ package me.anno.network
 
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.Sleep.waitUntilOrThrow
 import org.apache.logging.log4j.LogManager
 import java.io.Closeable
 import java.io.DataInputStream
@@ -74,7 +74,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     var isRunning = false
 
     fun ensureConnection(timeoutMillis: Long) {
-        waitUntil(true, timeoutMillis * MILLIS_TO_NANOS, this) { isRunning || isClosed }
+        waitUntilOrThrow(true, timeoutMillis * MILLIS_TO_NANOS, this) { isRunning || isClosed }
         if (isClosed) throw SocketException("Connection has been closed")
     }
 

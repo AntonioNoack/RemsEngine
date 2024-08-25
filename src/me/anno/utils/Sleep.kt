@@ -23,23 +23,27 @@ object Sleep {
     private val LOGGER = LogManager.getLogger(Sleep::class)
 
     @JvmStatic
+    @Deprecated("Avoid throwing functions")
     private fun checkShutdown(canBeKilled: Boolean) {
         if (canBeKilled && shutdown) throw ShutdownException()
     }
 
     @JvmStatic
+    @Deprecated("Avoid sleeping if possible; sleeping is impossible in JavaScript")
     fun sleepShortly(canBeKilled: Boolean) {
         checkShutdown(canBeKilled)
         Thread.sleep(0, 100_000)
     }
 
     @JvmStatic
+    @Deprecated("Avoid sleeping if possible; sleeping is impossible in JavaScript")
     fun sleepABit(canBeKilled: Boolean) {
         checkShutdown(canBeKilled)
         Thread.sleep(1)
     }
 
     @JvmStatic
+    @Deprecated("Please use the variant with callback")
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
         while (!isFinished()) {
             sleepABit(canBeKilled)
@@ -53,7 +57,8 @@ object Sleep {
     }
 
     @JvmStatic
-    fun waitUntil(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, isFinished: () -> Boolean) {
+    @Deprecated("Please use non-throwing versions")
+    fun waitUntilOrThrow(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, isFinished: () -> Boolean) {
         if (timeoutNanos < 0) return waitUntil(canBeKilled, isFinished)
         val startTime = Time.nanoTime
         while (!isFinished()) {
@@ -66,7 +71,8 @@ object Sleep {
      * returns if you need to keep waiting
      * */
     @JvmStatic
-    fun waitUntil2(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
+    @Deprecated("Please use the variant with callback")
+    fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val startTime = Time.nanoTime
         while (!isFinished()) {
             if (canBeKilled && shutdown) return true
@@ -77,6 +83,7 @@ object Sleep {
     }
 
     @JvmStatic
+    @Deprecated("Please use the variant with callback")
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
         waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
@@ -118,6 +125,7 @@ object Sleep {
     }
 
     @JvmStatic
+    @Deprecated("Please use the variant with callback")
     fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
         warnIfGFXMissing()
         // if we are the gfx thread ourselves, we have to fulfil our processing duties
@@ -146,6 +154,7 @@ object Sleep {
     }
 
     @JvmStatic
+    @Deprecated("Please use the variant with callback")
     fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
         var value: V? = null
         waitUntil(canBeKilled) {

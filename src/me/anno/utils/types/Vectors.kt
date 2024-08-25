@@ -21,29 +21,25 @@ import kotlin.math.sqrt
 object Vectors {
 
     @JvmStatic
-    fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2f, b: Vector2f): Vector2f = (a + b).mul(0.5f)
 
     @JvmStatic
-    fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
+    fun avg(a: Vector2d, b: Vector2d): Vector2d = (a + b).mul(0.5)
 
     @JvmStatic
-    fun avg(a: Vector3f, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)
+    fun avg(a: Vector3f, b: Vector3f): Vector3f = (a + b).mul(0.5f)
 
     @JvmStatic
-    fun avg(a: Vector2f, b: Vector2f, c: Vector2f) =
-        Vector2f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
+    fun avg(a: Vector2f, b: Vector2f, c: Vector2f) = (a + b).add(c).div(3f)
 
     @JvmStatic
-    fun avg(a: Vector2d, b: Vector2d, c: Vector2d) =
-        Vector2d((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
+    fun avg(a: Vector2d, b: Vector2d, c: Vector2d) = (a + b).add(c).div(3.0)
 
     @JvmStatic
-    fun avg(a: Vector3f, b: Vector3f, c: Vector3f) =
-        Vector3f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f, (a.z + b.z + c.z) / 3f)
+    fun avg(a: Vector3f, b: Vector3f, c: Vector3f) = (a + b).add(c).div(3f)
 
     @JvmStatic
-    fun avg(a: Vector3d, b: Vector3d, c: Vector3d) =
-        Vector3d((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0)
+    fun avg(a: Vector3d, b: Vector3d, c: Vector3d) = (a + b).add(c).div(3.0)
 
     @JvmStatic
     fun Matrix4f.print() = "" +

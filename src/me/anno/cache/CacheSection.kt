@@ -425,7 +425,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
                 waitAsync("WaitingFor<$key>") {
-                    entry.waitForValue(key)
+                    entry.waitForValueOrThrow(key)
                     entry.callback(null, resultCallback)
                 }
             } else {
@@ -474,7 +474,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
                 waitAsync("WaitingFor<$key0, $key1>") {
-                    entry.waitForValue(key0 to key1)
+                    entry.waitForValueOrThrow(key0 to key1)
                     entry.callback(null, resultCallback)
                 }
             } else {
@@ -486,10 +486,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any?, key1: Any?) {
         if (!async && entry.generatorThread != Thread.currentThread()) {
             // else no need/sense in waiting
-            if (entry.waitForValue2()) {
+            if (entry.waitForValueReturnWhetherIncomplete()) {
                 val key = if (key1 == null) key0 else key0 to key1
                 onLongWaitStart(key, entry)
-                entry.waitForValue(key)
+                entry.waitForValueOrThrow(key)
                 onLongWaitEnd(key, entry)
             }
         }
@@ -545,7 +545,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (!async && entry.generatorThread != Thread.currentThread()) entry.waitForValue(key)
+        if (!async && entry.generatorThread != Thread.currentThread()) entry.waitForValueOrThrow(key)
         @Suppress("UNCHECKED_CAST")
         return if (entry.hasBeenDestroyed) null else entry.data as? R
     }

@@ -13,7 +13,6 @@ import me.anno.video.VideoCache.scale
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.TimeUnit
-import kotlin.math.roundToInt
 
 object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     "ProxyCache.json", "proxies", "VideoProxies"

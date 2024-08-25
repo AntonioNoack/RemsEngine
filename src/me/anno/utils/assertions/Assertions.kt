@@ -40,6 +40,10 @@ fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal
     if (expected != actual) throw IllegalStateException("$message, \n'$expected' != \n'$actual'")
 }
 
+fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {
+    assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
 fun assertEquals(expected: Int, actual: Int, message: String = "expected equal values") {
     if (expected != actual) throw IllegalStateException("$message, $expected != $actual")
 }

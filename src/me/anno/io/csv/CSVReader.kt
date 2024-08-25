@@ -1,7 +1,7 @@
 package me.anno.io.csv
 
 import me.anno.utils.structures.lists.Lists.transposed
-import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 
 /**
  * a few simple readers for the Comma Separated Values file format
@@ -43,14 +43,16 @@ object CSVReader {
 
     fun read(textData: String, comma: Char, lineSplit: Char): Map<String, List<String?>> {
         val dataRows = textData.split(lineSplit)
-            .filter { !it.isBlank2() }
-            .map { it.stringSplit(comma) }
+            .filter { it.isNotBlank2() }
+            .map { it.stringSplit(comma).map(String::trim) }
         val dataColumns = dataRows.transposed()
-        return dataColumns.associate {
-            val columnName = it.first().trim().removeQuotes()
-            val values = it.subList(1, it.size)
-            columnName to values
-        }
+        return dataColumns
+            .filter { it.first().isNotBlank2() } // skip columns without title
+            .associate {
+                val columnName = it.first().removeQuotes()
+                val values = it.subList(1, it.size)
+                columnName to values
+            }
     }
 
     private fun String.removeQuotes(): String {
@@ -91,6 +93,7 @@ object CSVReader {
                     result.add(builder.toString())
                     builder.clear()
                 }
+                '\r' -> {}
                 else -> builder.append(char)
             }
             i++
@@ -98,5 +101,4 @@ object CSVReader {
         result.add(builder.toString())
         return result
     }
-
 }

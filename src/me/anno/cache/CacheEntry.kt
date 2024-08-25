@@ -38,8 +38,9 @@ class CacheEntry private constructor(
     val hasBeenDestroyed get() = deletingThreadName != null
     var hasGenerator = false
 
-    fun waitForValue(key: Any?, limitNanos: Long = 60 * SECONDS_TO_NANOS) {
-        Sleep.waitUntil(true, limitNanos, key) {
+    @Deprecated("Please use the variant with callback")
+    fun waitForValueOrThrow(key: Any?, limitNanos: Long = 60 * SECONDS_TO_NANOS) {
+        Sleep.waitUntilOrThrow(true, limitNanos, key) {
             update(500) // ensure that it stays loaded; 500 is a little high,
             // but we need the image to stay loaded for GFX.addGPUTask() afterward in some places
             (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
@@ -51,8 +52,9 @@ class CacheEntry private constructor(
      * @param limitNanos sleeping time in nanoseconds, default: 0.5s
      * @return whether you need to keep waiting
      * */
-    fun waitForValue2(limitNanos: Long = 500_000_000): Boolean {
-        return Sleep.waitUntil2(true, limitNanos) {
+    @Deprecated("Please use the variant with callback")
+    fun waitForValueReturnWhetherIncomplete(limitNanos: Long = 500_000_000): Boolean {
+        return Sleep.waitUntilReturnWhetherIncomplete(true, limitNanos) {
             update(16) // ensure it's loaded
             (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
                     || hasBeenDestroyed
