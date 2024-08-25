@@ -24,21 +24,18 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         this.minH = minH
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
-        val w = width
-        val h = height
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val children = children
         for (index in children.indices) {
             val child = children[index]
             val ax = child.alignmentX
             val ay = child.alignmentY
-            val minW = min(w, child.minW)
-            val minH = min(h, child.minH)
-            val dx = ax.getOffset(w, minW)
-            val cw = ax.getSize(w, minW)
-            val dy = ay.getOffset(h, minH)
-            val ch = ay.getSize(h, minH)
+            val minW = min(width, child.minW)
+            val minH = min(height, child.minH)
+            val dx = ax.getOffset(width, minW)
+            val cw = ax.getSize(width, minW)
+            val dy = ay.getOffset(height, minH)
+            val ch = ay.getSize(height, minH)
             child.setPosSize(x + dx, y + dy, cw, ch)
         }
     }

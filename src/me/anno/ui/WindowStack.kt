@@ -7,9 +7,9 @@ import me.anno.gpu.OSWindow
 import me.anno.input.Input
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.wrap
+import me.anno.utils.structures.lists.SimpleList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import java.util.Stack
 import kotlin.math.max
 
 /**
@@ -20,7 +20,12 @@ import kotlin.math.max
  * done draw shadow on the edge of each non-fullscreen window like in Windows
  * */
 @Suppress("MemberVisibilityCanBePrivate")
-class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
+class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
+
+    private val windows = ArrayList<Window>()
+
+    override fun get(index: Int): Window = windows[index]
+    override val size: Int get() = windows.size
 
     // typically few elements, so a list
     val inFocus = ArrayList<Panel>()
@@ -83,14 +88,17 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
         }
     }
 
-    fun push(panel: Panel, isTransparent: Boolean = false): Window {
-        val window = Window(panel, isTransparent, this)
-        push(window)
+    fun push(window: Window): Window {
+        windows.add(window)
         return window
     }
 
-    fun push(panel: Panel, isTransparent: Boolean, isFullscreen: Boolean, x: Int, y: Int) {
-        push(Window(panel, isTransparent, isFullscreen, this, x, y))
+    fun push(panel: Panel, isTransparent: Boolean = false): Window {
+        return push(Window(panel, isTransparent, this))
+    }
+
+    fun push(panel: Panel, isTransparent: Boolean, isFullscreen: Boolean, x: Int, y: Int): Window {
+        return push(Window(panel, isTransparent, isFullscreen, this, x, y))
     }
 
     fun getPanelAndWindowAt(x: Float, y: Float) =
@@ -196,12 +204,6 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
         var didSomething = didSomething0
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen && !it.isTransparent }, 0)
-        for (index in 0 until lastFullscreenIndex) {
-            val window = windowStack.getOrNull(index) ?: break
-            if (window.alwaysUpdated) {
-                window.update(dx, dy, windowW, windowH)
-            }
-        }
         for (index in lastFullscreenIndex until windowStack.size) {
             val window = windowStack.getOrNull(index) ?: break
             didSomething = window.draw(dx, dy, windowW, windowH, sparseRedraw, didSomething, forceRedraw)
@@ -210,9 +212,20 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
     }
 
     fun destroy() {
-        forEach { it.destroy() }
-        clear()
+        for (i in indices) {
+            windows[i].destroy()
+        }
+        windows.clear()
     }
+
+    fun clear() = windows.clear()
+    fun addAll(list: List<Window>) = windows.addAll(list)
+    fun removeAll(condition: (Window) -> Boolean) = windows.removeAll(condition)
+    fun removeAt(i: Int) = windows.removeAt(i)
+    fun remove(window: Window) = windows.remove(window)
+
+    fun peek() = windows.lastOrNull()
+    fun pop() = windows.removeLast()
 
     companion object {
 

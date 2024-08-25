@@ -102,7 +102,11 @@ open class ScrollPanelY(
         val padding = padding
         val scroll0 = round(scrollPositionY).toLong()
         val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
-        child.setPosition(x + padding.left, y + padding.top - scroll)
+        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
+        child.setPosSize(
+            x + padding.left, y + padding.top - scroll,
+            width - paddingX, max(child.minH, height - padding.height)
+        )
         if (child is LongScrollable) {
             child.setExtraScrolling(0L, scroll0 - scroll)
         }
@@ -126,16 +130,8 @@ open class ScrollPanelY(
         minH = min(child.minH + padding.height, h)
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        this.x = x
-        this.y = y
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         placeChild()
-    }
-
-    override fun setSize(w: Int, h: Int) {
-        super.setSize(w, h)
-        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
-        child.setSize(w - paddingX, max(child.minH, h - padding.height))
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

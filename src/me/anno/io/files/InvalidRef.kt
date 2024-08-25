@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.io.VoidOutputStream
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
@@ -15,7 +16,8 @@ object InvalidRef : FileReference("") {
     }
 
     override fun outputStream(append: Boolean): OutputStream {
-        throw FileNotFoundException("InvalidRef is no valid source")
+        LOGGER.warn("Cannot write to InvalidRef")
+        return VoidOutputStream
     }
 
     override fun length() = 0L

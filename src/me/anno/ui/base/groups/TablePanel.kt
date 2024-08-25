@@ -170,8 +170,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         minH = sumH - spacing
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         placeholder.setPosSize(x, y, 0, 0)
         for (yi in 0 until sizeY) {
             val y0 = ys[yi]

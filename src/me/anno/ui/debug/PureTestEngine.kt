@@ -13,10 +13,9 @@ class PureTestEngine(title: String, val createMainPanel1: () -> Panel) : TestEng
     override fun createUI() {
         val ui = createMainPanel1()
         ui.weight = 1f
-        val windowStack = GFX.someWindow.windowStack
-        val window = Window(ui, false, windowStack)
-        window.drawDirectly = true
-        windowStack.add(window)
+        GFX.someWindow.windowStack
+            .push(ui)
+            .drawDirectly = true
     }
 
     companion object {

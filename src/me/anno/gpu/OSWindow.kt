@@ -89,7 +89,7 @@ open class OSWindow(var title: String) {
     private var lastVsyncInterval = -1
 
     val currentWindow: Window?
-        get() = windowStack.lastOrNull()
+        get() = windowStack.peek()
 
     fun hasActiveMouseTargets(): Boolean {
         return abs(lastMouseTargetNanos - Time.nanoTime) < 1e9

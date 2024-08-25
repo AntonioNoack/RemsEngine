@@ -411,6 +411,12 @@ object GFXState {
         }
     }
 
+    inline fun drawCall(name: String, run: () -> Unit) {
+        pushDrawCallName(name)
+        run()
+        popDrawCallName()
+    }
+
     fun popDrawCallName() {
         if (usePushDebugGroups()) {
             GL46C.glPopDebugGroup()

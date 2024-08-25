@@ -250,8 +250,7 @@ object VisualNovel {
                 shownTextPanel.calculateSize(maxW, h)
             }
 
-            override fun setPosition(x: Int, y: Int) {
-                super.setPosition(x, y)
+            override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
                 val w = width * 9 / 10
                 val h = height * 5 / 20
                 shownTextPanel.setPosSize(x + (width - w) / 2, y + height - h, w, h)

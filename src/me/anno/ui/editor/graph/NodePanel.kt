@@ -130,8 +130,7 @@ class NodePanel(
         }
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val font = gp.font
         val textSize = font.sampleHeight
         val titleOffset = textSize * 3 / 2

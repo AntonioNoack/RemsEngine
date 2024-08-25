@@ -95,18 +95,13 @@ open class SettingCategory private constructor(
         }
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
-        titlePanel.setPosition(x, y)
-        child.setPosition(x + padding.left, y + titlePanel.minH + padding.top)
-    }
-
-    override fun setSize(w: Int, h: Int) {
-        super.setSize(w, h)
-        titlePanel.setSize(min(titlePanel.minW, w), min(titlePanel.minH, h))
-        if (child.isVisible) {
-            child.setSize(w - padding.width, h - titlePanel.height - padding.height)
-        } else child.setSize(1, 1)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+        titlePanel.setPosSize(x, y, min(titlePanel.minW, width), min(titlePanel.minH, height))
+        child.setPosSize(
+            x + padding.left, y + titlePanel.minH + padding.top,
+            if (child.isVisible) width - padding.width else 1,
+            if (child.isVisible) height - titlePanel.height - padding.height else 1
+        )
     }
 
     operator fun plusAssign(child: Panel) {

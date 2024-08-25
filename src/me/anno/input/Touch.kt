@@ -65,7 +65,7 @@ class Touch(var x: Float, var y: Float) {
                 val dist0 = sq(t0.x - t1.x, t0.y - t1.y)
                 val dist1 = sq(t0.lastX - t1.lastX, t0.lastY - t1.lastY)
                 if (dist0 < 1f || dist1 < 1f) return 1f
-                return sqrt(dist0 / dist1)
+                return sqrt(dist1 / dist0)
             } else 1f
         }
 

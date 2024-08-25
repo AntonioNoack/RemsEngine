@@ -46,21 +46,12 @@ open class PanelContainer(
         minH = child.minH + padding.height
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val wi = width - padding.width
         val hi = height - padding.height
-        child.setPosition(
+        child.setPosSize(
             x + padding.left + child.alignmentX.getOffset(wi, child.minW),
             y + padding.top + child.alignmentY.getOffset(hi, child.minH),
-        )
-    }
-
-    override fun setSize(w: Int, h: Int) {
-        super.setSize(w, h)
-        val wi = width - padding.width
-        val hi = height - padding.height
-        child.setSize(
             child.alignmentX.getSize(wi, child.minW),
             child.alignmentY.getSize(hi, child.minH)
         )

@@ -38,7 +38,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
 
     @Type("Color3HDR")
     @SerializedProperty
-    var skyColor: Vector3f = Vector3f(0.2f, 0.4f, 0.6f)
+    var skyColor: Vector3f = Vector3f(0.48f, 0.81f, 1.68f)
         set(value) {
             field.set(value)
         }

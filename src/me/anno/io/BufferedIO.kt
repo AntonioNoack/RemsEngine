@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
+@Suppress("unused")
 object BufferedIO {
 
     fun InputStream.useBuffered(): InputStream {
@@ -18,7 +19,7 @@ object BufferedIO {
 
     fun OutputStream.useBuffered(): OutputStream {
         return when (this) {
-            is BufferedOutputStream, is ByteArrayOutputStream -> this
+            is BufferedOutputStream, is ByteArrayOutputStream, VoidOutputStream -> this
             else -> BufferedOutputStream(this)
         }
     }

@@ -208,7 +208,7 @@ object FileExplorerOptions {
                 alignmentY = if (imagePanel is ImagePanel) AxisAlignment.MAX
                 else AxisAlignment.MIN
             })
-        windowStack.push(Window(stack, false, windowStack))
+        windowStack.push(stack)
         imagePanel.requestFocus()
     }
 }

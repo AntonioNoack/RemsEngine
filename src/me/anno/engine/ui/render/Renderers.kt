@@ -306,7 +306,7 @@ object Renderers {
     }
 
     @JvmField
-    val simpleNormalRenderer = object : Renderer("simple-color") {
+    val simpleRenderer = object : Renderer("simple-color") {
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
                 ShaderStage(

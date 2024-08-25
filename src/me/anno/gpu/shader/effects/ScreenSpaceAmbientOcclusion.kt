@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -22,7 +21,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.LazyList
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.iff
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
@@ -108,10 +106,13 @@ object ScreenSpaceAmbientOcclusion {
     private val random4x4 = generateRandomTexture(Random(1234L))
 
     private val occlusionShaders = LazyList(4 * 4) {
-        val multisampling = it.hasFlag(1)
-        val ssgi = it.hasFlag(2)
+        val base = it.shr(3)
+        val normalZW = if(it.hasFlag(1)) "zw" else "xy"
+        val depthMask = "xyzw"[it.shr(1).and(3)]
+        val multisampling = base.hasFlag(1)
+        val ssgi = base.hasFlag(2)
         val srcType = if (multisampling) GLSLType.S2DMS else GLSLType.S2D
-        val roughnessMask = "xyzw"[it.shr(2)]
+        val reflectivityMask = "xyzw"[base.shr(2)]
         Shader(
             if (ssgi) "ssgi" else "ssao",
             emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
@@ -121,15 +122,13 @@ object ScreenSpaceAmbientOcclusion {
                 Variable(GLSLType.V1I, "mask"),
                 Variable(GLSLType.M4x4, "cameraMatrix"),
                 Variable(srcType, "finalDepth"),
-                Variable(GLSLType.V4F, "depthMask"),
                 Variable(srcType, "finalNormal"),
-                Variable(GLSLType.V1B, "normalZW"),
                 Variable(GLSLType.S2D, "sampleKernel"),
                 Variable(GLSLType.S2D, "random4x4"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + listOf(
                 Variable(GLSLType.S2D, "illuminatedTex"),
-                Variable(GLSLType.S2D, "roughnessTex"),
+                Variable(GLSLType.S2D, "reflectivityTex"),
             ).iff(ssgi) + DepthTransforms.depthVars, "" +
                     "float dot2(vec3 p){ return dot(p,p); }\n" +
                     ShaderLib.quatRot +
@@ -141,13 +140,12 @@ object ScreenSpaceAmbientOcclusion {
                             "   vec2 texSizeI = vec2(textureSize(finalDepth));\n" +
                             "   #define getPixel(tex,uv) texelFetch(tex,ivec2(clamp(uv,vec2(0.0),vec2(0.99999))*texSizeI),0)\n"
                     else "#define getPixel(tex,uv) textureLod(tex,uv,0.0)\n") +
-                    "   float depth0 = dot(getPixel(finalDepth, uv), depthMask);\n" +
+                    "   float depth0 = getPixel(finalDepth, uv).$depthMask;\n" +
                     "   vec3 origin = rawDepthToPosition(uv, depth0);\n" +
                     "   float radius = length(origin);\n" +
                     "   if(radius < 1e18){\n" + // sky and such can be skipped automatically
                     "       radius *= radiusScale;\n" +
-                    "       vec4 normalData = getPixel(finalNormal, uv);\n" +
-                    "       vec3 normal = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
+                    "       vec3 normal = UnpackNormal(getPixel(finalNormal, uv).$normalZW);\n" +
                     // reverse back sides, e.g., for plants
                     // could be done by the material as well...
                     "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
@@ -156,7 +154,7 @@ object ScreenSpaceAmbientOcclusion {
                     "       vec3 bitangent = cross(normal, tangent);\n" +
                     (if (ssgi) { // reduce blurriness on smooth surfaces
                         "" +
-                                "float roughness = 0.1 + 0.9 * getPixel(roughnessTex,uv).$roughnessMask;\n" +
+                                "float roughness = 1.0 - 0.9 * getPixel(reflectivityTex,uv).$reflectivityMask;\n" +
                                 "tangent *= roughness;\n" +
                                 "bitangent *= roughness;\n"
                     } else "") +
@@ -181,13 +179,12 @@ object ScreenSpaceAmbientOcclusion {
                     // && abs(originDepth - sampleDepth) < radius
                     // without it, the result looks approx. the same :)
                     "           if(isInside){\n" +
-                    "               float depth1 = dot(getPixel(finalDepth, offset.xy), depthMask);\n" +
+                    "               float depth1 = getPixel(finalDepth, offset.xy).$depthMask;\n" +
                     "               float sampleDepthSq = dot2(rawDepthToPosition(offset.xy, depth1));\n" +
                     (if (ssgi) {
                         "" +
                                 // add light from that surface
-                                "   vec4 normalData1 = getPixel(finalNormal, offset.xy);\n" +
-                                "   vec3 normal1 = UnpackNormal(normalZW ? normalData1.zw : normalData1.xy);\n" +
+                                "   vec3 normal1 = UnpackNormal(getPixel(finalNormal, offset.xy).$normalZW);\n" +
                                 // aligned normals have higher contribution -> correct?? kind of a guess...
                                 "   float alignmentStrength = 0.6 - 0.4 * dot(normal,normal1);\n" +
                                 "   vec3 color1 = getPixel(illuminatedTex,offset.xy).xyz;\n" +
@@ -202,7 +199,7 @@ object ScreenSpaceAmbientOcclusion {
                     (if (ssgi) "result = vec4(lightSum * strength, 1.0);\n"
                     else "result = vec4(clamp(strength * occlusion, 0.0, 1.0));\n") +
                     "   } else {\n" +
-                    "       result = vec4(0.0);\n" +
+                    "       result = vec4(0.5);\n" +
                     "   }\n" +
                     "}"
         ).apply {
@@ -210,9 +207,12 @@ object ScreenSpaceAmbientOcclusion {
         }
     }
 
-    private val blurShaders = createArrayList(3) {
-        val blur = (it + 1).hasFlag(1)
-        val ssgi = (it + 1).hasFlag(2)
+    private val blurShaders = LazyList(3 * 4 * 2) {
+        val base = (it shr 3) + 1
+        val normalZW = if(it.hasFlag(1)) "zw" else "xy"
+        val depthMask = "xyzw"[it.shr(1).and(3)]
+        val blur = base.hasFlag(1)
+        val ssgi = base.hasFlag(2)
         Shader(
             if (ssgi) if (blur) "ssgi-blur" else "ssgi-apply"
             else "ssao-blur", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
@@ -222,9 +222,7 @@ object ScreenSpaceAmbientOcclusion {
                 Variable(GLSLType.S2D, "ssaoTex"),
             ) + listOf(
                 Variable(GLSLType.S2D, "depthTex"),
-                Variable(GLSLType.V4F, "depthMask"),
                 Variable(GLSLType.S2D, "normalTex"),
-                Variable(GLSLType.V1B, "normalZW"),
                 Variable(GLSLType.V2F, "duv"),
             ).iff(blur) + listOf(
                 Variable(GLSLType.S2D, "colorTex"),
@@ -233,22 +231,24 @@ object ScreenSpaceAmbientOcclusion {
                     ("" +
                             ShaderLib.octNormalPacking +
                             "float getDepth(vec2 uv){\n" +
-                            "   float depth = dot(texture(depthTex,uv), depthMask);\n" +
+                            "   float depth = texture(depthTex,uv).$depthMask;\n" +
                             "   return log2(max(depth,1e-38));\n" +
                             "}\n" +
                             "vec3 getNormal(vec2 uv){\n" +
-                            "   vec4 raw = texture(normalTex,uv);\n" +
-                            "   return UnpackNormal(normalZW ? raw.zw : raw.xy);\n" +
+                            "   vec2 raw = texture(normalTex,uv).$normalZW;\n" +
+                            "   return UnpackNormal(raw);\n" +
                             "}\n").iff(blur) +
                     "void main(){\n" +
                     // bilateral blur (use normal and depth as weights)
                     (if (ssgi) "vec3 valueSum = vec3(0.0);\n"
                     else "float valueSum = 0.0;\n") +
-                    (if (blur) {
+                    if (blur) {
                         "" +
-                                "   float weightSum = 0.0;\n" +
-                                "   float d0 = getDepth(uv);\n" +
-                                "   vec3  n0 = getNormal(uv);\n" +
+                                "float weightSum = 0.0;\n" +
+                                "float d0 = getDepth(uv);\n" +
+                                "bool isNotSky = d0 < 60.0;\n" +
+                                "if(isNotSky){\n" +
+                                "   vec3 n0 = getNormal(uv);\n" +
                                 "   for(int j=-2;j<=2;j++){\n" +
                                 "       for(int i=-2;i<=2;i++){\n" +
                                 "           vec2 ij = vec2(i,j);\n" +
@@ -259,15 +259,18 @@ object ScreenSpaceAmbientOcclusion {
                                 "            valueSum += weight * texture(ssaoTex,uvi)" + (if (ssgi) ".xyz" else ".x") + ";\n" +
                                 "           weightSum += weight;\n" +
                                 "       }\n" +
-                                "   }\n"
-                    } else "valueSum = texture(ssaoTex,uv).xyz;\n") +
+                                "   }\n" +
+                                "}\n"
+                    } else {
+                        "valueSum = texture(ssaoTex,uv).xyz;\n"
+                    } +
                     (if (ssgi) {
                         "" + (if (blur) "valueSum *= 1.0 / weightSum;\n" else "") +
                                 "vec4 base = texture(illumTex,uv);\n" +
                                 "base.rgb += valueSum * texture(colorTex,uv).xyz;\n" +
                                 "glFragColor = base;\n"
                     } else
-                        "glFragColor = vec4(valueSum / weightSum);\n" +
+                        "glFragColor = isNotSky ? vec4(valueSum / weightSum) : vec4(0.0);\n" +
                                 "if(inverseResult) { glFragColor.r = 1.0 - glFragColor.r; }\n") +
                     "}"
         ).apply { ignoreNameWarnings("inverseResult") }
@@ -276,7 +279,7 @@ object ScreenSpaceAmbientOcclusion {
     private fun calculate(
         ssgi: SSGIData?,
         depth: ITexture2D,
-        depthMask: String,
+        depthMask: Int,
         normal: ITexture2D,
         normalZW: Boolean,
         cameraMatrix: Matrix4f,
@@ -297,7 +300,8 @@ object ScreenSpaceAmbientOcclusion {
             GFX.check()
             val msaa = (depth is Texture2D && depth.samples > 1)
             val roughnessMask = ssgi?.roughnessMask ?: 0
-            val shader = occlusionShaders[msaa.toInt() + isSSGI.toInt(2) + roughnessMask.shl(2)]
+            val base = msaa.toInt() + isSSGI.toInt(2) + roughnessMask.shl(2)
+            val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
             shader.use()
             DepthTransforms.bindDepthUniforms(shader)
             // bind all textures
@@ -314,8 +318,6 @@ object ScreenSpaceAmbientOcclusion {
             shader.v1i("numSamples", samples)
             shader.v1f("strength", strength / samples)
             shader.v1i("mask", if (enableBlur) 3 else 0)
-            shader.v1b("normalZW", normalZW)
-            shader.v4f("depthMask", DeferredSettings.singleToVector[depthMask]!!)
             shader.v1f("radiusScale", radiusScale)
             // draw
             flat01.draw(shader)
@@ -328,7 +330,7 @@ object ScreenSpaceAmbientOcclusion {
     private fun average(
         ssaoTex: IFramebuffer,
         normals: ITexture2D, normalZW: Boolean,
-        depth: ITexture2D, depthMask: String,
+        depth: ITexture2D, depthMaskI: Int,
         enableBlur: Boolean, ssgi: SSGIData?,
         inverse: Boolean
     ): IFramebuffer {
@@ -338,10 +340,9 @@ object ScreenSpaceAmbientOcclusion {
         val dst = FBStack["ssao-2nd", w, h, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
-            val shader = blurShaders[enableBlur.toInt() + isSSGI.toInt(2) - 1]
+            val base = enableBlur.toInt() + isSSGI.toInt(2) - 1
+            val shader = blurShaders[base + normalZW.toInt() + depthMaskI.shl(1)]
             shader.use()
-            shader.v1b("normalZW", normalZW)
-            shader.v4f("depthMask", DeferredSettings.singleToVector[depthMask]!!)
             ssaoTex.getTexture0().bindTrulyNearest(shader, "ssaoTex")
             if (ssgi != null) {
                 ssgi.color.bindTrulyNearest(shader, "colorTex")
@@ -360,7 +361,7 @@ object ScreenSpaceAmbientOcclusion {
     fun compute(
         ssgi: SSGIData?,
         depth: ITexture2D,
-        depthMask: String,
+        depthMaskI: Int,
         normal: ITexture2D,
         normalZW: Boolean,
         cameraMatrix: Matrix4f,
@@ -372,14 +373,14 @@ object ScreenSpaceAmbientOcclusion {
     ): IFramebuffer {
         return GFXState.renderPurely {
             val ssao = calculate(
-                ssgi, depth, depthMask, normal, normalZW,
+                ssgi, depth, depthMaskI, normal, normalZW,
                 cameraMatrix, strength, radiusScale,
                 Maths.min(samples, MAX_SAMPLES), enableBlur,
             )
             if (enableBlur || ssgi != null) {
                 average(
                     ssao, normal, normalZW,
-                    depth, depthMask,
+                    depth, depthMaskI,
                     enableBlur, ssgi, inverse
                 )
             } else ssao

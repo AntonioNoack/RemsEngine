@@ -227,7 +227,7 @@ class ExportPlugin : Plugin() {
                 Padding(4), style
             )
         )
-        val ws = GFX.someWindow.windowStack
-        ws.add(Window(ScrollPanelY(ui, style), false, ws))
+        GFX.someWindow.windowStack
+            .push(ScrollPanelY(ui, style))
     }
 }

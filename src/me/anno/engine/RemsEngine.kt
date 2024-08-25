@@ -250,7 +250,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         Installer.checkFFMPEGInstall()
 
         val windowStack = GFX.windows.first().windowStack
-        ECSSceneTabs.window = windowStack.firstElement()
+        ECSSceneTabs.window = windowStack.first()
         EngineActions.register()
         ActionManager.init()
     }

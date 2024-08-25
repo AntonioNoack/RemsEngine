@@ -112,12 +112,10 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         return null
     }
 
-    override fun setPosition(x: Int, y: Int) {
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         // todo some elements don't like this shortcut...
         if (true || needsPosUpdate(x, y)) {
             lastPosTime = Time.frameTimeNanos
-
-            super.setPosition(x, y)
 
             val availableW = width - padding.width
             val availableH = height - padding.height

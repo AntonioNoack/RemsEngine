@@ -487,7 +487,7 @@ object GFXBase {
         val ws = window.windowStack
         if (ws.isEmpty() ||
             DefaultConfig["window.close.directly", false] ||
-            ws.peek().isAskingUserAboutClosing ||
+            ws.last().isAskingUserAboutClosing ||
             window.shouldClose
         ) {
             window.requestClose()
@@ -500,7 +500,7 @@ object GFXBase {
                     window::requestClose
                 )?.isAskingUserAboutClosing = true
                 window.framesSinceLastInteraction = 0
-                ws.peek().setAcceptsClickAway(false)
+                ws.peek()?.setAcceptsClickAway(false)
             }
         }
     }

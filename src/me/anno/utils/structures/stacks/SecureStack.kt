@@ -6,12 +6,12 @@ import me.anno.utils.structures.lists.SimpleList
  * state-tracking stack with onChangeValue(),
  * that ignores thrown values by rethrowing them
  * */
-open class SecureStack<V>(zeroValue: V) : SimpleList<V>() {
+open class SecureStack<V>(initialValue: V) : SimpleList<V>() {
 
     val values = ArrayList<V>()
     val index get() = size - 1
 
-    var currentValue: V = zeroValue
+    var currentValue: V = initialValue
         private set
 
     final override var size = 1

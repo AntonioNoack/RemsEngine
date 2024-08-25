@@ -28,8 +28,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val scene = Entity("Scene")
     scene.add(CanvasComponent().apply {
-        val ui = TextButton(NameDesc("Test Button"), style)
-        windowStack.add(Window(ui, false, windowStack))
+        windowStack.push(TextButton(NameDesc("Test Button"), style))
         width = 120
         height = 40
     })

@@ -27,15 +27,13 @@ open class ColorPalette(
         minH = minW * dimY / dimX
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
-        val h = height
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         for (j in 0 until dimY) {
-            val y2 = y + j * h / dimY
-            val y3 = y + (j + 1) * h / dimY
+            val y2 = y + j * height / dimY
+            val y3 = y + (j + 1) * height / dimY
             for (i in 0 until dimX) {
-                val x2 = x + i * h / dimY
-                val x3 = x + (i + 1) * h / dimY
+                val x2 = x + i * height / dimY
+                val x3 = x + (i + 1) * height / dimY
                 children[i + j * dimX].setPosSize(x2, y2, x3 - x2, y3 - y2)
             }
         }

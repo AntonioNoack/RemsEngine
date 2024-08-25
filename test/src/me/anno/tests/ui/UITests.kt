@@ -17,9 +17,7 @@ open class UITests {
 
     fun prepareUI(panel: Panel): Window {
         GFX.windows.add(osWindow)
-        val window = Window(panel, false, windowStack)
-        windowStack.add(window)
-        return window
+        return windowStack.push(panel)
     }
 
     fun press(key: Key, cp: Char? = null) {

@@ -33,7 +33,7 @@ class ExportedGame(val config: StringMap) : EngineBase(
         val renderView = RenderView1(PlayMode.PLAYING, scene, style)
         stack.add(renderView)
         stack.add(PlayControls(renderView))
-        windowStack.add(Window(stack, false, windowStack))
+        windowStack.push(Window(stack, false, windowStack))
 
         Installer.checkFFMPEGInstall()
 

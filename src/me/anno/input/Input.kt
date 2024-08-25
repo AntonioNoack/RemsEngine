@@ -7,7 +7,6 @@ import me.anno.ecs.components.ui.UIEventType
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.EngineBase.Companion.instance
 import me.anno.engine.Events.addEvent
-import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
 import me.anno.input.Clipboard.copyFiles
 import me.anno.input.Clipboard.getClipboardContent
@@ -297,7 +296,7 @@ object Input {
             }
             Key.KEY_ESCAPE -> {
                 if (ws.size > 1) {
-                    val window2 = ws.peek()
+                    val window2 = ws.last()
                     if (window2.canBeClosedByUser) {
                         ws.pop().destroy()
                     } else inFocus0?.onEscapeKey(mouseX, mouseY)
@@ -408,8 +407,8 @@ object Input {
     fun onClickIntoWindow(window: OSWindow, button: Key, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {
             val ws = window.windowStack
-            while (ws.isNotEmpty()) {
-                val peek = ws.peek()
+            while (true) {
+                val peek = ws.peek() ?: break
                 if (panelWindow.second == peek || !peek.acceptsClickAway(button)) break
                 ws.pop().destroy()
                 windowWasClosed = true

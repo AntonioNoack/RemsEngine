@@ -40,6 +40,10 @@ import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glUseProgram
 
+/**
+ * Creates textures to render onto; can be instantiated before GFX/on any thread;
+ * can only be rendered to or read by GFX thread
+ * */
 class Framebuffer(
     override var name: String,
     override var width: Int, override var height: Int,
@@ -518,7 +522,8 @@ class Framebuffer(
             copyIfNeeded(ssBuffer, 1 shl index)
             ssBuffer.getTextureI(index)
         } else {
-            val textures = textures ?: throw IllegalStateException("Framebuffer hasn't been initialized")
+            val textures = textures
+                ?: return TextureLib.missingTexture
             textures[index]
         }
     }

@@ -150,33 +150,28 @@ open class RenderDeferredNode : RenderViewNode(
         framebuffer = settings.getBaseBufferFBStack(name, width, height, samples)
     }
 
+    private fun needsToRenderSky(): Boolean {
+        return skyResolution > 0 && drawSky != DrawSkyMode.DONT_DRAW_SKY
+    }
+
     override fun executeAction() {
-
         if (width < 1 || height < 1) return
-
-        if (!needsRendering() && skyResolution <= 0 && drawSky == DrawSkyMode.DONT_DRAW_SKY) {
+        if (!needsRendering(stage) && !needsToRenderSky()) {
             // just copy inputs to outputs
             for (i in 0 until outList.size.shr(1)) {
                 setOutput(firstOutputIndex + i, getInput(firstInputIndex + i))
             }
-            return
-        }
-
-        val framebuffer = defineFramebuffer() ?: return
-        timeRendering("$name-$stage", timer) {
-            pipeline.bakeSkybox(skyResolution)
-            copyInputsOrClear(framebuffer)
-            GFXState.useFrame(width, height, true, framebuffer, renderer) {
-                render()
+        } else {
+            val framebuffer = defineFramebuffer() ?: return
+            timeRendering("$name-$stage", timer) {
+                pipeline.bakeSkybox(skyResolution)
+                copyInputsOrClear(framebuffer)
+                GFXState.useFrame(width, height, true, framebuffer, renderer) {
+                    render()
+                }
+                setOutputs(framebuffer)
             }
-            setOutputs(framebuffer)
         }
-    }
-
-    fun needsRendering(): Boolean {
-        val stage = getInput(4) as PipelineStage
-        val stage1 = pipeline.stages.getOrNull(stage.id) ?: return false
-        return !stage1.isEmpty()
     }
 
     fun render() {
@@ -185,7 +180,7 @@ open class RenderDeferredNode : RenderViewNode(
             pipeline.drawSky()
         }
         pipeline.applyToneMapping = getBoolInput(5)
-        if (needsRendering()) {
+        if (needsRendering(stage)) {
             val stage = pipeline.stages.getOrNull(stage.id)
             if (stage != null) {
                 val oldDepth = stage.depthMode

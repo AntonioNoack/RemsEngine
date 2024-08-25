@@ -45,14 +45,21 @@ class RenderGlassNode : RenderViewNode(
 
     var renderer = pbrRendererNoDepth
 
+    val width get() = getIntInput(1)
+    val height get() = getIntInput(2)
+    val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
+    val prepassTex get() = getInput(8) as? Texture
+
     override fun executeAction() {
-
-        val width = getIntInput(1)
-        val height = getIntInput(2)
-        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
-        if (width < 1 || height < 1) return
-
+        val width = width
+        val height = height
         val stage = getInput(4) as PipelineStage
+        if (width > 0 && height > 0 && needsRendering(stage)) {
+            render(width, height, stage)
+        } else setOutput(1, prepassTex)
+    }
+
+    private fun render(width: Int, height: Int, stage: PipelineStage) {
         timeRendering("$name-$stage", timer) {
             // val sorting = getInput(5) as Int
             // val cameraIndex = getInput(6) as Int
@@ -62,7 +69,7 @@ class RenderGlassNode : RenderViewNode(
                 width, height, TargetType.Float16x4,
                 samples, DepthBufferType.INTERNAL]
 
-            val prepassColor = (getInput(8) as? Texture).texOrNull ?: whiteTexture
+            val prepassColor = prepassTex.texOrNull ?: whiteTexture
             val depthTex = getInput(9) as? Texture
             val prepassDepth = depthTex.texOrNull
 

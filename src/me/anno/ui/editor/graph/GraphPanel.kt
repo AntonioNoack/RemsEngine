@@ -189,8 +189,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         ensureChildren()
         // place all children
         val graph = graph ?: return

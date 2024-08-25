@@ -4,6 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.io.Streams.readText
+import me.anno.io.VoidOutputStream
 import me.anno.utils.Color.hex4
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.BooleanArrayList
@@ -107,7 +108,10 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun outputStream(append: Boolean): OutputStream {
-        if (append) throw IOException("Appending isn't supported (yet?)")
+        if (append) {
+            LOGGER.warn("Appending isn't supported (yet?)")
+            return VoidOutputStream
+        }
         // in the future, we might use the Apache HTTP API
         // a simple helper function,
         // may be incomplete for your purposes, e.g.,

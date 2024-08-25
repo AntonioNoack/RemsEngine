@@ -2,7 +2,6 @@ package me.anno.ecs.components.anim
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
@@ -22,7 +21,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.TextShapes.drawTextMesh
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
@@ -404,7 +403,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             }
 
             AssetThumbnails.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
-                useFrame(simpleNormalRenderer) {
+                useFrame(simpleRenderer) {
                     Gizmos.drawMesh(
                         pipeline, RenderState.cameraMatrix, transform,
                         Material.defaultMaterial, black or 0xff9999, mesh

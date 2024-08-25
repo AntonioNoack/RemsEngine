@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * Horizontal/Vertical (isY) list, where the user can decide the width/height of each element,
@@ -99,40 +98,29 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        super.calculateSize(w, h)
-        if (children.size == 1) {
-            children.first().calculateSize(w, h)
-        } else {
-            val minWeight = 0.0001f
-            val available = (if (isY) h else w) - (children.size - 1) * spacing
-            val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
-            val weightScale = 1f / sumWeight
-            val children = children
-            for (index in children.indices) {
-                val child = children[index]
-                val weight = max(minWeight, child.weight)
-                val betterWeight = max(weight * weightScale, minSize)
-                if (betterWeight != weight) child.weight = betterWeight
-                val childSize = (betterWeight * weightScale * available).roundToIntOr()
-                if (isY) child.calculateSize(w, childSize)
-                else child.calculateSize(childSize, h)
-            }
+        val minWeight = 0.0001f
+        val available = (if (isY) h else w) - (children.size - 1) * spacing
+        val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
+        val weightScale = 1f / sumWeight
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            val weight = max(minWeight, child.weight)
+            val betterWeight = max(weight * weightScale, minSize)
+            if (betterWeight != weight) child.weight = betterWeight
+            val childSize = (betterWeight * weightScale * available).roundToIntOr()
+            if (isY) child.calculateSize(w, childSize)
+            else child.calculateSize(childSize, h)
         }
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        this.x = x
-        this.y = y
-    }
-
-    override fun setSize(w: Int, h: Int) {
-        super.setSize(w, h)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         if (children.size == 1) {
             val child = children.first()
-            child.setPosSize(x, y, w, h)
+            child.setPosSize(x, y, width, height)
         } else {
             val minWeight = 0.0001f
-            val available = (if (isY) h else w) - (children.size - 1) * spacing
+            val available = (if (isY) height else width) - (children.size - 1) * spacing
             val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
             val weightScale = 1f / sumWeight
             var childPos = if (isY) y else x
@@ -145,12 +133,12 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 val childSize = (betterWeight * weightScale * available).roundToIntOr()
                 childPos += min(
                     childSize, if (isY) {
-                        child.calculateSize(w, childSize)
-                        child.setPosSize(x, childPos, w, childSize)
+                        child.calculateSize(width, childSize)
+                        child.setPosSize(x, childPos, width, childSize)
                         child.height
                     } else {
-                        child.calculateSize(childSize, h)
-                        child.setPosSize(childPos, y, childSize, h)
+                        child.calculateSize(childSize, height)
+                        child.setPosSize(childPos, y, childSize, height)
                         child.width
                     }
                 )

@@ -1,18 +1,26 @@
 package me.anno.io.files
 
+import me.anno.io.VoidOutputStream
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.structures.Callback
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 
 object FileRootRef : FileReference("root") {
+
+    private val LOGGER = LogManager.getLogger(FileRootRef::class)
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         callback.err(IOException("Cannot open root as stream"))
     }
 
-    override fun outputStream(append: Boolean) = throw IOException()
+    override fun outputStream(append: Boolean): OutputStream {
+        LOGGER.warn("Cannot write to FileRootRef")
+        return VoidOutputStream
+    }
 
     override fun length() = 0L
 

@@ -189,19 +189,23 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "finalColor = color.rgb;\n" +
                 "finalAlpha = color.a;\n"
 
+        val normalCalculation = "" +
+                "finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n"
+
         val normalTanBitanCalculation = "" +
-                "finalTangent   = normalize(tangent.xyz);\n" + // for debugging
-                "finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n" +
+                normalCalculation +
+                "finalTangent   = normalize(tangent.xyz);\n" +
                 "finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
                 "if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n"
 
         val emissiveCalculation = "finalEmissive  = texture(emissiveMap, uv, lodBias).rgb * emissiveBase;\n"
-        val occlusionCalculation = "finalOcclusion = (1.0 - texture(occlusionMap, uv, lodBias).r) * occlusionStrength;\n"
+        val occlusionCalculation =
+            "finalOcclusion = (1.0 - texture(occlusionMap, uv, lodBias).r) * occlusionStrength;\n"
         val metallicCalculation =
             "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv, lodBias).r), 0.0, 1.0);\n"
         val roughnessCalculation =
             "#define HAS_ROUGHNESS\n" +
-            "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv, lodBias).r), 0.0, 1.0);\n"
+                    "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv, lodBias).r), 0.0, 1.0);\n"
         val finalMotionCalculation = "" +
                 "#ifdef MOTION_VECTORS\n" +
                 "   finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +

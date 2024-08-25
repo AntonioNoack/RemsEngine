@@ -149,6 +149,13 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         }
     }
 
+    final override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
+        placeChildren(x, y, width, height)
+    }
+
+    open fun placeChildren(x: Int, y: Int, width: Int, height: Int) {}
+
     companion object {
         fun getPanelOptions(self: Panel?) = getOptionsByClass(self, Panel::class)
     }

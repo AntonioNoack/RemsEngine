@@ -34,4 +34,8 @@ object ECSShaderLib {
     val pbrModelShader = ECSMeshShader("ECSMeshShader").apply {
         ignoreNameWarnings(defaultIgnored)
     }
+
+    val pbrModelShaderLight = ECSMeshShaderLight("ECSMeshShaderLight").apply {
+        ignoreNameWarnings(defaultIgnored)
+    }
 }

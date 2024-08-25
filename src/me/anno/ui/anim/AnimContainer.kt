@@ -106,9 +106,7 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         updateAnimations()
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        this.x = x
-        this.y = y
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         updateAnimations()
     }
 

@@ -408,7 +408,7 @@ object Menu {
 
         container.forAllPanels { it.window = window }
 
-        windowStack.add(window)
+        windowStack.push(window)
         (searchPanel ?: container).requestFocus()
 
         GFX.loadTexturesSync.pop()

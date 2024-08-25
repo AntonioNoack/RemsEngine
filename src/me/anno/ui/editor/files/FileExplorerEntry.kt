@@ -94,6 +94,7 @@ import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.setNumber
 import me.anno.video.VideoStream
 import me.anno.video.formats.gpu.GPUFrame
@@ -115,7 +116,7 @@ import kotlin.math.sign
 open class FileExplorerEntry(
     private val explorer: FileExplorer?,
     val isParent: Boolean, file: FileReference, style: Style
-) : PanelGroup(style.getChild("fileEntry")) {
+) : Panel(style.getChild("fileEntry")) {
 
     constructor(file: FileReference, style: Style) :
             this(null, false, file, style)
@@ -188,9 +189,6 @@ open class FileExplorerEntry(
         }, style
     )
 
-    override val children: List<Panel> = listOf(titlePanel)
-    override fun remove(child: Panel) {}
-
     init {
         titlePanel.breaksIntoMultiline = true
         titlePanel.parent = this
@@ -209,8 +207,6 @@ open class FileExplorerEntry(
         }
     }
 
-    // is null
-    // override fun getLayoutState(): Any? = titlePanel.getLayoutState()
     private var lastTex: Any? = null
     private var lastMeta: Any? = null
 
@@ -381,7 +377,7 @@ open class FileExplorerEntry(
                 if (samples > 1) {
                     val tmp =
                         FBStack["fex", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
-                    GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
+                    GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleRenderer) {
                         val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
                         else DepthMode.FORWARD_CLOSE
                         GFXState.depthMode.use(depthMode) {
@@ -392,11 +388,7 @@ open class FileExplorerEntry(
                     GFX.copy(tmp)
                 } else {
                     // use current buffer directly
-                    GFXState.useFrame(
-                        x0, y0, w, h,
-                        GFXState.currentBuffer,
-                        Renderers.simpleNormalRenderer
-                    ) {
+                    GFXState.useFrame(x0, y0, w, h, GFXState.currentBuffer, Renderers.simpleRenderer) {
                         // todo clip to correct area
                         val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
                         else DepthMode.FORWARD_CLOSE
@@ -870,7 +862,9 @@ open class FileExplorerEntry(
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        println("${Strings.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
+        if (path.isNotBlank2()) {
+            println("${Strings.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
+        }
     }
 
     companion object {

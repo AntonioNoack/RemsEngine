@@ -47,16 +47,11 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
         minH = (if (isY) customSizeY + spacing else child.minH) + padding.height
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
-        child.setPosition(x + padding.left, y + padding.top)
-    }
-
-    override fun setSize(w: Int, h: Int) {
-        super.setSize(w, h)
-        child.setSize(
-            if (isX) min(customSizeX, w - padding.width) else w - padding.width,
-            if (isY) min(customSizeY, h - padding.height) else h - padding.height
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+        child.setPosSize(
+            x + padding.left, y + padding.top,
+            if (isX) min(customSizeX, width - padding.width) else width - padding.width,
+            if (isY) min(customSizeY, height - padding.height) else height - padding.height
         )
     }
 

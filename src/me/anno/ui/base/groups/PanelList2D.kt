@@ -101,8 +101,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
             minW = (calcChildWidth + spacing) * columns - spacing
         }
 
-        // only execute for visible children
-        for (i in visibleIndex0 until visibleIndex1) {
+        for (i in children.indices) {
             val child = children[i]
             if (child.isVisible) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
@@ -141,8 +140,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
         }
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val sch = scaleChildren
         val ssp = scaleSpaces && !sch
         if (isY) {

@@ -18,8 +18,6 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
@@ -158,7 +156,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @DebugAction
     open fun invalidateDrawing() {
-        window?.addNeedsRedraw(this)
+        if(canBeSeen) {
+            window?.addNeedsRedraw(this, lx0,ly0,lx1,ly1)
+        }
     }
 
     open fun onUpdate() {
@@ -305,8 +305,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
-        if (backgroundColor.a() > 0 ||
-            hasRoundedCorners && backgroundOutlineThickness > 0f && backgroundOutlineColor.a() > 0
+        if (backgroundColor.a() > 0 || hasRoundedCorners &&
+            backgroundOutlineThickness > 0f &&
+            backgroundOutlineColor.a() > 0
         ) {
             if (hasRoundedCorners) {
                 val uip = uiParent
@@ -340,18 +341,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         isHovered = canBeHovered && canBeSeen && mx in lx0 until lx1 && my in ly0 until ly1
     }
 
-    fun findMissingParents(parent: PanelGroup? = null) {
-        if (parent != null) this.parent = parent
-        if (this is PanelGroup) {
-            val children = children
-            for (i in children.indices) {
-                children[i].findMissingParents(this)
-            }
-        }
-    }
-
     /**
-     * draw the panel at its last location and size
+     * draw the panel at its last location and size;
+     * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
      * */
     fun redraw() {
         draw(lx0, ly0, lx1, ly1)
@@ -360,7 +352,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     /**
      * draw the panel inside the rectangle (x0 until x1, y0 until y1)
      * more does not need to be drawn;
-     * the area is already clipped with glViewport(x0,y0,x1-x0,y1-y0)
+     * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
      * */
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         lx0 = x0
@@ -377,7 +369,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         drawBackground(x0, y0, x1, y1)
     }
 
-    open fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
+    fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
         setSize(w, h)
         setPosition(x, y)
     }
@@ -387,7 +379,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         this.y = y
     }
 
-    open fun setSize(w: Int, h: Int) {
+    fun setSize(w: Int, h: Int) {
         this.width = w
         this.height = h
     }
@@ -573,8 +565,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
     fun getOverlayParent() = getOverlayParent(lx0, ly0, lx1, ly1)
     open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
         return uiParent?.getOverlayParent(x0, y0, x1, y1) ?: (
-                if (drawsOverlayOverChildren(x0, y0, x1, y1)
-                ) this else null)
+                if (drawsOverlayOverChildren(x0, y0, x1, y1)) this
+                else if (backgroundColor.a() < 255) uiParent // todo this causes too much overdraw
+                else null)
     }
 
     /**
@@ -811,7 +804,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeColor("backgroundOutline", backgroundOutlineColor)
         writer.writeFloat("backgroundRadius", backgroundRadius)
         writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
-        writer.writeString("tooltip", tooltip ?: "")
+        writer.writeString("tooltip", tooltip)
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
 

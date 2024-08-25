@@ -27,7 +27,7 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
-import me.anno.ui.editor.files.FileExplorerEntry
+import me.anno.ui.utils.ThumbnailPanel
 import me.anno.utils.types.Vectors.normalToQuaternionY2
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -94,7 +94,7 @@ fun main() {
 
         var selected = buildItems.first()
         for (file in buildItems) {
-            val itemPanel = FileExplorerEntry(null, false, file, style)
+            val itemPanel = ThumbnailPanel(file, style)
             itemPanel.addLeftClickListener {
                 buildMenu.invalidateDrawing()
                 // not working :/
@@ -103,7 +103,6 @@ fun main() {
             }
             itemPanel.minW = 100
             itemPanel.minH = 100
-            itemPanel.showTitle = false
             buildMenu.add(itemPanel)
         }
 

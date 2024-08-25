@@ -295,10 +295,9 @@ open class ColorInput(
                     resetFullscreen()
                 }
                 colorPicker.enableControls()
-                windowStack.push(
-                    Window(colorPicker, false, windowStack)
-                        .addClosingListener(::resetFullscreen)
-                )
+                windowStack.push(colorPicker)
+                    .addClosingListener(::resetFullscreen)
+
                 wasFullscreen = windowX.isFullscreen()
                 if (!wasFullscreen) windowX.toggleFullscreen()
             }

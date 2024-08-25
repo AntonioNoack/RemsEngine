@@ -141,9 +141,7 @@ interface WelcomeUI {
         scroll.alignmentX = AxisAlignment.CENTER
         scroll.alignmentY = AxisAlignment.CENTER
 
-        val bgPanel = createBackground(style)
-        val bgWindow = windowStack.push(bgPanel)
-        bgWindow.drawDirectly = true
+        windowStack.push(createBackground(style))
 
         val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
         mainWindow.cannotClose()

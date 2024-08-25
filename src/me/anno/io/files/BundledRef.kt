@@ -1,9 +1,10 @@
 package me.anno.io.files
 
+import me.anno.io.VoidOutputStream
 import me.anno.io.files.Reference.appendPath
 import me.anno.utils.structures.Callback
+import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -51,10 +52,11 @@ class BundledRef private constructor(
     override fun length(): Long = cachedLength ?: 0L
 
     override fun outputStream(append: Boolean): OutputStream {
-        throw IOException("Cannot write to internal files")
+        LOGGER.warn("Cannot write to internal files")
+        return VoidOutputStream
     }
 
-    // these operations are all impossible
+    // these operations are all impossible; should they print warnings?
     override fun delete(): Boolean = false
     override fun mkdirs(): Boolean = false
     override fun renameTo(newName: FileReference): Boolean = false
@@ -67,6 +69,8 @@ class BundledRef private constructor(
     override val creationTime get(): Long = 0L
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(BundledRef::class)
 
         const val PREFIX = "res://"
         val origin = BundledRef("", PREFIX, FileRootRef)

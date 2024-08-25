@@ -5,6 +5,8 @@ import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import org.joml.Vector3d
+import kotlin.math.pow
 
 open class SkyShader(name: String) : SkyShaderBase(name) {
     companion object {
@@ -80,52 +82,84 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
         return listOf(stage)
     }
 
+    private fun pow(v: Vector3d, e: Double): Vector3d {
+        return Vector3d(v.x.pow(e), v.y.pow(e), v.z.pow(e))
+    }
+
+    private val Vector3d.v: String
+        get() = "vec3($x,$y,$z)"
+
     override fun getSkyColor(): String {
         // todo define night stars somehow...
         //  how do we get a natural looking star distribution?
         //  -> make sky rendering into multiple parts, so we can use particle systems? :)
         // https://github.com/shff/opengl_sky/blob/master/main.c
+        val Br = 0.0025
+        val Bm = 0.0003
+        val g = 0.9800
+        val nitrogen = Vector3d(0.650, 0.570, 0.475)
+        val Kr = pow(nitrogen, -4.0).mul(Br)
+        val Km = pow(nitrogen, -0.84).mul(Bm)
+        val rayleighFactor = 3.0 / (8.0 * 3.1416)
+        val invBrBm = 1.0 / (Br + Bm)
+        val ggp2 = g * g + 2.0
+        val mieConst = Kr * invBrBm
+        val mieLinear = Km * ((1.0 - g * g) * invBrBm)
+        val KrBr = Kr / Br
+        val inv80Br = -1.0 / (80.0 * Br)
         return "" +
                 "float fbm(vec3); float fbm(vec2);\n" + // imports
+                "float approx1(float x){\n" + // x in [-1,0]
+                // approximate exp(x * exp(x * 8.0) * 4.0)
+                // "   return exp(x * exp(x * 8.0) * 4.0);\n" +
+                "   return 1.0 + 3.0 * pow(x + 1.0, 6.0) * x;\n" +
+                "}\n" +
+                "float approxExp16(float x){\n" + // x in [-1,0]
+                // difference not measurable on RTX 3070 :/
+                // "   return exp(x * 16.0);\n" +
+                "   return pow(x+1.0,16.0);\n" +
+                "}\n" +
+                "float approxExp2x4(float x){\n" +
+                // "   return exp(negPosY * 2.0) * 4.0;\n" +
+                "   return pow(x+1.0,2.0)*3.46+0.54;\n" +
+                "}\n" +
                 "vec3 getSkyColor(vec3 pos){\n" +
                 "vec3 pos0 = pos;\n" +
-
-                "const float Br = 0.0025;\n" +
-                "const float Bm = 0.0003;\n" +
-                "const float g =  0.9800;\n" +
-                "const vec3 nitrogen = vec3(0.650, 0.570, 0.475);\n" +
-                "const vec3 Kr = Br / pow(nitrogen, vec3(4.0));\n" +
-                "const vec3 Km = Bm / pow(nitrogen, vec3(0.84));\n" +
                 "pos.y = max(pos.y, 0.0);\n" +
 
                 // Atmospheric Scattering
                 "float mu = max(dot(pos, sunDir), 0.0);\n" +
-                "float rayleigh = 3.0 / (8.0 * 3.1416) * (1.0 + mu * mu);\n" +
-                "vec3 mie = (Kr + Km * (1.0 - g * g) / ((2.0 + g * g) * pow(1.0 + g * (g - 2.0 * mu), 1.5))) / (Br + Bm);\n" +
+                "float rayleigh = $rayleighFactor * (1.0 + mu * mu);\n" +
+                "vec3 mie = ${mieConst.v} + ${mieLinear.v} / ($ggp2 * pow(1.0 + $g * ($g - 2.0 * mu), 1.5));\n" +
 
-                "vec3 day_extinction = exp(-exp(-((pos.y + sunDir.y * 4.0) * \n" +
-                "   (exp(-pos.y * 16.0) + 0.1) / 80.0) / Br) * \n" +
-                "   (exp(-pos.y * 16.0) + 0.1) * Kr / Br) * \n" +
-                "   exp(-pos.y * exp(-pos.y * 8.0 ) * 4.0) * \n" +
-                "   exp(-pos.y * 2.0) * 4.0;\n" +
+                "float negPosY = -pos.y;\n" +
+                "float deTerm0 = pos.y + sunDir.y * 4.0;\n" +
+                "float deTerm3 = approxExp16(negPosY) + 0.1;\n" +
+                "float deTerm1 = deTerm3 * $inv80Br;\n" +
+                "vec3 deTerm2 = deTerm3 * ${KrBr.v};\n" +
+                "vec3 day_extinction = exp(-exp(deTerm0 * deTerm1) * deTerm2) * approx1(negPosY) * approxExp2x4(negPosY);\n" +
+                "day_extinction = clamp(day_extinction, 0.0, 1.0);\n" +
                 "vec3 night_extinction = vec3(0.2 - exp(max(sunDir.y, 0.0)) * 0.2);\n" +
-                "vec3 extinction = mix(clamp(day_extinction, 0.0, 1.0), night_extinction, -sunDir.y * 0.2 + 0.5);\n" +
+                "vec3 extinction = mix(day_extinction, night_extinction, -sunDir.y * 0.2 + 0.5);\n" +
 
                 "vec3 color = rayleigh * mie * extinction;\n" +
 
                 // falloff towards downwards
                 "if(pos0.y <= 0.0 && !sphericalSky){\n" +
                 "   color = mix(nadir.rgb, color, exp(pos0.y * nadir.w));\n" +
-                "} else {\n" +
-                // Cirrus Clouds
+                "} else if(cirrus > 0.0 || cumulus > 0.0){\n" +
                 "   vec3 pxz = sphericalSky ? pos0 : vec3(pos.xz / max(pos.y, 0.001), 0.0);\n" +
-                "   float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
-                "   color = mix(color, extinction * 4.0, sphericalSky ? density : density * max(pos.y, 0.0));\n" +
-
+                // Cirrus Clouds
+                "   if(cirrus > 0.0) {\n" +
+                "       float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
+                "       color = mix(color, extinction * 4.0, sphericalSky ? density : density * max(pos.y, 0.0));\n" +
+                "   }\n" +
                 // Cumulus Clouds
-                "   for (int i = 0; i < 3; i++){\n" +
-                "     float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
-                "     color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
+                "   if(cumulus > 0.0) {\n" +
+                "       for (int i = 0; i < 3; i++){\n" +
+                "           float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
+                "           color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
+                "       }\n" +
                 "   }\n" +
                 "}\n" +
                 "return max(color, vec3(0.0));\n" +

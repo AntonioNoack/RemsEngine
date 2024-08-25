@@ -249,7 +249,7 @@ object AssetThumbnails {
             ThumbsRendering.renderToImage(
                 srcFile, false,
                 dstFile, true,
-                Renderers.simpleNormalRenderer,
+                Renderers.simpleRenderer,
                 true, callback, size, size
             ) {
                 GFXState.cullMode.use(CullMode.BOTH) {
@@ -279,7 +279,7 @@ object AssetThumbnails {
             ThumbsRendering.renderToImage(
                 srcFile, false,
                 dstFile, true,
-                Renderers.simpleNormalRenderer,
+                Renderers.simpleRenderer,
                 true, callback, size, size
             ) {
                 GFXState.cullMode.use(CullMode.BOTH) {
@@ -390,7 +390,7 @@ object AssetThumbnails {
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         ThumbsRendering.renderMultiWindowImage(srcFile, dstFile, count, size,
-            true, Renderers.simpleNormalRenderer, { it, e ->
+            true, Renderers.simpleRenderer, { it, e ->
                 callback.call(it, e)
                 Texture2D.floatArrayPool.returnBuffer(meshVertices)
                 mesh.destroy()

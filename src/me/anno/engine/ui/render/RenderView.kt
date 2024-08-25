@@ -22,7 +22,7 @@ import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
@@ -397,10 +397,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
             else -> {
                 timeRendering("Scene", DebugRendering.drawSceneTimer) {
-                    drawScene(
-                        w, h, renderer, buffer,
-                        changeSize = true, hdr = false, sky = true
-                    )
+                    drawScene(w, h, renderer, buffer, changeSize = true, hdr = false, sky = true)
                 }
                 timeRendering("Gizmos", DebugRendering.drawGizmoTimer) {
                     drawGizmos(buffer, true)
@@ -690,7 +687,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         drawGridLines: Boolean,
         drawDebug: Boolean = true
     ) {
-        useFrame(framebuffer, simpleNormalRenderer) {
+        useFrame(framebuffer, simpleRenderer) {
             drawGizmos(drawGridLines, drawDebug)
         }
     }

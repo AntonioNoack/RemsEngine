@@ -10,7 +10,6 @@ import me.anno.gpu.OSWindow
 import me.anno.input.ActionManager
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
-import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 
@@ -27,10 +26,7 @@ open class TestEngine(nameDesc: NameDesc, val createMainPanel: () -> List<Panel>
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         ui.addAll(createMainPanel())
         ui.fill(1f)
-        val windowStack = GFX.someWindow.windowStack
-        val window = Window(ui, false, windowStack)
-        window.drawDirectly = true
-        windowStack.add(window)
+        GFX.someWindow.windowStack.push(ui)
     }
 
     override fun loadConfig() {

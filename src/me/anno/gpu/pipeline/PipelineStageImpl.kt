@@ -10,6 +10,9 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.ui.render.ECSMeshShaderLight.Companion.canUseLightShader
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShaderLight
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
@@ -770,7 +773,12 @@ class PipelineStageImpl(
     }
 
     fun getShader(material: Material): Shader {
-        return (material.shader ?: defaultShader).value
+        val shader0 = material.shader
+        if (shader0 != null) return shader0.value
+        val shader1 = if (defaultShader == pbrModelShader && material.canUseLightShader()) {
+            pbrModelShaderLight
+        } else defaultShader
+        return shader1.value
     }
 
     fun clone() =

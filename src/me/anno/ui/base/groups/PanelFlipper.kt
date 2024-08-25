@@ -101,8 +101,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     var rotationStrengthRadians = 90f.toRadians()
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         when (transitionType) {
             TransitionType.INSTANT -> {
                 val posIndex = position.roundToIntOr()

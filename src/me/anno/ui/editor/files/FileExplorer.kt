@@ -233,9 +233,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     val favourites = PanelListY(style)
 
     init {
-        content2d.makeBackgroundTransparent()
-        uContent.makeBackgroundTransparent()
-        favourites.makeBackgroundTransparent()
         validateFavourites(Favourites.getFavouriteFiles())
     }
 

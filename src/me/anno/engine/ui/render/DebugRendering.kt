@@ -214,17 +214,19 @@ object DebugRendering {
     }
 
     fun showTimeRecords(rv: RenderView) {
-        val records = GFXState.timeRecords
-        var total = 0L
-        for (i in records.indices) {
-            val record = records[i]
-            drawTime(rv, i, record.name, record.deltaNanos, record.divisor)
-            total += record.deltaNanos
-        }
-        drawTime(rv, records.size, "Total", total, 1)
-        val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
-        if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
-            records.clear()
+        GFXState.drawCall("ShowTimeRecords") {
+            val records = GFXState.timeRecords
+            var total = 0L
+            for (i in records.indices) {
+                val record = records[i]
+                drawTime(rv, i, record.name, record.deltaNanos, record.divisor)
+                total += record.deltaNanos
+            }
+            drawTime(rv, records.size, "Total", total, 1)
+            val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
+            if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
+                records.clear()
+            }
         }
     }
 
@@ -377,30 +379,30 @@ object DebugRendering {
         view: RenderView, x: Int, y: Int, w: Int, h: Int,
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
-        GFXState.pushDrawCallName("LightCount")
-        // draw scene for depth
-        view.drawScene(
-            w, h,
-            renderer, buffer,
-            changeSize = true,
-            hdr = false, // doesn't matter
-            sky = false // doesn't matter, I think
-        )
-        view.pipeline.lightStage.visualizeLightCount = true
+        GFXState.drawCall("LightCount") {
+            // draw scene for depth
+            view.drawScene(
+                w, h,
+                renderer, buffer,
+                changeSize = true,
+                hdr = false, // doesn't matter
+                sky = false // doesn't matter, I think
+            )
+            view.pipeline.lightStage.visualizeLightCount = true
 
-        val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask, lightBuffer)
-        view.drawGizmos(lightBuffer, true)
+            val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
+            view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask, lightBuffer)
+            view.drawGizmos(lightBuffer, true)
 
-        // todo special shader to better differentiate the values than black-white
-        // (1 is extremely dark, nearly black)
-        DrawTextures.drawTexture(
-            x, y + h - 1, w, -h,
-            lightBuffer.getTexture0(), true,
-            -1, null, true // lights are bright -> dim them down
-        )
-        view.pipeline.lightStage.visualizeLightCount = false
-        GFXState.popDrawCallName()
+            // todo special shader to better differentiate the values than black-white
+            // (1 is extremely dark, nearly black)
+            DrawTextures.drawTexture(
+                x, y + h - 1, w, -h,
+                lightBuffer.getTexture0(), true,
+                -1, null, true // lights are bright -> dim them down
+            )
+            view.pipeline.lightStage.visualizeLightCount = false
+        }
     }
 
     fun drawAllBuffers(
@@ -429,53 +431,52 @@ object DebugRendering {
 
         val pbb = DrawTexts.pushBetterBlending(true)
         for (index in 0 until size) {
-            GFXState.pushDrawCallName("Buffer[$index]")
+            GFXState.drawCall("Buffer[$index]") {
+                // rows x N field
+                val col = index % cols
+                val x02 = x0 + (x1 - x0) * (col + 0) / cols
+                val x12 = x0 + (x1 - x0) * (col + 1) / cols
+                val row = index / cols
+                val y02 = y0 + (y1 - y0) * (row + 0) / rows
+                val y12 = y0 + (y1 - y0) * (row + 1) / rows
 
-            // rows x N field
-            val col = index % cols
-            val x02 = x0 + (x1 - x0) * (col + 0) / cols
-            val x12 = x0 + (x1 - x0) * (col + 1) / cols
-            val row = index / cols
-            val y02 = y0 + (y1 - y0) * (row + 0) / rows
-            val y12 = y0 + (y1 - y0) * (row + 1) / rows
-
-            var color = white
-            var applyToneMapping = false
-            val texture = when (index) {
-                size - (1 + GFX.supportsDepthTextures.toInt()) -> {
-                    // draw the light buffer as the last stripe
-                    color = (0x22 * 0x10101) or Color.black
-                    applyToneMapping = true
-                    lightBuffer.getTexture0()
+                var color = white
+                var applyToneMapping = false
+                val texture = when (index) {
+                    size - (1 + GFX.supportsDepthTextures.toInt()) -> {
+                        // draw the light buffer as the last stripe
+                        color = (0x22 * 0x10101) or Color.black
+                        applyToneMapping = true
+                        lightBuffer.getTexture0()
+                    }
+                    size - 1 -> buffer.depthTexture ?: missingTexture
+                    else -> {
+                        val texture = buffer.getTextureI(index)
+                        applyToneMapping = texture.isHDR
+                        texture
+                    }
                 }
-                size - 1 -> buffer.depthTexture ?: missingTexture
-                else -> {
-                    val texture = buffer.getTextureI(index)
-                    applyToneMapping = texture.isHDR
-                    texture
+
+                // y flipped, because it would be incorrect otherwise
+                if (index == size - 1 && texture != missingTexture) {
+                    DrawTextures.drawDepthTexture(x02, y02, x12 - x02, y12 - y02, texture)
+                } else {
+                    DrawTextures.drawTexture(
+                        x02, y12, x12 - x02, y02 - y12, texture,
+                        true, color, null, applyToneMapping
+                    )
                 }
-            }
 
-            // y flipped, because it would be incorrect otherwise
-            if (index == size - 1 && texture != missingTexture) {
-                DrawTextures.drawDepthTexture(x02, y02, x12 - x02, y12 - y02, texture)
-            } else {
-                DrawTextures.drawTexture(
-                    x02, y12, x12 - x02, y02 - y12, texture,
-                    true, color, null, applyToneMapping
-                )
+                val f = 0.8f
+                // draw alpha on right/bottom side
+                if (index < layers.size) GFX.clip2(
+                    if (y12 - y02 > x12 - x02) x02 else Maths.mix(x02, x12, f),
+                    if (y12 - y02 > x12 - x02) Maths.mix(y02, y12, f) else y02,
+                    x12, y12
+                ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
+                // draw title
+                drawSimpleTextCharByChar(x02, y02, 2, texture.name)
             }
-
-            val f = 0.8f
-            // draw alpha on right/bottom side
-            if (index < layers.size) GFX.clip2(
-                if (y12 - y02 > x12 - x02) x02 else Maths.mix(x02, x12, f),
-                if (y12 - y02 > x12 - x02) Maths.mix(y02, y12, f) else y02,
-                x12, y12
-            ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
-            // draw title
-            drawSimpleTextCharByChar(x02, y02, 2, texture.name)
-            GFXState.popDrawCallName()
         }
         DrawTexts.popBetterBlending(pbb)
         GFXState.popDrawCallName()
@@ -513,61 +514,60 @@ object DebugRendering {
 
         val pbb = DrawTexts.pushBetterBlending(true)
         for (index in 0 until size) {
-            GFXState.pushDrawCallName("Layers[$index]")
+            GFXState.drawCall("Layers[$index]") {
+                // rows x N field
+                val col = index % cols
+                val x02 = x0 + (x1 - x0) * (col + 0) / cols
+                val x12 = x0 + (x1 - x0) * (col + 1) / cols
+                val row = index / cols
+                val y02 = y0 + (y1 - y0) * (row + 0) / rows
+                val y12 = y0 + (y1 - y0) * (row + 1) / rows
 
-            // rows x N field
-            val col = index % cols
-            val x02 = x0 + (x1 - x0) * (col + 0) / cols
-            val x12 = x0 + (x1 - x0) * (col + 1) / cols
-            val row = index / cols
-            val y02 = y0 + (y1 - y0) * (row + 0) / rows
-            val y12 = y0 + (y1 - y0) * (row + 1) / rows
-
-            val name: String
-            val texture: ITexture2D
-            var applyTonemapping = false
-            var color = white
-            when (index) {
-                size - (1 + GFX.supportsDepthTextures.toInt()) -> {
-                    texture = light.getTexture0()
-                    val exposure = 0x22 // same as RenderMode.LIGHT_SUM.ToneMappingNode.Inputs[Exposure]
-                    color = (exposure * 0x10101).withAlpha(255)
-                    applyTonemapping = true
-                    name = "Light"
-                }
-                size - 1 -> {
-                    texture = buffer.depthTexture ?: missingTexture
-                    name = "Depth"
-                }
-                else -> {
-                    // draw the light buffer as the last stripe
-                    val layer = deferred.layerTypes[index]
-                    name = layer.name
-                    GFXState.useFrame(tmp) {
-                        val shader = Renderers.attributeEffects[layer to settings]!!
-                        shader.use()
-                        DepthTransforms.bindDepthUniforms(shader)
-                        settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
-                        flat01.draw(shader)
+                val name: String
+                val texture: ITexture2D
+                var applyTonemapping = false
+                var color = white
+                when (index) {
+                    size - (1 + GFX.supportsDepthTextures.toInt()) -> {
+                        texture = light.getTexture0()
+                        val exposure = 0x22 // same as RenderMode.LIGHT_SUM.ToneMappingNode.Inputs[Exposure]
+                        color = (exposure * 0x10101).withAlpha(255)
+                        applyTonemapping = true
+                        name = "Light"
                     }
-                    texture = tmp.getTexture0()
+                    size - 1 -> {
+                        texture = buffer.depthTexture ?: missingTexture
+                        name = "Depth"
+                    }
+                    else -> {
+                        // draw the light buffer as the last stripe
+                        val layer = deferred.layerTypes[index]
+                        name = layer.name
+                        GFXState.useFrame(tmp) {
+                            val shader = Renderers.attributeEffects[layer to settings]!!
+                            shader.use()
+                            DepthTransforms.bindDepthUniforms(shader)
+                            settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
+                            flat01.draw(shader)
+                        }
+                        texture = tmp.getTexture0()
+                    }
                 }
-            }
 
-            // y flipped, because it would be incorrect otherwise
-            if (index == size - 1 && texture != missingTexture) {
-                DrawTextures.drawDepthTexture(x02, y02, tw, th, texture)
-            } else {
-                DrawTextures.drawTexture(
-                    x02, y12, tw, -th, texture, true, color,
-                    null, applyTonemapping
+                // y flipped, because it would be incorrect otherwise
+                if (index == size - 1 && texture != missingTexture) {
+                    DrawTextures.drawDepthTexture(x02, y02, tw, th, texture)
+                } else {
+                    DrawTextures.drawTexture(
+                        x02, y12, tw, -th, texture, true, color,
+                        null, applyTonemapping
+                    )
+                }
+                drawSimpleTextCharByChar(
+                    (x02 + x12) / 2, (y02 + y12) / 2, 2,
+                    name, AxisAlignment.CENTER, AxisAlignment.CENTER
                 )
             }
-            drawSimpleTextCharByChar(
-                (x02 + x12) / 2, (y02 + y12) / 2, 2,
-                name, AxisAlignment.CENTER, AxisAlignment.CENTER
-            )
-            GFXState.popDrawCallName()
         }
         DrawTexts.popBetterBlending(pbb)
         GFXState.popDrawCallName()

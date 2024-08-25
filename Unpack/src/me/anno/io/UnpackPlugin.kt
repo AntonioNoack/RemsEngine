@@ -76,7 +76,7 @@ class UnpackPlugin : Plugin() {
         }
         // try as an asset
         Thumbs.registerFileExtensions(AssetThumbHelper.unityExtensions, AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("ods") { srcFile, dstFile, size, callback ->
+        Thumbs.registerFileExtensions("ods,odt") { srcFile, dstFile, size, callback ->
             val srcFile1 = srcFile.getChild("Thumbnails/thumbnail.png")
             if (srcFile1.exists) {
                 Thumbs.generate(srcFile1, dstFile, size, callback)

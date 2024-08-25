@@ -211,9 +211,7 @@ object FileChooser {
             window.showFPS = false
             window.windowStack.last()
         } else {
-            val window1 = Window(ui, false, baseWindow.windowStack)
-            baseWindow.windowStack.add(window1)
-            window1
+            baseWindow.windowStack.push(ui)
         }
     }
 }

@@ -7,17 +7,15 @@ import me.anno.engine.ui.render.RenderView1
 import me.anno.gpu.GFX
 import me.anno.language.translation.NameDesc
 import me.anno.mesh.Shapes.flatCube
-import me.anno.ui.Window
 
 fun main() {
     // this printed lots of errors and wasn't tonemapping correctly
     object : EngineBase(NameDesc("Crashing"), 1, false) {
         override fun createUI() {
             val renderView = RenderView1(PlayMode.PLAYING, flatCube.front, style)
-            val windowStack = GFX.someWindow.windowStack
-            val window = Window(renderView, false, windowStack)
-            window.drawDirectly = true
-            windowStack.add(window)
+            GFX.someWindow.windowStack
+                .push(renderView)
+                .drawDirectly = true
         }
     }.run()
 }

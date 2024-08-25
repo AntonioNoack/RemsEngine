@@ -88,8 +88,7 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     }
 
-    override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val children = children
         for (i in children.indices) {
             val child = children[i]

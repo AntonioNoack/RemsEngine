@@ -1,12 +1,13 @@
 package me.anno.io.files.inner
 
 import me.anno.io.EmptyInputStream
+import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
 import me.anno.utils.structures.Callback
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -91,7 +92,8 @@ abstract class InnerFile(
     }
 
     override fun outputStream(append: Boolean): OutputStream {
-        throw IOException("Writing into zip files is not yet supported, '$absolutePath'")
+        LOGGER.warn("Writing into zip files is not yet supported, '$absolutePath'")
+        return VoidOutputStream
     }
 
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
@@ -113,7 +115,8 @@ abstract class InnerFile(
     }
 
     override fun delete(): Boolean {
-        throw RuntimeException("Writing into zip files is not yet supported")
+        LOGGER.warn("Writing into zip files is not yet supported")
+        return false
     }
 
     override fun mkdirs(): Boolean {
@@ -129,10 +132,13 @@ abstract class InnerFile(
     }
 
     override fun renameTo(newName: FileReference): Boolean {
-        throw RuntimeException("Writing into zip files is not yet supported")
+        LOGGER.warn("Renaming inside zip files is not yet supported")
+        return false
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(InnerFile::class)
 
         @JvmStatic
         fun createMainFolder(zipFileLocation: FileReference): Pair<InnerFolder, HashMap<String, InnerFile>> {

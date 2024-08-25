@@ -3,7 +3,9 @@ package me.anno.gpu.deferred
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
+import me.anno.utils.structures.lists.Lists.iff
 
+@Deprecated("This is only used in debug RenderModes. Actually used buffers are determined by the currently used RenderGraph")
 val DeferredRenderer by lazy { // lazy for GFX.supportsDepthTextures
     SimpleRenderer(
         "deferred", DeferredSettings(
@@ -17,7 +19,7 @@ val DeferredRenderer by lazy { // lazy for GFX.supportsDepthTextures
                 DeferredLayerType.TRANSLUCENCY, // 1 - merge with sheen?
                 DeferredLayerType.ANISOTROPIC, // 1 - remove?
                 // total: 13/15
-            ) + (if (GFX.supportsDepthTextures) emptyList() else listOf(DeferredLayerType.DEPTH))
+            ) + listOf(DeferredLayerType.DEPTH).iff(!GFX.supportsDepthTextures)
         ),
         colorRenderer.getPixelPostProcessing(0)
     )

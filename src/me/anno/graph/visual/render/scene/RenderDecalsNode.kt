@@ -27,7 +27,7 @@ class RenderDecalsNode : RenderDeferredNode() {
     private var srcBufferI: IFramebuffer? = null
     override fun copyInputsOrClear(framebuffer: IFramebuffer) {
         super.copyInputsOrClear(framebuffer)
-        if (!needsRendering()) return // small optimization, we should do better though...
+        if (!needsRendering(getInput(4) as PipelineStage)) return // small optimization, we should do better though...
         val srcBufferI = srcBufferI!!
         srcBuffer = srcBufferI
         if (framebuffer is Framebuffer) {

@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.isIndexedRenderer
 import me.anno.engine.ui.render.Renderers.isInstancedRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
-import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.renderer.Renderer
@@ -222,7 +222,7 @@ class RenderMode private constructor(
         val REFLECTIVITY = RenderMode("Reflectivity", DeferredLayerType.REFLECTIVITY)
 
         val PREVIEW = RenderMode("Preview", previewRenderer)
-        val SIMPLE = RenderMode("Simple", simpleNormalRenderer)
+        val SIMPLE = RenderMode("Simple", simpleRenderer)
 
         // todo implement dust-light-spilling for impressive fog
 

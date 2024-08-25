@@ -23,7 +23,7 @@ class SSGINode : TimedRenderingNode(
         "Texture", "Normal",
         "Texture", "Depth",
         "Texture", "Diffuse",
-        "Texture", "Roughness",
+        "Texture", "Reflectivity",
         "Texture", "Illuminated",
     ), listOf(
         "Texture", "Illuminated"
@@ -54,19 +54,19 @@ class SSGINode : TimedRenderingNode(
         val colorT = (getInput(7) as? Texture) ?: return fail()
         val colorTT = colorT.texOrNull ?: whiteTexture
 
-        val roughT = (getInput(8) as? Texture) ?: return fail()
-        val roughTT = roughT.texOrNull ?: whiteTexture
-        val roughTM = roughT.mask1Index
+        val reflectT = (getInput(8) as? Texture) ?: return fail()
+        val reflectTT = reflectT.texOrNull ?: whiteTexture
+        val reflectTM = reflectT.mask1Index
 
         val illumT = (getInput(9) as? Texture) ?: return fail()
         val illumTT = illumT.texOrNull ?: return fail()
 
-        val data = ScreenSpaceAmbientOcclusion.SSGIData(illumTT, colorTT, roughTT, roughTM)
+        val data = ScreenSpaceAmbientOcclusion.SSGIData(illumTT, colorTT, reflectTT, reflectTM)
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
             val result = ScreenSpaceAmbientOcclusion.compute(
-                data, depthTT, depthT.mapping, normalT, normalZW,
+                data, depthTT, depthT.mask1Index, normalT, normalZW,
                 transform, strength, radiusScale, ssaoSamples, blur, false
             )
             setOutput(1, Texture.texture(result, 0, "rgb", null))

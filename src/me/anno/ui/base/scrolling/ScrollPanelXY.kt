@@ -154,18 +154,11 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         minH = min(h, child.minH + paddingY)
     }
 
-    override fun setSize(w: Int, h: Int) {
-        super.setSize(w, h)
-        val paddingX = padding.width + (hasScrollbarXF * scrollbarWidth).toInt()
-        val paddingY = padding.height + (hasScrollbarYF * scrollbarHeight).toInt()
-        child.setSize(max(child.minW, w - paddingX), max(child.minH, h - paddingY))
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+        placeChild()
     }
 
-    override fun setPosition(x: Int, y: Int) {
-
-        this.x = x
-        this.y = y
-
+    fun placeChild() {
         val child = child
         val padding = padding
 
@@ -174,7 +167,13 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         val scrollX1 = clamp(scrollX0, 0L, max(0, child.minW + padding.width - width).toLong()).toInt()
         val scrollY1 = clamp(scrollY0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
 
-        child.setPosition(x + padding.left - scrollX1, y + padding.top - scrollY1)
+        val cx = x + padding.left - scrollX1
+        val cy = y + padding.top - scrollY1
+        val paddingX = padding.width + (hasScrollbarXF * scrollbarWidth).toInt()
+        val paddingY = padding.height + (hasScrollbarYF * scrollbarHeight).toInt()
+        val cw = max(child.minW, width - paddingX)
+        val ch = max(child.minH, height - paddingY)
+        child.setPosSize(cx, cy, cw, ch)
 
         if (child is LongScrollable) {
             child.setExtraScrolling(scrollX0 - scrollX1, scrollY0 - scrollY1)
@@ -330,7 +329,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
 
         fun PanelContainer.drawShadowX(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
-            drawShadowX(x0, y0, y1, y1, shadowColor, shadowRadius)
+            drawShadowX(x0, y0, x1, y1, shadowColor, shadowRadius)
         }
 
         fun PanelContainer.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {

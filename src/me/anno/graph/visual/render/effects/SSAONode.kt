@@ -8,6 +8,7 @@ import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
@@ -51,7 +52,7 @@ class SSAONode : TimedRenderingNode(
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
             val result = ScreenSpaceAmbientOcclusion.compute(
-                null, depthTT, depthT.mapping, normalT, normalZW,
+                null, depthTT, depthT.mask1Index, normalT, normalZW,
                 transform, strength, radiusScale, ssaoSamples, blur, inverse
             )
             setOutput(1, Texture.texture(result, 0, "r", null))
