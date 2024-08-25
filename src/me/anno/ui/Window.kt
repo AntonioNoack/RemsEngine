@@ -96,8 +96,14 @@ open class Window(
 
     fun addNeedsRedraw(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) {
         if (!needsRedraw.isFull) {
-            val lePanel = panel.getOverlayParent(x0, y0, x1, y1) ?: panel
-            needsRedraw.add(RedrawRequest(lePanel, x0, y0, x1, y1))
+            val x2 = max(x0, 0)
+            val y2 = max(y0, 0)
+            val x3 = min(x1, windowStack.width)
+            val y3 = min(y1, windowStack.height)
+            if (x3 > x2 && y3 > y2) {
+                val drawnPanel = panel.getOverlayParent(x2, y2, x3, y3) ?: panel
+                needsRedraw.add(RedrawRequest(drawnPanel, x2, y2, x3, y3))
+            }
         }
     }
 

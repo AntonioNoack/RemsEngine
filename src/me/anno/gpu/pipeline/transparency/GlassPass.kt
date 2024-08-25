@@ -74,6 +74,7 @@ class GlassPass : TransparentPass() {
                             Variable(GLSLType.V1F, "IOR"),
                             Variable(GLSLType.V3F, "dirX"),
                             Variable(GLSLType.V3F, "dirY"),
+                            Variable(GLSLType.V1F, "finalOcclusion"),
                         ), "" +
                                 colorToLinear +
                                 RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight

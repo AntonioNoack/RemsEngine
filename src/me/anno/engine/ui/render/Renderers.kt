@@ -187,6 +187,7 @@ object Renderers {
                         Variable(GLSLType.V1F, "finalAlpha"),
                         Variable(GLSLType.V3F, "finalPosition"),
                         Variable(GLSLType.V3F, "finalNormal"),
+                        Variable(GLSLType.V1F, "finalOcclusion"),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
                         Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                     ), "" +
