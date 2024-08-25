@@ -156,8 +156,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @DebugAction
     open fun invalidateDrawing() {
-        if(canBeSeen) {
-            window?.addNeedsRedraw(this, lx0,ly0,lx1,ly1)
+        invalidateDrawing(lx0, ly0, lx1, ly1)
+    }
+
+    fun invalidateDrawing(x0: Int, y0: Int, x1: Int, y1: Int) {
+        if (canBeSeen) {
+            window?.addNeedsRedraw(this, x0, y0, x1, y1)
         }
     }
 
@@ -562,11 +566,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun capturesChildEvents(x: Int, y: Int) = capturesChildEvents(x, y, x + 1, y + 1)
 
-    fun getOverlayParent() = getOverlayParent(lx0, ly0, lx1, ly1)
-    open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
+    fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
         return uiParent?.getOverlayParent(x0, y0, x1, y1) ?: (
                 if (drawsOverlayOverChildren(x0, y0, x1, y1)) this
-                else if (backgroundColor.a() < 255) uiParent // todo this causes too much overdraw
+                else if (backgroundColor.a() < 255) uiParent
                 else null)
     }
 
