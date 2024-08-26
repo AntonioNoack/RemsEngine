@@ -213,7 +213,7 @@ fun main() {
 
     val imm0 = Vector3d()
     val imm1 = Vector3d()
-    Splines.getIntermediates(p0, n0, p1, n1, imm0, imm1)
+    Splines.getIntermediatePointsForSpline(p0, n0, p1, n1, imm0, imm1)
 
     val points = ArrayList<Vector2f>()
 

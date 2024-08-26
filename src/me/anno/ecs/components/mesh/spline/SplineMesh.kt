@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.EditorState
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.white
@@ -41,18 +42,12 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             }
         }
 
-
     // todo respect height
 
     // using N points, define a spline
     // done N = 2 = a line
     // done N > 2 = an actual spline
     // todo N = 1 = a pillar, maybe
-
-    // children as control points
-
-    // kind of done when changed, update the mesh automatically
-    // only if debugging the mesh
 
     // todo update based on distance
 
@@ -222,8 +217,12 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 pt.getLocalForward(posNormals[i4 + 1])
                 pt.getLocalPosition(posNormals[i4 + 2], +1.0)
                 pt.getLocalForward(posNormals[i4 + 3])
+                /*fun showDir(v: Vector3d, d: Vector3d) {
+                    DebugShapes.debugArrows.add(DebugLine(v, v + d * 2.0, UIColors.greenYellow, 1e3f))
+                }
+                showDir(posNormals[i4], posNormals[i4 + 1])
+                showDir(posNormals[i4 + 2], posNormals[i4 + 3])*/
             }
-            // todo also list profiles, and height
             return Splines.generateSplineLinePair(posNormals, perRadiant, isClosed)
         }
 
@@ -329,8 +328,10 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 )
             }
 
-            val dirX0 = Vector3f() // p0a, p0b
-            val dirX1 = Vector3f() // p1a, p1b
+            val dirX0a = Vector3f()
+            val dirX1a = Vector3f()
+            val dirX0b = Vector3f()
+            val dirX1b = Vector3f()
             for (j in 0 until profileSize) {
 
                 val pro0 = profile.getPosition(j)
@@ -355,7 +356,17 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     }
                 }
 
-                dirX(p0a, p0b, dirX0)
+                fun findDirXs(dirX0a: Vector3f, dirX0b: Vector3f, dirY0: Vector3f, i2: Int) {
+                    val sp = splinePoints.size
+                    val closed0 = isClosed && i2 == 0
+                    val closed1 = isClosed && i2 + 2 == sp
+                    val i0 = if (closed0) sp - 2 else max(i2 - 2, 0)
+                    val i1 = if (closed1) 0 else min(i2 + 2, sp - 2)
+                    dirX(splinePoints[i0], splinePoints[i1], dirY0, dirX0a)
+                    dirX(splinePoints[i0 + 1], splinePoints[i1 + 1], dirY0, dirX0b)
+                }
+
+                findDirXs(dirX0a, dirX0b, dirY0, 0)
 
                 for (i in 0 until splineSize) {
 
@@ -363,25 +374,26 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     val p1a = splinePoints[i2 + 2]
                     val p1b = splinePoints[i2 + 3]
 
-                    dirX(p1a, p1b, dirX1)
-
                     if (!isStrictlyUp && i2 + 5 < splinePoints.size) {
                         findDirY(p1a, p1b, splinePoints[i2 + 5], dirY1)
                     }
 
-                    // 012 230
-                    add(pos, nor, col, k++, p0a, p0b, pro0, n0, c0, dirX0, dirY0)
-                    add(pos, nor, col, k++, p1a, p1b, pro1, n1, c1, dirX1, dirY1)
-                    add(pos, nor, col, k++, p1a, p1b, pro0, n0, c0, dirX1, dirY1)
+                    findDirXs(dirX1a, dirX1b, dirY1, i2)
 
-                    add(pos, nor, col, k++, p0a, p0b, pro1, n1, c1, dirX0, dirY0)
-                    add(pos, nor, col, k++, p1a, p1b, pro1, n1, c1, dirX1, dirY1)
-                    add(pos, nor, col, k++, p0a, p0b, pro0, n0, c0, dirX0, dirY0)
+                    // 012 230
+                    add(pos, nor, col, k++, p0a, p0b, pro0, n0, c0, dirX0a, dirX0b, dirY0)
+                    add(pos, nor, col, k++, p1a, p1b, pro1, n1, c1, dirX1a, dirX1b, dirY1)
+                    add(pos, nor, col, k++, p1a, p1b, pro0, n0, c0, dirX1a, dirX1b, dirY1)
+
+                    add(pos, nor, col, k++, p0a, p0b, pro1, n1, c1, dirX0a, dirX0b, dirY0)
+                    add(pos, nor, col, k++, p1a, p1b, pro1, n1, c1, dirX1a, dirX1b, dirY1)
+                    add(pos, nor, col, k++, p0a, p0b, pro0, n0, c0, dirX0a, dirX0b, dirY0)
 
                     p0a = p1a
                     p0b = p1b
 
-                    dirX0.set(dirX1)
+                    dirX0a.set(dirX1a)
+                    dirX0b.set(dirX1b)
                     dirY0.set(dirY1)
                 }
             }
@@ -418,11 +430,20 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             ).normalize()
         }
 
+        fun dirX(p1a: Vector3d, p1b: Vector3d, up: Vector3f, dst: Vector3f) {
+            dst.set(
+                (p1b.x - p1a.x).toFloat(),
+                (p1b.y - p1a.y).toFloat(),
+                (p1b.z - p1a.z).toFloat()
+            ).cross(up).normalize()
+        }
+
         fun add(
             positions: FloatArray, normals: FloatArray, colors: IntArray,
             k: Int, p0: Vector3d, p1: Vector3d, profile: Vector2f, n: Vector2f, c: Int,
-            dirX: Vector3f, dirY: Vector3f
+            dirXa: Vector3f, dirXb: Vector3f, dirY: Vector3f
         ) {
+            val dirX = if (n.x > 0f) dirXa else dirXb // todo is this correct???
             val k3 = k * 3
             val px = (profile.x * .5f + .5f).toDouble()
             val py = profile.y
@@ -517,13 +538,13 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     halfProfile.getNormal(si - 1, false, n0)
                     halfProfile.getNormal(si - 1, true, n1)
 
-                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
-                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirY)
-                    add(pos, nor, col, k++, p1a, p1b, p0, n0, c0, dirX1, dirY)
+                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirX0, dirY)
+                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirX1, dirY)
+                    add(pos, nor, col, k++, p1a, p1b, p0, n0, c0, dirX1, dirX1, dirY)
 
-                    add(pos, nor, col, k++, p0a, p0b, p1, n1, c1, dirX0, dirY)
-                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirY)
-                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
+                    add(pos, nor, col, k++, p0a, p0b, p1, n1, c1, dirX0, dirX0, dirY)
+                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirX1, dirY)
+                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirX0, dirY)
 
                     p0 = p1
                 }

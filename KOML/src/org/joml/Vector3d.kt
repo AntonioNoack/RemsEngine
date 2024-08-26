@@ -579,6 +579,9 @@ open class Vector3d(
     fun angleCos(vx: Double, vy: Double, vz: Double): Double =
         dot(vx, vy, vz) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz))
 
+    /**
+     * returns the angle from this to the other vector [0, PI]
+     * */
     fun angle(v: Vector3d): Double {
         var cos = angleCos(v)
         cos = min(cos, 1.0)

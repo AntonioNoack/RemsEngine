@@ -237,9 +237,9 @@ object Renderers {
 
         val previewLights = listOf(
             // direction, strength
-            Vector4f(-.5f, +1f, .5f, 5f),
-            Vector4f(1f, 1f, 0f, 2f),
-            Vector4f(0f, 0f, 1f, 1f)
+            Vector4f(-.5f, +1f, .5f, 1f),
+            Vector4f(1f, 1f, 0f, 0.5f),
+            Vector4f(0f, 0f, 1f, 0.2f)
         )
 
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
@@ -268,7 +268,7 @@ object Renderers {
                             "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
                             // light calculation
                             // model ambient light using simple sky model
-                            "vec3 ambientLight = vec3(0.3) * vec3(0.6,0.8,1.0);\n" +
+                            "vec3 ambientLight = vec3(0.81);\n" +
                             "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
                             "float reflectivity = finalReflectivity;\n" +
                             "vec3 diffuseColor  = finalColor * (1.0-reflectivity);\n" +
@@ -295,11 +295,9 @@ object Renderers {
                             "   }\n" +
                             "}\n" +
                             specularBRDFv2NoDivInlined2End +
-                            colorToLinear +
                             "finalColor = diffuseColor * diffuseLight + specularLight * specularColor;\n" +
                             "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                            "finalColor = tonemapLinear(finalColor);\n" +
-                            colorToSRGB +
+                            "finalColor = tonemap(finalColor);\n" +
                             "finalResult = vec4(finalColor, finalAlpha);\n"
                 ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity), finalResultStage
             )

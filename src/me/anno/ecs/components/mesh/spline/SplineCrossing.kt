@@ -91,7 +91,7 @@ class SplineCrossing : ProceduralMesh() {
         val zAxis = Vector3d()
         yAxis.findSystem(xAxis, zAxis)
 
-        return streets.sortedBy {
+        return streets.sortedByDescending {
             it.getLocalPosition(tmp, 0.0)
             atan2(xAxis.dot(tmp), zAxis.dot(tmp))
         }
@@ -105,7 +105,6 @@ class SplineCrossing : ProceduralMesh() {
 
         val tmp = Vector3d()
         val tmp2 = Vector3d()
-        val tmp3 = Vector3f()
 
         // auto sort by angle
         if (autoSort) {
@@ -138,14 +137,14 @@ class SplineCrossing : ProceduralMesh() {
             val s0 = streets[index]
             val s1 = streets[posMod(index + 1, streets.size)]
             val points = listOf(
-                createPoint(s0, false),
                 createPoint(s1, true),
+                createPoint(s0, false),
             )
             // (left, right)^n
             val splinePoints = SplineMesh.generateSplinePoints(points, pointsPerRadiant, isClosed = false)
             if (coverTop || coverBottom) {
                 centerPoints.ensureCapacity(centerPoints.size + splinePoints.size.shr(1))
-                for (i in 0 until splinePoints.size.shr(1)) {
+                for (i in splinePoints.size.shr(1) - 1 downTo 0) {
                     val j = i * 2
                     val a = splinePoints[j]
                     val b = splinePoints[j + 1]
@@ -157,20 +156,14 @@ class SplineCrossing : ProceduralMesh() {
             val meshI = generateSplineMesh(
                 Mesh(), halfProfile,
                 isClosed = false, closedStart0 = false, closedEnd0 = false,
-                isStrictlyUp = true, splinePoints.indices.map {
-                    splinePoints[it - (it.and(1) * 2 - 1)]
-                }
+                isStrictlyUp = true, splinePoints
             )
-            // todo why do we need to flip the triangles here???
-            //  and the normals look wrong, too
-            // val numVertices = meshI.positions!!.size / 3
-            // meshI.indices = IntArray(numVertices) { numVertices - 1 - it }
             meshes.add(meshI)
         }
 
         if (coverTop || coverBottom) {
 
-            if (coverBottom && !coverTop) {
+            if (!(coverBottom && !coverTop)) {
                 centerPoints.reverse()
             }
 

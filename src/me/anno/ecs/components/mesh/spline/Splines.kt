@@ -1,23 +1,19 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.asin
 import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 object Splines {
 
     /**
-     * posNormals: mixed positions and normals, pnpn-pnpn-pnpn-pnpn <br>
+     * pns: mixed positions and normals, pnpn-pnpn-pnpn-pnpn <br>
      * returns list of positions
      * */
     fun generateSplineLinePair(pns: List<Vector3d>, ptsPerRadiant: Double, close: Boolean): List<Vector3d> {
@@ -27,11 +23,8 @@ object Splines {
         val p1a = Vector3d()
         val p1b = Vector3d()
 
-        val p2a = Vector3d()
         val p2b = Vector3d()
-
-        val p3b = Vector3d()
-        val p3a = Vector3d()
+        val p2a = Vector3d()
 
         var p0a = pns[0]
         var n0a = pns[1]
@@ -42,61 +35,57 @@ object Splines {
         if (!close) end -= 4
         for (i in 0 until end step 4) {
 
-            val p4a = pns[(i + 4) % pns.size]
-            val n4a = pns[(i + 5) % pns.size]
-            val p4b = pns[(i + 6) % pns.size]
-            val n4b = pns[(i + 7) % pns.size]
+            val p3a = pns[(i + 4) % pns.size]
+            val n3a = pns[(i + 5) % pns.size]
+            val p3b = pns[(i + 6) % pns.size]
+            val n3b = pns[(i + 7) % pns.size]
 
             result.add(p0a)
             result.add(p0b)
 
-            getIntermediates(p0a, n0a, p4a, n4a, p1a, p3a)
-            getIntermediates(p0b, n0b, p4b, n4b, p1b, p3b)
+            getIntermediatePointsForSpline(p0a, n0a, p3a, n3a, p1a, p2a)
+            getIntermediatePointsForSpline(p0b, n0b, p3b, n3b, p1b, p2b)
 
-            interpolate(p0a, p1a, p3a, p4a, 0.5, p2a)
-            interpolate(p0b, p1b, p3b, p4b, 0.5, p2b)
+            val c0a = interpolate(p0a, p1a, p2a, p3a, 0.5)
 
             // calculate using curviness, how many pts we need
-            val angle = angle(p0a, p1a, p2a) + angle(p0b, p1b, p2b) +
-                    angle(p1a, p2a, p3a) + angle(p1b, p2b, p3b) +
-                    angle(p2a, p3a, p4a) + angle(p2b, p3b, p4b)
-            val stopsF = (angle * ptsPerRadiant * 0.5)
-            if (stopsF.isFinite() && stopsF >= 0.5f) {
+            val angle = (p0a - c0a).angle(n0a) + (c0a - p3a).angle(n3a)
+            val stopsF = angle * ptsPerRadiant
+            if (stopsF.isFinite() && stopsF >= 0.5) {
                 val stops = stopsF.roundToIntOr(2)
                 for (j in 1 until stops) {
                     val t = j.toDouble() / stops
-                    result.add(interpolate(p0a, p1a, p3a, p4a, t))
-                    result.add(interpolate(p0b, p1b, p3b, p4b, t))
+                    result.add(interpolate(p0a, p1a, p2a, p3a, t))
+                    result.add(interpolate(p0b, p1b, p2b, p3b, t))
                 }
             }
 
-            p0a = p4a
-            n0a = n4a
-            p0b = p4b
-            n0b = n4b
+            p0a = p3a
+            n0a = n3a
+            p0b = p3b
+            n0b = n3b
         }
 
-        result.add(pns[pns.size - 4])
-        result.add(pns[pns.size - 2])
+        result.add(p0a)
+        result.add(p0b)
+
+        /*for (i in result.indices step 2) {
+            val v = result[i]
+            val d = result[i + 1]
+            DebugShapes.debugArrows.add(DebugLine(v, d, UIColors.axisXColor, 1e3f))
+        }*/
 
         return result
     }
 
     fun angle(p0: Vector3d, p1: Vector3d, p2: Vector3d): Double {
-        val ax = p1.x - p0.x
-        val ay = p1.y - p0.y
-        val az = p1.z - p0.z
-        val bx = p2.x - p1.x
-        val by = p2.y - p1.y
-        val bz = p2.z - p1.z
-        val cross = Maths.sq(
-            ay * bz - az * by,
-            az * bx + ax * bz,
-            ax * by - ay * bx
-        )
-        val al = ax * ax + ay * ay + az * az
-        val bl = bx * bx + by * by + bz * bz
-        return asin(sqrt(cross / max(1e-16, al * bl)))
+        val tmp0 = JomlPools.vec3d.create()
+        val tmp1 = JomlPools.vec3d.create()
+        p1.sub(p0, tmp0)
+        p2.sub(p1, tmp1)
+        val result = tmp1.angle(tmp0)
+        JomlPools.vec3d.sub(2)
+        return result
     }
 
     fun interpolate(
@@ -118,12 +107,20 @@ object Splines {
         return dst
     }
 
-    fun getIntermediates(p0: Vector3d, d0: Vector3d, p1: Vector3d, d1: Vector3d, dst0: Vector3d, dst1: Vector3d) {
-        // calculate the intermediate point(s)
-        // kept simple
+    fun getIntermediatePointsForSpline(
+        p0: Vector3d, d0: Vector3d,
+        p1: Vector3d, d1: Vector3d,
+        dst0: Vector3d, dst1: Vector3d
+    ) {
+
+        // calculate the intermediate points for spline interpolation
+        // assumes d0 and d1 are normalized
         val extend = p1.distance(p0) * 0.5
-        d0.mulAdd(+extend, p0, dst0)
-        d1.mulAdd(-extend, p1, dst1)
+        d0.mulAdd(-extend, p0, dst0)
+        d1.mulAdd(+extend, p1, dst1)
+
+        // DebugShapes.debugPoints.add(DebugPoint(dst0, UIColors.gold, 1e3f))
+        // DebugShapes.debugPoints.add(DebugPoint(dst1, UIColors.gold, 1e3f))
     }
 
     /**
