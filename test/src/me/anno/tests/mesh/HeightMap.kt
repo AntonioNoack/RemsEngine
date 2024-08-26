@@ -1,5 +1,6 @@
 package me.anno.tests.mesh
 
+import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.image.ImageWriter
 import me.anno.io.files.Reference.getReference
@@ -15,6 +16,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.roundToInt
 
 fun main() {
+    OfficialExtensions.initForTests()
     // convert()
     createHeightMesh()
 }
