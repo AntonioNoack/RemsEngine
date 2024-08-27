@@ -102,9 +102,22 @@ open class Window(
             val y3 = min(y1, windowStack.height)
             if (x3 > x2 && y3 > y2) {
                 val drawnPanel = panel.getOverlayParent(x2, y2, x3, y3) ?: panel
-                needsRedraw.add(RedrawRequest(drawnPanel, x2, y2, x3, y3))
+                addNeedsRedraw1(drawnPanel, x2, y2, x3, y3)
             }
         }
+    }
+
+    private fun addNeedsRedraw1(drawnPanel: Panel, x2: Int, y2: Int, x3: Int, y3: Int) {
+        for (i in needsRedraw.indices) {
+            val element = needsRedraw[i]
+            if (element.panel == drawnPanel && element.overlaps(x2, y2, x3, y3)) {
+                // merge them
+                needsRedraw[i] = element.union(x2, y2, x3, y3)
+                return
+            }
+            // todo we could also merge them, if one contains the other
+        }
+        needsRedraw.forceAdd(RedrawRequest(drawnPanel, x2, y2, x3, y3))
     }
 
     fun addNeedsLayout(panel: Panel) {
@@ -240,7 +253,10 @@ open class Window(
         val panel = panel
 
         val canBeHovered = !otherWindowIsFocused() && !otherWindowIsOverUs()
-        panel.updateVisibility(mouseXi, mouseYi, canBeHovered)
+        panel.updateVisibility(
+            mouseXi, mouseYi, canBeHovered,
+            dx, dy, dx + windowW, dy + windowH // correct?
+        )
 
         fun markInFocus(p: Panel) {
             p.isInFocus = true
@@ -477,15 +493,21 @@ open class Window(
                     panel0.draw(x0, y0, x1, y1)
                 }
             }, { region ->
+                Panel.setLX = false
                 clearLoadTexturesSync()
-                calculateXY01(region.panel, x0, y0, x1, y1)
                 useFrame(
                     region.x0, region.y0,
                     region.x1 - region.x0,
                     region.y1 - region.y0, buffer,
                     Renderer.colorRenderer
-                ) { region.panel.redraw() }
+                ) {
+                    region.panel.draw(
+                        region.x0, region.y0,
+                        region.x1, region.y1
+                    )
+                }
                 wasRedrawn += region
+                Panel.setLX = true
             })
         }
     }
@@ -493,23 +515,6 @@ open class Window(
     private fun clearLoadTexturesSync() {
         GFX.loadTexturesSync.clear()
         GFX.loadTexturesSync.push(false)
-    }
-
-    fun calculateXY01(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) {
-        val parent = panel.uiParent
-        if (parent != null) {
-            calculateXY01(parent, x0, y0, x1, y1)
-            setXY01(panel, parent.lx0, parent.ly0, parent.lx1, parent.ly1)
-        } else {
-            setXY01(panel, x0, y0, x1, y1)
-        }
-    }
-
-    private fun setXY01(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) {
-        panel.lx0 = max(panel.x, x0)
-        panel.ly0 = max(panel.y, y0)
-        panel.lx1 = min(panel.x + panel.width, x1)
-        panel.ly1 = min(panel.y + panel.height, y1)
     }
 
     private fun drawCachedImage(panel: Panel, wasRedrawn: List<RedrawRequest>) {

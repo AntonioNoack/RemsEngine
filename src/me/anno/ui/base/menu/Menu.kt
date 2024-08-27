@@ -8,6 +8,7 @@ import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.SpacerPanel
@@ -22,6 +23,8 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.structures.Recursion
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isNotBlank2
@@ -146,7 +149,7 @@ object Menu {
         }
     }
 
-    private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, padding: Int, hover: Boolean) {
+    private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, hover: Boolean) {
         button.tooltip = option.nameDesc.desc
         button.enableHoverColor = hover
         button.padding.left = padding
@@ -173,48 +176,48 @@ object Menu {
     ): Window? {
 
         if (options.isEmpty()) return null
+        val optionsI = if (options.any2 { it is ComplexMenuGroup }) {
+            options + ComplexMenuOption(NameDesc("Search All")) {
+                val allOptions = ArrayList<ComplexMenuOption>()
+                Recursion.processRecursive(options) { list, remaining ->
+                    for (i in list.indices) {
+                        when (val it = list[i]) {
+                            is ComplexMenuGroup -> remaining.add(it.children)
+                            is ComplexMenuOption -> allOptions.add(it)
+                        }
+                    }
+                }
+                openComplexMenu(windowStack, x, y, nameDesc, allOptions)
+            }
+        } else options
+
         val style = DefaultConfig.style.getChild("menu")
 
         val list = ArrayList<Panel>()
         val keyListeners = ExtraKeyListeners()
 
-        val padding = 4
-        for (index in options.indices) {
-            val option = options[index]
+        for (index in optionsI.indices) {
+            val option = optionsI[index]
             val optionI = option.nameDesc
             val name = optionI.name
-            val action = (option as? ComplexMenuOption)?.action
             when {
                 optionI.englishName == menuSeparator -> {
                     if (index != 0) {
                         list += SpacerPanel(0, 1, style)
                     }
                 }
-                option.isEnabled && action != null -> {
+                option.isEnabled && option is ComplexMenuOption -> {
                     val magicIndex = keyListeners.findNextFreeIndex(name)
-                    val button = object : TextPanel(optionI, style) {
-                        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                            super.onDraw(x0, y0, x1, y1)
-                            if (magicIndex in text.indices) {
-                                underline(magicIndex, magicIndex + 1)
-                            }
-                        }
-                    }
+                    val button = UnderlinedTextPanel(optionI, magicIndex, style)
                     if (magicIndex in name.indices) {
                         keyListeners.bind(name[magicIndex].lowercaseChar()) {
-                            action()
+                            option.action()
                             close(button)
                             true
                         }
                     }
-                    button.addOnClickListener { _, _, _, key, long ->
-                        if (key == Key.BUTTON_LEFT && !long) {
-                            action()
-                            close(button)
-                            true
-                        } else false
-                    }
-                    styleComplexEntry(button, option, padding, true)
+                    defineActionListener(button, option.action)
+                    styleComplexEntry(button, option, true)
                     list += button
                 }
                 option.isEnabled && option is ComplexMenuGroup -> {
@@ -231,24 +234,50 @@ object Menu {
                             false
                         }
                     }
-                    styleComplexEntry(button, option, padding, true)
+                    styleComplexEntry(button, option, true)
                     list += button
                 }
                 else -> {
-                    // disabled -> show it grayed-out
-                    // if action is a group, add a small arrow
-                    val name1 = if (option is ComplexMenuGroup)
-                        NameDesc("$name →", optionI.desc, "") else optionI
-                    val button = TextPanel(name1, style)
-                    button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
-                    button.focusTextColor = button.textColor
-                    styleComplexEntry(button, option, padding, false)
-                    list += button
+                    println("Creating disabled button for $optionI")
+                    list += createDisabledButton(option)
                 }
             }
         }
 
         return openMenuByPanels(windowStack, x, y, nameDesc, list, keyListeners.listeners)!!
+    }
+
+    class UnderlinedTextPanel(optionI: NameDesc, val magicIndex: Int, style: Style) : TextPanel(optionI, style) {
+        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            super.onDraw(x0, y0, x1, y1)
+            if (magicIndex in text.indices) {
+                underline(magicIndex, magicIndex + 1)
+            }
+        }
+    }
+
+    private fun createDisabledButton(option: ComplexMenuEntry): Panel {
+        val optionI = option.nameDesc
+        val name = optionI.name
+        // disabled -> show it grayed-out
+        // if action is a group, add a small arrow
+        val name1 = if (option is ComplexMenuGroup)
+            NameDesc("$name →", optionI.desc, "") else optionI
+        val button = TextPanel(name1, style)
+        button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
+        button.focusTextColor = button.textColor
+        styleComplexEntry(button, option, false)
+        return button
+    }
+
+    private fun defineActionListener(button: TextPanel, action: () -> Unit) {
+        button.addOnClickListener { _, _, _, key, long ->
+            if (key == Key.BUTTON_LEFT && !long) {
+                action()
+                close(button)
+                true
+            } else false
+        }
     }
 
     @Suppress("unused")
@@ -438,4 +467,6 @@ object Menu {
         x: Float, y: Float, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10
     ): Window? = openComplexMenu(windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, nameDesc,
         options.map { option -> option.toComplex() })
+
+    private val padding = 4
 }

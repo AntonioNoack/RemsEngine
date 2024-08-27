@@ -54,24 +54,19 @@ abstract class PanelGroup(style: Style) : Panel(style) {
                 child.draw(x02, y02, x12, y12)
             }
             true
-        } else {
-            child.lx0 = x02
-            child.ly0 = y02
-            child.lx1 = x12
-            child.ly1 = y12
-            false
-        }
+        } else false
     }
 
-    override fun updateVisibility(mx: Int, my: Int, canBeHovered: Boolean) {
-        super.updateVisibility(mx, my, canBeHovered)
-        updateChildrenVisibility(mx, my, isHovered)
-    }
-
-    open fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean) {
+    fun updateChildrenVisibility(
+        mx: Int, my: Int, canBeHovered: Boolean,
+        x0: Int, y0: Int, x1: Int, y1: Int
+    ) {
         val children = children
         for (i in children.indices) {
-            children[i].updateVisibility(mx, my, canBeHovered)
+            children[i].updateVisibility(
+                mx, my, canBeHovered,
+                x0, y0, x1, y1
+            )
         }
     }
 

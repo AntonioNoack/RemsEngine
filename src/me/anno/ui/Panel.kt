@@ -10,6 +10,9 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
+import me.anno.gpu.drawing.GFXx2D.getSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
@@ -173,31 +176,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         wasHovered = isHovered
     }
 
-    // the following is the last drawn size, clipped stuff clipped
-    @NotSerializedProperty
-    var lx0 = 0
-
-    @NotSerializedProperty
-    var ly0 = 0
-
-    @NotSerializedProperty
-    var lx1 = 0
-
-    @NotSerializedProperty
-    var ly1 = 0
-
-    @NotSerializedProperty
-    var llx0 = lx0
-
-    @NotSerializedProperty
-    var lly0 = ly0
-
-    @NotSerializedProperty
-    var llx1 = lx1
-
-    @NotSerializedProperty
-    var lly1 = ly1
-
     @NotSerializedProperty
     var oldLayoutState: Any? = null
 
@@ -278,12 +256,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
             invalidateLayout()
         } else {
             val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
-            if (oldStateInt != newStateInt || llx0 != lx0 || lly0 != ly0 || llx1 != lx1 || lly1 != ly1) {
+            if (oldStateInt != newStateInt) {
                 oldStateInt = newStateInt
-                llx0 = lx0
-                lly0 = ly0
-                llx1 = lx1
-                lly1 = ly1
                 oldVisualState = getVisualState()
                 invalidateDrawing()
             } else {
@@ -338,19 +312,35 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    open fun updateVisibility(mx: Int, my: Int, canBeHovered: Boolean) {
+    @NotSerializedProperty
+    private var lp0 = 0
+
+    @NotSerializedProperty
+    private var lp1 = 0
+
+    val lx0: Int get() = getSizeX(lp0)
+    val ly0: Int get() = getSizeY(lp0)
+    val lx1: Int get() = getSizeX(lp1)
+    val ly1: Int get() = getSizeY(lp1)
+
+    fun updateVisibility(
+        mx: Int, my: Int, canBeHovered: Boolean,
+        x0: Int, y0: Int, x1: Int, y1: Int
+    ) {
         isInFocus = false
         isAnyChildInFocus = false
-        canBeSeen = (uiParent?.canBeSeen != false) && isVisible && lx1 > lx0 && ly1 > ly0
+        val lx0 = max(x0, x)
+        val lx1 = min(x1, x + width)
+        val ly0 = max(y0, y)
+        val ly1 = min(y1, y + height)
+        lp0 = getSize(lx0, ly0)
+        lp1 = getSize(lx1, ly1)
+        val parent = uiParent
+        canBeSeen = (parent == null || parent.canBeSeen) && isVisible && lx1 > lx0 && ly1 > ly0
         isHovered = canBeHovered && canBeSeen && mx in lx0 until lx1 && my in ly0 until ly1
-    }
-
-    /**
-     * draw the panel at its last location and size;
-     * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
-     * */
-    fun redraw() {
-        draw(lx0, ly0, lx1, ly1)
+        if (this is PanelGroup) {
+            updateChildrenVisibility(mx, my, isHovered, lx0, ly0, lx1, ly1)
+        }
     }
 
     /**
@@ -359,10 +349,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
      * */
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        lx0 = x0
-        ly0 = y0
-        lx1 = x1
-        ly1 = y1
         GFX.check()
         onDraw(x0, y0, x1, y1)
         GFX.check()
@@ -837,6 +823,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         const val CORNER_BOTTOM_RIGHT = 2
         const val CORNER_TOP_LEFT = 4
         const val CORNER_BOTTOM_LEFT = 8
+
+        var setLX = true
 
         private val LOGGER = LogManager.getLogger(Panel::class)
         val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])

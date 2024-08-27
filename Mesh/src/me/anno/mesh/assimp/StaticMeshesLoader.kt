@@ -138,7 +138,7 @@ object StaticMeshesLoader {
         }
 
         // glb cannot be loaded from memory properly... (a bug in Assimp)
-        if (file0 !is FileFileRef && signature == "gltf") {
+        if (file0 !is FileFileRef && (signature == "gltf" || signature == "json")) {
             val tmp = FileFileRef.createTempFile(file0.nameWithoutExtension, file0.extension)
             file0.copyTo(tmp)
             tmp.deleteOnExit()

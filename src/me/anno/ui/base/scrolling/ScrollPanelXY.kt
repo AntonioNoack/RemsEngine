@@ -197,7 +197,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             }
             val scrollbarX = scrollbarX
             scrollbarX.x = x + scrollbarPadding
-            scrollbarX.y = y1 - scrollbarHeight - scrollbarPadding
+            scrollbarX.y = y + height - scrollbarHeight - scrollbarPadding
             scrollbarX.width = width - 2 * scrollbarPadding
             scrollbarX.height = scrollbarHeight
             drawChild(scrollbarX, x0, y0, x1, y1)
@@ -208,7 +208,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
                 drawShadowY(x0, y0, x1, y1, shadowRadius)
             }
             val scrollbarY = scrollbarY
-            scrollbarY.x = x1 - scrollbarWidth - scrollbarPadding
+            scrollbarY.x = x + width - scrollbarWidth - scrollbarPadding
             scrollbarY.y = y + scrollbarPadding
             scrollbarY.width = scrollbarWidth
             scrollbarY.height = height - 2 * scrollbarPadding

@@ -20,8 +20,20 @@ class LimitedList<V>(val limit: Int = 16) : MutableCollection<V> {
 
     override fun add(element: V): Boolean {
         if (element in this) return false
+        return forceAdd(element)
+    }
+
+    fun forceAdd(element: V): Boolean {
         values.add(element)
         return true
+    }
+
+    operator fun get(i: Int): V {
+        return values[i]
+    }
+
+    operator fun set(i: Int, v: V) {
+        values[i] = v
     }
 
     fun sumOf(getPartialSum: (V?) -> Int): Int {

@@ -33,6 +33,8 @@ class Vehicle(
     val prevPosition = Vector3d()
     var angle = 0.0
 
+    var vehicleOffsetY = 0.5
+
     override fun onUpdate() {
         // move vehicle
         val curr = route[currentSegment]
@@ -45,6 +47,7 @@ class Vehicle(
             // add orthogonal lane offset
             val offsetFromCenter = 1.3
             val position = curr.interpolate(currentT)
+            position.y += vehicleOffsetY
             val dx = position.x - prevPosition.x
             val dz = position.z - prevPosition.z
             prevPosition.set(position)

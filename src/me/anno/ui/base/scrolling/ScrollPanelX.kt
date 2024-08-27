@@ -25,10 +25,8 @@ import kotlin.math.round
  * Android: HorizontalScrollView,
  * Unity: ScrollView
  * */
-open class ScrollPanelX(
-    child: Panel, padding: Padding,
-    style: Style
-) : PanelContainer(child, padding, style), ScrollableX {
+open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
+    PanelContainer(child, padding, style), ScrollableX {
 
     constructor(style: Style) : this(PanelListX(style), style)
     constructor(child: Panel, style: Style) : this(child, Padding(), style)
@@ -148,7 +146,7 @@ open class ScrollPanelX(
             }
             val scrollbar = scrollbar
             scrollbar.x = x + scrollbarPadding
-            scrollbar.y = y1 - scrollbarHeight - scrollbarPadding
+            scrollbar.y = y + height - scrollbarHeight - scrollbarPadding
             scrollbar.width = width - 2 * scrollbarPadding
             scrollbar.height = scrollbarHeight
             drawChild(scrollbar, x0, y0, x1, y1)

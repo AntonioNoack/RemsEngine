@@ -2,7 +2,10 @@ package me.anno.tests.game.flatworld.vehicles
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.game.flatworld.FlatWorld
@@ -10,6 +13,7 @@ import me.anno.tests.game.flatworld.streets.ReversibleSegment
 import me.anno.tests.game.flatworld.vehicles.Routes.findRoute
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.weightedRandomOrNull
+import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.random.Random
 
 object RandomVehicle {
@@ -23,11 +27,30 @@ object RandomVehicle {
         world.vehicles.add(entity)
     }
 
+    val carFiles = listOf(
+        "NormalCar1.fbx" to "Blue",
+        "NormalCar2.fbx" to "Light Blue",
+        "SportsCar.fbx" to "Orange",
+        "SportsCar2.fbx" to "White",
+        "SUV.fbx" to "White",
+        "Taxi.fbx" to "",
+        "Cop.fbx" to "",
+    )
+
+    val carsMeshes = getReference("E:/Assets/Quaternius/Cars.zip")
     fun createRandomVehicle(route: List<ReversibleSegment>): Entity {
         val entity = Entity()
-        // todo better car model
-        // todo random car colors
-        entity.add(MeshComponent(flatCube.front))
+        val (meshName, matName) = carFiles.random()
+        val mesh = MeshCache[carsMeshes.getChild(meshName)]
+        val meshComponent = MeshComponent(mesh ?: flatCube.front)
+        if (mesh != null && matName.isNotBlank2()) {
+            meshComponent.materials = mesh.materials.map { ref ->
+                if (ref.nameWithoutExtension == matName)
+                    Material.diffuse(Maths.randomInt()).ref
+                else ref
+            }
+        }
+        entity.add(meshComponent)
         entity.add(Vehicle(Maths.random(), route))
         return entity
     }

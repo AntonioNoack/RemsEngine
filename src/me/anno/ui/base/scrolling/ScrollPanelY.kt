@@ -27,10 +27,8 @@ import kotlin.math.round
  *  - Unity: ScrollView,
  *  - Unreal Engine: UScrollBox,
  * */
-open class ScrollPanelY(
-    child: Panel, padding: Padding,
-    style: Style
-) : PanelContainer(child, padding, style), ScrollableY {
+open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
+    PanelContainer(child, padding, style), ScrollableY {
 
     constructor(style: Style) : this(PanelListY(style), style)
     constructor(child: Panel, style: Style) : this(child, Padding(), style)
@@ -147,7 +145,7 @@ open class ScrollPanelY(
                 drawShadowY(x0, y0, x1, y1, shadowRadius)
             }
             val scrollbar = scrollbar
-            scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
+            scrollbar.x = x + width - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.width = scrollbarWidth
             scrollbar.height = height - 2 * scrollbarPadding

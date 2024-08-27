@@ -17,7 +17,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 // like ViewFlipper in Android
 open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
@@ -159,13 +158,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
                 child.draw(x02, y02, x12, y12)
                 transform.popMatrix()
                 true
-            } else {
-                child.lx0 = x02
-                child.ly0 = y02
-                child.lx1 = x12
-                child.ly1 = y12
-                false
-            }
+            } else false
         } else super.drawChild(child, x0, y0, x1, y1)
     }
 
