@@ -2,13 +2,13 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL46C
@@ -71,11 +71,11 @@ class ComputeShader(
         if (groupSize.x < 1) groupSize.x = 1
         if (groupSize.y < 1) groupSize.y = 1
         if (groupSize.z < 1) groupSize.z = 1
-        val groupSize = groupSize.x * groupSize.y * groupSize.z
+        val groupSizeI = groupSize.x * groupSize.y * groupSize.z
         val maxGroupSize = stats[3]
-        if (groupSize > maxGroupSize) throw RuntimeException(
-            "Group size too large: ${this.groupSize.x} x ${this.groupSize.y} x ${this.groupSize.z} > $maxGroupSize"
-        )
+        assertTrue(groupSizeI <= maxGroupSize) {
+            "Group size too large: ${groupSize.x} x ${groupSize.y} x ${groupSize.z} > $maxGroupSize"
+        }
     }
 
     fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {

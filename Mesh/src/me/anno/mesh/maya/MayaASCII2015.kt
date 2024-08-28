@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.utils.NormalCalculator.makeFlatShaded
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.structures.Callback

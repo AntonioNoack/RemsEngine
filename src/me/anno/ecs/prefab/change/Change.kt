@@ -4,8 +4,9 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertEquals
 import java.text.ParseException
 
 /**
@@ -16,9 +17,9 @@ abstract class Change : Saveable() {
     var path: Path = ROOT_PATH
 
     fun apply(prefab0: Prefab, instance0: PrefabSaveable, depth: Int) {
-        if (instance0.prefabPath != ROOT_PATH) throw RuntimeException("Root instance must have root path, got ${instance0.prefabPath}")
+        assertEquals(ROOT_PATH, instance0.prefabPath, "Root instance must have root path")
         val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
-        if (instance.prefabPath != path) throw RuntimeException("Path does not match! ${instance.prefabPath} != $path")
+        assertEquals(path, instance.prefabPath, "Path does not match!")
         applyChange(prefab0, instance, depth)
     }
 

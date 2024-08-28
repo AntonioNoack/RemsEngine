@@ -129,89 +129,26 @@ object MeshBufferUtils {
 
             // upload all data of one vertex
 
-            val i2 = i * 2
             val i3 = i * 3
             val i4 = i * 4
 
-            buffer.put(positions[i3])
-            buffer.put(positions[i3 + 1])
-            buffer.put(positions[i3 + 2])
-
-            if (hasHighPrecisionNormals) {
-                buffer.put(normals[i3])
-                buffer.put(normals[i3 + 1])
-                buffer.put(normals[i3 + 2])
-            } else {
-                buffer.putByte(normals[i3])
-                buffer.putByte(normals[i3 + 1])
-                buffer.putByte(normals[i3 + 2])
-                buffer.putByte(0) // alignment
-            }
+            putPosition(buffer, positions, i3)
+            putNormal(buffer, normals, i3, hasHighPrecisionNormals)
 
             if (hasUVs) {
-
-                if (uvs != null && i2 + 1 < uvs.size) {
-                    // in the future, flip the textures instead?
-                    buffer.put(uvs[i2])
-                    buffer.put(1f - uvs[i2 + 1])
-                } else buffer.put(0f, 0f)
-
-                if (tangents != null && i4 + 3 < tangents.size) {
-                    buffer.putByte(tangents[i4])
-                    buffer.putByte(tangents[i4 + 1])
-                    buffer.putByte(tangents[i4 + 2])
-                    buffer.putByte(tangents[i4 + 3])
-                } else {
-                    buffer.putByte(normals[i3])
-                    buffer.putByte(normals[i3 + 1])
-                    buffer.putByte(normals[i3 + 2])
-                    buffer.putByte(127) // positive ^^
-                }
+                putUVs(buffer, uvs, i * 2)
+                putTangent(buffer, tangents, i4)
             }
 
-            fun putColor(colors: IntArray?) {
-                if (i < colors!!.size) {
-                    buffer.putRGBA(colors[i])
-                } else buffer.putInt(-1)
-            }
-
-            if (hasColor0) putColor(color0)
-            if (hasColor1) putColor(color1)
-            if (hasColor2) putColor(color2)
-            if (hasColor3) putColor(color3)
+            if (hasColor0) putColor(buffer, color0, i)
+            if (hasColor1) putColor(buffer, color1, i)
+            if (hasColor2) putColor(buffer, color2, i)
+            if (hasColor3) putColor(buffer, color3, i)
 
             // only works if MAX_WEIGHTS is four
             if (hasBones) {
-
-                if (boneWeights != null && i4 + 3 < boneWeights.size) {
-                    val w0 = max(boneWeights[i4], 1e-5f)
-                    val w1 = boneWeights[i4 + 1]
-                    val w2 = boneWeights[i4 + 2]
-                    val w3 = boneWeights[i4 + 3]
-                    val normalisation = 255f / (w0 + w1 + w2 + w3)
-                    val w1b = (w1 * normalisation).roundToIntOr()
-                    val w2b = (w2 * normalisation).roundToIntOr()
-                    val w3b = (w3 * normalisation).roundToIntOr()
-                    val w0b = max(255 - (w1b + w2b + w3b), 0)
-                    buffer.putByte(w0b.toByte())
-                    buffer.putByte(w1b.toByte())
-                    buffer.putByte(w2b.toByte())
-                    buffer.putByte(w3b.toByte())
-                } else {
-                    buffer.putByte(-1)
-                    buffer.putByte(0)
-                    buffer.putByte(0)
-                    buffer.putByte(0)
-                }
-
-                if (boneIndices != null && i4 + 3 < boneIndices.size) {
-                    buffer.putByte(boneIndices[i4])
-                    buffer.putByte(boneIndices[i4 + 1])
-                    buffer.putByte(boneIndices[i4 + 2])
-                    buffer.putByte(boneIndices[i4 + 3])
-                } else {
-                    buffer.putInt(0)
-                }
+                putBoneWeights(buffer, boneWeights, i4)
+                putBoneIndices(buffer, boneIndices, i4)
             }
         }
 
@@ -225,5 +162,86 @@ object MeshBufferUtils {
         lineBuffer?.drawMode = DrawMode.LINES
 
         invalidDebugLines = true
+    }
+
+    fun putPosition(buffer: StaticBuffer, positions: FloatArray, i3: Int) {
+        buffer.put(positions[i3])
+        buffer.put(positions[i3 + 1])
+        buffer.put(positions[i3 + 2])
+    }
+
+    fun putNormal(buffer: StaticBuffer, normals: FloatArray, i3: Int, hasHighPrecisionNormals: Boolean) {
+        if (hasHighPrecisionNormals) {
+            buffer.put(normals[i3])
+            buffer.put(normals[i3 + 1])
+            buffer.put(normals[i3 + 2])
+        } else {
+            buffer.putByte(normals[i3])
+            buffer.putByte(normals[i3 + 1])
+            buffer.putByte(normals[i3 + 2])
+            buffer.putByte(0) // alignment
+        }
+    }
+
+    fun putTangent(buffer: StaticBuffer, tangents: FloatArray?, i4: Int) {
+        if (tangents != null && i4 + 3 < tangents.size) {
+            buffer.putByte(tangents[i4])
+            buffer.putByte(tangents[i4 + 1])
+            buffer.putByte(tangents[i4 + 2])
+            buffer.putByte(tangents[i4 + 3])
+        } else {
+            buffer.putByte(0)
+            buffer.putByte(0)
+            buffer.putByte(0)
+            buffer.putByte(127) // positive ^^
+        }
+    }
+
+    fun putUVs(buffer: StaticBuffer, uvs: FloatArray?, i2: Int) {
+        if (uvs != null && i2 + 1 < uvs.size) {
+            // in the future, flip the textures instead?
+            buffer.put(uvs[i2])
+            buffer.put(1f - uvs[i2 + 1])
+        } else buffer.put(0f, 0f)
+    }
+
+    fun putColor(buffer: StaticBuffer, colors: IntArray?, i: Int) {
+        if (i < colors!!.size) {
+            buffer.putRGBA(colors[i])
+        } else buffer.putInt(-1)
+    }
+
+    private fun putBoneWeights(buffer: StaticBuffer, boneWeights: FloatArray?, i4: Int) {
+        if (boneWeights != null && i4 + 3 < boneWeights.size) {
+            val w0 = max(boneWeights[i4], 1e-5f)
+            val w1 = boneWeights[i4 + 1]
+            val w2 = boneWeights[i4 + 2]
+            val w3 = boneWeights[i4 + 3]
+            val normalisation = 255f / (w0 + w1 + w2 + w3)
+            val w1b = (w1 * normalisation).roundToIntOr()
+            val w2b = (w2 * normalisation).roundToIntOr()
+            val w3b = (w3 * normalisation).roundToIntOr()
+            val w0b = max(255 - (w1b + w2b + w3b), 0)
+            buffer.putByte(w0b.toByte())
+            buffer.putByte(w1b.toByte())
+            buffer.putByte(w2b.toByte())
+            buffer.putByte(w3b.toByte())
+        } else {
+            buffer.putByte(-1)
+            buffer.putByte(0)
+            buffer.putByte(0)
+            buffer.putByte(0)
+        }
+    }
+
+    private fun putBoneIndices(buffer: StaticBuffer, boneIndices: ByteArray?, i4: Int) {
+        if (boneIndices != null && i4 + 3 < boneIndices.size) {
+            buffer.putByte(boneIndices[i4])
+            buffer.putByte(boneIndices[i4 + 1])
+            buffer.putByte(boneIndices[i4 + 2])
+            buffer.putByte(boneIndices[i4 + 3])
+        } else {
+            buffer.putInt(0)
+        }
     }
 }

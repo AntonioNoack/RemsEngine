@@ -481,7 +481,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         when (child) {
             is Entity -> addEntity(child)
             is Component -> addComponent(child)
-            else -> throw UnsupportedOperationException("Cannot add ${child.className} to Entity")
+            else -> LOGGER.warn("Cannot add {} to Entity", child.className)
         }
     }
 

@@ -16,6 +16,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelStack
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertNotNull
 
 class ExportedGame(val config: StringMap) : EngineBase(
     NameDesc(config["gameTitle", "Rem's Engine"]),
@@ -25,8 +26,8 @@ class ExportedGame(val config: StringMap) : EngineBase(
 ) {
     override fun createUI() {
         workspace = res // ok so?
-        val prefab = PrefabCache[config["firstScenePath", InvalidRef]]
-            ?: throw IllegalStateException("Missing first scene")
+        val loaded = PrefabCache[config["firstScenePath", InvalidRef]]
+        val prefab = assertNotNull(loaded, "Missing first scene")
         val scene = prefab.createInstance()
         val windowStack = GFX.someWindow.windowStack
         val stack = PanelStack(style)

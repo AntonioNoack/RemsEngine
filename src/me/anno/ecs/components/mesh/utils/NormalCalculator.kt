@@ -408,4 +408,31 @@ object NormalCalculator {
         }
         return dst.normalize()
     }
+
+    fun Mesh.makeFlatShaded(calculateNormals: Boolean = true) {
+        val indices = indices
+        val positions = positions ?: return
+        val colors = color0
+        if (indices == null) {
+            if (calculateNormals) calculateNormals(false)
+        } else {
+            val newPositions = FloatArray(indices.size * 3)
+            val newColors = if (colors != null) IntArray(indices.size) else null
+            for (i in indices.indices) {
+                val i3 = i * 3
+                val j = indices[i]
+                val j3 = j * 3
+                newPositions[i3] = positions[j3]
+                newPositions[i3 + 1] = positions[j3 + 1]
+                newPositions[i3 + 2] = positions[j3 + 2]
+                if (colors != null) newColors!![i] = colors[j]
+            }
+            this.positions = newPositions
+            this.normals = normals.resize(newPositions.size)
+            this.color0 = newColors
+            this.indices = null
+            if (calculateNormals) calculateNormals(false)
+        }
+    }
+
 }

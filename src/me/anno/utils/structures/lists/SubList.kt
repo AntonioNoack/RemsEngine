@@ -94,7 +94,8 @@ class SubList<V>(
             override fun next(): V = backend[iterIndex++]
 
             override fun remove() {
-                throw NotImplementedError()
+                removeAt(iterIndex)
+                iterIndex-- // ok like that?
             }
 
             override fun set(element: V) {

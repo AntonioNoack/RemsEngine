@@ -8,11 +8,8 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
-import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.ecs.components.mesh.MeshBufferUtils.updateMesh
-import me.anno.ecs.components.mesh.MeshIterators.countLines
-import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
@@ -26,8 +23,6 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
@@ -40,29 +35,23 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
+import me.anno.mesh.MeshRendering.drawImpl
+import me.anno.mesh.MeshRendering.drawInstancedImpl
+import me.anno.mesh.MeshUtils.countPrimitives
 import me.anno.utils.InternalAPI
-import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.structures.lists.Lists.wrap
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
-import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.max
-import kotlin.math.min
 
 // open, so you can define your own attributes
 open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @NotSerializedProperty
     var raycaster: BLASNode? = null
-
-    // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
-    // but it may be more flexible... still in Java, FloatArrays are more comfortable
-    // -> just use multiple setters for convenience
 
     @InternalAPI
     @NotSerializedProperty
@@ -289,36 +278,18 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     fun calculateAABB() {
         aabb.clear()
-        val indices = indices
-        // if the indices array is empty, it indicates a non-indexed array, so all values will be considered
-        val positions = positions ?: return
-        if (ignoreStrayPointsInAABB && indices != null && indices.isNotEmpty()) {
-            for (i in indices.indices) {
-                val i3 = indices[i] * 3
-                val x = positions[i3]
-                val y = positions[i3 + 1]
-                val z = positions[i3 + 2]
-                aabb.union(x, y, z)
-            }
-        } else {
-            for (index in 0 until positions.size - 2 step 3) {
-                val x = positions[index]
-                val y = positions[index + 1]
-                val z = positions[index + 2]
-                aabb.union(x, y, z)
-            }
+        forEachPoint(ignoreStrayPointsInAABB) { x, y, z ->
+            aabb.union(x, y, z)
         }
-        // LOGGER.info("Collected aabb $aabb from ${positions?.size}/${indices?.size} points")
     }
 
-    @Suppress("unused")
     fun calculateNormals(smooth: Boolean) {
         val positions = positions!!
         if (smooth && indices == null) {
             indices = NormalCalculator.generateIndices(positions, uvs, color0, materialIds, boneIndices, boneWeights)
             LOGGER.debug("Generated indices for mesh")
         }
-        normals = FloatArray(positions.size)
+        normals = normals.resize(positions.size)
         NormalCalculator.checkNormals(this, positions, normals!!, indices, drawMode)
     }
 
@@ -357,10 +328,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         if (indices != null) {
             // check all indices for correctness
             val vertexCount = positions.size / 3
-            for (i in indices) {
-                if (i !in 0 until vertexCount) {
-                    throw IllegalStateException("Vertex Index is out of bounds: $i !in 0 until $vertexCount")
-                }
+            val invalidIndex = indices.indexOfFirst { it !in 0 until vertexCount }
+            if (invalidIndex > -1) {
+                val value = indices[invalidIndex]
+                throw IllegalStateException("Vertex Index is out of bounds: indices[$invalidIndex]=$value !in 0 until $vertexCount")
             }
         }
     }
@@ -387,20 +358,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @DebugProperty
     override val numPrimitives
-        get(): Long {
-            val indices = indices
-            val positions = positions
-            val drawMode = drawMode
-            val baseLength = if (indices != null) {
-                numPrimitivesByType(indices.size * 3, drawMode)
-            } else if (positions != null) {
-                numPrimitivesByType(positions.size, drawMode)
-            } else 0
-            val size = proceduralLength
-            return if (size <= 0) baseLength.toLong()
-            else if (baseLength > 0) baseLength.toLong() * size
-            else numPrimitivesByType(size, drawMode).toLong()
-        }
+        get(): Long = countPrimitives()
 
     fun numPrimitivesByType(numPositionValues: Int, drawMode: DrawMode): Int {
         return when (drawMode) {
@@ -503,30 +461,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         val proceduralLength = proceduralLength
         if (proceduralLength <= 0) {
-            ensureBuffer()
-            // respect the material index: only draw what belongs to the material
-            val helperMeshes = helperMeshes
-            when {
-                helperMeshes != null && materialIndex in helperMeshes.indices -> {
-                    val helperMesh = helperMeshes[materialIndex] ?: return
-                    if (drawLines) {
-                        helperMesh.ensureDebugLines(this)
-                        helperMesh.debugLineBuffer?.draw(shader)
-                    } else {
-                        helperMesh.triBuffer?.draw(shader)
-                        helperMesh.lineBuffer?.draw(shader)
-                    }
-                }
-                materialIndex == 0 -> {
-                    if (drawLines) {
-                        ensureDebugLines()
-                        debugLineBuffer?.draw(shader)
-                    } else {
-                        (triBuffer ?: buffer)?.draw(shader)
-                        lineBuffer?.draw(shader)
-                    }
-                }
-            }
+            drawImpl(shader, materialIndex, drawLines)
         } else if ((positions?.size ?: 0) == 0) {
             StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
         } else {
@@ -545,32 +480,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         instanceData: Buffer, drawLines: Boolean
     ) {
         if (proceduralLength <= 0) {
-            GFX.check()
-            ensureBuffer()
-            GFX.check()
-            // respect the material index: only draw what belongs to the material
-            val helperMeshes = helperMeshes
-            if (helperMeshes != null) {
-                val helperMesh = helperMeshes.getOrNull(materialIndex)
-                if (helperMesh != null) {
-                    if (drawDebugLines) {
-                        helperMesh.ensureDebugLines(this)
-                        helperMesh.debugLineBuffer?.drawInstanced(shader, instanceData)
-                    } else {
-                        helperMesh.triBuffer?.drawInstanced(shader, instanceData)
-                        helperMesh.lineBuffer?.drawInstanced(shader, instanceData)
-                    }
-                }
-            } else if (materialIndex == 0) {
-                if (drawDebugLines) {
-                    ensureDebugLines()
-                    debugLineBuffer?.drawInstanced(shader, instanceData)
-                } else {
-                    (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
-                    lineBuffer?.drawInstanced(shader, instanceData)
-                }
-            }
-            GFX.check()
+            drawInstancedImpl(shader, materialIndex, instanceData)
         } else LOGGER.warn("Instanced rendering of procedural meshes is not supported!")
     }
 
@@ -583,66 +493,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun getBounds(transform: Matrix4f, onlyFaces: Boolean): AABBf {
         val vf = Vector3f()
         val aabb = AABBf()
-        getBounds()
         forEachPoint(onlyFaces) { x, y, z ->
             aabb.union(transform.transformProject(vf.set(x, y, z)))
         }
         return aabb
-    }
-
-    fun makeFlatShaded(calculateNormals: Boolean = true) {
-        val indices = indices
-        val positions = positions ?: return
-        val colors = color0
-        if (indices == null) {
-            if (calculateNormals) calculateNormals(false)
-        } else {
-            val newPositions = FloatArray(indices.size * 3)
-            val newColors = if (colors != null) IntArray(indices.size) else null
-            for (i in indices.indices) {
-                val i3 = i * 3
-                val j = indices[i]
-                val j3 = j * 3
-                newPositions[i3] = positions[j3]
-                newPositions[i3 + 1] = positions[j3 + 1]
-                newPositions[i3 + 2] = positions[j3 + 2]
-                if (colors != null) newColors!![i] = colors[j]
-            }
-            this.positions = newPositions
-            this.normals = normals.resize(newPositions.size)
-            this.color0 = newColors
-            this.indices = null
-            if (calculateNormals) calculateNormals(false)
-        }
-    }
-
-    fun makeLineMesh(keepOnlyUniqueLines: Boolean) {
-        val indices = if (keepOnlyUniqueLines) {
-            val lines = HashSet<IntPair>()
-            forEachLineIndex { a, b ->
-                if (a != b) {
-                    lines += IntPair(min(a, b), max(a, b))
-                }
-            }
-            var ctr = 0
-            val indices = indices.resize(lines.size * 2)
-            for (line in lines) {
-                indices[ctr++] = line.first
-                indices[ctr++] = line.second
-            }
-            indices
-        } else {
-            var ctr = 0
-            val indices = indices.resize(countLines() * 2)
-            forEachLineIndex { a, b ->
-                indices[ctr++] = a
-                indices[ctr++] = b
-            }
-            indices
-        }
-        this.indices = indices
-        drawMode = DrawMode.LINES
-        invalidateGeometry()
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {

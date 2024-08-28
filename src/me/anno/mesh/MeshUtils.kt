@@ -146,4 +146,19 @@ object MeshUtils {
             -(aabb.minZ + aabb.maxZ).toFloat() / 2
         )
     }
+
+    fun Mesh.countPrimitives(): Long {
+        val indices = indices
+        val positions = positions
+        val drawMode = drawMode
+        val baseLength = if (indices != null) {
+            numPrimitivesByType(indices.size * 3, drawMode)
+        } else if (positions != null) {
+            numPrimitivesByType(positions.size, drawMode)
+        } else 0
+        val size = proceduralLength
+        return if (size <= 0) baseLength.toLong()
+        else if (baseLength > 0) baseLength.toLong() * size
+        else numPrimitivesByType(size, drawMode).toLong()
+    }
 }

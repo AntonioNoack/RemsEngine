@@ -9,6 +9,8 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.maths.Maths
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertNotEquals
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -73,14 +75,14 @@ open class CubemapTexture(
     var needsMipmaps = false
 
     private fun ensurePointer() {
-        if (isDestroyed) throw RuntimeException("Texture was destroyed")
+        assertFalse(isDestroyed, "Texture was destroyed")
         if (pointer == 0) {
             GFX.check()
             pointer = Texture2D.createTexture()
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             GFX.check()
-            if (pointer == 0) throw RuntimeException("Could not allocate texture pointer")
+            assertNotEquals(0, pointer, "Could not allocate texture pointer")
             if (Build.isDebug) synchronized(DebugGPUStorage.texCubes) {
                 DebugGPUStorage.texCubes.add(this)
             }

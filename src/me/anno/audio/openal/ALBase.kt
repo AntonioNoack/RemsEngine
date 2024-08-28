@@ -1,6 +1,7 @@
 package me.anno.audio.openal
 
 import me.anno.Build.isDebug
+import me.anno.utils.assertions.assertTrue
 import org.lwjgl.openal.AL11.AL_INVALID_ENUM
 import org.lwjgl.openal.AL11.AL_INVALID_NAME
 import org.lwjgl.openal.AL11.AL_INVALID_OPERATION
@@ -21,9 +22,7 @@ object ALBase {
         // check thread safety
         // can be disabled for final build
         if (isDebug) {
-            if (!isALThread()) {
-                throw RuntimeException("Called from wrong thread! This is not the audio thread!")
-            }
+            assertTrue(isALThread(), "Called from wrong thread! This is not the audio thread!")
             val errorMessage = when (val error = alGetError()) {
                 AL_NO_ERROR -> return
                 AL_INVALID_NAME -> "ALException: Invalid Name"

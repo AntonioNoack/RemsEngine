@@ -9,6 +9,7 @@ import me.anno.maths.Maths.min
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
+import me.anno.utils.assertions.assertFalse
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import kotlin.reflect.KClass
@@ -34,9 +35,10 @@ abstract class Node() : PrefabSaveable() {
      * @param inputs [type, name, [type, name], [type, name], ...
      * @param outputs [type, name], [type, name], [type, name], ...
      * */
+    @Suppress("LeakingThis")
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
-        if (inputs.size.hasFlag(1)) throw IllegalArgumentException("Each input must be defined as type + name, got ${inputs.size} args")
-        if (outputs.size.hasFlag(1)) throw IllegalArgumentException("Each output must be defined as type + name, got ${outputs.size} args")
+        assertFalse(inputs.size.hasFlag(1), "Each input must be defined as type + name")
+        assertFalse(outputs.size.hasFlag(1), "Each output must be defined as type + name")
         this.inputs.ensureCapacity(inputs.size ushr 1)
         this.outputs.ensureCapacity(outputs.size ushr 1)
         for (it in 0 until (inputs.size ushr 1)) {

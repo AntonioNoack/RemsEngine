@@ -1,5 +1,6 @@
 package me.anno.utils.structures.lists
 
+import me.anno.utils.assertions.assertFalse
 import java.util.function.Predicate
 
 /**
@@ -37,27 +38,27 @@ class LimitedList<V>(val limit: Int = 16) : MutableCollection<V> {
     }
 
     fun sumOf(getPartialSum: (V?) -> Int): Int {
-        if (isFull) throw IllegalStateException("Cannot calculate sum if is full")
+        assertFalse(isFull, "Cannot calculate sum if is full")
         return values.sumOf(getPartialSum)
     }
 
     override fun remove(element: V): Boolean {
-        if (isFull) throw IllegalStateException("Cannot remove specific element when list is full")
+        assertFalse(isFull, "Cannot remove specific element when list is full")
         return values.remove(element)
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
-        if (isFull) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
+        assertFalse(isFull, "Cannot remove finite set from filled LimitedList")
         return values.removeAll(elements.toSet())
     }
 
     override fun removeIf(predicate: Predicate<in V>): Boolean {
-        if (isFull) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
+        assertFalse(isFull, "Cannot remove finite set from filled LimitedList")
         return values.removeIf(predicate)
     }
 
     override fun retainAll(elements: Collection<V>): Boolean {
-        if (isFull) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
+        assertFalse(isFull, "Cannot remove finite set from filled LimitedList")
         return values.retainAll(elements.toSet())
     }
 

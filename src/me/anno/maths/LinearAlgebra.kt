@@ -1,5 +1,6 @@
 package me.anno.maths
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Floats.f5s
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -19,9 +20,9 @@ object LinearAlgebra {
         a: DoubleArray, b: DoubleArray, c: DoubleArray,
         m: Int, n: Int, k: Int
     ) {
-        if (a.size != m * n) throw RuntimeException("a has incorrect size, expected $m * $n, got ${a.size}")
-        if (b.size != n * k) throw RuntimeException("b has incorrect size, expected $n * $k, got ${b.size}")
-        if (c.size != m * k) throw RuntimeException("c has incorrect size, expected $m * $k, got ${c.size}")
+        assertEquals(m * n, a.size, "a has incorrect size")
+        assertEquals(n * k, b.size, "b has incorrect size")
+        assertEquals(m * k, c.size, "c has incorrect size")
     }
 
     /**

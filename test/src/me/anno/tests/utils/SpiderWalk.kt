@@ -23,6 +23,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
+import me.anno.mesh.FindLines.makeLineMesh
 import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent

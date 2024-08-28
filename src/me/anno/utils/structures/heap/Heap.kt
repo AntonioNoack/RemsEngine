@@ -1,5 +1,6 @@
 package me.anno.utils.structures.heap
 
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.swap
 
 /**
@@ -68,9 +69,7 @@ object Heap {
     }
 
     fun <V> extract(arr: ArrayList<V>, i: Int, isMinHeap: Boolean, comparator: Comparator<V>): V {
-        if (i !in arr.indices) {
-            throw IndexOutOfBoundsException("Heap is empty")
-        }
+        assertTrue(i in arr.indices, "Heap is empty")
         return if (i + 1 < arr.size) {
             val popped = arr[i]
             arr[i] = arr.removeLast()

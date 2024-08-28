@@ -22,6 +22,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag

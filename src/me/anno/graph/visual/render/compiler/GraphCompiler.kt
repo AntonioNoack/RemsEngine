@@ -32,6 +32,7 @@ import me.anno.graph.visual.render.MovieNode
 import me.anno.graph.visual.render.Texture
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
@@ -234,8 +235,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
      * */
     fun buildCode(n: Node?, depth: Int): Boolean {
         n ?: return true
-        if (!recursionCheck.add(n)) {
-            throw IllegalStateException("Illegal loop for ${n.className}; Recursion isn't supported")
+        assertTrue(recursionCheck.add(n)) {
+            "Illegal loop for ${n.className}; Recursion isn't supported"
         }
         val answer = when (n) {
             is GLSLFlowNode -> n.buildCode(this, depth)

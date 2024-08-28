@@ -18,6 +18,7 @@ import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.convertARGB2RGBA
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.types.Booleans.toInt
@@ -215,16 +216,18 @@ open class Texture3D(
     }
 
     fun createMonochrome(data: ByteBuffer) {
-        if (width * height * depth != data.remaining()) throw RuntimeException("incorrect size!")
+        assertEquals(width * height * depth, data.remaining(), "incorrect size!")
         beforeUpload(width)
         glTexImage3D(target, 0, GL_R8, width, height, depth, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_R8, 1, false)
     }
 
     fun create(type: TargetType, data: ByteArray? = null) {
-        // might be incorrect for RGB!!
-        if (data != null && type.bytesPerPixel != 3 && width * height * depth * type.bytesPerPixel != data.size)
-            throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $depth * ${type.bytesPerPixel} bpp")
+        if (data != null) {
+            var bpp = type.bytesPerPixel
+            if (bpp == 3) bpp = 4 // todo check correctness
+            assertEquals(width * height * depth * bpp, data.size, "incorrect size")
+        }
         val byteBuffer = if (data != null) {
             val byteBuffer = bufferPool[data.size, false, false]
             byteBuffer.position(0)
@@ -242,7 +245,7 @@ open class Texture3D(
     }
 
     fun createRGBA(data: FloatArray) {
-        if (width * height * depth * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $depth * 4 bpp")
+        assertEquals(width * height * depth * 4, data.size, "expected 4 bpp")
         val byteBuffer = bufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
@@ -254,6 +257,7 @@ open class Texture3D(
 
     fun createRGBA(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer) {
         // rgba32f as internal format is extremely important... otherwise the value is cropped
+        assertEquals(width * height * depth * 4, floatBuffer.remaining(), "incorrect size!")
         beforeUpload(width * 16)
         glTexImage3D(target, 0, GL_RGBA32F, width, height, depth, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         bufferPool.returnBuffer(byteBuffer)
@@ -261,7 +265,7 @@ open class Texture3D(
     }
 
     fun createRGBA(data: ByteArray) {
-        if (width * height * depth * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $depth * 4 bpp")
+        assertEquals(width * height * depth * 4, data.size, "incorrect size!, expected 4 bpp")
         val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
@@ -273,7 +277,7 @@ open class Texture3D(
     }
 
     fun createRGBA(data: ByteBuffer) {
-        if (width * height * depth * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $width * $height * $depth * 4 bpp")
+        assertEquals(width * height * depth * 4, data.remaining(), "incorrect size!, expected 4 bpp")
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)

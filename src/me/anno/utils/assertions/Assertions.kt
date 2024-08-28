@@ -8,7 +8,7 @@ fun assertTrue(condition: Boolean, message: String = "condition failed") {
     if (!condition) throw IllegalStateException(message)
 }
 
-fun assertTrue(condition: Boolean, message: () -> String) {
+inline fun assertTrue(condition: Boolean, message: () -> String) {
     if (!condition) throw IllegalStateException(message())
 }
 
@@ -71,4 +71,13 @@ fun <V : Vector> assertEquals(expected: V?, actual: V?, distanceTolerance: Doubl
     assertTrue(diffSq < sq(distanceTolerance)) {
         "expected equal values, '$expected' != '$actual'"
     }
+}
+
+fun assertNull(v: Any?, message: String = "expected null, but got value") {
+    if (v != null) throw IllegalStateException("$message, $v")
+}
+
+fun <V> assertNotNull(v: V?, message: String = "expected not null"): V {
+    if (v == null) throw IllegalStateException(message)
+    return v
 }

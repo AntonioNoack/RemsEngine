@@ -17,7 +17,6 @@ class CSet() : Change() {
         this.path = path
         this.name = name
         this.value = value
-        if (name == "parent") throw IllegalStateException("Name cannot be parent, use CAdd for that")
     }
 
     var name: String = ""

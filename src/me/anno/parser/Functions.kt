@@ -62,10 +62,7 @@ object Functions {
             if (this[i - 0] != ')') continue
             val name = this[i - 2] as? String ?: continue
             val function =
-                functions0[name] ?: functions0[name.lowercase()] ?: throw onUnknownFunction(
-                    name,
-                    "x"
-                )
+                functions0[name] ?: functions0[name.lowercase()] ?: throw onUnknownFunction(name, "x")
             for (j in 0 until 2) removeAt(i - j)
             this[i - 2] = function()
             applyFunc0()
@@ -81,10 +78,7 @@ object Functions {
             val name = this[i - 3] as? String ?: continue
             val x = this[i - 1] as? Double ?: continue
             val function =
-                functions1[name] ?: functions1[name.lowercase()] ?: throw onUnknownFunction(
-                    name,
-                    "x"
-                )
+                functions1[name] ?: functions1[name.lowercase()] ?: throw onUnknownFunction(name, "x")
             for (j in 0 until 3) removeAt(i - j)
             this[i - 3] = function(x)
             applyFunc1()
@@ -102,10 +96,7 @@ object Functions {
             val x = this[i - 3] as? Double ?: continue
             val y = this[i - 1] as? Double ?: continue
             val function =
-                functions2[name] ?: functions2[name.lowercase()] ?: throw onUnknownFunction(
-                    name,
-                    "x,y"
-                )
+                functions2[name] ?: functions2[name.lowercase()] ?: throw onUnknownFunction(name, "x,y")
             for (j in 0 until 5) removeAt(i - j)
             this[i - 5] = function(x, y)
             applyFunc2()
@@ -125,10 +116,7 @@ object Functions {
             val y = this[i - 3] as? Double ?: continue
             val z = this[i - 1] as? Double ?: continue
             val function =
-                functions3[name] ?: functions3[name.lowercase()] ?: throw onUnknownFunction(
-                    name,
-                    "x,y,z"
-                )
+                functions3[name] ?: functions3[name.lowercase()] ?: throw onUnknownFunction(name, "x,y,z")
             for (j in 0 until 7) removeAt(i - j)
             this[i - 7] = function(x, y, z)
             applyFunc3()
@@ -150,10 +138,7 @@ object Functions {
             val z = this[i - 3] as? Double ?: continue
             val w = this[i - 1] as? Double ?: continue
             val function =
-                functions4[name] ?: functions4[name.lowercase()] ?: throw onUnknownFunction(
-                    name,
-                    "x,y,z,w"
-                )
+                functions4[name] ?: functions4[name.lowercase()] ?: throw onUnknownFunction(name, "x,y,z,w")
             for (j in 0 until 9) removeAt(i - j)
             this[i - 9] = function(x, y, z, w)
             applyFunc4()
@@ -183,10 +168,7 @@ object Functions {
             val d = this[i - 3] as? Double ?: continue
             val e = this[i - 1] as? Double ?: continue
             val function =
-                functions5[name] ?: functions5[name.lowercase()] ?: throw onUnknownFunction(
-                    name,
-                    "a,b,c,d,e"
-                )
+                functions5[name] ?: functions5[name.lowercase()] ?: throw onUnknownFunction(name, "a,b,c,d,e")
             for (j in 0 until 11) removeAt(i - j)
             this[i - 11] = function(a, b, c, d, e)
             applyFunc5()

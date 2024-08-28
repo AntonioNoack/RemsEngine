@@ -244,8 +244,7 @@ open class XMLReader {
         }
         while (true) {
             when (val char = input.read()) {
-                '<'.code -> return str.toString()
-                -1 -> throw EOFException()
+                '<'.code, -1 -> return str.toString()
                 else -> str.append(char.toChar())
             }
         }

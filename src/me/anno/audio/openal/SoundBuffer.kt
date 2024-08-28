@@ -3,6 +3,8 @@ package me.anno.audio.openal
 import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.audio.streams.AudioStream.Companion.bufferPool
 import me.anno.cache.ICacheData
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertNotNull
 import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
 import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
 import org.lwjgl.openal.AL11.alBufferData
@@ -31,11 +33,11 @@ class SoundBuffer : ICacheData {
             pointer = alGenBuffers()
             session = openALSession
         }
-        if (pointer == 0) throw OutOfMemoryError("Failed to create OpenAL buffer")
+        assertNotEquals(0, pointer, "Failed to create OpenAL buffer")
     }
 
     fun ensureData() {
-        val data = data ?: throw IllegalStateException("Missing audio data")
+        val data = assertNotNull(data, "Missing audio data")
         ensurePointer()
         ALBase.check()
         alBufferData(pointer, format, data, sampleRate)

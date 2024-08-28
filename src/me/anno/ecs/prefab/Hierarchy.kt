@@ -4,10 +4,11 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.utils.Logging.hash32
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
@@ -62,7 +63,7 @@ object Hierarchy {
 
         val className = when (srcPath) {
             Path.ROOT_PATH -> srcPrefab.clazzName
-            else -> findAdd(srcPrefab, srcPath)?.clazzName ?: throw IllegalStateException("Instance was not found")
+            else -> assertNotNull(findAdd(srcPrefab, srcPath)?.clazzName, "Instance was not found")
         }
 
         val dstPrefab = Prefab(className)
