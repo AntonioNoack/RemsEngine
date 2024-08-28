@@ -40,7 +40,7 @@ fun main() {
     floor.add(Rigidbody())
 
     val scene = Entity("Scene")
-    Systems.registerSystem("bullet", BulletPhysics())
+    Systems.registerSystem(BulletPhysics())
     scene.add(monkey)
     scene.add(floor)
 

@@ -7,6 +7,7 @@ import me.anno.language.spellcheck.Spellchecking
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
@@ -131,9 +132,9 @@ fun checkSubWords(total: String) {
     if (total.length == minLength) checkWord(total)
     else if (total.length > minLength) {
         for (startIndex in 0 until total.length - minLength) {
-            for (endIndex in startIndex + minLength .. total.length) {
+            for (endIndex in startIndex + minLength..total.length) {
                 val word = total.substring(startIndex, endIndex)
-                if (word.length < minLength) throw RuntimeException()
+                assertTrue(word.length >= minLength)
                 checkWord(word)
                 checkWord(word.reversed())
             }

@@ -3878,13 +3878,12 @@ open class Matrix4d {
                 dst.z = m22
                 dst.w = m23
             }
-            3 -> {
+            else -> {
                 dst.x = m30
                 dst.y = m31
                 dst.z = m32
                 dst.w = m33
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dst
     }
@@ -3906,12 +3905,11 @@ open class Matrix4d {
                 dst.y = m21
                 dst.z = m22
             }
-            3 -> {
+            else -> {
                 dst.x = m30
                 dst.y = m31
                 dst.z = m32
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dst
     }
@@ -3921,8 +3919,7 @@ open class Matrix4d {
             0 -> _m00(src.x)._m01(src.y)._m02(src.z)._m03(src.w)._properties(0)
             1 -> _m10(src.x)._m11(src.y)._m12(src.z)._m13(src.w)._properties(0)
             2 -> _m20(src.x)._m21(src.y)._m22(src.z)._m23(src.w)._properties(0)
-            3 -> _m30(src.x)._m31(src.y)._m32(src.z)._m33(src.w)._properties(0)
-            else -> throw IndexOutOfBoundsException()
+            else -> _m30(src.x)._m31(src.y)._m32(src.z)._m33(src.w)._properties(0)
         }
     }
 
@@ -6078,8 +6075,7 @@ open class Matrix4d {
             2 -> dst.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31).normalize3()
             3 -> dst.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31).normalize3()
             4 -> dst.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32).normalize3()
-            5 -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
-            else -> throw IllegalArgumentException("dst")
+            else -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
         }
         return dst
     }
@@ -6196,7 +6192,7 @@ open class Matrix4d {
                 n3z = m23 - m22
                 d3 = m33 - m32
             }
-            7 -> {
+            else -> {
                 n1x = m03 - m00
                 n1y = m13 - m10
                 n1z = m23 - m20
@@ -6210,7 +6206,6 @@ open class Matrix4d {
                 n3z = m23 - m22
                 d3 = m33 - m32
             }
-            else -> throw IllegalArgumentException("corner")
         }
         val c23x = n2y * n3z - n2z * n3y
         val c23y = n2z * n3x - n2x * n3z

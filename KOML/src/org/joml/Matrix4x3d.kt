@@ -3058,12 +3058,11 @@ open class Matrix4x3d {
                 dst.y = m21
                 dst.z = m22
             }
-            3 -> {
+            else -> {
                 dst.x = m30
                 dst.y = m31
                 dst.z = m32
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dst
     }
@@ -3085,12 +3084,11 @@ open class Matrix4x3d {
                 m21 = src.y
                 m22 = src.z
             }
-            3 -> {
+            else -> {
                 m30 = src.x
                 m31 = src.y
                 m32 = src.z
             }
-            else -> throw IndexOutOfBoundsException()
         }
         flags = 0
         return this
@@ -4089,8 +4087,7 @@ open class Matrix4x3d {
             2 -> dst.set(m01, m11, m21, 1.0 + m31).normalize()
             3 -> dst.set(-m01, -m11, -m21, 1.0 - m31).normalize()
             4 -> dst.set(m02, m12, m22, 1.0 + m32).normalize()
-            5 -> dst.set(-m02, -m12, -m22, 1.0 - m32).normalize()
-            else -> throw IllegalArgumentException("which")
+            else -> dst.set(-m02, -m12, -m22, 1.0 - m32).normalize()
         }
         return dst
     }

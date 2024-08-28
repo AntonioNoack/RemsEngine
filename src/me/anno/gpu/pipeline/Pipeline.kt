@@ -16,10 +16,10 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderState
@@ -40,7 +40,6 @@ import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.Recursion
@@ -253,6 +252,12 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         val clickId = lastClickId
         if (root is Renderable) {
             root.fill(this, sampleEntity.transform, clickId)
+            val systems = EngineBase.instance?.systems
+            if (root == systems?.world) {
+                systems.forAllSystems(Renderable::class) {
+                    it.fill(this, sampleEntity.transform, clickId)
+                }
+            }
         } else {
             LOGGER.warn(
                 "Don't know how to render ${root.className}, " +
@@ -343,10 +348,10 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         return clickId
     }
 
-    fun traverse(world: PrefabSaveable, run: (Entity) -> Unit) {
+    fun traverse(world: PrefabSaveable, callback: (Entity) -> Unit) {
         if (world is Entity) Recursion.processRecursive(world) { entity, remaining ->
             if (entity !== ignoredEntity && entity.isEnabled && frustum.isVisible(entity.getBounds())) {
-                run(world)
+                callback(entity)
                 remaining.addAll(entity.children)
             }
         }
@@ -382,41 +387,5 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = SimpleMesh.sphereMesh
-
-        fun getMaterial(
-            materialOverrides: List<FileReference>?,
-            materials: List<FileReference>,
-            index: Int
-        ): Material {
-            val ref = getMaterialRef(materialOverrides, materials, index)
-            return MaterialCache[ref, defaultMaterial]
-        }
-
-        fun getMaterial(
-            materialOverride: Material?,
-            materialOverrides: List<FileReference>?,
-            materials: List<FileReference>,
-            index: Int
-        ): Material {
-            val mat1 = getMaterial(materialOverrides, materials, index)
-            return getMaterial(materialOverride, mat1)
-        }
-
-        fun getMaterial(
-            materialOverride: Material?,
-            material: Material,
-        ): Material {
-            return if (materialOverride != null && material.shader == null) materialOverride
-            else material
-        }
-
-        fun getMaterialRef(
-            materialOverrides: List<FileReference>?,
-            materials: List<FileReference>,
-            index: Int
-        ): FileReference {
-            val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
-            return m0 ?: materials.getOrNull(index)?.nullIfUndefined() ?: InvalidRef
-        }
     }
 }

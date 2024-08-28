@@ -3,7 +3,7 @@ package me.anno.tests.mesh.spline
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.spline.PathProfile
+import me.anno.ecs.components.mesh.spline.SplineProfile
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -11,7 +11,7 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import kotlin.math.PI
 
-val pathProfile = PathProfile(
+val splineProfile = SplineProfile(
     listOf(
         Vector2f(-2.3f, -3.9f),
         Vector2f(-2.3f, -1.5f),
@@ -22,7 +22,7 @@ val pathProfile = PathProfile(
 
 fun create(v: Vector3d, r: Double): SplineControlPoint {
     val cp = SplineControlPoint()
-    cp.profile = pathProfile
+    cp.profile = splineProfile
     Entity(cp)
         .setPosition(v.x, v.y, v.z)
         .setRotation(0.0, r, 0.0)
@@ -31,7 +31,7 @@ fun create(v: Vector3d, r: Double): SplineControlPoint {
 
 fun testMesh(pts: List<SplineControlPoint>, strictlyUp: Boolean): MeshComponent {
     val mesh = SplineMesh.generateSplineMesh(
-        pts, 25.0, Mesh(), pathProfile,
+        pts, 25.0, Mesh(), splineProfile,
         false, true, true, strictlyUp
     )
     return MeshComponent(mesh)

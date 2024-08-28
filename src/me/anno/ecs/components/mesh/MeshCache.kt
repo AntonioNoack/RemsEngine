@@ -4,15 +4,16 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.material.Materials.getMaterialRef
 import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.change.Path
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
@@ -61,8 +62,8 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class, "Mesh") {
     ) {
         if (mesh is Mesh && mesh.proceduralLength <= 0) {
             val meshMaterials = mesh.materials
-            val materials = (0 until mesh.numMaterials).map {
-                Pipeline.getMaterialRef(compMaterials, meshMaterials, it)
+            val materials = createList(mesh.numMaterials) {
+                getMaterialRef(compMaterials, meshMaterials, it)
             }
             meshes.add(Triple(mesh, transform, materials))
         } // else not supported

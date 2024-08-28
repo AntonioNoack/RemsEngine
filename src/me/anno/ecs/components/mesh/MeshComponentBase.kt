@@ -177,9 +177,4 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         dst.receiveShadows = receiveShadows
         dst.isInstanced = isInstanced
     }
-
-    override fun destroy() {
-        super.destroy()
-        manager?.unregister(this)
-    }
 }

@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
-import me.anno.ecs.components.mesh.spline.PathProfile
+import me.anno.ecs.components.mesh.spline.SplineProfile
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
@@ -73,7 +73,7 @@ class ProfileBuilder(mesh: Mesh) {
         }
     }
 
-    fun build(): PathProfile? {
+    fun build(): SplineProfile? {
         val starts = connectivity.filter { it.value.size == 1 }
         val start = starts.keys.minByOrNull { it.x } ?: return null
         val pointList = ArrayList<Vector3f>()
@@ -85,7 +85,7 @@ class ProfileBuilder(mesh: Mesh) {
             val nextPoint = nextPoints.firstOrNull2 { it != predecessor } ?: break
             pointList.add(nextPoint)
         }
-        val dst = PathProfile()
+        val dst = SplineProfile()
         dst.positions = pointList.map { Vector2f(it.x, it.y) }
         if (uvMap.isNotEmpty()) {
             val uvs1 = FloatArrayList(pointList.size)
@@ -110,7 +110,7 @@ class ProfileBuilder(mesh: Mesh) {
  *    only keep points with z ~ 0, extract x,y
  *    only track lines, where all points are on the line
  * */
-fun meshToPathProfile(mesh: Mesh): List<Pair<PathProfile, FileReference>> {
+fun meshToPathProfile(mesh: Mesh): List<Pair<SplineProfile, FileReference>> {
     mesh.updateHelperMeshes()
     val helperMeshes = mesh.helperMeshes
     if (helperMeshes != null) {

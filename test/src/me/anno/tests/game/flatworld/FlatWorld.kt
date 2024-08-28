@@ -124,7 +124,7 @@ class FlatWorld {
             }
             val mesh = intersection.mesh!!
             IntersectionMeshBuilder.createIntersection(intersection, this, mesh)
-            intersection.entity!!.invalidateOwnAABB() // since we changed the mesh
+            intersection.invalidateAABB() // since we changed the mesh
         }
     }
 }

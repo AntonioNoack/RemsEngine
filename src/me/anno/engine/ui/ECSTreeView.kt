@@ -21,6 +21,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.systems.Systems
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -47,6 +48,7 @@ import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
 import me.anno.utils.structures.lists.Lists.wrap
+import me.anno.utils.structures.lists.Lists.wrapWith
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isBlank2
@@ -64,7 +66,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         val instance = EngineBase.instance
         val systems = instance?.systems
         val world = EditorState.prefab?.getSampleInstance()
-        return (systems?.getChildListByType('s') ?: emptyList()) + world.wrap()
+        return systems.wrapWith(world)
     }
 
     override fun isValidElement(element: Any?): Boolean {
@@ -439,6 +441,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         return when {
             isCollapsed(element) && getChildren(element).isNotEmpty() -> "📁"
             element is PrefabSaveable && element.root.prefab?.isWritable == false -> "\uD83D\uDD12" // lock
+            element is Systems -> "⚙" // gear
             element is System -> "\uD83D\uDEE0\uFE0F" // tools
             element is Component -> "\uD83E\uDDE9" // puzzle piece
             else -> "⚪"

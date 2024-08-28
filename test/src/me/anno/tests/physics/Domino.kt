@@ -7,13 +7,13 @@ import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
+import me.anno.engine.EngineBase.Companion.showRedraws
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
-import me.anno.engine.EngineBase.Companion.showRedraws
-import me.anno.engine.OfficialExtensions
 import me.anno.utils.OS.music
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.maps.KeyPairMap
@@ -61,7 +61,7 @@ fun main() {
             }
         }
 
-        Systems.registerSystem("bullet", object : BulletPhysics() {
+        class CollisionListenerPhysics : BulletPhysics() {
             // make domino sound on every contact :3
             val contacts = KeyPairMap<Any, Any, Unit>()
             override fun step(dt: Long, printSlack: Boolean) {
@@ -86,7 +86,9 @@ fun main() {
                     }
                 */
             }
-        }.apply {
+        }
+
+        Systems.registerSystem(CollisionListenerPhysics().apply {
             // updateInEditMode = true
             fixedStep = 1.0 / 10e3
             maxSubSteps = 1000

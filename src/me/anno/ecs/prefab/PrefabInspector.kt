@@ -4,6 +4,7 @@ import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.PrefabChanges
+import me.anno.ecs.systems.Systems
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine.Companion.collectSelected
@@ -195,12 +196,14 @@ class PrefabInspector(var reference: FileReference) {
         list += warningPanel
 
         showMissingClasses(list, instances, style, warningPanel)
-        showTextProperty("Name", "name",
-            list, instances, style, isWritable,
-            { it.name }) { it, v -> it.name = v }
-        showTextProperty("Description", "description",
-            list, instances, style, isWritable,
-            { it.description }) { it, v -> it.description = v }
+        if (instances.first() !is Systems) {
+            showTextProperty("Name", "name",
+                list, instances, style, isWritable,
+                { it.name }) { it, v -> it.name = v }
+            showTextProperty("Description", "description",
+                list, instances, style, isWritable,
+                { it.description }) { it, v -> it.description = v }
+        }
 
         val inputListener = instances.firstInstanceOrNull(InputListener::class)
         if (inputListener != null) {

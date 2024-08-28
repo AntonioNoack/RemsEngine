@@ -85,7 +85,7 @@ private fun test2() {
     val physics = Box2dPhysics()
     physics.velocityIterations = 1
     physics.positionIterations = 1
-    Systems.registerSystem("box2d", physics)
+    Systems.registerSystem(physics)
     val ground = Entity()
     val groundRB = Rigidbody2d()
     ground.add(groundRB)
@@ -123,7 +123,7 @@ fun test3() {
     physics.gravity.y = 90.0
     physics.allowedSpace.all()
     physics.updateGravity()
-    Systems.registerSystem("box2d", physics)
+    Systems.registerSystem(physics)
 
     val width = 1000
     val height = 1000

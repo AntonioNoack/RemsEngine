@@ -52,9 +52,9 @@ fun main() {
             create(child, mi - 1)
         }
     }
-    create(scene, 8)
+    create(scene, 6)
 
-    Systems.registerSystem("smm", StaticMeshManager())
+    Systems.registerSystem(StaticMeshManager())
     SceneView.testSceneWithUI("StaticMeshManager", scene) {
         EngineBase.enableVSync = false
     }

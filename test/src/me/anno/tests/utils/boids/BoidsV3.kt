@@ -129,7 +129,7 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
         }
         accPool.sub(accPool.index)
 
-        entity?.invalidateOwnAABB()
+        invalidateAABB()
     }
 
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {

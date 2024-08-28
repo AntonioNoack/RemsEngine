@@ -10,7 +10,7 @@ fun main() {
 
     val world = Entity()
     val physics = BulletPhysics()
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
 
     world.create()
 

@@ -291,7 +291,7 @@ fun main() {
     scene.add(sky)
 
     val physics = BulletPhysics()
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
     physics.gravity.set(0.0)
 
     val sun = DirectionalLight()

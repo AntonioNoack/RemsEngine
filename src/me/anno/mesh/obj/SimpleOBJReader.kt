@@ -1,37 +1,24 @@
 package me.anno.mesh.obj
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.io.files.FileReference
-import me.anno.mesh.Triangulation
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3d
 import java.io.EOFException
 import java.io.InputStream
 
-class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileReader(input) {
-
-    val mesh = Mesh()
+/**
+ * (on-purpose) very limited .obj-file reader: shall be quick to load
+ * */
+class SimpleOBJReader(input: InputStream) : TextFileReader(input) {
 
     private val positions = FloatArrayList(256 * 3)
-    private val facePositions = FloatArrayList(256 * 3)
-
-    private var numPositions = 0
-
-    private val points = IntArrayList(256)
-
-    private fun putPoint(index: Int) {
-        facePositions.addAll(positions, points[index], 3)
-    }
-
-    private fun putLinePoint(index: Int) {
-        facePositions.addAll(positions, index * 3, 3)
-    }
+    private val indices = IntArrayList(256)
+    private val points = IntArrayList(5)
 
     private fun readCoordinate() {
         skipSpaces()
-        positions += readFloat()
+        positions.add(readFloat())
     }
 
     private fun readPosition() {
@@ -39,93 +26,30 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
         readCoordinate()
         readCoordinate()
         skipLine()
-        numPositions++
-    }
-
-    private fun readLine() {
-        points.clear()
-        skipSpaces()
-        val numVertices = positions.size / 3
-        val idx0 = readIndex(numVertices)
-        skipSpaces()
-        val idx1 = readIndex(numVertices)
-        val next0 = nextChar()
-        if (next0 == '\n') {
-            putLinePoint(idx0)
-            putLinePoint(idx1)
-            putLinePoint(idx1) // degenerate triangle
-        } else {
-            putBack(next0)
-            points.add(idx0)
-            points.add(idx1)
-            pts@ while (true) {
-                when (val next = next()) {
-                    ' '.code, '\t'.code -> {
-                    }
-                    '\n'.code -> break@pts
-                    else -> {
-                        putBack(next)
-                        points += readIndex(numVertices)
-                    }
-                }
-            }
-            var previous = points[0]
-            for (i in 1 until points.size) {
-                putLinePoint(previous)
-                val next = points[i]
-                putLinePoint(next)
-                putLinePoint(next) // degenerate triangle
-                previous = next
-            }
-        }
     }
 
     private fun readFace() {
-
         val points = points
-        points.clear()
-        var pointCount = 0
-        val numPositions = numPositions
-        findPoints@ while (true) {
+        while (points.size < 5) { // more can't be handled anyway
             skipSpaces()
             val next = next()
-            if (next in 48..58 || next == MINUS) {
+            if (next in 48..58) {
                 putBack(next)
-                val vertexIndex = readIndex(numPositions)
-                if (putBack == SLASH) {
-                    putBack = -1
-                    readInt()
-                    if (putBack == SLASH) {
-                        putBack = -1
-                        readInt()
-                    }
-                }
-                points.add(vertexIndex * 3)
-                pointCount++
-                if (pointCount and 63 == 0)
-                    LOGGER.warn("Large polygon in $file, $pointCount points, '$next'")
-            } else break@findPoints
+                points.add(readInt() - 1)
+            } else break
         }
-
-        val pattern = patterns.getOrNull(pointCount - 1)
+        val pattern = patterns.getOrNull(points.size - 1)
         if (pattern != null) {
             for (i in pattern) {
-                putPoint(i)
+                indices.add(points[i])
             }
-        } else if (pointCount > 0) {
-            // triangulate the points correctly
-            // currently is the most expensive step, because of so many allocations:
-            // points, the array, the return list, ...
-            val points2 = (0 until points.size).map {
-                Vector3d(positions.values, points[it])
-            }
-            val triangles = Triangulation.ringToTrianglesVec3d(points2)
-            facePositions.ensureExtra(triangles.size * 3)
-            for (i in triangles.indices) {
-                facePositions.add(triangles[i])
-            }
+        } else {
+            LOGGER.warn("Skipped face with {} points", points.size)
         }
+        points.clear()
     }
+
+    val mesh = Mesh()
 
     init {
         try {
@@ -133,32 +57,27 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
                 // read the line
                 skipSpaces()
                 when (nextChar()) {
-                    'v' -> {
-                        when (nextChar()) {
-                            ' ', '\t' -> readPosition()
-                            else -> skipLine()
-                        }
-                    }
+                    'v' -> readPosition()
                     'f' -> readFace()
-                    'l' -> readLine() // hasn't been tested yet
                     else -> skipLine()
                 }
             }
         } catch (_: EOFException) {
         }
-        mesh.positions = facePositions.toFloatArray()
-        reader.close()
+        mesh.positions = positions.toFloatArray()
+        mesh.indices = indices.toIntArray()
     }
 
     companion object {
+        @JvmStatic
+        private val LOGGER = LogManager.getLogger(SimpleOBJReader::class)
+
+        @JvmStatic
         private val patterns = arrayOf(
             intArrayOf(0, 0, 0),
             intArrayOf(0, 1, 1),
             intArrayOf(0, 1, 2),
             intArrayOf(0, 1, 2, 2, 3, 0)
         )
-
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(SimpleOBJReader::class)
     }
 }

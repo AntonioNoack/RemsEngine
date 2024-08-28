@@ -1,7 +1,7 @@
 package me.anno.tests.game.flatworld.streets
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.spline.PathProfile
+import me.anno.ecs.components.mesh.spline.SplineProfile
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.maths.Maths.max
 import me.anno.utils.Color.black
@@ -12,7 +12,7 @@ import org.joml.Vector3d
 
 object StreetMeshBuilder {
 
-    val streetProfile = PathProfile(
+    val streetProfile = SplineProfile(
         listOf(
             Vector2f(-7f, -0.49f),
             Vector2f(-4.81f, +0.3f),

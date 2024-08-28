@@ -226,7 +226,7 @@ fun main() {
     light.add(light1)
     sky.applyOntoSun(light, light1, 20f)
 
-    Systems.registerSystem("smm", StaticMeshManager()) // performance hack
+    Systems.registerSystem(StaticMeshManager()) // performance hack
 
     clock.stop("Scene Basics")
 

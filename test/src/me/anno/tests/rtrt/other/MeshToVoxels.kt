@@ -3,6 +3,7 @@ package me.anno.tests.rtrt.other
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
@@ -106,7 +107,7 @@ fun meshToSeparatedVoxels(
     fun drawMesh() {
         for (i in 0 until mesh.numMaterials) {
             // find shader
-            val material = Pipeline.getMaterial(null, mesh.materials, i)
+            val material = Materials.getMaterial(null, mesh.materials, i)
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
             // bind & prepare shader

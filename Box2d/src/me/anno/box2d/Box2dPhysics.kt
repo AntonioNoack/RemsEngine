@@ -97,7 +97,10 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                         shape.setAsBox(halfExtends.x, halfExtends.y)
                         shape
                     }
-                    else -> throw NotImplementedError()
+                    else -> {
+                        LOGGER.warn("Unknown collider {}", collider.className)
+                        null
+                    }
                 }
                 when (shape) {
                     is CircleShape -> {
@@ -135,9 +138,10 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                             )
                         }
                     }
+                    null -> {}
                     else -> LOGGER.warn("todo implement shape ${shape::class}")
                 }
-                if (collider.hasPhysics) {
+                if (shape != null && collider.hasPhysics) {
                     shape.computeMass(massData, collider.density)
                     mass += massData.mass
                 }
@@ -165,7 +169,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
             for (index in colliders.indices) {
                 val collider = colliders[index]
-                val shape = shapes[index]
+                val shape = shapes[index] ?: continue
                 // add shape
                 val fixDef = FixtureDef()
                 fixDef.shape = shape

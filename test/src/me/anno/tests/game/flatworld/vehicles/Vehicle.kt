@@ -58,8 +58,7 @@ class Vehicle(
                 .identity()
                 .rotateY(angle)
             transform.teleportUpdate()
-            entity?.invalidateOwnAABB()
-            entity?.parentEntity?.invalidateOwnAABB() // todo why is that needed???
+            invalidateAABB()
         }
         if (currentT >= 1.0) {
             val next = route.getOrNull(++currentSegment)

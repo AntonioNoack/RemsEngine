@@ -19,10 +19,10 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Filtering
 import me.anno.io.Streams.writeLE32
 import me.anno.io.Streams.writeString
@@ -667,7 +667,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
                 } else null
 
                 fun getMaterial(i: Int): Material {
-                    return Pipeline.getMaterial(materialOverrides, mesh.materials, i)
+                    return Materials.getMaterial(materialOverrides, mesh.materials, i)
                 }
                 if (helpers != null) {
                     for ((i, helper) in helpers.withIndex()) {

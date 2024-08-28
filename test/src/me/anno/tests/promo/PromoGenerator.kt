@@ -1,6 +1,7 @@
 package me.anno.tests.promo
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
@@ -10,12 +11,14 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.sdf.shapes.SDFHyperBBox
 import me.anno.tests.LOGGER
 import me.anno.tests.shader.Snow.snowRenderMode
@@ -25,6 +28,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Floats.toRadians
 
 // todo: create a list of all visual effects, including images, so we can show them off a bit :)
@@ -49,8 +53,6 @@ val dst = desktop.getChild("Promo")
 // todo implement VR for the editor start menu???
 
 fun main() {
-    // todo select helmet for post-outline
-    // todo why is the animation no longer playing?
     OfficialExtensions.initForTests()
     // ensure they're registered
     snowRenderMode.renderer
@@ -76,8 +78,10 @@ fun main() {
             })
     )
     EditorState.prefabSource = scene.ref
+    EditorState.select(scene)
     dst.tryMkdirs()
-    sceneView.renderView.radius = 3.0
+
+    sceneView.renderView.radius = 1.5
     sceneView.editControls.rotationTarget.set(-17.9, 58.3, 0.0)
 
     val renderModes = ArrayList(RenderMode.values.filter {
@@ -87,9 +91,11 @@ fun main() {
     fun renderNextImage() {
         val mode = renderModes.removeLastOrNull()
         if (mode != null) {
+            RenderState.viewIndex = 2 // use different slot to use different FBs
             val renderView = sceneView.renderView
             renderView.setPosSize(0, 0, width, height)
             renderScene(mode)
+            RenderState.viewIndex = 0
             addEvent(1, ::renderNextImage)
         } else Engine.requestShutdown()
     }
@@ -103,12 +109,21 @@ fun main() {
 fun renderScene(renderMode: RenderMode) {
     LOGGER.info("Rendering ${renderMode.nameDesc.englishName}")
     FBStack.reset()
-    useFrame(framebuffer) {
-        framebuffer.clearColor(UIColors.midOrange)
-        val renderView = sceneView.renderView
-        renderView.renderMode = renderMode
-        renderView.draw(0, 0, width, height)
+
+    // todo why is only one FrameGen method working???
+    // todo why is deferred MSAA not showing up???
+    sceneView.renderView.renderMode = renderMode
+    val times = if (sceneView.renderView.usesFrameGen() ||
+        renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true
+    ) 50 else 1
+    for (i in 0 until times) {
+        useFrame(framebuffer) {
+            framebuffer.clearColor(UIColors.midOrange)
+            sceneView.renderView.draw(0, 0, width, height)
+        }
+        Time.updateTime(1.0 / 30.0, Time.nanoTime)
     }
+
     LOGGER.info("Finished rendering ${renderMode.nameDesc.englishName}")
     framebuffer.getTexture0()
         .createImage(flipY = true, withAlpha = false)

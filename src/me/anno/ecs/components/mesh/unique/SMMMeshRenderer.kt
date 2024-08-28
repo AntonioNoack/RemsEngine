@@ -17,7 +17,6 @@ import me.anno.utils.Color.r
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import java.nio.ByteBuffer
-import kotlin.math.roundToInt
 
 class SMMMeshRenderer(material: Material) :
     UniqueMeshRenderer<Mesh, SMMKey>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {

@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -598,7 +599,7 @@ fun computeRasterizer() {
             instanceData: Buffer?, target: IFramebuffer,
             numPrimitives: Int,
         ) {
-            val material = Pipeline.getMaterial(null, mesh.materials, materialIndex)
+            val material = Materials.getMaterial(null, mesh.materials, materialIndex)
             material.bind(shader)
             initShader(shader, false)
             bindRandomness(shader)

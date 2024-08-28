@@ -22,7 +22,7 @@ fun main() {
     ECSRegistry.init()
     val scene = Entity("Scene")
     val physics = BulletPhysics()
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
     physics.updateInEditMode = true
 
     val box0 = Entity("Door", scene)

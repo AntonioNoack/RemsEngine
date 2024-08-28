@@ -22,7 +22,7 @@ fun main() {
     ECSRegistry.init()
 
     val scene = Entity("Scene")
-    Systems.registerSystem("bullet", BulletPhysics().apply {
+    Systems.registerSystem(BulletPhysics().apply {
         updateInEditMode = true
     })
 

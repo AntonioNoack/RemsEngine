@@ -353,7 +353,6 @@ open class Material : PrefabSaveable(), Renderable {
 
         // what is a good timeout???
         var timeout = 30000L
-
         var lodBias = 0f
 
         val defaultMaterial = Material()

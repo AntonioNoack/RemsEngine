@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.OnBeforeDraw
 import me.anno.engine.ui.render.RenderState
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
@@ -14,7 +14,7 @@ import org.joml.Vector3d
 import kotlin.math.abs
 
 @Docs("rotates and scales the entity parallel to the camera; only works well with a single local player")
-open class LookAtComponent : Component(), OnUpdate {
+open class LookAtComponent : Component(), OnBeforeDraw {
 
     @Docs("minimum scale; set this to maximum scale to disable scaling in screen space")
     var minSize = 0.0
@@ -39,8 +39,9 @@ open class LookAtComponent : Component(), OnUpdate {
         return true
     }
 
-    override fun onUpdate() {
+    override fun onBeforeDraw() {
         val transform = transform ?: return
+        transform.validate()
 
         dir.set(transform.globalPosition).sub(RenderState.cameraPosition)
 

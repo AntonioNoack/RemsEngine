@@ -83,7 +83,7 @@ fun main() {
     disableRenderDoc()
 
     val scene = Entity()
-    Systems.registerSystem("bullet", BulletPhysics())
+    Systems.registerSystem(BulletPhysics())
     scene.add(Skybox())
     val sun = DirectionalLight()
     sun.color.set(10f)

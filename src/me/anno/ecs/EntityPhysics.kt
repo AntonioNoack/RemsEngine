@@ -38,11 +38,7 @@ object EntityPhysics {
     }
 
     inline fun forAllPhysics(crossinline callback: (Physics<*, *>) -> Unit) {
-        EngineBase.instance?.systems?.forAllSystems {
-            if (it is Physics<*, *>) {
-                callback(it)
-            }
-        }
+        EngineBase.instance?.systems?.forAllSystems(Physics::class) { callback(it) }
     }
 
     fun Entity.hasPhysicsInfluence(): Boolean {

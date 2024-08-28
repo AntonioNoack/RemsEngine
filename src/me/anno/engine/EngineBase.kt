@@ -75,7 +75,7 @@ abstract class EngineBase(
             versionSuffix
         )
 
-    val systems = Systems()
+    val systems get() = Systems
 
     open fun loadConfig() {}
 

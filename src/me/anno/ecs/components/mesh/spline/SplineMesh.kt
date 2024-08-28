@@ -34,7 +34,7 @@ import kotlin.math.sin
  * */
 class SplineMesh : ProceduralMesh(), OnUpdate {
 
-    var profile: PathProfile = TestProfiles.cubeProfile
+    var profile: SplineProfile = TestProfiles.cubeProfile
         set(value) {
             if (field != value) {
                 field = value
@@ -192,7 +192,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
         fun generateLinearMesh(
             p0: SplineControlPoint, p1: SplineControlPoint, mesh: Mesh,
-            profile: PathProfile, isClosed: Boolean, closedStart: Boolean, closedEnd: Boolean, isStrictlyUp: Boolean
+            profile: SplineProfile, isClosed: Boolean, closedStart: Boolean, closedEnd: Boolean, isStrictlyUp: Boolean
         ) = generateSplineMesh(
             mesh, profile, isClosed, closedStart, closedEnd, isStrictlyUp,
             listOf(
@@ -229,7 +229,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
         fun generateSplineMesh(
             points: List<SplineControlPoint>,
             perRadiant: Double, mesh: Mesh,
-            profile: PathProfile, isClosed: Boolean,
+            profile: SplineProfile, isClosed: Boolean,
             closedStart0: Boolean, closedEnd0: Boolean,
             isStrictlyUp: Boolean
         ): Mesh {
@@ -238,7 +238,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
         }
 
         private fun addStartFace(
-            p0a: Vector3d, p0b: Vector3d, nx: Float, profile: PathProfile, profileFacade: List<Vector2f>,
+            p0a: Vector3d, p0b: Vector3d, nx: Float, profile: SplineProfile, profileFacade: List<Vector2f>,
             dirY0: Vector3f, pos: FloatArray, nor: FloatArray, col: IntArray, k0: Int
         ): Int {
             // add profile
@@ -272,7 +272,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
         fun generateSplineMesh(
             mesh: Mesh,
-            profile: PathProfile,
+            profile: SplineProfile,
             isClosed: Boolean,
             closedStart0: Boolean,
             closedEnd0: Boolean,

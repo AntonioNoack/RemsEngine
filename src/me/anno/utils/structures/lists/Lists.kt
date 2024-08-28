@@ -584,6 +584,13 @@ object Lists {
     }
 
     @JvmStatic
+    fun <V : Any> V?.wrapWith(other: V?): List<V> {
+        return if (this == null) other.wrap()
+        else if (other == null) listOf(this)
+        else listOf(this, other)
+    }
+
+    @JvmStatic
     fun <V> MutableList<V>.sortedAdd(instance: V, comparator: Comparator<V>, insertIfEquals: Boolean) {
         var index = binarySearch(instance, comparator)
         if (index < 0) index = -1 - index

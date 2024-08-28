@@ -3,14 +3,14 @@ package me.anno.ecs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 
-// todo
-//  - appended to the root,
-//  - exists only once per tree,
-//  - gets notified about new/deleted/changed Components,
-//  - keeps a list/set/whatever of them around for fast iteration
-//  - gets called once per frame onUpdate
 /**
- * systems are currently in planning/experimenting stage
+ * Systems are meant for behaviours, on lots and lots of components,
+ * without needing to iterate over the scene tree: just cache all active components.
+ * This improves predictability for the CPU, and reduces overhead.
+ *
+ * In most cases, you want to call a function every frame: implement OnUpdate for that.
+ * In 2nd most cases, you want to run every nth frame, or run an operation on all elements together per frame - use Updatable for that.
+ * OnUpdate is just a specialized implementation of Updatable.
  * */
 abstract class System : PrefabSaveable() {
 
@@ -23,6 +23,7 @@ abstract class System : PrefabSaveable() {
     open fun onDisable(component: Component) {}
 
     open fun onUpdate() {}
+    open fun onBeforeDrawing() {}
 
     open fun clear() {}
 

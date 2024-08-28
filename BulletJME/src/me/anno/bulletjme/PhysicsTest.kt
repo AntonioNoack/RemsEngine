@@ -15,7 +15,7 @@ fun main() {
     cube.add(BoxCollider())
     scene.add(cube)
     val physics = BulletPhysics()
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
     for (i in 0 until 10) {
         physics.step(100 * MILLIS_TO_NANOS, false)
         println(cube.position)

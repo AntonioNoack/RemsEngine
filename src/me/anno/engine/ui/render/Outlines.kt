@@ -1,12 +1,11 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.forAllChildren
-import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
@@ -104,7 +103,7 @@ object Outlines {
             useFrame(whiteRenderer) {
                 val cullMode = if (mesh is Mesh && mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
                 GFXState.cullMode.use(cullMode) {
-                    val material = Pipeline.getMaterial(comp.materials, mesh.materials, 0)
+                    val material = Materials.getMaterial(comp.materials, mesh.materials, 0)
                     val baseShader = material.shader ?: pbrModelShader
                     val animated = comp.hasAnimation
                     if (!material.isDoubleSided) GFXState.animated.use(animated) {

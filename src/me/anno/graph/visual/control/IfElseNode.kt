@@ -3,6 +3,7 @@ package me.anno.graph.visual.control
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
+import me.anno.utils.types.Booleans.toInt
 
 class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs), GLSLFlowNode {
 
@@ -11,8 +12,8 @@ class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs), GLSL
     }
 
     override fun execute(): NodeOutput {
-        val condition = inputs[1].getValue() == true
-        return getNodeOutput(if (condition) 0 else 1)
+        val secondBranch = inputs[1].getValue() != true
+        return getNodeOutput(secondBranch.toInt())
     }
 
     override fun buildCode(g: GraphCompiler, depth: Int): Boolean {

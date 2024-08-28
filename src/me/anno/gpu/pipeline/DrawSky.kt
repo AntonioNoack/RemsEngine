@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.light.sky.SkyboxUpscaler
 import me.anno.ecs.components.light.sky.shaders.SkyUpscaleShader
+import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
@@ -20,7 +21,6 @@ import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.Pipeline.Companion.getMaterial
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights

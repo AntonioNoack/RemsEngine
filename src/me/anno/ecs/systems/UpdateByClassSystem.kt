@@ -3,10 +3,9 @@ package me.anno.ecs.systems
 import me.anno.ecs.Component
 import me.anno.ecs.System
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.engine.EngineBase
 import kotlin.reflect.KClass
 
-abstract class UpdateByClassSystem : System() {
+abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
 
     @DebugProperty
     val numRegisteredClasses: Int
@@ -33,6 +32,14 @@ abstract class UpdateByClassSystem : System() {
     abstract fun update(sample: Component, instances: Collection<Component>)
 
     override fun onUpdate() {
+        if (isOnUpdate) execute()
+    }
+
+    override fun onBeforeDrawing() {
+        if (!isOnUpdate) execute()
+    }
+
+    private fun execute() {
         for ((_, instances) in components) {
             val sample = instances.firstOrNull() ?: continue
             update(sample, instances)

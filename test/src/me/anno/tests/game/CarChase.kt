@@ -79,7 +79,7 @@ fun createUI(): Panel {
     val physics = BulletPhysics()
     physics.updateInEditMode = true
     physics.synchronousPhysics = true
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
 
     val floor = Entity()
     floor.add(MeshComponent(map))

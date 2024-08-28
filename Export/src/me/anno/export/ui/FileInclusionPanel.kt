@@ -96,7 +96,7 @@ class FileInclusionPanel(val roots: List<FileReference>, style: Style) :
     }
 
     override fun setCollapsed(element: FileReference, collapsed: Boolean) {
-        throw NotImplementedError()
+        // todo implement?
     }
 
     override fun addChild(element: FileReference, child: Any, type: Char, index: Int): Boolean {

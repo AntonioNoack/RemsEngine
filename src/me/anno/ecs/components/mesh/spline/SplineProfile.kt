@@ -16,7 +16,7 @@ import kotlin.math.min
 /**
  * e.g. main lanes + bus lane & tram lane + pedestrian path
  * */
-class PathProfile() : Saveable() {
+class SplineProfile() : Saveable() {
 
     constructor(pos: List<Vector2f>, uvs: FloatArrayList?, colors: IntArrayList?, isClosed: Boolean) : this() {
         positions = pos
@@ -87,7 +87,7 @@ class PathProfile() : Saveable() {
     /**
      * split profile into <0/>=0
      * */
-    fun split(): Pair<PathProfile, PathProfile> {
+    fun split(): Pair<SplineProfile, SplineProfile> {
         val positions = positions
         val colors = colors
         val cap = positions.size
@@ -142,8 +142,8 @@ class PathProfile() : Saveable() {
             p0 = p1
             c0 = c1
         }
-        val left1 = PathProfile(left, null, leftColors, false)
-        val right1 = PathProfile(right, null, rightColors, false)
+        val left1 = SplineProfile(left, null, leftColors, false)
+        val right1 = SplineProfile(right, null, rightColors, false)
         left1.flatShading = flatShading
         right1.flatShading = flatShading
         left1.mixColors = mixColors
@@ -158,7 +158,7 @@ class PathProfile() : Saveable() {
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is PathProfile &&
+        return other is SplineProfile &&
                 other.positions == positions &&
                 other.colors == colors &&
                 other.uvs == uvs &&

@@ -59,7 +59,7 @@ fun main() {
 
     val physics = BulletPhysics()
     physics.updateInEditMode = true
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
     scene.add(Skybox())
 
     testSceneWithUI("FlightSim", scene) {

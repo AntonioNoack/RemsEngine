@@ -5342,8 +5342,7 @@ open class Matrix4f {
             2 -> dst.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31).normalize3()
             3 -> dst.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31).normalize3()
             4 -> dst.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32).normalize3()
-            5 -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
-            else -> throw IllegalArgumentException("dst")
+            else -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
         }
         return dst
     }
@@ -5460,7 +5459,7 @@ open class Matrix4f {
                 n3z = m23 - m22
                 d3 = m33 - m32
             }
-            7 -> {
+            else -> {
                 n1x = m03 - m00
                 n1y = m13 - m10
                 n1z = m23 - m20
@@ -5474,7 +5473,6 @@ open class Matrix4f {
                 n3z = m23 - m22
                 d3 = m33 - m32
             }
-            else -> throw IllegalArgumentException("corner")
         }
         val c23x = n2y * n3z - n2z * n3y
         val c23y = n2z * n3x - n2x * n3z

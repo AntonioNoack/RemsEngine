@@ -4,11 +4,11 @@ import me.anno.graph.visual.local.GetLocalVariableNode
 import me.anno.graph.visual.local.SetLocalVariableNode
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.node.NodeOutput
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
-import me.anno.io.saveable.SaveableArray
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.SaveableArray
 import me.anno.ui.editor.code.codemirror.LanguageStyle
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -26,9 +26,10 @@ class NodeSerializationTests {
                 "\"NodeInput[]:others\":[1,5],\"l:value\":24}],\"l:value\":24}],\"NodeOutput[]:outputs\":" +
                 "[2,{\"i:*ptr\":7},{\"i:*ptr\":8,\"l:value\":6}],\"v3d:position\":[1,2,3]}]"
         val node = JsonStringReader.readFirst(source, InvalidRef, SetLocalVariableNode::class, false)
-        if (node.key != "var") throw IllegalStateException()
-        if (node.value != 24L) throw IllegalStateException("Value is ${node.value}")
-        if ((node.clone() as SetLocalVariableNode).key != "var") throw IllegalStateException()
+        assertEquals("var", node.key)
+        assertEquals(24L, node.value)
+        val clonedKey = (node.clone() as SetLocalVariableNode).key
+        assertEquals("var", clonedKey)
     }
 
     @Test

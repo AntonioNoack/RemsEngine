@@ -1,12 +1,12 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.Build
-import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.interfaces.Renderable
 import me.anno.engine.raycast.RayQuery
@@ -58,8 +58,8 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             mesh.getBounds().transformUnion(transform.globalTransform, tmpAABB)
             if (pipeline.frustum.contains(tmpAABB)) {
                 for (matIndex in 0 until mesh.numMaterials) {
-                    val material0 = materialOverride ?: Pipeline.getMaterial(null, mesh.materials, matIndex)
-                    val material = Pipeline.getMaterial(pipeline.superMaterial, material0)
+                    val material0 = materialOverride ?: Materials.getMaterial(null, mesh.materials, matIndex)
+                    val material = Materials.getMaterial(pipeline.superMaterial, material0)
                     val stage = pipeline.findStage(material)
                     if (mesh.proceduralLength <= 0) {
                         val stack = stage.instanced.data.getOrPut(mesh, material, matIndex) { mesh1, _, _ ->

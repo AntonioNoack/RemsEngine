@@ -66,7 +66,7 @@ private fun test2() {
     // create test world
     val world = Entity()
     val physics = BulletPhysics()
-    Systems.registerSystem("bullet", physics)
+    Systems.registerSystem(physics)
     val ground = Entity()
     ground.name = "Ground"
     val groundRB = Rigidbody()

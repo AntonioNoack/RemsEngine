@@ -12,7 +12,7 @@ import org.joml.Vector3d
 class SplineControlPoint : Component() {
 
     // profile; todo to next point: connect different profiles
-    var profile: PathProfile = TestProfiles.cubeProfile
+    var profile: SplineProfile = TestProfiles.cubeProfile
 
     var width = 1.0
     var height = 1.0

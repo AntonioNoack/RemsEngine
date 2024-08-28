@@ -12,6 +12,7 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndexV2
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.CubemapModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
@@ -379,7 +380,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val c = Vector2f()
 
     val materials = createList(mesh.numMaterials) {
-        val src = Pipeline.getMaterial(component.materials, mesh.materials, it)
+        val src = Materials.getMaterial(component.materials, mesh.materials, it)
         SimpleMaterial(
             ImageCache[src.diffuseMap, false] ?: whiteImage, Vector3f(src.diffuseBase),
             ImageCache[src.emissiveMap, false] ?: whiteImage, src.emissiveBase,

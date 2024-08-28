@@ -117,7 +117,7 @@ object Logo {
     }
 
     private fun readMesh(i: InputStream?) {
-        mesh = if (i != null) SimpleOBJReader(i, logoSrc).mesh else null
+        mesh = if (i != null) SimpleOBJReader(i).mesh else null
         hasMesh = true
     }
 
@@ -132,9 +132,7 @@ object Logo {
                 val async = OS.isWeb // must be async on Web; maybe Android too later
                 val mesh = getLogoMesh(async)
                 if (mesh != null) {
-                    for (i in 0 until mesh.numMaterials) {
-                        mesh.draw(null, shader, i)
-                    }
+                    mesh.draw(null, shader, 0)
                     success = true
                 }
             } catch (e: IOException) {

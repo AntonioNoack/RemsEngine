@@ -13,6 +13,7 @@ import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
+import me.anno.ecs.systems.Systems
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
@@ -202,8 +203,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val renderMode = renderMode
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
-        val skipUpdate = FrameGenInitNode.skipThisFrame() &&
-                renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
+        val skipUpdate = FrameGenInitNode.skipThisFrame() && usesFrameGen()
 
         updateEditorCameraTransform()
 
@@ -528,6 +528,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         currentInstance = this
 
         if (fillPipeline) {
+            Systems.onBeforeDrawing()
             definePipeline(width, height, aspectRatio, fov, world)
         }
     }

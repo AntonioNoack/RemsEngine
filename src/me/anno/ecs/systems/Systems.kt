@@ -7,31 +7,34 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.sortedAdd
-import me.anno.utils.structures.lists.Lists.wrap
+import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
-// this would lie on the root level only...,
-// and only if needed...
-// todo make physics into systems
-// todo show settings for physics somehow...
-// todo when something is enabled/disabled/added/removed, notify the system
-class Systems : PrefabSaveable() {
+/**
+ * Systems manages all registered systems; there can only be one system per name;
+ * */
+object Systems : PrefabSaveable() {
 
-    companion object {
-        private val registeredIDs = HashSet<String>()
-        private val systems = ArrayList<System>()
+    private val registeredIDs = HashSet<String>()
+    private val systems = ArrayList<System>()
+    val readonlySystems: List<System> = systems
 
-        // do we need unregistering?
-        fun registerSystem(id: String, instance: System) {
-            synchronized(registeredIDs) {
-                if (registeredIDs.add(id)) {
-                    systems.sortedAdd(instance, Comparator.comparingInt(System::priority), true)
-                }
+    fun registerSystem(instance: System) {
+        registerSystem(instance.className, instance)
+    }
+
+    // do we need unregistering?
+    fun registerSystem(id: String, instance: System) {
+        synchronized(registeredIDs) {
+            if (registeredIDs.add(id)) {
+                systems.sortedAdd(instance, Comparator.comparingInt(System::priority), true)
             }
         }
+    }
 
-        init {
-            registerSystem("Update", UpdateSystem())
-        }
+    init {
+        registerSystem(UpdateSystem())
+        registerSystem(BeforeDrawSystem())
     }
 
     init {
@@ -52,18 +55,28 @@ class Systems : PrefabSaveable() {
             }
         }
 
-    override fun listChildTypes(): String = "sw"
-    override fun getChildListByType(type: Char): List<PrefabSaveable> {
-        return if (type == 's') systems else world.wrap()
-    }
+    override fun listChildTypes(): String = "s"
+    override fun getChildListByType(type: Char): List<PrefabSaveable> = systems
 
     fun onUpdate() {
         forAllSystems { it.onUpdate() }
     }
 
-    fun forAllSystems(callback: (System) -> Unit) {
+    fun onBeforeDrawing() {
+        forAllSystems { it.onBeforeDrawing() }
+    }
+
+    inline fun forAllSystems(callback: (System) -> Unit) {
+        val systems = readonlySystems
         for (i in systems.indices) {
             callback(systems[i])
+        }
+    }
+
+    inline fun <V : Any> forAllSystems(clazz: KClass<V>, callback: (V) -> Unit) {
+        val systems = readonlySystems
+        for (i in systems.indices) {
+            callback(clazz.safeCast(systems[i]) ?: continue)
         }
     }
 

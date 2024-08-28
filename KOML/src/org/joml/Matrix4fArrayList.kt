@@ -94,15 +94,11 @@ class Matrix4fArrayList : Matrix4f() {
      */
     fun <V> next(run: Function0<V>): V {
         pushMatrix()
-        val result: V
         try {
-            result = run.invoke()
+            return run.invoke()
+        } finally {
             popMatrix()
-        } catch (e: Throwable) {
-            popMatrix()
-            throw e
         }
-        return result
     }
 
 }
