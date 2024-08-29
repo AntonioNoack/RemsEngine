@@ -237,10 +237,7 @@ object Menu {
                     styleComplexEntry(button, option, true)
                     list += button
                 }
-                else -> {
-                    println("Creating disabled button for $optionI")
-                    list += createDisabledButton(option)
-                }
+                else -> list += createDisabledButton(option)
             }
         }
 

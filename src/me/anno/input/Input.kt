@@ -78,7 +78,7 @@ object Input {
         }
 
     var mouseMovementSinceMouseDown = 0f
-    var maxClickDistance = 5f
+    var maxClickDistance = 10f
     var hadMouseMovement = false
 
     val mouseHasMoved get() = mouseMovementSinceMouseDown > maxClickDistance
