@@ -17,6 +17,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -59,7 +60,6 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.openMenu
@@ -730,21 +730,18 @@ open class FileExplorerEntry(
     }
 
     private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
-        titlePanel.width = x1 - x0
-        titlePanel.minW = x1 - x0
-        titlePanel.calculateSize(x1 - x0, y1 - y0)
-        titlePanel.backgroundColor = backgroundColor and 0xffffff
-        val deltaX = ((x1 - x0) - titlePanel.minW) / 2 // centering the text
-        titlePanel.x = x0 + max(0, deltaX)
-        titlePanel.y = max(y0, (y0 + y1 - titlePanel.minH) / 2)
-        titlePanel.width = x1 - x0
-        titlePanel.height = titlePanel.minH
-        // the title might overlap with the image,
-        // and this can cause badly-readable text,
-        // so use better text rendering, if possible
         val pbb = pushBetterBlending(true)
-        titlePanel.drawText()
+        val failed = DrawTexts.drawTextOrFail(
+            (x0 + x1).shr(1),
+            (y0 + y1).shr(1),
+            titlePanel.font, titlePanel.text,
+            titlePanel.textColor,
+            backgroundColor.withAlpha(0),
+            x1 - x0, y1 - y0,
+            AxisAlignment.CENTER, AxisAlignment.CENTER
+        )
         popBetterBlending(pbb)
+        if (failed) invalidateDrawing()
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

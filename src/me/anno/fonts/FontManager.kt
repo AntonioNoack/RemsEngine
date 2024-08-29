@@ -57,18 +57,11 @@ object FontManager {
     fun limitHeight(font: Font, heightLimit: Int): Int {
         val fontHeight = font.size // roughly, not exact!
         val spaceBetweenLines = spaceBetweenLines(fontHeight)
-        // val height = (fontHeight + spaceBetweenLines) * lineCount - spaceBetweenLines
-        // val lineCount = ceil((heightLimit - spaceBetweenLines) / (fontHeight + spaceBetweenLines)).toInt()
         val effLineHeight = font.sizeInt + spaceBetweenLines
-        return ceilDiv(heightLimit, effLineHeight)
+        return max(ceilDiv(heightLimit, effLineHeight),0) * effLineHeight
     }
 
-    fun limitHeight(
-        font: Font,
-        text: CharSequence,
-        widthLimit2: Int,
-        heightLimit: Int
-    ): Int {
+    fun limitHeight(font: Font, text: CharSequence, widthLimit2: Int, heightLimit: Int): Int {
         return if (heightLimit < 0 || heightLimit >= GFX.maxTextureSize) GFX.maxTextureSize
         else {
             val size0 = getSize(font, text, widthLimit2, GFX.maxTextureSize, false)

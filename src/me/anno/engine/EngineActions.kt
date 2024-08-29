@@ -191,7 +191,7 @@ object EngineActions {
         register["FileEntry.left.drag", "DragStart"]
         register["FileExplorerEntry.left.drag", "DragStart"]
         register["ColorPaletteEntry.left.drag", "DragStart"]
-        register["SceneTab.left.drag", "DragStart"]
+        register["ECSSceneTab.left.drag", "DragStart"]
         register["FileEntry.left.drag", "DragStart"]
         register["FileEntry.left.double", "Enter|Open"]
         register["FileEntry.f2.down", "Rename"]

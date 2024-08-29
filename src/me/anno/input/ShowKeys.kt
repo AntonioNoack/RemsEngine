@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.maths.Maths.clamp
@@ -88,7 +88,7 @@ object ShowKeys {
         val x = x0 + 10
         val y = hmy - 10 - fontSize
         val pbb = DrawTexts.pushBetterBlending(true)
-        drawText(x, y, font, text, textColor2, bgColor2, -1, -1)
+        drawTextOrFail(x, y, font, text, textColor2, bgColor2, -1, -1)
         DrawTexts.popBetterBlending(pbb)
 
         return x0 + w0 + 16

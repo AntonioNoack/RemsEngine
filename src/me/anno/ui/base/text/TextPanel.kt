@@ -170,7 +170,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    open fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
+    /**
+     * returns whether drawing failed, and should be retried
+     * */
+    open fun drawText(dx: Int, dy: Int, text: String, color: Int): Boolean {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top
         return if (useMonospaceCharacters) {
@@ -179,18 +182,22 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
                 backgroundColor, widthLimit, heightLimit,
                 AxisAlignment.MIN, AxisAlignment.MIN, true
             )
+            false
         } else {
-            DrawTexts.drawText(x, y, font, text, color, backgroundColor, widthLimit, heightLimit)
+            DrawTexts.drawTextOrFail(x, y, font, text, color, backgroundColor, widthLimit, heightLimit)
         }
     }
 
-    open fun drawText(dx: Int, dy: Int, color: Int): Int {
+    /**
+     * returns whether drawing failed, and should be retried
+     * */
+    open fun drawText(dx: Int, dy: Int, color: Int): Boolean {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top
         return if (useMonospaceCharacters) {
             drawText(dx, dy, text, color)
         } else {
-            DrawTexts.drawText(x, y, font, textCacheKey, color, backgroundColor)
+            DrawTexts.drawTextOrFail(x, y, font, textCacheKey, color, backgroundColor)
         }
     }
 
@@ -198,7 +205,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val textSize = getTextSize(font, text, widthLimit, heightLimit, false)
         val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
         val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
-        drawText(dx, dy, color)
+        if (drawText(dx, dy, color)) invalidateDrawing()
     }
 
     fun getXOffset(charIndex: Int): Int {

@@ -39,7 +39,6 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 object DrawTexts {
 
@@ -67,7 +66,7 @@ object DrawTexts {
             Attribute("color1", AttributeType.UINT8_NORM, 4),
         ), 4096
     ) {
-        override fun bindShader() : Shader {
+        override fun bindShader(): Shader {
             val shader = ShaderLib.subpixelCorrectTextGraphicsShader[1].value
             shader.use()
             return shader
@@ -527,6 +526,29 @@ object DrawTexts {
         } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
     }
 
+    /**
+     * aligns and draws the text; returns whether drawing failed;
+     * if so, please call Panel.invalidateDrawing()
+     *
+     * todo use this everywhere, maybe remove synchronous text drawing everywhere
+     * */
+    fun drawTextOrFail(
+        x: Int, y: Int,
+        font: Font, text: String,
+        color: Int, backgroundColor: Int,
+        widthLimit: Int,
+        heightLimit: Int,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN
+    ): Boolean {
+        if (text.isEmpty()) return false
+        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit, true)
+        return if (tex0 != null && tex0.isCreated()) {
+            drawText(x, y, color, backgroundColor, tex0, alignX, alignY)
+            false
+        } else true
+    }
+
     private fun drawText(
         x: Int, y: Int,
         textColor: Int, backgroundColor: Int,
@@ -600,6 +622,34 @@ object DrawTexts {
 
             val texture = tex0 ?: return GFXx2D.getSize(0, font.sizeInt)
             return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
+        }
+    }
+
+    fun drawTextOrFail(
+        x: Int, y: Int,
+        font: Font, key: TextCacheKey,
+        color: Int, backgroundColor: Int,
+        alignX: AxisAlignment = AxisAlignment.MIN,
+        alignY: AxisAlignment = AxisAlignment.MIN,
+        equalSpaced: Boolean = false
+    ): Boolean {
+        GFX.check()
+        if (equalSpaced) {
+            drawTextCharByChar(
+                x, y, font, key.text,
+                color, backgroundColor,
+                key.widthLimit,
+                key.heightLimit,
+                alignX, alignY,
+                true
+            )
+            return false
+        } else {
+            val texture = FontManager.getTexture(key, true)
+            return if (texture != null && texture.isCreated()) {
+                drawText(x, y, color, backgroundColor, texture, alignX, alignY)
+                false
+            } else true
         }
     }
 

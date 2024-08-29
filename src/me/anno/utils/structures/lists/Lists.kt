@@ -130,34 +130,24 @@ object Lists {
 
     @JvmStatic
     fun List<Double>.median(default: Double): Double {
-        return run {
-            if (isEmpty()) default
-            else sorted()[size / 2]
-        }
+        return if (isEmpty()) default
+        else sorted()[size / 2]
     }
 
     @JvmStatic
     fun Iterable<Double>.median(default: Double): Double {
-        return toList().run {
-            if (isEmpty()) default
-            else sorted()[size / 2]
-        }
+        return toList().median(default)
     }
 
-    @JvmStatic
+    @JvmStatic // used by Rem's Studio
     fun List<Float>.median(default: Float): Float {
-        return run {
-            if (isEmpty()) default
-            else sorted()[size / 2]
-        }
+        return if (isEmpty()) default
+        else sorted()[size / 2] // could be optimized
     }
 
     @JvmStatic
     fun Iterable<Float>.median(default: Float): Float {
-        return toList().run {
-            if (isEmpty()) default
-            else sorted()[size / 2]
-        }
+        return toList().median(default)
     }
 
     @JvmStatic
@@ -167,20 +157,6 @@ object Lists {
         removeAt(lastIndex)
         return last
     }
-
-    @JvmStatic
-    fun List<Double>.accumulate(): List<Double> {
-        val accumulator = ArrayList<Double>()
-        var sum = 0.0
-        for (value in this) {
-            sum += value
-            accumulator += sum
-        }
-        return accumulator
-    }
-
-    @JvmStatic
-    fun <V> List<V>.getOrPrevious(index: Int) = if (index > 0) this[index - 1] else this.getOrNull(0)
 
     @JvmStatic
     fun <V> MutableList<V>.swap(i: Int, j: Int) {

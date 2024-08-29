@@ -103,24 +103,22 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         if (autoRedraw) invalidateDrawing()
     }
 
-    override fun drawText(dx: Int, dy: Int, color: Int): Int {
+    override fun drawText(dx: Int, dy: Int, color: Int): Boolean {
         return drawText(dx, dy, text, color)
     }
 
-    override fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
-        return if (text != this.text) {
+    override fun drawText(dx: Int, dy: Int, text: String, color: Int): Boolean {
+        if (text != this.text) {
             drawText2(dx, dy, text.cpList())
         } else {
             val lines = lines
-            var sizeX = 0
             val lineOffset = (font.size * (1f + lineSpacing)).roundToIntOr()
             for (index in lines.indices) {
                 val s = lines[index]
-                val size = drawText2(dx, dy + index * lineOffset, s)
-                sizeX = max(GFXx2D.getSizeX(size), sizeX)
+                drawText2(dx, dy + index * lineOffset, s)
             }
-            GFXx2D.getSize(sizeX, (lines.size - 1) * lineOffset + font.sizeInt)
         }
+        return false
     }
 
     fun drawText2(dx: Int, dy: Int, text: Pair<String, List<TextCacheKey>>): Int {

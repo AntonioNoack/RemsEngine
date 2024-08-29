@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -12,7 +12,6 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
-import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
@@ -164,11 +163,12 @@ object FileExplorerOptions {
                 val font = style.getFont("text")
                 override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                     super.onDraw(x0, y0, x1, y1)
-                    drawText( // draw file name at bottom center
+                    val failed = drawTextOrFail( // draw file name at bottom center
                         x + width / 2, y + height, font, file.name,
                         -1, backgroundColor, width, -1,
                         AxisAlignment.CENTER, AxisAlignment.MAX
                     )
+                    if (failed) invalidateDrawing()
                 }
 
                 fun step(di: Int) {

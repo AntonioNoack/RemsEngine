@@ -22,7 +22,6 @@ import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 object PDFCache : CacheSection("PDFCache") {
 
@@ -183,20 +182,11 @@ object PDFCache : CacheSection("PDFCache") {
     }
 
     fun disableLoggers() {
-        val lm = LogManager
-        lm.disableLogger("GlyphRenderer")
-        lm.disableLogger("PDSimpleFont")
-        lm.disableLogger("PDICCBased")
-        lm.disableLogger("PostScriptTable")
-        lm.disableLogger("GlyphSubstitutionTable")
-        lm.disableLogger("GouraudShadingContext")
-        lm.disableLogger("FontMapperImpl")
-        lm.disableLogger("FileSystemFontProvider")
-        lm.disableLogger("ScratchFileBuffer")
-        lm.disableLogger("FontFileFinder")
-        lm.disableLogger("PDFObjectStreamParser")
-        lm.disableLogger("TriangleBasedShadingContext")
-        lm.disableLogger("Type4ShadingContext")
+        LogManager.disableLoggers(
+            "GlyphRenderer,PDSimpleFont,PDICCBased,PostScriptTable,GlyphSubstitutionTable," +
+                    "GouraudShadingContext,FontMapperImpl,FileSystemFontProvider,ScratchFileBuffer,FontFileFinder," +
+                    "PDFObjectStreamParser,TriangleBasedShadingContext,Type4ShadingContext"
+        )
     }
 
     private const val TIMEOUT = 20_000L

@@ -145,12 +145,13 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         val textColor = textColor
         val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
         else textColor.a() / 2
-        DrawTexts.drawText(
+        val failed = DrawTexts.drawTextOrFail(
             x + padding.left + alignmentX.getOffset(width - padding.width, 0),
             y + padding.top + alignmentY.getOffset(height - padding.height, 0),
             font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,
             alignmentX, alignmentY
         )
+        if (failed) invalidateDrawing()
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {

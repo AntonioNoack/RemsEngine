@@ -41,7 +41,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -237,7 +236,7 @@ class ECSSceneTab(
                             ECSSceneTabs.close(this, true)
                         },
                         MenuOption(NameDesc("Close All Others")) {
-                            ECSSceneTabs.children2.clear()
+                            ECSSceneTabs.ecsTabsRaw.clear()
                             ECSSceneTabs.project?.openTabs?.clear()
                             ECSSceneTabs.currentTab = null
                             ECSSceneTabs.open(this, true)

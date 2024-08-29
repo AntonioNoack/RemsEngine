@@ -10,7 +10,9 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.prefab.Hierarchy
@@ -47,7 +49,6 @@ import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
-import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.lists.Lists.wrapWith
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
@@ -440,10 +441,14 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     override fun getSymbol(element: Saveable): String {
         return when {
             isCollapsed(element) && getChildren(element).isNotEmpty() -> "📁"
-            element is PrefabSaveable && element.root.prefab?.isWritable == false -> "\uD83D\uDD12" // lock
+            element is PrefabSaveable && element.root.prefab?.isWritable == false -> "🔒" // lock
             element is Systems -> "⚙" // gear
-            element is System -> "\uD83D\uDEE0\uFE0F" // tools
-            element is Component -> "\uD83E\uDDE9" // puzzle piece
+            element is System -> "🛠" // tools
+            element is IMesh || element is MeshComponentBase -> "🕸"
+            element is MeshSpawner -> "🏗"
+            element is CollidingComponent -> "📦"
+            element is Component -> "🧩" // puzzle piece
+            element is Material -> "🎨"
             else -> "⚪"
         }
     }

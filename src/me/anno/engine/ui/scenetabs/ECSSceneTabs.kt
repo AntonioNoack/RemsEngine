@@ -3,19 +3,18 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.language.translation.Dict
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.lists.Lists.count2
-import me.anno.utils.structures.lists.Lists.getOrPrevious
+import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 
 object ECSSceneTabs : ScrollPanelX(style) {
@@ -23,8 +22,8 @@ object ECSSceneTabs : ScrollPanelX(style) {
     private val LOGGER = LogManager.getLogger(ECSSceneTabs::class)
 
     val content = child as PanelList
-    val children2 = content.children
-    val children3 get() = children2.filterIsInstance<ECSSceneTab>()
+    val ecsTabsRaw = content.children
+    val ecsTabs get() = ecsTabsRaw.filterIsInstance<ECSSceneTab>()
 
     var currentTab: ECSSceneTab? = null
         set(value) {
@@ -41,7 +40,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun open(reference: FileReference, playMode: PlayMode, setActive: Boolean): ECSSceneTab {
-        val opened = children3.firstOrNull { it.file == reference }
+        val opened = ecsTabs.firstOrNull { it.file == reference }
         return if (opened != null) {
             open(opened, setActive)
             opened
@@ -54,7 +53,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun add(file: FileReference, playMode: PlayMode): ECSSceneTab {
-        val opened = children3.firstOrNull { it.file == file }
+        val opened = ecsTabs.firstOrNull { it.file == file }
         return if (opened == null) {
             val tab = ECSSceneTab(file, playMode, findName(file))
             content += tab
@@ -64,7 +63,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun findName(file: FileReference): String {
         var name = file.nameWithoutExtension
-        for (tab in children3) {
+        for (tab in ecsTabs) {
             if (tab.file != file) {
                 var file1 = file
                 // if a name is already in use, try a different one
@@ -78,30 +77,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
         return name
     }
 
-    override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        when (type) {
-            "SceneTab" -> {
-                // todo bug: dragging is broken (if it ever worked)
-                val tab = dragged!!.getOriginal() as ECSSceneTab
-                if (!tab.contains(x, y)) {
-                    val oldIndex = tab.indexInParent
-                    val newIndex = children2.map { it.x + it.width / 2 }.count2 { it < x }
-                    // LOGGER.info("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
-                    if (oldIndex < newIndex) {
-                        children2.add(newIndex, tab)
-                        children2.removeAt(oldIndex)
-                    } else if (oldIndex > newIndex) {
-                        children2.removeAt(oldIndex)
-                        children2.add(newIndex, tab)
-                    }
-                    invalidateLayout()
-                }// else done
-                dragged = null
-            }
-            else -> super.onPaste(x, y, data, type)
-        }
-    }
-
     fun refocus() {
         PrefabInspector.currentInspector = currentTab?.inspector
     }
@@ -112,7 +87,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
             currentTab = tab
             PrefabInspector.currentInspector = tab.inspector
             EditorState.select(null)
-            if (tab !in children3) content += tab
+            if (tab !in ecsTabs) content += tab
             val ws = window?.windowStack
             if (ws != null) for (window in ws) {
                 window.panel.forAllPanels {
@@ -163,13 +138,22 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun close(sceneTab: ECSSceneTab, setNextActive: Boolean) {
         if (currentTab === sceneTab) {
-            if (children2.size == 1) {
-                LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
-                return
-            } else {
-                val index = sceneTab.indexInParent
-                sceneTab.removeFromParent()
-                open(children2.getOrPrevious(index) as ECSSceneTab, setNextActive)
+            val index = sceneTab.indexInParent
+            sceneTab.removeFromParent()
+            val indices = (0 until index).reversed() +
+                    (index until ecsTabs.size)
+            var done = false
+            for (idx in indices) {
+                try {
+                    open(ecsTabs[idx], setNextActive)
+                    done = true
+                    break
+                } catch (e: Exception) {
+                    LOGGER.warn("$e")
+                }
+            }
+            if (!done) {
+                open(InvalidRef, PlayMode.EDITING, setNextActive)
             }
         } else sceneTab.removeFromParent()
         val project = project
@@ -182,7 +166,27 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         try {
-            open(files.first(), PlayMode.EDITING, true)
+            var lastFile: FileReference = InvalidRef
+            for (fi in files.indices) {
+                val file = files[fi]
+                val tab = ecsTabs.firstOrNull2 { it.file == file }
+                if (tab != null && !tab.contains(x, y)) { // swap two tabs
+                    val oldIndex = tab.indexInParent
+                    val newIndex = ecsTabsRaw.count2 { it.x + it.width.shr(1) < x }
+                    if (oldIndex != newIndex) {
+                        ecsTabsRaw.removeAt(oldIndex)
+                        val removedLeft = oldIndex < newIndex
+                        ecsTabsRaw.add(newIndex - removedLeft.toInt(), tab)
+                        invalidateLayout()
+                    }
+                } else {
+                    open(file, PlayMode.EDITING, false)
+                    lastFile = file
+                }
+            }
+            if (lastFile != InvalidRef) {
+                open(lastFile, PlayMode.EDITING, true)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

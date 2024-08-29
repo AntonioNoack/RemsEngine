@@ -38,7 +38,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 // todo show output value in tooltip on connector (for where it is easily computable without actions)
 // todo can we add debug-clamps?: input and output overrides for debugging...
@@ -353,11 +352,12 @@ class NodePanel(
                 bg, gp.getTypeColor(con), bg
             )
         }
-        DrawTexts.drawText(
+        val failed = DrawTexts.drawTextOrFail(
             pxi + dx, pyi + dy, font, con.name, textColor,
             bg, -1, -1,
             if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN
         )
+        if (failed) invalidateDrawing()
     }
 
     fun getConnectorAt(x: Float, y: Float): NodeConnector? {
@@ -526,7 +526,12 @@ class NodePanel(
                 gp.onChange(false)
             }
             con0 != null && (window == null ||
-                    Maths.distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < width / 10f) -> {
+                    Maths.distance(
+                        window.mouseDownX,
+                        window.mouseDownY,
+                        window.mouseX,
+                        window.mouseY
+                    ) < width / 10f) -> {
                 // loosen this connection
                 con0.disconnectAll()
                 gp.onChange(false)
