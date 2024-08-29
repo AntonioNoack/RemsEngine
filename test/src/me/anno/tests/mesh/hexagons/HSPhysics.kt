@@ -64,20 +64,20 @@ class MCTriangleQuery(val world: HexagonSphereMCWorld) : HexagonTriangleQuery {
     private fun yi0(minY: Float): Int = max(floor(world.yi(minY)).toInt(), 0)
     private fun yi1(maxY: Float): Int = min(ceil(world.yi(maxY)).toInt(), world.sy)
 
-    override fun run(
-        hex1: Hexagon, minY: Float, maxY: Float,
+    override fun query(
+        hexagon: Hexagon, minY: Float, maxY: Float,
         callback: (Vector3f, Vector3f, Vector3f) -> Boolean
     ) {
         val y0 = yi0(minY)
         val y1 = yi1(maxY)
         if (y1 > y0) {
-            val w0 = getWorld(hex1)
+            val w0 = getWorld(hexagon)
             fun addLayer(fy: Float, di0: Int, di1: Int) {
-                val c0 = hex1.corners[0]
-                for (j in 2 until hex1.corners.size) {
+                val c0 = hexagon.corners[0]
+                for (j in 2 until hexagon.corners.size) {
                     c0.mul(fy, a)
-                    hex1.corners[j + di0].mul(fy, b)
-                    hex1.corners[j + di1].mul(fy, c)
+                    hexagon.corners[j + di0].mul(fy, b)
+                    hexagon.corners[j + di1].mul(fy, c)
                     if (callback(a, b, c) && di0 == 0) {
                         touchesFloor = true
                     }
@@ -98,12 +98,12 @@ class MCTriangleQuery(val world: HexagonSphereMCWorld) : HexagonTriangleQuery {
         }
     }
 
-    override fun run(
+    override fun query(
         hex1: Hexagon, hex2: Hexagon, i: Int, minY: Float, maxY: Float,
         callback: (Vector3f, Vector3f, Vector3f) -> Boolean
     ) {
         // add floor for neighbors as well
-        if (considerNeighborGrounds) run(hex2, minY, maxY, callback)
+        if (considerNeighborGrounds) query(hex2, minY, maxY, callback)
         // add sides
         val y0 = yi0(minY)
         val y1 = yi1(maxY)

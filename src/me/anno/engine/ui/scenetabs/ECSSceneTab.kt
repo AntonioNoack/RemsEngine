@@ -24,6 +24,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.graph.visual.Graph
+import me.anno.image.thumbs.AssetThumbnails.getBoundsForRendering
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -89,7 +90,8 @@ class ECSSceneTab(
             }
             is Entity -> {
                 root.validateTransform()
-                resetCamera(root.getBounds(), true)
+                val bounds = getBoundsForRendering(root)
+                resetCamera(bounds, true)
             }
             is Animation -> {
                 val skeleton = SkeletonCache[root.skeleton] ?: return

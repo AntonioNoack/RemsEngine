@@ -1,6 +1,7 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.engine.serialization.SerializedProperty
@@ -40,12 +41,21 @@ class SphereCollider : Collider() {
     }
 
     override fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {
-        outNormal.set(deltaPos).normalize()
+        outNormal.set(deltaPos).safeNormalize()
         return deltaPos.length() - radius.toFloat()
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         return deltaPos.length() - radius.toFloat()
+    }
+
+    override fun raycastClosestHit(query: RayQuery): Boolean {
+        val radius = radius.toFloat()
+        val a = query.direction.lengthSquared()
+        val b = 2f * query.start.dot(query.direction)
+        val c = query.start.lengthSquared() - radius * radius
+        val disc = b * b - 4 * a * c
+        return disc >= 0f
     }
 
     override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
@@ -56,6 +66,14 @@ class SphereCollider : Collider() {
         val disc = b * b - 4 * a * c
         return if (disc < 0f) Float.POSITIVE_INFINITY
         else (-b - sqrt(disc)) / (2f * a)
+    }
+
+    override fun raycastAnyHit(query: RayQuery): Boolean {
+        return raycastClosestHit(query)
+    }
+
+    override fun raycastAnyHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
+        return raycastClosestHit(query, surfaceNormal)
     }
 
     override fun drawShape() {

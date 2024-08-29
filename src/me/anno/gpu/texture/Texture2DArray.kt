@@ -19,6 +19,7 @@ import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.convertARGB2RGBA
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.structures.Callback
@@ -95,7 +96,7 @@ open class Texture2DArray(
     fun ensurePointer() {
         checkSession()
         if (pointer == 0) pointer = Texture2D.createTexture()
-        if (pointer == 0) throw RuntimeException("Could not generate texture")
+        assertNotEquals(0, pointer, "Could not generate texture")
         if (Build.isDebug) synchronized(DebugGPUStorage.tex2da) {
             DebugGPUStorage.tex2da.add(this)
         }

@@ -1,7 +1,6 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
-import me.anno.utils.types.Strings
 import org.joml.AABBf
 import org.joml.Vector3f
 
@@ -11,7 +10,7 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
     constructor(axis: Int, n0: TLASNode, n1: TLASNode) :
             this(axis, n0, n1, n0.bounds.union(n1.bounds, AABBf()))
 
-    val mask = 1 shl axis
+    val mask get() = 1 shl axis
 
     override fun collectMeshes(result: MutableCollection<BLASNode>) {
         n0.collectMeshes(result)
@@ -49,12 +48,6 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
                 n1.findClosestHit(group)
             }
         }
-    }
-
-    override fun print(depth: Int) {
-        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $axis")
-        n0.print(depth + 1)
-        n1.print(depth + 2)
     }
 
     override fun countNodes() = 1 + n0.countNodes() + n1.countNodes()

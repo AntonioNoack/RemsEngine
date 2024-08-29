@@ -28,6 +28,13 @@ class MeshRenderSystem : System(), Renderable {
         }
     }
 
+    override fun onDisable(component: Component) {
+        when (component) {
+            is MeshComponent -> meshes.add(component)
+            is MeshComponentBase -> others.add(component)
+        }
+    }
+
     override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         var clickIdI = 0
         for (c in meshes) {

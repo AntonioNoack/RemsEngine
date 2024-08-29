@@ -98,13 +98,13 @@ class HexagonSpherePhysics(
         ensureNeighbors(hex)
         defineLocalTransform(currPosition, currTransform)
         defineLocalTransform(nextPosition, nextTransform)
-        triangleQuery.run(hex, bottom, top) { a, b, c ->
+        triangleQuery.query(hex, bottom, top) { a, b, c ->
             applyCollision(a, b, c, dt)
         }
         val neighbors = hex.neighbors
         for (i in neighbors.indices) {
             val neighbor = neighbors[i] ?: continue
-            triangleQuery.run(hex, neighbor, i, bottom, top) { a, b, c ->
+            triangleQuery.query(hex, neighbor, i, bottom, top) { a, b, c ->
                 applyCollision(a, b, c, dt)
             }
         }

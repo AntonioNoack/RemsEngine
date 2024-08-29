@@ -28,6 +28,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.convertARGB2ABGR
+import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
@@ -190,7 +191,7 @@ open class Texture2D(
 
     fun ensurePointer() {
         checkSession()
-        if (isDestroyed) throw RuntimeException("Texture was destroyed")
+        assertFalse(isDestroyed, "Texture was destroyed")
         if (pointer == 0) {
             check()
             pointer = createTexture()
@@ -1173,6 +1174,7 @@ open class Texture2D(
 
         @JvmStatic
         fun allocate(oldValue: Long, newValue: Long): Long {
+            GFX.checkIsGFXThread()
             allocated += newValue - oldValue
             return newValue
         }

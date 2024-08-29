@@ -16,10 +16,6 @@ class BLASLeaf(
     bounds: AABBf
 ) : BLASNode(bounds) {
 
-    override fun print(depth: Int) {
-        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $start += $length")
-    }
-
     override fun countNodes() = 1
     override fun maxDepth() = 1
     override fun forEach(run: (BLASNode) -> Unit) = run(this)

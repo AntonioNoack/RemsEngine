@@ -14,7 +14,6 @@ import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.Shapes.smoothCube
-import me.anno.utils.Color.black
 import me.anno.utils.OS.res
 
 /**
@@ -49,21 +48,14 @@ object DefaultAssets {
 
     private fun registerMaterials() {
         register("materials/Default.json", "Material", defaultMaterial.ref)
-        val mirror = Material()
-        mirror.roughnessMinMax.set(0f)
-        mirror.metallicMinMax.set(1f)
-        register("materials/Mirror.json", "Material", mirror.ref)
-        val golden = Material.diffuse(0xf5ba6c)
-        golden.roughnessMinMax.set(0.2f)
-        golden.metallicMinMax.set(1f)
-        register("materials/Golden.json", "Material", golden.ref)
+        register("materials/Mirror.json", "Material", Material.metallic(-1, 0f).ref)
+        register("materials/Golden.json", "Material", Material.metallic(0xf5ba6c, 0.2f).ref)
         val glass = Material()
         glass.diffuseBase.w = 0.5f
         glass.roughnessMinMax.set(0f)
         glass.pipelineStage = PipelineStage.TRANSPARENT
         register("materials/Glass.json", "Material", glass.ref)
-        val black = Material.diffuse(black)
-        register("materials/Black.json", "Material", black.ref)
+        register("materials/Black.json", "Material", Material.diffuse(0).ref)
         val emissive = Material()
         emissive.emissiveBase.set(10f)
         register("materials/Emissive.json", "Material", emissive.ref)

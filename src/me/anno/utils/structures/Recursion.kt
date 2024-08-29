@@ -24,6 +24,13 @@ object Recursion {
         }
     }
 
+    fun <V> processRecursive2(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> Unit) {
+        findRecursive2(initial) { item, remaining ->
+            process(item, remaining)
+            null
+        }
+    }
+
     /**
      * processes each item in a graph only once; returns the set of all processed/reached items;
      * process() must add any to-be-processed children to the list
@@ -31,6 +38,17 @@ object Recursion {
     fun <V> collectRecursive(initial: V, process: (item: V, remaining: ArrayList<V>) -> Unit): HashSet<V> {
         val result = HashSet<V>()
         findRecursive(initial) { item, remaining ->
+            if (result.add(item)) {
+                process(item, remaining)
+            }
+            null
+        }
+        return result
+    }
+
+    fun <V> collectRecursive2(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> Unit): HashSet<V> {
+        val result = HashSet<V>()
+        findRecursive2(initial) { item, remaining ->
             if (result.add(item)) {
                 process(item, remaining)
             }
@@ -49,15 +67,42 @@ object Recursion {
         } == Unit
     }
 
+    fun <V : Any> anyRecursive(
+        initial: Collection<V>,
+        process: (item: V, remaining: ArrayList<V>) -> Boolean
+    ): Boolean {
+        return findRecursive2(initial) { item, remaining ->
+            if (process(item, remaining)) Unit else null
+        } == Unit
+    }
+
+    private fun <V> getContainer(): ArrayList<V> {
+        @Suppress("UNCHECKED_CAST")
+        return recursive.get() as ArrayList<V>
+    }
+
     /**
      * finds first non-null value in a tree; must not have loops;
      * process() must add any to-be-processed children to the list
      * */
     fun <V, W : Any> findRecursive(initial: V, process: (item: V, remaining: ArrayList<V>) -> W?): W? {
-        @Suppress("UNCHECKED_CAST")
-        val remaining = recursive.get() as ArrayList<V>
+        val remaining = getContainer<V>()
         val startIndex = remaining.size
         remaining.add(initial)
+        return findRecursiveRun(remaining, startIndex, process)
+    }
+
+    fun <V, W : Any> findRecursive2(initial: Collection<V>, process: (item: V, remaining: ArrayList<V>) -> W?): W? {
+        val remaining = getContainer<V>()
+        val startIndex = remaining.size
+        remaining.addAll(initial)
+        return findRecursiveRun(remaining, startIndex, process)
+    }
+
+    fun <V, W : Any> findRecursiveRun(
+        remaining: ArrayList<V>, startIndex: Int,
+        process: (item: V, remaining: ArrayList<V>) -> W?
+    ): W? {
         var maxSize = startIndex
         var result: W? = null
         while (result == null && remaining.size > startIndex) {

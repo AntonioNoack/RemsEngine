@@ -85,20 +85,14 @@ fun main() {
     // display mesh
     val staticTest = true
     if (staticTest) {
-        fun iterate(triangle: SphereTriangle, depth: Int) {
-            if (depth == targetDepth) {
+        sphereWorld.forEach { triangle ->
+            if (triangle.level == targetDepth) {
                 elements.add(triangle)
+                false
             } else {
-                val depthP1 = depth + 1
                 triangle.generateChildren()
-                iterate(triangle.childXX!!, depthP1)
-                iterate(triangle.childAB!!, depthP1)
-                iterate(triangle.childBC!!, depthP1)
-                iterate(triangle.childCA!!, depthP1)
+                true
             }
-        }
-        for (triangle in sphereWorld.triangles) {
-            iterate(triangle, 0)
         }
         val mesh = meshBuilder.join(elements)
         // todo on click raycast & find triangle & place tree there

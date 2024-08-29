@@ -57,6 +57,13 @@ fun assertEquals(
     }
 }
 
+fun assertEquals(
+    expected: Float, actual: Float, absoluteThreshold: Float,
+    message: String = "expected equal values"
+) {
+    assertEquals(expected.toDouble(), actual.toDouble(), absoluteThreshold.toDouble(), message)
+}
+
 fun assertNotEquals(forbidden: Any?, actual: Any?, message: String = "expected different values") {
     if (forbidden == actual) throw IllegalStateException(message)
 }

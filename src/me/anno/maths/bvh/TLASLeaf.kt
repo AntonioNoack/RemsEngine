@@ -24,10 +24,6 @@ class TLASLeaf(
         result.add(blas)
     }
 
-    override fun print(depth: Int) {
-        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $worldToLocal, ${blas.nodeId}")
-    }
-
     override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.tlasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {

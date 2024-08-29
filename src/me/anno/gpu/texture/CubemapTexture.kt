@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.files.Files.formatFileSize
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -76,6 +77,7 @@ open class CubemapTexture(
 
     private fun ensurePointer() {
         assertFalse(isDestroyed, "Texture was destroyed")
+        checkSession()
         if (pointer == 0) {
             GFX.check()
             pointer = Texture2D.createTexture()
@@ -95,7 +97,7 @@ open class CubemapTexture(
             pointer = 0
             wasCreated = false
             isDestroyed = false
-            locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
+            locallyAllocated = allocate(locallyAllocated, 0L)
             createdSize = 0
         }
     }
@@ -168,7 +170,7 @@ open class CubemapTexture(
         afterUpload(type.internalFormat, type.bytesPerPixel)
     }
 
-    private fun getTarget(side: Int) = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
+    private fun getTarget(side: Int): Int = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
 
     private fun afterUpload(internalFormat: Int, bytesPerPixel: Int) {
         GFX.check()

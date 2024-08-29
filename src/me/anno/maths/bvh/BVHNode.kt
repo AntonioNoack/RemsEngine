@@ -17,8 +17,6 @@ abstract class BVHNode(val bounds: AABBf) : ICacheData {
     // https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
     var nodeId = 0
 
-    abstract fun print(depth: Int = 0)
-
     abstract fun countNodes(): Int
 
     abstract fun maxDepth(): Int

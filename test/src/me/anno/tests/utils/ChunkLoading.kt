@@ -2,8 +2,6 @@ package me.anno.tests.utils
 
 import me.anno.maths.chunks.PlayerLocation
 import me.anno.maths.chunks.cartesian.SingleChunkSystem
-import me.anno.gpu.GFXState
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.white

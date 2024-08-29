@@ -40,14 +40,6 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-// entities would be an idea to make effects more modular
-// it could apply new effects to both the camera and image sources
-
-// done load from file whenever something changes;
-//  - other way around: when a file changes, update all nodes
-
-// done delta settings & control: only saves as values, what was changed from the prefab
-
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
@@ -153,7 +145,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         when (child) {
             is Component -> addComponent(index, child)
             is Entity -> addEntity(index, child)
-            else -> LOGGER.warn("Cannot add ${child.className} to Entity")
+            else -> LOGGER.warn("Cannot add {} to Entity", child.className)
         }
     }
 

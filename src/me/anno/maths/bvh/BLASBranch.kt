@@ -1,7 +1,6 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
-import me.anno.utils.types.Strings
 import org.joml.AABBf
 import org.joml.Vector3f
 
@@ -10,7 +9,7 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
     constructor(axis: Int, n0: BLASNode, n1: BLASNode) :
             this(axis, n0, n1, n0.bounds.union(n1.bounds, AABBf()))
 
-    val mask = 1 shl axis
+    val mask get() = 1 shl axis
 
     override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.blasCtr++
@@ -43,10 +42,16 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
         }
     }
 
-    override fun print(depth: Int) {
-        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $axis")
-        n0.print(depth + 1)
-        n1.print(depth + 2)
+    override fun findAnyHit(group: RayGroup) {
+        group.blasCtr++
+        if (group.intersects(bounds)) {
+            // put far bvh node on the stack, advance to near
+            val v = group.dir[axis] < 0f
+            val p0 = if (v) n1 else n0
+            val p1 = if (v) n0 else n1
+            p0.findAnyHit(group)
+            p1.findAnyHit(group)
+        }
     }
 
     override fun countNodes() = 1 + n0.countNodes() + n1.countNodes()

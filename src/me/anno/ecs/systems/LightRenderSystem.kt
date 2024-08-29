@@ -1,7 +1,6 @@
 package me.anno.ecs.systems
 
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
@@ -22,6 +21,13 @@ class LightRenderSystem() : System(), Renderable {
         when (component) {
             is LightComponent -> lights.add(component)
             is Skybox -> skyboxes.add(component)
+        }
+    }
+
+    override fun onDisable(component: Component) {
+        when (component) {
+            is LightComponent -> lights.remove(component)
+            is Skybox -> skyboxes.remove(component)
         }
     }
 

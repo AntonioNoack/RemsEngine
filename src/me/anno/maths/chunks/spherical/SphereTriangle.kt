@@ -1,6 +1,7 @@
 package me.anno.maths.chunks.spherical
 
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Recursion
 import me.anno.utils.types.Triangles.rayTriangleIntersect
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -203,12 +204,20 @@ class SphereTriangle(
     }
 
     fun forEach(maxLevels: Int, shallCheckChildren: (SphereTriangle) -> Boolean) {
+        Recursion.processRecursive(this) { item, remaining ->
+            item.forEachR(maxLevels, shallCheckChildren, remaining)
+        }
+    }
+
+    fun forEachR(
+        maxLevels: Int, shallCheckChildren: (SphereTriangle) -> Boolean,
+        remaining: ArrayList<SphereTriangle>
+    ) {
         if (shallCheckChildren(this) && level < maxLevels) {
-            ensureChildren()
-            childXX?.forEach(maxLevels, shallCheckChildren)
-            childAB?.forEach(maxLevels, shallCheckChildren)
-            childBC?.forEach(maxLevels, shallCheckChildren)
-            childCA?.forEach(maxLevels, shallCheckChildren)
+            remaining.add(childXX ?: return)
+            remaining.add(childAB ?: return)
+            remaining.add(childBC ?: return)
+            remaining.add(childCA ?: return)
         }
     }
 

@@ -1,6 +1,6 @@
 # Prefabs
 
-Prefabs are inspired by Unity:
+Prefabs are an editor-/save-system inspired by Unity:
 
 Each prefab is a file with:
 - root: what class it is itself (e.g., Entity, Component, ...), parent prefab (inheritance)

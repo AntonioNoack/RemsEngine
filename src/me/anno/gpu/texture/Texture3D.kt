@@ -19,6 +19,7 @@ import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.types.Booleans.toInt
@@ -91,7 +92,7 @@ open class Texture3D(
     private fun ensurePointer() {
         checkSession()
         if (pointer == 0) pointer = Texture2D.createTexture()
-        if (pointer == 0) throw RuntimeException("Could not generate texture")
+        assertNotEquals(0, pointer, "Could not generate texture")
         if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
             DebugGPUStorage.tex3d.add(this)
         }

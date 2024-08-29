@@ -3,6 +3,7 @@ package me.anno.maths.chunks.spherical
 import me.anno.maths.chunks.PlayerLocation
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector3d
 
@@ -140,10 +141,8 @@ open class SphericalHierarchy(
      * iterate over all loaded triangles of all LODs, e.g., to save them
      * */
     fun forEach(shallCheckChildren: (SphereTriangle) -> Boolean, maxLevels: Int) {
-        for (triangle in triangles) {
-            triangle.forEach(maxLevels, shallCheckChildren)
+        Recursion.processRecursive2(triangles) { item, remaining ->
+            item.forEachR(maxLevels, shallCheckChildren, remaining)
         }
     }
-
-
 }

@@ -53,7 +53,7 @@ class CubemapFramebuffer(
     override val height: Int get() = size
     override val numTextures: Int = targets.size
 
-    lateinit var textures: List<CubemapTexture>
+    var textures: List<CubemapTexture> = emptyList()
 
     var autoUpdateMipmaps = true
 
@@ -75,7 +75,7 @@ class CubemapFramebuffer(
     }
 
     override fun checkSession() {
-        if (pointer != 0 && session != GFXState.session) {
+        if (session != GFXState.session) {
             GFX.check()
             session = GFXState.session
             pointer = 0
@@ -86,8 +86,6 @@ class CubemapFramebuffer(
                 texture.checkSession()
             }
             GFX.check()
-            // validate it
-            create()
         }
     }
 

@@ -86,63 +86,63 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     fun unionRing(
         globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d,
-        axis: Int, r: Double, h: Double,
-        preferExact: Boolean
+        axis: Int, r: Double, h: Double, preferExact: Boolean
     ) {
         if (preferExact) {
             // approximate the circle as 8 points, and their outer circle
-            val r0 = INV_COSINE_22_5 * r
-            val r1 = SQRT1_2 * r0
+            val r1 = SQRT1_2 * r
             when (axis) {
                 0 -> {
-                    union(globalTransform, aabb, tmp, h, +r0, 0.0)
-                    union(globalTransform, aabb, tmp, h, -r0, 0.0)
+                    union(globalTransform, aabb, tmp, h, +r, 0.0)
+                    union(globalTransform, aabb, tmp, h, -r, 0.0)
                     union(globalTransform, aabb, tmp, h, 0.0, +r)
                     union(globalTransform, aabb, tmp, h, 0.0, -r)
-                    union(globalTransform, aabb, tmp, h, +r1, +r1)
-                    union(globalTransform, aabb, tmp, h, +r1, -r1)
-                    union(globalTransform, aabb, tmp, h, -r1, +r1)
-                    union(globalTransform, aabb, tmp, h, -r1, -r1)
                 }
                 1 -> {
-                    union(globalTransform, aabb, tmp, +r1, h, +r1)
-                    union(globalTransform, aabb, tmp, +r1, h, -r1)
-                    union(globalTransform, aabb, tmp, -r1, h, +r1)
-                    union(globalTransform, aabb, tmp, -r1, h, -r1)
+                    union(globalTransform, aabb, tmp, +r, h, 0.0)
+                    union(globalTransform, aabb, tmp, -r, h, 0.0)
+                    union(globalTransform, aabb, tmp, 0.0, h, +r)
+                    union(globalTransform, aabb, tmp, 0.0, h, -r)
                 }
                 2 -> {
-                    union(globalTransform, aabb, tmp, +r1, +r1, h)
-                    union(globalTransform, aabb, tmp, +r1, -r1, h)
-                    union(globalTransform, aabb, tmp, -r1, +r1, h)
-                    union(globalTransform, aabb, tmp, -r1, -r1, h)
+                    union(globalTransform, aabb, tmp, +r, 0.0, h)
+                    union(globalTransform, aabb, tmp, -r, 0.0, h)
+                    union(globalTransform, aabb, tmp, 0.0, +r, h)
+                    union(globalTransform, aabb, tmp, 0.0, -r, h)
                 }
             }
-        } else {
-            // approximate the circle as a quad
-            when (axis) {
-                0 -> {
-                    union(globalTransform, aabb, tmp, h, +r, +r)
-                    union(globalTransform, aabb, tmp, h, +r, -r)
-                    union(globalTransform, aabb, tmp, h, -r, +r)
-                    union(globalTransform, aabb, tmp, h, -r, -r)
-                }
-                1 -> {
-                    union(globalTransform, aabb, tmp, +r, h, +r)
-                    union(globalTransform, aabb, tmp, +r, h, -r)
-                    union(globalTransform, aabb, tmp, -r, h, +r)
-                    union(globalTransform, aabb, tmp, -r, h, -r)
-                }
-                2 -> {
-                    union(globalTransform, aabb, tmp, +r, +r, h)
-                    union(globalTransform, aabb, tmp, +r, -r, h)
-                    union(globalTransform, aabb, tmp, -r, +r, h)
-                    union(globalTransform, aabb, tmp, -r, -r, h)
-                }
+            unionRingQuad(globalTransform, aabb, tmp, axis, r1, h)
+        } else unionRingQuad(globalTransform, aabb, tmp, axis, r, h)
+    }
+
+    private fun unionRingQuad(
+        globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d,
+        axis: Int, r: Double, h: Double
+    ) {
+        // approximate the circle as a quad
+        when (axis) {
+            0 -> {
+                union(globalTransform, aabb, tmp, h, +r, +r)
+                union(globalTransform, aabb, tmp, h, +r, -r)
+                union(globalTransform, aabb, tmp, h, -r, +r)
+                union(globalTransform, aabb, tmp, h, -r, -r)
+            }
+            1 -> {
+                union(globalTransform, aabb, tmp, +r, h, +r)
+                union(globalTransform, aabb, tmp, +r, h, -r)
+                union(globalTransform, aabb, tmp, -r, h, +r)
+                union(globalTransform, aabb, tmp, -r, h, -r)
+            }
+            2 -> {
+                union(globalTransform, aabb, tmp, +r, +r, h)
+                union(globalTransform, aabb, tmp, +r, -r, h)
+                union(globalTransform, aabb, tmp, -r, +r, h)
+                union(globalTransform, aabb, tmp, -r, -r, h)
             }
         }
     }
 
-    open fun unionCube(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
+    fun unionCube(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
         // union the most typical layout: a sphere
         // 001,010,100,-001,-010,-100
         union(globalTransform, aabb, tmp, +hx, +hy, +hz)

@@ -208,9 +208,9 @@ open class MeshCollider() : Collider() {
     override fun drawShape() {
         val mesh = mesh ?: return
         val tr = meshTransform
+        val color = -1
         if (tr.isIdentity()) {
             mesh.forEachTriangle { a, b, c ->
-                val color = -1
                 drawLine(entity, a, b, color)
                 drawLine(entity, b, c, color)
                 drawLine(entity, c, a, color)
@@ -220,7 +220,6 @@ open class MeshCollider() : Collider() {
                 tr.transformPosition(a)
                 tr.transformPosition(b)
                 tr.transformPosition(c)
-                val color = -1
                 drawLine(entity, a, b, color)
                 drawLine(entity, b, c, color)
                 drawLine(entity, c, a, color)
@@ -230,12 +229,10 @@ open class MeshCollider() : Collider() {
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val mesh = mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
-        val mat = JomlPools.mat4x3d.borrow()
-        mat.set(globalTransform)
-        mat.mul(meshTransform)
+        val matrix = globalTransform.mul(meshTransform, JomlPools.mat4x3d.borrow())
         mesh.forEachPoint(preferExact) { x, y, z ->
             tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
-            mat.transformPosition(tmp)
+            matrix.transformPosition(tmp)
             aabb.union(tmp)
         }
     }
