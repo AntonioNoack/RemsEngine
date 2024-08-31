@@ -98,7 +98,7 @@ class SDFStar : SDF2DShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFStar
+        if (dst !is SDFStar) return
         dst.params.set(params)
     }
 

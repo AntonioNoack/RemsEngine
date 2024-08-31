@@ -18,7 +18,7 @@ class SphereCollider : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SphereCollider
+        if (dst !is SphereCollider) return
         dst.radius = radius
     }
 

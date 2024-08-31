@@ -327,7 +327,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AudioComponentBase
+        if (dst !is AudioComponentBase) return
         dst.playMode = playMode
         dst.volume = volume
         dst.speed = speed

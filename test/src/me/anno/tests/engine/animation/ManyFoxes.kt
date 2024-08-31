@@ -11,8 +11,7 @@ import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
-import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.TAU
@@ -86,10 +85,11 @@ fun optimizeEntity(entity: Entity): Entity {
  *
  * debug and improve performance, 40 fps is a little low
  * -> there was too many unused bone entities, now it's running at 130 fps
+ * -> after a few months, and a CPU upgrade, it's now running at 180 fps
  * */
 fun main() {
 
-    ECSRegistry.init()
+    OfficialExtensions.initForTests()
     registerCustomClass(FoxSpeedController())
 
     val scene = Entity()
@@ -108,8 +108,8 @@ fun main() {
         val radius = i * 2.0 + 1.0
         val count = min(round(radius * 3.0).toInt(), remainingFoxes)
         val ring = Entity("Ring $i", scene)
-        ring.add(object : Component(), Updatable {
-            override fun update(instances: Collection<Component>) {
+        ring.add(object : Component(), OnUpdate {
+            override fun onUpdate() {
                 val progress = dir * controller.localTime / radius
                 entity!!.setRotation(0.0, progress, 0.0)
             }

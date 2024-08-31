@@ -82,7 +82,7 @@ class SDFDoor : SDF2DShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFDoor
+        if (dst !is SDFDoor) return
         dst.params.set(params)
     }
 

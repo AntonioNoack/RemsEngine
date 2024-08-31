@@ -113,10 +113,4 @@ open class TextInputML(nameDesc: NameDesc, style: Style) : PanelContainer(
         copyInto(clone)
         return clone
     }
-
-    override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
-        dst as TextInputML
-        // ...
-    }
 }

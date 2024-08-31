@@ -216,7 +216,7 @@ class SDFArrayMapper : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFArrayMapper
+        if (dst !is SDFArrayMapper) return
         dst.dynamicX = dynamicX
         dst.dynamicY = dynamicY
         dst.dynamicZ = dynamicZ

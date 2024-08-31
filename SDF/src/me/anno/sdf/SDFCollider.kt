@@ -83,7 +83,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFCollider
+        if (dst !is SDFCollider) return
         dst.isConvex = isConvex
         dst.margin = margin
     }

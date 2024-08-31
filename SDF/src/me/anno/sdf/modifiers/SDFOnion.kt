@@ -99,7 +99,7 @@ class SDFOnion() : DistanceMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFOnion
+        if (dst !is SDFOnion) return
         dst.rings = rings
         dst.dynamicRings = dynamicRings
         dst.thickness = thickness

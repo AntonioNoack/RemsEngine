@@ -120,7 +120,7 @@ open class SDFHyperCube : SDFSmoothShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFHyperCube
+        if (dst !is SDFHyperCube) return
         dst.halfExtends = halfExtends
         dst.rotation4d = rotation4d
         dst.w = w

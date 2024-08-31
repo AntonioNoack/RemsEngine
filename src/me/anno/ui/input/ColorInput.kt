@@ -251,7 +251,7 @@ open class ColorInput(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ColorInput
+        if (dst !is ColorInput) return
         // only works, if there is no references
         dst.isSelectedListener = isSelectedListener
         dst.setResetListener(contentView.resetListener)

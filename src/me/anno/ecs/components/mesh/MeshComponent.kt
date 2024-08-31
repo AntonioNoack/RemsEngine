@@ -60,7 +60,7 @@ open class MeshComponent() : MeshComponentBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as MeshComponent
+        if (dst !is MeshComponent) return
         dst.meshFile = meshFile
     }
 }

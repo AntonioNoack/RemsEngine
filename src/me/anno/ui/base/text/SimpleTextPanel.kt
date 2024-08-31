@@ -88,7 +88,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SimpleTextPanel
+        if (dst !is SimpleTextPanel) return
         dst.text = text
         dst.textColor = textColor
         dst.focusTextColor = focusTextColor

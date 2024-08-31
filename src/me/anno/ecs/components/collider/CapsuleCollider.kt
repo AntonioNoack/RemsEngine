@@ -79,7 +79,7 @@ class CapsuleCollider : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CapsuleCollider
+        if (dst !is CapsuleCollider) return
         dst.axis = axis
         dst.halfHeight = halfHeight
         dst.radius = radius

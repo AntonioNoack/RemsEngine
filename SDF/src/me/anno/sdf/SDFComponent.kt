@@ -983,7 +983,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFComponent
+        if (dst !is SDFComponent) return
         dst.positionMappers.clear()
         dst.positionMappers.addAll(dst.positionMappers.map {
             val mapper = it.clone() as PositionMapper

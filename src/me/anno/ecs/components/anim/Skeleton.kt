@@ -121,7 +121,8 @@ class Skeleton : PrefabSaveable(), Renderable {
     }
 
     override fun copyInto(dst: PrefabSaveable) {
-        dst as Skeleton
+        super.copyInto(dst)
+        if (dst !is Skeleton) return
         dst.animations = HashMap(animations)
         dst.bones = ArrayList(bones)
     }

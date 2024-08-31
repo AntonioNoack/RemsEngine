@@ -126,7 +126,7 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AnimContainer
+        if (dst !is AnimContainer) return
         dst.speed = speed
         dst.animations.addAll(animations.map { it.clone() })
     }

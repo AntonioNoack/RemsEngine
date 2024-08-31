@@ -267,7 +267,7 @@ open class ColorChooser(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ColorChooser
+        if (dst !is ColorChooser) return
         dst.colorSpace = colorSpace
         dst.visualisation = visualisation
         dst.hue = hue

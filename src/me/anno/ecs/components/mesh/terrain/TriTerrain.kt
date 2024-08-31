@@ -310,7 +310,7 @@ class TriTerrain : Component(), CustomEditMode {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TriTerrain
+        if (dst !is TriTerrain) return
         // copy or clone the data?
         // todo copy everything
     }

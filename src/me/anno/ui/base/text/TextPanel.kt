@@ -340,7 +340,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TextPanel
+        if (dst !is TextPanel) return
         dst.instantTextLoading = instantTextLoading
         dst.padding = padding
         dst.text = text

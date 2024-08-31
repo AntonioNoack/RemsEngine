@@ -38,7 +38,7 @@ abstract class SDFSmoothShape : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFSmoothShape
+        if (dst !is SDFSmoothShape) return
         dst.smoothness = smoothness
         dst.dynamicSmoothness = dynamicSmoothness
     }

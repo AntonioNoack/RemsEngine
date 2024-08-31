@@ -8,8 +8,8 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
+import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
 import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
-import me.anno.ecs.components.mesh.MeshBufferUtils.updateMesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
@@ -200,12 +200,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     var ignoreStrayPointsInAABB = false
 
-    override fun clone(): PrefabSaveable {
-        val clone = Mesh()
-        copyInto(clone)
-        return clone
-    }
-
     fun unlink() {
         buffer = null
         triBuffer = null
@@ -218,7 +212,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Mesh
+        if (dst !is Mesh) return
         // ensureBuffer()
         // materials
         dst.materials = materials
@@ -397,9 +391,13 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction
     override fun ensureBuffer() {
         synchronized(this) {
-            if (needsMeshUpdate) updateMesh()
+            if (needsMeshUpdate) createMeshBuffer()
             if (GFX.isGFXThread()) buffer?.ensureBuffer()
         }
+    }
+
+    open fun createMeshBuffer() {
+        createMeshBufferImpl()
     }
 
     fun ensureNorTanUVs() {

@@ -54,7 +54,7 @@ abstract class SDFGroupArray : SDFGroup() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFGroupArray
+        if (dst !is SDFGroupArray) return
         dst.relativeOverlap.set(relativeOverlap)
     }
 

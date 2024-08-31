@@ -41,7 +41,7 @@ class CircleLight : LightComponent(LightType.CIRCLE) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CircleLight
+        if (dst !is CircleLight) return
         dst.radius = radius
     }
 

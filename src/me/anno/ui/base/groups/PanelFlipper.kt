@@ -204,7 +204,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PanelFlipper
+        if (dst !is PanelFlipper) return
         dst.transitionType = transitionType
         dst.useLeftMouseButton = useLeftMouseButton
         dst.useRightMouseButton = useRightMouseButton

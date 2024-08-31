@@ -150,7 +150,7 @@ open class Skybox : SkyboxBase(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Skybox
+        if (dst !is Skybox) return
         dst.sunRotation.set(sunRotation)
         dst.sunBaseDir.set(sunBaseDir)
         dst.cirrus = cirrus

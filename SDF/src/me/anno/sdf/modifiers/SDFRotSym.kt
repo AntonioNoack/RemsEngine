@@ -20,7 +20,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.atan2
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 class SDFRotSym : PositionMapper() {
 
@@ -112,7 +111,7 @@ class SDFRotSym : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFRotSym
+        if (dst !is SDFRotSym) return
         dst.rotation.set(rotation)
         dst.offset.set(offset)
         dst.slices = slices

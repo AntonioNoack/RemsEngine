@@ -79,7 +79,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Collider
+        if (dst !is Collider) return
         dst.roundness = roundness
         dst.hasPhysics = hasPhysics
     }

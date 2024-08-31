@@ -75,7 +75,7 @@ class SDFRandomTranslation : SDFRandom() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFRandomTranslation
+        if (dst !is SDFRandomTranslation) return
         dst.minTranslation = minTranslation
         dst.maxTranslation = maxTranslation
     }

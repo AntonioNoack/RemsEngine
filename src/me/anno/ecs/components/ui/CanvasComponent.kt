@@ -222,7 +222,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CanvasComponent
+        if (dst !is CanvasComponent) return
         dst.space = space
         dst.width = width
         dst.height = height

@@ -143,7 +143,7 @@ class SDFNoise : DistanceMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFNoise
+        if (dst !is SDFNoise) return
         dst.params.set(params)
         dst.amplitude = amplitude
         dst.frequency = frequency

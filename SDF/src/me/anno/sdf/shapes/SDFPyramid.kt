@@ -93,7 +93,7 @@ open class SDFPyramid : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFPyramid
+        if (dst !is SDFPyramid) return
         dst.params.set(params)
     }
 

@@ -119,7 +119,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SplineMesh
+        if (dst !is SplineMesh) return
         dst.isStrictlyUp = isStrictlyUp
         dst.pointsPerRadiant = pointsPerRadiant
         dst.piecewiseLinear = piecewiseLinear

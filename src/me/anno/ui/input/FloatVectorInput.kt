@@ -505,7 +505,7 @@ open class FloatVectorInput(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as FloatVectorInput
+        if (dst !is FloatVectorInput) return
         // only works if there are no hard references
         dst.changeListeners.clear()
         dst.changeListeners.addAll(changeListeners)

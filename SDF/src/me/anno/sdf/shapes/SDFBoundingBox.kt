@@ -85,7 +85,7 @@ open class SDFBoundingBox : SDFBox() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFBoundingBox
+        if (dst !is SDFBoundingBox) return
         dst.thickness = thickness
         dst.dynamicThickness = dynamicThickness
     }

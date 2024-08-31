@@ -30,6 +30,8 @@ object ShaderLib {
             "#endif\n"
 
     const val loadMat4x3 = "" +
+            "#ifndef LOAD_MAT4x3\n" +
+            "#define LOAD_MAT4x3\n" +
             "mat4x3 loadMat4x3(vec4 a, vec4 b, vec4 c){\n" +
             "   return mat4x3(\n" +
             "       a.xyz,\n" +
@@ -37,7 +39,8 @@ object ShaderLib {
             "       vec3(b.zw, c.x),\n" +
             "       c.yzw\n" +
             "   );\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     val y = Vector4f(0.299f, 0.587f, 0.114f, 0f)
     val u = Vector4f(-0.169f, -0.331f, 0.500f, 0.5f)

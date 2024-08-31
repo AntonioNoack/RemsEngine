@@ -192,7 +192,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PanelList2D
+        if (dst !is PanelList2D) return
         dst.childWidth = childWidth
         dst.childHeight = childHeight
         dst.scaleChildren = scaleChildren

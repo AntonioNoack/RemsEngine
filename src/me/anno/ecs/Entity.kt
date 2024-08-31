@@ -696,7 +696,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
      * */
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Entity
+        if (dst !is Entity) return
         // copy all properties
         dst.hasRenderables = hasRenderables
         dst.hasValidCollisionMask = hasValidCollisionMask

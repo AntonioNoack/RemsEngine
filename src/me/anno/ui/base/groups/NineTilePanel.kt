@@ -102,7 +102,7 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as NineTilePanel
+        if (dst !is NineTilePanel) return
         dst.children.clear()
         dst.children.addAll(children.map { it.clone() })
     }

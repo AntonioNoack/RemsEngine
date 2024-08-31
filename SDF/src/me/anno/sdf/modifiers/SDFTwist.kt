@@ -151,7 +151,7 @@ class SDFTwist : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFTwist
+        if (dst !is SDFTwist) return
         dst.sourceParams.set(sourceParams)
         dst.source.set(source)
         dst.center.set(center)

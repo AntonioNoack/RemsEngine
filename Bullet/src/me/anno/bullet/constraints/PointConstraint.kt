@@ -46,7 +46,7 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PointConstraint
+        if (dst !is PointConstraint) return
         dst.impulseClamp = impulseClamp
         dst.damping = damping
         dst.lerpingSpeed = lerpingSpeed

@@ -30,7 +30,7 @@ class AudioComponent : AudioComponentBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AudioComponent
+        if (dst !is AudioComponent) return
         dst.source = source
         dst.keepInMemory = keepInMemory
     }

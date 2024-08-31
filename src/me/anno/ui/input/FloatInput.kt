@@ -191,7 +191,7 @@ open class FloatInput(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as FloatInput
+        if (dst !is FloatInput) return
         // only works without hard references
         dst.changeListener = changeListener
         dst.allowInfinity = allowInfinity

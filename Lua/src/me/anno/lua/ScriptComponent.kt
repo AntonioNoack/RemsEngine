@@ -62,7 +62,7 @@ open class ScriptComponent : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ScriptComponent
+        if (dst !is ScriptComponent) return
         dst.source = source
     }
 

@@ -70,7 +70,7 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as GenericConstraint
+        if (dst !is GenericConstraint) return
         dst.linearLimitsAreInASpaceNotBSpace = linearLimitsAreInASpaceNotBSpace
         dst.lowerLimit.set(lowerLimit)
         dst.upperLimit.set(upperLimit)

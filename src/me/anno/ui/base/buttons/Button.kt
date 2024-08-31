@@ -54,7 +54,7 @@ open class Button(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Button
+        if (dst !is Button) return
         dst.isSquare = isSquare
     }
 }

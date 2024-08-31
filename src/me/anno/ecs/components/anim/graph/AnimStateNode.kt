@@ -125,7 +125,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AnimStateNode
+        if (dst !is AnimStateNode) return
         dst.progress = progress
     }
 

@@ -48,7 +48,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AutoTileableMaterial
+        if (dst !is AutoTileableMaterial) return
         dst.anisotropic = anisotropic
     }
 }

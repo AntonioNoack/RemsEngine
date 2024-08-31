@@ -86,7 +86,7 @@ open class LookAtComponent : Component(), OnBeforeDraw {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as LookAtComponent
+        if (dst !is LookAtComponent) return
         dst.minSize = minSize
         dst.maxSize = maxSize
         dst.maxSizeDistance = maxSizeDistance

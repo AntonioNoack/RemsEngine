@@ -99,7 +99,7 @@ open class SDFHexPrism : SDFSmoothShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFHexPrism
+        if (dst !is SDFHexPrism) return
         dst.params.set(params)
     }
 

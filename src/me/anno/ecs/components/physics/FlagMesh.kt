@@ -165,7 +165,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as FlagMesh
+        if (dst !is FlagMesh) return
         dst.useCustomMesh = useCustomMesh
         dst.dt = dt
         dst.time = time

@@ -63,7 +63,7 @@ open class ImageButton(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ImageButton
+        if (dst !is ImageButton) return
         dst.path = path
         dst.padding = padding
         dst.size = size

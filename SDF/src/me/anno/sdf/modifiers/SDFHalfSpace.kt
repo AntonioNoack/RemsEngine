@@ -114,7 +114,7 @@ class SDFHalfSpace : DistanceMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFHalfSpace
+        if (dst !is SDFHalfSpace) return
         dst.smoothness = smoothness
         dst.dynamicSmoothness = dynamicSmoothness
         dst.plane = plane

@@ -51,7 +51,7 @@ class RaycastTestComponent : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as RaycastTestComponent
+        if (dst !is RaycastTestComponent) return
         dst.colliderMask = colliderMask
         dst.maxDistance = maxDistance
     }

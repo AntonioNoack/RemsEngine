@@ -43,7 +43,7 @@ class BoxCollider : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as BoxCollider
+        if (dst !is BoxCollider) return
         dst.halfExtends.set(halfExtends)
     }
 

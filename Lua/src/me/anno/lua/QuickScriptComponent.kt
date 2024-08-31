@@ -44,7 +44,7 @@ open class QuickScriptComponent : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as QuickScriptComponent
+        if (dst !is QuickScriptComponent) return
         dst.createScript = createScript
         dst.updateScript = updateScript
         dst.destroyScript = destroyScript

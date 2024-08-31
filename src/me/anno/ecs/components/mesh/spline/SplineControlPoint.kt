@@ -33,7 +33,7 @@ class SplineControlPoint : Component() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SplineControlPoint
+        if (dst !is SplineControlPoint) return
         dst.profile = profile
         dst.width = width
         dst.height = height

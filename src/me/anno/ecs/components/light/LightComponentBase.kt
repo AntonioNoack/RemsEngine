@@ -43,7 +43,7 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as LightComponentBase
+        if (dst !is LightComponentBase) return
         dst.ditherMode = ditherMode
         dst.autoUpdate = autoUpdate
         dst.needsUpdate1 = needsUpdate1

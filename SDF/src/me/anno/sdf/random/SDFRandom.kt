@@ -107,7 +107,7 @@ abstract class SDFRandom : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFRandom
+        if (dst !is SDFRandom) return
         dst.dynamic = dynamic
         dst.appliedPortion = appliedPortion
         dst.seedXOR = seedXOR

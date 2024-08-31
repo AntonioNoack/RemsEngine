@@ -20,7 +20,7 @@ open class IconPanel(var internalPath: FileReference, style: Style) : ImagePanel
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as IconPanel
+        if (dst !is IconPanel) return
         dst.internalPath = internalPath
     }
 }

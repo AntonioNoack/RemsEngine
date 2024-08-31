@@ -166,7 +166,7 @@ open class IntInput(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as IntInput
+        if (dst !is IntInput) return
         // only works if there are no hard references
         dst.changeListener = changeListener
         dst.savedDelta = savedDelta // ^^

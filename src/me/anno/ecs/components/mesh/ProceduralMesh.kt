@@ -63,7 +63,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ProceduralMesh
+        if (dst !is ProceduralMesh) return
         dst.needsMeshUpdate = dst.needsMeshUpdate || needsMeshUpdate
         dst.materials = materials
     }

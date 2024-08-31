@@ -72,7 +72,7 @@ class SDFTorus : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFTorus
+        if (dst !is SDFTorus) return
         dst.params.set(params)
     }
 

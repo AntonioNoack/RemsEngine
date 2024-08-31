@@ -93,7 +93,7 @@ open class SDFDeathStar : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFDeathStar
+        if (dst !is SDFDeathStar) return
         dst.params.set(params)
     }
 

@@ -28,7 +28,7 @@ open class SpacerPanel(var sizeX: Int, var sizeY: Int, style: Style) :
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SpacerPanel
+        if (dst !is SpacerPanel) return
         dst.sizeX = sizeX
         dst.sizeY = sizeY
     }

@@ -218,7 +218,7 @@ class NavMesh : Component(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as NavMesh
+        if (dst !is NavMesh) return
         dst.agentHeight = agentHeight
         dst.agentRadius = agentRadius
         dst.agentMaxClimb = agentMaxClimb

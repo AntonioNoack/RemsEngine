@@ -92,7 +92,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SkyboxBase
+        if (dst !is SkyboxBase) return
         dst.shader = shader
         dst.skyColor.set(skyColor)
         dst.worldRotation.set(worldRotation)

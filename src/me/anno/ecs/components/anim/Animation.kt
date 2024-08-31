@@ -192,7 +192,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Animation
+        if (dst !is Animation) return
         dst.skeleton = skeleton
         dst.duration = duration
     }

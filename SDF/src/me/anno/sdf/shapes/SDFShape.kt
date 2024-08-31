@@ -34,7 +34,7 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFShape
+        if (dst !is SDFShape) return
         dst.dynamicSize = dynamicSize
         dst.materialId = materialId
     }

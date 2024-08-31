@@ -151,7 +151,7 @@ class SDFBezierCurve : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFBezierCurve
+        if (dst !is SDFBezierCurve) return
         val points = points
         dst.points = createArrayList(points.size) { Vector4f(points[it]) }
     }

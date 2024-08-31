@@ -77,7 +77,7 @@ open class SDFCylinder : SDFSmoothShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFCylinder
+        if (dst !is SDFCylinder) return
         dst.params.set(params)
     }
 

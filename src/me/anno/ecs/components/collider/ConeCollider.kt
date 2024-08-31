@@ -76,7 +76,7 @@ class ConeCollider : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ConeCollider
+        if (dst !is ConeCollider) return
         dst.axis = axis
         dst.height = height
         dst.radius = radius

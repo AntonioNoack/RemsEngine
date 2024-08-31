@@ -39,7 +39,7 @@ class ConvexCollider : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ConvexCollider
+        if (dst !is ConvexCollider) return
         dst.points = points
     }
 }

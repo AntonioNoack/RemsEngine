@@ -47,7 +47,7 @@ open class Texture3DBTv2Material : Material() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Texture3DBTv2Material
+        if (dst !is Texture3DBTv2Material) return
         dst.size.set(size)
         dst.useSDF = useSDF
         // texture cannot be simply copied

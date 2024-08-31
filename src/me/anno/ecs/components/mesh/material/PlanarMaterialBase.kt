@@ -63,7 +63,7 @@ open class PlanarMaterialBase : Material() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PlanarMaterialBase
+        if (dst !is PlanarMaterialBase) return
         dst.worldPosCenter.set(worldPosCenter)
         dst.scale.set(scale)
         dst.tilingDir.set(tilingDir)

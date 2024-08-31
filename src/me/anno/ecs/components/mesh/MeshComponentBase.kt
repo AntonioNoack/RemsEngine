@@ -171,7 +171,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as MeshComponentBase
+        if (dst !is MeshComponentBase) return
         dst.materials = materials
         dst.castShadows = castShadows
         dst.receiveShadows = receiveShadows

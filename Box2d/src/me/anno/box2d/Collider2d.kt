@@ -51,7 +51,7 @@ abstract class Collider2d : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Collider2d
+        if (dst !is Collider2d) return
         dst.density = density
         dst.friction = friction
         dst.restitution = restitution

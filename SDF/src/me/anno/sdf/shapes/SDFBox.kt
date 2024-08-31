@@ -79,7 +79,7 @@ open class SDFBox : SDFSmoothShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFBox
+        if (dst !is SDFBox) return
         dst.halfExtends.set(halfExtends)
     }
 

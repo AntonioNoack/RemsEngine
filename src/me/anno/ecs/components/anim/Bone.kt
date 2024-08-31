@@ -96,7 +96,7 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Bone
+        if (dst !is Bone) return
         dst.id = id
         dst.parentId = parentId
         dst.inverseBindPose.set(inverseBindPose)

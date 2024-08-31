@@ -283,7 +283,7 @@ open class IntVectorInput(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as IntVectorInput
+        if (dst !is IntVectorInput) return
         // only works if there are no hard references
         dst.changeListeners.clear()
         dst.changeListeners.addAll(changeListeners)

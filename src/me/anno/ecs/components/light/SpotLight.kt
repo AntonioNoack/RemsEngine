@@ -88,7 +88,7 @@ class SpotLight : LightComponent(LightType.SPOT) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SpotLight
+        if (dst !is SpotLight) return
         dst.coneAngle = coneAngle
         dst.near = near
     }

@@ -116,7 +116,7 @@ class LuaAnimTextPanel(text: String, var animation: String, style: Style) : Anim
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as LuaAnimTextPanel
+        if (dst !is LuaAnimTextPanel) return
         dst.animation = animation
     }
 }

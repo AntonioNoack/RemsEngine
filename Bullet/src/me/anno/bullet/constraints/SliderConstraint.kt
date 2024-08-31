@@ -188,7 +188,7 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SliderConstraint
+        if (dst !is SliderConstraint) return
         dst.lowerLimit = lowerLimit
         dst.upperLimit = upperLimit
         dst.lowerAngleLimit = lowerAngleLimit

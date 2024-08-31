@@ -62,7 +62,7 @@ open class Texture3DBTMaterial : Material() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Texture3DBTMaterial
+        if (dst !is Texture3DBTMaterial) return
         dst.color0.set(color0)
         dst.color1.set(color1)
         dst.size.set(size)

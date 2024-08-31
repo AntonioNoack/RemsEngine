@@ -53,7 +53,7 @@ open class SDFEllipsoid : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFEllipsoid
+        if (dst !is SDFEllipsoid) return
         dst.halfAxes = halfAxes
     }
 

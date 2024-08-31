@@ -52,7 +52,7 @@ class RectCollider : Collider2d() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as RectCollider
+        if (dst !is RectCollider) return
         dst.halfExtends.set(halfExtends)
     }
 }

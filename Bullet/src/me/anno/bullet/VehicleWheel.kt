@@ -158,7 +158,7 @@ class VehicleWheel : Component(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as VehicleWheel
+        if (dst !is VehicleWheel) return
         dst.radius = radius
         dst.brakeForce = brakeForce
         dst.engineForce = engineForce

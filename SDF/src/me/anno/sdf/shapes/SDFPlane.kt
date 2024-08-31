@@ -73,7 +73,7 @@ open class SDFPlane : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFPlane
+        if (dst !is SDFPlane) return
         dst.axis = axis
     }
 }

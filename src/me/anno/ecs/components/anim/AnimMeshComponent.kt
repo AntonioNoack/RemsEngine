@@ -365,7 +365,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AnimMeshComponent
+        if (dst !is AnimMeshComponent) return
         dst.skeleton = skeleton
         dst.animations = animations.map { it.clone() }
         dst.useDefaultAnimation = useDefaultAnimation

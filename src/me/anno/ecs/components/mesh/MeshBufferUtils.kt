@@ -52,9 +52,36 @@ object MeshBufferUtils {
         }
     }
 
-    fun Mesh.updateMesh() {
+    fun addColorAttributes(
+        attributes: ArrayList<Attribute>,
+        hasColor0: Boolean, hasColor1: Boolean, hasColor2: Boolean, hasColor3: Boolean
+    ) {
+        if (hasColor0) attributes += Attribute("colors0", AttributeType.UINT8_NORM, 4)
+        if (hasColor1) attributes += Attribute("colors1", AttributeType.UINT8_NORM, 4)
+        if (hasColor2) attributes += Attribute("colors2", AttributeType.UINT8_NORM, 4)
+        if (hasColor3) attributes += Attribute("colors3", AttributeType.UINT8_NORM, 4)
+    }
 
-        getBounds()
+    fun addUVAttributes(attributes: ArrayList<Attribute>) {
+        attributes += Attribute("uvs", 2)
+        attributes += Attribute("tangents", AttributeType.SINT8_NORM, 4)
+    }
+
+    fun addBoneAttributes(attributes: ArrayList<Attribute>) {
+        attributes += Attribute("boneWeights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
+        attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS, true)
+    }
+
+    fun addNormalAttribute(attributes: ArrayList<Attribute>, hasHighPrecisionNormals: Boolean) {
+        attributes += if (hasHighPrecisionNormals) {
+            Attribute("normals", AttributeType.FLOAT, 3)
+        } else {
+            // todo normals could be oct-encoded
+            Attribute("normals", AttributeType.SINT8_NORM, 4)
+        }
+    }
+
+    fun Mesh.createMeshBufferImpl() {
 
         needsMeshUpdate = false
 
@@ -91,31 +118,12 @@ object MeshBufferUtils {
 
         val hasHighPrecisionNormals = hasHighPrecisionNormals
 
-        val attributes = arrayListOf(
-            Attribute("coords", 3),
-        )
-
-        attributes += if (hasHighPrecisionNormals) {
-            Attribute("normals", AttributeType.FLOAT, 3)
-        } else {
-            // todo normals could be oct-encoded
-            Attribute("normals", AttributeType.SINT8_NORM, 4)
-        }
-
-        if (hasUVs) {
-            attributes += Attribute("uvs", 2)
-            attributes += Attribute("tangents", AttributeType.SINT8_NORM, 4)
-        }
-
-        if (hasColor0) attributes += Attribute("colors0", AttributeType.UINT8_NORM, 4)
-        if (hasColor1) attributes += Attribute("colors1", AttributeType.UINT8_NORM, 4)
-        if (hasColor2) attributes += Attribute("colors2", AttributeType.UINT8_NORM, 4)
-        if (hasColor3) attributes += Attribute("colors3", AttributeType.UINT8_NORM, 4)
-
-        if (hasBones) {
-            attributes += Attribute("boneWeights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
-            attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS, true)
-        }
+        val attributes = ArrayList<Attribute>()
+        attributes += Attribute("coords", 3)
+        addNormalAttribute(attributes, hasHighPrecisionNormals)
+        if (hasUVs) addUVAttributes(attributes)
+        addColorAttributes(attributes, hasColor0, hasColor1, hasColor2, hasColor3)
+        if (hasBones) addBoneAttributes(attributes)
 
         val name = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }
         val buffer = replaceBuffer(name, attributes, vertexCount, buffer)
@@ -155,13 +163,16 @@ object MeshBufferUtils {
         updateHelperMeshes()
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
+        defineLineIndices(buffer)
 
+        invalidDebugLines = true
+    }
+
+    fun Mesh.defineLineIndices(buffer: StaticBuffer) {
         // find regular lines
         lineIndices = lineIndices ?: FindLines.findLines(this, indices, positions)
         lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
         lineBuffer?.drawMode = DrawMode.LINES
-
-        invalidDebugLines = true
     }
 
     fun putPosition(buffer: StaticBuffer, positions: FloatArray, i3: Int) {
@@ -211,7 +222,7 @@ object MeshBufferUtils {
         } else buffer.putInt(-1)
     }
 
-    private fun putBoneWeights(buffer: StaticBuffer, boneWeights: FloatArray?, i4: Int) {
+    fun putBoneWeights(buffer: StaticBuffer, boneWeights: FloatArray?, i4: Int) {
         if (boneWeights != null && i4 + 3 < boneWeights.size) {
             val w0 = max(boneWeights[i4], 1e-5f)
             val w1 = boneWeights[i4 + 1]
@@ -234,7 +245,7 @@ object MeshBufferUtils {
         }
     }
 
-    private fun putBoneIndices(buffer: StaticBuffer, boneIndices: ByteArray?, i4: Int) {
+    fun putBoneIndices(buffer: StaticBuffer, boneIndices: ByteArray?, i4: Int) {
         if (boneIndices != null && i4 + 3 < boneIndices.size) {
             buffer.putByte(boneIndices[i4])
             buffer.putByte(boneIndices[i4 + 1])

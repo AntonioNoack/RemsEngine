@@ -316,7 +316,7 @@ open class SDFMesh : SDFSmoothShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFMesh
+        if (dst !is SDFMesh) return
         dst.meshFile = meshFile
     }
 

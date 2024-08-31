@@ -109,7 +109,7 @@ class BooleanInput(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as BooleanInput
+        if (dst !is BooleanInput) return
         dst.titleView?.text = titleView?.text ?: ""
         // only works, if there is no references
         dst.isSelectedListener = isSelectedListener

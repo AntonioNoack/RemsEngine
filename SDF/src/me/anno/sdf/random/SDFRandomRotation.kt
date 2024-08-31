@@ -102,7 +102,7 @@ class SDFRandomRotation : SDFRandom() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFRandomRotation
+        if (dst !is SDFRandomRotation) return
         dst.minAngleDegrees = minAngleDegrees
         dst.maxAngleDegrees = maxAngleDegrees
     }

@@ -109,7 +109,7 @@ class Rigidbody2d : Component() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Rigidbody2d
+        if (dst !is Rigidbody2d) return
         dst.gravityScale = gravityScale
         dst.linearDamping = linearDamping
         dst.linearVelocity.set(linearVelocity)

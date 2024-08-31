@@ -57,7 +57,7 @@ open class ColorPalette(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ColorPalette
+        if (dst !is ColorPalette) return
         // !! this can be incorrect, if the function references this special instance
         dst.onColorSelected = onColorSelected
     }

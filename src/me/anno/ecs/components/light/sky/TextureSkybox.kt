@@ -23,7 +23,7 @@ abstract class TextureSkybox : SkyboxBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TextureSkybox
+        if (dst !is TextureSkybox) return
         dst.imageFile = imageFile
         dst.applyInverseTonemapping = applyInverseTonemapping
     }

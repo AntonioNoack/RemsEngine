@@ -123,7 +123,7 @@ class ColorField(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ColorField
+        if (dst !is ColorField) return
         dst.color = color
         // only works if there are no references inside
         dst.changeListener = changeListener

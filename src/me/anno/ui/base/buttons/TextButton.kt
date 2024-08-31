@@ -194,7 +194,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TextButton
+        if (dst !is TextButton) return
         dst.aspectRatio = aspectRatio
     }
 }

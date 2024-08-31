@@ -96,7 +96,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PanelList
+        if (dst !is PanelList) return
         dst.padding.set(padding)
         dst.spacing = spacing
         dst.allChildrenHaveSameSize = allChildrenHaveSameSize

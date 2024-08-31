@@ -56,7 +56,7 @@ class ImportedAnimation : Animation() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ImportedAnimation
+        if (dst !is ImportedAnimation) return
         dst.frames = frames // deep copy?
     }
 

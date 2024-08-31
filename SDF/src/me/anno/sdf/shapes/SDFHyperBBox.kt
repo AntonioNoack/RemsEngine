@@ -101,7 +101,7 @@ class SDFHyperBBox : SDFHyperCube() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFHyperBBox
+        if (dst !is SDFHyperBBox) return
         dst.thickness = thickness
         dst.dynamicThickness = dynamicThickness
     }

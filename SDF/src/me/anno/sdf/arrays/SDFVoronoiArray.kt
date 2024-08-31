@@ -372,7 +372,7 @@ class SDFVoronoiArray : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFVoronoiArray
+        if (dst !is SDFVoronoiArray) return
         dst.enableX = enableX
         dst.enableY = enableY
         dst.enableZ = enableZ

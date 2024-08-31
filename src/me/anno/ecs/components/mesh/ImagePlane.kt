@@ -121,7 +121,7 @@ class ImagePlane() : ProceduralMesh(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ImagePlane
+        if (dst !is ImagePlane) return
         dst.async = async
         dst.source = source
         dst.alignmentX = alignmentX

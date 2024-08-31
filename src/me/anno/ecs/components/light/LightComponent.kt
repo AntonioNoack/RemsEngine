@@ -256,7 +256,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as LightComponent
+        if (dst !is LightComponent) return
         dst.shadowMapCascades = shadowMapCascades
         dst.shadowMapPower = shadowMapPower
         dst.shadowMapResolution = shadowMapResolution

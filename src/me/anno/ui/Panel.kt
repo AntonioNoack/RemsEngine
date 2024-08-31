@@ -762,7 +762,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Panel
+        if (dst !is Panel) return
         dst.x = x
         dst.y = y
         dst.width = width

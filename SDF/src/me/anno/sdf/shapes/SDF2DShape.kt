@@ -190,7 +190,7 @@ abstract class SDF2DShape : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDF2DShape
+        if (dst !is SDF2DShape) return
         dst.axes = axes
         dst.rotary = rotary
     }

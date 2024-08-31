@@ -227,7 +227,7 @@ abstract class Node() : PrefabSaveable() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Node
+        if (dst !is Node) return
         dst.position.set(position)
         dst.layer = layer
         dst.graph = graph

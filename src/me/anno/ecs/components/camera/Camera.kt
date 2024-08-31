@@ -120,7 +120,7 @@ class Camera : Component(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Camera
+        if (dst !is Camera) return
         dst.isPerspective = isPerspective
         dst.near = near
         dst.far = far

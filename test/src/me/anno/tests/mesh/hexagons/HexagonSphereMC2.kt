@@ -9,6 +9,9 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.flatNormalsFragment
+import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.flatNormalsNorTan
+import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.noColors
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ECSRegistry
 import me.anno.engine.Events.addEvent
@@ -199,32 +202,10 @@ val hexVertexData = MeshVertexData(
             ), "localPosition = coords;\n"
         )
     ),
-    listOf(
-        ShaderStage(
-            "hex-nor", listOf(
-                Variable(GLSLType.V3F, "normal", VariableMode.OUT),
-                Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
-            ), "normal = vec3(0.0); tangent = vec4(0.0);\n"
-        )
-    ),
-    listOf(
-        ShaderStage(
-            "hex-col", listOf(
-                Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
-                Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT),
-            ), "vertexColor0 = colors0;\n"
-        )
-    ),
+    listOf(flatNormalsNorTan),
+    listOf(noColors),
     MeshVertexData.DEFAULT.loadMotionVec,
-    listOf(
-        // calculate normals using cross product
-        ShaderStage(
-            "hex-px-nor", listOf(
-                Variable(GLSLType.V3F, "finalPosition"),
-                Variable(GLSLType.V3F, "normal", VariableMode.OUT)
-            ), "normal = normalize(cross(dFdx(finalPosition), dFdy(finalPosition)));\n"
-        )
-    ),
+    listOf(flatNormalsFragment),
 )
 
 // todo why is this still lagging soo much? shouldn't it be smooth???

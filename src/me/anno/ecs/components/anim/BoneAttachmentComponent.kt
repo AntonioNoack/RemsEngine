@@ -65,7 +65,7 @@ class BoneAttachmentComponent() : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as BoneAttachmentComponent
+        if (dst !is BoneAttachmentComponent) return
         dst.boneName = boneName
         dst.bone = bone
         dst.animMeshComponent = getInClone(animMeshComponent, dst)

@@ -113,7 +113,7 @@ open class SDFRoundCone : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFRoundCone
+        if (dst !is SDFRoundCone) return
         dst.params.set(params)
         dst.helpers.set(helpers)
     }

@@ -85,7 +85,7 @@ open class SDFCone : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFCone
+        if (dst !is SDFCone) return
         dst.params.set(params)
     }
 

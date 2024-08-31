@@ -251,7 +251,7 @@ class BoneByBoneAnimation() : Animation() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as BoneByBoneAnimation
+        if (dst !is BoneByBoneAnimation) return
         dst.boneCount = boneCount
         dst.frameCount = frameCount
         dst.translations = translations

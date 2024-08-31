@@ -90,7 +90,7 @@ open class SDFTriangle : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFTriangle
+        if (dst !is SDFTriangle) return
         dst.a.set(a)
         dst.b.set(b)
         dst.c.set(c)

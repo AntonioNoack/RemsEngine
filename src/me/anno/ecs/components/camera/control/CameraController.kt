@@ -75,7 +75,7 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CameraController
+        if (dst !is CameraController) return
         dst.camera = getInClone(camera, dst)
     }
 

@@ -239,7 +239,7 @@ open class MeshCollider() : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as MeshCollider
+        if (dst !is MeshCollider) return
         dst.meshFile = meshFile
         dst.isConvex = isConvex
         dst.margin = margin

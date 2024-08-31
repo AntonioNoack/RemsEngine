@@ -128,7 +128,7 @@ class SDFHexGrid : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFHexGrid
+        if (dst !is SDFHexGrid) return
         dst.cellSize = cellSize
         dst.dynamicSize = dynamicSize
     }

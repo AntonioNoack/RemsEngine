@@ -81,7 +81,7 @@ class CylinderCollider : Collider() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CylinderCollider
+        if (dst !is CylinderCollider) return
         dst.axis = axis
         dst.halfHeight = halfHeight
         dst.radius = radius

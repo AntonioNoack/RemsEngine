@@ -92,7 +92,7 @@ class SDFRandomScale : SDFRandom() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFRandomScale
+        if (dst !is SDFRandomScale) return
         dst.minScale = minScale
         dst.maxScale = maxScale
     }

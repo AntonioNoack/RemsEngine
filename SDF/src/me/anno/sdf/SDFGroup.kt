@@ -566,7 +566,7 @@ open class SDFGroup : SDFComponent() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFGroup
+        if (dst !is SDFGroup) return
         dst.smoothness = smoothness
         dst.progress = progress
         dst.combinationMode = combinationMode

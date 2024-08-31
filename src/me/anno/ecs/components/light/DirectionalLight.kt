@@ -96,7 +96,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as DirectionalLight
+        if (dst !is DirectionalLight) return
         dst.cutoff = cutoff
     }
 

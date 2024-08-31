@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.DefaultAssets
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.Color.black
@@ -20,7 +21,7 @@ import org.apache.logging.log4j.LogManager
  * It copies the skeletal animation being played onto our entity (phone).
  * */
 fun main() {
-
+    OfficialExtensions.initForTests()
     val scene = Entity("Scene")
 
     // this mesh, including animation is from Mixamo

@@ -36,7 +36,7 @@ class EnumValuePanel(nameDesc: NameDesc, private var owner: EnumInput, style: St
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as EnumValuePanel
+        if (dst !is EnumValuePanel) return
         dst.text = text
         dst.owner = getInClone(owner, dst) ?: owner
     }

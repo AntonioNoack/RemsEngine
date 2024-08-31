@@ -83,7 +83,7 @@ class AnimController : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AnimController
+        if (dst !is AnimController) return
         dst.graphSource = graphSource
     }
 }

@@ -321,7 +321,7 @@ open class Material : PrefabSaveable(), Renderable {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Material
+        if (dst !is Material) return
         dst.diffuseBase.set(diffuseBase)
         dst.diffuseMap = diffuseMap
         dst.emissiveBase.set(emissiveBase)

@@ -34,7 +34,7 @@ class CircleCollider : Collider2d() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CircleCollider
+        if (dst !is CircleCollider) return
         dst.radius = radius
     }
 }

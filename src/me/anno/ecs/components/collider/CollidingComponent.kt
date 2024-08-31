@@ -34,7 +34,7 @@ abstract class CollidingComponent : Component() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as CollidingComponent
+        if (dst !is CollidingComponent) return
         dst.collisionMask = collisionMask
     }
 }

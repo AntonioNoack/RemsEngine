@@ -86,7 +86,7 @@ open class SDFCapsule : SDFShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFCapsule
+        if (dst !is SDFCapsule) return
         dst.p0 = p0
         dst.p1 = p1
         dst.radius = radius

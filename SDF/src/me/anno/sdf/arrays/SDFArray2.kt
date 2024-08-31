@@ -179,7 +179,7 @@ class SDFArray2 : SDFGroupArray() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFArray2
+        if (dst !is SDFArray2) return
         dst.dynamic = dynamic
         dst.mirrorX = mirrorX
         dst.mirrorY = mirrorY

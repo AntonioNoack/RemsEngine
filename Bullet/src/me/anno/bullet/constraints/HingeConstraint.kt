@@ -110,7 +110,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as HingeConstraint
+        if (dst !is HingeConstraint) return
         dst.lowerLimit = lowerLimit
         dst.upperLimit = upperLimit
         dst.limitSoftness = limitSoftness

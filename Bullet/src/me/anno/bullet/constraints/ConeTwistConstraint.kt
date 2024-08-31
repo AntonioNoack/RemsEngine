@@ -70,7 +70,7 @@ class ConeTwistConstraint : Constraint<com.bulletphysics.dynamics.constraintsolv
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ConeTwistConstraint
+        if (dst !is ConeTwistConstraint) return
         dst.angleX = angleX
         dst.angleY = angleY
         dst.angularOnly = angularOnly

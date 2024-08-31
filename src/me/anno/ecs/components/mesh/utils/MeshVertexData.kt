@@ -70,5 +70,37 @@ class MeshVertexData(
             ),
             emptyList() // nothing to clean up
         )
+
+        // calculate normals using cross product
+        val flatNormalsNorTan = ShaderStage(
+            "flat-nor", listOf(
+                Variable(GLSLType.V3F, "normal", VariableMode.OUT),
+                Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
+            ), "normal = vec3(0.0); tangent = vec4(0.0);\n"
+        )
+
+        val flatNormalsFragment = ShaderStage(
+            "flat-px-nor", listOf(
+                Variable(GLSLType.V3F, "finalPosition"),
+                Variable(GLSLType.V3F, "normal", VariableMode.OUT)
+            ), "normal = normalize(cross(dFdx(finalPosition), dFdy(finalPosition)));\n"
+            // todo calculate tangent??? how??
+        )
+
+        val noColors = ShaderStage(
+            "no-col", listOf(
+                Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT),
+                Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT),
+                Variable(GLSLType.V4F, "vertexColor2", VariableMode.OUT),
+                Variable(GLSLType.V4F, "vertexColor3", VariableMode.OUT),
+                Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "uv", VariableMode.OUT),
+            ), "" +
+                    "vertexColor0 = vec4(1.0);\n" +
+                    "vertexColor1 = vec4(1.0);\n" +
+                    "vertexColor2 = vec4(1.0);\n" +
+                    "vertexColor3 = vec4(1.0);\n" +
+                    "uv = uvs;\n"
+        )
     }
 }

@@ -254,7 +254,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PlanarReflection
+        if (dst !is PlanarReflection) return
         dst.samples = samples
         dst.usesFP = usesFP
         dst.bothSided = bothSided

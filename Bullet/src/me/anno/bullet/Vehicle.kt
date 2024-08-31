@@ -33,7 +33,7 @@ class Vehicle : Rigidbody() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Vehicle
+        if (dst !is Vehicle) return
         dst.suspensionDamping = suspensionDamping
         dst.suspensionStiffness = suspensionStiffness
         dst.suspensionCompression = suspensionCompression

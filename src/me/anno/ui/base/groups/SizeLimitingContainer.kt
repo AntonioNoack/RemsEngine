@@ -21,7 +21,7 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SizeLimitingContainer
+        if (dst !is SizeLimitingContainer) return
         dst.sizeX = sizeX
         dst.sizeY = sizeY
     }

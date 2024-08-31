@@ -144,7 +144,7 @@ class SDFStretcher() : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFStretcher
+        if (dst !is SDFStretcher) return
         dst.dynamicExtends = dynamicExtends
         dst.halfExtends = halfExtends
         dst.accurateInsides = accurateInsides

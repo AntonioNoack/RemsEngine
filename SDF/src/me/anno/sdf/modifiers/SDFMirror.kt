@@ -121,7 +121,7 @@ class SDFMirror() : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFMirror
+        if (dst !is SDFMirror) return
         dst.plane = plane
         dst.dynamicPlane = dynamicPlane
         dst.useBranch = useBranch

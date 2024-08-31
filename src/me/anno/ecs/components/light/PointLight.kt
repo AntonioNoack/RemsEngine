@@ -117,7 +117,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PointLight
+        if (dst !is PointLight) return
         dst.lightSize = lightSize
         dst.near = near
     }

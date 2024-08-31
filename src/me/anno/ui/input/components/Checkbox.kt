@@ -144,7 +144,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Checkbox
+        if (dst !is Checkbox) return
         dst.value = value
         // !! can be incorrect, if there is references within the listener
         dst.resetListener = resetListener

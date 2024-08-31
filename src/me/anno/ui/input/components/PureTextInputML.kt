@@ -822,7 +822,7 @@ open class PureTextInputML(style: Style) :
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as PureTextInputML
+        if (dst !is PureTextInputML) return
         dst.text = text
         dst.cursor1.set(cursor1)
         dst.cursor2.set(cursor2)

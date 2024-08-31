@@ -105,7 +105,7 @@ open class QuickInputScriptComponent : QuickScriptComponent(), InputListener {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as QuickInputScriptComponent
+        if (dst !is QuickInputScriptComponent) return
         dst.actionScript = actionScript
         dst.charTypedScript = charTypedScript
         dst.keyDownScript = keyDownScript

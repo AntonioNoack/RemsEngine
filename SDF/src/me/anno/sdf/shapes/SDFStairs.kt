@@ -120,7 +120,7 @@ class SDFStairs : SDF2DShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFStairs
+        if (dst !is SDFStairs) return
         dst.params.set(params)
     }
 

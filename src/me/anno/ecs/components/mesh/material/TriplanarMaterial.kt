@@ -30,7 +30,7 @@ class TriplanarMaterial : Material() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TriplanarMaterial
+        if (dst !is TriplanarMaterial) return
         dst.sharpness = sharpness
         dst.blendPreferY = blendPreferY
         dst.primaryTiling.set(primaryTiling)

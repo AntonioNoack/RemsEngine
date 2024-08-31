@@ -140,7 +140,7 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TextInput
+        if (dst !is TextInput) return
         dst.base.placeholder = base.placeholder
         dst.base.backgroundColor = base.backgroundColor
     }

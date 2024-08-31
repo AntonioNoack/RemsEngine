@@ -35,7 +35,7 @@ open class Player : Component() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Player
+        if (dst !is Player) return
         cameraState.copyInto(dst.cameraState)
         dst.sessionInfo.clear()
         dst.sessionInfo.putAll(sessionInfo)

@@ -49,7 +49,7 @@ class RectangleLight : LightComponent(LightType.RECTANGLE) {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as RectangleLight
+        if (dst !is RectangleLight) return
         dst.width = width
         dst.height = height
     }

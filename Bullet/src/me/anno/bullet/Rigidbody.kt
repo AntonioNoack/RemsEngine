@@ -441,7 +441,7 @@ open class Rigidbody : Component(), OnDrawGUI {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Rigidbody
+        if (dst !is Rigidbody) return
         dst.centerOfMass = centerOfMass
         dst.activeByDefault = activeByDefault
         dst.angularDamping = angularDamping

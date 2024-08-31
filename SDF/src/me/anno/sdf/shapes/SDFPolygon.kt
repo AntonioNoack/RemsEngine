@@ -74,7 +74,7 @@ class SDFPolygon : SDF2DShape() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFPolygon
+        if (dst !is SDFPolygon) return
         dst.points = points
     }
 

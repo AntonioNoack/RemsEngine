@@ -76,7 +76,7 @@ class LODMeshComponent() : MeshComponentBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as LODMeshComponent
+        if (dst !is LODMeshComponent) return
         dst.lod1Dist = lod1Dist
         dst.meshes = meshes // clone the list?
     }

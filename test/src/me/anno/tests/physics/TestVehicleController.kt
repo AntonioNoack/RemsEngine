@@ -63,7 +63,7 @@ class TestVehicleController : Component(), InputListener, OnPhysicsUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as TestVehicleController
+        if (dst !is TestVehicleController) return
         dst.accelerationStrength = accelerationStrength
         dst.steeringStrength = steeringStrength
         dst.brake = brake
