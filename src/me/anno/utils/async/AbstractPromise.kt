@@ -2,7 +2,7 @@ package me.anno.utils.async
 
 import me.anno.cache.IgnoredException
 
-open class AbstractPromise<V> {
+open class AbstractPromise<V : Any> {
 
     var value: V? = null
         private set
@@ -41,36 +41,51 @@ open class AbstractPromise<V> {
         }
     }
 
-    fun <W> then(map: (V) -> W): AbstractPromise<W> {
+    fun <W : Any> then(onSuccess: (V) -> W): AbstractPromise<W> {
         ensureLoading()
         // not needed on all calls, BUT this is rarely called, so it shouldn't matter
         val result = AbstractPromise<W>()
         val callImmediately = synchronized(this) {
             val afterThis = callbacks
-            afterThis?.add { _, _ -> thenMapIt(result, map) }
+            afterThis?.add { _, _ -> thenMapIt(result, onSuccess) }
             afterThis == null
         }
         if (callImmediately) {
-            thenMapIt(result, map)
+            thenMapIt(result, onSuccess)
         }
         return result
     }
 
-    fun <W : Any> catch(map: (Exception?) -> Unit): AbstractPromise<V> {
+    fun <W : Any> thenAsync(onSuccess: (V, Callback<W>) -> Unit): AbstractPromise<W> {
+        ensureLoading()
+        // not needed on all calls, BUT this is rarely called, so it shouldn't matter
+        val result = AbstractPromise<W>()
+        val callImmediately = synchronized(this) {
+            val afterThis = callbacks
+            afterThis?.add { _, _ -> thenMapIt(result, onSuccess) }
+            afterThis == null
+        }
+        if (callImmediately) {
+            thenMapIt(result, onSuccess)
+        }
+        return result
+    }
+
+    fun catch(onError: (Exception?) -> Unit): AbstractPromise<V> {
         ensureLoading()
         // not needed on all calls, BUT this is rarely called, so it shouldn't matter
         val callImmediately = synchronized(this) {
             val afterThis = callbacks
-            afterThis?.add { _, _ -> map(error) }
+            afterThis?.add { _, _ -> if (value == null) onError(error) }
             afterThis == null
         }
-        if (callImmediately) {
-            map(error)
+        if (callImmediately && value == null) {
+            onError(error)
         }
         return this
     }
 
-    private fun <W> thenMapIt(result: AbstractPromise<W>, map: (V) -> W) {
+    private fun <W : Any> thenMapIt(result: AbstractPromise<W>, map: (V) -> W) {
         val value = value
         val newValue = if (value != null) {
             // we need to catch errors when mapping
@@ -85,5 +100,18 @@ open class AbstractPromise<V> {
         } else null
         result.setValue(newValue, error)
         return
+    }
+
+    private fun <W : Any> thenMapIt(result: AbstractPromise<W>, map: (V, Callback<W>) -> Unit) {
+        val value = value
+        if (value != null) {
+            // we need to catch errors when mapping
+            try {
+                map(value, result::setValue)
+            } catch (ignored: IgnoredException) {
+            } catch (err: Exception) {
+                result.setValue(null, err)
+            }
+        }
     }
 }
