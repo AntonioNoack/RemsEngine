@@ -1,4 +1,4 @@
-package me.anno.tests.bugs.done
+package me.anno.bugs.done
 
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.Reference.getReference

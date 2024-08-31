@@ -33,7 +33,6 @@ import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
@@ -47,6 +46,7 @@ import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
@@ -281,37 +281,38 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
         var newGizmoMask = 0
         val pos = JomlPools.vec3d.create()
-        for (selected0 in EditorState.selection) {
-            var selected: PrefabSaveable? = selected0 as? PrefabSaveable
-            while (selected != null && (selected !is Entity && selected !is DCMovable)) {
-                selected = selected.parent
+        val scale = renderView.radius * 0.15
+        val cam = renderView.cameraMatrix
+        val pip = renderView.pipeline
+        for (selected in instancesToTransform) {
+            // todo like Unity allow more gizmos than that?
+            getGlobalPosition(selected, pos) ?: continue
+            val mask = when (mode) {
+                Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(pip, cam, pos, scale, 0, chosenId, md)
+                Mode.ROTATING -> Gizmos.drawRotateGizmos(pip, cam, pos, scale, 0, chosenId, md)
+                Mode.SCALING -> Gizmos.drawScaleGizmos(pip, cam, pos, scale, 0, chosenId, md)
+                Mode.NOTHING -> 0
             }
-            val transform = when (selected) {
-                is Entity -> selected.transform.globalTransform
-                is DCMovable -> selected.getGlobalTransform(Matrix4x3d())
-                else -> null
-            }
-            if (transform != null) {
-                // todo like Unity allow more gizmos than that?
-                val scale = renderView.radius * 0.15
-                transform.getTranslation(pos)
-                val cam = renderView.cameraMatrix
-                val pip = renderView.pipeline
-                val mask = when (mode) {
-                    Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(pip, cam, pos, scale, 0, chosenId, md)
-                    Mode.ROTATING -> Gizmos.drawRotateGizmos(pip, cam, pos, scale, 0, chosenId, md)
-                    Mode.SCALING -> Gizmos.drawScaleGizmos(pip, cam, pos, scale, 0, chosenId, md)
-                    Mode.NOTHING -> 0
-                }
-                if (mask != 0 && Input.mouseKeysDown.isEmpty()) {
-                    newGizmoMask = mask
-                }
+            if (mask != 0 && Input.mouseKeysDown.isEmpty()) {
+                newGizmoMask = mask
             }
         }
         if (Input.mouseKeysDown.isEmpty()) {
             gizmoMask = newGizmoMask
         }
         JomlPools.vec3d.sub(1)
+    }
+
+    private fun getTransformMatrix(selected: Any?): Matrix4x3d? {
+        return when (selected) {
+            is Entity -> selected.transform.globalTransform
+            is DCMovable -> selected.getGlobalTransform(Matrix4x3d())
+            else -> null
+        }
+    }
+
+    private fun getGlobalPosition(selected: Any?, dst: Vector3d): Vector3d? {
+        return getTransformMatrix(selected)?.getTranslation(dst)
     }
 
     open fun resetCamera() {
@@ -417,8 +418,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                  **/
                 // for that transform dx,dy into global space,
                 // and then update the local space
-                val fovYRadians = renderView.editorCamera.fovY.toRadians()
-                val speed = tan(fovYRadians * 0.5) / height
+                val speed = pixelsToWorldFactor
                 val camTransform = camera.transform!!.globalTransform
                 val offset = JomlPools.vec3d.create()
                 offset.set(dx * speed, -dy * speed, 0.0)
@@ -433,14 +433,36 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
-                val dir = renderView.getMouseRayDirection()
-                val rx = (x - (this.x + this.width * 0.5)) // [-w/2,+w/2]
-                val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
-                val rotationAngle = PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
+                val instances = instancesToTransform
+                val dir = renderView.getRelativeMouseRayDirection(0.0, 0.0)
+                val rotationAngle = if (mode == Mode.ROTATING) {
+                    val pos = Vector3d()
+                    val globalPosition = instances
+                        .mapFirstNotNull { getGlobalPosition(it, pos) }
+
+                    val speed1 = 5.0 * PI
+                    speed1 * if (globalPosition != null) {
+                        // project global position onto screen
+                        val cameraPosition = globalPosition
+                            .sub(renderView.cameraPosition)
+                            .mulProject(renderView.cameraMatrix)
+
+                        val mrx = (x - this.x) / this.width * 2.0 - 1.0
+                        val mry = (y - this.y) / this.height * 2.0 - 1.0
+
+                        val rx = mrx - cameraPosition.x
+                        val ry = mry + cameraPosition.y // cam.y is flipped
+                        (rx * dy - ry * dx) / height
+                    } else {
+                        // use center of screen
+                        val rx = (x - (this.x + this.width * 0.5)) // [-w/2,+w/2]
+                        val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
+                        (rx * dy - ry * dx) / (height * height)
+                    }
+                } else 0.0
 
                 // for correct transformation when parent and child are selected together
                 val tmp = Vector3d()
-                val instances = instancesToTransform
                 for (i in instances.indices) {
                     when (val inst = instances[i]) {
                         is Entity -> {
@@ -449,12 +471,14 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                                 Mode.TRANSLATING -> transformPosition(transform, camTransform, offset, i, tmp)
                                 Mode.ROTATING -> transformRotation(transform, rotationAngle, dir, gizmoMask)
                                 Mode.SCALING -> transformScale(transform, (dx - dy).toDouble(), offset)
-                                else -> throw NotImplementedError()
+                                else -> return
                             }
                             transform.teleportUpdate()
                             onChangeTransform(inst)
                         }
-                        is DCMovable -> inst.move(this, camTransform, offset, dir, rotationAngle, dx, dy)
+                        is DCMovable -> {
+                            inst.move(this, camTransform, offset, dir, rotationAngle, dx, dy)
+                        }
                     }
                 }
                 JomlPools.vec3d.sub(1)
@@ -464,14 +488,11 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     val instancesToTransform: List<Any>
         get() {
-            val targets2 = selectedMovables
-            val targets3 = selectedEntities + targets2
+            val targets3 = selectedEntities + selectedMovables
             // remove all targets of which there is a parent selected
             return targets3.filter { target ->
                 val loh = (target as? Hierarchical<*>)?.listOfHierarchy?.toHashSet() ?: emptySet()
-                targets3.none2 {
-                    it !== target && it in loh
-                }
+                targets3.none2 { it !== target && it in loh }
             }
         }
 
@@ -501,41 +522,41 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
     }
 
+    // todo re-test snapping
+    private fun snapRotate(transform: Transform, rotationAngle: Double, dir: Vector3d, axis: Int) {
+        transform.localRotation = transform.localRotation
+            .toEulerAnglesDegrees()
+            .apply {
+                this[axis] += rotationAngle * sign(dir[axis]).toDegrees()
+                snappingSettings.snapRotation(this, snapRotRem, 1 shl axis)
+            }.toQuaternionDegrees()
+    }
+
     fun transformRotation(transform: Transform, rotationAngle: Double, dir: Vector3d, gizmoMask: Int) {
-        // todo rotate rotating gizmo
-        //  y by parent
-        //  x by parent + y
-        //  z by parent + y + x
+        val snap = snappingSettings.snapR != 0.0
         when (gizmoMask) {
-            1 -> transform.localRotation = transform.localRotation
-                .toEulerAnglesDegrees()
-                .apply {
-                    this.x += rotationAngle * sign(dir.x).toDegrees()
-                    snappingSettings.snapRotation(this, snapRotRem, 1)
-                }.toQuaternionDegrees()
-            2 -> transform.localRotation = transform.localRotation
-                .toEulerAnglesDegrees()
-                .apply {
-                    this.y += rotationAngle * sign(dir.y).toDegrees()
-                    snappingSettings.snapRotation(this, snapRotRem, 2)
-                }.toQuaternionDegrees()
-            4 -> transform.localRotation = transform.localRotation
-                .toEulerAnglesDegrees()
-                .apply {
-                    this.z += rotationAngle * sign(dir.z).toDegrees()
-                    snappingSettings.snapRotation(this, snapRotRem, 4)
-                }.toQuaternionDegrees()
+            1 -> if (snap) snapRotate(transform, rotationAngle, dir, 0)
+            else transform.globalRotation = transform.globalRotation.rotateLocalX(rotationAngle * sign(dir.x))
+            2 -> if (snap) snapRotate(transform, rotationAngle, dir, 1)
+            else transform.globalRotation = transform.globalRotation.rotateLocalY(rotationAngle * sign(dir.y))
+            4 -> if (snap) snapRotate(transform, rotationAngle, dir, 2)
+            else transform.globalRotation = transform.globalRotation.rotateLocalZ(rotationAngle * sign(dir.z))
             else -> {
-                val global = transform.globalRotation
-                val tmpQ = JomlPools.quat4d.create()
-                tmpQ.fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
-                global.mul(tmpQ, tmpQ)
-                val tmpR = tmpQ.toEulerAnglesDegrees()
-                snappingSettings.snapRotation(tmpR, snapRotRem)
-                tmpR.toQuaternionDegrees(tmpQ)
-                transform.globalRotation = tmpQ
-                JomlPools.quat4d.sub(1)
-                transform.validate()
+                if (snap) {
+                    val global = transform.globalRotation
+                    val tmpQ = JomlPools.quat4d.create()
+                    tmpQ.fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
+                    global.mul(tmpQ, tmpQ)
+                    val tmpR = tmpQ.toEulerAnglesDegrees()
+                    snappingSettings.snapRotation(tmpR, snapRotRem)
+                    tmpR.toQuaternionDegrees(tmpQ)
+                    transform.globalRotation = tmpQ
+                    JomlPools.quat4d.sub(1)
+                } else {
+                    transform.globalRotation = Quaterniond()
+                        .rotateAxis(rotationAngle, dir)
+                        .mul(transform.globalRotation)
+                }
             }
         }
     }

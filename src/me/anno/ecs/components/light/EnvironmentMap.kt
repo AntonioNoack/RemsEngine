@@ -138,7 +138,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
                     pipeline.clear()
                     pipeline.frustum.definePerspective(
                         near / worldScale, far / worldScale, deg90.toDouble(),
-                        resolution, resolution, 1.0,
+                        resolution, 1.0,
                         position, camRotInv // needs to be the inverse again
                     )
                     pipeline.applyToneMapping = false

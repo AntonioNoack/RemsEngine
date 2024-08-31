@@ -22,8 +22,7 @@ fun imageTest(frustum: Frustum) {
     val h = 256
 
     frustum.definePerspective(
-        0.001, 100.0, (20.0).toRadians(), w, h, 1.0,
-        Vector3d(0.0, 0.0, 0.0),
+        0.001, 100.0, (20.0).toRadians(), h, 1.0, Vector3d(0.0, 0.0, 0.0),
         Quaterniond().rotateX(0.3)
     )
 

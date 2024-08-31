@@ -601,8 +601,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         if (isPerspective) {
             pipeline.frustum.definePerspective(
                 near, far, fovYRadians.toDouble(),
-                width, height, aspectRatio.toDouble(),
-                cameraPosition, cameraRotation,
+                height, aspectRatio.toDouble(), cameraPosition,
+                cameraRotation,
             )
         } else {
             pipeline.frustum.defineOrthographic(

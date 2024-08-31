@@ -608,7 +608,6 @@ object GFX {
             GL46C.GL_OUT_OF_MEMORY -> "out of memory"
             GL46C.GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
             GL46C.GL_CONTEXT_LOST -> "context lost"
-            ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"
@@ -616,6 +615,7 @@ object GFX {
             GL46C.GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
             GL46C.GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
+            ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
             else -> getName(error)
         }
     }

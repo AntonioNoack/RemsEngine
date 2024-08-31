@@ -69,8 +69,8 @@ class SpotLight : LightComponent(LightType.SPOT) {
         setPerspective2(dstCameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
         dstCameraMatrix.rotate(Quaternionf(cameraRotation).invert())
         pipeline.frustum.definePerspective(
-            near / worldScale, far / worldScale, fovYRadians, resolution, resolution,
-            1.0, dstCameraPosition, cameraRotation
+            near / worldScale, far / worldScale, fovYRadians, resolution, 1.0,
+            dstCameraPosition, cameraRotation
         )
         // required for SDF shapes
         RenderState.fovXRadians = fovYRadians.toFloat()

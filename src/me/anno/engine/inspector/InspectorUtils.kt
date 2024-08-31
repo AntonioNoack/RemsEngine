@@ -207,8 +207,7 @@ object InspectorUtils {
                     ga.compareTo(gb).ifSame(pa.order.compareTo(pb.order))
                 }) {
 
-                val name = property.name
-                LOGGER.info("Showing property $name for class ${clazz.simpleName}")
+                // LOGGER.info("Showing property ${property.name} for class ${clazz.simpleName}")
 
                 val group = property.group ?: ""
                 if (group != lastGroup) {

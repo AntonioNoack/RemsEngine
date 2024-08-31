@@ -1,4 +1,4 @@
-package me.anno.tests.bugs.done
+package me.anno.bugs.done
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight

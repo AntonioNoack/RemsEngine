@@ -103,8 +103,8 @@ class PointLight : LightComponent(LightType.POINT) {
 
                         pipeline.clear()
                         pipeline.frustum.definePerspective(
-                            near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
-                            position, cameraRotation
+                            near / worldScale, far / worldScale, deg90, resolution, 1.0, position,
+                            cameraRotation
                         )
                         pipeline.fill(root)
                         pipeline.singlePassWithoutSky(false)

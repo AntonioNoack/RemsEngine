@@ -64,6 +64,11 @@ open class SDFGroup : SDFComponent() {
         } else super.addChildByType(index, type, child)
     }
 
+    fun add(child: SDFComponent): SDFGroup {
+        addChild(child)
+        return this
+    }
+
     override fun removeChild(child: PrefabSaveable) {
         if (child is SDFComponent) children.remove(child)
         invalidateShader()

@@ -266,9 +266,9 @@ object EngineActions {
         register["FileExplorer.f.typed.c", "OpenSearchBar"]
 
         register["TreeView.delete.typed", "Delete"]
-        register["SceneView.r.typed", "SetMode(MOVE)"]
-        register["SceneView.t.typed", "SetMode(ROTATE)"]
-        register["SceneView.y.typed", "SetMode(SCALE)"]
-        register["SceneView.z.typed", "SetMode(SCALE)"]
+        register["DraggingControls.r.typed", "SetMode(MOVE)"]
+        register["DraggingControls.t.typed", "SetMode(ROTATE)"]
+        register["DraggingControls.y.typed", "SetMode(SCALE)"]
+        register["DraggingControls.z.typed", "SetMode(SCALE)"]
     }
 }

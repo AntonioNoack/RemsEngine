@@ -6,12 +6,14 @@ import me.anno.sdf.SDFGroup
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 
+/**
+ * check, that Gizmos are present, and usable for SDF shapes
+ * */
 fun main() {
-    // check, that Gizmos are present, and usable for SDF shapes
     val group = SDFGroup()
-    group.addChild(SDFSphere())
-    group.addChild(SDFBox())
-    val entity = Entity()
-    entity.add(group)
-    testSceneWithUI("SDF Gizmos", entity)
+        .add(SDFSphere())
+        .add(SDFBox())
+    val scene = Entity("Scene")
+        .add(group)
+    testSceneWithUI("SDF Gizmos", scene)
 }

@@ -50,6 +50,7 @@ import kotlin.math.PI
 import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.tan
 
 // todo touch controls
 
@@ -81,6 +82,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     val dirZ = Vector3d()
     private val rotQuad = Quaterniond()
     private val velocity = Vector3d()
+
+    // todo this only works correctly like that in orthographic mode
+    val pixelsToWorldFactor get() = 2.0 * tan(renderView.fovYRadians * 0.5) / height
 
     /**
      * add extra meshes like gizmos, and draggables into the scene

@@ -25,14 +25,16 @@ object InputVisibility {
     }
 
     fun show(visibilityKey: String, panel: Panel?) {
-        visible.add(visibilityKey)
-        panel?.invalidateLayout()
-        LOGGER.info("Showing {}", visibilityKey)
+        if (visible.add(visibilityKey)) {
+            panel?.invalidateLayout()
+            LOGGER.info("Showing {}", visibilityKey)
+        }
     }
 
     fun hide(visibilityKey: String, panel: Panel?) {
-        visible.remove(visibilityKey)
-        panel?.invalidateLayout()
-        LOGGER.info("Hiding {}", visibilityKey)
+        if (visible.remove(visibilityKey)) {
+            panel?.invalidateLayout()
+            LOGGER.info("Hiding {}", visibilityKey)
+        }
     }
 }

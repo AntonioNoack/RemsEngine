@@ -194,7 +194,6 @@ class Frustum {
         near: Double,
         far: Double,
         fovYRadians: Double,
-        width: Int,
         height: Int,
         aspectRatio: Double,
         cameraPosition: Vector3d,
@@ -205,7 +204,7 @@ class Frustum {
         // pixelSize shall be minObjectSizePixels
         // objectSize = pixelSize * 2.0 / (max(width, height) * projMatFOVFactor)
         // val projMatFOVFactor = 1.0 / tan(fovYRadians * 0.5)
-        val objectSizeThreshold = minObjectSizePixels * 2.0 * tan(fovYRadians * 0.5) / max(width, height)
+        val objectSizeThreshold = minObjectSizePixels * 2.0 * tan(fovYRadians * 0.5) / height
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
         // calculate all planes

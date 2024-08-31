@@ -3,13 +3,15 @@ package me.anno.io.saveable
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.Graph
-import me.anno.io.saveable.Saveable.Companion.IRegistryEntry
 import me.anno.io.files.ReadLineIterator
+import me.anno.io.saveable.Saveable.Companion.IRegistryEntry
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
 import me.anno.utils.OS.res
+import org.apache.logging.log4j.LogManager
 
 object SaveableRegistry {
+    private val LOGGER = LogManager.getLogger(SaveableRegistry::class)
     private val styleClass = Style::class.java
     private val saveableClass = Saveable::class.java
 
@@ -23,14 +25,20 @@ object SaveableRegistry {
         }
 
         private val constructor by lazy {
-            clazz.constructors.first {
+            clazz.constructors.firstOrNull {
                 (it.parameterCount == 0) || (it.parameterCount == 1 && it.parameters[0].type == styleClass)
             }
         }
 
         private fun newInstance(): Saveable {
-            return (if (constructor.parameterCount == 0) constructor.newInstance()
-            else constructor.newInstance(style)) as? Saveable ?: Saveable()
+            val constructor = constructor
+            return if (constructor == null) {
+                LOGGER.warn("Missing usable constructor for $classPath")
+                UnknownSaveable()
+            } else {
+                (if (constructor.parameterCount == 0) constructor.newInstance()
+                else constructor.newInstance(style)) as? Saveable ?: Saveable()
+            }
         }
 
         override val sampleInstance: Saveable by lazy {

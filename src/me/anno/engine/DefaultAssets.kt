@@ -12,8 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.mesh.Shapes.flatCube
-import me.anno.mesh.Shapes.smoothCube
+import me.anno.mesh.Shapes
 import me.anno.utils.OS.res
 
 /**
@@ -24,6 +23,8 @@ object DefaultAssets {
 
     val assets = HashMap<String, HashSet<FileReference>>()
 
+    val flatCube = Shapes.flatCube.front
+    val smoothCube = Shapes.smoothCube.front
     val cylinderY11 = CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())
     val uvSphere = UVSphereModel.createUVSphere(40, 20)
     val icoSphere = IcosahedronModel.createIcosphere(3)
@@ -38,8 +39,8 @@ object DefaultAssets {
     }
 
     private fun registerMeshes() {
-        register("meshes/Cube.json", "Mesh", flatCube.front.ref)
-        register("meshes/SmoothCube.json", "Mesh", smoothCube.front.ref)
+        register("meshes/Cube.json", "Mesh", flatCube.ref)
+        register("meshes/SmoothCube.json", "Mesh", smoothCube.ref)
         register("meshes/CylinderY.json", "Mesh", cylinderY11.ref)
         register("meshes/UVSphere.json", "Mesh", uvSphere.ref)
         register("meshes/IcoSphere.json", "Mesh", icoSphere.ref)

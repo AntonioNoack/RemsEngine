@@ -28,7 +28,6 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix3d
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -135,8 +134,8 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             // todo why is this not working?
             // todo can we define the frustum from our matrix?
             pipeline.frustum.definePerspective(
-                near, far, RenderState.fovYRadians.toDouble(), w, h, w.toDouble() / h.toDouble(),
-                reflectedCameraPosition, reflectedCameraRotation
+                near, far, RenderState.fovYRadians.toDouble(), h, w.toDouble() / h.toDouble(), reflectedCameraPosition,
+                reflectedCameraRotation
             )
         } else {
             pipeline.frustum.setToEverything(reflectedCameraPosition, ci.cameraRotation)
