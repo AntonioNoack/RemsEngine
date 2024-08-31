@@ -189,10 +189,6 @@ class RenderMode private constructor(
                 .then(GizmoNode())
         }
 
-        // todo bug: shadows are broken when forward rendering?
-        // todo bug: weird edge when rendering with forward MSAA - probably for all glass objects
-        // todo forward shall look exactly as deferred except for geometry-hitting SSR...
-        //  I think the only last component missing is that SSR doubles reflections...
         val FORWARD = RenderMode("Forward", defineForwardPipeline(QuickPipeline()).finish())
         val MSAA_FORWARD = RenderMode(
             "MSAA Forward",

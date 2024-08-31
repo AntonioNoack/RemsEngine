@@ -56,7 +56,7 @@ class Texture constructor(
         val Texture?.isZWMapping get() = this?.mapping == "zw"
 
         val Texture?.texOrNull get() = if (this != null && tex.isCreated()) tex else null
-        val Texture?.texMSOrNull get() = if (this != null && texMS.isCreated()) texMS else null
+        val Texture?.texMSOrNull get() = if (this != null && texMS.isCreated()) texMS else texOrNull
 
         val Texture?.mask
             get() = singleToVector[this?.mapping] ?: singleToVectorR

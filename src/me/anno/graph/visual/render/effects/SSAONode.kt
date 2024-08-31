@@ -9,7 +9,7 @@ import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
-import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
@@ -45,9 +45,9 @@ class SSAONode : TimedRenderingNode(
 
         val normal = getInput(6) as? Texture ?: return fail()
         val normalZW = normal.isZWMapping
-        val normalT = normal.texOrNull ?: normalTexture
+        val normalT = normal.texMSOrNull ?: normalTexture
         val depthT = (getInput(7) as? Texture) ?: return fail()
-        val depthTT = depthT.texOrNull ?: return fail()
+        val depthTT = depthT.texMSOrNull ?: return fail()
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix

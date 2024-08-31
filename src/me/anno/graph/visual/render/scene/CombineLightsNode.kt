@@ -46,6 +46,7 @@ class CombineLightsNode : RenderViewNode(
         "Vector3f", "Light",
         "Vector3f", "Diffuse",
         "Vector3f", "Emissive",
+        "Float", "Reflectivity",
         "Float", "Occlusion",
         "Float", "Ambient Occlusion",
     ), listOf("Texture", "Illuminated")
@@ -75,12 +76,13 @@ class CombineLightsNode : RenderViewNode(
             val shader: Shader
 
             init {
-                val sizes = intArrayOf(3, 3, 3, 1, 1)
+                val sizes = intArrayOf(3, 3, 3, 1, 1, 1)
                 val names = listOf(
                     DeferredLayerType.LIGHT_SUM.glslName,
                     DeferredLayerType.COLOR.glslName,
                     DeferredLayerType.EMISSIVE.glslName,
                     DeferredLayerType.OCCLUSION.glslName,
+                    DeferredLayerType.REFLECTIVITY.glslName,
                     "ambientOcclusion"
                 )
                 assertTrue(builder.isEmpty())

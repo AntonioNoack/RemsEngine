@@ -137,8 +137,8 @@ object ScreenSpaceAmbientOcclusion {
                     ShaderLib.octNormalPacking +
                     "void main(){\n" +
                     (if (multisampling) "" +
-                            "   vec2 texSizeI = vec2(textureSize(finalDepth));\n" +
-                            "   #define getPixel(tex,uv) texelFetch(tex,ivec2(clamp(uv,vec2(0.0),vec2(0.99999))*texSizeI),0)\n"
+                            "   ivec2 texSizeI = textureSize(finalDepth);\n" +
+                            "   #define getPixel(tex,uv) texelFetch(tex,clamp(ivec2(uv*vec2(texSizeI)),ivec2(0),texSizeI-1),0)\n"
                     else "#define getPixel(tex,uv) textureLod(tex,uv,0.0)\n") +
                     "   float depth0 = getPixel(finalDepth, uv).$depthMask;\n" +
                     "   vec3 origin = rawDepthToPosition(uv, depth0);\n" +
@@ -298,9 +298,9 @@ object ScreenSpaceAmbientOcclusion {
         val dst = FBStack["ssao-1st", fw, fh, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
-            val msaa = (depth is Texture2D && depth.samples > 1)
+            val msaa = depth.samples > 1
             val roughnessMask = ssgi?.roughnessMask ?: 0
-            val base = msaa.toInt() + isSSGI.toInt(2) + roughnessMask.shl(2)
+            val base = (msaa.toInt() + isSSGI.toInt(2) + roughnessMask).shl(3)
             val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
             shader.use()
             DepthTransforms.bindDepthUniforms(shader)

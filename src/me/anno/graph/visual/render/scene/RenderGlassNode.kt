@@ -14,6 +14,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.clamp
 
@@ -69,9 +70,10 @@ class RenderGlassNode : RenderViewNode(
                 width, height, TargetType.Float16x4,
                 samples, DepthBufferType.INTERNAL]
 
-            val prepassColor = prepassTex.texOrNull ?: whiteTexture
+            val prepassColor0 = if (samples > 1) prepassTex.texMSOrNull else prepassTex.texOrNull
+            val prepassColor = prepassColor0 ?: whiteTexture
             val depthTex = getInput(9) as? Texture
-            val prepassDepth = depthTex.texOrNull
+            val prepassDepth = if (samples > 1) depthTex.texMSOrNull else depthTex.texOrNull
 
             pipeline.applyToneMapping = applyToneMapping
             GFXState.useFrame(width, height, true, framebuffer, renderer) {

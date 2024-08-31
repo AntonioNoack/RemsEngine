@@ -11,6 +11,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
@@ -57,50 +58,53 @@ class RenderForwardNode : RenderViewNode(
         if (width < 1 || height < 1) return
 
         val stage = getInput(4) as PipelineStage
-        timeRendering("$name-$stage", timer) {
-            renderForward(width, height, samples, stage)
-        }
-    }
-
-    private fun renderForward(width: Int, height: Int, samples: Int, stage: PipelineStage) {
-
-        // val sorting = getInput(5) as Int
-        // val cameraIndex = getInput(6) as Int
         val applyToneMapping = getBoolInput(5)
-
-        val framebuffer = FBStack["scene-forward",
-            width, height, TargetType.Float16x4,
-            samples, DepthBufferType.TEXTURE]
-
-        // if skybox is not used, bake it anyway?
-        // -> yes, the pipeline architect (^^) has to be careful
         val skyboxResolution = getIntInput(6)
-        pipeline.bakeSkybox(skyboxResolution)
-
         val drawSky = getInput(7) as DrawSkyMode
-        val prepassColor = (getInput(8) as? Texture).texOrNull
-        val prepassDepth = getInput(9) as? Texture
+        val stageImpl = pipeline.stages.getOrNull(stage.id)
 
-        pipeline.applyToneMapping = applyToneMapping
-        val depthMode = pipeline.defaultStage.depthMode
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
-            if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
-                pipeline.drawSky()
-            }
-            val stageImpl = pipeline.stages.getOrNull(stage.id)
-            if (stageImpl != null && !stageImpl.isEmpty()) {
-                stageImpl.bindDraw(pipeline)
-            }
-            if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
-                pipeline.drawSky()
-            }
-            pipeline.defaultStage.depthMode = depthMode
-            GFX.check()
+        val skipSky = drawSky == DrawSkyMode.DONT_DRAW_SKY || skyboxResolution <= 0
+        val skipGeometry = stageImpl == null || stageImpl.isEmpty()
+        if (skipSky && skipGeometry) {
+            // if there is nothing to render, redirect inputs/defaults to outputs
+            setOutput(1, getInput(8) ?: Texture(blackTexture))
+            setOutput(2, getInput(9) ?: Texture(depthTexture))
+            return
         }
+        timeRendering("$name-$stage", timer) {
 
-        setOutput(1, Texture.texture(framebuffer, 0))
-        setOutput(2, Texture.depth(framebuffer))
+            val framebuffer = FBStack["scene-forward",
+                width, height, TargetType.Float16x4,
+                samples, DepthBufferType.TEXTURE]
+
+            // if skybox is not used, bake it anyway?
+            // -> yes, the pipeline architect (^^) has to be careful
+            pipeline.bakeSkybox(skyboxResolution)
+
+            val prepassColor = (getInput(8) as? Texture).texOrNull
+            val prepassDepth = getInput(9) as? Texture
+
+            pipeline.applyToneMapping = applyToneMapping
+            val depthMode = pipeline.defaultStage.depthMode
+            GFXState.useFrame(width, height, true, framebuffer, renderer) {
+                defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
+                if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
+                    pipeline.drawSky()
+                }
+
+                if (stageImpl != null && !stageImpl.isEmpty()) {
+                    stageImpl.bindDraw(pipeline)
+                }
+                if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
+                    pipeline.drawSky()
+                }
+                pipeline.defaultStage.depthMode = depthMode
+                GFX.check()
+            }
+
+            setOutput(1, Texture.texture(framebuffer, 0))
+            setOutput(2, Texture.depth(framebuffer))
+        }
     }
 
     fun defineInputs(

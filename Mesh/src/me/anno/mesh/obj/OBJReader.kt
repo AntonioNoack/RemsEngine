@@ -345,8 +345,6 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 }
                 points.add(vertexIndex * 3, normalIndex * 3, uvIndex * 2)
                 pointCount++
-                if (pointCount and 63 == 0)
-                    LOGGER.warn("Large polygon in $file, $pointCount points, '$next'")
             } else break@findPoints
         }
 

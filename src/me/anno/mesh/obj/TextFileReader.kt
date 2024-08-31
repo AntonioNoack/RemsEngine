@@ -80,23 +80,19 @@ open class TextFileReader(val reader: InputStream) {
 
     fun readInt(ifInvalid: Int = 0): Int {
         var char = next()
-        var sign = +1
+        if (char == MINUS) return -readInt(-ifInvalid)
         if (char !in 48 until 58) {
-            if (char == MINUS) sign = -1
-            else {
-                putBack = char
-                return ifInvalid
-            }
+            putBack = char
+            return ifInvalid
         }
-        var code = char - 48
-        var number = code
+        var number = char - 48
         val reader = reader
         while (true) {
             char = reader.read()
-            code = (char - 48) and 255
+            val code = (char - 48) and 255
             if (code > 9) {
                 putBack = char
-                return sign * number
+                return number
             }
             number = 10 * number + code
         }
