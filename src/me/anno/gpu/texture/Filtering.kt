@@ -31,5 +31,12 @@ enum class Filtering(val mag: Int, val min: Int, val needsMipmap: Boolean) {
      *
      * Disables ability to sample from mip levels using textureLod().
      * */
-    TRULY_LINEAR(GL_LINEAR, GL_LINEAR, false)
+    TRULY_LINEAR(GL_LINEAR, GL_LINEAR, false);
+
+    val withoutMipmap: Filtering
+        get() = when (this) {
+            NEAREST -> TRULY_NEAREST
+            LINEAR -> TRULY_LINEAR
+            else -> this
+        }
 }

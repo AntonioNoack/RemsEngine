@@ -7,6 +7,7 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
@@ -106,7 +107,7 @@ fun createCPUPanel(
 
     val cpuTexture by lazy {
         Texture2D("cpu", 1, 1, 1)
-            .apply { createRGBA() }
+            .apply { create(TargetType.UInt8x4) }
     }
 
     val tileSize = 4

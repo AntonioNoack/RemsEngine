@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.Hierarchy
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
@@ -288,17 +289,19 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             if (selection !is List<Any?>) return
             // restore the current selection
             // reloaded prefab; must not be accessed before clearAll
-            val prefab = EditorState.prefab
-            val sample = prefab?.getSampleInstance()
-            if (prefab != null && sample != null) {
-                EditorState.selection = selection
-                    .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
-                    .filterIsInstance<Inspectable>()
-                EditorState.lastSelection = lastSelection.run {
-                    if (this is Path) Hierarchy.getInstanceAt(sample, this) else (this as? Inspectable)
+            PrefabCache.getPrefabAsync(EditorState.prefabSource) { prefab, err ->
+                err?.printStackTrace()
+                val sample = prefab?.getSampleInstance()
+                if (prefab != null && sample != null) {
+                    EditorState.selection = selection
+                        .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
+                        .filterIsInstance<Inspectable>()
+                    EditorState.lastSelection = lastSelection.run {
+                        if (this is Path) Hierarchy.getInstanceAt(sample, this) else (this as? Inspectable)
+                    }
                 }
+                PropertyInspector.invalidateUI(true)
             }
-            PropertyInspector.invalidateUI(true)
         }
     }
 }

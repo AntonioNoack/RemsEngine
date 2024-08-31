@@ -3,7 +3,6 @@ package me.anno.tests.game.flatworld
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
@@ -35,6 +34,11 @@ fun main() {
 
     // todo 1. grid-less street building like in Cities Skylines / Workers & Resources
     // done 1b. delete street segments
+    // todo
+    //  - move nodes like in https://www.youtube.com/watch?v=Zy6XdcICMIo
+    //  - road markings
+    //  - place complex intersections?
+    //  - import street layouts from OSM
     // todo 2. place buildings
     //  - align (rotate, place?) buildings with nearest street
     // done 2b. delete buildings
@@ -42,6 +46,11 @@ fun main() {
     //  - streets -> they flatten the terrain until we just can project streets onto them
     //  - buildings
     // todo 4. traffic
+    //  - proper traffic rules
+    //  - keeping distance
+    //  - accelerating/decelerating
+    //  - visibility at intersections ~ speed at intersections?
+    //  - don't drive into each other
     // todo 5. economy simulation?
     //  - resources
     //  - resource storage

@@ -1,14 +1,19 @@
 package me.anno.image.raw
 
-import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Redundancy.checkRedundancyX1
+import me.anno.gpu.texture.Redundancy.checkRedundancyX2
+import me.anno.gpu.texture.Redundancy.checkRedundancyX3
+import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.rgb
 import me.anno.utils.Color.rgba
+import me.anno.utils.async.Callback
+import java.nio.ByteBuffer
 
 open class ByteImage(
     width: Int, height: Int,
@@ -63,43 +68,52 @@ open class ByteImage(
     }
 
     override fun createTexture(
-        texture: Texture2D,
-        sync: Boolean,
+        texture: Texture2D, sync: Boolean,
         checkRedundancy: Boolean,
         callback: Callback<ITexture2D>
+    ) = createTexture(texture, checkRedundancy, data, callback)
+
+    private fun createTexture(
+        texture: Texture2D, checkRedundancy: Boolean,
+        data: ByteArray, callback: Callback<ITexture2D>
     ) {
         if (!GFX.isGFXThread()) {
-            GFX.addGPUTask("ByteImage", width, height) {
-                createTexture(texture, true, checkRedundancy, callback)
+            val data2 = if (checkRedundancy) {
+                when (format.numChannels) {
+                    1 -> texture.checkRedundancyX1(data)
+                    2 -> texture.checkRedundancyX2(data)
+                    3 -> texture.checkRedundancyX3(data)
+                    else -> texture.checkRedundancyX4(data)
+                }
+            } else data
+            val buffer = bufferPool[data2.size, false, false]
+            buffer.put(data2)
+            buffer.flip()
+            GFX.addGPUTask("ByteImage $width x $height", width, height) {
+                createTexture(texture, false, buffer, callback)
+                bufferPool.returnBuffer(buffer)
             }
         } else {
-            when (format) {
-                Format.R -> texture.createMonochrome(data, checkRedundancy)
-                Format.RG -> texture.createRG(data, checkRedundancy)
-                Format.RGB -> texture.createRGB(data, checkRedundancy)
-                Format.BGR -> texture.createBGR(data, checkRedundancy)
-                Format.ARGB -> texture.createARGB(data, checkRedundancy)
-                Format.RGBA -> {
-                    if (hasAlphaChannel && hasAlpha(data)) texture.createRGBA(data, checkRedundancy)
-                    else texture.create(TargetType.UInt8x3, TargetType.UInt8x4, data)
-                }
-                Format.BGRA -> {
-                    texture.createBGRA(data, checkRedundancy)
-                }
-            }
-            callback.ok(texture)
+            val buffer = bufferPool[data.size, false, false]
+            buffer.put(data)
+            buffer.flip()
+            createTexture(texture, checkRedundancy, buffer, callback)
         }
     }
 
-    companion object {
-        fun hasAlpha(data: ByteArray): Boolean {
-            val v255 = (-1).toByte()
-            for (i in 0 until (data.size shr 2)) {
-                if (data[i shl 2] != v255) {
-                    return true
-                }
-            }
-            return false
+    private fun createTexture(
+        texture: Texture2D, checkRedundancy: Boolean,
+        data: ByteBuffer, callback: Callback<ITexture2D>
+    ) {
+        when (format) {
+            Format.R -> texture.createMonochrome(data, checkRedundancy)
+            Format.RG -> texture.createRG(data, checkRedundancy)
+            Format.RGB -> texture.createRGB(data, checkRedundancy)
+            Format.BGR -> texture.createBGR(data, checkRedundancy)
+            Format.ARGB -> texture.createARGB(data, checkRedundancy)
+            Format.RGBA -> texture.createRGBA(data, checkRedundancy)
+            Format.BGRA -> texture.createBGRA(data, checkRedundancy)
         }
+        callback.ok(texture)
     }
 }

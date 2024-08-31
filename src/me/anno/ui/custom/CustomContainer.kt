@@ -6,6 +6,8 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -51,9 +53,19 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val icon = TextureCache[crossPath, 360_000L, false] ?: whiteTexture
+        val icon0 = TextureCache[crossPath, 360_000L, true]
+        val icon = icon0 ?: whiteTexture
         val crossSize = getCrossSize(style).roundToIntOr()
-        drawTexture(x + width - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
+        val x2 = x + width - (crossSize + 2)
+        val y2 = y + 2
+        if (icon0 == null) {
+            invalidateDrawing(
+                max(x2, x0), max(y2, y0),
+                min(x2 + crossSize, x1),
+                min(y2 + crossSize, y1)
+            )
+        } // wait for texture to load
+        drawTexture(x2, y2, crossSize, crossSize, icon, white, null)
     }
 
     private fun addBefore(index: Int, parent: CustomList) {

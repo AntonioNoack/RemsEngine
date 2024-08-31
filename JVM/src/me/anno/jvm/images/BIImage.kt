@@ -1,6 +1,7 @@
 package me.anno.jvm.images
 
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
@@ -79,7 +80,7 @@ object BIImage {
                     createBGRA(data, checkRedundancy)
                     return null
                 } else {
-                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
+                    val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
                     convertARGB2ABGR(data2)
                     return {
                         createRGBA(data2, checkRedundancy)
@@ -93,7 +94,7 @@ object BIImage {
                     createBGR(data, checkRedundancy)
                     return null
                 } else {
-                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
+                    val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
                     convertARGB2ABGR(data2)
                     return {
                         createRGB(data2, false)

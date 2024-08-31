@@ -9,6 +9,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
@@ -158,7 +159,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
                 generate(srcFile, size, callback)
             } else {
                 val newTex = Texture2D(srcFile.name, w, h, 1)
-                newTex.createRGBA()
+                newTex.create(TargetType.UInt8x4)
                 useFrame(newTex) {
                     GFX.copy(tex)
                 }

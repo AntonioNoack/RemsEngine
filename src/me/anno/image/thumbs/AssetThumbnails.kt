@@ -235,11 +235,8 @@ object AssetThumbnails {
 
     @JvmStatic
     private fun generateMeshFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
-        mesh: Mesh,
-        callback: Callback<ITexture2D>
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        mesh: Mesh, callback: Callback<ITexture2D>
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
@@ -264,13 +261,15 @@ object AssetThumbnails {
 
     @JvmStatic
     private fun generateMeshFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
-        comp: MeshComponentBase,
-        callback: Callback<ITexture2D>
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        comp: MeshComponentBase, callback: Callback<ITexture2D>
     ) {
-        val mesh = comp.getMesh() as? Mesh ?: return
+        val mesh = comp.getMesh() as? Mesh
+        if (mesh == null) {
+            LOGGER.warn("Mesh for thumbnail missing")
+            callback.err(null)
+            return
+        }
         mesh.checkCompleteness()
         mesh.ensureBuffer()
         waitForTextures(comp, mesh, srcFile) {

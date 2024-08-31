@@ -58,6 +58,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.RenderGraph
 import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.FrameGenInitNode
+import me.anno.graph.visual.render.effects.TAANode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -496,6 +497,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         if (renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true) {
             fsr22.jitter(cameraMatrix, width, height)
+        } else if (renderMode.renderGraph?.nodes?.any2 { it is TAANode } == true) {
+            TAANode.jitter(cameraMatrix, width, height)
         }
 
         if (!cameraMatrix.isFinite) {

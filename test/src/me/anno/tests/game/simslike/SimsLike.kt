@@ -35,6 +35,21 @@ import me.anno.utils.OS.res
 //  - pictures
 // ...
 
+// todo https://www.youtube.com/watch?v=qw-wdlkw0Os
+//  - make it challenging:
+//  - lawsuits, death,
+//  - less choice,
+//  - harder to manage needs,
+//  - real sickness
+//  - unwanted pregnancy,
+//  - job loss,
+//  - raising rent,
+//  - basic things breaking, which make whole house unusable
+//  - floods,
+//  - tsunamis
+//  - snow storms/blizzards,
+//  - tornados, shark-nados
+
 // click onto things, and get a menu to select the possible actions
 
 fun main() {

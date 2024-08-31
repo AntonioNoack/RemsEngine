@@ -7,8 +7,7 @@ import me.anno.io.files.InvalidRef
 object Materials {
     fun getMaterial(
         materialOverrides: List<FileReference>?,
-        materials: List<FileReference>,
-        index: Int
+        materials: List<FileReference>, index: Int
     ): Material {
         val ref = getMaterialRef(materialOverrides, materials, index)
         return MaterialCache[ref, defaultMaterial]

@@ -159,6 +159,7 @@ object FontManager {
             getFont(key).generateASCIITexture(false, entry)
             entry
         } as AsyncCacheData<*>
+        // todo it would be nice if we could prioritize loading our task
         entry.waitForGFX()
         val curr = entry.value as Texture2DArray
         asciiTexLRU[font] = curr
@@ -197,12 +198,7 @@ object FontManager {
         return getFont(name, fontSizeIndex, bold, italic)
     }
 
-    private fun getFont(
-        name: String,
-        fontSizeIndex: Int,
-        bold: Boolean,
-        italic: Boolean
-    ): TextGenerator {
+    private fun getFont(name: String, fontSizeIndex: Int, bold: Boolean, italic: Boolean): TextGenerator {
         val key = FontKey(name, fontSizeIndex, bold, italic)
         return fonts.getOrPut(key) {
             getTextGenerator(key)

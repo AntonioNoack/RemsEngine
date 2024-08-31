@@ -75,6 +75,14 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
+    fun getPrefabAsync(resource: FileReference?, depth: Int = maxPrefabDepth, callback: Callback<Prefab?>) {
+        getPrefabPairAsync(resource, { pair, err ->
+            if (pair != null) {
+                callback.ok(pair.prefab)
+            } else callback.err(err)
+        }, depth, prefabTimeout)
+    }
+
     fun getPrefabInstanceAsync(resource: FileReference?, depth: Int = maxPrefabDepth, callback: Callback<Saveable?>) {
         getPrefabPairAsync(resource, { pair, err ->
             if (pair != null) {

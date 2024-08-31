@@ -163,7 +163,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     fun invalidateDrawing(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (canBeSeen) {
+        if (x1 > x0 && y1 > y0 && canBeSeen) {
             window?.addNeedsRedraw(this, x0, y0, x1, y1)
         }
     }

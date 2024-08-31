@@ -4,6 +4,7 @@ import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.black
@@ -73,7 +74,7 @@ open class OpaqueImage(val src: Image) :
                         else -> throw NotImplementedError()
                     }
                     buffer.flip()
-                    if (checkRedundancy) texture.checkRedundancy(buffer)
+                    if (checkRedundancy) texture.checkRedundancyX4(buffer)
                     // to do check whether this is correct; should be correct :)
                     if (sync && GFX.isGFXThread()) {
                         texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)

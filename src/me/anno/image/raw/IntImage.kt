@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths
@@ -114,7 +115,7 @@ open class IntImage(
             val dataI = data1.asIntBuffer()
             putInto(dataI)
             dataI.position(0)
-            if (checkRedundancy) texture.checkRedundancy(dataI)
+            if (checkRedundancy) texture.checkRedundancyX4(dataI)
             convertARGB2ABGR(dataI)
             // for testing, convert the data into a byte buffer
             // -> 33% faster, partially because of wrong alignment and using 25% less data effectively

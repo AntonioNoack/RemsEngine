@@ -4,6 +4,7 @@ import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Redundancy.checkRedundancyX1
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
@@ -38,7 +39,7 @@ open class GrayscaleImage(val src: Image) :
                     texture.createMonochrome(bytes, checkRedundancy)
                     callback.ok(texture)
                 } else {
-                    if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
+                    if (checkRedundancy) texture.checkRedundancyX1(bytes)
                     GFX.addGPUTask("GrayscaleImage.IntImage", width, height) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
                         callback.ok(texture)
@@ -56,7 +57,7 @@ open class GrayscaleImage(val src: Image) :
                     texture.createMonochrome(bytes, checkRedundancy)
                     callback.ok(texture)
                 } else {
-                    if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
+                    if (checkRedundancy) texture.checkRedundancyX1(bytes)
                     GFX.addGPUTask("GrayscaleImage.ByteImage", width, height) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
                         callback.ok(texture)

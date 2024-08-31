@@ -253,7 +253,7 @@ fun createCPUPanel(
 
     val cpuTexture by lazy {
         Texture2D("cpu", 1, 1, 1)
-            .apply { createRGBA() }
+            .apply { create(TargetType.UInt8x4) }
     }
 
     val tileSize = 4

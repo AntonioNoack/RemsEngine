@@ -369,19 +369,25 @@ open class Material : PrefabSaveable(), Renderable {
         }
 
         fun bindTexture(
-            shader: GPUShader,
-            name: String,
-            file: FileReference,
-            default: Texture2D,
-            filtering: Filtering,
-            clamping: Clamping
+            shader: GPUShader, name: String,
+            file: FileReference, default: Texture2D,
+            filtering: Filtering, clamping: Clamping
         ): ITexture2D? {
             val index = shader.getTextureIndex(name)
             return if (index >= 0) {
                 val tex = getTex(file)
-                (tex ?: default).bind(index, filtering, clamping)
+                bindTexture(tex ?: default, filtering, clamping, index)
                 tex
             } else null
+        }
+
+        fun bindTexture(tex: ITexture2D, filtering: Filtering, clamping: Clamping, index: Int) {
+            val needsMipmap = filtering.needsMipmap && (tex is Texture2D && !tex.hasMipmap)
+            // creating mipmaps can be really expensive, so only do it when we have the budget available
+            val filtering2 = if (needsMipmap && !Texture2D.requestBudget(tex.width * tex.height)) {
+                filtering.withoutMipmap
+            } else filtering
+            tex.bind(index, filtering2, clamping)
         }
 
         fun diffuse(color: Int): Material {

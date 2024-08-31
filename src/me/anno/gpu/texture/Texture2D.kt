@@ -16,6 +16,10 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Redundancy.checkRedundancyX1
+import me.anno.gpu.texture.Redundancy.checkRedundancyX2
+import me.anno.gpu.texture.Redundancy.checkRedundancyX3
+import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.ImageTransform
@@ -30,12 +34,12 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.FloatArrayPool
 import me.anno.utils.pooling.IntArrayPool
-import me.anno.utils.async.Callback
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -351,10 +355,6 @@ open class Texture2D(
         upload(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
-    fun createRGB() = create(TargetType.UInt8x3)
-    fun createRGBA() = create(TargetType.UInt8x4)
-    fun createFP32() = create(TargetType.Float32x4)
-
     fun create(type: TargetType) {
         beforeUpload(0, 0)
         upload(type, null as ByteArray?)
@@ -375,11 +375,9 @@ open class Texture2D(
         width = image.width
         height = image.height
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
-        val requiredBudget = textureBudgetUsed + width * height
-        if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
+        if (!isGFXThread() || (!requestBudget(width * height) && !loadTexturesSync.peek())) {
             create(image, false, checkRedundancy, callback)
         } else {
-            textureBudgetUsed += requiredBudget
             image.createTexture(this, true, checkRedundancy, callback)
         }
     }
@@ -408,13 +406,6 @@ open class Texture2D(
         bindBeforeUpload()
     }
 
-    private fun beforeUpload() {
-        if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
-        check()
-        ensurePointer()
-        bindBeforeUpload()
-    }
-
     fun afterUpload(isHDR: Boolean, bytesPerPixel: Int, channels: Int) {
         locallyAllocated = allocate(locallyAllocated, width * height * bytesPerPixel.toLong())
         wasCreated = true
@@ -430,234 +421,9 @@ open class Texture2D(
         if (isDestroyed) destroy()
     }
 
-    fun checkRedundancy(data: IntArray): IntArray {
-        if (width * height <= 1) return data
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return data
-        }
-        setSize1x1()
-        return intArrayOf(c0)
-    }
-
-    fun checkRedundancy(data: IntBuffer) {
-        if (width * height <= 1) return
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return
-        }
-        setSize1x1()
-        data.limit(1)
-    }
-
-    fun checkRedundancyMonochrome(data: ByteBuffer) {
-        if (data.capacity() <= 1) return
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return
-        }
-        setSize1x1()
-        data.limit(1)
-    }
-
-    fun checkRedundancyMonochrome(data: FloatArray): FloatArray {
-        if (data.isEmpty()) return data
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return data
-        }
-        setSize1x1()
-        return floatArrayOf(data[0])
-    }
-
-    fun checkRedundancyMonochrome(data: FloatBuffer) {
-        if (data.capacity() < 1) return
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return
-        }
-        setSize1x1()
-        data.limit(1)
-    }
-
-    fun checkRedundancyMonochrome(data: ShortBuffer) {
-        if (data.capacity() < 1) return
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return
-        }
-        setSize1x1()
-        data.limit(1)
-    }
-
-    fun checkRedundancyMonochrome(data: ByteArray): ByteArray {
-        if (data.isEmpty()) return data
-        val c0 = data[0]
-        for (i in 1 until width * height) {
-            if (c0 != data[i]) return data
-        }
-        setSize1x1()
-        return byteArrayOf(c0)
-    }
-
-    fun checkRedundancyRGBA(data: FloatArray): FloatArray {
-        if (data.size < 4) return data
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
-        }
-        setSize1x1()
-        return floatArrayOf(c0, c1, c2, c3)
-    }
-
-    fun checkRedundancyRGB(data: FloatArray): FloatArray {
-        if (data.size < 3) return data
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return data
-        }
-        setSize1x1()
-        return floatArrayOf(c0, c1, c2)
-    }
-
-    fun checkRedundancyRGB(data: FloatBuffer) {
-        if (data.capacity() < 3) return
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
-        }
-        setSize1x1()
-        data.limit(3)
-    }
-
-    fun checkRedundancyRGBA(data: FloatBuffer) {
-        if (data.capacity() < 4) return
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
-        }
-        setSize1x1()
-        data.limit(4)
-    }
-
-    fun checkRedundancy(data: ByteArray): ByteArray {
-        if (data.size < 4) return data
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
-        }
-        setSize1x1()
-        return byteArrayOf(c0, c1, c2, c3)
-    }
-
-    fun checkRedundancy(data: ByteBuffer) {
-        if (data.capacity() < 4) return
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
-        }
-        setSize1x1()
-        data.limit(4)
-    }
-
-    fun checkRedundancyRG(data: ByteArray): ByteArray {
-        if (data.size < 2) return data
-        val c0 = data[0]
-        val c1 = data[1]
-        for (i in 2 until width * height * 2 step 2) {
-            if (c0 != data[i] || c1 != data[i + 1]) return data
-        }
-        setSize1x1()
-        return byteArrayOf(c0, c1)
-    }
-
-    fun checkRedundancyRG(data: FloatArray): FloatArray {
-        if (data.size < 2) return data
-        val c0 = data[0]
-        val c1 = data[1]
-        for (i in 2 until width * height * 2 step 2) {
-            if (c0 != data[i] || c1 != data[i + 1]) return data
-        }
-        setSize1x1()
-        return floatArrayOf(c0, c1)
-    }
-
-    fun checkRedundancyRGB(data: ByteArray): ByteArray {
-        if (data.size < 3) return data
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2])
-                return data
-        }
-        setSize1x1()
-        return byteArrayOf(c0, c1, c2)
-    }
-
-    fun checkRedundancyRGB(data: ByteBuffer) {
-        if (data.capacity() < 3) return
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
-            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2])
-                return
-        }
-        setSize1x1()
-        data.limit(3)
-    }
-
-    fun checkRedundancy(data: ByteBuffer, rgbOnly: Boolean) {
-        if (data.capacity() < 4) return
-        val c0 = data[0]
-        val c1 = data[1]
-        val c2 = data[2]
-        val c3 = data[3]
-        if (rgbOnly) {
-            for (i in 4 until width * height * 4 step 4) {
-                if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
-            }
-        } else {
-            for (i in 4 until width * height * 4 step 4) {
-                if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
-            }
-        }
-        setSize1x1()
-        data.limit(4)
-    }
-
-    fun checkRedundancyRG(data: ByteBuffer) {
-        // when rgbOnly, check rgb only?
-        if (data.capacity() < 2) return
-        val c0 = data[0]
-        val c1 = data[1]
-        for (i in 2 until width * height * 2 step 2) {
-            if (c0 != data[i] || c1 != data[i + 1]) return
-        }
-        setSize1x1()
-        data.limit(2)
-    }
-
     fun createBGRA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         convertARGB2ABGR(data2)
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
@@ -667,7 +433,7 @@ open class Texture2D(
 
     fun createBGR(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         convertARGB2ABGR(data2)
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
@@ -677,34 +443,15 @@ open class Texture2D(
 
     fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
-        val floats2 = if (checkRedundancy) checkRedundancyRGB(data) else data
+        val floats2 = if (checkRedundancy) checkRedundancyX3(data) else data
         setWriteAlignment(12 * width)
         upload(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12, 3)
     }
 
-    fun createRGB(data: FloatBuffer, checkRedundancy: Boolean) {
-        beforeUpload(3, data.capacity())
-        if (checkRedundancy) checkRedundancyRGB(data)
-        setWriteAlignment(12 * width)
-        upload(GL_RGB32F, GL_RGB, GL_FLOAT, data)
-        afterUpload(true, 12, 3)
-    }
-
-    fun createRGB(data: ByteArray, checkRedundancy: Boolean) {
-        beforeUpload(3, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        val buffer = bufferPool[data2.size, false, false]
-        buffer.put(data2).flip()
-        setWriteAlignment(3 * width)
-        upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
-        afterUpload(false, 4, 3)
-    }
-
     fun createRGBA(data: IntBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancy(data)
+        if (checkRedundancy) checkRedundancyX4(data)
         if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
@@ -716,19 +463,10 @@ open class Texture2D(
      * */
     fun createRGBA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        if (checkRedundancy) checkRedundancy(data)
+        if (checkRedundancy) checkRedundancyX4(data)
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4, 4)
-    }
-
-    fun createRGB(data: IntBuffer, checkRedundancy: Boolean) {
-        beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancy(data)
-        if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        setWriteAlignment(4 * width)
-        upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(false, 4, 3)
     }
 
     /**
@@ -736,7 +474,7 @@ open class Texture2D(
      * */
     fun createRGB(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4, 3)
@@ -795,35 +533,15 @@ open class Texture2D(
 
     fun createMonochrome(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancyMonochrome(data)
+        if (checkRedundancy) checkRedundancyX1(data)
         upload(TargetType.UInt8x1, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 1, 1)
     }
 
-    fun createRG(data: ByteArray, checkRedundancy: Boolean) {
-        beforeUpload(2, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyRG(data) else data
-        val buffer = bufferPool[data.size, false, false]
-        buffer.put(data2).flip()
-        upload(GL_RG, GL_RG, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
-        afterUpload(false, 2, 2)
-    }
-
-    fun createRG(data: FloatArray, checkRedundancy: Boolean) {
-        beforeUpload(2, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyRG(data) else data
-        val buffer = bufferPool[data.size, false, false]
-        buffer.asFloatBuffer().put(data2)
-        upload(GL_RG, GL_RG, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
-        afterUpload(false, 8, 2)
-    }
-
     fun createRG(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(2, data.remaining())
-        if (checkRedundancy) checkRedundancyRG(data)
+        if (checkRedundancy) checkRedundancyX2(data)
         upload(GL_RG, GL_RG, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 2, 2)
@@ -835,7 +553,7 @@ open class Texture2D(
      * */
     fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancyMonochrome(data)
+        if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(4 * width)
         upload(GL_R32F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4, 1)
@@ -847,7 +565,7 @@ open class Texture2D(
      * */
     fun createMonochrome(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
+        val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
         setWriteAlignment(4 * width)
         upload(GL_R32F, GL_RED, GL_FLOAT, data2)
         afterUpload(true, 4, 1)
@@ -858,7 +576,7 @@ open class Texture2D(
      * */
     fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancyMonochrome(data)
+        if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(4 * width)
         upload(GL_R16F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4, 1)
@@ -869,26 +587,15 @@ open class Texture2D(
      * */
     fun createMonochromeFP16(data: ShortBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancyMonochrome(data)
+        if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(2 * width)
         upload(GL_R16F, GL_RED, GL_HALF_FLOAT, data)
         afterUpload(true, 2, 1)
     }
 
-    fun createBGR(data: ByteArray, checkRedundancy: Boolean) {
-        beforeUpload(3, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyRGB(data) else data
-        val buffer = bufferPool[data2.size, false, false]
-        buffer.put(data2).flip()
-        convertRGB2BGR3(buffer)
-        upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
-        afterUpload(false, 4, 3)
-    }
-
     fun createBGR(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.remaining())
-        if (checkRedundancy) checkRedundancyRGB(data)
+        if (checkRedundancy) checkRedundancyX3(data)
         convertRGB2BGR3(data)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
@@ -897,7 +604,7 @@ open class Texture2D(
 
     fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
+        val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         upload(TargetType.UInt8x1, buffer)
@@ -907,7 +614,7 @@ open class Texture2D(
 
     fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(4, data.size)
-        val data2 = if (checkRedundancy && width * height > 1) checkRedundancyRGBA(data) else data
+        val data2 = if (checkRedundancy && width * height > 1) checkRedundancyX4(data) else data
         val byteBuffer = bufferPool[data2.size * 4, false, false]
         byteBuffer.asFloatBuffer().put(data2)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
@@ -918,26 +625,14 @@ open class Texture2D(
 
     fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(4, data.capacity())
-        if (checkRedundancy && width * height > 1) checkRedundancyRGBA(data)
+        if (checkRedundancy && width * height > 1) checkRedundancyX4(data)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         upload(TargetType.Float32x4, buffer)
         afterUpload(true, 16, 4)
     }
 
-    fun createBGRA(data: ByteArray, checkRedundancy: Boolean) {
-        checkSize(4, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        val buffer = bufferPool[data2.size, false, false]
-        buffer.put(data2).flip()
-        beforeUpload(4, buffer.remaining())
-        convertRGB2BGR4(buffer)
-        upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
-        afterUpload(false, 4, 4)
-    }
-
     fun createBGRA(buffer: ByteBuffer, checkRedundancy: Boolean) {
-        if (checkRedundancy) checkRedundancy(buffer)
+        if (checkRedundancy) checkRedundancyX4(buffer)
         beforeUpload(4, buffer.remaining())
         convertRGB2BGR4(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
@@ -947,30 +642,30 @@ open class Texture2D(
 
     fun createRGBA(data: ByteArray, checkRedundancy: Boolean) {
         checkSize(4, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         createRGBA(buffer, false)
     }
 
-    fun createARGB(data: ByteArray, checkRedundancy: Boolean) {
-        checkSize(4, data.size)
-        val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        val buffer = bufferPool[data2.size, false, false]
+    fun createARGB(data: ByteBuffer, checkRedundancy: Boolean) {
+        checkSize(4, data.remaining())
+        if (checkRedundancy) checkRedundancyX4(data)
         for (i in 0 until width * height * 4 step 4) {
-            buffer.put(data2[i + 1]) // r
-            buffer.put(data2[i + 2]) // g
-            buffer.put(data2[i + 3]) // b
-            buffer.put(data2[i]) // a
+            val tmp = data[i]
+            data.put(data[i + 1]) // r
+            data.put(data[i + 2]) // g
+            data.put(data[i + 3]) // b
+            data.put(tmp) // a
         }
-        buffer.flip()
-        createRGBA(buffer, false)
+        data.flip()
+        createRGBA(data, false)
     }
 
     /** creates the texture, and returns the buffer */
     fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(4, data.remaining())
-        if (checkRedundancy) checkRedundancy(data, false)
+        if (checkRedundancy) checkRedundancyX4(data, false)
         upload(TargetType.UInt8x4, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 4, 4)
@@ -978,7 +673,7 @@ open class Texture2D(
 
     fun createRGB(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.remaining())
-        if (checkRedundancy) checkRedundancy(data, true)
+        if (checkRedundancy) checkRedundancyX4(data, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
         setWriteAlignment(3 * width)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
@@ -1190,6 +885,22 @@ open class Texture2D(
 
         init {
             boundTextures.fill(-1)
+        }
+
+        fun requestBudget(requested: Int): Boolean {
+            return requestBudget(requested.toLong())
+        }
+
+        fun requestBudget(requested: Long): Boolean {
+            val requiredBudget = textureBudgetUsed + requested
+            val total = textureBudgetTotal
+            val totalHalf = total.shr(1)
+            if (requiredBudget <= total || (requested > totalHalf && textureBudgetUsed < totalHalf)) {
+                textureBudgetUsed = requiredBudget
+                return true
+            } else {
+                return false
+            }
         }
 
         fun getBindState(slot: Int): Long {

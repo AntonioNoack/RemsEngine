@@ -49,6 +49,7 @@ import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.SmoothNormalsNode
+import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.effects.VignetteNode
@@ -462,6 +463,8 @@ class RenderMode private constructor(
 
         val RAY_TEST = RenderMode("Raycast Test", DEFAULT)
 
+        val TAA = RenderMode("TAA", postProcessGraph(TAANode(), 1, false))
+
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
@@ -520,8 +523,14 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        fun postProcessGraph(node: ActionNode): FlowGraph {
-            return QuickPipeline()
+        fun postProcessGraph(node: ActionNode): FlowGraph =
+            postProcessGraph(node, 8, true)
+
+        fun postProcessGraph(
+            node: ActionNode, gizmoSamples: Int,
+            beforeTonemapping: Boolean
+        ): FlowGraph {
+            val builder = QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -529,10 +538,11 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderGlassNode())
-                .then(node)
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode())
-                .finish()
+            if (beforeTonemapping) builder.then(node)
+            builder.then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+            builder.then1(GizmoNode(), mapOf("Samples" to gizmoSamples))
+            if (!beforeTonemapping) builder.then(node)
+            return builder.finish()
         }
 
         val FOG_TEST = RenderMode("Fog Test", postProcessGraph(HeightExpFogNode()))
@@ -552,7 +562,7 @@ class RenderMode private constructor(
             enableVertexColors = false
         })
 
-        val ALL_STEEL = RenderMode("All Steel", Material.metallic(0x4c4c4c,0.2f).apply {
+        val ALL_STEEL = RenderMode("All Steel", Material.metallic(0x4c4c4c, 0.2f).apply {
             enableVertexColors = false
         })
 

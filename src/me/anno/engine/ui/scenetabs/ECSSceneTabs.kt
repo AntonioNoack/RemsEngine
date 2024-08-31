@@ -3,6 +3,7 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -11,7 +12,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Booleans.toInt
@@ -105,10 +105,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun open(tab: ECSSceneTab, setActive: Boolean) {
 
-        if (tab.file == InvalidRef) {
-            throw RuntimeException("Cannot open InvalidRef as tab on prefab ${hash32(tab.prefab)}")
-        }
-
         // add tab to project
         val project = project
         if (project != null) {
@@ -153,7 +149,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
                 }
             }
             if (!done) {
-                open(InvalidRef, PlayMode.EDITING, setNextActive)
+                open(flatCube.ref, PlayMode.EDITING, setNextActive)
             }
         } else sceneTab.removeFromParent()
         val project = project

@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
@@ -21,9 +22,9 @@ import me.anno.maths.Maths
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.utils.Sleep
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.mapCallback
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Floats.toRadians
@@ -103,23 +104,14 @@ object AssetThumbHelper {
         val materials0 = materials
         val materials1 = comp?.materials
 
-        if (useMaterials && (materials0.isNotEmpty() || !materials1.isNullOrEmpty())) {
-            for (index in materials0.indices) {
-                val m0 = materials1?.getOrNull(index)?.nullIfUndefined()
-                val m1 = m0 ?: materials0.getOrNull(index)
-                val material = MaterialCache[m1, Material.defaultMaterial]
-                val shader2 = material.shader?.value ?: shader
-                bindShader(shader2, cameraMatrix, modelMatrix)
-                material.bind(shader2)
-                draw(null, shader2, index)
-            }
-        } else {
-            bindShader(shader, cameraMatrix, modelMatrix)
-            val material = Material.defaultMaterial
-            material.bind(shader)
-            for (materialIndex in 0 until max(1, materials0.size)) {
-                draw(null, shader, materialIndex)
-            }
+        for (index in 0 until numMaterials) {
+            val material =
+                if (useMaterials) Materials.getMaterial(materials1, materials0, index)
+                else Material.defaultMaterial
+            val shader2 = material.shader?.value ?: shader
+            bindShader(shader2, cameraMatrix, modelMatrix)
+            material.bind(shader2)
+            draw(null, shader2, index)
         }
     }
 
