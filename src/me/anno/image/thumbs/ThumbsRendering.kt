@@ -15,7 +15,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt

@@ -1,6 +1,6 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType.Companion.Float16x4
 import me.anno.gpu.framebuffer.TargetType.Companion.Float32x4

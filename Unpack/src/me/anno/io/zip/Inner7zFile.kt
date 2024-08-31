@@ -10,7 +10,7 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.zip.internal.SevenZHeavyIterator
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel

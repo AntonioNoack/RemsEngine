@@ -2,7 +2,7 @@ package me.anno.fonts
 
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 
 interface TextGenerator {
     fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int

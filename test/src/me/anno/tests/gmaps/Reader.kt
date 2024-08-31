@@ -21,7 +21,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.io.Streams.readNBytes2
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL46C

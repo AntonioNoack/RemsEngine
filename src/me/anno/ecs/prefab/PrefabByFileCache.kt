@@ -11,7 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.saveable.Saveable
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast

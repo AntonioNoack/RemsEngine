@@ -1,7 +1,7 @@
 package me.anno.image
 
 import me.anno.jvm.images.BIImage.toImage
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.commons.imaging.Imaging
 import java.io.ByteArrayInputStream
 import java.io.InputStream

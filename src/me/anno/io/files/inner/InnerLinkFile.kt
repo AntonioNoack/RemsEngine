@@ -1,6 +1,6 @@
 package me.anno.io.files.inner
 
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import java.io.InputStream
 import java.nio.ByteBuffer

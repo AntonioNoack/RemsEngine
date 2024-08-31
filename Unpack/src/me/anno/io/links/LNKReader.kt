@@ -5,7 +5,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 
 object LNKReader {
     fun readLNKAsFolder(file: FileReference, callback: Callback<InnerFolder>) {

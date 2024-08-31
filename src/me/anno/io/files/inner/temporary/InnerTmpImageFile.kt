@@ -1,6 +1,6 @@
 package me.anno.io.files.inner.temporary
 
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference

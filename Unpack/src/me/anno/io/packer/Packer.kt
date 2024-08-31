@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
 import org.apache.commons.compress.archivers.zip.ZipFile

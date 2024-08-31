@@ -14,7 +14,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.black
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.mixARGB
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import java.nio.IntBuffer
 import kotlin.math.abs
 import kotlin.math.floor

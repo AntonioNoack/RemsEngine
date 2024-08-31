@@ -1,6 +1,6 @@
 package me.anno.io.links
 
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder

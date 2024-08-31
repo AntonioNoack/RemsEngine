@@ -12,8 +12,8 @@ import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
-import me.anno.utils.structures.Callback
-import me.anno.utils.structures.Callback.Companion.mapCallback
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.types.Strings.indexOf2
 import java.io.DataInputStream
 import java.io.InputStream

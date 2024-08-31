@@ -7,13 +7,10 @@ import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
-import me.anno.io.xml.generic.XMLNode
-import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.tuples.IntPair
-import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager

@@ -11,12 +11,11 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min

@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
@@ -246,7 +247,7 @@ fun main() {
     scene.add(Entity("Floor").apply {
         position = position.set(0.0, -1.0, 0.0)
         scale = scale.set(20.0)
-        val mesh = MeshComponent(PlaneModel.createPlane())
+        val mesh = MeshComponent(DefaultAssets.plane)
         mesh.materials = listOf(Material().apply {
             diffuseBase.set(0.05f, 0.05f, 0.05f, 1f)
             cullMode = CullMode.BOTH

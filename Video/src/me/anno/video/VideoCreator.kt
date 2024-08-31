@@ -23,7 +23,7 @@ import me.anno.maths.Maths.min
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.video.Codecs.videoCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance

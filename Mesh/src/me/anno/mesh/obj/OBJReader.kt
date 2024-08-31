@@ -13,7 +13,7 @@ import me.anno.mesh.Point
 import me.anno.mesh.Triangulation
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2

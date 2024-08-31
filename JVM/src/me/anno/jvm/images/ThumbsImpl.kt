@@ -6,7 +6,7 @@ import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.image.thumbs.Thumbs
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.swing.ImageIcon

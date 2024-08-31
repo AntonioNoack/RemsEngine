@@ -6,7 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.ReadLineIterator
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank
 import me.anno.utils.types.Strings.isNotBlank2

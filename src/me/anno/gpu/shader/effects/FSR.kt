@@ -2,6 +2,7 @@ package me.anno.gpu.shader.effects
 
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -12,20 +13,19 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.OS
 import me.anno.utils.OS.res
+import me.anno.utils.async.Callback.Companion.mapCallback
+import me.anno.utils.async.LazyPromise
 
 object FSR {
 
-    val code = lazy {
-        val defines = res.getChild("shaders/fsr1/ffx_a.h").readTextSync()
-        val functions = res.getChild("shaders/fsr1/ffx_fsr1.h").readTextSync()
-        defines to functions
+    private val code = LazyPromise { cb ->
+        listOf("shaders/fsr1/ffx_a.h", "shaders/fsr1/ffx_fsr1.h")
+            .mapCallback({ _, fileName, cbI ->
+                res.getChild(fileName).readText(cbI)
+            }, cb)
     }
 
-    private val upscaleShader = lazy {
-
-        val defines = code.value.first
-        val functions = code.value.second
-
+    private val upscaleShader = code.then { (defines, functions) ->
         val shader = Shader(
             "upscale", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.V2F, "dstWH"),
@@ -93,11 +93,7 @@ object FSR {
         shader
     }
 
-    private val sharpenShader = lazy {
-
-        val defines = code.value.first
-        val functions = code.value.second
-
+    private val sharpenShader = code.then { (defines, functions) ->
         val shader = Shader(
             "sharpen", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.V4F, "color", VariableMode.OUT),
@@ -123,25 +119,30 @@ object FSR {
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
         shader.use()
         shader
-
     }
 
     fun upscale(
-        sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int,
+        source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
         backgroundColor: Int, flipY: Boolean,
         applyToneMapping: Boolean, withAlpha: Boolean
     ) {
         // if source is null, the texture needs to be bound to slot 0
         val shader = upscaleShader.value
-        shader.use()
-        fsrConfig(shader, sw, sh, w, h)
-        tiling(shader, flipY)
-        texelOffset(shader, w, h)
-        GFXx2D.posSize(shader, x, y, w, h)
-        shader.v3f("background", backgroundColor)
-        shader.v1b("applyToneMapping", applyToneMapping)
-        shader.v1b("withAlpha", withAlpha)
-        flat01.draw(shader)
+        if (shader != null) {
+            shader.use()
+            source.bindTrulyLinear(0)
+            fsrConfig(shader, source.width, source.height, w, h)
+            tiling(shader, flipY)
+            texelOffset(shader, w, h)
+            GFXx2D.posSize(shader, x, y, w, h)
+            shader.v3f("background", backgroundColor)
+            shader.v1b("applyToneMapping", applyToneMapping)
+            shader.v1b("withAlpha", withAlpha)
+            flat01.draw(shader)
+        } else {
+            source.bindTrulyLinear(0)
+            DrawTextures.drawTexture(x, if (flipY) y + h else y, w, if (flipY) -h else h, source)
+        }
     }
 
     private fun fsrConfig(shader: Shader, iw: Int, ih: Int, ow: Int, oh: Int) {
@@ -155,38 +156,30 @@ object FSR {
         source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
         flipY: Boolean, applyToneMapping: Boolean, withAlpha: Boolean
     ) {
-        source.bindTrulyNearest(0)
-        upscale(source.width, source.height, x, y, w, h, 0, flipY, applyToneMapping, withAlpha)
+        upscale(source, x, y, w, h, 0, flipY, applyToneMapping, withAlpha)
     }
 
-    fun upscale(
-        source: ITexture2D, x: Int, y: Int, w: Int, h: Int, backgroundColor: Int,
-        flipY: Boolean, applyToneMapping: Boolean, withAlpha: Boolean
-    ) {
-        source.bindTrulyNearest(0)
-        upscale(source.width, source.height, x, y, w, h, backgroundColor, flipY, applyToneMapping, withAlpha)
-    }
-
-    fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
-        val shader = sharpenShader.value
-        shader.use()
-        shader.v1f("sharpness", sharpness)
-        texelOffset(shader, w, h)
-        tiling(shader, flipY)
-        GFXx2D.posSize(shader, x, y, w, h)
-        flat01.draw(shader)
-    }
-
-    fun tiling(shader: Shader, flipY: Boolean) {
+    private fun tiling(shader: Shader, flipY: Boolean) {
         shader.v4f("tiling", 1f, if (flipY) -1f else +1f, 0f, 0f)
     }
 
-    fun texelOffset(shader: Shader, w: Int, h: Int) {
+    private fun texelOffset(shader: Shader, w: Int, h: Int) {
         shader.v2f("dstWH", w.toFloat(), h.toFloat())
     }
 
     fun sharpen(source: ITexture2D, sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
-        source.bindTrulyNearest(0)
-        sharpen(sharpness, x, y, w, h, flipY)
+        val shader = sharpenShader.value
+        if (shader != null) {
+            shader.use()
+            shader.v1f("sharpness", sharpness)
+            source.bindTrulyLinear(0)
+            texelOffset(shader, w, h)
+            tiling(shader, flipY)
+            GFXx2D.posSize(shader, x, y, w, h)
+            flat01.draw(shader)
+        } else {
+            source.bindTrulyLinear(0)
+            DrawTextures.drawTexture(x, if (flipY) y + h else y, w, if (flipY) -h else h, source)
+        }
     }
 }

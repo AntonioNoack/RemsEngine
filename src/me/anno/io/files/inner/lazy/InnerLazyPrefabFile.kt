@@ -2,7 +2,7 @@ package me.anno.io.files.inner.lazy
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
@@ -34,6 +34,7 @@ open class InnerLazyPrefabFile(
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference> = emptyList()
 
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     override fun readTextSync() = text
     override fun readBytesSync() = bytes
 

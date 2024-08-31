@@ -2,7 +2,7 @@ package me.anno.io.base64
 
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException

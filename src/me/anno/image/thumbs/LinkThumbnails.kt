@@ -5,7 +5,7 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
 import me.anno.utils.InternalAPI
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.Iterators.firstOrNull
 
 @InternalAPI

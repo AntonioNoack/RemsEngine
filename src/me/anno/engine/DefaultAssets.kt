@@ -13,6 +13,7 @@ import me.anno.io.files.FileRootRef
 import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes
+import me.anno.utils.InternalAPI
 import me.anno.utils.OS.res
 
 /**
@@ -21,6 +22,7 @@ import me.anno.utils.OS.res
  * */
 object DefaultAssets {
 
+    @InternalAPI
     val assets = HashMap<String, HashSet<FileReference>>()
 
     val flatCube = Shapes.flatCube.front

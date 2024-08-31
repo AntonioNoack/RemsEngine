@@ -21,7 +21,7 @@ import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.roundToIntOr

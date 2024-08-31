@@ -2,7 +2,7 @@ package me.anno.io.files
 
 import me.anno.io.VoidOutputStream
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException

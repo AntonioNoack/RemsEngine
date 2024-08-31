@@ -3,7 +3,7 @@ package me.anno.io.zip.internal
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.IHeavyIterable
 import me.anno.io.zip.Inner7zFile
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import java.io.ByteArrayInputStream
 import java.io.InputStream

@@ -21,7 +21,7 @@ import me.anno.io.yaml.generic.YAMLNode
 import me.anno.io.yaml.generic.YAMLReader.beautify
 import me.anno.io.yaml.generic.YAMLReader.parseYAML
 import me.anno.utils.ColorParsing.parseHex
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.isBlank2

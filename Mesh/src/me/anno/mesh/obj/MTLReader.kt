@@ -5,7 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.obj.OBJReader.Companion.readPath
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f

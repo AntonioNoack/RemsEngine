@@ -12,7 +12,7 @@ import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
@@ -172,11 +172,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     open fun inputStreamSync(): InputStream = readSync(::inputStream)
+
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     open fun readBytesSync(): ByteArray = readSync(::readBytes)
+
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     open fun readTextSync(): String = readSync(::readText)
+
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     open fun readByteBufferSync(native: Boolean): ByteBuffer = readSync { readByteBuffer(native, it) }
 
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     private fun <V> readSync(reader: (Callback<V>) -> Unit): V {
         var e: Exception? = null
         var d: V? = null
@@ -190,17 +198,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) {
         readBytes { bytes, exc ->
-            if (bytes != null) {
-                callback.call(
-                    if (native) {
-                        val buffer = ByteBufferPool.allocateDirect(bytes.size)
-                        buffer.put(bytes).flip()
-                        buffer
-                    } else {
-                        ByteBuffer.wrap(bytes)
-                    }, null
-                )
-            } else callback.call(null, exc)
+            val buffer = if (bytes != null) {
+                if (native) {
+                    val buffer = ByteBufferPool.allocateDirect(bytes.size)
+                    buffer.put(bytes).flip()
+                    buffer
+                } else ByteBuffer.wrap(bytes)
+            } else null
+            callback.call(buffer, exc)
         }
     }
 
@@ -208,6 +213,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         readLinesImpl(lineLengthLimit, true, callback)
     }
 
+    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
     open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
         return readSync { readLinesImpl(lineLengthLimit, false, it) }
     }

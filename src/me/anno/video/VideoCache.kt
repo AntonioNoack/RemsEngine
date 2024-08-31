@@ -5,7 +5,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min

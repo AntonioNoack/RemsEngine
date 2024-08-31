@@ -9,7 +9,7 @@ import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
 import me.anno.maths.Maths.max
 import me.anno.utils.Color.convertABGR2ARGB
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 

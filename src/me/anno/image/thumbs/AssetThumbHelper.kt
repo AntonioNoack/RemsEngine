@@ -22,8 +22,8 @@ import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.Callback
-import me.anno.utils.structures.Callback.Companion.mapCallback
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Floats.toRadians

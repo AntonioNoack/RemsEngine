@@ -4,7 +4,7 @@ import me.anno.Time.nanoTime
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import kotlin.math.max
 
 class CacheEntry private constructor(

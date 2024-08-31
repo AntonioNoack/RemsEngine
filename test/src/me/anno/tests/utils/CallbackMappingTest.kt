@@ -5,7 +5,7 @@ import me.anno.engine.Events.addEvent
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.Callback.Companion.mapCallback
+import me.anno.utils.async.Callback.Companion.mapCallback
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import kotlin.test.assertIs

@@ -17,7 +17,7 @@ import me.anno.utils.Color
 import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.Iterators.subList
 
 @InternalAPI

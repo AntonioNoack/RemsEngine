@@ -43,7 +43,7 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.Warning
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager

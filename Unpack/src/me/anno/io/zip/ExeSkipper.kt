@@ -4,7 +4,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max

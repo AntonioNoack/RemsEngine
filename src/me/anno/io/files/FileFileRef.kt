@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.register
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream

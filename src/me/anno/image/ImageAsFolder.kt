@@ -19,7 +19,7 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.OS
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 

@@ -6,7 +6,7 @@ import me.anno.utils.types.size
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import java.io.InputStream

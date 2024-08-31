@@ -3,7 +3,7 @@ package me.anno.io.zip.internal
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.IHeavyAccess
 import me.anno.io.zip.InnerZipFile
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.commons.compress.archivers.zip.ZipFile
 import java.io.InputStream
 

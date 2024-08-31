@@ -16,7 +16,7 @@ import me.anno.image.thumbs.ThumbsRendering
 import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.Color
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.roundToIntOr
 import net.sf.image4j.codec.ico.ICOReader
 import org.joml.Matrix4fArrayList

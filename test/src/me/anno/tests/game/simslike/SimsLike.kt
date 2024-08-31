@@ -3,6 +3,7 @@ package me.anno.tests.game.simslike
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.res
@@ -43,7 +44,7 @@ fun main() {
     val scene = Entity("Scene")
     val floor = Entity("Floor", scene)
     floor.setScale(100.0)
-    floor.add(MeshComponent(PlaneModel.createPlane()))
+    floor.add(MeshComponent(DefaultAssets.plane))
     floor.add(SimAction().apply {
         name = "Walk Here"
     })

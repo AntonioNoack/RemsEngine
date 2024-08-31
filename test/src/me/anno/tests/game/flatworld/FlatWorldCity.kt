@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -89,7 +90,7 @@ fun main() {
     // terrain
     val grassMaterial = Material.diffuse(0x88dd88)
     world.terrain.setScale(100.0)
-        .add(MeshComponent(PlaneModel.createPlane(), grassMaterial))
+        .add(MeshComponent(DefaultAssets.plane, grassMaterial))
 
     testUI3("FlatWorld City") {
         val ui = NineTilePanel(style)

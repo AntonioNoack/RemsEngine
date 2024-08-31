@@ -10,7 +10,7 @@ import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.hpc.HeavyProcessing.processStage
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.net.URL

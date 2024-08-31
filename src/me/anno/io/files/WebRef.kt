@@ -6,7 +6,7 @@ import me.anno.fonts.Codepoints.codepoints
 import me.anno.io.Streams.readText
 import me.anno.io.VoidOutputStream
 import me.anno.utils.Color.hex4
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Ints.toIntOrDefault

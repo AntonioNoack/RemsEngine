@@ -8,7 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.io.IOException
 

@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.utils.NormalCalculator.makeFlatShaded
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.assertions.assertEquals

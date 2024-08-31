@@ -30,7 +30,7 @@ import me.anno.io.files.inner.InnerByteSliceFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream

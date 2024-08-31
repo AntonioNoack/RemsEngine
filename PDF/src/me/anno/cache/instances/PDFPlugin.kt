@@ -7,7 +7,7 @@ import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 
 // todo my downloads folder is still lagging :/, why/how???

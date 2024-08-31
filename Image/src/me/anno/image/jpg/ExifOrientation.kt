@@ -2,7 +2,7 @@ package me.anno.image.jpg
 
 import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Buffers.skip
 import java.io.InputStream
 import java.nio.ByteBuffer

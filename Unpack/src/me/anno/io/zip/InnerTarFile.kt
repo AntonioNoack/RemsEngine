@@ -11,7 +11,7 @@ import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.unity.UnityPackage.unpack
 import me.anno.io.zip.internal.TarHeavyIterator
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream

@@ -35,7 +35,7 @@ import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.FloatArrayPool
 import me.anno.utils.pooling.IntArrayPool
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager

@@ -1,6 +1,6 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D

@@ -15,7 +15,7 @@ import me.anno.mesh.maya.MayaASCII2015
 import me.anno.mesh.mitsuba.MitsubaReader
 import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.obj.OBJReader
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 
 class MeshLoaderPlugin : Plugin() {
     override fun onEnable() {

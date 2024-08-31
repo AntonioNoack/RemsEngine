@@ -4,7 +4,7 @@ import me.anno.image.Image
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import javax.imageio.ImageIO
 
 /**

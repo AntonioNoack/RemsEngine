@@ -8,7 +8,7 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.utils.Color
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import kotlin.math.max
 
 class FloatImage(

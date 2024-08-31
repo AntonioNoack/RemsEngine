@@ -19,6 +19,7 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.engine.DefaultAssets
 import me.anno.engine.Events.addEvent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
@@ -174,7 +175,7 @@ fun createSampleScene(): Entity {
     val floorMaterial = Material()
     floorMaterial.shader = BakedLightingShader
     floorMaterial.diffuseMap = res.getChild("textures/UVChecker.png")
-    val floorComp = MeshComponent(PlaneModel.createPlane(), floorMaterial)
+    val floorComp = MeshComponent(DefaultAssets.plane, floorMaterial)
     scene.add(Entity("Floor", floorComp).setScale(50.0))
 
     val cubeMesh = CubemapModel.model.front

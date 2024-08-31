@@ -16,7 +16,7 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.callbacks.I2U
 import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.OutputStream
 import kotlin.math.floor

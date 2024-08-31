@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
 import me.anno.utils.Sleep
 import me.anno.utils.files.Files
-import me.anno.utils.structures.Callback.Companion.mapCallback
+import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import java.awt.Toolkit

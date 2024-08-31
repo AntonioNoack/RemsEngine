@@ -4,20 +4,18 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.HeavyAccess
-import me.anno.io.files.inner.IHeavyAccess
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.zip.internal.ZipHeavyAccess
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 
 class InnerZipFile(
     absolutePath: String,

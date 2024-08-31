@@ -16,7 +16,7 @@ import me.anno.io.files.Signature
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 

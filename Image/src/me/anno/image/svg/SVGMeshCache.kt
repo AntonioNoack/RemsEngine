@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.Warning.unused
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import java.io.InputStream
 
 object SVGMeshCache : CacheSection("Meshes") {

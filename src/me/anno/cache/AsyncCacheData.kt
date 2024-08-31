@@ -1,7 +1,7 @@
 package me.anno.cache
 
 import me.anno.utils.Sleep
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 
 open class AsyncCacheData<V> : ICacheData, Callback<V> {
 

@@ -1,6 +1,6 @@
 package me.anno.image.gimp
 
-import me.anno.utils.structures.Callback
+import me.anno.utils.async.Callback
 import me.anno.image.Image
 import me.anno.image.ImageAsFolder
 import me.anno.image.raw.ByteImage
@@ -30,7 +30,6 @@ import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * Gimp is a painting program, we regularly use,
