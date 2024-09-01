@@ -65,11 +65,6 @@ import kotlin.math.sin
 //  - rotating objects
 //  - object library to choose from
 //  - deleting objects
-// todo:
-//  - align objects by normal
-//   - painting's rotations are broken, up should stay up
-//  - save world
-//  - load world
 
 fun createTestTerrain(): MeshComponent {
     val terrainMesh = Mesh()
@@ -83,7 +78,10 @@ fun createTestTerrain(): MeshComponent {
 
 class BuildCategory(val name: String, val items: List<Panel>)
 
-
+/**
+ * This is a sample, where you can comfortably build a scene, save and load it.
+ * It may be integrated into the main editor one day.
+ * */
 fun main() {
     OfficialExtensions.initForTests()
     testUI3("World Builder") {
