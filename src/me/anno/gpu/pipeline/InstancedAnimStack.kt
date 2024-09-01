@@ -2,7 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.Transform
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.utils.pooling.Pools
 import org.joml.Vector4f
 
 /**
@@ -15,7 +15,7 @@ class InstancedAnimStack : InstancedStack() {
         private val defaultIndices = Vector4f(0f, 0f, 0f, 0f)
     }
 
-    var animData = FloatArray(transforms.size * 16)
+    var animData = Pools.floatArrayPool[CLEAR_SIZE * 16, false, false]
     var animTexture: ITexture2D? = null
 
     override fun add(transform: Transform, gfxId: Int) {
@@ -24,7 +24,12 @@ class InstancedAnimStack : InstancedStack() {
 
     override fun resize(newSize: Int) {
         super.resize(newSize)
-        animData = animData.copyOf(newSize * 16)
+        animData = Pools.floatArrayPool.grow(animData, newSize * 16)
+    }
+
+    override fun clear() {
+        super.clear()
+        animData = Pools.floatArrayPool.shrink(animData, CLEAR_SIZE * 16)
     }
 
     fun add(

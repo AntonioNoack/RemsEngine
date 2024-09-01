@@ -14,7 +14,6 @@ import me.anno.engine.raycast.Raycast.TRIANGLES
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.pipeline.InstancedAnimStack
 import me.anno.gpu.pipeline.InstancedI32Stack
 import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
@@ -23,6 +22,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.Done
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.structures.maps.KeyTripleMap
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -62,9 +62,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                     val material = Materials.getMaterial(pipeline.superMaterial, material0)
                     val stage = pipeline.findStage(material)
                     if (mesh.proceduralLength <= 0) {
-                        val stack = stage.instanced.data.getOrPut(mesh, material, matIndex) { mesh1, _, _ ->
-                            if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()
-                        }
+                        val stack = stage.instanced.data.getStack(mesh, material, matIndex)
                         stage.addToStack(stack, this, transform)
                     } else {
                         if (Build.isDebug && mesh.numMaterials > 1) {
@@ -83,9 +81,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         val result = forEachMeshGroup { mesh, material ->
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instanced.data.getOrPut(mesh, material2, 0) { mesh1, _, _ ->
-                if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()
-            }
+            val stack = stage.instanced.data.getStack(mesh, material2, 0)
             validateLastStack()
             lastStack = stack
             lastStackIndex = stack.size
@@ -129,7 +125,8 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         val ls = lastStack
         if (ls != null) {
             for (j in lastStackIndex until ls.size) {
-                ls.transforms[j]!!.validate()
+                val transform = ls.transforms[j] as Transform
+                transform.validate()
             }
         }
         lastStack = null
@@ -262,5 +259,19 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(MeshSpawner::class)
+
+        fun KeyTripleMap<IMesh, Material, Int, InstancedStack>.getStack(
+            mesh: IMesh, material: Material, matIndex: Int
+        ): InstancedStack {
+            return getOrPut(mesh, material, matIndex) { meshI, _, _ -> createStack(meshI.hasBonesInBuffer) }
+        }
+
+        fun createStack(animated: Boolean): InstancedStack {
+            return if (animated) {
+                InstancedStack.newAnimStack()
+            } else {
+                InstancedStack.newInstStack()
+            }
+        }
     }
 }

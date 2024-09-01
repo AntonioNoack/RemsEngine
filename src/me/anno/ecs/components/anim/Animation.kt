@@ -3,7 +3,6 @@ package me.anno.ecs.components.anim
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.cache.ICacheData
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
@@ -12,11 +11,11 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.fract
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.AnyToFloat
 import org.joml.Matrix4x3f
 
@@ -134,9 +133,9 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
         init {
             val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
-            mesh.positions = Texture2D.floatArrayPool[size, false, true]
-            mesh.normals = Texture2D.floatArrayPool[size, true, true]
-            mesh.boneIndices = Texture2D.byteArrayPool[size * 4 / 3, true, true]
+            mesh.positions = Pools.floatArrayPool[size, false, true]
+            mesh.normals = Pools.floatArrayPool[size, true, true]
+            mesh.boneIndices = Pools.byteArrayPool[size * 4 / 3, true, true]
             Skeleton.generateSkeleton(
                 bones, bones.map { it.bindPosition },
                 mesh.positions!!, mesh.boneIndices!!
@@ -147,12 +146,9 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         }
 
         fun destroy() {
-            Texture2D.floatArrayPool.returnBuffer(mesh.positions)
-            Texture2D.floatArrayPool.returnBuffer(mesh.normals)
-            Texture2D.byteArrayPool.returnBuffer(mesh.boneIndices)
-            mesh.positions = null
-            mesh.normals = null
-            mesh.boneIndices = null
+            mesh.positions = Pools.floatArrayPool.returnBuffer(mesh.positions)
+            mesh.normals = Pools.floatArrayPool.returnBuffer(mesh.normals)
+            mesh.boneIndices = Pools.byteArrayPool.returnBuffer(mesh.boneIndices)
             mesh.destroy()
         }
 

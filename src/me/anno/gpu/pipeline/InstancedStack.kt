@@ -30,7 +30,9 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
+import me.anno.maths.Maths.min
 import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.structures.tuples.LongTriple
 import org.joml.AABBd
@@ -43,11 +45,25 @@ import java.nio.ByteBuffer
  * */
 open class InstancedStack {
 
-    var transforms = arrayOfNulls<Transform>(64)
-    var gfxIds = IntArray(64)
+    companion object {
+        fun newInstStack(): InstancedStack {
+            return InstancedStack()
+        }
+
+        fun newAnimStack(): InstancedAnimStack {
+            return InstancedAnimStack()
+        }
+
+        const val CLEAR_SIZE = 16
+    }
+
+    var transforms = Pools.arrayPool[CLEAR_SIZE, false, false]
+    var gfxIds = Pools.intArrayPool[CLEAR_SIZE, false, false]
     var size = 0
 
-    fun clear() {
+    open fun clear() {
+        transforms = Pools.arrayPool.shrink(transforms, CLEAR_SIZE)
+        gfxIds = Pools.intArrayPool.shrink(gfxIds, CLEAR_SIZE)
         size = 0
     }
 
@@ -55,12 +71,12 @@ open class InstancedStack {
     fun isEmpty() = size == 0
 
     open fun resize(newSize: Int) {
-        transforms = transforms.copyOf(newSize)
-        gfxIds = gfxIds.copyOf(newSize)
+        transforms = Pools.arrayPool.grow(transforms, newSize)
+        gfxIds = Pools.intArrayPool.grow(gfxIds, newSize)
     }
 
     open fun add(transform: Transform, gfxId: Int) {
-        if (size >= transforms.size) {
+        if (size >= min(transforms.size, gfxIds.size)) {
             resize(transforms.size * 2)
         }
         val index = size++
@@ -312,7 +328,7 @@ open class InstancedStack {
 
         private fun updateLights(
             pipeline: Pipeline, shader: Shader, aabb: AABBd, localAABB: AABBf,
-            transforms: Array<Transform?>, baseIndex: Int, endIndex: Int
+            transforms: Array<Any?>, baseIndex: Int, endIndex: Int
         ) {
             // would need to be voted by MeshComponents...
             // could be encoded into a float's lowest bit somewhere...
@@ -321,19 +337,20 @@ open class InstancedStack {
             // todo cluster them cheaply?
             aabb.clear()
             for (index in baseIndex until endIndex) {
-                localAABB.transformUnion(transforms[index]!!.getDrawMatrix(), aabb)
+                val transform = transforms[index] as Transform
+                localAABB.transformUnion(transform.getDrawMatrix(), aabb)
             }
             setupLights(pipeline, shader, aabb, receiveShadows)
             shader.checkIsUsed()
         }
 
         private fun putNoWorldScale(
-            nioBuffer: ByteBuffer, transforms: Array<Transform?>,
+            nioBuffer: ByteBuffer, transforms: Array<Any?>,
             baseIndex: Int, endIndex: Int,
             cx: Double, cy: Double, cz: Double
         ) {
             for (index in baseIndex until endIndex) {
-                val tr = transforms[index]!!
+                val tr = transforms[index] as Transform
                 val tri = tr.localPosition
                 nioBuffer.putFloat((tri.x - cx).toFloat())
                 nioBuffer.putFloat((tri.y - cy).toFloat())
@@ -349,13 +366,13 @@ open class InstancedStack {
         }
 
         private fun putWorldScale(
-            nioBuffer: ByteBuffer, transforms: Array<Transform?>,
+            nioBuffer: ByteBuffer, transforms: Array<Any?>,
             baseIndex: Int, endIndex: Int,
             cx: Double, cy: Double, cz: Double,
             worldScale: Double
         ) {
             for (index in baseIndex until endIndex) {
-                val tr = transforms[index]!!
+                val tr = transforms[index] as Transform
                 val tri = tr.localPosition
                 nioBuffer.putFloat(((tri.x - cx) * worldScale).toFloat())
                 nioBuffer.putFloat(((tri.y - cy) * worldScale).toFloat())
@@ -372,7 +389,7 @@ open class InstancedStack {
 
         private fun putAdvanced(
             nioBuffer: ByteBuffer, buffer: StaticBuffer,
-            transforms: Array<Transform?>,
+            transforms: Array<Any?>,
             baseIndex: Int, endIndex: Int,
             noWorldScale: Boolean, time: Long,
             prevCameraPosition: Vector3d, cameraPosition: Vector3d,
@@ -382,12 +399,13 @@ open class InstancedStack {
             gfxIds: IntArray, drawCallId: Int,
         ) {
             for (index in baseIndex until endIndex) {
-                val tri = transforms[index]!!.getDrawMatrix(time)
+                val transform = transforms[index] as Transform
+                val tri = transform.getDrawMatrix(time)
                 if (noWorldScale) M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
                 else M4x3Delta.m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
                 if (motionVectors) {
                     // put previous matrix
-                    val tri2 = transforms[index]!!.getDrawnMatrix(time)
+                    val tri2 = transform.getDrawnMatrix(time)
                     if (noWorldScale) M4x3Delta.m4x3delta(tri2, prevCameraPosition, nioBuffer)
                     else M4x3Delta.m4x3delta(tri2, prevCameraPosition, prevWorldScale, nioBuffer)
                     // put animation data
@@ -410,6 +428,10 @@ open class InstancedStack {
 
         override fun clear() {
             for (stack in data.values.values) {
+                for (i in stack.indices) {
+                    val (_, _, instancedStack) = stack[i]
+                    instancedStack.clear()
+                }
                 stack.clear()
             }
         }

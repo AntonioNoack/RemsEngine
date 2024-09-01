@@ -31,6 +31,7 @@ import me.anno.input.Input
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Booleans.toInt
@@ -506,7 +507,7 @@ object GFX {
         OpenGLBuffer.invalidateBinding()
         GFXState.invalidateState()
 
-        Texture2D.freeUnusedEntries()
+        Pools.freeUnusedEntries()
         AudioStream.bufferPool.freeUnusedEntries()
 
         setFrameNullSize(window)

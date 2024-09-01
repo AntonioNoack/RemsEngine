@@ -71,7 +71,7 @@ object BVHBuilder {
                 if (blas != null) {
                     mesh.raycaster = blas
                     for (i in 0 until stack.size) {
-                        val transform = stack.transforms[i]!!
+                        val transform = stack.transforms[i] as Transform
                         objects += createTLASLeaf(mesh, blas, transform, null, cameraPosition, worldScale)
                     }
                 }

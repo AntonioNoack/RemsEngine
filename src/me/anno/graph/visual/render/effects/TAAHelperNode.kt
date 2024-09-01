@@ -14,6 +14,6 @@ class TAAHelperNode : ActionNode("TAAHelper", emptyList(), emptyList()) {
         val s = TAANode.getCameraSteadiness()
         // if steady, return -1 to avoid blurring
         // else, return 0 for smooth textures
-        Material.lodBias = mix(0f, -1f, s)
+        Material.lodBias = mix(0f, -1f, s) // = -s
     }
 }

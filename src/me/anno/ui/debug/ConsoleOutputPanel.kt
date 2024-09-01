@@ -26,6 +26,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Logging.lastConsoleLines
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
@@ -130,7 +131,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             fun runGC() {
                 val runtime = Runtime.getRuntime()
                 val oldMemory = runtime.totalMemory() - runtime.freeMemory()
-                Texture2D.gc()
+                Pools.gc()
                 System.gc()
                 addEvent {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
                     val newMemory = runtime.totalMemory() - runtime.freeMemory()

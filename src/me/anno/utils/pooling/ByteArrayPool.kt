@@ -6,4 +6,8 @@ open class ByteArrayPool(size: Int) : BufferPool<ByteArray>(size, 1) {
     override fun clear(buffer: ByteArray, size: Int) {
         buffer.fill(0, 0, size)
     }
+
+    override fun copy(src: ByteArray, dst: ByteArray, size: Int) {
+        src.copyInto(dst, 0, 0, size)
+    }
 }

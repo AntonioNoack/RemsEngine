@@ -152,9 +152,11 @@ class TAANode : TimedRenderingNode(
             val pattern = getPattern(0)
             val jx = pattern.x
             val jy = pattern.y
+            // if the camera is moving, we don't need jitter
+            val amplitude = 2f * getCameraSteadiness()
             views[RenderState.viewIndex].set(m)
-            m.m20(m.m20 + jx * 2f / pw)
-            m.m21(m.m21 + jy * 2f / ph)
+            m.m20(m.m20 + jx * amplitude / pw)
+            m.m21(m.m21 + jy * amplitude / ph)
         }
 
         fun unjitter(m: Matrix4f) {

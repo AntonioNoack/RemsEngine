@@ -6,4 +6,8 @@ open class ShortArrayPool(size: Int) : BufferPool<ShortArray>(size, 2) {
     override fun clear(buffer: ShortArray, size: Int) {
         buffer.fill(0, 0, size)
     }
+
+    override fun copy(src: ShortArray, dst: ShortArray, size: Int) {
+        src.copyInto(dst, 0, 0, size)
+    }
 }

@@ -20,6 +20,7 @@ class ObjectPool<V>(
         private val LOGGER = LogManager.getLogger(ObjectPool::class)
     }
 
+    constructor(size: Int, create: () -> V) : this(create, {}, {}, {}, false, 16, size)
     constructor(create: () -> V) : this(create, {}, {}, {}, false)
 
     private val map = if (checkDoubleReturns) HashSet<V>(initialSize) else null
@@ -55,4 +56,15 @@ class ObjectPool<V>(
         }
     }
 
+    /**
+     * remove all instances
+     * */
+    fun gc() {
+        synchronized(this) {
+            for (i in data.indices) {
+                freeInstance(data[i])
+            }
+            data.clear()
+        }
+    }
 }

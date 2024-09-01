@@ -9,6 +9,7 @@ import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshSpawner.Companion.getStack
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.ECSMeshShaderLight.Companion.canUseLightShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -752,9 +753,7 @@ class PipelineStageImpl(
         mesh: IMesh, component: Component, transform: Transform,
         material: Material, materialIndex: Int
     ) {
-        val stack = instanced.data.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
-            if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()
-        }
+        val stack = instanced.data.getStack(mesh, material, materialIndex)
         addToStack(stack, component, transform)
     }
 

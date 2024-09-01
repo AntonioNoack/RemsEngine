@@ -36,10 +36,7 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.pooling.ByteArrayPool
-import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.pooling.FloatArrayPool
-import me.anno.utils.pooling.IntArrayPool
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -827,25 +824,10 @@ open class Texture2D(
         @JvmField
         var wasModifiedInComputePipeline = false
 
-        @JvmField
-        val bufferPool = ByteBufferPool(64)
-
-        @JvmField
-        val byteArrayPool = ByteArrayPool(64)
-
-        @JvmField
-        val intArrayPool = IntArrayPool(64)
-
-        @JvmField
-        val floatArrayPool = FloatArrayPool(64)
-
-        @JvmStatic
-        fun freeUnusedEntries() {
-            bufferPool.freeUnusedEntries()
-            byteArrayPool.freeUnusedEntries()
-            intArrayPool.freeUnusedEntries()
-            floatArrayPool.freeUnusedEntries()
-        }
+        val bufferPool get() = Pools.byteBufferPool
+        val byteArrayPool get() = Pools.byteArrayPool
+        val intArrayPool get() = Pools.intArrayPool
+        val floatArrayPool get() = Pools.floatArrayPool
 
         @JvmStatic
         @Docs("Method for debugging by unloading all textures")
@@ -853,15 +835,6 @@ open class Texture2D(
             for (i in maxBoundTextures - 1 downTo 0) {
                 whiteTexture.bind(i)
             }
-        }
-
-        @JvmStatic
-        @Docs("Remove all pooled entries")
-        fun gc() {
-            bufferPool.gc()
-            byteArrayPool.gc()
-            intArrayPool.gc()
-            floatArrayPool.gc()
         }
 
         @JvmField

@@ -40,6 +40,14 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
         free(buffer)
     }
 
+    override fun copy(src: ByteBuffer, dst: ByteBuffer, size: Int) {
+        src.position(0).limit(size)
+        dst.position(0).limit(size)
+        dst.put(src)
+        dst.position(0).limit(dst.capacity())
+        src.position(0).limit(src.capacity())
+    }
+
     // these cause issues, so always keep the original bytebuffer
     /* fun returnBuffer(buffer: DoubleBuffer?){
          buffer ?: return
