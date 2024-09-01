@@ -156,7 +156,7 @@ abstract class Image(
     /**
      * for debugging and easier seeing pixels
      * */
-    open fun scaleUp(sx: Int, sy: Int): Image {
+    open fun scaleUp(sx: Int, sy: Int = sx): Image {
         return object : Image(width * sx, height * sy, numChannels, hasAlphaChannel) {
             override fun getRGB(index: Int): Int {
                 val x = (index % this.width) / sx

@@ -408,9 +408,10 @@ object ImageWriter {
         writeImageInt(w2, h2, alpha, name, pixels)
     }
 
+    data class ColoredLine(val a: Vector2f, val b: Vector2f, val lineColor: Int, val pointColor: Int)
+
     @JvmStatic
     fun writeTriangles(size: Int, name: String, points: List<Vector2f>, indices: IntArray) {
-
         val bounds = AABBf()
         for (p in points) {
             bounds.union(p.x, p.y, 0f)
@@ -461,6 +462,51 @@ object ImageWriter {
             val py = (ay + by + cy) / 3
 
             gfx.fillOval(px - 2, py - 2, 5, 5)
+        }
+        OS.desktop.getChild(name).outputStream().use {
+            ImageIO.write(bi, "png", it)
+        }
+    }
+
+    @JvmStatic
+    fun writeLines(size: Int, name: String, lines: List<ColoredLine>) {
+
+        val bounds = AABBf()
+        for ((a, b) in lines) {
+            bounds.union(a.x, a.y, 0f)
+            bounds.union(b.x, b.y, 0f)
+        }
+
+        val s = size * 0.95f / max(bounds.deltaX, bounds.deltaY)
+
+        val ox = bounds.centerX - (size / 2f) / s
+        val oy = bounds.centerY - (size / 2f) / s
+
+        val bi = BufferedImage(size, size, 1)
+        val gfx = bi.graphics as Graphics2D
+        val random = Random(1234L)
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        // draw all points
+        fun drawPoint(p: Vector2f, color: Int) {
+            if (color.a() == 0) return
+            gfx.color = java.awt.Color(color)
+            val ax = ((p.x - ox) * s).toIntOr()
+            val ay = ((p.y - oy) * s).toIntOr()
+            gfx.drawOval(ax, ay, 1, 1)
+        }
+        for ((a, b, _, color) in lines) {
+            drawPoint(a, color)
+            drawPoint(b, color)
+        }
+        // draw all triangles
+        for ((a, b, color) in lines) {
+            if (color.a() == 0) continue
+            val ax = ((a.x - ox) * s).toIntOr()
+            val ay = ((a.y - oy) * s).toIntOr()
+            val bx = ((b.x - ox) * s).toIntOr()
+            val by = ((b.y - oy) * s).toIntOr()
+            gfx.color = java.awt.Color(color)
+            gfx.drawLine(ax, ay, bx, by)
         }
         OS.desktop.getChild(name).outputStream().use {
             ImageIO.write(bi, "png", it)

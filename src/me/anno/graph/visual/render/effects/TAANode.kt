@@ -32,7 +32,8 @@ import org.joml.Vector2f
 
 /**
  * temporal edge reconstruction: smooths harsh pixelated lines
- * todo set LOD-bias before using this (if camera is steady)
+ * todo small test scene with slow swinging
+ * todo ensure ghosting is low, but it's still being properly anti-aliased
  * */
 class TAANode : TimedRenderingNode(
     "TAA",
@@ -70,6 +71,7 @@ class TAANode : TimedRenderingNode(
                         shader.v1f("maxTAA", maxTAA)
                         flat01.draw(shader)
                     } else {
+                        // todo use FXAA here??
                         GFX.copy(color)
                     }
                 }

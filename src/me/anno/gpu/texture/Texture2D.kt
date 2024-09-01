@@ -824,6 +824,7 @@ open class Texture2D(
         @JvmField
         var wasModifiedInComputePipeline = false
 
+        // todo let who uses this get direct access
         val bufferPool get() = Pools.byteBufferPool
         val byteArrayPool get() = Pools.byteArrayPool
         val intArrayPool get() = Pools.intArrayPool
