@@ -77,14 +77,16 @@ object MarchingSquares {
             val e = 0.01f
             val mx = (a.x + b.x) * 0.5f
             val my = (a.y + b.y) * 0.5f
+            // todo get gradient properly: this could give fx=fy=f0, if mx is big, and fx~fy~f0
+            //  don't forget to run tests
             val f0 = field.getValue(mx, my)
             val fx = field.getValue(mx + e, my)
             val fy = field.getValue(mx, my + e)
             // gradient of field
             val gx = fx - f0
             val gy = fy - f0
-            val dx = b.x - mx
-            val dy = b.y - my
+            val dx = b.x - a.x
+            val dy = b.y - a.y
             // cross product
             val cross = gx * dy - gy * dx
             // println("($gx,$gy,$dx,$dy) -> $cross")
@@ -153,9 +155,8 @@ object MarchingSquares {
         // convert stripes into real texture
         // orientation order by gradient inside/outside
         val polygons = ArrayList<ArrayList<Vector2f>>()
-        while (next.isNotEmpty()) {
-            // this is quite critical, and I don't fully trust it...
-            var (v0, v1) = next.entries.first()
+        while (true) {
+            var (v0, v1) = next.entries.firstOrNull() ?: break
             next.remove(v0)
             val polygon = ArrayList<Vector2f>()
             polygon.add(v0)
@@ -167,19 +168,15 @@ object MarchingSquares {
                     // sometimes, due to small inaccuracies, we need to find the next partner
                     //   test chains... they'll fail and be partial strips only -> we clear the border, so it's fine
                     LOGGER.warn("Missing $v1 -> ...")
-                    val best =
-                        next
-                            .filter { it.key.distanceSquared(v1) < 0.1f }
-                            .minBy { it.key.distanceSquared(v1) }
-                    v2 = best.value
-                    next.remove(best.key)
+                    val closestKey = next.minBy {
+                        it.key.distanceSquared(v1)
+                    }
+                    v2 = closestKey.value
+                    next.remove(closestKey.key)
                 } else next.remove(v1)
                 v1 = v2
             }
             polygons.add(polygon)
-            for (key in polygon) {
-                next.remove(key)
-            }
         }
 
         return polygons

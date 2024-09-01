@@ -3,6 +3,8 @@ package me.anno.input
 import me.anno.Time
 import me.anno.config.ConfigRef
 import me.anno.gpu.OSWindow
+import me.anno.input.Input.maxClickDistance
+import me.anno.input.Input.minDragDistance
 import me.anno.io.config.ConfigBasics.loadConfig
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
@@ -160,7 +162,7 @@ object ActionManager : StringMap() {
             onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.PRESSING)
             val deltaTime = (Time.nanoTime - downTime) * 1e-9f
             val wasWaiting = deltaTime >= keyDragDelay
-            val mouseMoved = Input.mouseHasMoved
+            val mouseMoved = Input.mouseMovementSinceMouseDown > minDragDistance
             val isDragging = if (enableQuickDragging) {
                 wasWaiting || mouseMoved
             } else {

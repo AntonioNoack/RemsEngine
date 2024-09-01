@@ -3,6 +3,8 @@ package me.anno.utils.structures.lists
 import me.anno.utils.structures.CachedValue
 
 class UpdatingList<V>(timeoutMillis: Long, getter: () -> List<V>) : SimpleList<V>() {
+    constructor(getter: () -> List<V>) : this(500, getter)
+
     private val values by CachedValue(timeoutMillis, getter)
     override val size: Int get() = values.size
     override fun get(index: Int): V = values[index]

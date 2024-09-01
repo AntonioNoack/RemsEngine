@@ -17,6 +17,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -278,6 +279,20 @@ class Prefab : Saveable {
         }
         invalidateInstance()
         return change
+    }
+
+    fun remove(path: Path) {
+        if (!isWritable) throw ImmutablePrefabException(source)
+        val adds = adds
+        val success = adds[path.parent ?: ROOT_PATH]?.removeIf { it.nameId == path.nameId }
+        if (success == true) {
+            // good :)
+            adds.removeIf { (key, _) -> key.startsWith(path) }
+            sets.removeIf { k1, _, _ -> k1.startsWith(path) }
+            invalidateInstance()
+        } else {
+            this[path, "isEnabled"] = false
+        }
     }
 
     private fun updateSample(path: Path, name: String, value: Any?) {

@@ -1,6 +1,6 @@
 package me.anno.tests.geometry
 
-import me.anno.bugs.todo.arrow
+import me.anno.bugs.done.arrow
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.TAU
@@ -12,7 +12,6 @@ import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.MarchingSquares
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toLongOr

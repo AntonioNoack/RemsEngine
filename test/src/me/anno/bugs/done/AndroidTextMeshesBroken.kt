@@ -1,6 +1,5 @@
-package me.anno.bugs.todo
+package me.anno.bugs.done
 
-import me.anno.Time
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.posMod
