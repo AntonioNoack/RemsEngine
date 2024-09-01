@@ -49,6 +49,7 @@ import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.SmoothNormalsNode
+import me.anno.graph.visual.render.effects.TAAHelperNode
 import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.effects.UnditherNode
@@ -463,7 +464,22 @@ class RenderMode private constructor(
 
         val RAY_TEST = RenderMode("Raycast Test", DEFAULT)
 
-        val TAA = RenderMode("TAA", postProcessGraph(TAANode(), 1, false))
+        val TAA = RenderMode(
+            "TAA",
+            QuickPipeline()
+                .then(TAAHelperNode())
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
+                .then(RenderDecalsNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then(RenderGlassNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then1(GizmoNode(), mapOf("Samples" to 1))
+                .then(TAANode())
+                .finish()
+        )
 
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
@@ -523,14 +539,8 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        fun postProcessGraph(node: ActionNode): FlowGraph =
-            postProcessGraph(node, 8, true)
-
-        fun postProcessGraph(
-            node: ActionNode, gizmoSamples: Int,
-            beforeTonemapping: Boolean
-        ): FlowGraph {
-            val builder = QuickPipeline()
+        fun postProcessGraph(node: ActionNode): FlowGraph {
+            return QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -538,11 +548,10 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderGlassNode())
-            if (beforeTonemapping) builder.then(node)
-            builder.then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-            builder.then1(GizmoNode(), mapOf("Samples" to gizmoSamples))
-            if (!beforeTonemapping) builder.then(node)
-            return builder.finish()
+                .then(node)
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode())
+                .finish()
         }
 
         val FOG_TEST = RenderMode("Fog Test", postProcessGraph(HeightExpFogNode()))

@@ -20,6 +20,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.structures.lists.LazyList
@@ -31,6 +32,7 @@ import org.joml.Vector2f
 
 /**
  * temporal edge reconstruction: smooths harsh pixelated lines
+ * todo set LOD-bias before using this (if camera is steady)
  * */
 class TAANode : TimedRenderingNode(
     "TAA",
@@ -53,9 +55,7 @@ class TAANode : TimedRenderingNode(
                 val fri = Time.frameIndex.hasFlag(1)
                 val src = previous[fi + fri.toInt(0, 1)]
                 val dst = previous[fi + fri.toInt(1, 0)]
-                val distance = RenderState.cameraPosition.distance(RenderState.prevCameraPosition)
-                val relativeDistance = distance / min(RenderState.worldScale, RenderState.prevWorldScale)
-                val maxTAA = 0.98f - 20f * relativeDistance.toFloat()
+                val maxTAA = getCameraSteadiness()
                 useFrame(color.width, color.height, true, dst, copyRenderer) {
                     if (maxTAA > 0.01f) {
                         val shader = shader[maskTex0.mask1Index]
@@ -65,8 +65,7 @@ class TAANode : TimedRenderingNode(
                         color.bindTrulyNearest(shader, "colorTex1")
                         motion.bindTrulyNearest(shader, "motionTex")
                         maskTex.bindTrulyNearest(shader, "maskTex")
-                        val jitter = pattern[posMod(Time.frameIndex, pattern.size)] -
-                                pattern[posMod(Time.frameIndex - 1, pattern.size)]
+                        val jitter = getPattern(0) - getPattern(-1)
                         shader.v2f("jitter", jitter.mul(1f / src.width, 1f / src.height))
                         shader.v1f("maxTAA", maxTAA)
                         flat01.draw(shader)
@@ -88,6 +87,12 @@ class TAANode : TimedRenderingNode(
     }
 
     companion object {
+
+        fun getCameraSteadiness(): Float {
+            val distance = RenderState.cameraPosition.distance(RenderState.prevCameraPosition)
+            val relativeDistance = distance / min(RenderState.worldScale, RenderState.prevWorldScale)
+            return max(0.98f - 20f * relativeDistance.toFloat(), 0f)
+        }
 
         val shader = LazyList(4) {
             val maskMask = "xyzw"[it]
@@ -139,8 +144,12 @@ class TAANode : TimedRenderingNode(
 
         val views = LazyMap { _: Int -> Matrix4f() }
 
+        fun getPattern(dt: Int): Vector2f {
+            return pattern[posMod(Time.frameIndex + dt, pattern.size)]
+        }
+
         fun jitter(m: Matrix4f, pw: Int, ph: Int) {
-            val pattern = pattern[posMod(Time.frameIndex, pattern.size)]
+            val pattern = getPattern(0)
             val jx = pattern.x
             val jy = pattern.y
             views[RenderState.viewIndex].set(m)

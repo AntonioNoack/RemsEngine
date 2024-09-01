@@ -17,7 +17,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.IndestructibleTexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.LazyList
@@ -42,7 +41,6 @@ object ScreenSpaceAmbientOcclusion {
 
     // to do this can become extremely slow with complex geometry
     // (40 fps on a RTX 3070 🤯, where a pure-color scene has 600 fps)
-    // todo why is pure color soo slow? 600 fps instead of 1200 fps in mode "without post-processing")
     // why is this soo expensive on my RTX3070?
     // memory limited...
 
@@ -105,14 +103,14 @@ object ScreenSpaceAmbientOcclusion {
 
     private val random4x4 = generateRandomTexture(Random(1234L))
 
-    private val occlusionShaders = LazyList(4 * 4) {
+    private val occlusionShaders = LazyList(3 * 8) {
         val base = it.shr(3)
         val normalZW = if(it.hasFlag(1)) "zw" else "xy"
         val depthMask = "xyzw"[it.shr(1).and(3)]
-        val multisampling = base.hasFlag(1)
-        val ssgi = base.hasFlag(2)
+        val multisampling = base.hasFlag(4)
+        val ssgi = base.hasFlag(8)
         val srcType = if (multisampling) GLSLType.S2DMS else GLSLType.S2D
-        val reflectivityMask = "xyzw"[base.shr(2)]
+        val reflectivityMask = "xyzw"[base.and(3)]
         Shader(
             if (ssgi) "ssgi" else "ssao",
             emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
@@ -208,7 +206,7 @@ object ScreenSpaceAmbientOcclusion {
     }
 
     private val blurShaders = LazyList(3 * 4 * 2) {
-        val base = (it shr 3) + 1
+        val base = (it shr 3)
         val normalZW = if(it.hasFlag(1)) "zw" else "xy"
         val depthMask = "xyzw"[it.shr(1).and(3)]
         val blur = base.hasFlag(1)
@@ -300,7 +298,7 @@ object ScreenSpaceAmbientOcclusion {
             GFX.check()
             val msaa = depth.samples > 1
             val roughnessMask = ssgi?.roughnessMask ?: 0
-            val base = (msaa.toInt() + isSSGI.toInt(2) + roughnessMask).shl(3)
+            val base = ((msaa.toInt() + isSSGI.toInt(2)).shl(2) + roughnessMask).shl(3)
             val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
             shader.use()
             DepthTransforms.bindDepthUniforms(shader)
@@ -340,8 +338,8 @@ object ScreenSpaceAmbientOcclusion {
         val dst = FBStack["ssao-2nd", w, h, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
-            val base = enableBlur.toInt() + isSSGI.toInt(2) - 1
-            val shader = blurShaders[base + normalZW.toInt() + depthMaskI.shl(1)]
+            val base = enableBlur.toInt() + isSSGI.toInt(2)
+            val shader = blurShaders[base.shl(3) + normalZW.toInt() + depthMaskI.shl(1)]
             shader.use()
             ssaoTex.getTexture0().bindTrulyNearest(shader, "ssaoTex")
             if (ssgi != null) {
