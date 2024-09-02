@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.DefaultAssets.flatCube
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -165,7 +166,10 @@ object ECSSceneTabs : ScrollPanelX(style) {
             var lastFile: FileReference = InvalidRef
             for (fi in files.indices) {
                 val file = files[fi]
-                val tab = ecsTabs.firstOrNull2 { it.file == file }
+                val playMode = (dragged as? ECSSceneTab.ECSTabDraggable)?.playMode
+                val tab = ecsTabs.firstOrNull2 {
+                    it.file == file && (playMode == null || it.playMode == playMode)
+                }
                 if (tab != null && !tab.contains(x, y)) { // swap two tabs
                     val oldIndex = tab.indexInParent
                     val newIndex = ecsTabsRaw.count2 { it.x + it.width.shr(1) < x }

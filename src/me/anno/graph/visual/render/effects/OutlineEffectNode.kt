@@ -129,7 +129,7 @@ class OutlineEffectNode : RenderViewNode(
 
         val shader = LazyList(2) {
             val useMS = it != 0
-            val shader = Shader(
+            Shader(
                 "outlines", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                     Variable(GLSLType.V1I, "radius"),
                     Variable(GLSLType.V1F, "radSq"),
@@ -188,8 +188,6 @@ class OutlineEffectNode : RenderViewNode(
                         "   result = vec4(color, 1.0);\n" +
                         "}\n"
             )
-            shader.ignoreNameWarnings("samples")
-            shader
         }
     }
 }

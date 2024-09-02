@@ -293,12 +293,7 @@ object LightShaders {
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main(){ result = vec4(countPerPixel); }"
-    ).apply {
-        ignoreNameWarnings(
-            "cameraPosition,cameraRotation,invScreenSize,receiveShadows,d_camRot,d_fovFactor," +
-                    "data0,data1,data2,cutoff,camSpaceToLightSpace,worldScale,isDirectional,reverseDepth"
-        )
-    }
+    )
 
     val visualizeLightCountShaderInstanced = Shader(
         "visualize-light-count-instanced", listOf(
@@ -331,13 +326,7 @@ object LightShaders {
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main(){ result = vec4(countPerPixel); }"
-    ).apply {
-        ignoreNameWarnings(
-            "normals,uvs,tangents,colors,receiveShadows,invScreenSize,cameraPosition,cameraRotation," +
-                    "d_camRot,d_fovFactor,worldScale,data0,data1,data2,cutoff," +
-                    "camSpaceToLightSpace,receiveShadows,isDirectional,reverseDepth"
-        )
-    }
+    )
 
     val uvwStage = ShaderStage(
         "uv2uvw", listOf(
@@ -406,14 +395,7 @@ object LightShaders {
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create(getKey(), "lht${type.ordinal}")
-            shader.ignoreNameWarnings(
-                "tint,invLocalTransform,colors,tangents,uvs,normals,isDirectional," +
-                        "defLayer0,defLayer1,defLayer2,defLayer3,defLayer4,receiveShadows," +
-                        "countPerPixel,worldScale,cameraPosition,invScreenSize,fullscreen," +
-                        "prevLocalTransform,data1,cameraRotation"
-            )
-            shader
+            builder.create(getKey(), "lht${type.ordinal}")
         }
     }
 }

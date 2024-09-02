@@ -27,7 +27,7 @@ object DefaultAssets {
 
     val flatCube = Shapes.flatCube.front
     val smoothCube = Shapes.smoothCube.front
-    val cylinderY11 = CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())
+    val cylinderY11 = CylinderModel.createCylinder(32, 2, top = true, bottom = true, null, 3f, Mesh())
     val uvSphere = UVSphereModel.createUVSphere(40, 20)
     val icoSphere = IcosahedronModel.createIcosphere(3)
     val plane = PlaneModel.createPlane()

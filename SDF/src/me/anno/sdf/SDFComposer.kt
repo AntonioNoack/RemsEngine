@@ -9,7 +9,6 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.GFXState
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
@@ -243,7 +242,6 @@ object SDFComposer {
             }
         }
         // why are those not ignored?
-        ignoreCommonNames(shader)
         return uniforms to shader
     }
 
@@ -273,15 +271,6 @@ object SDFComposer {
 
             bindDepthUniforms(shader)
         }
-    }
-
-    fun ignoreCommonNames(shader: BaseShader) {
-        shader.ignoreNameWarnings(
-            "sheenNormalMap,occlusionMap,metallicMap,roughnessMap," +
-                    "emissiveMap,normalMap,diffuseMap,diffuseBase,emissiveBase,drawMode,applyToneMapping," +
-                    "localMin,localMax,cameraPosition,cameraRotation,numberOfLights,normalStrength,roughnessMinMax," +
-                    "metallicMinMax,occlusionStrength,sheen,IOR,clearCoat,hasAnimation,worldScale"
-        )
     }
 
     fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BooleanArrayList {

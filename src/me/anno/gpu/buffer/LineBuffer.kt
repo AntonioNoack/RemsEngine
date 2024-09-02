@@ -53,7 +53,6 @@ object LineBuffer {
                 "}\n"
     ).apply {
         glslVersion = max(glslVersion, 330)
-        ignoreNameWarnings("tint")
     }
 
     // drawing all these lines is horribly slow -> speed it up by caching them

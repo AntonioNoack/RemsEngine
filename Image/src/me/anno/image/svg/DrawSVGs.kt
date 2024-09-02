@@ -7,7 +7,6 @@ import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.createShader
 import me.anno.gpu.shader.ShaderLib.flatNormal
 import me.anno.gpu.shader.ShaderLib.y3D

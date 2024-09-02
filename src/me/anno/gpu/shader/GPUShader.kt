@@ -88,6 +88,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         val UniformCacheSizeX4 get() = UniformCacheSize * 4
         var safeShaderBinding = false
         var lastProgram = -1
+        var showUniformWarnings = false
 
         fun invalidateBinding() {
             lastProgram = -1
@@ -308,7 +309,6 @@ abstract class GPUShader(val name: String) : ICacheData {
     }
 
     val pointer get() = program
-    private val ignoredNames = HashSet<String>()
 
     fun updateSession() {
         session = GFXState.session
@@ -350,20 +350,11 @@ abstract class GPUShader(val name: String) : ICacheData {
         return this
     }
 
-    fun ignoreNameWarnings(names: Collection<String>): GPUShader {
-        ignoredNames.addAll(names)
-        return this
-    }
-
-    fun ignoreNameWarnings(names: String): GPUShader {
-        return ignoreNameWarnings(names.split(','))
-    }
-
     fun getUniformLocation(name: String, warnIfMissing: Boolean = true): Int {
         return uniformLocations.getOrPut(name) {
             if (safeShaderBinding) use()
             val loc = glGetUniformLocation(program, name)
-            if (loc < 0 && warnIfMissing && name !in ignoredNames && !sourceContainsWord(name)) {
+            if (showUniformWarnings && loc < 0 && warnIfMissing && !sourceContainsWord(name)) {
                 LOGGER.warn("Uniform location \"$name\" not found in shader \"${this.name}\"")
             }
             loc

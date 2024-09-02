@@ -237,7 +237,6 @@ fun main() {
                 }
             }
             // why are those not ignored?
-            SDFComposer.ignoreCommonNames(shader)
             return uniforms to shader
         }
     }

@@ -153,16 +153,6 @@ open class BaseShader(
         renderer.bind(shader)
     }
 
-    fun ignoreNameWarnings(names: Collection<String>): BaseShader {
-        ignoredNameWarnings.addAll(names)
-        return this
-    }
-
-    fun ignoreNameWarnings(name: String): BaseShader {
-        ignoredNameWarnings.addAll(name.split(','))
-        return this
-    }
-
     fun setTextureIndices(textures: List<String>?) {
         this.textures = textures
     }
@@ -171,7 +161,6 @@ open class BaseShader(
         shader.glslVersion = max(glslVersion, minVersion)
         shader.use()
         shader.setTextureIndices(textures)
-        shader.ignoreNameWarnings(ignoredNameWarnings)
         if (shader.hasUniform("tint")) {
             shader.v4f("tint", 1f)
         }

@@ -71,7 +71,6 @@ interface ExpressionRenderer {
                             "}\n"
                 )
                 shader.setTextureIndices(variables.filter { it.type.isSampler }.map { it.name })
-                shader.ignoreNameWarnings("d_camRot,d_orthoMat,cameraMatrixInv")
             }
 
             override val currentShader: Shader get() = shader

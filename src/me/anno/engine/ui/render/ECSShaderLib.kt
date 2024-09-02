@@ -7,13 +7,6 @@ import me.anno.gpu.shader.builder.VariableMode
 
 object ECSShaderLib {
 
-    val defaultIgnored = (
-            "finalSheen,finalTranslucency,metallicMinMax,emissiveBase,normalStrength,occlusionStrength," +
-                    "invLocalTransform,numberOfLights,roughnessMinMax,finalClearCoat,worldScale,drawMode," +
-                    "applyToneMapping,colors,cameraPosition,cameraRotation,prevWorldScale,prevTransform,tint," +
-                    "hasAnimation,sheen,clearCoat,IOR,reverseDepth,finalId"
-            ).split(',')
-
     val simpleShader = BaseShader(
         "SimpleECS", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
@@ -29,13 +22,8 @@ object ECSShaderLib {
                 "   finalColor = diffuseBase.rgb;\n" +
                 "   finalAlpha = diffuseBase.a;\n" +
                 "}\n"
-    ).ignoreNameWarnings(defaultIgnored)
+    )
 
-    val pbrModelShader = ECSMeshShader("ECSMeshShader").apply {
-        ignoreNameWarnings(defaultIgnored)
-    }
-
-    val pbrModelShaderLight = ECSMeshShaderLight("ECSMeshShaderLight").apply {
-        ignoreNameWarnings(defaultIgnored)
-    }
+    val pbrModelShader = ECSMeshShader("ECSMeshShader")
+    val pbrModelShaderLight = ECSMeshShaderLight("ECSMeshShaderLight")
 }

@@ -42,10 +42,6 @@ object Logo {
         ), "void main(){ gl_FragColor = logoColor; }"
     )
 
-    init {
-        shader.ignoreNameWarnings("normals,uvs,tangents,colors")
-    }
-
     val frame by lazy { // lazy, so we can get GFX.maxSamples
         Framebuffer(
             "logo", 1, 1, min(8, GFX.maxSamples),

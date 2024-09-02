@@ -65,6 +65,7 @@ import kotlin.math.sin
 //  - rotating objects
 //  - object library to choose from
 //  - deleting objects
+// todo undo, redo
 
 fun createTestTerrain(): MeshComponent {
     val terrainMesh = Mesh()

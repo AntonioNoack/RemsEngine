@@ -52,6 +52,6 @@ class FrameGenProjective1Node : FrameGenProjective0Node("FrameGenProjective1") {
                     "   vec2 uv0 = 2.0 * uv - (proj.xy/proj.w*0.5+0.5);\n" +
                     "   result = texture(colorTex,uv0,0);\n" +
                     "}\n"
-        ).apply { ignoreNameWarnings("d_uvCenter,resolution") }
+        )
     }
 }

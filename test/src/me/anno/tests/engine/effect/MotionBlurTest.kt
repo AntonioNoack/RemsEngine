@@ -21,7 +21,7 @@ fun main() {
             box.rotation = box.rotation.rotateY(PI / 6) // rotate quickly
         }
     })
-    val cyl = CylinderModel.createMesh(50, 2, top = true, bottom = true, null, 3f, Mesh())
+    val cyl = CylinderModel.createCylinder(50, 2, top = true, bottom = true, null, 3f, Mesh())
     box.add(MeshComponent(cyl).apply {
         materials = listOf(Material().apply {
             diffuseMap = res.getChild("icon.png")

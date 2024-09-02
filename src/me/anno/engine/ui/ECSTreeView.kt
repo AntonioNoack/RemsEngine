@@ -454,7 +454,8 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     }
 
     override fun getParent(element: Saveable): Saveable? {
-        return (element as? PrefabSaveable)?.parent
+        return if (element is System) Systems
+        else (element as? PrefabSaveable)?.parent
     }
 
     override fun getName(element: Saveable): String {

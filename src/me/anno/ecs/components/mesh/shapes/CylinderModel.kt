@@ -14,13 +14,13 @@ import kotlin.math.sin
  * */
 object CylinderModel {
 
-    fun createMesh(
+    fun createCylinder(
         us: Int, vs: Int, top: Boolean, bottom: Boolean,
         // option to use different materials for top, middle and bottom
         middleTopBottom: List<FileReference>?, uScale: Float, mesh: Mesh,
-    ): Mesh = createMesh(us, vs, top, bottom, middleTopBottom, uScale, mesh, -1f, +1f, 1f)
+    ): Mesh = createCylinder(us, vs, top, bottom, middleTopBottom, uScale, mesh, -1f, +1f, 1f)
 
-    fun createMesh(
+    fun createCylinder(
         us: Int, vs: Int, top: Boolean, bottom: Boolean,
         // option to use different materials for top, middle and bottom
         middleTopBottom: List<FileReference>?, uScale: Float, mesh: Mesh,

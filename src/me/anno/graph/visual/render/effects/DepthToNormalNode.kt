@@ -104,6 +104,6 @@ class DepthToNormalNode : TimedRenderingNode(
                     "   }\n" +
                     "   result = vec4(PackNormal(normal),0.0,1.0);\n" +
                     "}\n"
-        ).apply { ignoreNameWarnings("d_uvCenter") }
+        )
     }
 }

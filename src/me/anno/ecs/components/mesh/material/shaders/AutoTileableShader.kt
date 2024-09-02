@@ -230,8 +230,4 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             return lutData
         }
     }
-
-    init {
-        ignoreNameWarnings("reverseDepth,normalMap")
-    }
 }

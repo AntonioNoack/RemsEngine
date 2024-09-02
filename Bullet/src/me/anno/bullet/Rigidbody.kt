@@ -16,6 +16,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
@@ -76,6 +77,7 @@ open class Rigidbody : Component(), OnDrawGUI {
         else bi.applyCentralImpulse(javax.vecmath.Vector3d(0.0, 10.0 * mass, 0.0))
     }
 
+    @EditorField
     override var isEnabled: Boolean = true
         set(value) {
             if (field != value) {

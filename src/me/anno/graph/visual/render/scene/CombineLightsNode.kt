@@ -112,7 +112,6 @@ class CombineLightsNode : RenderViewNode(
                 )
                 builder.addFragment(combineFStage)
                 shader = builder.create(getKey(), "cmb1")
-                shader.ignoreNameWarnings("tint,d_camRot,d_uvCenter")
             }
 
             override val currentShader: Shader get() = shader

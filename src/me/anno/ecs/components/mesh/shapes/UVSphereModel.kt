@@ -2,15 +2,15 @@ package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths
+import me.anno.maths.Maths.PIf
 import me.anno.utils.types.Arrays.resize
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 object UVSphereModel {
 
     /**
-     * creates a UV-sphere
+     * creates a UV-sphere with <us> vertical and <vs> horizontal sections
      * */
     fun createUVSphere(us: Int, vs: Int, mesh: Mesh = Mesh()): Mesh {
 
@@ -29,7 +29,7 @@ object UVSphereModel {
         val cu = FloatArray(us + 1)
         val su = FloatArray(us + 1)
         for (i in 0..us) {
-            val angle = (Maths.TAU * i / us).toFloat()
+            val angle = Maths.TAUf * i / us
             cu[i] = cos(angle)
             su[i] = sin(angle)
         }
@@ -37,7 +37,7 @@ object UVSphereModel {
         val cv = FloatArray(vs + 1)
         val sv = FloatArray(vs + 1)
         for (i in 0..vs) {// -pi/2 .. +pi/2
-            val angle = (PI * (i.toDouble() / vs - 0.5)).toFloat()
+            val angle = (PIf * (i.toFloat() / vs - 0.5f))
             cv[i] = cos(angle)
             sv[i] = sin(angle)
         }
@@ -79,7 +79,6 @@ object UVSphereModel {
                 indices[k++] = v3
             }
         }
-
         return mesh
     }
 }

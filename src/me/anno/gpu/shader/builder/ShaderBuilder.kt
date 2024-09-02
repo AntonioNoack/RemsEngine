@@ -164,18 +164,6 @@ class ShaderBuilder(val name: String) {
         collectTextureIndices(textureIndices, vertex.uniforms)
         collectTextureIndices(textureIndices, fragment.uniforms)
         shader.setTextureIndices(textureIndices)
-        shader.ignoreNameWarnings(ignored)
         return shader
-    }
-
-    fun ignore(shader: Shader, stage: ShaderStage) {
-        for (param in stage.variables.filter { !it.isAttribute }) {
-            if (param.arraySize >= 0 && param.type.isSampler) {
-                for (i in 0 until param.arraySize) {
-                    shader.ignoreNameWarnings(param.name + i)
-                }
-            }
-        }
-        shader.ignoreNameWarnings(stage.variables.filter { !it.isAttribute }.map { it.name })
     }
 }

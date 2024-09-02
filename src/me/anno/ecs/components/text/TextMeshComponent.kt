@@ -2,6 +2,7 @@ package me.anno.ecs.components.text
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.TransformMesh.transformMesh
 import me.anno.fonts.Font
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup
@@ -30,7 +31,7 @@ class TextMeshComponent : TextComponent {
             AxisAlignment.MAX -> +1
             else -> 0
         }.toDouble() * bounds.deltaX / bounds.deltaY
-        MeshCache.transformMesh(
+        transformMesh(
             mesh, Matrix4x3d()
                 .translate(dx, dy, 0.0)
                 .scale(scale.toDouble())

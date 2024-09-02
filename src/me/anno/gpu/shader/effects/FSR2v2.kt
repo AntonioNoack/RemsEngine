@@ -102,7 +102,7 @@ class FSR2v2 : ICacheData {
                         "       depthResult = vec4(depth,0.0,0.0,1.0);\n" +
                         "   }\n" +
                         "}\n"
-            ).apply { ignoreNameWarnings("d_camRot,d_uvCenter,cameraMatrixInv") }
+            )
         }
     }
 

@@ -273,12 +273,6 @@ object ShaderLib {
         Variable(GLSLType.V3F, "finalPosition")
     )
 
-    // make this customizable?
-    val blacklist = listOf(
-        "cgSlope", "cgOffset", "cgPower", "cgSaturation",
-        "forceFieldUVCount", "forceFieldColorCount"
-    )
-
     // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
     const val octNormalPacking = "" +
             "\n#ifndef PACKING_NORMALS\n" +
@@ -304,9 +298,7 @@ object ShaderLib {
                 "   vec4 color = texture(tex, uv);\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
-                "}", listOf("tex"),
-        "normals", "uvs", "tangents", "colors", "drawMode", "tint",
-        "finalNormal", "finalEmissive"
+                "}", listOf("tex")
     )
 
     val shader3DTiledCubemap = createShader(
@@ -315,9 +307,7 @@ object ShaderLib {
                 "   vec4 color = texture(tex, uv);\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
-                "}", listOf("tex"),
-        "normals", "uvs", "tangents", "colors", "drawMode", "tint",
-        "finalNormal", "finalEmissive"
+                "}", listOf("tex")
     )
 
     val shader3DSimple = createShader(
@@ -325,9 +315,7 @@ object ShaderLib {
                 "void main(){\n" +
                 "   finalColor = vec3(1.0);\n" +
                 "   finalAlpha = 1.0;\n" +
-                "}", listOf("tex"),
-        "normals", "uvs", "tangents", "colors", "tint",
-        "finalNormal", "finalEmissive"
+                "}", listOf("tex")
     )
 
     val textShader = BaseShader(
@@ -494,7 +482,7 @@ object ShaderLib {
                     "   vec4 color = mix(backgroundColorI, textColor, vec4(mixing, mixingAlpha));\n" +
                     "   imageStore(dst, uv, color);\n" +
                     "}"
-        ).apply { ignoreNameWarnings("windowSize") }
+        )
     }
 
     // from https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
@@ -569,12 +557,10 @@ object ShaderLib {
         varyings: List<Variable>,
         fragmentVariables: List<Variable>,
         fragmentShader: String,
-        textures: List<String>,
-        vararg ignored: String
+        textures: List<String>
     ): BaseShader {
         val shader = BaseShader(shaderName, vertexVariables, vertexShader, varyings, fragmentVariables, fragmentShader)
         if (textures.isNotEmpty()) shader.setTextureIndices(textures)
-        shader.ignoreNameWarnings(ignored.toList())
         return shader
     }
 }

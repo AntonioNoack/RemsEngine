@@ -101,12 +101,5 @@ open class SkyboxBase : CollidingComponent(), Renderable {
     companion object {
         val mesh = Shapes.smoothCube.back
         val defaultShaderBase = SkyShaderBase("skyBase")
-            .apply {
-                ignoreNameWarnings(
-                    "diffuseBase,normalStrength,emissiveBase,roughnessMinMax,metallicMinMax,occlusionStrength," +
-                            "finalTranslucency,finalClearCoat,tint,hasAnimation,localTransform,invLocalTransform," +
-                            "worldScale,tiling,forceFieldColorCount,forceFieldUVCount",
-                )
-            }
     }
 }

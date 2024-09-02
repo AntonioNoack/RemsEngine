@@ -62,10 +62,4 @@ object FlatSymbols {
                 "   finalAlpha = fragColor.a;\n" +
                 "}"
     )
-
-    init {
-        flatShaderHalfArrow.ignoreNameWarnings(ShaderLib.blacklist)
-        flatShaderCircle.ignoreNameWarnings(ShaderLib.blacklist)
-    }
-
 }

@@ -9,7 +9,7 @@ import me.anno.utils.structures.tuples.IntPair
 /**
  * Standard implementation for IDraggable
  * */
-class Draggable(
+open class Draggable(
     private val content: String,
     private val contentType: String,
     private val original: Any?,

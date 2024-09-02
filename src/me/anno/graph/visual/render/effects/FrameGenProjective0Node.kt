@@ -128,6 +128,6 @@ abstract class FrameGenProjective0Node(name: String) : FrameGenOutputNode<FrameG
                     "   float rawDepth = dot(texture(depthTex, uv),depthMask);\n" +
                     "   result = vec4(rawToDepth(rawDepth), 0.0, 0.0, 1.0);\n" +
                     "}\n"
-        ).apply { ignoreNameWarnings("d_camRot,d_uvCenter,cameraMatrixInv") }
+        )
     }
 }

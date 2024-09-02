@@ -164,20 +164,7 @@ open class Skybox : SkyboxBase(), OnUpdate {
     }
 
     companion object {
-
         val defaultShader = SkyShader("skybox")
-            .apply {
-                ignoreNameWarnings(
-                    "diffuseBase,normalStrength,emissiveBase,roughnessMinMax,metallicMinMax,occlusionStrength," +
-                            "finalTranslucency,finalClearCoat," +
-                            "tint,hasAnimation,localTransform,invLocalTransform,worldScale,tiling," +
-                            "skyColor,renderSize,tint,reflectionCullingPlane,cameraPosition,cameraRotation," +
-                            "hasReflectionPlane,numberOfLights,prevLocalTransform,finalSheen,sheen," +
-                            "applyToneMapping,tint,hasVertexColors,reflectionPlane,camScale,reverseDepth," +
-                            "clearCoat,IOR,isPerspective,finalId"
-                )
-            }
-
         val defaultSky = Skybox()
     }
 }

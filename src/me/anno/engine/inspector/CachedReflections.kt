@@ -177,7 +177,7 @@ class CachedReflections private constructor(
                 val partialResult = ArrayList<CachedProperty>()
                 for ((name, property) in findProperties(fields, methods)) {
                     if (allProperties[name]?.serialize != true) {
-                        LOGGER.warn("Skipping $name, not serialized")
+                        // LOGGER.warn("Skipping $name, not serialized")
                         continue
                     } // not serialized
                     if (doneNames.add(name)) {

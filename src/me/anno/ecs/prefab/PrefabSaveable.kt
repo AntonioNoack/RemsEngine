@@ -348,7 +348,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     companion object {
 
         const val DISABLE_FLAG = 1
-        private const val NOT_COLLAPSED_FLAG = 2
+        const val NOT_COLLAPSED_FLAG = 2
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {

@@ -9,7 +9,7 @@ import me.anno.ui.UIColors.axisZColor
 import me.anno.utils.Color.white
 
 fun main() {
-    val mesh = CylinderModel.createMesh(
+    val mesh = CylinderModel.createCylinder(
         16, 3, true, true,
         listOf(
             Material.diffuse(white).ref,

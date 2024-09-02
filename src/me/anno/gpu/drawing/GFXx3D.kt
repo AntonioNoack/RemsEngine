@@ -45,8 +45,7 @@ object GFXx3D {
         "void main(){\n" +
                 "   finalColor = vec3(1.0);\n" +
                 "   finalAlpha = 1.0;\n" +
-                "}", listOf(),
-        "filtering", "textureDeltaUV", "tiling", "uvProjection"
+                "}", listOf()
     )
 
     val shader3DBoxBlur = Shader(

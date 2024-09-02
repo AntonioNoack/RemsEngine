@@ -61,7 +61,7 @@ fun main() {
         .setScale(0.2)
 
     Entity("Cylinder", scene)
-        .add(MeshComponent(CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())))
+        .add(MeshComponent(CylinderModel.createCylinder(32, 2, top = true, bottom = true, null, 3f, Mesh())))
         .setPosition(0.0, -0.35, 0.0)
         .setScale(0.2)
 

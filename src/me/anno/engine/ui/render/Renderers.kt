@@ -225,9 +225,14 @@ object Renderers {
             "front-back", listOf(
                 Variable(GLSLType.V3F, "finalNormal"),
                 Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
-            ), "finalResult = vec4(" +
-                    "   (gl_FrontFacing ? vec3(0.0,0.3,1.0) : vec3(1.0,0.0,0.0)) * " +
-                    "   (finalNormal.x * 0.4 + 0.6), 1.0);\n" // some simple shading
+            ), "" +
+                    "#ifdef SKY\n" +
+                    "   finalResult = vec4(0.7, 0.7, 0.7, 1.0);\n" +
+                    "#else\n" +
+                    "   finalResult = vec4(" +
+                    "       (gl_FrontFacing ? vec3(0.0,0.3,1.0) : vec3(1.0,0.0,0.0)) * " +
+                    "       (finalNormal.x * 0.4 + 0.6), 1.0);\n" + // some simple shading
+                    "#endif\n"
         )
     )
 

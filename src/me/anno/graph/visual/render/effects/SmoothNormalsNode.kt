@@ -71,9 +71,7 @@ class SmoothNormalsNode : ActionNode(
                     "   vec4 normal = texelFetch(normalTex,uvi,0);\n" +
                     "   result = vec4(UnpackNormal(normalZW ? normal.zw : normal.xy),1.0);\n" +
                     "}\n"
-        ).apply {
-            ignoreNameWarnings("depthTex,d_camRot")
-        }
+        )
 
         private val blurShader = Shader(
             "smoothNormals-blur", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
@@ -120,9 +118,7 @@ class SmoothNormalsNode : ActionNode(
                     "   }\n" +
                     "   result = base;\n" +
                     "}\n"
-        ).apply {
-            ignoreNameWarnings("d_camRot,d_uvCenter,cameraMatrixInv")
-        }
+        )
 
         fun smoothNormals(
             normal: ITexture2D,

@@ -211,7 +211,6 @@ object Bloom {
                     "}\n"
         )
         shader.setTextureIndices("base", "bloomTex")
-        shader.ignoreNameWarnings("numSamples,invNumSamples")
         shader
     }
 

@@ -57,10 +57,6 @@ import kotlin.math.max
 
 open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
 
-    // todo onPreEnable() // before all children
-    // todo onPostEnable() // after all children
-    // -> components can be registered before/after enable :)
-
     // I use jBullet2, however I have modified it to use doubles for everything
     // this may be bad for performance, but it also allows our engine to run much larger worlds
     // if we need top-notch-performance, I just should switch to a native implementation
@@ -114,6 +110,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
             val mass = max(0.0, rigidBody.mass)
             if (mass > 0.0) collider.calculateLocalInertia(mass, inertia)
+            LOGGER.info("Inertia for collider: $mass -> $inertia")
 
             val transform1 = mat4x3ToTransform(globalTransform, scale)
 

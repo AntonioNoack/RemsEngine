@@ -30,6 +30,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
+import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
@@ -289,12 +290,13 @@ class ECSSceneTab(
 
     override fun onCopyRequested(x: Float, y: Float) = file
 
+    class ECSTabDraggable(file: FileReference, val playMode: PlayMode, style: Style) :
+        Draggable(file.absolutePath, "File", file, file.nameWithoutExtension, style)
+
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return when (action) {
             "DragStart" -> {
-                val title = file.nameWithoutExtension
-                val stringContent = file.absolutePath
-                EngineBase.dragged = Draggable(stringContent, "File", file, title, style)
+                EngineBase.dragged = ECSTabDraggable(file, playMode, style)
                 true
             }
             else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
@@ -324,6 +326,5 @@ class ECSSceneTab(
                 } else LOGGER.warn(if (window == null) "Window is null" else "RenderView is missing")
             } else LOGGER.warn("VR isn't supported")
         }
-
     }
 }

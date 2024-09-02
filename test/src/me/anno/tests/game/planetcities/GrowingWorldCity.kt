@@ -6,8 +6,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.control.CameraController.Companion.setup
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshCache.transformMesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.TransformMesh.transformMesh
 import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
@@ -207,7 +207,7 @@ fun main() {
         }
     }
 
-    val planetMesh = SimpleMeshJoiner(true,true, false, false).join(meshes)
+    val planetMesh = SimpleMeshJoiner(true, true, false, false).join(meshes)
     planet.add(MeshComponent(planetMesh))
 
     val ui = NineTilePanel(style)

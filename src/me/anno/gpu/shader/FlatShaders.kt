@@ -1,7 +1,6 @@
 package me.anno.gpu.shader
 
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
-import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -20,7 +19,7 @@ object FlatShaders {
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main(){ result = alpha * texture(tex, uv); }"
-    ).apply { ignoreNameWarnings("samples,posSize") }
+    )
 
     val copyShaderMS = Shader(
         "copyMS", emptyList(), coordsUVVertexShader, uvList, listOf(
@@ -34,7 +33,7 @@ object FlatShaders {
                 "   for(int i=0;i<samples;i++) sum += texelFetch(tex, uvi, i);\n" +
                 "   result = (alpha / float(samples)) * sum;\n" +
                 "}"
-    ).apply { ignoreNameWarnings("posSize") }
+    )
 
     /**
      * blit-like shader without any stupid OpenGL constraints like size or format
@@ -82,10 +81,6 @@ object FlatShaders {
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")
-            ignoreNameWarnings(
-                "targetSamples,d_camRot,d_fovFactor,d_uvCenter," +
-                        "reverseDepth,d_near,cameraMatrixInv"
-            )
         }
     }
 
@@ -281,9 +276,4 @@ object FlatShaders {
                 "   gl_FragColor = col;\n" +
                 "}"
     )
-
-    init {
-        flatShaderTexture.ignoreNameWarnings(blacklist)
-        flatShaderCubemap.ignoreNameWarnings(blacklist)
-    }
 }
