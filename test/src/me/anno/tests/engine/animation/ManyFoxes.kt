@@ -18,7 +18,7 @@ import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.min
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3d
-import org.joml.Vector3f
+import org.joml.Vector2f
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.round
@@ -136,8 +136,8 @@ fun main() {
     }
 
     // add floor
-    val floorSize = maxRadius.toFloat() * 1.1f
-    val floorMesh = PlaneModel.createPlane(2, 2, Vector3f(), Vector3f(floorSize, 0f, 0f), Vector3f(0f, 0f, floorSize))
+    val floorHalfExtends = maxRadius.toFloat() * 1.1f
+    val floorMesh = PlaneModel.createPlaneXZ(2, 2, Vector2f(floorHalfExtends))
     scene.add(MeshComponent(floorMesh))
 
     // run scene

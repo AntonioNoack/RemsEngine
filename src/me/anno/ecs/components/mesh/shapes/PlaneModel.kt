@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.shapes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.utils.types.Triangles.subCross
+import org.joml.Vector2f
 import org.joml.Vector3f
 
 /**
@@ -10,7 +11,15 @@ import org.joml.Vector3f
  * */
 object PlaneModel {
 
-    fun createPlane(): Mesh = createPlane(1, 1)
+    fun createPlaneXZ(
+        tilesU: Int, tilesV: Int,
+        halfExtends: Vector2f,
+    ): Mesh = createPlane(
+        tilesU, tilesV,
+        Vector3f(),
+        Vector3f(halfExtends.x, 0f, 0f),
+        Vector3f(0f, 0f, halfExtends.y)
+    )
 
     fun createPlane(
         tilesU: Int, tilesV: Int,

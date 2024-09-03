@@ -16,11 +16,8 @@ abstract class System : PrefabSaveable() {
 
     open val priority: Int get() = 1
 
-    open fun onEnable(entity: Entity) {}
-    open fun onEnable(component: Component) {}
-
-    open fun onDisable(entity: Entity) {}
-    open fun onDisable(component: Component) {}
+    open fun setContains(entity: Entity, contains: Boolean) {}
+    open fun setContains(component: Component, contains: Boolean) {}
 
     open fun onUpdate() {}
     open fun onBeforeDrawing() {}

@@ -107,7 +107,7 @@ fun spatialPacmanGame(): Entity {
         val wallThickness = 0.03
         val cx = (start.x + end.x) * 0.5
         val cz = (start.y + end.y) * 0.5
-        Entity(walls)
+        Entity("Wall[$start-$end]", walls)
             .setPosition(cx, wallHeight * 0.5, cz)
             .setScale(
                 wallThickness + (end.x - start.x) * 0.5, wallHeight * 0.5,
@@ -117,7 +117,7 @@ fun spatialPacmanGame(): Entity {
     }
 
     for (pos in game.voidPositions) {
-        Entity(walls)
+        Entity("Void[$pos]", walls)
             .setPosition(pos.x + 0.5, 0.0, pos.y + 0.5)
             .setScale(0.5)
             .add(MeshComponent(flatCube.front))

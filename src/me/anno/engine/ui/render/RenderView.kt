@@ -115,7 +115,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     var localPlayer: LocalPlayer? = null
 
     val editorCamera = Camera()
-    val editorCameraNode = Entity(editorCamera)
+    val editorCameraNode = Entity()
+        .add(editorCamera)
 
     var renderMode = RenderMode.DEFAULT
 

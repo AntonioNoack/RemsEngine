@@ -191,7 +191,8 @@ fun main() {
                             val asset = assets[(random() * assets.size).toInt()]
                             // place asset randomly onto hexagon
                             // rotate it
-                            val instance = Entity("Asset", MeshComponent(asset))
+                            val instance = Entity("Asset")
+                                .add(MeshComponent(asset))
                             // todo this placement logic needs improvement
                             val pos = c.lerp(dx, random().toFloat() * 2f - 1f, Vector3f())
                             pos.lerp(dy, random().toFloat() * 2f - 1f)

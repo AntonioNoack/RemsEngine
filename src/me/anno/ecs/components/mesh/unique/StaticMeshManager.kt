@@ -112,8 +112,8 @@ class StaticMeshManager : System(), Renderable {
         comp.manager = this
     }
 
-    override fun onDisable(component: Component) {
-        if (component is MeshComponentBase) {
+    override fun setContains(component: Component, contains: Boolean) {
+        if (!contains && component is MeshComponentBase) {
             unregister(component)
         }
     }
@@ -129,6 +129,17 @@ class StaticMeshManager : System(), Renderable {
                 }
             }
         }
+    }
+
+    override fun clear() {
+        for (mesh in meshes) {
+            mesh.manager = null
+        }
+        meshes.clear()
+        for ((_, manager) in managers) {
+            manager.destroy()
+        }
+        managers.clear()
     }
 
     companion object {

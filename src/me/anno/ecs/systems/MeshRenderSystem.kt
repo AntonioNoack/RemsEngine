@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.structures.Collections.setContains
 
 /**
  * todo like for lights: spatial acceleration structure
@@ -21,17 +22,10 @@ class MeshRenderSystem : System(), Renderable {
     val meshes = HashSet<MeshComponent>(2048)
     val others = HashSet<MeshComponentBase>(64)
 
-    override fun onEnable(component: Component) {
+    override fun setContains(component: Component, contains: Boolean) {
         when (component) {
-            is MeshComponent -> meshes.add(component)
-            is MeshComponentBase -> others.add(component)
-        }
-    }
-
-    override fun onDisable(component: Component) {
-        when (component) {
-            is MeshComponent -> meshes.add(component)
-            is MeshComponentBase -> others.add(component)
+            is MeshComponent -> meshes.setContains(component, contains)
+            is MeshComponentBase -> others.setContains(component, contains)
         }
     }
 

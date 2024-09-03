@@ -10,11 +10,13 @@ import me.anno.utils.OS.res
  * Shows how Lua scripting can be used.
  * */
 fun main() {
-
     OfficialExtensions.initForTests()
+    res.getChild("lua/LuaScene.lua").readText { txt, err ->
+        err?.printStackTrace()
 
-    val qs = QuickScriptComponent()
-    qs.createScript = res.getChild("lua/LuaScene.lua").readTextSync()
+        val qs = QuickScriptComponent()
+        qs.createScript = txt ?: ""
 
-    testSceneWithUI("LuaScene", Entity(qs))
+        testSceneWithUI("LuaScene", Entity().add(qs))
+    }
 }

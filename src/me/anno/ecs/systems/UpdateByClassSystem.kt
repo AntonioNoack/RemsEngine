@@ -16,16 +16,19 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
         get() = components.values.sumOf { it.size }
 
     private val components = HashMap<KClass<*>, HashSet<Component>>()
-    override fun onEnable(component: Component) {
+    override fun setContains(component: Component, contains: Boolean) {
         if (isInstance(component)) {
-            components.getOrPut(component::class, ::HashSet).add(component)
+            val clazz = component::class
+            if (contains) {
+                components.getOrPut(clazz, ::HashSet).add(component)
+            } else {
+                components[clazz]?.remove(component)
+            }
         }
     }
 
-    override fun onDisable(component: Component) {
-        if (isInstance(component)) {
-            components[component::class]?.remove(component)
-        }
+    override fun clear() {
+        components.clear()
     }
 
     abstract fun isInstance(component: Component): Boolean

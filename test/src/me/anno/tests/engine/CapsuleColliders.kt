@@ -10,10 +10,9 @@ fun main() {
     for (i in 0 until 3) {
         val collider = CapsuleCollider()
         collider.axis = i
-        scene.add(
-            Entity("Capsule $i", collider)
-                .setPosition((i - 1) * 2.0, 0.0, 0.0)
-        )
+        Entity("Capsule $i", scene)
+            .setPosition((i - 1) * 2.0, 0.0, 0.0)
+            .add(collider)
     }
     testSceneWithUI("Capsule Colliders", scene) {
         it.renderView.renderMode = RenderMode.RAY_TEST

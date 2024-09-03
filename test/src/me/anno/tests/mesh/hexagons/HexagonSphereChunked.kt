@@ -1,10 +1,10 @@
 package me.anno.tests.mesh.hexagons
 
 import me.anno.ecs.Entity
-import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.maths.chunks.spherical.HexagonSphere
 
 fun main() {
     val n = 100
@@ -12,7 +12,7 @@ fun main() {
     val scene = Entity()
     for (i in 0 until 20) {
         val mesh = createFaceMesh(Mesh(), sphere.queryChunk(i, 0, 0))
-        scene.add(Entity(MeshComponent(mesh)))
+        Entity(scene).add(MeshComponent(mesh))
     }
     testSceneWithUI("HexSphere Chunked", scene)
 }

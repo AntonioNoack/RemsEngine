@@ -17,8 +17,6 @@ import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.ui.UIEvent
-import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.Systems
@@ -55,18 +53,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         this.name = name
     }
 
-    constructor(name: String, vararg cs: Component) : this(name) {
-        for (c in cs) {
-            addComponent(c)
-        }
-    }
-
-    constructor(vararg cs: Component) : this() {
-        for (c in cs) {
-            addComponent(c)
-        }
-    }
-
     @DebugProperty
     @NotSerializedProperty
     var hasValidCollisionMask: Boolean
@@ -94,14 +80,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugProperty
     @NotSerializedProperty
-    var hasControlReceiver: Boolean
-        get() = flags.hasFlag(CONTROL_RECEIVER_FLAG)
-        set(value) {
-            flags = flags.withFlag(CONTROL_RECEIVER_FLAG, value)
-        }
-
-    @DebugProperty
-    @NotSerializedProperty
     var isCreated: Boolean
         get() = flags.hasFlag(CREATED_FLAG)
         set(value) {
@@ -113,14 +91,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         transform.teleportUpdate()
         invalidateAABBsCompletely()
         isCreated = true
-        val children = internalChildren
-        for (index in children.indices) {
-            children[index].create()
-        }
-        val components = internalComponents
-        for (index in components.indices) {
-            components[index].onCreate()
-        }
+        forAllChildren(true, Entity::create)
+        forAllComponents(true, Component::onCreate)
     }
 
     val transform: Transform = Transform(this)
@@ -232,9 +204,13 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         validateTransform()
     }
 
-    fun setPosition(x: Double, y: Double, z: Double): Entity {
-        position = position.set(x, y, z)
+    fun setPosition(v: Vector3d): Entity {
+        position = v
         return this
+    }
+
+    fun setPosition(x: Double, y: Double, z: Double): Entity {
+        return setPosition(position.set(x, y, z))
     }
 
     fun setRotation(radiansX: Double, radiansY: Double, radiansZ: Double): Entity {
@@ -245,13 +221,16 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     fun setScale(sc: Double): Entity {
-        scale = scale.set(sc)
+        return setScale(sc, sc, sc)
+    }
+
+    fun setScale(v: Vector3d): Entity {
+        scale = v
         return this
     }
 
     fun setScale(scaleX: Double, scaleY: Double, scaleZ: Double): Entity {
-        scale = scale.set(scaleX, scaleY, scaleZ)
-        return this
+        return setScale(scale.set(scaleX, scaleY, scaleZ))
     }
 
     @NotSerializedProperty
@@ -357,52 +336,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             super.isEnabled = value
             invalidatePhysics(false)
         }
-
-    private fun executeOptimizedEvent(
-        hasEvent: (Entity) -> Boolean,
-        call: (Entity) -> Boolean,
-        call2: (Component) -> Boolean
-    ): Boolean {
-
-        if (!isCreated) create()
-
-        var hasEventReceiver = false
-
-        // manual for-loops, because the number of items can be changed by events intentionally
-        val components = components
-        var i = -1
-        while (++i < components.size) {
-            if (call2(components[i])) {
-                hasEventReceiver = true
-            }
-        }
-
-        val children = children
-        var j = -1
-        while (++j < children.size) {
-            val child = children[j]
-            if (hasEvent(child) && call(child)) {
-                hasEventReceiver = true
-            }
-        }
-
-        // this.hasOnUpdate = hasOnUpdate
-        return hasEventReceiver
-    }
-
-    fun onUIEvent(event: UIEvent): Boolean {
-        val hasUpdate = executeOptimizedEvent(
-            { it.hasControlReceiver },
-            { it.onUIEvent(event) },
-            {
-                if (it is InputListener) {
-                    event.call(it)
-                    true
-                } else false
-            })
-        this.hasControlReceiver = hasUpdate
-        return hasControlReceiver
-    }
 
     /**
      * when the element is moved
@@ -528,8 +461,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     override fun destroy() {
         isCreated = false
-        for (component in components) {
-            component.destroy()
+        forAllComponents(true) {
+            it.destroy()
         }
         val parent = parent as? Entity
         if (parent != null) {
@@ -583,9 +516,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
                 }
             }
             JomlPools.aabbd.sub(1)
-        }
-        if (component is InputListener) {
-            hasControlReceiver = hasComponent(InputListener::class)
         }
         forAllComponents(false) { comp ->
             comp.onChangeStructure(this)
@@ -643,10 +573,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         for (i in 0 until depth) text.append('\t')
         text.append("Entity('$name',$sizeOfHierarchy):\n")
         val nextDepth = depth + 1
-        for (child in children)
+        forAllChildren(true) { child ->
             text.append(child.toString(nextDepth))
-        for (component in components)
+        }
+        forAllComponents(true) { component ->
             text.append(component.toString(nextDepth))
+        }
         return text
     }
 
@@ -771,9 +703,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         private const val SPACE_FILLING_FLAG = 8
         private const val RENDERABLES_FLAG = 16
         private const val PHYSICS_CONTROLLED_FLAG = 32
-        private const val CONTROL_RECEIVER_FLAG = 64
-        private const val CREATED_FLAG = 128
-        private const val ON_UPDATE_FLAG = 256
-        private const val VALID_AABB_FLAG = 512
+        private const val CREATED_FLAG = 64
+        private const val ON_UPDATE_FLAG = 128
+        private const val VALID_AABB_FLAG = 256
     }
 }

@@ -203,7 +203,8 @@ fun main() {
         // todo set rotation randomly
     }
 
-    val ducks = Entity("Ducks")
+    val scene = Entity("Scene")
+    val ducks = Entity("Ducks", scene)
     val materials = MeshCache[duckModel]!!.materials
     val shader = ParticleShader(sim)
     val newMaterials = materials.map {
@@ -249,9 +250,8 @@ fun main() {
             return true
         }
     }
+    scene.add(comp)
 
-    val scene = Entity("Scene", comp)
-    scene.add(ducks)
     // we handle collisions ourselves
     comp.collisionMask = 0
     testSceneWithUI("FluidSim", scene) {

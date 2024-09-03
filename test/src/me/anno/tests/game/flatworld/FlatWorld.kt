@@ -96,10 +96,8 @@ class FlatWorld {
         if (hadMesh) {
             mesh.invalidateGeometry()
         } else {
-            val entity = Entity(MeshComponent(mesh))
-            segment.entity = entity
+            segment.entity = Entity(streets).add(MeshComponent(mesh))
             segment.mesh = mesh
-            streets.add(entity)
         }
     }
 

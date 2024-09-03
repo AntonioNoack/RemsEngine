@@ -7,6 +7,7 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.structures.Collections.setContains
 
 // todo spatial acceleration systems for these rendering systems:
 //  - we don't want a deeply nested tree, because slow
@@ -17,17 +18,10 @@ class LightRenderSystem() : System(), Renderable {
     val lights = HashSet<LightComponent>(512)
     val skyboxes = HashSet<Skybox>(16)
 
-    override fun onEnable(component: Component) {
+    override fun setContains(component: Component, contains: Boolean) {
         when (component) {
-            is LightComponent -> lights.add(component)
-            is Skybox -> skyboxes.add(component)
-        }
-    }
-
-    override fun onDisable(component: Component) {
-        when (component) {
-            is LightComponent -> lights.remove(component)
-            is Skybox -> skyboxes.remove(component)
+            is LightComponent -> lights.setContains(component, contains)
+            is Skybox -> skyboxes.setContains(component, contains)
         }
     }
 

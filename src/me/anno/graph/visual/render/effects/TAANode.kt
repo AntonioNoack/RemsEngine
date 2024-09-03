@@ -2,7 +2,6 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.Time
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -15,6 +14,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
@@ -71,8 +71,7 @@ class TAANode : TimedRenderingNode(
                         shader.v1f("maxTAA", maxTAA)
                         flat01.draw(shader)
                     } else {
-                        // todo use FXAA here??
-                        GFX.copy(color)
+                        FXAA.render(color)
                     }
                 }
                 unjitter(RenderState.cameraMatrix)

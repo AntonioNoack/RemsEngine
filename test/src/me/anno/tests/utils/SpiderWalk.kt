@@ -216,18 +216,18 @@ fun main() {
         for (z in 0 until 4) {
 
             val zf = z - 1.5
-            val upperLeg = Entity(spider)
-            upperLeg.add(MeshComponent(upperLegMesh, gray2))
-            upperLeg.setPosition(x * 0.9, 0.0, zf * 0.5)
-            val middleLeg = Entity(upperLeg)
-            middleLeg.add(MeshComponent(middleLegMesh, gray2))
-            middleLeg.setPosition(-1.8, 0.0, 0.0)
-            val lowerLeg = Entity(middleLeg)
-            lowerLeg.add(MeshComponent(lowerLegMesh, gray2))
-            lowerLeg.setPosition(-1.8, 0.0, 0.0)
-            val foot = Entity(lowerLeg)
-            foot.add(MeshComponent(footMesh, black1))
-            foot.setPosition(-1.8, 0.0, 0.0)
+            val upperLeg = Entity("UpperLeg", spider)
+                .add(MeshComponent(upperLegMesh, gray2))
+                .setPosition(x * 0.9, 0.0, zf * 0.5)
+            val middleLeg = Entity("MiddleLeg", upperLeg)
+                .add(MeshComponent(middleLegMesh, gray2))
+                .setPosition(-1.8, 0.0, 0.0)
+            val lowerLeg = Entity("LowerLeg", middleLeg)
+                .add(MeshComponent(lowerLegMesh, gray2))
+                .setPosition(-1.8, 0.0, 0.0)
+            val foot = Entity("Foot", lowerLeg)
+                .add(MeshComponent(footMesh, black1))
+                .setPosition(-1.8, 0.0, 0.0)
 
             class Leg : Component(), OnUpdate {
 

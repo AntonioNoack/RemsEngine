@@ -13,7 +13,7 @@ object CubemapModel {
 
     val model = createMesh()
 
-    fun createMesh(): Shapes.FBBMesh {
+    private fun createMesh(): Shapes.FBBMesh {
         val numVertices = 36
         val positions = FloatArray(numVertices * 3)
         val uvs = FloatArray(numVertices * 2)

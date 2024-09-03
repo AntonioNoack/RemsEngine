@@ -2,6 +2,7 @@ package me.anno.tests.maths
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.components.mesh.MeshComponent
@@ -12,6 +13,7 @@ import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes.flatCube
+import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
@@ -21,30 +23,25 @@ fun main() {
 
     val scene = Entity()
 
-    val redMaterial = Material()
-    redMaterial.diffuseBase.set(1f, 0f, 0f, 1f)
-    val greenMaterial = Material()
-    greenMaterial.diffuseBase.set(0f, 1f, 0f, 1f)
+    val redMaterial = Material.diffuse(0xff0000)
+    val greenMaterial = Material.diffuse(0x00ff00)
 
-    val greenMatList = listOf(greenMaterial.ref)
-    val redMatList = listOf(redMaterial.ref)
+    val greenMatList = greenMaterial.ref.wrap()
+    val redMatList = redMaterial.ref.wrap()
 
     // a box of test cubes
-    val boxes = ArrayList<Entity>()
+    val boxes = Entity("Boxes", scene)
     val s = 5
     for (z in -s..s) {
         for (y in -s..s) {
             for (x in -s..s) {
                 val t = 10.0
-                val box = Entity(MeshComponent(flatCube.front))
-                box.setPosition(x * t, y * t, z * t)
-                boxes.add(box)
+                Entity(boxes)
+                    .setPosition(x * t, y * t, z * t)
+                    .add(MeshComponent(flatCube.front))
             }
         }
     }
-    val boxesEntity = Entity("Boxes")
-    for (box in boxes) boxesEntity.add(box)
-    scene.add(boxesEntity)
 
     val tested = object : Component(), OnDrawGUI, OnUpdate {
 
@@ -72,10 +69,10 @@ fun main() {
         fun updateConeColor() {
             scene.getBounds()
             val tmp = AABBf()
-            for (box in boxes) {
+            boxes.forAllChildren(false) { box ->
                 val hit = tmp.set(box.getBounds()).testLine(start, end, radiusAtOrigin, radiusPerUnit)
                 val matList = if (hit) greenMatList else redMatList
-                box.getComponent(MeshComponent::class)!!.materials = matList
+                box.getComponent(MeshComponent::class)?.materials = matList
             }
         }
 

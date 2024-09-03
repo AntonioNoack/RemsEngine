@@ -16,7 +16,6 @@ import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.CubemapModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
-import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.DefaultAssets
@@ -33,7 +32,6 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -76,8 +74,8 @@ import me.anno.maths.bvh.TLASLeaf
 import me.anno.maths.bvh.TLASNode
 import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
 import me.anno.maths.bvh.shader.TextureRTShaderLib
-import me.anno.sdf.random.SDFRandom.Companion.randLib
 import me.anno.maths.geometry.Rasterizer
+import me.anno.sdf.random.SDFRandom.Companion.randLib
 import me.anno.tests.rtrt.engine.commonFunctions
 import me.anno.tests.rtrt.engine.commonUniforms
 import me.anno.ui.base.progress.ProgressBar
@@ -172,21 +170,22 @@ fun createSampleScene(): Entity {
     // define a simple sample scene
     val random = Random(1234)
     val scene = Entity()
+
     val floorMaterial = Material()
     floorMaterial.shader = BakedLightingShader
     floorMaterial.diffuseMap = res.getChild("textures/UVChecker.png")
-    val floorComp = MeshComponent(DefaultAssets.plane, floorMaterial)
-    scene.add(Entity("Floor", floorComp).setScale(50.0))
+    Entity("Floor", scene)
+        .add(MeshComponent(DefaultAssets.plane, floorMaterial))
+        .setScale(50.0)
 
     val cubeMesh = CubemapModel.model.front
 
     val floorMaterial1 = Material()
     floorMaterial1.shader = BakedLightingShader
-    scene.add(
-        Entity("Root", MeshComponent(cubeMesh, floorMaterial1))
-            .setPosition(0.0, 7.0, 0.0)
-            .setScale(30.0, 0.3, 30.0)
-    )
+    Entity("Root", scene)
+        .add(MeshComponent(cubeMesh, floorMaterial1))
+        .setPosition(0.0, 7.0, 0.0)
+        .setScale(30.0, 0.3, 30.0)
 
     // add a few boxes
     val cubes = Entity("Spheres", scene)

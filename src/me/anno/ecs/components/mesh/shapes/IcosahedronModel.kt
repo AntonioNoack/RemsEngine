@@ -11,7 +11,7 @@ import kotlin.math.atan2
 
 object IcosahedronModel {
 
-    val positions = doubleArrayOf(
+    private val positions = doubleArrayOf(
         -PHI, 0.0, -1.0,
         -PHI, 0.0, +1.0,
         +PHI, 0.0, -1.0,
@@ -26,7 +26,7 @@ object IcosahedronModel {
         0.0, +1.0, +PHI,
     )
 
-    val indices = byteArrayOf(
+    private val indices = byteArrayOf(
         0, 4, 1, 2, 3, 5, 0, 1, 6, 2, 7, 3, 2, 5, 8, 0, 8, 4, 4, 8, 5, 6, 7, 9, 2, 9, 7, 0, 6, 9, 2,
         8, 9, 0, 9, 8, 3, 10, 5, 1, 4, 10, 4, 5, 10, 3, 7, 11, 6, 11, 7, 3, 11, 10, 1, 11, 6, 1, 10, 11
     )

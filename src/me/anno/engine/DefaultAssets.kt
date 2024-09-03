@@ -15,6 +15,7 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS.res
+import org.joml.Vector2f
 
 /**
  * some assets that are guaranteed to be always available;
@@ -30,7 +31,7 @@ object DefaultAssets {
     val cylinderY11 = CylinderModel.createCylinder(32, 2, top = true, bottom = true, null, 3f, Mesh())
     val uvSphere = UVSphereModel.createUVSphere(40, 20)
     val icoSphere = IcosahedronModel.createIcosphere(3)
-    val plane = PlaneModel.createPlane()
+    val plane = PlaneModel.createPlaneXZ(2, 2, Vector2f(1f))
 
     fun init() {}
 

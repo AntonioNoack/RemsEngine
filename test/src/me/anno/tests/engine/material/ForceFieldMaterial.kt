@@ -2,11 +2,11 @@ package me.anno.tests.engine.material
 
 import me.anno.Time
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel.createPlane
 import me.anno.ecs.components.mesh.shapes.UVSphereModel.createUVSphere
-import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
@@ -125,35 +125,33 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val scene = Entity()
-    val planeMat = Material().apply {
-        diffuseBase.set(0.1f, 0.1f, 0.1f, 1f)
+    val scene = Entity("Scene")
+    val planeMat = Material.diffuse(0x191919)
+    val floorMesh = createPlane(
+        1, 5, Vector3f(0f, 0.2f, 0f),
+        Vector3f(5f, 0f, 0f), Vector3f(0f, 0f, 5f)
+    ).apply {
+        cullMode = CullMode.BOTH
     }
-    val floorMesh = MeshComponent(
-        createPlane(
-            1, 5, Vector3f(0f, 0.2f, 0f),
-            Vector3f(5f, 0f, 0f), Vector3f(0f, 0f, 5f)
-        ).apply {
-            cullMode = CullMode.BOTH
-        }, planeMat
-    )
-    scene.add(Entity("Floor", floorMesh))
+    Entity("Floor", scene)
+        .add(MeshComponent(floorMesh, planeMat))
+
     val wallMesh = createPlane(
         1, 5, Vector3f(0f, 0.2f, -0.3f),
         Vector3f(3f, 0f, 0f), Vector3f(0f, 3f, 0f)
     ).apply {
         cullMode = CullMode.BOTH
     }
-    scene.add(Entity("Wall", MeshComponent(wallMesh, planeMat)))
+    Entity("Wall", scene)
+        .add(MeshComponent(wallMesh, planeMat))
+
     val forceFieldMaterial = ForceFieldMaterial()
-    scene.add(
-        Entity("ForceField", MeshComponent(createUVSphere(30, 30), forceFieldMaterial))
-            .setPosition(+1.0, 0.0, 0.0)
-    )
-    scene.add(
-        Entity("Monkey", MeshComponent(documents.getChild("monkey.obj"), forceFieldMaterial))
-            .setPosition(-1.3, 1.0, 0.0)
-    )
+    Entity("ForceField", scene)
+        .add(MeshComponent(createUVSphere(30, 30), forceFieldMaterial))
+        .setPosition(+1.0, 0.0, 0.0)
+    Entity("Monkey", scene)
+        .add(MeshComponent(documents.getChild("monkey.obj"), forceFieldMaterial))
+        .setPosition(-1.3, 1.0, 0.0)
     scene.add(Skybox())
     testSceneWithUI("Force Field", scene)
 }

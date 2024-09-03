@@ -25,7 +25,7 @@ class BoundsTest {
 
     @Test
     fun testSimple() {
-        val entity = Entity(MeshComponent(mesh))
+        val entity = Entity().add(MeshComponent(mesh))
         assertFalse(cubeBounds1.isEmpty())
         assertEquals(cubeBounds1, entity.getBounds())
     }
@@ -66,12 +66,14 @@ class BoundsTest {
     fun testAddingMeshFirst() {
         // first add mesh, then entity
         val parent = Entity("Parent")
-        val child1 = Entity("Child1", MeshComponent(mesh))
+        val child1 = Entity("Child1")
+            .add(MeshComponent(mesh))
         assertEquals(cubeBounds1, child1.getBounds())
         parent.add(child1)
         assertEquals(cubeBounds1, child1.getBounds())
         assertEquals(cubeBounds1, parent.getBounds())
-        val child2 = Entity("Child2", MeshComponent(mesh2))
+        val child2 = Entity("Child2")
+            .add(MeshComponent(mesh2))
         parent.add(child2)
         assertEquals(cubeBounds2, child2.getBounds())
         assertEquals(cubeBounds2, parent.getBounds())

@@ -14,15 +14,13 @@ fun main() {
     //  we could work around that by conditionally smoothing, but that may be more expensive than just using fp32
     // todo instanced rendering for lights still has the perspective-driver-bug
     //  and I correctly set the "flat" attribute, so I guess there is nothing, I can do :(
-    val light = PointLight()
-    light.color.set(1000f)
     val scene = Entity("Scene")
-    scene.add(Entity(MeshComponent(topOfSphere(10f, 100, 5000f))))
-    scene.add(
-        Entity(light)
-            .setPosition(0.0, 0.03, 0.0)
-            .setScale(1.0, 8.0, 1.0)
-    )
+    Entity("Curved Floor", scene)
+        .add(MeshComponent(topOfSphere(10f, 100, 5000f)))
+    Entity("Light", scene)
+        .add(PointLight().apply { color.set(1000f) })
+        .setPosition(0.0, 0.03, 0.0)
+        .setScale(1.0, 8.0, 1.0)
     testSceneWithUI("Noisy Light", scene)
 }
 

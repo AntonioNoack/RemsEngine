@@ -15,7 +15,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.openxr.ecs.VRHandController
 import me.anno.openxr.ecs.VRHandPickup
 import me.anno.openxr.ecs.VRSocket
-import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.res
@@ -76,10 +75,9 @@ fun prepareHand(scene: Entity, isRightHand1: Boolean) {
         // fix outside-inside
         val material = Material()
         material.cullMode = CullMode.BACK
-        hand.add(
-            Entity(MeshComponent(documents.getChild("Blender/VRControllerV0.glb"), material))
-                .setScale(-1.0, 1.0, 1.0)
-        )
+        Entity(hand)
+            .add(MeshComponent(documents.getChild("Blender/VRControllerV0.glb"), material))
+            .setScale(-1.0, 1.0, 1.0)
     } else {
         hand.add(MeshComponent(documents.getChild("Blender/VRControllerV0.glb")))
     }

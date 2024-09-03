@@ -1,17 +1,15 @@
 package me.anno.engine.ui.control
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
+import me.anno.ecs.systems.UIEventSystem
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Key
 
 open class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
 
-    fun callEvent(event: UIEvent) {
-        val ecs = renderView.getWorld() as? Entity ?: return
-        ecs.onUIEvent(event)
-        invalidateDrawing()
+    fun callEvent(event: UIEvent): Boolean {
+        return UIEventSystem.onUIEvent(event)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -43,8 +41,7 @@ open class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        callEvent(UIEvent(window, x, y, dx, dy, Key.KEY_UNKNOWN, -1, false, false, UIEventType.ACTION, action))
-        return true
+        return callEvent(UIEvent(window, x, y, dx, dy, Key.KEY_UNKNOWN, -1, false, false, UIEventType.ACTION, action))
     }
 
     override fun checkMovement() {

@@ -21,12 +21,13 @@ val splineProfile = SplineProfile(
 )
 
 fun create(v: Vector3d, r: Double): SplineControlPoint {
-    val cp = SplineControlPoint()
-    cp.profile = splineProfile
-    Entity(cp)
+    val controlPoint = SplineControlPoint()
+    controlPoint.profile = splineProfile
+    Entity()
         .setPosition(v.x, v.y, v.z)
         .setRotation(0.0, r, 0.0)
-    return cp
+        .add(controlPoint)
+    return controlPoint
 }
 
 fun testMesh(pts: List<SplineControlPoint>, strictlyUp: Boolean): MeshComponent {

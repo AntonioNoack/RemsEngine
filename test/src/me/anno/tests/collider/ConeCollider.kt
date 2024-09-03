@@ -9,7 +9,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 fun main() {
-    // todo generate cone mesh
     // todo why is it not rotating??
     val collider = ConeCollider()
     collider.axis = 2
@@ -17,6 +16,7 @@ fun main() {
 }
 
 fun generateConeMesh(collider: ConeCollider): Mesh {
+    // todo make normals beautiful somehow...
     val ay = collider.axis
     val ax = posMod(ay + 2, 3)
     val az = posMod(ay + 1, 3)

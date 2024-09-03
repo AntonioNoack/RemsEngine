@@ -5,7 +5,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Floats.toRadians
@@ -22,19 +21,18 @@ import me.anno.utils.types.Floats.toRadians
  * and interpolating transforms properly might be quite expensive
  * */
 fun main() {
-    val scene = Entity()
-    val child = Entity(scene)
-    child.add(MeshComponent(Shapes.flatCube.front))
-    child.add(object : Component(), OnUpdate {
-        var skippableUpdates = 0
-        override fun onUpdate() {
-            if (skippableUpdates-- <= 0) {
-                val transform = transform!!
-                transform.localRotation = transform.localRotation.rotateY(120.0.toRadians())
-                transform.smoothUpdate()
-                skippableUpdates = Time.currentFPS.toInt()
+    val scene = Entity("Lerped")
+        .add(MeshComponent(Shapes.flatCube.front))
+        .add(object : Component(), OnUpdate {
+            var skippableUpdates = 0
+            override fun onUpdate() {
+                if (skippableUpdates-- <= 0) {
+                    val transform = transform!!
+                    transform.localRotation = transform.localRotation.rotateY(120.0.toRadians())
+                    transform.smoothUpdate()
+                    skippableUpdates = Time.currentFPS.toInt()
+                }
             }
-        }
-    })
+        })
     testSceneWithUI("Transform Lerping", scene)
 }

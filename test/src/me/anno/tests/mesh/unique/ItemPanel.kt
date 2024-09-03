@@ -1,8 +1,6 @@
 package me.anno.tests.mesh.unique
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.gpu.GFX
@@ -16,7 +14,6 @@ import me.anno.ui.utils.ThumbnailPanel
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
-import me.anno.utils.Color.withAlpha
 
 class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
     companion object {
@@ -24,10 +21,9 @@ class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
         val previewBlockIds = TestWorld.palette.withIndex()
             .filter { it.value != 0 }.map { it.index.toByte() }
         val previewBlocks = previewBlockIds.associateWith { id ->
-            val color = TestWorld.colors[id]!!.withAlpha(255)
-            val mesh = flatCube.front.clone() as Mesh
-            val materialI = Material.diffuse(color)
-            Entity(MeshComponent(mesh, materialI))
+            val color = TestWorld.colors[id]!!
+            val material = Material.diffuse(color)
+            MeshComponent(flatCube.front, material)
         }
     }
 

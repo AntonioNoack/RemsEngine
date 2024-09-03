@@ -55,9 +55,8 @@ class Vehicle(
             angle = atan2(dx, dz)
             transform.localPosition = position
             transform.localRotation = transform.localRotation
-                .identity()
-                .rotateY(angle)
-            transform.teleportUpdate()
+                .identity().rotateY(angle)
+            transform.smoothUpdate()
             invalidateAABB()
         }
         if (currentT >= 1.0) {

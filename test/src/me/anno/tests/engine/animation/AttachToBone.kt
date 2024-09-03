@@ -29,21 +29,21 @@ fun main() {
     scene.add(character)
 
     // a floor for decoration
-    scene.add(
-        Entity("Floor", MeshComponent(DefaultAssets.plane))
-            .setScale(2.5)
-    )
+    Entity("Floor", scene)
+        .add(MeshComponent(DefaultAssets.plane))
+        .setScale(2.5)
 
     // find first AnimMeshComponent, so we can attach the calculation there
     val renderer = character.getComponentInChildren(AnimMeshComponent::class)!!
 
     val prop = Entity("Phone", scene)
-    prop.add(Entity(MeshComponent(flatCube.front, Material.diffuse(black))).apply {
-        setPosition(0.01, 0.09, 0.025)
-        setRotation((-8.4).toRadians(), (-0.4).toRadians(), (+38.5).toRadians())
-        setScale(0.146 * 0.5, 0.072 * 0.5, 0.00765 * 0.5)
-    })
-    prop.add(BoneAttachmentComponent("RightHand", renderer))
+        .add(BoneAttachmentComponent("RightHand", renderer))
+
+    Entity("Offset for Phone", prop)
+        .setPosition(0.01, 0.09, 0.025)
+        .setRotation((-8.4).toRadians(), (-0.4).toRadians(), (+38.5).toRadians())
+        .setScale(0.146 * 0.5, 0.072 * 0.5, 0.00765 * 0.5)
+        .add(MeshComponent(flatCube.front, Material.diffuse(black)))
 
     LogManager.logAll()
     testSceneWithUI("Attach To Bone", scene)

@@ -647,15 +647,10 @@ fun computeRasterizer() {
     for (i in 0 until 40) {
         val da = (45.0 * i).toRadians()
         val db = (30.0 * (i / 8 - 2)).toRadians()
-        scene.add(
-            Entity(MeshComponent(flatCube.linear(Vector3f(), Vector3f(1f)).front))
-                .apply {
-                    position = Vector3d(0.0, 0.0, 2.0)
-                        .rotateX(db)
-                        .rotateY(da)
-                }
+            Entity(scene)
+                .add(MeshComponent(flatCube.linear(Vector3f(), Vector3f(1f)).front))
+                .setPosition(Vector3d(0.0, 0.0, 2.0).rotateX(db).rotateY(da))
                 .setScale(0.6)
-        )
     }
     testSceneWithUI("Compute Rasterizer", scene) {
         EngineBase.enableVSync = false // we want to go fast, so we need to measure performance

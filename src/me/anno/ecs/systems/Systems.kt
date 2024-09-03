@@ -33,8 +33,9 @@ object Systems : PrefabSaveable() {
     }
 
     init {
-        registerSystem(UpdateSystem())
-        registerSystem(BeforeDrawSystem())
+        registerSystem(UpdateSystem)
+        registerSystem(BeforeDrawSystem)
+        registerSystem(UIEventSystem)
     }
 
     init {
@@ -80,16 +81,6 @@ object Systems : PrefabSaveable() {
         }
     }
 
-    private fun addOrRemove(system: System, element: Component, add: Boolean) {
-        if (add) system.onEnable(element)
-        else system.onDisable(element)
-    }
-
-    private fun addOrRemove(system: System, element: Entity, add: Boolean) {
-        if (add) system.onEnable(element)
-        else system.onDisable(element)
-    }
-
     fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean) {
         Recursion.processRecursive(root) { element, remaining ->
             if (element.isEnabled) {
@@ -97,8 +88,8 @@ object Systems : PrefabSaveable() {
                     remaining.addAll(element.getChildListByType(type))
                 }
                 when (element) {
-                    is Entity -> forAllSystems { addOrRemove(it, element, add) }
-                    is Component -> forAllSystems { addOrRemove(it, element, add) }
+                    is Entity -> forAllSystems { it.setContains(element, add) }
+                    is Component -> forAllSystems { it.setContains(element, add) }
                 }
             }
         }

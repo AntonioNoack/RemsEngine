@@ -259,11 +259,10 @@ fun main() {
             }
             scene.add(debugLightSpawner)
             val sun = DirectionalLight()
-            val sunE = Entity(sun)
+            val sunE = Entity(scene).add(sun)
             val sky = Skybox()
             sky.applyOntoSun(sunE, sun, 10f)
             scene.add(sky)
-            scene.add(sunE)
         }
 
         fun updateCubes() {

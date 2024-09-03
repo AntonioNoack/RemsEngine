@@ -6,9 +6,19 @@ import me.anno.input.Key
  * the class, that you can use to control your components by mouse/keyboard
  * if you want control in edit mode, use @CustomEditMode
  *
- * mouseEnter and mouseExit are not yet supported
+ * mouseEnter and mouseExit are not yet supported;
+ * return true to consume an event
  * */
-interface InputListener {
+interface InputListener : Comparable<InputListener> {
+
+    /**
+     * small values are called first
+     * */
+    val priority: Int get() = 0
+
+    override fun compareTo(other: InputListener): Int {
+        return priority.compareTo(other.priority)
+    }
 
     fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String): Boolean = false
 
@@ -29,5 +39,4 @@ interface InputListener {
     // maybe the UI is just 3D meshes (with a different renderer)? :)
     fun onMouseEnter(): Boolean = false
     fun onMouseExit(): Boolean = false
-
 }

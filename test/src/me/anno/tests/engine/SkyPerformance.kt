@@ -8,6 +8,7 @@ import me.anno.mesh.Shapes.flatCube
 
 fun main() {
     // why is taking SSAO soo long for nothing to do??? (0.2ms vs 0.06ms for SSR)
+    //  because it has much more samples
     val scene = Entity()
     scene.add(MeshComponent(flatCube.front))
     val sky = Skybox()

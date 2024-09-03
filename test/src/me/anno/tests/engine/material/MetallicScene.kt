@@ -41,53 +41,49 @@ fun main() {
         .addComponent(sun)
     scene.add(sunEntity)
     sky.applyOntoSun(sunEntity, sun, 20f)
-    scene.add(Entity("Image", ImagePlane().apply {
-        material.diffuseMap = res.getChild("icon.png")
-        // todo way to split transparency rendering into opaque + transparent?
-        //  - opaque (a == 1)
-        //  - transparent (0 < a < 1)
-        material.linearFiltering = false
-        // material.pipelineStage = TRANSPARENT_PASS
-    }).apply {
-        position = position.set(2.0, 0.0, 0.0)
-    })
+    Entity("Image", scene)
+        .add(ImagePlane().apply {
+            material.diffuseMap = res.getChild("icon.png")
+            // todo way to split transparency rendering into opaque + transparent?
+            //  - opaque (a == 1)
+            //  - transparent (0 < a < 1)
+            material.linearFiltering = false
+            // material.pipelineStage = TRANSPARENT_PASS
+        }).apply {
+            position = position.set(2.0, 0.0, 0.0)
+        }
     // fixed: gold didn't look like gold :(
     //  - color was yellow, but reflection of white stuff was blue (because of sky, probably...)
 
-    scene.add(
-        Entity("Golden Cube", SDFBox().apply {
-            val golden = Material.metallic(0xf5ba6c, 1f)
+    val gold = 0xf5ba6c
+    Entity("Golden Cube", scene)
+        .setPosition(-2.5, 0.0, 0.0)
+        .add(SDFBox().apply {
+            val golden = Material.metallic(gold, 1f)
             sdfMaterials = listOf(golden.ref)
-        }).setPosition(-2.5, 0.0, 0.0)
-    )
-    scene.add(
-        Entity("Floor", SDFBox())
-            .setPosition(0.0, -6.0, 0.0)
-            .setScale(5.0)
-    )
-    val lucy = PrefabCache[downloads.getChild("3d/lucy0.fbx")]?.createInstance() as? Entity
-    if (lucy != null) {
-        scene.add(lucy.apply {
-            name = "Lucy"
-            setPosition(0.0, -1.0, -2.5)
-            setScale(2.5)
-            val golden = Material.metallic(0xf5ba6c, 0f)
-            forAllComponentsInChildren(MeshComponent::class) {
-                it.materials = listOf(golden.ref)
-            }
         })
-    }
+
+    Entity("Floor", scene)
+        .add(SDFBox())
+        .setPosition(0.0, -6.0, 0.0)
+        .setScale(5.0)
+
+    Entity("Lucy", scene)
+        .add(MeshComponent(downloads.getChild("3d/lucy0.fbx"), Material.metallic(gold, 0f)))
+        .setPosition(0.0, -1.0, -2.5)
+        .setScale(2.5)
+
     val cubes = Entity("Cubes", scene)
     for (j in 0..5) {
         for (i in 0..10) {
             val sc = 0.1
-            val child = Entity(cubes)
-            child.setPosition((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
-            child.setScale(sc)
-            child.add(MeshComponent(flatCube.front, Material().apply {
-                metallicMinMax.set(j / 5f)
-                roughnessMinMax.set(i / 10f)
-            }))
+            Entity("Cube[$i,$j]", cubes)
+                .setPosition((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
+                .setScale(sc)
+                .add(MeshComponent(flatCube.front, Material().apply {
+                    metallicMinMax.set(j / 5f)
+                    roughnessMinMax.set(i / 10f)
+                }))
         }
     }
     testSceneWithUI("Metallic", scene) {

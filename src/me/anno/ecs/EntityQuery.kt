@@ -148,17 +148,7 @@ object EntityQuery {
         clazz: KClass<V>, includingDisabled: Boolean = false,
         predicate: (V) -> Boolean
     ): Boolean {
-        val components = components
-        for (index in components.indices) {
-            val c = components[index]
-            if (checkInstance(includingDisabled, c)) {
-                val cv = clazz.safeCast(c)
-                if (cv != null && !predicate(cv)) {
-                    return false
-                }
-            }
-        }
-        return true
+        return !anyComponent(clazz, includingDisabled) { !predicate(it) }
     }
 
     inline fun <V : Any> Component.allComponents(

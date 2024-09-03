@@ -227,8 +227,9 @@ class TerrainChunkSystem(val childrenContainer: Entity) :
                 val chunk = getChunk(x0 + xi, 0, z0 + zi, visible)
                 if (chunk != null && (chunk in visibleChunks) != visible) {
                     if (visible) {
-                        val child = Entity("${chunk.xi}/${chunk.zi}", chunk)
+                        val child = Entity("${chunk.xi}/${chunk.zi}")
                             .setPosition(chunk.dx.toDouble(), 0.0, chunk.dz.toDouble())
+                            .add(chunk)
                         childrenContainer.add(child)
                         visibleChunks.add(chunk)
                     } else {

@@ -143,20 +143,11 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         entity.isPhysicsControlled = rigidbody != null
     }
 
-    override fun onEnable(entity: Entity) {
+    override fun setContains(entity: Entity, contains: Boolean) {
         invalidate(entity)
     }
 
-    override fun onEnable(component: Component) {
-        // todo only if is relevant component
-        invalidate(component.entity ?: return)
-    }
-
-    override fun onDisable(entity: Entity) {
-        invalidate(entity)
-    }
-
-    override fun onDisable(component: Component) {
+    override fun setContains(component: Component, contains: Boolean) {
         // todo only if is relevant component
         invalidate(component.entity ?: return)
     }
