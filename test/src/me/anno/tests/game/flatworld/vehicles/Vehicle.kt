@@ -64,12 +64,7 @@ class Vehicle(
             if (next != null) {
                 currentT = (currentT - 1.0) * curr.length / next.length
             } else {
-                // todo can we schedule this in a nicer way?
-                addEvent {
-                    // prevent concurrent modification exceptions,
-                    // because we're removing sth from a list what is to be updated
-                    entity?.destroy()
-                }
+                entity?.destroy()
             }
         }
     }

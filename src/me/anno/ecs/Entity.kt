@@ -491,8 +491,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     private fun getSystems(): Systems? {
-        val systems = EngineBase.instance?.systems ?: return null
-        return if (root === systems.world) systems else null
+        return if (root === Systems.world) Systems else null
     }
 
     fun onChangeComponent(component: Component, additive: Boolean) {

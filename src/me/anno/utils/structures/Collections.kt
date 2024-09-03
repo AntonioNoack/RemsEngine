@@ -53,9 +53,15 @@ object Collections {
     }
 
     @JvmStatic
-    fun <V> MutableCollection<V>.setContains(element: V, shallContain: Boolean) {
-        if (shallContain) add(element)
+    fun <V> MutableCollection<V>.setContains(element: V, shallContain: Boolean): Boolean {
+        return if (shallContain) add(element)
         else remove(element)
+    }
+
+    @JvmStatic
+    fun <V> MutableSet<V>.toggleContains(element: V) {
+        // if it was already contained = no change, then remove it
+        if (!add(element)) remove(element)
     }
 
     /**
