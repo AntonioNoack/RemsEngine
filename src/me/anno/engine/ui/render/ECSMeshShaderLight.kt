@@ -36,15 +36,16 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
                     metallicMap == InvalidRef && metallicMinMax.x == 0f &&
                     occlusionMap == InvalidRef && !Input.isShiftDown
         }
-    }
-
-    open fun createRandomIdStage(): ShaderStage {
-        return ShaderStage(
+        private val randomIdStage = ShaderStage(
             "randomId", listOf(
                 Variable(GLSLType.V2I, "randomIdData", VariableMode.IN), // vertices/instance, random offset
                 Variable(GLSLType.V1I, "randomId", VariableMode.OUT)
             ), "randomId = (gl_VertexID + gl_InstanceID * randomIdData.x + randomIdData.y) & 0xffff;\n"
         )
+    }
+
+    open fun createRandomIdStage(): ShaderStage {
+        return randomIdStage
     }
 
     open fun createBase(key: ShaderKey): ShaderBuilder {
@@ -55,10 +56,6 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
         builder.addVertex(key.renderer.getVertexPostProcessing(flags))
         builder.addFragment(createFragmentStages(key))
         builder.addFragment(key.renderer.getPixelPostProcessing(flags))
-        builder.ignored.addAll(
-            ("worldScale,cameraPosition,cameraRotation,numberOfLights," +
-                    "IOR,hasAnimation,prevTransform,applyToneMapping").split(',')
-        )
         return builder
     }
 

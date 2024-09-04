@@ -63,6 +63,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                         "vec3 bounds1 = vec3(bounds-1);\n" +
                         // start our ray on the surface of the cube: we don't need to project the ray onto the box
+                        // localPosition != matMul(invLocalTransform, vec4(finalPosition, 0.0))
                         "vec3 dir = normalize(matMul(invLocalTransform, vec4(finalPosition, 0.0)));\n" +
                         // "vec3 dir = normalize(finalPosition);\n" +
                         // prevent divisions by zero

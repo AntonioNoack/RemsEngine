@@ -1,6 +1,7 @@
 package me.anno.io.saveable
 
 import me.anno.io.base.BaseWriter
+import me.anno.utils.InternalAPI
 
 /**
  * something that should be saveable, but also nameable by editors or users
@@ -15,6 +16,8 @@ open class NamedSaveable : Saveable() {
             }
         }
 
+    // probably rarely used, so it could become a WeakHashMap-entry...
+    @InternalAPI
     var description = ""
         set(value) {
             if (field != value) {

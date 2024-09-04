@@ -120,9 +120,9 @@ object DrawSky {
             listOf(TargetType.Float16x3), DepthBufferType.NONE
         )
         val renderer = Renderers.rawAttributeRenderers[DeferredLayerType.EMISSIVE]
+        val skyRot = JomlPools.quat4f.create()
+        val cameraMatrix = JomlPools.mat4f.create()
         framebuffer.draw(renderer) { side ->
-            val skyRot = JomlPools.quat4f.create()
-            val cameraMatrix = JomlPools.mat4f.create()
             val sky = pipeline.skybox
             // draw sky
             // could be optimized to draw a single triangle instead of a full cube for each side
@@ -146,9 +146,9 @@ object DrawSky {
             shader.v1b("isPerspective", false)
             shader.v1b("reversedDepth", false) // depth doesn't matter
             sky.getMesh().draw(pipeline, shader, 0)
-            JomlPools.quat4f.sub(1)
-            JomlPools.mat4f.sub(1)
         }
+        JomlPools.quat4f.sub(1)
+        JomlPools.mat4f.sub(1)
         if (!OS.isAndroid) {
             // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
             framebuffer.textures[0].bind(0, Filtering.LINEAR)

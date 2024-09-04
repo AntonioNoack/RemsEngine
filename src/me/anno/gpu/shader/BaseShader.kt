@@ -42,7 +42,6 @@ open class BaseShader(
 
     var glslVersion = GPUShader.DefaultGLSLVersion
     var textures: List<String>? = null
-    val ignoredNameWarnings = HashSet<String>()
 
     data class ShaderKey(
         val renderer: Renderer,

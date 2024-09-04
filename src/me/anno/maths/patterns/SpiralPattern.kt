@@ -11,6 +11,9 @@ import kotlin.math.round
  * */
 object SpiralPattern {
 
+    /**
+     * radius is inclusive
+     * */
     fun roundSpiral2d(radius: Int, y: Int, fillBlock: Boolean, increment: Float = 1.5f): List<Vector3i> {
         val size = 2 * radius + 1
         val list = ArrayList<Vector3i>(size * size * size)
@@ -33,6 +36,9 @@ object SpiralPattern {
         return list
     }
 
+    /**
+     * radius is inclusive
+     * */
     @Suppress("unused")
     fun sortedBlock(radius: Int): List<Vector3i> {
         val size = 2 * radius + 1
@@ -48,23 +54,26 @@ object SpiralPattern {
         return list
     }
 
+    /**
+     * radius is inclusive
+     * */
     @Suppress("unused")
     fun spiral3d(radius: Int, fillBlock: Boolean): List<Vector3i> {
         val result = ArrayList<Vector3i>()
-        for (r in 0 until if (fillBlock) radius * 2 else radius) {
+        for (r in 0 .. if (fillBlock) radius * 2 else radius) {
             if (r < radius) {
                 result.addAll(spiral2d(r, 0, false))
             }
             // first build floor, then ceiling
-            for (dy in 1 until radius) {
+            for (dy in 1 .. radius) {
                 val r2 = r - dy
-                if (r2 in 0 until radius) {
+                if (r2 in 0 .. radius) {
                     result.addAll(spiral2d(r2, -dy, false))
                 }
             }
-            for (dy in 1 until radius) {
+            for (dy in 1 .. radius) {
                 val r2 = r - dy
-                if (r2 in 0 until radius) {
+                if (r2 in 0 .. radius) {
                     result.addAll(spiral2d(r2, +dy, false))
                 }
             }
@@ -72,6 +81,9 @@ object SpiralPattern {
         return result
     }
 
+    /**
+     * radius is inclusive
+     * */
     @Suppress("unused")
     fun spiral2dStack(radius: Int, y0: Int, y1: Int, full: Boolean): List<Vector3i> {
         val result = ArrayList<Vector3i>()
@@ -86,10 +98,13 @@ object SpiralPattern {
         return result
     }
 
+    /**
+     * radius is inclusive
+     * */
     fun spiral2d(radius: Int, y: Int, full: Boolean): List<Vector3i> {
         if (full) {
             val result = ArrayList<Vector3i>()
-            for (r in 0 until radius) {
+            for (r in 0..radius) {
                 result.addAll(spiral2d(r, y, false))
             }
             return result

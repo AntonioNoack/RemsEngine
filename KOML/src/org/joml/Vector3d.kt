@@ -41,6 +41,10 @@ open class Vector3d(
         setComponent(i, v)
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+
     fun set(v: Vector3d): Vector3d = set(v.x, v.y, v.z)
     fun set(v: Vector3i): Vector3d = set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
     fun set(v: Vector2d, z: Double): Vector3d = set(v.x, v.y, z)

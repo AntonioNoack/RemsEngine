@@ -31,6 +31,8 @@ object FontManagerImpl {
         FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
         FontStats.getFontHeightImpl = FontManagerImpl::getTextHeight
         FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
+        // idk about this, it takes 46ms to compute...
+        // SubpixelOffsets.calculateSubpixelOffsets()
     }
 
     private fun getDefaultFontSize(): Int {

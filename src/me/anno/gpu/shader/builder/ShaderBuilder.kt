@@ -39,8 +39,6 @@ class ShaderBuilder(val name: String) {
 
     var glslVersion = GPUShader.DefaultGLSLVersion
 
-    val ignored = HashSet<String>()
-
     fun addVertex(stage: ShaderStage?) {
         vertex.add(stage ?: return)
     }

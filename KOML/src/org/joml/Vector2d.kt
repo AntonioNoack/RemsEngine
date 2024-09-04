@@ -29,6 +29,9 @@ open class Vector2d(
         setComponent(i, v)
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+
     fun set(x: Double, y: Double): Vector2d {
         this.x = x
         this.y = y

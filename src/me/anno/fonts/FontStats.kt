@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.fonts.keys.FontKey
 import me.anno.utils.InternalAPI
+import org.joml.Vector2f
 
 object FontStats {
 
@@ -39,4 +40,7 @@ object FontStats {
         val tmp = getFontHeightImpl ?: return font.size.toDouble()
         return tmp(font)
     }
+
+    val subpixelOffsetR = Vector2f()
+    val subpixelOffsetB = Vector2f()
 }

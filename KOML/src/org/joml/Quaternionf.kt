@@ -57,6 +57,11 @@ open class Quaternionf(
         }
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+    operator fun component4() = w
+
     @JvmOverloads
     fun normalize(dst: Quaternionf = this): Quaternionf {
         return scaleDirectly(JomlMath.invsqrt(lengthSquared()), dst)

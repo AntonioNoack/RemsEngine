@@ -39,6 +39,11 @@ open class Vector4d(
         setComponent(i, v)
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+    operator fun component4() = w
+
     fun set(v: Vector4d): Vector4d {
         x = v.x
         y = v.y

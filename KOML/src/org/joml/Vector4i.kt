@@ -26,6 +26,11 @@ open class Vector4i(
         setComponent(i, v.toInt())
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+    operator fun component4() = w
+
     fun set(v: Vector4i) = set(v.x, v.y, v.z, v.w)
     fun set(v: Vector4d) = set(v.x.toInt(), v.y.toInt(), v.z.toInt(), v.w.toInt())
     fun set(v: Vector3i, w: Int) = set(v.x, v.y, v.z, w)

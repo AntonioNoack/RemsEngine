@@ -413,8 +413,9 @@ object ShaderLib {
                     "   if(disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
                     "   float mixingAlpha = disableSubpixelRendering ? mixing.g : brightness(mixing);\n" +
                     // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
-                    "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
+                    "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0) {\n" +
                     "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
+                    "   }\n" +
                     "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
                     "   if(color.a < 0.001) discard;\n" +
                     "   finalColor = color.rgb;\n" +

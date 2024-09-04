@@ -19,6 +19,11 @@ class FlatWorld {
     val streets = Entity("Streets", scene)
     val vehicles = Entity("Vehicles", scene)
 
+    // todo grids of multiple levels:
+    //  - simple, placing mode
+    //  - for meshing: adds off & on-ramps, maybe round-abouts | for pathfinding, and traffic control
+    //  - for pathing: no abrupt rotation
+
     val streetSegments = HashSet<StreetSegment>()
     val buildingInstances = HashSet<Building>()
     val intersections = HashMap<Vector3d, Intersection>()

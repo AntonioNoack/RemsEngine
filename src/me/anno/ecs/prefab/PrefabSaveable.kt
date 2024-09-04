@@ -15,19 +15,18 @@ import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.saveable.NamedSaveable
-import me.anno.io.saveable.Saveable
-import me.anno.io.saveable.UnknownSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.utils.assertions.assertNull
+import me.anno.utils.InternalAPI
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Strings.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
+import java.util.WeakHashMap
 import kotlin.reflect.KClass
 
 /**
@@ -58,15 +57,12 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
      * if something goes wrong, set this field;
      * it will be visible in the editor UI, and print a message to the console
      * */
+    @InternalAPI
     @NotSerializedProperty
-    var lastWarning: String? = null
+    var lastWarning: String?
+        get() = getLastWarning(this)
         set(value) {
-            if (field != value) {
-                if (!value.isNullOrEmpty()) {
-                    LOGGER.warn("$className: $value")
-                }
-                field = value
-            }
+            setLastWarning(this, value)
         }
 
     /**
@@ -100,6 +96,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
      *
      * where a resource is originally coming from;
      * */
+    @InternalAPI // could be removed at game runtime
     @NotSerializedProperty
     var prefab: Prefab? = null
 
@@ -108,6 +105,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
      *
      * after that, stores the path within the currently used prefab/scene
      * */
+    @InternalAPI // could be removed at game runtime
     @NotSerializedProperty
     var prefabPath: Path = Path.ROOT_PATH
 
@@ -291,7 +289,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     override fun destroy() {}
 
     @NotSerializedProperty
-    override val symbol: String = ""
+    override val symbol: String
+        get() = ""
 
     @NotSerializedProperty
     override val defaultDisplayName: String
@@ -335,7 +334,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     fun throwWarning() {
         val lw = lastWarning
-        if (lw != null) throw RuntimeException(lw)
+        if (!lw.isNullOrEmpty()) throw RuntimeException(lw)
     }
 
     @DebugAction
@@ -349,6 +348,23 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
         const val DISABLE_FLAG = 1
         const val NOT_COLLAPSED_FLAG = 2
+
+        // should be set for very few instances -> use weak hashmap
+        private val lastWarning = WeakHashMap<PrefabSaveable, String>()
+
+        private fun getLastWarning(instance: PrefabSaveable): String {
+            return synchronized(lastWarning) { lastWarning[instance] } ?: ""
+        }
+
+        private fun setLastWarning(instance: PrefabSaveable, warning: String?) {
+            synchronized(lastWarning) {
+                if (warning.isNullOrEmpty()) lastWarning.remove(instance)
+                else lastWarning[instance] = warning
+            }
+            if (!warning.isNullOrEmpty()) {
+                LOGGER.warn("${instance.className}: $warning")
+            }
+        }
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {

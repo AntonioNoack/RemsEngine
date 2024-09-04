@@ -32,6 +32,9 @@ open class Vector2f(
         setComponent(i, v.toFloat())
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+
     @JvmOverloads
     fun set(x: Float, y: Float = x): Vector2f {
         this.x = x

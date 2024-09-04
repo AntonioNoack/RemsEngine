@@ -59,6 +59,11 @@ open class Quaterniond(
         }
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+    operator fun component4() = w
+
     @JvmOverloads
     fun normalize(dst: Quaterniond = this): Quaterniond {
         val invNorm = JomlMath.invsqrt(lengthSquared())

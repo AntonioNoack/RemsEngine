@@ -39,6 +39,10 @@ open class Vector3f(
         setComponent(i, v.toFloat())
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+
     fun set(v: Vector3f): Vector3f = set(v.x, v.y, v.z)
     fun set(v: Vector4f): Vector3f = set(v.x, v.y, v.z)
     fun set(v: Vector3d): Vector3f = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())

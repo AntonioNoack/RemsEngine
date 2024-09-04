@@ -22,6 +22,9 @@ open class Vector2i(
         setComponent(i, v.toInt())
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+
     @JvmOverloads
     fun set(x: Int, y: Int = x): Vector2i {
         this.x = x

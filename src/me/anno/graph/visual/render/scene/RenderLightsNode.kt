@@ -137,12 +137,6 @@ class RenderLightsNode : RenderViewNode(
                 )
 
                 builder.addFragment(createMainFragmentStage(type, isInstanced))
-                builder.ignored.addAll(
-                    listOf(
-                        "cameraPosition", "cameraRotation", "tint", "receiveShadows", "countPerPixel",
-                        "worldScale", "fullscreen", "isDirectional"
-                    )
-                )
                 shader = builder.create(getKey(), "${type.ordinal}-${isInstanced.toInt()}")
             }
 

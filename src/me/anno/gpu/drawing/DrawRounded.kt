@@ -16,7 +16,7 @@ import kotlin.math.sin
 
 /**
  * Draws a rectangle with rounded corners;
- * todo subpixel-rendering not yet implemented.
+ * subpixel-rendering not implemented -> not worth it
  * */
 @Suppress("unused")
 object DrawRounded {
@@ -59,6 +59,7 @@ object DrawRounded {
             Variable(GLSLType.V1F, "outlineThickness")
         ), "" +
                 // https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
+                // todo we could use a squircle, too, if w = h
                 "float sdRoundedBox(vec2 p, vec2 b, vec4 r){\n" +
                 "   r.xy = (p.x>0.0) ? r.xy : r.zw;\n" +
                 "   r.x  = (p.y>0.0) ? r.x  : r.y;\n" +

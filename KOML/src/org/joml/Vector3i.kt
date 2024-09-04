@@ -24,6 +24,10 @@ open class Vector3i(
         setComponent(i, v.toInt())
     }
 
+    operator fun component1() = x
+    operator fun component2() = y
+    operator fun component3() = z
+
     fun set(v: Vector3i): Vector3i {
         x = v.x
         y = v.y
