@@ -1,8 +1,7 @@
 package me.anno.ui.base.progress
 
 import me.anno.Time
-import me.anno.gpu.GFX.clip
-import me.anno.gpu.GFX.clip2Save
+import me.anno.gpu.Clipping
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -13,9 +12,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
-import me.anno.utils.Color.mixARGB
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.cos
@@ -91,7 +90,7 @@ open class ProgressBar(
             total.isNaN() -> "$progress $unit"
             unit == "Bytes" && progress.isFinite() && total.isFinite() && progress >= 0.0 && total >= 0.0 ->
                 "${progress.toLong().formatFileSize()} / ${total.toLong().formatFileSize()}"
-            intFormatting ->  "${progress.toLong()} / ${total.toLong()} $unit"
+            intFormatting -> "${progress.toLong()} / ${total.toLong()} $unit"
             else -> "$progress / $total $unit"
         }
     }
@@ -135,19 +134,19 @@ open class ProgressBar(
             val text = formatProgress()
             val xt = x + w.shr(1)
             val yt = y + (h - monospaceFont.sizeInt).shr(1)
-            if (x1 > x) clip(x, y, x1 - x, h) {
+            if (x1 > x) Clipping.clip(x, y, x1 - x, h) {
                 drawSimpleTextCharByChar(
                     xt, yt, pad, text, rightColor, leftColor,
                     AxisAlignment.CENTER, AxisAlignment.MIN
                 )
             }
-            if (x2 > x1) clip(x1, y, x2 - x1, h) {
+            if (x2 > x1) Clipping.clip(x1, y, x2 - x1, h) {
                 drawSimpleTextCharByChar(
                     xt, yt, pad, text, leftColor, rightColor,
                     AxisAlignment.CENTER, AxisAlignment.MIN
                 )
             }
-            if (x3 > x2) clip(x2, y, x3 - x2, h) {
+            if (x3 > x2) Clipping.clip(x2, y, x3 - x2, h) {
                 drawSimpleTextCharByChar(
                     xt, yt, pad, text, rightColor, leftColor,
                     AxisAlignment.CENTER, AxisAlignment.MIN
@@ -168,7 +167,7 @@ open class ProgressBar(
             val text = formatProgress()
             val xt = x + w.shr(1)
             val yt = y + (h - monospaceFont.sizeInt).shr(1)
-            clip2Save(
+            Clipping.clip2Save(
                 max(x0, x),
                 max(y0, y),
                 min(x1, x + mid),
@@ -179,7 +178,7 @@ open class ProgressBar(
                     AxisAlignment.CENTER, AxisAlignment.MIN
                 )
             }
-            clip2Save(
+            Clipping.clip2Save(
                 max(x0, x + mid),
                 max(y0, y),
                 min(x1, x + w),

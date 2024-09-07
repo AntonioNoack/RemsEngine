@@ -11,6 +11,8 @@ import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
+import me.anno.gpu.GLNames
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -121,7 +123,7 @@ open class Texture2D(
     override var channels: Int = 0
 
     override fun toString() =
-        "Texture2D(\"$name\"@$pointer, $width x $height x $samples, ${GFX.getName(internalFormat)})"
+        "Texture2D(\"$name\"@$pointer, $width x $height x $samples, ${GLNames.getName(internalFormat)})"
 
     /**
      * Pseudo-Reference, such that ImageGPUCache[ref] = this;
@@ -229,7 +231,7 @@ open class Texture2D(
             GL_RGB, GL_BGR, GL_RGB_INTEGER -> 3
             GL_RGBA, GL_BGRA, GL_RGBA_INTEGER -> 4
             else -> {
-                RuntimeException("Unknown data format ${GFX.getName(dataFormat)}")
+                RuntimeException("Unknown data format ${GLNames.getName(dataFormat)}")
                     .printStackTrace()
                 1
             }
@@ -490,7 +492,7 @@ open class Texture2D(
         val tiles = Maths.max(Maths.roundDiv(height, Maths.max(1, (1024) / width)), 1)
         val useTiles = tiles >= 4 && dataI.capacity() > 16
         if (useTiles) {
-            GFX.addGPUTask("IntImage", width, height) {
+            addGPUTask("IntImage", width, height) {
                 if (!isDestroyed) {
                     create(creationType)
                     this.channels = numChannels
@@ -501,7 +503,7 @@ open class Texture2D(
                 val y0 = WorkSplitter.partition(y, height, tiles)
                 val y1 = WorkSplitter.partition(y + 1, height, tiles)
                 val dy = y1 - y0
-                GFX.addGPUTask("IntImage", width, dy) {
+                addGPUTask("IntImage", width, dy) {
                     if (!isDestroyed) {
                         wasCreated = true // reset to true state
                         dataI.position(y0 * width)
@@ -518,7 +520,7 @@ open class Texture2D(
                 }
             }
         } else {
-            GFX.addGPUTask("IntImage", width, height) {
+            addGPUTask("IntImage", width, height) {
                 if (!isDestroyed) {
                     create(creationType, uploadingType, dataI)
                     callback.call(this, null)

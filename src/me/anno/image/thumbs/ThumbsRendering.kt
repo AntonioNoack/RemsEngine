@@ -1,8 +1,10 @@
 package me.anno.image.thumbs
 
+import me.anno.gpu.Blitting
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -39,7 +41,7 @@ object ThumbsRendering {
                 flipY, callback, w, h, render
             )
         } else {
-            GFX.addGPUTask("Thumbs.render($src)", w, h) {
+            addGPUTask("Thumbs.render($src)", w, h) {
                 renderToImagePart2(
                     src, checkRotation, dstFile, withDepth, renderer,
                     flipY, callback, w, h, render
@@ -98,7 +100,7 @@ object ThumbsRendering {
                     TargetType.UInt8x4, DepthBufferType.NONE
                 )
                 GFXState.useFrame(newBuffer) {
-                    GFX.copy(renderTarget)
+                    Blitting.copy(renderTarget)
                 }
                 newBuffer
             } else renderTarget

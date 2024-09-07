@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -71,7 +72,7 @@ class FloatImage(
             texture.create(TargetType.Float32xI[numChannels - 1], creationData)
             callback.ok(texture)
         } else {
-            GFX.addGPUTask("CompFBI.cTex", width, height) {
+            addGPUTask("CompFBI.cTex", width, height) {
                 createTexture(texture, true, checkRedundancy, callback)
             }
         }

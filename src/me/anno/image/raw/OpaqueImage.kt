@@ -2,12 +2,14 @@ package me.anno.image.raw
 
 import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.black
+import java.nio.ByteBuffer
 import kotlin.math.min
 
 /**
@@ -77,17 +79,19 @@ open class OpaqueImage(val src: Image) :
                     if (checkRedundancy) texture.checkRedundancyX4(buffer)
                     // to do check whether this is correct; should be correct :)
                     if (sync && GFX.isGFXThread()) {
-                        texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
-                        Texture2D.bufferPool.returnBuffer(buffer)
-                        callback.ok(texture)
-                    } else GFX.addGPUTask("OpaqueImage", width, height) {
-                        texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
-                        Texture2D.bufferPool.returnBuffer(buffer)
-                        callback.ok(texture)
+                        create(texture, buffer, callback)
+                    } else addGPUTask("OpaqueImage", width, height) {
+                        create(texture, buffer, callback)
                     }
                 }
                 else -> super.createTexture(texture, sync, checkRedundancy, callback)
             }
         }
+    }
+
+    private fun create(texture: Texture2D, buffer: ByteBuffer, callback: Callback<ITexture2D>){
+        texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
+        Texture2D.bufferPool.returnBuffer(buffer)
+        callback.ok(texture)
     }
 }

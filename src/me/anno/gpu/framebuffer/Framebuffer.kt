@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.Build
 import me.anno.cache.ICacheData
+import me.anno.gpu.Blitting
 import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -376,12 +377,12 @@ class Framebuffer(
                     if (needsToCopyDepth && depthTexture != null) {
                         needsToCopyDepth = false
                         useFrame(dstColor, dstFramebuffer) {
-                            GFX.copyColorAndDepth(srcColor, depthTexture, depthMask)
+                            Blitting.copyColorAndDepth(srcColor, depthTexture, depthMask)
                             GFX.check()
                         }
                     } else {
                         useFrame(dstColor) {
-                            GFX.copy(srcColor)
+                            Blitting.copy(srcColor)
                             GFX.check()
                         }
                     }
@@ -389,7 +390,7 @@ class Framebuffer(
                 // execute depth blit
                 if (needsToCopyDepth && depthTexture != null) {
                     useFrame(null, dstFramebuffer) {
-                        GFX.copyColorAndDepth(TextureLib.blackTexture, depthTexture, depthMask)
+                        Blitting.copyColorAndDepth(TextureLib.blackTexture, depthTexture, depthMask)
                         GFX.check()
                     }
                 }

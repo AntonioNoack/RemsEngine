@@ -1,8 +1,8 @@
 package me.anno.tests.utils
 
 import me.anno.Engine
+import me.anno.gpu.Blitting
 import me.anno.gpu.shader.effects.FSR
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -78,7 +78,7 @@ fun main() {
             val scaledDown = FBStack["scaled", sw, sh, 3, false, 1, DepthBufferType.NONE]
             useFrame(scaledDown) {
                 source.bind(0, filtering, Clamping.CLAMP)
-                GFX.copy()
+                Blitting.copy()
             }
             if (useFSR) {
                 useFrame(reconstructed) {
@@ -88,7 +88,7 @@ fun main() {
                         flipY = true, applyToneMapping = false, withAlpha = false
                     )
                     scaledDown.bindTexture0(0, filtering, Clamping.CLAMP)
-                    GFX.copy()
+                    Blitting.copy()
                 }
             }
             useFrame(difference) {

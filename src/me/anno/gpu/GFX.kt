@@ -1,57 +1,24 @@
 package me.anno.gpu
 
 import me.anno.Build.isDebug
-import me.anno.Engine
-import me.anno.Time
-import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
-import me.anno.engine.EngineBase
-import me.anno.engine.Events
-import me.anno.gpu.GFXState.blendMode
-import me.anno.gpu.GFXState.depthMode
-import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames.getErrorTypeName
-import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.buffer.OpenGLBuffer
-import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.query.OcclusionQuery
-import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
-import me.anno.gpu.shader.FlatShaders.copyShader
-import me.anno.gpu.shader.FlatShaders.copyShaderAnyToAny
-import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.shader.GPUShader
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureHelper.getNumChannels
-import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.utils.Clock
 import me.anno.utils.OS
-import me.anno.utils.assertions.assertTrue
-import me.anno.utils.async.Queues.workQueue
-import me.anno.utils.pooling.Pools
-import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
-import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.ARBImaging
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.glGetError
-import java.util.Queue
 import java.util.Stack
-import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
 /**
- * graphics capabilities, clipping, copying, gpu work scheduling, main render loop
+ * graphics capabilities, and gfx checks
  * */
 object GFX {
 
@@ -140,15 +107,6 @@ object GFX {
     var canLooseContext = true // on Android, and when somebody uses multiple StudioBase instances
 
     @JvmField
-    val nextGPUTasks = ArrayList<Task>()
-
-    @JvmField
-    val gpuTasks: Queue<Task> = ConcurrentLinkedQueue()
-
-    @JvmField
-    val lowPriorityGPUTasks: Queue<Task> = ConcurrentLinkedQueue()
-
-    @JvmField
     val loadTexturesSync = Stack<Boolean>()
         .apply { push(false) }
 
@@ -180,167 +138,6 @@ object GFX {
     var glThread: Thread? = null
 
     @JvmStatic
-    fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, false, task)
-
-    @JvmStatic
-    fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
-        addGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), lowPriority, task)
-    }
-
-    @JvmStatic
-    fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, false, task)
-
-    @JvmStatic
-    fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
-        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
-    }
-
-    @JvmStatic
-    fun addNextGPUTask(name: String, w: Int, h: Int, task: () -> Unit) =
-        addNextGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), task)
-
-    @JvmStatic
-    fun addNextGPUTask(name: String, weight: Int, task: () -> Unit) {
-        nextGPUTasks += Task(name, weight, task)
-    }
-
-    @JvmStatic
-    fun useWindowXY(x: Int, y: Int, buffer: Framebuffer, process: () -> Unit) {
-        val ox = buffer.offsetX
-        val oy = buffer.offsetY
-        buffer.offsetX = x
-        buffer.offsetY = y
-        try {
-            process()
-        } finally {
-            buffer.offsetX = ox
-            buffer.offsetY = oy
-        }
-    }
-
-    @JvmStatic
-    fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
-        // from the bottom to the top
-        check()
-        if (w < 0 || h < 0) throw RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
-        if (w < 1 || h < 1) return
-        // val height = RenderState.currentBuffer?.h ?: height
-        // val realY = height - (y + h)
-        useFrame(x, y, w, h) {
-            render()
-        }
-    }
-
-    @JvmStatic
-    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
-
-    @JvmStatic
-    fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
-        val w = x1 - x0
-        val h = y1 - y0
-        if (w > 0 && h > 0) {
-            clip(x0, y0, w, h, render)
-        }
-    }
-
-    @JvmStatic
-    fun clip2Dual(
-        x0: Int, y0: Int, x1: Int, y1: Int,
-        x2: Int, y2: Int, x3: Int, y3: Int,
-        render: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
-    ) {
-        clip2Save(max(x0, x2), max(y0, y2), min(x1, x3), min(y1, y3)) {
-            render(x2, y2, x3, y3)
-        }
-    }
-
-    @JvmStatic
-    fun copy(buffer: IFramebuffer) {
-        copy(buffer.getTexture0MS())
-    }
-
-    @JvmStatic
-    fun copy(src: ITexture2D) {
-        Frame.bind()
-        src.bindTrulyNearest(0)
-        copy(src.samples)
-    }
-
-    @JvmStatic
-    fun copy(alpha: Float, samples: Int = 1) {
-        check()
-        val shader = if (samples > 1) copyShaderMS else copyShader
-        shader.use()
-        shader.v1i("samples", samples)
-        shader.v1f("alpha", alpha)
-        SimpleBuffer.flat01.draw(shader)
-        check()
-    }
-
-    @JvmStatic
-    fun copy(samples: Int = 1) {
-        check()
-        val shader = if (samples > 1) copyShaderMS else copyShader
-        shader.use()
-        shader.v1i("samples", samples)
-        shader.v1f("alpha", 1f)
-        SimpleBuffer.flat01.draw(shader)
-        check()
-    }
-
-    @JvmStatic
-    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D, depthMask: Int) {
-        Frame.bind()
-        color.bindTrulyNearest(0)
-        depth.bindTrulyNearest(1)
-        val monochrome = getNumChannels(color.internalFormat) == 1
-        copyColorAndDepth(
-            color.samples, monochrome,
-            depth.samples, depthMask,
-        )
-    }
-
-    @JvmStatic
-    fun copyColorAndDepth(colorSamples: Int, monochrome: Boolean, depthSamples: Int, depthMask: Int) {
-        check()
-        assertTrue(depthMask in 0..3)
-        val idx = (colorSamples > 1).toInt(8) or (depthSamples > 1).toInt(4) + depthMask
-        val shader = copyShaderAnyToAny[idx]
-        shader.use()
-        shader.v1b("monochrome", monochrome)
-        shader.v1i("colorSamples", colorSamples)
-        shader.v1i("depthSamples", depthSamples)
-        shader.v1i("targetSamples", GFXState.currentBuffer.samples)
-        bindDepthUniforms(shader)
-        SimpleBuffer.flat01.draw(shader)
-        check()
-    }
-
-    @JvmStatic
-    fun copyNoAlpha(buffer: ITexture2D) {
-        Frame.bind()
-        buffer.bindTrulyNearest(0)
-        copyNoAlpha(if (buffer is Texture2D) buffer.samples else 1)
-    }
-
-    @JvmStatic
-    fun copyNoAlpha(samples: Int = 1) {
-        check()
-        blendMode.use(BlendMode.DST_ALPHA) {
-            val depthModeI = if (supportsClipControl) DepthMode.ALWAYS
-            else DepthMode.FORWARD_ALWAYS
-            depthMode.use(depthModeI) {
-                val shader = if (samples > 1) copyShaderMS else copyShader
-                shader.use()
-                shader.v1i("samples", samples)
-                shader.v1f("alpha", 1f)
-                SimpleBuffer.flat01.draw(shader)
-            }
-        }
-        check()
-    }
-
-    @JvmStatic
     fun setupBasics(tick: Clock?) {
         glThread = Thread.currentThread()
         LOGGER.info("OpenGL Version: ${GL46C.glGetString(GL46C.GL_VERSION)}")
@@ -352,7 +149,7 @@ object GFX {
             LOGGER.info("OpenGL Version Id $glVersion")
         }
         GL46C.glPixelStorei(GL46C.GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
-        val capabilities = GFXBase.capabilities
+        val capabilities = WindowManagement.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {
@@ -374,7 +171,7 @@ object GFX {
         maxColorAttachments = if (debugLimitedGPUs) 1 else GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = if (debugLimitedGPUs) 1 else max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
         maxTextureSize = if (debugLimitedGPUs) 1024 else max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
-        GPUShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
+        GPUShader.useShaderFileCache = !WindowManagement.usesRenderDoc && glVersion >= 41
         if (glVersion >= 43) OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
@@ -399,125 +196,12 @@ object GFX {
     @JvmField
     var gpuTaskBudget = 1f / 90f
 
-    @JvmStatic
-    fun workGPUTasks(all: Boolean) {
-        val t0 = Time.nanoTime
-        // todo just in case, clear gfx state here:
-        //  we might be waiting on the gfx thread, and if so, state would be different than usual
-        synchronized(nextGPUTasks) {
-            gpuTasks.addAll(nextGPUTasks)
-            nextGPUTasks.clear()
-        }
-        if (workQueue(gpuTasks, gpuTaskBudget, all)) {
-            val remainingTime = Time.nanoTime - t0
-            workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)
-        }
-        /*val dt = (Time.nanoTime - t0) * 1e-9f
-        if (dt > 1.5f * gpuTaskBudget) {
-            LOGGER.warn("Spent too long in workGPUTasks(): ${dt}s")
-        }*/
-    }
-
-    @JvmStatic
-    fun workGPUTasksUntilShutdown() {
-        while (!Engine.shutdown) {
-            workGPUTasks(true)
-        }
-    }
-
-    @JvmStatic
-    fun setFrameNullSize(window: OSWindow) {
-        setFrameNullSize(window.width, window.height)
-    }
-
-    @JvmStatic
-    fun setFrameNullSize(width: Int, height: Int) {
-
-        // this should be the state for the default framebuffer
-        GFXState.xs[0] = 0
-        GFXState.ys[0] = 0
-        GFXState.ws[0] = width
-        GFXState.hs[0] = height
-        GFXState.changeSizes[0] = false
-
-        Frame.invalidate()
-        viewportX = 0
-        viewportY = 0
-        viewportWidth = width
-        viewportHeight = height
-    }
-
     var vrRenderingRoutine: VRRenderingRoutine? = null
     var shallRenderVR = false
 
-    @JvmStatic
-    fun renderStep(window: OSWindow, doRender: Boolean) {
-
-        GPUShader.invalidateBinding()
-        Texture2D.destroyTextures()
-        OpenGLBuffer.invalidateBinding()
-        GFXState.invalidateState()
-
-        Pools.freeUnusedEntries()
-        AudioStream.bufferPool.freeUnusedEntries()
-
-        setFrameNullSize(window)
-
-        me.anno.utils.pooling.Stack.resetAll()
-
-        resetFBStack()
-
-        workGPUTasks(false)
-
-        resetFBStack()
-
-        // rendering and editor section
-
-        Input.resetFrameSpecificKeyStates()
-
-        Events.workEventTasks()
-
-        setFrameNullSize(window)
-
-        Texture2D.resetBudget()
-
-        check()
-
-        whiteTexture.bind(0)
-
-        check()
-
-        resetFBStack()
-
-        val inst = EngineBase.instance
-        if (inst != null && doRender) {
-            if (shallRenderVR && window == windows.firstOrNull()) {
-                shallRenderVR = vrRenderingRoutine!!.drawFrame(window)
-            } else {
-                callOnGameLoop(inst, window)
-            }
-            resetFBStack()
-            check()
-        }
-    }
-
-    fun callOnGameLoop(inst: EngineBase, window: OSWindow) {
-        // in case of an error, we have to fix it,
-        // so give us the best chance to do so:
-        //  - on desktop, sleep a little, so we don't get too many errors
-        //  - on web, just crash, we cannot sleep there
-        if (OS.isWeb) {
-            inst.onGameLoop(window, window.width, window.height)
-        } else {
-            try {
-                inst.onGameLoop(window, window.width, window.height)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Thread.sleep(250)
-            }
-        }
-    }
-
+    /**
+     * Checks whether the current thread is a graphics-capable thread.
+     * */
     @JvmStatic
     fun isGFXThread(): Boolean {
         if (glThread == null) return false
@@ -525,6 +209,10 @@ object GFX {
         return currentThread == glThread
     }
 
+    /**
+     * Ensures that the current thread is a graphics-capable thread.
+     * Crashes, if the check fails.
+     * */
     @JvmStatic
     fun checkIsGFXThread() {
         val currentThread = Thread.currentThread()
@@ -532,10 +220,16 @@ object GFX {
             if (glThread == null) {
                 glThread = currentThread
                 currentThread.name = "OpenGL"
-            } else throw IllegalStateException("GFX.check() called from wrong thread! Always use GFX.addGPUTask { ... }")
+            } else throw IllegalStateException("GFX.check() called from wrong thread! Always use addGPUTask { ... }")
         }
     }
 
+    /**
+     * Ensures that the current thread is a graphics-capable thread,
+     * and that no OpenGL errors have occurred recently. Crashes on failure.
+     *
+     * Only runs in debug mode.
+     * */
     @JvmStatic
     fun check() {
         // assumes that the first access is indeed from the OpenGL thread
@@ -547,10 +241,5 @@ object GFX {
                 throw RuntimeException(title)
             }
         }
-    }
-
-    @JvmStatic
-    fun getName(i: Int): String {
-        return GLNames.getName(i)
     }
 }

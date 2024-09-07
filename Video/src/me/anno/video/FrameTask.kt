@@ -1,10 +1,12 @@
 package me.anno.video
 
 import me.anno.Time
-import me.anno.gpu.DepthMode
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
+import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.GPUTasks.addNextGPUTask
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -47,7 +49,7 @@ abstract class FrameTask(
     )
 
     fun start(callback: () -> Unit) {
-        GFX.addGPUTask("FrameTask", width, height) {
+        addGPUTask("FrameTask", width, height) {
             start1(callback)
         }
     }
@@ -63,7 +65,7 @@ abstract class FrameTask(
             callback()
         } else {
             // waiting
-            GFX.addNextGPUTask("FrameTask::start", 1) {
+            addNextGPUTask("FrameTask::start", 1) {
                 start1(callback)
             }
         }
@@ -150,7 +152,7 @@ abstract class FrameTask(
                         GFXState.blendMode.use(BlendMode.PURE_ADD) {
                             GFXState.depthMode.use(alwaysDepthMode) {
                                 // write with alpha 1/motionBlurSteps
-                                GFX.copy(1f / motionBlurSteps)
+                                Blitting.copy(1f / motionBlurSteps)
                             }
                         }
                     }
@@ -169,7 +171,7 @@ abstract class FrameTask(
     }
 
     fun destroy() {
-        GFX.addGPUTask("FrameTask.destroy()", width, height) {
+        addGPUTask("FrameTask.destroy()", width, height) {
             partialFrame.destroy()
             averageFrame.destroy()
         }

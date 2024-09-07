@@ -1,6 +1,6 @@
 package me.anno.video.formats.gpu
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
 import java.io.EOFException
@@ -34,7 +34,7 @@ open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChanne
         data.flip()
         blankDetector.putRGBA(data)
         Sleep.acquire(true, creationLimiter) {
-            GFX.addGPUTask("RGB", width, height) {
+            addGPUTask("RGB", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createRGB(data, false)
                 } else warnAlreadyDestroyed()

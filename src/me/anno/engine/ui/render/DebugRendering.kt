@@ -14,6 +14,7 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
+import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
@@ -496,7 +497,7 @@ object DebugRendering {
 
                 val f = 0.8f
                 // draw alpha on right/bottom side
-                if (index < layers.size) GFX.clip2(
+                if (index < layers.size) Clipping.clip2(
                     if (y12 - y02 > x12 - x02) x02 else Maths.mix(x02, x12, f),
                     if (y12 - y02 > x12 - x02) Maths.mix(y02, y12, f) else y02,
                     x12, y12

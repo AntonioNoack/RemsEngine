@@ -1,7 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.GFX
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
@@ -92,9 +92,9 @@ class SSRNode : TimedRenderingNode(
     private fun mixResult(width: Int, height: Int, illumMT: ITexture2D, result0: IFramebuffer): IFramebuffer {
         val result1 = FBStack["ssr-result", width, height, 3, true, illumMT.samples, DepthBufferType.NONE]
         useFrame(result1) {
-            GFX.copy(illumMT)
+            Blitting.copy(illumMT)
             GFXState.blendMode.use(BlendMode.DEFAULT) {
-                GFX.copy(result0)
+                Blitting.copy(result0)
             }
         }
         return result1

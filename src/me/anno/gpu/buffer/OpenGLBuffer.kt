@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.maths.Maths
@@ -135,7 +136,7 @@ abstract class OpenGLBuffer(
             if (dst !== nio) {
                 dst.put(nio)
             }
-            GFX.addGPUTask(name, newLimit) {
+            addGPUTask(name, newLimit) {
                 if (pointer >= 0) {
                     GFX.check()
                     bindBuffer(type, pointer)
@@ -337,7 +338,7 @@ abstract class OpenGLBuffer(
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer > -1) {
-            GFX.addGPUTask("OpenGLBuffer.destroy()", 1) {
+            addGPUTask("OpenGLBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 GL46C.glDeleteBuffers(buffer)
                 locallyAllocated = allocate(locallyAllocated, 0L)

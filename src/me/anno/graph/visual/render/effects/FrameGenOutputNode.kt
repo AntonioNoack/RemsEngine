@@ -2,7 +2,7 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.GFX
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
@@ -55,7 +55,7 @@ abstract class FrameGenOutputNode<PerViewData : ICacheData>(
         data0.resize(width, height, targetType)
         useFrame(data0) {
             val srcTex = (getInput(srcI) as? Texture).texOrNull ?: defaultTex
-            GFX.copyNoAlpha(srcTex)
+            Blitting.copyNoAlpha(srcTex)
         }
     }
 

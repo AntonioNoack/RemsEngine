@@ -1,7 +1,7 @@
 package me.anno.gpu
 
 import me.anno.cache.ICacheData
-import me.anno.gpu.GFXBase.imageToGLFW
+import me.anno.gpu.WindowManagement.imageToGLFW
 import me.anno.image.Image
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.glfw.GLFW.GLFW_ARROW_CURSOR

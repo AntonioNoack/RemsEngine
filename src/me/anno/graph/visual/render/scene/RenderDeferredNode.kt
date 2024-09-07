@@ -2,6 +2,7 @@ package me.anno.graph.visual.render.scene
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
@@ -320,7 +321,7 @@ open class RenderDeferredNode : RenderViewNode(
         val prepassDepth = prepassDepthT.texOrNull
         if (prepassDepth != null) {
             GFXState.useFrame(framebuffer, Renderer.copyRenderer) {
-                GFX.copyColorAndDepth(blackTexture, prepassDepth, prepassDepthT.mask1Index)
+                Blitting.copyColorAndDepth(blackTexture, prepassDepth, prepassDepthT.mask1Index)
             }
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS

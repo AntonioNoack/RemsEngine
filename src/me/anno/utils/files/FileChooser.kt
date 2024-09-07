@@ -3,7 +3,7 @@ package me.anno.utils.files
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.WindowManagement
 import me.anno.gpu.OSWindow
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -207,7 +207,7 @@ object FileChooser {
             // make this window a little smaller than default, so it's more obvious
             val w = OSWindow.defaultWidth * 6 / 7
             val h = OSWindow.defaultHeight * 5 / 7
-            val window = GFXBase.createWindow(nameDesc.name, ui, w, h)
+            val window = WindowManagement.createWindow(nameDesc.name, ui, w, h)
             window.showFPS = false
             window.windowStack.last()
         } else {

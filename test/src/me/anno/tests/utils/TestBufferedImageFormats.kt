@@ -2,8 +2,8 @@ package me.anno.tests.utils
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.workGPUTasksUntilShutdown
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.shader.renderer.Renderer
@@ -60,5 +60,5 @@ fun main() {
             drawSimpleTextCharByChar(x, 0, 1, "$format")
         }
     }
-    GFX.workGPUTasksUntilShutdown()
+    workGPUTasksUntilShutdown()
 }

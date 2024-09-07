@@ -1,7 +1,7 @@
 package me.anno.openxr
 
 import me.anno.Time
-import me.anno.gpu.GFX
+import me.anno.gpu.GLNames
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.openxr.OpenXR.Companion.VIEW_CONFIG_TYPE
 import me.anno.openxr.OpenXR.Companion.farZ
@@ -170,7 +170,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         val formatCount = intPtr[0]
         val formats = ByteBuffer.allocateDirect(8 * formatCount).order(ByteOrder.nativeOrder()).asLongBuffer()
         checkXR(xrEnumerateSwapchainFormats(session, intPtr, formats))
-        LOGGER.info("Available swapchain formats: ${(0 until formats.capacity()).map { GFX.getName(formats[it].toInt()) }}")
+        LOGGER.info("Available swapchain formats: ${(0 until formats.capacity()).map { GLNames.getName(formats[it].toInt()) }}")
         return formats
     }
 
@@ -335,7 +335,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
     val depthFormat = chooseDepthFormat(formats)
 
     init {
-        LOGGER.info("Chosen format: ${GFX.getName(colorFormat.toInt())}, ${GFX.getName(depthFormat.toInt())}")
+        LOGGER.info("Chosen format: ${GLNames.getName(colorFormat.toInt())}, ${GLNames.getName(depthFormat.toInt())}")
     }
 
     val swapchains = ArrayList<XrSwapchain>(viewCount)

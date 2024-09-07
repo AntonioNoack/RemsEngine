@@ -1,6 +1,6 @@
 package me.anno.video.formats.gpu
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
 import java.io.EOFException
@@ -29,7 +29,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
         }
         data.flip()
         Sleep.acquire(true, creationLimiter) {
-            GFX.addGPUTask("RGBA", width, height) {
+            addGPUTask("RGBA", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createRGBA(data, false)
                 } else warnAlreadyDestroyed()

@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GLNames
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -139,7 +140,7 @@ class ComputeShader(
             GL46C.GL_R16_SNORM, GL46C.GL_R8_SNORM -> format
             // depth formats are not supported! bind a color texture instead, and transfer the data from and to it...
             0 -> throw IllegalArgumentException("Texture hasn't been created yet")
-            else -> throw IllegalArgumentException("Format ${GFX.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
+            else -> throw IllegalArgumentException("Format ${GLNames.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
         }
     }
 

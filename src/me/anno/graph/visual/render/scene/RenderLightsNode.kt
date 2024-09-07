@@ -3,6 +3,7 @@ package me.anno.graph.visual.render.scene
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
@@ -175,7 +176,7 @@ class RenderLightsNode : RenderViewNode(
         timeRendering(name, timer) {
             useFrame(width, height, true, framebuffer, copyRenderer) {
                 val stage = pipeline.lightStage
-                GFX.copyColorAndDepth(blackTexture, depthT, depthM)
+                Blitting.copyColorAndDepth(blackTexture, depthT, depthM)
                 stage.bind {
                     stage.draw(
                         pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,

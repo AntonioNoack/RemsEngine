@@ -4,7 +4,7 @@ import me.anno.config.ConfigRef
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.Contour.Companion.calculateContours
 import me.anno.fonts.signeddistfields.TextSDF
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
@@ -35,7 +35,7 @@ object SignedDistanceField {
         val buffer = stats?.distances ?: return TextSDF.empty
 
         val tex = Texture2D("SDF", stats.w, stats.h, 1)
-        GFX.addGPUTask("SDF.createTexture()", stats.w, stats.h) {
+        addGPUTask("SDF.createTexture()", stats.w, stats.h) {
             tex.createMonochromeFP16(buffer, true)
             tex.ensureFilterAndClamping(Filtering.TRULY_LINEAR, Clamping.CLAMP)
             ByteBufferPool.free(buffer)

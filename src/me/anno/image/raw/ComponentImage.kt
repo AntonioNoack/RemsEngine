@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType.Companion.Float16x4
 import me.anno.gpu.framebuffer.TargetType.Companion.Float32x4
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8x4
@@ -57,7 +58,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
                 callback.ok(texture)
             } else {
                 if (checkRedundancy) texture.checkRedundancyX1(bytes)
-                GFX.addGPUTask("ComponentImage", width, height) {
+                addGPUTask("ComponentImage", width, height) {
                     if (!texture.isDestroyed) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
                         callback.ok(texture) // callback in both cases?...

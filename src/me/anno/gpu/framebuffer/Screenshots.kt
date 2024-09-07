@@ -3,6 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
@@ -158,7 +159,7 @@ object Screenshots {
         name += ".png"
         if (folder.getChild(name).exists) return // image already exists somehow...
 
-        GFX.addGPUTask("Screenshots.take", w, h) {
+        addGPUTask("Screenshots.take", w, h) {
 
             GFX.check()
 

@@ -3,6 +3,7 @@ package me.anno.image.raw
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
@@ -81,7 +82,7 @@ object TextureMapper {
                 callback.err(IllegalStateException("Mapping '$mapping' failed, because $src is destroyed"))
             }
         } else {
-            GFX.addGPUTask(mapping, dst.width, dst.height) {
+            addGPUTask(mapping, dst.width, dst.height) {
                 mapTexture(src, dst, mapping, type, callback)
             }
         }

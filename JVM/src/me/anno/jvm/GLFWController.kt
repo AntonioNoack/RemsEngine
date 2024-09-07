@@ -3,7 +3,7 @@ package me.anno.jvm
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.WindowManagement
 import me.anno.gpu.OSWindow
 import me.anno.input.ButtonUpdateState
 import me.anno.input.controller.CalibrationProcedure
@@ -175,7 +175,7 @@ class GLFWController(private val glfwId: Int) : Controller(MAX_NUM_BUTTONS, MAX_
 
         fun pollControllers(window: OSWindow) {
             // GLFW controllers need to be pulled constantly
-            synchronized(GFXBase.glfwLock) {
+            synchronized(WindowManagement.glfwLock) {
                 for (index in glfwControllers.indices) {
                     glfwControllers[index].pollEvents(window)
                 }

@@ -13,9 +13,10 @@ import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.GFXSettings
 import me.anno.engine.ui.render.Renderers
+import me.anno.gpu.Blitting
+import me.anno.gpu.Clipping
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -385,7 +386,7 @@ open class FileExplorerEntry(
                             AssetThumbnails.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
-                    GFX.copy(tmp)
+                    Blitting.copy(tmp)
                 } else {
                     // use current buffer directly
                     GFXState.useFrame(x0, y0, w, h, GFXState.currentBuffer, Renderers.simpleRenderer) {
@@ -490,7 +491,7 @@ open class FileExplorerEntry(
 
         // more clip space, and draw it a little more left and at the top
         val extra = padding / 2
-        clip2Dual(
+        Clipping.clip2Dual(
             x0 - extra, y0 - extra, x1, y1,
             this.lx0, this.ly0, this.lx1, this.ly1
         ) { _, _, _, _ ->
@@ -666,7 +667,7 @@ open class FileExplorerEntry(
 
                 lines = 1
 
-                clip2Dual(
+                Clipping.clip2Dual(
                     x0, y0, x1, y1,
                     x + padding,
                     y + padding,
@@ -709,7 +710,7 @@ open class FileExplorerEntry(
             val textH = (lines * fontSize).toInt()
             val imageH = remainingH - textH
 
-            clip2Dual(
+            Clipping.clip2Dual(
                 x0, y0, x1, y1,
                 x + padding,
                 y + padding,
@@ -718,7 +719,7 @@ open class FileExplorerEntry(
                 ::drawThumb
             )
 
-            if (showTitle) clip2Dual(
+            if (showTitle) Clipping.clip2Dual(
                 x0, y0, x1, y1,
                 x + padding,
                 y + h - padding - textH,

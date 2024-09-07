@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.RendererLib.fresnelSchlick
 import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers.pbrRenderer
+import me.anno.gpu.Blitting
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -169,7 +170,7 @@ class GlassPass : TransparentPass() {
         // because we have refraction, we no longer copy 1:1, so we need a backup
         val copy = FBStack["glass-copy", old.width, old.height, 3, true, old.samples, DepthBufferType.NONE]
         useFrame(copy) {
-            GFX.copy(old)
+            Blitting.copy(old)
         }
 
         renderPurely2 {

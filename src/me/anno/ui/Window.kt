@@ -3,6 +3,7 @@ package me.anno.ui
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
+import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderDefault
@@ -308,7 +309,7 @@ open class Window(
             return
 
         val fb = GFXState.currentBuffer
-        GFX.clip2(
+        Clipping.clip2(
             max(x1, 0), max(y1, 0),
             min(x1 + w1, fb.width), min(y1 + h1, fb.height)
         ) {
@@ -443,7 +444,7 @@ open class Window(
             GFX.resetFBStack()
             Frame.reset()
 
-            GFX.useWindowXY(max(panel0.x, 0), max(panel0.y, 0), buffer) {
+            useWindowXY(max(panel0.x, 0), max(panel0.y, 0), buffer) {
                 renderDefault {
                     sparseRedraw2(panel0, wasRedrawn)
                 }
@@ -455,6 +456,19 @@ open class Window(
         }// else no buffer needs to be updated
 
         return didSomething
+    }
+
+    private fun useWindowXY(x: Int, y: Int, buffer: Framebuffer, process: () -> Unit) {
+        val ox = buffer.offsetX
+        val oy = buffer.offsetY
+        buffer.offsetX = x
+        buffer.offsetY = y
+        try {
+            process()
+        } finally {
+            buffer.offsetX = ox
+            buffer.offsetY = oy
+        }
     }
 
     private fun sparseRedraw2(panel0: Panel, wasRedrawn: MutableCollection<RedrawRequest>) {

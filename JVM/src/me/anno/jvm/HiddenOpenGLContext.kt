@@ -1,7 +1,7 @@
 package me.anno.jvm
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.WindowManagement
 import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertTrue
@@ -49,7 +49,7 @@ object HiddenOpenGLContext {
 
         tick.stop("GLFW initialization")
 
-        GFXBase.setWindowFlags()
+        WindowManagement.setWindowFlags()
         // GFXBase.setDebugFlag()
 
         // should allow OpenGL to run without a window in the background
@@ -67,7 +67,7 @@ object HiddenOpenGLContext {
 
         window.makeCurrent()
         window.forceUpdateVsync()
-        GFXBase.prepareForRendering(null)
+        WindowManagement.prepareForRendering(null)
 
         GFX.check()
 

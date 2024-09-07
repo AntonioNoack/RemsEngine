@@ -262,7 +262,7 @@ class CubemapFramebuffer(
             updateAttachments(side)
             GFX.check()
             val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-            if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("${GFX.getName(status)}, $this")
+            if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("${GLNames.getName(status)}, $this")
             GFX.check()
             render(side)
         }

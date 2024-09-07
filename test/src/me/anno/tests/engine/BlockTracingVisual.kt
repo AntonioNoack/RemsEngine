@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.raycast.BlockTracing
 import me.anno.engine.raycast.RayQuery
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.TargetType
@@ -171,7 +171,7 @@ fun createCPUPanel(
                 val dt = Time.nanoTime - t0
                 cpuSpeed = dt / max(1L, w * h.toLong())
                 cpuFPS = SECONDS_TO_NANOS / max(1L, dt)
-                GFX.addGPUTask("btv-cpu", 1) {
+                addGPUTask("btv-cpu", 1) {
                     cpuTexture.width = w
                     cpuTexture.height = h
                     cpuTexture.createRGBA(ints, false)

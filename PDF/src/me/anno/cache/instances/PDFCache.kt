@@ -2,7 +2,7 @@ package me.anno.cache.instances
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
@@ -119,7 +119,7 @@ object PDFCache : CacheSection("PDFCache") {
         ) { callback ->
             thread(name = "PDFCache::getTexture") {
                 val image = getImage(doc, qualityFloat, pageNumber)
-                GFX.addGPUTask("PDFCache.getTexture()", image.width, image.height) {
+                addGPUTask("PDFCache.getTexture()", image.width, image.height) {
                     callback.ok(Texture2D(src.name, image, true))
                 }
             }

@@ -42,7 +42,7 @@ class CacheEntry private constructor(
     fun waitForValueOrThrow(key: Any?, limitNanos: Long = 60 * SECONDS_TO_NANOS) {
         Sleep.waitUntilOrThrow(true, limitNanos, key) {
             update(500) // ensure that it stays loaded; 500 is a little high,
-            // but we need the image to stay loaded for GFX.addGPUTask() afterward in some places
+            // but we need the image to stay loaded for addGPUTask() afterward in some places
             (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
                     || hasBeenDestroyed
         }

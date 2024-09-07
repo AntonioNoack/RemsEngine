@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -178,6 +179,6 @@ object Sleep {
 
     private fun work(canBeKilled: Boolean) {
         Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
-        GFX.workGPUTasks(canBeKilled)
+        GPUTasks.workGPUTasks(canBeKilled)
     }
 }

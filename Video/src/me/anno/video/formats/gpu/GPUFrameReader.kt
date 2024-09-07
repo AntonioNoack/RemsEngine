@@ -1,9 +1,8 @@
 package me.anno.video.formats.gpu
 
 import me.anno.cache.IgnoredException
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.io.files.FileReference
-import me.anno.utils.ShutdownException
 import me.anno.video.ffmpeg.FrameReader
 import java.io.EOFException
 import java.io.IOException
@@ -39,7 +38,7 @@ class GPUFrameReader(
                 val f0 = frames[0]
                 // delete them over time? it seems like it's really expensive on my Envy x360 xD
                 for (frame in frames) {
-                    GFX.addGPUTask("GPUFrameReader.destroy()", f0.width, f0.height) { frame.destroy() }
+                    addGPUTask("GPUFrameReader.destroy()", f0.width, f0.height) { frame.destroy() }
                 }
             }
             frames.clear()

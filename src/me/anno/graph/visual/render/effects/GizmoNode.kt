@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
@@ -100,7 +101,7 @@ class GizmoNode : RenderViewNode(
         fun copyColorAndDepth(colorT: ITexture2D?, depthT: ITexture2D?, depthM: Int, framebuffer: IFramebuffer) {
             useFrame(framebuffer) {
                 renderPurely {
-                    GFX.copyColorAndDepth(colorT ?: blackTexture, depthT ?: depthTexture, depthM)
+                    Blitting.copyColorAndDepth(colorT ?: blackTexture, depthT ?: depthTexture, depthM)
                 }
             }
         }

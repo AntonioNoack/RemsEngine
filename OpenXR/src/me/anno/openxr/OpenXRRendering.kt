@@ -3,10 +3,10 @@ package me.anno.openxr
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
+import me.anno.gpu.RenderStep.callOnGameLoop
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -38,7 +38,7 @@ class OpenXRRendering(
     }
 
     override fun copyToDesktopWindow(w: Int, h: Int) {
-        GFX.callOnGameLoop(EngineBase.instance!!, window0)
+        callOnGameLoop(EngineBase.instance!!, window0)
     }
 
     override fun beginRenderViews() {

@@ -12,10 +12,12 @@ import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.Logo.drawLogo
 import me.anno.gpu.RenderDoc.loadRenderDoc
+import me.anno.gpu.RenderStep.renderStep
 import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
 import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
+import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.input.Input
@@ -67,10 +69,10 @@ import kotlin.math.max
  * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
  * (e.g., add 1 to the pointer)
  */
-object GFXBase {
+object WindowManagement {
 
     @JvmStatic
-    private val LOGGER = getLogger(GFXBase::class)
+    private val LOGGER = getLogger(WindowManagement::class)
 
     @JvmStatic
     private val windows get() = GFX.windows
@@ -293,7 +295,7 @@ object GFXBase {
         window0.forceUpdateVsync()
         tick.stop("Make context current + vsync")
         prepareForRendering(tick)
-        GFX.setFrameNullSize(window0)
+        setFrameNullSize(window0)
         val logoFrames = numLogoFrames
         for (i in 0 until logoFrames) {
             drawLogo(window0.width, window0.height, i == logoFrames - 1)
@@ -422,7 +424,7 @@ object GFXBase {
                 if (window.makeCurrent()) {
                     synchronized(openglLock) {
                         GFX.activeWindow = window
-                        GFX.renderStep(window, true)
+                        renderStep(window, true)
                     }
                     synchronized(glfwLock) {
                         if (!destroyed) {
@@ -447,7 +449,7 @@ object GFXBase {
             if (window != null && window.makeCurrent()) {
                 synchronized(openglLock) {
                     GFX.activeWindow = window
-                    GFX.renderStep(window, false)
+                    renderStep(window, false)
                 }
             }
         }

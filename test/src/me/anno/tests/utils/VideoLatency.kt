@@ -5,8 +5,8 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.workGPUTasksUntilShutdown
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
@@ -81,5 +81,5 @@ fun main() {
     }
     vc.init()
     vbt.start() // works fine...
-    GFX.workGPUTasksUntilShutdown()
+    workGPUTasksUntilShutdown()
 }

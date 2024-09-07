@@ -2,8 +2,8 @@ package me.anno.image.thumbs
 
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.TargetType
@@ -75,7 +75,7 @@ object TextThumbnails {
                 val sy = DrawTexts.monospaceFont.sizeInt
                 val w = (length + 1) * sx
                 val h = (lines.size + 1) * sy
-                GFX.addGPUTask("textThumbs", w, h) {
+                addGPUTask("textThumbs", w, h) {
                     generateImage(lines, w, h, sx, sy, callback)
                 }
             }

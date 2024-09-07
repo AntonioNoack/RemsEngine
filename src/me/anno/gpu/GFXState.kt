@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
+import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.BakedLayout
 import me.anno.gpu.buffer.OpenGLBuffer
@@ -167,9 +168,9 @@ object GFXState {
      * */
     fun newSession() {
         session++
-        if (session != 1 && GFX.gpuTasks.isNotEmpty()) {
-            LOGGER.warn("Discarding ${GFX.gpuTasks.size} GPUTasks")
-            GFX.gpuTasks.clear() // they all have become invalid
+        if (session != 1 && gpuTasks.isNotEmpty()) {
+            LOGGER.warn("Discarding ${gpuTasks.size} GPUTasks")
+            gpuTasks.clear() // they all have become invalid
         }
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
@@ -402,7 +403,7 @@ object GFXState {
 
     fun usePushDebugGroups(): Boolean {
         GFX.checkIsGFXThread()
-        return Build.isDebug && GFXBase.hasOpenGLDebugContext
+        return Build.isDebug && WindowManagement.hasOpenGLDebugContext
     }
 
     fun pushDrawCallName(name: String) {

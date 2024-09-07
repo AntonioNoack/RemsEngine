@@ -14,7 +14,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFX
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -103,7 +103,7 @@ object WaterShader : ECSMeshShader("Water") {
             val tmp = FBStack["waterDepth", depthTex.width, depthTex.height, 1, true, 1, DepthBufferType.NONE]
             useFrame(tmp) {
                 renderPurely {
-                    GFX.copyNoAlpha(depthTex)
+                    Blitting.copyNoAlpha(depthTex)
                 }
             }
             depthTex = tmp.getTexture0()

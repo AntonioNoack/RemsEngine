@@ -12,6 +12,7 @@ import me.anno.engine.raycast.RayHit
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.ComputeBuffer
@@ -356,7 +357,7 @@ fun createCPUPanel(
                 frameIndex++
                 cpuSpeed = dt / max(1L, w * h * frameIndex.toLong())
                 cpuFPS = SECONDS_TO_NANOS * frameIndex / dt
-                GFX.addGPUTask("brt-cpu", 1) {
+                addGPUTask("brt-cpu", 1) {
                     cpuTexture.width = w
                     cpuTexture.height = h
                     cpuTexture.createRGBA(ints, false)

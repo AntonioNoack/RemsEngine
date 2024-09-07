@@ -1,7 +1,7 @@
 package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
+import me.anno.gpu.Clipping
 import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -47,7 +47,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         val y12 = min(child.y + child.height, y1)
         return if (x12 > x02 && y12 > y02) {
             if (child.canDrawOverBorders) {
-                GFX.clip2(x02, y02, x12, y12) {
+                Clipping.clip2(x02, y02, x12, y12) {
                     child.draw(x02, y02, x12, y12)
                 }
             } else {

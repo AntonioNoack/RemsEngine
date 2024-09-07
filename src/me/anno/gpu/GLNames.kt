@@ -40,7 +40,7 @@ object GLNames {
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
             GL46C.GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
             ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
-            else -> GFX.getName(error)
+            else -> getName(error)
         }
     }
 

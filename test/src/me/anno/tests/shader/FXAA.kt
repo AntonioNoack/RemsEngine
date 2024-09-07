@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.Time
 import me.anno.ecs.components.mesh.shapes.CubemapModel
-import me.anno.gpu.GFX
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -62,7 +62,7 @@ private fun testShader() {
             depth.bindTexture0(1, Filtering.NEAREST, Clamping.CLAMP)
             SimpleBuffer.flat01.draw(shader)
         }
-        GFX.copy(result)
+        Blitting.copy(result)
     }
 }
 

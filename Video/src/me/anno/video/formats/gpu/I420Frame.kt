@@ -1,6 +1,6 @@
 package me.anno.video.formats.gpu
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
@@ -33,7 +33,7 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         blankDetector.putChannel(vData, 2)
         val interlaced = interlaceReplace(uData, vData)
         Sleep.acquire(true, creationLimiter) {
-            GFX.addGPUTask("I420-UV", width, height) {
+            addGPUTask("I420-UV", width, height) {
                 if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
                     y.createMonochrome(yData, false)
                     uv.createRG(interlaced, false)

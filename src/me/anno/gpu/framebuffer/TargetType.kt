@@ -1,8 +1,8 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.gpu.GFX.getName
 import me.anno.gpu.GFX.supportsF16Targets
 import me.anno.gpu.GFX.supportsF32Targets
+import me.anno.gpu.GLNames.getName
 import me.anno.utils.OS
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT16

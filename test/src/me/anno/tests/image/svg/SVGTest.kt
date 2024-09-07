@@ -6,7 +6,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.GFX
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.image.svg.DrawSVGs
@@ -80,7 +80,7 @@ fun main() {
                     }
                 }
 
-                GFX.copy(msaaBuffer)
+                Blitting.copy(msaaBuffer)
             }
         }
     }

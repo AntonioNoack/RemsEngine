@@ -1,7 +1,7 @@
 package me.anno
 
 import me.anno.cache.CacheSection
-import me.anno.gpu.GFXBase
+import me.anno.gpu.WindowManagement
 
 object Engine {
 
@@ -39,6 +39,6 @@ object Engine {
         // how are CacheSections handling ShutdownErrors? Can a once failed resource still be created, or will it be failed?
         //  - it looks like they just keep <null> as their value... -> clear them all 😄
         CacheSection.clearAll()
-        GFXBase.destroyed = false
+        WindowManagement.destroyed = false
     }
 }

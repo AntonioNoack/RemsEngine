@@ -2,7 +2,7 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.GFX
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.TargetType
@@ -57,7 +57,7 @@ abstract class FrameGenProjective0Node(name: String) : FrameGenOutputNode<FrameG
     private fun fill(width: Int, height: Int, data0: Texture2D, motion: Texture2D) {
         data0.resize(width, height, TargetType.UInt8x3)
         useFrame(data0) {
-            GFX.copyNoAlpha((getInput(3) as? Texture).texOrNull ?: whiteTexture)
+            Blitting.copyNoAlpha((getInput(3) as? Texture).texOrNull ?: whiteTexture)
         }
         motion.resize(width, height, TargetType.Float32x3)
         useFrame(motion) {

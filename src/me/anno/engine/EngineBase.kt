@@ -13,9 +13,10 @@ import me.anno.engine.ui.EditorState
 import me.anno.extensions.ExtensionLoader
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.extensions.events.GameLoopStartEvent
+import me.anno.gpu.Clipping
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.WindowManagement
 import me.anno.gpu.GFXState
 import me.anno.gpu.OSWindow
 import me.anno.gpu.framebuffer.FBStack
@@ -167,7 +168,7 @@ abstract class EngineBase(
         tick("extensions")
 
         if (runGraphics) {
-            GFXBase.run(nameDesc.name)
+            WindowManagement.run(nameDesc.name)
         }
     }
 
@@ -317,7 +318,7 @@ abstract class EngineBase(
             var y = lastMouseY.roundToIntOr() - rh / 2
             x = Maths.clamp(x, 0, w - rw)
             y = Maths.clamp(y, 0, h - rh)
-            GFX.clip(x, y, min(rw, w), min(rh, h)) {
+            Clipping.clip(x, y, min(rw, w), min(rh, h)) {
                 dragged.draw(x, y)
                 didSomething = true
             }

@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.gpu.GFX
+import me.anno.gpu.Clipping
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -145,7 +145,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         if (Input.isKeyDown('q')) camPosition.y -= dt5
         if (Input.isKeyDown('e')) camPosition.y += dt5
         camRotation.transform(camPosition)
-        GFX.clip(it.x, it.y, it.width, it.height) {
+        Clipping.clip(it.x, it.y, it.width, it.height) {
             it.clear()
             val shader = shaderBase.value
             shader.use()

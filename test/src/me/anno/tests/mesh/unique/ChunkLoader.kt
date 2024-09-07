@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.GFX.addGPUTask
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.maths.patterns.SpiralPattern.spiral2d
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.utils.TestWorld

@@ -6,6 +6,7 @@ import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.Screenshots
@@ -21,7 +22,6 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.SizeLimitingContainer
@@ -266,7 +266,7 @@ open class ColorInput(
             // - add controls on the bottom, or somewhere..., with a preview of the color
             // - select on click, or when dragging + enter then
             val windowX = GFX.someWindow
-            GFX.addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
+            addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
                 val screenshot = Screenshots.takeSystemScreenshot()
                 val colorPicker = if (screenshot == null) {
                     // correct way up

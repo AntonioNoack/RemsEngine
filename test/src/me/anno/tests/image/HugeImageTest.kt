@@ -2,7 +2,7 @@ package me.anno.tests.image
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.workGPUTasksUntilShutdown
 import me.anno.gpu.texture.TextureCache
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.OS.downloads
@@ -17,5 +17,5 @@ fun main() {
         println(TextureCache[source, false]!!)
         Engine.requestShutdown()
     }
-    GFX.workGPUTasksUntilShutdown()
+    workGPUTasksUntilShutdown()
 }

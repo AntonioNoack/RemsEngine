@@ -1,6 +1,6 @@
 package me.anno.video.formats.gpu
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
@@ -49,7 +49,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         val interlaced = interlaceReplace(uData, vData)
 
         Sleep.acquire(true, creationLimiter) {
-            GFX.addGPUTask("I444-Y", width, height) {
+            addGPUTask("I444-Y", width, height) {
                 if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
                     y.createMonochrome(yData, false)
                     uv.createRG(interlaced, false)

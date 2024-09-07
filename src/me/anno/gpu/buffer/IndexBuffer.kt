@@ -3,6 +3,7 @@ package me.anno.gpu.buffer
 import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
 import me.anno.utils.assertions.assertEquals
@@ -176,7 +177,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer > 0) {
-            GFX.addGPUTask("IndexBuffer.destroy()", 1) {
+            addGPUTask("IndexBuffer.destroy()", 1) {
                 indices = i0
                 elementCount = 0
                 onDestroyBuffer(buffer)

@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
-import me.anno.gpu.GFX.addGPUTask
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures.drawTexture

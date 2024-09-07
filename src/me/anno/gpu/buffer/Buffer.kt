@@ -5,6 +5,7 @@ import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -148,7 +149,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
         if (buffer > -1) {
-            GFX.addGPUTask("Buffer.destroy()", 1) {
+            addGPUTask("Buffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 GL46C.glDeleteBuffers(buffer)
                 locallyAllocated = allocate(locallyAllocated, 0L)

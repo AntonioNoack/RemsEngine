@@ -3,11 +3,12 @@ package me.anno.tests.utils
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers.previewRenderer
+import me.anno.gpu.Blitting
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.workGPUTasksUntilShutdown
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -91,10 +92,10 @@ fun main() {
                     }
                 }
             }
-            GFX.copyNoAlpha(tmp.getTexture0())
+            Blitting.copyNoAlpha(tmp.getTexture0())
         }
     }
     vc.init()
     vbt.start() // works fine...
-    GFX.workGPUTasksUntilShutdown()
+    workGPUTasksUntilShutdown()
 }

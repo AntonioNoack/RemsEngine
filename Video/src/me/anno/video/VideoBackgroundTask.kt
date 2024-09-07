@@ -1,10 +1,12 @@
 package me.anno.video
 
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -67,7 +69,7 @@ abstract class VideoBackgroundTask(
          * */
         val ri = renderingIndex.get()
         if (ri < totalFrameCount && ri < savingIndex.get() + 2) {
-            GFX.addGPUTask("VideoBackgroundTask", creator.width, creator.height, ::tryRenderingFrame)
+            addGPUTask("VideoBackgroundTask", creator.width, creator.height, ::tryRenderingFrame)
         } else {
             // waiting for saving to ffmpeg
             thread(name = "VBT/2") { addNextTask() }
@@ -149,7 +151,7 @@ abstract class VideoBackgroundTask(
                         blendMode.use(BlendMode.PURE_ADD) {
                             depthMode.use(alwaysDepthMode) {
                                 // write with alpha 1/motionBlurSteps
-                                GFX.copy(1f / motionBlurSteps)
+                                Blitting.copy(1f / motionBlurSteps)
                             }
                         }
                     }
@@ -170,7 +172,7 @@ abstract class VideoBackgroundTask(
 
     private fun destroy() {
         creator.close()
-        GFX.addGPUTask("VideoBackgroundTask.destroy()", creator.width, creator.height) {
+        addGPUTask("VideoBackgroundTask.destroy()", creator.width, creator.height) {
             partialFrame.destroy()
             averageFrame.destroy()
         }

@@ -26,9 +26,9 @@ import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType

@@ -10,6 +10,7 @@ import me.anno.fonts.TextGenerator
 import me.anno.fonts.TextGroup
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts.simpleChars
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
@@ -170,14 +171,17 @@ class AWTFont(
             backgroundColor, extraPadding, text, group
         )
         if (hasPriority) {
-            texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
-            callback.ok(texture)
+            createTexture(texture, image, callback)
         } else {
-            GFX.addGPUTask("awt-font-v5", width, height) {
-                texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
-                callback.ok(texture)
+            addGPUTask("awt-font-v5", width, height) {
+                createTexture(texture, image, callback)
             }
         }
+    }
+
+    private fun createTexture(texture: Texture2D, image: BufferedImage, callback: Callback<ITexture2D>) {
+        texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
+        callback.ok(texture)
     }
 
     override fun generateASCIITexture(
@@ -201,7 +205,7 @@ class AWTFont(
             createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
             callback.ok(texture)
         } else {
-            GFX.addGPUTask("awtAtlas", width, height) {
+            addGPUTask("awtAtlas", width, height) {
                 createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
                 callback.ok(texture)
             }
@@ -477,7 +481,7 @@ class AWTFont(
             createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
             callback.ok(texture)
         } else {
-            GFX.addGPUTask("awt-font-v6", width, height) {
+            addGPUTask("awt-font-v6", width, height) {
                 createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
                 callback.ok(texture)
             }

@@ -5,10 +5,10 @@ import me.anno.cache.IgnoredException
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.extensions.FileReaderRegistry
 import me.anno.extensions.FileReaderRegistryImpl
-import me.anno.gpu.GFX
-import me.anno.gpu.GFX.addGPUTask
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -161,7 +161,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
                 val newTex = Texture2D(srcFile.name, w, h, 1)
                 newTex.create(TargetType.UInt8x4)
                 useFrame(newTex) {
-                    GFX.copy(tex)
+                    Blitting.copy(tex)
                 }
                 callback.ok(newTex)
             }

@@ -3,7 +3,7 @@ package me.anno.utils.async
 import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
-import me.anno.gpu.GFX.gpuTasks
+import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.utils.structures.Task
 import me.anno.utils.types.Floats.f3

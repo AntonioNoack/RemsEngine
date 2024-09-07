@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.scene
 
 import me.anno.engine.ui.render.Renderers.pbrRendererNoDepth
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
@@ -94,10 +95,10 @@ class RenderGlassNode : RenderViewNode(
         prepassDepth: ITexture2D?, prepassDepthMask: Int
     ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthMask)
+            Blitting.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthMask)
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
-            GFX.copy(prepassColor)
+            Blitting.copy(prepassColor)
         } else {
             framebuffer.clearColor(0, depth = true)
         }

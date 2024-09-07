@@ -18,6 +18,8 @@ import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
@@ -266,7 +268,7 @@ class HSChunkLoader(
         requests.sortByDescending { it.center.angleCos(dir) }
         for (i in 0 until min(
             5000 - chunks.size,
-            min(requests.size, 16 - max(worker.remaining, GFX.gpuTasks.size))
+            min(requests.size, 16 - max(worker.remaining, gpuTasks.size))
         )) {
             val key = requests[i]
             worker += {
@@ -274,7 +276,7 @@ class HSChunkLoader(
                 val mesh = createMesh(sphere.queryChunk(key), world, transparent)
                 val buffer = getData(key, mesh)
                 if (buffer != null) {
-                    GFX.addGPUTask("chunk", sphere.chunkCount) {
+                    addGPUTask("chunk", sphere.chunkCount) {
                         buffer.ensureBufferAsync {
                             GFX.check()
                             add(key, MeshEntry(mesh, mesh.getBounds(), buffer))

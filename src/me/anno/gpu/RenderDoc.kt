@@ -43,7 +43,7 @@ object RenderDoc {
             if (getReference(path).exists) {
                 LOGGER.info("Loading RenderDoc")
                 System.load(path)
-                GFXBase.usesRenderDoc = true
+                WindowManagement.usesRenderDoc = true
             } else LOGGER.warn("Did not find RenderDoc, searched '$path'")
         } catch (e: Exception) {
             LOGGER.warn("Could not initialize RenderDoc")

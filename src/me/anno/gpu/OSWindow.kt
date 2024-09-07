@@ -3,7 +3,7 @@ package me.anno.gpu
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.Events.addEvent
-import me.anno.gpu.GFXBase.glfwTasks
+import me.anno.gpu.WindowManagement.glfwTasks
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
 import me.anno.input.Output
@@ -105,14 +105,14 @@ open class OSWindow(var title: String) {
 
     open fun forceUpdateVsync() {
         val enableVsync = vsyncOverride ?: enableVsync
-        val targetInterval = if (isInFocus || !GFXBase.mayIdle) if (enableVsync) 1 else 0 else 2
+        val targetInterval = if (isInFocus || !WindowManagement.mayIdle) if (enableVsync) 1 else 0 else 2
         GLFW.glfwSwapInterval(targetInterval)
         lastVsyncInterval = targetInterval
     }
 
     open fun updateVsync() {
         val enableVsync = vsyncOverride ?: enableVsync
-        val targetInterval = if (isInFocus || !GFXBase.mayIdle) if (enableVsync) 1 else 0 else 2
+        val targetInterval = if (isInFocus || !WindowManagement.mayIdle) if (enableVsync) 1 else 0 else 2
         if (lastVsyncInterval != targetInterval) {
             GLFW.glfwSwapInterval(targetInterval)
             lastVsyncInterval = targetInterval

@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Redundancy.checkRedundancyX1
 import me.anno.gpu.texture.Redundancy.checkRedundancyX2
@@ -89,7 +90,7 @@ open class ByteImage(
             val buffer = bufferPool[data2.size, false, false]
             buffer.put(data2)
             buffer.flip()
-            GFX.addGPUTask("ByteImage $width x $height", width, height) {
+            addGPUTask("ByteImage $width x $height", width, height) {
                 createTexture(texture, false, buffer, callback)
                 bufferPool.returnBuffer(buffer)
             }

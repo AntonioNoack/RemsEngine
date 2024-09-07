@@ -3,7 +3,7 @@ package me.anno.tests.ui.files
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.GFXBase
+import me.anno.gpu.WindowManagement
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.shader.GPUShader.Companion.UniformCacheSize
 import me.anno.engine.EngineBase
@@ -33,7 +33,7 @@ fun runFileExplorerTest() {
     try {
         // we have our own cache
         UniformCacheSize = 0
-        GFXBase.useSeparateGLFWThread = false
+        WindowManagement.useSeparateGLFWThread = false
         testUI3("Engine in OpenGL") {
             EngineBase.enableVSync = false
             EngineBase.showFPS = true

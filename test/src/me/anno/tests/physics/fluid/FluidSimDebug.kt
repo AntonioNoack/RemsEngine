@@ -1,6 +1,6 @@
 package me.anno.tests.physics.fluid
 
-import me.anno.gpu.GFX
+import me.anno.gpu.Clipping
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel
@@ -48,7 +48,7 @@ fun main() {
             val x1 = it.x + (j + 1) * it.width / 3
             val y0 = it.y + k * it.height / 2
             val y1 = it.y + (k + 1) * it.height / 2
-            GFX.clip(x0, y0, x1 - x0, y1 - y0) {
+            Clipping.clip(x0, y0, x1 - x0, y1 - y0) {
                 if (i < 4) {
                     FluidDebug.displayTextureR(x0, y0, x1 - x0, y1 - y0, tex.getTexture0())
                 } else {

@@ -6,6 +6,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.NullFramebuffer
+import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -70,12 +71,12 @@ object Logo {
         var success = false
         GFXState.blendMode.use(null) {
             if (frame != null) {
-                GFX.setFrameNullSize(width, height)
+                setFrameNullSize(width, height)
                 useFrame(width, height, true, frame) {
                     success = drawLogo(shader)
                 }
                 useFrame(NullFramebuffer) {
-                    GFX.copy(frame)
+                    Blitting.copy(frame)
                 }
             } else drawLogo(shader)
         }

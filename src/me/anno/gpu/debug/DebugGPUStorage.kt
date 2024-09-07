@@ -3,6 +3,7 @@ package me.anno.gpu.debug
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
+import me.anno.gpu.GLNames
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -106,7 +107,7 @@ object DebugGPUStorage {
         }
 
         override fun getTooltipText(x: Float, y: Float) =
-            "${tex.width} x ${tex.height} x ${tex.samples}, ${GFX.getName(tex.internalFormat)}"
+            "${tex.width} x ${tex.height} x ${tex.samples}, ${GLNames.getName(tex.internalFormat)}"
     }
 
     // todo test this
@@ -221,7 +222,7 @@ object DebugGPUStorage {
                 openMenuOfPanels("Buffers", PanelListY(style)) { list ->
                     for (buffer in buffers.sortedBy { it.locallyAllocated }) {
                         list.add(TextPanel(
-                            "\"${buffer.name}\", ${GFX.getName(buffer.type)}, " +
+                            "\"${buffer.name}\", ${GLNames.getName(buffer.type)}, " +
                                     "${buffer.elementCount} x ${buffer.attributes}, " +
                                     "total: ${
                                         (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)

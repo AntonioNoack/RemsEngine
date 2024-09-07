@@ -2,7 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
@@ -109,7 +109,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
                 if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
                 else null
             }, { frame ->
-                GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
+                addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
                     value = frame.toTexture()
                 }
             })

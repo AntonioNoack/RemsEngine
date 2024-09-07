@@ -2,8 +2,11 @@ package me.anno.video
 
 import me.anno.Engine
 import me.anno.Time
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.GPUTasks.workGPUTasksUntilShutdown
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -296,7 +299,7 @@ open class VideoCreator(
             fun writeFrame() {
                 creator.writeFrame(fb, frameIndex) {
                     if (++frameIndex <= numUpdates) {
-                        GFX.addGPUTask("VideoCreator", 1) {
+                        addGPUTask("VideoCreator", 1) {
                             update(frameIndex, ::writeFrame)
                         }
                     } else {
@@ -306,8 +309,8 @@ open class VideoCreator(
                     }
                 }
             }
-            GFX.addGPUTask("VideoCreator", 1) { writeFrame() }
-            GFX.workGPUTasksUntilShutdown()
+            addGPUTask("VideoCreator", 1) { writeFrame() }
+            workGPUTasksUntilShutdown()
         }
 
         /**
@@ -331,14 +334,14 @@ open class VideoCreator(
                 getNextFrame { texture0, _ ->
                     val texture = texture0 ?: blackTexture
                     useFrame(fb) {
-                        GFX.copyNoAlpha(texture)
+                        Blitting.copyNoAlpha(texture)
                     }
                     creator.writeFrame(fb, frameCount) {
                         if (++frameCount <= numFrames) {
                             if (GFX.isGFXThread()) {
                                 writeFrame()
                             } else {
-                                GFX.addGPUTask("VideoCreator", 1) {
+                                addGPUTask("VideoCreator", 1) {
                                     writeFrame()
                                 }
                             }
@@ -353,9 +356,9 @@ open class VideoCreator(
             if (GFX.isGFXThread()) {
                 writeFrame()
             } else {
-                GFX.addGPUTask("VideoCreator", 1) { writeFrame() }
+                addGPUTask("VideoCreator", 1) { writeFrame() }
             }
-            if (shutdown) GFX.workGPUTasksUntilShutdown()
+            if (shutdown) workGPUTasksUntilShutdown()
         }
 
         /**

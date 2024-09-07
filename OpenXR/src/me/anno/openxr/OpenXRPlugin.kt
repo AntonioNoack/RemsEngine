@@ -6,6 +6,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
+import me.anno.gpu.RenderStep.callOnGameLoop
 import me.anno.gpu.VRRenderingRoutine
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -64,7 +65,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
         val session = instance.session
         if (session == null) {
             instance.validateSession()
-            GFX.callOnGameLoop(EngineBase.instance!!, window)
+            callOnGameLoop(EngineBase.instance!!, window)
             return true
         } else {
             val oldIsActive = isActive
@@ -73,7 +74,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                 if (oldIsActive) { // became inactive
                     onInactive(window)
                 }
-                GFX.callOnGameLoop(EngineBase.instance!!, window)
+                callOnGameLoop(EngineBase.instance!!, window)
             } else if (!oldIsActive) { // became active again
                 onActive(window)
             }

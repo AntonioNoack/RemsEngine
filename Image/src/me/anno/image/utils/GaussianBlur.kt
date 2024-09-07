@@ -1,5 +1,6 @@
 package me.anno.image.utils
 
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
@@ -168,7 +169,7 @@ object GaussianBlur {
                     // temp2.clearColor(0, true)
                     // draw texture 0 (masked) onto temp2
                     // todo sample multiple times...
-                    GFX.copy()
+                    Blitting.copy()
                     temp2.bindTrulyNearest(0)
                 }
             }

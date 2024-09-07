@@ -1,17 +1,16 @@
 package me.anno.tests.image
 
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.jvm.HiddenOpenGLContext
-import me.anno.gpu.shader.ShaderLib
-import me.anno.utils.OS
-import me.anno.video.formats.gpu.BlankFrameDetector
-import me.anno.video.VideoCreator
 import me.anno.io.MediaMetadata
+import me.anno.jvm.HiddenOpenGLContext
+import me.anno.utils.OS
+import me.anno.video.VideoCreator
+import me.anno.video.formats.gpu.BlankFrameDetector
 import kotlin.concurrent.thread
 
 fun main() {
@@ -31,7 +30,7 @@ fun main() {
     VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
         thread(name = "frame$frameIndex") {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
-            GFX.addGPUTask("blank frame detection", 1) {
+            addGPUTask("blank frame detection", 1) {
                 GFXState.useFrame(fb) {
                     drawTexture(0, 0, frame.width, frame.height, frame)
                 }

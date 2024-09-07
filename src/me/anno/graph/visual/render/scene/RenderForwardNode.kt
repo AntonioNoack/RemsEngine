@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.scene
 
 import me.anno.engine.ui.render.Renderers.pbrRenderer
+import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
@@ -112,10 +113,10 @@ class RenderForwardNode : RenderViewNode(
         prepassDepth: ITexture2D?, prepassDepthM: Int
     ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthM)
+            Blitting.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthM)
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
-            GFX.copy(prepassColor)
+            Blitting.copy(prepassColor)
         } else {
             framebuffer.clearColor(0, depth = true)
         }

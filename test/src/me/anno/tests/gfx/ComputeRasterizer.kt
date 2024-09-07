@@ -13,8 +13,8 @@ import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.Blitting
 import me.anno.gpu.CullMode
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -100,16 +100,16 @@ fun testCopyColorToDepth() {
             useFrame(depthDst) {
                 depthDst.clearColor(0, true)
                 if (!Input.isAltDown) {
-                    GFX.copyColorAndDepth(whiteTexture, depthSrc, 0)
+                    Blitting.copyColorAndDepth(whiteTexture, depthSrc, 0)
                 }
             }
             drawDepthTexture(it.x, it.y + h, w, -h, depthDst.depthTexture!!)
             useFrame(colorDst) {
                 colorDst.clearColor(0, false)
                 if (Input.isShiftDown) {
-                    GFX.copy(depthDst.depthTexture!!)
+                    Blitting.copy(depthDst.depthTexture!!)
                 } else if (!Input.isControlDown) {
-                    GFX.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0)
+                    Blitting.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0)
                 }
             }
             drawTexture(it.x + w, it.y, w, h, colorDst.getTexture0())
@@ -570,7 +570,7 @@ fun computeRasterizer() {
                 listOf(TargetType.Float32x1), 1, DepthBufferType.NONE
             ]
             useFrame(depthAsColor) {
-                GFX.copy(target.depthTexture!!)
+                Blitting.copy(target.depthTexture!!)
             }
             return depthAsColor.getTexture0() as Texture2D
         }
@@ -579,7 +579,7 @@ fun computeRasterizer() {
             // copy depth from writable depth
             // disable all colors being written
             useFrame(null, target) {
-                GFX.copyColorAndDepth(blackTexture, depthAsColor, 0) // is 0 as mask correct???
+                Blitting.copyColorAndDepth(blackTexture, depthAsColor, 0) // is 0 as mask correct???
             }
         }
 
@@ -647,10 +647,10 @@ fun computeRasterizer() {
     for (i in 0 until 40) {
         val da = (45.0 * i).toRadians()
         val db = (30.0 * (i / 8 - 2)).toRadians()
-            Entity(scene)
-                .add(MeshComponent(flatCube.linear(Vector3f(), Vector3f(1f)).front))
-                .setPosition(Vector3d(0.0, 0.0, 2.0).rotateX(db).rotateY(da))
-                .setScale(0.6)
+        Entity(scene)
+            .add(MeshComponent(flatCube.linear(Vector3f(), Vector3f(1f)).front))
+            .setPosition(Vector3d(0.0, 0.0, 2.0).rotateX(db).rotateY(da))
+            .setScale(0.6)
     }
     testSceneWithUI("Compute Rasterizer", scene) {
         EngineBase.enableVSync = false // we want to go fast, so we need to measure performance

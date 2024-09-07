@@ -1,6 +1,12 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.viewportHeight
+import me.anno.gpu.GFX.viewportWidth
+import me.anno.gpu.GFX.viewportX
+import me.anno.gpu.GFX.viewportY
+import me.anno.gpu.GFXState
+import me.anno.gpu.OSWindow
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -61,4 +67,26 @@ object NullFramebuffer : IFramebuffer {
     override val depthMask: Int
         get() = 0
 
+
+    @JvmStatic
+    fun setFrameNullSize(window: OSWindow) {
+        setFrameNullSize(window.width, window.height)
+    }
+
+    @JvmStatic
+    fun setFrameNullSize(width: Int, height: Int) {
+
+        // this should be the state for the default framebuffer
+        GFXState.xs[0] = 0
+        GFXState.ys[0] = 0
+        GFXState.ws[0] = width
+        GFXState.hs[0] = height
+        GFXState.changeSizes[0] = false
+
+        Frame.invalidate()
+        viewportX = 0
+        viewportY = 0
+        viewportWidth = width
+        viewportHeight = height
+    }
 }

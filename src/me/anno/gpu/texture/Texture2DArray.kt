@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.drawing.GFXx2D
@@ -167,7 +168,7 @@ open class Texture2DArray(
         if (sync && GFX.isGFXThread()) {
             createRGBA8(intData)
             callback?.ok(this)
-        } else GFX.addGPUTask("Texture3D.create()", width, height * layers) {
+        } else addGPUTask("Texture3D.create()", width, height * layers) {
             createRGBA8(intData)
             callback?.ok(this)
         }

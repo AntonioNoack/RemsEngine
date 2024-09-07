@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -90,7 +91,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
         callback: Callback<ITexture2D>
     ) {
         if (!GFX.isGFXThread()) {
-            GFX.addGPUTask("CompressedTexture", width, height) {
+            addGPUTask("CompressedTexture", width, height) {
                 createTexture(texture, true, checkRedundancy, callback)
             }
         } else {

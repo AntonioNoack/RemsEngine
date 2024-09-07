@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -22,7 +22,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
                     val hist = AutoTileableShader.TileMath.buildYHistogram(this)
                     val lut = AutoTileableShader.TileMath.buildLUT(hist)
                     val tex = Texture2D("auto-tileable-lut", lut.size / 2, 2, 1)
-                    GFX.addGPUTask("auto-tileable-lut", 1) { tex.createMonochrome(lut, false) }
+                    addGPUTask("auto-tileable-lut", 1) { tex.createMonochrome(lut, false) }
                     tex
                 }
             }
