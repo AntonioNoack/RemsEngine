@@ -12,8 +12,13 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.openxr.OpenXRController.Companion.xrControllers
+import org.apache.logging.log4j.LogManager
 
 class OpenXRPlugin : Plugin(), VRRenderingRoutine {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(OpenXRPlugin::class)
+    }
 
     override fun onEnable() {
         super.onEnable()
@@ -48,7 +53,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
     private fun ensureInstanceRunning(window: OSWindow) {
         val rv = rv // todo test this, however we can test it... disconnect and reconnect meta link cable
         if (instance?.hasBeenDestroyed != false && rv != null && !Engine.shutdown) {
-            println("Session was destroyed -> recreating it")
+            LOGGER.info("Session was destroyed -> recreating it")
             instance = OpenXRRendering(window, rv, fb, ct0, ct1, dt)
         }
     }
@@ -86,7 +91,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
     private fun onInactive(window: OSWindow) {
         // reset roll
-        (instance as? OpenXRRendering)?.rv?.controlScheme?.rotationTarget?.z = 0.0
+        (instance as? OpenXRRendering)?.rv?.controlScheme?.rotationTargetDegrees?.z = 0.0
         // reset vsync
         window.vsyncOverride = null
         // disable controllers

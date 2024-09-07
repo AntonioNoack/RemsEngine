@@ -10,7 +10,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Color.white4
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.formats.gpu.GPUFrame
@@ -130,7 +130,7 @@ object GFXx3D {
     }
 
     fun draw3DPlanar(
-        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Int,
+        stack: Matrix4fArrayList, texture: ITexture2D, w: Int, h: Int, color: Int,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
         val shader = ShaderLib.shader3DPlanar.value

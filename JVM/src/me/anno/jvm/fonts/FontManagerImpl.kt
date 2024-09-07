@@ -19,6 +19,7 @@ import java.awt.Toolkit
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.util.Locale
+import kotlin.concurrent.thread
 
 object FontManagerImpl {
 
@@ -31,8 +32,7 @@ object FontManagerImpl {
         FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
         FontStats.getFontHeightImpl = FontManagerImpl::getTextHeight
         FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
-        // idk about this, it takes 46ms to compute...
-        // SubpixelOffsets.calculateSubpixelOffsets()
+        thread(name = "SubpixelLayout") { SubpixelOffsets.calculateSubpixelOffsets() }
     }
 
     private fun getDefaultFontSize(): Int {

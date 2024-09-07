@@ -49,9 +49,9 @@ object VisualNovel {
     var graphEditor: GraphEditor? = null
 
     val samples = downloads.getChild("sprites")
-    var background: FileReference = pictures.getChild("4k.jpg")
-    var primary: FileReference = samples.getChild("anise_c_laugh.png")
-    var secondary: FileReference = samples.getChild("cardamom_nc_normal.png")
+    var background = pictures.getChild("4k.jpg")
+    var primary = samples.getChild("anise_c_laugh.png")
+    var secondary = samples.getChild("cardamom_nc_normal.png")
 
     var shownText = ""
     var textTime = 0L

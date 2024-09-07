@@ -83,7 +83,8 @@ class OpenXRFrameManager {
             .layerCount(findSubmittedLayerCount())
             .layers(ptr)
             // real AR glasses only support additive blending
-            // todo why is alpha-blending unsupported in SteamVR?
+            // why is alpha-blending unsupported in SteamVR?
+            //  because it needs to be rendered on Desktop, so bidirectional streaming, and that's experimental
             .environmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
         checkXR(xrEndFrame(session, frameEndInfo))
     }

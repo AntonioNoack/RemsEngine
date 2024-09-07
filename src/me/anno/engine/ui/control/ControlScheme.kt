@@ -151,8 +151,8 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     // less than 90, so we always know forward when computing movement
-    val limit = 90.0 - 0.001
-    val rotationTarget = Vector3d() // degrees
+    val maxAngleDegrees = 90.0 - 0.001
+    val rotationTargetDegrees = Vector3d()
 
     override fun onUpdate() {
         super.onUpdate()
@@ -172,22 +172,22 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     private fun rotationTargetToQuat(dst: Quaterniond): Quaterniond {
         return dst.identity()
-            .rotateY(rotationTarget.y.toRadians())
-            .rotateX(rotationTarget.x.toRadians())
-            .rotateZ(rotationTarget.z.toRadians())
+            .rotateY(rotationTargetDegrees.y.toRadians())
+            .rotateX(rotationTargetDegrees.x.toRadians())
+            .rotateZ(rotationTargetDegrees.z.toRadians())
     }
 
     fun rotateCameraTo(vx: Float, vy: Float, vz: Float) =
         rotateCameraTo(vx.toDouble(), vy.toDouble(), vz.toDouble())
 
     fun rotateCameraTo(vx: Double, vy: Double, vz: Double) {
-        rotationTarget.set(vx, vy, vz)
+        rotationTargetDegrees.set(vx, vy, vz)
     }
 
     fun rotateCameraTo(v: Vector3f) = rotateCameraTo(v.x, v.y, v.z)
 
     open fun rotateCamera(vx: Float, vy: Float, vz: Float) {
-        rotateCameraTo(clamp(rotationTarget.x + vx, -limit, +limit), rotationTarget.y + vy, rotationTarget.z + vz)
+        rotateCameraTo(clamp(rotationTargetDegrees.x + vx, -maxAngleDegrees, +maxAngleDegrees), rotationTargetDegrees.y + vy, rotationTargetDegrees.z + vz)
     }
 
     fun rotateCamera(v: Vector3f) {
@@ -346,7 +346,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     open fun moveCamera(dx: Double, dy: Double, dz: Double) {
-        val r = rotationTarget
+        val r = rotationTargetDegrees
         val fromDegrees = PI / 180
         val y = r.y * fromDegrees
         if (settings.changeYByWASD) {

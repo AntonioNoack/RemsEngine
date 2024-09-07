@@ -2,6 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GLNames
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -113,7 +114,7 @@ object MipmapCalculator {
                     )
                     val state = GL46C.glCheckFramebufferStatus(GL46C.GL_FRAMEBUFFER)
                     if (state != GL46C.GL_FRAMEBUFFER_COMPLETE) {
-                        throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
+                        throw RuntimeException("Framebuffer is incomplete: ${GLNames.getErrorTypeName(state)}")
                     }
 
                     GL46C.glViewport(0, 0, width, height)

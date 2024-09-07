@@ -82,7 +82,7 @@ fun main() {
     dst.tryMkdirs()
 
     sceneView.renderView.radius = 1.5
-    sceneView.editControls.rotationTarget.set(-17.9, 58.3, 0.0)
+    sceneView.editControls.rotationTargetDegrees.set(-17.9, 58.3, 0.0)
 
     val renderModes = ArrayList(RenderMode.values.filter {
         it != RenderMode.GHOSTING_DEBUG && it != RenderMode.RAY_TEST

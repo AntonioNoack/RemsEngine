@@ -1,12 +1,16 @@
 package me.anno.tests.game.simslike
 
+import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.AnimMeshComponent
+import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.utils.OS.res
+import me.anno.io.files.Reference.getReference
+import me.anno.utils.structures.lists.Lists.wrap
 
 // todo
 //  - playable characters
@@ -24,7 +28,7 @@ import me.anno.utils.OS.res
 //  - actions satisfy needs
 //  - NPC characters
 //  - NPC AI?
-//  - relations
+//  - relations, ideally async
 //  - inventory
 //  - items
 //  - pick stuff up, place it down
@@ -58,8 +62,8 @@ fun main() {
     // todo create UI
     val scene = Entity("Scene")
     val floor = Entity("Floor", scene)
-    floor.setScale(100.0)
-    floor.add(MeshComponent(DefaultAssets.plane))
+    floor.setScale(40.0)
+    floor.add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x335533)))
     floor.add(SimAction().apply {
         name = "Walk Here"
     })
@@ -73,15 +77,28 @@ fun main() {
     val sims = Entity("Sims", scene)
     val household = Household()
     val names = listOf("Rem", "Ram", "Emilia", "Satou")
+    val animatedMeshSrc = getReference("E:/Assets/Quaternius/Animated Woman.zip/Animated Woman.fbx")
     for ((i, nameI) in names.withIndex()) {
         Entity(nameI, sims)
             .add(Sim().apply { name = nameI; household.sims.add(this) })
-            .add(MeshComponent(res.getChild("meshes/CuteGhost.fbx"))) // best human model ever ^^
+            .add(AnimMeshComponent().apply {
+                meshFile = animatedMeshSrc
+                skeleton = animatedMeshSrc.getChild("skeletons/Skeleton.json")
+                animations = listOf(
+                    AnimationState(
+                        // todo this animation is broken :(
+                        animatedMeshSrc.getChild("animations/Armature|Idle/Imported.json"),
+                        1f, 0f, 1f, LoopingState.PLAY_LOOP
+                    )
+                )
+                materials = Material.diffuse(0xFFC8AA).ref.wrap()
+            })
             .setPosition((i - (names.size - 1) * 0.5) * 5.0, 0.0, 0.0)
     }
 
     testSceneWithUI("SimsLike", scene) {
         val controls = SimsControls(scene, household, it.renderView)
+        controls.playControls.rotationTargetDegrees.set(-30.0, 40.0, 0.0)
         it.editControls = controls.playControls
     }
 }

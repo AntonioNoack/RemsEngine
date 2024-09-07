@@ -3,15 +3,18 @@ package me.anno.tests.game.flatworld
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.NamedSaveable
 import me.anno.tests.game.flatworld.buildings.Building
 import me.anno.tests.game.flatworld.streets.Intersection
 import me.anno.tests.game.flatworld.streets.IntersectionMeshBuilder
 import me.anno.tests.game.flatworld.streets.ReversibleSegment
 import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
 import me.anno.tests.game.flatworld.streets.StreetSegment
+import me.anno.tests.game.flatworld.streets.StreetSegmentData
 import org.joml.Vector3d
 
-class FlatWorld {
+class FlatWorld : NamedSaveable() {
 
     val scene = Entity("Scene")
     val buildings = Entity("Buildings", scene)
@@ -26,10 +29,31 @@ class FlatWorld {
 
     val streetSegments = HashSet<StreetSegment>()
     val buildingInstances = HashSet<Building>()
-    val intersections = HashMap<Vector3d, Intersection>()
 
-    val dirtyStreets = HashSet<StreetSegment>()
-    val dirtyIntersections = HashSet<Intersection>()
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObjectList(this, "streetSegments", streetSegments.map(StreetSegment::save))
+        // writer.writeObjectList(this, "buildingInstances", buildingInstances.toList())
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "streetSegments" -> {
+                if (value !is List<*>) return
+                for (v in value) {
+                    v as? StreetSegmentData ?: continue
+                    addStreetSegment(StreetSegment(v.a, v.b, v.c))
+                }
+            }
+            /*"buildingInstances" -> {
+            }*/
+            else -> super.setProperty(name, value)
+        }
+    }
+
+    val intersections = HashMap<Vector3d, Intersection>()
+    private val dirtyStreets = HashSet<StreetSegment>()
+    private val dirtyIntersections = HashSet<Intersection>()
 
     fun addStreetSegment(segment: StreetSegment) {
         streetSegments.add(segment)

@@ -1,8 +1,8 @@
 package me.anno.tests.game.flatworld.streets
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.spline.SplineProfile
 import me.anno.ecs.components.mesh.spline.SplineMesh
+import me.anno.ecs.components.mesh.spline.SplineProfile
 import me.anno.maths.Maths.max
 import me.anno.utils.Color.black
 import me.anno.utils.structures.arrays.IntArrayList
@@ -38,8 +38,7 @@ object StreetMeshBuilder {
                 0x77dd77 or black,
                 0x77dd77 or black,
             )
-        ),
-        false
+        ), false
     )
 
     fun buildMesh(segment: StreetSegment, dst: Mesh): Mesh {
@@ -108,7 +107,8 @@ object StreetMeshBuilder {
         result: ArrayList<Vector3d>,
         p: Vector3d, p0: Vector3d, p1: Vector3d
     ) {
-        val dx = p1.sub(p0, Vector3d()).cross(0.0, 1.0, 0.0)
+        val dx = p1.sub(p0, Vector3d())
+            .cross(0.0, 1.0, 0.0)
             .safeNormalize()
         leftRightStepAdd(result, p, dx)
     }

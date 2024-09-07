@@ -45,7 +45,7 @@ fun main() {
             .add(Rigidbody().apply { mass = (50.0).pow(3) * 2.5 })
             .add(BoxCollider())
             .add(MeshComponent(flatCube, Material.diffuse(0x555555)))
-            .setPosition(0.0, i + 1.0, 0.0)
+            .setPosition(0.0, i + 2.0, 0.0)
             .setRotation(0.0, i * 1.0, 0.0)
             .setScale(0.5)
     }

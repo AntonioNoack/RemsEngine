@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.gtav
+package me.anno.experiments
 
 import me.anno.io.Streams.readLE32
 import me.anno.io.files.Reference.getReference

@@ -9,7 +9,7 @@ import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
-import me.anno.gpu.GFX.getErrorTypeName
+import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.Logo.drawLogo
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.debug.LWJGLDebugCallback

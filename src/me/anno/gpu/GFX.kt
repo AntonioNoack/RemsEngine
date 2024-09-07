@@ -10,6 +10,7 @@ import me.anno.engine.Events
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.buffer.SimpleBuffer
@@ -31,6 +32,7 @@ import me.anno.input.Input
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.async.Queues.workQueue
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -389,57 +391,6 @@ object GFX {
         setupBasics(tick)
     }
 
-    /**
-     * time limit in seconds
-     * returns whether time is left
-     * */
-    @JvmStatic
-    fun workQueue(queue: Queue<Task>, timeLimit: Float, all: Boolean): Boolean {
-        return workQueue(queue, if (all) Float.POSITIVE_INFINITY else timeLimit)
-    }
-
-    /**
-     * time limit in seconds
-     * returns whether time is left
-     * */
-    @JvmStatic
-    fun workQueue(queue: Queue<Task>, timeLimit: Float): Boolean {
-
-        // async work section
-        val startTime = Time.nanoTime
-
-        // work 1/5th of the tasks by weight...
-
-        // changing to 10 doesn't make the frame rate smoother :/
-        val framesForWork = 5
-        if (Thread.currentThread() == glThread) check()
-
-        val workTodo = max(1000, queue.sumOf { it.cost } / framesForWork)
-        var workDone = 0
-        while (true) {
-            val task = queue.poll() ?: return true
-            try {
-                task.work()
-                if (queue === gpuTasks) {
-                    check()
-                }
-            } catch (e: Throwable) {
-                RuntimeException(task.name, e)
-                    .printStackTrace()
-            }
-            if (Thread.currentThread() == glThread) check()
-            workDone += task.cost
-            val currentTime = Time.nanoTime
-            val workTime = abs(currentTime - startTime) * 1e-9f
-            if (workTime > 2f * timeLimit) {
-                LOGGER.warn("Spent ${workTime.f3()}s on '${task.name}' with cost ${task.cost}")
-            }
-            if (workDone >= workTodo) return false
-            if (workTime > timeLimit) return false // too much work
-            FBStack.reset() // so we can reuse resources in different tasks
-        }
-    }
-
     @JvmStatic
     fun resetFBStack() {
         FBStack.reset()
@@ -595,29 +546,6 @@ object GFX {
                 val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
             }
-        }
-    }
-
-    @JvmStatic
-    fun getErrorTypeName(error: Int): String {
-        return when (error) {
-            GL46C.GL_INVALID_ENUM -> "invalid enum"
-            GL46C.GL_INVALID_VALUE -> "invalid value"
-            GL46C.GL_INVALID_OPERATION -> "invalid operation"
-            GL46C.GL_STACK_OVERFLOW -> "stack overflow"
-            GL46C.GL_STACK_UNDERFLOW -> "stack underflow"
-            GL46C.GL_OUT_OF_MEMORY -> "out of memory"
-            GL46C.GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
-            GL46C.GL_CONTEXT_LOST -> "context lost"
-            GL46C.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
-            GL46C.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
-            GL46C.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"
-            GL46C.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER -> "incomplete read buffer"
-            GL46C.GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
-            GL46C.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
-            GL46C.GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
-            ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
-            else -> getName(error)
         }
     }
 

@@ -3,6 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GLNames
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.shader.renderer.Renderer
@@ -184,7 +185,7 @@ class CubemapFramebuffer(
     private fun check() {
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
-            throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
+            throw RuntimeException("Framebuffer is incomplete: ${GLNames.getErrorTypeName(state)}")
         }
     }
 

@@ -15,6 +15,7 @@ import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
@@ -108,7 +109,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         val baseScale = meshGroup.baseScale * extraScale
         meshGroup.draw { _, sdfTexture, offset ->
             val texture = sdfTexture?.texture
-            if (texture != null && texture.wasCreated) {
+            if (texture is Texture2D && texture.wasCreated) {
 
                 val transform = getTransform(i)
                 if (i >= materials.size) materials.add(Material())

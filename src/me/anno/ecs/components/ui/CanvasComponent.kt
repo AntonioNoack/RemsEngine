@@ -72,6 +72,11 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         }
     }
 
+    fun add(child: Panel): CanvasComponent {
+        addChild(child)
+        return this
+    }
+
     // todo allow custom meshes (?)
     /**
      * different spaces like in Unity: world space, camera space
@@ -144,7 +149,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
     private fun defineMesh() {
         val aspectRatio = width.toFloat() / height.toFloat()
         val pos = internalMesh.positions!!
-        if (pos[0] != aspectRatio) {
+        if (pos[0] != -aspectRatio) {
             pos[0] = -aspectRatio; pos[3] = -aspectRatio
             pos[6] = +aspectRatio; pos[9] = +aspectRatio
             pos[12] = -aspectRatio; pos[15] = -aspectRatio
@@ -164,7 +169,8 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
 
     @DebugAction
     fun requestFocus() {
-        windowStack[0].panel.requestFocus()
+        windowStack.lastOrNull()
+            ?.panel?.requestFocus()
     }
 
     // todo this material always need glCullFace, or you see the back when it's transparent
@@ -201,6 +207,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
     }
 
     fun render(width: Int, height: Int) {
+        val window = GFX.activeWindow ?: return
         GFXState.depthMode.use(alwaysDepthMode) {
             GFXState.blendMode.use(BlendMode.DEFAULT) {
                 GFXState.cullMode.use(CullMode.BOTH) {
@@ -211,7 +218,6 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
                         transform.set(Matrix4d(RenderState.cameraMatrix).mul(entity!!.transform.globalTransform))
                         transform.invert()
                     }
-                    val window = GFX.activeWindow!!
                     windowStack.updateTransform(window, transform, rv.x, rv.y, rv.width, rv.height, 0, 0, width, height)
                     windowStack.draw(0, 0, width, height, true, forceRedraw = true)
                     JomlPools.mat4f.sub(1)
@@ -300,7 +306,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
     companion object {
         // a small z value against z-fighting
         private const val z = .001f
-        val positionTemplate = floatArrayOf(
+        private val positionTemplate = floatArrayOf(
             // front
             -1f, -1f, +z, -1f, +1f, +z,
             +1f, -1f, +z, +1f, +1f, +z,
@@ -308,7 +314,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
             -1f, -1f, -z, -1f, +1f, -z,
             +1f, -1f, -z, +1f, +1f, -z,
         )
-        val uvs = floatArrayOf(
+        private val uvs = floatArrayOf(
             // front
             0f, 1f, 0f, 0f,
             1f, 1f, 1f, 0f,
@@ -316,7 +322,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
             1f, 1f, 1f, 0f,
             0f, 1f, 0f, 0f
         )
-        val indices = intArrayOf(
+        private val indices = intArrayOf(
             // front
             0, 2, 1, 1, 2, 3,
             // back

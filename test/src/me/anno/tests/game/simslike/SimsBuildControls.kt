@@ -12,13 +12,14 @@ class SimsBuildControls(controls: SimsControls, rv: RenderView) : SimsControlBas
             .addLeftClickListener {
                 // switch to play mode
                 sceneView.editControls = controls.playControls
-                controls.playControls.rotationTarget.set(rotationTarget)
+                controls.playControls.rotationTargetDegrees.set(rotationTargetDegrees)
             }
             .apply {
                 alignmentX = AxisAlignment.MAX
                 alignmentY = AxisAlignment.MAX
             })
         // todo inventory-like build selection menu
+        //  -> take a look at WorldBuilder
     }
 
     // different modes:

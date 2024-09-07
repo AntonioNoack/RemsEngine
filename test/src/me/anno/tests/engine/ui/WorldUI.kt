@@ -20,14 +20,17 @@ import me.anno.utils.OS.documents
 import me.anno.utils.OS.res
 
 fun main() {
+
     // todo ui probably should react, if it is camera-space (only scaled properly in non-editor-mode)
     // todo option for rendering text as Mesh, to make it scale-independent?
+
     // create UI in 3d
     ECSRegistry.init()
     OfficialExtensions.initForTests()
+
     val scene = Entity("Scene")
     scene.add(CanvasComponent().apply {
-        windowStack.push(TextButton(NameDesc("Test Button"), style))
+        add(TextButton(NameDesc("Test Button"), style))
         width = 120
         height = 40
     })
@@ -35,7 +38,10 @@ fun main() {
     prepareHand(scene, false)
     prepareHand(scene, true)
 
-    Entity("NavMesh", scene).add(MeshComponent(res.getChild("meshes/NavMesh.fbx"))).setScale(0.25)
+    Entity("NavMesh", scene)
+        .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")))
+        .setPosition(-2.0, -1.0, -2.0)
+        .setScale(0.25)
 
     // add 5 objects, which can be picked up
     val ball = IcosahedronModel.createIcosphere(2, 0.05f)

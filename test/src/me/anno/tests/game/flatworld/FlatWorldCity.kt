@@ -9,9 +9,14 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Key
+import me.anno.io.files.InvalidRef
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.language.translation.NameDesc
 import me.anno.tests.game.flatworld.buildings.controls.BuildingDeleteControls
 import me.anno.tests.game.flatworld.buildings.controls.BuildingPlaceControls
+import me.anno.tests.game.flatworld.streets.StreetSegmentData
 import me.anno.tests.game.flatworld.streets.controls.StreetBuildingControls
 import me.anno.tests.game.flatworld.streets.controls.StreetDeletingControls
 import me.anno.tests.game.flatworld.vehicles.RandomVehicle.spawnRandomVehicle
@@ -25,6 +30,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
+import me.anno.utils.OS.documents
 import me.anno.utils.structures.lists.Lists.firstInstance2
 
 // todo a 3d world has more complicated maths,
@@ -94,7 +100,16 @@ fun main() {
     // todo refuse street building, when two are too close
     // done build crossing mesh
 
-    val world = FlatWorld()
+    registerCustomClass(FlatWorld::class)
+    registerCustomClass(StreetSegmentData::class)
+
+    val saveFile = documents.getChild("RemsEngine/FlatWorldCity/TestCity.json")
+    saveFile.getParent().mkdirs()
+
+    val world = JsonStringReader.readFirstOrNull(
+        if (saveFile.exists) saveFile.readTextSync() else "", InvalidRef, FlatWorld::class
+    ) ?: FlatWorld()
+    world.validateMeshes()
 
     // terrain
     val grassMaterial = Material.diffuse(0x88dd88)
@@ -108,6 +123,7 @@ fun main() {
         val sceneView = sceneUI.listOfAll.firstInstance2(SceneView::class)
         val renderView = sceneView.renderView
         val buildStreets = StreetBuildingControls(world, renderView)
+        buildStreets.rotationTargetDegrees.set(-60.0, 40.0, 0.0)
         sceneView.editControls = buildStreets
         val list = PanelListY(style)
         list.add(EditTypeButton(sceneView, "+Street", buildStreets))
@@ -115,6 +131,9 @@ fun main() {
         list.add(EditTypeButton(sceneView, "+Building", BuildingPlaceControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "-Building", BuildingDeleteControls(world, renderView)))
         list.add(TextButton(NameDesc("Test Vehicle"), style).addLeftClickListener { spawnRandomVehicle(world) })
+        list.add(TextButton(NameDesc("Save"), style).addLeftClickListener {
+            JsonStringWriter.save(world, saveFile, InvalidRef)
+        })
         list.alignmentX = AxisAlignment.MAX
         list.alignmentY = AxisAlignment.CENTER
         ui.add(list)
@@ -166,7 +185,7 @@ class EditTypeButton(val sceneView: SceneView, val text: String, val controls: C
         val src = sceneView.editControls
         val dst = controls
         sceneView.editControls = dst
-        dst.rotationTarget.set(src.rotationTarget)
+        dst.rotationTargetDegrees.set(src.rotationTargetDegrees)
         invalidateDrawing()
     }
 

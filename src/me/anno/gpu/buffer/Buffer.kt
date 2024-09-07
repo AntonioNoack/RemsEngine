@@ -3,8 +3,8 @@ package me.anno.gpu.buffer
 import me.anno.Build
 import me.anno.Engine
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.getErrorTypeName
 import me.anno.gpu.GFXState
+import me.anno.gpu.GLNames
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -40,27 +40,26 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         bindBuffer(type, pointer, true)
         GFX.check()
 
-        // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
-        val attrs1 = attributes
-        for (i in attrs1.indices) {
-            bindAttribute(this, shader, attrs1[i], false)
+        val nonInstancedAttributes = attributes
+        for (i in nonInstancedAttributes.indices) {
+            bindAttribute(this, shader, nonInstancedAttributes[i], false)
         }
 
-        val attr2 = instanceData?.attributes
-        if (instanceData != null) {
+        val instancedAttributes = instanceData?.attributes
+        if (instanceData != null && instancedAttributes != null) {
             instanceData.ensureBuffer()
             bindBuffer(type, instanceData.pointer, true)
-            for (i in attr2!!.indices) {
-                bindAttribute(instanceData, shader, attr2[i], true)
+            for (i in instancedAttributes.indices) {
+                bindAttribute(instanceData, shader, instancedAttributes[i], true)
             }
         }
 
-        val attrs2 = shader.attributes
-        for (i in attrs2.indices) {
-            val attr = attrs2[i]
+        val declaredAttributes = shader.attributes
+        for (i in declaredAttributes.indices) {
+            val attr = declaredAttributes[i]
             // check if name is bound in attr1/attr2
             val attrName = attr.name
-            if (attrs1.none2 { it.name == attrName } && (attr2 == null || attr2.none2 { it.name == attrName })) {
+            if (nonInstancedAttributes.none2 { it.name == attrName } && (instancedAttributes == null || instancedAttributes.none2 { it.name == attrName })) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
                 GFX.check()
@@ -204,7 +203,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
                 // is the shader not bound??? no, the shader is apparently fine
                 Engine.requestShutdown()
                 LOGGER.warn(
-                    "Error: ${getErrorTypeName(err)}, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, " +
+                    "Error: ${GLNames.getErrorTypeName(err)}, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, " +
                             "$attr, offset/stride: ${attr.offset}, ${attr.stride}, #${self.pointer}, ${self.elementCount}x"
                 )
                 throw IllegalStateException()

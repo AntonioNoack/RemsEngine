@@ -359,7 +359,7 @@ open class Material : PrefabSaveable(), Renderable {
 
         fun getTex(image: FileReference): ITexture2D? = TextureCache[image, timeout, true]
 
-        fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): ITexture2D? {
+        fun bindTexture(shader: Shader, name: String, file: FileReference, default: ITexture2D): ITexture2D? {
             val index = shader.getTextureIndex(name)
             return if (index >= 0) {
                 val tex = getTex(file)
@@ -370,7 +370,7 @@ open class Material : PrefabSaveable(), Renderable {
 
         fun bindTexture(
             shader: GPUShader, name: String,
-            file: FileReference, default: Texture2D,
+            file: FileReference, default: ITexture2D,
             filtering: Filtering, clamping: Clamping
         ): ITexture2D? {
             val index = shader.getTextureIndex(name)

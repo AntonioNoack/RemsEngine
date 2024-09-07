@@ -169,7 +169,7 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                 // todo prevent too small angles between crossing roads
                 val intersections = ArrayList<Triple<Vector2d, Vector3d, StreetSegment>>()
                 for (seg in world.streetSegments) {
-                    val intersection = segment.intersects(seg) ?: continue
+                    val intersection = segment.intersects(seg, false) ?: continue
                     val tolerance = min(5.0 / seg.length, 0.5)
                     val point = if (intersection.y < 0.0 + tolerance) seg.a
                     else if (intersection.y > 1.0 - tolerance) seg.c

@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.Build
 import me.anno.Time
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.ARBImaging
 import org.lwjgl.opengl.GL46C
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
@@ -18,6 +19,29 @@ object GLNames {
             discoverOpenGLNames()
         }
         return constants[i] ?: "$i"
+    }
+
+    @JvmStatic
+    fun getErrorTypeName(error: Int): String {
+        return when (error) {
+            GL46C.GL_INVALID_ENUM -> "invalid enum"
+            GL46C.GL_INVALID_VALUE -> "invalid value"
+            GL46C.GL_INVALID_OPERATION -> "invalid operation"
+            GL46C.GL_STACK_OVERFLOW -> "stack overflow"
+            GL46C.GL_STACK_UNDERFLOW -> "stack underflow"
+            GL46C.GL_OUT_OF_MEMORY -> "out of memory"
+            GL46C.GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
+            GL46C.GL_CONTEXT_LOST -> "context lost"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER -> "incomplete read buffer"
+            GL46C.GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
+            GL46C.GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
+            ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
+            else -> GFX.getName(error)
+        }
     }
 
     // 1696 values in my testing

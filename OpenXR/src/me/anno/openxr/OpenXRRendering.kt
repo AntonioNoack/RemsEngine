@@ -52,7 +52,7 @@ class OpenXRRendering(
         val rot = rotation
         rv.enableOrbiting = false
 
-        val rt = rv.controlScheme?.rotationTarget
+        val rt = rv.controlScheme?.rotationTargetDegrees
         val newRotationY = if (rt != null) {
             (rt.y - lastAngleY).toFloat().toRadians()
         } else 0f

@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GLNames
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
@@ -404,7 +405,7 @@ class Framebuffer(
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
             throw IllegalStateException(
-                "Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}, " +
+                "Framebuffer is incomplete: ${GLNames.getErrorTypeName(state)}, " +
                         "$width x $height x $samples, [${targets.joinToString { it.name }}], $depthBufferType, ${depthAttachment?.samples}"
             )
         }

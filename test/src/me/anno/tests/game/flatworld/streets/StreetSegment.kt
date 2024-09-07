@@ -31,10 +31,21 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         }
     }
 
+    fun save(): StreetSegmentData {
+        val data = StreetSegmentData()
+        data.a.set(a)
+        data.c.set(c)
+        data.b = b
+        return data
+    }
+
     // todo this method could/should be able to return two results...
-    fun intersects(other: StreetSegment): Vector2d? {
+    fun intersects(other: StreetSegment, allowT01: Boolean): Vector2d? {
         // find the (parametric intersection) between these two streets
         //  return this.t, other.t
+        val matchesStartOrEnd = !allowT01 && (
+                a == other.a || c == other.c ||
+                        a == other.c || c == other.a)
         if (bounds.testAABB(other.bounds)) {
             var bestDistanceSq = sq(3.0)
             var bestST: Vector2d? = null
@@ -53,6 +64,11 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
                     if (distSq < bestDistanceSq) {
                         st.x = mix(si - 1.0, si.toDouble(), st.x) / (splits.size - 1.0)
                         st.y = mix(ti - 1.0, ti.toDouble(), st.y) / (other.splits.size - 1.0)
+                        if (matchesStartOrEnd && max(
+                                abs(st.x - 0.5),
+                                abs(st.y - 0.5)
+                            ) > 0.4999
+                        ) continue // skip this intersection
                         bestDistanceSq = distSq
                         // map st into the correct range
                         bestST = st

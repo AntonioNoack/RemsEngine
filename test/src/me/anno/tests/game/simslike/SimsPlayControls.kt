@@ -19,7 +19,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.abs
 import kotlin.math.sin
-import kotlin.math.tan
 
 class SimsPlayControls(controls: SimsControls, rv: RenderView) :
     SimsControlBase(controls, rv) {
@@ -54,7 +53,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
             .addLeftClickListener {
                 // switch to build mode
                 sceneView.editControls = controls.buildControls
-                controls.buildControls.rotationTarget.set(rotationTarget)
+                controls.buildControls.rotationTargetDegrees.set(rotationTargetDegrees)
             }
             .apply {
                 alignmentX = AxisAlignment.MAX
@@ -80,7 +79,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         if (Input.isLeftDown) {
             // move around by dragging
             val xSpeed = -pixelsToWorldFactor * renderView.radius / height
-            val ry = rotationTarget.y.toRadians()
+            val ry = rotationTargetDegrees.y.toRadians()
             val ySpeed = xSpeed / mix(1.0, abs(sin(ry)), 0.5)
             moveCamera(dx * xSpeed, 0.0, dy * ySpeed)
         } else super.onMouseMoved(x, y, dx, dy)

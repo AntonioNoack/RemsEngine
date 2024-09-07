@@ -14,6 +14,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4fArrayList
@@ -124,7 +125,7 @@ object DrawSVGs {
 
 
     fun draw3DSVG(
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: ITexture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
         val shader = init(stack, texture, color, filtering, clamping)
@@ -132,7 +133,7 @@ object DrawSVGs {
     }
 
     fun init(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
+        stack: Matrix4fArrayList, texture: ITexture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping
     ): Shader {
         val shader = shader3DSVG.value

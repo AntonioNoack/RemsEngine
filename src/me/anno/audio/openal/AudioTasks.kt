@@ -1,6 +1,6 @@
 package me.anno.audio.openal
 
-import me.anno.gpu.GFX.workQueue
+import me.anno.utils.async.Queues
 import me.anno.utils.structures.Task
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -29,6 +29,6 @@ object AudioTasks {
                 nextAudioTasks.clear()
             }
         }
-        workQueue(audioTasks, 1f / 60f, false)
+        Queues.workQueue(audioTasks, 1f / 60f, false)
     }
 }

@@ -6,14 +6,14 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.Style
 
-open class IconPanel(var internalPath: FileReference, style: Style) : ImagePanel(style) {
+open class IconPanel(var source: FileReference, style: Style) : ImagePanel(style) {
 
     constructor(style: Style) : this(InvalidRef, style)
 
-    override fun getTexture() = TextureCache[internalPath, true]
+    override fun getTexture() = TextureCache[source, true]
 
     override fun clone(): IconPanel {
-        val clone = IconPanel(internalPath, style)
+        val clone = IconPanel(source, style)
         copyInto(clone)
         return clone
     }
@@ -21,6 +21,6 @@ open class IconPanel(var internalPath: FileReference, style: Style) : ImagePanel
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is IconPanel) return
-        dst.internalPath = internalPath
+        dst.source = source
     }
 }

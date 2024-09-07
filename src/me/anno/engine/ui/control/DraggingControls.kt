@@ -325,7 +325,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         camera.fovOrthographic = 5f
         camera.fovY = 90f
         camera.isPerspective = true
-        rotationTarget.set(0.0)
+        rotationTargetDegrees.set(0.0)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
