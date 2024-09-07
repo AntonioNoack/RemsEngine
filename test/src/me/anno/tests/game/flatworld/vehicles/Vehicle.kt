@@ -3,18 +3,21 @@ package me.anno.tests.game.flatworld.vehicles
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.tests.game.flatworld.streets.ReversibleSegment
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
+import me.anno.tests.game.flatworld.FlatWorld
+import me.anno.tests.game.flatworld.streets.StreetSegment
 import org.joml.Vector3d
 import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sin
 
 class Vehicle(
     var currentT: Double,
-    val route: List<ReversibleSegment>
+    val route: List<StreetSegment>
 ) : Component(), OnUpdate {
 
     constructor() : this(0.0, emptyList())
@@ -28,7 +31,11 @@ class Vehicle(
     //  - replan, if streets go missing, or sth is taking much longer than expected
 
     var currentSegmentIndex = 0
-    var speed = 10.0
+    var speed = 0.0
+    var maxSpeed = 10.0
+
+    var length = 4.0
+    val lengthPlusExtra get() = length * 1.25
 
     // var maxSpeed = 30.0
     // var acceleration = 3.0
@@ -36,14 +43,17 @@ class Vehicle(
     var angle = 0.0
 
     var vehicleOffsetY = 0.5
+    lateinit var world: FlatWorld
 
+    // todo set this, when we spawn a vehicle
     @NotSerializedProperty
     var previousVehicle: Vehicle? = null
 
-    val currentSegment get() = route[currentSegmentIndex]
+    val currentSegment get() = route.getOrNull(currentSegmentIndex)
 
     override fun onUpdate() {
         // move vehicle
+        val dt = Time.deltaTime
         val curr = route[currentSegmentIndex]
         val previousVehicle = previousVehicle
         val prevT = if (previousVehicle != null) {
@@ -51,41 +61,75 @@ class Vehicle(
                 previousVehicle.currentT
             } else previousVehicle.currentT + 1.0
         } else 2.0
+
+        if (previousVehicle?.currentSegment != null) {
+            // show link to previous vehicle with arrow
+            val dy = Vector3d(0.0, 1.0, 0.0)
+            DebugShapes.debugArrows.add(
+                DebugLine(
+                    prevPosition + dy, previousVehicle.prevPosition + dy,
+                    -1, 0f
+                )
+            )
+        }
+
         // todo regulate speed better:
-        //  - accelerate when possible
         //  - slow down on intersections (if needed)
-        //  -
+        // - accelerate when possible
         val trafficSpeed = if (previousVehicle != null) {
             max(speed, previousVehicle.speed)
         } else speed
-        val minDistanceBetweenVehicles = 1.0 * trafficSpeed // 1.0s
-        val ds = speed * Time.deltaTime / curr.segment.length
-        val safetyT = prevT - minDistanceBetweenVehicles / curr.segment.length
-        currentT = min(currentT + ds, safetyT)
+        speed = mix(speed, maxSpeed, dtTo01(1.5 * dt)) // try to accelerate
+        // 1.0s, or distance between cars
+        // todo choose make this logic drive the front of the car, the rest is towed, and then
+        //  use the length of the followed car for distance-keeping
+        // todo test it with trucks/trains ^^
+        val minDistanceBetweenVehicles = max(lengthPlusExtra, trafficSpeed)
+        val ds = 3.0 * speed * dt / curr.length // extra 3x will be corrected later down
+        val safetyT = prevT - minDistanceBetweenVehicles / curr.length
+        val previousT = currentT
+        currentT = min(min(currentT + ds, max(safetyT, currentT)), 1.0)
         // update position and rotation
         val transform = transform
         if (transform != null) {
-            // todo handle intersections smoothly
             // add orthogonal lane offset
-            val offsetFromCenter = 1.3
             val position = curr.interpolate(currentT)
             position.y += vehicleOffsetY
-            val dx = position.x - prevPosition.x
-            val dz = position.z - prevPosition.z
-            prevPosition.set(position)
-            position.add(-cos(angle) * offsetFromCenter, 0.0, sin(angle) * offsetFromCenter)
-            angle = atan2(dx, dz)
-            transform.localPosition = position
-            transform.localRotation = transform.localRotation
-                .identity().rotateY(angle)
-            transform.smoothUpdate()
-            invalidateAABB()
+            val actualSpeed = position.distance(prevPosition) / dt
+            if (actualSpeed > 1e-5) {
+
+                if (actualSpeed > speed) {
+                    // if distance is longer than expected (intersection), take longer
+                    val allowedRelativeSpeed = speed / actualSpeed
+                    prevPosition.lerp(position, allowedRelativeSpeed, position)
+                    currentT = mix(previousT, currentT, allowedRelativeSpeed)
+                } else speed = actualSpeed
+
+                val dx = position.x - prevPosition.x
+                val dz = position.z - prevPosition.z
+                prevPosition.set(position)
+                angle = atan2(dx, dz)
+                transform.localPosition = position
+                transform.localRotation = transform.localRotation
+                    .identity().rotateY(angle)
+                transform.smoothUpdate()
+                invalidateAABB()
+            } else speed = 0.0
         }
         if (currentT >= 1.0) {
             val next = route.getOrNull(++currentSegmentIndex)
             if (next != null) {
-                currentT = (currentT - 1.0) * curr.length / next.length
+                if (world.canInsertVehicle(this, next)) {
+                    currentT = 0.0
+                    world.removeVehicle(this, curr)
+                    world.insertVehicle(this, next, 0.0)
+                } else {
+                    // waiting for gap
+                    currentT = 1.0
+                    currentSegmentIndex = route.lastIndex
+                }
             } else {
+                world.removeVehicle(this, route.last())
                 entity?.destroy()
             }
         }

@@ -74,9 +74,10 @@ fun main() {
     //  - parks
     //  - sportive stuff
     // todo 6. serialization
-    //  - streets
     //  - buildings
     //  - more stuff?
+    // done:
+    // - streets
     // todo 7. sounds
     //  - traffic
     //  - ambient
@@ -130,7 +131,14 @@ fun main() {
         list.add(EditTypeButton(sceneView, "-Street", StreetDeletingControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "+Building", BuildingPlaceControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "-Building", BuildingDeleteControls(world, renderView)))
-        list.add(TextButton(NameDesc("Test Vehicle"), style).addLeftClickListener { spawnRandomVehicle(world) })
+        list.add(TextButton(NameDesc("Test Vehicle"), style).addLeftClickListener {
+            spawnRandomVehicle(world)
+        })
+        list.add(TextButton(NameDesc("Test Vehicle x10"), style).addLeftClickListener {
+            for (i in 0 until 10) {
+                spawnRandomVehicle(world)
+            }
+        })
         list.add(TextButton(NameDesc("Save"), style).addLeftClickListener {
             JsonStringWriter.save(world, saveFile, InvalidRef)
         })

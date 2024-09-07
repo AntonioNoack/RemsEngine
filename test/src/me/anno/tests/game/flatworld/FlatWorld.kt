@@ -12,6 +12,7 @@ import me.anno.tests.game.flatworld.streets.ReversibleSegment
 import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
 import me.anno.tests.game.flatworld.streets.StreetSegment
 import me.anno.tests.game.flatworld.streets.StreetSegmentData
+import me.anno.tests.game.flatworld.vehicles.Vehicle
 import org.joml.Vector3d
 
 class FlatWorld : NamedSaveable() {
@@ -153,5 +154,38 @@ class FlatWorld : NamedSaveable() {
             IntersectionMeshBuilder.createIntersection(intersection, this, mesh)
             intersection.invalidateAABB() // since we changed the mesh
         }
+    }
+
+    private val vehicleLookup = HashMap<StreetSegment, HashSet<Vehicle>>()
+    fun insertVehicle(vehicle: Vehicle, segment: StreetSegment, t: Double) {
+        val onSegment = vehicleLookup.getOrPut(segment, ::HashSet)
+        val previousVehicle = onSegment
+            .filter { it.currentT > t }
+            .minByOrNull { it.currentT }
+        val nextVehicle = onSegment
+            .filter { it.currentT < t }
+            .maxByOrNull { it.currentT }
+        onSegment.add(vehicle)
+        vehicle.previousVehicle = previousVehicle
+        nextVehicle?.previousVehicle = vehicle
+    }
+
+    fun canInsertVehicle(vehicle: Vehicle, segment: StreetSegment): Boolean {
+        val vehicles = vehicleLookup[segment] ?: return true
+        val minT = vehicle.lengthPlusExtra / segment.length
+        return vehicles.none { it.currentT < minT }
+    }
+
+    fun removeVehicle(vehicle: Vehicle, segment: StreetSegment) {
+        val onSegment = vehicleLookup[segment]
+        if (onSegment != null) {
+            onSegment.remove(vehicle)
+            for (following in onSegment) {
+                if (following.previousVehicle == vehicle) {
+                    following.previousVehicle = vehicle.previousVehicle
+                }
+            }
+        }
+        vehicle.previousVehicle = null
     }
 }

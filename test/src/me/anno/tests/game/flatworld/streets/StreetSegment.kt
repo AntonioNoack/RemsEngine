@@ -18,8 +18,9 @@ import kotlin.math.max
 data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
 
     init {
-        if (a == b || c == b || a == c)
-            throw IllegalStateException()
+        if (a == b || c == b || a == c) {
+            throw IllegalStateException("Illegal Segment [$a,$b,$c]")
+        }
     }
 
     var entity: Entity? = null
@@ -153,6 +154,14 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         return splitSegment(t0, t1, a, c)
     }
 
+    fun splitSegmentDx(t0: Double, t1: Double, dx: Double): StreetSegment {
+        val a = interpolateDx(t0, dx)
+        val c = interpolateDx(t1, dx)
+        val b = interpolateDx((t0 + t1) * 0.5, dx)
+        extrudeVector(a, b, c)
+        return StreetSegment(a, b, c)
+    }
+
     fun splitSegment(t0: Double, t1: Double, a: Vector3d, c: Vector3d): StreetSegment {
         val b = interpolate((t0 + t1) * 0.5)
         extrudeVector(a, b, c)
@@ -169,6 +178,14 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
             c.mulAdd(t * t, dst, dst)
             dst
         }
+    }
+
+    fun interpolateDx(t: Double, dx: Double, dst: Vector3d = Vector3d()): Vector3d {
+        val result = interpolate(t, dst)
+        val normal = interpolate(t + 0.001).sub(result)
+        normal.cross(0.0, 1.0, 0.0)
+        normal.mulAdd(dx / normal.length(), result, result)
+        return result
     }
 
     companion object {
