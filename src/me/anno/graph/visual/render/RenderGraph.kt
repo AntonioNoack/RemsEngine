@@ -33,7 +33,6 @@ import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
-import me.anno.image.ImageScale
 import me.anno.ui.Panel
 import me.anno.utils.Color.white4
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -82,12 +81,12 @@ object RenderGraph {
         "Int", "Height",
     )
 
-    fun draw(view: RenderView, dst: Panel, graph: FlowGraph) {
+    fun draw(rv: RenderView, dst: Panel, graph: FlowGraph) {
         val startNode = findStartNode(graph) ?: return
-        initGraphState(graph, dst, view, startNode)
+        initGraphState(graph, rv, startNode)
         val result = executeGraph(graph, startNode)
         if (result != null) {
-            drawResult(result, dst)
+            drawResult(result, rv, dst)
         } else {
             LOGGER.warn("Missing end")
         }
@@ -114,11 +113,12 @@ object RenderGraph {
         }
     }
 
-    private fun initGraphState(graph: FlowGraph, dst: Panel, renderView: RenderView, start: StartNode) {
-        writeSceneIntoRenderNodes(graph, renderView)
+    private fun initGraphState(graph: FlowGraph, rv: RenderView, start: StartNode) {
+        val renderSize = rv.renderSize
+        writeSceneIntoRenderNodes(graph, rv)
         graph.invalidate()
-        start.setOutput(1, dst.width)
-        start.setOutput(2, dst.height)
+        start.setOutput(1, renderSize.renderWidth)
+        start.setOutput(2, renderSize.renderHeight)
         Material.lodBias = 0f // reset just in case
     }
 
@@ -142,12 +142,13 @@ object RenderGraph {
         }
     }
 
-    private fun drawResult(endNode: ExprReturnNode, dst: Panel) {
+    private fun drawResult(endNode: ExprReturnNode, rv: RenderView, dst: Panel) {
         val tex = endNode.render(true)
         val texture = tex.texOrNull ?: return
-        val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.width, dst.height)
+        val h = dst.height
+        val w = h * rv.width / rv.height
         val x = dst.x + (dst.width - w).shr(1)
-        val y = dst.y + (dst.height - h).shr(1)
+        val y = dst.y
         val applyToneMapping = endNode.getBoolInput(6)
         drawTexture(x, y + h, w, -h, texture, true, white4, null, applyToneMapping)
     }

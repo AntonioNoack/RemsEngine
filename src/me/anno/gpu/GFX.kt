@@ -184,11 +184,6 @@ object GFX {
     }
 
     @JvmStatic
-    fun setup(tick: Clock?) {
-        setupBasics(tick)
-    }
-
-    @JvmStatic
     fun resetFBStack() {
         FBStack.reset()
     }

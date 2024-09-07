@@ -143,6 +143,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         .rotateX((-30.0).toRadians())
 
     val buffers = RenderBuffers()
+    val renderSize = RenderSize()
 
     private var entityBaseClickId = 0
 
@@ -256,6 +257,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun render(x0: Int, y0: Int, x1: Int, y1: Int) {
+        renderSize.updateSize(width, height)
         val renderGraph = renderMode.renderGraph
         if (renderGraph != null) {
             // graph will draw all things
@@ -354,10 +356,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         popBetterBlending(pbb)
     }
 
-    // be more conservative with framebuffer size changes,
-    // because they are expensive -> only change every 20th frame
-    private val mayChangeSize get() = (Time.frameIndex % 20 == 0)
-
     val fsr22 by lazy { FSR2v2() }
 
     fun drawScene(
@@ -365,16 +363,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         renderer: Renderer, buffer: IFramebuffer
     ) {
 
-        var w = max(x1 - x0, 1)
-        var h = max(y1 - y0, 1)
-
-        val s0 = w * h
-        val s1 = buffer.width * buffer.height
-        val mayChangeSize = mayChangeSize || (w * h < 1024) || min(s0, s1) * 2 <= max(s0, s1)
-        if (!mayChangeSize) {
-            w = buffer.width
-            h = buffer.height
-        }
+        val w = renderSize.renderWidth
+        val h = renderSize.renderHeight
 
         when (renderMode) {
             RenderMode.LIGHT_COUNT -> {

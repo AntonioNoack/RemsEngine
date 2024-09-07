@@ -333,7 +333,7 @@ object WindowManagement {
 
     @JvmStatic
     fun init2(tick: Clock?) {
-        GFX.setup(tick)
+        GFX.setupBasics(tick)
         GFX.check()
         tick?.stop("Render step zero")
         EngineBase.instance?.gameInit()
