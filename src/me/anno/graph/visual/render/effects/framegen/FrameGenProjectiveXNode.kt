@@ -1,4 +1,4 @@
-package me.anno.graph.visual.render.effects
+package me.anno.graph.visual.render.effects.framegen
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.DepthMode
@@ -52,10 +52,6 @@ class FrameGenProjectiveXNode : FrameGenProjective0Node("FrameGenProjectiveX") {
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.M4x4, "cameraMatrixI"),
-                Variable(GLSLType.V3F, "cameraPositionI"),
-                Variable(GLSLType.V3F, "cameraPosition0"),
-                Variable(GLSLType.V1F, "worldScaleI"),
-                Variable(GLSLType.V1F, "worldScale0"),
                 Variable(GLSLType.V2I, "resolution"),
             ) + DepthTransforms.depthVars, "" +
                     DepthTransforms.rawToDepth +
@@ -67,9 +63,6 @@ class FrameGenProjectiveXNode : FrameGenProjective0Node("FrameGenProjectiveX") {
                     "   color = texture(colorTex,uv,0).xyz;\n" +
                     "   float depth = clamp(texture(depthTex,uv,0).x, 1e-3, 1e15);\n" + // must be clamped to avoid Inf/NaN
                     "   vec3 pos = depthToPosition(uv,depth);\n" +
-                    // could be simplified, is just 1x scale, 1x translation
-                    "   pos = (pos/worldScale0)+cameraPosition0;\n" +
-                    "   pos = (pos-cameraPositionI)*worldScaleI;\n" +
                     "   gl_Position = matMul(cameraMatrixI,vec4(pos,1.0));\n" +
                     "}",
             listOf(Variable(GLSLType.V3F, "color")),

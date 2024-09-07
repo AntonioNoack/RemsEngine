@@ -50,7 +50,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
-import me.anno.graph.visual.render.effects.FrameGenInitNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.Panel

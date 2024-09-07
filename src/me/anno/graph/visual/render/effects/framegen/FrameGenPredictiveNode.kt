@@ -1,4 +1,4 @@
-package me.anno.graph.visual.render.effects
+package me.anno.graph.visual.render.effects.framegen
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFXState.useFrame

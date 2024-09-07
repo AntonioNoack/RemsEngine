@@ -1,4 +1,4 @@
-package me.anno.graph.visual.render.effects
+package me.anno.graph.visual.render.effects.framegen
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFXState.useFrame
@@ -13,6 +13,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 
 // todo can we mix this with FSR2?
@@ -30,10 +31,12 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewMixData>
         var color0 = Texture2D("frameGen0", 1, 1, 1)
         var color1 = Texture2D("frameGen1", 1, 1, 1)
         val motion = Texture2D("frameGenM", 1, 1, 1)
+        val depth = Texture2D("frameGenD", 1, 1, 1)
         override fun destroy() {
             color0.destroy()
             color1.destroy()
             motion.destroy()
+            depth.destroy()
         }
     }
 
@@ -67,8 +70,8 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewMixData>
             shader.use()
             view.color0.createdOr(whiteTexture).bindTrulyLinear(shader, "colorTex0")
             view.color1.createdOr(whiteTexture).bindTrulyLinear(shader, "colorTex1")
-            // motion from frame 0 to 1
-            view.motion.createdOr(blackTexture).bindTrulyNearest(shader, "motionTex")
+            view.motion.createdOr(blackTexture).bindTrulyNearest(shader, "motionTex") // motion from frame 0 to 1
+            view.depth.createdOr(depthTexture).bindTrulyNearest(shader, "depthTex")
             // why do we need to invert it???
             shader.v1f("t", 1f - fraction)
             flat01.draw(shader)
@@ -84,6 +87,7 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewMixData>
                 Variable(GLSLType.S2D, "colorTex0"),
                 Variable(GLSLType.S2D, "colorTex1"),
                 Variable(GLSLType.S2D, "motionTex"),
+                Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
             ), "" +
                     "bool isOutOfBounds(vec2 uvi){\n" +

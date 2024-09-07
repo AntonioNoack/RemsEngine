@@ -1,4 +1,4 @@
-package me.anno.graph.visual.render.effects
+package me.anno.graph.visual.render.effects.framegen
 
 import me.anno.Time
 import me.anno.config.ConfigRef
@@ -8,6 +8,14 @@ import me.anno.graph.visual.control.FixedControlFlowNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.QuickPipeline
+import me.anno.graph.visual.render.effects.BloomNode
+import me.anno.graph.visual.render.effects.FXAANode
+import me.anno.graph.visual.render.effects.GizmoNode
+import me.anno.graph.visual.render.effects.OutlineEffectNode
+import me.anno.graph.visual.render.effects.OutlineEffectSelectNode
+import me.anno.graph.visual.render.effects.SSAONode
+import me.anno.graph.visual.render.effects.SSRNode
+import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode

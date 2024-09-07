@@ -74,11 +74,11 @@ FlowGraph: me.anno.graph.visual.FlowGraph
 Font: me.anno.fonts.Font
 ForLoopState: me.anno.graph.visual.control.ForLoopState
 ForNode: me.anno.graph.visual.control.ForNode
-FrameGenInitNode: me.anno.graph.visual.render.effects.FrameGenInitNode
-FrameGenMixingNode: me.anno.graph.visual.render.effects.FrameGenMixingNode
-FrameGenPredictiveNode: me.anno.graph.visual.render.effects.FrameGenPredictiveNode
-FrameGenProjective1Node: me.anno.graph.visual.render.effects.FrameGenProjective1Node
-FrameGenProjectiveXNode: me.anno.graph.visual.render.effects.FrameGenProjectiveXNode
+FrameGenInitNode: me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
+FrameGenMixingNode: me.anno.graph.visual.render.effects.framegen.FrameGenMixingNode
+FrameGenPredictiveNode: me.anno.graph.visual.render.effects.framegen.FrameGenPredictiveNode
+FrameGenProjective1Node: me.anno.graph.visual.render.effects.framegen.FrameGenProjective1Node
+FrameGenProjectiveXNode: me.anno.graph.visual.render.effects.framegen.FrameGenProjectiveXNode
 FresnelNode3: me.anno.graph.visual.vector.FresnelNode3
 FurMaterial: me.anno.ecs.components.mesh.material.FurMaterial
 GPUMesh: me.anno.ecs.components.mesh.GPUMesh

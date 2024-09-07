@@ -26,7 +26,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.graph.visual.render.effects.FrameGenInitNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.ui.base.components.AxisAlignment

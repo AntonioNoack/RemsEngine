@@ -57,7 +57,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.RenderGraph
 import me.anno.graph.visual.render.effects.FSR2Node
-import me.anno.graph.visual.render.effects.FrameGenInitNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.graph.visual.render.effects.TAANode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp

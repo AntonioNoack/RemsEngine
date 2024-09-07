@@ -32,11 +32,11 @@ import me.anno.graph.visual.render.effects.FSR1HelperNode
 import me.anno.graph.visual.render.effects.FSR1Node
 import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.FXAANode
-import me.anno.graph.visual.render.effects.FrameGenInitNode
-import me.anno.graph.visual.render.effects.FrameGenMixingNode
-import me.anno.graph.visual.render.effects.FrameGenPredictiveNode
-import me.anno.graph.visual.render.effects.FrameGenProjective1Node
-import me.anno.graph.visual.render.effects.FrameGenProjectiveXNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenMixingNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenPredictiveNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenProjective1Node
+import me.anno.graph.visual.render.effects.framegen.FrameGenProjectiveXNode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.HeightExpFogNode
 import me.anno.graph.visual.render.effects.MSAAHelperNode

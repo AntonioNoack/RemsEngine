@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testScene
-import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode.Companion.interFrames
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestEngine.Companion.testUI3
