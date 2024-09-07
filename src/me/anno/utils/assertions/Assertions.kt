@@ -3,6 +3,8 @@ package me.anno.utils.assertions
 import me.anno.maths.Maths.sq
 import org.joml.Vector
 import kotlin.math.abs
+import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 fun assertTrue(condition: Boolean, message: String = "condition failed") {
     if (!condition) throw IllegalStateException(message)
@@ -34,6 +36,10 @@ fun <V> assertNotContains(value: V, collection: Collection<V>, message: String =
 
 fun assertFalse(condition: Boolean, message: String = "condition failed") {
     if (condition) throw IllegalStateException(message)
+}
+
+fun assertFail(message: String = "condition failed") {
+    throw IllegalStateException(message)
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal values") {
@@ -91,4 +97,10 @@ fun assertNull(v: Any?, message: String = "expected null, but got value") {
 fun <V> assertNotNull(v: V?, message: String = "expected not null"): V {
     if (v == null) throw IllegalStateException(message)
     return v
+}
+
+fun <V: Any> assertIs(v: Any?, clazz: KClass<V>): V {
+    val instance = clazz.safeCast(v)
+    assertNotNull(instance)
+    return instance!!
 }

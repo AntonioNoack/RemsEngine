@@ -10,10 +10,10 @@ class RenderSize {
 
     var renderWidth = 0
     var renderHeight = 0
-    var lastChangeTime = 0L
+    private var lastChangeTime = 0L
 
     fun isSame(width: Int, currWidth: Int): Boolean {
-        return abs(width - currWidth) < 16 + max(width, currWidth) / 3
+        return abs(width - currWidth) < 16 + max(width, currWidth).shr(1)
     }
 
     fun resize(width: Int, height: Int, time: Long) {

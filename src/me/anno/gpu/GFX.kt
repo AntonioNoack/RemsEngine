@@ -8,6 +8,7 @@ import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.GPUShader
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -212,10 +213,9 @@ object GFX {
     fun checkIsGFXThread() {
         val currentThread = Thread.currentThread()
         if (currentThread != glThread) {
-            if (glThread == null) {
-                glThread = currentThread
-                currentThread.name = "OpenGL"
-            } else throw IllegalStateException("GFX.check() called from wrong thread! Always use addGPUTask { ... }")
+            assertNull(glThread, "GFX.check() called from wrong thread! Always use addGPUTask { ... }")
+            glThread = currentThread
+            currentThread.name = "OpenGL"
         }
     }
 

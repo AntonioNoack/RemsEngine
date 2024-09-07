@@ -1,5 +1,6 @@
 package me.anno.graph.visual.node
 
+import me.anno.engine.inspector.CachedReflections.Companion.getEnumById
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -113,27 +114,43 @@ class NodeInput : NodeConnector {
 
     fun getValue(): Any? {
         val graph = node?.graph as? FlowGraph
-        if (graph != null && graph.validId == lastValidId) return currValue
+        if (graph != null && graph.validId == lastValidId) {
+            return currValue
+        }
         val src = others.firstOrNull()
         val srcNode = src?.node
         if (srcNode is ComputeNode) {
             srcNode.compute()
         }
-        if (src != null) currValue = src.currValue
         if (graph != null) lastValidId = graph.validId
-        var value = currValue
-        // validate type
+        val value = validateType(if (src != null) src.currValue else currValue)
+        currValue = value
+        return value
+    }
+
+    private fun validateType(value: Any?): Any? {
+        val type = type
         val validator = typeValidators[type]
-        value = when {
+        return when {
             validator != null -> validator(value)
             type.startsWith("List<") -> value as? List<*> ?: emptyList<Any?>()
-            type.startsWith("Enum<") -> value as? Enum<*>
+            type.startsWith("Enum<") -> getEnumValue(value, type)
             else -> {
                 LOGGER.warn("Type $type needs a validator")
                 value
             }
         }
-        currValue = value
-        return value
+    }
+
+    private fun getEnumValue(value: Any?, type: String): Any? {
+        return when (value) {
+            is Enum<*> -> value
+            is Int -> {
+                val clazzName = type.substring(5, type.lastIndex)
+                val clazz = javaClass.classLoader.loadClass(clazzName)
+                getEnumById(clazz.kotlin, value)
+            }
+            else -> null
+        }
     }
 }
