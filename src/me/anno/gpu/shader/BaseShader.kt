@@ -102,8 +102,8 @@ open class BaseShader(
         builder.addFragment(pixelPostProcessing)
 
         val shader = builder.create(key, "fwd$flags-${key.renderer.nameDesc.englishName}")
-        finish(shader, 330)
-        return shader
+        shader.glslVersion = max(glslVersion, 330)
+        return finish(shader, key)
     }
 
     /** shader for deferred rendering */
@@ -123,8 +123,7 @@ open class BaseShader(
             key.renderer.getPixelPostProcessing(flags),
             key.ditherMode
         )
-        finish(shader)
-        return shader
+        return finish(shader, key)
     }
 
     val value: Shader
@@ -139,10 +138,7 @@ open class BaseShader(
             }
             GFX.check()
             if (shader.use()) {
-                val renderer = GFXState.currentRenderer
-                val instanceData = GFXState.instanceData.currentValue
-                val instanced = instanceData !== MeshInstanceData.DEFAULT
-                bind(shader, renderer, instanced)
+                bind(shader, key.renderer, key.flags.hasFlag(IS_INSTANCED))
                 GFX.check()
             }
             return shader
@@ -156,14 +152,15 @@ open class BaseShader(
         this.textures = textures
     }
 
-    open fun finish(shader: Shader, minVersion: Int = 0) {
-        shader.glslVersion = max(glslVersion, minVersion)
+    open fun finish(shader: Shader, key: ShaderKey): Shader {
         shader.use()
         shader.setTextureIndices(textures)
         if (shader.hasUniform("tint")) {
             shader.v4f("tint", 1f)
         }
+        bind(shader, key.renderer, key.flags.hasFlag(IS_INSTANCED))
         GFX.check()
+        return shader
     }
 
     open fun concatDefines(key: ShaderKey, dst: StringBuilder = StringBuilder()): StringBuilder {

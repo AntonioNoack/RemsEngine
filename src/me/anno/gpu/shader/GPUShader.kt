@@ -225,6 +225,9 @@ abstract class GPUShader(val name: String) : ICacheData {
     // todo this should be set automatically
     var failedCompilation = false
 
+    /**
+     * binds the shader, and returns whether this shader was actually bound
+     * */
     fun use(): Boolean {
         GFX.check()
         // Frame.bindMaybe()

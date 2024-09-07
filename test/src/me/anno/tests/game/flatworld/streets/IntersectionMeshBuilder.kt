@@ -21,7 +21,7 @@ object IntersectionMeshBuilder {
         return 1.0 - getT0(segmentLength, closeIntersection, farIntersection)
     }
 
-    fun createIntersection(intersection: Intersection, world: FlatWorld, dst: Mesh) {
+    fun createIntersection(intersection: Intersection, world: FlatWorld, streetMesh: Mesh) {
         // create a mesh
         val position = intersection.segments.first().a
         val entity = Entity()
@@ -43,7 +43,7 @@ object IntersectionMeshBuilder {
                 .add(pt)
             child.transform.teleportUpdate()
         }
-        crossing.generateMesh(dst)
-        dst.invalidateGeometry()
+        crossing.generateMesh(streetMesh)
+        streetMesh.invalidateGeometry()
     }
 }

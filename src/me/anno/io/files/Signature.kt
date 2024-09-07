@@ -277,6 +277,7 @@ class Signature(
             Signature("mtl", 0, "# Blender MTL"), // ^^
             Signature("blend", 0, "BLENDER"),
             Signature("gltf", 0, "glTF"),
+            Signature("gltf", -1, "\"scenes\""),
             Signature("mesh-draco", 0, "DRACO"),
             Signature("md2", 0, "IDP2"),
             Signature("md5mesh", 0, "MD5Version"),

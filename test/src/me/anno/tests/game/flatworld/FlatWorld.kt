@@ -63,7 +63,7 @@ class FlatWorld : NamedSaveable() {
     }
 
     fun removeStreetSegment(segment: StreetSegment) {
-        segment.mesh?.destroy() // free mesh
+        segment.streetMesh?.destroy() // free mesh
         segment.entity?.removeFromParent()
         streetSegments.remove(segment)
         removeAnchor(ReversibleSegment(segment, false))
@@ -121,13 +121,14 @@ class FlatWorld : NamedSaveable() {
         val t1 = IntersectionMeshBuilder.getT1(segment.length, i1, i0)
         // the mesh to generate depends on t0 and t1,
         //  which are calculated by the intersection sizes
-        val hadMesh = segment.mesh != null
-        val mesh = StreetMeshBuilder.buildMesh(segment.splitSegment(t0, t1), segment.mesh ?: Mesh())
-        if (hadMesh) {
-            mesh.invalidateGeometry()
-        } else {
-            segment.entity = Entity(streets).add(MeshComponent(mesh))
-            segment.mesh = mesh
+        val hadMesh = segment.streetMesh != null
+        val subSegment = segment.splitSegment(t0, t1)
+        val streetMesh = segment.streetMesh ?: Mesh()
+        StreetMeshBuilder.buildMesh(subSegment, streetMesh)
+        if (!hadMesh) {
+            segment.entity = Entity(streets)
+                .add(MeshComponent(streetMesh))
+            segment.streetMesh = streetMesh
         }
     }
 
@@ -135,22 +136,21 @@ class FlatWorld : NamedSaveable() {
         // update intersection:
         if (intersection.segments.isEmpty()) {
             // remove mesh from map
-            intersection.mesh?.destroy()
-            intersection.mesh = null
+            intersection.streetMesh?.destroy()
+            intersection.streetMesh = null
             intersection.entity?.removeFromParent()
         } else {
             // build end piece or actual intersection
-            if (intersection.mesh == null) {
-                val mesh = Mesh()
-                val newComp = MeshComponent(mesh)
+            if (intersection.streetMesh == null) {
+                val streetMesh = Mesh()
                 val entity = Entity(streets)
-                    .add(newComp)
+                    .add(MeshComponent(streetMesh))
                     .add(intersection)
                 entity.position = intersection.segments.first().a
                 entity.transform.teleportUpdate()
-                intersection.mesh = mesh
+                intersection.streetMesh = streetMesh
             }
-            val mesh = intersection.mesh!!
+            val mesh = intersection.streetMesh!!
             IntersectionMeshBuilder.createIntersection(intersection, this, mesh)
             intersection.invalidateAABB() // since we changed the mesh
         }

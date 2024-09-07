@@ -21,6 +21,7 @@ import me.anno.io.xml.generic.XMLWriter
 import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
+import me.anno.utils.Sleep
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
@@ -97,11 +98,12 @@ object StaticMeshesLoader {
 
     private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
-    const val DEFAULT_ASSIMP_FLAGS = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
-            aiProcess_Triangulate or // we don't want to triangulate ourselves
-            aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
-            // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
-            aiProcess_GlobalScale
+    const val DEFAULT_ASSIMP_FLAGS =
+        aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
+                aiProcess_Triangulate or // we don't want to triangulate ourselves
+                aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
+                // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
+                aiProcess_GlobalScale
 
     @JvmStatic
     fun shininessToRoughness(shininessExponent: Float): Float {
@@ -140,7 +142,11 @@ object StaticMeshesLoader {
         // glb cannot be loaded from memory properly... (a bug in Assimp)
         if (file0 !is FileFileRef && (signature == "gltf" || signature == "json")) {
             val tmp = FileFileRef.createTempFile(file0.nameWithoutExtension, file0.extension)
-            file0.copyTo(tmp)
+            var done = false
+            file0.copyTo(tmp) {
+                done = true
+            }
+            Sleep.waitUntil(true) { done }
             tmp.deleteOnExit()
             return loadFile(tmp, flags)
         }
@@ -798,7 +804,7 @@ object StaticMeshesLoader {
         if (aiScene.mNumCameras() <= 0) return
         val cameras = prefab.add(ROOT_PATH, 'e', "Entity", "Cameras")
         val aiCameras = aiScene.mCameras()!!
-        for(i in 0 until aiScene.mNumCameras()) {
+        for (i in 0 until aiScene.mNumCameras()) {
             createCameraPrefab(AICamera.create(aiCameras[i]), prefab, cameras, i)
         }
     }
@@ -889,5 +895,4 @@ object StaticMeshesLoader {
             )
         }
     }
-
 }

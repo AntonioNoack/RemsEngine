@@ -35,15 +35,15 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
 import me.anno.image.thumbs.AssetThumbHelper.findModelMatrix
 import me.anno.image.thumbs.AssetThumbHelper.listTextures
-import me.anno.image.thumbs.AssetThumbHelper.removeTextures
+import me.anno.image.thumbs.AssetThumbHelper.removeMissingTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.utils.InternalAPI
 import me.anno.utils.Warning
+import me.anno.utils.async.Callback
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -60,6 +60,7 @@ import kotlin.math.min
 object AssetThumbnails {
 
     private val LOGGER = LogManager.getLogger(AssetThumbnails::class)
+    private val renderer get() = Renderers.previewRenderer
 
     fun register() {
         Thumbs.registerFileExtensions("json", AssetThumbnails::generateAssetFrame)
@@ -83,6 +84,55 @@ object AssetThumbnails {
         return dst
     }
 
+    private fun findFramingRadius(scene: Entity, bounds: AABBd) {
+        if (!bounds.isEmpty() && bounds.volume.isFinite()) {
+            rv.radius = 100.0 * bounds.maxDelta
+            bounds.getCenter(rv.orbitCenter)
+            rv.updateEditorCameraTransform()
+            rv.setRenderState()
+            // calculate ideal transform like previously
+            // for that, calculate bounds on screen, then rescale/recenter
+            val visualBounds = AABBf()
+            val tmp = Matrix4x3d()
+            val totalMatrix = Matrix4f()
+            val vec0 = Vector3f()
+            val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform)
+
+            fun addMesh(mesh: IMesh?, transform: Transform) {
+                if (mesh !is Mesh) return
+                // calculate transform
+                val pos = mesh.positions ?: return
+                val modelMatrix = transform.globalTransform
+                totalMatrix.set(cameraMatrix.mul(modelMatrix, tmp))
+                // to do for performance first check if bounds would be increasing the size
+                for (i in pos.indices step 3) {
+                    vec0.set(pos, i).mulProject(totalMatrix)
+                    visualBounds.union(vec0)
+                }
+            }
+            scene.forAll {
+                when (it) {
+                    is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: scene.transform)
+                    is MeshSpawner -> it.forEachMesh { mesh, _, transform -> addMesh(mesh, transform) }
+                }
+            }
+            rv.radius = 400.0 * max(visualBounds.deltaX, visualBounds.deltaY).toDouble()
+        } else {
+            rv.radius = 1.0
+            rv.orbitCenter.set(0.0)
+        }
+    }
+
+    private fun loadTextures(scene: Entity, srcFile: FileReference) {
+        val sceneMaterials = AssetThumbHelper.collectMaterials(scene)
+        val sceneTextures = HashSet(sceneMaterials.flatMap(AssetThumbHelper::listTextures))
+        removeMissingTextures(sceneTextures, srcFile)
+        for (i in 0 until 3) { // make sure both are loaded
+            AssetThumbHelper.waitForMeshes(scene)
+            waitForTextures(sceneTextures)
+        }
+    }
+
     @JvmStatic
     fun generateEntityFrame(
         srcFile: FileReference,
@@ -92,13 +142,7 @@ object AssetThumbnails {
         callback: Callback<ITexture2D>
     ) {
         // todo draw gui (colliders), entity positions
-        val sceneMaterials = AssetThumbHelper.collectMaterials(scene)
-        val sceneTextures = HashSet(sceneMaterials.flatMap(AssetThumbHelper::listTextures))
-        removeTextures(sceneTextures, srcFile)
-        for (i in 0 until 3) { // make sure both are loaded
-            AssetThumbHelper.waitForMeshes(scene)
-            waitForTextures(sceneTextures)
-        }
+        loadTextures(scene, srcFile)
         scene.validateTransform()
         val bounds = getBoundsForRendering(scene)
         ThumbsRendering.renderToImage(
@@ -110,42 +154,7 @@ object AssetThumbnails {
             GFX.checkIsGFXThread()
             val rv = rv
             val cam = rv.editorCamera
-            if (!bounds.isEmpty() && bounds.volume.isFinite()) {
-                rv.radius = 100.0 * bounds.maxDelta
-                bounds.getCenter(rv.orbitCenter)
-                rv.updateEditorCameraTransform()
-                rv.setRenderState()
-                // calculate ideal transform like previously
-                // for that, calculate bounds on screen, then rescale/recenter
-                val visualBounds = AABBf()
-                val tmp = Matrix4x3d()
-                val totalMatrix = Matrix4f()
-                val vec0 = Vector3f()
-                val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform)
-
-                fun addMesh(mesh: IMesh?, transform: Transform) {
-                    if (mesh !is Mesh) return
-                    // calculate transform
-                    val pos = mesh.positions ?: return
-                    val modelMatrix = transform.globalTransform
-                    totalMatrix.set(cameraMatrix.mul(modelMatrix, tmp))
-                    // to do for performance first check if bounds would be increasing the size
-                    for (i in pos.indices step 3) {
-                        vec0.set(pos, i).mulProject(totalMatrix)
-                        visualBounds.union(vec0)
-                    }
-                }
-                scene.forAll {
-                    when (it) {
-                        is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: scene.transform)
-                        is MeshSpawner -> it.forEachMesh { mesh, _, transform -> addMesh(mesh, transform) }
-                    }
-                }
-                rv.radius = 400.0 * max(visualBounds.deltaX, visualBounds.deltaY).toDouble()
-            } else {
-                rv.radius = 1.0
-                rv.orbitCenter.set(0.0)
-            }
+            findFramingRadius(scene, bounds)
             rv.near = rv.radius * 0.01
             rv.far = rv.radius * 2.0
             rv.updateEditorCameraTransform()
@@ -156,7 +165,8 @@ object AssetThumbnails {
                 rv.pipeline.clear()
                 rv.pipeline.fill(scene)
                 rv.setRenderState()
-                rv.pipeline.singlePassWithoutSky(true)
+                GFXState.currentBuffer.clearColor(0, depth = true)
+                rv.pipeline.singlePassWithoutSky()
             }
         }
     }
@@ -173,7 +183,7 @@ object AssetThumbnails {
             waitForTextures(textures) {
                 ThumbsRendering.renderMultiWindowImage(
                     srcFile, dstFile, materials.size, size, false,
-                    Renderers.previewRenderer, callback
+                    renderer, callback
                 ) { it, _ ->
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
@@ -219,15 +229,8 @@ object AssetThumbnails {
         val modelMatrix = AssetThumbHelper.createModelMatrix()
         collider.findModelMatrix(cameraMatrix, modelMatrix, centerMesh = true, normalizeScale = true)
         ThumbsRendering.renderToImage(
-            srcFile,
-            false,
-            dstFile,
-            true,
-            Renderers.previewRenderer,
-            true,
-            callback,
-            size,
-            size
+            srcFile, false, dstFile, true,
+            renderer, true, callback, size, size
         ) {
             collider.drawAssimp(cameraMatrix, modelMatrix)
         }
@@ -262,42 +265,7 @@ object AssetThumbnails {
     @JvmStatic
     private fun generateMeshFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        comp: MeshComponentBase, callback: Callback<ITexture2D>
-    ) {
-        val mesh = comp.getMesh() as? Mesh
-        if (mesh == null) {
-            LOGGER.warn("Mesh for thumbnail missing")
-            callback.err(null)
-            return
-        }
-        mesh.checkCompleteness()
-        mesh.ensureBuffer()
-        waitForTextures(comp, mesh, srcFile) {
-            ThumbsRendering.renderToImage(
-                srcFile, false,
-                dstFile, true,
-                Renderers.simpleRenderer,
-                true, callback, size, size
-            ) {
-                GFXState.cullMode.use(CullMode.BOTH) {
-                    mesh.drawAssimp(
-                        1f, comp,
-                        useMaterials = true,
-                        centerMesh = true,
-                        normalizeScale = true
-                    )
-                }
-            }
-        }
-    }
-
-    @JvmStatic
-    private fun generateMeshFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
-        comp: Renderable,
-        callback: Callback<ITexture2D>
+        comp: Renderable, callback: Callback<ITexture2D>
     ) {
         if (comp is Component) {
             val entity = Entity()
@@ -321,7 +289,7 @@ object AssetThumbnails {
     ) {
         waitForTextures(material, srcFile) {
             ThumbsRendering.renderToImage(
-                srcFile, false, dstFile, true, Renderers.previewRenderer,
+                srcFile, false, dstFile, true, renderer,
                 true, callback, size, size
             ) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {
@@ -500,7 +468,6 @@ object AssetThumbnails {
             is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
             is Animation -> generateAnimationFrame(srcFile, dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)
-            is MeshComponentBase -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Renderable -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {

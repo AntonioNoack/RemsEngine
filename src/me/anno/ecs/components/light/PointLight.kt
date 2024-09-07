@@ -107,7 +107,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             cameraRotation
                         )
                         pipeline.fill(root)
-                        pipeline.singlePassWithoutSky(false)
+                        pipeline.singlePassWithoutSky()
                     }
                 }
             }

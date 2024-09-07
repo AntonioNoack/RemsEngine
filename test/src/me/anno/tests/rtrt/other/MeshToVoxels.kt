@@ -16,7 +16,6 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer3D
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
@@ -24,7 +23,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture3D
 import me.anno.image.thumbs.AssetThumbHelper
-import me.anno.image.thumbs.AssetThumbHelper.removeTextures
+import me.anno.image.thumbs.AssetThumbHelper.removeMissingTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
@@ -122,7 +121,7 @@ fun meshToSeparatedVoxels(
     if (waitForTextures) {
         val materials = mesh.materials
         val textures = HashSet(materials.flatMap(AssetThumbHelper::listTextures))
-        removeTextures(textures, mesh.ref)
+        removeMissingTextures(textures, mesh.ref)
         waitForTextures(textures)
     }
     GFXState.depthMode.use(DepthMode.FORWARD_ALWAYS) {

@@ -24,7 +24,9 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
     }
 
     var entity: Entity? = null
-    var mesh: Mesh? = null
+    var streetMesh: Mesh? = null
+    // todo extra mesh for decorations
+    // todo extra mesh for road markings
 
     data class DistanceHit(val distance: Double, val t: Double) : Comparable<DistanceHit> {
         override fun compareTo(other: DistanceHit): Int {

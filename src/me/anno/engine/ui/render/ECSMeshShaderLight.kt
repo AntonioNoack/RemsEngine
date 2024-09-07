@@ -36,6 +36,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
                     metallicMap == InvalidRef && metallicMinMax.x == 0f &&
                     occlusionMap == InvalidRef && !Input.isShiftDown
         }
+
         private val randomIdStage = ShaderStage(
             "randomId", listOf(
                 Variable(GLSLType.V2I, "randomIdData", VariableMode.IN), // vertices/instance, random offset
@@ -253,8 +254,7 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
 
     override fun createForwardShader(key: ShaderKey): Shader {
         val shader = createBase(key).create(key, "l-fwd${key.flags}-${key.renderer.nameDesc.englishName}")
-        finish(shader)
-        return shader
+        return finish(shader, key)
     }
 
     override fun createDeferredShader(key: ShaderKey): Shader {
@@ -262,7 +262,6 @@ open class ECSMeshShaderLight(name: String) : BaseShader(name, "", emptyList(), 
         base.settings = key.renderer.deferredSettings
         // build & finish
         val shader = base.create(key, "l-def${key.flags}-${key.renderer.nameDesc.englishName}")
-        finish(shader)
-        return shader
+        return finish(shader, key)
     }
 }

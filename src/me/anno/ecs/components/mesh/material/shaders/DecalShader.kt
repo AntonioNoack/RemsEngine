@@ -174,7 +174,6 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
         base.disabledLayers = getDisabledLayers(base.settings)
         // build & finish
         val shader = base.create(key, "dcl${key.flags}")
-        finish(shader)
-        return shader
+        return finish(shader, key)
     }
 }

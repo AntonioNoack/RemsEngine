@@ -27,7 +27,6 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredSettings
@@ -205,10 +204,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         }
     }
 
-    fun singlePassWithoutSky(needsClear: Boolean) {
-        if (needsClear) {
-            GFXState.currentBuffer.clearColor(0)
-        }
+    fun singlePassWithoutSky() {
         drawCallId = 0
         defaultStage.bind {
             for (i in stages.indices) {

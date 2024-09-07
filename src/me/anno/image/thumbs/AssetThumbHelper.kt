@@ -167,10 +167,6 @@ object AssetThumbHelper {
         } else false
     }
 
-    fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
-        waitForTextures(comp.materials, mesh, srcFile, callback)
-    }
-
     fun waitForTextures(comp: List<FileReference>, mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
         // wait for all textures
         iterateMaterials(comp, mesh.materials)
@@ -181,7 +177,7 @@ object AssetThumbHelper {
                     err?.printStackTrace()
                     if (res != null) {
                         val textures = res.flatten().toHashSet()
-                        removeTextures(textures, srcFile)
+                        removeMissingTextures(textures, srcFile)
                         waitForTextures(textures, callback)
                     } else {
                         callback()
@@ -193,18 +189,11 @@ object AssetThumbHelper {
         waitForTextures(emptyList(), mesh, srcFile, callback)
     }
 
-    fun waitForTextures(entity: Entity, srcFile: FileReference, callback: () -> Unit) {
-        collectTextures(entity, srcFile) { textures ->
-            waitForTextures(textures, callback)
-        }
+    fun removeMissingTextures(textures: MutableSet<FileReference>, srcFile: FileReference) {
+        textures.removeAll { it == InvalidRef || isTextureFileMissing(it, srcFile) }
     }
 
-    fun removeTextures(textures: MutableSet<FileReference>, srcFile: FileReference) {
-        textures.removeAll { it == InvalidRef }
-        textures.removeAll { removeMissingTextureFile(it, srcFile) }
-    }
-
-    private fun removeMissingTextureFile(it: FileReference, srcFile: FileReference): Boolean {
+    private fun isTextureFileMissing(it: FileReference, srcFile: FileReference): Boolean {
         return if (!it.exists) {
             LOGGER.warn("Missing texture $it by $srcFile")
             true
@@ -217,10 +206,6 @@ object AssetThumbHelper {
             // does the CPU part -> not perfect, but maybe good enough
             it.getMesh()
         }
-    }
-
-    fun collectTextures(entity: Entity, srcFile: FileReference, callback: (Collection<FileReference>) -> Unit) {
-        listTextures(collectMaterials(entity).toList(), srcFile, callback)
     }
 
     fun collectMaterials(entity: Entity): HashSet<FileReference> {
@@ -266,7 +251,7 @@ object AssetThumbHelper {
             { _, matRef, cb -> listTextures(matRef, cb) },
             { res, err ->
                 val textures = HashSet((res ?: emptyList()).flatten())
-                removeTextures(textures, srcFile)
+                removeMissingTextures(textures, srcFile)
                 callback(textures)
                 err?.printStackTrace()
             })
@@ -280,7 +265,7 @@ object AssetThumbHelper {
         // listing all textures
         // does not include personal materials / shaders...
         val textures = material.listTextures().toHashSet()
-        removeTextures(textures, srcFile)
+        removeMissingTextures(textures, srcFile)
         waitForTextures(textures, callback)
     }
 

@@ -596,10 +596,11 @@ class PipelineStageImpl(
 
         // instanced rendering of all kinds
         for (i in instances.indices) {
-            val (dt, di, dc) = instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
-            drawnPrimitives += dt
-            drawnInstances += di
-            drawCalls += dc
+            val (drawPrimitivesI, drawInstancesI, drawCallsI) =
+                instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+            drawnPrimitives += drawPrimitivesI
+            drawnInstances += drawInstancesI
+            drawCalls += drawCallsI
         }
 
         clearLastElements()

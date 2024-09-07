@@ -235,7 +235,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                         val root = rootOverride ?: entity.getRoot(Entity::class)
                         pipeline.fill(root)
                         result.clearColor(0, depth = true)
-                        pipeline.singlePassWithoutSky(false)
+                        pipeline.singlePassWithoutSky()
                     }
                 }
             }

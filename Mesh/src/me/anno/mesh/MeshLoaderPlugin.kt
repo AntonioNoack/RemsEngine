@@ -21,7 +21,7 @@ class MeshLoaderPlugin : Plugin() {
     override fun onEnable() {
 
         // read as folder
-        InnerFolderCache.registerSignatures("fbx,gltf,dae,draco,md2,md5mesh,ply") { it, c ->
+        InnerFolderCache.registerSignatures("fbx,gltf,dae,draco,md2,md5mesh,ply,json") { it, c ->
             c.ok(AnimatedMeshesLoader.readAsFolder(it))
         }
         InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
@@ -37,7 +37,7 @@ class MeshLoaderPlugin : Plugin() {
 
         // thumbnails
         Thumbs.registerSignatures(
-            "blend,mitsuba-scene,mitsuba-meshes,maya,obj,fbx,gltf,glb,dae,ply,md2,md5mesh",
+            "blend,mitsuba-scene,mitsuba-meshes,maya,obj,fbx,gltf,json,glb,dae,ply,md2,md5mesh",
             AssetThumbnails::generateAssetFrame
         )
         Thumbs.registerFileExtensions("mtl", ::generateMTLThumbnail)

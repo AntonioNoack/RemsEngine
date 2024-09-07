@@ -44,7 +44,10 @@ class BooleanInput(
     override var isInputAllowed
         get() = checkView.isInputAllowed
         set(value) {
-            titleView?.setTextAlpha(if (value) 1f else 0.5f)
+            if (titleView != null) {
+                titleView.setTextAlpha(if (value) 1f else 0.5f)
+                titleView.enableHoverColor = value
+            }
             checkView.isInputAllowed = value
             invalidateDrawing()
         }
