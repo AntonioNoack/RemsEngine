@@ -82,7 +82,7 @@ object LineShapes {
         val dirY = JomlPools.vec3d.create()
         dirZ.findSystem(dirX, dirY)
 
-        val to2 = from.lerp(to, 0.7, JomlPools.vec3d.create())
+        val to2 = from.mix(to, 0.7, JomlPools.vec3d.create())
         dirX.normalize(length * 0.15)
         dirY.normalize(length * 0.15)
 
@@ -279,7 +279,7 @@ object LineShapes {
         // the most important thing with splitting is that the number is even, so the center is on the true center
         val pieces = 16
         for (i in 0 until pieces) {
-            p0.lerp(p1, (i + 1.0) / pieces, pj)
+            p0.mix(p1, (i + 1.0) / pieces, pj)
             putRelativeLine(pi, pj, color)
             pi.set(pj)
         }
@@ -303,7 +303,7 @@ object LineShapes {
         // the most important thing with splitting is that the number is even, so the center is on the true center
         val pieces = 16
         for (i in 0 until pieces) {
-            p0.lerp(p1, (i + 1f) / pieces, pj)
+            p0.mix(p1, (i + 1f) / pieces, pj)
             putRelativeLine(pi, pj, color)
             pi.set(pj)
         }
@@ -489,7 +489,7 @@ object LineShapes {
 
         fun drawRing(fraction: Double) {
 
-            p0.lerp(p1, fraction, tmp)
+            p0.mix(p1, fraction, tmp)
             val radius = mix(r0, r1, fraction)
             if (radius == 0.0) return
 

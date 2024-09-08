@@ -62,7 +62,7 @@ class AgentController1b(
         np.set(nextPos)
         val lp = entity.position
         val dt = Time.deltaTime
-        np.lerp(lp, dtTo01(dt * 3.0))
+        np.mix(lp, dtTo01(dt * 3.0))
         upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))
         entity.rotation = entity.rotation
             .identity()

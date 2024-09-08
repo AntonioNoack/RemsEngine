@@ -22,14 +22,16 @@ class SplineControlPoint : Component() {
             ?.invalidateMesh()
     }
 
+    private val localTransform get() = transform!!.localTransform
+
     fun getLocalPosition(dst: Vector3d, fx: Double, fz: Double = 0.0): Vector3d =
-        transform!!.localTransform.transformPosition(dst.set(fx * width, 0.0, fz * width))
+        localTransform.transformPosition(dst.set(fx * width, 0.0, fz * width))
 
     fun getLocalForward(dst: Vector3d): Vector3d =
-        transform!!.localTransform.transformDirection(dst.set(0.0, 0.0, 1.0))
+        localTransform.transformDirection(dst.set(0.0, 0.0, 1.0))
 
     fun getLocalUp(dst: Vector3d): Vector3d =
-        transform!!.localTransform.transformDirection(dst.set(0.0, 1.0, 0.0))
+        localTransform.transformDirection(dst.set(0.0, 1.0, 0.0))
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

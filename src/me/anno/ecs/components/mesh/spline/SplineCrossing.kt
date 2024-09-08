@@ -141,7 +141,7 @@ class SplineCrossing : ProceduralMesh() {
                 createPoint(s0, false),
             )
             // (left, right)^n
-            val splinePoints = SplineMesh.generateSplinePoints(points, pointsPerRadiant, isClosed = false)
+            val splinePoints = Splines.generateSplinePoints(points, pointsPerRadiant, isClosed = false)
             if (coverTop || coverBottom) {
                 centerPoints.ensureCapacity(centerPoints.size + splinePoints.size.shr(1))
                 for (i in splinePoints.size.shr(1) - 1 downTo 0) {

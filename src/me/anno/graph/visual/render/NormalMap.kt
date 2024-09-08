@@ -23,7 +23,7 @@ class NormalMap : CalculationNode(
         val rgb = getInput(4) as Vector3f
         val m = Matrix3f(tangent, bitangent, normal)
         val normalFromTex = Vector3f(rgb).mul(2f).sub(1f, 1f, 1f).mul(m) // transpose??
-        return normal.lerp(normalFromTex, strength, normalFromTex)
+        return normal.mix(normalFromTex, strength, normalFromTex)
     }
 
     override fun getShaderFuncName(outputIndex: Int) = "normalMapNode"

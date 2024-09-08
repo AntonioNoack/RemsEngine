@@ -75,7 +75,7 @@ object Distances {
     fun rayLineDistance(pos: Vector3d, dir: Vector3d, a: Vector3d, b: Vector3d): Double {
         val ts = rayRayClosestTs(pos, dir, a, b - a)
         val D = pos + dir * max(ts.x, 0.0)
-        val E = a.lerp(b, ts.y, Vector3d())
+        val E = a.mix(b, ts.y, Vector3d())
         return D.distance(E)
     }
 
@@ -87,15 +87,15 @@ object Distances {
     fun raySegmentDistance(pos: Vector3d, dir: Vector3d, a: Vector3d, b: Vector3d): Double {
         val ts = rayRayClosestTs(pos, dir, a, b - a)
         val closest0 = pos + dir * max(ts.x, 0.0)
-        val closest1 = a.lerp(b, clamp(ts.y), Vector3d())
+        val closest1 = a.mix(b, clamp(ts.y), Vector3d())
         return closest0.distance(closest1)
     }
 
     // todo test this
     fun segmentSegmentDistance(a0: Vector3d, b0: Vector3d, a1: Vector3d, b1: Vector3d): Double {
         val ts = rayRayClosestTs(a0, b0 - a0, a1, b1 - a1)
-        val closest0 = a0.lerp(b0, clamp(ts.x), Vector3d())
-        val closest1 = a1.lerp(b1, clamp(ts.y), Vector3d())
+        val closest0 = a0.mix(b0, clamp(ts.x), Vector3d())
+        val closest1 = a1.mix(b1, clamp(ts.y), Vector3d())
         return closest0.distance(closest1)
     }
 

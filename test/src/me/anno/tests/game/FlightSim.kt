@@ -247,7 +247,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             val dst = base0.transform
             val src = plane.transform
             dst.localPosition = dst.localPosition
-                .lerp(src.localPosition, dtTo01(10f * Time.deltaTime))
+                .mix(src.localPosition, dtTo01(10f * Time.deltaTime))
             dst.localRotation = dst.localRotation.slerp(
                 Quaterniond().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3d()).y),
                 dtTo01(2f * Time.deltaTime)

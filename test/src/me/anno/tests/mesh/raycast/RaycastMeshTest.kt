@@ -68,7 +68,7 @@ object RaycastMeshTest {
     @Test
     fun testEdgeCasesInside() {
         mesh.forEachLine { a, b ->
-            val dir = a.lerp(b, 0.5f)
+            val dir = a.mix(b, 0.5f)
             val pos = b.set(0f)
             checkHit(mesh, pos, dir, 2f, -1, 1f, null)
         }
@@ -77,7 +77,7 @@ object RaycastMeshTest {
     @Test
     fun testEdgeCasesOutside() {
         mesh.forEachLine { a, b ->
-            val dir = a.lerp(b, 0.5f)
+            val dir = a.mix(b, 0.5f)
             val pos = a.mul(-3f, b)
             checkHit(mesh, pos, dir, 3f, -1, 2f, null)
         }

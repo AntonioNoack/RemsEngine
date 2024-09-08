@@ -52,8 +52,8 @@ object PlaneModel {
         var j = 0
         for (iv in 0 until sv) {
             val v = iv * fv
-            p00.lerp(p01, v, tmpV0)
-            p10.lerp(p11, v, tmpV1)
+            p00.mix(p01, v, tmpV0)
+            p10.mix(p11, v, tmpV1)
             tmpV1.sub(tmpV0).mul(fu)
             for (iu in 0 until su) {
                 positions[i++] = tmpV0.x

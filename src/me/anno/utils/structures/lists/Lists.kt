@@ -596,11 +596,16 @@ object Lists {
 
     @JvmStatic
     fun <V> List<V>.weightedRandomIndex(random: Random, getWeight: VtoD<V>): Int {
+        return weightedIndex(random.nextDouble(), getWeight)
+    }
+
+    @JvmStatic
+    fun <V> List<V>.weightedIndex(index: Double, getWeight: VtoD<V>): Int {
         var sum = 0.0
         for (i in indices) {
             sum += getWeight.call(this[i])
         }
-        sum *= random.nextDouble()
+        sum *= index
         for (i in indices) {
             sum -= getWeight.call(this[i])
             if (sum <= 0.0) return i

@@ -544,13 +544,17 @@ open class Matrix2f {
         return dst
     }
 
-    @JvmOverloads
-    fun lerp(other: Matrix2f, t: Float, dst: Matrix2f = this): Matrix2f {
+    fun mix(other: Matrix2f, t: Float, dst: Matrix2f = this): Matrix2f {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01
         dst.m10 = (other.m10 - m10) * t + m10
         dst.m11 = (other.m11 - m11) * t + m11
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Matrix2f, t: Float, dst: Matrix2f = this): Matrix2f {
+        return lerp(other, t, dst)
     }
 
     val isFinite: Boolean

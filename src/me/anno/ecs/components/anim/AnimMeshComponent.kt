@@ -218,7 +218,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             } else if (relativeWeight > 0f) {
                 val matrix = animation.getMappedMatricesSafely(frameIndex, tmpMapping1, skeleton)
                 for (j in matrices.indices) {
-                    matrices[j].lerp(matrix[j], relativeWeight)
+                    matrices[j].mix(matrix[j], relativeWeight)
                 }
             }
             sumWeight += max(0f, weight)
@@ -245,7 +245,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
                 matrices = animation.getMappedMatrixSafely(frameIndex, boneId, tmpMapping0, skeleton)
             } else if (relativeWeight > 0f) {
                 val matrix = animation.getMappedMatrixSafely(frameIndex, boneId, tmpMapping1, skeleton)
-                matrices.lerp(matrix, relativeWeight)
+                matrices.mix(matrix, relativeWeight)
             }
             sumWeight += max(0f, weight)
         }

@@ -338,13 +338,13 @@ object Maths {
     fun mix(a: Double, b: Double, f: Float, g: Float) = a * g + b * f
 
     @JvmStatic
-    fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f): Vector2f = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f): Vector2f = a.mix(b, f.toFloat(), dst)
 
     @JvmStatic
-    fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f): Vector3f = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f): Vector3f = a.mix(b, f.toFloat(), dst)
 
     @JvmStatic
-    fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f): Vector4f = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f): Vector4f = a.mix(b, f.toFloat(), dst)
 
     @JvmStatic
     fun mixRandomly(a: Int, b: Int, f: Float): Int {

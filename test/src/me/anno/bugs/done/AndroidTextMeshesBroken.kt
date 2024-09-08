@@ -92,7 +92,7 @@ fun arrow(from: Vector2f, to: Vector2f, color: Int): List<ImageWriter.ColoredLin
         val dx = (from.y - to.y) * s
         val dy = (to.x - from.x) * s
         ImageWriter.ColoredLine(
-            to.lerp(from, 0.4f, Vector2f()).add(dx, dy),
+            to.mix(from, 0.4f, Vector2f()).add(dx, dy),
             to, color.withAlpha(255), 0
         )
     }

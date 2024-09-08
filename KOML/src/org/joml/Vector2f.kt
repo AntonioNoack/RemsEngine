@@ -22,6 +22,7 @@ open class Vector2f(
     constructor(v: Vector2f) : this(v.x, v.y)
     constructor(v: Vector2i) : this(v.x, v.y)
     constructor(x: Int, y: Int) : this(x.toFloat(), y.toFloat())
+    constructor(x: Double, y: Double) : this(x.toFloat(), y.toFloat())
     constructor(xy: FloatArray, offset: Int) : this(xy[offset], xy[offset + 1])
     constructor(xy: FloatArray) : this(xy, 0)
     constructor(v: Vector2d) : this(v.x.toFloat(), v.y.toFloat())
@@ -176,11 +177,15 @@ open class Vector2f(
     fun mulDirection(mat: Matrix3x2f, dst: Vector2f = this) =
         dst.set(mat.m00 * x + mat.m10 * y, mat.m01 * x + mat.m11 * y)
 
-    @JvmOverloads
-    fun lerp(other: Vector2f, t: Float, dst: Vector2f = this): Vector2f {
+    fun mix(other: Vector2f, t: Float, dst: Vector2f = this): Vector2f {
         dst.x = x + (other.x - x) * t
         dst.y = y + (other.y - y) * t
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Vector2f, t: Float, dst: Vector2f = this): Vector2f {
+        return mix(other, t, dst)
     }
 
     override fun hashCode(): Int {

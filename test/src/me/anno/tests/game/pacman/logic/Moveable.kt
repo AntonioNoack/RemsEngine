@@ -32,7 +32,7 @@ abstract class Moveable(var current: Node) {
     }
 
     private fun updatePosition() {
-        current.position.lerp(next.position, progress, currPosition)
+        current.position.mix(next.position, progress, currPosition)
     }
 
     abstract fun findNext(): Node

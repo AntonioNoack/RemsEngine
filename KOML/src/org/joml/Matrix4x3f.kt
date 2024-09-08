@@ -4229,8 +4229,7 @@ open class Matrix4x3f {
         return this.transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
-    @JvmOverloads
-    fun lerp(other: Matrix4x3f, t: Float, dst: Matrix4x3f = this): Matrix4x3f {
+    fun mix(other: Matrix4x3f, t: Float, dst: Matrix4x3f = this): Matrix4x3f {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01
         dst.m02 = (other.m02 - m02) * t + m02
@@ -4245,6 +4244,11 @@ open class Matrix4x3f {
         dst.m32 = (other.m32 - m32) * t + m32
         dst.flags = flags and other.properties()
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Matrix4x3f, t: Float, dst: Matrix4x3f = this): Matrix4x3f {
+        return mix(other, t, dst)
     }
 
     fun rotateTowards(dir: Vector3f, up: Vector3f, dst: Matrix4x3f): Matrix4x3f {

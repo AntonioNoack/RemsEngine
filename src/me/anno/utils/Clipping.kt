@@ -36,7 +36,7 @@ object Clipping {
         // linear combination, such that the new value is cuttingPoint
         val d1 = abs(val0 - cuttingPoint)
         val d2 = abs(val1 - cuttingPoint)
-        return Vector4f(v0).lerp(v1, d1 / (d1 + d2))
+        return Vector4f(v0).mix(v1, d1 / (d1 + d2))
     }
 
     @JvmStatic

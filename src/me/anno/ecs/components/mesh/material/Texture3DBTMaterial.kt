@@ -43,8 +43,8 @@ open class Texture3DBTMaterial : Material() {
         val f0 = 1f + 1f / div
         val f1 = 1f - 255f / div
         val tmp = JomlPools.vec3f.borrow().set(color0)
-        color0.lerp(color1, 1f - f0)
-        color1.lerp(tmp, f1)
+        color0.mix(color1, 1f - f0)
+        color1.mix(tmp, f1)
     }
 
     override fun bind(shader: GPUShader) {

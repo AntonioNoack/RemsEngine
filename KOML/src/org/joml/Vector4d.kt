@@ -757,12 +757,17 @@ open class Vector4d(
         return dst
     }
 
-    fun lerp(other: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
+    fun mix(other: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
         dst.x = (other.x - x) * t + x
         dst.y = (other.y - y) * t + y
         dst.z = (other.z - z) * t + z
         dst.w = (other.w - w) * t + w
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
+        return mix(other, t, dst)
     }
 
     operator fun get(component: Int): Double {

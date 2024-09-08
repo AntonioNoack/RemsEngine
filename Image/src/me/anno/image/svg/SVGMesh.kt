@@ -360,29 +360,29 @@ class SVGMesh {
                                     // add tripe from x to nx
                                     if (x == ai) {
                                         // add left triangle
-                                        val ab = Vector2f(a).lerp(b, unmix(ai, bi, nx))
-                                        val ac = Vector2f(a).lerp(c, unmix(ai, ci, nx))
+                                        val ab = Vector2f(a).mix(b, unmix(ai, bi, nx))
+                                        val ac = Vector2f(a).mix(c, unmix(ai, ci, nx))
                                         tri(a, ab, ac, swap)
                                     } else if (nx == bi) {
                                         // add right triangle
-                                        val ab = Vector2f(a).lerp(b, unmix(ai, bi, x))
-                                        val bc = Vector2f(b).lerp(c, unmix(bi, ci, x))
+                                        val ab = Vector2f(a).mix(b, unmix(ai, bi, x))
+                                        val bc = Vector2f(b).mix(c, unmix(bi, ci, x))
                                         tri(ab, b, bc, swap)
                                     } else if (nx <= ci) {
                                         val r0 = Vector2f(c)
                                         val r1 = Vector2f(c)
                                         if (nx <= ci) {
                                             // add quad on left side
-                                            r0.lerp(a, unmix(ci, ai, x))
-                                            r1.lerp(a, unmix(ci, ai, nx))
+                                            r0.mix(a, unmix(ci, ai, x))
+                                            r1.mix(a, unmix(ci, ai, nx))
                                         } else {
                                             // add quad on left side
-                                            r0.lerp(b, unmix(ci, bi, x))
-                                            r1.lerp(b, unmix(ci, bi, nx))
+                                            r0.mix(b, unmix(ci, bi, x))
+                                            r1.mix(b, unmix(ci, bi, nx))
                                         }
                                         // add quad
-                                        val q0 = Vector2f(a).lerp(b, unmix(ai, bi, x))
-                                        val q1 = Vector2f(a).lerp(b, unmix(ai, bi, nx))
+                                        val q0 = Vector2f(a).mix(b, unmix(ai, bi, x))
+                                        val q1 = Vector2f(a).mix(b, unmix(ai, bi, nx))
                                         quad(q0, q1, r1, r0, swap)
                                     }
                                     if (nx == bi) break

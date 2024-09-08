@@ -98,9 +98,9 @@ open class MeshCollider() : Collider() {
             meshTransform.transformPosition(b)
             meshTransform.transformPosition(c)
             mid.set(a).add(b).add(c).mul(thirdF)
-            a.lerp(mid, scaleUp)
-            b.lerp(mid, scaleUp)
-            c.lerp(mid, scaleUp)
+            a.mix(mid, scaleUp)
+            b.mix(mid, scaleUp)
+            c.mix(mid, scaleUp)
             // check collision of localStart-localEnd with triangle a,b,c
             val localDistance = Triangles.rayTriangleIntersection(
                 query.start, query.direction, a, b, c,

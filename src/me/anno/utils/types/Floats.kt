@@ -146,7 +146,7 @@ object Floats {
 
     @JvmStatic
     fun Double.toIntOr(ifNaN: Int = 0): Int {
-        return if (isFinite()) ifNaN
+        return if (isNaN()) ifNaN
         else toInt()
     }
 

@@ -257,7 +257,7 @@ class VRHandController : Component(), OnUpdate {
                 val extraHeight = if (mayTeleport) 0.05 * distance else 0.0
                 for (i in lineRenderer.points.indices) {
                     val f = i / (lineRenderer.points.size - 1.0)
-                    controller.position.lerp(hitPosition, f, tmp)
+                    controller.position.mix(hitPosition, f, tmp)
                     tmp.y += extraHeight * (1.0 - sq(2.0 * f - 1.0))
                     invTransform.transformPosition(tmp) // global -> local
                     lineRenderer.points[i].set(tmp)

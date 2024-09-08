@@ -53,7 +53,7 @@ class PacmanControls(
             )
             rot.identity().rotateY(angle.toDouble())
         }
-        prevPosition.lerp(currPosition, mixDt)
+        prevPosition.mix(currPosition, mixDt)
         transform.localPosition = pos
         transform.localRotation = rot
         transform.smoothUpdate()

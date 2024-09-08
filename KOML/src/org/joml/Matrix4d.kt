@@ -7068,18 +7068,30 @@ open class Matrix4d {
         return this.transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
-    @JvmOverloads
-    fun lerp(b: Matrix4d, t: Double, dst: Matrix4d = this): Matrix4d {
-        dst._m00((b.m00 - m00) * t + m00)._m01((b.m01 - m01) * t + m01)
-            ._m02((b.m02 - m02) * t + m02)._m03((b.m03 - m03) * t + m03)
-            ._m10((b.m10 - m10) * t + m10)._m11((b.m11 - m11) * t + m11)
-            ._m12((b.m12 - m12) * t + m12)._m13((b.m13 - m13) * t + m13)
-            ._m20((b.m20 - m20) * t + m20)._m21((b.m21 - m21) * t + m21)
-            ._m22((b.m22 - m22) * t + m22)._m23((b.m23 - m23) * t + m23)
-            ._m30((b.m30 - m30) * t + m30)._m31((b.m31 - m31) * t + m31)
-            ._m32((b.m32 - m32) * t + m32)._m33((b.m33 - m33) * t + m33)
-            ._properties(flags and b.properties())
+    fun mix(other: Matrix4d, t: Double, dst: Matrix4d = this): Matrix4d {
+        dst.m00 = (other.m00 - m00) * t + m00
+        dst.m01 = (other.m01 - m01) * t + m01
+        dst.m02 = (other.m02 - m02) * t + m02
+        dst.m03 = (other.m03 - m03) * t + m03
+        dst.m10 = (other.m10 - m10) * t + m10
+        dst.m11 = (other.m11 - m11) * t + m11
+        dst.m12 = (other.m12 - m12) * t + m12
+        dst.m13 = (other.m13 - m13) * t + m13
+        dst.m20 = (other.m20 - m20) * t + m20
+        dst.m21 = (other.m21 - m21) * t + m21
+        dst.m22 = (other.m22 - m22) * t + m22
+        dst.m23 = (other.m23 - m23) * t + m23
+        dst.m30 = (other.m30 - m30) * t + m30
+        dst.m31 = (other.m31 - m31) * t + m31
+        dst.m32 = (other.m32 - m32) * t + m32
+        dst.m33 = (other.m33 - m33) * t + m33
+        dst.flags = flags and other.properties()
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Matrix4d, t: Double, dst: Matrix4d = this): Matrix4d {
+        return mix(other, t, dst)
     }
 
     fun rotateTowards(direction: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {

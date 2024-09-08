@@ -743,18 +743,16 @@ open class Vector3d(
         return dst
     }
 
-    fun lerp(other: Vector3d, t: Double): Vector3d {
-        x = (other.x - x) * t + x
-        y = (other.y - y) * t + y
-        z = (other.z - z) * t + z
-        return this
-    }
-
-    fun lerp(other: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
+    fun mix(other: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
         dst.x = (other.x - x) * t + x
         dst.y = (other.y - y) * t + y
         dst.z = (other.z - z) * t + z
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
+        return mix(other, t, dst)
     }
 
     operator fun get(component: Int): Double {

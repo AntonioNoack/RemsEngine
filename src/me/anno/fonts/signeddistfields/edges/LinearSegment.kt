@@ -13,7 +13,7 @@ import kotlin.math.abs
 
 class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
-    override fun getPointAt(t: Float, dst: Vector2f): Vector2f = dst.set(p0).lerp(p1, t)
+    override fun getPointAt(t: Float, dst: Vector2f): Vector2f = dst.set(p0).mix(p1, t)
 
     override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = dst.set(p1).sub(p0)
 

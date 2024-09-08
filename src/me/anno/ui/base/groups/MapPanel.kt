@@ -122,7 +122,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         if (target.distanceSquared(center) > 1e-5) {
             invalidateLayout()
         }
-        center.lerp(target, dtx)
+        center.mix(target, dtx)
         super.onUpdate()
     }
 

@@ -29,7 +29,7 @@ class ImportedAnimation : Animation() {
         val frame1 = frames[index1]
 
         for (i in 0 until min(dst.size, min(frame0.size, frame1.size))) {
-            frame0[i].lerp(frame1[i], fraction, dst[i])
+            frame0[i].mix(frame1[i], fraction, dst[i])
         }
 
         return dst
@@ -41,7 +41,7 @@ class ImportedAnimation : Animation() {
         val frame0 = frames[index0]
         val frame1 = frames[index1]
         if (boneId < min(frame0.size, frame1.size)) {
-            frames[index0][boneId].lerp(frames[index1][boneId], fraction, dstI)
+            frames[index0][boneId].mix(frames[index1][boneId], fraction, dstI)
         }
         return dst[boneId]
     }

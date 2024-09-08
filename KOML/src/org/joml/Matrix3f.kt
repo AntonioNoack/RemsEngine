@@ -1560,8 +1560,7 @@ open class Matrix3f {
         return this
     }
 
-    @JvmOverloads
-    fun lerp(other: Matrix3f, t: Float, dst: Matrix3f = this): Matrix3f {
+    fun mix(other: Matrix3f, t: Float, dst: Matrix3f = this): Matrix3f {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01
         dst.m02 = (other.m02 - m02) * t + m02
@@ -1572,6 +1571,11 @@ open class Matrix3f {
         dst.m21 = (other.m21 - m21) * t + m21
         dst.m22 = (other.m22 - m22) * t + m22
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Matrix3f, t: Float, dst: Matrix3f = this): Matrix3f {
+        return mix(other, t, dst)
     }
 
     fun rotateTowards(direction: Vector3f, up: Vector3f, dst: Matrix3f): Matrix3f {

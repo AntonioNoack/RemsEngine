@@ -89,6 +89,9 @@ class TAANode : TimedRenderingNode(
 
     companion object {
 
+        /**
+         * returns 0.98 if steady, 0 if moving
+         * */
         fun getCameraSteadiness(): Float {
             val distance = RenderState.cameraPosition.distance(RenderState.prevCameraPosition)
             val relativeDistance = distance / min(RenderState.worldScale, RenderState.prevWorldScale)

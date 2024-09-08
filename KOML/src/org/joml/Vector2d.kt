@@ -194,11 +194,15 @@ open class Vector2d(
         return dst
     }
 
-    @JvmOverloads
-    fun lerp(other: Vector2d, t: Double, dst: Vector2d = this): Vector2d {
+    fun mix(other: Vector2d, t: Double, dst: Vector2d = this): Vector2d {
         dst.x = x + (other.x - x) * t
         dst.y = y + (other.y - y) * t
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Vector2d, t: Double, dst: Vector2d = this): Vector2d {
+        return mix(other, t, dst)
     }
 
     override fun hashCode(): Int {

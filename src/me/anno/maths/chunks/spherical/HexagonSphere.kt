@@ -733,7 +733,7 @@ class HexagonSphere(
             for (j in 0 until 5) {
                 val hj = hexagons1[sortOrder.shr(3 * j).and(7)]
                 pentagon.corners[j] = if (hexagonsPerSide == 0) {
-                    val target = Vector3f(vertices[i]).lerp(hj.center, -0.5f).normalize()
+                    val target = Vector3f(vertices[i]).mix(hj.center, -0.5f).normalize()
                     val hk = hexagons1[sortOrder.shr(3 * ((j + 2) % 5)).and(7)]
                     hk.corners.minByOrNull { it.distanceSquared(target) }!!
                 } else hj.corners[3]

@@ -555,12 +555,16 @@ open class Vector3f(
         return dst
     }
 
-    @JvmOverloads
-    fun lerp(other: Vector3f, t: Float, dst: Vector3f = this): Vector3f {
+    fun mix(other: Vector3f, t: Float, dst: Vector3f = this): Vector3f {
         dst.x = (other.x - x) * t + x
         dst.y = (other.y - y) * t + y
         dst.z = (other.z - z) * t + z
         return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Vector3f, t: Float, dst: Vector3f = this): Vector3f {
+        return mix(other, t, dst)
     }
 
     operator fun get(component: Int): Float {

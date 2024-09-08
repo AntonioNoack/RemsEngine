@@ -6,6 +6,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
+import me.anno.ecs.components.mesh.spline.Splines.generateSplinePoints
 import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
@@ -77,7 +78,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             }
         }
 
-    var pointsPerRadiant = 10.0
+    var pointsPerRadian = 10.0
         set(value) {
             if (field != value) {
                 field = value
@@ -121,7 +122,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
         super.copyInto(dst)
         if (dst !is SplineMesh) return
         dst.isStrictlyUp = isStrictlyUp
-        dst.pointsPerRadiant = pointsPerRadiant
+        dst.pointsPerRadian = pointsPerRadian
         dst.piecewiseLinear = piecewiseLinear
         dst.isClosed = isClosed
         dst.profile = profile
@@ -150,24 +151,16 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             return
         }
         val points = entity.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
-        val profile = profile
         when (points.size) {
-            0 -> {
-                lastWarning = "SplineMesh has no points"
+            0, 1 -> {
+                lastWarning = "SplineMesh doesn't have enough points"
                 invalidateMesh()
             }
-            1 -> {
-                lastWarning = "SplineMesh has not enough points, only one"
-                invalidateMesh()
-            }
-            2 -> generateLinearMesh(
-                points[0], points[1], mesh,
-                profile, isClosed, closedStart, closedEnd, isStrictlyUp
-            )
             else -> {
                 lastWarning = null
                 if (piecewiseLinear) {
                     val list = ArrayList<Mesh>()
+                    val profile = profile
                     for (i in 1 until points.size) {
                         list.add(
                             generateLinearMesh(
@@ -180,7 +173,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     merge(list, mesh)
                 } else {
                     generateSplineMesh(
-                        points, pointsPerRadiant, mesh,
+                        points, pointsPerRadian, mesh,
                         profile, isClosed, closedStart, closedEnd, isStrictlyUp
                     )
                 }
@@ -202,29 +195,6 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 p1.getLocalPosition(Vector3d(), +1.0),
             )
         )
-
-        fun generateSplinePoints(
-            points: List<SplineControlPoint>,
-            perRadiant: Double,
-            isClosed: Boolean,
-        ): List<Vector3d> {
-            val capacity = points.size + isClosed.toInt()
-            val posNormals = createArrayList(capacity * 4) { Vector3d() }
-            for (i in 0 until capacity) {
-                val i4 = i * 4
-                val pt = points[posMod(i, points.size)]
-                pt.getLocalPosition(posNormals[i4], -1.0)
-                pt.getLocalForward(posNormals[i4 + 1])
-                pt.getLocalPosition(posNormals[i4 + 2], +1.0)
-                pt.getLocalForward(posNormals[i4 + 3])
-                /*fun showDir(v: Vector3d, d: Vector3d) {
-                    DebugShapes.debugArrows.add(DebugLine(v, v + d * 2.0, UIColors.greenYellow, 1e3f))
-                }
-                showDir(posNormals[i4], posNormals[i4 + 1])
-                showDir(posNormals[i4 + 2], posNormals[i4 + 3])*/
-            }
-            return Splines.generateSplineLinePair(posNormals, perRadiant, isClosed)
-        }
 
         fun generateSplineMesh(
             points: List<SplineControlPoint>,

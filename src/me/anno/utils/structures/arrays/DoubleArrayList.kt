@@ -14,6 +14,7 @@ open class DoubleArrayList(initCapacity: Int) : NativeArrayList {
     }
 
     fun toArray(): DoubleArray = values.copyOf(size)
+    fun toList(): List<Double> = (0 until size).map { this[it] }
 
     override fun resize(newSize: Int) {
         values = values.copyOf(newSize)
@@ -24,4 +25,6 @@ open class DoubleArrayList(initCapacity: Int) : NativeArrayList {
         ensureExtra(1)
         values[size++] = value
     }
+
+    override fun toString(): String = toList().toString()
 }

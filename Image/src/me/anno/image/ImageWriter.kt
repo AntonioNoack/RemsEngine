@@ -408,7 +408,7 @@ object ImageWriter {
         writeImageInt(w2, h2, alpha, name, pixels)
     }
 
-    data class ColoredLine(val a: Vector2f, val b: Vector2f, val lineColor: Int, val pointColor: Int)
+    data class ColoredLine(val a: Vector2f, val b: Vector2f, val lineColor: Int, val pointColor: Int = lineColor)
 
     @JvmStatic
     fun writeTriangles(size: Int, name: String, points: List<Vector2f>, indices: IntArray) {

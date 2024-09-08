@@ -61,8 +61,8 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
                     val st = rayRayClosestTs(s0, s1 - s0, t0, t1 - t0)
                     val sx = clamp(st.x)
                     val tx = clamp(st.y)
-                    val sv = s0.lerp(s1, sx, Vector3d())
-                    val tv = t0.lerp(t1, tx, Vector3d())
+                    val sv = s0.mix(s1, sx, Vector3d())
+                    val tv = t0.mix(t1, tx, Vector3d())
                     val distSq = sv.distanceSquared(tv)
                     if (distSq < bestDistanceSq) {
                         st.x = mix(si - 1.0, si.toDouble(), st.x) / (splits.size - 1.0)
@@ -141,7 +141,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
     fun distanceToRay(pos: Vector3d, dir: Vector3d, a: Vector3d, b: Vector3d): DistanceHit {
         val ts = rayRayClosestTs(pos, dir, a, b - a)
         val closest0 = pos + dir * max(ts.x, 0.0)
-        val closest1 = a.lerp(b, clamp(ts.y), Vector3d())
+        val closest1 = a.mix(b, clamp(ts.y), Vector3d())
         return DistanceHit(closest0.distance(closest1), ts.y)
     }
 
@@ -172,7 +172,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
 
     fun interpolate(t: Double, dst: Vector3d = Vector3d()): Vector3d {
         return if (b == null) {
-            a.lerp(c, t, dst)
+            a.mix(c, t, dst)
         } else {
             val s = 1.0 - t
             a.mul(s * s, dst)

@@ -14,6 +14,10 @@ inline fun assertTrue(condition: Boolean, message: () -> String) {
     if (!condition) throw IllegalStateException(message())
 }
 
+fun <V : Comparable<V>> assertLessThan(value: V, maxValue: V, message: String = "compare failed") {
+    if (value >= maxValue) throw IllegalStateException("$value >= $maxValue, $message")
+}
+
 fun assertContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
     if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
 }
@@ -99,7 +103,7 @@ fun <V> assertNotNull(v: V?, message: String = "expected not null"): V {
     return v
 }
 
-fun <V: Any> assertIs(v: Any?, clazz: KClass<V>): V {
+fun <V : Any> assertIs(v: Any?, clazz: KClass<V>): V {
     val instance = clazz.safeCast(v)
     assertNotNull(instance)
     return instance!!

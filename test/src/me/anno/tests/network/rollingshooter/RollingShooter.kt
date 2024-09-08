@@ -334,7 +334,7 @@ fun main() {
         override fun update(instances: Collection<Component>) {
             // update transforms
             val pos = selfPlayerEntity.position
-            cameraBase.position = cameraBase.position.lerp(pos, dtTo01(5.0 * Time.deltaTime))
+            cameraBase.position = cameraBase.position.mix(pos, dtTo01(5.0 * Time.deltaTime))
             cameraBase1.setRotation(rotX, rotY, 0.0)
             // send our data to the other players
             instance.client?.sendUDP(PlayerUpdatePacket {}.apply {

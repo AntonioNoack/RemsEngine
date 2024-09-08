@@ -25,11 +25,6 @@ class SplineProfile() : Saveable() {
         this.isClosed = isClosed
     }
 
-    // todo add points
-    // todo points: position (x,y) and color (r,g,b)
-
-    // todo generate profile from mesh
-
     // base width
     var width = 1f
 
@@ -117,7 +112,7 @@ class SplineProfile() : Saveable() {
             } else {
                 // split segment
                 val f = p0.x / (p0.x - p1.x)
-                val pf = Vector2f(p0).lerp(p1, f)
+                val pf = Vector2f(p0).mix(p1, f)
                 val cf = mixARGB(c0, c1, f)
                 if (side0) {
                     // first left, then right

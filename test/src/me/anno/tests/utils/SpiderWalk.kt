@@ -184,7 +184,7 @@ fun main() {
 
             if (hit) {
                 val newAngle = query0.result.shadingNormalWS.normalize()
-                angleDictator.lerp(newAngle, dtTo01(5.0 * Time.deltaTime))
+                angleDictator.mix(newAngle, dtTo01(5.0 * Time.deltaTime))
             }
             if (velocity.lengthSquared() < 1e-16) velocity.set(1.0, 0.0, 0.0)
             if (angleDictator.lengthSquared() < 1e-16) angleDictator.set(0.0, 1.0, 0.0)
@@ -197,7 +197,7 @@ fun main() {
             val currPos = spider.position
             if (lastPos.distanceSquared(currPos) > 1e-8) {
                 val velocity1 = Vector3d(currPos).sub(lastPos).div(Time.deltaTime)
-                velocity.lerp(Vector3d(velocity1), dtTo01(5.0 * Time.deltaTime))
+                velocity.mix(Vector3d(velocity1), dtTo01(5.0 * Time.deltaTime))
                 lastPos.set(currPos)
             }
 

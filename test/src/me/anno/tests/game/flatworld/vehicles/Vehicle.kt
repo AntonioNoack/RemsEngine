@@ -101,7 +101,7 @@ class Vehicle(
                 if (actualSpeed > speed) {
                     // if distance is longer than expected (intersection), take longer
                     val allowedRelativeSpeed = speed / actualSpeed
-                    prevPosition.lerp(position, allowedRelativeSpeed, position)
+                    prevPosition.mix(position, allowedRelativeSpeed, position)
                     currentT = mix(previousT, currentT, allowedRelativeSpeed)
                 } else speed = actualSpeed
 

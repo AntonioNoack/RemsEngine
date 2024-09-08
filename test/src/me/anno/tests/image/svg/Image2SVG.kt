@@ -348,7 +348,7 @@ fun extractSegment(seg: Segmentation, ci: Int): List<Vector2f> {
             }
             !a && b -> {
                 // straight
-                line.add(p0.lerp(p1, 2f, Vector2f()))
+                line.add(p0.mix(p1, 2f, Vector2f()))
             }
             else -> {
                 // right
@@ -447,7 +447,7 @@ fun segmentation(src: IntImage): Segmentation {
                     // we need to remap all its members
                     val wx = remap(x + d.x, y + d.y, 0)
                     val t = wx / (w0 + w1)
-                    colorI.lerp(colorJ, t)
+                    colorI.mix(colorJ, t)
                     weights[ci] = w0 + wx
                     weights[cj] = w1 - wx
                 }

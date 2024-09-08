@@ -17,8 +17,8 @@ class BundledRef private constructor(
 ) : FileReference(absolute) {
 
     override fun getChildImpl(name: String): FileReference {
-        val zfd = zipFileForDirectory
-        if (zfd != null) return zfd.getChildImpl(name)
+        val fromZip = zipFileForDirectory?.getChildImpl(name)
+        if (fromZip != null && fromZip != InvalidRef) return fromZip
         val fullPath = appendPath(absolutePath, name)
         return synchronized(cache) {
             cache.getOrPut(fullPath) {

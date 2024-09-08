@@ -281,7 +281,7 @@ object DebugRendering {
             dirY.findSystem(dirX, dirZ)
             val s = len * 0.2
             fun addPt(dxi: Double, dzi: Double) {
-                val anchor = line.from.lerp(line.to, 0.6, dirY)
+                val anchor = line.from.mix(line.to, 0.6, dirY)
                 dirX.mulAdd(dxi, anchor, anchor)
                 dirZ.mulAdd(dzi, anchor, anchor)
                 LineBuffer.putRelativeLine(anchor, line.to, view.cameraPosition, view.worldScale, line.color)

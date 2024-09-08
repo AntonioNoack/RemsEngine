@@ -194,8 +194,8 @@ fun main() {
                             val instance = Entity("Asset")
                                 .add(MeshComponent(asset))
                             // todo this placement logic needs improvement
-                            val pos = c.lerp(dx, random().toFloat() * 2f - 1f, Vector3f())
-                            pos.lerp(dy, random().toFloat() * 2f - 1f)
+                            val pos = c.mix(dx, random().toFloat() * 2f - 1f, Vector3f())
+                            pos.mix(dy, random().toFloat() * 2f - 1f)
                             instance.transform.localPosition = Vector3d(pos).mul(scale)
                             instance.transform.localRotation = instance.transform.localRotation
                                 .set(c.normalToQuaternionY(tmpQ))

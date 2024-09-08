@@ -102,9 +102,9 @@ class Transform() : Saveable() {
                 if (factor < extrapolatedTime) {
                     drawnTransform.set(drawTransform)
                     val f = (factor / extrapolatedTime).toDouble()
-                    prepos.lerp(pos, f)
+                    prepos.mix(pos, f)
                     prerot.slerp(rot, f)
-                    presca.lerp(sca, f)
+                    presca.mix(sca, f)
                     val parent = parent
                     if (parent != null) drawTransform.set(parent.getDrawnMatrix(time))
                     else drawTransform.identity()

@@ -1,20 +1,50 @@
 package me.anno.ecs.components.mesh.spline
 
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.posMod
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
 object Splines {
 
     /**
+     * returns pp-pp-pp-pp (left/right pairs)
+     * */
+    fun generateSplinePoints(
+        points: List<SplineControlPoint>,
+        pointsPerRadian: Double,
+        isClosed: Boolean,
+    ): List<Vector3d> {
+        val capacity = points.size + isClosed.toInt()
+        val posNormals = createArrayList(capacity * 4) { Vector3d() }
+        for (i in 0 until capacity) {
+            val i4 = i * 4
+            val pt = points[posMod(i, points.size)]
+            pt.getLocalPosition(posNormals[i4], -1.0)
+            pt.getLocalForward(posNormals[i4 + 1])
+            pt.getLocalPosition(posNormals[i4 + 2], +1.0)
+            pt.getLocalForward(posNormals[i4 + 3])
+            /*fun showDir(v: Vector3d, d: Vector3d) {
+                DebugShapes.debugArrows.add(DebugLine(v, v + d * 2.0, UIColors.greenYellow, 1e3f))
+            }
+            showDir(posNormals[i4], posNormals[i4 + 1])
+            showDir(posNormals[i4 + 2], posNormals[i4 + 3])*/
+        }
+        return generateSplineLinePair(posNormals, pointsPerRadian, isClosed)
+    }
+
+    /**
      * pns: mixed positions and normals, pnpn-pnpn-pnpn-pnpn <br>
-     * returns list of positions
+     * returns list of positions, pp-pp-pp-pp
      * */
     fun generateSplineLinePair(pns: List<Vector3d>, ptsPerRadiant: Double, close: Boolean): List<Vector3d> {
 
@@ -35,10 +65,10 @@ object Splines {
         if (!close) end -= 4
         for (i in 0 until end step 4) {
 
-            val p3a = pns[(i + 4) % pns.size]
-            val n3a = pns[(i + 5) % pns.size]
-            val p3b = pns[(i + 6) % pns.size]
-            val n3b = pns[(i + 7) % pns.size]
+            val p3a = pns[posMod(i + 4, pns.size)]
+            val n3a = pns[posMod(i + 5, pns.size)]
+            val p3b = pns[posMod(i + 6, pns.size)]
+            val n3b = pns[posMod(i + 7, pns.size)]
 
             result.add(p0a)
             result.add(p0b)
@@ -49,7 +79,7 @@ object Splines {
             val c0a = interpolate(p0a, p1a, p2a, p3a, 0.5)
 
             // calculate using curviness, how many pts we need
-            val angle = (p0a - c0a).angle(n0a) + (c0a - p3a).angle(n3a)
+            val angle = max(abs((p0a - c0a).angle(n0a)) + abs((c0a - p3a).angle(n3a)), abs(n0a.angle(n3a)))
             val stopsF = angle * ptsPerRadiant
             if (stopsF.isFinite() && stopsF >= 0.5) {
                 val stops = stopsF.roundToIntOr(2)
@@ -72,7 +102,7 @@ object Splines {
         /*for (i in result.indices step 2) {
             val v = result[i]
             val d = result[i + 1]
-            DebugShapes.debugArrows.add(DebugLine(v, d, UIColors.axisXColor, 1e3f))
+            DebugShapes.debugArrows.add(DebugLine(v, d, UIColors.axisXColor, 0f))
         }*/
 
         return result
