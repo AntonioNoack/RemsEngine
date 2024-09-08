@@ -20,7 +20,6 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.Systems
-import me.anno.engine.EngineBase
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -114,11 +113,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     override fun listChildTypes(): String = "ec" // entity children, components
 
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
-        when (child) {
-            is Component -> addComponent(index, child)
-            is Entity -> addEntity(index, child)
-            else -> LOGGER.warn("Cannot add {} to Entity", child.className)
-        }
+        addChild(index, child) // type is determined by child-class, so just use that function
     }
 
     override fun getChildListByType(type: Char): List<PrefabSaveable> = if (type == 'c') components else children
@@ -406,12 +401,20 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         when (child) {
             is Entity -> addEntity(child)
             is Component -> addComponent(child)
-            else -> LOGGER.warn("Cannot add {} to Entity", child.className)
+            else -> warnCannotAdd(child)
         }
     }
 
     override fun addChild(index: Int, child: PrefabSaveable) {
-        throw RuntimeException("Not supported/not yet implemented")
+        when (child) {
+            is Entity -> addEntity(index, child)
+            is Component -> addComponent(index, child)
+            else -> warnCannotAdd(child)
+        }
+    }
+
+    private fun warnCannotAdd(child: PrefabSaveable) {
+        LOGGER.warn("Cannot add {} to Entity", child.className)
     }
 
     override fun deleteChild(child: PrefabSaveable) {

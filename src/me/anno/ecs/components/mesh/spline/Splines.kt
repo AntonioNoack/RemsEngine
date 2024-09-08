@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -201,10 +202,10 @@ object Splines {
     }
 
     fun generateCurve(a0: Float, a1: Float, n: Int): List<Vector2f> {
-        return when {
-            n < 0 -> throw IllegalArgumentException("n must be >= 0, got $n")
-            n == 0 -> emptyList()
-            n == 1 -> {
+        assertTrue(n >= 0)
+        return when (n) {
+            0 -> emptyList()
+            1 -> {
                 val angle = (a0 + a1) * 0.5f
                 listOf(Vector2f(cos(angle), sin(angle)))
             }

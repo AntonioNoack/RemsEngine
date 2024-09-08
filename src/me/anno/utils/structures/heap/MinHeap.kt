@@ -1,5 +1,6 @@
 package me.anno.utils.structures.heap
 
+import me.anno.utils.assertions.assertContains
 import me.anno.utils.structures.lists.Lists.swap
 
 /**
@@ -38,9 +39,7 @@ open class MinHeap<Value>(
     fun extract(): Value = removeAt(0)
 
     fun removeAt(i: Int): Value {
-        if (i !in indices) {
-            throw IndexOutOfBoundsException("Heap is empty")
-        }
+        assertContains(i, indices)
         return if (i + 1 < size) {
             val popped = values[i]
             values[i] = values.removeLast()

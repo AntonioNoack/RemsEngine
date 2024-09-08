@@ -68,7 +68,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
 
     override fun add(index: Int, element: V) {
         if (index >= size) add(element)
-        else backend[index] = element
+        else backend[index] = element // this isn't really correct...
     }
 
     override fun addAll(index: Int, elements: Collection<V>): Boolean {
@@ -106,7 +106,8 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
             override fun previousIndex(): Int = index2 - 1
 
             override fun add(element: V) {
-                add(index, element)
+                add(index2++, element)
+                // is incrementing the index correct??
             }
 
             override fun hasNext(): Boolean = index2 < size
@@ -115,7 +116,8 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
             override fun next(): V = backend[index2++] as V
 
             override fun remove() {
-                throw NotImplementedError()
+                removeAt(--index2)
+                // is decrementing the index correct?
             }
 
             override fun set(element: V) {

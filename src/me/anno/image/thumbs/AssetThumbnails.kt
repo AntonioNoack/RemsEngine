@@ -241,7 +241,6 @@ object AssetThumbnails {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         mesh: Mesh, callback: Callback<ITexture2D>
     ) {
-        mesh.checkCompleteness()
         mesh.ensureBuffer()
         waitForTextures(mesh, srcFile) {
             ThumbsRendering.renderToImage(

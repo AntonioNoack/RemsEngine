@@ -96,8 +96,7 @@ object VideoCache : CacheSection("Videos") {
         bufferLength0: Int, fps: Double, timeout: Long,
         meta: MediaMetadata, async: Boolean
     ): GPUFrame? {
-        if (index < 0) return null
-        if (scale < 1) throw RuntimeException()
+        if (index < 0 || scale < 1) return null
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         val getProxyFile = getProxyFile
@@ -159,8 +158,7 @@ object VideoCache : CacheSection("Videos") {
         bufferLength0: Int, fps: Double,
         timeout: Long, async: Boolean
     ): GPUFrame? {
-        if (index < 0) return null
-        if (scale < 1) throw IllegalArgumentException("Scale must not be < 1")
+        if (index < 0 || scale < 1) return null
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
         val getProxyFile = getProxyFile
         if (getProxyFile != null && useProxy(scale, bufferLength0, MediaMetadata.getMeta(file, async))) {

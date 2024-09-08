@@ -1,5 +1,6 @@
 package me.anno.utils.structures
 
+import me.anno.utils.assertions.assertFalse
 import kotlin.reflect.KClass
 
 interface Hierarchical<V : Hierarchical<V>> {
@@ -24,8 +25,8 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     fun addChild(child: V) {
         @Suppress("unchecked_cast")
-        if (child.contains(this as V)) throw IllegalArgumentException("this cannot contain its parent!")
-        if (children.contains(child)) throw IllegalArgumentException("Cannot add child twice")
+        assertFalse(child.contains(this as V), "this cannot contain its parent!")
+        assertFalse(children.contains(child), "Cannot add child twice")
         child.parent = this
         (children as MutableList<V>).add(child)
     }

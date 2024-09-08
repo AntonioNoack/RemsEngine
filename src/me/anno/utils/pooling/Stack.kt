@@ -1,9 +1,8 @@
 package me.anno.utils.pooling
 
+import me.anno.utils.assertions.assertFalse
 import org.apache.logging.log4j.LogManager
 import java.lang.ref.WeakReference
-import java.lang.reflect.Constructor
-import java.nio.BufferUnderflowException
 import kotlin.reflect.KClass
 
 class Stack<V : Any>(private val createInstance: () -> V) {
@@ -60,13 +59,13 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         fun borrow(): V {
             ensure()
             // remove in final build
-            if (index < localFloor) throw BufferUnderflowException()
+            assertFalse(index < localFloor)
             @Suppress("unchecked_cast")
             return tmp!![index] as V
         }
 
         fun sub(delta: Int) {
-            if (index - delta < localFloor) throw BufferUnderflowException()
+            assertFalse(index - delta < localFloor)
             index -= delta
         }
     }

@@ -58,6 +58,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -404,7 +405,8 @@ object DebugRendering {
     }
 
     fun drawLightCount(
-        view: RenderView, x: Int, y: Int, w: Int, h: Int,
+        view: RenderView, w: Int, h: Int,
+        x0: Int, y0: Int, x1: Int, y1: Int,
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
         GFXState.drawCall("LightCount") {
@@ -425,7 +427,7 @@ object DebugRendering {
             // todo special shader to better differentiate the values than black-white
             // (1 is extremely dark, nearly black)
             DrawTextures.drawTexture(
-                x, y + h - 1, w, -h,
+                x0, y1, x1 - x0, y0 - y1,
                 lightBuffer.getTexture0(), true,
                 -1, null, true // lights are bright -> dim them down
             )
@@ -434,7 +436,8 @@ object DebugRendering {
     }
 
     fun drawAllBuffers(
-        view: RenderView, w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
+        view: RenderView, w: Int, h: Int,
+        x0: Int, y0: Int, x1: Int, y1: Int,
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
         GFXState.pushDrawCallName("AllBuffers")
@@ -462,11 +465,11 @@ object DebugRendering {
             GFXState.drawCall("Buffer[$index]") {
                 // rows x N field
                 val col = index % cols
-                val x02 = x0 + (x1 - x0) * (col + 0) / cols
-                val x12 = x0 + (x1 - x0) * (col + 1) / cols
+                val x02 = x0 + WorkSplitter.partition(x1 - x0, col, cols)
+                val x12 = x0 + WorkSplitter.partition(x1 - x0, col + 1, cols)
                 val row = index / cols
-                val y02 = y0 + (y1 - y0) * (row + 0) / rows
-                val y12 = y0 + (y1 - y0) * (row + 1) / rows
+                val y02 = y0 + WorkSplitter.partition(y1 - y0, row, rows)
+                val y12 = y0 + WorkSplitter.partition(y1 - y0, row + 1, rows)
 
                 var color = white
                 var applyToneMapping = false

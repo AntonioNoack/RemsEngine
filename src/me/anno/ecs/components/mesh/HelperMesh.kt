@@ -5,6 +5,8 @@ import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.mesh.FindLines
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import org.apache.logging.log4j.LogManager
 
@@ -34,10 +36,10 @@ class HelperMesh(val indices: IntArray) : ICacheData {
             val length = materialIds.maxOrNull()!! + 1
             if (length == 1) return
             val drawMode = drawMode
-            if (drawMode != DrawMode.TRIANGLES &&
-                drawMode != DrawMode.LINES &&
-                drawMode != DrawMode.POINTS
-            ) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
+            when (drawMode) {
+                DrawMode.TRIANGLES, DrawMode.LINES, DrawMode.POINTS -> {}
+                else -> assertFail("Multi-material meshes only supported on some draw modes; got $drawMode")
+            }
             val unitSize = drawMode.primitiveSize
             val helperMeshes = arrayListOfNulls<HelperMesh?>(length)
             val indices = indices
@@ -57,8 +59,9 @@ class HelperMesh(val indices: IntArray) : ICacheData {
                             } else i3 += unitSize
                         }
                     } else {
-                        if (indices.size != materialIds.size * unitSize)
-                            throw IllegalStateException("Material IDs must be exactly ${unitSize}x smaller than indices")
+                        assertEquals(indices.size, materialIds.size * unitSize) {
+                            "Material IDs must be exactly ${unitSize}x smaller than indices"
+                        }
                         for (i in materialIds.indices) {
                             val id = materialIds[i]
                             if (id == materialId) {
@@ -68,7 +71,7 @@ class HelperMesh(val indices: IntArray) : ICacheData {
                             } else i3 += unitSize
                         }
                     }
-                    if (j != helperIndices.size) throw IllegalStateException("Ids must have changed while processing")
+                    assertEquals(j, helperIndices.size, "Ids must have changed while processing")
                     val helper = HelperMesh(helperIndices)
                     if (init) helper.init(this)
                     helperMeshes[materialId] = helper
@@ -83,7 +86,6 @@ class HelperMesh(val indices: IntArray) : ICacheData {
             if (hm != null) for (it in hm) it?.destroy()
             helperMeshes = null
         }
-
     }
 
     var triBuffer: IndexBuffer? = null

@@ -1,6 +1,7 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.utils.assertions.assertTrue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -26,11 +27,11 @@ class LineSequence : IntSequence {
         val lineIndex = getLineIndexAt(index)
         val line = lines[lineIndex]
         val indexInLine = index - indexTable[lineIndex]
-        if (indexInLine < 0) throw IllegalStateException(
+        assertTrue(indexInLine >= 0) {
             "$indexInLine by $index -> $lineIndex | ${
                 indexTable.toList().joinToString()
             }"
-        )
+        }
         return if (indexInLine < line.size) line[indexInLine] else '\n'.code
     }
 

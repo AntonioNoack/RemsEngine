@@ -205,7 +205,6 @@ object PathFinding {
                 val currentData = cache[from]!!
                 val currentDistance = currentData.distance
                 queryForward(from) { to, distFromTo, distToEnd ->
-                    if (from == to) throw IllegalStateException("Node must not link to itself")
                     if (distFromTo < 0.0 || distToEnd < 0.0) LOGGER.warn("Distances must be non-negative")
                     val newDistance = currentDistance + distFromTo
                     val newScore = newDistance + distToEnd

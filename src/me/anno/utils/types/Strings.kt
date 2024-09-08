@@ -417,13 +417,13 @@ object Strings {
         when (val char = this[i0]) {
             '-' -> sign = -1.0
             in '0'..'9' -> number = char.code - 48L
-            '.' -> return readAfterDot(i0, i0 + 1, i1, sign, 0.0)
+            '.' -> return readAfterDot(i0 + 1, i1, sign, 0.0)
             // else should not happen
         }
         for (i in i0 + 1 until i1) {
             when (val char = this[i]) {
                 in '0'..'9' -> number = number * 10 + char.code - 48
-                '.' -> return readAfterDot(i0, i + 1, i1, sign, number.toDouble())
+                '.' -> return readAfterDot(i + 1, i1, sign, number.toDouble())
                 'e', 'E' -> return sign * number * 10.0.pow(toInt(i + 1))
                 else -> break // idk ^^
             }
@@ -432,7 +432,7 @@ object Strings {
     }
 
     @JvmStatic
-    private fun CharSequence.readAfterDot(ix: Int, i0: Int, i1: Int, sign: Double, number: Double): Double {
+    private fun CharSequence.readAfterDot(i0: Int, i1: Int, sign: Double, number: Double): Double {
         var exponent = 0.1
         var fraction = 0.0
         for (i in i0 until i1) {
@@ -442,7 +442,7 @@ object Strings {
                     exponent *= 0.1f
                 }
                 'e', 'E' -> return sign * (number + fraction) * 10.0.pow(toInt(i + 1))
-                else -> throw NumberFormatException(subSequence(ix, i1).toString())
+                else -> break // :/
             }
         }
         return sign * (number + fraction)

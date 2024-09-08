@@ -1,6 +1,7 @@
 package me.anno.utils.search
 
 import me.anno.maths.Maths
+import me.anno.utils.assertions.assertContains
 import me.anno.utils.structures.lists.Lists.partition1
 
 /**
@@ -28,7 +29,7 @@ object Median {
 
     @JvmStatic
     fun <V> MutableList<V>.kthElement(i0: Int, i1: Int, k: Int, comparator: Comparator<V>): V {
-        if (k !in i0 until i1) throw IndexOutOfBoundsException("k !in i0 until i1")
+        assertContains(k, i0 until i1, "k !in i0 until i1")
         val rndI = i0 + (Maths.random() * (i1 - i0)).toInt()
         val rnd = this[rndI]
         val condition = { it: V ->

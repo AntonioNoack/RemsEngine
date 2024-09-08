@@ -51,17 +51,18 @@ object EXRReader {
     private fun check(ret: Int, cleanup: () -> Unit = {}) {
         if (ret == TINYEXR_SUCCESS) return
         cleanup()
-        when (ret) {
-            TINYEXR_ERROR_INVALID_MAGIC_NUMBER -> throw IOException("Invalid magic")
-            TINYEXR_ERROR_INVALID_EXR_VERSION -> throw IOException("Invalid version")
-            TINYEXR_ERROR_INVALID_ARGUMENT -> throw IOException("Invalid argument")
-            TINYEXR_ERROR_INVALID_DATA -> throw IOException("Invalid data")
-            TINYEXR_ERROR_INVALID_PARAMETER -> throw IOException("Invalid parameter")
-            TINYEXR_ERROR_UNSUPPORTED_FORMAT -> throw IOException("Unsupported format")
-            TINYEXR_ERROR_INVALID_HEADER -> throw IOException("Invalid header")
-            TINYEXR_ERROR_UNSUPPORTED_FEATURE -> throw IOException("Unsupported feature")
-            else -> throw IOException("Invalid EXR File, #$ret")
+        val msg = when (ret) {
+            TINYEXR_ERROR_INVALID_MAGIC_NUMBER -> "Invalid magic"
+            TINYEXR_ERROR_INVALID_EXR_VERSION -> "Invalid version"
+            TINYEXR_ERROR_INVALID_ARGUMENT -> "Invalid argument"
+            TINYEXR_ERROR_INVALID_DATA -> "Invalid data"
+            TINYEXR_ERROR_INVALID_PARAMETER -> "Invalid parameter"
+            TINYEXR_ERROR_UNSUPPORTED_FORMAT -> "Unsupported format"
+            TINYEXR_ERROR_INVALID_HEADER -> "Invalid header"
+            TINYEXR_ERROR_UNSUPPORTED_FEATURE -> "Unsupported feature"
+            else -> "Invalid EXR File, #$ret"
         }
+        throw IOException(msg)
     }
 
     private fun check(ret: Int, err: PointerBuffer, cleanup: () -> Unit = {}) {
@@ -69,17 +70,18 @@ object EXRReader {
         LOGGER.debug(MemoryUtil.memASCIISafe(err[0]) ?: "null")
         cleanup()
         nFreeEXRErrorMessage(err[0])
-        when (ret) {
-            TINYEXR_ERROR_INVALID_MAGIC_NUMBER -> throw IOException("Invalid magic")
-            TINYEXR_ERROR_INVALID_EXR_VERSION -> throw IOException("Invalid version")
-            TINYEXR_ERROR_INVALID_ARGUMENT -> throw IOException("Invalid argument")
-            TINYEXR_ERROR_INVALID_DATA -> throw IOException("Invalid data")
-            TINYEXR_ERROR_INVALID_PARAMETER -> throw IOException("Invalid parameter")
-            TINYEXR_ERROR_UNSUPPORTED_FORMAT -> throw IOException("Unsupported format")
-            TINYEXR_ERROR_INVALID_HEADER -> throw IOException("Invalid header")
-            TINYEXR_ERROR_UNSUPPORTED_FEATURE -> throw IOException("Unsupported feature")
-            else -> throw IOException("Invalid EXR File, #$ret")
+        val msg = when (ret) {
+            TINYEXR_ERROR_INVALID_MAGIC_NUMBER -> "Invalid magic"
+            TINYEXR_ERROR_INVALID_EXR_VERSION -> "Invalid version"
+            TINYEXR_ERROR_INVALID_ARGUMENT -> "Invalid argument"
+            TINYEXR_ERROR_INVALID_DATA -> "Invalid data"
+            TINYEXR_ERROR_INVALID_PARAMETER -> "Invalid parameter"
+            TINYEXR_ERROR_UNSUPPORTED_FORMAT -> "Unsupported format"
+            TINYEXR_ERROR_INVALID_HEADER -> "Invalid header"
+            TINYEXR_ERROR_UNSUPPORTED_FEATURE -> "Unsupported feature"
+            else -> "Invalid EXR File, #$ret"
         }
+        throw IOException(msg)
     }
 
     private fun <V> mapChannels(channels: List<V>, src: List<String>, dst: String): List<V> {

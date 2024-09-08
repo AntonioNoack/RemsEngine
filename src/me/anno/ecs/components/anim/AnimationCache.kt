@@ -3,11 +3,14 @@ package me.anno.ecs.components.anim
 import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.io.files.FileReference
+import org.apache.logging.log4j.LogManager
 
 /**
  * caches animations with their specific retargetings
  * */
 object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animation") {
+
+    private val LOGGER = LogManager.getLogger(AnimationCache::class)
 
     var timeout = 10_000L
     val animTexCache = CacheSection("AnimTextures")
@@ -38,10 +41,14 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
             timeoutMillis, false
         ) {
             val retargeting = Retargetings.getRetargeting(animation.skeleton, dstSkeleton.ref)
-                ?: throw NullPointerException("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")
-            val bbb = if (animation is BoneByBoneAnimation) animation
-            else BoneByBoneAnimation(animation as ImportedAnimation)
-            retargeting.map(bbb)
+            if (retargeting != null) {
+                val bbb = if (animation is BoneByBoneAnimation) animation
+                else BoneByBoneAnimation(animation as ImportedAnimation)
+                retargeting.map(bbb)
+            } else {
+                LOGGER.warn("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")
+                null
+            }
         }
     }
 }

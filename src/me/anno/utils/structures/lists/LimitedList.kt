@@ -86,7 +86,7 @@ class LimitedList<V>(val limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun iterator(): MutableIterator<V> {
-        if (isFull) throw IllegalStateException("Cannot iterate over all elements")
+        assertFalse(isFull, "Cannot iterate over all elements")
         return values.iterator()
     }
 

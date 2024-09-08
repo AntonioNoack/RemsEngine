@@ -5,6 +5,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.rotateRight
@@ -847,9 +848,9 @@ class HexagonSphere(
         chunkT: Int,
     ): ArrayList<Hexagon> {
 
-        if (chunkS + chunkT >= chunkCount || chunkS < 0 || chunkT < 0) {
-            throw IllegalArgumentException("$chunkS,$chunkT is out of bounds for $chunkCount")
-        }
+        assertTrue(chunkS + chunkT < chunkCount)
+        assertTrue(chunkS >= 0)
+        assertTrue(chunkT >= 0)
 
         // size could be estimated better
         val group = ArrayList<Hexagon>((hexagonsPerChunk + 1) * hexagonsPerChunk)

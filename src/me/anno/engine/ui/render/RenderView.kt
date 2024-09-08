@@ -57,8 +57,8 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.RenderGraph
 import me.anno.graph.visual.render.effects.FSR2Node
-import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.graph.visual.render.effects.TAANode
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -370,7 +370,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             RenderMode.LIGHT_COUNT -> {
                 val lightBuffer = if (buffer == buffers.base1Buffer) buffers.light1Buffer else buffers.lightNBuffer1
                 DebugRendering.drawLightCount(
-                    this, x0, y0, w, h,
+                    this, w, h, x0, y0, x1, y1,
                     renderer, buffer, lightBuffer, buffers.deferred
                 )
             }
@@ -395,7 +395,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                     drawGizmos(buffer, true)
                 }
                 timeRendering("Final", DebugRendering.drawFinalTimer) {
-                    drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
+                    drawTexture(x0, y1, x1 - x0, y0 - y1, buffer.getTexture0(), true, -1, null)
                 }
             }
         }

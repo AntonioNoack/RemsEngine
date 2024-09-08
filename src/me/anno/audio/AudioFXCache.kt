@@ -10,17 +10,16 @@ import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
-import me.anno.gpu.GFX
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Floats.roundToLongOr
 import java.lang.Math.floorDiv
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToLong
 
 object AudioFXCache : CacheSection("AudioFX0") {
 
@@ -85,7 +84,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     private val rawDataLimiter = Semaphore(32)
 
     fun getRawData(meta: MediaMetadata, key: PipelineKey): AudioData {
-        if (meta.audioSampleRate == 0) throw IllegalArgumentException("Cannot load audio without sample rate")
+        assertNotEquals(0, meta.audioSampleRate, "Cannot load audio without sample rate")
         // we cannot simply return null from this function, so getEntryLimited isn't an option
         acquire(true, rawDataLimiter)
         val entry = getEntry(key to "", timeout, false) { (it, _) ->

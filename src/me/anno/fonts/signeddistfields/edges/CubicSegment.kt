@@ -66,7 +66,18 @@ class CubicSegment(
     }
 
     override fun length(): Float {
-        throw RuntimeException("length() not implemented")
+        val a = JomlPools.vec2f.create()
+        val b = JomlPools.vec2f.create()
+        val numSteps = 5
+        var sum = 0f
+        getPointAt(0f, a)
+        for (i in 0 until numSteps) {
+            getPointAt((i + 1f) / numSteps, b)
+            sum += a.distance(b)
+            a.set(b)
+        }
+        JomlPools.vec2f.sub(2)
+        return sum
     }
 
     override fun union(bounds: AABBf, tmp: FloatArray) {
