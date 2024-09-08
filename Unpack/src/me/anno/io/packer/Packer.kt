@@ -6,6 +6,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.zip.InnerZipFile
+import me.anno.utils.Sleep
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.f1
@@ -188,6 +189,7 @@ object Packer {
                     reportProgress(doneSize, totalSize)
                 } else {
                     // will only work in synchronous environments!
+                    var doneReading = false
                     resource.inputStream { input, _ ->
                         input!!
                         while (true) {
@@ -203,8 +205,9 @@ object Packer {
                                 }
                             }
                         }
-                        input.close()
+                        doneReading = true
                     }
+                    Sleep.waitUntil(true) { doneReading }
                 }
             } catch (e: Exception) {
                 LOGGER.warn("Issue when copying $resource: ${e.message}")

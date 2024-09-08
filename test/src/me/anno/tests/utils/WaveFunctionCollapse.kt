@@ -2,6 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.OfficialExtensions
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
@@ -12,17 +13,20 @@ import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.a
 import me.anno.utils.OS
+import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
 import kotlin.random.Random
 
 fun main() {
+    // todo this is broken :(
+    OfficialExtensions.initForTests()
     // load a set of images
     val wfc = WaveFunctionCollapse()
     wfc.enableMinimalEntropyHeuristic = true
     var id = 0
-    // val src = downloads.getChild("2d/tilesetCircuit.png") // 14x14
-    val src = OS.downloads.getChild("2d/caveTilesetOpenGameArt-3.png") // 16x16
+    val src = downloads.getChild("2d/tilesetCircuit.png") // 14x14
+    // val src = downloads.getChild("2d/caveTilesetOpenGameArt-3.png") // 16x16
     val tileW = 16
     val tileH = 16
     val tileAtlas = ImageCache[src, false]!!

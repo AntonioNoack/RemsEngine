@@ -3,6 +3,7 @@ package me.anno.utils.structures.arrays
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.types.Booleans.withFlag
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -30,6 +31,7 @@ class BooleanArrayList(var size: Int) : Saveable() {
     operator fun set(index: Int, value: Boolean) {
         val arrIndex = index shr 6
         val subIndex = index and 63
+        ensureRawCapacity(arrIndex + 1)
         values[arrIndex] = values[arrIndex].withFlag(1L shl subIndex, value)
     }
 
@@ -51,7 +53,8 @@ class BooleanArrayList(var size: Int) : Saveable() {
 
     private fun ensureRawCapacity(newSize: Int) {
         if (values.size < newSize) {
-            values = values.copyOf(newSize)
+            val newSize1 = max(newSize, max(values.size.shl(1), 16))
+            values = values.copyOf(newSize1)
         }
     }
 

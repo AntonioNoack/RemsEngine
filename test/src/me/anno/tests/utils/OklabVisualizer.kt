@@ -1,6 +1,8 @@
 package me.anno.tests.utils
 
+import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
@@ -9,6 +11,7 @@ import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.ui.editor.color.spaces.Oklab
 import me.anno.utils.Color.toRGB
 import org.joml.Vector3f
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.random.Random
@@ -76,8 +79,13 @@ fun createColorsMesh(s: Int): Mesh {
 }
 
 fun main() {
-    val mesh = createColorsMesh(120)
-    SceneView.testSceneWithUI("Oklab", mesh) {
+    val scene = Entity()
+    Entity(scene)
+        .add(MeshComponent(createColorsMesh(120)))
+    Entity(scene)
+        .add(MeshComponent(createColorsPoints(10000)))
+        .setRotation(0.0, PI, 0.0)
+    SceneView.testSceneWithUI("Oklab", scene) {
         it.renderView.renderMode = RenderMode.COLOR
     }
 }
