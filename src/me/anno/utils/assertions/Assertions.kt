@@ -66,7 +66,7 @@ fun assertEquals(
     expected: Double, actual: Double, absoluteThreshold: Double,
     message: String = "expected equal values"
 ) {
-    assertTrue(!(abs(expected - actual) <= absoluteThreshold)) {
+    assertTrue(abs(expected - actual) <= absoluteThreshold) {
         "$message, |$expected - $actual| > $absoluteThreshold"
     }
 }

@@ -145,6 +145,7 @@ class NumberType(
                     for (i in 0 until it.numComponents) {
                         it.setComp(i, max(it.getComp(i), 0.0))
                     }
+                    it
                 }
                 else -> throw RuntimeException("Unsupported type $it")
             }
