@@ -16,30 +16,32 @@ object QOIReader {
     private const val MAGIC = ('q'.code shl 24) or ('o'.code shl 16) or ('i'.code shl 8) or 'f'.code
 
     @JvmStatic
-    fun findSize(input: InputStream): IntPair {
+    fun findSize(input: InputStream): Any {
         val headerMagic = input.readBE32()
-        if (headerMagic != MAGIC) throw IOException("Invalid magic value, probably not a QOI image")
+        if (headerMagic != MAGIC) return IOException("Invalid magic value, probably not a QOI image")
         val width = input.readBE32()
         val height = input.readBE32()
-        if (width < 1) throw IOException("Invalid image width")
-        if (height < 1) throw IOException("Invalid image height")
+        if (width < 1) return IOException("Invalid image width")
+        if (height < 1) return IOException("Invalid image height")
         return IntPair(width, height)
     }
 
     @JvmStatic
-    fun read(input: InputStream): QOIImage {
+    fun read(input: InputStream): Any {
 
-        val (width, height) = findSize(input)
+        val size = findSize(input)
+        if (size !is IntPair) return size
+        val (width, height) = size
 
         val numChannels = input.read()
         if (numChannels != 3 && numChannels != 4) {
-            throw IOException("Invalid stored channel count")
+            return IOException("Invalid stored channel count")
         }
 
         val linearColorSpace = when (val value = input.read()) {
             0 -> false
             1 -> true
-            else -> throw IOException("Invalid color space value $value")
+            else -> return IOException("Invalid color space value $value")
         }
 
         val numPixels = Maths.multiplyExact(width, height)

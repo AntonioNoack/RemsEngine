@@ -14,6 +14,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import java.nio.ByteBuffer
@@ -167,8 +168,8 @@ class SMMMeshRenderer(material: Material) :
 
     override fun getData(key: SMMKey, mesh: Mesh): StaticBuffer? {
         val data = getData0(key, mesh) ?: return null
-        if (data.vertexCount * data.stride != data.nioBuffer!!.position()) {
-            throw IllegalStateException("${data.vertexCount} * ${data.stride} != ${data.nioBuffer!!.position()}")
+        assertEquals(data.vertexCount * data.stride, data.nioBuffer!!.position()) {
+            "${data.vertexCount} * ${data.stride} != ${data.nioBuffer!!.position()}"
         }
         data.isUpToDate = false
         return data

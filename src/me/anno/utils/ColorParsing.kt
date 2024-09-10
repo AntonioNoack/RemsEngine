@@ -101,17 +101,16 @@ object ColorParsing {
 
     /**
      * @param name color in with hex characters only
-     * @return argb color code
-     * @throws RuntimeException if term could not be parsed
+     * @return argb color code or null if term could not be parsed
      * */
     @JvmStatic
-    fun parseHex(name: String): Int {
+    fun parseHex(name: String): Int? {
         return when (name.length) {
             3 -> parseHex3(name) or black
             4 -> parseHex(name[3]) * 0x11000000 + parseHex3(name)
             6 -> name.toInt(16) or black
             8 -> convertRGBA2ARGB(name.toLong(16).toInt())
-            else -> throw InvalidFormatException("Unknown color $name")
+            else -> null
         }
     }
 

@@ -1,6 +1,5 @@
 package me.anno.image.gimp
 
-import me.anno.utils.async.Callback
 import me.anno.image.Image
 import me.anno.image.ImageAsFolder
 import me.anno.image.raw.ByteImage
@@ -18,6 +17,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Buffers.skip
@@ -47,19 +47,22 @@ class GimpImage {
         private const val TILE_SIZE = 64
         const val MAGIC = "gimp xcf "
 
-        fun findSize(data: InputStream): IntPair {
+        fun findSize(data: InputStream): Any {
             for (char in MAGIC) {
-                if (data.read() != char.code)
-                    throw IOException("Magic doesn't match")
+                if (data.read() != char.code) {
+                    return IOException("Magic doesn't match")
+                }
             }
             // could be made more efficient, but probably doesn't matter
             val fileThing = data.readNBytes2(5, true).decodeToString()
             if (!fileThing.startsWith("textures/fileExplorer") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
-                throw IOException("Expected 'file' or 'v'-version")
+                return IOException("Expected 'file' or 'v'-version")
             }
             val width = data.readBE32()
             val height = data.readBE32()
-            if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
+            if (width <= 0 || height <= 0) {
+                return IOException("Image must not be empty $width x $height")
+            }
             return IntPair(width, height)
         }
 
@@ -67,12 +70,13 @@ class GimpImage {
             file.readByteBuffer(false) { data, exc ->
                 if (data != null) {
                     data.order(ByteOrder.BIG_ENDIAN)
-                    callback(readImage(data), null)
+                    val image = readImage(data)
+                    callback(image as? GimpImage, image as? Exception)
                 } else callback(null, exc)
             }
         }
 
-        fun readImage(input: InputStream): GimpImage {
+        fun readImage(input: InputStream): Any {
             val bytes = input.readBytes()
             input.close()
             return readImage(ByteBuffer.wrap(bytes))
@@ -85,8 +89,13 @@ class GimpImage {
             }
         }
 
-        fun read(input: InputStream): Image {
-            return combineLayers(readImage(input))
+        /**
+         * returns image or exception
+         * */
+        fun read(input: InputStream): Any {
+            val result = readImage(input)
+            return if (result is GimpImage) combineLayers(result)
+            else result
         }
 
         fun combineLayers(gimpImage: GimpImage): Image {
@@ -137,15 +146,16 @@ class GimpImage {
             return IntImage(w, h, dst, reallyHasAlpha)
         }
 
-        private fun readImage(data: ByteBuffer): GimpImage {
+        private fun readImage(data: ByteBuffer): Any {
             data.order(ByteOrder.BIG_ENDIAN)
             for (char in MAGIC) {
-                if (data.get() != char.code.toByte())
-                    throw IOException("Magic doesn't match")
+                if (data.get() != char.code.toByte()) {
+                    return IOException("Magic doesn't match")
+                }
             }
             val image = GimpImage()
-            image.readContent(data)
-            return image
+            val error = image.readContent(data)
+            return error ?: image
         }
 
         private fun blend(dst: Int, src: Int, opacity: Int): Int {
@@ -170,6 +180,10 @@ class GimpImage {
 
         fun readAsFolder(file: FileReference, input: ByteBuffer, callback: Callback<InnerFolder>) {
             val info = readImage(input)
+            if (info !is GimpImage) {
+                callback.err(info as? Exception)
+                return
+            }
             ImageAsFolder.readAsFolder(file) { folder, exc ->
                 if (folder != null) {
                     val subFolder = folder.createChild("layers", "layers")
@@ -206,7 +220,7 @@ class GimpImage {
     var channels = ArrayList<Channel>()
     var layers = ArrayList<Layer>()
 
-    fun readContent(data: ByteBuffer) {
+    fun readContent(data: ByteBuffer): Exception? {
 
         val tmp = ByteArray(5)
         data.get(tmp)
@@ -215,7 +229,7 @@ class GimpImage {
             0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
             fileThing.substring(1, 4).toIntOrDefault(0)
-        } else throw IOException("Expected 'file' or 'v'-version")
+        } else return IOException("Expected 'file' or 'v'-version")
 
         if (fileVersion >= 11) {
             bytesPerOffset = 8
@@ -223,9 +237,12 @@ class GimpImage {
 
         width = data.int
         height = data.int
-        if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
+        if (width <= 0 || height <= 0) {
+            return IOException("Image must not be empty $width x $height")
+        }
 
-        imageType = ImageType.entries.getOrNull(data.int) ?: throw IOException("Unknown image type")
+        imageType = ImageType.entries.getOrNull(data.int)
+            ?: return IOException("Unknown image type")
 
         precision = if (fileVersion >= 4) {
             val p = data.int
@@ -236,7 +253,7 @@ class GimpImage {
                     2 -> DataType.U32_LINEAR
                     3 -> DataType.HALF_LINEAR
                     4 -> DataType.FLOAT_LINEAR
-                    else -> throw IOException("Unknown precision")
+                    else -> return IOException("Unknown precision")
                 }
                 5, 6 -> {
                     when (p) {
@@ -250,18 +267,19 @@ class GimpImage {
                         450 -> DataType.HALF_NON_LINEAR
                         500 -> DataType.FLOAT_LINEAR
                         550 -> DataType.FLOAT_NON_LINEAR
-                        else -> throw IOException("Unknown precision")
+                        else -> return IOException("Unknown precision")
                     }
                 }
                 else -> DataType.entries.firstOrNull { it.value == p }
-                    ?: throw IOException("Unknown precision")
+                    ?: return IOException("Unknown precision")
             }
         } else DataType.U8_NON_LINEAR
 
         // just creates a new, empty instance
         // val image = createImage(width, height, imageType, precision, false)
 
-        loadImageProps(data)
+        val error = loadImageProps(data)
+        if (error != null) return error
 
         // read layers
         while (true) {
@@ -270,7 +288,8 @@ class GimpImage {
             val savedPosition = data.position()
             data.position(offset)
             val layer = loadLayer(data)
-            if (layer != null) layers.add(layer)
+            if (layer is Layer) layers.add(layer)
+            else if (layer is Exception) return layer
             data.position(savedPosition)
         }
 
@@ -289,9 +308,10 @@ class GimpImage {
         // loadAddMasks()?
 
         // pretty much done
+        return null
     }
 
-    fun createImage(width: Int, height: Int, imageType: ImageType, format: DataType, hasAlpha: Boolean): Image {
+    fun createImage(width: Int, height: Int, imageType: ImageType, format: DataType, hasAlpha: Boolean): Any {
         val channels = imageType.channels + hasAlpha.toInt(1)
         return when (format) {
             DataType.U8_LINEAR,
@@ -303,7 +323,7 @@ class GimpImage {
                     2 -> ByteImage.Format.RG
                     3 -> ByteImage.Format.RGB
                     4 -> ByteImage.Format.ARGB
-                    else -> throw IOException("Too many channels in image")
+                    else -> return IOException("Too many channels in image")
                 }
             )
             else -> {
@@ -323,7 +343,7 @@ class GimpImage {
         return str
     }
 
-    private fun loadLayer(data: ByteBuffer): Layer? {
+    private fun loadLayer(data: ByteBuffer): Any? {
 
         var width = data.int
         var height = data.int
@@ -335,7 +355,7 @@ class GimpImage {
             0, 1 -> ImageType.RGB
             2, 3 -> ImageType.GRAY
             4, 5 -> ImageType.INDEXED
-            else -> throw IOException()
+            else -> return IOException("Unknown image type")
         }
 
         val layer = Layer(width, height, name, baseType, hasAlpha)
@@ -360,14 +380,16 @@ class GimpImage {
 
         // if sth
         data.position(hierarchyOffset)
-        layer.image = loadBuffer(data, layer)
+        val buffer = loadBuffer(data, layer)
+        if (buffer is Exception) return buffer
+        layer.image = buffer as? Image
 
         // and stuff...
 
         return layer
     }
 
-    private fun loadBuffer(data: ByteBuffer, layer: Layer): Image? {
+    private fun loadBuffer(data: ByteBuffer, layer: Layer): Any? {
         /*val width = data.int
         val height = data.int
         val bpp = data.int*/
@@ -388,11 +410,12 @@ class GimpImage {
         loadLevel(data, channel)
     }
 
-    private fun loadLevel(data: ByteBuffer, dataType: DataType, layer: Layer): Image? {
+    private fun loadLevel(data: ByteBuffer, dataType: DataType, layer: Layer): Any? {
         val bpp = getBpp(dataType, layer.baseType, layer.hasAlpha)
         val width = data.int
         val height = data.int
         val image = createImage(width, height, layer.baseType, dataType, layer.hasAlpha)
+        if (image !is Image) return image
         // first tile offset
         var offset = readOffset(data)
         if (offset == 0) return null // empty
@@ -404,7 +427,7 @@ class GimpImage {
             tmp = ByteArray(maxDataLength)
         }
         for (tileIndex in 0 until tiles) {
-            if (offset == 0) throw IOException("Not enough tiles found")
+            if (offset == 0) return IOException("Not enough tiles found")
             val savedPosition = data.position()
             var offset2 = readOffset(data)
             // "if the offset is 0 then we need to read in the maximum possible
@@ -422,13 +445,13 @@ class GimpImage {
             when (compression) {
                 Compression.NONE -> loadTile(data, image, layer.baseType, dataType, x0, y0)
                 Compression.RLE -> loadTileRLE(data, image, layer.baseType, dataType, x0, y0, dataLength)
-                else -> throw IOException("Compression not supported")
+                else -> return IOException("Compression not supported")
             }
             data.position(savedPosition)
             offset = readOffset(data)
         }
-        if (offset != 0) throw IOException("Encountered garbage after reading level")
-        return image
+        return if (offset == 0) image
+        else IOException("Encountered garbage after reading level")
     }
 
     private fun readComponents(
@@ -614,12 +637,12 @@ class GimpImage {
         }
     }
 
-    private fun loadImageProps(data: ByteBuffer) {
+    private fun loadImageProps(data: ByteBuffer): Exception? {
         while (true) {
             loadProp(data)
             val position = data.position()
             when (propType) {
-                PropertyType.END -> break
+                PropertyType.END -> return null
                 PropertyType.COLOR_MAP -> {
                     val size = data.int
                     val colors = if (fileVersion == 0) {
@@ -636,7 +659,7 @@ class GimpImage {
                 PropertyType.COMPRESSION -> {
                     val ti = data.get().toInt()
                     compression = Compression.entries.getOrNull(ti)
-                        ?: throw IOException("Unknown compression $ti")
+                        ?: return IOException("Unknown compression $ti")
                 }
                 else -> printUnknownProperty(data, "image-prop")
             }

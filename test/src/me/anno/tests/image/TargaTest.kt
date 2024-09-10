@@ -1,5 +1,6 @@
 package me.anno.tests.image
 
+import me.anno.image.raw.ByteImage
 import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.utils.OS
@@ -20,7 +21,7 @@ fun convert(file: FileReference) {
     } else {
         if (file.lcExtension == "tga") {
             logger.info("reading file $file")
-            val image = TGAReader.read(file.inputStreamSync(), false)
+            val image = TGAReader.read(file.inputStreamSync(), false) as ByteImage
             val data = image.data
             logger.info("${file.name}: ${image.width} x ${image.height}, ${image.numChannels}, ${data.size}")
             // LOGGER.infoOS.desktop)

@@ -43,12 +43,16 @@ object ImageCache : CacheSection("Image") {
         }, streamReader)
     }
 
+    /**
+     * reader shall return image or exception
+     * */
     fun registerDirectStreamReader(
         signatures: String,
-        streamReader: (InputStream) -> Image
+        streamReader: (InputStream) -> Any
     ) {
         registerStreamReader(signatures) { stream, callback ->
-            callback.ok(streamReader(stream))
+            val result = streamReader(stream)
+            callback.call(result as? Image, result as? Exception)
         }
     }
 

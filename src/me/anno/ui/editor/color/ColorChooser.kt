@@ -86,9 +86,11 @@ open class ColorChooser(
     private val alphaBar = if (withAlpha) AlphaBar(this, style) else null
 
     private val colorSpaceInput = EnumInput(
-        NameDesc("Color Space",
+        NameDesc(
+            "Color Space",
             "Color Layout: which colors are where?, e.g. color circle",
-            "ui.input.color.colorSpace"),
+            "ui.input.color.colorSpace"
+        ),
         colorSpace.naming,
         ColorSpace.list.value.map { it.naming }, style
     ).setChangeListener { _, index, _ ->
@@ -247,7 +249,7 @@ open class ColorChooser(
             is Int -> setARGB(color, -1, true)
             is Vector4f -> setRGBA(color, -1, true)
             null -> LOGGER.warn("Didn't understand color $data")
-            else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
+            else -> LOGGER.warn("Color type $data -> $color isn't yet supported for ColorChooser")
         }
     }
 

@@ -178,33 +178,28 @@ class ECSSceneTab(
         }
 
         for (window in window?.windowStack ?: emptyList()) {
-            window.panel.forAll {
-                if (it is RenderView) {
+            window.panel.forAll { panel ->
+                if (panel is RenderView) {
                     val radius = radius
-                    it.radius = radius
-                    it.near = 1e-3 * radius
-                    it.far = 1e10 * radius
-                    it.orbitCenter.set(position)
-                    it.orbitRotation.set(rotation)
+                    panel.radius = radius
+                    panel.near = 1e-3 * radius
+                    panel.far = 1e10 * radius
+                    panel.orbitCenter.set(position)
+                    panel.orbitRotation.set(rotation)
                 }
             }
         }
     }
 
     fun onStop() {
-        try {
-            for (window in windowStack) {
-                window.panel.forAll {
-                    if (it is RenderView) {
-                        radius = it.radius
-                        position.set(it.orbitCenter)
-                        rotation.set(it.orbitRotation)
-                        // early exit
-                        throw RuntimeException()
-                    }
+        for (window in windowStack) {
+            window.panel.forAll { panel ->
+                if (panel is RenderView) {
+                    radius = panel.radius
+                    position.set(panel.orbitCenter)
+                    rotation.set(panel.orbitRotation)
                 }
             }
-        } catch (_: RuntimeException) {
         }
     }
 

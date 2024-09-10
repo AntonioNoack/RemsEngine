@@ -15,43 +15,43 @@ inline fun assertTrue(condition: Boolean, message: () -> String) {
 }
 
 fun <V : Comparable<V>> assertLessThan(value: V, maxValue: V, message: String = "compare failed") {
-    if (value >= maxValue) throw IllegalStateException("$value >= $maxValue, $message")
+    assertTrue(value < maxValue) { "$value >= $maxValue, $message" }
 }
 
 fun assertContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
-    if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
+    assertTrue(value in collection) { "'$value' !in '$collection', $message" }
 }
 
 fun assertContains(value: Int, collection: IntRange, message: String = "condition failed") {
-    if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
+    assertTrue(value in collection) { "'$value' !in '$collection', $message" }
 }
 
 fun assertNotContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
-    if (value in collection) throw IllegalStateException("'$value' in '$collection', $message")
+    assertTrue(value !in collection) { "'$value' in '$collection', $message" }
 }
 
 fun <V> assertContains(value: V, collection: Collection<V>, message: String = "condition failed") {
-    if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
+    assertTrue(value in collection) { "'$value' !in '$collection', $message" }
 }
 
 fun <V> assertNotContains(value: V, collection: Collection<V>, message: String = "condition failed") {
-    if (value in collection) throw IllegalStateException("'$value' in '$collection', $message")
+    assertTrue(value !in collection) { "'$value' in '$collection', $message" }
 }
 
 fun assertFalse(condition: Boolean, message: String = "condition failed") {
-    if (condition) throw IllegalStateException(message)
+    assertTrue(!condition, message)
 }
 
 fun assertFail(message: String = "condition failed") {
-    throw IllegalStateException(message)
+    assertTrue(false, message)
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal values") {
-    if (expected != actual) throw IllegalStateException("$message, \n'$expected' != \n'$actual'")
+    assertTrue(expected == actual) { "$message, \n'$expected' != \n'$actual'" }
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: () -> String) {
-    if (expected != actual) throw IllegalStateException("${message()}, \n'$expected' != \n'$actual'")
+    assertTrue(expected == actual) { "${message()}, \n'$expected' != \n'$actual'" }
 }
 
 fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {
@@ -59,15 +59,15 @@ fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expe
 }
 
 fun assertEquals(expected: Int, actual: Int, message: String = "expected equal values") {
-    if (expected != actual) throw IllegalStateException("$message, $expected != $actual")
+    assertTrue(expected == actual) { "$message, $expected != $actual" }
 }
 
 fun assertEquals(
     expected: Double, actual: Double, absoluteThreshold: Double,
     message: String = "expected equal values"
 ) {
-    if (!(abs(expected - actual) <= absoluteThreshold)) {
-        throw IllegalStateException("$message, |$expected - $actual| > $absoluteThreshold")
+    assertTrue(!(abs(expected - actual) <= absoluteThreshold)) {
+        "$message, |$expected - $actual| > $absoluteThreshold"
     }
 }
 
@@ -79,7 +79,7 @@ fun assertEquals(
 }
 
 fun assertNotEquals(forbidden: Any?, actual: Any?, message: String = "expected different values") {
-    if (forbidden == actual) throw IllegalStateException(message)
+    assertTrue(forbidden != actual) { "$message, $forbidden == $actual" }
 }
 
 fun <V : Vector> assertEquals(expected: V?, actual: V?, distanceTolerance: Double) {
@@ -95,11 +95,16 @@ fun <V : Vector> assertEquals(expected: V?, actual: V?, distanceTolerance: Doubl
 }
 
 fun assertNull(v: Any?, message: String = "expected null, but got value") {
-    if (v != null) throw IllegalStateException("$message, $v")
+    assertEquals(v, null, message)
 }
 
 fun <V> assertNotNull(v: V?, message: String = "expected not null"): V {
     if (v == null) throw IllegalStateException(message)
+    return v
+}
+
+inline fun <V> assertNotNull(v: V?, message: () -> String): V {
+    if (v == null) throw IllegalStateException(message())
     return v
 }
 

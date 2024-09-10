@@ -15,6 +15,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Ints.toIntOrDefault
 import net.sf.image4j.codec.ico.ICOReader
 
@@ -51,7 +52,9 @@ class ImagePlugin : Plugin() {
                 dst.ready = false
                 file.inputStream { it, exc ->
                     if (it != null) {
-                        dst.setImage(GimpImage.findSize(it))
+                        val size = GimpImage.findSize(it)
+                        if (size is IntPair) dst.setImage(size)
+                        else (size as? Exception)?.printStackTrace()
                     } else exc?.printStackTrace()
                     dst.ready = true
                 }

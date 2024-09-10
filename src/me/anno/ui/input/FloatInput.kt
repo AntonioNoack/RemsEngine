@@ -4,17 +4,13 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.language.translation.NameDesc
 import me.anno.parser.SimpleExpressionParser
-import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Strings.isBlank2
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.Vector
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -122,18 +118,11 @@ open class FloatInput(
                 is Double -> value
                 is Int -> value.roundToIntOr()
                 is Long -> value.roundToLongOr()
-                is Vector2f, is Vector3f,
-                is Vector4f, is Quaternionf -> value.toFloat()
+                is Vector -> value.toFloat()
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
-            val asDouble = when (val clamped = clampFunc(input)) {
-                is Boolean -> clamped.toDouble()
-                is Float -> clamped.toDouble()
-                is Double -> clamped
-                is Int -> clamped.toDouble()
-                is Long -> clamped.toDouble()
-                else -> throw RuntimeException("Unknown type $clamped for ${this::class.simpleName}")
-            }
+            val clamped = clampFunc(input)
+            val asDouble = AnyToDouble.getDouble(clamped)
             setValue(asDouble, -1, notify)
         }
     }

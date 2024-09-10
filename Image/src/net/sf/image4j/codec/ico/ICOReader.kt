@@ -1,9 +1,9 @@
 package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
-import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
@@ -49,7 +49,7 @@ object ICOReader {
     }
 
     @JvmStatic
-    private fun readLayer(input1: CountingInputStream, entry: IconEntry, i: Int): Image {
+    private fun readLayer(input1: CountingInputStream, entry: IconEntry, i: Int): Any {
 
         ensureOffset(input1, entry, i)
 
@@ -130,22 +130,25 @@ object ICOReader {
             PNG_MAGIC_LE -> {
                 val info2 = input1.readLE32()
                 if (info2 != PNG_MAGIC2_LE) {
-                    throw IOException("Unrecognized icon format for image #$i")
+                    return IOException("Unrecognized icon format for image #$i")
                 }
                 val pngBytes = packPNGBytes(input1, entry.sizeInBytes)
+                if (pngBytes !is ByteArray) return pngBytes // exception case
                 val stream = ByteArrayInputStream(pngBytes)
                 ImageIO.read(stream).toImage()
             }
-            else -> throw IOException("Unrecognized icon format for image #$i")
+            else -> return IOException("Unrecognized icon format for image #$i")
         }
     }
 
     /**
      * Reads and decodes ICO data from the given source. The returned list of
      * images is in the order in which they appear in the source ICO data.
+     *
+     * returns List<Image> or exception
      */
     @JvmStatic
-    fun readAllLayers(input0: InputStream): List<Image> {
+    fun readAllLayers(input0: InputStream): Any {
 
         val input1 = CountingInputStream(input0)
 
@@ -166,20 +169,22 @@ object ICOReader {
         val ret = ArrayList<Image>(sCount)
         for (i in 0 until sCount) {
             try {
-                ret.add(readLayer(input1, entries[i], i))
+                val layer = readLayer(input1, entries[i], i)
+                if (layer !is Image) return layer // exception case
+                ret.add(layer)
             } catch (ex: IOException) {
                 if (ret.isNotEmpty()) {
                     ex.printStackTrace()
                     return ret
                 }
-                throw IOException("Failed to read image #$i/$sCount", ex)
+                return IOException("Failed to read image #$i/$sCount", ex)
             }
         }
         return ret
     }
 
     @JvmStatic
-    private fun findBestLayer(input1: CountingInputStream, targetSize: Int): IconEntry {
+    private fun findBestLayer(input1: CountingInputStream, targetSize: Int): Any {
 
         // Reserved 2 byte =0
         input1.readLE16()
@@ -189,32 +194,35 @@ object ICOReader {
 
         // Count, 2 byte: number of icons in this file
         val sCount = input1.readLE16()
-        if (sCount == 0) throw IOException("No layers were found in .ico")
-
         var bestDist = 0
-        lateinit var bestLayer: IconEntry
+        var bestLayer: IconEntry? = null
         for (i in 0 until sCount) {
             val layer = IconEntry(input1)
             val size = (layer.width + layer.height) ushr 1
             val dist = abs(size - targetSize)
-            if (i == 0 || layer.bitCount > bestLayer.bitCount || (layer.bitCount == bestLayer.bitCount && dist < bestDist)) {
+            if (bestLayer == null || layer.bitCount > bestLayer.bitCount ||
+                (layer.bitCount == bestLayer.bitCount && dist < bestDist)
+            ) {
                 bestDist = dist
                 bestLayer = layer
                 layer.index = i
             }
         }
-
         return bestLayer
+            ?: IOException("No layer was found")
     }
 
     /**
      * Reads and decodes ICO data from the given source.
      * Finds the best image with size closest to parameter "size"
+     *
+     * returns image or exception
      */
     @JvmStatic
-    fun read(input0: InputStream, targetSize: Int = MAX_SIZE): Image {
+    fun read(input0: InputStream, targetSize: Int = MAX_SIZE): Any {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, targetSize)
+        if (bestLayer !is IconEntry) return bestLayer
         return readLayer(input1, bestLayer, bestLayer.index)
     }
 
@@ -226,8 +234,11 @@ object ICOReader {
         this[i + 3] = v.toByte()
     }
 
+    /**
+     * return ByteArray or exception
+     * */
     @JvmStatic
-    private fun packPNGBytes(input1: CountingInputStream, sizeInBytes: Int): ByteArray {
+    private fun packPNGBytes(input1: CountingInputStream, sizeInBytes: Int): Any {
         // we could encapsulate this smarter, directly as an InputStream, without intermediate buffer...
         val bytes = ByteArray(sizeInBytes)
         bytes.set2(0, PNG_MAGIC)
@@ -235,16 +246,20 @@ object ICOReader {
         var pos = 8
         while (pos < sizeInBytes) {
             val numReadChars = input1.read(bytes, pos, sizeInBytes - pos)
-            if (numReadChars < 0) throw EOFException()
+            if (numReadChars < 0) return EOFException()
             pos += numReadChars
         }
         return bytes
     }
 
+    /**
+     * return size or exception
+     * */
     @JvmStatic
-    fun findSize(input0: InputStream): IntPair {
+    fun findSize(input0: InputStream): Any {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, MAX_SIZE)
+        if (bestLayer !is IconEntry) return bestLayer
         if (bestLayer.width == 0 || bestLayer.height == 0) {
             // the best layer can have its size incorrectly written as 0 x 0,
             // if this is the case, read the size more directly
@@ -258,10 +273,11 @@ object ICOReader {
                 PNG_MAGIC_LE -> {
                     val info2 = input1.readLE32()
                     if (info2 != PNG_MAGIC2_LE) {
-                        throw IOException("Unrecognized icon format for image #${bestLayer.index}")
+                        return IOException("Unrecognized icon format for image #${bestLayer.index}")
                     }
 
                     val pngBytes = packPNGBytes(input1, bestLayer.sizeInBytes)
+                    if (pngBytes !is ByteArray) return pngBytes // exception case
                     for (reader in ImageIO.getImageReadersBySuffix("png")) {
                         val stream = ByteArrayInputStream(pngBytes)
                         return stream.use { input: InputStream ->
@@ -271,7 +287,7 @@ object ICOReader {
                     }
                     IntPair(0, 0)
                 }
-                else -> throw IOException("Unrecognized icon format for image #${bestLayer.index}")
+                else -> return IOException("Unrecognized icon format for image #${bestLayer.index}")
             }
         }
         return IntPair(bestLayer.width, bestLayer.height)

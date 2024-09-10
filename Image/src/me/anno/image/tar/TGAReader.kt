@@ -47,12 +47,10 @@ object TGAReader {
      *
      * @param input InputStream of an uncompressed 24b RGB or 32b RGBA TGA
      * @param flip Flip the image vertically
-     * @return `Image` object that contains the
-     * image, either as a R8, a RGB888 or RGBA8888
-     * @throws IOException if an I/O error occurs
+     * @return ByteImage or exception
      */
     @JvmStatic
-    fun read(input: InputStream, flip: Boolean = false): ByteImage {
+    fun read(input: InputStream, flip: Boolean = false): Any {
 
         var flipY = flip
         var flipX = false
@@ -146,19 +144,18 @@ object TGAReader {
         val dl = if (pixelDepth == 32) 4 else
             if (imageType == GRAYSCALE || imageType == GRAYSCALE_RLE) 1 else 3
         val rawDataSize = width * height * dl
-        if (rawDataSize < 0) throw IOException("Invalid size: $width x $height x $dl")
+        if (rawDataSize < 0) return IOException("Invalid size: $width x $height x $dl")
         val rawData = ByteArray(rawDataSize)
         val numChannels = when (imageType) {
             TRUE_COLOR -> readTrueColor(pixelDepth, width, height, flipY, rawData, dl, input)
             TRUE_COLOR_RLE -> readTrueColorRLE(pixelDepth, width, height, flipY, rawData, dl, input)
             COLORMAPPED -> readColorMapped(pixelDepth, width, height, flipY, rawData, dl, input, cMapEntries!!)
-            NO_IMAGE -> throw IOException("No image is not supported")
+            NO_IMAGE -> return IOException("No image is not supported")
             GRAYSCALE -> readGrayscale(pixelDepth, width, height, flipY, rawData, dl, input)
-            COLORMAPPED_RLE -> throw IOException("Colormapped RLE is not supported")
-            GRAYSCALE_RLE -> throw IOException("Black & White RLE is not supported")
-            else -> throw IOException("Unknown TGA type $imageType")
+            COLORMAPPED_RLE -> return IOException("Colormapped RLE is not supported")
+            GRAYSCALE_RLE -> return IOException("Black & White RLE is not supported")
+            else -> return IOException("Unknown TGA type $imageType")
         }
-        input.close()
 
         // Create the Image object
         if (flipX) flipX(rawData, width, height, numChannels)
@@ -169,7 +166,7 @@ object TGAReader {
             2 -> ByteImage.Format.RG
             3 -> ByteImage.Format.BGR
             4 -> ByteImage.Format.BGRA
-            else -> throw NotImplementedError()
+            else -> return IOException("Unsupported number of channels: $numChannels")
         }
         return ByteImage(width, height, format, rawData)
     }

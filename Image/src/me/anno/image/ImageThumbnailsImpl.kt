@@ -1,6 +1,5 @@
 package me.anno.image
 
-import me.anno.image.svg.DrawSVGs
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -8,6 +7,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureReader
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.jpg.JPGThumbnails
+import me.anno.image.svg.DrawSVGs
 import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tar.TGAReader
 import me.anno.image.thumbs.ImageThumbnails.generateImage
@@ -49,9 +49,11 @@ object ImageThumbnailsImpl {
         srcFile.inputStream { it, exc ->
             if (it != null) {
                 val src = it.use { TGAReader.read(it, false) }
-                Thumbs.findScale(src, srcFile, size, callback) { dst ->
-                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
-                }
+                if (src is Image) {
+                    Thumbs.findScale(src, srcFile, size, callback) { dst ->
+                        Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
+                    }
+                } else callback.err(src as? Exception)
             }
             exc?.printStackTrace()
         }
@@ -64,7 +66,8 @@ object ImageThumbnailsImpl {
         srcFile.inputStream { it, exc ->
             if (it != null) {
                 val image = it.use { ICOReader.read(it, size) }
-                Thumbs.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                if (image is Image) Thumbs.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                else callback.err(image as? Exception)
             } else exc?.printStackTrace()
         }
     }

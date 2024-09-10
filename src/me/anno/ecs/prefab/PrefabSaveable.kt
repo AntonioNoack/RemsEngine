@@ -21,6 +21,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.InternalAPI
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
@@ -368,8 +369,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {
-            return getSample(className) as? PrefabSaveable
-                ?: throw RuntimeException("No super instance was found for class '$className'")
+            return assertNotNull(getSample(className) as? PrefabSaveable) {
+                "No super instance was found for class '$className'"
+            }
         }
 
         fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>): List<Option> {

@@ -12,10 +12,7 @@ import kotlin.math.min
 data class TextCacheKey(val text: CharSequence, val fontName: String, val properties: Int, val limits: Int) {
 
     constructor(text: CharSequence, fontName: String, properties: Int, widthLimit: Int, heightLimit: Int) :
-            this(text, fontName, properties, GFXx2D.getSize(widthLimit, heightLimit)) {
-        if (widthLimit < 0 || heightLimit < 0)
-            throw IllegalStateException()
-    }
+            this(text, fontName, properties, GFXx2D.getSize(widthLimit, heightLimit))
 
     constructor(text: String, font: Font, widthLimit: Int, heightLimit: Int, grayscale: Boolean) :
             this(text, font.name, getProperties(font.sizeIndex, font, grayscale), widthLimit, heightLimit)

@@ -88,11 +88,17 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         duration = Double.POSITIVE_INFINITY // actual value isn't really well-defined
     }
 
-    fun setImageByStream(callback: (InputStream) -> IntPair): Boolean {
+    fun setImageByStream(callback: (InputStream) -> Any): Boolean {
         ready = false
         file.inputStream { it, exc ->
-            if (it != null) setImage(callback(it))
-            else exc?.printStackTrace()
+            if (it != null) {
+                val size = callback(it)
+                if (size is IntPair) {
+                    setImage(size)
+                } else if (size is Exception) {
+                    size.printStackTrace()
+                }
+            } else exc?.printStackTrace()
             ready = true
         }
         return true

@@ -43,9 +43,6 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
             interleaveImpl(msg, args)
         } else if ('%' in msg) {
             msg.format(Locale.ENGLISH, *args)
-            /*val funFormat = String::class.java.getMethod("format", Locale::class.java, Array<Object>(0){ throw RuntimeException() }::class.java)
-            return funFormat.invoke(msg, Locale.ENGLISH, args) as String
-            return msg.format(Locale.ENGLISH, args)*/
         } else msg
     }
 

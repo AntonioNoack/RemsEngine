@@ -1,10 +1,10 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseReader
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
@@ -920,7 +920,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             } else {
                 assertEquals(nextChar, ':')
                 if (isPtrProperty(property0)) {
-                    val ptr = readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
+                    val ptr = readNumber().toIntOrNull()
+                        ?: throw InvalidFormatException("Invalid pointer")
                     register(instance, ptr)
                 } else {
                     register(instance)

@@ -42,6 +42,8 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -97,7 +99,10 @@ class PrefabInspector(var reference: FileReference) {
 
     fun reset(path: Path?) {
         path ?: return
-        if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
+        if (!prefab.isWritable) {
+            LOGGER.warn("Prefab '${prefab.source}' is immutable, so it cannot be reset on $path")
+            return
+        }
         if (sets.removeMajorIf { it == path }) {
             prefab.invalidateInstance()
             onChange(true)
@@ -107,7 +112,10 @@ class PrefabInspector(var reference: FileReference) {
 
     fun reset(path: Path?, name: String) {
         path ?: return
-        if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
+        if (!prefab.isWritable) {
+            LOGGER.warn("Prefab '${prefab.source}' is immutable, so it cannot be reset on $path.$name")
+            return
+        }
         // if (sets.removeIf { it.path == path && it.name == name }) {
         if (sets.contains(path, name)) {
             sets.remove(path, name)
@@ -389,17 +397,17 @@ class PrefabInspector(var reference: FileReference) {
     }
 
     fun save() {
-        if (reference == InvalidRef) throw IllegalStateException("Prefab doesn't have source!!")
+        assertNotEquals(InvalidRef, reference, "Prefab doesn't have source!!")
         if (reference.exists) {
             // check, that we actually can save this file;
             //  we must not override resources like .obj files
             val testRead = try {
-                JsonStringReader.read(reference, workspace, false).firstOrNull()
+                JsonStringReader.readFirstOrNull(reference, workspace, Prefab::class)
             } catch (e: Exception) {
                 null
             }
-            if (testRead !is Prefab) {
-                throw IllegalArgumentException("Must not override assets! $reference is not a prefab")
+            assertNotNull(testRead) {
+                "Must not override assets! $reference is not a prefab"
             }
         }
         val selected = collectSelected()

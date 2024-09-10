@@ -16,6 +16,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.types.Strings.indexOf2
 import java.io.DataInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteOrder
 import kotlin.math.min
@@ -25,41 +26,45 @@ object NumPyReader {
     fun readNPZ(folder: FileReference, callback: Callback<Map<String, NumPyData?>>) {
         folder.listChildren().mapCallback<FileReference, Pair<String, NumPyData?>>({ _, file, cb1 ->
             file.inputStream { stream, err ->
-                err?.printStackTrace()
                 val data = if (stream != null) readNPY(stream) else null
-                cb1.ok(file.nameWithoutExtension to data)
+                if (data is NumPyData?) {
+                    cb1.ok(file.nameWithoutExtension to data)
+                } else cb1.err(data as? Exception ?: err)
             }
         }, { list, err ->
             callback.call(list?.toMap(), err)
         })
     }
 
-    fun readNPY(input: InputStream): NumPyData {
+    /**
+     * returns NumPyData or exception
+     * */
+    fun readNPY(input: InputStream): Any {
 
         val data = DataInputStream(input)
         for (c in NUMPY_MAGIC) {
-            if (data.read() != c.code)
-                throw IllegalArgumentException("Invalid header")
+            if (data.read() != c.code) {
+                return IOException("Invalid magic")
+            }
         }
 
         val major = data.read()
         /*val minor =*/ data.read()
         val headerLen = if (major >= 2) data.readLE32() else data.readLE16()
         val header = data.readNBytes2(headerLen, true).decodeToString().trim()
-        if (!header.startsWith("{") || !header.endsWith("}"))
-            throw IllegalArgumentException("Header broken $header")
+        if (!header.startsWith("{") || !header.endsWith("}")) {
+            return IOException("Header broken $header")
+        }
         val i0 = header.indexOf("descr") + "descr".length + 1
         val i1 = min(header.indexOf2("'", i0), header.indexOf2("\"", i0)) + 1
-        if (i1 >= header.length)
-            throw IllegalArgumentException("Header broken $header")
+        if (i1 >= header.length) return IOException("Header broken $header")
         val i2 = min(header.indexOf2("'", i1), header.indexOf2("\"", i1))
         val descriptor = header.substring(i1, i2)
         val columnMajor = header.contains("true", true)
         val i3 = header.indexOf("shape") + "shape".length + 1
         val i4 = header.indexOf("(", i3) + 1
         val i5 = header.indexOf(")", i4)
-        if (i5 < 0)
-            throw IllegalArgumentException("Header broken $header")
+        if (i5 < 0) return IOException("Header broken $header")
         val shape = header.substring(i4, i5)
             .split(',')
             .mapNotNull { it.trim().toIntOrNull() }
@@ -68,8 +73,9 @@ object NumPyReader {
         // {'descr': '<i4', 'fortran_order': False, 'shape': (1,), }
         val leFlags = if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) "<=" else "<"
         val littleEndian = descriptor[0] in leFlags
-        if (descriptor.length < 3 || descriptor[0] !in "<|" || ',' in descriptor)
-            throw IllegalStateException("Unsupported descriptor $descriptor") // unknown, maybe structured type
+        if (descriptor.length < 3 || descriptor[0] !in "<|" || ',' in descriptor) {
+            return IllegalStateException("Unsupported descriptor $descriptor") // unknown, maybe structured type
+        }
         val totalSize = shape.reduce { a, b -> a * b }
         val doubleSize = totalSize * 2
         val data1: Any = when (val sub = descriptor.substring(1)) {
@@ -95,11 +101,11 @@ object NumPyReader {
             else -> {
                 if (sub.startsWith("S")) {
                     val individualLength = sub.substring(1).toIntOrNull()
-                        ?: throw IllegalArgumentException("Unsupported string descriptor $descriptor")
+                        ?: return IOException("Unsupported string descriptor $descriptor")
                     Array(totalSize) {
                         data.readNBytes2(individualLength, true).decodeToString()
                     }
-                } else throw IllegalArgumentException("Unknown descriptor type $descriptor")
+                } else return IOException("Unknown descriptor type $descriptor")
             }
         }
         return NumPyData(descriptor, shape, columnMajor, data1)

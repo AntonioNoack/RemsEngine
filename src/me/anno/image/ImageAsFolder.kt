@@ -37,7 +37,8 @@ object ImageAsFolder {
     var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) -> Unit)? =
         null
 
-    var readIcoLayers: ((InputStream) -> List<Image>)? = null
+    /** returns List<Image> or exception */
+    var readIcoLayers: ((InputStream) -> Any)? = null
     var readJPGThumbnail: ((FileReference, Callback<Image?>) -> Unit)? = null
 
     @JvmStatic
@@ -86,9 +87,13 @@ object ImageAsFolder {
                     file.inputStream { it, exc ->
                         if (it != null) {
                             val layers = ric(it)
-                            for (index in layers.indices) {
-                                val layer = layers[index] as? Image ?: break
-                                folder.createImageChild("layer$index", layer)
+                            if (layers is List<*>) {
+                                for (index in layers.indices) {
+                                    val layer = layers[index] as? Image ?: break
+                                    folder.createImageChild("layer$index", layer)
+                                }
+                            } else if (layers is Exception) {
+                                layers.printStackTrace()
                             }
                             it.close()
                             callback.ok(folder)

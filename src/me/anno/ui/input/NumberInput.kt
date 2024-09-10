@@ -9,6 +9,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 
 abstract class NumberInput<BaseType>(
     style: Style,
@@ -17,6 +18,10 @@ abstract class NumberInput<BaseType>(
     val type: NumberType = NumberType.FLOAT,
     inputPanel0: NumberInputComponent?
 ) : PanelListY(style), InputPanel<BaseType>, TextStyleable {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(NumberInput::class)
+    }
 
     var hasValue = false
 
@@ -87,7 +92,7 @@ abstract class NumberInput<BaseType>(
         when (this) {
             is IntInput -> updateValueMaybe()
             is FloatInput -> updateValueMaybe()
-            else -> throw RuntimeException()
+            else -> LOGGER.warn("Unknown child type")
         }
     }
 

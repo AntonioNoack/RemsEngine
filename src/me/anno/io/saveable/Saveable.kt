@@ -8,6 +8,7 @@ import me.anno.engine.inspector.CachedReflections
 import me.anno.io.base.BaseWriter
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentHashMap
@@ -30,7 +31,7 @@ open class Saveable {
     open fun onReadingEnded() {}
 
     private fun warnMissingParam(name: String) {
-        if (name == "*ptr") throw RuntimeException()
+        assertNotEquals("*ptr", name)
         LogManager.getLogger(Saveable::class).warn("Unknown param $className.$name")
     }
 
