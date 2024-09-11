@@ -13,8 +13,8 @@ import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.flatNormalsFra
 import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.flatNormalsNorTan
 import me.anno.ecs.components.mesh.utils.MeshVertexData.Companion.noColors
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.ECSRegistry
 import me.anno.engine.Events.addEvent
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
@@ -40,6 +40,7 @@ import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.AABBd
 import org.joml.AABBf
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.Random
@@ -161,6 +162,7 @@ fun testFindingChunks2(sphere: HexagonSphere) {
 
 fun main() {
 
+    // todo this is invisible :(
     // todo sizes like 20k no longer work properly, and I suspect findChunk() is the culprit
     val n = 10000
     val t = 25 // good chunk size
@@ -170,7 +172,7 @@ fun main() {
     // return testFindingChunks(sphere)
     // return testFindingChunks2(sphere)
 
-    ECSRegistry.init()
+    OfficialExtensions.initForTests()
 
     val scene = Entity()
     scene.add(HSChunkLoader(sphere, world, false, diffuseHexMaterial))
@@ -219,6 +221,13 @@ class HSChunkLoader(
     override val materials: List<FileReference>
         get() = listOf(material.ref)
 
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        globalAABB.all()
+        localAABB.all()
+        aabb.all()
+        return true
+    }
+
     override fun getData(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {
         val positions = mesh.positions ?: return null
         val colors = mesh.color0 ?: return null
@@ -246,7 +255,8 @@ class HSChunkLoader(
     var maxAngleDifference = sphere.len * 512
 
     override fun onUpdate() {
-        val pos = pos.set(RenderView.currentInstance!!.orbitCenter).safeNormalize()
+        val renderView = RenderView.currentInstance ?: return
+        val pos = pos.set(renderView.orbitCenter).safeNormalize()
         if (pos.lengthSquared() < 0.5) pos.y = 1.0
         dir.set(pos)
         val pos3 = Vector3f(pos)

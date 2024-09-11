@@ -14,7 +14,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * Horizontal/Vertical (isY) list, where the user can decide the width/height of each element,
@@ -33,8 +32,8 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
         alignmentX = AxisAlignment.FILL
         alignmentY = AxisAlignment.FILL
         weight = 1f
-        if (isX) scrollbars.add(Scrollbar(style))
-        if (isY) scrollbars.add(Scrollbar(style))
+        if (isX) scrollbars.add(Scrollbar(this, style))
+        if (isY) scrollbars.add(Scrollbar(this, style))
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -53,6 +52,13 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
             if (isX) min(customSizeX, width - padding.width) else width - padding.width,
             if (isY) min(customSizeY, height - padding.height) else height - padding.height
         )
+    }
+
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        for (i in scrollbars.indices) {
+            scrollbars[i].updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        }
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
@@ -108,9 +114,7 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
 
     fun updateScrollbar(scrollbar: Scrollbar, isYBar: Boolean) {
         scrollbar.isHovered = (if (isYBar) dy else dx) >= 0
-        if (scrollbar.updateAlpha()) {
-            invalidateDrawing()
-        }
+        scrollbar.updateAlpha(this)
     }
 
     private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, originalBGColor, 0.8f))

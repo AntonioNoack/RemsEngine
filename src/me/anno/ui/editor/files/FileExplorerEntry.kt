@@ -208,26 +208,19 @@ open class FileExplorerEntry(
         }
     }
 
-    private var lastTex: Any? = null
-    private var lastMeta: Any? = null
+    override fun getVisualState(): Any? {
+        return when (val tex = getTexKey()) {
+            is GPUFrame -> if (tex.isCreated) tex else null
+            is ITexture2D -> (tex.createdOrNull() as? Texture2D)?.state
+            else -> tex
+        }
+    }
 
     override fun onUpdate() {
         super.onUpdate()
 
         if (explorer != null && parent == explorer.content2d) {
             listMode = explorer.listMode
-        }
-
-        val meta = meta
-        val tex = if (canBeSeen) when (val tex = getTexKey()) {
-            is GPUFrame -> if (tex.isCreated) tex else null
-            is Texture2D -> tex.state
-            else -> tex
-        } else null
-        if (lastMeta != meta || lastTex != tex) {
-            lastTex = tex
-            lastMeta = meta
-            invalidateDrawing()
         }
 
         titlePanel.canBeSeen = canBeSeen
@@ -324,13 +317,13 @@ open class FileExplorerEntry(
 
     private fun getDefaultIcon() = TextureCache[iconPath, true]
 
-    private fun getImage(): Any? {
+    private fun getImage(): ITexture2D? {
         val ref1 = ref1 ?: return null
         val thumb = Thumbs[ref1, width, true]
-        return thumb ?: getDefaultIcon()
+        return thumb?.createdOrNull() ?: getDefaultIcon()?.createdOrNull()
     }
 
-    private fun getTexKey(): Any? {
+    fun getTexKey(): Any? {
         return when (importType) {
             "Video", "Audio" -> {
                 val meta = meta
@@ -352,8 +345,8 @@ open class FileExplorerEntry(
     ) {
         val w = x1 - x0
         val h = y1 - y0
-        val file = ref1 ?: InvalidRef
         if (isHovered) {
+            val file = ref1 ?: InvalidRef
             // todo reset time when not hovered
             val animSample = try {
                 if (when (file.lcExtension) {
@@ -403,15 +396,13 @@ open class FileExplorerEntry(
                 return
             }
         }
-        val image0 = Thumbs[file, w, true]
-        val image1 = image0 ?: getDefaultIcon()
-        val image2 = if (image1 == null || (image1 is Texture2D && !image1.wasCreated)) whiteTexture else image1
-        val rot = (image2 as? Texture2D)?.rotation
-        image2.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+        val image = getImage() ?: whiteTexture
+        val rot = (image as? Texture2D)?.rotation
+        image.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
-            drawTexture(x0, y0, x1, y1, image2)
+            drawTexture(x0, y0, x1, y1, image)
         } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {
-            drawTexture(x0, y1, x1, y0, image2)
+            drawTexture(x0, y1, x1, y0, image)
         } else {
             // todo draw image without overflowing into other things
             // todo maybe use transform for that :)
@@ -422,7 +413,7 @@ open class FileExplorerEntry(
 
             // transform.rotateY(45f.toRadians())
 
-            drawTexture(x0, y0, x1, y1, image2)
+            drawTexture(x0, y0, x1, y1, image)
 
             transform.popMatrix()
             /* GFX.clip2(x0, y0, x1, y1) {
@@ -691,7 +682,7 @@ open class FileExplorerEntry(
                     val text = column.type.getValue(ref1s)
                     val alignment = column.type.alignment
                     drawTextCharByChar(
-                        xi0 + alignment.getOffset(xi1 - xi0, 0),
+                        alignment.getAnchor(xi0, xi1 - xi0),
                         y + h, monospaceFont, text,
                         titlePanel.textColor,
                         titlePanel.backgroundColor,

@@ -92,7 +92,7 @@ class ColorField(
             is Int -> setARGB(color, true)
             is Vector4f -> setRGBA(color, true)
             null -> LOGGER.warn("Didn't understand color $data")
-            else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
+            else -> LOGGER.warn("Color type $data -> $color isn't yet supported for ColorChooser")
         }
     }
 

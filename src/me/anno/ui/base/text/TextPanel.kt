@@ -170,42 +170,27 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    /**
-     * returns whether drawing failed, and should be retried
-     * */
-    open fun drawText(dx: Int, dy: Int, text: String, color: Int): Boolean {
-        val x = this.x + dx + padding.left
-        val y = this.y + dy + padding.top
-        return if (useMonospaceCharacters) {
+    open fun drawText(color: Int) {
+        val textAlignmentX = textAlignmentX
+        val textAlignmentY = textAlignmentY
+        val padding = padding
+        val ax = textAlignmentX.getAnchor(x + padding.left, width - padding.width)
+        val ay = textAlignmentY.getAnchor(y + padding.top, height - padding.height)
+        if (useMonospaceCharacters) {
             drawTextCharByChar(
-                x, y, font, text, color,
+                ax, ay, font, text, color,
                 backgroundColor, widthLimit, heightLimit,
-                AxisAlignment.MIN, AxisAlignment.MIN, true
+                textAlignmentX, textAlignmentY, true
             )
-            false
         } else {
-            DrawTexts.drawTextOrFail(x, y, font, text, color, backgroundColor, widthLimit, heightLimit)
+            val failed = DrawTexts.drawTextOrFail(
+                ax, ay, font, textCacheKey, color, backgroundColor,
+                textAlignmentX, textAlignmentY
+            )
+            if (failed) {
+                invalidateDrawing()
+            }
         }
-    }
-
-    /**
-     * returns whether drawing failed, and should be retried
-     * */
-    open fun drawText(dx: Int, dy: Int, color: Int): Boolean {
-        val x = this.x + dx + padding.left
-        val y = this.y + dy + padding.top
-        return if (useMonospaceCharacters) {
-            drawText(dx, dy, text, color)
-        } else {
-            DrawTexts.drawTextOrFail(x, y, font, textCacheKey, color, backgroundColor)
-        }
-    }
-
-    open fun drawText(color: Int = effectiveTextColor) {
-        val textSize = getTextSize(font, text, widthLimit, heightLimit, false)
-        val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
-        val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
-        if (drawText(dx, dy, color)) invalidateDrawing()
     }
 
     fun getXOffset(charIndex: Int): Int {

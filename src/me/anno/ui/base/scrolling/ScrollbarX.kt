@@ -1,24 +1,13 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
+import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.utils.Color.mulAlpha
 import kotlin.math.max
 
-open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(style) {
-
-    final override var parent: PrefabSaveable?
-        get() = super.parent
-        set(value) {
-            super.parent = value
-        }
-
-    init {
-        parent = scrollable as PanelGroup
-    }
+open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(scrollable as Panel, style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)

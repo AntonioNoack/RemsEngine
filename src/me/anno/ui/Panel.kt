@@ -250,24 +250,16 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun tick() {
         val newLayoutState = getLayoutState()
+        val newVisualState = getVisualState()
+        val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
         if (newLayoutState != oldLayoutState) {
-            oldLayoutState = newLayoutState
-            oldVisualState = getVisualState()
             invalidateLayout()
-        } else {
-            val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
-            if (oldStateInt != newStateInt) {
-                oldStateInt = newStateInt
-                oldVisualState = getVisualState()
-                invalidateDrawing()
-            } else {
-                val newVisualState = getVisualState()
-                if (newVisualState != oldVisualState) {
-                    oldVisualState = newVisualState
-                    invalidateDrawing()
-                }
-            }
+        } else if (oldStateInt != newStateInt || oldVisualState != newVisualState) {
+            invalidateDrawing()
         }
+        oldLayoutState = newLayoutState
+        oldVisualState = newVisualState
+        oldStateInt = newStateInt
     }
 
     open fun requestFocus(exclusive: Boolean = true) {

@@ -3,10 +3,12 @@ package me.anno.io.xml.generic
 import me.anno.io.json.generic.JsonReader.Companion.isHex
 import me.anno.io.json.generic.JsonReader.Companion.toHex
 import me.anno.io.xml.ComparableStringBuilder
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFail
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStream
 
 open class XMLReader {
@@ -263,22 +265,18 @@ open class XMLReader {
                 val b = input.read().toChar()
                 val c = input.read().toChar()
                 val d = input.read().toChar()
-                if (!isHex(a) || !isHex(b) || !isHex(c) || !isHex(d)) {
-                    throw IOException("Expected 4 hex characters after \\u")
-                }
+                assertTrue(isHex(a) && isHex(b) && isHex(c) && isHex(d), "Expected 4 hex characters after \\u")
                 toHex(a, b, c, d).joinChars()
             }
-            else -> throw RuntimeException("Special character \\$second not yet implemented")
+            else -> assertFail("Special character \\$second not yet implemented")
         }
     }
 
     fun assert(a: Int, b: Char, c: Char) {
         val ac = a.toChar()
-        if (ac != b && ac != c) throw IOException("Expected $b or $c, but got ${a.toChar()}")
-    }
-
-    fun assertEquals(a: Int, b: Int) {
-        if (a != b) throw IOException("'${a.toChar()}' != '${b.toChar()}'")
+        assertTrue(ac == b || ac == c) {
+            "Expected $b or $c, but got ${a.toChar()}"
+        }
     }
 
     companion object {

@@ -43,9 +43,8 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         GFX.loadTexturesSync.push(loadTextSync)
-        val offset = alignmentX.getOffset(width, 0)
         val text = text
-        val x = x + offset
+        val x = alignmentX.getAnchor(x, width)
         var y = y + 2
         val font = monospaceFont
         val dy = font.sampleHeight

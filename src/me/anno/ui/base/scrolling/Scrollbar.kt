@@ -13,6 +13,10 @@ import kotlin.math.abs
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
+    constructor(parent: Panel, style: Style) : this(style) {
+        this.parent = parent
+    }
+
     val activeAlpha = 0.2f
 
     var minSize = 5
@@ -24,13 +28,15 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     @NotSerializedProperty
     var alpha = 0f
 
-    fun updateAlpha(): Boolean {
+    fun updateAlpha(parent: Panel) {
         val oldAlpha = alpha
         alpha = mix(
             oldAlpha, if (isHovered) if (Input.isLeftDown) 1f else 0.8f else 0f,
             dtTo01(10f * uiDeltaTime.toFloat())
         )
-        return abs(alpha - oldAlpha) > 0.001f
+        if (abs(alpha - oldAlpha) > 0.001f) {
+            parent.invalidateDrawing(lx0, ly0, lx1, ly1)
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

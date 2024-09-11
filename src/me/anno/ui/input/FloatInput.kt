@@ -114,12 +114,10 @@ open class FloatInput(
         } else {
             val input: Any = when (type.defaultValue) {
                 is Boolean -> value >= 0.5
-                is Float -> value.toFloat()
-                is Double -> value
                 is Int -> value.roundToIntOr()
                 is Long -> value.roundToLongOr()
                 is Vector -> value.toFloat()
-                else -> throw RuntimeException("Unknown type ${type.defaultValue}")
+                else -> AnyToDouble.getDouble(value)
             }
             val clamped = clampFunc(input)
             val asDouble = AnyToDouble.getDouble(clamped)

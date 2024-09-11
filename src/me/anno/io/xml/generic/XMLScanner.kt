@@ -1,6 +1,7 @@
 package me.anno.io.xml.generic
 
 import me.anno.io.xml.ComparableStringBuilder
+import me.anno.utils.assertions.assertEquals
 import java.io.EOFException
 import java.io.InputStream
 

@@ -39,7 +39,6 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.Pools
-import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -143,7 +142,7 @@ open class Texture2D(
     private val withMultisampling = samples > 1
 
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
-    val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + wasCreated.toInt(1)
+    val state get(): Int = if (isCreated()) pointer else 0
 
     var pointer = 0
     var session = 0

@@ -35,10 +35,10 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             children.add(placeholder)
         }
         for (i in 1 until sizeX) {
-            scrollbarsX.add(Scrollbar(style))
+            scrollbarsX.add(Scrollbar(this, style))
         }
         for (i in 1 until sizeY) {
-            scrollbarsY.add(Scrollbar(style))
+            scrollbarsY.add(Scrollbar(this, style))
         }
         placeholder.parent = this
         weightsX.size = sizeX
@@ -193,6 +193,16 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         }
     }
 
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        for (i in scrollbarsX.indices) {
+            scrollbarsX[i].updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        }
+        for (i in scrollbarsY.indices) {
+            scrollbarsY[i].updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        }
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val window = window!!
@@ -203,7 +213,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             val x1i = min(x1, xc)
             val sb = scrollbarsX[xi]
             sb.isHovered = containsMouse(window, x0i - padding, y0, x1i + padding, y1)
-            sb.updateAlpha()
+            sb.updateAlpha(this)
             sb.draw(x0i, y0, x1i, y1)
         }
         for (yi in scrollbarsY.indices) {
@@ -212,7 +222,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             val y1i = min(y1, yc)
             val sb = scrollbarsY[yi]
             sb.isHovered = containsMouse(window, x0 - padding, y0i, x1 + padding, y1i)
-            sb.updateAlpha()
+            sb.updateAlpha(this)
             sb.draw(x0, y0i, x1, y1i)
         }
     }

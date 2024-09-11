@@ -57,7 +57,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         } else false
     }
 
-    fun updateChildrenVisibility(
+    open fun updateChildrenVisibility(
         mx: Int, my: Int, canBeHovered: Boolean,
         x0: Int, y0: Int, x1: Int, y1: Int
     ) {

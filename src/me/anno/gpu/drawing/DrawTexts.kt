@@ -580,11 +580,7 @@ object DrawTexts {
     }
 
     fun getOffset(size: Int, alignment: AxisAlignment): Int {
-        return -when (alignment) {
-            AxisAlignment.MIN, AxisAlignment.FILL -> 0
-            AxisAlignment.CENTER -> size / 2
-            AxisAlignment.MAX -> size
-        }
+        return alignment.getOffset(0, size)
     }
 
     fun drawText(

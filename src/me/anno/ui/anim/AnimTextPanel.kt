@@ -27,7 +27,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 @Docs("Text panel with char-wise animation")
 open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
@@ -103,22 +102,17 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         if (autoRedraw) invalidateDrawing()
     }
 
-    override fun drawText(dx: Int, dy: Int, color: Int): Boolean {
-        return drawText(dx, dy, text, color)
-    }
-
-    override fun drawText(dx: Int, dy: Int, text: String, color: Int): Boolean {
+    override fun drawText(color: Int) {
         if (text != this.text) {
-            drawText2(dx, dy, text.cpList())
+            drawText2(0,0, text.cpList())
         } else {
             val lines = lines
             val lineOffset = (font.size * (1f + lineSpacing)).roundToIntOr()
             for (index in lines.indices) {
                 val s = lines[index]
-                drawText2(dx, dy + index * lineOffset, s)
+                drawText2(0,index * lineOffset, s)
             }
         }
-        return false
     }
 
     fun drawText2(dx: Int, dy: Int, text: Pair<String, List<TextCacheKey>>): Int {

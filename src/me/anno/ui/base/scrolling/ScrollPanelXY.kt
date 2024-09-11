@@ -52,8 +52,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         scrollbarY.isHovered = drawsOverY(mx, my)
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(uiDeltaTime * scrollHardnessX))
         scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(uiDeltaTime * scrollHardnessY))
-        if (scrollbarX.updateAlpha()) invalidateDrawing()
-        if (scrollbarY.updateAlpha()) invalidateDrawing()
+        scrollbarX.updateAlpha(this)
+        scrollbarY.updateAlpha(this)
         if (
             round(scrollPositionX) != lastScrollPosX ||
             round(scrollPositionY) != lastScrollPosY ||
@@ -67,6 +67,12 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             setPosition(x, y)
             invalidateDrawing()
         }
+    }
+
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        scrollbarX.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        scrollbarY.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
     }
 
     override var scrollPositionX = 0.0

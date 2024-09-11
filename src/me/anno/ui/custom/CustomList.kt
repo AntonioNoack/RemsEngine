@@ -198,9 +198,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         val mx = window.mouseXi
         val my = window.mouseYi
         scrollbar.isHovered = touchesBar(index + 1, mx, my)
-        if (scrollbar.updateAlpha()) {
-            invalidateDrawing()
-        }
+        scrollbar.updateAlpha(this)
     }
 
     private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, originalBGColor, 0.8f))
@@ -263,10 +261,17 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     private fun ensureScrollbars() {
         val size = children.size - 1
         while (scrollbars.size < size) {
-            scrollbars.add(Scrollbar(style))
+            scrollbars.add(Scrollbar(this, style))
         }
         while (scrollbars.isNotEmpty() && scrollbars.size > size) {
             scrollbars.removeAt(scrollbars.lastIndex)
+        }
+    }
+
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        for (i in scrollbars.indices) {
+            scrollbars[i].updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
         }
     }
 

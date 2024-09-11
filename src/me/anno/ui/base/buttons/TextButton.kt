@@ -146,8 +146,8 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
         else textColor.a() / 2
         val failed = DrawTexts.drawTextOrFail(
-            x + padding.left + alignmentX.getOffset(width - padding.width, 0),
-            y + padding.top + alignmentY.getOffset(height - padding.height, 0),
+            alignmentX.getAnchor(x + padding.left, width - padding.width),
+            alignmentY.getAnchor(y + padding.top, height - padding.height),
             font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,
             alignmentX, alignmentY
         )

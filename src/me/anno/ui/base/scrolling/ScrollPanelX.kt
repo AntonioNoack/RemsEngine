@@ -86,7 +86,7 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
             scrollbar.isHovered = capturesChildEvents(mx, my)
         }
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(uiDeltaTime * scrollHardnessX))
-        if (scrollbar.updateAlpha()) invalidateDrawing()
+        scrollbar.updateAlpha(this)
         if (round(scrollPositionX) != lastScrollPosX || maxScrollPositionX != lastMaxScrollPosX) {
             lastScrollPosX = round(scrollPositionX)
             lastMaxScrollPosX = maxScrollPositionX
@@ -108,6 +108,11 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         if (child is LongScrollable) {
             child.setExtraScrolling(scroll0 - scroll, 0L)
         }
+    }
+
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        scrollbar.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {

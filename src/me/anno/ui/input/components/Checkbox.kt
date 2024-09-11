@@ -55,15 +55,9 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         minH = size + 2
     }
 
-    private var lastImage: Any? = null
-    override fun onUpdate() {
-        val leImage = getImage(value)
-        val leImageState = (leImage as? Texture2D)?.state ?: leImage?.name
-        if (wasHovered != isHovered || leImageState != lastImage) {
-            lastImage = leImageState
-            invalidateDrawing()
-        }
-        super.onUpdate()
+    override fun getVisualState(): Any? {
+        val image = getImage(value)
+        return (image as? Texture2D)?.state ?: image?.name
     }
 
     override fun setValue(newValue: Boolean, mask: Int, notify: Boolean): Panel {
