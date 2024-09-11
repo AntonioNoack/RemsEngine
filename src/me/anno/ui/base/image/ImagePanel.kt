@@ -18,13 +18,17 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
+        drawImage()
+    }
+
+    fun drawImage() {
         val texture = getTexture() ?: return
         calculateSizes(texture.width, texture.height)
         drawTexture(texture)
     }
 
     open fun drawTexture(texture: ITexture2D) {
-        if (showAlpha) {
+        if (showAlpha && texture.channels == 4) {
             DrawTextures.drawTransparentBackground(
                 lix, liy, liw, lih,
                 (5f * (1 shl log2(max(1f, zoom)).toInt()))
