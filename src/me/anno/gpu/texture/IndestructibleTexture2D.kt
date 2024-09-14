@@ -20,6 +20,11 @@ class IndestructibleTexture2D(
         if (canDestroy) super.destroy()
     }
 
+    override fun isCreated(): Boolean {
+        if (GFX.isGFXThread()) ensureExists()
+        return super.isCreated()
+    }
+
     fun ensureExists() {
         checkSession()
         if (!wasCreated || isDestroyed) {
