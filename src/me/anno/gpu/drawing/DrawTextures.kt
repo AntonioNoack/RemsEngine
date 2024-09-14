@@ -61,7 +61,7 @@ object DrawTextures {
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
-        shader.v1i("alphaMode", if (mono) 3 else ignoreAlpha.toInt())
+        shader.v1i("alphaMode", if (mono) 2 else ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
@@ -99,11 +99,11 @@ object DrawTextures {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShaderTexture.value
-        val mono = getNumChannels(texture.internalFormat) == 1
+        val mono = texture.channels == 1
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
-        shader.v1i("alphaMode", if (mono) 3 else ignoreAlpha.toInt())
+        shader.v1i("alphaMode", if (mono) 2 else ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)

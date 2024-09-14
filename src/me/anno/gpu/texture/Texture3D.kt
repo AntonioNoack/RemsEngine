@@ -344,20 +344,20 @@ open class Texture3D(
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean) =
         VRAMToRAM.createImage(width * depth, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
-            drawSlice(x2, y2, w2, withAlpha)
+            drawSlice(x2, y2, w2, !withAlpha)
         }
 
-    private fun drawSlice(x2: Int, y2: Int, w2: Int, withAlpha: Boolean) {
+    private fun drawSlice(x2: Int, y2: Int, w2: Int, ignoreAlpha: Boolean) {
         val z0 = x2 / width
         val z1 = (x2 + w2 - 1) / width
-        drawSlice(x2, y2, z0 / maxOf(1f, depth - 1f), withAlpha)
+        drawSlice(x2, y2, z0 / maxOf(1f, depth - 1f), ignoreAlpha)
         if (z1 > z0) {
             // todo we have to draw two slices
             // drawSlice(x2, y2, z0 / maxOf(1f, depth - 1f), withAlpha)
         }
     }
 
-    private fun drawSlice(x2: Int, y2: Int, z: Float, withAlpha: Boolean) {
+    private fun drawSlice(x2: Int, y2: Int, z: Float, ignoreAlpha: Boolean) {
         val x = -x2
         val y = -y2
         GFX.check()
@@ -366,7 +366,7 @@ open class Texture3D(
         shader.use()
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, width, -height)
         shader.v4f("color", -1)
-        shader.v1i("alphaMode", 1 - withAlpha.toInt())
+        shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", isHDR)
         shader.v1f("layer", z)
         GFXx2D.noTiling(shader)

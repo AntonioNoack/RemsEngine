@@ -55,8 +55,6 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
-// todo bug: some thumbnails still are upside-down
-
 // todo: translate everything (again xD)
 
 // todo create first release :3 (to easier get started for others)

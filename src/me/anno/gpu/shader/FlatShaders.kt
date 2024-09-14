@@ -106,6 +106,12 @@ object FlatShaders {
                 "}"
     )
 
+    private val alphaModeProcessing = "" +
+            "   if(alphaMode == 0) { col *= data; }\n" +
+            "   else if(alphaMode == 1) { col.rgb *= data.rgb; }\n" +
+            "   else if(alphaMode == 2) { col.rgb *= data.x; }\n" +
+            "   else { col.rgb *= data.a; }\n"
+
     val flatShaderTexture = BaseShader(
         "flatShaderTexture",
         ShaderLib.uiVertexShaderList,
@@ -120,10 +126,7 @@ object FlatShaders {
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
                 "   vec4 data = texture(tex, uv);\n" +
-                "   if(alphaMode == 0) { col *= data; }\n" +
-                "   else if(alphaMode == 1) { col.rgb *= data.rgb; }\n" +
-                "   else if(alphaMode == 2) { col.rgb *= data.x; }\n" +
-                "   else { col.rgb *= data.a; }\n" +
+                alphaModeProcessing +
                 "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
                 "   else if(applyToneMapping) { col = tonemap(col); }\n" +
                 "   gl_FragColor = col;\n" +
@@ -145,9 +148,7 @@ object FlatShaders {
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
                 "   vec4 data = texture(tex, vec3(uv,layer));\n" +
-                "   if(alphaMode == 0) col *= data;\n" +
-                "   else if(alphaMode == 1) col.rgb *= data.rgb;\n" +
-                "   else col.rgb *= data.a;\n" +
+                alphaModeProcessing +
                 "   if(!(col.x >= -1e38 && col.x <= 1e38)) col = vec4(1.0,0.0,1.0,1.0);\n" +
                 "   if(applyToneMapping) col = tonemap(col);\n" +
                 "   gl_FragColor = col;\n" +

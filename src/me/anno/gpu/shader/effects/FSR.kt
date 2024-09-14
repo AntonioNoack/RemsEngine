@@ -15,6 +15,7 @@ import me.anno.utils.OS
 import me.anno.utils.OS.res
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.async.LazyPromise
+import kotlin.math.min
 
 object FSR {
 
@@ -38,7 +39,7 @@ object FSR {
                 Variable(GLSLType.V4F, "con3"),
                 Variable(GLSLType.V2F, "texelOffset"),
                 Variable(GLSLType.V1B, "applyToneMapping"),
-                Variable(GLSLType.V1B, "withAlpha")
+                Variable(GLSLType.V1I, "numChannels")
             ), "" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
@@ -55,10 +56,23 @@ object FSR {
                     "   vec4 x01 = texture(source,p+dy);\n" +
                     "   vec4 x10 = texture(source,p+dx);\n" +
                     "   vec4 x11 = texture(source,p+dxy);\n" +
-                    "   vec3 y00 = withAlpha ? mix(background, x00.rgb, x00.aaa) : x00.rgb;\n" +
-                    "   vec3 y01 = withAlpha ? mix(background, x01.rgb, x01.aaa) : x01.rgb;\n" +
-                    "   vec3 y10 = withAlpha ? mix(background, x10.rgb, x10.aaa) : x10.rgb;\n" +
-                    "   vec3 y11 = withAlpha ? mix(background, x11.rgb, x11.aaa) : x11.rgb;\n" +
+                    "   vec3 y00, y01, y10, y11;\n" +
+                    "   if(numChannels == 4) {\n" +
+                    "       y00 = mix(background, x00.rgb, x00.aaa);\n" +
+                    "       y01 = mix(background, x01.rgb, x01.aaa);\n" +
+                    "       y10 = mix(background, x10.rgb, x10.aaa);\n" +
+                    "       y11 = mix(background, x11.rgb, x11.aaa);\n" +
+                    "   } else if(numChannels == 3) {\n" +
+                    "       y00 = x00.rgb;\n" +
+                    "       y01 = x01.rgb;\n" +
+                    "       y10 = x10.rgb;\n" +
+                    "       y11 = x11.rgb;\n" +
+                    "   } else {\n" +
+                    "       y00 = x00.rrr;\n" +
+                    "       y01 = x01.rrr;\n" +
+                    "       y10 = x10.rrr;\n" +
+                    "       y11 = x11.rrr;\n" +
+                    "   }\n" +
                     // this is the order of textureGather: https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
                     "   r = vec4(y01.r,y11.r,y10.r,y00.r);\n" +
                     "   g = vec4(y01.g,y11.g,y10.g,y00.g);\n" +
@@ -66,15 +80,17 @@ object FSR {
                     "}\n" +
                     "#else\n" +
                     "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
-                    "   if(withAlpha){\n" +
+                    "   if(numChannels == 4) {\n" +
                     "       vec4 alpha = textureGather(source,p,3);\n" +
                     "       r = mix(background.rrrr, textureGather(source,p,0), alpha);\n" +
                     "       g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
                     "       b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
-                    "   } else {\n" +
+                    "   } else if(numChannels == 3) {\n" +
                     "       r = textureGather(source,p,0);\n" +
                     "       g = textureGather(source,p,1);\n" +
                     "       b = textureGather(source,p,2);\n" +
+                    "   } else {\n" +
+                    "       r = g = b = textureGather(source,p,0);\n" +
                     "   }\n" +
                     "}\n" +
                     "#endif\n" +
@@ -137,7 +153,7 @@ object FSR {
             GFXx2D.posSize(shader, x, y, w, h)
             shader.v3f("background", backgroundColor)
             shader.v1b("applyToneMapping", applyToneMapping)
-            shader.v1b("withAlpha", withAlpha)
+            shader.v1i("numChannels", min(if (withAlpha) 4 else 3, source.channels))
             flat01.draw(shader)
         } else {
             source.bindTrulyLinear(0)

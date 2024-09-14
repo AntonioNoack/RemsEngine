@@ -7,13 +7,13 @@ import me.anno.ui.Style
 /**
  * an invisible panel that executes a function every tick
  * */
-open class SpyPanel(style: Style, val update: () -> Unit) : Panel(style) {
+open class SpyPanel(style: Style, val update: (Panel) -> Unit) : Panel(style) {
     @Suppress("unused")
-    constructor(update: () -> Unit) : this(DefaultConfig.style, update)
+    constructor(update: (Panel) -> Unit) : this(DefaultConfig.style, update)
 
     override fun onUpdate() {
         super.onUpdate()
-        update()
+        update(uiParent ?: this)
     }
 
     override fun calculateSize(w: Int, h: Int) {

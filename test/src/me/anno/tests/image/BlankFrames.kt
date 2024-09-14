@@ -1,5 +1,6 @@
 package me.anno.tests.image
 
+import me.anno.engine.OfficialExtensions
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -14,6 +15,7 @@ import me.anno.video.formats.gpu.BlankFrameDetector
 import kotlin.concurrent.thread
 
 fun main() {
+    OfficialExtensions.initForTests()
     val src = OS.downloads.getChild("2d/black frames sample.mp4")
     val dst = src.getSibling(src.nameWithoutExtension + "-result." + src.extension)
     val meta = MediaMetadata.getMeta(src, false)!!

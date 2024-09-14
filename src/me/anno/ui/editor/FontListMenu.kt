@@ -37,12 +37,12 @@ object FontListMenu {
         val fontList = ArrayList<NameDesc>()
         val oldValueI = NameDesc(oldValue)
         fontList += oldValueI
-        fontList += NameDesc(Menu.menuSeparator)
+        fontList += NameDesc(Menu.MENU_SEPARATOR)
 
         fun sortFavourites() {
             fontList.sortBy { it.name }
             val lastUsedSet = lastUsedFonts.toHashSet()
-            fontList.sortByDescending { if (it.name == Menu.menuSeparator) 1 else if (it.name in lastUsedSet) 2 else 0 }
+            fontList.sortByDescending { if (it.name == Menu.MENU_SEPARATOR) 1 else if (it.name in lastUsedSet) 2 else 0 }
         }
 
         fontList += FontManager.fontSet

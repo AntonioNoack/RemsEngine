@@ -3,7 +3,6 @@ package me.anno.tests.image
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.image.thumbs.Thumbs
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -15,7 +14,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val ori = res.getChild("icon.png")
     if (true) {
-        disableRenderDoc()
+        // todo bug: grayscale image isn't shown as grayscale
         testUI3("Components") {
             FileExplorer(ori, true, style)
         }

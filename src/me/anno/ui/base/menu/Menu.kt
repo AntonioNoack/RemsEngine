@@ -3,7 +3,6 @@ package me.anno.ui.base.menu
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -44,13 +43,14 @@ object Menu {
 
     private val LOGGER = LogManager.getLogger(Menu::class)
 
+    const val MENU_SEPARATOR = "-----"
+
     var paddingX = 10
     var paddingY = 10
 
-    const val menuSeparator = "-----"
+    private val buttonPadding = 4
 
-    @Suppress("unused")
-    val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
+    val menuSeparator1 = MenuOption(NameDesc(MENU_SEPARATOR, "", "")) {}
 
     fun msg(windowStack: WindowStack, nameDesc: NameDesc) {
         val panel = TextPanel(nameDesc.name, style).setTooltip(nameDesc.desc)
@@ -207,8 +207,8 @@ object Menu {
     private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, hover: Boolean) {
         button.tooltip = option.nameDesc.desc
         button.enableHoverColor = hover
-        button.padding.left = padding
-        button.padding.right = padding
+        button.padding.left = buttonPadding
+        button.padding.right = buttonPadding
     }
 
     @Suppress("unused")
@@ -256,7 +256,7 @@ object Menu {
             val optionI = option.nameDesc
             val name = optionI.name
             when {
-                optionI.englishName == menuSeparator -> {
+                optionI.englishName == MENU_SEPARATOR -> {
                     if (index != 0) {
                         list += SpacerPanel(0, 1, style)
                     }
@@ -385,24 +385,7 @@ object Menu {
         val titleValue = nameDesc.name
         if (titleValue.isNotEmpty()) {
             // make this window draggable
-            val titlePanel = object : TextPanel(titleValue, style) {
-                override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-                    if (Input.isLeftDown) {
-                        // move the window
-                        window.x = clamp(
-                            window.x + dx.roundToIntOr(),
-                            0, windowStack.width - window.panel.width
-                        )
-                        window.y = clamp(
-                            // we only can control the window at the top -> top needs to stay visible
-                            window.y + dy.roundToIntOr(), 0,
-                            windowStack.height - window.panel.height
-                        )
-                        window.panel.invalidateLayout()
-                    } else super.onMouseMoved(x, y, dx, dy)
-                }
-            }
-            titlePanel.tooltip = nameDesc.desc
+            val titlePanel = MoveableTitlePanel(nameDesc, style)
             titlePanel.padding.left = padding
             titlePanel.padding.right = padding
             list += titlePanel
@@ -486,8 +469,6 @@ object Menu {
         window.x = clamp(x, 0, max(windowStack.width - container.width, 0))
         window.y = clamp(y, 0, max(windowStack.height - container.height, 0))
 
-        container.forAllPanels { it.window = window }
-
         windowStack.push(window)
         (searchPanel ?: container).requestFocus()
 
@@ -519,5 +500,4 @@ object Menu {
     ): Window? = openComplexMenu(windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, nameDesc,
         options.map { option -> option.toComplex() })
 
-    private val padding = 4
 }
