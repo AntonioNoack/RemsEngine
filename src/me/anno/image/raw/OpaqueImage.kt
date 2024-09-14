@@ -1,6 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.utils.async.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType
@@ -9,6 +8,8 @@ import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.black
+import me.anno.utils.async.Callback
+import me.anno.utils.pooling.Pools
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -51,7 +52,7 @@ open class OpaqueImage(val src: Image) :
                 }
                 is ByteImage -> {
                     val data = src.data
-                    val buffer = Texture2D.bufferPool[data.size, false, false]
+                    val buffer = Pools.byteBufferPool[data.size, false, false]
                     when (src.format) {
                         ByteImage.Format.RGBA -> {
                             buffer.put(data)
@@ -89,9 +90,9 @@ open class OpaqueImage(val src: Image) :
         }
     }
 
-    private fun create(texture: Texture2D, buffer: ByteBuffer, callback: Callback<ITexture2D>){
+    private fun create(texture: Texture2D, buffer: ByteBuffer, callback: Callback<ITexture2D>) {
         texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
-        Texture2D.bufferPool.returnBuffer(buffer)
+        Pools.byteBufferPool.returnBuffer(buffer)
         callback.ok(texture)
     }
 }

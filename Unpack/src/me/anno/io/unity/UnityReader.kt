@@ -15,6 +15,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.InnerPrefabFile
+import me.anno.io.saveable.Saveable
 import me.anno.io.unity.UnityProject.Companion.invalidProject
 import me.anno.io.unity.UnityProject.Companion.isValidUUID
 import me.anno.io.yaml.generic.YAMLNode
@@ -40,11 +41,11 @@ import kotlin.math.min
 //  worked in the past
 object UnityReader {
 
-    fun loadUnityFile(resource: FileReference, callback: (Prefab?, Exception?) -> Unit) {
+    fun loadUnityFile(resource: FileReference, callback: Callback<Saveable>) {
         readAsAsset(resource) { json, e ->
             if (json != null) {
-                callback(PrefabCache.loadJson(json) as? Prefab, null)
-            } else callback(null, e)
+                callback.call(PrefabCache.loadJson(json), null)
+            } else callback.err(e)
         }
     }
 

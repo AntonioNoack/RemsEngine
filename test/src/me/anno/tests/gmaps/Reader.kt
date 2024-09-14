@@ -1,9 +1,9 @@
 package me.anno.tests.gmaps
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
@@ -15,15 +15,16 @@ import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE32F
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.align
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
-import me.anno.io.Streams.readNBytes2
+import me.anno.utils.pooling.Pools
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL46C
 import java.io.InputStream
@@ -96,12 +97,12 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
             }
         } else {
             texture.beforeUpload(0, 0)
-            val tmp = Texture2D.bufferPool[data.size, false, false]
+            val tmp = Pools.byteBufferPool[data.size, false, false]
             tmp.put(data).flip()
             GFX.check()
             GL46C.glCompressedTexImage2D(texture.target, 0, format, width, height, 0, tmp)
             GFX.check()
-            Texture2D.bufferPool.returnBuffer(tmp)
+            Pools.byteBufferPool.returnBuffer(tmp)
             texture.internalFormat = format
             texture.createdW = width
             texture.createdH = height

@@ -8,12 +8,12 @@ import me.anno.gpu.texture.Redundancy.checkRedundancyX2
 import me.anno.gpu.texture.Redundancy.checkRedundancyX3
 import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.rgb
 import me.anno.utils.Color.rgba
 import me.anno.utils.async.Callback
+import me.anno.utils.pooling.Pools.byteBufferPool
 import java.nio.ByteBuffer
 
 open class ByteImage(
@@ -87,15 +87,15 @@ open class ByteImage(
                     else -> texture.checkRedundancyX4(data)
                 }
             } else data
-            val buffer = bufferPool[data2.size, false, false]
+            val buffer = byteBufferPool[data2.size, false, false]
             buffer.put(data2)
             buffer.flip()
             addGPUTask("ByteImage $width x $height", width, height) {
                 createTexture(texture, false, buffer, callback)
-                bufferPool.returnBuffer(buffer)
+                byteBufferPool.returnBuffer(buffer)
             }
         } else {
-            val buffer = bufferPool[data.size, false, false]
+            val buffer = byteBufferPool[data.size, false, false]
             buffer.put(data)
             buffer.flip()
             createTexture(texture, checkRedundancy, buffer, callback)

@@ -72,13 +72,12 @@ open class Window(
         set(value) {
             if (field !== value) {
                 field = value
-                isFirstFrame = true
+                value.window = this
+                value.invalidateLayout()
             }
         }
 
     var canBeClosedByUser = true
-
-    var isFirstFrame = true
 
     fun cannotClose(): Window {
         canBeClosedByUser = false
@@ -150,7 +149,6 @@ open class Window(
     }
 
     private fun calculateFullLayout(dx: Int, dy: Int, windowW: Int, windowH: Int) {
-        val t0 = Time.nanoTime
         val width = windowW - max(x + dx, dx)
         val height = windowH - max(y + dy, dy)
         panel.calculateSize(width, height)
@@ -158,15 +156,7 @@ open class Window(
         val height1 = if (isFullscreen || panel.alignmentY == AxisAlignment.FILL) height else min(height, panel.minH)
         val px = x + dx + panel.alignmentX.getOffset(width, width1)
         val py = y + dy + panel.alignmentY.getOffset(height, height1)
-        val t1 = Time.nanoTime
         panel.setPosSize(px, py, width1, height1)
-        val t2 = Time.nanoTime
-        val dt1 = (t1 - t0) * 1e-9f
-        val dt2 = (t2 - t1) * 1e-9f
-        if (dt1 > 0.01f && !isFirstFrame) {
-            LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
-            isFirstFrame = false
-        }
     }
 
     fun setAcceptsClickAway(boolean: Boolean) {

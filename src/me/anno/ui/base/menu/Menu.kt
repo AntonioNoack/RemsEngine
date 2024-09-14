@@ -5,6 +5,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -19,16 +21,19 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.levenshtein
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -36,6 +41,8 @@ import kotlin.math.min
  * Utility for opening menus, like asking the user questions, or him selecting values for an enum from a dropdown.
  * */
 object Menu {
+
+    private val LOGGER = LogManager.getLogger(Menu::class)
 
     var paddingX = 10
     var paddingY = 10
@@ -94,6 +101,20 @@ object Menu {
         nameDesc, value0, actionName, getColor, callback
     )
 
+    fun askRename(
+        windowStack: WindowStack,
+        nameDesc: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        folder: FileReference,
+        callback: (FileReference) -> Unit
+    ) = askRename(
+        windowStack,
+        windowStack.mouseXi - paddingX,
+        windowStack.mouseYi - paddingY,
+        nameDesc, value0, actionName, folder, callback
+    )
+
     fun askName(
         windowStack: WindowStack,
         x: Int, y: Int,
@@ -114,6 +135,7 @@ object Menu {
             callback(textInput.value)
             close(textInput)
         }
+        textInput.textColor = getColor(value0)
         textInput.addChangeListener {
             textInput.textColor = getColor(it)
         }
@@ -138,6 +160,39 @@ object Menu {
         textInput.requestFocus()
         window.drawDirectly = true
         return window
+    }
+
+    fun askRename(
+        windowStack: WindowStack,
+        x: Int, y: Int,
+        nameDesc: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        folder: FileReference,
+        callback: (FileReference) -> Unit
+    ): Window {
+        return askName(windowStack, x, y, nameDesc, value0, actionName, { name ->
+            val validName = name.toAllowedFilename()
+            if (validName != name) {
+                0xff0000
+            } else {
+                val sibling = folder.getChildUnsafe(name, false)
+                if (sibling.exists) {
+                    0xffff00
+                } else {
+                    0x00ff00
+                }
+            }.withAlpha(255)
+        }, { name ->
+            val validName = name.toAllowedFilename()
+            val result = if (validName == name) {
+                folder.getChildUnsafe(name, false)
+            } else {
+                LOGGER.warn("Ignoring invalid file name $validName")
+                InvalidRef
+            }
+            callback(result)
+        })
     }
 
     fun close(panel: Panel) {
@@ -358,7 +413,6 @@ object Menu {
         var searchPanel: TextInput? = null
 
         // while useful for keyboard-only controls, it looks quite stupid to have a searchbar for only two items
-        // todo when searching, look into ComplexMenuGroups, too
         val originalOrder = HashMap<Panel, Int>()
         if (needsSearch(panels.size)) {
             val startIndex = list.children.size + 1

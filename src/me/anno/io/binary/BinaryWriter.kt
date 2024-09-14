@@ -1,6 +1,10 @@
 package me.anno.io.binary
 
-import me.anno.io.saveable.Saveable
+import me.anno.io.Streams.writeBE16
+import me.anno.io.Streams.writeBE32
+import me.anno.io.Streams.writeBE32F
+import me.anno.io.Streams.writeBE64
+import me.anno.io.Streams.writeBE64F
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
@@ -12,6 +16,7 @@ import me.anno.io.binary.BinaryTypes.OBJECT_PTR
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.SimpleType
+import me.anno.io.saveable.Saveable
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBd
 import org.joml.AABBf
@@ -38,9 +43,9 @@ import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
-import java.io.DataOutputStream
+import java.io.OutputStream
 
-class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
+class BinaryWriter(val output: OutputStream) : BaseWriter(true) {
 
     /**
      * max number of strings? idk...
@@ -65,14 +70,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     private fun writeEfficientString(string: String?) {
         if (string == null) {
-            output.writeInt(-1)
+            output.writeBE32(-1)
         } else {
             val known = knownStrings[string] ?: -1
             if (known >= 0) {
-                output.writeInt(known)
+                output.writeBE32(known)
             } else {
                 val bytes = string.encodeToByteArray()
-                output.writeInt(-2 - bytes.size)
+                output.writeBE32(-2 - bytes.size)
                 output.write(bytes)
                 knownStrings[string] = knownStrings.size
             }
@@ -87,40 +92,44 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         val nameType = NameType(name, type)
         val id = currentNameTypes[nameType] ?: -1
         if (id >= 0) {
-            // known -> short cut
-            output.writeInt(id)
+            // known -> shortcut
+            output.writeBE32(id)
         } else {
             // not previously known -> create a new one
-            output.writeInt(-1)
+            output.writeBE32(-1)
             val newId = currentNameTypes.size
             currentNameTypes[nameType] = newId
             writeTypeString(name)
-            output.writeByte(type)
+            output.write(type)
         }
     }
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
         if (force || value) {
             writeAttributeStart(name, SimpleType.BOOLEAN.scalarId)
-            output.writeByte(value.toInt())
+            output.write(value.toInt())
         }
     }
 
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.BOOLEAN.scalarId + 1)
-            output.writeInt(values.size)
-            for (v in values) output.write(if (v) 1 else 0)
+            output.writeBE32(values.size)
+            for (v in values) {
+                output.write(if (v) 1 else 0)
+            }
         }
     }
 
     override fun writeBooleanArray2D(name: String, values: List<BooleanArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.BOOLEAN.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.write(if (v) 1 else 0)
+                output.writeBE32(vs.size)
+                for (v in vs) {
+                    output.write(if (v) 1 else 0)
+                }
             }
         }
     }
@@ -128,25 +137,29 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeChar(name: String, value: Char, force: Boolean) {
         if (force || value != 0.toChar()) {
             writeAttributeStart(name, SimpleType.CHAR.scalarId)
-            output.writeChar(value.code)
+            output.writeBE16(value.code)
         }
     }
 
     override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.CHAR.scalarId + 1)
-            output.writeInt(values.size)
-            for (c in values) output.writeChar(c.code)
+            output.writeBE32(values.size)
+            for (c in values) {
+                output.writeBE16(c.code)
+            }
         }
     }
 
     override fun writeCharArray2D(name: String, values: List<CharArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.CHAR.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.writeChar(v.code)
+                output.writeBE32(vs.size)
+                for (v in vs) {
+                    output.writeBE16(v.code)
+                }
             }
         }
     }
@@ -155,14 +168,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeByte(name: String, value: Byte, force: Boolean) {
         if (force || value != 0.toByte()) {
             writeAttributeStart(name, SimpleType.BYTE.scalarId)
-            output.writeByte(value.toInt())
+            output.write(value.toInt())
         }
     }
 
     override fun writeByteArray(name: String, values: ByteArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.BYTE.scalarId + 1)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             output.write(values)
         }
     }
@@ -170,9 +183,9 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeByteArray2D(name: String, values: List<ByteArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.BYTE.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
+                output.writeBE32(vs.size)
                 output.write(vs)
             }
         }
@@ -181,25 +194,25 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeShort(name: String, value: Short, force: Boolean) {
         if (force || value != 0.toShort()) {
             writeAttributeStart(name, SimpleType.SHORT.scalarId)
-            output.writeShort(value.toInt())
+            output.writeBE16(value.toInt())
         }
     }
 
     override fun writeShortArray(name: String, values: ShortArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.SHORT.scalarId + 1)
-            output.writeInt(values.size)
-            for (v in values) output.writeShort(v.toInt())
+            output.writeBE32(values.size)
+            for (v in values) output.writeBE16(v.toInt())
         }
     }
 
     override fun writeShortArray2D(name: String, values: List<ShortArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.SHORT.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.writeShort(v.toInt())
+                output.writeBE32(vs.size)
+                for (v in vs) output.writeBE16(v.toInt())
             }
         }
     }
@@ -207,7 +220,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeInt(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
             writeAttributeStart(name, SimpleType.INT.scalarId)
-            output.writeInt(value)
+            output.writeBE32(value)
         }
     }
 
@@ -218,8 +231,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.INT.scalarId + 1)
-            output.writeInt(values.size)
-            for (v in values) output.writeInt(v)
+            output.writeBE32(values.size)
+            for (v in values) output.writeBE32(v)
         }
     }
 
@@ -230,10 +243,10 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeIntArray2D(name: String, values: List<IntArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.INT.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.writeInt(v)
+                output.writeBE32(vs.size)
+                for (v in vs) output.writeBE32(v)
             }
         }
     }
@@ -245,25 +258,25 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeLong(name: String, value: Long, force: Boolean) {
         if (force || value != 0L) {
             writeAttributeStart(name, SimpleType.LONG.scalarId)
-            output.writeLong(value)
+            output.writeBE64(value)
         }
     }
 
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.LONG.scalarId + 1)
-            output.writeInt(values.size)
-            for (v in values) output.writeLong(v)
+            output.writeBE32(values.size)
+            for (v in values) output.writeBE64(v)
         }
     }
 
     override fun writeLongArray2D(name: String, values: List<LongArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.LONG.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.writeLong(v)
+                output.writeBE32(vs.size)
+                for (v in vs) output.writeBE64(v)
             }
         }
     }
@@ -271,25 +284,25 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeFloat(name: String, value: Float, force: Boolean) {
         if (force || value != 0f) {
             writeAttributeStart(name, SimpleType.FLOAT.scalarId)
-            output.writeFloat(value)
+            output.writeBE32F(value)
         }
     }
 
     override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.FLOAT.scalarId + 1)
-            output.writeInt(values.size)
-            for (v in values) output.writeFloat(v)
+            output.writeBE32(values.size)
+            for (v in values) output.writeBE32F(v)
         }
     }
 
     override fun writeFloatArray2D(name: String, values: List<FloatArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.FLOAT.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.writeFloat(v)
+                output.writeBE32(vs.size)
+                for (v in vs) output.writeBE32F(v)
             }
         }
     }
@@ -297,25 +310,25 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeDouble(name: String, value: Double, force: Boolean) {
         if (force || value != 0.0) {
             writeAttributeStart(name, SimpleType.DOUBLE.scalarId)
-            output.writeDouble(value)
+            output.writeBE64F(value)
         }
     }
 
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.DOUBLE.scalarId + 1)
-            output.writeInt(values.size)
-            for (v in values) output.writeDouble(v)
+            output.writeBE32(values.size)
+            for (v in values) output.writeBE64F(v)
         }
     }
 
     override fun writeDoubleArray2D(name: String, values: List<DoubleArray>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.DOUBLE.scalarId + 2)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (vs in values) {
-                output.writeInt(vs.size)
-                for (v in vs) output.writeDouble(v)
+                output.writeBE32(vs.size)
+                for (v in vs) output.writeBE64F(v)
             }
         }
     }
@@ -330,7 +343,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeStringList(name: String, values: List<String>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.STRING.scalarId + 1)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (v in values) writeEfficientString(v)
         }
     }
@@ -351,7 +364,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeFileList(name: String, values: List<FileReference>, force: Boolean, workspace: FileReference) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.REFERENCE.scalarId + 1)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (v in values) writeEfficientString(v.toLocalPath(workspace))
         }
     }
@@ -366,21 +379,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     private fun writeVector2f(value: Vector2f) {
-        output.writeFloat(value.x)
-        output.writeFloat(value.y)
+        output.writeBE32F(value.x)
+        output.writeBE32F(value.y)
     }
 
     private fun writeVector3f(value: Vector3f) {
-        output.writeFloat(value.x)
-        output.writeFloat(value.y)
-        output.writeFloat(value.z)
+        output.writeBE32F(value.x)
+        output.writeBE32F(value.y)
+        output.writeBE32F(value.z)
     }
 
     private fun writeVector4f(value: Vector4f) {
-        output.writeFloat(value.x)
-        output.writeFloat(value.y)
-        output.writeFloat(value.z)
-        output.writeFloat(value.w)
+        output.writeBE32F(value.x)
+        output.writeBE32F(value.y)
+        output.writeBE32F(value.z)
+        output.writeBE32F(value.w)
     }
 
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
@@ -423,21 +436,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.VECTOR4F.scalarId + 2, ::writeVector4f)
 
     private fun writeVector2d(value: Vector2d) {
-        output.writeDouble(value.x)
-        output.writeDouble(value.y)
+        output.writeBE64F(value.x)
+        output.writeBE64F(value.y)
     }
 
     private fun writeVector3d(value: Vector3d) {
-        output.writeDouble(value.x)
-        output.writeDouble(value.y)
-        output.writeDouble(value.z)
+        output.writeBE64F(value.x)
+        output.writeBE64F(value.y)
+        output.writeBE64F(value.z)
     }
 
     private fun writeVector4d(value: Vector4d) {
-        output.writeDouble(value.x)
-        output.writeDouble(value.y)
-        output.writeDouble(value.z)
-        output.writeDouble(value.w)
+        output.writeBE64F(value.x)
+        output.writeBE64F(value.y)
+        output.writeBE64F(value.z)
+        output.writeBE64F(value.w)
     }
 
     override fun writeVector2d(name: String, value: Vector2d, force: Boolean) {
@@ -480,21 +493,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.VECTOR4D.scalarId + 2, ::writeVector4d)
 
     private fun writeVector2i(value: Vector2i) {
-        output.writeInt(value.x)
-        output.writeInt(value.y)
+        output.writeBE32(value.x)
+        output.writeBE32(value.y)
     }
 
     private fun writeVector3i(value: Vector3i) {
-        output.writeInt(value.x)
-        output.writeInt(value.y)
-        output.writeInt(value.z)
+        output.writeBE32(value.x)
+        output.writeBE32(value.y)
+        output.writeBE32(value.z)
     }
 
     private fun writeVector4i(value: Vector4i) {
-        output.writeInt(value.x)
-        output.writeInt(value.y)
-        output.writeInt(value.z)
-        output.writeInt(value.w)
+        output.writeBE32(value.x)
+        output.writeBE32(value.y)
+        output.writeBE32(value.z)
+        output.writeBE32(value.w)
     }
 
     override fun writeVector2i(name: String, value: Vector2i, force: Boolean) {
@@ -537,17 +550,17 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.VECTOR4I.scalarId + 2, ::writeVector4i)
 
     private fun writeQuaternionf(value: Quaternionf) {
-        output.writeFloat(value.x)
-        output.writeFloat(value.y)
-        output.writeFloat(value.z)
-        output.writeFloat(value.w)
+        output.writeBE32F(value.x)
+        output.writeBE32F(value.y)
+        output.writeBE32F(value.z)
+        output.writeBE32F(value.w)
     }
 
     private fun writeQuaterniond(value: Quaterniond) {
-        output.writeDouble(value.x)
-        output.writeDouble(value.y)
-        output.writeDouble(value.z)
-        output.writeDouble(value.w)
+        output.writeBE64F(value.x)
+        output.writeBE64F(value.y)
+        output.writeBE64F(value.z)
+        output.writeBE64F(value.w)
     }
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
@@ -577,65 +590,65 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.QUATERNIOND.scalarId + 2, ::writeQuaterniond)
 
     private fun writeMatrix(value: Matrix2f) {
-        output.writeFloat(value.m00)
-        output.writeFloat(value.m01)
-        output.writeFloat(value.m10)
-        output.writeFloat(value.m11)
+        output.writeBE32F(value.m00)
+        output.writeBE32F(value.m01)
+        output.writeBE32F(value.m10)
+        output.writeBE32F(value.m11)
     }
 
     private fun writeMatrix(value: Matrix3x2f) {
-        output.writeFloat(value.m00)
-        output.writeFloat(value.m01)
-        output.writeFloat(value.m10)
-        output.writeFloat(value.m11)
-        output.writeFloat(value.m20)
-        output.writeFloat(value.m21)
+        output.writeBE32F(value.m00)
+        output.writeBE32F(value.m01)
+        output.writeBE32F(value.m10)
+        output.writeBE32F(value.m11)
+        output.writeBE32F(value.m20)
+        output.writeBE32F(value.m21)
     }
 
     private fun writeMatrix(value: Matrix3f) {
-        output.writeFloat(value.m00)
-        output.writeFloat(value.m01)
-        output.writeFloat(value.m02)
-        output.writeFloat(value.m10)
-        output.writeFloat(value.m11)
-        output.writeFloat(value.m12)
-        output.writeFloat(value.m20)
-        output.writeFloat(value.m21)
-        output.writeFloat(value.m22)
+        output.writeBE32F(value.m00)
+        output.writeBE32F(value.m01)
+        output.writeBE32F(value.m02)
+        output.writeBE32F(value.m10)
+        output.writeBE32F(value.m11)
+        output.writeBE32F(value.m12)
+        output.writeBE32F(value.m20)
+        output.writeBE32F(value.m21)
+        output.writeBE32F(value.m22)
     }
 
     private fun writeMatrix(value: Matrix4x3f) {
-        output.writeFloat(value.m00)
-        output.writeFloat(value.m01)
-        output.writeFloat(value.m02)
-        output.writeFloat(value.m10)
-        output.writeFloat(value.m11)
-        output.writeFloat(value.m12)
-        output.writeFloat(value.m20)
-        output.writeFloat(value.m21)
-        output.writeFloat(value.m22)
-        output.writeFloat(value.m30)
-        output.writeFloat(value.m31)
-        output.writeFloat(value.m32)
+        output.writeBE32F(value.m00)
+        output.writeBE32F(value.m01)
+        output.writeBE32F(value.m02)
+        output.writeBE32F(value.m10)
+        output.writeBE32F(value.m11)
+        output.writeBE32F(value.m12)
+        output.writeBE32F(value.m20)
+        output.writeBE32F(value.m21)
+        output.writeBE32F(value.m22)
+        output.writeBE32F(value.m30)
+        output.writeBE32F(value.m31)
+        output.writeBE32F(value.m32)
     }
 
     private fun writeMatrix(value: Matrix4f) {
-        output.writeFloat(value.m00)
-        output.writeFloat(value.m01)
-        output.writeFloat(value.m02)
-        output.writeFloat(value.m03)
-        output.writeFloat(value.m10)
-        output.writeFloat(value.m11)
-        output.writeFloat(value.m12)
-        output.writeFloat(value.m13)
-        output.writeFloat(value.m20)
-        output.writeFloat(value.m21)
-        output.writeFloat(value.m22)
-        output.writeFloat(value.m23)
-        output.writeFloat(value.m30)
-        output.writeFloat(value.m31)
-        output.writeFloat(value.m32)
-        output.writeFloat(value.m33)
+        output.writeBE32F(value.m00)
+        output.writeBE32F(value.m01)
+        output.writeBE32F(value.m02)
+        output.writeBE32F(value.m03)
+        output.writeBE32F(value.m10)
+        output.writeBE32F(value.m11)
+        output.writeBE32F(value.m12)
+        output.writeBE32F(value.m13)
+        output.writeBE32F(value.m20)
+        output.writeBE32F(value.m21)
+        output.writeBE32F(value.m22)
+        output.writeBE32F(value.m23)
+        output.writeBE32F(value.m30)
+        output.writeBE32F(value.m31)
+        output.writeBE32F(value.m32)
+        output.writeBE32F(value.m33)
     }
 
     override fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean) {
@@ -694,65 +707,65 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.MATRIX4X4F.scalarId + 2) { writeMatrix(it) }
 
     private fun writeMatrix(value: Matrix2d) {
-        output.writeDouble(value.m00)
-        output.writeDouble(value.m01)
-        output.writeDouble(value.m10)
-        output.writeDouble(value.m11)
+        output.writeBE64F(value.m00)
+        output.writeBE64F(value.m01)
+        output.writeBE64F(value.m10)
+        output.writeBE64F(value.m11)
     }
 
     private fun writeMatrix(value: Matrix3x2d) {
-        output.writeDouble(value.m00)
-        output.writeDouble(value.m01)
-        output.writeDouble(value.m10)
-        output.writeDouble(value.m11)
-        output.writeDouble(value.m20)
-        output.writeDouble(value.m21)
+        output.writeBE64F(value.m00)
+        output.writeBE64F(value.m01)
+        output.writeBE64F(value.m10)
+        output.writeBE64F(value.m11)
+        output.writeBE64F(value.m20)
+        output.writeBE64F(value.m21)
     }
 
     private fun writeMatrix(value: Matrix3d) {
-        output.writeDouble(value.m00)
-        output.writeDouble(value.m01)
-        output.writeDouble(value.m02)
-        output.writeDouble(value.m10)
-        output.writeDouble(value.m11)
-        output.writeDouble(value.m12)
-        output.writeDouble(value.m20)
-        output.writeDouble(value.m21)
-        output.writeDouble(value.m22)
+        output.writeBE64F(value.m00)
+        output.writeBE64F(value.m01)
+        output.writeBE64F(value.m02)
+        output.writeBE64F(value.m10)
+        output.writeBE64F(value.m11)
+        output.writeBE64F(value.m12)
+        output.writeBE64F(value.m20)
+        output.writeBE64F(value.m21)
+        output.writeBE64F(value.m22)
     }
 
     private fun writeMatrix(value: Matrix4x3d) {
-        output.writeDouble(value.m00)
-        output.writeDouble(value.m01)
-        output.writeDouble(value.m02)
-        output.writeDouble(value.m10)
-        output.writeDouble(value.m11)
-        output.writeDouble(value.m12)
-        output.writeDouble(value.m20)
-        output.writeDouble(value.m21)
-        output.writeDouble(value.m22)
-        output.writeDouble(value.m30)
-        output.writeDouble(value.m31)
-        output.writeDouble(value.m32)
+        output.writeBE64F(value.m00)
+        output.writeBE64F(value.m01)
+        output.writeBE64F(value.m02)
+        output.writeBE64F(value.m10)
+        output.writeBE64F(value.m11)
+        output.writeBE64F(value.m12)
+        output.writeBE64F(value.m20)
+        output.writeBE64F(value.m21)
+        output.writeBE64F(value.m22)
+        output.writeBE64F(value.m30)
+        output.writeBE64F(value.m31)
+        output.writeBE64F(value.m32)
     }
 
     private fun writeMatrix(value: Matrix4d) {
-        output.writeDouble(value.m00)
-        output.writeDouble(value.m01)
-        output.writeDouble(value.m02)
-        output.writeDouble(value.m03)
-        output.writeDouble(value.m10)
-        output.writeDouble(value.m11)
-        output.writeDouble(value.m12)
-        output.writeDouble(value.m13)
-        output.writeDouble(value.m20)
-        output.writeDouble(value.m21)
-        output.writeDouble(value.m22)
-        output.writeDouble(value.m23)
-        output.writeDouble(value.m30)
-        output.writeDouble(value.m31)
-        output.writeDouble(value.m32)
-        output.writeDouble(value.m33)
+        output.writeBE64F(value.m00)
+        output.writeBE64F(value.m01)
+        output.writeBE64F(value.m02)
+        output.writeBE64F(value.m03)
+        output.writeBE64F(value.m10)
+        output.writeBE64F(value.m11)
+        output.writeBE64F(value.m12)
+        output.writeBE64F(value.m13)
+        output.writeBE64F(value.m20)
+        output.writeBE64F(value.m21)
+        output.writeBE64F(value.m22)
+        output.writeBE64F(value.m23)
+        output.writeBE64F(value.m30)
+        output.writeBE64F(value.m31)
+        output.writeBE64F(value.m32)
+        output.writeBE64F(value.m33)
     }
 
     override fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean) {
@@ -811,21 +824,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.MATRIX4X4D.scalarId + 2) { writeMatrix(it) }
 
     private fun writeAABBf(value: AABBf) {
-        output.writeFloat(value.minX)
-        output.writeFloat(value.minY)
-        output.writeFloat(value.minZ)
-        output.writeFloat(value.maxX)
-        output.writeFloat(value.maxY)
-        output.writeFloat(value.maxZ)
+        output.writeBE32F(value.minX)
+        output.writeBE32F(value.minY)
+        output.writeBE32F(value.minZ)
+        output.writeBE32F(value.maxX)
+        output.writeBE32F(value.maxY)
+        output.writeBE32F(value.maxZ)
     }
 
     private fun writeAABBd(value: AABBd) {
-        output.writeDouble(value.minX)
-        output.writeDouble(value.minY)
-        output.writeDouble(value.minZ)
-        output.writeDouble(value.maxX)
-        output.writeDouble(value.maxY)
-        output.writeDouble(value.maxZ)
+        output.writeBE64F(value.minX)
+        output.writeBE64F(value.minY)
+        output.writeBE64F(value.minZ)
+        output.writeBE64F(value.maxX)
+        output.writeBE64F(value.maxY)
+        output.writeBE64F(value.maxZ)
     }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
@@ -851,17 +864,17 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeGenericList2D(name, values, force, SimpleType.AABBD.scalarId + 2, ::writeAABBd)
 
     private fun writePlanef(value: Planef) {
-        output.writeFloat(value.dirX)
-        output.writeFloat(value.dirY)
-        output.writeFloat(value.dirZ)
-        output.writeFloat(value.distance)
+        output.writeBE32F(value.dirX)
+        output.writeBE32F(value.dirY)
+        output.writeBE32F(value.dirZ)
+        output.writeBE32F(value.distance)
     }
 
     private fun writePlaned(value: Planed) {
-        output.writeDouble(value.dirX)
-        output.writeDouble(value.dirY)
-        output.writeDouble(value.dirZ)
-        output.writeDouble(value.distance)
+        output.writeBE64F(value.dirX)
+        output.writeBE64F(value.dirY)
+        output.writeBE64F(value.dirZ)
+        output.writeBE64F(value.distance)
     }
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
@@ -894,11 +907,11 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) {
         if (name != null) writeAttributeStart(name, OBJECT_PTR)
         else output.write(OBJECT_PTR)
-        output.writeInt(ptr)
+        output.writeBE32(ptr)
     }
 
     private fun writeObjectEnd() {
-        output.writeInt(-2)
+        output.writeBE32(-2)
     }
 
     override fun writeObjectImpl(name: String?, value: Saveable) {
@@ -906,7 +919,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         else output.write(OBJECT_IMPL)
         usingType(value.className) {
             writeTypeString(currentClass)
-            output.writeInt(getPointer(value)!!)
+            output.writeBE32(getPointer(value)!!)
             value.save(this)
             writeObjectEnd()
         }
@@ -921,7 +934,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     ) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, type)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (index in values.indices) {
                 writeInstance(values[index])
             }
@@ -937,10 +950,10 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     ) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, type)
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (i in values.indices) {
                 val vs = values[i]
-                output.writeInt(vs.size)
+                output.writeBE32(vs.size)
                 for (j in vs.indices) writeInstance(vs[j])
             }
         }
@@ -960,7 +973,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
                 }
             } else {
                 writeAttributeStart(name, OBJECT_ARRAY)
-                output.writeInt(0)
+                output.writeBE32(0)
             }
         }
     }
@@ -982,7 +995,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
                 }
             } else {
                 writeAttributeStart(name, OBJECT_ARRAY)
-                output.writeInt(0)
+                output.writeBE32(0)
             }
         }
     }
@@ -994,7 +1007,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         force: Boolean
     ) {
         writeGenericList(name, values, force, OBJECT_ARRAY_2D) {
-            output.writeInt(it.size)
+            output.writeBE32(it.size)
             for (i in it.indices) {
                 writeObject(null, null, it[i], true)
             }
@@ -1008,7 +1021,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, OBJECTS_HOMOGENOUS_ARRAY)
             writeTypeString(values.firstOrNull()?.className ?: "")
-            output.writeInt(values.size)
+            output.writeBE32(values.size)
             for (element in values) {
                 element!!.save(this)
                 writeObjectEnd()
@@ -1021,10 +1034,23 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeListEnd() {
-        output.write(37)
+        output.write(LIST_END)
     }
 
     override fun writeListSeparator() {
-        output.write(17)
+        output.write(LIST_SEPARATOR)
+    }
+
+    override fun flush() {
+        output.flush()
+    }
+
+    override fun close() {
+        output.close()
+    }
+
+    companion object {
+        const val LIST_SEPARATOR = 17
+        const val LIST_END = 37
     }
 }

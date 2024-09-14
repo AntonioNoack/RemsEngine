@@ -4,15 +4,20 @@ import me.anno.utils.Color.hex16
 
 object XMLWriter {
 
-    fun write(xml: XMLNode, indentation: String? = " ", closeEmptyTypes: Boolean = false): String {
+    fun write(xml: XMLNode): String {
+        return write(xml, " ", false)
+    }
+
+    fun write(xml: XMLNode, indentation: String?, closeEmptyTypes: Boolean): String {
         val builder = StringBuilder(64)
-        builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-        write(xml, builder, 0, indentation, closeEmptyTypes)
+        builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+        if (indentation != null) builder.append("\n")
+        write(xml, builder, if (indentation == null) Int.MIN_VALUE else 0, indentation, closeEmptyTypes)
         return builder.toString()
     }
 
     fun tabs(builder: StringBuilder, depth: Int, indentation: String?) {
-        indentation ?: return
+        if (depth <= 0 || indentation == null) return
         for (i in 0 until depth) builder.append(indentation)
     }
 
@@ -39,7 +44,7 @@ object XMLWriter {
             when (c) {
                 '<' -> append("&lt;")
                 '>' -> append("&gt;")
-                '\n' -> append("<br>")
+                '\n' -> append("<br/>")
                 else -> append(c)
             }
         }
@@ -71,13 +76,15 @@ object XMLWriter {
         if (closeEmptyTypes && node.children.isEmpty()) {
             builder.append("/>")
         } else {
-            builder.append(">\n")
+            builder.append('>')
+            if (indentation != null) builder.append('\n')
             for (child in node.children) {
                 if (child is XMLNode) {
                     write(child, builder, depth + 1, indentation, closeEmptyTypes)
                 } else {
                     tabs(builder, depth + 1, indentation)
-                    builder.appendXMLEscaped(child.toString()).append('\n')
+                    builder.appendXMLEscaped(child.toString())
+                    if (indentation != null) builder.append('\n')
                 }
             }
             tabs(builder, depth, indentation)

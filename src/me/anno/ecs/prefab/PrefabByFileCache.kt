@@ -4,7 +4,7 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
-import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
+import me.anno.ecs.prefab.PrefabCache.getPrefabSampleInstance
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstanceAsync
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference
@@ -49,7 +49,7 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
             if (safeCast != null) return safeCast
         }
-        val instance = getPrefabInstance(ref, maxPrefabDepth, async)
+        val instance = getPrefabSampleInstance(ref, maxPrefabDepth, async)
         val value = if (instance != null) {
             getFileEntry(ref, allowDirectories, timeoutMillis, async) { ref1, _ ->
                 castInstance(instance, ref1) // may be heavy -> must be cached

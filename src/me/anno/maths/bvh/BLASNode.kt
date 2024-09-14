@@ -5,6 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BVHBuilder.createTexture
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -45,12 +46,12 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
             val bytesPerPixel = 16 // 4 channels * 4 bytes / float
-            val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
+            val buffer = Pools.byteBufferPool[texture.width * texture.height * bytesPerPixel, false, false]
             val data = buffer.asFloatBuffer()
             fillTris(blasList, buffers, data, pixelsPerVertex)
             LOGGER.info("Filled triangles ${(data.position().toFloat() / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
-            Texture2D.bufferPool.returnBuffer(buffer)
+            Pools.byteBufferPool.returnBuffer(buffer)
             return texture
         }
 
@@ -130,7 +131,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val pixelsPerNode = PIXELS_PER_BLAS_NODE
             val numNodes = roots.sumOf { it.countNodes() }
             val texture = createTexture("blas", numNodes, pixelsPerNode)
-            val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
+            val buffer = Pools.byteBufferPool[texture.width * texture.height * 16, false, false]
             val data = buffer.asFloatBuffer()
 
             fillBLAS(roots, pixelsPerTriangle, data)
@@ -138,7 +139,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val usedFloats = numNodes * 8
             LOGGER.info("Filled BLAS ${(usedFloats.toFloat() / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
-            Texture2D.bufferPool.returnBuffer(buffer)
+            Pools.byteBufferPool.returnBuffer(buffer)
             return texture
         }
 

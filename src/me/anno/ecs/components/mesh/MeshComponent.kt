@@ -7,8 +7,6 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.files.FileReference
 import me.anno.mesh.Shapes.flatCube
 
-// todo light beams: when inside the cone, from that view, then add a little brightness
-
 open class MeshComponent() : MeshComponentBase() {
 
     companion object {
@@ -41,16 +39,8 @@ open class MeshComponent() : MeshComponentBase() {
             }
         }
 
-    // todo why is getMeshOrNull with async not working to load prefabs properly???
     override fun getMeshOrNull(): Mesh? = MeshCache[meshFile, true]
     override fun getMesh(): Mesh? = MeshCache[meshFile, false]
-
-    // far into the future:
-    // todo instanced animations for hundreds of humans:
-    // todo bake animations into textures, and use indices + weights
-
-    // on destroy we should maybe destroy the mesh:
-    // only if it is unique, and owned by ourselves
 
     override fun destroy() {
         super.destroy()

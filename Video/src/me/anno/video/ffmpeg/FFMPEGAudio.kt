@@ -75,7 +75,7 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
     fun readRAW(input: InputStream, channels: Int, frameCount: Int): Triple<ByteBuffer, ShortBuffer, Boolean> {
         val sampleCount = frameCount * channels
         val size = sampleCount * 2
-        val bytes = AudioStream.bufferPool.get(size, clear = false, exactMatchesOnly = false)
+        val bytes = AudioStream.byteBufferPool.get(size, clear = false, exactMatchesOnly = false)
         input.readNBytes2(size, bytes, false)
         if (bytes.position() > 0) bytes.flip()
         val shorts = bytes.asShortBuffer()

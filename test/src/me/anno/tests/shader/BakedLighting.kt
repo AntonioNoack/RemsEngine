@@ -88,6 +88,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.formatPercent
@@ -505,7 +506,7 @@ fun createTriangleTexture(blasList: List<BLASNode>): Texture2D {
     val numTriangles = buffers.sumOf { it.indices.size / 3 }
     val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
     val bytesPerPixel = 16 // 4 channels * 4 bytes / float
-    val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
+    val buffer = Pools.byteBufferPool[texture.width * texture.height * bytesPerPixel, false, false]
     val data = buffer.asFloatBuffer()
     fillTris(blasList, buffers) { geometry, i ->
         val uvs = geometry.uvs
@@ -523,7 +524,7 @@ fun createTriangleTexture(blasList: List<BLASNode>): Texture2D {
     }
     LOGGER.info("Filled triangles ${(data.position().toFloat() / data.capacity()).formatPercent()}%, $texture")
     texture.createRGBA(data, buffer, false)
-    Texture2D.bufferPool.returnBuffer(buffer)
+    Pools.byteBufferPool.returnBuffer(buffer)
     return texture
 }
 

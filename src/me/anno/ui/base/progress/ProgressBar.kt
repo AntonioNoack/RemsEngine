@@ -74,7 +74,7 @@ open class ProgressBar(
     var updateSpeed = 1.0
 
     open val backgroundColor = black
-    open val color
+    open val textColor
         get() = when {
             isCancelled -> 0xff7777 or black
             finishTime > 0L -> 0x77ff77 or black
@@ -96,11 +96,91 @@ open class ProgressBar(
     }
 
     var isFinished
-        get() = finishTime == 0L
+        get() = finishTime != 0L
         set(value) {
             if (value) finish(true)
             else finishTime = 0L
         }
+
+    var padding = 1
+
+    private fun drawIndeterminate(x: Int, y: Int, w: Int, h: Int, time: Long) {
+        val time1 = (time % 3_000_000_000L) * 0.666e-9f
+        val dw = w / 3
+        val x1r = x + (fract(1f - cos(time1 * PIf * 0.5f)) * (w + dw)).toInt() - dw
+        val x1 = max(x, x1r)
+        val x2 = clamp(x1r + dw, x, x + w)
+        val x3 = x + w
+        val leftColor = backgroundColor
+        val rightColor = textColor
+        drawRect(x, y, x1 - x, h, leftColor)
+        drawRect(x1, y, x2 - x1, h, rightColor)
+        drawRect(x2, y, x3 - x2, h, leftColor)
+        // show num/total unit
+        val text = formatProgress()
+        val xt = x + w.shr(1)
+        val yt = y + (h - monospaceFont.sizeInt).shr(1)
+        if (x1 > x) Clipping.clip(x, y, x1 - x, h) {
+            drawSimpleTextCharByChar(
+                xt, yt, padding, text, rightColor, leftColor,
+                AxisAlignment.CENTER, AxisAlignment.MIN
+            )
+        }
+        if (x2 > x1) Clipping.clip(x1, y, x2 - x1, h) {
+            drawSimpleTextCharByChar(
+                xt, yt, padding, text, leftColor, rightColor,
+                AxisAlignment.CENTER, AxisAlignment.MIN
+            )
+        }
+        if (x3 > x2) Clipping.clip(x2, y, x3 - x2, h) {
+            drawSimpleTextCharByChar(
+                xt, yt, padding, text, rightColor, leftColor,
+                AxisAlignment.CENTER, AxisAlignment.MIN
+            )
+        }
+    }
+
+    private fun drawDeterminate(
+        x: Int, y: Int, w: Int, h: Int, percentage: Double,
+        x0: Int, y0: Int, x1: Int, y1: Int
+    ) {
+        val wx = (5 + percentage * (w - 5)).toFloat()
+        val leftColor = textColor
+        val rightColor = backgroundColor
+        val wxi = wx.toInt()
+        val wxf = fract(wx)
+        val mixedColor = mixARGB(rightColor, leftColor, wxf)
+        drawRect(x, y, wxi, h, leftColor)
+        drawRect(x + wxi, y, 1, h, mixedColor)
+        drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
+        // show num/total unit
+        val mid = wxi + (wxf >= 0.5f).toInt()
+        val text = formatProgress()
+        val xt = x + w.shr(1)
+        val yt = y + (h - monospaceFont.sizeInt).shr(1)
+        Clipping.clip2Save(
+            max(x0, x),
+            max(y0, y),
+            min(x1, x + mid),
+            min(y1, y + h)
+        ) {
+            drawSimpleTextCharByChar(
+                xt, yt, padding, text, rightColor, leftColor,
+                AxisAlignment.CENTER, AxisAlignment.MIN
+            )
+        }
+        Clipping.clip2Save(
+            max(x0, x + mid),
+            max(y0, y),
+            min(x1, x + w),
+            min(y1, y + h)
+        ) {
+            drawSimpleTextCharByChar(
+                xt, yt, padding, text, leftColor, rightColor,
+                AxisAlignment.CENTER, AxisAlignment.MIN
+            )
+        }
+    }
 
     open fun draw(
         x: Int, y: Int, w: Int, h: Int,
@@ -113,82 +193,14 @@ open class ProgressBar(
         lastDrawnUpdate = mix(lastDrawnUpdate, percentage, dt)
 
         // when it's finished, we know it's 100%
-        if (isFinished && percentage.isNaN()) percentage = 1.0
+        if (isFinished && percentage.isNaN()) {
+            percentage = 1.0
+        }
 
-        // todo animation with shifted stripes?
-        val pad = 1
         if (percentage.isNaN()) {
-            // draw indeterminate mode like Qt
-            val time1 = (time % 3_000_000_000) * 0.666e-9f
-            val dw = w / 3
-            val x1r = x + (fract(1f - cos(time1 * PIf * 0.5f)) * (w + dw)).toInt() - dw
-            val x1 = max(x, x1r)
-            val x2 = clamp(x1r + dw, x, x + w)
-            val x3 = x + w
-            val leftColor = backgroundColor
-            val rightColor = color
-            drawRect(x, y, x1 - x, h, leftColor)
-            drawRect(x1, y, x2 - x1, h, rightColor)
-            drawRect(x2, y, x3 - x2, h, leftColor)
-            // show num/total unit
-            val text = formatProgress()
-            val xt = x + w.shr(1)
-            val yt = y + (h - monospaceFont.sizeInt).shr(1)
-            if (x1 > x) Clipping.clip(x, y, x1 - x, h) {
-                drawSimpleTextCharByChar(
-                    xt, yt, pad, text, rightColor, leftColor,
-                    AxisAlignment.CENTER, AxisAlignment.MIN
-                )
-            }
-            if (x2 > x1) Clipping.clip(x1, y, x2 - x1, h) {
-                drawSimpleTextCharByChar(
-                    xt, yt, pad, text, leftColor, rightColor,
-                    AxisAlignment.CENTER, AxisAlignment.MIN
-                )
-            }
-            if (x3 > x2) Clipping.clip(x2, y, x3 - x2, h) {
-                drawSimpleTextCharByChar(
-                    xt, yt, pad, text, rightColor, leftColor,
-                    AxisAlignment.CENTER, AxisAlignment.MIN
-                )
-            }
+            drawIndeterminate(x, y, w, h, time)
         } else {
-            val wx = (5 + percentage * (w - 5)).toFloat()
-            val leftColor = color
-            val rightColor = backgroundColor
-            val wxi = wx.toInt()
-            val wxf = fract(wx)
-            val mixedColor = mixARGB(rightColor, leftColor, wxf)
-            drawRect(x, y, wxi, h, leftColor)
-            drawRect(x + wxi, y, 1, h, mixedColor)
-            drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
-            // show num/total unit
-            val mid = wxi + (wxf >= 0.5f).toInt()
-            val text = formatProgress()
-            val xt = x + w.shr(1)
-            val yt = y + (h - monospaceFont.sizeInt).shr(1)
-            Clipping.clip2Save(
-                max(x0, x),
-                max(y0, y),
-                min(x1, x + mid),
-                min(y1, y + h)
-            ) {
-                drawSimpleTextCharByChar(
-                    xt, yt, pad, text, rightColor, leftColor,
-                    AxisAlignment.CENTER, AxisAlignment.MIN
-                )
-            }
-            Clipping.clip2Save(
-                max(x0, x + mid),
-                max(y0, y),
-                min(x1, x + w),
-                min(y1, y + h)
-            ) {
-                drawSimpleTextCharByChar(
-                    xt, yt, pad, text, leftColor, rightColor,
-                    AxisAlignment.CENTER, AxisAlignment.MIN
-                )
-            }
+            drawDeterminate(x, y, w, h, percentage, x0, y0, x1, y1)
         }
     }
 

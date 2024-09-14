@@ -12,7 +12,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.interfaces.Renderable
-import me.anno.engine.EngineBase
+import me.anno.ecs.systems.Systems
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
@@ -53,8 +53,8 @@ class StaticMeshManager : System(), Renderable {
 
     private fun collectComponents() {
         if (collectStackE.isEmpty()) {
-            val entity = EngineBase.instance?.systems?.world as? Entity
-            collectStackE.add(entity ?: return)
+            val root = Systems.world as? Entity
+            collectStackE.add(root ?: return)
         }
         val time = Time.frameIndex + numIdleFrames
         for (i in 0 until scanLimit) {

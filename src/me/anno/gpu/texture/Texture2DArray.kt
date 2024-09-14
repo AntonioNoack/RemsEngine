@@ -13,7 +13,6 @@ import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
-import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
@@ -21,9 +20,10 @@ import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.async.Callback
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
-import me.anno.utils.async.Callback
+import me.anno.utils.pooling.Pools.byteBufferPool
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL46C.GL_BGRA
@@ -52,6 +52,7 @@ import org.lwjgl.opengl.GL46C.glTexParameteri
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.util.concurrent.atomic.AtomicLong
 
 open class Texture2DArray(
     override var name: String,
@@ -202,12 +203,12 @@ open class Texture2DArray(
 
     fun createMonochrome(data: ByteArray) {
         if (width * height * layers != data.size) throw RuntimeException("incorrect size!")
-        val byteBuffer = bufferPool[data.size, false, false]
+        val byteBuffer = byteBufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
         createMonochrome(byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
     }
 
     fun createMonochrome(getValue: I3B) {
@@ -215,7 +216,7 @@ open class Texture2DArray(
         val h = height
         val d = layers
         val size = w * h * d
-        val byteBuffer = bufferPool[size, false, false]
+        val byteBuffer = byteBufferPool[size, false, false]
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
@@ -225,7 +226,7 @@ open class Texture2DArray(
         }
         byteBuffer.flip()
         createMonochrome(byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
     }
 
     fun createRGBA8(getValue: I3I) {
@@ -233,7 +234,7 @@ open class Texture2DArray(
         val h = height
         val d = layers
         val size = 4 * w * h * d
-        val byteBuffer = bufferPool[size, false, false]
+        val byteBuffer = byteBufferPool[size, false, false]
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
@@ -243,7 +244,7 @@ open class Texture2DArray(
         }
         byteBuffer.flip()
         createBGRA8(byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
     }
 
     fun createMonochrome(data: ByteBuffer) {
@@ -258,7 +259,7 @@ open class Texture2DArray(
         if (data != null && type.bytesPerPixel != 3 && width * height * layers * type.bytesPerPixel != data.size)
             throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $layers * ${type.bytesPerPixel} bpp")
         val byteBuffer = if (data != null) {
-            val byteBuffer = bufferPool[data.size, false, false]
+            val byteBuffer = byteBufferPool[data.size, false, false]
             byteBuffer.position(0)
             byteBuffer.put(data)
             byteBuffer.position(0)
@@ -269,13 +270,13 @@ open class Texture2DArray(
             target, 0, type.internalFormat, width, height, layers, 0,
             type.uploadFormat, type.fillType, byteBuffer
         )
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(type.internalFormat, type.bytesPerPixel, type.isHDR)
     }
 
     fun createRGBA(data: FloatArray) {
         if (width * height * layers * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $layers * 4 bpp")
-        val byteBuffer = bufferPool[data.size * 4, false, false]
+        val byteBuffer = byteBufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
@@ -288,19 +289,19 @@ open class Texture2DArray(
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         bindBeforeUpload(width * 16)
         glTexImage3D(target, 0, GL_RGBA32F, width, height, layers, 0, GL_RGBA, GL_FLOAT, floatBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
     fun createRGBA(data: ByteArray) {
         if (width * height * layers * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $layers * 4 bpp")
-        val byteBuffer = bufferPool[data.size, false, false]
+        val byteBuffer = byteBufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.flip()
         bindBeforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA8, 4, false)
     }
 
@@ -426,9 +427,9 @@ open class Texture2DArray(
     }
 
     companion object {
-        var allocated = 0L
+        val allocated = AtomicLong()
         fun allocate(oldValue: Long, newValue: Long): Long {
-            allocated += newValue - oldValue
+            allocated.addAndGet(newValue - oldValue)
             return newValue
         }
     }

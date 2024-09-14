@@ -192,6 +192,7 @@ class ECSSceneTab(
     }
 
     fun onStop() {
+        val windowStack = window?.windowStack ?: return
         for (window in windowStack) {
             window.panel.forAll { panel ->
                 if (panel is RenderView) {
@@ -238,7 +239,7 @@ class ECSSceneTab(
                             ECSSceneTabs.project?.openTabs?.clear()
                             ECSSceneTabs.currentTab = null
                             ECSSceneTabs.open(this, true)
-                            ECSSceneTabs.project?.saveMaybe()
+                            ECSSceneTabs.project?.save()
                         }
                     )
                 )

@@ -2,10 +2,9 @@ package me.anno.io.files.inner
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.engine.projects.GameEngineProject
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.saveable.JsonStringWriter
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 open class InnerPrefabFile(
@@ -20,16 +19,18 @@ open class InnerPrefabFile(
         prefab.source = this
     }
 
-    val text by lazy { JsonStringWriter.toText(prefab, InvalidRef) }
-    val bytes by lazy { text.encodeToByteArray() }
+    val bytes by lazy {
+        GameEngineProject.encoding
+            .getForExtension(this)
+            .encode(prefab, InvalidRef)
+    }
 
     // it's a prefab, not a zip; never ever
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference> = emptyList()
 
-    override fun readTextSync() = text
     override fun readBytesSync() = bytes
-    override fun inputStreamSync(): InputStream = ByteArrayInputStream(text.encodeToByteArray())
+    override fun inputStreamSync(): InputStream = bytes.inputStream()
 
     override fun readPrefab(): Prefab {
         return prefab

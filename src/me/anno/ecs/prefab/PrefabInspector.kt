@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.change.Path
@@ -15,13 +16,13 @@ import me.anno.engine.inspector.InspectorUtils.showDebugProperties
 import me.anno.engine.inspector.InspectorUtils.showDebugWarnings
 import me.anno.engine.inspector.InspectorUtils.showEditorFields
 import me.anno.engine.inspector.InspectorUtils.showProperties
+import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
@@ -413,7 +414,8 @@ class PrefabInspector(var reference: FileReference) {
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
-        reference.writeText(JsonFormatter.format(JsonStringWriter.toText(prefab, workspace)))
+        val encoding = GameEngineProject.encoding.getForExtension(reference)
+        reference.writeBytes(encoding.encode(prefab, workspace))
         addEvent(500) { restoreSelected(selected) }
     }
 

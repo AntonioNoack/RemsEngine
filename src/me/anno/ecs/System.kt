@@ -1,7 +1,6 @@
 package me.anno.ecs
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase
 
 /**
  * Systems are meant for behaviours, on lots and lots of components,
@@ -23,6 +22,4 @@ abstract class System : PrefabSaveable() {
     open fun onBeforeDrawing() {}
 
     open fun clear() {}
-
-    val entity get() = EngineBase.instance?.systems?.world as? Entity
 }

@@ -6,14 +6,14 @@ import java.io.ByteArrayInputStream
 class InnerTmpTextFile(text: String, ext: String = "txt") : InnerTmpFile(ext) {
 
     var text: String = text
-        set(value) {
-            field = value
-            val size = value.length.toLong()
-            this.size = size
-            this.compressedSize = size
-        }
+        private set
 
     init {
+        writeText(text)
+    }
+
+    override fun writeText(text: String) {
+        this.text = text
         size = text.length.toLong()
         compressedSize = size
     }

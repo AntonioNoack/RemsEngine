@@ -14,13 +14,15 @@ object XML2JSON {
     //  array of primitives ->
     //   could be copied 1:1, child
 
+    const val LIST_ITEM_CLASS = "item"
+
     fun toXML(name: String, json: Any?): XMLNode {
         val node = XMLNode(name)
         when (json) {
             is List<*> -> {
                 node.attributes["isList"] = "1"
                 for (i in json.indices) {
-                    val child = toXML("item", json[i])
+                    val child = toXML(LIST_ITEM_CLASS, json[i])
                     val clazz = child.attributes["class"]
                     if (clazz != null) {
                         child.type = clazz
@@ -49,23 +51,33 @@ object XML2JSON {
         return node
     }
 
-    fun fromXML(xml: XMLNode): Any {
+    private fun replace(k: String): String {
+        return k.replace("ZZ", "[]")
+            .replaceFirst('.', ':')
+    }
+
+    fun fromXML(xml: XMLNode, setClass: Boolean = true): Any {
         if (xml.attributes.size == 1 && xml.attributes["isList"] == "1" &&
             xml.children.all { it is XMLNode }
         ) {
             // create an array
-            return xml.children.filterIsInstance<XMLNode>().map(::fromXML)
+            return xml.children.filterIsInstance<XMLNode>().map {
+                fromXML(it, it.type != LIST_ITEM_CLASS)
+            }
+        } else if (xml.type == LIST_ITEM_CLASS && xml.attributes.isEmpty() &&
+            xml.children.size == 1 && xml.children[0] is String
+        ) { // a string/number value
+            return xml.children[0].toString().trim()
         } else {
             // create object
             val json = LinkedHashMap<String, Any?>()
-            json["class"] = xml.type
+            if (setClass) json["class"] = replace(xml.type)
             for ((k, v) in xml.attributes) {
-                json[k.replace("ZZ", "[]")
-                    .replaceFirst('.', ':')] = v
+                json[replace(k)] = v
             }
             for (child in xml.children) {
                 if (child is XMLNode) {
-                    json[child.type] = fromXML(child)
+                    json[replace(child.type)] = fromXML(child)
                 }
             }
             return json

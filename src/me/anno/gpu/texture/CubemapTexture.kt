@@ -11,7 +11,7 @@ import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
-import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.pooling.Pools
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -36,6 +36,7 @@ import org.lwjgl.opengl.GL46C.glTexImage2D
 import org.lwjgl.opengl.GL46C.glTexParameterf
 import org.lwjgl.opengl.GL46C.glTexParameteri
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.PI
 
 // can be used e.g. for game engine for environment & irradiation maps
@@ -124,7 +125,7 @@ open class CubemapTexture(
     fun createRGB(sides: List<ByteArray>) {
         beforeUpload(3, sides[0].size)
         val size = size
-        val byteBuffer = Texture2D.bufferPool[size * size * 3, false, false]
+        val byteBuffer = Pools.byteBufferPool[size * size * 3, false, false]
         val internalFormat = GL_RGBA8
         for (i in 0 until 6) {
             byteBuffer.position(0)
@@ -135,14 +136,14 @@ open class CubemapTexture(
                 size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer
             )
         }
-        Texture2D.bufferPool.returnBuffer(byteBuffer)
+        Pools.byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(internalFormat, 6 * 3)
     }
 
     fun createRGBA(sides: List<ByteArray>) {
         beforeUpload(4, sides[0].size)
         val size = size
-        val byteBuffer = Texture2D.bufferPool[size * size * 4, false, false]
+        val byteBuffer = Pools.byteBufferPool[size * size * 4, false, false]
         val internalFormat = GL_RGBA8
         for (i in 0 until 6) {
             byteBuffer.position(0)
@@ -153,7 +154,7 @@ open class CubemapTexture(
                 size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer
             )
         }
-        Texture2D.bufferPool.returnBuffer(byteBuffer)
+        Pools.byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(internalFormat, 6 * 4)
     }
 
@@ -288,9 +289,9 @@ open class CubemapTexture(
          * */
         val cubemapsAreLeftHanded = "vec3(-1.0,1.0,1.0)"
 
-        var allocated = 0L
+        val allocated = AtomicLong()
         fun allocate(oldValue: Long, newValue: Long): Long {
-            allocated += newValue - oldValue
+            allocated.addAndGet(newValue - oldValue)
             return newValue
         }
 

@@ -1,0 +1,100 @@
+package me.anno.tests.io
+
+import me.anno.ecs.Entity
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.change.CSet
+import me.anno.engine.projects.FileEncoding
+import me.anno.io.binary.BinaryReader
+import me.anno.io.binary.BinaryWriter
+import me.anno.io.files.InvalidRef
+import me.anno.io.files.Signature
+import me.anno.io.files.inner.temporary.InnerTmpByteFile
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertIs
+import me.anno.utils.assertions.assertTrue
+import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
+
+/**
+ * test for all encodings, whether they work
+ * */
+class FileEncodingTest {
+
+    init {
+        registerCustomClass(Prefab::class)
+        registerCustomClass(CSet::class)
+    }
+
+    @Test
+    fun testPrettyJson() {
+        testEncoding(FileEncoding.PRETTY_JSON, "json")
+    }
+
+    @Test
+    fun testCompactJson() {
+        testEncoding(FileEncoding.COMPACT_JSON, "json")
+    }
+
+    @Test
+    fun testPrettyXML() {
+        testEncoding(FileEncoding.PRETTY_XML, "xml-re")
+    }
+
+    @Test
+    fun testCompactXML() {
+        testEncoding(FileEncoding.COMPACT_XML, "xml-re")
+    }
+
+    @Test
+    fun testYAMLEncodings() {
+        testEncoding(FileEncoding.YAML, "yaml-re")
+    }
+
+    @Test
+    fun testBinaryEncodings() {
+        testEncoding(FileEncoding.BINARY, "rem")
+    }
+
+    @Test
+    fun testBinarySerialization() {
+        val srcPrefab = Prefab("Entity")
+        srcPrefab["name"] = "RemsEngine"
+
+        val bytes = ByteArrayOutputStream().use { bos ->
+            val writer = BinaryWriter(bos)
+            writer.add(srcPrefab)
+            writer.writeAllInList()
+            writer.close()
+            bos.toByteArray()
+        }
+
+        val reader = BinaryReader(bytes.inputStream())
+        reader.readAllInList()
+        assertEquals(
+            listOf(srcPrefab).toString(),
+            reader.allInstances.toString()
+        )
+    }
+
+    fun testEncoding(encoding: FileEncoding, expectedSignature: String) {
+
+        val workspace = InvalidRef
+        val srcPrefab = Prefab("Entity")
+        srcPrefab["name"] = "RemsEngine"
+
+        val bytes = encoding.encode(listOf(srcPrefab), workspace)
+        val tmpFile = InnerTmpByteFile(bytes, encoding.extension)
+        // println("Wrote ${bytes.decodeToString()}")
+        assertTrue(tmpFile.exists)
+
+        val signature = Signature.findNameSync(tmpFile)
+        assertEquals(expectedSignature, signature)
+
+        val prefab = PrefabCache[tmpFile]!!
+        val sample = prefab.getSampleInstance()
+        assertIs(Entity::class, sample)
+        assertEquals("RemsEngine", sample.name)
+    }
+}

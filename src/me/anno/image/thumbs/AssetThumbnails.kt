@@ -44,6 +44,7 @@ import me.anno.utils.Warning
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -64,7 +65,7 @@ object AssetThumbnails {
 
     fun register() {
         Thumbs.registerFileExtensions("json", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("vox,maya", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("vox,maya,xml-re,yaml-re,bin-re", AssetThumbnails::generateAssetFrame)
     }
 
     // exclude lights from AABB calculations for thumbnails
@@ -350,13 +351,13 @@ object AssetThumbnails {
         val count = if (hasMotion) 6 else 1
         val dt = if (hasMotion) animation.numFrames.toFloat() / count else 0f
         val bones = skeleton.bones
-        val meshVertices = Texture2D.floatArrayPool[bones.size * Skeleton.boneMeshVertices.size, false, true]
+        val meshVertices = Pools.floatArrayPool[bones.size * Skeleton.boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         ThumbsRendering.renderMultiWindowImage(srcFile, dstFile, count, size,
             true, Renderers.simpleRenderer, { it, e ->
                 callback.call(it, e)
-                Texture2D.floatArrayPool.returnBuffer(meshVertices)
+                Pools.floatArrayPool.returnBuffer(meshVertices)
                 mesh.destroy()
             }) { it, aspect ->
             val frameIndex = it * dt
@@ -431,14 +432,14 @@ object AssetThumbnails {
             val position = animPositions[i].set(bones[i].bindPosition)
             skinningMatrices[i].transformPosition(position)
         }
-        val meshVertices = Texture2D.floatArrayPool[numBones * Skeleton.boneMeshVertices.size, false, true]
+        val meshVertices = Pools.floatArrayPool[numBones * Skeleton.boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         Skeleton.generateSkeleton(bones, animPositions, meshVertices, null)
         mesh.invalidateGeometry()
         // draw the skeleton in that portion of the frame
         mesh.ensureBuffer()
         useGeneratedMesh(mesh)
-        Texture2D.floatArrayPool.returnBuffer(meshVertices)
+        Pools.floatArrayPool.returnBuffer(meshVertices)
         mesh.destroy()
     }
 

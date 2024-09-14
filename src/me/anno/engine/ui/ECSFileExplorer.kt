@@ -9,6 +9,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
@@ -22,20 +23,19 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.Menu
-import me.anno.ui.base.menu.Menu.askName
-import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.menu.Menu.askRename
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
+import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.files.Files.findNextChild
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -43,10 +43,6 @@ import me.anno.utils.structures.lists.Lists.all2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.reflect.KClass
-
-// done import mesh/material/... for modifications:
-// done create material, mesh, animation etc. folder
-// done rename Scene.json to mesh file name.json
 
 class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileExplorer(file0, isY, style) {
 
@@ -179,52 +175,54 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
         val fileOptions = ArrayList<FileExplorerOption>()
         val folderOptions = ArrayList<FileExplorerOption>()
 
-        fun askPlacePrefab(p: Panel, first: FileReference, name: String, fileContent: String) {
-            askName(p.windowStack, NameDesc("File Name"), name, NameDesc("Create File"), { -1 }, {
-                val name1 = if (it.endsWith(".json")) it.substring(0, it.length - 5) else it
-                val file = findNextFile(first, name1, "json", 1, 0.toChar(), 0)
-                if (file == InvalidRef) {
-                    msg(p.windowStack, NameDesc("Directory is not writable"))
-                } else file.writeText(fileContent)
-                invalidateFileExplorers(p)
-            })
-        }
-
-        fun getFirst(files: List<FileReference>): FileReference {
-            val first = files.firstOrNull()
-            return if (first?.isDirectory == true) first else {
-                LOGGER.warn("Not a directory")
-                InvalidRef
+        fun askPlacePrefab(p: Panel, folder: FileReference, name: String, clazzName: String) {
+            val ext = GameEngineProject.encoding.extension
+            askRename(
+                p.windowStack, NameDesc("File Name"), "$name.$ext",
+                NameDesc("Create File"), folder
+            ) { file ->
+                if (file != InvalidRef) {
+                    val encoding = GameEngineProject.encoding.getForExtension(file)
+                    file.writeBytes(encoding.encode(Prefab(clazzName), InvalidRef))
+                    invalidateFileExplorers(p)
+                }
             }
         }
 
+        fun getFirstFolder(files: List<FileReference>): FileReference {
+            val folder = files.firstNotNullOfOrNull {
+                if (it.isDirectory) it else {
+                    val parent = it.getParent()
+                    if (parent.isDirectory) parent else null
+                }
+            } ?: InvalidRef
+            if (folder == InvalidRef) LOGGER.warn("Not directory selected")
+            return folder
+        }
+
         @Suppress("MemberVisibilityCanBePrivate")
-        fun addOptionToCreateFile(name: String, fileContent: String) {
+        fun addOptionToCreateFile(name: String, clazzName: String) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
-                val first = getFirst(files)
-                if (first != InvalidRef) {
-                    askPlacePrefab(p, first, name, fileContent)
+                val folder = getFirstFolder(files)
+                if (folder != InvalidRef) {
+                    askPlacePrefab(p, folder, name, clazzName)
                 }
             })
         }
 
-        private fun createSampleContent(clazzName: String): String {
-            return Prefab(clazzName).toString()
-        }
-
         @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateComponent(name: String, clazzName: String = name) {
-            addOptionToCreateFile(name, createSampleContent(clazzName))
+            addOptionToCreateFile(name, clazzName)
         }
 
         fun <V : PrefabSaveable> addComplexButtonToCreate(name: String, clazz: KClass<V>) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
-                val first = getFirst(files)
+                val first = getFirstFolder(files)
                 if (first != InvalidRef) {
                     fun onChoseType(sample: PrefabSaveable) {
                         askPlacePrefab(
                             p, first, sample.className,
-                            createSampleContent(sample.className)
+                            sample.className
                         )
                     }
                     Menu.openComplexMenu(
@@ -261,6 +259,33 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                     )
                 }
                 invalidateFileExplorers(p)
+            }
+            val extendPrefab = FileExplorerOption(
+                NameDesc("Extend Prefab", "Create a child prefab with this file as its base", ""),
+            ) { p, files ->
+                val defaultExtension = GameEngineProject.encoding.extension
+                files.mapCallback<FileReference, Unit>({ _, src, cb ->
+                    PrefabCache.getPrefabAsync(src) { prefab, err ->
+                        if (prefab != null) {
+                            Menu.askRename(
+                                p.windowStack, NameDesc("Extend ${prefab.clazzName} \"${src.name}\""),
+                                "${src.nameWithoutExtension}.$defaultExtension",
+                                NameDesc("Extend"), src.getParent()
+                            ) { dst ->
+                                if (src == dst) {
+                                    LOGGER.warn("Cannot extend into same file")
+                                } else {
+                                    // todo add file to index? or is that done automatically??
+                                    val newPrefab = Prefab(prefab.clazzName, src)
+                                    GameEngineProject.save(dst, newPrefab)
+                                }
+                                cb.ok(Unit)
+                            }
+                        } else if (err != null) {
+                            LOGGER.warn("Failed loading $src as prefab", err)
+                        }
+                    }
+                }, { _, _ -> })
             }
             val assignMaterialToMeshes = FileExplorerOption(
                 NameDesc(
@@ -310,15 +335,18 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                     ComponentUI.chooseFileFromProject("Material", InvalidRef, p, p.style) { materialFile, cancelled ->
                         for ((file, prefab, oldMaterials) in meshes) {
                             val size = max(1, oldMaterials.size)
-                            prefab["materials"] = if (cancelled) oldMaterials
-                            else (0 until size).map { materialFile }
-                            file.writeText(JsonStringWriter.toText(prefab, workspace))
+                            prefab["materials"] =
+                                if (cancelled) oldMaterials
+                                else (0 until size).map { materialFile }
+                            val encoding = GameEngineProject.encoding.getForExtension(file)
+                            file.writeBytes(encoding.encode(prefab, workspace))
                         }
                         for ((file, prefab) in materials) {
                             prefab.prefab = materialFile
                             prefab.adds.clear() // not really doing anything
                             prefab.sets.clear()
-                            file.writeText(JsonStringWriter.toText(prefab, workspace))
+                            val encoding = GameEngineProject.encoding.getForExtension(file)
+                            file.writeBytes(encoding.encode(prefab, workspace))
                         }
                         // and at the end, invalidate the thumbnail for these secondary source files
                         // todo ideally, invalidate all files that depend on ours
@@ -329,6 +357,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                 } else LOGGER.warn("No valid target was found")
             }
             fileOptions.add(openAsScene)
+            fileOptions.add(extendPrefab)
             fileOptions.add(assignMaterialToMeshes)
             folderOptions.add(openAsScene)
             // todo create shader (MaterialGraph), post-processing (ShaderGraph), render mode (RenderGraph),

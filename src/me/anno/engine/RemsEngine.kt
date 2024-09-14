@@ -208,6 +208,10 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
             openConfigWindow(windowStack)
         }
+        options.addAction(configTitle, Dict["Project Settings", "ui.top.config.projectSettings"]) {
+            val project = currentProject
+            if (project != null) EditorState.select(project)
+        }
         options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
             openStylingWindow(windowStack)
         }

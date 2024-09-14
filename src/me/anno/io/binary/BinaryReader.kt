@@ -1,6 +1,10 @@
 package me.anno.io.binary
 
-import me.anno.io.saveable.Saveable
+import me.anno.io.Streams.readBE16
+import me.anno.io.Streams.readBE32
+import me.anno.io.Streams.readBE32F
+import me.anno.io.Streams.readBE64
+import me.anno.io.Streams.readBE64F
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
@@ -10,8 +14,13 @@ import me.anno.io.binary.BinaryTypes.OBJECT_IMPL
 import me.anno.io.binary.BinaryTypes.OBJECT_LIST_UNKNOWN_LENGTH
 import me.anno.io.binary.BinaryTypes.OBJECT_NULL
 import me.anno.io.binary.BinaryTypes.OBJECT_PTR
+import me.anno.io.binary.BinaryWriter.Companion.LIST_END
+import me.anno.io.binary.BinaryWriter.Companion.LIST_SEPARATOR
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.SimpleType
+import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
@@ -39,8 +48,8 @@ import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
-import java.io.DataInputStream
 import java.io.IOException
+import java.io.InputStream
 
 /**
  * writing as text is:
@@ -48,7 +57,7 @@ import java.io.IOException
  * - similar speed
  * - similar length when compressed
  * */
-class BinaryReader(val input: DataInputStream) : BaseReader() {
+class BinaryReader(val input: InputStream) : BaseReader() {
 
     private val knownNames = ArrayList<String>()
 
@@ -57,7 +66,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private var currentClass = ""
     private var currentNameTypes = knownNameTypes.getOrPut(currentClass, ::ArrayList)
 
-    private fun usingType(type: String, run: () -> Unit) {
+    private inline fun usingType(type: String, run: () -> Unit) {
         val old1 = currentClass
         val old2 = currentNameTypes
         currentClass = type
@@ -68,7 +77,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     }
 
     private fun readEfficientString(): String? {
-        val id = input.readInt()
+        val id = input.readBE32()
         return when {
             id == -1 -> null
             id >= 0 -> knownNames[id]
@@ -99,68 +108,63 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     }
 
     private fun readTypeName(): NameType {
-        return readTypeName(input.readInt())
+        return readTypeName(input.readBE32())
     }
 
     override fun readObject(): Saveable {
         val clazz = readTypeString()
-        return readObject(clazz)
+        return readObject(clazz, true)
     }
 
-    private fun readBooleanArray() = BooleanArray(input.readInt()) { input.readBoolean() }
-    private fun readCharArray() = CharArray(input.readInt()) { input.readChar() }
-    private fun readByteArray() = input.readNBytes2(input.readInt(), true)
-    private fun readShortArray() = ShortArray(input.readInt()) { input.readShort() }
-    private fun readIntArray() = IntArray(input.readInt()) { input.readInt() }
-    private fun readLongArray() = LongArray(input.readInt()) { input.readLong() }
-    private fun readFloatArray() = FloatArray(input.readInt()) { input.readFloat() }
-    private fun readDoubleArray() = DoubleArray(input.readInt()) { input.readDouble() }
+    private fun readBooleanArray() = BooleanArray(input.readBE32()) { input.read() > 0 }
+    private fun readCharArray() = CharArray(input.readBE32()) { input.readBE16().toChar() }
+    private fun readByteArray() = input.readNBytes2(input.readBE32(), true)
+    private fun readShortArray() = ShortArray(input.readBE32()) { input.readBE16().toShort() }
+    private fun readIntArray() = IntArray(input.readBE32()) { input.readBE32() }
+    private fun readLongArray() = LongArray(input.readBE32()) { input.readBE64() }
+    private fun readFloatArray() = FloatArray(input.readBE32()) { input.readBE32F() }
+    private fun readDoubleArray() = DoubleArray(input.readBE32()) { input.readBE64F() }
 
     private fun readObjectOrNull(): Saveable? {
         return when (val subType = input.read()) {
             OBJECT_IMPL -> readObject()
-            OBJECT_PTR -> getByPointer(input.readInt(), true)
+            OBJECT_PTR -> getByPointer(input.readBE32(), true)
             OBJECT_NULL -> null
             else -> throw IOException("Unknown sub-type $subType")
         }
     }
 
-    private fun readHomogeneousObjectArray(type: String): List<Saveable?> {
-        return readList {
-            when (val subType = input.read()) {
-                OBJECT_IMPL -> readObject(type)
-                OBJECT_PTR -> getByPointer(input.readInt(), true)
-                OBJECT_NULL -> null
-                else -> throw IOException("Unknown sub-type $subType")
-            }
-        }
+    private fun readHomogeneousList(): List<Saveable?> {
+        val type = readTypeString()
+        return readList { readObject(type, false) }
     }
 
-    fun readObject(clazz: String): Saveable {
+    fun readObject(clazz: String, readPointer: Boolean): Saveable {
         val obj = getNewClassInstance(clazz)
-        allInstances.add(obj)
+        if (readPointer) allInstances.add(obj) // always add this? not really needed for homogenous arrays
         obj.onReadingStarted()
         usingType(clazz) {
-            readObjectProperties(obj)
+            readObjectProperties(obj, readPointer)
         }
         obj.onReadingEnded()
         return obj
     }
 
-    private fun readObjectProperties(obj: Saveable) {
-        val ptr = input.readInt()
+    private fun readObjectProperties(obj: Saveable, readPointer: Boolean) {
+        val ptr = if (readPointer) input.readBE32() else 0
         // read all properties
         while (true) {
-            val typeId = input.readInt()
+            val typeId = input.readBE32()
             if (typeId < -1) break
             val typeName = readTypeName(typeId)
             val name = typeName.name
             val reader = readers.getOrNull(typeName.type)
             if (reader != null) {
-                obj.setProperty(name, reader.invoke(this))
+                val value = reader.invoke(this)
+                obj.setProperty(name, value)
             } else when (typeName.type) {
                 OBJECT_PTR -> {
-                    val ptr2 = input.readInt()
+                    val ptr2 = input.readBE32()
                     val child = getByPointer(ptr2, false)
                     if (child == null) {
                         addMissingReference(obj, name, ptr2)
@@ -168,108 +172,134 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                         obj.setProperty(name, child)
                     }
                 }
-                else -> throw IOException("Unknown type ${typeName.type}")
+                else -> assertFail("Unknown type ${typeName.type}")
             }
         }
-        register(obj, ptr)
+        if (readPointer) {
+            register(obj, ptr)
+        }
     }
 
-    private fun <V> readList(get: () -> V): ArrayList<V> = createArrayList(input.readInt()) { get() }
+    private fun <V> readList(get: () -> V): ArrayList<V> {
+        return createArrayList(input.readBE32()) { get() }
+    }
+
     private fun <V> readList2D(get: () -> V): ArrayList<ArrayList<V>> {
         return readList { readList(get) }
     }
 
-    private fun readFile() = readEfficientString()?.toGlobalFile() ?: InvalidRef
-    private fun readVector2f() = Vector2f(input.readFloat(), input.readFloat())
-    private fun readVector3f() = Vector3f(input.readFloat(), input.readFloat(), input.readFloat())
-    private fun readVector4f() = Vector4f(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
-    private fun readPlanef() = Planef(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
-    private fun readQuaternionf() =
-        Quaternionf(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
+    private fun readFile(): FileReference =
+        readEfficientString()?.toGlobalFile() ?: InvalidRef
 
-    private fun readAABBf() = AABBf(
-        input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(),
+    private fun readVector2f(): Vector2f =
+        Vector2f(input.readBE32F(), input.readBE32F())
+
+    private fun readVector3f(): Vector3f =
+        Vector3f(input.readBE32F(), input.readBE32F(), input.readBE32F())
+
+    private fun readVector4f(): Vector4f =
+        Vector4f(input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F())
+
+    private fun readPlanef(): Planef =
+        Planef(input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F())
+
+    private fun readQuaternionf(): Quaternionf =
+        Quaternionf(input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F())
+
+    private fun readAABBf(): AABBf = AABBf(
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
     )
 
-    private fun readVector2d() = Vector2d(input.readDouble(), input.readDouble())
-    private fun readVector3d() = Vector3d(input.readDouble(), input.readDouble(), input.readDouble())
-    private fun readVector4d() =
-        Vector4d(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
+    private fun readVector2d(): Vector2d =
+        Vector2d(input.readBE64F(), input.readBE64F())
 
-    private fun readPlaned() = Planed(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
-    private fun readQuaterniond() =
-        Quaterniond(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
+    private fun readVector3d(): Vector3d =
+        Vector3d(input.readBE64F(), input.readBE64F(), input.readBE64F())
 
-    private fun readAABBd() = AABBd(
-        input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(),
+    private fun readVector4d(): Vector4d =
+        Vector4d(input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F())
+
+    private fun readPlaned(): Planed =
+        Planed(input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F())
+
+    private fun readQuaterniond(): Quaterniond =
+        Quaterniond(input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F())
+
+    private fun readAABBd(): AABBd = AABBd(
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
     )
 
-    private fun readVector2i() = Vector2i(input.readInt(), input.readInt())
-    private fun readVector3i() = Vector3i(input.readInt(), input.readInt(), input.readInt())
-    private fun readVector4i() = Vector4i(input.readInt(), input.readInt(), input.readInt(), input.readInt())
+    private fun readVector2i(): Vector2i =
+        Vector2i(input.readBE32(), input.readBE32())
 
-    private fun readMatrix2x2f() = Matrix2f(
-        input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat()
+    private fun readVector3i(): Vector3i =
+        Vector3i(input.readBE32(), input.readBE32(), input.readBE32())
+
+    private fun readVector4i(): Vector4i =
+        Vector4i(input.readBE32(), input.readBE32(), input.readBE32(), input.readBE32())
+
+    private fun readMatrix2x2f(): Matrix2f = Matrix2f(
+        input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F()
     )
 
-    private fun readMatrix3x2f() = Matrix3x2f(
-        input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat()
+    private fun readMatrix3x2f(): Matrix3x2f = Matrix3x2f(
+        input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F()
     )
 
-    private fun readMatrix3x3f() = Matrix3f(
-        input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat()
+    private fun readMatrix3x3f(): Matrix3f = Matrix3f(
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F()
     )
 
-    private fun readMatrix4x3f() = Matrix4x3f(
-        input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat()
+    private fun readMatrix4x3f(): Matrix4x3f = Matrix4x3f(
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F()
     )
 
-    private fun readMatrix4x4f() = Matrix4f(
-        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat(),
-        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat()
+    private fun readMatrix4x4f(): Matrix4f = Matrix4f(
+        input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F(),
+        input.readBE32F(), input.readBE32F(), input.readBE32F(), input.readBE32F()
     )
 
-    private fun readMatrix2x2d() = Matrix2d(
-        input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble()
+    private fun readMatrix2x2d(): Matrix2d = Matrix2d(
+        input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F()
     )
 
-    private fun readMatrix3x2d() = Matrix3x2d(
-        input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble()
+    private fun readMatrix3x2d(): Matrix3x2d = Matrix3x2d(
+        input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F()
     )
 
-    private fun readMatrix3x3d() = Matrix3d(
-        input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble()
+    private fun readMatrix3x3d(): Matrix3d = Matrix3d(
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F()
     )
 
-    private fun readMatrix4x3d() = Matrix4x3d(
-        input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble()
+    private fun readMatrix4x3d(): Matrix4x3d = Matrix4x3d(
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F()
     )
 
-    private fun readMatrix4x4d() = Matrix4d(
-        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble(),
-        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble()
+    private fun readMatrix4x4d(): Matrix4d = Matrix4d(
+        input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F(),
+        input.readBE64F(), input.readBE64F(), input.readBE64F(), input.readBE64F()
     )
 
     override fun readAllInList() {
@@ -278,20 +308,14 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         assertEquals(nameType.type, OBJECT_LIST_UNKNOWN_LENGTH, "Expected list of unknown length")
         loop@ while (true) {
             val type = input.read()
-            if (type != OBJECT_IMPL) throw RuntimeException("Type must be OBJECT_IMPL, but got $type != $OBJECT_IMPL")
+            assertEquals(OBJECT_IMPL, type, "Type must be OBJECT_IMPL")
             readObject()
             when (val code = input.read()) {
-                17 -> Unit
-                37 -> break@loop
-                else -> {
-                    throw RuntimeException("Invalid Code $code")
-                }
+                LIST_SEPARATOR -> {}
+                LIST_END -> break@loop
+                else -> assertFail("Invalid Code $code")
             }
         }
-    }
-
-    private fun <V> assertEquals(a: V, b: V, msg: String) {
-        if (a != b) throw IOException("$msg, $a != $b")
     }
 
     companion object {
@@ -320,15 +344,15 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
             readers[OBJECT_IMPL] = { readObject() }
             readers[OBJECT_ARRAY] = { readList { readObjectOrNull() } }
             readers[OBJECT_ARRAY_2D] = { readList2D { readObjectOrNull() } }
-            readers[OBJECTS_HOMOGENOUS_ARRAY] = { readHomogeneousObjectArray(readTypeString()) }
-            registerReader2(SimpleType.BYTE, { input.readByte() }) { readByteArray() }
-            registerReader2(SimpleType.SHORT, { input.readShort() }) { readShortArray() }
-            registerReader2(SimpleType.INT, { input.readInt() }) { readIntArray() }
-            registerReader2(SimpleType.LONG, { input.readLong() }) { readLongArray() }
-            registerReader2(SimpleType.FLOAT, { input.readFloat() }) { readFloatArray() }
-            registerReader2(SimpleType.DOUBLE, { input.readDouble() }) { readDoubleArray() }
-            registerReader2(SimpleType.BOOLEAN, { input.readBoolean() }) { readBooleanArray() }
-            registerReader2(SimpleType.CHAR, { input.readChar() }) { readCharArray() }
+            readers[OBJECTS_HOMOGENOUS_ARRAY] = { readHomogeneousList() }
+            registerReader2(SimpleType.BYTE, { input.read().toByte() }) { readByteArray() }
+            registerReader2(SimpleType.SHORT, { input.readBE16().toShort() }) { readShortArray() }
+            registerReader2(SimpleType.INT, { input.readBE32() }) { readIntArray() }
+            registerReader2(SimpleType.LONG, { input.readBE64() }) { readLongArray() }
+            registerReader2(SimpleType.FLOAT, { input.readBE32F() }) { readFloatArray() }
+            registerReader2(SimpleType.DOUBLE, { input.readBE64F() }) { readDoubleArray() }
+            registerReader2(SimpleType.BOOLEAN, { input.read() > 0 }) { readBooleanArray() }
+            registerReader2(SimpleType.CHAR, { input.readBE16().toChar() }) { readCharArray() }
             registerReader(SimpleType.STRING) { readEfficientString() }
             registerReader(SimpleType.REFERENCE) { readFile() }
             registerReader(SimpleType.VECTOR2F) { readVector2f() }

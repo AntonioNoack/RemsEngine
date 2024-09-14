@@ -1,6 +1,7 @@
 package me.anno.io.json.generic
 
 import me.anno.io.xml.ComparableStringBuilder
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayInputStream
 import java.io.EOFException
@@ -186,8 +187,8 @@ open class JsonReader(val data: InputStream) {
                     val name = readString(false)
                     assertEquals(skipSpace(), ':')
                     if (filter == null || filter(name)) {
-                        obj[name] = setProperty(skipSpace(), filter)
-                    } else skipSomething()
+                        obj[name] = readValue(skipSpace(), filter)
+                    } else skipValue()
                     next = skipSpace()
                 }
                 ',' -> next = skipSpace()
@@ -205,7 +206,7 @@ open class JsonReader(val data: InputStream) {
                 '"' -> {
                     skipString() // name
                     assertEquals(skipSpace(), ':')
-                    skipSomething()
+                    skipValue()
                     next = skipSpace()
                 }
                 ',' -> next = skipSpace()
@@ -214,7 +215,7 @@ open class JsonReader(val data: InputStream) {
         }
     }
 
-    fun setProperty(next: Char, filter: ((String) -> Boolean)? = null): Any? {
+    fun readValue(next: Char, filter: ((String) -> Boolean)? = null): Any? {
         return when (next) {
             in '0'..'9', '.', '+', '-' -> {
                 putBack(next)
@@ -242,11 +243,11 @@ open class JsonReader(val data: InputStream) {
                 assert(next(), 'l', 'L')
                 null
             }
-            else -> throw RuntimeException("Expected value, got $next")
+            else -> assertFail("Expected value, got $next")
         }
     }
 
-    fun skipSomething(next: Char = skipSpace()) {
+    fun skipValue(next: Char = skipSpace()) {
         when (next) {
             in '0'..'9', '.', '+', '-' -> skipNumber(false)
             '"' -> skipString()
@@ -269,19 +270,19 @@ open class JsonReader(val data: InputStream) {
                 assert(next(), 'l', 'L')
                 assert(next(), 'l', 'L')
             }
-            else -> throw RuntimeException("Expected value, got $next")
+            else -> assertFail("Expected value, got $next")
         }
     }
 
     fun readArray(readOpeningBracket: Boolean = true): ArrayList<Any?> {
         if (readOpeningBracket) assertEquals(skipSpace(), '[')
         var next = skipSpace()
-        val obj = ArrayList<Any?>()
+        val result = ArrayList<Any?>()
         while (true) {
             when (next) {
-                ']' -> return obj
+                ']' -> return result
                 ',' -> {}
-                else -> obj.add(setProperty(next))
+                else -> result.add(readValue(next))
             }
             next = skipSpace()
         }
@@ -294,7 +295,7 @@ open class JsonReader(val data: InputStream) {
             when (next) {
                 ']' -> return
                 ',' -> {}
-                else -> skipSomething(next)
+                else -> skipValue(next)
             }
             next = skipSpace()
         }

@@ -10,9 +10,9 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.async.Callback
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.async.Callback
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
@@ -423,8 +423,17 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    fun isSameOrSubFolderOf(other: FileReference): Boolean {
+        if (other == InvalidRef) return false
+        return this == other || isSubFolderOf(other.absolutePath)
+    }
+
+    fun isSameOrSubFolderOf(other: String): Boolean {
+        return absolutePath == other || isSubFolderOf(other)
+    }
 
     fun isSubFolderOf(other: FileReference): Boolean {
+        if (other == InvalidRef) return false
         return isSubFolderOf(other.absolutePath)
     }
 

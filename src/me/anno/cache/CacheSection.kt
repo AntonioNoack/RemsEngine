@@ -4,11 +4,12 @@ import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.InternalAPI
 import me.anno.utils.ShutdownException
-import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.async.Callback
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
@@ -645,6 +646,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                             "${removed.joinToString("+") { it.value }}] caches"
                 )
             }
+        }
+
+        init {
+            Reference.invalidateListeners += CacheSection::invalidateFiles
         }
 
         @JvmStatic

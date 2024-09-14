@@ -1,7 +1,7 @@
 package me.anno.audio.openal
 
 import me.anno.audio.openal.AudioManager.openALSession
-import me.anno.audio.streams.AudioStream.Companion.bufferPool
+import me.anno.audio.streams.AudioStream.Companion.byteBufferPool
 import me.anno.cache.ICacheData
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertNotNull
@@ -42,7 +42,7 @@ class SoundBuffer : ICacheData {
         ALBase.check()
         alBufferData(pointer, format, data, sampleRate)
         ALBase.check()
-        bufferPool.returnBuffer(data0)
+        byteBufferPool.returnBuffer(data0)
         this.data0 = null
         this.data = null
     }
@@ -60,7 +60,7 @@ class SoundBuffer : ICacheData {
             pointer = 0
         }
         if (data0 != null) {
-            bufferPool.returnBuffer(data0)
+            byteBufferPool.returnBuffer(data0)
             data0 = null
             data = null
         }

@@ -3,6 +3,7 @@ package me.anno.engine.ui
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.EngineBase
+import me.anno.engine.projects.GameEngineProject
 import me.anno.gpu.GFX
 import me.anno.image.ImageReadable
 import me.anno.image.thumbs.Thumbs
@@ -11,8 +12,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
-import me.anno.io.json.generic.JsonFormatter
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
@@ -274,8 +273,9 @@ object AssetImport {
     }
 
     private fun savePrefab(dstFolder: FileReference, name: String, newPrefab: Prefab): FileReference {
-        val data = JsonFormatter.format(JsonStringWriter.toText(newPrefab, EngineBase.workspace)).encodeToByteArray()
-        return saveContent(dstFolder, name, "json", data)
+        val encoding = GameEngineProject.encoding
+        val data = encoding.encode(newPrefab, EngineBase.workspace)
+        return saveContent(dstFolder, name, encoding.extension, data)
     }
 
     private fun saveContent(dstFolder: FileReference, name: String, ext: String, data: ByteArray): FileReference {

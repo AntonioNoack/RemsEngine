@@ -402,6 +402,23 @@ class Prefab : Saveable {
         return newInstance
     }
 
+    val dependencies: HashSet<FileReference>
+        get() {
+            val result = HashSet<FileReference>()
+            result.add(prefab)
+            sets.forEach { _, _, v ->
+                if (v is FileReference) result.add(v)
+            }
+            for (adds2 in adds.values) {
+                for (add in adds2) {
+                    result.add(add.prefab)
+                }
+            }
+            result.remove(InvalidRef)
+            result.remove(source)
+            return result
+        }
+
     override val approxSize get() = 1_000_000_096
 
     override fun isDefaultValue(): Boolean =

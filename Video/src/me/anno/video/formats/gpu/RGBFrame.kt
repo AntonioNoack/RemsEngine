@@ -3,6 +3,7 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
+import me.anno.utils.pooling.Pools
 import java.io.EOFException
 import java.io.InputStream
 
@@ -16,14 +17,14 @@ open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChanne
         if (isDestroyed) return
 
         val s0 = width * height
-        val data = Texture2D.bufferPool[s0 * 4, false, false]
+        val data = Pools.byteBufferPool[s0 * 4, false, false]
         data.position(0)
         for (i in 0 until s0) {
             val r = input.read()
             val g = input.read()
             val b = input.read()
             if (r < 0 || g < 0 || b < 0) {
-                Texture2D.bufferPool.returnBuffer(data)
+                Pools.byteBufferPool.returnBuffer(data)
                 throw EOFException()
             }
             data.put(r.toByte())

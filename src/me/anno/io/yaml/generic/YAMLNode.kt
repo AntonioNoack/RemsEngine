@@ -57,9 +57,15 @@ class YAMLNode(
         return builder
     }
 
-    override fun toString(): String {
-        val builder = toString(StringBuilder(), false)
+    fun toString(prefix: String): String {
+        val builder = StringBuilder()
+        builder.append(prefix)
+        toString(builder, false)
         builder.setLength(builder.length - 1)
         return builder.toString()
+    }
+
+    override fun toString(): String {
+        return toString("")
     }
 }

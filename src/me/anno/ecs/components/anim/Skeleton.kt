@@ -19,6 +19,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Vectors
 import org.joml.Matrix3f
@@ -102,8 +103,8 @@ class Skeleton : PrefabSaveable(), Renderable {
             val mesh = Mesh()
             // in a tree with N nodes, there is N-1 lines
             val size = (bones.size - 1) * boneMeshVertices.size
-            mesh.positions = Texture2D.floatArrayPool[size, false, true]
-            mesh.normals = Texture2D.floatArrayPool[size, true, true]
+            mesh.positions = Pools.floatArrayPool[size, false, true]
+            mesh.normals = Pools.floatArrayPool[size, true, true]
             val bonePositions = bones.map { it.bindPosition }
             generateSkeleton(bones, bonePositions, mesh.positions!!, null)
             previewData = mesh

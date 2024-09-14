@@ -39,6 +39,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.Pools
+import me.anno.utils.pooling.Pools.byteBufferPool
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -101,6 +102,7 @@ import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.nio.ShortBuffer
+import java.util.concurrent.atomic.AtomicLong
 
 open class Texture2D(
     override val name: String,
@@ -241,10 +243,10 @@ open class Texture2D(
 
     fun upload(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?, unbind: Boolean = true) {
         if (data is ByteArray) { // helper
-            val tmp = bufferPool.createBuffer(data.size)
+            val tmp = Pools.byteBufferPool.createBuffer(data.size)
             tmp.put(data).flip()
             upload(internalFormat, dataFormat, dataType, tmp, unbind)
-            bufferPool.returnBuffer(tmp)
+            Pools.byteBufferPool.returnBuffer(tmp)
             return
         }
         bindBeforeUpload()
@@ -515,7 +517,7 @@ open class Texture2D(
                         if (y1 < height) wasCreated = false
                         else callback.call(this, null)
                     }
-                    if (y1 == height) bufferPool.returnBuffer(data1)
+                    if (y1 == height) Pools.byteBufferPool.returnBuffer(data1)
                 }
             }
         } else {
@@ -524,7 +526,7 @@ open class Texture2D(
                     create(creationType, uploadingType, dataI)
                     callback.call(this, null)
                 } else LOGGER.warn("Image was already destroyed")
-                bufferPool.returnBuffer(data1)
+                Pools.byteBufferPool.returnBuffer(data1)
             }
         }
     }
@@ -533,7 +535,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         upload(TargetType.UInt8x1, data)
-        bufferPool.returnBuffer(data)
+        Pools.   byteBufferPool.returnBuffer(data)
         afterUpload(false, 1, 1)
     }
 
@@ -541,7 +543,7 @@ open class Texture2D(
         beforeUpload(2, data.remaining())
         if (checkRedundancy) checkRedundancyX2(data)
         upload(GL_RG, GL_RG, GL_UNSIGNED_BYTE, data)
-        bufferPool.returnBuffer(data)
+        Pools.   byteBufferPool.returnBuffer(data)
         afterUpload(false, 2, 2)
     }
 
@@ -596,28 +598,28 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancyX3(data)
         convertRGB2BGR3(data)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
-        bufferPool.returnBuffer(data)
+        Pools.  byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
     }
 
     fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
-        val buffer = bufferPool[data2.size, false, false]
+        val buffer = Pools.byteBufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         upload(TargetType.UInt8x1, buffer)
-        bufferPool.returnBuffer(buffer)
+        Pools.  byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 1, 1)
     }
 
     fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(4, data.size)
         val data2 = if (checkRedundancy && width * height > 1) checkRedundancyX4(data) else data
-        val byteBuffer = bufferPool[data2.size * 4, false, false]
+        val byteBuffer = Pools.byteBufferPool[data2.size * 4, false, false]
         byteBuffer.asFloatBuffer().put(data2)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         upload(TargetType.Float32x4, byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        Pools.    byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(true, 16, 4)
     }
 
@@ -634,14 +636,14 @@ open class Texture2D(
         beforeUpload(4, buffer.remaining())
         convertRGB2BGR4(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-        bufferPool.returnBuffer(buffer)
+        Pools. byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 4)
     }
 
     fun createRGBA(data: ByteArray, checkRedundancy: Boolean) {
         checkSize(4, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
-        val buffer = bufferPool[data2.size, false, false]
+        val buffer = Pools.byteBufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         createRGBA(buffer, false)
     }
@@ -665,7 +667,7 @@ open class Texture2D(
         beforeUpload(4, data.remaining())
         if (checkRedundancy) checkRedundancyX4(data, false)
         upload(TargetType.UInt8x4, data)
-        bufferPool.returnBuffer(data)
+        byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 4)
     }
 
@@ -675,7 +677,7 @@ open class Texture2D(
         // texImage2D(TargetType.UByteTarget3, buffer)
         setWriteAlignment(3 * width)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
-        bufferPool.returnBuffer(data)
+        byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
     }
 
@@ -825,12 +827,6 @@ open class Texture2D(
         @JvmField
         var wasModifiedInComputePipeline = false
 
-        // todo let who uses this get direct access
-        val bufferPool get() = Pools.byteBufferPool
-        val byteArrayPool get() = Pools.byteArrayPool
-        val intArrayPool get() = Pools.intArrayPool
-        val floatArrayPool get() = Pools.floatArrayPool
-
         @JvmStatic
         @Docs("Method for debugging by unloading all textures")
         fun unbindAllTextures() {
@@ -840,12 +836,11 @@ open class Texture2D(
         }
 
         @JvmField
-        var allocated = 0L
+        val allocated = AtomicLong()
 
         @JvmStatic
         fun allocate(oldValue: Long, newValue: Long): Long {
-            GFX.checkIsGFXThread()
-            allocated += newValue - oldValue
+            allocated.addAndGet(newValue - oldValue)
             return newValue
         }
 

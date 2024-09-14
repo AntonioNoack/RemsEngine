@@ -47,7 +47,7 @@ fun assertFail(message: String = "condition failed"): Nothing {
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal values") {
-    assertTrue(expected == actual) { "$message, \n'$expected' != \n'$actual'" }
+    assertTrue(expected == actual) { "$message, \n  expected '$expected' != \n  actually '$actual'" }
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: () -> String) {
@@ -108,8 +108,8 @@ inline fun <V> assertNotNull(v: V?, message: () -> String): V {
     return v
 }
 
-fun <V : Any> assertIs(v: Any?, clazz: KClass<V>): V {
-    val instance = clazz.safeCast(v)
+fun <V : Any> assertIs(expectedClass: KClass<V>, actualInstance: Any?): V {
+    val instance = expectedClass.safeCast(actualInstance)
     assertNotNull(instance)
     return instance!!
 }

@@ -3,17 +3,17 @@ package me.anno.io.files
 import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths
-import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.InternalAPI
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
 
 object Reference {
+
+    @JvmField
+    val invalidateListeners = ArrayList<(absolutePath: String) -> Unit>()
 
     @JvmStatic
     private val LOGGER = LogManager.getLogger(FileReference::class)
@@ -53,38 +53,12 @@ object Reference {
      * */
     @JvmStatic
     fun invalidate(absolutePath: String) {
-        // todo this method contains quite a few references to random stuff -> make this modular, and register listeners accordingly
         LOGGER.info("Invalidating $absolutePath")
-        val path = absolutePath.replace('\\', '/')
         fileCache.remove { key, _ ->
-            key is String && key.startsWith(path)
+            key is String && key.startsWith(absolutePath)
         }
-        // go over all file explorers, and invalidate them, if they contain it, or are inside
-        // a little unspecific; works anyway
-        val parent = getReferenceOrTimeout(absolutePath).getParent()
-        if (parent != InvalidRef) {
-            for (window0 in GFX.windows) {
-                for (window in window0.windowStack) {
-                    try {
-                        window.panel.forAll {
-                            if (it is FileExplorer && it.folder
-                                    .absolutePath
-                                    .startsWith(parent.absolutePath)
-                            ) it.invalidate()
-                        }
-                    } catch (e: Exception) {
-                        // this is not on the UI thread, so the UI may change, and cause
-                        // index out of bounds exceptions
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
-        CacheSection.invalidateFiles(path)
-        val tab = ECSSceneTabs.currentTab
-        if (tab != null) {
-            tab.onUpdate()
-            ECSSceneTabs.open(tab, true)
+        for(li in invalidateListeners.indices) {
+            invalidateListeners[li](absolutePath)
         }
     }
 

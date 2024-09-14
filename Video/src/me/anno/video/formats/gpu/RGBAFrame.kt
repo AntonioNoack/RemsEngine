@@ -1,8 +1,8 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
+import me.anno.utils.pooling.Pools
 import java.io.EOFException
 import java.io.InputStream
 
@@ -11,7 +11,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
         if (isDestroyed) return
 
         val s0 = width * height
-        val data = Texture2D.bufferPool[s0 * 4, false, false]
+        val data = Pools.byteBufferPool[s0 * 4, false, false]
         data.position(0)
         for (i in 0 until s0) {
             val r = input.read()
@@ -19,7 +19,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
             val b = input.read()
             val a = input.read()
             if (a < 0) {
-                Texture2D.bufferPool.returnBuffer(data)
+                Pools.byteBufferPool.returnBuffer(data)
                 throw EOFException()
             }
             data.put(r.toByte())

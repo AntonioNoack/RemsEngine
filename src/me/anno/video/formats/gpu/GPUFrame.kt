@@ -23,6 +23,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.Files.findNextFile
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -99,15 +100,15 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     }
 
     fun interlaceReplace(a: ByteBuffer, b: ByteBuffer): ByteBuffer {
-        val dst = Texture2D.bufferPool[a.remaining() * 2, false, false]
+        val dst = Pools.byteBufferPool[a.remaining() * 2, false, false]
         val size = a.limit()
         for (i in 0 until size) {
             dst.put(a[i])
             dst.put(b[i])
         }
         dst.flip()
-        Texture2D.bufferPool.returnBuffer(a)
-        Texture2D.bufferPool.returnBuffer(b)
+        Pools.byteBufferPool.returnBuffer(a)
+        Pools.byteBufferPool.returnBuffer(b)
         return dst
     }
 

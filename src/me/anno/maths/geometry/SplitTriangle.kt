@@ -1,81 +1,72 @@
 package me.anno.maths.geometry
 
-import me.anno.maths.Maths
-import org.joml.Vector2f
-import org.joml.Vector3f
+import me.anno.maths.Maths.clamp
 
 object SplitTriangle {
 
-    class Point3D(val pt: Vector3f, val normal: Vector3f, val uv: Vector2f) {
-        fun mix(b: Point3D, factor: Float): Point3D = Point3D(
-            Maths.mix(pt, b.pt, factor),
-            Maths.mix(normal, b.normal, factor),
-            Maths.mix(uv, b.uv, factor)
-        )
+    private fun safeSplit(d1: Float, d2: Float): Float {
+        return clamp(d1 / (d1 - d2))
     }
 
-    class Triangle(var a: Point3D, var b: Point3D, var c: Point3D)
+    private fun sign(a: Float): Boolean {
+        return a >= 0f
+    }
 
     /**
      * Clip a triangle against a plane knowing, that a to b crosses the clipping plane
      * Reference: Exact Buoyancy for Polyhedra by Erin Catto in Game Programming Gems 6 &
      * https://gamedevelopment.tutsplus.com/tutorials/how-to-dynamically-slice-a-convex-shape--gamedev-14479
      * */
-    fun splitTriangle(
-        tri: Triangle,
-        d1: Float, d2: Float, d3: Float
-    ): List<Triangle> {
+    fun <Point : SplittablePoint<Point>> splitTriangle(
+        v1: Point, v2: Point, v3: Point,
+        d1: Float, d2: Float, d3: Float // plane.dot(tri.a/b/c.position)
+    ): List<Point> {
 
-        if ((d1 >= 0f && d2 >= 0f) || (d1 <= 0f && d2 <= 0f)) {
+        if (sign(d1) == sign(d2)) {
+            // if all signs are the same, don't split
+            if (sign(d1) == sign(d3)) {
+                return listOf(v1, v2, v3)
+            }
             // AB does not cross the plane
             // -> rotate the points and try again
-            val tmp = tri.a
-            tri.a = tri.b
-            tri.b = tri.c
-            tri.c = tmp
-            return splitTriangle(tri, d2, d3, d1)
+            return splitTriangle(v2, v3, v1, d2, d3, d1)
         }
 
-        val a = tri.a
-        val b = tri.b
-        val c = tri.c
-
         // intersection point
-        val ab = a.mix(b, d1 / (d1 - d2))
+        val ab = v1.split(v2, safeSplit(d1, d2))
 
-        return if (d1 < 0f) {
-            if (d3 < 0f) {
-                val bc = b.mix(c, d2 / (d2 - d3))
+        return if (!sign(d1)) {
+            if (!sign(d3)) {
+                val bc = v2.split(v3, safeSplit(d2, d3))
                 listOf(
-                    Triangle(b, bc, ab),
-                    Triangle(bc, c, a),
-                    Triangle(ab, bc, a)
+                    v2, bc, ab,
+                    bc, v3, v1,
+                    ab, bc, v1
                 )
             } else {
-                val ac = a.mix(c, d1 / (d1 - d3))
+                val ac = v1.split(v3, safeSplit(d1, d3))
                 listOf(
-                    Triangle(a, ab, ac),
-                    Triangle(ab, b, c),
-                    Triangle(ac, ab, c)
+                    v1, ab, ac,
+                    ab, v2, v3,
+                    ac, ab, v3
                 )
             }
         } else {
-            if (d3 < 0f) {
-                val ac = a.mix(c, d1 / (d1 - d3))
+            if (!sign(d3)) {
+                val ac = v1.split(v3, safeSplit(d1, d3))
                 listOf(
-                    Triangle(a, ab, ac),
-                    Triangle(ac, ab, b),
-                    Triangle(b, c, ac)
+                    v1, ab, ac,
+                    ac, ab, v2,
+                    v2, v3, ac
                 )
             } else {
-                val bc = b.mix(c, d2 / (d2 - d3))
+                val bc = v2.split(v3, safeSplit(d2, d3))
                 listOf(
-                    Triangle(b, bc, ab),
-                    Triangle(a, ab, bc),
-                    Triangle(c, a, bc)
+                    v2, bc, ab,
+                    v1, ab, bc,
+                    v3, v1, bc
                 )
             }
         }
     }
-
 }

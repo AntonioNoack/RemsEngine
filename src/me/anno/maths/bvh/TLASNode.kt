@@ -5,6 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BVHBuilder.createTexture
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -35,7 +36,7 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
         // leaf:
         //   aabb + 2x 4x3 matrix + child id -> 32 floats = 8 pixels
         val texture = createTexture("tlas", numNodes, pixelsPerNode)
-        val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
+        val buffer = Pools.byteBufferPool[texture.width * texture.height * 16, false, false]
         val data = buffer.asFloatBuffer()
 
         forEach { node ->
@@ -84,7 +85,7 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
         LOGGER.info("Filled TLAS ${(data.position().toFloat() / data.capacity()).formatPercent()}%")
         texture.createRGBA(data, buffer, false)
-        Texture2D.bufferPool.returnBuffer(buffer)
+        Pools.byteBufferPool.returnBuffer(buffer)
         return texture
     }
 

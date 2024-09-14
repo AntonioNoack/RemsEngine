@@ -25,7 +25,7 @@ abstract class AudioStream(
         val taskQueue = ProcessingGroup("AudioStream", 0.5f)
 
         @JvmField
-        val bufferPool = ByteBufferPool(32)
+        val byteBufferPool = ByteBufferPool(32)
 
         @JvmStatic
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
@@ -73,7 +73,7 @@ abstract class AudioStream(
 
             val bufferSize = bufferSize
             val size = bufferSize * 2 * (if (stereo) 2 else 1)
-            val sb0 = bufferPool[size, false, true]
+            val sb0 = byteBufferPool[size, false, true]
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = sb0.asShortBuffer()
 
@@ -116,7 +116,7 @@ abstract class AudioStream(
             stereoBuffer.position(0)
 
             if (onBufferFilled(stereoBuffer, sb0, bufferIndex, session)) {
-                bufferPool.returnBuffer(sb0)
+                byteBufferPool.returnBuffer(sb0)
             }
 
         }

@@ -8,8 +8,12 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.ScenePrefab
+import me.anno.engine.projects.FileEncoding
+import me.anno.engine.projects.GameEngineProject
+import me.anno.io.Streams.consumeMagic
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.UnknownClassException
+import me.anno.io.binary.BinaryReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
@@ -17,15 +21,23 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
+import me.anno.io.xml.saveable.XML2JSON
+import me.anno.io.yaml.generic.YAMLReader
+import me.anno.io.yaml.saveable.YAML2JSON
 import me.anno.utils.Logging.hash32
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.Recursion
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
+import java.util.zip.InflaterInputStream
 import kotlin.reflect.KClass
 
 /**
@@ -62,9 +74,14 @@ object PrefabCache : CacheSection("Prefab") {
         } else null
     }
 
-    fun getPrefabInstance(resource: FileReference?, async: Boolean) = getPrefabInstance(resource, maxPrefabDepth, async)
+    fun getPrefabSampleInstance(resource: FileReference?, async: Boolean): Saveable? =
+        getPrefabSampleInstance(resource, maxPrefabDepth, async)
 
-    fun getPrefabInstance(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): Saveable? {
+    fun getPrefabSampleInstance(
+        resource: FileReference?,
+        depth: Int = maxPrefabDepth,
+        async: Boolean = false
+    ): Saveable? {
         val pair = getPrefabPair(resource, depth, prefabTimeout, async) ?: return null
         if (!async) pair.waitFor()
         return pair.instance ?: try {
@@ -172,16 +189,71 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    var unityReader: ((FileReference, (Saveable?, Exception?) -> Unit) -> Unit)? = null
+    var unityReader: ((FileReference, Callback<Saveable>) -> Unit)? = null
 
-    private fun loadPrefab4(file: FileReference, callback: (Saveable?, Exception?) -> Unit) {
+    private fun readBinRE(file: FileReference, callback: Callback<Saveable>) {
+        file.inputStream { str, err ->
+            if (str != null) {
+                str.consumeMagic(FileEncoding.BINARY_MAGIC)
+                val zis = InflaterInputStream(str)
+                val reader = BinaryReader(zis)
+                reader.readAllInList()
+                val prefab = reader.allInstances
+                    .firstInstanceOrNull(Prefab::class)
+                callback.call(prefab, null)
+            } else callback.err(err)
+        }
+    }
+
+    private fun readXMLRE(file: FileReference, callback: Callback<Saveable>) {
+        file.inputStream { str, err ->
+            if (str != null) {
+                val node = XMLReader().read(str) as XMLNode
+                assertEquals("RemsEngine", node.type)
+                val jsonLike = XML2JSON.fromXML(node)
+                readJSONLike(file, jsonLike, callback)
+            } else callback.err(err)
+        }
+    }
+
+    private fun readYAMLRE(file: FileReference, callback: Callback<Saveable>) {
+        file.inputStream { str, err ->
+            if (str != null) {
+                val reader = str.bufferedReader()
+                val node = YAMLReader.parseYAML(reader, beautify = false)
+                val jsonLike = YAML2JSON.fromYAML(node)
+                readJSONLike(file, jsonLike, callback)
+            } else callback.err(err)
+        }
+    }
+
+    private fun readJSONLike(file: FileReference, jsonLike: Any?, callback: Callback<Saveable>) {
+        val root = ((jsonLike as? Map<*, *>)?.get("RemsEngine") ?: jsonLike) as List<*>
+        val json = JsonFormatter.format(root, "", Int.MAX_VALUE)
+        val prefab = JsonStringReader.readFirstOrNull(json, EngineBase.workspace, Saveable::class)
+        onReadPrefab(file, prefab, callback)
+    }
+
+    private fun onReadPrefab(file: FileReference, prefab: Saveable?, callback: Callback<Saveable>) {
+        if (prefab is Prefab) prefab.source = file
+        if (prefab != null) {
+            callback.ok(prefab)
+        } else {
+            loadPrefabFromFolder(file, callback)
+        }
+    }
+
+    private fun loadPrefab4(file: FileReference, callback: Callback<Saveable>) {
         if (file is PrefabReadable) {
-            callback(file.readPrefab(), null)
+            callback.ok(file.readPrefab())
             return
         }
         ECSRegistry.init()
         Signature.findName(file) { signature, _ ->
             when (signature) {
+                "rem" -> readBinRE(file, callback)
+                "xml-re" -> readXMLRE(file, callback)
+                "yaml-re" -> readYAMLRE(file, callback)
                 "json" -> {
                     if (file.lcExtension == "gltf") {
                         loadPrefabFromFolder(file, callback)
@@ -189,12 +261,7 @@ object PrefabCache : CacheSection("Prefab") {
                         if (it != null) {
                             val prefab = JsonStringReader.read(it, EngineBase.workspace, false).firstOrNull()
                             it.close()
-                            if (prefab is Prefab) prefab.source = file
-                            if (prefab != null) {
-                                callback(prefab, null)
-                            } else {
-                                loadPrefabFromFolder(file, callback)
-                            }
+                            onReadPrefab(file, prefab, callback)
                         } else {
                             when (e) {
                                 is UnknownClassException -> LOGGER.warn("$e by $file", e)
@@ -212,7 +279,7 @@ object PrefabCache : CacheSection("Prefab") {
                         unityReader(file) { prefab, e ->
                             if (prefab is Prefab) prefab.source = file
                             if (prefab != null) {
-                                callback(prefab, null)
+                                callback.ok(prefab)
                             } else {
                                 LOGGER.warn("$file is yaml, but not from Unity")
                                 e?.printStackTrace()
@@ -223,14 +290,14 @@ object PrefabCache : CacheSection("Prefab") {
                 }
                 else -> {
                     if (signature in imageFormats1 || signature == "gimp" || signature == "webp") {
-                        callback(ImagePlane(file), null)
+                        callback.ok(ImagePlane(file))
                     } else loadPrefabFromFolder(file, callback)
                 }
             }
         }
     }
 
-    private fun loadPrefabFromFolder(file: FileReference, callback: (Saveable?, Exception?) -> Unit) {
+    private fun loadPrefabFromFolder(file: FileReference, callback: Callback<Saveable>) {
         val folder = InnerFolderCache.readAsFolder(file, false)
         if (folder != null) {
             val scene = folder.getChild("Scene.json") as? PrefabReadable
@@ -238,9 +305,9 @@ object PrefabCache : CacheSection("Prefab") {
             if (scene2 != null) {
                 val prefab = scene2.readPrefab()
                 prefab.source = file
-                callback(prefab, null)
-            } else callback(null, null)
-        } else callback(null, null)
+                callback.ok(prefab)
+            } else callback.err(null)
+        } else callback.err(null)
     }
 
     private fun getPrefabPair(
@@ -345,7 +412,8 @@ object PrefabCache : CacheSection("Prefab") {
         sample1.ref // create and fill prefab
         val prefab1 = sample1.prefab!!
         prefab1.source = source
-        source.writeText(JsonStringWriter.toText(prefab1, workspace))
+        val encoding = GameEngineProject.encoding.getForExtension(source.lcExtension)
+        source.writeBytes(encoding.encode(prefab1, workspace))
         return Triple(source, prefab1, sample1)
     }
 }

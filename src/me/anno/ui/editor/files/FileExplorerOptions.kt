@@ -228,8 +228,9 @@ object FileExplorerOptions {
             .addLeftClickListener(Menu::close)
             .apply {
                 alignmentX = AxisAlignment.MIN
-                alignmentY = if (imagePanel is ImagePanel) AxisAlignment.MAX
-                else AxisAlignment.MIN
+                alignmentY =
+                    if (imagePanel is ImagePanel) AxisAlignment.MAX
+                    else AxisAlignment.MIN
             })
         windowStack.push(stack)
         imagePanel.requestFocus()

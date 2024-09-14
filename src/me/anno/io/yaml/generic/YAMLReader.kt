@@ -8,6 +8,7 @@ import kotlin.math.max
 object YAMLReader {
 
     const val LIST_KEY = ""
+    const val ROOT_NODE_KEY = "root"
 
     fun findColon(str: String, needsSpaceAfterColon: Boolean): Int {
         val i0 = str.indexOf(':')
@@ -27,7 +28,7 @@ object YAMLReader {
      * */
     fun parseYAML(reader: BufferedReader, beautify: Boolean = true): YAMLNode {
 
-        val root = YAMLNode("root", -1)
+        val root = YAMLNode(ROOT_NODE_KEY, -1)
         val stack = ArrayList<YAMLNode>(8)
         stack.add(root)
 

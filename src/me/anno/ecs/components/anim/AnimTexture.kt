@@ -5,6 +5,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.pooling.Pools
 import org.joml.Matrix4x3f
 import java.nio.FloatBuffer
 import kotlin.math.max
@@ -95,7 +96,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         if (internalTexture.wasCreated) {
             // extend texture
             // 4 for sizeof(float), 4 for rgba
-            val buffer = Texture2D.bufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]
+            val buffer = Pools.byteBufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data, animation)
             data.position(0)
@@ -106,16 +107,16 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
                 numFrames,
                 textureType
             )
-            Texture2D.bufferPool.returnBuffer(buffer)
+            Pools.byteBufferPool.returnBuffer(buffer)
         } else {
             assertEquals(0, start, "Internal texture hasn't been created, but start isn't zero, $start")
             // create new texture
-            val buffer = Texture2D.bufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]
+            val buffer = Pools.byteBufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data)
             data.position(0)
             internalTexture.create(textureType, buffer)
-            Texture2D.bufferPool.returnBuffer(buffer)
+            Pools.byteBufferPool.returnBuffer(buffer)
         }
         return numFrames
     }

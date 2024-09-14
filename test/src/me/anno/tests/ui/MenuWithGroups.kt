@@ -16,6 +16,9 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
  * a test for menus with multiple layers (groups)
  * */
 fun main() {
+    // fixed bug: when hovering over living things, level 3 is opened
+    // todo bug: text isn't loading properly everywhere
+    //  e.g. when creating a material or component in the editor, the text is black at before hovering over that menu
     disableRenderDoc()
     testUI3("Menu With Groups") {
         val list = PanelListY(DefaultConfig.style)

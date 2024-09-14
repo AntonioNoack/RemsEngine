@@ -29,13 +29,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     // todo when dragging on the cross, or maybe left corners as well, split UI there like Blender
     //  but also allow merging
 
-    init {
-        if (default is CustomContainer) LOGGER.warn(
-            "You added a custom container to a custom container." +
-                    " You probably made a mistake!"
-        )
-    }
-
     override fun calculateSize(w: Int, h: Int) {
         child.calculateSize(w, h)
         minW = child.minW
@@ -123,14 +116,14 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         options.add(Menu.menuSeparator1)
         options.add(MenuOption(
             NameDesc(
-                "Add Panel Before",
+                "Add Panel Left",
                 "Adds a new panel to the left of this one",
                 "ui.customize.addBefore"
             )
         ) { addPanel(false, firstThis = false) })
         options.add(MenuOption(
             NameDesc(
-                "Add Panel After",
+                "Add Panel Right",
                 "Adds a new panel to the right of this one",
                 "ui.customize.addAfter"
             )

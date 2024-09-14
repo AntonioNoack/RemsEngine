@@ -11,7 +11,9 @@ import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference
 import me.anno.io.files.Reference.getReference
+import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.utils.LinkCreator
 import me.anno.language.translation.Dict
@@ -21,6 +23,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.WindowStack
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList2D
@@ -73,7 +76,6 @@ import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 // todo star assets, and they will always (?) come first in sorting
 
@@ -727,12 +729,46 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
         @JvmStatic
         fun invalidateFileExplorers(panel: Panel) {
-            for (window in panel.windowStack) {
+            invalidateFileExplorers(panel.windowStack)
+        }
+
+        @JvmStatic
+        fun invalidateFileExplorers(windowStack: WindowStack) {
+            for (window in windowStack) {
                 window.panel.forAll {
                     if (it is FileExplorer) {
                         it.invalidate()
                     }
                 }
+            }
+        }
+
+        @JvmStatic
+        private fun invalidate(parent: FileReference) {
+            for (window0 in GFX.windows) {
+                for (window in window0.windowStack) {
+                    try {
+                        window.panel.forAll {
+                            if (it is FileExplorer && it.folder
+                                    .absolutePath
+                                    .startsWith(parent.absolutePath)
+                            ) it.invalidate()
+                        }
+                    } catch (e: Exception) {
+                        // this is not on the UI thread, so the UI may change, and cause
+                        // index out of bounds exceptions
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        init {
+            Reference.invalidateListeners += { absolutePath ->
+                // go over all file explorers, and invalidate them, if they contain it, or are inside
+                // a little unspecific; works anyway
+                val parent = getReferenceOrTimeout(absolutePath).getParent()
+                if (parent != InvalidRef) invalidate(parent)
             }
         }
     }

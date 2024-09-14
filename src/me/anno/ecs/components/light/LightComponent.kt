@@ -50,6 +50,7 @@ import kotlin.math.pow
 abstract class LightComponent(val lightType: LightType) : LightComponentBase(), OnDrawGUI {
 
     // todo AES lights, and their textures?
+    // todo light beams: when inside the cone, from that view, then add a little brightness
 
     // black lamp light?
     @Docs("sRGB Color")

@@ -19,18 +19,18 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.GL_DYNAMIC_STORAGE_BIT
+import org.lwjgl.opengl.GL46C.GL_MAP_WRITE_BIT
+import org.lwjgl.opengl.GL46C.glBufferStorage
 import org.lwjgl.opengl.GL46C.glDeleteBuffers
+import org.lwjgl.opengl.GL46C.glFlushMappedBufferRange
 import org.lwjgl.opengl.GL46C.glMapBuffer
 import org.lwjgl.opengl.GL46C.glUnmapBuffer
-import org.lwjgl.opengl.GL46C.GL_MAP_WRITE_BIT
-import org.lwjgl.opengl.GL46C.glFlushMappedBufferRange
-import org.lwjgl.opengl.GL46C.GL_DYNAMIC_STORAGE_BIT
-import org.lwjgl.opengl.GL46C.glBufferStorage
-import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 abstract class OpenGLBuffer(
     val name: String, val type: Int,
@@ -384,11 +384,10 @@ abstract class OpenGLBuffer(
             }
         }
 
-        var allocated = 0L
-            private set
+        val allocated = AtomicLong()
 
         fun allocate(oldValue: Long, newValue: Long): Long {
-            allocated += newValue - oldValue
+            allocated.addAndGet(newValue - oldValue)
             return newValue
         }
     }

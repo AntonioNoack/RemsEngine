@@ -362,8 +362,7 @@ object ComponentUI {
                 val title2 = nameDesc.name.ifBlank { saveable.className }
                 // todo list/array-views should have their content visibility be toggleable
                 panel2.add(object : TextPanel(title2, style) {
-                    override fun onCopyRequested(x: Float, y: Float) =
-                        JsonStringWriter.toText(saveable, InvalidRef)
+                    override fun onCopyRequested(x: Float, y: Float): String = JsonStringWriter.toText(saveable, InvalidRef)
                 }.apply {
                     // make it look like a title
                     isItalic = true

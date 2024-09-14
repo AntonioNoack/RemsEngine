@@ -4,6 +4,7 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
+import me.anno.utils.pooling.Pools
 import java.io.InputStream
 
 class Y4Frame(w: Int, h: Int) : GPUFrame(w, h, 1) {
@@ -14,7 +15,7 @@ class Y4Frame(w: Int, h: Int) : GPUFrame(w, h, 1) {
         if (isDestroyed) return
 
         val s0 = width * height
-        val data = input.readNBytes2(s0, Texture2D.bufferPool)
+        val data = input.readNBytes2(s0, Pools.byteBufferPool)
         Sleep.acquire(true, creationLimiter) {
             addGPUTask("Y4", width, height) {
                 if (!isDestroyed && !y.isDestroyed) {

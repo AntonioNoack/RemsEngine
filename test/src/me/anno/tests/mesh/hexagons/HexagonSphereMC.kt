@@ -17,12 +17,12 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -272,7 +272,7 @@ fun createMesh(
     val size = visualList.size
     val (world1, indexMap) = world.generateWorld(visualList, true)
     generateMesh(visualList, size, indexMap, world1, world, mesh, transparent)
-    Texture2D.byteArrayPool.returnBuffer(world1)
+    Pools.byteArrayPool.returnBuffer(world1)
     return mesh
 }
 

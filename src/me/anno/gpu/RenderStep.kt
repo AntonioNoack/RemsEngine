@@ -28,7 +28,7 @@ object RenderStep {
         GFXState.invalidateState()
 
         Pools.freeUnusedEntries()
-        AudioStream.bufferPool.freeUnusedEntries()
+        AudioStream.byteBufferPool.freeUnusedEntries()
 
         setFrameNullSize(window)
 

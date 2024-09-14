@@ -11,6 +11,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.utils.structures.lists.Lists.count2
@@ -112,7 +113,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
             val tabLocal = tab.file.toLocalPath(project.location)
             if (project.openTabs.add(tabLocal) || project.lastScene != tabLocal) {
                 project.lastScene = tabLocal
-                project.saveMaybe()
+                project.save()
             }
         }
 
@@ -157,7 +158,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         if (project != null && setNextActive) {
             val failed = project.openTabs.remove(sceneTab.file.toLocalPath(project.location))
             if (failed) LOGGER.warn("Failed to close ${sceneTab.file}!!")
-            project.saveMaybe()
+            project.save()
         }
     }
 
@@ -189,6 +190,16 @@ object ECSSceneTabs : ScrollPanelX(style) {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    init {
+        Reference.invalidateListeners += {
+            val tab = currentTab
+            if (tab != null) {
+                tab.onUpdate()
+                open(tab, true)
+            }
         }
     }
 }

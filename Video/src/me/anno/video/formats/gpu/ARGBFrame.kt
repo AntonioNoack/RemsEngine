@@ -1,9 +1,9 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
+import me.anno.utils.pooling.Pools
 import java.io.InputStream
 
 class ARGBFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
@@ -11,7 +11,7 @@ class ARGBFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
         if (isDestroyed) return
 
         val s0 = width * height * 4
-        val data = input.readNBytes2(s0, Texture2D.bufferPool)
+        val data = input.readNBytes2(s0, Pools.byteBufferPool)
 
         // change from argb to rgba
         for (i in 0 until s0 step 4) {

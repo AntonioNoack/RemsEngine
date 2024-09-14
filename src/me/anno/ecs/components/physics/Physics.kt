@@ -15,6 +15,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnPhysicsUpdate
+import me.anno.ecs.systems.Systems
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
 import me.anno.engine.serialization.NotSerializedProperty
@@ -88,7 +89,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     @DebugAction
     fun invalidateAll() {
-        entity?.forAll {
+        (Systems.world as? Entity)?.forAll {
             if (rigidComponentClass.isInstance(it)) {
                 val e = (it as? Component)?.entity
                 if (e != null) invalidate(e)

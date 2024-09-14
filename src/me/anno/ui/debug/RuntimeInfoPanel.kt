@@ -8,12 +8,13 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
-import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.Style
+import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -43,9 +44,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
         val jvmMemory = runtime.totalMemory() - runtime.freeMemory()
-        val videoMemory =
-            Texture2D.allocated + CubemapTexture.allocated + Texture3D.allocated + OpenGLBuffer.allocated +
-                    Texture2DArray.allocated
+        val videoMemory = getVRAM()
         return if (OS.isWeb) {
             val jsMemory = jsUsedMemory() - jvmMemory
             if (jsMemory >= 0) {
@@ -67,18 +66,24 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
+    private fun getVRAM(): Long {
+        return Texture2D.allocated.get() +
+                Texture3D.allocated.get() +
+                Texture2DArray.allocated.get() +
+                CubemapTexture.allocated.get() +
+                OpenGLBuffer.allocated.get()
+    }
+
     private fun format1(size: Long) = (size.toFloat() / (1 shl 20)).f1()
 
     fun printDetailedReport() {
         val runtime = Runtime.getRuntime()
         val total = runtime.totalMemory()
-        // todo align numbers
         val jvmUsed = total - runtime.freeMemory()
-        val vramTotal = Texture2D.allocated + Texture3D.allocated +
-                CubemapTexture.allocated + OpenGLBuffer.allocated
+        val vramTotal = getVRAM()
         val jvmBufferTotal =
-            Texture2D.byteArrayPool.totalSize + AudioPools.SAPool.totalSize + Texture2D.intArrayPool.totalSize +
-                    Texture2D.floatArrayPool.totalSize + AudioPools.FAPool.totalSize
+            Pools.byteArrayPool.totalSize + Pools.intArrayPool.totalSize + Pools.floatArrayPool.totalSize +
+                    AudioPools.FAPool.totalSize + AudioPools.SAPool.totalSize
         val native = ByteBufferPool.getAllocated()
         LOGGER.debug(
             "" +
@@ -87,16 +92,17 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
                     "  Free:   ${format1(runtime.freeMemory())} MB\n" +
                     "  Total:  ${format1(total)} MB\n" +
                     "JVM-Buffers:\n" +
-                    "  Bytes:  ${format1(Texture2D.byteArrayPool.totalSize)} MB\n" +
+                    "  Bytes:  ${format1(Pools.byteArrayPool.totalSize)} MB\n" +
                     "  Shorts: ${format1(AudioPools.SAPool.totalSize)} MB\n" +
-                    "  Ints:   ${format1(Texture2D.intArrayPool.totalSize)} MB\n" +
-                    "  Floats: ${format1(Texture2D.floatArrayPool.totalSize + AudioPools.FAPool.totalSize)} MB\n" +
+                    "  Ints:   ${format1(Pools.intArrayPool.totalSize)} MB\n" +
+                    "  Floats: ${format1(Pools.floatArrayPool.totalSize + AudioPools.FAPool.totalSize)} MB\n" +
                     "  Total:  ${format1(jvmBufferTotal)} MB\n" +
                     "VRAM:\n" +
-                    "  Texture2d:      ${format1(Texture2D.allocated)} MB\n" +
-                    "  Texture3d:      ${format1(Texture3D.allocated)} MB\n" +
-                    "  TextureCubemap: ${format1(CubemapTexture.allocated)} MB\n" +
-                    "  Geometry:       ${format1(OpenGLBuffer.allocated)} MB\n" +
+                    "  Texture2d:      ${format1(Texture2D.allocated.get())} MB\n" +
+                    "  Texture3d:      ${format1(Texture3D.allocated.get())} MB\n" +
+                    "  Texture2dArray: ${format1(Texture2DArray.allocated.get())} MB\n" +
+                    "  TextureCubemap: ${format1(CubemapTexture.allocated.get())} MB\n" +
+                    "  Geometry:       ${format1(OpenGLBuffer.allocated.get())} MB\n" +
                     "  Total:          ${format1(vramTotal)} MB\n" +
                     "Native:   ${format1(native)} MB\n" +
                     "Total:    ${format1(native + vramTotal + jvmBufferTotal + jvmUsed)} MB"
@@ -121,5 +127,4 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
     companion object {
         private val LOGGER = LogManager.getLogger(RuntimeInfoPanel::class)
     }
-
 }

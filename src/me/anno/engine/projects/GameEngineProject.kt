@@ -1,11 +1,13 @@
 package me.anno.engine.projects
 
 import me.anno.Engine
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.EngineBase
 import me.anno.engine.Events
 import me.anno.engine.ScenePrefab
+import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.events.Event
@@ -17,6 +19,7 @@ import me.anno.io.files.Signature
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.NamedSaveable
+import me.anno.io.saveable.Saveable
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -24,7 +27,7 @@ import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 
-class GameEngineProject() : NamedSaveable() {
+class GameEngineProject() : NamedSaveable(), Inspectable {
 
     /**
      * is called when a project has been loaded
@@ -34,6 +37,8 @@ class GameEngineProject() : NamedSaveable() {
     companion object {
 
         var currentProject: GameEngineProject? = null
+
+        val encoding get() = currentProject?.encoding ?: FileEncoding.PRETTY_JSON
 
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?): GameEngineProject? {
@@ -48,7 +53,8 @@ class GameEngineProject() : NamedSaveable() {
                         instance
                     } else {
                         val project = GameEngineProject(location)
-                        configFile.writeText(JsonStringWriter.toText(project, location))
+                        val encoding = encoding.getForExtension(location)
+                        configFile.writeBytes(encoding.encode(project, location))
                         project
                     }
                 } else {
@@ -56,6 +62,25 @@ class GameEngineProject() : NamedSaveable() {
                     readOrCreate(location.getParent())
                 }
             } else GameEngineProject(location)
+        }
+
+        fun getSaveFile(parent: FileReference, name: String): FileReference {
+            val extension = encoding.extension
+            return parent.getChild("$name.$extension")
+        }
+
+        fun save(file: FileReference, value: Saveable) {
+            return save(file, listOf(value))
+        }
+
+        fun save(file: FileReference, values: List<Saveable>) {
+            val workspace0 = currentProject?.location ?: InvalidRef
+            val workspace1 =
+                if (workspace0 == EngineBase.workspace && file.isSubFolderOf(workspace0)) workspace0
+                else InvalidRef
+            // depending on extension, choose different encoding
+            val encoding = encoding.getForExtension(file)
+            file.writeBytes(encoding.encode(values, workspace1))
         }
     }
 
@@ -69,12 +94,24 @@ class GameEngineProject() : NamedSaveable() {
     val openTabs = HashSet<String>()
 
     val configFile get() = location.getChild("Project.json")
+    var encoding = FileEncoding.PRETTY_JSON
 
     val assetIndex = HashMap<String, HashSet<FileReference>>()
+    val dependencyIndex = HashMap<FileReference, HashSet<FileReference>>() // todo use these when renaming
     var maxIndexDepth = 5
 
     fun addToIndex(file: FileReference, type: String) {
         assetIndex.getOrPut(type) { HashSet() }.add(file)
+    }
+
+    fun addToIndex(file: FileReference, dependencies: HashSet<FileReference>) {
+        dependencyIndex[file] = dependencies
+    }
+
+    fun filesWhichDependOn(file: FileReference): Set<FileReference> {
+        return dependencyIndex.filterValues { dependencies ->
+            dependencies.any { dependency -> dependency.isSameOrSubFolderOf(file) }
+        }.keys
     }
 
     private var isValid = true
@@ -82,7 +119,8 @@ class GameEngineProject() : NamedSaveable() {
     /**
      * save project config after a small delay
      * */
-    fun saveMaybe() {
+    @DebugAction
+    fun save() {
         if (isValid) {
             isValid = false
             Events.addEvent {
@@ -101,16 +139,17 @@ class GameEngineProject() : NamedSaveable() {
 
         // if last scene is invalid, create a valid scene
         if (lastScene == "" || lastScene.startsWith("tmp://")) {
-            lastScene = location.getChild("Scene.json").absolutePath
-            LOGGER.info("Set scene to $lastScene")
+            lastScene = location.getChild("Scene.${encoding.extension}").absolutePath
+            LOGGER.info("Set scene to {}", lastScene)
         }
 
         val lastSceneRef = lastScene.toGlobalFile(location)
         if (!lastSceneRef.exists && lastSceneRef != InvalidRef) {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.getParent().tryMkdirs()
-            lastSceneRef.writeText(JsonStringWriter.toText(prefab, InvalidRef))
-            LOGGER.warn("Wrote new scene to $lastScene")
+            val encoding = encoding.getForExtension(lastSceneRef)
+            lastSceneRef.writeBytes(encoding.encode(prefab, InvalidRef))
+            LOGGER.warn("Wrote new scene to {}", lastScene)
         }
 
         assetIndex.clear()
@@ -192,6 +231,7 @@ class GameEngineProject() : NamedSaveable() {
                     val prefab = PrefabCache[file, Prefab.maxPrefabDepth, timeout, false]
                     if (prefab != null) {
                         addToIndex(file, prefab.clazzName)
+                        addToIndex(file, prefab.dependencies)
                     }
                 }
             }
@@ -203,6 +243,7 @@ class GameEngineProject() : NamedSaveable() {
         writer.writeString("lastScene", lastScene)
         writer.writeStringList("openTabs", openTabs.toList())
         writer.writeInt("maxIndexDepth", maxIndexDepth)
+        writer.writeInt("encoding", encoding.id)
         // location doesn't really need to be saved
     }
 
@@ -216,6 +257,7 @@ class GameEngineProject() : NamedSaveable() {
                 openTabs.addAll(values.filterIsInstance<String>())
                 openTabs.addAll(values.filterIsInstance<FileReference>().map { it.toLocalPath(location) })
             }
+            "encoding" -> encoding = FileEncoding.entries.getOrNull(value as? Int ?: return) ?: encoding
             else -> super.setProperty(name, value)
         }
     }

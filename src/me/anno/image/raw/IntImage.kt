@@ -16,6 +16,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.async.Callback
+import me.anno.utils.pooling.Pools
 import java.nio.IntBuffer
 import kotlin.math.abs
 import kotlin.math.floor
@@ -111,7 +112,7 @@ open class IntImage(
             else texture.createBGR(cloneData(), checkRedundancy)
             callback.ok(texture)
         } else {
-            val data1 = Texture2D.bufferPool[data.size * 4, false, false]
+            val data1 = Pools.byteBufferPool[data.size * 4, false, false]
             val dataI = data1.asIntBuffer()
             putInto(dataI)
             dataI.position(0)
@@ -156,7 +157,7 @@ open class IntImage(
     }
 
     fun cloneData(): IntArray {
-        val clone = Texture2D.intArrayPool[width * height, false, true]
+        val clone = Pools.intArrayPool[width * height, false, true]
         for (y in 0 until height) {
             val i0 = getIndex(0, y)
             data.copyInto(clone, y * width, i0, i0 + width)

@@ -9,6 +9,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
+import me.anno.utils.pooling.Pools
 import java.io.InputStream
 
 class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
@@ -38,11 +39,11 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         if (isDestroyed) return
 
         val s0 = width * height
-        val yData = input.readNBytes2(s0, Texture2D.bufferPool)
+        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
         blankDetector.putChannel(yData, 0)
-        val uData = input.readNBytes2(s0, Texture2D.bufferPool)
+        val uData = input.readNBytes2(s0, Pools.byteBufferPool)
         blankDetector.putChannel(uData, 1)
-        val vData = input.readNBytes2(s0, Texture2D.bufferPool)
+        val vData = input.readNBytes2(s0, Pools.byteBufferPool)
         blankDetector.putChannel(vData, 2)
 
         // merge the u and v planes

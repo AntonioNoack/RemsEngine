@@ -170,6 +170,7 @@ object Gizmos {
     private val yAxis = Vector3f(0f, 1f, 0f)
     private val zAxis = Vector3f(0f, 0f, 1f)
 
+    // used by Rem's Studio
     fun drawGizmo(cameraTransform: Matrix4f, x0: Int, y0: Int, w: Int, h: Int) {
 
         /**

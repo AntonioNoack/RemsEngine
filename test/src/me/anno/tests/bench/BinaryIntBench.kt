@@ -1,15 +1,13 @@
 package me.anno.tests.bench
 
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
 
 fun main() {
 
@@ -26,10 +24,10 @@ fun main() {
         }
 
         override fun setProperty(name: String, value: Any?) {
-           when(name){
-               "x" -> x = value as? IntArray
-               else -> super.setProperty(name, value)
-           }
+            when (name) {
+                "x" -> x = value as? IntArray
+                else -> super.setProperty(name, value)
+            }
         }
     }
     registerCustomClass(TestClass())
@@ -41,7 +39,7 @@ fun main() {
     for (tries in 0 until 100) {
 
         val bos = ByteArrayOutputStream(length * 4 + 1000)
-        val writer = BinaryWriter(DataOutputStream(bos))
+        val writer = BinaryWriter(bos)
 
         val clock = Clock(LOGGER)
         clock.start()
@@ -56,7 +54,7 @@ fun main() {
             println(asText.size)
         }
 
-        val reader = BinaryReader(DataInputStream(asText.inputStream()))
+        val reader = BinaryReader(asText.inputStream())
         clock.start()
 
         val asInts = reader.run {
@@ -72,7 +70,5 @@ fun main() {
                 throw Exception()
             }
         }
-
     }
-
 }

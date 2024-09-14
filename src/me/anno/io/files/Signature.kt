@@ -2,13 +2,13 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.graph.hdb.ByteSlice
-import me.anno.utils.types.size
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.types.size
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -49,10 +49,10 @@ class Signature(
 
     val order = if (offset < 0) {
         // bad format: no identifier, so test it last
-        1024 + pattern.size
+        1024 - pattern.size
     } else {
         // test long ones first, because they are more specific
-        pattern.size
+        -pattern.size
     }
 
     fun matches(bytes: ByteBuffer): Boolean {
@@ -247,8 +247,12 @@ class Signature(
             // tga has header at the end of the file, and only sometimes...
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
+            // are we using 1.0??
+            Signature("xml-re", 0, "<?xml version=\"1.0\" encoding=\"utf-8\"?><RemsEngine"),
+            Signature("xml-re", 0, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<RemsEngine"),
             Signature("svg", 0, "<svg"),
             Signature("exe", 0, "MZ"),
+            Signature("rem", 0, "RemsEngineZZ"), // deflate-compressed binary format for Rem's Engine
             // media (video/audio)
             Signature("media", 0, 0x1A, 0x45, 0xDF, 0xA3), // mkv, mka, mks, mk3d, webm
             Signature("media", 0, "ID3"),// mp3 container
@@ -290,6 +294,7 @@ class Signature(
             Signature("mitsuba-scene", -1, "<scene version="),
             // unity support
             Signature("yaml", 0, "%YAML"),
+            Signature("yaml-re", 0, "RemsEngine:\n - class"),
             // json, kind of
             Signature("json", 0, "["),
             Signature("json", 0, "[{"),
@@ -299,7 +304,7 @@ class Signature(
             // windows link file
             Signature("lnk", 0, byteArrayOf(0x4c, 0, 0, 0)),
             // window url file
-            Signature("url", 0, "[InternetShortcut]")
+            Signature("url", 0, "[InternetShortcut]"),
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortBy { it.order }

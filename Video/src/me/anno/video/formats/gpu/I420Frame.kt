@@ -4,6 +4,7 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
+import me.anno.utils.pooling.Pools
 import me.anno.video.formats.gpu.I444Frame.Companion.yuvStage
 import java.io.InputStream
 
@@ -25,11 +26,11 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
     override fun load(input: InputStream) {
         if (isDestroyed) return
 
-        val yData = input.readNBytes2(s0, Texture2D.bufferPool)
+        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
         blankDetector.putChannel(yData, 0)
-        val uData = input.readNBytes2(s1, Texture2D.bufferPool)
+        val uData = input.readNBytes2(s1, Pools.byteBufferPool)
         blankDetector.putChannel(uData, 1)
-        val vData = input.readNBytes2(s1, Texture2D.bufferPool)
+        val vData = input.readNBytes2(s1, Pools.byteBufferPool)
         blankDetector.putChannel(vData, 2)
         val interlaced = interlaceReplace(uData, vData)
         Sleep.acquire(true, creationLimiter) {

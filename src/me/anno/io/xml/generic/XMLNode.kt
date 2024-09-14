@@ -12,7 +12,7 @@ class XMLNode(var type: String) {
     }
 
     operator fun contains(key: String): Boolean = key in attributes
-    override fun toString(): String = XMLWriter.write(this, "  ", true)
+    override fun toString(): String = XMLWriter.write(this)
 
     fun shallowClone(): XMLNode {
         val clone = XMLNode(type)

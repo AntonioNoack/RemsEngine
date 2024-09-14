@@ -10,8 +10,8 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.EngineBase
-import me.anno.engine.Events.addEvent
 import me.anno.engine.GFXSettings
+import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.Blitting
 import me.anno.gpu.Clipping
@@ -87,6 +87,7 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.OpenFileExternally.editInStandardProgram
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.files.OpenFileExternally.openInStandardProgram
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.f1
@@ -225,17 +226,6 @@ open class FileExplorerEntry(
 
         titlePanel.canBeSeen = canBeSeen
 
-        // todo instead invalidate all file explorers, if they contain that file
-        /*val newFile = getReference(file)
-        if (newFile !== file) {
-            file = newFile
-            invalidateDrawing()
-        }
-
-        if (!file.exists) {
-            explorer.invalidate()
-        }*/
-
         // needs to be disabled in the future, I think
         isVisible = ref1?.isHidden != true
 
@@ -245,6 +235,10 @@ open class FileExplorerEntry(
             else -> originalBackgroundColor
         }
         updatePlaybackTime()
+
+        if (isHovered || isInFocus) {
+            tooltipQueue += this::updateTooltip
+        }
 
         // todo only if is animation
         if (isHovered) invalidateDrawing()
@@ -353,7 +347,7 @@ open class FileExplorerEntry(
                         "json", "gltf", "fbx" -> true
                         else -> false
                     }
-                ) PrefabCache.getPrefabInstance(file, true) else null
+                ) PrefabCache.getPrefabSampleInstance(file, true) else null
             } catch (e: Exception) {
                 null // just not an animation
             }
@@ -624,13 +618,6 @@ open class FileExplorerEntry(
     private var padding = 0
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        if (isHovered || isInFocus) {
-            addEvent {
-                // todo execute this asynchronously...
-                updateTooltip()
-            }
-        }
-
         drawBackground(x0, y0, x1, y1)
 
         val font0 = titlePanel.font
@@ -863,6 +850,8 @@ open class FileExplorerEntry(
         private var video: VideoStream? = null
         val hoverPlaybackDelay = 0.5
 
+        private val tooltipQueue = ProcessingQueue("FileExplorer-Tooltips")
+
         fun startAudioPlayback(file: FileReference, meta: MediaMetadata) {
             val audio = AudioFileStreamOpenAL(
                 file, LoopingState.PLAY_LOOP,
@@ -991,18 +980,28 @@ open class FileExplorerEntry(
         fun askToDeleteFiles(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {
             // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
             //  - same for renaming
+            val currentProject = currentProject // todo this isn't working :(
+            val numFilesWhichDependOnThese = if (currentProject != null) {
+                files.sumOf { file ->
+                    currentProject.filesWhichDependOn(file).size
+                }
+            } else 0
             // ask, then delete all (or cancel)
             val title = if (files.size == 1) {
                 NameDesc(
-                    "Delete this file? (${files.first().length().formatFileSize()})",
+                    "Delete this file? (%1)\nUsed by %2 others",
                     "", "ui.file.delete.ask.one"
                 )
+                    .with("%1", files.first().length().formatFileSize())
+                    .with("%2", numFilesWhichDependOnThese)
             } else {
                 NameDesc(
-                    "Delete these files? (${files.size}x, ${
-                        files.sumOf { it.length() }.formatFileSize()
-                    } total)", "", "ui.file.delete.ask.many"
+                    "Delete these files? (%1x, %2 total)\nUsed by %3 others",
+                    "", "ui.file.delete.ask.many"
                 )
+                    .with("%1", files.size)
+                    .with("%2", files.sumOf { it.length() }.formatFileSize())
+                    .with("%3", numFilesWhichDependOnThese)
             }
             val moveToTrash = MenuOption(
                 NameDesc(

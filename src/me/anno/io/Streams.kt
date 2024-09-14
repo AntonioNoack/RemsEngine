@@ -325,6 +325,14 @@ object Streams {
     }
 
     /**
+     * read constant-size string
+     * */
+    @JvmStatic
+    fun InputStream.readString(length: Int): String {
+        return readNBytes2(length, true).decodeToString()
+    }
+
+    /**
      * write a zero-terminated string, as they are commonly used in C
      * */
     @JvmStatic

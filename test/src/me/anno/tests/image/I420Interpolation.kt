@@ -2,10 +2,10 @@ package me.anno.tests.image
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import me.anno.utils.pooling.Pools
 import me.anno.video.formats.cpu.YUVFrames
 import java.nio.ByteBuffer
 
@@ -46,9 +46,9 @@ fun main() {
     val s1 = w2 * h2
 
     val data = IntArray(w * h)
-    val yData = Texture2D.bufferPool[s0, false, false]
-    val uData = Texture2D.bufferPool[s1, false, false]
-    val vData = Texture2D.bufferPool[s1, false, false]
+    val yData = Pools.byteBufferPool[s0, false, false]
+    val uData = Pools.byteBufferPool[s1, false, false]
+    val vData = Pools.byteBufferPool[s1, false, false]
 
     val clock = Clock("i420Interpolation")
     clock.benchmark(5, 100, "full") { _ ->

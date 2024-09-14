@@ -7,6 +7,7 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Style
+import me.anno.ui.Window
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.text.TextPanel
@@ -21,9 +22,7 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
     TextPanel(data.nameDesc, style) {
 
     init {
-        addLeftClickListener {
-            openMenu()
-        }
+        addLeftClickListener { openMenu() }
     }
 
     fun openMenu() {
@@ -43,40 +42,43 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
         )
     }
 
-    fun entryWithCloseListener(entry: ComplexMenuEntry): ComplexMenuEntry {
+    private fun entryWithCloseListener(entry: ComplexMenuEntry): ComplexMenuEntry {
         return when (entry) {
             is ComplexMenuGroup -> ComplexMenuGroup(
                 entry.nameDesc, entry.isEnabled, entry.children.map {
                     entryWithCloseListener(it)
                 })
-            is ComplexMenuOption -> ComplexMenuOption(
-                entry.nameDesc, entry.isEnabled
-            ) {
+            is ComplexMenuOption -> ComplexMenuOption(entry.nameDesc, entry.isEnabled) {
                 entry.action()
                 close()
             }
         }
     }
 
+    private var frameCounter = 0
     override fun onUpdate() {
+        super.onUpdate()
         if (isHovered) {
-            // open menu
-            // todo if hovered over other items of this very list, close the menu (?)
-            val prev = openedBy.put(uiParent, this)
-            if (prev !== this) {
-                // and close lower levels / others
+            if (frameCounter++ > 2) {
+                // open menu
                 val window = window
-                if (window != null) {
-                    val ws = window.windowStack
-                    val idx = ws.indexOf(window)
-                    if (idx >= 0) while (idx < ws.size - 1) {
-                        ws.pop().destroy()
-                    }
+                val prev = openedBy.put(uiParent, this)
+                if (prev !== this && window != null) {
+                    // and close lower levels / others
+                    closeLowerLevels(window)
                     openMenu()
                 }
             }
+        } else frameCounter = 0
+    }
+
+    private fun closeLowerLevels(window: Window) {
+        val ws = window.windowStack
+        val idx = ws.indexOf(window)
+        if (idx < 0) return // shouldn't happen
+        while (idx < ws.size - 1) {
+            ws.pop().destroy()
         }
-        super.onUpdate()
     }
 
     override fun calculateSize(w: Int, h: Int) {

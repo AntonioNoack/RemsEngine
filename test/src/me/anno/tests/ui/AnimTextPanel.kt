@@ -7,7 +7,8 @@ import me.anno.maths.Maths
 import me.anno.maths.noise.FullNoise
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
@@ -123,7 +124,7 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
 fun main() {
     // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
     disableRenderDoc()
-    testUI("AnimTextPanel") {
-        AnimTextPanelTest(true)
+    testUI3("AnimTextPanel") {
+        ScrollPanelY(AnimTextPanelTest(true), DefaultConfig.style)
     }
 }

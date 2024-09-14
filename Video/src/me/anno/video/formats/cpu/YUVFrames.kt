@@ -1,6 +1,5 @@
 package me.anno.video.formats.cpu
 
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readNBytes2
@@ -9,6 +8,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.pooling.Pools
 import java.io.InputStream
 import java.nio.ByteBuffer
 
@@ -111,17 +111,17 @@ object YUVFrames {
 
         val s0 = w * h
 
-        val yData = input.readNBytes2(s0, Texture2D.bufferPool)
-        val uData = input.readNBytes2(s0, Texture2D.bufferPool)
-        val vData = input.readNBytes2(s0, Texture2D.bufferPool)
+        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
+        val uData = input.readNBytes2(s0, Pools.byteBufferPool)
+        val vData = input.readNBytes2(s0, Pools.byteBufferPool)
 
         val data = IntArray(w * h) {
             yuv2rgb(yData[it], uData[it], vData[it])
         }
 
-        Texture2D.bufferPool.returnBuffer(yData)
-        Texture2D.bufferPool.returnBuffer(uData)
-        Texture2D.bufferPool.returnBuffer(vData)
+        Pools.byteBufferPool.returnBuffer(yData)
+        Pools.byteBufferPool.returnBuffer(uData)
+        Pools.byteBufferPool.returnBuffer(vData)
 
         return IntImage(w, h, data, false)
     }
@@ -130,15 +130,15 @@ object YUVFrames {
 
         val s0 = w * h
 
-        val yData = input.readNBytes2(s0, Texture2D.bufferPool)
+        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
 
         // this is correct, confirmed by example
         val w2 = (w + 1) shr 1
         val h2 = (h + 1) shr 1
 
         val s1 = w2 * h2
-        val uData = input.readNBytes2(s1, Texture2D.bufferPool)
-        val vData = input.readNBytes2(s1, Texture2D.bufferPool)
+        val uData = input.readNBytes2(s1, Pools.byteBufferPool)
+        val vData = input.readNBytes2(s1, Pools.byteBufferPool)
 
         val result = IntArray(w * h)
         val hx = h + h.and(1) - 1 // same if odd, 1 less else
@@ -153,9 +153,9 @@ object YUVFrames {
             xAxisInterpolation(result, w, w2, hx, yData, uData, vData)
         }
 
-        Texture2D.bufferPool.returnBuffer(yData)
-        Texture2D.bufferPool.returnBuffer(uData)
-        Texture2D.bufferPool.returnBuffer(vData)
+        Pools.byteBufferPool.returnBuffer(yData)
+        Pools.byteBufferPool.returnBuffer(uData)
+        Pools.byteBufferPool.returnBuffer(vData)
 
         return IntImage(w, h, result, false)
     }

@@ -13,7 +13,6 @@ import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
-import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
@@ -23,6 +22,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
+import me.anno.utils.pooling.Pools.byteBufferPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BGRA
@@ -45,6 +45,7 @@ import org.lwjgl.opengl.GL46C.glTexParameteri
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.util.concurrent.atomic.AtomicLong
 
 open class Texture3D(
     override var name: String,
@@ -173,12 +174,12 @@ open class Texture3D(
 
     fun createMonochrome(data: ByteArray) {
         if (width * height * depth != data.size) throw RuntimeException("incorrect size!")
-        val byteBuffer = bufferPool[data.size, false, false]
+        val byteBuffer = byteBufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
         createMonochrome(byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
     }
 
     fun createMonochrome(getValue: I3B) {
@@ -186,7 +187,7 @@ open class Texture3D(
         val h = height
         val d = depth
         val size = w * h * d
-        val byteBuffer = bufferPool[size, false, false]
+        val byteBuffer = byteBufferPool[size, false, false]
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
@@ -196,7 +197,7 @@ open class Texture3D(
         }
         byteBuffer.flip()
         createMonochrome(byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
     }
 
     fun createRGBA8(getValue: I3I) {
@@ -204,7 +205,7 @@ open class Texture3D(
         val h = height
         val d = depth
         val size = 4 * w * h * d
-        val byteBuffer = bufferPool[size, false, false]
+        val byteBuffer = byteBufferPool[size, false, false]
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
@@ -214,7 +215,7 @@ open class Texture3D(
         }
         byteBuffer.flip()
         createBGRA8(byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
     }
 
     fun createMonochrome(data: ByteBuffer) {
@@ -231,7 +232,7 @@ open class Texture3D(
             assertEquals(width * height * depth * bpp, data.size, "incorrect size")
         }
         val byteBuffer = if (data != null) {
-            val byteBuffer = bufferPool[data.size, false, false]
+            val byteBuffer = byteBufferPool[data.size, false, false]
             byteBuffer.position(0)
             byteBuffer.put(data)
             byteBuffer.position(0)
@@ -242,13 +243,13 @@ open class Texture3D(
             target, 0, type.internalFormat, width, height, depth, 0,
             type.uploadFormat, type.fillType, byteBuffer
         )
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(type.internalFormat, type.bytesPerPixel, type.isHDR)
     }
 
     fun createRGBA(data: FloatArray) {
         assertEquals(width * height * depth * 4, data.size, "expected 4 bpp")
-        val byteBuffer = bufferPool[data.size * 4, false, false]
+        val byteBuffer = byteBufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
@@ -262,19 +263,19 @@ open class Texture3D(
         assertEquals(width * height * depth * 4, floatBuffer.remaining(), "incorrect size!")
         beforeUpload(width * 16)
         glTexImage3D(target, 0, GL_RGBA32F, width, height, depth, 0, GL_RGBA, GL_FLOAT, floatBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
     fun createRGBA(data: ByteArray) {
         assertEquals(width * height * depth * 4, data.size, "incorrect size!, expected 4 bpp")
-        val byteBuffer = bufferPool[data.size, false, false]
+        val byteBuffer = byteBufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.flip()
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
-        bufferPool.returnBuffer(byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA8, 4, false)
     }
 
@@ -376,9 +377,9 @@ open class Texture3D(
 
     companion object {
         private val LOGGER = LogManager.getLogger(Texture3D::class)
-        var allocated = 0L
+        val allocated = AtomicLong()
         fun allocate(oldValue: Long, newValue: Long): Long {
-            allocated += newValue - oldValue
+            allocated.addAndGet(newValue - oldValue)
             return newValue
         }
     }

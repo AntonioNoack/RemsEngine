@@ -8,12 +8,12 @@ import me.anno.gpu.framebuffer.TargetType.Companion.UInt8x4
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Redundancy.checkRedundancyX1
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
 import me.anno.utils.Color.black
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
+import me.anno.utils.pooling.Pools.byteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
@@ -48,7 +48,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
             TextureMapper.mapTexture(src.texture, texture, "$map$map${map}1", type, callback)
         } else {
             val size = width * height
-            val bytes = bufferPool[size, false, false]
+            val bytes = byteBufferPool[size, false, false]
             for (i in 0 until size) {
                 bytes.put(i, src.getRGB(i).shr(shift).toByte())
             }

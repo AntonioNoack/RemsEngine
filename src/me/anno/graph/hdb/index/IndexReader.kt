@@ -28,7 +28,7 @@ class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> S
                     folder.storageFile = sf
                     sf?.folders?.add(folder)
                 }
-                else -> skipSomething()
+                else -> skipValue()
             }
         }
         val sf = folder.storageFile
@@ -46,7 +46,7 @@ class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> S
                 "a" -> lastAccessed = readNumber().toLong()
                 "s" -> start = readNumber().toInt()
                 "l" -> length = readNumber().toInt()
-                else -> skipSomething()
+                else -> skipValue()
             }
         }
         return File(lastAccessed, start until (start + length))

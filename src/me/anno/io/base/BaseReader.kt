@@ -1,6 +1,5 @@
 package me.anno.io.base
 
-import me.anno.Build
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.ReaderImpl
 import me.anno.io.saveable.UnknownSaveable
@@ -95,9 +94,6 @@ abstract class BaseReader : ReaderImpl {
         fun <V> assertEquals(a: V, b: V) {
             if (a != b) throw IOException("$a != $b")
         }
-
-        fun error(msg: String): Nothing = throw InvalidFormatException("[BaseReader] $msg")
-        fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
         fun getNewClassInstance(className: String): Saveable {
             val type = Saveable.objectTypeRegistry[className]

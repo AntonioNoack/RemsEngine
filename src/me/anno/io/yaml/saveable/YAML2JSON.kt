@@ -32,6 +32,8 @@ object YAML2JSON {
         } else if (node.children.all { it.key == LIST_KEY }) {
             // create an array
             node.children.map(::fromYAML)
+        } else if (node.children.size == 1 && node.children.all { it.value == null && it.children.isEmpty() }) {
+            node.children[0].key
         } else {
             // create object
             node.children.associate {

@@ -201,7 +201,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                 val w = o1 - o0
                 h = GFXx2D.getSizeY(size)
                 if (!txt.text.isBlank2()) {
-                    // todo in TextGroup, ti is broken ... why??
                     val texture = FontManager.getTexture(txt, false)
                     if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)

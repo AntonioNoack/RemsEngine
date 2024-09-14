@@ -5,6 +5,9 @@ import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertFail
+import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
@@ -102,7 +105,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 ',' -> Unit // nothing to do
                 '{' -> readObject()
                 ']' -> return
-                else -> throw InvalidFormatException("Unexpected char $next, ${next.code}")
+                else -> assertFail("Unexpected char $next, ${next.code}")
             }
         }
     }
@@ -116,7 +119,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 assertEquals(next(), 'l')
                 null
             }
-            else -> throw InvalidFormatException("Expected '\"' or 'n' but got $c for readStringValueOrNull")
+            else -> assertFail("Expected '\"' or 'n' but got $c for readStringValueOrNull")
         }
     }
 
@@ -146,7 +149,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                         '\'' -> '\''
                         'f' -> 12.toChar()
                         'b' -> '\b'
-                        else -> throw InvalidFormatException("Unknown escape sequence \\$char2")
+                        else -> assertFail("Unknown escape sequence \\$char2")
                     }
                 )
                 '"' -> return str.toString()
@@ -171,8 +174,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 '_' -> {
                 }
                 '"' -> {
-                    if (str.isEmpty()) return readString()
-                    else throw InvalidFormatException("Unexpected symbol \" inside number!")
+                    assertTrue(str.isEmpty(), "Unexpected symbol \" inside number!")
+                    return readString()
                 }
                 else -> {
                     tmpChar = next.code
@@ -204,7 +207,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                     last = next2
                 }
             }
-            else -> throw InvalidFormatException("Expected a comment after '/', but got '$next'")
+            else -> assertFail("Expected a comment after '/', but got '$next'")
         }
     }
 
@@ -219,12 +222,12 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                         }
                         '}' -> return
                         '/' -> skipComment()
-                        else -> throw InvalidFormatException("Expected property or end of object after comma, got '$next2'")
+                        else -> assertFail("Expected property or end of object after comma, got '$next2'")
                     }
                 }
                 '}' -> return
                 '/' -> skipComment()
-                else -> throw InvalidFormatException("Unexpected char $next in object of class ${obj.className}")
+                else -> assertFail("Unexpected char $next in object of class ${obj.className}")
             }
         }
     }
@@ -242,7 +245,9 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
         assertEquals(c0, '[')
         val rawLength = readLong()
-        if (rawLength > Int.MAX_VALUE || rawLength < 0) error("Invalid $typeName[] length '$rawLength'")
+        assertTrue(rawLength in 0 .. Int.MAX_VALUE) {
+            "Invalid $typeName[] length '$rawLength'"
+        }
         val length = rawLength.toInt()
         // mistakes of the past: ofc, there may be arrays with just zeros...
         /*if (length < (data.length - index) / 2) {
@@ -253,7 +258,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             when (val next = skipSpace()) {
                 ',' -> putValue(values, i++)
                 ']' -> break@content
-                else -> error("unknown character $next in $typeName[] in $lineNumber:$lineIndex")
+                else -> assertFail("unknown character $next in $typeName[] in $lineNumber:$lineIndex")
             }
         }
         if (i > length) LOGGER.warn("$typeName[] contained too many elements!")
@@ -835,7 +840,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                         'n' -> readNull()
                         '{' -> readObject()
                         in '0'..'9' -> readPtr(next)
-                        else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+                        else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
                     }
                 })
                 obj.setProperty(name, elements)
@@ -853,7 +858,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                             'n' -> readNull()
                             '{' -> readObjectAndRegister(type)
                             in '0'..'9' -> readPtr(next)
-                            else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+                            else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
                         }
                     })
                     obj.setProperty(name, elements)
@@ -864,8 +869,9 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                         in '0'..'9' -> {
                             tmpChar = next.code
                             val rawPtr = readNumber()
-                            val ptr =
-                                rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr in $lineNumber:$lineIndex")
+                            val ptr = assertNotNull(rawPtr.toIntOrNull()) {
+                                "Invalid pointer: $rawPtr in $lineNumber:$lineIndex"
+                            }
                             if (ptr > 0) {
                                 val child = getByPointer(ptr, false)
                                 if (child == null) {
@@ -875,7 +881,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                                 }
                             }
                         }
-                        else -> error("Missing { or ptr or null after starting object of class $type, got '$next' in $lineNumber:$lineIndex")
+                        else -> assertFail("Missing { or ptr or null after starting object of class $type, got '$next' in $lineNumber:$lineIndex")
                     }
                 }
             }
@@ -951,7 +957,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
     private fun splitTypeName(typeName: String): Pair<String, String> {
         val index = typeName.indexOf(':')
-        if (index < 0) error("Invalid Type:Name '$typeName' in $lineNumber:$lineIndex")
+        assertTrue(index >= 0, "Invalid Type:Name '$typeName' in $lineNumber:$lineIndex")
         val type = typeName.substring(0, index)
         val name = typeName.substring(index + 1)
         return type to name

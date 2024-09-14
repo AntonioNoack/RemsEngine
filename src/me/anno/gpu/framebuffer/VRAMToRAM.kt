@@ -8,12 +8,12 @@ import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.image.raw.IntImage
 import me.anno.utils.Color
+import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL46C.GL_READ_FRAMEBUFFER
@@ -116,7 +116,7 @@ object VRAMToRAM {
         val wi = window.width
         val hi = window.height
 
-        val buffer = Texture2D.bufferPool[wi * hi * 4, false, false]
+        val buffer = Pools.byteBufferPool[wi * hi * 4, false, false]
 
         GFX.check()
 
@@ -156,6 +156,6 @@ object VRAMToRAM {
 
         }
 
-        Texture2D.bufferPool.returnBuffer(buffer)
+        Pools.byteBufferPool.returnBuffer(buffer)
     }
 }

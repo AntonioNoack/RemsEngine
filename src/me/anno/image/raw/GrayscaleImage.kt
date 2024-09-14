@@ -7,9 +7,9 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Redundancy.checkRedundancyX1
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.utils.Color.black
+import me.anno.utils.pooling.Pools.byteBufferPool
 
 open class GrayscaleImage(val src: Image) :
     Image(src.width, src.height, 1, false) {
@@ -32,7 +32,7 @@ open class GrayscaleImage(val src: Image) :
         } else when (src) {
             is IntImage -> {
                 val data = src.data
-                val bytes = bufferPool[size, false, false]
+                val bytes = byteBufferPool[size, false, false]
                 for (i in 0 until size) {
                     bytes.put(i, getLuminance(data[i]).toByte())
                 }
@@ -49,7 +49,7 @@ open class GrayscaleImage(val src: Image) :
             }
             is ByteImage -> {
                 val data = src.data
-                val bytes = bufferPool[size, false, false]
+                val bytes = byteBufferPool[size, false, false]
                 for (i in 0 until size) {
                     val j = i * 4
                     bytes.put(i, getLuminance(data[j + 1], data[j + 2], data[j + 3]).toByte())

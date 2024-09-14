@@ -529,7 +529,7 @@ object BlenderReader {
                         prefab.setUnsafe(c, "color", Vector3f(light.r, light.g, light.b).mul(e))
                         prefab.setUnsafe(c, "shadowMapCascades", light.cascadeCount)
                         prefab.setUnsafe(c, "shadowMapPower", light.cascadeExponent.toDouble())
-                        prefab.setUnsafe(c, "autoUpdate", false)
+                        prefab.setUnsafe(c, "autoUpdate", 0)
                     }
                 } else LOGGER.warn("obj.data of a lamp was not a lamp: ${obj.data?.run { this::class.simpleName }}")
             }
