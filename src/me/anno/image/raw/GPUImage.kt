@@ -1,6 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.utils.async.Callback
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -9,7 +8,9 @@ import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
+import kotlin.math.max
 
 /**
  * image for a texture
@@ -22,7 +23,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     }
 
     constructor(texture: ITexture2D, numChannels: Int) : this(texture, numChannels, numChannels > 3)
-    constructor(texture: ITexture2D) : this(texture, texture.channels)
+    constructor(texture: ITexture2D) : this(texture, max(texture.channels, 1))
 
     override fun getRGB(index: Int): Int {
         return when (texture) {

@@ -12,9 +12,10 @@ import org.lwjgl.opengl.GL46C
 /**
  * maps a component like R/G/B/A onto 000V or 111V (black or white mask)
  * */
-class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, private val color: Int) :
+class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, color: Int) :
     Image(src.width, src.height, 1, false) {
 
+    private val color = color and 0xffffff
     private val shift = "bgra".indexOf(channel) * 8
 
     override fun createTexture(

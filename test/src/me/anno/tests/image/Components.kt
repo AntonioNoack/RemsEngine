@@ -14,7 +14,6 @@ fun main() {
     OfficialExtensions.initForTests()
     val ori = res.getChild("icon.png")
     if (true) {
-        // todo bug: grayscale image isn't shown as grayscale
         testUI3("Components") {
             FileExplorer(ori, true, style)
         }

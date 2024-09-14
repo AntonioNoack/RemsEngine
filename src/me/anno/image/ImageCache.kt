@@ -21,7 +21,7 @@ object ImageCache : CacheSection("Image") {
     ) {
         // todo keep lists instead, and try all until one succeeds
         synchronized(this) {
-            for(signature in signatures.split(',')) {
+            for (signature in signatures.split(',')) {
                 byteReaders[signature] = byteReader
                 fileReaders[signature] = fileReader
                 streamReaders[signature] = streamReader

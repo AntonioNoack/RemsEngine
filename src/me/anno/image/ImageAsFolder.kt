@@ -18,6 +18,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
+import me.anno.utils.Color.black
+import me.anno.utils.Color.white
 import me.anno.utils.OS
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
@@ -47,35 +49,35 @@ object ImageAsFolder {
         val folder = InnerFolder(file)
 
         // add the most common swizzles: r,g,b,a
-        createComponent(file, folder, "r.png", 'r', false)
-        createComponent(file, folder, "g.png", 'g', false)
-        createComponent(file, folder, "b.png", 'b', false)
-        createComponent(file, folder, "a.png", 'a', false)
+        createSwizzle(file, folder, "r.png", 'r', false)
+        createSwizzle(file, folder, "g.png", 'g', false)
+        createSwizzle(file, folder, "b.png", 'b', false)
+        createSwizzle(file, folder, "a.png", 'a', false)
 
         // bgra
-        createComponent(file, folder, "bgra.png") {
+        createSwizzle(file, folder, "bgra.png") {
             if (it is BGRAImage) it.base // bgra.bgra = rgba
             else BGRAImage(it)
         }
 
         // inverted components
-        createComponent(file, folder, "1-r.png", 'r', true)
-        createComponent(file, folder, "1-g.png", 'g', true)
-        createComponent(file, folder, "1-b.png", 'b', true)
-        createComponent(file, folder, "1-a.png", 'a', true)
+        createSwizzle(file, folder, "1-r.png", 'r', true)
+        createSwizzle(file, folder, "1-g.png", 'g', true)
+        createSwizzle(file, folder, "1-b.png", 'b', true)
+        createSwizzle(file, folder, "1-a.png", 'a', true)
 
         // white with transparency, black with transparency (overriding color)
         createAlphaMask(file, folder, "111a.png", false)
         createAlphaMask(file, folder, "000a.png", true)
 
         // grayscale, if not only a single channel
-        createComponent(file, folder, "grayscale.png") {
+        createSwizzle(file, folder, "grayscale.png") {
             if (it.numChannels > 1) GrayscaleImage(it)
             else it
         }
 
         // rgb without alpha, if alpha exists
-        createComponent(file, folder, "rgb.png") {
+        createSwizzle(file, folder, "rgb.png") {
             if (it.hasAlphaChannel) OpaqueImage(it)
             else it
         }
@@ -120,7 +122,7 @@ object ImageAsFolder {
     }
 
     @JvmStatic
-    private fun createComponent(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
+    private fun createSwizzle(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
             val src = warnIfMissing(ImageCache[file, false], missingImage, file)
             createImage(src)
@@ -139,28 +141,37 @@ object ImageAsFolder {
     }
 
     @JvmStatic
-    private fun createComponent(
+    private fun createSwizzle(
         file: FileReference, folder: InnerFolder, name: String,
         swizzle: Char, inverse: Boolean
     ) {
-        createComponent(file, folder, name) { srcImage ->
-            when {
-                (swizzle == 'a' && !srcImage.hasAlphaChannel) -> GPUImage(if (inverse) blackTexture else whiteTexture)
-                (swizzle == 'b' && srcImage.numChannels < 3) || (swizzle == 'g' && srcImage.numChannels < 2) ->
-                    GPUImage(if (inverse) whiteTexture else blackTexture)
-                else -> ComponentImage(srcImage, inverse, swizzle)
-            }
+        folder.createLazyImageChild(name, lazy {
+            val src = warnIfMissing(TextureCache[file, false], missingTexture, file)
+            val srcImage = GPUImage(src)
+            val isBlack = getIsBlack(swizzle, inverse, srcImage)
+            if (isBlack != null) {
+                GPUImage(if (isBlack) blackTexture else whiteTexture, 1, false)
+            } else ComponentImage(srcImage, inverse, swizzle)
+        })
+    }
+
+    @JvmStatic
+    private fun getIsBlack(swizzle: Char, inverse: Boolean, srcImage: Image): Boolean? {
+        return when {
+            (swizzle == 'a' && !srcImage.hasAlphaChannel) -> inverse
+            (swizzle == 'b' && srcImage.numChannels < 3) || (swizzle == 'g' && srcImage.numChannels < 2) -> !inverse
+            else -> null
         }
     }
 
     @JvmStatic
-    private fun createAlphaMask(file: FileReference, folder: InnerFolder, name: String, black: Boolean) {
-        createComponent(file, folder, name) { srcImage ->
+    private fun createAlphaMask(file: FileReference, folder: InnerFolder, name: String, isBlack: Boolean) {
+        createSwizzle(file, folder, name) { srcImage ->
             if (srcImage.hasAlphaChannel) {
-                val color1 = if (black) 0 else 0xffffff
+                val color1 = if (isBlack) black else white
                 AlphaMaskImage(srcImage, false, 'a', color1)
             } else {
-                GPUImage(if (black) blackTexture else whiteTexture)
+                GPUImage(if (isBlack) blackTexture else whiteTexture, 1, false)
             }
         }
     }

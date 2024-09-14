@@ -27,13 +27,13 @@ class ObjectPool<V>(
     private val data = ArrayList<V>(initialSize)
 
     fun create(): V {
-        return if (data.isEmpty()) {
-            createInstance()
-        } else synchronized(this) {
-            val element = data.removeAt(data.lastIndex)
-            map?.remove(element)
-            resetInstance(element)
-            element
+        return synchronized(this) {
+            val element = data.removeLastOrNull()
+            if (element != null) {
+                map?.remove(element)
+                resetInstance(element)
+            }
+            element ?: createInstance()
         }
     }
 
