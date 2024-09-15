@@ -34,7 +34,7 @@ object FXAA {
         "" +
                 "vec3 getColor(ivec2 uv){\n" +
                 "   ivec2 uvi = clamp(uv, ivec2(0,0), textureSize(colorTex,0)-1);\n" +
-                "   return texelFetch(colorTex,uvi,0).xyz;\n" +
+                "   return pow(texelFetch(colorTex,uvi,0).xyz,vec3(2.0));\n" +
                 "}\n" +
                 "void main(){\n" +
 
@@ -66,7 +66,7 @@ object FXAA {
 
                 // If contrast is lower than a maximum threshold ...
                 "    if (lumaMax - lumaMin <= lumaMax * u_lumaThreshold) {\n" +
-                "        fragColor = vec4(rgbM, 1.0);\n" +
+                "        fragColor = vec4(sqrt(rgbM), 1.0);\n" +
                 "        return;\n" +
                 "    }\n" +
                 // Sampling is done along the gradient.
@@ -82,16 +82,16 @@ object FXAA {
                 // Calculate final sampling direction vector by reducing, clamping to a range and finally adapting to the texture size.
                 "    samplingDirection = clamp(samplingDirection * minSamplingDirectionFactor, vec2(-u_maxSpan), vec2(u_maxSpan)) * u_texelStep;\n" +
                 // Inner samples on the tab.
-                "    vec3 rgbSampleNeg = texture(colorTex, uv + samplingDirection * (1.0/3.0 - 0.5)).rgb;\n" +
-                "    vec3 rgbSamplePos = texture(colorTex, uv + samplingDirection * (2.0/3.0 - 0.5)).rgb;\n" +
+                "    vec3 rgbSampleNeg = pow(texture(colorTex, uv + samplingDirection * (1.0/3.0 - 0.5)).rgb,vec3(2.0));\n" +
+                "    vec3 rgbSamplePos = pow(texture(colorTex, uv + samplingDirection * (2.0/3.0 - 0.5)).rgb,vec3(2.0));\n" +
 
                 "    vec3 rgbTwoTab = (rgbSamplePos + rgbSampleNeg) * 0.5;  \n" +
 
                 // Outer samples on the tab.
-                "    vec3 rgbSampleNegOuter = texture(colorTex, uv + samplingDirection * (0.0/3.0 - 0.5)).rgb;\n" +
-                "    vec3 rgbSamplePosOuter = texture(colorTex, uv + samplingDirection * (3.0/3.0 - 0.5)).rgb;\n" +
+                "    vec3 rgbSampleNegOuter = pow(texture(colorTex, uv + samplingDirection * (0.0/3.0 - 0.5)).rgb,vec3(2.0));\n" +
+                "    vec3 rgbSamplePosOuter = pow(texture(colorTex, uv + samplingDirection * (3.0/3.0 - 0.5)).rgb,vec3(2.0));\n" +
 
-                "    vec3 rgbFourTab = (rgbSamplePosOuter + rgbSampleNegOuter) * 0.25 + rgbTwoTab * 0.5;   \n" +
+                "    vec3 rgbFourTab = (rgbSamplePosOuter + rgbSampleNegOuter) * 0.25 + rgbTwoTab * 0.5;\n" +
 
                 // Calculate luma for checking against the minimum and maximum value.
                 "    float lumaFourTab = dot(rgbFourTab, toLuma);\n" +
@@ -99,10 +99,10 @@ object FXAA {
                 // Are outer samples of the tab beyond the edge ...
                 "    if (lumaFourTab < lumaMin || lumaFourTab > lumaMax) {\n" +
                 // ... yes, so use only two samples.
-                "        fragColor = vec4(rgbTwoTab, 1.0); \n" +
+                "        fragColor = vec4(sqrt(rgbTwoTab), 1.0); \n" +
                 "    } else {\n" +
                 // ... no, so use four samples.
-                "        fragColor = vec4(rgbFourTab, 1.0);\n" +
+                "        fragColor = vec4(sqrt(rgbFourTab), 1.0);\n" +
                 "    }\n" +
                 // Show edges for debug purposes.
                 "    if (showEdges) {\n" +
@@ -111,7 +111,7 @@ object FXAA {
                 "}"
     )
 
-    fun render(color: ITexture2D, threshold: Float = 1e-5f) {
+    fun render(color: ITexture2D, threshold: Float = 0.1f) {
         val shader = shader
         shader.use()
         shader.v1f("threshold", threshold)

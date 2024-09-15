@@ -46,6 +46,7 @@ class CubemapFramebuffer(
     override var pointer = 0
     var session = 0
     var depthRenderBuffer: Renderbuffer? = null
+    override var isSRGBMask: Int = 0
     override var depthTexture: CubemapTexture? = null
     override val depthMask: Int get() = 0
     var depthAttachment: CubemapFramebuffer? = null

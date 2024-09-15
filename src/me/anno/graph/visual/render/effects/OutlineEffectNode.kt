@@ -62,15 +62,16 @@ class OutlineEffectNode : RenderViewNode(
         val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
         if (radius >= 0 && numGroupsI > 0) {
             timeRendering(name, timer) {
-                val dst = FBStack[name, w, h, 4, true, 1, DepthBufferType.NONE]
-                GFXState.useFrame(dst) {
+                val framebuffer = FBStack[name, w, h, 4, true, 1, DepthBufferType.NONE]
+                framebuffer.isSRGBMask = 1
+                GFXState.useFrame(framebuffer) {
                     render(
                         colorTex, idsTex,
                         min(groupIds.size, min(fillColors1.size, lineColors1.size)),
                         radius, groupIds, fillColors1, lineColors1
                     )
                 }
-                setOutput(1, Texture.texture(dst, 0))
+                setOutput(1, Texture.texture(framebuffer, 0))
             }
         } else setOutput(1, colorTex)
     }

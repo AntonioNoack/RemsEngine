@@ -17,13 +17,14 @@ import org.lwjgl.opengl.GL46C
  * */
 object NullFramebuffer : IFramebuffer {
 
-    override val name = "null"
+    override var name = "null"
     override val pointer = 0
 
     override val width get() = (GFX.activeWindow ?: GFX.someWindow).width
     override val height get() = (GFX.activeWindow ?: GFX.someWindow).height
     override val samples = 1
     override val numTextures = 1
+    override var isSRGBMask = 1
 
     override fun ensure() {}
 

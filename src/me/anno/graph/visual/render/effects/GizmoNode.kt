@@ -77,6 +77,7 @@ class GizmoNode : RenderViewNode(
         ]
 
         timeRendering(name, timer) {
+            framebuffer.isSRGBMask = 1
             useFrame(framebuffer, copyRenderer) {
                 copyColorAndDepth(colorT, depthT, depthM, framebuffer)
                 GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
@@ -98,10 +99,17 @@ class GizmoNode : RenderViewNode(
             )
         }
 
-        fun copyColorAndDepth(colorT: ITexture2D?, depthT: ITexture2D?, depthM: Int, framebuffer: IFramebuffer) {
+        private fun copyColorAndDepth(
+            colorT: ITexture2D?, depthT: ITexture2D?, depthM: Int,
+            framebuffer: IFramebuffer
+        ) {
             useFrame(framebuffer) {
                 renderPurely {
-                    Blitting.copyColorAndDepth(colorT ?: blackTexture, depthT ?: depthTexture, depthM)
+                    Blitting.copyColorAndDepth(
+                        colorT ?: blackTexture,
+                        depthT ?: depthTexture,
+                        depthM, true
+                    )
                 }
             }
         }

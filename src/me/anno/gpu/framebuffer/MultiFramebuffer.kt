@@ -10,6 +10,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.createArrayList
 
 /**
@@ -62,9 +63,19 @@ class MultiFramebuffer(
     override val height: Int get() = targetsI[0].height
 
     override val pointer: Int
-        get() = throw RuntimeException("Cannot bind directly")
+        get() = assertFail("Cannot bind directly")
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
+
+    override var isSRGBMask = 0
+        set(value) {
+            field = value
+            val mask = (1 shl div) - 1
+            for (i in targetsI.indices) {
+                val bits = i * div
+                targetsI[i].isSRGBMask = value.ushr(bits) and mask
+            }
+        }
 
     override fun checkSession() {
         for (target in targetsI) {

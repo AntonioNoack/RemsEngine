@@ -4,7 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -35,13 +36,6 @@ class MotionBlurNode : TimedRenderingNode(
         setInput(2, 0.5f)
     }
 
-    private val framebuffer = Framebuffer(name, 1, 1, TargetType.Float16x3)
-
-    override fun destroy() {
-        super.destroy()
-        framebuffer.destroy()
-    }
-
     override fun executeAction() {
 
         val samples = clamp(getIntInput(1), 1, GFX.maxSamples)
@@ -50,6 +44,11 @@ class MotionBlurNode : TimedRenderingNode(
         val motion = (getInput(4) as? Texture).texOrNull ?: blackTexture
 
         timeRendering(name, timer) {
+            val framebuffer = FBStack[
+                name, color.width, color.height, if (color.isHDR) TargetType.Float16x3 else TargetType.UInt8x3,
+                samples, DepthBufferType.NONE
+            ]
+            framebuffer.isSRGBMask = 1
             useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
                 val shader = shader
                 shader.use()
@@ -70,7 +69,7 @@ class MotionBlurNode : TimedRenderingNode(
 
     companion object {
         // definitely not ideal; we'd need to smear moving objects instead of smearing on moving objects
-        val shader = Shader(
+        private val shader = Shader(
             "MotionBlur", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1I, "maxSamples"),

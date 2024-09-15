@@ -92,7 +92,7 @@ fun main() {
                     }
                 }
             }
-            Blitting.copyNoAlpha(tmp.getTexture0())
+            Blitting.copyNoAlpha(tmp.getTexture0(), true)
         }
     }
     vc.init()

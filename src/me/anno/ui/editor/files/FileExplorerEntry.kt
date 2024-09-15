@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.EngineBase
 import me.anno.engine.GFXSettings
+import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.Blitting
@@ -62,7 +63,7 @@ import me.anno.ui.Style
 import me.anno.ui.WindowStack
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.menu.Menu.ask
-import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.askRename
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
@@ -79,7 +80,6 @@ import me.anno.ui.editor.files.FileExplorerIcons.musicPath
 import me.anno.ui.editor.files.FileExplorerIcons.textPath
 import me.anno.ui.editor.files.FileExplorerIcons.videoPath
 import me.anno.ui.editor.files.FileExplorerIcons.zipPath
-import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
@@ -373,7 +373,7 @@ open class FileExplorerEntry(
                             AssetThumbnails.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
-                    Blitting.copy(tmp)
+                    Blitting.copy(tmp, true)
                 } else {
                     // use current buffer directly
                     GFXState.useFrame(x0, y0, w, h, GFXState.currentBuffer, Renderers.simpleRenderer) {
@@ -942,13 +942,7 @@ open class FileExplorerEntry(
         fun rename(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {
             val file = files.firstOrNull() ?: return
             val title = NameDesc("Rename To...", "", "ui.file.rename2")
-            askName(windowStack, title, file.name, NameDesc("Rename"), { newName ->
-                when (newName.toAllowedFilename()) {
-                    newName -> 0x77ff77
-                    null -> 0xff7777
-                    else -> 0xffff77
-                }.withAlpha(255)
-            }) { newName ->
+            askRename(windowStack, title, file.name, NameDesc("Rename"), file.getParent()) { newName ->
                 renameTo(windowStack, explorer, file, newName) {
                     if (files.size > 1) { // rename multiple files one after the other for now
                         rename(windowStack, explorer, files.subList(1, files.size))
@@ -957,33 +951,48 @@ open class FileExplorerEntry(
             }
         }
 
-        fun renameTo(
-            windowStack: WindowStack, explorer: FileExplorer?, file: FileReference, newName: String,
+        private fun renameTo(
+            windowStack: WindowStack, explorer: FileExplorer?,
+            src: FileReference, dst: FileReference,
             callback: () -> Unit
         ) {
-            val allowed = newName.toAllowedFilename()
-            if (allowed != null) {
-                val dst = file.getParent().getChild(allowed)
-                if (dst.exists && !allowed.equals(file.name, true)) {
-                    ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override"), {
-                        file.renameTo(dst)
-                        explorer?.invalidate()
-                    }, callback)
-                } else {
-                    file.renameTo(dst)
-                    explorer?.invalidate()
-                    callback()
+            if (dst.exists) {
+                ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override"), {
+                    renameToImpl(src, dst, explorer)
+                }, callback)
+            } else {
+                renameToImpl(src, dst, explorer)
+                callback()
+            }
+        }
+
+        private fun renameToImpl(src: FileReference, dst: FileReference, explorer: FileExplorer?) {
+            val dependencies = currentProject?.findDependencies(src) ?: emptySet()
+            if (src.renameTo(dst)) {
+                for (file in dependencies) {
+                    if (!file.isSameOrSubFolderOf(src) && !file.isSameOrSubFolderOf(dst)) {
+                        LOGGER.info("Replacing references of $src in $file")
+                        replaceDependencies(file, src, dst)
+                    } else {
+                        // can't really do it
+                        LOGGER.info("Skipped renaming references of $src in $file")
+                    }
                 }
-            } else callback()
+                explorer?.invalidate()
+            } else LOGGER.warn("Renaming {} to {} failed", src, dst)
+        }
+
+        private fun replaceDependencies(prefabFile: FileReference, src: FileReference, dst: FileReference) {
+            val prefab = PrefabCache[prefabFile] ?: return
+            prefab.replaceReferences(src, dst)
+            GameEngineProject.save(prefabFile, prefab)
         }
 
         fun askToDeleteFiles(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {
-            // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
-            //  - same for renaming
-            val currentProject = currentProject // todo this isn't working :(
+            val currentProject = currentProject
             val numFilesWhichDependOnThese = if (currentProject != null) {
                 files.sumOf { file ->
-                    currentProject.filesWhichDependOn(file).size
+                    currentProject.findDependencies(file).size
                 }
             } else 0
             // ask, then delete all (or cancel)

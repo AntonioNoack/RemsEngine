@@ -12,7 +12,6 @@ import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.FlatShaders.copyShaderAnyToAny
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureHelper.getNumChannels
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.toInt
@@ -23,22 +22,23 @@ import me.anno.utils.types.Booleans.toInt
 object Blitting {
 
     @JvmStatic
-    fun copy(buffer: IFramebuffer) {
-        copy(buffer.getTexture0MS())
+    fun copy(buffer: IFramebuffer, isSRGB: Boolean) {
+        copy(buffer.getTexture0MS(), isSRGB)
     }
 
     @JvmStatic
-    fun copy(src: ITexture2D) {
+    fun copy(src: ITexture2D, isSRGB: Boolean) {
         Frame.bind()
         src.bindTrulyNearest(0)
-        copy(src.samples)
+        copy(src.samples, isSRGB)
     }
 
     @JvmStatic
-    fun copy(alpha: Float, samples: Int = 1) {
+    fun copy(alpha: Float, samples: Int, isSRGB: Boolean) {
         GFX.check()
         val shader = if (samples > 1) copyShaderMS else copyShader
         shader.use()
+        shader.v1b("sRGB", isSRGB)
         shader.v1i("samples", samples)
         shader.v1f("alpha", alpha)
         SimpleBuffer.flat01.draw(shader)
@@ -46,10 +46,11 @@ object Blitting {
     }
 
     @JvmStatic
-    fun copy(samples: Int = 1) {
+    fun copy(samples: Int, isSRGB: Boolean) {
         GFX.check()
         val shader = if (samples > 1) copyShaderMS else copyShader
         shader.use()
+        shader.v1b("sRGB", isSRGB)
         shader.v1i("samples", samples)
         shader.v1f("alpha", 1f)
         SimpleBuffer.flat01.draw(shader)
@@ -57,7 +58,7 @@ object Blitting {
     }
 
     @JvmStatic
-    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D, depthMask: Int) {
+    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D, depthMask: Int, isSRGB: Boolean) {
         Frame.bind()
         color.bindTrulyNearest(0)
         depth.bindTrulyNearest(1)
@@ -65,16 +66,18 @@ object Blitting {
         copyColorAndDepth(
             color.samples, monochrome,
             depth.samples, depthMask,
+            isSRGB
         )
     }
 
     @JvmStatic
-    fun copyColorAndDepth(colorSamples: Int, monochrome: Boolean, depthSamples: Int, depthMask: Int) {
+    fun copyColorAndDepth(colorSamples: Int, monochrome: Boolean, depthSamples: Int, depthMask: Int, isSRGB: Boolean) {
         GFX.check()
         assertTrue(depthMask in 0..3)
         val idx = (colorSamples > 1).toInt(8) or (depthSamples > 1).toInt(4) + depthMask
         val shader = copyShaderAnyToAny[idx]
         shader.use()
+        shader.v1b("sRGB", isSRGB)
         shader.v1b("monochrome", monochrome)
         shader.v1i("colorSamples", colorSamples)
         shader.v1i("depthSamples", depthSamples)
@@ -85,14 +88,14 @@ object Blitting {
     }
 
     @JvmStatic
-    fun copyNoAlpha(buffer: ITexture2D) {
+    fun copyNoAlpha(buffer: ITexture2D, isSRGB: Boolean) {
         Frame.bind()
         buffer.bindTrulyNearest(0)
-        copyNoAlpha(if (buffer is Texture2D) buffer.samples else 1)
+        copyNoAlpha(buffer.samples, isSRGB)
     }
 
     @JvmStatic
-    fun copyNoAlpha(samples: Int = 1) {
+    fun copyNoAlpha(samples: Int, isSRGB: Boolean) {
         GFX.check()
         blendMode.use(BlendMode.DST_ALPHA) {
             val depthModeI = if (supportsClipControl) DepthMode.ALWAYS
@@ -100,6 +103,7 @@ object Blitting {
             depthMode.use(depthModeI) {
                 val shader = if (samples > 1) copyShaderMS else copyShader
                 shader.use()
+                shader.v1b("sRGB", isSRGB)
                 shader.v1i("samples", samples)
                 shader.v1f("alpha", 1f)
                 SimpleBuffer.flat01.draw(shader)

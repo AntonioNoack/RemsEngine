@@ -36,6 +36,7 @@ class Framebuffer3D(
     override val numTextures = 1
     override var depthTexture: Texture3D? = null
     override val depthMask: Int get() = 0
+    override var isSRGBMask: Int = 0
 
     lateinit var textures: List<Texture3D>
 

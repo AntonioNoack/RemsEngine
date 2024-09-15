@@ -161,7 +161,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
                 val newTex = Texture2D(srcFile.name, w, h, 1)
                 newTex.create(TargetType.UInt8x4)
                 useFrame(newTex) {
-                    Blitting.copy(tex)
+                    Blitting.copy(tex, true)
                 }
                 callback.ok(newTex)
             }

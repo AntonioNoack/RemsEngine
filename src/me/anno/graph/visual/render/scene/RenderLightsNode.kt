@@ -176,7 +176,7 @@ class RenderLightsNode : RenderViewNode(
         timeRendering(name, timer) {
             useFrame(width, height, true, framebuffer, copyRenderer) {
                 val stage = pipeline.lightStage
-                Blitting.copyColorAndDepth(blackTexture, depthT, depthM)
+                Blitting.copyColorAndDepth(blackTexture, depthT, depthM, false)
                 stage.bind {
                     stage.draw(
                         pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,

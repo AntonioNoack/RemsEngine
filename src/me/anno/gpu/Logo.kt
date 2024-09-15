@@ -76,7 +76,7 @@ object Logo {
                     success = drawLogo(shader)
                 }
                 useFrame(NullFramebuffer) {
-                    Blitting.copy(frame)
+                    Blitting.copy(frame, true)
                 }
             } else drawLogo(shader)
         }

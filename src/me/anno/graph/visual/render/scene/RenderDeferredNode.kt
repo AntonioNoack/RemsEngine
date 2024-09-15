@@ -321,7 +321,7 @@ open class RenderDeferredNode : RenderViewNode(
         val prepassDepth = prepassDepthT.texOrNull
         if (prepassDepth != null) {
             GFXState.useFrame(framebuffer, Renderer.copyRenderer) {
-                Blitting.copyColorAndDepth(blackTexture, prepassDepth, prepassDepthT.mask1Index)
+                Blitting.copyColorAndDepth(blackTexture, prepassDepth, prepassDepthT.mask1Index, false)
             }
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS

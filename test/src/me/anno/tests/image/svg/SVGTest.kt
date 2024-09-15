@@ -80,7 +80,7 @@ fun main() {
                     }
                 }
 
-                Blitting.copy(msaaBuffer)
+                Blitting.copy(msaaBuffer, true)
             }
         }
     }

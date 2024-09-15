@@ -20,7 +20,7 @@ class FXAANode : TimedRenderingNode(
 ) {
 
     init {
-        setInput(1, 1e-5f) // threshold
+        setInput(1, 0.1f) // threshold
     }
 
     override fun executeAction() {

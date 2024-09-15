@@ -56,7 +56,7 @@ abstract class FrameGenOutputNode<PerViewData : ICacheData>(
         data0.resize(width, height, targetType)
         useFrame(data0) {
             val srcTex = (getInput(srcI) as? Texture).texOrNull ?: defaultTex
-            Blitting.copyNoAlpha(srcTex)
+            Blitting.copyNoAlpha(srcTex, true)
         }
     }
 

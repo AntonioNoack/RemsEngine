@@ -1,6 +1,5 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.Build
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
@@ -27,7 +26,8 @@ object FBStack : CacheSection("FBStack") {
         var nextIndex = 0
         val data = ArrayList<IFramebuffer>()
 
-        val targetTypes = if (readDepth && !GFX.supportsDepthTextures) {
+        val hasExtraDepthBuffer get() = readDepth && !GFX.supportsDepthTextures
+        val targetTypes = if (hasExtraDepthBuffer) {
             targetTypes + TargetType.Float16x1
         } else targetTypes
 
@@ -42,7 +42,7 @@ object FBStack : CacheSection("FBStack") {
         }
 
         fun getFrame(name: String): IFramebuffer {
-            return if (nextIndex >= data.size) {
+            val result = if (nextIndex >= data.size) {
                 val depthBufferType = if (writeDepth) {
                     if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE
                     else DepthBufferType.INTERNAL
@@ -53,17 +53,17 @@ object FBStack : CacheSection("FBStack") {
                     depthBufferType
                 )
                 data.add(framebuffer)
-                if (readDepth && !GFX.supportsDepthTextures) {
+                if (hasExtraDepthBuffer) {
                     framebuffer.ensure() // ensure textures
                     // link depth texture to make things easier
                     when (framebuffer) {
                         is MultiFramebuffer -> {
                             framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
-                            framebuffer.depthMask = 0 // todo is this correct???
+                            framebuffer.depthMask = 0
                         }
                         is Framebuffer -> {
                             framebuffer.depthTexture = framebuffer.textures!!.last()
-                            framebuffer.depthMask = 0 // todo is this correct???
+                            framebuffer.depthMask = 0
                         }
                     }
                 }
@@ -71,12 +71,12 @@ object FBStack : CacheSection("FBStack") {
                 data.last()
             } else {
                 val framebuffer = data[nextIndex++]
-                if (Build.isDebug) when (framebuffer) {
-                    is Framebuffer -> framebuffer.name = name
-                    is MultiFramebuffer -> framebuffer.name = name
-                }
+                framebuffer.name = name
                 framebuffer
             }
+            // reset isSRGB-mask
+            result.isSRGBMask = 0
+            return result
         }
 
         abstract fun printDestroyed(size: Int)

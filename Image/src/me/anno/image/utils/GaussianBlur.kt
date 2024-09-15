@@ -169,7 +169,7 @@ object GaussianBlur {
                     // temp2.clearColor(0, true)
                     // draw texture 0 (masked) onto temp2
                     // todo sample multiple times...
-                    Blitting.copy()
+                    Blitting.copy(1, true)
                     temp2.bindTrulyNearest(0)
                 }
             }

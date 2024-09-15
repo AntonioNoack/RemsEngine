@@ -64,11 +64,6 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             } else GameEngineProject(location)
         }
 
-        fun getSaveFile(parent: FileReference, name: String): FileReference {
-            val extension = encoding.extension
-            return parent.getChild("$name.$extension")
-        }
-
         fun save(file: FileReference, value: Saveable) {
             return save(file, listOf(value))
         }
@@ -108,7 +103,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         dependencyIndex[file] = dependencies
     }
 
-    fun filesWhichDependOn(file: FileReference): Set<FileReference> {
+    fun findDependencies(file: FileReference): Set<FileReference> {
         return dependencyIndex.filterValues { dependencies ->
             dependencies.any { dependency -> dependency.isSameOrSubFolderOf(file) }
         }.keys

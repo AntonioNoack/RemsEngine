@@ -726,7 +726,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     // done place it where the preview was drawn
                     val world = renderView.getWorld() as? Entity
                     var root = EditorState.selection.firstInstanceOrNull(Entity::class) ?: world
-                    while (root != null && root != world && root.prefab?.find(root.prefabPath)
+                    while (root != null && root != world && root.prefab?.findCAdd(root.prefabPath)
                             .run { this == null || this.prefab != InvalidRef }
                     ) {
                         root = root.parent as? Entity ?: world

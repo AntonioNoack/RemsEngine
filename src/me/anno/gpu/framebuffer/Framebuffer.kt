@@ -105,6 +105,7 @@ class Framebuffer(
 
     var needsBlit = -1
 
+    override var isSRGBMask = 0
     val withMultisampling get() = samples > 1
 
     /**
@@ -369,6 +370,7 @@ class Framebuffer(
                 while (remainingMask != 0) {
                     // find next to-process index
                     val i = remainingMask.countTrailingZeroBits()
+                    val isSRGB = isSRGBMask.hasFlag(1 shl i)
                     remainingMask = remainingMask.withoutFlag(1 shl i)
 
                     // execute blit
@@ -377,12 +379,12 @@ class Framebuffer(
                     if (needsToCopyDepth && depthTexture != null) {
                         needsToCopyDepth = false
                         useFrame(dstColor, dstFramebuffer) {
-                            Blitting.copyColorAndDepth(srcColor, depthTexture, depthMask)
+                            Blitting.copyColorAndDepth(srcColor, depthTexture, depthMask, isSRGB)
                             GFX.check()
                         }
                     } else {
                         useFrame(dstColor) {
-                            Blitting.copy(srcColor)
+                            Blitting.copy(srcColor, isSRGB)
                             GFX.check()
                         }
                     }
@@ -390,7 +392,7 @@ class Framebuffer(
                 // execute depth blit
                 if (needsToCopyDepth && depthTexture != null) {
                     useFrame(null, dstFramebuffer) {
-                        Blitting.copyColorAndDepth(TextureLib.blackTexture, depthTexture, depthMask)
+                        Blitting.copyColorAndDepth(TextureLib.blackTexture, depthTexture, depthMask, false)
                         GFX.check()
                     }
                 }

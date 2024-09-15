@@ -26,17 +26,24 @@ object FlatShaders {
             Variable(GLSLType.S2DMS, "tex"),
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V1I, "samples"),
+            Variable(GLSLType.V1B, "sRGB"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main() {\n" +
                 "   vec4 sum = vec4(0.0);\n" +
                 "   ivec2 uvi = ivec2(vec2(textureSize(tex)) * uv);\n" +
-                "   for(int i=0;i<samples;i++) sum += texelFetch(tex, uvi, i);\n" +
-                "   result = (alpha / float(samples)) * sum;\n" +
+                "   for(int i=0;i<samples;i++) {\n" +
+                "       vec4 color = texelFetch(tex, uvi, i);\n" +
+                "       sum += sRGB ? vec4(color.rgb * color.rgb, color.a) : color;\n" +
+                "   }\n" +
+                "   float invSamples = 1.0 / float(samples);\n" +
+                "   if(sRGB) { sum.rgb = sqrt(max(sum.rgb * invSamples,vec3(0.0))); }\n" +
+                "   result = (sRGB ? alpha : alpha * invSamples) * sum;\n" +
                 "}"
     )
 
     /**
-     * blit-like shader without any stupid OpenGL constraints like size or format
+     * blit-like shader without any stupid OpenGL constraints like size or format;
+     * copies color and depth
      * */
     val copyShaderAnyToAny = LazyList(16) {
         val colorMS = it.hasFlag(8)
@@ -47,6 +54,7 @@ object FlatShaders {
                 Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
                 Variable(if (depthMS) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1B, "monochrome"),
+                Variable(GLSLType.V1B, "sRGB"),
                 Variable(GLSLType.V1I, "colorSamples"),
                 Variable(GLSLType.V1I, "depthSamples"),
                 Variable(GLSLType.V1I, "targetSamples"),
@@ -59,10 +67,13 @@ object FlatShaders {
                             "       vec4 sum = vec4(0.0);\n" +
                             "       int ctr = 0;\n" +
                             "       for(int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
-                            "           sum += texelFetch(colorTex, uvi, i);\n" +
+                            "           vec4 color = texelFetch(colorTex, uvi, i);\n" +
+                            "           sum += sRGB ? vec4(color.rgb * color.rgb, color.a) : color;\n" +
                             "           ctr++;\n" +
                             "       }\n" +
-                            "       return sum / float(ctr);\n" +
+                            "       sum *= 1.0 / float(ctr);\n" +
+                            "       if(sRGB) { sum.rgb = sqrt(max(sum.rgb,vec3(0.0))); }\n" +
+                            "       return sum;\n" +
                             "   } else if(srcSamples == targetSamples){\n" +
                             "       return texelFetch(colorTex, uvi, gl_SampleID);\n" +
                             "   } else {\n" +

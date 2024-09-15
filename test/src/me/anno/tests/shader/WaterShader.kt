@@ -103,7 +103,7 @@ object WaterShader : ECSMeshShader("Water") {
             val tmp = FBStack["waterDepth", depthTex.width, depthTex.height, 1, true, 1, DepthBufferType.NONE]
             useFrame(tmp) {
                 renderPurely {
-                    Blitting.copyNoAlpha(depthTex)
+                    Blitting.copyNoAlpha(depthTex, false)
                 }
             }
             depthTex = tmp.getTexture0()

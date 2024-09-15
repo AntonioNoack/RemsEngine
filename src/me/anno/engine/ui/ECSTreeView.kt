@@ -346,7 +346,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             val prefab = element.prefab
             val path = element.prefabPath
             if (prefab != null && path != Path.ROOT_PATH) {
-                val add = prefab.find(path)
+                val add = prefab.findCAdd(path)
                 val isOurs = add != null && add.prefab == InvalidRef
                 if (!isOurs) {
                     val isPrefab = add != null
@@ -478,6 +478,10 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             // todo more options:
             //  undo all deletions
             //  duplicate
+            // todo flatten hierarchy-option:
+            //   - only keep entities with children
+            //   - if only one remains, use that
+            //   - if there is only one component and no transform, place that at root?
             val extraOptions = listOf(
                 ComplexMenuOption(NameDesc("Reset all changes"), prefab != null) {
                     LogManager.enableLogger("Hierarchy")

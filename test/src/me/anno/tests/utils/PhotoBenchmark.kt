@@ -78,7 +78,7 @@ fun main() {
             val scaledDown = FBStack["scaled", sw, sh, 3, false, 1, DepthBufferType.NONE]
             useFrame(scaledDown) {
                 source.bind(0, filtering, Clamping.CLAMP)
-                Blitting.copy()
+                Blitting.copy(1, true)
             }
             if (useFSR) {
                 useFrame(reconstructed) {
@@ -88,7 +88,7 @@ fun main() {
                         flipY = true, applyToneMapping = false, withAlpha = false
                     )
                     scaledDown.bindTexture0(0, filtering, Clamping.CLAMP)
-                    Blitting.copy()
+                    Blitting.copy(1, true)
                 }
             }
             useFrame(difference) {

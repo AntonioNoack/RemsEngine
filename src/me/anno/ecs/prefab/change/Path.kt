@@ -82,12 +82,20 @@ class Path(
     fun subList(startIndex: Int): Path {
         // go to that index, and then copy the hierarchy
         var ret = ROOT_PATH
-        fromRootToThis(false) { index, path ->
+        fromRootToThis(false) { index, node ->
             if (index >= startIndex) {
-                ret = Path(ret, path.nameId, path.index, path.type)
+                ret = Path(ret, node.nameId, node.index, node.type)
             }
         }
         return ret
+    }
+
+    fun getHead(): Path {
+        return appendHeadOnto(ROOT_PATH)
+    }
+
+    fun appendHeadOnto(parent: Path): Path {
+        return Path(parent, nameId, index, type)
     }
 
     fun getNameIds() = accumulate { it.nameId }

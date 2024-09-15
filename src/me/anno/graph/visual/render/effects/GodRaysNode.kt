@@ -4,7 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -39,13 +40,6 @@ class GodRaysNode : TimedRenderingNode(
         setInput(4, Vector2f(0f, 0.1f))
     }
 
-    private val framebuffer = Framebuffer(name, 1, 1, TargetType.Float16x3)
-
-    override fun destroy() {
-        super.destroy()
-        framebuffer.destroy()
-    }
-
     override fun executeAction() {
 
         val samples = clamp(getIntInput(1), 1, GFX.maxSamples)
@@ -56,6 +50,11 @@ class GodRaysNode : TimedRenderingNode(
         val depth = (getInput(6) as? Texture).texOrNull ?: return
 
         timeRendering(name, timer) {
+            val framebuffer = FBStack[
+                name, color.width, color.height, if (color.isHDR) TargetType.Float16x3 else TargetType.UInt8x3,
+                samples, DepthBufferType.NONE
+            ]
+            framebuffer.isSRGBMask = 1
             useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
                 val shader = shader
                 shader.use()

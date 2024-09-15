@@ -100,16 +100,16 @@ fun testCopyColorToDepth() {
             useFrame(depthDst) {
                 depthDst.clearColor(0, true)
                 if (!Input.isAltDown) {
-                    Blitting.copyColorAndDepth(whiteTexture, depthSrc, 0)
+                    Blitting.copyColorAndDepth(whiteTexture, depthSrc, 0, false)
                 }
             }
             drawDepthTexture(it.x, it.y + h, w, -h, depthDst.depthTexture!!)
             useFrame(colorDst) {
                 colorDst.clearColor(0, false)
                 if (Input.isShiftDown) {
-                    Blitting.copy(depthDst.depthTexture!!)
+                    Blitting.copy(depthDst.depthTexture!!, false)
                 } else if (!Input.isControlDown) {
-                    Blitting.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0)
+                    Blitting.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0, false)
                 }
             }
             drawTexture(it.x + w, it.y, w, h, colorDst.getTexture0())
@@ -570,7 +570,7 @@ fun computeRasterizer() {
                 listOf(TargetType.Float32x1), 1, DepthBufferType.NONE
             ]
             useFrame(depthAsColor) {
-                Blitting.copy(target.depthTexture!!)
+                Blitting.copy(target.depthTexture!!, false)
             }
             return depthAsColor.getTexture0() as Texture2D
         }
@@ -579,7 +579,7 @@ fun computeRasterizer() {
             // copy depth from writable depth
             // disable all colors being written
             useFrame(null, target) {
-                Blitting.copyColorAndDepth(blackTexture, depthAsColor, 0) // is 0 as mask correct???
+                Blitting.copyColorAndDepth(blackTexture, depthAsColor, 0, false) // is 0 as mask correct???
             }
         }
 

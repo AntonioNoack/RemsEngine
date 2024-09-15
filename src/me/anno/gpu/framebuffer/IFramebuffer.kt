@@ -27,7 +27,7 @@ import org.lwjgl.opengl.GL46C.glClearStencil
 
 interface IFramebuffer {
 
-    val name: String
+    var name: String
 
     val pointer: Int
 
@@ -37,6 +37,8 @@ interface IFramebuffer {
     val samples: Int
 
     val numTextures: Int
+
+    var isSRGBMask: Int // 32 layers should be enough for any buffer...
 
     fun ensure()
     fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int)

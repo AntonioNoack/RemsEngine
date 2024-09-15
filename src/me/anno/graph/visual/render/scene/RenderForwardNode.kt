@@ -113,10 +113,13 @@ class RenderForwardNode : RenderViewNode(
         prepassDepth: ITexture2D?, prepassDepthM: Int
     ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            Blitting.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthM)
+            Blitting.copyColorAndDepth(
+                prepassColor ?: blackTexture, prepassDepth, prepassDepthM,
+                prepassColor != null
+            )
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
-            Blitting.copy(prepassColor)
+            Blitting.copy(prepassColor, true)
         } else {
             framebuffer.clearColor(0, depth = true)
         }

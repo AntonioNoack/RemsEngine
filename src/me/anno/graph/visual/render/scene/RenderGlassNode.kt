@@ -95,10 +95,13 @@ class RenderGlassNode : RenderViewNode(
         prepassDepth: ITexture2D?, prepassDepthMask: Int
     ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            Blitting.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthMask)
+            Blitting.copyColorAndDepth(
+                prepassColor ?: blackTexture, prepassDepth, prepassDepthMask,
+                prepassColor != null
+            )
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
-            Blitting.copy(prepassColor)
+            Blitting.copy(prepassColor, true)
         } else {
             framebuffer.clearColor(0, depth = true)
         }

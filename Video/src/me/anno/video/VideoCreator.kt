@@ -334,7 +334,7 @@ open class VideoCreator(
                 getNextFrame { texture0, _ ->
                     val texture = texture0 ?: blackTexture
                     useFrame(fb) {
-                        Blitting.copyNoAlpha(texture)
+                        Blitting.copyNoAlpha(texture, texture0 != null)
                     }
                     creator.writeFrame(fb, frameCount) {
                         if (++frameCount <= numFrames) {

@@ -92,9 +92,9 @@ class SSRNode : TimedRenderingNode(
     private fun mixResult(width: Int, height: Int, illumMT: ITexture2D, result0: IFramebuffer): IFramebuffer {
         val result1 = FBStack["ssr-result", width, height, 3, true, illumMT.samples, DepthBufferType.NONE]
         useFrame(result1) {
-            Blitting.copy(illumMT)
+            Blitting.copy(illumMT, true)
             GFXState.blendMode.use(BlendMode.DEFAULT) {
-                Blitting.copy(result0)
+                Blitting.copy(result0, true)
             }
         }
         return result1

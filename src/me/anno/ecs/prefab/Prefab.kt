@@ -47,6 +47,10 @@ class Prefab : Saveable {
 
     val addCounts = CountMap<Pair<Char, Path>>()
     val adds = HashMap<Path, ArrayList<CAdd>>()
+
+    /**
+     * to detect duplicates
+     * */
     val addedPaths: HashSet<Pair<Path, String>>? = if (Build.isShipped) null else HashSet()
 
     val sets = KeyPairMap<Path, String, Any?>(256)
@@ -70,10 +74,31 @@ class Prefab : Saveable {
     val isValid: Boolean
         get() = _sampleInstance != null
 
-    fun find(path: Path): CAdd? {
+    fun findCAdd(path: Path): CAdd? {
         return adds[path.parent]?.firstOrNull {
             it.nameId == path.nameId
         }
+    }
+
+    fun findPrefabSourceRecursively(path: Path): FileReference? {
+        return findPrefabSourceRecursively(path, ROOT_PATH)
+    }
+
+    fun findPrefabSourceRecursively(path: Path, subPath: Path): FileReference? {
+        val byThis = findCAdd(path)
+        if (byThis != null) {
+            // find subPath != ROOT, go down that prefab
+            if (subPath != ROOT_PATH) {
+                val prefab1 = PrefabCache[byThis.prefab]
+                if (prefab1 != null) {
+                    return prefab1.findPrefabSourceRecursively(subPath, ROOT_PATH)
+                }
+            }
+            return byThis.prefab
+        }
+        // look into parent
+        val parentPath = path.parent ?: return null
+        return findPrefabSourceRecursively(parentPath, path.getHead() + subPath)
     }
 
     fun invalidateInstance() {
@@ -351,6 +376,23 @@ class Prefab : Saveable {
         }
     }
 
+    fun replaceReferences(src: FileReference, dst: FileReference) {
+        if (prefab == src) prefab = dst
+        for ((_, adds) in adds) {
+            for (i in adds.indices) {
+                val add = adds[i]
+                if (add.prefab == src) {
+                    add.prefab = dst
+                }
+            }
+        }
+        sets.replaceValues { _, _, v ->
+            if (v == src) dst else v
+        }
+        // execute this?
+        invalidateInstance()
+    }
+
     private fun createNewInstance(depth: Int): PrefabSaveable {
         val adds = adds
         val superPrefab = prefab
@@ -406,8 +448,10 @@ class Prefab : Saveable {
         get() {
             val result = HashSet<FileReference>()
             result.add(prefab)
-            sets.forEach { _, _, v ->
-                if (v is FileReference) result.add(v)
+            sets.forEach { _, _, value ->
+                if (value is FileReference) {
+                    result.add(value)
+                }
             }
             for (adds2 in adds.values) {
                 for (add in adds2) {

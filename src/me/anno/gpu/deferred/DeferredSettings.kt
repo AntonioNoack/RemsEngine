@@ -27,6 +27,8 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     val storageLayers: List<DeferredLayer>
     val emptySlots: List<EmptySlot>
 
+    var isSRGBMask = 0
+
     init {
 
         semanticLayers = ArrayList()
@@ -47,6 +49,11 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             val startIndex = 4 - layerRemaining[layerIndex]
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
             val semanticLayer = SemanticLayer(layerType, "defLayer$layerIndex", layerIndex, mapping)
+            when (layerType) { // mark this layer as sRGB
+                DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE, DeferredLayerType.COLOR_EMISSIVE -> {
+                    isSRGBMask = isSRGBMask or (1 shl layerIndex)
+                }
+            }
             semanticLayers.add(semanticLayer)
             layerRemaining[layerIndex] -= dimensions
             usedTextures0 = max(usedTextures0, layerIndex)
@@ -96,12 +103,16 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     fun createBaseBuffer(name: String, samples: Int): IFramebuffer {
         val depthBufferType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
-        return IFramebuffer.createFramebuffer(name, 1, 1, samples, targetTypes, depthBufferType)
+        val fb = IFramebuffer.createFramebuffer(name, 1, 1, samples, targetTypes, depthBufferType)
+        fb.isSRGBMask = isSRGBMask
+        return fb
     }
 
     fun getBaseBufferFBStack(name: String, width: Int, height: Int, samples: Int): IFramebuffer {
         val depthBufferType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
-        return FBStack[name, width, height, targetTypes, samples, depthBufferType]
+        val fb = FBStack[name, width, height, targetTypes, samples, depthBufferType]
+        fb.isSRGBMask = isSRGBMask
+        return fb
     }
 
     fun createShader(

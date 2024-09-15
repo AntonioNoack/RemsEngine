@@ -151,7 +151,7 @@ abstract class VideoBackgroundTask(
                         blendMode.use(BlendMode.PURE_ADD) {
                             depthMode.use(alwaysDepthMode) {
                                 // write with alpha 1/motionBlurSteps
-                                Blitting.copy(1f / motionBlurSteps)
+                                Blitting.copy(1f / motionBlurSteps, 1, true)
                             }
                         }
                     }

@@ -1,6 +1,5 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.change.Path
@@ -29,6 +28,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
@@ -168,23 +168,35 @@ class PrefabInspector(var reference: FileReference) {
             instance.ensurePrefab()
         }
 
-        val pathInformation = instances.joinToString("\n\n") {
-            "" +
-                    "${it.className}@${hash32(it)}\n" +
-                    "Path: ${it.prefabPath.toString(", ")}\n" +
-                    "PathHash: ${hex32(it.prefabPath.hashCode())}"
+        // find where an object is coming from within a prefab, and open that file
+        val prefabSources = instances.map {
+            // todo test this
+            prefab.findPrefabSourceRecursively(it.prefabPath)
+                ?.nullIfUndefined()
         }
+        val pathInformation = instances.indices
+            .joinToString("\n\n") { idx ->
+                val it = instances[idx]
+                val prefabSrc = prefabSources[idx]
+                val base = "" +
+                        "${it.className}@${hash32(it)}\n" +
+                        "Path: ${it.prefabPath.toString(", ")}\n" +
+                        "PathHash: ${hex32(it.prefabPath.hashCode())}"
+                if (prefabSrc != null && prefabSrc != InvalidRef) {
+                    "$base\nPrefab: ${prefabSrc.toLocalPath()}"
+                } else base
+            }
         list += TextPanel(pathInformation, style)
 
-        // todo find where an object is coming from within a prefab, and open that file
-        if (false) {
+        val prefabSource = prefabSources.firstNotNullOfOrNull { it }
+        if (prefabSource != null && prefabSource.exists) {
             list += TextButton(NameDesc("Open Prefab"), style)
                 .addLeftClickListener {
-                    val src = instances.first().prefab?.source
-                    if (src?.exists == true) {
-                        ECSSceneTabs.open(src, PlayMode.EDITING, true)
-                    }
+                    ECSSceneTabs.open(prefabSource, PlayMode.EDITING, true)
+                }.apply {
+                    alignmentX = AxisAlignment.MIN
                 }
+            list += SpacerPanel(1, 4, style).makeBackgroundTransparent()
         }
 
         val isWritable = prefab.isWritable

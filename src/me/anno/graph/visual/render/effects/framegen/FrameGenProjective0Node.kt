@@ -82,7 +82,7 @@ abstract class FrameGenProjective0Node(name: String) : FrameGenOutputNode<FrameG
         fun fillColor(data0: Texture2D, width: Int, height: Int, colorSrc0: Texture?) {
             data0.resize(width, height, TargetType.UInt8x3)
             useFrame(data0) {
-                Blitting.copyNoAlpha(colorSrc0.texOrNull ?: whiteTexture)
+                Blitting.copyNoAlpha(colorSrc0.texOrNull ?: whiteTexture, true)
             }
         }
 

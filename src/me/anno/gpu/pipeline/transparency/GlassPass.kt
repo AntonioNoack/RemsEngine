@@ -170,7 +170,7 @@ class GlassPass : TransparentPass() {
         // because we have refraction, we no longer copy 1:1, so we need a backup
         val copy = FBStack["glass-copy", old.width, old.height, 3, true, old.samples, DepthBufferType.NONE]
         useFrame(copy) {
-            Blitting.copy(old)
+            Blitting.copy(old, false)
         }
 
         renderPurely2 {
