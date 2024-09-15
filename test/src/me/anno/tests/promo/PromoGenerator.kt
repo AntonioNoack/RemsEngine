@@ -5,10 +5,12 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.Events.addEvent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
@@ -18,7 +20,9 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.TextureCache
 import me.anno.graph.visual.render.effects.FSR2Node
+import me.anno.io.files.Reference.getReference
 import me.anno.sdf.shapes.SDFHyperBBox
 import me.anno.tests.LOGGER
 import me.anno.tests.shader.Snow.snowRenderMode
@@ -28,21 +32,25 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
+import me.anno.utils.OS.res
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Floats.toRadians
+import kotlin.math.tan
 
-// todo: create a list of all visual effects, including images, so we can show them off a bit :)
+// create a list of all visual effects, including images, so we can show them off a bit :)
+// -> https://remsengine.phychi.com/?s=learn/rendermodes
 
-// todo: create list of most samples with images
+// create list of most samples with images
 //  - start a sample,
 //  - set camera angle / parameters right
 //  - take a screenshot
 //  - save it with appropriate name
 
-// todo: run these samples on the web/with a space-optimized engine build
+// to do: run these samples on the web/with a space-optimized engine build
+// -> good enough: https://remsengine.phychi.com/?s=learn/rendermodes
 
-val width = 500
-val height = 400
+val width = 1200
+val height = 800
 
 val sceneView by lazy {
     SceneView(PlayMode.EDITING, style)
@@ -57,7 +65,7 @@ fun main() {
     // ensure they're registered
     snowRenderMode.renderer
     rainRenderMode.renderer
-    val scene = Entity().setPosition(-0.6, 0.0, 0.0)
+    val scene = Entity().setPosition(-0.6, -0.15, 0.0)
     scene.add(MeshComponent(downloads.getChild("3d/DamagedHelmet.glb")))
     scene.add(
         Entity()
@@ -77,12 +85,29 @@ fun main() {
                     .rotateZ((-33f).toRadians())
             })
     )
+    // add glass object to scene, so we have something with opacity != 1
+    scene.add(
+        Entity()
+            .setPosition(0.7, -0.2, 1.0)
+            .setScale(0.2)
+            .add(
+                MeshComponent(
+                    IcosahedronModel.createIcosphere(2).ref,
+                    getReference("materials/Glass.json")
+                )
+            )
+
+    )
     EditorState.prefabSource = scene.ref
     EditorState.select(scene)
     dst.tryMkdirs()
 
-    sceneView.renderView.radius = 1.5
+    val fov = 10f
+    sceneView.renderView.radius = 1.0 / tan(fov.toRadians() * 0.5)
     sceneView.editControls.rotationTargetDegrees.set(-17.9, 58.3, 0.0)
+    addEvent {
+        (sceneView.editControls as DraggingControls).settings.fovY = fov
+    }
 
     val renderModes = ArrayList(RenderMode.values.filter {
         it != RenderMode.GHOSTING_DEBUG && it != RenderMode.RAY_TEST
@@ -92,15 +117,13 @@ fun main() {
         val mode = renderModes.removeLastOrNull()
         if (mode != null) {
             RenderState.viewIndex = 2 // use different slot to use different FBs
-            val renderView = sceneView.renderView
-            renderView.setPosSize(0, 0, width, height)
             renderScene(mode)
             RenderState.viewIndex = 0
             addEvent(1, ::renderNextImage)
         } else Engine.requestShutdown()
     }
 
-    addEvent(3_000) {
+ if(false)   addEvent(3_000) {
         renderNextImage()
     }
     testUI3("PromoGenerator", sceneView)
@@ -110,12 +133,20 @@ fun renderScene(renderMode: RenderMode) {
     LOGGER.info("Rendering ${renderMode.nameDesc.englishName}")
     FBStack.reset()
 
-    // todo why is only one FrameGen method working???
-    // todo why is deferred MSAA not showing up???
-    sceneView.renderView.renderMode = renderMode
-    val times = if (sceneView.renderView.usesFrameGen() ||
+    // to do why are some images randomly just orange???
+    val renderView = sceneView.renderView
+    renderView.setPosSize(0, 0, width, height)
+    renderView.renderMode = renderMode
+    renderView.renderSize.resize(width, height, Time.nanoTime)
+    val times = if (renderView.usesFrameGen() ||
         renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true
     ) 50 else 1
+
+    if (renderMode == RenderMode.UV) {
+        // ensure UVs texture is valid
+        TextureCache[res.getChild("textures/UVChecker.png"), false]
+    }
+
     for (i in 0 until times) {
         useFrame(framebuffer) {
             framebuffer.clearColor(UIColors.midOrange)
@@ -127,6 +158,6 @@ fun renderScene(renderMode: RenderMode) {
     LOGGER.info("Finished rendering ${renderMode.nameDesc.englishName}")
     framebuffer.getTexture0()
         .createImage(flipY = true, withAlpha = false)
-        .write(dst.getChild("${renderMode.nameDesc.englishName.toAllowedFilename()}.png"))
+        .write(dst.getChild("${renderMode.nameDesc.englishName.toAllowedFilename()}.webp"))
     LOGGER.info("Finished saving ${renderMode.nameDesc.englishName}")
 }

@@ -70,6 +70,7 @@ import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.min
+import kotlin.math.tan
 
 /**
  * Helpers to draw debug information onto RenderView
@@ -389,7 +390,7 @@ object DebugRendering {
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {
         val camPosition = view.cameraPosition
         val worldScale = view.worldScale
-        val d = p.distance(view.cameraPosition) * 0.01
+        val d = p.distance(view.cameraPosition) * 0.03 * tan(view.fovYRadians * 0.5)
         LineBuffer.putRelativeLine(
             p.x - d, p.y, p.z, p.x + d, p.y, p.z,
             camPosition, worldScale, color

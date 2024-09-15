@@ -13,6 +13,7 @@ import me.anno.io.files.FileRootRef
 import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes
+import me.anno.utils.Color.white
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS.res
 import org.joml.Vector2f
@@ -54,9 +55,8 @@ object DefaultAssets {
         register("materials/Default.json", "Material", defaultMaterial.ref)
         register("materials/Mirror.json", "Material", Material.metallic(-1, 0f).ref)
         register("materials/Golden.json", "Material", Material.metallic(0xf5ba6c, 0.2f).ref)
-        val glass = Material()
+        val glass = Material.metallic(white, 0f)
         glass.diffuseBase.w = 0.5f
-        glass.roughnessMinMax.set(0f)
         glass.pipelineStage = PipelineStage.TRANSPARENT
         register("materials/Glass.json", "Material", glass.ref)
         register("materials/Black.json", "Material", Material.diffuse(0).ref)

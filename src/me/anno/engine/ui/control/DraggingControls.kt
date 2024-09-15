@@ -281,7 +281,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
         var newGizmoMask = 0
         val pos = JomlPools.vec3d.create()
-        val scale = renderView.radius * 0.15
+        val scale = renderView.radius * tan(camera.fovY.toRadians() * 0.5) * 0.2
         val cam = renderView.cameraMatrix
         val pip = renderView.pipeline
         for (selected in instancesToTransform) {

@@ -145,7 +145,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         // right mouse key down -> move the camera
         var speed = -settings.turnSpeed * 500f / Maths.max(windowStack.height, height)
         if (camera.isPerspective) {
-            speed *= atan(camera.fovY.toRadians())
+            speed *= tan(0.5f * camera.fovY.toRadians())
         }
         rotateCamera(dy * speed, dx * speed, 0f)
     }
@@ -254,7 +254,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             val result = query.result
             val pos = result.positionWS
             val normal = result.geometryNormalWS.normalize(
-                0.05 * result.positionWS.distance(renderView.cameraPosition)
+                0.1 * result.positionWS.distance(renderView.cameraPosition) * tan(renderView.fovYRadians * 0.5)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
@@ -274,7 +274,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         val radius = view.radius
         var acceleration = factor * radius * settings.moveSpeed
         if (camera.isPerspective) {
-            acceleration *= atan(camera.fovY.toRadians())
+            acceleration *= tan(0.5f * camera.fovY.toRadians())
         }
         val shiftSpace = settings.enableShiftSpaceControls
         if (isSelected && !Input.isControlDown && (!Input.isShiftDown || shiftSpace) && !Input.isAltDown) {
