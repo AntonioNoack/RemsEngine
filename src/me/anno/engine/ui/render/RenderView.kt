@@ -29,6 +29,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
@@ -438,7 +439,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
             val clickedIdBGR = Screenshots.getClosestId(
                 diameter, ids, depths,
-                if (inverseDepth != GFX.supportsClipControl) -10 else +10
+                if (inverseDepth != supportsClipControl) -10 else +10
             )
             val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
             val clicked = if (clickedId == 0) null
@@ -489,7 +490,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         if (renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true) {
             fsr22.jitter(cameraMatrix, width, height)
         } else if (renderMode.renderGraph?.nodes?.any2 { it is TAANode } == true) {
-            TAANode.jitter(cameraMatrix, width, height)
+            TAANode.jitterAndStore(cameraMatrix, width, height)
         }
 
         if (!cameraMatrix.isFinite) {
@@ -553,31 +554,17 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         fovXCenter = 0.5f
         fovYCenter = 0.5f
         val sceneScaleXY = 1f / (worldScale * fov).toFloat()
-        val n: Float
-        val f: Float
-        val range01 = depthMode.reversedDepth
-        if (range01) {
-            // range is [0, 1]
-            n = scaledNear.toFloat()
-            f = scaledFar.toFloat()
-        } else {
-            // range is [-1, 1] instead of [0, 1]
-            n = scaledFar.toFloat()
-            f = scaledNear.toFloat()
-        }
+        val n = scaledNear.toFloat()
+        val f = scaledFar.toFloat()
         val sceneScaleZ = 1f / (f - n)
         val inverseDepth = inverseDepth
-        var m22 = if (inverseDepth) +sceneScaleZ else -sceneScaleZ
-        var z0 = if (inverseDepth) -f * sceneScaleZ else -n * sceneScaleZ
-        if (!range01) { // todo test this
-            m22 *= 2f
-            z0 = z0 * 2f - 1f
-        }
+        val m22 = 2f * if (inverseDepth) +sceneScaleZ else -sceneScaleZ
+        val z0 = if (inverseDepth) -f * sceneScaleZ else -n * sceneScaleZ
         cameraMatrix.set(
             height * sceneScaleXY / width, 0f, 0f, 0f,
             0f, sceneScaleXY, 0f, 0f,
             0f, 0f, m22, 0f,
-            0f, 0f, z0, 1f
+            0f, 0f, z0 * 2f - 1f, 1f
         )
     }
 
@@ -625,7 +612,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 RenderMode.INVERSE_DEPTH -> DepthMode.FAR
                 else -> DepthMode.CLOSE
             }
-            return if (GFX.supportsClipControl && isPerspective) base
+            return if (supportsClipControl && isPerspective) base
             else base.reversedMode
         }
 

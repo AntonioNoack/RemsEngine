@@ -77,16 +77,17 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         emptySlots = ArrayList(usedTextures0)
 
         for (layerIndex in 0 until usedTextures0) {
+            val empty = layerRemaining[layerIndex]
             val layer2 = DeferredLayer(
                 "defLayer$layerIndex", when (layerQualities[layerIndex]) {
-                    BufferQuality.UINT_8 -> TargetType.UInt8x4
-                    BufferQuality.UINT_16 -> TargetType.UInt16x4
-                    BufferQuality.FP_16 -> TargetType.Float16x4
-                    else -> TargetType.Float32x4
-                }
+                    BufferQuality.UINT_8 -> TargetType.UInt8xI
+                    BufferQuality.UINT_16 -> TargetType.UInt16xI
+                    BufferQuality.UINT_32 -> TargetType.UInt32xI
+                    BufferQuality.FP_16 -> TargetType.Float16xI
+                    BufferQuality.FP_32 -> TargetType.Float32xI
+                }[3 - empty]
             )
             storageLayers.add(layer2)
-            val empty = layerRemaining[layerIndex]
             if (empty > 0) {
                 val mask = when (layerRemaining[layerIndex]) {
                     1 -> "a"

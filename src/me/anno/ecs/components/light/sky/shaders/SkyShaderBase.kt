@@ -53,8 +53,8 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                     Variable(GLSLType.V2F, "uv", VariableMode.OUT)
                 ),
                 defines +
-                        "localPosition = coords;\n" +
-                        "finalPosition = meshScale * localPosition;\n" +
+                        "localPosition = meshScale * coords;\n" +
+                        "finalPosition = localPosition;\n" +
                         "#ifdef COLORS\n" +
                         "   normal = -coords;\n" +
                         "#endif\n" +

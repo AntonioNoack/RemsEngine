@@ -10,19 +10,25 @@ import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_R16
 import org.lwjgl.opengl.GL46C.GL_R16F
 import org.lwjgl.opengl.GL46C.GL_R32F
+import org.lwjgl.opengl.GL46C.GL_R32UI
 import org.lwjgl.opengl.GL46C.GL_R8
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RG
+import org.lwjgl.opengl.GL46C.GL_RG16
 import org.lwjgl.opengl.GL46C.GL_RG16F
 import org.lwjgl.opengl.GL46C.GL_RG32F
+import org.lwjgl.opengl.GL46C.GL_RG32UI
 import org.lwjgl.opengl.GL46C.GL_RG8
 import org.lwjgl.opengl.GL46C.GL_RGB
 import org.lwjgl.opengl.GL46C.GL_RGB32F
 import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_RGBA16
 import org.lwjgl.opengl.GL46C.GL_RGBA16F
 import org.lwjgl.opengl.GL46C.GL_RGBA32F
+import org.lwjgl.opengl.GL46C.GL_RGBA32UI
 import org.lwjgl.opengl.GL46C.GL_RGBA8
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
@@ -88,14 +94,15 @@ class TargetType(
         val DEPTH32 = TargetType("depth32", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 4, 1, false)
         val DEPTH32F = TargetType("depth32f", GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 4, 1, false)
 
-        val UInt16x1 = TargetType("u16x1", GL_R8, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
-        val UInt16x2 = TargetType("u16x2", GL_RG8, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
-        val UInt16x4 = TargetType("u16x4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
+        val UInt16x1 = TargetType("u16x1", GL_R16, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
+        val UInt16x2 = TargetType("u16x2", GL_RG16, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
+        val UInt16x4 = TargetType("u16x4", GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
         val UInt16xI = listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
 
-        val UInt32x1 = TargetType("u32x1", GL_RED, GL_RED, GL_UNSIGNED_INT, 4, 1, false)
-        val UInt32x2 = TargetType("u32x2", GL_RG, GL_RG, GL_UNSIGNED_INT, 8, 2, false)
-        val UInt32x4 = TargetType("u32x4", GL_RGBA, GL_RGBA, GL_UNSIGNED_INT, 16, 4, false)
+        // this is different from Uint8 and Uint16..., because it's expecting [0,4e9] instead of [0,1]
+        val UInt32x1 = TargetType("u32x1", GL_R32UI, GL_RED, GL_UNSIGNED_INT, 4, 1, false)
+        val UInt32x2 = TargetType("u32x2", GL_RG32UI, GL_RG, GL_UNSIGNED_INT, 8, 2, false)
+        val UInt32x4 = TargetType("u32x4", GL_RGBA32UI, GL_RGBA, GL_UNSIGNED_INT, 16, 4, false)
         val UInt32xI = listOf(UInt32x1, UInt32x2, UInt32x4, UInt32x4)
     }
 }

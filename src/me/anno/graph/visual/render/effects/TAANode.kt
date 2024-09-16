@@ -41,7 +41,7 @@ class TAANode : TimedRenderingNode(
     listOf("Texture", "Illuminated")
 ) {
 
-    val previous = LazyMap { _: Int ->
+    private val previous = LazyMap { _: Int ->
         Framebuffer("taa", 1, 1, 1, TargetType.UInt8x3, DepthBufferType.NONE)
     }
 
@@ -131,6 +131,7 @@ class TAANode : TimedRenderingNode(
                         "       base = mix(base,texture(colorTex0,uv2).rgb,vec3(f));\n" +
                         "   }\n" +
                         "   result = vec4(base,1.0);\n" +
+                        //"   result = vec4(f,f,f,1.0);\n" +
                         "}\n"
             )
         }
@@ -152,15 +153,30 @@ class TAANode : TimedRenderingNode(
             return pattern[posMod(Time.frameIndex + dt, pattern.size)]
         }
 
-        fun jitter(m: Matrix4f, pw: Int, ph: Int) {
+        fun jitterAndStore(m: Matrix4f, pw: Int, ph: Int) {
             val pattern = getPattern(0)
             val jx = pattern.x
             val jy = pattern.y
             // if the camera is moving, we don't need jitter
             val amplitude = 2f * getCameraSteadiness()
             views[RenderState.viewIndex].set(m)
-            m.m20(m.m20 + jx * amplitude / pw)
-            m.m21(m.m21 + jy * amplitude / ph)
+            jitter(m, jx, jy, amplitude, pw, ph)
+        }
+
+        fun jitter(m: Matrix4f, jx: Float, jy: Float, amplitude: Float, pw: Int, ph: Int) {
+            val dx = jx * amplitude / pw
+            val dy = jy * amplitude / ph
+            jitter(m, dx, dy)
+        }
+
+        fun jitter(m: Matrix4f, dx: Float, dy: Float) {
+            if (RenderState.isPerspective) {
+                m.m20(m.m20 + dx)
+                m.m21(m.m21 + dy)
+            } else {
+                m.m30(m.m30 - dx)
+                m.m31(m.m31 - dy)
+            }
         }
 
         fun unjitter(m: Matrix4f) {

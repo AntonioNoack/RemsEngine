@@ -14,6 +14,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
+import me.anno.graph.visual.render.effects.TAANode
 import me.anno.maths.Maths.posMod
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Matrix4f
@@ -145,8 +146,9 @@ class FSR2v2 : ICacheData {
         val renderSizeX = pw / scaleX
         val renderSizeY = ph / scaleY
         views[RenderState.viewIndex].tmpM.set(m)
-        m.m20(m.m20 + jx * 2f / renderSizeX)
-        m.m21(m.m21 + jy * 2f / renderSizeY)
+        val dx = jx * 2f / renderSizeX
+        val dy = jy * 2f / renderSizeY
+        TAANode.jitter(m, dx, dy)
     }
 
     fun unjitter(m: Matrix4f) {

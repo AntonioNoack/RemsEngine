@@ -47,7 +47,6 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
-import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
