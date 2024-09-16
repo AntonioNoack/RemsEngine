@@ -64,6 +64,12 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
     var stream = VideoStream(source, meta, playAudio, LoopingState.PLAY_ONCE, meta.videoFPS, -1)
         private set
 
+    init {
+        // set this to zero, so we don't request a size that we won't need
+        width = 0
+        height = 0
+    }
+
     private fun reload() {
         stream.destroy()
         val meta = MediaMetadata.getMeta(source, false)!!
@@ -82,6 +88,9 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
     }
 
     fun requestSize(w: Int, h: Int) {
+        // invalid dimensions can happen with weird layout, or before size is known
+        if (w <= 0 || h <= 0) return
+
         val oldMax = stream.maxSize
         stream.maxSize = min(
             max(meta.videoWidth, meta.videoHeight),
