@@ -12,11 +12,11 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 
-// todo configurable number of kept frames for Rem's Studio, so we can do blank-frame filtering and frame-interpolation
 open class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
     var playAudio: Boolean, var looping: LoopingState,
     val fps: Double, var maxSize: Int,
+    // configurable number of kept frames for Rem's Studio, so we can do blank-frame filtering and frame-interpolation
     val capacity: Int = 16,
 ) : ICacheData {
 
@@ -34,7 +34,7 @@ open class VideoStream(
     private var startTime = 0L
     private var standTime = 0L
 
-    val sortedFrames = ArrayList<Pair<Int, GPUFrame>>()
+    val sortedFrames = ArrayList<GPUFrame>()
     var lastRequestedFrame = 0
     val workerId = AtomicInteger(0)
 
@@ -108,7 +108,7 @@ open class VideoStream(
     fun hasCurrentFrame(): Boolean {
         val frameIndex = getFrameIndex()
         return synchronized(sortedFrames) {
-            sortedFrames.any2 { it.first == frameIndex && !it.second.isDestroyed }
+            sortedFrames.any2 { it.frameIndex == frameIndex && !it.isDestroyed }
         }
     }
 
@@ -148,17 +148,17 @@ open class VideoStream(
         lastRequestedFrame = max(frameIndex - numExtraImages, 0)
         return synchronized(sortedFrames) {
             val goodFrames = sortedFrames
-                .filter { it.first <= frameIndex && it.second.isCreated }
-                .maxByOrNull { it.first }
-            goodFrames ?: sortedFrames.firstOrNull { it.second.isCreated }
-        }?.second
+                .filter { it.frameIndex <= frameIndex && it.isCreated }
+                .maxByOrNull { it.frameIndex }
+            goodFrames ?: sortedFrames.firstOrNull { it.isCreated }
+        }
     }
 
     override fun destroy() {
         stop()
         synchronized(sortedFrames) {
-            for (frame in sortedFrames) {
-                frame.second.destroy()
+            for (fi in sortedFrames.indices) {
+                sortedFrames[fi].destroy()
             }
             sortedFrames.clear()
         }

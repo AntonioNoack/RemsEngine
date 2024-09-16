@@ -78,9 +78,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
     override fun onUpdate() {
         super.onUpdate()
         requestSize(width, height)
-        if (stream.isPlaying) {
-            invalidateDrawing()
-        }
+        invalidateDrawing()
     }
 
     fun requestSize(w: Int, h: Int) {

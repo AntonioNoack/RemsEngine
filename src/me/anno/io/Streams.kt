@@ -32,29 +32,29 @@ object Streams {
 
     @JvmStatic
     fun InputStream.readNBytes2(n: Int, bytes: ByteArray, throwEOF: Boolean): ByteArray {
-        var i = 0
-        while (i < n) {
-            val numReadChars = read(bytes, i, n - i)
-            if (numReadChars < 0) {
+        var totalReadN = 0
+        while (totalReadN < n) {
+            val ithReadN = read(bytes, totalReadN, n - totalReadN)
+            if (ithReadN < 0) {
                 if (throwEOF) {
                     throw EOFException()
                 } else {
                     // end :/ -> return sub array
-                    return bytes.copyOf(i)
+                    return bytes.copyOf(totalReadN)
                 }
             }
-            i += numReadChars
+            totalReadN += ithReadN
         }
         return bytes
     }
 
     @JvmStatic
     fun InputStream.readNBytes2(bytes: ByteArray, startIndex: Int, length: Int): ByteArray {
-        var i = 0
-        while (i < length) {
-            val numReadChars = read(bytes, i + startIndex, length - i)
-            if (numReadChars < 0) throw EOFException()
-            i += numReadChars
+        var totalReadN = 0
+        while (totalReadN < length) {
+            val ithReadN = read(bytes, totalReadN + startIndex, length - totalReadN)
+            if (ithReadN < 0) throw EOFException()
+            totalReadN += ithReadN
         }
         return bytes
     }
@@ -65,15 +65,15 @@ object Streams {
         bytes.limit(n)
         val tmp = tmpBuffer.get()
         // we could allocate a little, temporary buffer...
-        var i = 0
-        while (i < n) {
-            val numReadChars = read(tmp, 0, min(n - i, tmp.size))
-            if (numReadChars < 0) {
+        var totalReadN = 0
+        while (totalReadN < n) {
+            val ithReadN = read(tmp, 0, min(n - totalReadN, tmp.size))
+            if (ithReadN < 0) {
                 if (throwEOF) throw EOFException()
                 else break
             }
-            bytes.put(tmp, 0, numReadChars)
-            i += numReadChars
+            bytes.put(tmp, 0, ithReadN)
+            totalReadN += ithReadN
         }
         bytes.flip()
         return bytes
@@ -85,25 +85,25 @@ object Streams {
         val tmp = tmpBuffer.get()
 
         // don't request a buffer from the pool, if we won't need one anyway
-        val numReadChars0 = read(tmp, 0, min(n, tmp.size))
-        if (numReadChars0 < 0) {
+        val firstReadN = read(tmp, 0, min(n, tmp.size))
+        if (firstReadN < 0) {
             throw EOFException()
         }
 
         val bytes = pool[n, false, false]
         bytes.position(0)
         bytes.limit(n)
-        bytes.put(tmp, 0, numReadChars0)
+        bytes.put(tmp, 0, firstReadN)
 
-        var i = numReadChars0
-        while (i < n) {
-            val numReadChars = read(tmp, 0, min(n - i, tmp.size))
-            if (numReadChars < 0) {
+        var pos = firstReadN
+        while (pos < n) {
+            val ithReadN = read(tmp, 0, min(n - pos, tmp.size))
+            if (ithReadN < 0) {
                 pool.returnBuffer(bytes)
-                throw EOFException("Only found $i/$n bytes")
+                throw EOFException("Only found $pos/$n bytes")
             }
-            bytes.put(tmp, 0, numReadChars)
-            i += numReadChars
+            bytes.put(tmp, 0, ithReadN)
+            pos += ithReadN
         }
         bytes.flip()
         return bytes
@@ -111,11 +111,11 @@ object Streams {
 
     @JvmStatic
     fun InputStream.skipN(v: Long): InputStream {
-        var read = 0L
-        while (read < v) {
-            val r = skip(v)
-            if (r <= 0) return this
-            read += r
+        var totalReadN = 0L
+        while (totalReadN < v) {
+            val ithReadN = skip(v)
+            if (ithReadN <= 0) return this
+            totalReadN += ithReadN
         }
         return this
     }

@@ -39,7 +39,6 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.Pools
-import me.anno.utils.pooling.Pools.byteBufferPool
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -253,9 +252,7 @@ open class Texture2D(
         val w = width
         val h = height
         val target = target
-        if (w * h <= 0) {
-            throw IllegalArgumentException("Cannot create empty texture, $w x $h")
-        }
+        assertTrue(w > 0 && h > 0) { "Cannot create empty texture, $w x $h" }
         check()
         if (createdW == w && createdH == h && data != null && !withMultisampling) {
             uploadPartial(target, w, h, dataFormat, dataType, unbind, data)
@@ -535,7 +532,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         upload(TargetType.UInt8x1, data)
-        Pools.   byteBufferPool.returnBuffer(data)
+        Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 1, 1)
     }
 
@@ -543,7 +540,7 @@ open class Texture2D(
         beforeUpload(2, data.remaining())
         if (checkRedundancy) checkRedundancyX2(data)
         upload(GL_RG, GL_RG, GL_UNSIGNED_BYTE, data)
-        Pools.   byteBufferPool.returnBuffer(data)
+        Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 2, 2)
     }
 
@@ -597,8 +594,9 @@ open class Texture2D(
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancyX3(data)
         convertRGB2BGR3(data)
+        setWriteAlignment(3 * width)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
-        Pools.  byteBufferPool.returnBuffer(data)
+        Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
     }
 
@@ -608,7 +606,7 @@ open class Texture2D(
         val buffer = Pools.byteBufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         upload(TargetType.UInt8x1, buffer)
-        Pools.  byteBufferPool.returnBuffer(buffer)
+        Pools.byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 1, 1)
     }
 
@@ -619,7 +617,7 @@ open class Texture2D(
         byteBuffer.asFloatBuffer().put(data2)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         upload(TargetType.Float32x4, byteBuffer)
-        Pools.    byteBufferPool.returnBuffer(byteBuffer)
+        Pools.byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(true, 16, 4)
     }
 
@@ -636,7 +634,7 @@ open class Texture2D(
         beforeUpload(4, buffer.remaining())
         convertRGB2BGR4(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-        Pools. byteBufferPool.returnBuffer(buffer)
+        Pools.byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 4)
     }
 
@@ -667,17 +665,16 @@ open class Texture2D(
         beforeUpload(4, data.remaining())
         if (checkRedundancy) checkRedundancyX4(data, false)
         upload(TargetType.UInt8x4, data)
-        byteBufferPool.returnBuffer(data)
+        Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 4)
     }
 
     fun createRGB(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.remaining())
-        if (checkRedundancy) checkRedundancyX4(data, true)
-        // texImage2D(TargetType.UByteTarget3, buffer)
+        if (checkRedundancy) checkRedundancyX3(data)
         setWriteAlignment(3 * width)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
-        byteBufferPool.returnBuffer(data)
+        Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
     }
 

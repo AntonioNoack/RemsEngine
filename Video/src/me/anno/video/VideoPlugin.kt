@@ -31,7 +31,7 @@ class VideoPlugin : Plugin() {
     }
 
     private fun registerVideoStream() {
-        VideoStream.runVideoStreamWorker = VideoStreamWorker::runVideoStreamWorker
+        VideoStream.runVideoStreamWorker = VideoStreamWorker.Companion::runVideoStreamWorker
     }
 
     private fun registerAudioStream() {

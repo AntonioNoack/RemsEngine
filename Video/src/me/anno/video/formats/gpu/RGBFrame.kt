@@ -2,9 +2,9 @@ package me.anno.video.formats.gpu
 
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
+import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
-import java.io.EOFException
 import java.io.InputStream
 
 open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChannels) {
@@ -15,25 +15,7 @@ open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChanne
 
     override fun load(input: InputStream) {
         if (isDestroyed) return
-
-        val s0 = width * height
-        val data = Pools.byteBufferPool[s0 * 4, false, false]
-        data.position(0)
-        for (i in 0 until s0) {
-            val r = input.read()
-            val g = input.read()
-            val b = input.read()
-            if (r < 0 || g < 0 || b < 0) {
-                Pools.byteBufferPool.returnBuffer(data)
-                throw EOFException()
-            }
-            data.put(r.toByte())
-            data.put(g.toByte())
-            data.put(b.toByte())
-            data.put(-1) // offset is required
-        }
-        data.flip()
-        blankDetector.putRGBA(data)
+        val data = input.readNBytes2(width * height * 3, Pools.byteBufferPool)
         Sleep.acquire(true, creationLimiter) {
             addGPUTask("RGB", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
