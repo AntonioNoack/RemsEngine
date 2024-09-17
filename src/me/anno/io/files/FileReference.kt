@@ -254,21 +254,30 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         writeFile(file, { _, _ -> }, callback)
     }
 
-    open fun writeText(text: String) {
-        writeBytes(text.encodeToByteArray())
+    open fun writeText(text: String, offset: Int, length: Int) {
+        val bytes = text.encodeToByteArray(offset, offset + length)
+        writeBytes(bytes, 0, bytes.size)
     }
 
-    open fun writeBytes(bytes: ByteArray) {
+    fun writeText(text: String) {
+        writeText(text, 0, text.length)
+    }
+
+    open fun writeBytes(bytes: ByteArray, offset: Int, length: Int) {
         val os = outputStream()
-        os.write(bytes)
+        os.write(bytes, offset, length)
         os.close()
+    }
+
+    fun writeBytes(bytes: ByteArray) {
+        writeBytes(bytes, 0, bytes.size)
     }
 
     open fun writeBytes(bytes: ByteBuffer) {
         val byte2 = ByteArray(bytes.remaining())
         val pos = bytes.position()
         bytes.get(byte2).position(pos)
-        writeBytes(byte2)
+        writeBytes(byte2, 0, byte2.size)
     }
 
     open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {

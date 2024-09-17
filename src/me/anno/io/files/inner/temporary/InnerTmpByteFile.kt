@@ -6,9 +6,12 @@ class InnerTmpByteFile(bytes: ByteArray, ext: String = "bin") : InnerTmpFile(ext
         writeBytes(bytes)
     }
 
-    override fun writeBytes(bytes: ByteArray) {
-        data = bytes
-        size = bytes.size.toLong()
+    override fun writeBytes(bytes: ByteArray, offset: Int, length: Int) {
+        val bytes2 = if (offset != 0 || length != bytes.size) {
+            bytes.copyOfRange(offset, offset + length)
+        } else bytes
+        data = bytes2
+        size = length.toLong()
         compressedSize = size
     }
 }

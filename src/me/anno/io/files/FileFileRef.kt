@@ -94,8 +94,10 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         return ret
     }
 
-    override fun writeBytes(bytes: ByteArray) {
-        file.writeBytes(bytes)
+    override fun writeBytes(bytes: ByteArray, offset: Int, length: Int) {
+        FileOutputStream(file, false).use { stream ->
+            stream.write(bytes, offset, length)
+        }
         LastModifiedCache.invalidate(file)
     }
 

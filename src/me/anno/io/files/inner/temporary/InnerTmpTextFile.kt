@@ -12,9 +12,9 @@ class InnerTmpTextFile(text: String, ext: String = "txt") : InnerTmpFile(ext) {
         writeText(text)
     }
 
-    override fun writeText(text: String) {
-        this.text = text
-        size = text.length.toLong()
+    override fun writeText(text: String, offset: Int, length: Int) {
+        this.text = text.substring(offset,length)
+        size = length.toLong()
         compressedSize = size
     }
 
