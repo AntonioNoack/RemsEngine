@@ -1,6 +1,7 @@
 package me.anno.utils.structures.lists
 
 import me.anno.utils.callbacks.VtoD
+import me.anno.utils.search.BinarySearch
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
@@ -568,7 +569,7 @@ object Lists {
 
     @JvmStatic
     fun <V> MutableList<V>.sortedAdd(instance: V, comparator: Comparator<V>, insertIfEquals: Boolean) {
-        var index = binarySearch(instance, comparator)
+        var index = BinarySearch.binarySearch(size) { comparator.compare(get(it), instance) }
         if (index < 0) index = -1 - index
         else if (!insertIfEquals && this[index] == instance) return
         add(index, instance)
