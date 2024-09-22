@@ -66,7 +66,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3i
 
-data class ShaderKey(
+data class ComputeShaderKey(
     val shader: Shader,
     val target: DeferredSettings?,
     val meshAttr: List<Attribute>,
@@ -209,7 +209,7 @@ fun computeRasterizer() {
     // done create lots of small triangles for testing
 
     val shaders =
-        LazyMap<ShaderKey, Pair<ComputeShader, List<Variable>>> { (shader, target, meshAttr, instAttr, indexed, drawMode) ->
+        LazyMap<ComputeShaderKey, Pair<ComputeShader, List<Variable>>> { (shader, target, meshAttr, instAttr, indexed, drawMode) ->
             val varyings = listOf(
                 Variable(GLSLType.V4F, "glFragCoord"),
                 Variable(GLSLType.V2I, "glFragCoordI"),
@@ -542,7 +542,7 @@ fun computeRasterizer() {
             val depthAsColor = getDepthTarget(target)
 
             val deferredSettings = GFXState.currentRenderer.deferredSettings
-            val key = ShaderKey(
+            val key = ComputeShaderKey(
                 shader, deferredSettings, mesh.buffer!!.attributes,
                 instanceData?.attributes ?: emptyList(),
                 triBuffer?.elementsType,

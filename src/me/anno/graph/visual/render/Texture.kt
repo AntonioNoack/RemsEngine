@@ -3,8 +3,6 @@ package me.anno.graph.visual.render
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
@@ -15,6 +13,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.joml.Vector4f
+import kotlin.math.max
 
 class Texture constructor(
     val tex: ITexture2D,
@@ -50,6 +49,23 @@ class Texture constructor(
 
     companion object {
 
+        private val mask1s = listOf(
+            Vector4f(1f, 0f, 0f, 0f),
+            Vector4f(0f, 1f, 0f, 0f),
+            Vector4f(0f, 0f, 1f, 0f),
+            Vector4f(0f, 0f, 0f, 1f),
+        )
+
+        fun mask1(str: String?): Vector4f {
+            return mask1s[mask1Index(str)]
+        }
+
+        fun mask1Index(str: String?): Int {
+            if (str == null) return 0
+            val index = max("xyzw".indexOf(str), "rgba".indexOf(str))
+            return max(index, 0)
+        }
+
         /**
          * Whether the value (must have two components!) is mapped onto zw instead of xy.
          * */
@@ -58,16 +74,11 @@ class Texture constructor(
         val Texture?.texOrNull get() = if (this != null && tex.isCreated()) tex else null
         val Texture?.texMSOrNull get() = if (this != null && texMS.isCreated()) texMS else texOrNull
 
-        val Texture?.mask
-            get() = singleToVector[this?.mapping] ?: singleToVectorR
+        val Texture?.mask: Vector4f
+            get() = mask1(this?.mapping)
 
-        val Texture?.mask1Index
-            get() = when (this?.mapping) {
-                "y", "g" -> 1
-                "z", "b" -> 2
-                "w", "a" -> 3
-                else -> 0
-            }
+        val Texture?.mask1Index: Int
+            get() = mask1Index(this?.mapping)
 
         fun texture(f: IFramebuffer, i: Int): Texture {
             return texture(f, i, "", null)

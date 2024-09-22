@@ -88,22 +88,20 @@ open class Shader(
 
         val varyings = varyings.map {
             // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
-            Varying(
-                if (it.isFlat || it.type.isFlat || it.type.glslName.startsWith("mat")) "flat" else "",
-                it.type, it.name
-            )
+            val isFlat = it.isFlat || it.type.isFlat || it.type.glslName.startsWith("mat")
+            Varying(if (isFlat) "flat" else "", it.type, it.name)
         }
 
-        if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput }) {
-            glslVersion = 330 // needed for layout(location=x) qualifier
+        if (glslVersion < 430 && ("layout(std430, binding = 0) buffer" in vertexShader)) {
+            glslVersion = 430
         }
 
         if (glslVersion < 400 && ("gl_SampleID" in fragmentShader || "gl_SamplePosition" in fragmentShader)) {
             glslVersion = 400
         }
 
-        if (glslVersion < 430 && ("layout(std430, binding = 0) buffer" in vertexShader)) {
-            glslVersion = 430
+        if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput }) {
+            glslVersion = 330 // needed for layout(location=x) qualifier
         }
 
         val versionString = formatVersion(glslVersion) + "\n// $name\n"

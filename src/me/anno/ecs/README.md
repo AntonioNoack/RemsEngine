@@ -1,7 +1,8 @@
 # Entities - Components - Systems
 
-ECS is a term, that this engine kind of fulfills, and kind of not.
-This engine is very Unity-like.
+This engine is both Unity- and ECS-inspired.
+The scene structure is like Unity, where Entity = GameObject, Component = MonoBehaviour,
+and additionally, there are Systems to operate on all instances of the same type in sequence for improved cache-locality.
 
 ## Entities
 
@@ -12,11 +13,10 @@ and should be used for most things with 3d shapes and behaviours.
 ## Components
 
 Components can add behaviours and rendering to Entities.
-Usually, you'll want to override the onUpdate() method, or use Renderable components like MeshComponent or light components.
+Usually, you'll want to implement OnUpdate and override the onUpdate() method,
+or use Renderable components like MeshComponent or light components.
 
 ## Systems
 
-Systems aren't really well implemented yet.
-If you need a system-like functionality,
-use what's there, or build your own system 😅.
-Usually, this can be accomplished by having a unique, special component at the scene root.
+Systems are singletons, which are called before and on-update.
+All entities and components, which are currently part of the main scene and not-disabled, will be (un)registered in each system.

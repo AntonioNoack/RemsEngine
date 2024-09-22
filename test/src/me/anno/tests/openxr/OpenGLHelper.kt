@@ -14,10 +14,6 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.glfwGetWindowSize
 import org.lwjgl.glfw.GLFW.glfwSwapBuffers
-import org.lwjgl.opengl.GL45C.GL_SCISSOR_TEST
-import org.lwjgl.opengl.GL45C.glCreateVertexArrays
-import org.lwjgl.opengl.GL45C.glDisable
-import org.lwjgl.opengl.GL45C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -26,6 +22,7 @@ import org.lwjgl.opengl.GL46C.GL_DEPTH_TEST
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
 import org.lwjgl.opengl.GL46C.GL_LINEAR
+import org.lwjgl.opengl.GL46C.GL_SCISSOR_TEST
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL46C.glBindFramebuffer
 import org.lwjgl.opengl.GL46C.glBindVertexArray
@@ -33,9 +30,11 @@ import org.lwjgl.opengl.GL46C.glBlitNamedFramebuffer
 import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
 import org.lwjgl.opengl.GL46C.glClear
 import org.lwjgl.opengl.GL46C.glClearColor
+import org.lwjgl.opengl.GL46C.glCreateVertexArrays
+import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
-import org.lwjgl.opengl.GL46C.glScissor
+import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.glViewport
 import org.lwjgl.openxr.XR10.XR_SPACE_LOCATION_ORIENTATION_VALID_BIT
 import org.lwjgl.openxr.XrQuaternionf

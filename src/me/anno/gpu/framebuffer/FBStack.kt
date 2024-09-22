@@ -206,9 +206,8 @@ object FBStack : CacheSection("FBStack") {
         return when (quality) {
             BufferQuality.UINT_8 -> TargetType.UInt8xI
             BufferQuality.UINT_16 -> TargetType.UInt16xI
-            BufferQuality.UINT_32 -> TargetType.UInt32xI
             BufferQuality.FP_16 -> TargetType.Float16xI
-            BufferQuality.FP_32 -> TargetType.Float32xI
+            BufferQuality.DEPTH_U32, BufferQuality.FP_32 -> TargetType.Float32xI
         }[channels - 1]
     }
 

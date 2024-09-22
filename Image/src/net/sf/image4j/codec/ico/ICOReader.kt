@@ -7,7 +7,6 @@ import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
-import net.sf.image4j.Utils
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
 import org.apache.logging.log4j.LogManager
@@ -55,7 +54,7 @@ object ICOReader {
 
         val info = input1.readLE32()
         LOGGER.info(
-            "Image #$i @ ${input1.position} info = ${Utils.toInfoString(info)}, " +
+            "Image #$i @ ${input1.position} info = 0x${info.toString(16)}, " +
                     "${entry.width} x ${entry.height} x ${entry.bitCount} bpp"
         )
 

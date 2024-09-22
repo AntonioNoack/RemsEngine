@@ -3,8 +3,8 @@ package net.sf.image4j.codec.bmp
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.skipN
 import me.anno.utils.assertions.assertEquals
-import net.sf.image4j.Utils
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -219,7 +219,7 @@ object BMPDecoder {
             for (x in 0 until width) {
                 data[ctr++] = colors[lis.read()]
             }
-            Utils.skip(lis, padBytesPerLine, false)
+            lis.skipN(padBytesPerLine.toLong())
         }
         return IntImage(infoHeader.width, infoHeader.height, data, false)
     }
@@ -260,7 +260,7 @@ object BMPDecoder {
                 val r = lis.read()
                 data[ctr++] = r shl 16 or (g shl 8) or b
             }
-            Utils.skip(lis, padBytesPerLine, false)
+            lis.skipN(padBytesPerLine.toLong())
         }
         return IntImage(infoHeader.width, infoHeader.height, data, false)
     }

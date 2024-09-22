@@ -333,10 +333,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawImageOrThumb(
-        x0: Int, y0: Int,
-        x1: Int, y1: Int
-    ) {
+    private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         val w = x1 - x0
         val h = y1 - y0
         if (isHovered) {

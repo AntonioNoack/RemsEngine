@@ -5,7 +5,7 @@ import kotlin.math.max
 enum class BufferQuality(val intBits: Int) {
     UINT_8(8),
     UINT_16(16),
-    UINT_32(32),
+    DEPTH_U32(32),
     FP_16(11),
     FP_32(23);
 
@@ -17,6 +17,7 @@ enum class BufferQuality(val intBits: Int) {
 
     fun combineWith(other: BufferQuality): BufferQuality? {
         if (this === other) return this
+        if (this == DEPTH_U32 || other == DEPTH_U32) return null // not mixable
         if (fp == other.fp) {// just choose the bigger one
             return if (intBits > other.intBits) this else other
         }

@@ -19,4 +19,5 @@ open class ControlSettings : Inspectable {
     var fovY by ConfigRef("ui.camera.fovY", 90f)
 
     var showRenderTimes by ConfigRef("debug.ui.showRenderTimes", false)
+    var showDebugFrames by ConfigRef("debug.ui.showDebugFrames", false)
 }

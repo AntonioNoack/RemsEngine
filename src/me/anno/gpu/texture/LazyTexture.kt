@@ -23,13 +23,24 @@ class LazyTexture(
     override val clamping: Clamping get() = tex.clamping
     override val locallyAllocated: Long get() = tex.locallyAllocated
     override val internalFormat: Int get() = tex.internalFormat
+
+    override fun hashCode(): Int = tex.hashCode()
+    override fun equals(other: Any?): Boolean {
+        val otherI = if (other is LazyTexture) other.tex else other
+        return tex == otherI
+    }
+
     override fun checkSession() {
         texMS.checkSession()
         tex.checkSession()
     }
 
-    override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
+    fun ensureValidity() {
         copyOp.value
+    }
+
+    override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
+        ensureValidity()
         return tex.bind(index, filtering, clamping)
     }
 }

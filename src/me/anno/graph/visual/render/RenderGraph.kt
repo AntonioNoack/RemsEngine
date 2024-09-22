@@ -35,6 +35,7 @@ import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
 import me.anno.ui.Panel
 import me.anno.utils.Color.white4
+import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 
@@ -132,7 +133,7 @@ object RenderGraph {
         } catch (e: ReturnNode.ReturnThrowable) {
             e.node as? ExprReturnNode
         } catch (e: Exception) {
-            Thread.sleep(100)
+            if (!OS.isWeb) Thread.sleep(100)
             if (throwExceptions) {
                 throw e
             } else {

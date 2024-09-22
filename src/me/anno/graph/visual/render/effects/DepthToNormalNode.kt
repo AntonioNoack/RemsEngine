@@ -35,11 +35,7 @@ class DepthToNormalNode : TimedRenderingNode(
 
     override fun executeAction() {
         val depth = getInput(1) as? Texture ?: return
-        val target = when (getInput(2) as Int) {
-            1 -> TargetType.UInt16x2
-            2 -> TargetType.UInt32x2
-            else -> TargetType.UInt8x2
-        }
+        val target = if (getIntInput(2) == 0) TargetType.UInt8x2 else TargetType.UInt16x2
         val depthTex = depth.texOrNull
         if (depthTex != null) {
             timeRendering(name, timer) {

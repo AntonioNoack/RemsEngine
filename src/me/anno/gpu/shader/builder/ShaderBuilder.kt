@@ -8,6 +8,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.any2
 import kotlin.math.max
 
 /**
@@ -94,68 +95,117 @@ class ShaderBuilder(val name: String) {
         }
     }
 
+    private fun needsVertexFragmentBridge(variable: Variable): Boolean {
+        val name = variable.name
+        return vertex.stages.any2 { it.getVariablesByName(name).any2 { v -> v.isOutput } } &&
+                fragment.stages.any2 { fStage ->
+                    val byName = fStage.getVariablesByName(name)
+                    byName.any2 { it.isInput } && byName.any2 { it.isModified }
+                }
+    }
+
+    private fun createVertexFragmentBridge(
+        variable: Variable, bridgeIndex0: Int,
+        bridges: HashMap<Variable, Variable>
+    ): Int {
+        // the stage uses it -> might be relevant
+        // and also exports it -> build a bridge
+        val bridge = Variable(variable.type, "vf_bridge_${bridgeIndex0}", variable.arraySize)
+        bridges[variable] = bridge
+        return bridgeIndex0 + 1
+    }
+
+    private fun canUseVariableAsVarying(type: GLSLType): Boolean {
+        // the following types cannot be used as varyings...
+        return !(type.isSampler || type == GLSLType.V1B || type == GLSLType.V2B || type == GLSLType.V3B || type == GLSLType.V4B)
+    }
+
+    private fun needsAttribFragmentBridge(variable: Variable): Boolean {
+        val name = variable.name
+        return canUseVariableAsVarying(variable.type) &&
+                vertex.stages.any2 { it.getVariablesByName(name).any2 { v -> v.isAttribute } } &&
+                fragment.stages.any2 { it.getVariablesByName(name).any2 { v -> v.isInput } }
+    }
+
+    private fun createAttribFragmentBridge(
+        variable: Variable, bridgeIndex0: Int,
+        bridges: HashMap<Variable, Variable>
+    ): Int {
+        val bridge = Variable(variable.type, "attr_bridge_${bridgeIndex0}", variable.arraySize)
+        bridge.isFlat = variable.isFlat
+        bridges[variable] = bridge
+        return bridgeIndex0 + 1
+    }
+
+    private fun createBridgesForVariable(
+        variable: Variable, bridgeIndex0: Int,
+        vertexFragmentBridges: HashMap<Variable, Variable>,
+        attribFragmentBridges: HashMap<Variable, Variable>
+    ): Int {
+        return when {
+            needsVertexFragmentBridge(variable) ->
+                createVertexFragmentBridge(variable, bridgeIndex0, vertexFragmentBridges)
+            needsAttribFragmentBridge(variable) ->
+                createAttribFragmentBridge(variable, bridgeIndex0, attribFragmentBridges)
+            else -> bridgeIndex0
+        }
+    }
+
+    private fun collectVaryings(
+        bridgeVariablesV2F: Map<Variable, Variable>,
+        bridgeVariablesI2F: Map<Variable, Variable>
+    ): List<Variable> {
+        val dst = ArrayList<Variable>(vertex.imported.size + vertex.exported.size)
+        dst.addAll(vertex.imported)
+        dst.addAll(vertex.exported)
+        dst.removeIf { it in bridgeVariablesI2F || it in bridgeVariablesV2F }
+        dst.addAll(bridgeVariablesV2F.values)
+        dst.addAll(bridgeVariablesI2F.values)
+        return dst
+    }
+
+    private fun findImports(): Set<Variable> {
+        val vertexDefined = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
+        fragment.findImportsAndDefineValues(vertex, vertexDefined, vertex.uniforms)
+        return vertexDefined
+    }
+
     fun create(key: BaseShader.ShaderKey, suffix: String): Shader {
 
         val settings = settings
-        val ditherMode = GFXState.ditherMode.currentValue
         if (settings != null) {
             handleWorkToDataAccessors(settings)
         }
 
         // combine the code
-        // find imports
-        val vertexDefined = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
-        fragment.findImportsAndDefineValues(vertex, vertexDefined, vertex.uniforms)
+        val vertexDefined = findImports()
 
         // variables, that fragment imports & exports & vertex exports
-        val bridgeVariablesV2F = HashMap<Variable, Variable>()
-        val bridgeVariablesI2F = HashMap<Variable, Variable>()
+        val vertexFragmentBridges = HashMap<Variable, Variable>()
+        val attribFragmentBridges = HashMap<Variable, Variable>()
         var bridgeIndex = 0
         for (variable in vertexDefined) {
-            val name = variable.name
-            if (vertex.stages.any { it.getVariablesByName(name).any { v -> v.isOutput } }) {
-                for (stage in fragment.stages) {
-                    val byName = stage.getVariablesByName(name)
-                    if (byName.any { it.isInput } && byName.any { it.isModified }) {
-                        // the stage uses it -> might be relevant
-                        // and also exports it -> build a bridge
-                        val bridge = Variable(variable.type, "vf_bridge_${bridgeIndex++}", variable.arraySize)
-                        bridgeVariablesV2F[variable] = bridge
-                    }
-                }
-            } else if ( // the following types cannot be used as varyings...
-                !(variable.type.isSampler || variable.type == GLSLType.V1B || variable.type == GLSLType.V2B ||
-                        variable.type == GLSLType.V3B || variable.type == GLSLType.V4B)
-            ) { // test if we need an attribute-fragment-bridge
-                if (vertex.stages.any { it.getVariablesByName(name).any { v -> v.isAttribute } }) {
-                    for (stage in fragment.stages) {
-                        if (stage.getVariablesByName(name).any { it.isInput }) {
-                            val bridge = Variable(variable.type, "attr_bridge_${bridgeIndex++}", variable.arraySize)
-                            bridge.isFlat = variable.isFlat
-                            bridgeVariablesI2F[variable] = bridge
-                        }
-                    }
-                }
-            }
+            bridgeIndex = createBridgesForVariable(
+                variable, bridgeIndex,
+                vertexFragmentBridges, attribFragmentBridges
+            )
         }
 
         // create the code
         val vertCode = vertex.createCode(
             key, false, settings, disabledLayers,
-            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F, this
+            key.ditherMode, vertexFragmentBridges, attribFragmentBridges, this
         )
+
         val fragCode = fragment.createCode(
             key, true, settings, disabledLayers,
-            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F, this
+            key.ditherMode, vertexFragmentBridges, attribFragmentBridges, this
         )
-        val varying = (vertex.imported + vertex.exported).toList()
-            .filter { it !in bridgeVariablesV2F && it !in bridgeVariablesI2F } +
-                bridgeVariablesV2F.values +
-                bridgeVariablesI2F.values
 
+        val varyings = collectVaryings(vertexFragmentBridges, attribFragmentBridges)
         val shader = Shader(
             "$name-$suffix", vertex.attributes + vertex.uniforms, vertCode,
-            varying, fragment.uniforms.sortedBy { it.name }, fragCode
+            varyings, fragment.uniforms.sortedBy { it.name }, fragCode
         )
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         val textureIndices = ArrayList<String>()

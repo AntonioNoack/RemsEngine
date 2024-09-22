@@ -17,6 +17,8 @@ import me.anno.ecs.systems.Systems
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
+import me.anno.engine.ui.render.DebugRendering.drawDebugStats
+import me.anno.engine.ui.render.DebugRendering.drawDebugSteps
 import me.anno.engine.ui.render.DebugRendering.showStereoView
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
@@ -246,7 +248,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         if (playMode == PlayMode.EDITING) {
-            drawDebugStats(drawnPrimitives0, drawnInstances0, drawCalls0)
+            drawDebugSteps(this)
+            drawDebugStats(this, drawnPrimitives0, drawnInstances0, drawCalls0)
         }
 
         if (update) {
@@ -335,24 +338,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         drawSimpleTextCharByChar(
             x + width / 2, y + height / 2, 4, text,
             AxisAlignment.CENTER, AxisAlignment.CENTER
-        )
-        popBetterBlending(pbb)
-    }
-
-    fun drawDebugStats(drawnPrimitives0: Long, drawnInstances0: Long, drawCalls0: Long) {
-        val pbb = pushBetterBlending(true)
-        val drawnPrimitives = PipelineStageImpl.drawnPrimitives - drawnPrimitives0
-        val drawnInstances = PipelineStageImpl.drawnInstances - drawnInstances0
-        val drawCalls = PipelineStageImpl.drawCalls - drawCalls0
-        val usesBetterBlending = DrawTexts.canUseComputeShader()
-        drawSimpleTextCharByChar(
-            x + 2, y + height + 1,
-            0, "${formatIntTriplets(drawnPrimitives)} tris, " +
-                    "${formatIntTriplets(drawnInstances)} inst, " +
-                    "${formatIntTriplets(drawCalls)} calls",
-            FrameTimings.textColor,
-            FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255),
-            AxisAlignment.MIN, AxisAlignment.MAX
         )
         popBetterBlending(pbb)
     }

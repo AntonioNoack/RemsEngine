@@ -24,7 +24,6 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
@@ -175,15 +174,15 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         // show the mode
+        val modeName = when (mode) {
+            Mode.TRANSLATING -> "T"
+            Mode.ROTATING -> "R"
+            Mode.SCALING -> "S"
+            else -> "X"
+        }
         drawSimpleTextCharByChar(
-            x + width - 2 - DrawTexts.monospaceFont.sampleWidth,
-            y + height - 2 - DrawTexts.monospaceFont.sampleHeight,
-            2, when (mode) {
-                Mode.TRANSLATING -> "T"
-                Mode.ROTATING -> "R"
-                Mode.SCALING -> "S"
-                else -> "X"
-            }
+            x + width, y + height, 2, modeName,
+            -1, backgroundColor, AxisAlignment.MAX, AxisAlignment.MAX
         )
     }
 

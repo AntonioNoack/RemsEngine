@@ -1,5 +1,6 @@
 package me.anno.utils.pooling
 
+import me.anno.utils.Reflections.getBaseConstructor
 import me.anno.utils.assertions.assertFalse
 import org.apache.logging.log4j.LogManager
 import java.lang.ref.WeakReference
@@ -19,8 +20,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         }
 
         private fun <V : Any> getConstructor(clazz: KClass<V>): () -> V {
-            val constructor = clazz.constructors.first { it.parameters.isEmpty() }
-            return { constructor.call() }
+            return getBaseConstructor(clazz)
         }
     }
 

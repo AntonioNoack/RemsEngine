@@ -118,8 +118,7 @@ class ComputeShader(
             val sx = getComputeWorkGroupCount(0, ptr)
             val sy = getComputeWorkGroupCount(1, ptr)
             val sz = getComputeWorkGroupCount(2, ptr)
-            GL46C.glGetIntegerv(GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, ptr)
-            val maxUnitsPerGroup = ptr[0]
+            val maxUnitsPerGroup = GL46C.glGetInteger(GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS)
             LOGGER.info("Max compute group count: $sx x $sy x $sz") // 65k³
             LOGGER.info("Max units per group: $maxUnitsPerGroup") // 1024
             intArrayOf(sx, sy, sz, maxUnitsPerGroup)

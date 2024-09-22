@@ -182,7 +182,7 @@ class DeferredLayerType(
         val DEPTH = DeferredLayerType(
             "Depth", "finalDepth", 1,
             if (GFX.supportsClipControl) BufferQuality.FP_32
-            else BufferQuality.UINT_32, true, 0, "depthToRaw", "rawToDepth"
+            else BufferQuality.DEPTH_U32, true, 0, "depthToRaw", "rawToDepth"
         )
 
         // there should be an option for 2d motion vectors as well

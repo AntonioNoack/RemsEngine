@@ -21,11 +21,11 @@ import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
+import me.anno.gpu.debug.DebugGPUStorage.isDepthFormat
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D
@@ -35,6 +35,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
@@ -45,16 +46,20 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths
+import me.anno.maths.Maths.ceilDiv
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
@@ -65,10 +70,12 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
+import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
 
@@ -173,7 +180,7 @@ object DebugRendering {
                         } else {
                             DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                         }
-                        drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
+                        DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
                     }
                     else -> {
                         if (Input.isShiftDown && light is PlanarReflection) {
@@ -240,7 +247,7 @@ object DebugRendering {
         } else {
             "$name: ${(time / 1e6).f3()} ms"
         }
-        drawSimpleTextCharByChar(
+        DrawTexts.drawSimpleTextCharByChar(
             rv.x + rv.width, y, 1, str,
             AxisAlignment.MAX, AxisAlignment.MIN
         )
@@ -376,7 +383,7 @@ object DebugRendering {
             if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
                 val vx = v.x * sx / v.w + x0
                 val vy = v.y * sy / v.w + y0
-                drawSimpleTextCharByChar(
+                DrawTexts.drawSimpleTextCharByChar(
                     vx.toInt(), vy.toInt(), 0, text.text,
                     text.color, text.color.withAlpha(0),
                     AxisAlignment.CENTER, AxisAlignment.CENTER,
@@ -507,7 +514,7 @@ object DebugRendering {
                     x12, y12
                 ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
                 // draw title
-                drawSimpleTextCharByChar(x02, y02, 2, texture.name)
+                DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, texture.name)
             }
         }
         DrawTexts.popBetterBlending(pbb)
@@ -595,7 +602,7 @@ object DebugRendering {
                         null, applyTonemapping
                     )
                 }
-                drawSimpleTextCharByChar(
+                DrawTexts.drawSimpleTextCharByChar(
                     (x02 + x12) / 2, (y02 + y12) / 2, 2,
                     name, AxisAlignment.CENTER, AxisAlignment.CENTER
                 )
@@ -603,5 +610,89 @@ object DebugRendering {
         }
         DrawTexts.popBetterBlending(pbb)
         GFXState.popDrawCallName()
+    }
+
+    fun drawDebugStats(view: RenderView, drawnPrimitives0: Long, drawnInstances0: Long, drawCalls0: Long) {
+        val pbb = DrawTexts.pushBetterBlending(true)
+        val drawnPrimitives = PipelineStageImpl.drawnPrimitives - drawnPrimitives0
+        val drawnInstances = PipelineStageImpl.drawnInstances - drawnInstances0
+        val drawCalls = PipelineStageImpl.drawCalls - drawCalls0
+        val usesBetterBlending = DrawTexts.canUseComputeShader()
+        DrawTexts.drawSimpleTextCharByChar(
+            view.x + 2, view.y + view.height + 1,
+            0, "${formatIntTriplets(drawnPrimitives)} tris, " +
+                    "${formatIntTriplets(drawnInstances)} inst, " +
+                    "${formatIntTriplets(drawCalls)} calls",
+            FrameTimings.textColor,
+            FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255),
+            AxisAlignment.MIN, AxisAlignment.MAX
+        )
+        DrawTexts.popBetterBlending(pbb)
+    }
+
+    /**
+     * Some devices don't support RenderDoc well,
+     * so show all steps on screen for immediate debugging
+     * */
+    fun drawDebugSteps(view: RenderView) {
+        val enabled = view.controlScheme?.settings?.showDebugFrames
+        if (enabled != true) return
+        GFXState.drawCall("drawDebugSteps") {
+            drawDebugSteps1(view)
+        }
+    }
+
+    private fun <V> List<V>.removeDuplicates(): List<V> {
+        val set = HashSet<V>()
+        return filter { set.add(it) }
+    }
+
+    fun drawDebugSteps1(view: RenderView) {
+        val graph = view.renderMode.renderGraph ?: return
+        // go over graph, and show all rendering steps
+        val relevantNodes = graph.nodes
+            .map {
+                it.name to
+                        it.outputs
+                            .filter { o -> o.type == "Texture" }
+                            .mapNotNull { o -> o.currValue as? Texture }
+                            .mapNotNull { o -> o.texOrNull }
+                            .removeDuplicates()
+            }
+            .filter { it.second.isNotEmpty() }
+        if (relevantNodes.isEmpty()) return
+        // to do sort nodes by topology???
+        // at least without QuickPipeline-RenderModes, they're already sorted :)
+        var nx = max(relevantNodes.size, 5)
+        nx = max(ceilDiv(relevantNodes.maxOf { it.second.size } * view.width, view.height), nx)
+        val sz = view.width / nx
+        val cx = (nx - relevantNodes.size).shr(1) * sz
+        val x0 = view.x + cx
+        val y0 = view.y + view.height
+        for (i in relevantNodes.indices) {
+            val (name, outputs) = relevantNodes[i]
+            for (j in outputs.indices) {
+                val texture = outputs[j]
+                val x2 = x0 + WorkSplitter.partition(i + 0, view.width, nx)
+                val x3 = x0 + WorkSplitter.partition(i + 1, view.width, nx)
+                val y = y0 - sz * (outputs.size - j)
+                if (isDepthFormat(texture.internalFormat)) {
+                    // if is depth, draw display depth
+                    DrawTextures.drawDepthTexture(x2, y, x3 - x2, sz, texture)
+                } else {
+                    DrawTextures.drawTexture(
+                        x2, y + sz, x3 - x2, -sz, texture,
+                        true, -1, null, texture.isHDR
+                    )
+                }
+            }
+            val x = x0 + i * sz
+            val y = y0 - sz + 1
+            DrawTexts.drawSimpleTextCharByChar(
+                x, y, 1, name,
+                -1, view.backgroundColor,
+                AxisAlignment.MIN, AxisAlignment.MAX
+            )
+        }
     }
 }

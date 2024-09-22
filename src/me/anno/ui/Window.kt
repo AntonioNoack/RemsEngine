@@ -1,6 +1,5 @@
 package me.anno.ui
 
-import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.gpu.Clipping
@@ -35,8 +34,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.structures.lists.RedrawRequest
-import me.anno.utils.types.Floats.f3
-import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -572,7 +569,6 @@ open class Window(
 
     companion object {
         private const val DEBUG_REDRAW_COLOR = 0x33ff0000
-        private val LOGGER = LogManager.getLogger(Window::class)
         private val shadowShader = Shader(
             "shadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V4F, "color"),

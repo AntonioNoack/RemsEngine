@@ -43,10 +43,11 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         fun addType(layerType: DeferredLayerType) {
             val dimensions = layerType.dataDims
             val layerIndex = layerRemaining.indices.indexOfFirst {
-                layerRemaining[it] >= dimensions &&
-                        layerQualities[it].isCompatibleWith(layerType.minimumQuality)
+                val remaining = layerRemaining[it]
+                remaining == 4 || (remaining >= dimensions && layerQualities[it].isCompatibleWith(layerType.minimumQuality))
             }
-            val startIndex = 4 - layerRemaining[layerIndex]
+            val remaining = layerRemaining[layerIndex]
+            val startIndex = 4 - remaining
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
             val semanticLayer = SemanticLayer(layerType, "defLayer$layerIndex", layerIndex, mapping)
             when (layerType) { // mark this layer as sRGB
@@ -57,7 +58,9 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             semanticLayers.add(semanticLayer)
             layerRemaining[layerIndex] -= dimensions
             usedTextures0 = max(usedTextures0, layerIndex)
-            layerQualities[layerIndex] = layerQualities[layerIndex].combineWith(layerType.minimumQuality)!!
+            layerQualities[layerIndex] =
+                if (remaining == 4) layerType.minimumQuality
+                else layerQualities[layerIndex].combineWith(layerType.minimumQuality)!!
         }
 
         // vec3s and vec4s come first, so vec3 is guaranteed to always be rgb, never gba
@@ -82,9 +85,8 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 "defLayer$layerIndex", when (layerQualities[layerIndex]) {
                     BufferQuality.UINT_8 -> TargetType.UInt8xI
                     BufferQuality.UINT_16 -> TargetType.UInt16xI
-                    BufferQuality.UINT_32 -> TargetType.UInt32xI
                     BufferQuality.FP_16 -> TargetType.Float16xI
-                    BufferQuality.FP_32 -> TargetType.Float32xI
+                    BufferQuality.DEPTH_U32, BufferQuality.FP_32 -> TargetType.Float32xI
                 }[3 - empty]
             )
             storageLayers.add(layer2)
@@ -92,8 +94,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 val mask = when (layerRemaining[layerIndex]) {
                     1 -> "a"
                     2 -> "ba"
-                    3 -> "gba"
-                    else -> throw NotImplementedError()
+                    else -> "gba"
                 }
                 emptySlots.add(EmptySlot(layerIndex, layer2.name, mask))
             }
@@ -163,7 +164,9 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         for (index in semanticLayers.indices) {
             val defRR = if (useRandomness) "defRR$index" else null
             if (useRandomness) {
-                output.append("float $defRR = random(0.001 * gl_FragCoord.xy + vec2($index.0,defRRT))-0.5;\n")
+                output.append("float ").append(defRR)
+                    .append(" = random(0.001 * gl_FragCoord.xy + vec2(")
+                    .append(index).append(".0,defRRT))-0.5;\n")
             }
             val layer = semanticLayers[index]
             if (disabledLayers == null || !disabledLayers[layer.texIndex]) {
@@ -215,19 +218,5 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 findLayer(type)!!.texIndex in index0 until index1
             }
         )
-    }
-
-    companion object {
-        val singleToVectorR = Vector4f(1f, 0f, 0f, 0f)
-        val singleToVector = run {
-            val x = singleToVectorR
-            val y = Vector4f(0f, 1f, 0f, 0f)
-            val z = Vector4f(0f, 0f, 1f, 0f)
-            val w = Vector4f(0f, 0f, 0f, 1f)
-            mapOf(
-                "r" to x, "g" to y, "b" to z, "a" to w,
-                "x" to x, "y" to y, "z" to z, "w" to w
-            )
-        }
     }
 }
