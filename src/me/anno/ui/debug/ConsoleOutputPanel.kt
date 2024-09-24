@@ -133,7 +133,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 val oldMemory = runtime.totalMemory() - runtime.freeMemory()
                 Pools.gc()
                 System.gc()
-                addEvent {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
+                addEvent(16) {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
                     val newMemory = runtime.totalMemory() - runtime.freeMemory()
                     LOGGER.info(
                         "" +

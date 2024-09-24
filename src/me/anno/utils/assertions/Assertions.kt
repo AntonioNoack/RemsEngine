@@ -82,6 +82,10 @@ fun assertNotEquals(forbidden: Any?, actual: Any?, message: String = "expected d
     assertTrue(forbidden != actual) { "$message, $forbidden == $actual" }
 }
 
+fun assertNotEquals(forbidden: Any?, actual: Any?, message: () -> String) {
+    assertTrue(forbidden != actual, message)
+}
+
 fun <V : Vector> assertEquals(expected: V?, actual: V?, distanceTolerance: Double) {
     if ((expected == null) != (actual == null)) throw IllegalStateException("expected equal values, '$expected' != '$actual'")
     if (expected == null || actual == null) return

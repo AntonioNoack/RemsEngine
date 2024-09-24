@@ -1,5 +1,6 @@
 package me.anno.maths
 
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -682,7 +683,7 @@ object Maths {
     fun multiplyExact(a: Int, b: Int): Int {
         val prod = a.toLong() * b.toLong()
         if (prod.toInt().toLong() != prod) {
-            throw IllegalArgumentException()
+            assertFail("Cannot multiply $a and $b safely")
         }
         return prod.toInt()
     }

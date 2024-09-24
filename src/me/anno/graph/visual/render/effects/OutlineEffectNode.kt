@@ -150,7 +150,7 @@ class OutlineEffectNode : RenderViewNode(
                         "   vec2 dx = dFdx(uv);\n" +
                         "   vec2 dy = dFdy(uv);\n" +
                         "   float sum = 0.0;\n" +
-                        "   vec3 color = texture(colorTex,uv).rgb;\n" +
+                        "   vec3 color = textureLod(colorTex,uv,0.0).rgb;\n" +
                         (if (useMS) {
                             "" +
                                     "ivec2 size = textureSize(idTex);\n" +
@@ -170,7 +170,7 @@ class OutlineEffectNode : RenderViewNode(
                         } else {
                             "" +
                                     "vec2 uv2 = uv + dx * float(x) + dy * float(y);\n" +
-                                    "float groupId1 = dot(groupTexMask,texture(idTex,uv2));\n" +
+                                    "float groupId1 = dot(groupTexMask,textureLod(idTex,uv2,0.0));\n" +
                                     "sum += step(0.5/255.0, abs(groupId - groupId1));\n"
                         }) +
                         "           }\n" +

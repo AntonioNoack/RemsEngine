@@ -2,9 +2,11 @@ package me.anno.image.svg
 
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Floats.toRadians
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3x2f
 import org.joml.Matrix4d
 
+private val LOGGER = LogManager.getLogger("SVGTransform")
 fun applyTransform(transform: Matrix4d, actions: String) {
     val tokens = svgTokenize(actions)
     var i = 0
@@ -68,7 +70,7 @@ fun applyTransform(transform: Matrix4d, actions: String) {
                         transform.skew(0.0, params[0])
                     }
                 }
-                else -> throw RuntimeException("Unknown transform $name($params)")
+                else -> LOGGER.warn("Unknown transform $name($params)")
             }
             i = endIndex
         }// else unknown stuff...
@@ -131,7 +133,7 @@ fun applyTransform(transform: Matrix3x2f, actions: String) {
                 "skewy" -> if (params.size == 1) {
                     transform.skew(0f, params[0])
                 }
-                else -> throw RuntimeException("Unknown transform $name($params)")
+                else -> LOGGER.warn("Unknown transform $name($params)")
             }
             i = endIndex
         }// else unknown stuff...

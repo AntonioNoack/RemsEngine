@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.assertions.assertFail
 
 class Element {
 
@@ -14,7 +15,7 @@ class Element {
     val children = ArrayList<Element>()
 
     fun add(element: Element) {
-        if (element == this) throw IllegalArgumentException("Cannot append element to itself")
+        if (element == this) assertFail("Cannot append element to itself")
         element.parent?.children?.remove(element)
         children.add(element)
         element.parent = this

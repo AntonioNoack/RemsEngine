@@ -12,6 +12,8 @@ import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -187,9 +189,13 @@ class Prefab : Saveable {
         set(instance.prefabPath, key, value)
     }
 
+    fun checkIsMutable() {
+        assertTrue(isWritable) { "$source is immutable " }
+    }
+
     operator fun set(path: Path, name: String, value: Any?) {
         // add(CSet(path, name, value))
-        if (!isWritable) throw ImmutablePrefabException(source)
+        checkIsMutable()
         sets[path, name] = value
         // apply to sample instance to keep it valid
         updateSample(path, name, value)
@@ -208,7 +214,7 @@ class Prefab : Saveable {
      * it assumes, that it does not yet exist
      * */
     fun setUnsafe(path: Path, name: String, value: Any?) {
-        if (!isWritable) throw ImmutablePrefabException(source)
+        checkIsMutable()
         sets.setUnsafe(path, name, value)
     }
 
@@ -217,7 +223,7 @@ class Prefab : Saveable {
      * it assumes, that it does not yet exist
      * */
     fun setUnsafe(name: String, value: Any?) {
-        if (!isWritable) throw ImmutablePrefabException(source)
+        checkIsMutable()
         sets.setUnsafe(ROOT_PATH, name, value)
     }
 
@@ -266,11 +272,12 @@ class Prefab : Saveable {
     }
 
     fun add(change: CAdd, insertIndex: Int): CAdd {
-        if (!isWritable) throw ImmutablePrefabException(source)
+        checkIsMutable()
         if (!Build.isShipped) {
             val key = Pair(change.path, change.nameId)
-            if (addedPaths?.contains(key) == true)
-                throw IllegalArgumentException("Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}")
+            assertNotEquals(true, addedPaths?.contains(key)) {
+                "Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}"
+            }
             // todo check branched prefabs for adds as well
             val sourcePrefab = PrefabCache[prefab]
             if (sourcePrefab != null) {
@@ -307,7 +314,7 @@ class Prefab : Saveable {
     }
 
     fun remove(path: Path) {
-        if (!isWritable) throw ImmutablePrefabException(source)
+        checkIsMutable()
         val adds = adds
         val success = adds[path.parent ?: ROOT_PATH]?.removeIf { it.nameId == path.nameId }
         if (success == true) {
@@ -340,7 +347,7 @@ class Prefab : Saveable {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if (!isWritable) throw ImmutablePrefabException(source)
+        checkIsMutable()
         when (name) {
             "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
             "className", "class" -> clazzName = value as? String ?: return
@@ -411,10 +418,9 @@ class Prefab : Saveable {
                 try {
                     add.apply(this, instance, depth - 1)
                 } catch (e: InvalidClassException) {
-                    throw e
+                    LOGGER.warn("Invalid class ${add.clazzName}", e)
                 } catch (e: Exception) {
                     LOGGER.warn("Change $index, $add failed")
-                    throw e
                 }
             }
         }
@@ -423,7 +429,6 @@ class Prefab : Saveable {
                 CSet.apply(instance, k1, k2, v)
             } catch (e: Exception) {
                 LOGGER.warn("Change '$k1' '$k2' '$v' failed")
-                throw e
             }
         }
         // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")

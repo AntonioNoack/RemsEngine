@@ -46,7 +46,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
@@ -663,8 +662,9 @@ object DebugRendering {
         if (relevantNodes.isEmpty()) return
         // to do sort nodes by topology???
         // at least without QuickPipeline-RenderModes, they're already sorted :)
-        var nx = max(relevantNodes.size, 5)
-        nx = max(ceilDiv(relevantNodes.maxOf { it.second.size } * view.width, view.height), nx)
+        var nx = relevantNodes.size
+        val ny = max(relevantNodes.maxOf { it.second.size }, 4)
+        nx = max(ceilDiv(ny * view.width, view.height), nx)
         val sz = view.width / nx
         val cx = (nx - relevantNodes.size).shr(1) * sz
         val x0 = view.x + cx

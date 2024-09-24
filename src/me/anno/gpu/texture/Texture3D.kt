@@ -107,7 +107,7 @@ open class Texture3D(
         setWriteAlignment(alignment)
     }
 
-    private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
+    fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
         wasCreated = true
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, width.toLong() * height.toLong() * depth.toLong() * bpp)

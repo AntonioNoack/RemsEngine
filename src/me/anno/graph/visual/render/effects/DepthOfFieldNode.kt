@@ -141,8 +141,8 @@ class DepthOfFieldNode : TimedRenderingNode(
                     DepthTransforms.rawToDepth +
                     getBlurSize +
                     "void main() {\n" +
-                    "   float depth = rawToDepth(texture(depthTex,uv).r);\n" +
-                    "   vec3 color = texture(colorTex,uv).xyz;\n" +
+                    "   float depth = rawToDepth(textureLod(depthTex,uv,0.0).r);\n" +
+                    "   vec3 color = textureLod(colorTex,uv,0.0).xyz;\n" +
                     "   result = clamp(vec4(color,getBlurSize(depth,uv)),0.0,1.0);\n" +
                     "}\n"
         )
@@ -168,7 +168,7 @@ class DepthOfFieldNode : TimedRenderingNode(
                     Renderers.tonemapGLSL +
                     "const float GOLDEN_ANGLE = 2.39996323;\n" +
                     "vec3 dof(vec2 uv, float centerDepth, float centerSize){\n" +
-                    "   vec3 color = texture(colorTex, uv).rgb;\n" +
+                    "   vec3 color = textureLod(colorTex,uv,0.0).rgb;\n" +
                     "   float tot = 1.0;\n" +
                     "   float radius = radScale;\n" +
                     "   float sizeLimit = centerSize*2.0;\n" +
@@ -177,8 +177,8 @@ class DepthOfFieldNode : TimedRenderingNode(
                     "   // [loop]\n" + // hlsl instruction
                     "   for (; radius<midRadius; ang += GOLDEN_ANGLE){\n" +
                     "       vec2 tc = uv + vec2(cos(ang), sin(ang)) * pixelSize * radius;\n" +
-                    "       vec3 sampleColor = texture(colorTex, tc).rgb;\n" +
-                    "       float sampleDepth = rawToDepth(texture(depthTex,tc).r);\n" +
+                    "       vec3 sampleColor = textureLod(colorTex,tc,0.0).rgb;\n" +
+                    "       float sampleDepth = rawToDepth(textureLod(depthTex,tc,0.0).r);\n" +
                     "       float sampleSize = getBlurSize(sampleDepth,uv) * maxBlurSize;\n" +
                     "       if (sampleDepth > centerDepth) sampleSize = min(sampleSize, sizeLimit);\n" +
                     "       float m = smoothstep(radius-0.5, radius+0.5, sampleSize);\n" +
@@ -189,8 +189,8 @@ class DepthOfFieldNode : TimedRenderingNode(
                     "   // [loop]\n" + // hlsl instruction
                     "   for (; radius<centerSize; ang += GOLDEN_ANGLE){\n" +
                     "       vec2 tc = uv + vec2(cos(ang), sin(ang)) * pixelSize * radius;\n" +
-                    "       vec4 sampleColor = texture(cocTex, tc);\n" +
-                    "       float sampleDepth = rawToDepth(texture(depthTex,tc).r);\n" +
+                    "       vec4 sampleColor = textureLod(cocTex,tc,0.0);\n" +
+                    "       float sampleDepth = rawToDepth(textureLod(depthTex,tc,0.0).r);\n" +
                     "       float sampleSize = sampleColor.a * maxBlurSize;\n" +
                     "       if (sampleDepth > centerDepth) sampleSize = min(sampleSize, sizeLimit);\n" +
                     "       float m = smoothstep(radius-0.5, radius+0.5, sampleSize);\n" +
@@ -204,7 +204,7 @@ class DepthOfFieldNode : TimedRenderingNode(
                     "   float centerDepth = rawToDepth(texture(depthTex,uv).r);\n" +
                     "   float centerSize = getBlurSize(centerDepth,uv) * maxBlurSize;\n" +
                     "   if(centerSize < 0.5) {\n" +
-                    "       result = texture(colorTex,uv);\n" +
+                    "       result = textureLod(colorTex,uv,0.0);\n" +
                     "   } else {\n" +
                     "       result = vec4(dof(uv,centerDepth,centerSize),1.0);\n" +
                     "   }\n" +

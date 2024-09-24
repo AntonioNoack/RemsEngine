@@ -293,7 +293,8 @@ object ScreenSpaceAmbientOcclusion {
         val fh = (depth.height * scale).roundToIntOr()
 
         val isSSGI = ssgi != null
-        val dst = FBStack["ssao-1st", fw, fh, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]
+        val channels = if (isSSGI) 3 else 1
+        val dst = FBStack["ssao-1st", fw, fh, channels, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
             val msaa = depth.samples > 1

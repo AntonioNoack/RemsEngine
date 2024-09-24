@@ -173,7 +173,7 @@ open class CubemapTexture(
 
     private fun getTarget(side: Int): Int = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
 
-    private fun afterUpload(internalFormat: Int, bytesPerPixel: Int) {
+    fun afterUpload(internalFormat: Int, bytesPerPixel: Int) {
         GFX.check()
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, size * size * bytesPerPixel.toLong())

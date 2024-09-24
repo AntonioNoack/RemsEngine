@@ -2,11 +2,14 @@ package me.anno.image.svg
 
 import me.anno.image.svg.gradient.Gradient1D
 import me.anno.io.xml.generic.XMLNode
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 
 class SVGStyle(mesh: SVGMesh?, data: XMLNode) {
+    companion object {
+        private val LOGGER = LogManager.getLogger(SVGStyle::class)
+    }
 
     val fill0 = data
     val stroke = parseColor2(mesh, data["stroke"] ?: "none")
@@ -20,23 +23,27 @@ class SVGStyle(mesh: SVGMesh?, data: XMLNode) {
     }
 
     private fun parseColor2(mesh: SVGMesh?, name: String): Gradient1D? {
-        return when {
-            name.isBlank2() -> null
+        when {
+            name.isBlank2() -> {}
             name.startsWith("url(") -> {
                 val link = name.substring(4, name.length - 1)
                 if (link.startsWith("#")) {
-                    mesh ?: throw IllegalStateException("Links to styles need parent")
-                    when (val style = mesh.styles[link.substring(1)]) {
-                        is Gradient1D -> style
-                        null -> throw IllegalStateException("Unknown style $link, known: ${mesh.styles.keys}")
-                        else -> throw IllegalStateException("Unknown style type $style")
+                    if (mesh == null) {
+                        LOGGER.warn("Links to styles need parent")
+                        return null
                     }
-                } else throw IllegalStateException("Unknown link type $link")
+                    when (val style = mesh.styles[link.substring(1)]) {
+                        is Gradient1D -> return style
+                        null -> LOGGER.warn("Unknown style $link, known: ${mesh.styles.keys}")
+                        else -> LOGGER.warn("Unknown style type $style")
+                    }
+                } else LOGGER.warn("Unknown link type $link")
             }
             else -> {
                 val color = parseColor(name)
-                if (color != null) Gradient1D(color) else null
+                if (color != null) return Gradient1D(color)
             }
         }
+        return null
     }
 }

@@ -546,7 +546,9 @@ object DrawTexts {
         return if (tex0 != null && tex0.isCreated()) {
             drawText(x, y, color, backgroundColor, tex0, alignX, alignY)
             false
-        } else true
+        } else {
+            true
+        }
     }
 
     private fun drawText(

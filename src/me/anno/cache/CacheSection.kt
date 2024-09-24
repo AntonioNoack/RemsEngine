@@ -7,7 +7,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.InternalAPI
-import me.anno.utils.ShutdownException
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.KeyPairMap
@@ -205,20 +205,19 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         oldValue?.destroy()
     }
 
-    private fun <V> generateSafely(key: V, generator: (V) -> ICacheData?): Any? {
-        var data: ICacheData? = null
+    private fun <K, R> generateSafely(key: K, generator: (K) -> R): R? {
         try {
-            data = generator(key)
+            return generator(key)
         } catch (_: IgnoredException) {
         } catch (e: FileNotFoundException) {
             warnFileMissing(e)
         } catch (e: Exception) {
-            return e
+            LOGGER.warn(e)
         }
-        return data
+        return null
     }
 
-    private fun <V, W, R : ICacheData> generateDualSafely(key0: V, key1: W, generator: (V, W) -> R?): Any? {
+    private fun <V, W, R : ICacheData> generateDualSafely(key0: V, key1: W, generator: (V, W) -> R?): R? {
         var data: R? = null
         try {
             data = generator(key0, key1)
@@ -226,7 +225,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } catch (e: FileNotFoundException) {
             warnFileMissing(e)
         } catch (e: Exception) {
-            return e
+            LOGGER.warn(e)
         }
         return data
     }
@@ -238,8 +237,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     private fun checkKey(key: Any?) {
         if (Build.isDebug && key != null) {
             @Suppress("KotlinConstantConditions")
-            if (key != key) throw IllegalStateException("${key::class.simpleName}.equals() is incorrect!")
-            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key::class.simpleName}.hashCode() is inconsistent!")
+            if (key != key) assertFail("${key::class.simpleName}.equals() is incorrect!")
+            if (key.hashCode() != key.hashCode()) assertFail("${key::class.simpleName}.hashCode() is inconsistent!")
         }// else we assume that it's fine
     }
 
@@ -254,9 +253,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             getEntryWithIfNotGeneratingCallback(key, timeout, asyncGenerator, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
-                if (value is Exception) throw value
-                @Suppress("UNCHECKED_CAST")
-                value as? R
+                value
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
@@ -276,9 +273,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             getEntryWithIfNotGeneratingCallback(key, timeout, queue, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
-                if (value is Exception) throw value
-                @Suppress("UNCHECKED_CAST")
-                value as? ICacheData as? R
+                value
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
@@ -316,9 +311,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 val name = "$name<$key0,$key1>"
                 runAsync(name) {
                     try {
-                        val value = generateDualSafely(key0, key1, generator)
-                        entry.data = value as? ICacheData
-                        if (value is Exception) throw value
+                        entry.data = generateDualSafely(key0, key1, generator)
                         if (entry.hasBeenDestroyed) {
                             LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
                             entry.data?.destroy()
@@ -328,9 +321,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     LOGGER.debug("Finished {}", name)
                 }
             } else {
-                val value = generateDualSafely(key0, key1, generator)
-                entry.data = value as? ICacheData
-                if (value is Exception) throw value
+                entry.data = generateDualSafely(key0, key1, generator)
             }
         } else ifNotGenerating?.invoke()
 
@@ -365,10 +356,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (asyncGenerator) {
                 val name = "$name<$key>"
                 runAsync(name) {
-                    val value = generateSafely(key, generator)
-                    if (value is Exception && value !is ShutdownException) throw value
-                    value as? ICacheData
-                    entry.data = value as? ICacheData
+                    entry.data = generateSafely(key, generator)
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for {}<{}> was directly destroyed", name, key)
                         entry.data?.destroy()
@@ -377,7 +365,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 }
             } else {
                 val value = generateSafely(key, generator)
-                if (value is Exception) throw value
                 entry.data = value as? ICacheData
             }
         } else ifNotGenerating?.invoke()
@@ -414,14 +401,14 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 val name = "$name<$key>"
                 runAsync(name) {
                     val value = generateSafely(key, generator)
-                    entry.data = value as? ICacheData
+                    entry.data = value
                     LOGGER.debug("Finished {}", name)
-                    entry.callback(value as? Exception, resultCallback)
+                    entry.callback(null, resultCallback)
                 }
             } else {
                 val value = generateSafely(key, generator)
-                entry.data = value as? ICacheData
-                entry.callback(value as? Exception, resultCallback)
+                entry.data = value
+                entry.callback(null, resultCallback)
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
@@ -462,22 +449,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (asyncGenerator) {
                 val name = "$name<$key0,$key1>"
                 runAsync(name) {
-                    val value = generateDualSafely(key0, key1, generator)
-                    entry.data = value as? ICacheData
+                    entry.data = generateDualSafely(key0, key1, generator)
                     LOGGER.debug("Finished {}", name)
-                    entry.callback(value as? Exception, resultCallback)
+                    entry.callback(null, resultCallback)
                 }
             } else {
-                val value = generateDualSafely(key0, key1, generator)
-                entry.data = value as? ICacheData
-                entry.callback(value as? Exception, resultCallback)
+                entry.data = generateDualSafely(key0, key1, generator)
+                entry.callback(null, resultCallback)
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
-                waitAsync("WaitingFor<$key0, $key1>") {
-                    entry.waitForValueOrThrow(key0 to key1)
-                    entry.callback(null, resultCallback)
-                }
+                entry.waitForValueOrTimeout(resultCallback)
             } else {
                 entry.callback(null, resultCallback)
             }
@@ -511,7 +493,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         ifNotGenerating: (() -> Unit)?
     ): R? {
 
-        if (key == null) throw IllegalStateException("Key must not be null")
         checkKey(key)
 
         // new, async cache
@@ -531,22 +512,20 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (queue != null) {
                 queue += {
-                    val value = generateSafely(key, generator)
-                    if (value is Exception) throw value
-                    entry.data = value as? ICacheData
+                    entry.data = generateSafely(key, generator)
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
                         entry.data?.destroy()
                     }
                 }
             } else {
-                val value = generateSafely(key, generator)
-                if (value is Exception) throw value
-                entry.data = value as? ICacheData
+                entry.data = generateSafely(key, generator)
             }
         } else ifNotGenerating?.invoke()
 
-        if (!async && entry.generatorThread != Thread.currentThread()) entry.waitForValueOrThrow(key)
+        if (!async && entry.generatorThread != Thread.currentThread()) {
+            entry.waitForValueOrThrow(key)
+        }
         @Suppress("UNCHECKED_CAST")
         return if (entry.hasBeenDestroyed) null else entry.data as? R
     }

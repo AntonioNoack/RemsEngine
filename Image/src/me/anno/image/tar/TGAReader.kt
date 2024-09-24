@@ -6,6 +6,7 @@ import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
 import me.anno.utils.Color
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
 import java.io.InputStream
@@ -301,7 +302,7 @@ object TGAReader {
                     }
                 }
             }
-            else -> throw IOException("TGA: unknown ColorMap indexing size used: $bytesPerIndex")
+            else -> assertFail("TGA: unknown ColorMap indexing size used: $bytesPerIndex")
         }
         return if (dl == 4) 4 else 3
     }
@@ -345,7 +346,7 @@ object TGAReader {
                 }
                 4
             }
-            else -> throw IOException("Unsupported TGA true color depth: $pixelDepth")
+            else -> assertFail("Unsupported TGA true color depth: $pixelDepth")
         }
     }
 
@@ -498,7 +499,7 @@ object TGAReader {
                 }
                 format = 3
             }
-            else -> throw IOException("Unsupported TGA true color depth: $pixelDepth")
+            else -> assertFail("Unsupported TGA true color depth: $pixelDepth")
         }
         return format
     }

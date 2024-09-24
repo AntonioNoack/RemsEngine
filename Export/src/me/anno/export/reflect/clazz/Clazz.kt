@@ -1,6 +1,7 @@
 package me.anno.export.reflect.clazz
 
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.DataInputStream
@@ -118,7 +119,7 @@ class Clazz(input: DataInputStream) {
                 15 -> MethodHandle(ReferenceKind.entries[input.read() - 1], ref())
                 16 -> MethodType(ref() as String)
                 18 -> InvokeDynamic(input.readUnsignedShort(), ref() as NameType)
-                else -> throw IOException("Unknown tag $tag")
+                else -> assertFail("Unknown tag $tag")
             }
             pool.add(value)
             if (tag == 5 || tag == 6) {

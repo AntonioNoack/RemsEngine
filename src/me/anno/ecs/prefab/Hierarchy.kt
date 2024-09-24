@@ -208,7 +208,7 @@ object Hierarchy {
         type: Char,
         insertIndex: Int = -1
     ): Path? {
-        if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
+        dstPrefab.checkIsMutable()
         if (LOGGER.isDebugEnabled()) {
             @Suppress("LoggingStringTemplateAsArgument")
             LOGGER.debug(
@@ -280,7 +280,7 @@ object Hierarchy {
         parent: PrefabSaveable,
         child: PrefabSaveable,
     ) {
-        if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
+        dstPrefab.checkIsMutable()
         val type = dstPath.lastType()
         val nameId = dstPath.lastNameId()
         val dstPath2 = dstPrefab.add(
@@ -312,7 +312,7 @@ object Hierarchy {
 
     fun removePathFromPrefab(prefab: Prefab, path: Path, clazzName: String) {
 
-        if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
+        prefab.checkIsMutable()
 
         if (path.isEmpty()) {
             LOGGER.warn("Cannot remove root!")

@@ -147,7 +147,7 @@ class NumberType(
                     }
                     it
                 }
-                else -> throw RuntimeException("Unsupported type $it")
+                else -> 0.0
             }
         }, Casting::castToVector4f)
         val POSITION = NumberType(Vector3f(), 3, 1f, true, hasExponential = true, null, Casting::castToVector3f)
@@ -179,7 +179,7 @@ class NumberType(
                     }
                     is Float -> Maths.clamp(it)
                     is Double -> Maths.clamp(it)
-                    else -> throw RuntimeException()
+                    else -> 0.0
                 }
             }, Casting::castToVector4f
         )

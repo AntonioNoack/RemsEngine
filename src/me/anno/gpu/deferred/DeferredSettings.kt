@@ -14,11 +14,11 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
-import org.joml.Vector4f
 import kotlin.math.max
 
 data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
@@ -191,7 +191,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     fun zw(type: DeferredLayerType): Boolean {
         val layer = semanticLayers.first2 { it.type == type }
-        if (layer.mapping.length != 2) throw IllegalStateException("layer is not 2d")
+        assertEquals(2, layer.mapping.length, "layer is not 2d")
         return layer.mapping == "zw"
     }
 

@@ -13,14 +13,12 @@ import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import org.lwjgl.opengl.GL46C.GL_R16
 import org.lwjgl.opengl.GL46C.GL_R16F
 import org.lwjgl.opengl.GL46C.GL_R32F
-import org.lwjgl.opengl.GL46C.GL_R32UI
 import org.lwjgl.opengl.GL46C.GL_R8
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RG
 import org.lwjgl.opengl.GL46C.GL_RG16
 import org.lwjgl.opengl.GL46C.GL_RG16F
 import org.lwjgl.opengl.GL46C.GL_RG32F
-import org.lwjgl.opengl.GL46C.GL_RG32UI
 import org.lwjgl.opengl.GL46C.GL_RG8
 import org.lwjgl.opengl.GL46C.GL_RGB
 import org.lwjgl.opengl.GL46C.GL_RGB32F
@@ -28,7 +26,6 @@ import org.lwjgl.opengl.GL46C.GL_RGBA
 import org.lwjgl.opengl.GL46C.GL_RGBA16
 import org.lwjgl.opengl.GL46C.GL_RGBA16F
 import org.lwjgl.opengl.GL46C.GL_RGBA32F
-import org.lwjgl.opengl.GL46C.GL_RGBA32UI
 import org.lwjgl.opengl.GL46C.GL_RGBA8
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
@@ -97,9 +94,9 @@ class TargetType(
         // their support is quite limited, e.g. not available on Android...
         //   to do what is available is the integer format... we kind of need to support that...
         //   -> but then we wouldn't be able to support MSAA -> just stay with these non-integer formats
-        val UInt16x1 = TargetType("u16x1", GL_R16, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
-        val UInt16x2 = TargetType("u16x2", GL_RG16, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
-        val UInt16x4 = TargetType("u16x4", GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
-        val UInt16xI = if (OS.isAndroid) Float16xI else listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
+        val UInt16x1 = if (OS.isWeb || OS.isAndroid) Float16x1 else TargetType("u16x1", GL_R16, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
+        val UInt16x2 = if (OS.isWeb || OS.isAndroid) Float16x2 else TargetType("u16x2", GL_RG16, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
+        val UInt16x4 = if (OS.isWeb || OS.isAndroid) Float16x3 else TargetType("u16x4", GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
+        val UInt16xI = listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
     }
 }

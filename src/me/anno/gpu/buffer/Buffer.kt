@@ -1,10 +1,8 @@
 package me.anno.gpu.buffer
 
 import me.anno.Build
-import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GLNames
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
@@ -17,7 +15,6 @@ import me.anno.utils.types.Booleans.withoutFlag
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL46C.glGetError
 import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
 import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
 import org.lwjgl.opengl.GL46C.glVertexAttribPointer
@@ -43,7 +40,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
         val nonInstancedAttributes = attributes
         for (i in nonInstancedAttributes.indices) {
-            bindAttribute(this, shader, nonInstancedAttributes[i], false)
+            bindAttribute(shader, nonInstancedAttributes[i], false)
         }
 
         val instancedAttributes = instanceData?.attributes
@@ -51,7 +48,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             instanceData.ensureBuffer()
             bindBuffer(type, instanceData.pointer, true)
             for (i in instancedAttributes.indices) {
-                bindAttribute(instanceData, shader, instancedAttributes[i], true)
+                bindAttribute(shader, instancedAttributes[i], true)
             }
         }
 
@@ -63,9 +60,9 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             if (nonInstancedAttributes.none2 { it.name == attrName } && (instancedAttributes == null || instancedAttributes.none2 { it.name == attrName })) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
-                GFX.check()
             }
         }
+
         GFX.check()
     }
 
@@ -166,49 +163,28 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     companion object {
 
         private var enabledAttributes = 0
-        private val LOGGER = LogManager.getLogger(Buffer::class)
 
         @JvmStatic
-        fun bindAttribute(self: OpenGLBuffer, shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
+        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index in 0 until GFX.maxAttributes) {
-                GFX.check()
                 val type = attr.type
                 if (attr.isNativeInt) {
                     glVertexAttribIPointer(
                         index, attr.components, type.id,
                         attr.stride, attr.offset.toLong()
                     )
-                    checkNCrash(self, index, instanceDivisor, attr)
                 } else {
                     glVertexAttribPointer(
                         index, attr.components, type.id,
                         type.normalized, attr.stride, attr.offset.toLong()
                     )
-                    checkNCrash(self, index, instanceDivisor, attr)
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
-                checkNCrash(self, index, instanceDivisor, attr)
                 enable(index)
-                checkNCrash(self, index, instanceDivisor, attr)
-                GFX.check()
                 true
             } else false
-        }
-
-        // todo if this isn't triggered anymore within 2024, remove it :)
-        private fun checkNCrash(self: OpenGLBuffer, index: Int, instanceDivisor: Int, attr: Attribute) {
-            val err = glGetError()
-            if (err != 0) { // todo why is this triggered???
-                // is the shader not bound??? no, the shader is apparently fine
-                Engine.requestShutdown()
-                LOGGER.warn(
-                    "Error: ${GLNames.getErrorTypeName(err)}, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, " +
-                            "$attr, offset/stride: ${attr.offset}, ${attr.stride}, #${self.pointer}, ${self.elementCount}x"
-                )
-                throw IllegalStateException()
-            }
         }
 
         private fun enable(index: Int) {

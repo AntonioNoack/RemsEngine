@@ -101,6 +101,7 @@ object Sleep {
     }
 
     @JvmStatic
+    @Deprecated("Please use the variant with callback")
     fun waitForGFXThread(canBeKilled: Boolean, isFinished: () -> Boolean) {
         warnIfGFXMissing()
         // if we are the gfx thread ourselves, we have to fulfil our processing duties

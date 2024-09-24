@@ -2,6 +2,7 @@ package me.anno.mesh.vox.meshing
 
 import me.anno.mesh.vox.meshing.MergeBlocks.mergeBlocks
 import me.anno.mesh.vox.model.VoxelModel
+import me.anno.utils.assertions.assertNotEquals
 import kotlin.math.max
 
 object BakeMesh {
@@ -122,7 +123,7 @@ object BakeMesh {
         val dy = model.getIndex(0, 1, 0)
         val dz = model.getIndex(0, 0, 1)
         val sideOffset = blockSide.x * dx + blockSide.y * dy + blockSide.z * dz
-        if (sideOffset == 0) throw IllegalStateException()
+        assertNotEquals(0, sideOffset, "dx,dy,dz must be different and non-null")
         var ctr = 0
         var x0 = 0
         var x1 = model.sizeX

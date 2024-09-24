@@ -24,6 +24,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.InternalAPI
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
@@ -107,7 +108,7 @@ object GFXState {
                     v.forceApply(i)
                 }
             }
-            else -> throw IllegalArgumentException("Unknown blend mode type")
+            else -> assertFail("Unknown blend mode type")
         }
         lastBlendMode = newValue
     }
