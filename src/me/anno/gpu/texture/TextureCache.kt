@@ -5,9 +5,11 @@ import me.anno.cache.ICacheData
 import me.anno.cache.IgnoredException
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
+import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.utils.OS
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
@@ -52,6 +54,8 @@ object TextureCache : CacheSection("Texture") {
         } else if (file.isDirectory || !file.exists) {
             LOGGER.warn("Image missing: $file")
             return null
+        } else if (file is InnerTmpImageFile && file.image is GPUImage) {
+            return file.image.texture // shortcut
         }
         val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ ->
             generateImageData(fileI)
@@ -107,15 +111,16 @@ object TextureCache : CacheSection("Texture") {
 
     @Suppress("unused") // used in Rem's Studio
     fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
-        val texture = getEntry("LUT" to file, timeout, asyncGenerator, TextureCache::generateLUT) as? Texture3D
+        val key = Triple("LUT", file, file.lastModified)
+        val texture = getEntry(key, timeout, asyncGenerator, TextureCache::generateLUT) as? Texture3D
         return if (texture?.wasCreated == true) texture else null
     }
 
-    private fun generateLUT(pair: Pair<String, FileReference>): ICacheData {
-        val file = pair.second
+    private fun generateLUT(key: Triple<String, FileReference, Long>): ICacheData {
+        val file = key.second
         val img = ImageCache[file, false]!!
-        val sqrt = sqrt(img.width + 0.5f).toInt()
-        val tex = Texture3D("lut-${file.name}", sqrt, img.height, sqrt)
+        val size = sqrt(img.width + 0.5f).toInt()
+        val tex = Texture3D("lut-${file.name}", size, img.height, size)
         tex.create(img, false)
         return tex
     }

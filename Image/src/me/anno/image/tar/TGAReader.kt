@@ -5,7 +5,8 @@ import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
-import me.anno.utils.Color
+import me.anno.utils.Color.argb
+import me.anno.utils.Color.rgb
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
@@ -73,7 +74,7 @@ object TGAReader {
         // short cMapStart = flipEndian(dis.readShort());
         input.readLE16()
         // number of entries in the color map
-        val cMapLength = input.readLE16()
+        val colorMapSize = input.readLE16()
         // number of bits per color map entry
         val cMapDepth = input.read()
 
@@ -109,33 +110,33 @@ object TGAReader {
         if (colorMapType != 0) {
 
             // read the color map
-            val bytesInColorMap = cMapDepth * cMapLength shr 3
-            val bitsPerColor = min(cMapDepth / 3, 8)
-            val cMapData = input.readNBytes2(bytesInColorMap, true)
+            val bytesInColorMap = (cMapDepth * colorMapSize) shr 3
+            val colorSize = min(cMapDepth / 3, 8)
+            val rawMapData = input.readNBytes2(bytesInColorMap, true)
 
             // Only go to the trouble of constructing the color map
             // table if this is declared a color mapped image.
             if (imageType == COLORMAPPED || imageType == COLORMAPPED_RLE) {
-                cMapEntries = IntArray(cMapLength)
-                val alphaSize = cMapDepth - 3 * bitsPerColor
-                val scalar = (1 shl bitsPerColor) - 1
-                val alphaScalar = (1 shl alphaSize) - 1
+                cMapEntries = IntArray(colorMapSize)
+                val alphaSize = cMapDepth - 3 * colorSize
+                val maxValue = (1 shl colorSize) - 1
+                val maxAlpha = (1 shl alphaSize) - 1
                 if (alphaSize > 0) {
-                    for (i in 0 until cMapLength) {
+                    for (i in 0 until colorMapSize) {
                         val offset = cMapDepth * i
-                        val b = (bitsToByte(cMapData, offset, bitsPerColor) * 255 / scalar)
-                        val g = (bitsToByte(cMapData, offset + bitsPerColor, bitsPerColor) * 255 / scalar)
-                        val r = (bitsToByte(cMapData, offset + 2 * bitsPerColor, bitsPerColor) * 255 / scalar)
-                        val a = (bitsToByte(cMapData, offset + 3 * bitsPerColor, alphaSize) * 255 / alphaScalar)
-                        cMapEntries[i] = bgra(r, g, b, a)
+                        val r = (bitsToByte(rawMapData, offset, colorSize) * 255 / maxValue)
+                        val g = (bitsToByte(rawMapData, offset + colorSize, colorSize) * 255 / maxValue)
+                        val b = (bitsToByte(rawMapData, offset + 2 * colorSize, colorSize) * 255 / maxValue)
+                        val a = (bitsToByte(rawMapData, offset + 3 * colorSize, alphaSize) * 255 / maxAlpha)
+                        cMapEntries[i] = argb(a, r, g, b)
                     }
                 } else {
-                    for (i in 0 until cMapLength) {
+                    for (i in 0 until colorMapSize) {
                         val offset = cMapDepth * i
-                        val b = (bitsToByte(cMapData, offset, bitsPerColor) * 255 / scalar)
-                        val g = (bitsToByte(cMapData, offset + bitsPerColor, bitsPerColor) * 255 / scalar)
-                        val r = (bitsToByte(cMapData, offset + 2 * bitsPerColor, bitsPerColor) * 255 / scalar)
-                        cMapEntries[i] = bgr(r, g, b)
+                        val r = (bitsToByte(rawMapData, offset, colorSize) * 255 / maxValue)
+                        val g = (bitsToByte(rawMapData, offset + colorSize, colorSize) * 255 / maxValue)
+                        val b = (bitsToByte(rawMapData, offset + 2 * colorSize, colorSize) * 255 / maxValue)
+                        cMapEntries[i] = rgb(r, g, b)
                     }
                 }
             }
@@ -527,15 +528,5 @@ object TGAReader {
             }
         }
         return rVal
-    }
-
-    @JvmStatic
-    private fun bgra(b: Int, g: Int, r: Int, a: Int): Int {
-        return (r and 255 shl 16) or (g and 255 shl 8) or (b and 255) or (a shl 24)
-    }
-
-    @JvmStatic
-    private fun bgr(b: Int, g: Int, r: Int): Int {
-        return (r shl 16) or (g and 255 shl 8) or (b and 255) or Color.black
     }
 }

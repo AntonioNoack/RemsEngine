@@ -1,8 +1,8 @@
 package me.anno.ecs
 
 import me.anno.Time
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -236,17 +236,19 @@ class Transform() : Saveable() {
         }
 
     @Suppress("unused")
-    fun setLocalEulerAngle(x: Double, y: Double, z: Double) {
-        localRotation.set(Quaterniond().rotateY(y).rotateX(x).rotateZ(z))
+    fun setLocalEulerAngle(x: Double, y: Double, z: Double): Transform {
+        localRotation = localRotation.rotateY(y).rotateX(x).rotateZ(z)
+        return this
     }
 
-    fun setOffsetForLocalRotation(rotation: Quaterniond, center: Vector3d) {
+    fun setOffsetForLocalRotation(rotation: Quaterniond, center: Vector3d): Transform {
         localRotation = localRotation.identity()
             .mul(rotation)
         localPosition = localPosition
             .set(-center.x, -center.y, -center.z)
             .rotate(rotation)
             .add(center)
+        return this
     }
 
     var localScale: Vector3d
@@ -331,24 +333,26 @@ class Transform() : Saveable() {
         }
     }
 
-    fun setLocal(values: Matrix4x3d) {
+    fun setLocal(values: Matrix4x3d): Transform {
         localTransform.set(values)
         checkTransform(localTransform)
         values.getTranslation(pos)
         values.getUnnormalizedRotation(rot)
         values.getScale(sca)
         state = State.VALID_LOCAL
+        return this
     }
 
-    fun setLocal(values: Matrix4x3f) {
+    fun setLocal(values: Matrix4x3f): Transform {
         localTransform.set(values)
         checkTransform(localTransform)
         setCachedPosRotSca()
         state = State.VALID_LOCAL
+        return this
     }
 
     @Suppress("unused")
-    fun setLocal(values: Matrix4f) {
+    fun setLocal(values: Matrix4f): Transform {
         localTransform.set(
             values.m00.toDouble(), values.m01.toDouble(), values.m02.toDouble(),
             values.m10.toDouble(), values.m11.toDouble(), values.m12.toDouble(),
@@ -358,6 +362,7 @@ class Transform() : Saveable() {
         checkTransform(localTransform)
         setCachedPosRotSca()
         invalidateGlobal()
+        return this
     }
 
     fun distanceSquaredGlobally(v: Vector3d): Double {
@@ -428,7 +433,7 @@ class Transform() : Saveable() {
         return this
     }
 
-    fun setGlobal(matrix: Matrix4x3d) {
+    fun setGlobal(matrix: Matrix4x3d): Transform {
         val parent = parent
         if (parent == null) {
             // easy
@@ -440,6 +445,7 @@ class Transform() : Saveable() {
             tmp.mul(matrix)
             setLocal(tmp)
         }
+        return this
     }
 
     @Suppress("unused")

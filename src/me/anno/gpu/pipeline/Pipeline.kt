@@ -19,7 +19,8 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase
+import me.anno.ecs.systems.Systems
+import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderState
@@ -38,6 +39,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
+import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
@@ -47,6 +49,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Planed
 import org.joml.Vector3d
+import kotlin.math.PI
 
 /**
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
@@ -248,10 +251,14 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         val clickId = lastClickId
         if (root is Renderable) {
             root.fill(this, sampleEntity.transform, clickId)
-            val systems = EngineBase.instance?.systems
-            if (root == systems?.world) {
-                systems.forAllSystems(Renderable::class) {
-                    it.fill(this, sampleEntity.transform, clickId)
+            if (root is LightComponent) {
+                // make lights visible by giving them sth to shine on
+                samplePlaneTransform.teleportUpdate()
+                addMesh(samplePlane.getMesh()!!, samplePlane, samplePlaneTransform)
+            }
+            if (root == Systems.world) {
+                Systems.forAllSystems(Renderable::class) { system ->
+                    system.fill(this, sampleEntity.transform, clickId)
                 }
             }
         } else {
@@ -379,6 +386,19 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     companion object {
 
         private val LOGGER = LogManager.getLogger(Pipeline::class)
+
+        private val samplePlane = MeshComponent(DefaultAssets.plane,
+            Material().apply {
+                metallicMinMax.set(1f, 0f)
+                roughnessMinMax.set(0.1f, 1f)
+                metallicMap = TextureLib.chess8x8Texture.ref
+                roughnessMap = metallicMap
+                linearFiltering = false
+            })
+
+        private val samplePlaneTransform = Transform()
+            .setLocalPosition(0.0, 0.0, -0.5)
+            .setLocalEulerAngle(PI * 0.5, 0.0, 0.0)
 
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()

@@ -88,10 +88,10 @@ object RendererLib {
             addDiffuseLight +
             "   }\n"
 
-    // todo for roughness, use finalRoughness, if available, or 1-reflectivity, if not
     val combineLightCode = "" +
             "   vec3 light;\n" +
             mixAndClampLight +
+            // for roughness, use finalRoughness, if available, or 1-reflectivity, if not
             "#ifndef HAS_ROUGHNESS\n" +
             "   float finalRoughness = 1.0-finalReflectivity;\n" +
             "#endif\n" +

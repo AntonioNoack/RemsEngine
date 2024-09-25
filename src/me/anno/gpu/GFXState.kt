@@ -58,7 +58,7 @@ import org.lwjgl.opengl.GL46C.glScissor
 
 /**
  * holds rendering-related state,
- * currently, with OpenGL, this must be changed from a single thread only!
+ * currently, with OpenGL, this must be used from a single thread only!
  * all functions feature rendering-callbacks, so you can change settings without having to worry about the previously set state by your caller
  * */
 object GFXState {

@@ -2,6 +2,9 @@ package me.anno.gpu.texture
 
 import me.anno.ui.UIColors.magenta
 import me.anno.utils.Color.black
+import me.anno.utils.Color.white
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 
 /**
  * library of standard textures like white, black, transparent, striped
@@ -29,6 +32,11 @@ object TextureLib {
     val blackCube = IndestructibleCubemap("blackCube", 1, black1)
     val missingColors = intArrayOf(magenta, black, black, magenta)
     val missingTexture = IndestructibleTexture2D("missing", 2, 2, missingColors)
+
+    val chess8x8Texture = IndestructibleTexture2D("chess", 8, 8, IntArray(64) {
+        val y = it.shr(3)
+        (it + y).hasFlag(1).toInt(white, black)
+    })
 
     fun bindWhite(index: Int): Boolean {
         return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping)
