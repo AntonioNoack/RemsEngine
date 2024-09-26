@@ -300,8 +300,9 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     }
 
     private fun hasWarning(element: PrefabSaveable): Boolean {
-        for (warn in element.getReflections().debugWarnings) {
-            val value = warn.getter(element)
+        val debugWarnings = element.getReflections().debugWarnings
+        for (wi in debugWarnings.indices) {
+            val value = debugWarnings[wi].getter(element)
             if (value != null) return true
         }
         if (element.isCollapsed) {// could become expensive... so only go to a certain depth

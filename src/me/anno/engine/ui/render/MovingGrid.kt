@@ -13,14 +13,15 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Quaterniond
-import org.joml.Vector3d
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
@@ -43,6 +44,7 @@ object MovingGrid {
         val pos0 = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
         val distance0 = (RenderView.currentInstance?.radius ?: 1.0)
 
+        val shader = simpleShader.value
         for (axis in 0 until 3) {
             if (mask.hasFlag(1 shl axis)) {
 
@@ -75,13 +77,12 @@ object MovingGrid {
                     val baseRot = when (axis) {
                         0 -> baseRotX
                         1 -> baseRotY
-                        2 -> baseRotZ
-                        else -> throw NotImplementedError()
+                        else -> baseRotZ
                     }
                     transform.rotate(baseRot)
 
                     alpha = alpha0
-                    drawMesh(pipeline, gridMesh)
+                    drawMesh(pipeline, gridMesh, shader)
 
                     alpha *= 2f
                     val textSize = radius2 * 0.01
@@ -105,6 +106,10 @@ object MovingGrid {
 
     fun drawMesh(pipeline: Pipeline, mesh: Mesh) {
         val shader = simpleShader.value
+        drawMesh(pipeline, mesh, shader)
+    }
+
+    fun drawMesh(pipeline: Pipeline, mesh: Mesh, shader: Shader) {
         shader.use()
         val material = defaultMaterial
         material.bind(shader)
@@ -157,10 +162,10 @@ object MovingGrid {
     ) {
         val size = baseSize * factor
         val mesh = cachedMeshes.getOrPut(size) { "$factor${getSuffix(baseSize)}" }
-        TextShapes.drawTextMesh(
-            pipeline, mesh, Vector3d(size, size * 0.02, 0.0).rotate(rotation),
-            rotation, size, null
-        )
+        val tmpPos = JomlPools.vec3d.create()
+            .set(size, size * 0.02, 0.0).rotate(rotation)
+        TextShapes.drawTextMesh(pipeline, mesh, tmpPos, rotation, size, null)
+        JomlPools.vec3d.sub(1)
     }
 
     fun init(): Matrix4d {

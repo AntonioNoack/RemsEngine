@@ -73,7 +73,7 @@ class CreativeControls(
         // expensive way, using raycasting:
         val query = RayQuery(
             renderView.cameraPosition,
-            renderView.getMouseRayDirection(),
+            renderView.mouseDirection,
             1e3
         )
         // todo also implement cheaper raytracing (to show how) going block by block

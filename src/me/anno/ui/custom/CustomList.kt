@@ -11,6 +11,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.sumOfDouble
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -121,7 +122,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         } else {
             val minWeight = 0.0001f
             val available = (if (isY) height else width) - (children.size - 1) * spacing
-            val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
+            val sumWeight = children.sumOfDouble { max(minWeight, it.weight).toDouble() }.toFloat()
             val weightScale = 1f / sumWeight
             var childPos = if (isY) y else x
             val children = children

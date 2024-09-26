@@ -69,6 +69,7 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
+import me.anno.utils.types.NumberFormatter.formatFloat
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import org.joml.Matrix4f
 import org.joml.Vector3d
@@ -202,7 +203,6 @@ object DebugRendering {
     val drawGizmoTimer = GPUClockNanos()
     val drawLightsTimer = GPUClockNanos()
     val drawFinalTimer = GPUClockNanos()
-    val drawExtraTimer = GPUClockNanos()
 
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection
@@ -241,15 +241,15 @@ object DebugRendering {
 
     private fun drawTime(rv: Panel, i: Int, name: String, time: Long, divisor: Int) {
         val y = rv.y + i * monospaceFont.sizeInt
-        val str = if (divisor > 1) {
-            "${divisor}x $name: ${(time / (1e6 * divisor)).f3()} ms"
-        } else {
-            "$name: ${(time / 1e6).f3()} ms"
-        }
+        if (divisor > 1) debugBuilder.append(divisor).append("x ")
+        debugBuilder.append(name).append(": ")
+            .formatFloat(time / (1e6 * divisor), 3, false)
+            .append(" ms")
         DrawTexts.drawSimpleTextCharByChar(
-            rv.x + rv.width, y, 1, str,
+            rv.x + rv.width, y, 1, debugBuilder,
             AxisAlignment.MAX, AxisAlignment.MIN
         )
+        debugBuilder.clear()
     }
 
     fun drawDebugShapes(view: RenderView, cameraMatrix: Matrix4f) {
@@ -611,21 +611,25 @@ object DebugRendering {
         GFXState.popDrawCallName()
     }
 
+    private val debugBuilder = StringBuilder(32)
     fun drawDebugStats(view: RenderView, drawnPrimitives0: Long, drawnInstances0: Long, drawCalls0: Long) {
         val pbb = DrawTexts.pushBetterBlending(true)
         val drawnPrimitives = PipelineStageImpl.drawnPrimitives - drawnPrimitives0
         val drawnInstances = PipelineStageImpl.drawnInstances - drawnInstances0
         val drawCalls = PipelineStageImpl.drawCalls - drawCalls0
         val usesBetterBlending = DrawTexts.canUseComputeShader()
+        debugBuilder
+            .formatIntTriplets(drawnPrimitives).append(" tris, ")
+            .formatIntTriplets(drawnInstances).append(" inst, ")
+            .formatIntTriplets(drawCalls).append(" calls")
         DrawTexts.drawSimpleTextCharByChar(
             view.x + 2, view.y + view.height + 1,
-            0, "${formatIntTriplets(drawnPrimitives)} tris, " +
-                    "${formatIntTriplets(drawnInstances)} inst, " +
-                    "${formatIntTriplets(drawCalls)} calls",
+            0, debugBuilder,
             FrameTimings.textColor,
             FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255),
             AxisAlignment.MIN, AxisAlignment.MAX
         )
+        debugBuilder.clear()
         DrawTexts.popBetterBlending(pbb)
     }
 

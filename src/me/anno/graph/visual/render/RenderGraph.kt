@@ -37,6 +37,7 @@ import me.anno.ui.Panel
 import me.anno.utils.Color.white4
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
 
 object RenderGraph {
@@ -96,7 +97,7 @@ object RenderGraph {
     }
 
     private fun findStartNode(graph: FlowGraph): StartNode? {
-        return graph.nodes.firstInstanceOrNull(StartNode::class)
+        return graph.nodes.firstInstanceOrNull2(StartNode::class)
     }
 
     private fun writeSceneIntoRenderNodes(graph: FlowGraph, renderView: RenderView) {

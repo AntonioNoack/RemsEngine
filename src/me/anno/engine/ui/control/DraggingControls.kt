@@ -266,7 +266,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     private var gizmoMask: Int = 0
     private fun drawGizmos2() {
-        val md = renderView.getMouseRayDirection()
+        val md = renderView.mouseDirection
         val chosenId = when (gizmoMask) {
             // single axis
             1 -> 0

@@ -125,9 +125,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         depthTexture: ITexture2D,
         depthMask: Vector4f,
     ) {
-        var drawnPrimitives = 0L
-        var drawnInstances = 0L
-        var drawCalls = 0L
         nonInstanced.forEachType { lights, size, type ->
 
             val sample = lights[0].light
@@ -194,15 +191,11 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
                 mesh.draw(pipeline, shader, 0)
 
-                drawnPrimitives += mesh.numPrimitives
-                drawnInstances++
-                drawCalls++
+                PipelineStageImpl.drawnPrimitives += mesh.numPrimitives
+                PipelineStageImpl.drawnInstances++
+                PipelineStageImpl.drawCalls++
             }
         }
-
-        PipelineStageImpl.drawnPrimitives += drawnPrimitives
-        PipelineStageImpl.drawnInstances += drawnInstances
-        PipelineStageImpl.drawCalls += drawCalls
 
         // draw instanced meshes
         if (instanced.isNotEmpty()) {
@@ -314,10 +307,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     fun add(environmentMap: EnvironmentMap) {
         environmentMaps.add(environmentMap)
-    }
-
-    fun listOfAll(): List<LightRequest> {
-        return instanced.listOfAll() + nonInstanced.listOfAll()
     }
 
     fun listOfAll(dst: SmallestKList<LightRequest>): Int {

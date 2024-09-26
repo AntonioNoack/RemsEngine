@@ -7,6 +7,7 @@ import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.rgb
+import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
@@ -187,7 +188,7 @@ object TGAReader {
     @JvmStatic
     private fun flipX2(i0: Int, i1: Int, data: ByteArray, i2: Int) {
         var j = i2
-        for (i in i0 until i1 step 2) {
+        forLoop(i0, i1, 2) { i ->
             val t0 = data[i]
             val t1 = data[i + 1]
             data[i] = data[j]
@@ -201,7 +202,7 @@ object TGAReader {
     @JvmStatic
     private fun flipX3(i0: Int, i1: Int, data: ByteArray, i2: Int) {
         var j = i2
-        for (i in i0 until i1 step 3) {
+        forLoop(i0, i1, 3) { i ->
             val t0 = data[i]
             val t1 = data[i + 1]
             val t2 = data[i + 2]
@@ -218,7 +219,7 @@ object TGAReader {
     @JvmStatic
     private fun flipX4(i0: Int, i1: Int, data: ByteArray, i2: Int) {
         var j = i2
-        for (i in i0 until i1 step 4) {
+        forLoop(i0, i1, 4) { i ->
             val t0 = data[i]
             val t1 = data[i + 1]
             val t2 = data[i + 2]

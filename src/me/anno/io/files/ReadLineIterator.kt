@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.maths.Maths.max
 import me.anno.utils.structures.NextEntryIterator
+import me.anno.utils.types.Strings.removeRange2
 import java.io.BufferedReader
 import java.io.IOException
 
@@ -39,7 +40,7 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
             }
         }
         // when we reach this point, the line has been too long
-        builder.removeRange(0, max(0, lineLengthLimit - suffix.length))
+        builder.removeRange2(0, max(0, lineLengthLimit - suffix.length))
         builder.append(suffix)
         while (true) {
             when (reader.read()) {

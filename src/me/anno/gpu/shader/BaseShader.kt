@@ -16,6 +16,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.maths.Maths.max
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
@@ -221,7 +222,7 @@ open class BaseShader(
                     (!isDepth).toInt(NEEDS_COLORS) or
                     (instanceData != MeshInstanceData.DEFAULT).toInt(IS_INSTANCED) or
                     (renderer.deferredSettings != null && // we probably should make this explicit...
-                            renderer.deferredSettings.layerTypes.any {
+                            renderer.deferredSettings.layerTypes.any2 {
                                 it != DeferredLayerType.COLOR && it != DeferredLayerType.DEPTH
                             }).toInt(IS_DEFERRED)
         }

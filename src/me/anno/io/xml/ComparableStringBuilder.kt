@@ -1,6 +1,7 @@
 package me.anno.io.xml
 
 import me.anno.utils.assertions.assertContains
+import me.anno.utils.assertions.assertTrue
 import kotlin.math.max
 
 class ComparableStringBuilder(init: Int = 16) : CharSequence {
@@ -13,7 +14,7 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
 
     override var length: Int = 0
     override fun get(index: Int): Char {
-        assertContains(index, indices)
+        assertTrue(index in indices)
         return value[index]
     }
 

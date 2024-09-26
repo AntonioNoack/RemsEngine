@@ -7,7 +7,6 @@ import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * Related Classes:
@@ -26,65 +25,36 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         return clone
     }
 
+    private val calculator = ListSizeCalculator()
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        val y = y
-        var maxY = y
-        var constantSum = 0
-        var constantSumWW = 0
-        var weightSum = 0f
-
-        var availableW = w - padding.width
-        val availableH = h - padding.height
-
-        fun addChildSize(child: Panel, childCount: Int) {
-            val dx = child.minW * childCount
-            constantSum += dx
-            maxY = max(maxY, child.y + child.minH)
-            availableW = max(0, availableW - dx)
-            if (child.weight > 0f) {
-                weightSum += child.weight * childCount
-            } else {
-                constantSumWW += dx
-            }
-        }
+        calculator.init(this, w, h)
 
         val children = children
+        val count = children.count2 { it.isVisible }
         if (allChildrenHaveSameSize && children.isNotEmpty()) {
             // optimize for case that all children have same size
             val child = children[0]
-            val count = children.count2 { it.isVisible }
-            child.calculateSize(availableW, availableH)
-            addChildSize(child, count)
+            calculator.addChildSizeX(child, count)
             // assign child measurements to all visible children
-            for (i in children.indices) {
-                val childI = children[i]
-                childI.width = child.width
-                childI.height = child.height
-                childI.minW = child.minW
-                childI.minH = child.minH
-            }
+            calculator.copySizeOntoChildren(child, children)
         } else {
             for (i in children.indices) {
                 val child = children[i]
                 if (child.isVisible) {
-                    child.calculateSize(availableW, availableH)
-                    addChildSize(child, 1)
+                    calculator.addChildSizeX(child, 1)
                 }
             }
         }
 
-        val spaceCount = children.size - 1
-        val totalSpace = spacing * spaceCount
-        constantSum += totalSpace
-        constantSumWW += totalSpace
-        sumConst = constantSum
-        sumConstWW = constantSumWW
-        sumWeight = weightSum
+        calculator.addSpacing(spacing, count)
+        sumConst = calculator.constantSum
+        sumConstWW = calculator.constantSumWW
+        sumWeight = calculator.weightSum
 
-        minW = constantSum + padding.width
-        minH = (maxY - y) + padding.height
+        minW = calculator.constantSum + padding.width
+        minH = (calculator.maxY - y) + padding.height
     }
 
     override val visibleIndex0

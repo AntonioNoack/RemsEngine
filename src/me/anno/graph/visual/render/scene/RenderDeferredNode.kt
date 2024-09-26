@@ -164,7 +164,7 @@ open class RenderDeferredNode : RenderViewNode(
             }
         } else {
             val framebuffer = defineFramebuffer() ?: return
-            timeRendering("$name-$stage", timer) {
+            timeRendering(name, timer) {
                 pipeline.bakeSkybox(skyResolution)
                 copyInputsOrClear(framebuffer)
                 GFXState.useFrame(width, height, true, framebuffer, renderer) {

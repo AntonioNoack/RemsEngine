@@ -105,7 +105,7 @@ open class Window(
     }
 
     private fun addNeedsRedraw1(drawnPanel: Panel, x2: Int, y2: Int, x3: Int, y3: Int) {
-        for (i in needsRedraw.indices) {
+        for (i in 0 until needsRedraw.size) {
             val element = needsRedraw[i]
             if (element.panel == drawnPanel && element.overlaps(x2, y2, x3, y3)) {
                 // merge them

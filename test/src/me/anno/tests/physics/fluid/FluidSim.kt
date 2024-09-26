@@ -228,7 +228,7 @@ fun main() {
         override fun update(instances: Collection<Component>) {
             val ci = RenderView.currentInstance ?: return
             // calculate interaction coordinates
-            val rayDir = ci.getMouseRayDirection()
+            val rayDir = ci.mouseDirection
             val rayPos = ci.cameraPosition
             val dist = (waveHeight - rayPos.y) / rayDir.y
             val gx = 0.5f + (rayPos.x + dist * rayDir.x) / (w * cellSize)

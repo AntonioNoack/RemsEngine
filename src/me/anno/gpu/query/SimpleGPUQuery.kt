@@ -15,7 +15,7 @@ open class SimpleGPUQuery(
     companion object {
         private const val cap = 4
         private const val capM1 = cap - 1
-        val isTimerActive = HashSet<Int>()
+        private val isTimerActive = HashSet<Int>()
     }
 
     private var ids: IntArray? = null // could be inlined into four integers

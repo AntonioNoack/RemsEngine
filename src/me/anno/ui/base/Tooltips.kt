@@ -2,10 +2,11 @@ package me.anno.ui.base
 
 import me.anno.Time
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
 import me.anno.gpu.OSWindow
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
-import me.anno.engine.EngineBase
+import me.anno.maths.Maths.max
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -79,12 +80,15 @@ object Tooltips {
         val delta = abs(time - lastMovementTime)
         val tooltipReactionTimeNanos = tooltipReactionTime * MILLIS_TO_NANOS
         if (delta >= tooltipReactionTimeNanos || lastPanel?.onMovementHideTooltip == false) {
-            val pbi = mouseY.toInt() / window.progressbarHeight
-            val pb = window.progressBars.getOrNull(pbi)
-            if (pb != null && pb.name.isNotBlank2()) {
-                textPanel.text = pb.name
-                draw(window, pbi * window.progressbarHeight, container)
-                return true
+            if (window.progressBars.isNotEmpty()) {
+                val progressbarHeight = window.progressbarHeight
+                val pbi = mouseY.toInt() / max(progressbarHeight, 1)
+                val pb = window.progressBars.getOrNull(pbi)
+                if (pb != null && pb.name.isNotBlank2()) {
+                    textPanel.text = pb.name
+                    draw(window, pbi * progressbarHeight, container)
+                    return true
+                }
             }
             val hovered = EngineBase.instance?.hoveredPanel
             if (hovered != null) {

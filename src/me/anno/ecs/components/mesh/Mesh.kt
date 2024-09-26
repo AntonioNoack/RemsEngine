@@ -38,6 +38,7 @@ import me.anno.mesh.FindLines
 import me.anno.mesh.MeshRendering.drawImpl
 import me.anno.mesh.MeshRendering.drawInstancedImpl
 import me.anno.mesh.MeshUtils.countPrimitives
+import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.InternalAPI
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
@@ -483,7 +484,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             warnIsImmutable()
         } else {
             val positions = positions ?: return
-            for (i in 0 until positions.size - 2 step 3) {
+            forLoop(0, positions.size, 3) { i ->
                 positions[i] += dx
                 positions[i + 1] += dy
                 positions[i + 2] += dz
@@ -504,7 +505,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     fun scale(factor: Vector3f) {
         val positions = positions ?: return
-        for (i in positions.indices step 3) {
+        forLoop(0, positions.size - 2, 3) { i ->
             positions[i] *= factor.x
             positions[i + 1] *= factor.y
             positions[i + 2] *= factor.z

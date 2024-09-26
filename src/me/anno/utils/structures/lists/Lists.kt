@@ -17,10 +17,18 @@ object Lists {
      * */
     @JvmStatic
     inline fun <V> List<V>.any2(test: (V) -> Boolean): Boolean {
+        return indexOfFirst2(test) >= 0
+    }
+
+    /**
+     * allocation-free any()
+     * */
+    @JvmStatic
+    inline fun <V> List<V>.indexOfFirst2(test: (V) -> Boolean): Int {
         for (index in indices) {
-            if (test(this[index])) return true
+            if (test(this[index])) return index
         }
-        return false
+        return -1
     }
 
     /**
@@ -39,10 +47,7 @@ object Lists {
      * */
     @JvmStatic
     inline fun <V> List<V>.none2(test: (V) -> Boolean): Boolean {
-        for (index in indices) {
-            if (test(this[index])) return false
-        }
-        return true
+        return !any2(test)
     }
 
     /**
@@ -53,6 +58,30 @@ object Lists {
         var sum = 0
         for (index in indices) {
             if (test(this[index])) sum++
+        }
+        return sum
+    }
+
+    /**
+     * allocation-free sumOf()
+     * */
+    @JvmStatic
+    inline fun <V> List<V>.sumOfLong(getPartialSum: (V) -> Long): Long {
+        var sum = 0L
+        for (index in indices) {
+            sum += getPartialSum(this[index])
+        }
+        return sum
+    }
+
+    /**
+     * allocation-free sumOf()
+     * */
+    @JvmStatic
+    inline fun <V> List<V>.sumOfDouble(getPartialSum: (V) -> Double): Double {
+        var sum = 0.0
+        for (index in indices) {
+            sum += getPartialSum(this[index])
         }
         return sum
     }

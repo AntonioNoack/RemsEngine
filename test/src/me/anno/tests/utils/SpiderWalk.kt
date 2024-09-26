@@ -315,7 +315,7 @@ fun main() {
                 if (button == Key.BUTTON_LEFT) {
                     val ci = it.renderView
                     val query0 = RayQuery(
-                        ci.cameraPosition, ci.getMouseRayDirection(), 1e3,
+                        ci.cameraPosition, ci.mouseDirection, 1e3,
                         -1, -1, false, setOf(spider)
                     )
                     if (Raycast.raycastClosestHit(scene, query0)) {

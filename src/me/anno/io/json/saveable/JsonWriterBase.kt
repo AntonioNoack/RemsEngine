@@ -1,6 +1,5 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -13,8 +12,10 @@ import me.anno.io.json.saveable.SimpleType.INT
 import me.anno.io.json.saveable.SimpleType.LONG
 import me.anno.io.json.saveable.SimpleType.REFERENCE
 import me.anno.io.json.saveable.SimpleType.STRING
+import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths
 import me.anno.utils.Color
+import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.AABBd
@@ -815,7 +816,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp)
         append('[')
         clamp3x3Relative(tmp)
-        for (i in 0 until 9 step 3) {
+        forLoop(0, 9, 3) { i ->
             if (i > 0) append(',')
             writeVector3f(tmp[i], tmp[i + 1], tmp[i + 2])
         }
@@ -827,7 +828,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp) // col major
         clamp4x3Relative(tmp)
         append('[')
-        for (i in 0 until 12 step 3) {
+        forLoop(0, 12, 3) { i ->
             if (i > 0) append(',')
             writeVector3f(tmp[i], tmp[i + 1], tmp[i + 2])
         }
@@ -839,7 +840,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp) // col major
         clamp4x4Relative(tmp)
         append('[')
-        for (i in 0 until 16 step 4) {
+        forLoop(0, 16, 4) { i ->
             if (i > 0) append(',')
             writeVector4f(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
         }
@@ -851,7 +852,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp)
         append('[')
         clamp2x2Relative(tmp)
-        for (i in 0 until 4 step 2) {
+        forLoop(0, 4, 2) { i ->
             if (i > 0) append(',')
             writeVector2f(tmp[i], tmp[i + 1])
         }
@@ -863,7 +864,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp)
         append('[')
         clamp3x2Relative(tmp)
-        for (i in 0 until 6 step 2) {
+        forLoop(0, 6, 2) { i ->
             if (i > 0) append(',')
             writeVector2f(tmp[i], tmp[i + 1])
         }
@@ -930,9 +931,9 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp)
         append('[')
         clamp2x2Relative(tmp)
-        for (i in 0 until 4 step 2) {
+        forLoop(0, 4, 2) { i ->
             if (i > 0) append(',')
-            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
+            writeVector2d(tmp[i], tmp[i + 1])
         }
         append(']')
     }
@@ -942,9 +943,9 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp)
         append('[')
         clamp3x2Relative(tmp)
-        for (i in 0 until 6 step 2) {
+        forLoop(0, 6, 2) { i ->
             if (i > 0) append(',')
-            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
+            writeVector2d(tmp[i], tmp[i + 1])
         }
         append(']')
     }
@@ -954,7 +955,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp)
         append('[')
         clamp3x3Relative(tmp)
-        for (i in 0 until 9 step 3) {
+        forLoop(0, 9, 3) { i ->
             if (i > 0) append(',')
             writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
         }
@@ -966,7 +967,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp) // col major
         clamp4x3Relative(tmp)
         append('[')
-        for (i in 0 until 12 step 3) {
+        forLoop(0, 12, 3) { i ->
             if (i > 0) append(',')
             writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
         }
@@ -978,7 +979,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         value.get(tmp) // col major
         clamp4x4Relative(tmp)
         append('[')
-        for (i in 0 until 16 step 4) {
+        forLoop(0, 16, 4) { i ->
             if (i > 0) append(',')
             writeVector4d(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
         }

@@ -31,6 +31,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
@@ -161,7 +162,7 @@ object DrawTexts {
                     posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
                 }
             }
-            for (i in text.indices step 2) {
+            forLoop(0, text.length, 2) { i ->
                 drawChar(i)
                 x2 += charWidth * 2
             }
@@ -169,7 +170,7 @@ object DrawTexts {
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             if (text.length > 1) {
                 x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth
-                for (i in 1 until text.length step 2) {
+                forLoop(1, text.length, 2) { i ->
                     drawChar(i)
                     x2 += charWidth * 2
                 }
@@ -507,8 +508,7 @@ object DrawTexts {
         x: Int, y: Int,
         font: Font, text: String,
         color: Int, backgroundColor: Int,
-        widthLimit: Int,
-        heightLimit: Int,
+        widthLimit: Int, heightLimit: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN
     ): Int {
@@ -536,8 +536,7 @@ object DrawTexts {
         x: Int, y: Int,
         font: Font, text: String,
         color: Int, backgroundColor: Int,
-        widthLimit: Int,
-        heightLimit: Int,
+        widthLimit: Int, heightLimit: Int,
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN
     ): Boolean {

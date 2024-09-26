@@ -35,6 +35,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.TextureLib
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 
 object LightShaders {
@@ -91,7 +92,7 @@ object LightShaders {
         BufferUsage.STREAM
     )
 
-    val useMSAA get() = GFXState.currentBuffer.samples > 1
+    val useMSAA: Boolean get() = GFXState.currentBuffer.samples > 1
 
     fun combineLighting(shader: Shader, applyToneMapping: Boolean) {
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -99,16 +100,23 @@ object LightShaders {
         flat01.draw(shader)
     }
 
+    private val planarNames = createList(8) { "shadowMapPlanar$it" }
+    private val cubicNames = createList(8) { "shadowMapCubic$it" }
+
     fun bindNullDepthTextures(shader: Shader) {
-        val depthTexture = if (GFX.supportsDepthTextures) TextureLib.depthTexture else TextureLib.blackTexture
+        val depthTexture =
+            if (GFX.supportsDepthTextures) TextureLib.depthTexture
+            else TextureLib.blackTexture
         for (i in 0 until 8) {
-            val tx = shader.getTextureIndex("shadowMapPlanar$i")
+            val tx = shader.getTextureIndex(planarNames[i])
             if (tx < 0) break
             depthTexture.bindTrulyNearest(tx)
         }
-        val depthCube = if (GFX.supportsDepthTextures) TextureLib.depthCube else TextureLib.blackCube
+        val depthCube =
+            if (GFX.supportsDepthTextures) TextureLib.depthCube
+            else TextureLib.blackCube
         for (i in 0 until 8) {
-            val tx = shader.getTextureIndex("shadowMapCubic$i")
+            val tx = shader.getTextureIndex(cubicNames[i])
             if (tx < 0) break
             depthCube.bindTrulyNearest(tx)
         }

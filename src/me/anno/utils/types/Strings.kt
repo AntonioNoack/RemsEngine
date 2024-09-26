@@ -639,4 +639,15 @@ object Strings {
 
     @JvmStatic
     fun tabs(ctr: Int): String = "\t".repeat(ctr)
+
+    @JvmStatic
+    fun StringBuilder.removeRange2(i0: Int, i1: Int): StringBuilder {
+        val len = i1 - i0
+        if (len <= 0) return this
+        for (i in i1 until length) {
+            this[i - len] = this[i]
+        }
+        setLength(length - len)
+        return this
+    }
 }

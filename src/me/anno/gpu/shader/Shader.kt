@@ -8,6 +8,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.indexOfFirst2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 
@@ -244,7 +245,7 @@ open class Shader(
     }
 
     fun getAttributeLocation(name: String): Int {
-        return attributes.indexOfFirst { it.name == name }
+        return attributes.indexOfFirst2 { it.name == name }
     }
 
     override fun printLocationsAndValues() {

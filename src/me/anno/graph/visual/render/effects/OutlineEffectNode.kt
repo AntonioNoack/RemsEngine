@@ -17,6 +17,7 @@ import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
@@ -57,8 +58,8 @@ class OutlineEffectNode : RenderViewNode(
         val groupIds = getInput(4) as? IntArray ?: return
         val fillColors = getInput(5) as? List<*> ?: return
         val lineColors = getInput(6) as? List<*> ?: return
-        val fillColors1 = fillColors.filterIsInstance<Vector4f>()
-        val lineColors1 = lineColors.filterIsInstance<Vector4f>()
+        val fillColors1 = fillColors.filterIsInstance2(Vector4f::class)
+        val lineColors1 = lineColors.filterIsInstance2(Vector4f::class)
         val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
         if (radius >= 0 && numGroupsI > 0) {
             timeRendering(name, timer) {

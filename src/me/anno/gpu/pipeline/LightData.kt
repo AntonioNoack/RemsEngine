@@ -3,6 +3,8 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
+import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.sumOfLong
 import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
@@ -34,7 +36,8 @@ class LightData {
     }
 
     fun clear() {
-        for (entry in entries) {
+        for (ei in entries.indices) {
+            val entry = entries[ei]
             entry.index = 0
         }
     }
@@ -47,18 +50,20 @@ class LightData {
         this[light].add(light, drawMatrix, invCamSpaceMatrix)
     }
 
-    operator fun get(light: LightComponent) = entries[light.lightType.id]
+    operator fun get(light: LightComponent): Entry = entries[light.lightType.id]
 
     fun listOfAll(): List<LightRequest> {
         val dst = ArrayList<LightRequest>(size)
-        for (entry in entries) {
+        for (ei in entries.indices) {
+            val entry = entries[ei]
             dst.addAll(entry.values.subList(0, entry.index))
         }
         return dst
     }
 
     fun listOfAll(dst: SmallestKList<LightRequest>): Int {
-        for (entry in entries) {
+        for (ei in entries.indices) {
+            val entry = entries[ei]
             dst.addAll(entry.values, 0, entry.index)
         }
         return dst.size
@@ -66,7 +71,8 @@ class LightData {
 
     operator fun get(index: Int): LightRequest {
         var remainingIndex = index
-        for (entry in entries) {
+        for (ei in entries.indices) {
+            val entry = entries[ei]
             if (remainingIndex < entry.index) {
                 return entry.values[remainingIndex]
             }
@@ -76,13 +82,14 @@ class LightData {
     }
 
     fun forEachType(callback: (lights: List<LightRequest>, size: Int, type: LightType) -> Unit) {
-        for (entry in entries) {
+        for (ei in entries.indices) {
+            val entry = entries[ei]
             if (entry.index > 0) {
                 callback(entry.values, entry.index, entry.type)
             }
         }
     }
 
-    val size get() = entries.sumOf { it.index }
-    fun isNotEmpty() = size > 0
+    val size get() = entries.sumOfLong { it.index.toLong() }.toInt()
+    fun isNotEmpty() = entries.any2 { it.index > 0 }
 }

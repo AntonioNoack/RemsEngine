@@ -49,6 +49,14 @@ class GizmoNode : RenderViewNode(
         setInput(7, null) // depth
     }
 
+    private fun getGridMask(): Int {
+        var grid = getIntInput(4)
+        if (grid == -1) {
+            grid = renderView.drawGridWhenEditing
+        }
+        return grid
+    }
+
     override fun executeAction() {
 
         val width = getIntInput(1)
@@ -56,13 +64,9 @@ class GizmoNode : RenderViewNode(
         val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
         if (width < 1 || height < 1) return
 
-        var grid = getIntInput(4)
+        val grid = getGridMask()
         val aabbs = getBoolInput(5)
         val debug = getBoolInput(6)
-
-        if (grid == -1) {
-            grid = renderView.drawGridWhenEditing
-        }
 
         val colorT = (getInput(7) as? Texture).texOrNull
         val depth = getInput(8) as? Texture

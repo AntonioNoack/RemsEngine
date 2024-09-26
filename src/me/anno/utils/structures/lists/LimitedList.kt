@@ -37,9 +37,13 @@ class LimitedList<V>(val limit: Int = 16) : MutableCollection<V> {
         values[i] = v
     }
 
-    fun sumOf(getPartialSum: (V?) -> Int): Int {
+    inline fun sumOf(getPartialSum: (V?) -> Int): Int {
         assertFalse(isFull, "Cannot calculate sum if is full")
-        return values.sumOf(getPartialSum)
+        var sum = 0
+        for (i in 0 until size) {
+            sum += getPartialSum(this[i])
+        }
+        return sum
     }
 
     override fun remove(element: V): Boolean {

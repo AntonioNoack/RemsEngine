@@ -295,7 +295,7 @@ fun main() {
             fun raycast() {
                 // trace ray onto surface
                 val pos = camEntity.transform.globalPosition
-                val dir = renderView.getMouseRayDirection()
+                val dir = renderView.mouseDirection
                 val query = RayQuery(pos, dir, 1e6)
                 val hit = Raycast.raycastClosestHit(world, query)
                 if (hit) {

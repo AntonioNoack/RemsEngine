@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
+import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -64,7 +65,7 @@ object Splines {
 
         var end = pns.size
         if (!close) end -= 4
-        for (i in 0 until end step 4) {
+        forLoop(0, end, 4) { i ->
 
             val p3a = pns[posMod(i + 4, pns.size)]
             val n3a = pns[posMod(i + 5, pns.size)]

@@ -29,9 +29,6 @@ object Color {
     val black3 = Vector3f(0f)
 
     @JvmField
-    val black2 = Vector2f(0f)
-
-    @JvmField
     val white4 = Vector4f(1f)
 
     @JvmField

@@ -39,7 +39,6 @@ import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredRenderer
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
@@ -73,14 +72,12 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
-import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4f
@@ -764,14 +761,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val rx = (cx - x) / width * 2.0 - 1.0
         val ry = (cy - y) / height * 2.0 - 1.0
         return getRelativeMouseRayDirection(rx, -ry, dst)
-    }
-
-    fun getMouseRayDirection(): Vector3d {
-        val dst = Vector3d()
-        val window = window ?: return dst
-        val cx: Float = window.mouseX
-        val cy: Float = window.mouseY
-        return getMouseRayDirection(cx, cy, dst)
     }
 
     fun getRelativeMouseRayDirection(

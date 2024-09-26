@@ -21,6 +21,7 @@ import me.anno.io.xml.generic.XMLWriter
 import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
+import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.Sleep
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.lists.Lists.createList
@@ -706,7 +707,7 @@ object StaticMeshesLoader {
         return if (src != null) {
             val vec = AIVector3D.malloc()
             val dst = FloatArray(vertexCount * 2)
-            for (j in dst.indices step 2) {
+            forLoop(0, dst.size, 2) { j ->
                 src.get(vec)
                 dst[j] = vec.x()
                 dst[j + 1] = vec.y()
@@ -724,7 +725,7 @@ object StaticMeshesLoader {
 
     private fun processVec3(src: AIVector3D.Buffer, dst: FloatArray): FloatArray {
         val vec = AIVector3D.malloc()
-        for (j in dst.indices step 3) {
+        forLoop(0, dst.size, 3) { j ->
             src.get(vec)
             dst[j] = vec.x()
             dst[j + 1] = vec.y()
@@ -742,7 +743,7 @@ object StaticMeshesLoader {
     ): FloatArray {
         var i = 0
         val vec = AIVector3D.malloc()
-        for (j in dst.indices step 4) {
+        forLoop(0, dst.size, 4) { j ->
             tangents.get(vec)
             val tx = vec.x()
             val ty = vec.y()
