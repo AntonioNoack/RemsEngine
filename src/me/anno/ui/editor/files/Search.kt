@@ -1,7 +1,9 @@
 package me.anno.ui.editor.files
 
 import me.anno.maths.Maths.min
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.none2
 import kotlin.math.max
 
 class Search(val terms: String) {
@@ -166,7 +168,7 @@ class Search(val terms: String) {
     }
 
     fun matches(expr: ArrayList<Any>): Boolean {
-        if (expr.any2 { it is String }) throw IllegalArgumentException()
+        assertTrue(expr.none2 { it is String })
         for (i in 0 until expr.size - 2) {
             if (expr[i] == '(' && expr[i + 2] == ')') {
                 expr.removeAt(i + 2)

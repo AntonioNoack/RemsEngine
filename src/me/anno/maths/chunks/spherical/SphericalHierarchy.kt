@@ -35,6 +35,7 @@ open class SphericalHierarchy(
         var i = 0
         shape.forEachTriangle { a, b, c ->
             triangles[i++].set(this, a, b, c, radius)
+            false
         }
     }
 

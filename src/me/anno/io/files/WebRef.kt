@@ -133,15 +133,18 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun delete(): Boolean {
-        throw IOException("Operation WebRef.delete() is not supported")
+        LOGGER.warn("Operation WebRef.delete() is not supported")
+        return false
     }
 
     override fun renameTo(newName: FileReference): Boolean {
-        throw IOException("Operation WebRef.renameTo() is not supported")
+        LOGGER.warn("Operation WebRef.renameTo() is not supported")
+        return false
     }
 
     override fun mkdirs(): Boolean {
-        throw IOException("Operation WebRef.mkdirs() is not supported")
+        LOGGER.warn("Operation WebRef.mkdirs() is not supported")
+        return false
     }
 
     override fun getParent(): FileReference {
@@ -181,7 +184,8 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                     val responseCode = (conn as? HttpURLConnection)?.responseCode?.toString().wrap()
                     conn.headerFields + mapOf(RESPONSE_CODE_KEY to responseCode)
                 } catch (e: IOException) {
-                    throw RuntimeException(e)
+                    e.printStackTrace()
+                    emptyMap()
                 } finally {
                     if (conn is HttpURLConnection) {
                         conn.disconnect()

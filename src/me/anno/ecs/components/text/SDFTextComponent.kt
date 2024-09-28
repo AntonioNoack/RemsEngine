@@ -2,9 +2,9 @@ package me.anno.ecs.components.text
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.engine.serialization.SerializedProperty
@@ -100,7 +100,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         return true
     }
 
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
         init.value
         var i = 0
         val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
@@ -128,9 +128,9 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
                 transform.localPosition = transform.localPosition.set(offsetX, offsetY, 0.0)
                 transform.localScale = transform.localScale.set(scaleX, scaleY, 1.0)
 
-                run(mesh, material, transform)
                 i++
-            }
+                run(mesh, material, transform)
+            } else false
         }
     }
 

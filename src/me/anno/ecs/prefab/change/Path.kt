@@ -1,9 +1,9 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.toInt
-import java.text.ParseException
 import java.util.concurrent.ThreadLocalRandom
 
 /**
@@ -265,7 +265,7 @@ class Path(
                 // format: type,id,name
                 val type = str[startIndex]
                 val commaIndex = str.indexOf(',', startIndex + 2)
-                if (commaIndex < 0) throw ParseException("Invalid path: '$str'", 0)
+                assertTrue(commaIndex >= 0) { "Invalid path: '$str'" }
                 val index = parseInt(str, startIndex + 1, commaIndex)
                 val name = str.substring(commaIndex + 1, endIndex)
                 path = Path(path, name, index, type)

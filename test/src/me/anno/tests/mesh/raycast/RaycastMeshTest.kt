@@ -71,6 +71,7 @@ object RaycastMeshTest {
             val dir = a.mix(b, 0.5f)
             val pos = b.set(0f)
             checkHit(mesh, pos, dir, 2f, -1, 1f, null)
+            false
         }
     }
 
@@ -80,6 +81,7 @@ object RaycastMeshTest {
             val dir = a.mix(b, 0.5f)
             val pos = a.mul(-3f, b)
             checkHit(mesh, pos, dir, 3f, -1, 2f, null)
+            false
         }
     }
 
@@ -90,6 +92,7 @@ object RaycastMeshTest {
         mesh.forEachPoint(false) { x, y, z ->
             dir.set(x, y, z)
             checkHit(mesh, pos, dir, 2f, -1, 1f, null)
+            false
         }
     }
 
@@ -101,6 +104,7 @@ object RaycastMeshTest {
             pos.set(x, y, z).mul(-3f)
             dir.set(x, y, z)
             checkHit(mesh, pos, dir, 3f, -1, 2f, null)
+            false
         }
     }
 

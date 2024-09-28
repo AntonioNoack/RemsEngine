@@ -44,6 +44,7 @@ object TangentCalculator {
         // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
         mesh.forEachTriangleIndex { i0, i1, i2 ->
             addTriangle(positions, i0, i1, i2, uvs, tan1, tan2, s, t)
+            false
         }
 
         // apply all the normals, smooth shading

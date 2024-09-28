@@ -71,11 +71,11 @@ fun main() {
             return true
         }
 
-        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
             for (i in 0 until count) {
                 val tr = getTransform(i)
                 tr.setLocalPosition(0.0, 0.0, i * space)
-                run(mesh, material, tr)
+                if (run(mesh, material, tr)) break
             }
         }
 

@@ -58,8 +58,7 @@ open class RenderDeferredNode : RenderViewNode(
                         1 -> "Float"
                         2 -> "Vector2f"
                         3 -> "Vector3f"
-                        4 -> "Vector4f"
-                        else -> throw IllegalStateException()
+                        else -> "Vector4f"
                     }, if (it.name == "Color") "Diffuse" else it.name
                 )
             }

@@ -114,7 +114,10 @@ object AssetThumbnails {
             scene.forAll {
                 when (it) {
                     is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: scene.transform)
-                    is MeshSpawner -> it.forEachMesh { mesh, _, transform -> addMesh(mesh, transform) }
+                    is MeshSpawner -> it.forEachMesh { mesh, _, transform ->
+                        addMesh(mesh, transform)
+                        false
+                    }
                 }
             }
             rv.radius = 400.0 * max(visualBounds.deltaX, visualBounds.deltaY).toDouble()

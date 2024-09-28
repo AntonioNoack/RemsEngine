@@ -2,12 +2,10 @@ package me.anno.image.raw
 
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.IndestructibleTexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
 import me.anno.image.Image
 import me.anno.io.files.FileReference
-import me.anno.utils.Color.black
-import me.anno.utils.Color.white
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
@@ -26,19 +24,15 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     constructor(texture: ITexture2D) : this(texture, max(texture.channels, 1))
 
     override fun getRGB(index: Int): Int {
-        return when (texture) {
-            TextureLib.invisibleTexture -> 0
-            TextureLib.whiteTexture -> white
-            TextureLib.blackTexture -> black
-            TextureLib.missingTexture -> TextureLib.missingColors[index]
-            else -> {
-                val msg = "GPUImage.getRGB() is highly inefficient!!!"
-                LOGGER.warn(msg, RuntimeException(msg))
-                // is not flipping correct?
-                (texture as Texture2D)
-                    .createImage(false, hasAlphaChannel)
-                    .getRGB(index)
-            }
+        return if (texture is IndestructibleTexture2D) {
+            texture.getRGB(index)
+        } else {
+            val msg = "GPUImage.getRGB(${texture.javaClass.simpleName}) is very inefficient!!!"
+            LOGGER.warn(msg, RuntimeException(msg))
+            // is not flipping correct?
+            (texture as Texture2D)
+                .createImage(false, hasAlphaChannel)
+                .getRGB(index)
         }
     }
 
@@ -60,7 +54,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
         TextureMapper.mapTexture(this.texture, texture, mapping, type, callback)
     }
 
-    override fun asIntImage() = texture.createImage(false, hasAlphaChannel)
+    override fun asIntImage(): IntImage = texture.createImage(false, hasAlphaChannel)
 
     override fun toString(): String {
         return "GPUImage { $texture, $numChannels ch, ${if (hasAlphaChannel) "alpha" else "opaque"} }"

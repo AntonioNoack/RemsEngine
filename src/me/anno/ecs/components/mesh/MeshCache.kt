@@ -80,6 +80,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class, "Mesh") {
                         val materialList = if (material == null) emptyList()
                         else listOf(material.ref)
                         addMesh(meshes, mesh, transform, materialList)
+                        false
                     }
                 }
             }

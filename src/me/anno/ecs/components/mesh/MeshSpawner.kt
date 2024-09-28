@@ -19,7 +19,6 @@ import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
 import me.anno.gpu.pipeline.InstancedTRSStack
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.utils.Done
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.maps.KeyTripleMap
@@ -72,6 +71,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                     }
                 }
             }
+            false
         }
         return true
     }
@@ -157,22 +157,21 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                 query.result.mesh = mesh
                 hit = true
             }
+            false
         }
         return hit
     }
 
     override fun raycastAnyHit(query: RayQuery): Boolean {
-        try {
-            forEachMesh { mesh, _, transform ->
-                if (mesh is Mesh && RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
-                    query.result.mesh = mesh
-                    throw Done
-                }
+        var hitSth = false
+        forEachMesh { mesh, _, transform ->
+            if (mesh is Mesh && RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
+                query.result.mesh = mesh
+                hitSth = true
             }
-        } catch (ignored: Done) {
-            return true
+            hitSth
         }
-        return false
+        return hitSth
     }
 
     @DebugProperty
@@ -191,6 +190,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             transform.validate()
             val lt = transform.localTransform
             mesh.getBounds().transformUnion(lt, local, local)
+            false
         }
 
         // calculate global aabb
@@ -205,9 +205,10 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     }
 
     /**
-     * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform
+     * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform;
+     * will (probably) stop, if you return true
      * */
-    abstract fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit)
+    abstract fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean)
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();

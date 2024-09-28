@@ -84,6 +84,25 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         return (getValue(index) * 0x10101) or black
     }
 
+    override fun asIntImage(): IntImage {
+        val newImage0 = src.asIntImage()
+        val newData = newImage0.cloneData() // just to be safe to not modify the original
+        val newImage1 = IntImage(newImage0.width, newImage0.height, newData, false)
+        val size = newImage0.width * newImage0.height
+        for (i in 0 until size) {
+            newData[i] = newData[i].ushr(shift).and(255)
+        }
+        if (inverse) {
+            for (i in 0 until size) {
+                newData[i] = 255 - newData[i]
+            }
+        }
+        for (i in 0 until size) {
+            newData[i] = (newData[i] * 0x10101) or black
+        }
+        return newImage1
+    }
+
     override fun toString(): String {
         return "ComponentImage { $src, ${if (inverse) "1-" else ""}$channel }"
     }

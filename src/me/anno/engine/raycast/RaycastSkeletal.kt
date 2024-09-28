@@ -2,7 +2,6 @@ package me.anno.engine.raycast
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
-import me.anno.utils.Done
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Triangles
 import org.joml.Matrix4x3d
@@ -78,6 +77,7 @@ object RaycastSkeletal {
                 result.geometryNormalWS.set(tmpNor)
                 result.shadingNormalWS.set(tmpNor)
             }
+            false
         }
     }
 
@@ -100,21 +100,19 @@ object RaycastSkeletal {
         val helper = RaycastSkeletalHelper(query, mesh, matrices)
         val tmpPos = tmpD[0]
         val tmpNor = tmpD[1]
-        return try {
-            mesh.forEachTriangleIndex { ai, bi, ci ->
-                val distance = getDistance(ai, bi, ci, helper, globalTransform, query, result)
-                if (isHit(distance, query, result, acceptFront, acceptBack)) {
-                    result.distance = distance
-                    result.positionWS.set(tmpPos)
-                    result.geometryNormalWS.set(tmpNor)
-                    result.shadingNormalWS.set(tmpNor)
-                    throw Done
-                }
+        var hitSth = false
+        mesh.forEachTriangleIndex { ai, bi, ci ->
+            val distance = getDistance(ai, bi, ci, helper, globalTransform, query, result)
+            if (isHit(distance, query, result, acceptFront, acceptBack)) {
+                result.distance = distance
+                result.positionWS.set(tmpPos)
+                result.geometryNormalWS.set(tmpNor)
+                result.shadingNormalWS.set(tmpNor)
+                hitSth = true
             }
-            false
-        } catch (ignored: Done) {
-            true
+            hitSth
         }
+        return hitSth
     }
 
     private fun isHit(

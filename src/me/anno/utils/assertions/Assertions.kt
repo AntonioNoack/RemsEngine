@@ -62,6 +62,10 @@ fun assertEquals(expected: Int, actual: Int, message: String = "expected equal v
     assertTrue(expected == actual) { "$message, $expected != $actual" }
 }
 
+fun assertEquals(expected: Char, actual: Char, message: String = "expected equal values") {
+    assertTrue(expected == actual) { "$message, $expected != $actual" }
+}
+
 fun assertEquals(
     expected: Double, actual: Double, absoluteThreshold: Double,
     message: String = "expected equal values"
@@ -114,6 +118,6 @@ inline fun <V> assertNotNull(v: V?, message: () -> String): V {
 
 fun <V : Any> assertIs(expectedClass: KClass<V>, actualInstance: Any?): V {
     val instance = expectedClass.safeCast(actualInstance)
-    assertNotNull(instance)
+    assertNotNull(instance) { "Expected instance to be ${expectedClass.simpleName}, was ${actualInstance?.javaClass?.simpleName}" }
     return instance!!
 }

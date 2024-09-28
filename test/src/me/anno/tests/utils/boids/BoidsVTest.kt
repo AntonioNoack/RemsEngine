@@ -93,13 +93,13 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
         newDir.add(posB).sub(posA)
     }
 
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
         val mesh = birdMesh
         for (i in 0 until n) {
             val transform = getTransform(i)
             transform.localPosition = transform.localPosition.set(positions[i])
             transform.localRotation = transform.localRotation.set(rotations[i])
-            run(mesh, null, transform)
+            if (run(mesh, null, transform)) break
         }
     }
 

@@ -12,6 +12,7 @@ import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.utils.assertions.assertFail
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -97,7 +98,7 @@ class Texture constructor(
                 texture(f, i, mapping, type)
             } else if (type == DeferredLayerType.DEPTH && GFX.supportsDepthTextures) {
                 depth(f)
-            } else throw IndexOutOfBoundsException("Missing $type in $settings")
+            } else assertFail("Missing $type in $settings")
         }
 
         fun depth(f: IFramebuffer): Texture {

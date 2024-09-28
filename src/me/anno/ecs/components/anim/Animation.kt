@@ -17,12 +17,16 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.Pools
 import me.anno.utils.types.AnyToFloat
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 
 /**
  * skeletal animation base class
  * */
 abstract class Animation : PrefabSaveable, Renderable, ICacheData {
+    companion object {
+        private val LOGGER = LogManager.getLogger(Animation::class)
+    }
 
     constructor() : super()
 
@@ -59,9 +63,13 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     abstract fun getMatrix(frameIndex: Float, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f?
     abstract fun getMatrix(frameIndex: Int, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f?
 
-    fun getMappedAnimation(skel: FileReference): Animation? {
-        if (skel == skeleton) return this
-        val dstSkel = SkeletonCache[skel] ?: throw IllegalStateException("Missing Skeleton $skel for retargeting")
+    fun getMappedAnimation(dstSkeleton: FileReference): Animation? {
+        if (dstSkeleton == skeleton) return this
+        val dstSkel = SkeletonCache[dstSkeleton]
+        if (dstSkel == null) {
+            LOGGER.warn("Missing Skeleton $dstSkeleton for retargeting")
+            return null
+        }
         return AnimationCache.getMappedAnimation(this, dstSkel)
     }
 

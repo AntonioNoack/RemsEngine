@@ -1,9 +1,9 @@
 package me.anno.mesh.gltf
 
+import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonReader
 import me.anno.utils.types.AnyToFloat.getFloat
-import me.anno.io.Streams.skipN
 import java.io.InputStream
 
 object GLTFMaterialExtractor {
@@ -14,18 +14,21 @@ object GLTFMaterialExtractor {
         val materialList = file.inputStreamSync().use { input: InputStream ->
             // first check whether it is binary glTF;
             // binary glTF has a 20 byte header, and then follows the structure data as JSON, and then the (unused) binary data
-            val first = input.read()
-            if (first == 'g'.code && input.read() == 'l'.code && input.read() == 'T'.code && input.read() == 'F'.code)
+            var first = input.read()
+            if (first == 'g'.code && input.read() == 'l'.code && input.read() == 'T'.code && input.read() == 'F'.code) {
                 input.skipN(16) // version, lengths, content-type (json)
-            val readOpeningBracket = first != '{'.code
-            JsonReader(input).readObject(readOpeningBracket) { name ->
-                when (name) {
-                    "materials", "name", "pbrMetallicRoughness",
-                    "baseColorTexture", "index", "metallicFactor",
-                    "roughnessFactor" -> true
-                    else -> false
-                }
+                first = input.read()
             }
+            if (first == '{'.code) {
+                JsonReader(input).readObject(false) { name ->
+                    when (name) {
+                        "materials", "name", "pbrMetallicRoughness",
+                        "baseColorTexture", "index", "metallicFactor",
+                        "roughnessFactor" -> true
+                        else -> false
+                    }
+                }
+            } else emptyMap()
         }["materials"] as? List<*> ?: return null
         // sample: [{name=fox_material, pbrMetallicRoughness={baseColorTexture={index=0}, metallicFactor=0.0, roughnessFactor=0.6036471918720245}}]
         val result = HashMap<String, PBRMaterialData>(materialList.size)
@@ -41,5 +44,4 @@ object GLTFMaterialExtractor {
         }
         return result
     }
-
 }

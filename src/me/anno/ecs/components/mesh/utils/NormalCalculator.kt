@@ -84,6 +84,7 @@ object NormalCalculator {
                 if (weights[i1] >= 0) addWeightAndNormal(weights, i1, normals, normal)
                 if (weights[i2] >= 0) addWeightAndNormal(weights, i2, normals, normal)
             }
+            false
         }
         // apply all the normals, smooth shading
         for (j in weights.indices) {
@@ -327,6 +328,7 @@ object NormalCalculator {
                 add(map, min, max, b, normal, maxD)
                 add(map, min, max, c, normal, maxD)
             }
+            false
         }
         val positions = mesh.positions!!
         val normals = mesh.normals.resize(positions.size)

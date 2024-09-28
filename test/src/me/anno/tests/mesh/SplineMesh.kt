@@ -119,7 +119,7 @@ fun meshToPathProfile(mesh: Mesh): List<Pair<SplineProfile, FileReference>> {
             .mapNotNull { (index, helper) ->
                 val builder = ProfileBuilder(mesh)
                 mesh.forEachLineIndex(helper!!) { ai, bi ->
-                    builder.addLine(ai, bi)
+                    builder.addLine(ai, bi); false
                 }
                 val profile = builder.build()
                 if (profile != null) {
@@ -131,7 +131,7 @@ fun meshToPathProfile(mesh: Mesh): List<Pair<SplineProfile, FileReference>> {
         // there is only a single material
         val builder = ProfileBuilder(mesh)
         mesh.forEachLineIndex { ai, bi ->
-            builder.addLine(ai, bi)
+            builder.addLine(ai, bi); false
         }
         val profile = builder.build()
         return if (profile != null) {

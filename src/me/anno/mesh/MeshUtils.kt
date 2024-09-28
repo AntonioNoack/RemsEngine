@@ -115,6 +115,7 @@ object MeshUtils {
                     if (testAABB != aabb) {
                         mesh.forEachPoint(false) { x, y, z ->
                             aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))
+                            false
                         }
                     }
                 }

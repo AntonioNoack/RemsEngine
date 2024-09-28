@@ -1,5 +1,6 @@
 package me.anno.io.json.generic
 
+import me.anno.utils.assertions.assertEquals
 import java.io.InputStream
 
 open class JsonScanner : JsonReader {

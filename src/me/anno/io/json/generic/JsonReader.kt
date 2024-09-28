@@ -1,11 +1,12 @@
 package me.anno.io.json.generic
 
 import me.anno.io.xml.ComparableStringBuilder
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayInputStream
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStream
 
 /**
@@ -305,14 +306,8 @@ open class JsonReader(val data: InputStream) {
     // we want ours to always work
     // we can't really put it elsewhere without prefix, because Kotlin will use the wrong import...
     protected fun assert(i: Char, c1: Char, c2: Char) {
-        if (i != c1 && i != c2) throw JsonFormatException("Expected $c1 or $c2, but got $i")
-    }
-
-    protected fun assertTrue(c: Boolean, msg: String) {
-        if (!c) throw IOException(msg)
-    }
-
-    protected fun assertEquals(value: Char, expected: Char) {
-        if (value != expected) throw IOException("Expected $expected, but got $value")
+        assertTrue(i == c1 || i == c2) {
+            "Expected $c1 or $c2, but got $i"
+        }
     }
 }

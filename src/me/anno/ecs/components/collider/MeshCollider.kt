@@ -112,6 +112,7 @@ open class MeshCollider() : Collider() {
                 neg = tmpNor.dot(query.direction) > 0f
                 surfaceNormal?.set(tmpNor)
             }
+            false
         }
 
         JomlPools.vec3f.sub(3)
@@ -199,6 +200,7 @@ open class MeshCollider() : Collider() {
                 // make inner sides negative
                 neg = deltaPos.dot(nor) - a.dot(nor) > 0f
             }
+            false
         }
         JomlPools.vec3f.sub(4)
         val distance = sqrt(best)
@@ -214,6 +216,7 @@ open class MeshCollider() : Collider() {
                 drawLine(entity, a, b, color)
                 drawLine(entity, b, c, color)
                 drawLine(entity, c, a, color)
+                false
             }
         } else {
             mesh.forEachTriangle { a, b, c ->
@@ -223,6 +226,7 @@ open class MeshCollider() : Collider() {
                 drawLine(entity, a, b, color)
                 drawLine(entity, b, c, color)
                 drawLine(entity, c, a, color)
+                false
             }
         }
     }
@@ -234,6 +238,7 @@ open class MeshCollider() : Collider() {
             tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
             matrix.transformPosition(tmp)
             aabb.union(tmp)
+            false
         }
     }
 

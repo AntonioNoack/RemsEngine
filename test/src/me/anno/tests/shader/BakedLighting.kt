@@ -344,6 +344,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val uvBounds = AABBf()
     mesh.forEachPointIndex(false) { pi ->
         uvBounds.union(uvs[pi * 2], uvs[pi * 2 + 1], 0f)
+        false
     }
 
     // apply uvBounds-unmapping here
@@ -465,6 +466,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
                 write(dst.emissive, material.emissiveTexture, material.emissiveColor)
             }
         }
+        false
     }
 }
 
@@ -856,6 +858,7 @@ fun calculateSurfaceArea(entity: Entity, component: MeshComponent): Double {
         transform.transformPosition(b)
         transform.transformPosition(c)
         area += getTriangleArea(a, b, c)
+        false
     }
     return area
 }

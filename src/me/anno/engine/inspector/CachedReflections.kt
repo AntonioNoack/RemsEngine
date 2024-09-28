@@ -349,17 +349,25 @@ class CachedReflections private constructor(
         fun getEnumIdGetter(value: Any): (Enum<*>) -> Int {
             try {
                 val field = value.javaClass.getField("id")
-                field.get(value) as? Int ?: throw NoSuchFieldException()
+                field.get(value) as? Int ?: getEnumIdGetter1(value)
                 return { it: Enum<*> -> field.get(it) as Int }
             } catch (ignored: NoSuchFieldException) {
-                try {
-                    val method = value.javaClass.getMethod("getId")
-                    method.invoke(value) as? Int ?: throw NoSuchMethodException()
-                    return { it: Enum<*> -> method.invoke(it) as Int }
-                } catch (ignored: NoSuchMethodException) {
-                    return { it: Enum<*> -> it.ordinal }
-                }
+                return getEnumIdGetter1(value)
             }
+        }
+
+        private fun getEnumIdGetter1(value: Any): (Enum<*>) -> Int {
+            try {
+                val method = value.javaClass.getMethod("getId")
+                method.invoke(value) as? Int ?: getEnumIdGetter2()
+                return { it: Enum<*> -> method.invoke(it) as Int }
+            } catch (ignored: NoSuchMethodException) {
+                return getEnumIdGetter2()
+            }
+        }
+
+        private fun getEnumIdGetter2(): (Enum<*>) -> Int {
+            return { it: Enum<*> -> it.ordinal }
         }
 
         private val enumByClass = HashMap<KClass<*>, Map<Int, Enum<*>>>()

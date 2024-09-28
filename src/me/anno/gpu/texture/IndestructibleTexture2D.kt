@@ -4,6 +4,8 @@ import me.anno.cache.CacheSection
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.utils.Color.black
+import me.anno.utils.Color.rgba
 import org.joml.Vector4f
 
 /**
@@ -23,6 +25,26 @@ class IndestructibleTexture2D(
     override fun isCreated(): Boolean {
         if (GFX.isGFXThread()) ensureExists()
         return super.isCreated()
+    }
+
+    fun getRGB(index: Int): Int {
+        return when (creationData) {
+            is ByteArray -> {
+                if (creationData.size == width * height) { // monochrome
+                    creationData[index].toInt().and(0xff) * 0x10101 or black
+                } else {
+                    val i4 = index * 4
+                    rgba(creationData[i4], creationData[i4 + 1], creationData[i4 + 2], creationData[i4 + 3])
+                }
+            }
+            is FloatArray -> { // tonemap this?
+                val i4 = index * 4
+                rgba(creationData[i4], creationData[i4 + 1], creationData[i4 + 2], creationData[i4 + 3])
+            }
+            is IntArray -> creationData[index]
+            "depth" -> 0
+            else -> 0
+        }
     }
 
     fun ensureExists() {

@@ -226,15 +226,15 @@ fun main() {
         var count2 = 0
         val cubeMesh = Shapes.flatCube.scaled(0.4f).front
         val debugCubeSpawner = object : MeshSpawner() {
-            override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+            override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
                 for (index in 0 until count0) {
-                    run(cubeMesh, mat0, getTransform(index))
+                    if (run(cubeMesh, mat0, getTransform(index))) return
                 }
                 for (index in count0 until count1) {
-                    run(cubeMesh, mat1, getTransform(index))
+                    if (run(cubeMesh, mat1, getTransform(index))) return
                 }
                 for (index in count1 until count2) {
-                    run(cubeMesh, mat2, getTransform(index))
+                    if (run(cubeMesh, mat2, getTransform(index))) return
                 }
             }
         }

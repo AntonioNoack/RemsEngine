@@ -1,6 +1,5 @@
 package me.anno.maths.paths
 
-import me.anno.utils.Done
 import me.anno.utils.pooling.Stack
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -193,29 +192,28 @@ object PathFinding {
 
         var end: Node? = null
         var previousFromEnd: Node? = null
-        val result = try {
-            while (queue.isNotEmpty()) {
-                val from = queue.poll()!!
-                // LOGGER.debug("Checking $from at ${cache[from]}")
-                if (!earlyExit && isEnd(from)) {
-                    // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")
-                    end = from
-                    throw Done
-                }
-                val currentData = cache[from]!!
-                val currentDistance = currentData.distance
-                queryForward(from) { to, distFromTo, distToEnd ->
-                    if (distFromTo < 0.0 || distToEnd < 0.0) LOGGER.warn("Distances must be non-negative")
-                    val newDistance = currentDistance + distFromTo
-                    val newScore = newDistance + distToEnd
-                    if (newScore < maxDistance) {// check whether the route is good enough
-                        // LOGGER.debug("$from -> $to = $currentDistance + $distFromTo = $newDistance")
-                        if (earlyExit && isEnd(to)) {
-                            // LOGGER.debug("Found $to at ($newDistance,$newScore)")
-                            end = to
-                            previousFromEnd = from
-                            throw Done
-                        }
+
+        while (queue.isNotEmpty() && end == null) {
+            val from = queue.poll()!!
+            // LOGGER.debug("Checking $from at ${cache[from]}")
+            if (!earlyExit && isEnd(from)) {
+                // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")
+                end = from
+                break
+            }
+            val currentData = cache[from]!!
+            val currentDistance = currentData.distance
+            queryForward(from) { to, distFromTo, distToEnd ->
+                if (distFromTo < 0.0 || distToEnd < 0.0) LOGGER.warn("Distances must be non-negative")
+                val newDistance = currentDistance + distFromTo
+                val newScore = newDistance + distToEnd
+                if (end == null && newScore < maxDistance) {// check whether the route is good enough
+                    // LOGGER.debug("$from -> $to = $currentDistance + $distFromTo = $newDistance")
+                    if (earlyExit && isEnd(to)) {
+                        // LOGGER.debug("Found $to at ($newDistance,$newScore)")
+                        end = to
+                        previousFromEnd = from
+                    } else {
                         val oldScore = cache[to]
                         if (oldScore == null) {
                             @Suppress("UNCHECKED_CAST")
@@ -234,8 +232,9 @@ object PathFinding {
                     }
                 }
             }
-            null
-        } catch (e: Done) {
+        }
+
+        val result = if (end != null) {
             // backward tracking
             val path = ArrayList<Node>()
             if (includeEnd) path.add(end!!)
@@ -249,7 +248,7 @@ object PathFinding {
             if (includeStart) path.add(node)
             path.reverse()
             path
-        }
+        } else null
         pool.index = poolStartIndex
         // LOGGER.debug("Visited ${cache.size} nodes")
         return result

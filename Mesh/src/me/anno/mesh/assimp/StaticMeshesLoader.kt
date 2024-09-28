@@ -297,7 +297,7 @@ object StaticMeshesLoader {
         val aiMaterials = aiScene.mMaterials()
         val gltfMaterials = try {
             GLTFMaterialExtractor.extract(original)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             null
         }
         val textureLookup = createTextureLookup(missingFilesLookup)

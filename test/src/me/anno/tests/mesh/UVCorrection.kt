@@ -93,6 +93,7 @@ object UVCorrection {
                         invertedContrast +=
                             area * approximatedContrast(ua, ub, uc, hm1 - va, hm1 - vb, hm1 - vc, image)
                     }
+                    false
                 }
             }
         }

@@ -162,7 +162,7 @@ fun Mesh.split(shape: SDFShape): List<Mesh> {
         val tris = splitTriangle(a, b, c, a.dist, b.dist, c.dist)
         for (i in tris.indices step 3) {
             addTriangle(tris[i], tris[i + 1], tris[i + 2])
-        }
+        }; false
     }
 
     // collect rings

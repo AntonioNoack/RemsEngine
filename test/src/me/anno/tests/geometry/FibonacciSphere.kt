@@ -17,13 +17,13 @@ import kotlin.math.sqrt
 class FibonacciSpawner : MeshSpawner() {
     var n = 12
     var scale = 0.3
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
         val scale = scale * sqrt(1.0 / n)
         for ((i, pt) in FibonacciSphere.create(n).withIndex()) {
             val tr = getTransform(i)
             tr.localPosition = tr.localPosition.set(pt)
             tr.localScale = tr.localScale.set(scale)
-            run(smoothCube.front, null, tr)
+            if (run(smoothCube.front, null, tr)) break
         }
     }
 }

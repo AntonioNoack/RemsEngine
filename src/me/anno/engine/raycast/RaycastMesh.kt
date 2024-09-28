@@ -9,7 +9,6 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
-import me.anno.utils.Done
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import org.apache.logging.log4j.LogManager
@@ -229,6 +228,7 @@ object RaycastMesh {
                         localNormal.set(localNormalTmp)
                     }
                 }
+                false
             }
 
             if (bestLocalDistance < localMaxDistance2) {
@@ -276,6 +276,7 @@ object RaycastMesh {
                     result.shadingNormalWS.set(tmpNor)
                 }
             }
+            false
         }
     }
 
@@ -309,25 +310,24 @@ object RaycastMesh {
             val localHit = tmp0[5]
             val localNormal = tmp0[6]
 
-            try {
-                mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
-                    // check collision of localStart-localEnd with triangle ABC
-                    val localDistance = Triangles.rayTriangleIntersection(
-                        localSrt, localDir, a, b, c,
-                        localRadiusAtOrigin, localRadiusPerUnit,
-                        bestLocalDistance, localHitTmp, localNormalTmp
-                    )
-                    if (localDistance < bestLocalDistance && if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
-                        bestLocalDistance = localDistance
-                        localHit.set(localHitTmp)
-                        localNormal.set(localNormalTmp)
-                        query.result.setFromLocal(globalTransform, localHit, localNormal, query)
-                        throw Done
-                    }
+            var hitSth = false
+            mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
+                // check collision of localStart-localEnd with triangle ABC
+                val localDistance = Triangles.rayTriangleIntersection(
+                    localSrt, localDir, a, b, c,
+                    localRadiusAtOrigin, localRadiusPerUnit,
+                    bestLocalDistance, localHitTmp, localNormalTmp
+                )
+                if (localDistance < bestLocalDistance && if (localNormalTmp.dot(localDir) < 0f) acceptFront else acceptBack) {
+                    bestLocalDistance = localDistance
+                    localHit.set(localHitTmp)
+                    localNormal.set(localNormalTmp)
+                    query.result.setFromLocal(globalTransform, localHit, localNormal, query)
+                    hitSth = true
                 }
-            } catch (ignored: Done) {
-                return true
+                hitSth
             }
+            return hitSth
         }
         return false
     }
@@ -343,37 +343,33 @@ object RaycastMesh {
     }
 
     fun raycastGlobalAnyHit1(globalTransform: Matrix4x3d?, mesh: Mesh, query: RayQuery) {
-        try {
-            val typeMask = query.typeMask
-            if (typeMask.and(Raycast.TRIANGLES) == 0) return
-            val acceptFront = getCullingFront(typeMask, mesh.cullMode)
-            val acceptBack = getCullingBack(typeMask, mesh.cullMode)
-            val result = query.result
-            val tmp = result.tmpVector3ds
-            mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
-                val tmpPos = tmp[0]
-                val tmpNor = tmp[1]
-                if (globalTransform != null) {
-                    globalTransform.transformPosition(a)
-                    globalTransform.transformPosition(b)
-                    globalTransform.transformPosition(c)
-                }
-                val maxDistance = result.distance
-                val distance = Triangles.rayTriangleIntersection(
-                    query.start, query.direction, a, b, c,
-                    query.radiusAtOrigin, query.radiusPerUnit,
-                    maxDistance, tmpPos, tmpNor
-                )
-                if (distance < result.distance && (if (tmpNor.dot(query.direction) < 0f) acceptFront else acceptBack)) {
-                    result.distance = distance
-                    result.positionWS.set(tmpPos)
-                    result.geometryNormalWS.set(tmpNor)
-                    result.shadingNormalWS.set(tmpNor)
-                    throw Done
-                }
+        val typeMask = query.typeMask
+        if (typeMask.and(Raycast.TRIANGLES) == 0) return
+        val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+        val acceptBack = getCullingBack(typeMask, mesh.cullMode)
+        val result = query.result
+        val tmp = result.tmpVector3ds
+        mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
+            val tmpPos = tmp[0]
+            val tmpNor = tmp[1]
+            if (globalTransform != null) {
+                globalTransform.transformPosition(a)
+                globalTransform.transformPosition(b)
+                globalTransform.transformPosition(c)
             }
-        } catch (ignored: Done) {
-            return
+            val maxDistance = result.distance
+            val distance = Triangles.rayTriangleIntersection(
+                query.start, query.direction, a, b, c,
+                query.radiusAtOrigin, query.radiusPerUnit,
+                maxDistance, tmpPos, tmpNor
+            )
+            if (distance < result.distance && (if (tmpNor.dot(query.direction) < 0f) acceptFront else acceptBack)) {
+                result.distance = distance
+                result.positionWS.set(tmpPos)
+                result.geometryNormalWS.set(tmpNor)
+                result.shadingNormalWS.set(tmpNor)
+                true
+            } else false
         }
     }
 
@@ -403,22 +399,17 @@ object RaycastMesh {
             val a = JomlPools.vec3f.create()
             val b = JomlPools.vec3f.create()
             val c = JomlPools.vec3f.create()
-            try {
-                mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
-                    // check collision of localStart-localEnd with triangle ABC
-                    val localDistance = Triangles.rayTriangleIntersection(
-                        start, dir, ai, bi, ci, maxDistance, localHitTmp, localNormalTmp
-                    )
-                    if (localDistance < maxDistance && if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack) {
-                        throw Done
-                    }
-                }
-            } catch (e: Throwable) {
-                if (e !== Done) throw e
-                return true
-            } finally {
-                JomlPools.vec3f.sub(5)
+            var hitSth = false
+            mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
+                // check collision of localStart-localEnd with triangle ABC
+                val localDistance = Triangles.rayTriangleIntersection(
+                    start, dir, ai, bi, ci, maxDistance, localHitTmp, localNormalTmp
+                )
+                hitSth = localDistance < maxDistance && if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack
+                hitSth
             }
+            JomlPools.vec3f.sub(5)
+            return hitSth
         }
         return false
     }
@@ -472,6 +463,7 @@ object RaycastMesh {
                     bestDistance = localDistance
                     dstNormal?.set(localNormalTmp)
                 }
+                false
             }
 
             JomlPools.vec3f.sub(5)

@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.sumOfLong
 import me.anno.utils.structures.lists.SmallestKList
@@ -78,7 +79,7 @@ class LightData {
             }
             remainingIndex -= entry.index
         }
-        throw IndexOutOfBoundsException()
+        assertFail("Index not found")
     }
 
     fun forEachType(callback: (lights: List<LightRequest>, size: Int, type: LightType) -> Unit) {

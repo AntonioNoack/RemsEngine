@@ -175,7 +175,7 @@ class SMMMeshRenderer(material: Material) :
         return data
     }
 
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
         // shall we implement this?
     }
 }

@@ -275,6 +275,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         aabb.clear()
         forEachPoint(ignoreStrayPointsInAABB) { x, y, z ->
             aabb.union(x, y, z)
+            false
         }
     }
 
@@ -451,6 +452,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         val aabb = AABBf()
         forEachPoint(onlyFaces) { x, y, z ->
             aabb.union(transform.transformProject(vf.set(x, y, z)))
+            false
         }
         return aabb
     }

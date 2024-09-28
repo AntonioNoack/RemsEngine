@@ -43,13 +43,14 @@ object FindLines {
     fun getAllLines(mesh: Mesh, old: IntArray? = null): IntArray? {
         if (mesh.drawMode == DrawMode.POINTS) return null
         var lineCount = 0
-        mesh.forEachLineIndex { _, _ -> lineCount++ }
+        mesh.forEachLineIndex { _, _ -> lineCount++; false }
         if (lineCount == 0) return null
         val lines = old.resize(lineCount * 2)
         var j = 0
         mesh.forEachLineIndex { ai, bi ->
             lines[j++] = ai
             lines[j++] = bi
+            false
         }
         return lines
     }
@@ -156,7 +157,7 @@ object FindLines {
             forEachLineIndex { a, b ->
                 if (a != b) {
                     lines += IntPair(min(a, b), max(a, b))
-                }
+                }; false
             }
             var ctr = 0
             val indices = indices.resize(lines.size * 2)
@@ -171,6 +172,7 @@ object FindLines {
             forEachLineIndex { a, b ->
                 indices[ctr++] = a
                 indices[ctr++] = b
+                false
             }
             indices
         }

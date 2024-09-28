@@ -1,6 +1,8 @@
 package me.anno.tests.bench
 
 import me.anno.utils.Clock
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.heap.Heap
 import me.anno.utils.structures.lists.Lists.buildMinHeap
 import me.anno.utils.structures.lists.Lists.extractMin
@@ -43,9 +45,9 @@ class SmallestK {
         val clock = Clock("SmallestK")
 
         fun check(list: List<Int>) {
-            if (list.size != k) throw RuntimeException("Size does not match")
+            assertEquals(k, list.size, "Size does not match")
             for (i in 0 until k) {
-                if (i !in list) throw RuntimeException("$i is missing in list $list")
+                assertTrue(i in list) { "$i is missing in list $list" }
             }
         }
 

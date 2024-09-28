@@ -32,6 +32,7 @@ object CapsuleModel {
             addPoint(a, dy)
             addPoint(b, dy)
             addPoint(c, dy)
+            false
         }
         fun addPoint(xi: Int, y: Float) {
             val angle = xi * TAUf / us

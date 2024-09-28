@@ -309,7 +309,7 @@ open class SDFMesh : SDFSmoothShape() {
             if (absDist < absMinDistSq) {
                 absMinDistSq = absDist
                 minDistSq = dist
-            }
+            }; false
         }
         return sign(minDistSq) * sqrt(abs(minDistSq)) + pos.w
     }

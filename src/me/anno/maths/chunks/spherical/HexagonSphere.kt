@@ -5,6 +5,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -163,7 +164,9 @@ class HexagonSphere(
         }
 
         fun getChunkCenter(si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
-            if (si !in 0 until self.chunkCount || sj !in 0 until self.chunkCount - si) throw IndexOutOfBoundsException("$si,$sj !in ${self.chunkCount}")
+            if (si !in 0 until self.chunkCount || sj !in 0 until self.chunkCount - si) {
+                assertFail("$si,$sj !in ${self.chunkCount}")
+            }
 
             val t = self.hexagonsPerChunk
             val j0 = t * sj
@@ -189,15 +192,18 @@ class HexagonSphere(
             val idx = first + index * step
             if (idx == first && firstH != null) return firstH!!
             else if (idx == last && lastH != null) return lastH!!
-            if ((step > 0 && idx > last) || (step < 0 && idx < last))
-                throw IndexOutOfBoundsException()
+            if ((step > 0 && idx > last) || (step < 0 && idx < last)) {
+                assertFail("Index out of bounds")
+            }
             return sphere.createLineHexagon(left, right, index, idx)
         }
     }
 
     fun find(id: Long, connect: Boolean = true): Hexagon {
         return when {
-            id !in 0 until total -> throw IllegalArgumentException("Id out of bounds: $id !in 0 until $total")
+            id !in 0 until total -> {
+                assertFail("Id out of bounds: $id !in 0 until $total")
+            }
             id < special0 -> {
                 val n1 = (hexagonsPerSide + 1L)
                 val line = lines[(id / n1).toInt() * 2]
@@ -323,7 +329,7 @@ class HexagonSphere(
                 val si = (i + i0) / hexagonsPerChunk
                 return chunk(tri, si, sj)
             }
-            else -> throw IndexOutOfBoundsException()
+            else -> assertFail("Invalid ID")
         }
     }
 
@@ -830,8 +836,9 @@ class HexagonSphere(
     }
 
     fun triIdx(idx0: Long, i: Int, j: Int): Long {
-        if (i !in 0 until hexagonsPerSide || j !in 0 until hexagonsPerSide - i)
-            throw IndexOutOfBoundsException("$i,$j is out of bounds for $hexagonsPerSide")
+        if (i !in 0 until hexagonsPerSide || j !in 0 until hexagonsPerSide - i) {
+            assertFail("$i,$j is out of bounds for $hexagonsPerSide")
+        }
         return idx0 + j + hexagonsPerSide.toLong() * i - (i * (i - 1L)).shr(1)
     }
 

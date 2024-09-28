@@ -28,6 +28,7 @@ object OnEdgeCalculator {
                 dst[index] = false
             }
             index++
+            false
         }
 
         return dst

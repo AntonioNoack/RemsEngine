@@ -3,6 +3,7 @@ package me.anno.maths.geometry
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
@@ -332,7 +333,7 @@ object MarchingCubes {
                             val i1 = triTable[triIndex++].toInt()
                             val i2 = triTable[triIndex++].toInt()
                             if (max(max(i0, i1), i2) >= edges.size) {
-                                throw IndexOutOfBoundsException("max($i0,$i1,$i2) >= ${edges.size} for code $code, $edgeMask")
+                                assertFail("max($i0,$i1,$i2) >= ${edges.size} for code $code, $edgeMask")
                             }
                             callback(edges[i0], edges[i1], edges[i2])
                         }
