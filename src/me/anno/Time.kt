@@ -1,7 +1,10 @@
 package me.anno
 
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.ui.debug.FrameTimings
+import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -35,6 +38,16 @@ object Time {
      * */
     var currentFPS = 60.0
         private set
+
+    /**
+     * estimate for current fps
+     * */
+    var currentMinFPS = 60.0
+        private set
+
+    private var lastFPSTime = 0L
+    private var fpsCounter = 0
+    private var maxCurrDt = 0L
 
     /**
      * nanoTime of when the engine was started in OS time
@@ -123,9 +136,7 @@ object Time {
         deltaTime = clamp(dt * timeSpeed, -0.1, 0.1) // clamping before or after timeSpeed???
         FrameTimings.putTime(dt.toFloat())
 
-        val newFPS = 1.0 / dt
-        currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05, newFPS)
-        frameTimeNanos = thisTime
+        updateFPS(thisTime)
 
         lastGameTime = gameTime
         lastGameTimeN = gameTimeN
@@ -133,5 +144,22 @@ object Time {
         gameTime = gameTimeN * 1e-9
 
         frameIndex++
+    }
+
+    @JvmStatic
+    private fun updateFPS(thisTime: Long) {
+        val dt = abs(thisTime - frameTimeNanos)
+        if (abs(thisTime - lastFPSTime) >= SECONDS_TO_NANOS) {
+            val numFrames = fpsCounter + 1.0
+            currentFPS = numFrames * SECONDS_TO_NANOS / abs(thisTime - lastFPSTime)
+            currentMinFPS = 1e9 / maxCurrDt
+            lastFPSTime = thisTime
+            fpsCounter = 0
+            maxCurrDt = dt
+        } else {
+            fpsCounter++
+            maxCurrDt = max(dt, maxCurrDt)
+            frameTimeNanos = thisTime
+        }
     }
 }

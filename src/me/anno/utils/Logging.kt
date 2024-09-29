@@ -1,66 +1,27 @@
 package me.anno.utils
 
 import me.anno.utils.Color.hex32
-import java.io.OutputStream
-import java.io.PrintStream
 import java.util.Queue
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.math.max
 
 object Logging {
 
-    @JvmStatic
-    private val originalOut = System.out!!
-
-    @JvmStatic
-    private val originalErr = System.err!!
-
     // Web isn't supporting multithreading yet
     @JvmField
     val lastConsoleLines: Queue<String> = LinkedBlockingQueue()
 
     @JvmField
-    var lastConsoleLineCount = 500
+    var maxMemorizedLines = 500
 
-    @JvmField
-    var maxConsoleLineLength = 500
-
-    open class OutputPipe(val output: OutputStream) : OutputStream() {
-        var line = ""
-        open fun processMessage(str: String) = str
-        override fun write(b: Int) {
-            when {
-                b == '\n'.code -> {
-                    // only accept non-empty lines?
-                    val lines = lastConsoleLines
-                    if (lines.size > max(0, lastConsoleLineCount)) {
-                        lines.poll()
-                    }
-                    line = processMessage(line)
-                    lines.add(line)
-                    line = ""
-                }
-                line.length < maxConsoleLineLength -> {
-                    // enable for
-                    /*if(line.isEmpty() && b != '['.toInt()){
-                        throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
-                    }*/
-                    line += b.toChar()
-                }
-                line.length == maxConsoleLineLength -> {
-                    line += "..."
-                }
+    fun push(line: String) {
+        val lines = lastConsoleLines
+        synchronized(lines) {
+            if (lines.size > max(0, maxMemorizedLines)) {
+                lines.poll()
             }
-            output.write(b)
         }
-    }
-
-    @JvmStatic
-    fun setup() {
-        System.setOut(PrintStream(OutputPipe(originalOut)))
-        System.setErr(PrintStream(object : OutputPipe(originalErr) {
-            override fun processMessage(str: String) = "[ERR] $str"
-        }))
+        lines.add(line)
     }
 
     /**

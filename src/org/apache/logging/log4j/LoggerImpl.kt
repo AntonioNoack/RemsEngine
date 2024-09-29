@@ -60,16 +60,20 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     private val suffix = if (prefix == null) "" else ":$prefix"
 
+    private fun printRaw(prefix: String, line2: String) {
+        if (prefix == "ERR!" || prefix == "WARN") {
+            System.err.println(line2)
+        } else {
+            println(line2)
+        }
+    }
+
     fun print(prefix: String, msg: String) {
         synchronized(LogManager) {
             val logFile = getLogFileStream()
             for (line in msg.split('\n')) {
                 val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
-                if (prefix == "ERR!" || prefix == "WARN") {
-                    System.err.println(line2)
-                } else {
-                    println(line2)
-                }
+                printRaw(prefix, line2)
                 if (logFile != null) {
                     try {
                         logFile.writeString(line2)

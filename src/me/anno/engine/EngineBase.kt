@@ -148,8 +148,6 @@ abstract class EngineBase(
 
         setupNames()
 
-        Logging.setup()
-
         if (Engine.shutdown) {
             LOGGER.warn("Engine restart is experimental!")
             @Suppress("DEPRECATION")

@@ -66,6 +66,7 @@ class JVMExtension : Plugin() {
             12 -> LinkCreator.createLink = FileExplorerImpl::createLink
             13 -> DefaultStyle.initDefaults() // reload default font size
             14 -> Thumbs.registerSignatures("exe", ThumbsImpl::generateSystemIcon)
+            15 -> LoggerOverride.setup()
             else -> return true
         }
         return false

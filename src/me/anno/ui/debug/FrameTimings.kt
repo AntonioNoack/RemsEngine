@@ -208,9 +208,8 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         setPosSize(x0, y0, width1, height1)
         draw()
 
-        val maxTime = timeContainer.maxValue
         formatNumber(text.value, 0, 6, Time.currentFPS.toFloat())
-        formatNumber(text.value, 13, 6, 1f / maxTime)
+        formatNumber(text.value, 13, 6, Time.currentMinFPS.toFloat())
 
         val pad = 2
         val x = pushBetterBlending(true)
