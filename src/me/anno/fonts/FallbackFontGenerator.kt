@@ -34,9 +34,9 @@ class FallbackFontGenerator(val key: FontKey) : TextGenerator {
                 in '0'..'9' -> digits[v - '0']
                 in 'A'..'Z' -> chars[v - 'A']
                 in 'a'..'z' -> chars[v - 'a']
-                in ",." -> 4
+                in ",.:;" -> 4
                 in "'\"" -> 2
-                '!' -> 5
+                in "!/\\" -> 5
                 ' ' -> 0
                 else -> digits[0]
             }

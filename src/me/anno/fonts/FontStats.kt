@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.fonts.Codepoints.countCodepoints
 import me.anno.fonts.keys.FontKey
 import me.anno.utils.InternalAPI
 import org.joml.Vector2f
@@ -16,28 +17,32 @@ object FontStats {
     @InternalAPI
     var getTextGeneratorImpl: ((FontKey) -> TextGenerator)? = null
     fun getTextGenerator(key: FontKey): TextGenerator {
-        val tmp = getTextGeneratorImpl ?: return FallbackFontGenerator(key)
+        val tmp = getTextGeneratorImpl
+            ?: return FallbackFontGenerator(key)
         return tmp(key)
     }
 
     @InternalAPI
     var queryInstalledFontsImpl: (() -> Collection<String>)? = null
     fun queryInstalledFonts(): Collection<String> {
-        val tmp = queryInstalledFontsImpl ?: return emptyList()
+        val tmp = queryInstalledFontsImpl
+            ?: return emptyList()
         return tmp()
     }
 
     @InternalAPI
     var getTextLengthImpl: ((Font, String) -> Double)? = null
     fun getTextLength(font: Font, text: String): Double {
-        val tmp = getTextLengthImpl ?: return text.length * font.size * 0.6
+        val tmp = getTextLengthImpl
+            ?: return text.countCodepoints() * font.size * 0.6
         return tmp(font, text)
     }
 
     @InternalAPI
     var getFontHeightImpl: ((Font) -> Double)? = null
     fun getFontHeight(font: Font): Double {
-        val tmp = getFontHeightImpl ?: return font.size.toDouble()
+        val tmp = getFontHeightImpl
+            ?: return font.size.toDouble()
         return tmp(font)
     }
 

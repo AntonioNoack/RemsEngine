@@ -25,7 +25,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.maths.Maths
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
@@ -55,7 +55,9 @@ object DrawTexts {
         val fontName = when {
             "Consolas" in fonts -> "Consolas" // best case
             "Courier New" in fonts -> "Courier New" // second best case
-            else -> fonts.firstOrNull { it.contains("mono", true) } ?: fonts.firstOrNull() ?: "Courier New"
+            else -> fonts.firstOrNull { it.contains("mono", true) }
+                ?: fonts.firstOrNull()
+                ?: "Courier New"
         }
         Font(fontName, size, bold, italic)
     }
@@ -513,7 +515,9 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
-        if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
+        if (text.isEmpty()) {
+            return GFXx2D.getSize(0, font.sizeInt)
+        }
 
         GFX.check()
 
@@ -523,7 +527,7 @@ object DrawTexts {
         val charByChar = (tex0 == null || !tex0.isCreated()) && text.length > 1
         return if (charByChar) {
             drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignX, alignY, false)
-        } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
+        } else drawText(x, y, color, backgroundColor, tex0 ?: blackTexture, alignX, alignY)
     }
 
     /**
