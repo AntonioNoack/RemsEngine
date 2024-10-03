@@ -53,8 +53,10 @@ object GFX {
      * window, that is in focus, or arbitrary window, if undefined
      * */
     @JvmStatic
-    val someWindow // we also could choose the one closest to the mouse :)
-        get(): OSWindow = focusedWindow ?: windows.firstOrNull() ?: firstWindow
+    val someWindow
+        get(): OSWindow = focusedWindow
+            ?: windows.firstOrNull()
+            ?: firstWindow
 
     @JvmField
     var supportsAnisotropicFiltering = false
@@ -158,7 +160,6 @@ object GFX {
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
-        // todo when setting this, decals are broken
         // todo check if rendering is still broken in DX11 in default render mode
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true

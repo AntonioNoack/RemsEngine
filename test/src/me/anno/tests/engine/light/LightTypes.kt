@@ -22,7 +22,7 @@ import kotlin.math.PI
 /**
  * Showcase of all light types
  *
- * todo shadows for PointLight are broken :/
+ * todo shadows are broken, when clip-control isn't supported
  * except for EnvironmentMap, which is kind of a light, too
  * */
 fun main() {

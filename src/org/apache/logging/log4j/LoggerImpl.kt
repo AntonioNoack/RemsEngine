@@ -58,7 +58,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         } else msg
     }
 
-    private val suffix = if (prefix == null) "" else ":$prefix"
+    val suffix = if (prefix == null) "" else ":$prefix"
 
     private fun printRaw(prefix: String, line2: String) {
         if (prefix == "ERR!" || prefix == "WARN") {

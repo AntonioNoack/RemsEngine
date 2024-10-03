@@ -133,13 +133,26 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     ): Shader {
         val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
         val builder = ShaderBuilder(shaderName, this, ditherMode)
-        builder.addVertex(ShaderStage("def-vs", vertexVariables + varyings, vertex))
+        val vertexVars = vertexVariables + varyings.map { it.withType(VariableMode.OUT) }
+        builder.addVertex(createStage("def-vs", vertexVars, vertex))
         builder.addVertex(vertexPostProcessing)
-        builder.addFragment(ShaderStage("def-fs", fragmentVariables + varyings, fragmentShader))
+        builder.addFragment(createStage("def-fs", fragmentVariables + varyings, fragmentShader))
         builder.addFragment(pixelPostProcessing)
         val shader = builder.create(key, "def")
         shader.setTextureIndices(textures)
         return shader
+    }
+
+    private fun createStage(name: String, variables: List<Variable>, code: String): ShaderStage {
+        val idx = code.indexOf("void main()")
+        return if (idx >= 0) {
+            val idx1 = code.indexOf('{', idx + 11)
+            val idx2 = code.lastIndexOf('}')
+            ShaderStage(name, variables, code.substring(idx1 + 1, idx2))
+                .add(code.substring(0, idx))
+        } else {
+            ShaderStage(name, variables, code)
+        }
     }
 
     fun appendLayerDeclarators(disabledLayers: BooleanArrayList?, uniforms: HashSet<Variable>, useRandomness: Boolean) {

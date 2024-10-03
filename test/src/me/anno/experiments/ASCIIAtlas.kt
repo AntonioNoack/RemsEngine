@@ -23,9 +23,9 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     val height = 32
     val perRow = 16
-    val width = height * 2 / 3
+    val width = height * 7 / 12
     val framebuffer = Framebuffer("font", width * perRow, height * ceilDiv(max - min, perRow), TargetType.UInt8x4)
-    val font = monospaceFont.withSize(height * 0.8f)
+    val font = monospaceFont.withSize(height * 0.9f)
     GFX.loadTexturesSync.push(true)
     useFrame(framebuffer) {
         framebuffer.clearColor(black)

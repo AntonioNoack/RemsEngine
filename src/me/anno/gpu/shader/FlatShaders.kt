@@ -41,6 +41,30 @@ object FlatShaders {
                 "}"
     )
 
+    val getColor0SS = "vec4 getColor0(sampler2D colorTex, int srcSamples, vec2 uv){\n" +
+            "   return texture(colorTex,uv);\n" +
+            "}\n"
+
+    val getColor1MS = "vec4 getColor1(sampler2DMS colorTex, int srcSamples, vec2 uv){\n" +
+            "   ivec2 uvi = ivec2(vec2(textureSize(colorTex)) * uv);\n" +
+            "   if(srcSamples > targetSamples){\n" +
+            "       vec4 sum = vec4(0.0);\n" +
+            "       int ctr = 0;\n" +
+            "       for(int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
+            "           vec4 color = texelFetch(colorTex, uvi, i);\n" +
+            "           sum += sRGB ? vec4(color.rgb * color.rgb, color.a) : color;\n" +
+            "           ctr++;\n" +
+            "       }\n" +
+            "       sum *= 1.0 / float(ctr);\n" +
+            "       if(sRGB) { sum.rgb = sqrt(max(sum.rgb,vec3(0.0))); }\n" +
+            "       return sum;\n" +
+            "   } else if(srcSamples == targetSamples){\n" +
+            "       return texelFetch(colorTex, uvi, gl_SampleID);\n" +
+            "   } else {\n" +
+            "       return texelFetch(colorTex, uvi, gl_SampleID % srcSamples);\n" +
+            "   }\n" +
+            "}\n"
+
     /**
      * blit-like shader without any stupid OpenGL constraints like size or format;
      * copies color and depth
@@ -61,29 +85,9 @@ object FlatShaders {
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +
                     (if (colorMS || depthMS) "" +
-                            "vec4 getColor1(sampler2DMS colorTex, int srcSamples, vec2 uv){\n" +
-                            "   ivec2 uvi = ivec2(vec2(textureSize(colorTex)) * uv);\n" +
-                            "   if(srcSamples > targetSamples){\n" +
-                            "       vec4 sum = vec4(0.0);\n" +
-                            "       int ctr = 0;\n" +
-                            "       for(int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
-                            "           vec4 color = texelFetch(colorTex, uvi, i);\n" +
-                            "           sum += sRGB ? vec4(color.rgb * color.rgb, color.a) : color;\n" +
-                            "           ctr++;\n" +
-                            "       }\n" +
-                            "       sum *= 1.0 / float(ctr);\n" +
-                            "       if(sRGB) { sum.rgb = sqrt(max(sum.rgb,vec3(0.0))); }\n" +
-                            "       return sum;\n" +
-                            "   } else if(srcSamples == targetSamples){\n" +
-                            "       return texelFetch(colorTex, uvi, gl_SampleID);\n" +
-                            "   } else {\n" +
-                            "       return texelFetch(colorTex, uvi, gl_SampleID % srcSamples);\n" +
-                            "   }\n" +
-                            "}\n" else "") +
+                            getColor1MS else "") +
                     (if (!colorMS || !depthMS) "" +
-                            "vec4 getColor0(sampler2D colorTex, int srcSamples, vec2 uv){\n" +
-                            "   return texture(colorTex,uv);\n" +
-                            "}\n" else "") +
+                            getColor0SS else "") +
                     "void main() {\n" +
                     "   result = getColor${colorMS.toInt()}(colorTex, colorSamples, uv);\n" +
                     "   if(monochrome) result.rgb = result.rrr;\n" +

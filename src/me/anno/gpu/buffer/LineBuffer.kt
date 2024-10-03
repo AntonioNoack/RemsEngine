@@ -38,7 +38,7 @@ object LineBuffer {
             Variable(GLSLType.V4F, "color", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform")
         ), "" +
-                "void main(){" +
+                "void main(){\n" +
                 "   gl_Position = matMul(transform, vec4(position, 1.0));\n" +
                 "   vColor = color;\n" +
                 "}", listOf(Variable(GLSLType.V4F, "vColor")), listOf(
@@ -51,9 +51,7 @@ object LineBuffer {
                 "   finalAlpha = vColor.a;\n" +
                 "   finalNormal = vec3(0.0);\n" +
                 "}\n"
-    ).apply {
-        glslVersion = max(glslVersion, 330)
-    }
+    )
 
     // drawing all these lines is horribly slow -> speed it up by caching them
     // we also could calculate their position in 2D on the CPU and just upload them xD

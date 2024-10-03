@@ -49,6 +49,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.Screenshots
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.effects.FSR2v2
@@ -394,17 +395,18 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             pipeline.resetClickId()
             pipeline.fill(world)
 
-            val buffer = FBStack["click", width, height, 4, true, 1, DepthBufferType.INTERNAL]
 
             val diameter = 5
 
             val px2 = px.toInt() - x
             val py2 = py.toInt() - y
 
-            val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
+            // must be exactly RGBA x UNSIGNED_BYTE for WebGL
+            val idBuffer = FBStack["click", width, height, TargetType.UInt8x4, 1, DepthBufferType.INTERNAL]
+            val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, idBuffer, idRenderer) {
                 GFXState.ditherMode.use(DitherMode.DITHER2X2) {
-                    buffer.clearColor(0, true)
-                    drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false, sky = false)
+                    idBuffer.clearColor(0, true)
+                    drawScene(width, height, idRenderer, idBuffer, changeSize = false, hdr = false, sky = false)
                 }
             }
 
@@ -412,10 +414,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 ids[idx] = ids[idx] and 0xffffff
             }
 
-            val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
+            // must be exactly RED x FLOAT for WebGL
+            val depthBuffer = FBStack["click", width, height, TargetType.Float32x1, 1, DepthBufferType.INTERNAL]
+            val depths = Screenshots.getFP32RPixels(diameter, px2, py2, depthBuffer, depthRenderer) {
                 GFXState.ditherMode.use(DitherMode.DITHER2X2) {
-                    buffer.clearColor(0, true)
-                    drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false, sky = false)
+                    depthBuffer.clearColor(0, true)
+                    drawScene(width, height, depthRenderer, depthBuffer, changeSize = false, hdr = false, sky = false)
                 }
             }
 

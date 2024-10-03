@@ -6,6 +6,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
@@ -88,11 +89,13 @@ class MultiFramebuffer(
     }
 
     override fun getTextureI(index: Int): ITexture2D {
-        return targetsI[index / div].getTextureI(index % div)
+        return if (index == numTextures) depthTexture ?: TextureLib.depthTexture
+        else targetsI[index / div].getTextureI(index % div)
     }
 
     override fun getTextureILazy(index: Int): ITexture2D {
-        return targetsI[index / div].getTextureILazy(index % div)
+        return if (index == numTextures) targetsI[0].getTextureILazy(div)
+        else targetsI[index / div].getTextureILazy(index % div)
     }
 
     override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
@@ -110,7 +113,8 @@ class MultiFramebuffer(
     val withMultisampling get() = samples > 1
 
     override fun getTextureIMS(index: Int): ITexture2D {
-        return targetsI[index / div].getTextureIMS(index % div)
+        return if (index == numTextures) targetsI[0].getTextureIMS(div)
+        else return targetsI[index / div].getTextureIMS(index % div)
     }
 
     override fun bindTrulyNearestMS(offset: Int) {

@@ -2043,13 +2043,11 @@ open class Matrix4f {
 
     private fun scaleGeneric(x: Float, y: Float, z: Float, dst: Matrix4f): Matrix4f {
         val one = JomlMath.absEqualsOne(x) && JomlMath.absEqualsOne(y) && JomlMath.absEqualsOne(z)
-        return dst._m00(m00 * x)._m01(m01 * x)._m02(m02 * x)._m03(m03 * x)._m10(m10 * y)._m11(m11 * y)._m12(m12 * y)
-            ._m13(
-                m13 * y
-            )._m20(m20 * z)._m21(m21 * z)._m22(m22 * z)._m23(m23 * z)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
-            ._properties(
-                flags and (13 or if (one) 0 else 16).inv()
-            )
+        return dst._m00(m00 * x)._m01(m01 * x)._m02(m02 * x)._m03(m03 * x)
+            ._m10(m10 * y)._m11(m11 * y)._m12(m12 * y)._m13(m13 * y)
+            ._m20(m20 * z)._m21(m21 * z)._m22(m22 * z)._m23(m23 * z)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and (13 or if (one) 0 else 16).inv())
     }
 
     @JvmOverloads
@@ -2059,16 +2057,14 @@ open class Matrix4f {
         val nm32 = m02 * ox + m12 * oy + m22 * oz + m32
         val nm33 = m03 * ox + m13 * oy + m23 * oz + m33
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
-        return dst._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)
-            ._m12(m12 * sy)._m13(
-                m13 * sy
-            )._m20(m20 * sz)._m21(m21 * sz)._m22(m22 * sz)._m23(m23 * sz)._m30(
-                -dst.m00 * ox - dst.m10 * oy - dst.m20 * oz + nm30
-            )._m31(-dst.m01 * ox - dst.m11 * oy - dst.m21 * oz + nm31)._m32(
-                -dst.m02 * ox - dst.m12 * oy - dst.m22 * oz + nm32
-            )._m33(-dst.m03 * ox - dst.m13 * oy - dst.m23 * oz + nm33)._properties(
-                flags and (13 or if (one) 0 else 16).inv()
-            )
+        return dst._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)
+            ._m10(m10 * sy)._m11(m11 * sy)._m12(m12 * sy)._m13(m13 * sy)
+            ._m20(m20 * sz)._m21(m21 * sz)._m22(m22 * sz)._m23(m23 * sz)
+            ._m30(-dst.m00 * ox - dst.m10 * oy - dst.m20 * oz + nm30)
+            ._m31(-dst.m01 * ox - dst.m11 * oy - dst.m21 * oz + nm31)
+            ._m32(-dst.m02 * ox - dst.m12 * oy - dst.m22 * oz + nm32)
+            ._m33(-dst.m03 * ox - dst.m13 * oy - dst.m23 * oz + nm33)
+            ._properties(flags and (13 or if (one) 0 else 16).inv())
     }
 
     fun scaleAround(factor: Float, ox: Float, oy: Float, oz: Float): Matrix4f {

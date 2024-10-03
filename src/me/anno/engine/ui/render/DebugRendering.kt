@@ -68,7 +68,6 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.NumberFormatter.formatFloat
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import org.joml.Matrix4f
@@ -645,9 +644,9 @@ object DebugRendering {
         }
     }
 
-    private fun <V> List<V>.removeDuplicates(): List<V> {
+    private fun <V> List<Pair<String, V>>.removeDuplicates(): List<Pair<String, V>> {
         val set = HashSet<V>()
-        return filter { set.add(it) }
+        return filter { set.add(it.second) }
     }
 
     fun drawDebugSteps1(view: RenderView) {
@@ -655,12 +654,13 @@ object DebugRendering {
         // go over graph, and show all rendering steps
         val relevantNodes = graph.nodes
             .map {
-                it.name to
-                        it.outputs
-                            .filter { o -> o.type == "Texture" }
-                            .mapNotNull { o -> o.currValue as? Texture }
-                            .mapNotNull { o -> o.texOrNull }
-                            .removeDuplicates()
+                it.name to it.outputs
+                    .filter { o -> o.type == "Texture" }
+                    .mapNotNull { o ->
+                        val value = (o.currValue as? Texture)?.texOrNull
+                        if (value != null) o.name to value else null
+                    }
+                    .removeDuplicates()
             }
             .filter { it.second.isNotEmpty() }
         if (relevantNodes.isEmpty()) return
@@ -676,11 +676,11 @@ object DebugRendering {
         for (i in relevantNodes.indices) {
             val (name, outputs) = relevantNodes[i]
             for (j in outputs.indices) {
-                val texture = outputs[j]
+                val (slotName, texture) = outputs[j]
                 val x2 = x0 + WorkSplitter.partition(i + 0, view.width, nx)
                 val x3 = x0 + WorkSplitter.partition(i + 1, view.width, nx)
                 val y = y0 - sz * (outputs.size - j)
-                if (isDepthFormat(texture.internalFormat)) {
+                if (isDepthFormat(texture.internalFormat) || slotName == "Depth") {
                     // if is depth, draw display depth
                     DrawTextures.drawDepthTexture(x2, y, x3 - x2, sz, texture)
                 } else {

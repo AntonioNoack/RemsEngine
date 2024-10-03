@@ -157,7 +157,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             // "           float coc = 1.0 / texture_array_size_2d_shadowMapPlanar(shadowMapIdx0, 0).x;\n" +
                             // "           float val = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy).r;\n" +
                             // "           lightColor = vec3(val,val,dir.z);\n" + // nice for debugging
-                            "       lightColor *= 1.0 - edgeFactor * (1.0 - depthFromTex * depthFromTex);\n" +
+                            "       lightColor *= edgeFactor * (depthFromTex * depthFromTex);\n" +
                             "   }\n" +
                             "}\n"
                     else "") +

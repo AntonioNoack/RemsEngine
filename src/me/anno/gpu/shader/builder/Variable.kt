@@ -6,6 +6,11 @@ import kotlin.math.max
 
 open class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inOutMode: VariableMode) {
 
+    open fun withType(inOutMode: VariableMode): Variable {
+        if (inOutMode == this.inOutMode) return this
+        return Variable(type, name, arraySize, inOutMode)
+    }
+
     constructor(type: GLSLType, name: String, inOutMode: VariableMode) :
             this(type, name, -1, inOutMode)
 

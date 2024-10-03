@@ -4,8 +4,9 @@ import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.components.mesh.material.shaders.DecalShader
 import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_COLOR
 import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_EMISSIVE
-import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_REFLECTIVITY
 import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_NORMAL
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_REFLECTIVITY
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.srcBuffer
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.ECSMeshShader
@@ -20,7 +21,6 @@ import me.anno.utils.types.Booleans.withFlag
 import org.joml.Vector3f
 
 // todo different blend modes: additive, subtractive, default, ...
-// todo bug: this is broken for MSAA forward rendering
 class DecalMaterial : Material() {
 
     @SerializedProperty
@@ -80,7 +80,7 @@ class DecalMaterial : Material() {
         bindDepthUniforms(shader)
         shader.v3f("decalSharpness", decalSharpness)
         // bind textures from the layer below us
-        var buffer = DecalShader.srcBuffer
+        var buffer = srcBuffer
         val layers = GFXState.currentRenderer.deferredSettings?.storageLayers
         if (buffer != null && layers != null) {
             for (index in 0 until min(layers.size, buffer.numTextures)) {
@@ -89,8 +89,8 @@ class DecalMaterial : Material() {
         }
         buffer = buffer ?: GFXState.currentBuffer
         shader.v2f("windowSize", buffer.width.toFloat(), buffer.height.toFloat())
-        (buffer.depthTexture ?: buffer.getTextureIMS(buffer.numTextures - 1)) // ok so?
-            .bindTrulyNearest(shader, "depth_in0")
+        // first out-of-bounds texture is the depth texture
+        buffer.getTextureI(buffer.numTextures).bindTrulyNearest(shader, "depth_in0")
     }
 
     private fun getShader(): ECSMeshShader {

@@ -276,9 +276,9 @@ object ScreenSpaceAmbientOcclusion {
 
     private fun calculate(
         ssgi: SSGIData?,
-        depth: ITexture2D,
+        depthSS: ITexture2D,
         depthMask: Int,
-        normal: ITexture2D,
+        normalSS: ITexture2D,
         normalZW: Boolean,
         cameraMatrix: Matrix4f,
         strength: Float,
@@ -289,15 +289,15 @@ object ScreenSpaceAmbientOcclusion {
 
         // resolution can be halved to improve performance
         val scale = DefaultConfig["gpu.ssao.scale", 1f]
-        val fw = (depth.width * scale).roundToIntOr()
-        val fh = (depth.height * scale).roundToIntOr()
+        val fw = (depthSS.width * scale).roundToIntOr()
+        val fh = (depthSS.height * scale).roundToIntOr()
 
         val isSSGI = ssgi != null
         val channels = if (isSSGI) 3 else 1
         val dst = FBStack["ssao-1st", fw, fh, channels, isSSGI, 1, DepthBufferType.NONE]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
-            val msaa = depth.samples > 1
+            val msaa = depthSS.samples > 1
             val roughnessMask = ssgi?.roughnessMask ?: 0
             val base = ((msaa.toInt() + isSSGI.toInt(2)).shl(2) + roughnessMask).shl(3)
             val shader = occlusionShaders[base + normalZW.toInt() + depthMask.shl(1)]
@@ -310,8 +310,8 @@ object ScreenSpaceAmbientOcclusion {
                 ssgi.illuminated.bindTrulyNearest(shader, "illuminatedTex")
                 ssgi.roughness.bindTrulyNearest(shader, "roughnessTex")
             }
-            normal.bindTrulyNearest(shader, "finalNormal")
-            depth.bindTrulyNearest(shader, "finalDepth")
+            normalSS.bindTrulyNearest(shader, "finalNormal")
+            depthSS.bindTrulyNearest(shader, "finalDepth")
             // define all uniforms
             shader.m4x4("cameraMatrix", cameraMatrix)
             shader.v1i("numSamples", samples)

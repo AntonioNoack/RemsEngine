@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render.scene
 
 import me.anno.engine.ui.render.Renderers.pbrRenderer
-import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
@@ -16,6 +15,7 @@ import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.maths.Maths.clamp
 
 class RenderForwardNode : RenderViewNode(
@@ -72,7 +72,7 @@ class RenderForwardNode : RenderViewNode(
             setOutput(2, getInput(9) ?: Texture(depthTexture))
             return
         }
-        timeRendering("$name-$stage", timer) {
+        timeRendering(name, timer) {
 
             val framebuffer = FBStack["scene-forward",
                 width, height, TargetType.Float16x4,
@@ -87,8 +87,10 @@ class RenderForwardNode : RenderViewNode(
 
             pipeline.applyToneMapping = applyToneMapping
             val depthMode = pipeline.defaultStage.depthMode
-            GFXState.useFrame(width, height, true, framebuffer, renderer) {
+            GFXState.useFrame(width, height, true, framebuffer, GizmoNode.renderer) {
                 defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
+            }
+            GFXState.useFrame(width, height, true, framebuffer, renderer) {
                 if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
                     pipeline.drawSky()
                 }
@@ -113,13 +115,10 @@ class RenderForwardNode : RenderViewNode(
         prepassDepth: ITexture2D?, prepassDepthM: Int
     ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            Blitting.copyColorAndDepth(
-                prepassColor ?: blackTexture, prepassDepth, prepassDepthM,
-                prepassColor != null
-            )
+            GizmoNode.copyColorAndDepth(prepassColor, prepassDepth, prepassDepthM)
         } else if (prepassColor != null && prepassColor != blackTexture) {
+            GizmoNode.copyColorAndDepth(prepassColor, depthTexture, 0)
             framebuffer.clearDepth()
-            Blitting.copy(prepassColor, true)
         } else {
             framebuffer.clearColor(0, depth = true)
         }

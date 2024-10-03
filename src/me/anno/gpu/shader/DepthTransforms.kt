@@ -40,7 +40,7 @@ object DepthTransforms {
             //   d_fovFactor: 2 * tan(fovX/YRadians * 0.5)
             // "   return quatRot(vec3((uv-d_uvCenter)*d_fovFactor, -1.0), d_camRot);\n" +
             //   the easy way, which works for VR, too:
-            "   vec4 pos = matMul(cameraMatrixInv, vec4(uv*2.0-1.0, d_near, 1.0));\n" +
+            "   vec4 pos = matMul(d_cameraMatrixInv, vec4(uv*2.0-1.0, d_near, 1.0));\n" +
             "   return pos.xyz/pos.w;\n" +
             "}\n" +
             "vec3 depthToPosition(vec2 uv, float depth){\n" + // position is in camera space, so camera is at zero
@@ -60,13 +60,14 @@ object DepthTransforms {
         Variable(GLSLType.V2F, "d_uvCenter"),
         Variable(GLSLType.M4x3, "d_orthoMat"),
         Variable(GLSLType.V1B, "reverseDepth"),
-        Variable(GLSLType.M4x4, "cameraMatrixInv")
+        Variable(GLSLType.M4x4, "d_cameraMatrixInv")
     )
 
     fun bindDepthUniforms(shader: GPUShader) {
         bindDepthUniforms(shader, RenderState.cameraDirection, RenderState.cameraRotation, RenderState.cameraMatrixInv)
     }
 
+    private val tmpMatrix = Matrix4f()
     fun bindDepthUniforms(
         shader: GPUShader,
         cameraDirection: Vector3d,
@@ -88,7 +89,18 @@ object DepthTransforms {
             shader.v4f("d_camRot", cameraRotation)
             shader.v2f("d_uvCenter", RenderState.fovXCenter, RenderState.fovYCenter)
             shader.v1f("d_near", RenderState.near)
-            shader.m4x4("cameraMatrixInv", cameraMatrixInv)
+            if (GFX.supportsClipControl) {
+                shader.m4x4("d_cameraMatrixInv", cameraMatrixInv)
+            } else {
+                // why is that required in the first place?
+                val scale = 2f * RenderState.near
+                tmpMatrix.set(cameraMatrixInv)
+                tmpMatrix.m03 *= scale
+                tmpMatrix.m13 *= scale
+                tmpMatrix.m23 *= scale
+                tmpMatrix.m33 *= scale
+                shader.m4x4("d_cameraMatrixInv", tmpMatrix)
+            }
         }
     }
 }

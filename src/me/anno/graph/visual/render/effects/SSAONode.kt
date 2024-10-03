@@ -10,6 +10,7 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
@@ -45,9 +46,9 @@ class SSAONode : TimedRenderingNode(
 
         val normal = getInput(6) as? Texture ?: return fail()
         val normalZW = normal.isZWMapping
-        val normalT = normal.texMSOrNull ?: normalTexture
+        val normalT = normal.texOrNull ?: normalTexture
         val depthT = (getInput(7) as? Texture) ?: return fail()
-        val depthTT = depthT.texMSOrNull ?: return fail()
+        val depthTT = depthT.texOrNull ?: return fail()
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
@@ -60,9 +61,7 @@ class SSAONode : TimedRenderingNode(
     }
 
     companion object {
-        private val LOGGER = LogManager.getLogger(SSAONode::class)
         fun Node.fail() {
-            LOGGER.warn("Failed $className, '$name'!")
             setOutput(1, Texture(blackTexture))
         }
     }

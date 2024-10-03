@@ -511,9 +511,12 @@ class Framebuffer(
         return if (withMultisampling) {
             val ssBuffer = ssBuffer!!
             ssBuffer.ensureSize(width, height, 0)
+            val isDepthTexture = index == numTextures
             return LazyTexture(
-                ssBuffer.textures!![index],
-                textures!![index], lazy {
+                if (isDepthTexture) ssBuffer.depthTexture!!
+                else ssBuffer.textures!![index],
+                if (isDepthTexture) depthTexture!!
+                else textures!![index], lazy {
                     copyIfNeeded(ssBuffer, 1 shl index)
                 })
         } else getTextureI(index)
@@ -526,9 +529,9 @@ class Framebuffer(
             copyIfNeeded(ssBuffer, 1 shl index)
             ssBuffer.getTextureI(index)
         } else {
-            val textures = textures
-                ?: return TextureLib.missingTexture
-            textures[index]
+            val textures = textures ?: return TextureLib.missingTexture
+            if (index == numTextures) depthTexture ?: TextureLib.depthTexture
+            else textures[index]
         }
     }
 
