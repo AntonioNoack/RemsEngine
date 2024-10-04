@@ -19,22 +19,27 @@ class ChangeHistory : StringHistory() {
     var prefab: Prefab? = null
 
     override fun apply(prev: String, curr: String) {
-        if (prev == curr) return
+        if (prev == curr || prev.isEmpty()) return
+        val prefab = prefab ?: return
         if ("CAdd" !in objectTypeRegistry) {
             ECSRegistry.init()
         }
 
         val workspace = EngineBase.workspace
         val changes = JsonStringReader.readFirstOrNull(curr, workspace, PrefabChanges::class) ?: PrefabChanges()
-        val prefab = prefab ?: return
         val prevAdds = prefab.adds
         val currAdds = changes.adds
 
         val prevSets = prefab.sets
         val currSets = changes.sets
+
         val major = prevAdds != currAdds || // warning: we should sort them
                 prevSets.size != currSets.size // warning: one could have been added and one removed
+
         if (major) prefab.invalidateInstance()
+
+        RuntimeException("Change: ${prev.length} -> ${curr.length}, major? $major")
+            .printStackTrace()
 
         if (!major && prefab._sampleInstance != null) {
             // if instance exists, and no major changes, we only need to apply what really has changed

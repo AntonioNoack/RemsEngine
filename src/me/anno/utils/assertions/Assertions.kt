@@ -42,6 +42,10 @@ fun assertFalse(condition: Boolean, message: String = "condition failed") {
     assertTrue(!condition, message)
 }
 
+fun assertFalse(condition: Boolean, message: () -> String) {
+    assertTrue(!condition, message)
+}
+
 fun assertFail(message: String = "condition failed"): Nothing {
     throw IllegalStateException(message)
 }
@@ -83,6 +87,10 @@ fun assertEquals(
 }
 
 fun assertNotEquals(forbidden: Any?, actual: Any?, message: String = "expected different values") {
+    assertTrue(forbidden != actual) { "$message, $forbidden == $actual" }
+}
+
+fun assertNotEquals(forbidden: Int, actual: Int, message: String = "expected different values") {
     assertTrue(forbidden != actual) { "$message, $forbidden == $actual" }
 }
 

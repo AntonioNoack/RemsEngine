@@ -63,8 +63,9 @@ class PrefabInspector(var reference: FileReference) {
         get() {
             val prefab = PrefabCache[reference]
                 ?: throw NullPointerException("Missing prefab of $reference, ${reference::class.simpleName}")
-            val history = prefab.history ?: ChangeHistory().apply {
-                put(serialize(prefab))
+            val history = prefab.history ?: ChangeHistory()
+            if (history.currentState.isEmpty()) {
+                history.put(serialize(prefab))
             }
             history.prefab = prefab
             prefab.history = history
@@ -88,7 +89,11 @@ class PrefabInspector(var reference: FileReference) {
 
     private val savingTask = DelayedTask {
         addEvent {
+            val prefab = prefab
+            val history = prefab.history!!
+            history.prefab = null // disable changes invalidating instance
             history.put(serialize(prefab))
+            history.prefab = prefab
             LOGGER.debug("Pushed new version to history")
         }
     }

@@ -15,6 +15,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
@@ -58,7 +59,7 @@ object TextureMapper {
         callback: Callback<ITexture2D>
     ) {
         LOGGER.debug("Mapping {} to {}/{} via {}", src, dst, type, mapping)
-        if (mapping.length != 4) throw IllegalArgumentException()
+        assertEquals(4, mapping.length)
         if (GFX.isGFXThread()) {
             if (src.isCreated()) {
                 dst.create(type)

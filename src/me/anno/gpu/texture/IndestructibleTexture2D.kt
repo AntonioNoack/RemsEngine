@@ -85,7 +85,7 @@ class IndestructibleTexture2D(
     companion object {
         private val cachedTextures = CacheSection("TexCache")
         fun getColorTexture(color: Vector4f): ITexture2D {
-            return cachedTextures.getEntry(color, 1000L, false) { key ->
+            return cachedTextures.getEntry(color, 5000L, false) { key ->
                 IndestructibleTexture2D(
                     "texCacheColor", 1, 1,
                     floatArrayOf(key.x, key.y, key.z, key.w), true

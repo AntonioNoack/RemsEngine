@@ -22,6 +22,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
 
+// todo the shader is incorrectly writing color to normal... why???
 class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECSMeshShader("decal-$flags") {
     companion object {
 

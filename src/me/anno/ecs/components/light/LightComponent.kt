@@ -27,6 +27,7 @@ import me.anno.gpu.framebuffer.FramebufferArray
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
@@ -51,6 +52,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
 
     // todo AES lights, and their textures?
     // todo light beams: when inside the cone, from that view, then add a little brightness
+    // todo concept of static meshes, and optionally only redraw dynamic meshes onto shadow maps
 
     // black lamp light?
     @Docs("sRGB Color")
@@ -235,6 +237,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                         RenderState.calculateDirections(isPerspective)
                         val root = rootOverride ?: entity.getRoot(Entity::class)
                         pipeline.fill(root)
+                        // decals and transparent objects are irrelevant for shadows
+                        pipeline.stages.getOrNull(PipelineStage.DECAL.id)?.clear()
+                        pipeline.stages.getOrNull(PipelineStage.TRANSPARENT.id)?.clear()
                         result.clearColor(0, depth = true)
                         pipeline.singlePassWithoutSky()
                     }

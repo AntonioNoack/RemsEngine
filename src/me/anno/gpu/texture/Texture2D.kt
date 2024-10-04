@@ -34,7 +34,9 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.convertARGB2ABGR
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
@@ -42,7 +44,6 @@ import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL46C.GL_BGR
 import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_BYTE
@@ -372,7 +373,7 @@ open class Texture2D(
     fun create(image: Image, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         width = image.width
         height = image.height
-        if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
+        assertFalse(isDestroyed) { "Texture $name must be reset first" }
         if (!isGFXThread() || (!requestBudget(width * height) && !loadTexturesSync.peek())) {
             create(image, false, checkRedundancy, callback)
         } else {
@@ -397,7 +398,7 @@ open class Texture2D(
     }
 
     fun beforeUpload(channels: Int, size: Int) {
-        if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
+        assertFalse(isDestroyed, "Texture is already destroyed, call reset() if you want to stream it")
         checkSize(channels, size)
         check()
         ensurePointer()
@@ -450,7 +451,7 @@ open class Texture2D(
     fun createRGBA(data: IntBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX4(data)
-        if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
+        assertEquals(ByteOrder.nativeOrder(), data.order(), "Byte order must be native!")
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4, 4)
@@ -739,29 +740,26 @@ open class Texture2D(
     var hasMipmap = false
 
     fun bindBeforeUpload() {
-        if (pointer == 0) throw RuntimeException("Pointer must be defined")
+        assertNotEquals(0, pointer, "Pointer must be defined")
         boundTextures[boundTextureSlot] = 0
         bindTexture(target, pointer)
     }
 
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         checkSession()
-        if (pointer != 0 && wasCreated) {
-            if (isBoundToSlot(index)) {
-                if (filtering != this.filtering || clamping != this.clamping) {
-                    activeSlot(index) // force this to be bound
-                    ensureFilterAndClamping(filtering, clamping)
-                }
-                return false
+        assertFalse(isDestroyed, "Cannot bind destroyed texture!")
+        assertNotEquals(0, pointer, "Cannot bind non-created texture!")
+        if (isBoundToSlot(index)) {
+            if (filtering != this.filtering || clamping != this.clamping) {
+                activeSlot(index) // force this to be bound
+                ensureFilterAndClamping(filtering, clamping)
             }
-            activeSlot(index)
-            val result = bindTexture(target, pointer)
-            ensureFilterAndClamping(filtering, clamping)
-            return result
-        } else throw IllegalStateException(
-            if (isDestroyed) "Cannot bind destroyed texture!, $name"
-            else "Cannot bind non-created texture!, $name"
-        )
+            return false
+        }
+        activeSlot(index)
+        val result = bindTexture(target, pointer)
+        ensureFilterAndClamping(filtering, clamping)
+        return result
     }
 
     override fun destroy() {
