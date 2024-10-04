@@ -212,7 +212,7 @@ class PipelineStageImpl(
             val renderer = GFXState.currentRenderer
             val deferred = renderer.deferredSettings
             val target = GFXState.currentBuffer
-            if (deferred != null && target is Framebuffer) {
+            if (deferred != null) {
                 shader.v1f("defRRT", fract(Time.gameTime))
                 // define all randomnesses: depends on framebuffer
                 // and needs to be set for all shaders
@@ -221,7 +221,9 @@ class PipelineStageImpl(
                     val layer = layers[index]
                     val m: Float // (1+m)*x+n
                     val n: Float
-                    when (TextureHelper.getNumberType(layer.type.internalFormat)) {
+                    val format = target.getTextureIMS(index).internalFormat
+                    val numberType = TextureHelper.getNumberType(format)
+                    when (numberType) {
                         GL_UNSIGNED_BYTE.inv() -> {
                             m = 0f
                             n = 1f / ((1L shl 8) - 1f)

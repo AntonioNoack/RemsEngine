@@ -9,7 +9,9 @@ import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -98,8 +100,7 @@ class FramebufferArray(
         }
     }
 
-    override fun getTextureI(index: Int) = textures[index]
-    override fun getTexture0() = textures[0] // overridden for the result type
+    override fun getTextureI(index: Int): ITexture2D = textures.getOrNull(index) ?: missingTexture
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {

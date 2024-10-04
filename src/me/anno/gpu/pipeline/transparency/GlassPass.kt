@@ -48,15 +48,20 @@ class GlassPass : TransparentPass() {
         var glassPassDepth: ITexture2D? = null
         // todo value for single-sampled glass depth? lazy maybe?
 
+        val diffuseTinting = DeferredLayerType("diffTint", "finalTinting", 3, 0)
+        val opacity = DeferredLayerType("opacity", "finalAlpha", 1, 0)
+        val reflections = DeferredLayerType("reflect", "finalReflections", 3, 0)
+        val refraction = DeferredLayerType("refract", "finalRefraction", 1, 0)
+        val normal2d = DeferredLayerType("normal2d", "finalNormal2D", 2, 0)
+
         val GlassRenderer = object : Renderer(
             "glass", DeferredSettings(
                 listOf(
-                    // todo better semantic naming for these
-                    DeferredLayerType.COLOR,
+                    diffuseTinting,
                     DeferredLayerType.ALPHA,
-                    DeferredLayerType.EMISSIVE,
-                    DeferredLayerType.METALLIC,
-                    DeferredLayerType.CLEAT_COAT_ROUGH_METALLIC,
+                    reflections,
+                    refraction,
+                    normal2d,
                 )
             )
         ) {
@@ -76,6 +81,10 @@ class GlassPass : TransparentPass() {
                             Variable(GLSLType.V3F, "dirX"),
                             Variable(GLSLType.V3F, "dirY"),
                             Variable(GLSLType.V1F, "finalOcclusion"),
+                            Variable(GLSLType.V3F, "finalTinting", VariableMode.OUT),
+                            Variable(GLSLType.V3F, "finalReflections", VariableMode.OUT),
+                            Variable(GLSLType.V1F, "finalRefraction", VariableMode.OUT),
+                            Variable(GLSLType.V2F, "finalNormal2D", VariableMode.OUT)
                         ), "" +
                                 colorToLinear +
                                 RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
@@ -86,10 +95,10 @@ class GlassPass : TransparentPass() {
                                 "float iorValue = gl_FrontFacing ? 1.0 / IOR : IOR;\n" +
                                 "float fresnel = fresnelSchlick(abs(dot(finalNormal,normalize(finalPosition))), iorValue);\n" +
                                 "finalAlpha = mix(fresnel, 1.0, milkiness);\n" +
-                                "finalEmissive = finalColor * finalAlpha;\n" + // reflections
-                                "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting, product
-                                "finalMetallic = -log(IOR) * finalAlpha;\n" +
-                                "finalClearCoatRoughMetallic = vec2(dot(finalNormal,dirX), dot(finalNormal,dirY)) * finalAlpha;\n"
+                                "finalReflections = finalColor * finalAlpha;\n" +
+                                "finalTinting = -log(finalColor0) * finalAlpha;\n" +
+                                "finalRefraction = IOR == 1.0 ? 0.0 : -log(IOR) * finalAlpha;\n" +
+                                "finalNormal2D = IOR == 1.0 ? vec2(0.0) : vec2(dot(finalNormal,dirX), dot(finalNormal,dirY)) * finalAlpha;\n"
                     ).add(fresnelSchlick).add(getReflectivity).add(sampleSkyboxForAmbient).add(brightness)
                 )
             }

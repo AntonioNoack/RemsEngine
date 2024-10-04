@@ -16,12 +16,17 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import kotlin.math.max
 
 data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
+
+    companion object {
+        private val defLayerNames = LazyList(32) { "defLayer$it" }
+    }
 
     val semanticLayers: List<SemanticLayer>
     val storageLayers: List<DeferredLayer>
@@ -49,7 +54,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             val remaining = layerRemaining[layerIndex]
             val startIndex = 4 - remaining
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
-            val semanticLayer = SemanticLayer(layerType, "defLayer$layerIndex", layerIndex, mapping)
+            val semanticLayer = SemanticLayer(layerType, defLayerNames[layerIndex], layerIndex, mapping)
             when (layerType) { // mark this layer as sRGB
                 DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE, DeferredLayerType.COLOR_EMISSIVE -> {
                     isSRGBMask = isSRGBMask or (1 shl layerIndex)
@@ -82,7 +87,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         for (layerIndex in 0 until usedTextures0) {
             val empty = layerRemaining[layerIndex]
             val layer2 = DeferredLayer(
-                "defLayer$layerIndex", when (layerQualities[layerIndex]) {
+                defLayerNames[layerIndex], when (layerQualities[layerIndex]) {
                     BufferQuality.UINT_8 -> TargetType.UInt8xI
                     BufferQuality.UINT_16 -> TargetType.UInt16xI
                     BufferQuality.FP_16 -> TargetType.Float16xI
