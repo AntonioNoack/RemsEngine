@@ -106,23 +106,21 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class, "Mesh") {
         val (mesh, transform, materials) = meshes
         transform?.validate()
         val matrix = transform?.globalTransform
-        return if ((matrix == null || matrix.isIdentity())) {
-            if (materials == mesh.materials) mesh else {
-                val clone = mesh.clone() as Mesh
-                clone.materials = materials
-                clone.prefabPath = Path.ROOT_PATH
-                clone.prefab = null
-                clone
-            }
-        } else {
-            // transform required
-            // only needed for position, normal and tangents
-            val clone = mesh.clone() as Mesh
+        val identityTransform = matrix == null || matrix.isIdentity()
+        val identityMaterials = materials == mesh.materials
+        if (identityTransform && identityMaterials) return mesh
+        // transform required
+        // only needed for position, normal and tangents
+        val clone = mesh.clone() as Mesh
+        clone.materials = materials
+        clone.unlink()
+        if (!identityTransform && matrix != null) {
+            clone.positions = mesh.positions?.copyOf()
+            clone.normals = mesh.normals?.copyOf()
+            clone.tangents = mesh.tangents?.copyOf()
             transformMesh(clone, matrix)
-            clone.materials = materials
-            clone.unlink()
-            clone
         }
+        return clone
     }
 
     private fun joinNMeshes(meshes: List<Triple<Mesh, Transform?, List<FileReference>>>): Mesh {

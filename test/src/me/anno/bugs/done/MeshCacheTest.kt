@@ -3,35 +3,37 @@ package me.anno.bugs.done
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.EngineBase.Companion.workspace
-import me.anno.engine.OfficialExtensions
+import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.utils.OS.documents
+import me.anno.ui.UIColors
 
 /**
  * normals look broken, maybe scaled incorrectly???
  * transforms were broken -> is now fixed :)
  * */
 fun main() {
-    OfficialExtensions.initForTests()
-    workspace = documents.getChild("RemsEngine/YandereSim")
-    val meshFile = workspace.getChild("Walls/Office/meshes/SM_Bld_Floor_Grass_01.json")
+    val meshFile = DefaultAssets.flatCube.ref
+    val redMaterial = Material.diffuse(UIColors.axisXColor)
+    val blueMaterial = Material.diffuse(UIColors.axisZColor)
     val meshEntity = Entity()
-        .add(MeshComponent(meshFile))
-        .setScale(6.5)
-    val file = meshEntity.ref
-    val entityPrefab = PrefabCache[file]!!
-    println(entityPrefab.sets)
-    val entity = entityPrefab.createInstance() as Entity
-    println(entity.scale)
-    val mesh = MeshCache[file]!!
+        .add(MeshComponent(meshFile, redMaterial))
+        .setScale(2.0)
+    val scaledFile = meshEntity.ref
+    val scaledPrefab = PrefabCache[scaledFile]!!
+    val scaledEntity = scaledPrefab.createInstance() as Entity
+    scaledEntity.name = "Scaled"
+    val scaledMesh = MeshCache[scaledFile]!!
+    // fixed scene is incorrect: both shown meshes should be the same size
+    //  one is 2x bigger, the other is 2²x bigger
     val scene = Entity("Scene")
-    entity.name = "Original"
-    scene.add(entity)
-    scene.add(
-        Entity("MeshCache").setPosition(-12.0, 0.0, 0.0)
-            .add(MeshComponent(mesh))
-    )
+        .add(scaledEntity)
+        .add(
+            Entity("MeshCache-Scaled")
+                .setPosition(-12.0, 0.0, 0.0)
+                .add(MeshComponent(scaledMesh, blueMaterial))
+        )
+    // fixed AABB of scene is incorrect
     testSceneWithUI("MeshCache broken", scene)
 }
