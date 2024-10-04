@@ -35,6 +35,7 @@ class IdeaProject(val projectDir: FileReference) {
             return result
         }
 
+        private val mavenHome = OS.home.getChild(".m2/repository")
         fun parseFile(file: String, projectDir: FileReference): FileReference {
             return when {
                 file.startsWith("jar://") && file.endsWith("!/") -> {
@@ -45,7 +46,7 @@ class IdeaProject(val projectDir: FileReference) {
                         .replace("\$PROJECT_DIR\$", projectDir.absolutePath)
                         .replace("\$USER_HOME\$", OS.home.absolutePath)
                         // do we need to look up the environment variable for that?
-                        .replace("\$MAVEN_REPOSITORY\$", OS.home.getChild(".m2/repository").absolutePath)
+                        .replace("\$MAVEN_REPOSITORY\$", mavenHome.absolutePath)
                         .replace("\$KOTLIN_BUNDLED\$", kotlinc.absolutePath)
                 )
             }

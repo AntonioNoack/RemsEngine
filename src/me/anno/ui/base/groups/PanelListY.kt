@@ -25,10 +25,10 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         return clone
     }
 
-    private val calculator = ListSizeCalculator()
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
+        val calculator = ListSizeCalculator.push()
         calculator.init(this, w, h)
 
         val children = children
@@ -55,6 +55,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
         minW = (calculator.maxX - x) + padding.width
         minH = calculator.constantSumWW + padding.height
+        ListSizeCalculator.pop()
     }
 
     override val visibleIndex0

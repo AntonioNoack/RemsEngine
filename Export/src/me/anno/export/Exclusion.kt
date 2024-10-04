@@ -72,7 +72,7 @@ object Exclusion {
         excludeFiles(sources, "me/anno/ui/base/buttons/")
         excludeFiles(
             sources, "me/anno/ui/base/groups/",
-            listOf("PanelGroup", "PanelContainer", "PanelList", "PanelStack", "NineTilePanel")
+            listOf("PanelGroup", "PanelContainer", "PanelList", "PanelStack", "NineTilePanel", "ListSizeCalculator")
         )
         excludeFiles(sources, "me/anno/image/thumbs/") // mostly just used in UI
         excludeFiles(sources, "me/anno/engine/ui/ECSTreeView")
@@ -80,7 +80,7 @@ object Exclusion {
         excludeFiles(sources, "me/anno/engine/ui/scenetabs")
         excludeFiles(sources, "me/anno/engine/ui/control/Blender")
         excludeFiles(sources, "me/anno/engine/ui/control/Dragging")
-        excludeFiles(sources, "me/anno/maths/", listOf("Maths", "bvh"))
+        excludeFiles(sources, "me/anno/maths/", listOf("Maths", "bvh", "Packing"))
         excludeFiles(sources, "me/anno/network/")
         // other engine things
         excludeFiles(sources, "textures") // I'm not too sure about this...
@@ -97,7 +97,12 @@ object Exclusion {
         excludeFiles(sources, "kotlin/coroutines/")
         excludeFiles(sources, "kotlin/time/")
         excludeFiles(sources, "kotlin/streams/")
-        excludeFiles(sources, "kotlin/text/", listOf("Regex", "StringsKt", "CharsKt", "Charsets"))
+        excludeFiles(
+            sources, "kotlin/text/", listOf(
+                "Regex", "StringsKt", "CharsKt", "Charsets", "DelimitedRangesSequence",
+                "ScreenFloatValueRegEx"
+            )
+        )
         excludeFiles(sources, "kotlin/io/", listOf("CloseableKt", "ByteStreamsKt", "FilesKt"))
         excludeFiles(sources, "kotlin/collections/unsigned/")
         excludeFiles(sources, "kotlin/test/")
@@ -108,9 +113,10 @@ object Exclusion {
         excludeFiles(sources, "org/lwjgl/opengl/GLX")
         // more of kotlin standard library
         if (customReflections) {
-            excludeFiles(sources, "kotlin/sequences/")
+            excludeFiles(sources, "kotlin/sequences/", listOf("Sequence"))
             excludeFiles(sources, "kotlin/collections/builders/")
-            excludeFiles(sources, "kotlin/text/Regex")
+            // used by toFloatOrNull()
+            // excludeFiles(sources, "kotlin/text/Regex")
         }
     }
 

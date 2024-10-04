@@ -12,7 +12,7 @@ object Reflections {
 
     private fun eq(byte: Byte, v: Int): Boolean = byte.toInt().and(255) == v
     private fun isClassFile(name: String, bytes: ByteArray): Boolean {
-        return name.endsWith(".class") &&
+        return name.endsWith(".class") && bytes.size >= 24 && // 24 bytes is the minimum size according to ChatGPT
                 eq(bytes[0], 0xca) && eq(bytes[1], 0xfe) && eq(bytes[2], 0xba) && eq(bytes[3], 0xbe)
     }
 

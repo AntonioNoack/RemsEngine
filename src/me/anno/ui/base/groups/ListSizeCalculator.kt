@@ -1,9 +1,15 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
+import me.anno.utils.pooling.Stack
 import kotlin.math.max
 
 class ListSizeCalculator {
+    companion object {
+        private val stack = Stack(ListSizeCalculator::class)
+        fun push() = stack.create()
+        fun pop() = stack.sub(1)
+    }
 
     var maxX = 0
     var maxY = 0
@@ -40,7 +46,7 @@ class ListSizeCalculator {
         addWeight(child.weight, childCount, dy)
     }
 
-    fun copySizeOntoChildren(child: Panel, children: List<Panel>){
+    fun copySizeOntoChildren(child: Panel, children: List<Panel>) {
         for (i in 1 until children.size) {
             val childI = children[i]
             childI.width = child.width
@@ -59,10 +65,10 @@ class ListSizeCalculator {
         }
     }
 
-    fun addSpacing(spacing: Int, count: Int){
+    fun addSpacing(spacing: Int, count: Int) {
         val spaceCount = max(0, count - 1)
         val totalSpace = spacing * spaceCount
-      constantSum += totalSpace
-       constantSumWW += totalSpace
+        constantSum += totalSpace
+        constantSumWW += totalSpace
     }
 }
