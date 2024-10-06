@@ -13,6 +13,7 @@ import me.anno.io.utils.LinkCreator
 import me.anno.io.utils.TrashManager
 import me.anno.jvm.fonts.ContourImpl
 import me.anno.jvm.fonts.FontManagerImpl
+import me.anno.jvm.images.ImageIOImpl
 import me.anno.jvm.images.ImageWriterImpl
 import me.anno.jvm.images.MetadataImpl
 import me.anno.jvm.images.ThumbsImpl
@@ -56,17 +57,18 @@ class JVMExtension : Plugin() {
             2 -> OpenFileExternallyImpl.register()
             3 -> MediaMetadata.registerSignatureHandler(100, "ImageIO", MetadataImpl::readImageIOMetadata)
             4 -> ImageWriterImpl.register()
-            5 -> AWTRobot.register()
-            6 -> FontManagerImpl.register()
-            7 -> Contour.calculateContoursImpl = ContourImpl::calculateContours
-            8 -> FileWatchImpl.register()
-            9 -> Spellchecking.checkImpl = SpellcheckingImpl::check
-            10 -> AudioManager.audioDeviceHash = { AudioSystem.getMixerInfo()?.size ?: -1 }
-            11 -> TrashManager.moveToTrashImpl = TrashManagerImpl::moveToTrash
-            12 -> LinkCreator.createLink = FileExplorerImpl::createLink
-            13 -> DefaultStyle.initDefaults() // reload default font size
-            14 -> Thumbs.registerSignatures("exe", ThumbsImpl::generateSystemIcon)
-            15 -> LoggerOverride.setup()
+            5 -> ImageIOImpl.register() // if Image-plugin isn't available, we should still support the default formats
+            6 -> AWTRobot.register()
+            7 -> FontManagerImpl.register()
+            8 -> Contour.calculateContoursImpl = ContourImpl::calculateContours
+            9 -> FileWatchImpl.register()
+            10 -> Spellchecking.checkImpl = SpellcheckingImpl::check
+            11 -> AudioManager.audioDeviceHash = { AudioSystem.getMixerInfo()?.size ?: -1 }
+            12 -> TrashManager.moveToTrashImpl = TrashManagerImpl::moveToTrash
+            13 -> LinkCreator.createLink = FileExplorerImpl::createLink
+            14 -> DefaultStyle.initDefaults() // reload default font size
+            15 -> Thumbs.registerSignatures("exe", ThumbsImpl::generateSystemIcon)
+            16 -> LoggerOverride.setup()
             else -> return true
         }
         return false

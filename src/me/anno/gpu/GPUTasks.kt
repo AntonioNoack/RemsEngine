@@ -20,12 +20,14 @@ object GPUTasks {
     @JvmField
     val lowPriorityGPUTasks: Queue<Task> = ConcurrentLinkedQueue()
 
+    fun combineCost(w: Int, h: Int): Int = max(1, ((w * h.toLong()) ushr 13).toInt())
+
     @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, false, task)
 
     @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
-        addGPUTask(name, max(1, ((w * h.toLong()) / 10_000).toInt()), lowPriority, task)
+        addGPUTask(name, combineCost(w, h), lowPriority, task)
     }
 
     @JvmStatic
@@ -66,5 +68,4 @@ object GPUTasks {
             workGPUTasks(true)
         }
     }
-
 }

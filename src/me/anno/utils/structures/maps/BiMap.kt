@@ -28,7 +28,8 @@ class BiMap<K, V>(capacity: Int = 16) : MutableMap<K, V> {
 
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>> get() = forward.entries
     override val keys: MutableSet<K> get() = forward.keys
-    override val size: Int = max(forward.size, reverse.size)
+    // most functions are a forward-view, so use forward size
+    override val size: Int = forward.size
     override val values: MutableCollection<V> = reverse.keys
 
     override fun clear() {

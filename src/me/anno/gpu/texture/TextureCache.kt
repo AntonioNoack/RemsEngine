@@ -23,7 +23,7 @@ object TextureCache : CacheSection("Texture") {
 
     private val LOGGER = LogManager.getLogger(TextureCache::class)
 
-    var timeout = 10_000L
+    var timeoutMillis = 10_000L
 
     fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
         if (file is ImageReadable && file.hasInstantGPUImage()) return true
@@ -46,7 +46,7 @@ object TextureCache : CacheSection("Texture") {
     }
 
     operator fun get(file: FileReference, asyncGenerator: Boolean): ITexture2D? {
-        return get(file, timeout, asyncGenerator)
+        return get(file, timeoutMillis, asyncGenerator)
     }
 
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): ITexture2D? {

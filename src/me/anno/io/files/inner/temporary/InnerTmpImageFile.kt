@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream
 class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ext), ImageReadable {
 
     init {
-        val size = Int.MAX_VALUE.toLong()
+        val size = image.sizeGuess()
         this.size = size
         this.compressedSize = size
     }

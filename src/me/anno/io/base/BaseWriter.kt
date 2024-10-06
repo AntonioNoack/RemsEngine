@@ -9,7 +9,6 @@ import me.anno.graph.visual.render.Texture
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
-import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -43,7 +42,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     val todoPointers = ArrayList<Saveable>(256)
     val todoPointersSet = HashSet<Saveable>(256)
-    val pointers = BiMap<Saveable, Int>(256)
+    val pointers = HashMap<Saveable, Int>(256)
 
     /**
      * gets the pointer of a know value

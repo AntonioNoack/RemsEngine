@@ -13,11 +13,14 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.progress.ProgressBar
+import me.anno.utils.OS.res
 import org.apache.logging.log4j.LogManager
 import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+// todo bug: when exporting DamagedHelmet as scene,
+//  1.jpg is missing somehow...
 object ExportProcess {
 
     private val LOGGER = LogManager.getLogger(ExportProcess::class)
@@ -31,6 +34,8 @@ object ExportProcess {
             indexProject(projectI, sources, settings, progress)
         }
 
+        // todo option to add orbit-camera to export?
+
         excludeLWJGLFiles(sources, settings)
         excludeJNAFiles(sources, settings)
         excludeWebpFiles(sources, settings)
@@ -42,17 +47,34 @@ object ExportProcess {
         }
 
         // build .jar file from export settings and current project
-        //  todo - collect all required files
-        //  - exclude those that were explicitly excluded
+        // - collect all required files
+        //  - todo exclude those that were explicitly excluded
         //  - respect platform (Linux/Windows/MacOS) settings in config file
-        //  todo - option for Android build
+        // todo - option for Android build
+
+        val assetMap = Packer.pack(
+            (settings.includedAssets + settings.firstSceneRef + settings.iconOverride)
+                .filter { it.exists },
+            sources
+        ) { packProgress, packTotal ->
+            progress.unit = "Bytes"
+            progress.total = (packTotal + 1).toDouble() // +1 to prevent unintentional finishing
+            progress.progress = packProgress.toDouble()
+        }
 
         // override icon if needed
         if (settings.iconOverride.exists) {
-            sources["icon.png"] = settings.iconOverride.readBytesSync()
+            sources["icon.png"] = sources[assetMap[settings.iconOverride]]
+                ?: settings.iconOverride.readBytesSync()
         }
-        sources["export.json"] = createConfigJson(settings)
+        val firstSceneRefMapped = assetMap[settings.firstSceneRef]
+        val firstSceneRef =
+            if (firstSceneRefMapped != null) res.getChild(firstSceneRefMapped)
+            else settings.firstSceneRef
+        sources["export.json"] = createConfigJson(settings, firstSceneRef)
         sources["META-INF/MANIFEST.MF"] = createManifest()
+        progress.unit = "Files"
+        progress.progress = 0.0
         progress.total = sources.size + 2.0 // 2.0 just for safety
         if (progress.isCancelled) return
         // build a zip from it
@@ -60,9 +82,9 @@ object ExportProcess {
         writeJar(settings, sources, settings.dstFile, progress)
     }
 
-    private fun createConfigJson(settings: ExportSettings): ByteArray {
+    private fun createConfigJson(settings: ExportSettings, firstSceneRef: FileReference): ByteArray {
         val config = StringMap()
-        config["firstScenePath"] = settings.firstSceneRef
+        config["firstScenePath"] = firstSceneRef
         config["gameTitle"] = settings.gameTitle
         config["configName"] = settings.configName
         config["versionNumber"] = settings.versionNumber

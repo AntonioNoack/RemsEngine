@@ -203,7 +203,7 @@ Creating a native build for the meta quest is planned, too, but not yet started.
 
 - Download an IDE of your choice. I prefer IntelliJ IDEA. Eclipse may work with a bit of luck, too.
 - Download either the engine source code, and compile it yourself, or download a pre-compiled jar.
-    - If there is no release available yet, just ask for a build, and I'll create one :)
+    - if that's too out-of-date, ask me, e.g., on Discord, to create a build for you
 
 Trying out things is fastest by adding RemsEngine.jar to your project dependencies, or by directly working
 in the tests folder in the engine project.
@@ -241,9 +241,8 @@ the engine works :).
 ## Ports
 
 - Linux, Windows by default
-- [Android](https://github.com/AntonioNoack/RemsEngine-Android)
-- [Web (WASM) v1, currently very slow and limited](https://github.com/AntonioNoack/JVM2WASM); v2 is in work, not yet
-  published;
+- [Web (WASM), currently very slow and limited](https://github.com/AntonioNoack/JVM2WASM), also got a C/C++-port (could be compiled to any platform)
+- [Android](https://github.com/AntonioNoack/RemsEngine-Android), currently JVM, but might use JVM2CPP in the future.
 - [DirectX11 backend](https://github.com/AntonioNoack/JDirectX11), not perfect yet
 - MacOS should be simple, if OpenGL support is good enough
   - I've tried running it inside a VirtualBox VM, but I've got issues creating an OpenGL context
@@ -281,8 +280,8 @@ So if you need them, don't forget to import them into your project.
 
 Shipping is easy on Windows and Linux: just export your projects will all dependencies into a .jar file, or download
 dependencies on the first start (as I do with FFMPEG and spellchecking).
-To load plugins from your built jar, because your jar won't be scanned at runtime, register them from your main class as
-internal :).
+
+I'm also working on a way to automatically export a project: you can find the code in the Export-module, and the export button in the option-bar in the engine UI.
 
 ### Android
 
@@ -314,12 +313,8 @@ from [tests](test/src/me/anno/tests/game/Snake.kt).
 ## Just Try/Use It
 
 If you don't want to compile the engine yourself, and just want to focus on developing games, plugins or mods, you can
-use pre-built versions.
-There isn't an official release yet, but you can use the in-official build from
-my [Cellular Automata Demo](https://github.com/AntonioNoack/CellularAutomata/tree/main/out/artifacts/Demo).
-A release of [Rem's Studio](https://github.com/AntonioNoack/RemsStudio) would work as well.
-
-Until I create a release, they might be a bit out of date 😅.
+use [pre-built versions](https://github.com/AntonioNoack/RemsEngine/releases).
+If you want an up-to-date build, just write me, e.g., via Discord, and I'll create one for you.
 
 ## Used libraries
 

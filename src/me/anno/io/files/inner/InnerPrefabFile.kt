@@ -13,7 +13,7 @@ open class InnerPrefabFile(
 ) : InnerFile(absolutePath, relativePath, false, parent), PrefabReadable {
 
     init {
-        val size = Int.MAX_VALUE.toLong()
+        val size = prefab.adds.size * 64L + prefab.sets.size * 256L // just a wild guess
         this.size = size
         this.compressedSize = size
         prefab.source = this

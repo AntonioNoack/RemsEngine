@@ -34,26 +34,15 @@ object BIImage {
                 .createImage(false, hasAlphaChannel)
                 .createBufferedImage()
             else -> {
-                val width = width
-                val height = height
+                val asIntImage = asIntImage()
+                val width = asIntImage.width
+                val height = asIntImage.height
                 val result = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
                 val dataBuffer = result.raster.dataBuffer as DataBufferInt
                 val dst = dataBuffer.data
-                when (this) {
-                    is IntImage -> {
-                        for (y in 0 until height) {
-                            val srcI = getIndex(0, y)
-                            data.copyInto(dst, y * width, srcI, srcI + width)
-                        }
-                    }
-                    else -> {
-                        var i = 0
-                        for (y in 0 until height) {
-                            for (x in 0 until width) {
-                                dst[i++] = getRGB(x, y)
-                            }
-                        }
-                    }
+                for (y in 0 until height) {
+                    val srcI = asIntImage.getIndex(0, y)
+                    asIntImage.data.copyInto(dst, y * width, srcI, srcI + width)
                 }
                 result
             }

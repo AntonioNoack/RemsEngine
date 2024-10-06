@@ -103,16 +103,35 @@ object TextureHelper {
 
     fun getNumberType(format: Int): Int {
         return when (format) {
+            // these are normal textures, and partially supported by your target platform 😉
             GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 -> GL_UNSIGNED_BYTE.inv()
+            GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> GL_UNSIGNED_SHORT.inv()
+            GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F -> GL_HALF_FLOAT
+            GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F -> GL_FLOAT
+            // these are integer textures, and probably not supported, and they don't support blending nor MSAA,
+            // so the engine doesn't really support them well
             GL_R8UI, GL_RG8UI, GL_RGB8UI, GL_RGBA8UI -> GL_UNSIGNED_BYTE
             GL_R8I, GL_RG8I, GL_RGB8I, GL_RGBA8I -> GL_BYTE
-            GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> GL_UNSIGNED_SHORT.inv()
             GL_R16UI, GL_RG16UI, GL_RGB16UI, GL_RGBA16UI -> GL_UNSIGNED_SHORT
             GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I -> GL_SHORT
             GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> GL_INT
             GL_R32UI, GL_RG32UI, GL_RGB32UI, GL_RGBA32UI -> GL_UNSIGNED_INT
-            GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F -> GL_HALF_FLOAT
-            GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F -> GL_FLOAT
+            else -> 0
+        }
+    }
+
+    fun getUnsignedIntBits(format: Int): Int {
+        return when (format) {
+            // normal textures
+            GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 -> 8
+            GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> 16
+            // integer textures (not well-supported, e.g. no blending / MSAA)
+            GL_R8UI, GL_RG8UI, GL_RGB8UI, GL_RGBA8UI -> 8
+            GL_R8I, GL_RG8I, GL_RGB8I, GL_RGBA8I -> 7
+            GL_R16UI, GL_RG16UI, GL_RGB16UI, GL_RGBA16UI -> 16
+            GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I -> 15
+            GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> 31
+            GL_R32UI, GL_RG32UI, GL_RGB32UI, GL_RGBA32UI -> 32
             else -> 0
         }
     }

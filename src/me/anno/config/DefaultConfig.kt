@@ -72,7 +72,7 @@ object DefaultConfig : StringMap() {
                     "npz" // numpy archive
         )
         addImportMappings("Executable", "exe,lib,dll,pyd,jar,desktop")
-        addImportMappings("Metadata", "json,xml")
+        addImportMappings("Metadata", "json,xml,yml,yaml")
         addImportMappings("Link", "url,lnk,desktop")
     }
 

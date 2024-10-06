@@ -28,7 +28,7 @@ class YAMLTest {
         val asYAML = YAMLStringWriter.toText(instance, InvalidRef)
         val reader = YAMLStringReader(asYAML, InvalidRef)
         reader.readAllInList()
-        val fromYAML = reader.sortedContent
+        val fromYAML = reader.allInstances
         val copyViaBothForTesting = JsonStringWriter.toText(fromYAML, InvalidRef)
         assertEquals(asJSON, copyViaBothForTesting)
         Engine.requestShutdown()

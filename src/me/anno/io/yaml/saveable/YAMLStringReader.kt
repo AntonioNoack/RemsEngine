@@ -15,7 +15,7 @@ class YAMLStringReader(val yamlStr: CharSequence, val workspace: FileReference) 
 
     override fun readAllInList() {
         val reader = java.io.StringReader(yamlStr.toString()).buffered()
-        sortedContent = JsonStringReader.read(
+        allInstances = JsonStringReader.read(
             JsonFormatter.format(
                 YAMLReader.parseYAML(reader, false).children.flatMap {
                     YAML2JSON.fromYAML(it) as List<*>
@@ -26,7 +26,7 @@ class YAMLStringReader(val yamlStr: CharSequence, val workspace: FileReference) 
 
     override fun finish() {}
 
-    override var sortedContent: List<Saveable> = emptyList()
+    override var allInstances: List<Saveable> = emptyList()
 
     companion object : StringReader, StreamReader {
         override fun createReader(data: CharSequence, workspace: FileReference, sourceName: String): ReaderImpl {

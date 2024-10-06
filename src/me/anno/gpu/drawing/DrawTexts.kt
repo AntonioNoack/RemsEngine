@@ -687,16 +687,11 @@ object DrawTexts {
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
     }
 
-    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean) =
+    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean): Int =
         GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit, async))
 
-    @Suppress("unused")
-    fun getTextSizeY(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean) =
-        GFXx2D.getSizeY(getTextSize(font, text, widthLimit, heightLimit, async))
-
-    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean) =
+    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean): Int =
         FontManager.getSize(font, text, widthLimit, heightLimit, async)
 
-    fun getTextSize(key: TextCacheKey, async: Boolean) =
-        FontManager.getSize(key, async)
+    fun getTextSize(key: TextCacheKey, async: Boolean): Int = FontManager.getSize(key, async)
 }

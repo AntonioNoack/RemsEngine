@@ -9,6 +9,8 @@ import java.io.InputStream
 
 object ImageCache : CacheSection("Image") {
 
+    var timeoutMillis = 10_000L
+
     val byteReaders = HashMap<String, AsyncImageReader<ByteArray>>()
     val fileReaders = HashMap<String, AsyncImageReader<FileReference>>()
     val streamReaders = HashMap<String, AsyncImageReader<InputStream>>()
@@ -74,7 +76,7 @@ object ImageCache : CacheSection("Image") {
 
     @JvmStatic
     operator fun get(file: FileReference, async: Boolean): Image? {
-        return get(file, 10_000, async)
+        return get(file, timeoutMillis, async)
     }
 
     fun getImageWithoutGenerator(file: FileReference): Image? {

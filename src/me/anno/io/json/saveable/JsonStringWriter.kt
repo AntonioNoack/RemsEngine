@@ -3,7 +3,7 @@ package me.anno.io.json.saveable
 import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 
-class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWriterBase(workspace) {
+open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWriterBase(workspace) {
 
     constructor(workspace: FileReference) : this(32, workspace)
 

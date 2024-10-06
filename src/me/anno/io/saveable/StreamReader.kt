@@ -27,8 +27,7 @@ interface StreamReader {
             }
         } else reader.readAllInList()
         reader.finish()
-        // sorting is very important
-        return reader.sortedContent
+        return reader.allInstances
     }
 
     fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<Saveable> {

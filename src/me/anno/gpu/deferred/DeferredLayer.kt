@@ -2,7 +2,9 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.framebuffer.TargetType
 
-class DeferredLayer(val name: String, val type: TargetType) {
-    val nameRR = name + "RR"
-    val nameIn0 = name + "_in0"
-}
+class DeferredLayer(
+    val name: String,
+    val nameRR: String,
+    val nameIn0: String,
+    val type: TargetType
+)

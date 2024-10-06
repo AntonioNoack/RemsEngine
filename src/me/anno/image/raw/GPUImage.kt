@@ -1,11 +1,14 @@
 package me.anno.image.raw
 
+import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.IndestructibleTexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.io.files.FileReference
+import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
@@ -54,7 +57,24 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
         TextureMapper.mapTexture(this.texture, texture, mapping, type, callback)
     }
 
-    override fun asIntImage(): IntImage = texture.createImage(false, hasAlphaChannel)
+    override fun asIntImage(): IntImage {
+        return if (GFX.isGFXThread()) {
+            if (texture.isCreated()) {
+                texture.createImage(false, hasAlphaChannel)
+            } else {
+                val reason = if (texture.isDestroyed) "it was destroyed" else "it wasn't created"
+                LOGGER.warn("Failed converting '${texture.name}' to image, because $reason")
+                return IntImage(1, 1, false)
+            }
+        } else {
+            LOGGER.warn("Waiting on GFXThread to convert '${texture.name}' to image")
+            var image: IntImage? = null
+            addGPUTask("GPUImage->Texture", width, height) {
+                image = asIntImage()
+            }
+            waitUntilDefined(true) { image }
+        }
+    }
 
     override fun toString(): String {
         return "GPUImage { $texture, $numChannels ch, ${if (hasAlphaChannel) "alpha" else "opaque"} }"

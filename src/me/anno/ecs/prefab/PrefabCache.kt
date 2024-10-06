@@ -23,7 +23,6 @@ import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
@@ -47,18 +46,18 @@ import kotlin.reflect.KClass
 object PrefabCache : CacheSection("Prefab") {
 
     var printJsonErrors = true
-    var prefabTimeout = 60_000L
+    var timeoutMillis = 60_000L
 
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
     val debugLoading get() = LOGGER.isDebugEnabled()
 
     operator fun get(resource: FileReference?, async: Boolean): Prefab? =
-        pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async), async)
+        pairToPrefab(getPrefabPair(resource, maxPrefabDepth, timeoutMillis, async), async)
 
     operator fun get(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
-        timeout: Long = prefabTimeout,
+        timeout: Long = timeoutMillis,
         async: Boolean = false
     ): Prefab? = pairToPrefab(getPrefabPair(resource, depth, timeout, async), async)
 
@@ -82,7 +81,7 @@ object PrefabCache : CacheSection("Prefab") {
         depth: Int = maxPrefabDepth,
         async: Boolean = false
     ): Saveable? {
-        val pair = getPrefabPair(resource, depth, prefabTimeout, async) ?: return null
+        val pair = getPrefabPair(resource, depth, timeoutMillis, async) ?: return null
         if (!async) pair.waitFor()
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
@@ -97,7 +96,7 @@ object PrefabCache : CacheSection("Prefab") {
             if (pair != null) {
                 callback.ok(pair.prefab)
             } else callback.err(err)
-        }, depth, prefabTimeout)
+        }, depth, timeoutMillis)
     }
 
     fun getPrefabInstanceAsync(resource: FileReference?, depth: Int = maxPrefabDepth, callback: Callback<Saveable?>) {
@@ -105,7 +104,7 @@ object PrefabCache : CacheSection("Prefab") {
             if (pair != null) {
                 callback.ok(pair.instance ?: pair.prefab?.getSampleInstance(depth))
             } else callback.err(err)
-        }, depth, prefabTimeout)
+        }, depth, timeoutMillis)
     }
 
     fun printDependencyGraph(prefab: FileReference): String {
@@ -310,10 +309,10 @@ object PrefabCache : CacheSection("Prefab") {
         } else callback.err(null)
     }
 
-    private fun getPrefabPair(
+    fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
-        timeout: Long = prefabTimeout,
+        timeout: Long = timeoutMillis,
         async: Boolean = false
     ): FileReadPrefabData? {
         return when {
@@ -340,7 +339,7 @@ object PrefabCache : CacheSection("Prefab") {
         resource: FileReference?,
         callback: Callback<FileReadPrefabData?>,
         depth: Int = maxPrefabDepth,
-        timeout: Long = prefabTimeout,
+        timeout: Long = timeoutMillis,
     ) {
         when {
             resource == null || resource == InvalidRef -> {

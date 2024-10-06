@@ -27,7 +27,7 @@ open class InnerLazyImageFile(
     }
 
     init {
-        size = Int.MAX_VALUE.toLong() // unknown
+        size = 2_000_000L // unknown
         compressedSize = size // unknown until we compress it
     }
 

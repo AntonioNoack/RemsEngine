@@ -3,5 +3,6 @@ package me.anno.io.saveable
 interface ReaderImpl {
     fun readAllInList()
     fun finish()
-    val sortedContent: List<Saveable>
+    // order can be important!
+    val allInstances: List<Saveable>
 }

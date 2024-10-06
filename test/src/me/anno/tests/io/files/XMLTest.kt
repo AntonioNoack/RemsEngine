@@ -28,7 +28,7 @@ class XMLTest {
         val asXML = XMLStringWriter.toText(instance, InvalidRef)
         val reader = XMLStringReader(asXML, InvalidRef)
         reader.readAllInList()
-        val fromXML = reader.sortedContent
+        val fromXML = reader.allInstances
         val copyViaBothForTesting = JsonStringWriter.toText(fromXML, InvalidRef)
         assertEquals(asJSON, copyViaBothForTesting)
         Engine.requestShutdown()

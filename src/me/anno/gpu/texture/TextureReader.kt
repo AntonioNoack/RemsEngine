@@ -84,7 +84,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
                 texture.create(image, true, ::callback)
             }
             null -> {
-                LOGGER.warn("Null from ImageReader for $file")
+                LOGGER.warn("Failed reading '$file' using ImageReader")
                 value = null
             }
             else -> {

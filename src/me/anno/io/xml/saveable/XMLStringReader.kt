@@ -17,7 +17,7 @@ class XMLStringReader(val xmlStr: CharSequence, val workspace: FileReference) : 
 
     override fun readAllInList() {
         val stream = ByteArrayInputStream(xmlStr.toString().encodeToByteArray())
-        sortedContent = JsonStringReader.read(
+        allInstances = JsonStringReader.read(
             JsonFormatter.format(XML2JSON.fromXML(XMLReader().read(stream) as XMLNode)),
             workspace, false
         )
@@ -25,7 +25,7 @@ class XMLStringReader(val xmlStr: CharSequence, val workspace: FileReference) : 
 
     override fun finish() {}
 
-    override var sortedContent: List<Saveable> = emptyList()
+    override var allInstances: List<Saveable> = emptyList()
 
     companion object : StringReader, StreamReader {
         override fun createReader(data: CharSequence, workspace: FileReference, sourceName: String): ReaderImpl {

@@ -24,6 +24,7 @@ class BVHBuilderTest {
         val triangles = HashSet<Triangle>()
         mesh.forEachTriangle { a, b, c ->
             triangles.add(Triangle(Vector3f(a), Vector3f(b), Vector3f(c)))
+            false
         }
         assertEquals(mesh.numPrimitives.toInt(), triangles.size)
         val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 8)

@@ -81,22 +81,22 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         hasObject = true
     }
 
-    private fun writeEscaped(value: String) {
+    fun appendEscaped(value: String) {
         Strings.writeEscaped(value, this)
     }
 
-    private fun writeString(value: String) {
+    fun appendString(value: String) {
         append('"')
-        writeEscaped(value)
+        appendEscaped(value)
         append('"')
     }
 
-    private fun writeTypeNameString(type: String, name: String?) {
+    private fun appendTypeNameString(type: String, name: String?) {
         if (name != null) {
             append('"')
-            writeEscaped(type)
+            appendEscaped(type)
             append(':')
-            writeEscaped(name)
+            appendEscaped(name)
             append('"')
         }
     }
@@ -104,22 +104,17 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     private fun writeAttributeStart(type: String, name: String?) {
         if (name != null && !name.isBlank2()) {
             next()
-            writeTypeNameString(type, name)
+            appendTypeNameString(type, name)
             append(':')
         }
     }
 
-    private fun append(f: Float) {
-        val str = f.toString()
-        if (str.endsWith(".0")) {
-            append(str.substring(0, str.length - 2))
-        } else {
-            append(str)
-        }
+    private fun append(value: Float) {
+        append(value.toDouble())
     }
 
-    private fun append(f: Double) {
-        val str = f.toString()
+    private fun append(value: Double) {
+        val str = value.toString()
         if (str.endsWith(".0")) {
             append(str.substring(0, str.length - 2))
         } else {
@@ -155,9 +150,9 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         when (value) {
             in 'A'..'Z', in 'a'..'z', in '0'..'9',
             in " _+-*/!§$%&()[]{}|~<>" -> {
-                append('\"')
+                append('"')
                 append(value)
-                append('\"')
+                append('"')
             }
             else -> append(value.code)
         }
@@ -384,23 +379,23 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeString(name: String, value: String, force: Boolean) {
         if (force || value != "") {
             writeAttributeStart(STRING.scalar, name)
-            writeString(value)
+            appendString(value)
         }
     }
 
     override fun writeStringList(name: String, values: List<String>, force: Boolean) {
         writeList(name, values, force, STRING.array) {
-            writeString(it)
+            appendString(it)
         }
     }
 
     override fun writeStringList2D(name: String, values: List<List<String>>, force: Boolean) {
-        writeList2D(name, values, force, STRING.array2d, ::writeString)
+        writeList2D(name, values, force, STRING.array2d, ::appendString)
     }
 
-    private fun writeFile(value: FileReference?, workspace: FileReference) {
-        if (value == null || value == InvalidRef) writeString("")
-        else writeString(value.toLocalPath(workspace.ifUndefined(this.workspace)))
+    open fun writeFile(value: FileReference?, workspace: FileReference) {
+        if (value == null || value == InvalidRef) appendString("")
+        else appendString(value.toLocalPath(workspace.ifUndefined(this.workspace)))
     }
 
     override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
@@ -1278,9 +1273,9 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writeAttributeStart(value.className, name)
         open(false)
         if (name == null) {
-            writeString("class")
+            appendString("class")
             append(':')
-            writeString(value.className)
+            appendString(value.className)
             hasObject = true
         }
         val pointer = getPointer(value)!!

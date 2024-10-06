@@ -3,7 +3,7 @@ package me.anno.ecs.prefab.change
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.NumberFormatter.reverse
 import java.util.concurrent.ThreadLocalRandom
 
 /**
@@ -35,11 +35,16 @@ class Path(
     )
 
     val depth: Int
-        get() {
-            val p = parent
-            return if (p != null) p.depth + 1
-            else (this != ROOT_PATH).toInt()
+        get() = calculateDepth()
+
+    fun calculateDepth(): Int {
+        var depth = 0
+        var node = this
+        while (true) {
+            node = node.parent ?: return depth
+            depth++
         }
+    }
 
     fun fromRootToThis(includeRoot: Boolean, run: (index: Int, path: Path) -> Unit): Int {
         val parent = parent
@@ -191,9 +196,7 @@ class Path(
 
     fun toString(separator: String): String {
         if (this == ROOT_PATH) return ""
-        val parent = parent
-        val notNullCode = if (type.code == 0) ' ' else type
-        return (if (parent == null || parent == ROOT_PATH) "" else "${parent.toString(separator)}$separator") + "$notNullCode$index,$nameId"
+        return toString(this, separator)
     }
 
     override fun save(writer: BaseWriter) {
@@ -234,6 +237,23 @@ class Path(
         val EXIT = Throwable()
 
         val ROOT_PATH = Path(null, "", 0, ' ')
+
+        private fun toString(node0: Path, separator: String): String {
+            val builder = StringBuilder()
+            var node = node0
+            while (true) {
+                val type = node.type
+                val notNullCode = if (type.code == 0) ' ' else type
+                val i0 = builder.length
+                builder.append(notNullCode).append(node.index).append(',').append(node.nameId)
+                builder.reverse(i0, builder.length)
+                node = node.parent ?: break
+                if (node == ROOT_PATH) break
+                builder.append(separator)
+            }
+            builder.reverse()
+            return builder.toString()
+        }
 
         private const val randomIdChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz--"
         fun generateRandomId(): String {

@@ -6,6 +6,8 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.bmp.BMPWriter
+import me.anno.image.hdr.HDRWriter
+import me.anno.image.raw.IFloatImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -14,9 +16,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.mixARGB22d
 import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
+import me.anno.utils.async.Callback
 import me.anno.utils.callbacks.I2U
 import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.OutputStream
 import kotlin.math.floor
@@ -148,7 +150,7 @@ abstract class Image(
     }
 
     fun write(dst: OutputStream, format: String, quality: Float = 0.9f) {
-        writeImageImpl(this, dst, format, quality)
+        writeImageImpl.write(this, dst, format, quality)
     }
 
     override fun destroy() {}
@@ -206,10 +208,31 @@ abstract class Image(
             return field
         }
 
+    fun sizeGuess(): Long {
+        return width.toLong() * height.toLong() * numChannels.toLong()
+    }
+
     companion object {
+
         @InternalAPI
-        var writeImageImpl: (Image, OutputStream, format: String, quality: Float) -> Unit = { img, out, _, _ ->
-            out.write(BMPWriter.createBMP(img))
+        var writeImageImpl = ImageStreamWriter { img, out, format, _ ->
+            if ("hdr".equals(format, true)) {
+                writeHDR(img, out)
+            } else {
+                out.write(BMPWriter.createBMP(img))
+            }
+        }
+
+        fun writeHDR(image: Image, output: OutputStream) {
+            if (image is IFloatImage && image.numChannels >= 3) {
+                val floatImage = image.toFloatImage(false)
+                HDRWriter.writeHDR(
+                    floatImage.width, floatImage.height, floatImage.stride,
+                    floatImage.data, output
+                )
+            } else {
+                output.write(BMPWriter.createBMP(image))
+            }
         }
     }
 }

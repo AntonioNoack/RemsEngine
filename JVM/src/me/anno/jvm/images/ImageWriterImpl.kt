@@ -1,8 +1,11 @@
 package me.anno.jvm.images
 
 import me.anno.image.Image
+import me.anno.image.ImageStreamWriter
+import me.anno.image.raw.IFloatImage
 import me.anno.jvm.images.BIImage.createBufferedImage
 import org.apache.logging.log4j.LogManager
+import java.awt.image.BufferedImage
 import java.io.OutputStream
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
@@ -12,29 +15,44 @@ import javax.imageio.stream.MemoryCacheImageOutputStream
 object ImageWriterImpl {
 
     fun register() {
-        Image.writeImageImpl = ImageWriterImpl::writeImage
+        Image.writeImageImpl = ImageStreamWriter(ImageWriterImpl::writeImage)
     }
 
     private val LOGGER = LogManager.getLogger(ImageWriterImpl::class)
-    fun writeImage(self: Image, dst: OutputStream, format: String, quality: Float) {
-        val image = self.createBufferedImage()
-        if (format.equals("jpg", true) || format.equals("jpeg", true)) {
-            val writers = ImageIO.getImageWritersByFormatName("jpg")
-            if (writers.hasNext()) {
-                val writer = writers.next()
-                val params = writer.defaultWriteParam
-                params.compressionMode = ImageWriteParam.MODE_EXPLICIT
-                params.compressionQuality = quality
-                writer.output = MemoryCacheImageOutputStream(dst)
-                val outputImage = IIOImage(image, null, null)
-                writer.write(null, outputImage, params)
-                writer.dispose()
+    fun writeImage(image: Image, output: OutputStream, format: String, quality: Float) {
+
+        if (format.equals("hdr", true) && image is IFloatImage && image.numChannels == 3) {
+            Image.writeHDR(image, output)
+            return
+        }
+
+        val bImage = image.createBufferedImage()
+        if (isLossyFormat(format)) {
+            if (tryWritingJPG(bImage, output, quality)) {
                 return
             }
         }
 
-        if (!ImageIO.write(image, format, dst)) {
+        if (!ImageIO.write(bImage, format, output)) {
             LOGGER.warn("Couldn't find writer for $format")
         }
+    }
+
+    private fun isLossyFormat(format: String): Boolean {
+        return format.equals("jpg", true) || format.equals("jpeg", true)
+    }
+
+    private fun tryWritingJPG(bImage: BufferedImage, output: OutputStream, quality: Float): Boolean {
+        val writers = ImageIO.getImageWritersByFormatName("jpg")
+        if (!writers.hasNext()) return false
+        val writer = writers.next()
+        val params = writer.defaultWriteParam
+        params.compressionMode = ImageWriteParam.MODE_EXPLICIT
+        params.compressionQuality = quality
+        writer.output = MemoryCacheImageOutputStream(output)
+        val outputImage = IIOImage(bImage, null, null)
+        writer.write(null, outputImage, params)
+        writer.dispose()
+        return true
     }
 }

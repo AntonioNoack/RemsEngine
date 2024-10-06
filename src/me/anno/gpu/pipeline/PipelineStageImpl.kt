@@ -30,7 +30,6 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
@@ -48,13 +47,7 @@ import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.lwjgl.opengl.GL46C.GL_BYTE
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
-import org.lwjgl.opengl.GL46C.GL_INT
-import org.lwjgl.opengl.GL46C.GL_SHORT
-import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
-import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
-import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
 
 class PipelineStageImpl(
     var name: String,
@@ -222,39 +215,19 @@ class PipelineStageImpl(
                     val m: Float // (1+m)*x+n
                     val n: Float
                     val format = target.getTextureIMS(index).internalFormat
-                    val numberType = TextureHelper.getNumberType(format)
-                    when (numberType) {
-                        GL_UNSIGNED_BYTE.inv() -> {
-                            m = 0f
-                            n = 1f / ((1L shl 8) - 1f)
-                        }
-                        GL_BYTE.inv() -> {
-                            m = 0f
-                            n = 1f / ((1L shl 7) - 1f)
-                        }
-                        GL_UNSIGNED_SHORT.inv() -> {
-                            m = 0f
-                            n = 1f / ((1L shl 16) - 1f)
-                        }
-                        GL_SHORT.inv() -> {
-                            m = 0f
-                            n = 1f / ((1L shl 15) - 1f)
-                        }
-                        GL_UNSIGNED_INT.inv() -> {
-                            m = 0f
-                            n = 1f / ((1L shl 32) - 1f)
-                        }
-                        GL_INT.inv() -> {
-                            m = 0f
-                            n = 1f / ((1L shl 31) - 1f)
-                        }
-                        GL_HALF_FLOAT -> {
+                    val numIntBits = TextureHelper.getUnsignedIntBits(format)
+                    if (numIntBits != 0) {
+                        // it's an integer-based format
+                        m = 0f
+                        n = 1f / ((1L shl numIntBits) - 1f)
+                    } else {
+                        val numberType = TextureHelper.getNumberType(format)
+                        if (numberType == GL_HALF_FLOAT) {
                             m = 1f / 2048f // 11 bits of mantissa
                             n = 0f
-                        }
-                        // m != 0, but random rounding cannot be computed with single precision
-                        // GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F
-                        else -> {
+                        } else {
+                            // m != 0, but random rounding cannot be computed with single precision
+                            // GL_FLOAT
                             m = 0f
                             n = 0f
                         }

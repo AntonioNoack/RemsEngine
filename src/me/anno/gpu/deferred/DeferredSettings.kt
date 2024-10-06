@@ -25,7 +25,10 @@ import kotlin.math.max
 data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     companion object {
-        private val defLayerNames = LazyList(32) { "defLayer$it" }
+        private val defLayerNames = LazyList(32) {
+            val name = "defLayer$it"
+            listOf(name, name + "RR", name + "_in0")
+        }
     }
 
     val semanticLayers: List<SemanticLayer>
@@ -54,7 +57,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             val remaining = layerRemaining[layerIndex]
             val startIndex = 4 - remaining
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
-            val semanticLayer = SemanticLayer(layerType, defLayerNames[layerIndex], layerIndex, mapping)
+            val semanticLayer = SemanticLayer(layerType, defLayerNames[layerIndex][0], layerIndex, mapping)
             when (layerType) { // mark this layer as sRGB
                 DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE, DeferredLayerType.COLOR_EMISSIVE -> {
                     isSRGBMask = isSRGBMask or (1 shl layerIndex)
@@ -86,8 +89,9 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
         for (layerIndex in 0 until usedTextures0) {
             val empty = layerRemaining[layerIndex]
+            val names = defLayerNames[layerIndex]
             val layer2 = DeferredLayer(
-                defLayerNames[layerIndex], when (layerQualities[layerIndex]) {
+                names[0], names[1], names[2], when (layerQualities[layerIndex]) {
                     BufferQuality.UINT_8 -> TargetType.UInt8xI
                     BufferQuality.UINT_16 -> TargetType.UInt16xI
                     BufferQuality.FP_16 -> TargetType.Float16xI
@@ -96,13 +100,17 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             )
             storageLayers.add(layer2)
             if (empty > 0) {
-                val mask = when (layerRemaining[layerIndex]) {
-                    1 -> "a"
-                    2 -> "ba"
-                    else -> "gba"
-                }
+                val mask = getEmptyMask(layerRemaining[layerIndex])
                 emptySlots.add(EmptySlot(layerIndex, layer2.name, mask))
             }
+        }
+    }
+
+    private fun getEmptyMask(remaining: Int): String {
+        return when (remaining) {
+            1 -> "a"
+            2 -> "ba"
+            else -> "gba"
         }
     }
 

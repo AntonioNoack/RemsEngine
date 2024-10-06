@@ -41,8 +41,7 @@ interface StringReader {
             reader.readAllInList()
         }
         reader.finish()
-        // sorting is very important
-        return reader.sortedContent
+        return reader.allInstances
     }
 
     fun toText(element: Saveable, workspace: FileReference): String
