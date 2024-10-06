@@ -2,6 +2,7 @@ package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -52,21 +53,38 @@ object Menu {
 
     val menuSeparator1 = MenuOption(NameDesc(MENU_SEPARATOR, "", "")) {}
 
-    fun msg(windowStack: WindowStack, nameDesc: NameDesc) {
+    // like in Android
+    val shortDurationMillis get() = 2_000L
+    val longDurationMillis get() = 3_500L
+
+    /**
+     * show an Android-toast-like message to the user
+     * */
+    fun msg(windowStack: WindowStack, nameDesc: NameDesc, showLong: Boolean = true) {
         val panel = TextPanel(nameDesc.name, style).setTooltip(nameDesc.desc)
         val window = openMenuByPanels(windowStack, NameDesc.EMPTY, listOf(panel))
         if (window != null) {
             // window should be at the bottom center like an Android toast
+            val offsetForProgressBars = GFX.someWindow.progressbarHeightSum
+            val paddingBottom = 10
             window.x = (windowStack.width - window.panel.width).shr(1)
-            window.y = windowStack.height - window.panel.height - 10
+            window.y = windowStack.height - (window.panel.height + paddingBottom + offsetForProgressBars)
             window.drawDirectly = true
+            val duration = if (showLong) longDurationMillis else shortDurationMillis
+            addEvent(duration) { window.close(false) }
         }
     }
 
-    fun msg(nameDesc: NameDesc) {
-        msg(GFX.someWindow.windowStack, nameDesc)
+    /**
+     * show an Android-toast-like message to the user
+     * */
+    fun msg(nameDesc: NameDesc, showLong: Boolean = true) {
+        msg(GFX.someWindow.windowStack, nameDesc, showLong)
     }
 
+    /**
+     * let the user confirm something (like JavaScript confirm())
+     * */
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit): Window? {
         val window = openMenu(windowStack, question, listOf(
             MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
@@ -76,6 +94,9 @@ object Menu {
         return window
     }
 
+    /**
+     * ask the user a yes/no-question; they click the menu away, and then it's neither yes nor no
+     * */
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit): Window? {
         val window = openMenu(
             windowStack, question, listOf(
@@ -87,6 +108,10 @@ object Menu {
         return window
     }
 
+    /**
+     * ask the user for a name;
+     * names can be given tints/colors to indicate invalidate or incomplete names
+     * */
     fun askName(
         windowStack: WindowStack,
         nameDesc: NameDesc,
@@ -101,20 +126,10 @@ object Menu {
         nameDesc, value0, actionName, getColor, callback
     )
 
-    fun askRename(
-        windowStack: WindowStack,
-        nameDesc: NameDesc,
-        value0: String,
-        actionName: NameDesc,
-        folder: FileReference,
-        callback: (FileReference) -> Unit
-    ) = askRename(
-        windowStack,
-        windowStack.mouseXi - paddingX,
-        windowStack.mouseYi - paddingY,
-        nameDesc, value0, actionName, folder, callback
-    )
-
+    /**
+     * ask the user for a name;
+     * names can be given tints/colors to indicate invalidate or incomplete names
+     * */
     fun askName(
         windowStack: WindowStack,
         x: Int, y: Int,
@@ -162,6 +177,28 @@ object Menu {
         return window
     }
 
+    /**
+     * ask the user to rename a file; shows green/yellow/red tint depending on
+     * whether the new name is valid and a file with that name already exists
+     * */
+    fun askRename(
+        windowStack: WindowStack,
+        nameDesc: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        folder: FileReference,
+        callback: (FileReference) -> Unit
+    ) = askRename(
+        windowStack,
+        windowStack.mouseXi - paddingX,
+        windowStack.mouseYi - paddingY,
+        nameDesc, value0, actionName, folder, callback
+    )
+
+    /**
+     * ask the user to rename a file; shows green/yellow/red tint depending on
+     * whether the new name is valid and a file with that name already exists
+     * */
     fun askRename(
         windowStack: WindowStack,
         x: Int, y: Int,
@@ -195,13 +232,13 @@ object Menu {
         })
     }
 
+    /**
+     * close the window containing the panel;
+     * be careful with this method, because if your panel is just embedded somewhere,
+     * you might close important menus or similar
+     * */
     fun close(panel: Panel) {
-        val window = panel.window!!
-        window.windowStack.remove(window)
-        window.destroy()
-        if (window.windowStack.isEmpty()) {
-            window.windowStack.osWindow?.requestClose()
-        }
+        panel.window?.close(false)
     }
 
     private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, hover: Boolean) {
@@ -211,7 +248,6 @@ object Menu {
         button.padding.right = buttonPadding
     }
 
-    @Suppress("unused")
     fun openComplexMenu(
         windowStack: WindowStack, nameDesc: NameDesc,
         options: List<ComplexMenuEntry>
@@ -332,7 +368,6 @@ object Menu {
         }
     }
 
-    @Suppress("unused")
     fun openMenuByPanels(
         windowStack: WindowStack,
         nameDesc: NameDesc,
@@ -499,5 +534,4 @@ object Menu {
         x: Float, y: Float, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10
     ): Window? = openComplexMenu(windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, nameDesc,
         options.map { option -> option.toComplex() })
-
 }

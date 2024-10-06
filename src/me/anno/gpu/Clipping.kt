@@ -1,7 +1,6 @@
 package me.anno.gpu
 
 import me.anno.gpu.GFXState.useFrame
-import me.anno.utils.assertions.assertFalse
 import kotlin.math.max
 import kotlin.math.min
 
@@ -11,7 +10,6 @@ object Clipping {
     fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         GFX.check()
-        assertFalse(w < 0 || h < 0)
         if (w < 1 || h < 1) return
         // val height = RenderState.currentBuffer?.h ?: height
         // val realY = height - (y + h)

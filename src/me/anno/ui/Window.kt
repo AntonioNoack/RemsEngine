@@ -565,6 +565,9 @@ open class Window(
                 windowStack.removeAt(idx).destroy()
             }
         }
+        if (windowStack.isEmpty()) {
+            windowStack.osWindow?.requestClose()
+        }
     }
 
     companion object {

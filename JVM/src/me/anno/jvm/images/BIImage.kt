@@ -5,7 +5,6 @@ import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
-import me.anno.image.raw.GPUImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.convertARGB2ABGR
@@ -29,24 +28,17 @@ object BIImage {
     }
 
     fun Image.createBufferedImage(): BufferedImage {
-        return when (this) {
-            is GPUImage -> texture
-                .createImage(false, hasAlphaChannel)
-                .createBufferedImage()
-            else -> {
-                val asIntImage = asIntImage()
-                val width = asIntImage.width
-                val height = asIntImage.height
-                val result = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
-                val dataBuffer = result.raster.dataBuffer as DataBufferInt
-                val dst = dataBuffer.data
-                for (y in 0 until height) {
-                    val srcI = asIntImage.getIndex(0, y)
-                    asIntImage.data.copyInto(dst, y * width, srcI, srcI + width)
-                }
-                result
-            }
+        val asIntImage = asIntImage()
+        val width = asIntImage.width
+        val height = asIntImage.height
+        val result = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
+        val dataBuffer = result.raster.dataBuffer as DataBufferInt
+        val dst = dataBuffer.data
+        for (y in 0 until height) {
+            val srcI = asIntImage.getIndex(0, y)
+            asIntImage.data.copyInto(dst, y * width, srcI, srcI + width)
         }
+        return result
     }
 
     fun Texture2D.createFromBufferedImage(

@@ -16,16 +16,15 @@ import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotNull
 
-// can't reproduce the issue :(
 fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
-    TextureCache.timeoutMillis = 50
-    ImageCache.timeoutMillis = 50
-    PrefabCache.timeoutMillis = 50
-    val src = downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg/rgb.png")
+    TextureCache.timeoutMillis = 10
+    ImageCache.timeoutMillis = 10
+    PrefabCache.timeoutMillis = 10
+    val src = downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg/b.png")
     assertNotNull(TextureCache[src, false])
-    val waitTime = (TextureCache.timeoutMillis + 15000) * MILLIS_TO_NANOS
+    val waitTime = (TextureCache.timeoutMillis + 20) * MILLIS_TO_NANOS
     val endWaitTime = Time.nanoTime + waitTime
     Sleep.waitUntil(true, {
         Time.nanoTime > endWaitTime
@@ -34,7 +33,6 @@ fun main() {
         val image = assertNotNull(ImageCache[src, false])
         val asIntImage = image.asIntImage()
         assertEquals(image.width, asIntImage.width)
-        println("Passed test")
         Engine.requestShutdown()
     })
 

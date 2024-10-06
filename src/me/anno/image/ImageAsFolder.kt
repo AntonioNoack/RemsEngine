@@ -124,11 +124,13 @@ object ImageAsFolder {
     @JvmStatic
     private fun createSwizzle(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
-            val src = warnIfMissing(ImageCache[file, false], missingImage, file)
-            createImage(src)
+            // CPU: calculated lazily
+            val srcImage = warnIfMissing(ImageCache[file, false], missingImage, file)
+            createImage(srcImage)
         }, {
-            val src = warnIfMissing(TextureCache[file, false], missingTexture, file)
-            createImage(GPUImage(src))
+            // GPU: calculated whenever needed
+            val srcTexture = warnIfMissing(TextureCache[file, false], missingTexture, file)
+            createImage(GPUImage(srcTexture))
         })
     }
 
@@ -145,14 +147,16 @@ object ImageAsFolder {
         file: FileReference, folder: InnerFolder, name: String,
         swizzle: Char, inverse: Boolean
     ) {
-        folder.createLazyImageChild(name, lazy {
-            val src = warnIfMissing(TextureCache[file, false], missingTexture, file)
-            val srcImage = GPUImage(src)
-            val isBlack = getIsBlack(swizzle, inverse, srcImage)
-            if (isBlack != null) {
-                GPUImage(if (isBlack) blackTexture else whiteTexture, 1, false)
-            } else ComponentImage(srcImage, inverse, swizzle)
-        })
+        createSwizzle(file, folder, name) { srcImage ->
+            createSwizzleImage(srcImage, swizzle, inverse)
+        }
+    }
+
+    private fun createSwizzleImage(srcImage: Image, swizzle: Char, inverse: Boolean): Image {
+        val isBlack = getIsBlack(swizzle, inverse, srcImage)
+        return if (isBlack != null) {
+            GPUImage(if (isBlack) blackTexture else whiteTexture, 1, false)
+        } else ComponentImage(srcImage, inverse, swizzle)
     }
 
     @JvmStatic
