@@ -3,11 +3,12 @@ package me.anno.tests.engine.prefab
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -17,9 +18,17 @@ import kotlin.test.assertTrue
 
 class PathTest {
 
-    val p1 = Path(listOf("1"), intArrayOf(1), charArrayOf('a'))
-    val p2 = Path(listOf("2"), intArrayOf(2), charArrayOf('b'))
-    val p3 = Path(listOf("3"), intArrayOf(3), charArrayOf('c'))
+    private fun createPath(names: List<String>, indices: List<Int>, types: List<Char>): Path = Path(
+        if (names.size > 1) createPath(
+            names.subList(0, names.lastIndex),
+            indices.subList(0, names.lastIndex),
+            types.subList(0, types.lastIndex)
+        ) else ROOT_PATH, names.last(), indices.last(), types.last()
+    )
+
+    val p1 = createPath(listOf("1"), listOf(1), listOf('a'))
+    val p2 = createPath(listOf("2"), listOf(2), listOf('b'))
+    val p3 = createPath(listOf("3"), listOf(3), listOf('c'))
     val p23 = p2 + p3
     val p12 = p1 + p2
     val p123 = p12 + p3
@@ -72,8 +81,8 @@ class PathTest {
     @Test
     fun testConcat() {
         val p12123 = p12 + p123
-        assertEquals(Path(listOf("2", "3"), intArrayOf(2, 3), charArrayOf('b', 'c')), p23)
-        assertEquals(Path(listOf("1", "2", "3"), intArrayOf(1, 2, 3), charArrayOf('a', 'b', 'c')), p123)
+        assertEquals(createPath(listOf("2", "3"), listOf(2, 3), listOf('b', 'c')), p23)
+        assertEquals(createPath(listOf("1", "2", "3"), listOf(1, 2, 3), listOf('a', 'b', 'c')), p123)
         assertEquals("a1,1/b2,2/a1,1/b2,2/c3,3", p12123.toString())
     }
 
@@ -100,9 +109,9 @@ class PathTest {
     @Test
     fun testRestIfStartsWith() {
 
-        val ab = Path(listOf("a", "b"), intArrayOf(0, 1), charArrayOf('x', 'x'))
-        val abc = Path(listOf("a", "b", "c"), intArrayOf(0, 1, 2), charArrayOf('x', 'x', 'x'))
-        val bcd = Path(listOf("b", "c", "d"), intArrayOf(1, 2, 3), charArrayOf('x', 'x', 'x'))
+        val ab = createPath(listOf("a", "b"), listOf(0, 1), listOf('x', 'x'))
+        val abc = createPath(listOf("a", "b", "c"), listOf(0, 1, 2), listOf('x', 'x', 'x'))
+        val bcd = createPath(listOf("b", "c", "d"), listOf(1, 2, 3), listOf('x', 'x', 'x'))
 
         assertSame(Path.ROOT_PATH, abc.getRestIfStartsWith(abc, 0))
         assertTrue(null === abc.getRestIfStartsWith(ab, 0))

@@ -20,24 +20,9 @@ class Path(
     /** don't use this, use ROOT_PATH instead */
     constructor() : this(ROOT_PATH, "", 0, ' ')
 
-    /** legacy constructor */
-    constructor(names: List<String>, indices: IntArray, types: CharArray) : this(
-        names, indices.toList(), types.toList()
-    )
+    val depth: Int get() = calculateDepth()
 
-    /** constructor for testing */
-    constructor(names: List<String>, indices: List<Int>, types: List<Char>) : this(
-        if (names.size > 1) Path(
-            names.subList(0, names.lastIndex),
-            indices.subList(0, names.lastIndex),
-            types.subList(0, types.lastIndex)
-        ) else ROOT_PATH, names.last(), indices.last(), types.last()
-    )
-
-    val depth: Int
-        get() = calculateDepth()
-
-    fun calculateDepth(): Int {
+    private fun calculateDepth(): Int {
         var depth = 0
         var node = this
         while (true) {
@@ -211,7 +196,7 @@ class Path(
         when (name) {
             "parent" -> parent = value as? Path
             "name" -> nameId = value as? String ?: return
-            "v" -> {
+            "v" -> { // legacy
                 if (value !is String) return
                 if (value.isEmpty()) {
                     parent = null // we're root now
@@ -232,10 +217,13 @@ class Path(
     override val approxSize get() = 1
     override fun isDefaultValue(): Boolean = this === ROOT_PATH
 
+    override fun onReadingEnded() {
+        println("read path $this")
+    }
+
     companion object {
 
         val EXIT = Throwable()
-
         val ROOT_PATH = Path(null, "", 0, ' ')
 
         private fun toString(node0: Path, separator: String): String {

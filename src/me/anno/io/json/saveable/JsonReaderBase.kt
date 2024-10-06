@@ -94,7 +94,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             assertEquals(nc0, '}')
             register(obj)
         }
-        obj.onReadingEnded()
+        // cannot be called here, because we might need to wait for not-yet-resolved pointers
+        // obj.onReadingEnded()
         return obj
     }
 

@@ -33,10 +33,12 @@ import me.anno.utils.Clock
 import me.anno.utils.Color.white
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.concurrent.thread
 
+// todo bug: paths seem to be corrupted when exporting things... why/how???
 class ExportPlugin : Plugin() {
 
     companion object {
@@ -117,7 +119,16 @@ class ExportPlugin : Plugin() {
             openExportMenu(nameToLoad)
         }
 
+        fun markPresetAsUsed(preset: ExportSettings) {
+            // save that we used it
+            val presets0 = loadPresets()
+            presets0.firstOrNull2 { it.name == preset.name }
+                ?.lastUsed = System.currentTimeMillis()
+            storePresets(presets0)
+        }
+
         fun runExport(preset: ExportSettings) {
+            markPresetAsUsed(preset)
             val clock = Clock(LOGGER)
             val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
             progress.intFormatting = true
@@ -162,17 +173,22 @@ class ExportPlugin : Plugin() {
                 })
             body.add(TextButton(NameDesc("Save Preset"), style)
                 .addLeftClickListener {
+                    preset.lastUsed = System.currentTimeMillis()
                     storePresets(presets)
                     msg(NameDesc("Saved Preset!"))
                 })
             body.add(TextButton(NameDesc("Save Preset As..."), style)
                 .addLeftClickListener {
                     askName(ui.windowStack, NameDesc("Preset Name"), preset.name,
-                        NameDesc("Save"), { -1 }) {
+                        NameDesc("Save"), { -1 }) { newName0 ->
                         val newPreset = preset.clone()
-                        val newName = it.trim()
+                        val newName = newName0.trim()
                         newPreset.name = newName
-                        storePresets(presets + newPreset)
+                        newPreset.lastUsed = System.currentTimeMillis()
+                        // presets must be reloaded, because maybe we changed the current preset,
+                        // and now we want to save it under a NEW name, not the old one
+                        storePresets(loadPresets()
+                            .filter { it.name != newName } + newPreset)
                         msg(NameDesc("Saved Preset!"))
                         reloadUI(newName)
                     }
@@ -201,19 +217,20 @@ class ExportPlugin : Plugin() {
                 // create a new preset -> ask user for name
                 askName(
                     GFX.someWindow.windowStack,
-                    NameDesc.EMPTY, "Preset Name", NameDesc("Create"), { white }, {
+                    NameDesc.EMPTY, "Preset Name", NameDesc("Create"), { white }, { newName0 ->
                         Menu.close(ui)
-                        val newName = it.trim()
-                        val newList = presets + ExportSettings().apply { name = newName }
+                        val newName = newName0.trim()
+                        val newList =
+                            loadPresets().filter { it.name != newName } +
+                                    ExportSettings().apply { name = newName }
                         storePresets(newList)
-                        openExportMenu(newName)
+                        reloadUI(newName)
                     }
                 )
             } else {
                 val preset = presets[index - 1]
-                preset.lastUsed = System.currentTimeMillis()
-                storePresets(presets)
-                createPresetUI(preset)
+                storePresets(loadPresets()) // undo all not-saved changes
+                reloadUI(preset.name)
             }
         })
 

@@ -48,7 +48,7 @@ abstract class BaseReader : ReaderImpl {
     }
 
     override fun finish() {
-        for (i in 0 until allInstances.size) {
+        for (i in allInstances.indices) {
             allInstances[i].onReadingEnded()
         }
     }
@@ -56,8 +56,6 @@ abstract class BaseReader : ReaderImpl {
     abstract fun readObject(): Saveable
 
     companion object {
-
-        private val UnitSaveable = Saveable()
 
         private val LOGGER = LogManager.getLogger(BaseReader::class)
 

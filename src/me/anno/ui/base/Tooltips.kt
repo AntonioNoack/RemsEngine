@@ -16,6 +16,7 @@ import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.math.abs
 import kotlin.math.min
 
+// todo bug: rounded corners for tooltip panels show up as black
 object Tooltips {
 
     var oldX = 0f

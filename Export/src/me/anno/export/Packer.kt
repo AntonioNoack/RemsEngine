@@ -111,18 +111,15 @@ object Packer {
     }
 
     private fun packPrefab(resource: FileReference, resourceMap: Map<FileReference, FileReference>): ByteArray? {
-        val asPrefab = PrefabCache.getPrefabPair(resource)
-        if (asPrefab != null) {
-            val saveable = asPrefab.prefab ?: asPrefab.instance
-            if (saveable != null) {
-                // todo use binary writer?
-                val writer = MappedJsonWriter(resourceMap)
-                writer.add(saveable)
-                writer.writeAllInList()
-                return writer.toString().encodeToByteArray()
-            }
-        }
-        return null
+        val prefab = PrefabCache[resource] ?: return null
+        // todo use binary writer?
+        val writer = MappedJsonWriter(resourceMap)
+        val history = prefab.history
+        prefab.history = null // not needed
+        writer.add(prefab)
+        writer.writeAllInList()
+        prefab.history = history
+        return writer.toString().encodeToByteArray()
     }
 
     /**
@@ -238,6 +235,11 @@ object Packer {
                 val mapped = resourceMap[value] ?: value
                 appendString(mapped.toLocalPath(workspace.ifUndefined(this.workspace)))
             }
+        }
+
+        override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
+            if (name == "isCollapsed") return
+            super.writeBoolean(name, value, force)
         }
     }
 }
