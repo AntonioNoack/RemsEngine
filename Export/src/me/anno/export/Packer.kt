@@ -186,7 +186,9 @@ object Packer {
         }
 
         fun nextName(src: FileReference): FileReference {
-            return nextName(src.lcExtension)
+            return nextName(src.lcExtension.ifEmpty {
+                SignatureCache[src, false]?.name
+            } ?: "bin")
         }
 
         val resources = HashMap<FileReference, FileReference>()
