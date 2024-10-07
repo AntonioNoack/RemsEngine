@@ -29,6 +29,11 @@ enum class FileStatType(val alignment: AxisAlignment) {
             return SignatureCache[file, true]?.name ?: ""
         }
     },
+    IMPORT_TYPE(AxisAlignment.CENTER) {
+        override fun getValue(file: FileReference): String {
+            return SignatureCache[file, true]?.importType ?: ""
+        }
+    },
     CREATED(AxisAlignment.MIN) {
         override fun getValue(file: FileReference): String {
             return dateFormat.format(Date(file.creationTime))

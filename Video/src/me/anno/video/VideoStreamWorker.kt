@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.cache.IgnoredException
 import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.assertions.assertEquals
@@ -122,7 +122,7 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
             val file = self.file
             val meta = self.meta
             thread(name = "Stream/$id/${file.name}") {
-                val signature = Signature.findNameSync(file)
+                val signature = SignatureCache[file, false]?.name
                 val process = VideoStreamWorker(file, frameIndex0, id, self)
                 // scale video as needed
                 val scale = clamp(maxSize.toDouble() / max(meta.videoWidth, meta.videoHeight).toDouble())

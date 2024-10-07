@@ -5,10 +5,17 @@ import me.anno.engine.inspector.InspectorUtils.showDebugProperties
 import me.anno.engine.inspector.InspectorUtils.showDebugWarnings
 import me.anno.engine.inspector.InspectorUtils.showProperties
 import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.SaveableRegistry
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 
 object AutoInspector {
+
+    private fun createSampleInstance(instance: Inspectable): Inspectable? {
+        return SaveableRegistry.LazyRegistryEntry(instance.javaClass.name)
+            .sampleInstance as? Inspectable
+    }
+
     fun inspect(instances: List<Inspectable>, list: PanelListY, style: Style) {
 
         val isWritable = true
@@ -20,10 +27,7 @@ object AutoInspector {
 
         // bold/plain for other properties
         val cleanInstance = try {
-            instances.first()::class
-                .constructors
-                .first { it.parameters.isEmpty() }
-                .call()
+            createSampleInstance(instances.first())
         } catch (e: Exception) {
             e.printStackTrace()
             null

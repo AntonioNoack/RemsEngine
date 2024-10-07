@@ -45,7 +45,7 @@ import org.joml.Vector4f
 import org.joml.Vector4i
 import java.io.OutputStream
 
-class BinaryWriter(val output: OutputStream) : BaseWriter(true) {
+class BinaryWriter(val output: OutputStream, workspace: FileReference) : BaseWriter(workspace, true) {
 
     /**
      * max number of strings? idk...
@@ -354,25 +354,24 @@ class BinaryWriter(val output: OutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean) {
         if (force || value != InvalidRef) {
             writeAttributeStart(name, SimpleType.REFERENCE.scalarId)
             writeEfficientString(value.toLocalPath(workspace))
         }
     }
 
-    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean, workspace: FileReference) {
+    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, SimpleType.REFERENCE.scalarId + 1)
             output.writeBE32(values.size)
-            for (v in values) writeEfficientString(v.toLocalPath(workspace))
+            for (i in values.indices) {
+                writeEfficientString(values[i].toLocalPath(workspace))
+            }
         }
     }
 
-    override fun writeFileList2D(
-        name: String, values: List<List<FileReference>>,
-        force: Boolean, workspace: FileReference
-    ) {
+    override fun writeFileList2D(name: String, values: List<List<FileReference>>, force: Boolean) {
         writeGenericList2D(name, values, force, SimpleType.REFERENCE.scalarId + 2) { v ->
             writeEfficientString(v.toLocalPath(workspace))
         }
@@ -951,10 +950,12 @@ class BinaryWriter(val output: OutputStream) : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, type)
             output.writeBE32(values.size)
-            for (i in values.indices) {
-                val vs = values[i]
+            for (vi in values.indices) {
+                val vs = values[vi]
                 output.writeBE32(vs.size)
-                for (j in vs.indices) writeInstance(vs[j])
+                for (vsi in vs.indices) {
+                    writeInstance(vs[vsi])
+                }
             }
         }
     }
@@ -1006,10 +1007,10 @@ class BinaryWriter(val output: OutputStream) : BaseWriter(true) {
         values: List<List<V>>,
         force: Boolean
     ) {
-        writeGenericList(name, values, force, OBJECT_ARRAY_2D) {
-            output.writeBE32(it.size)
-            for (i in it.indices) {
-                writeObject(null, null, it[i], true)
+        writeGenericList(name, values, force, OBJECT_ARRAY_2D) { list ->
+            output.writeBE32(list.size)
+            for (i in list.indices) {
+                writeObject(null, null, list[i], true)
             }
         }
     }
@@ -1022,8 +1023,8 @@ class BinaryWriter(val output: OutputStream) : BaseWriter(true) {
             writeAttributeStart(name, OBJECTS_HOMOGENOUS_ARRAY)
             writeTypeString(values.firstOrNull()?.className ?: "")
             output.writeBE32(values.size)
-            for (element in values) {
-                element!!.save(this)
+            for (i in values.indices) {
+                values[i]!!.save(this)
                 writeObjectEnd()
             }
         }

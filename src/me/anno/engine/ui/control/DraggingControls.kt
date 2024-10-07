@@ -318,7 +318,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         // reset the camera
         renderView.orbitRotation.identity()
         renderView.orbitCenter.set(0.0)
-        renderView.radius = 50.0
+        renderView.radius = 10.0
         renderView.near = 1e-3
         renderView.far = 1e10
         camera.fovOrthographic = 5f

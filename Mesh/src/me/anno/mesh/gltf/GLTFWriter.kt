@@ -28,7 +28,7 @@ import me.anno.io.Streams.writeLE32
 import me.anno.io.Streams.writeString
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.json.generic.JsonWriter
 import me.anno.io.saveable.Saveable
@@ -804,7 +804,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
         src.inputStreamSync().copyTo(binary) // must be sync, or we'd need to unpack this loop
         val pos1 = binary.size()
         bufferViews.add(BufferView(pos0, pos1 - pos0, 0, 0))
-        val ext = when (Signature.findNameSync(src)) {
+        val ext = when (SignatureCache[src, false]?.name) {
             "png" -> "image/png"
             "jpg" -> "image/jpeg"
             else -> null

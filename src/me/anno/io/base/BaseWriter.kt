@@ -2,7 +2,6 @@ package me.anno.io.base
 
 import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.render.Texture
@@ -38,7 +37,10 @@ import org.joml.Vector4i
 import java.io.Serializable
 import kotlin.reflect.KClass
 
-abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
+abstract class BaseWriter(
+    val workspace: FileReference,
+    val canSkipDefaultValues: Boolean
+) {
 
     val todoPointers = ArrayList<Saveable>(256)
     val todoPointersSet = HashSet<Saveable>(256)
@@ -370,18 +372,15 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         writeSomething(name, values, force)
 
     open fun writeFile(
-        name: String, value: FileReference, force: Boolean = false,
-        workspace: FileReference = EngineBase.workspace
+        name: String, value: FileReference, force: Boolean = false
     ) = writeSomething(name, value, force)
 
     open fun writeFileList(
-        name: String, values: List<FileReference>, force: Boolean = false,
-        workspace: FileReference = EngineBase.workspace
+        name: String, values: List<FileReference>, force: Boolean = false
     ) = writeSomething(name, values, force)
 
     open fun writeFileList2D(
-        name: String, values: List<List<FileReference>>, force: Boolean = false,
-        workspace: FileReference = EngineBase.workspace
+        name: String, values: List<List<FileReference>>, force: Boolean = false
     ) = writeSomething(name, values, force)
 
     fun writeObject(self: Saveable?, name: String?, value: Saveable?, force: Boolean = false) {

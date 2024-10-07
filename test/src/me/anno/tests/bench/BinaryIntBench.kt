@@ -3,6 +3,7 @@ package me.anno.tests.bench
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter
+import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.tests.LOGGER
@@ -39,7 +40,7 @@ fun main() {
     for (tries in 0 until 100) {
 
         val bos = ByteArrayOutputStream(length * 4 + 1000)
-        val writer = BinaryWriter(bos)
+        val writer = BinaryWriter(bos, InvalidRef)
 
         val clock = Clock(LOGGER)
         clock.start()

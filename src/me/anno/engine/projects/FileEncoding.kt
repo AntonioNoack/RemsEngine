@@ -83,7 +83,7 @@ enum class FileEncoding(val id: Int) {
             ByteArrayOutputStream().use { bos ->
                 bos.writeString(BINARY_MAGIC) // magic
                 DeflaterOutputStream(bos).use { zos ->
-                    val writer = BinaryWriter(zos)
+                    val writer = BinaryWriter(zos, workspace)
                     for (value in values) {
                         writer.add(value)
                     }

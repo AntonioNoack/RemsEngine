@@ -117,9 +117,9 @@ object Strings {
     private const val DEFAULT_IMPORT_TYPE = "Text"
 
     @JvmStatic
-    fun getImportTypeByExtension(fileExtension: String): String {
+    fun getImportTypeByExtension(fileExtension: String): String? {
         return DefaultConfig["import.mapping.$fileExtension"]?.toString()
-            ?: DefaultConfig["import.mapping.*"]?.toString() ?: DEFAULT_IMPORT_TYPE
+            ?: DefaultConfig["import.mapping.*"]?.toString()
     }
 
     @JvmStatic

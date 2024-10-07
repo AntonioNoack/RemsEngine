@@ -5,10 +5,16 @@ import me.anno.image.ImageCache
 import me.anno.image.raw.IFloatImage
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.ImportType.AUDIO
+import me.anno.io.files.ImportType.CUBEMAP_EQU
+import me.anno.io.files.ImportType.IMAGE
+import me.anno.io.files.ImportType.MESH
+import me.anno.io.files.ImportType.METADATA
+import me.anno.io.files.ImportType.VIDEO
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.SignatureCache
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.OS.res
-import me.anno.utils.types.Strings.getImportTypeByExtension
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 
@@ -104,9 +110,9 @@ object Packer {
     }
 
     fun isMaybePrefab(resource: FileReference): Boolean {
-        return when (getImportTypeByExtension(resource.lcExtension)) {
-            "Image", "Video", "Audio" -> false
-            else -> true
+        return when (SignatureCache[resource, false]?.importType) {
+            MESH, METADATA -> true
+            else -> false
         }
     }
 
@@ -116,6 +122,8 @@ object Packer {
         val writer = MappedJsonWriter(resourceMap)
         val history = prefab.history
         prefab.history = null // not needed
+        // to do clone the prefab before deleting this data?
+        prefab.sets.removeIf { _, k2, _ -> k2 == "isCollapsed" }
         writer.add(prefab)
         writer.writeAllInList()
         prefab.history = history
@@ -141,12 +149,13 @@ object Packer {
         var totalSize = resourceSizeApprox.values.sum()
         for ((srcFile, dstFile) in resourceMap) {
             try {
-                val importType = getImportTypeByExtension(srcFile.lcExtension)
+                val importType = SignatureCache[srcFile, false]?.importType
                 val bytes = when (importType) {
-                    "Image" -> packImage(srcFile)
-                    "Video" -> packVideo(srcFile)
-                    "Audio" -> packAudio(srcFile)
-                    else -> packPrefab(srcFile, resourceMap)
+                    IMAGE, CUBEMAP_EQU -> packImage(srcFile)
+                    VIDEO -> packVideo(srcFile)
+                    AUDIO -> packAudio(srcFile)
+                    MESH, METADATA -> packPrefab(srcFile, resourceMap)
+                    else -> null
                 } ?: srcFile.readBytesSync()
                 val fileName = dstFile.absolutePath
                     .substring(BundledRef.PREFIX.length)
@@ -235,11 +244,6 @@ object Packer {
                 val mapped = resourceMap[value] ?: value
                 appendString(mapped.toLocalPath(workspace.ifUndefined(this.workspace)))
             }
-        }
-
-        override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
-            if (name == "isCollapsed") return
-            super.writeBoolean(name, value, force)
         }
     }
 }

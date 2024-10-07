@@ -45,7 +45,7 @@ import org.joml.Vector4f
 import org.joml.Vector4i
 import kotlin.math.abs
 
-abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
+abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, true) {
 
     private var hasObject = false
 
@@ -398,23 +398,20 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         else appendString(value.toLocalPath(workspace.ifUndefined(this.workspace)))
     }
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean) {
         if (force || value != InvalidRef) {
             writeAttributeStart(REFERENCE.scalar, name)
             writeFile(value, workspace)
         }
     }
 
-    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean, workspace: FileReference) {
+    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean) {
         writeList(name, values, force, REFERENCE.array) {
             writeFile(it, workspace)
         }
     }
 
-    override fun writeFileList2D(
-        name: String, values: List<List<FileReference>>,
-        force: Boolean, workspace: FileReference
-    ) {
+    override fun writeFileList2D(name: String, values: List<List<FileReference>>, force: Boolean) {
         writeList2D(name, values, force, REFERENCE.array2d) {
             writeFile(it, workspace)
         }

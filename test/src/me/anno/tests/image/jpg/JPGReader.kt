@@ -2,15 +2,15 @@ package me.anno.tests.image.jpg
 
 import me.anno.image.raw.ByteImage
 import me.anno.io.Streams.readBE16
+import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
-import me.anno.utils.types.Booleans.toInt
-import me.anno.io.Streams.skipN
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Booleans.toInt
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -43,7 +43,7 @@ class JPGReader {
                     for (child in file.listChildren()) {
                         convert(child)
                     }
-                } else if (Signature.findNameSync(file) == "jpg") {
+                } else if (SignatureCache[file, false]?.name == "jpg") {
                     try {
                         val input = file.inputStreamSync()
                         JPGReader().read(input)

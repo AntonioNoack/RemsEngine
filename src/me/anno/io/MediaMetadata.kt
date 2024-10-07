@@ -6,7 +6,7 @@ import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
 import me.anno.utils.async.Callback
@@ -63,7 +63,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             }
         }
         // signature handlers
-        val signature1 = signature ?: Signature.findNameSync(file)
+        val signature1 = signature ?: SignatureCache[file, false]?.name
         for (shi in signatureHandlers.indices) {
             val sh = signatureHandlers[shi]
             if (sh.reader(file, signature1, this)) {

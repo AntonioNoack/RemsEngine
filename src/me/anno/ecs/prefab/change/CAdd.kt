@@ -63,7 +63,7 @@ class CAdd() : Change() {
         writer.writeChar("type", type)
         writer.writeString("id", nameId)
         writer.writeString("class", clazzName)
-        writer.writeString("prefab", prefab.toString())
+        writer.writeFile("prefab", prefab)
     }
 
     override fun setProperty(name: String, value: Any?) {

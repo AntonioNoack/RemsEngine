@@ -8,7 +8,7 @@ import me.anno.engine.projects.FileEncoding
 import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.utils.assertions.assertEquals
@@ -63,7 +63,7 @@ class FileEncodingTest {
         srcPrefab["name"] = "RemsEngine"
 
         val bytes = ByteArrayOutputStream().use { bos ->
-            val writer = BinaryWriter(bos)
+            val writer = BinaryWriter(bos, InvalidRef)
             writer.add(srcPrefab)
             writer.writeAllInList()
             writer.close()
@@ -89,7 +89,7 @@ class FileEncodingTest {
         // println("Wrote ${bytes.decodeToString()}")
         assertTrue(tmpFile.exists)
 
-        val signature = Signature.findNameSync(tmpFile)
+        val signature = SignatureCache[tmpFile, false]?.name
         assertEquals(expectedSignature, signature)
 
         val prefab = PrefabCache[tmpFile]!!

@@ -108,7 +108,10 @@ open class Saveable {
             else ConcurrentHashMap()
 
         fun getReflections(instance: Any): CachedReflections {
-            val clazz = instance::class
+            return getReflections(instance::class)
+        }
+
+        fun <V: Any> getReflections(clazz: KClass<V>): CachedReflections {
             return reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
         }
 

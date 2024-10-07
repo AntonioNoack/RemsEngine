@@ -18,6 +18,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
@@ -248,8 +249,8 @@ object PrefabCache : CacheSection("Prefab") {
             return
         }
         ECSRegistry.init()
-        Signature.findName(file) { signature, _ ->
-            when (signature) {
+        SignatureCache.getAsync(file) { signature0 ->
+            when (val signature = signature0?.name) {
                 "rem" -> readBinRE(file, callback)
                 "xml-re" -> readXMLRE(file, callback)
                 "yaml-re" -> readYAMLRE(file, callback)

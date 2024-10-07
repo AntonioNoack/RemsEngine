@@ -48,6 +48,15 @@ import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
+import me.anno.io.files.ImportType.AUDIO
+import me.anno.io.files.ImportType.CONTAINER
+import me.anno.io.files.ImportType.CUBEMAP_EQU
+import me.anno.io.files.ImportType.EXECUTABLE
+import me.anno.io.files.ImportType.IMAGE
+import me.anno.io.files.ImportType.LINK
+import me.anno.io.files.ImportType.METADATA
+import me.anno.io.files.ImportType.TEXT
+import me.anno.io.files.ImportType.VIDEO
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceAsync
@@ -168,14 +177,14 @@ open class FileExplorerEntry(
     } else {
         // actually checking the type would need to be done async, because it's slow to ready many, many files
         when (importType) {
-            "Container" -> zipPath
-            "Image", "Cubemap", "Cubemap-Equ" -> imagePath
-            "Text" -> textPath
-            "Audio" -> musicPath
-            "Video" -> videoPath
-            "Executable" -> exePath
-            "Metadata" -> metadataPath
-            "Link" -> linkPath
+            CONTAINER -> zipPath
+            IMAGE, "Cubemap", CUBEMAP_EQU -> imagePath // is there a cubemap format?
+            TEXT -> textPath
+            AUDIO -> musicPath
+            VIDEO -> videoPath
+            EXECUTABLE -> exePath
+            METADATA -> metadataPath
+            LINK -> linkPath
             else -> docsPath
         }
     }

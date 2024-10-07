@@ -11,6 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
@@ -122,7 +123,7 @@ object StaticMeshesLoader {
     fun loadFile(file0: FileReference, flags: Int): Pair<AIScene, Boolean> {
         // obj files should use our custom importer
         var file = file0
-        val signature = Signature.findNameSync(file)
+        val signature = SignatureCache[file, false]?.name
         if ((signature == "dae" || signature == "xml") && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)

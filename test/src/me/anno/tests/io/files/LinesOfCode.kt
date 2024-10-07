@@ -3,7 +3,9 @@ package me.anno.tests.io.files
 import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
+import me.anno.io.files.ImportType.CONTAINER
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileContentImporter
@@ -130,16 +132,15 @@ fun indexMaybe(file: FileReference, depth: Int): Vector3i? {
         else -> {
             if (file.isDirectory) return null
             try {
-                when (Signature.findNameSync(file)) {
-                    "zip", "rar", "tar", "gzip" -> {
+                when (SignatureCache[file, false]?.importType) {
+                    CONTAINER -> {
                         if (depth > 0) indexDir(file, depth)
                         else Vector3i(0, 0, -1)
                     }
                     else -> {
                         if (file.length() > 100_000) return null
                         try {
-                            val signature = Signature.findNameSync(file)
-                            if (signature == null) {
+                            if (SignatureCache[file, false] == null) {
                                 val data = index(file)
                                 Vector3i(data.x, data.y, 1)
                             } else null

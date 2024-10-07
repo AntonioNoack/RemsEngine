@@ -4,15 +4,16 @@ import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.image.Image
+import me.anno.image.ImageAsFolder
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
-import me.anno.image.ImageAsFolder
 import me.anno.image.ImageTransform
 import me.anno.image.raw.GPUImage
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS
 import me.anno.utils.Sleep
@@ -70,7 +71,12 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
     }
 
     private fun loadTexture() {
-        when (if (OS.isWeb) null else Signature.findNameSync(file)) {
+        if (OS.isWeb) loadTexture(null)
+        else SignatureCache.getAsync(file, ::loadTexture)
+    }
+
+    private fun loadTexture(signature: Signature?) {
+        when (signature?.name) {
             "dds", "media" -> tryUsingVideoCache(file)
             else -> ImageAsFolder.readImage(file, true).waitForGFX(::loadImage)
         }

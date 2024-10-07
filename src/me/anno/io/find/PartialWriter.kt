@@ -1,13 +1,14 @@
 package me.anno.io.find
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable
 
 /**
  * a BaseWriter, with the default behaviour of ignoring everything;
  * this is used in Rem's Studio as a way to detect references (whether a pointer needs to be added as such to a file)
  * */
-abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkipDefaultValues) {
+abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(InvalidRef, canSkipDefaultValues) {
 
     val writtenObjects = HashSet<Saveable>(64)
 

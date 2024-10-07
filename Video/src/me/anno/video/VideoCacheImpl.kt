@@ -1,7 +1,7 @@
 package me.anno.video
 
 import me.anno.io.MediaMetadata
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths
 import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGStream
@@ -14,7 +14,7 @@ object VideoCacheImpl {
     fun generateVideoFrames(key: VideoFramesKey): VideoSlice {
         val file = key.file
         val scale = key.scale
-        val signature = Signature.findNameSync(file)
+        val signature = SignatureCache[file, false]?.name
         val meta = MediaMetadata.getMeta(file, signature, false)
             ?: throw RuntimeException("Meta was not found for $key!")
         val data = VideoSlice(

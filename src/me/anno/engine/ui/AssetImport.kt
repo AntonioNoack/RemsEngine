@@ -10,7 +10,7 @@ import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFolder
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
@@ -67,17 +67,7 @@ object AssetImport {
     fun getPureTypeOrNull(file: FileReference): String? {
         val alias = (file as? InnerFolder)?.alias
         if (alias != null) return getPureTypeOrNull(alias)
-        return if (file.isDirectory) null else {
-            when (Signature.findNameSync(file)) {
-                // todo add all pure-copy extensions
-                "jpg", "png", "bmp", "svg", "gif", "qoi", "media", "hdr", "exr", "dds", "webp", "gimp" -> "Image"
-                "txt" -> "Text"
-                "pdf" -> "Document"
-                "woff", "woff2" -> "Font"
-                // maybe list the negatives?
-                else -> null
-            }
-        }
+        return SignatureCache[file, false]?.importType
     }
 
     private fun generalCopyAssets(

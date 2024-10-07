@@ -10,10 +10,12 @@ import me.anno.engine.inspector.CachedReflections.Companion.getEnumById
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.ui.input.EnumInput
 import me.anno.utils.structures.Collections.filterIsInstance2
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.iff
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -29,10 +31,14 @@ class CachedProperty(
 ) {
 
     val range = annotations.firstInstanceOrNull(Range::class)
-    val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, instanceClass) else null }
+    val hideInInspector1 = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, instanceClass) else null }
     val description = annotations.filterIsInstance2(Docs::class).joinToString("\n") { it.description }
     val order = annotations.firstInstanceOrNull(Order::class)?.index ?: 0
     val group = annotations.firstInstanceOrNull(Group::class)?.name
+
+    fun hideInInspector(instance: Any): Boolean {
+        return hideInInspector1.any2 { test -> test(instance) }
+    }
 
     operator fun set(instance: Any, value: Any?): Boolean {
         if (setter == null) {
@@ -134,11 +140,11 @@ class CachedProperty(
 
     override fun toString(): String {
         return "$name: $valueClass" +
-                (if (serialize) ", serialize" else "") +
-                (if (forceSaving == true) ", force-saving" else "") +
-                (if (range != null) ", $range" else "") +
+                ", serialize".iff(serialize) +
+                ", force-saving".iff(forceSaving == true) +
+                ", $range".iff(range != null) +
                 ", order: $order" +
-                (if (group != null) ", $group" else "") +
+                ", $group".iff(group != null) +
                 ", $annotations"
     }
 

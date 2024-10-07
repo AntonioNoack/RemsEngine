@@ -78,11 +78,14 @@ class CacheEntry private constructor(
     }
 
     fun <R> callback(exception: Exception?, resultCallback: Callback<R>) {
-        @Suppress("UNCHECKED_CAST")
-        resultCallback.call(
-            if (hasBeenDestroyed) null
-            else data as? R, exception
-        )
+        try {
+            @Suppress("UNCHECKED_CAST")
+            resultCallback.call(
+                if (hasBeenDestroyed) null
+                else data as? R, exception
+            )
+        } catch (ignored: IgnoredException) {
+        }
     }
 
     var deletingThreadName: String? = null

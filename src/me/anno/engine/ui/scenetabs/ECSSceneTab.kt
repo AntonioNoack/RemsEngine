@@ -69,7 +69,7 @@ class ECSSceneTab(
     val file get() = inspector.reference
 
     // different tabs have different "cameras"
-    var radius = 50.0
+    var radius = 10.0
     var position = Vector3d()
     var rotation = Quaterniond()
         .rotateX(20.0.toRadians())

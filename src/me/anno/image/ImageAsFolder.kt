@@ -16,6 +16,7 @@ import me.anno.image.raw.OpaqueImage
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.black
@@ -84,8 +85,8 @@ object ImageAsFolder {
 
         val ric = readIcoLayers
         if (file.lcExtension == "ico" && ric != null) {
-            Signature.findName(file) { sig, _ ->
-                if (sig == null || sig == "ico") {
+            SignatureCache.getAsync(file) { sig ->
+                if (sig == null || sig.name == "ico") {
                     file.inputStream { it, exc ->
                         if (it != null) {
                             val layers = ric(it)
@@ -206,8 +207,8 @@ object ImageAsFolder {
                     data.hasValue = true
                 }
             }
-        } else Signature.findName(file) { signature, _ ->
-            readImage(file, data, signature, forGPU)
+        } else SignatureCache.getAsync(file) { signature ->
+            readImage(file, data, signature?.name, forGPU)
         }
         return data
     }

@@ -19,8 +19,6 @@ import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-// todo bug: when exporting DamagedHelmet as scene,
-//  1.jpg is missing somehow...
 object ExportProcess {
 
     private val LOGGER = LogManager.getLogger(ExportProcess::class)

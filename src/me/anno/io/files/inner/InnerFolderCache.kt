@@ -8,7 +8,7 @@ import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
-import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.mesh.vox.VOXReader
 import kotlin.math.max
 
@@ -45,7 +45,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     }
 
     private fun generate(file1: FileReference): AsyncCacheData<InnerFolder?> {
-        val signature = Signature.findSync(file1)
+        val signature = SignatureCache[file1, false]
         val ext = file1.lcExtension
         val data = AsyncCacheData<InnerFolder?>()
         if (signature?.name == "json" && ext == "json") {

@@ -3,13 +3,24 @@ package me.anno.io.files
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.graph.hdb.ByteSlice
 import me.anno.io.Streams.readNBytes2
+import me.anno.io.files.ImportType.AUDIO
+import me.anno.io.files.ImportType.CODE
+import me.anno.io.files.ImportType.COMPILED
+import me.anno.io.files.ImportType.CONTAINER
+import me.anno.io.files.ImportType.CUBEMAP_EQU
+import me.anno.io.files.ImportType.EXECUTABLE
+import me.anno.io.files.ImportType.FONT
+import me.anno.io.files.ImportType.IMAGE
+import me.anno.io.files.ImportType.LINK
+import me.anno.io.files.ImportType.MESH
+import me.anno.io.files.ImportType.METADATA
+import me.anno.io.files.ImportType.TEXT
+import me.anno.io.files.ImportType.VIDEO
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.size
-import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -21,31 +32,28 @@ import kotlin.math.min
  * */
 class Signature(
     val name: String,
+    val importType: String,
     private val offset: Int,
     private val pattern: ByteArray
 ) {
 
-    constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.encodeToByteArray())
+    constructor(name: String, importType: String, offset: Int, signature: String) :
+            this(name, importType, offset, signature.encodeToByteArray())
 
-    constructor(name: String, offset: Int, signature: String, vararg extraBytes: Int) : this(
-        name, offset,
-        signature.encodeToByteArray() + ByteArray(extraBytes.size) { extraBytes[it].toByte() }
-    )
+    constructor(name: String, importType: String, offset: Int, signature: String, vararg extraBytes: Int) : this(
+        name, importType, offset,
+        signature.encodeToByteArray() + ByteArray(extraBytes.size) { extraBytes[it].toByte() })
 
-    constructor(name: String, offset: Int, prefix: ByteArray, signature: String, extraBytes: ByteArray) : this(
-        name, offset,
-        prefix + signature.encodeToByteArray() + extraBytes
-    )
+    constructor(
+        name: String, importType: String, offset: Int,
+        prefix: ByteArray, signature: String, extraBytes: ByteArray
+    ) : this(name, importType, offset, prefix + signature.encodeToByteArray() + extraBytes)
 
-    constructor(name: String, offset: Int, prefix: ByteArray, signature: String) : this(
-        name, offset,
-        prefix + signature.encodeToByteArray()
-    )
+    constructor(name: String, importType: String, offset: Int, prefix: ByteArray, signature: String) :
+            this(name, importType, offset, prefix + signature.encodeToByteArray())
 
-    constructor(name: String, offset: Int, vararg bytes: Int) : this(
-        name, offset,
-        ByteArray(bytes.size) { bytes[it].toByte() }
-    )
+    constructor(name: String, importType: String, offset: Int, vararg bytes: Int) :
+            this(name, importType, offset, ByteArray(bytes.size) { bytes[it].toByte() })
 
     val order = if (offset < 0) {
         // bad format: no identifier, so test it last
@@ -149,15 +157,12 @@ class Signature(
             signatures.remove(signature)
         }
 
-        fun findName(file: FileReference, callback: Callback<String?>) {
-            find(file) { sig, err -> callback.call(sig?.name, err) }
-        }
-
+        @Deprecated("Please use SignatureCache")
         fun find(file: FileReference, callback: Callback<Signature?>) {
             if (file is SignatureFile) return callback.ok(file.signature)
             if (!file.exists) return callback.ok(null)
             return when (file) {
-                is PrefabReadable -> callback.ok(signatures.firstOrNull2 { it.name == "json" })
+                is PrefabReadable -> callback.ok(json)
                 else -> {
                     // reads the bytes, or 255 if at end of file
                     // how much do we read? 🤔
@@ -165,146 +170,130 @@ class Signature(
                     // maybe we could read them piece by piece...
                     file.inputStream(sampleSize.toLong()) { input, err ->
                         if (input != null) callback.ok(find(input.readNBytes2(sampleSize, false)))
-                        else callback.err(null)
+                        else callback.err(err)
                     }
                 }
             }
         }
 
-        fun findNameSync(file: FileReference) = findSync(file)?.name
-        fun findSync(file: FileReference): Signature? {
-            if (file is SignatureFile) return file.signature
-            if (!file.exists) return null
-            return when (file) {
-                is PrefabReadable -> signatures.first2 { it.name == "json" }
-                else -> {
-                    // reads the bytes, or 255 if at end of file
-                    // how much do we read? 🤔
-                    // some formats are easy, others require more effort
-                    // maybe we could read them piece by piece...
-                    file.inputStreamSync().use { input: InputStream ->
-                        find(input.readNBytes2(sampleSize, false))
-                    }
-                }
-            }
-        }
-
-        val bmp = Signature("bmp", 0, "BM")
+        val bmp = Signature("bmp", IMAGE, 0, "BM")
+        val json = Signature("json", METADATA, 0, "[")
 
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
         // https://www.garykessler.net/library/file_sigs.html
         @Suppress("SpellCheckingInspection")
         private val signatures = arrayListOf(
-            Signature("bz2", 0, "BZh"),
-            Signature("rar", 0, "Rar!", 0x1a, 0x07),
-            Signature("zip", 0, "PK", 3, 4),
-            Signature("zip", 0, "PK", 5, 6), // "empty archive" after wikipedia
-            Signature("zip", 0, "PK", 7, 8), // "spanned archive"
-            Signature("tar", 0, 0x1F, 0x9D), // lempel-ziv-welch
-            Signature("tar", 0, 0x1F, 0xA0),// lzh
+            Signature("bz2", CONTAINER, 0, "BZh"),
+            Signature("rar", CONTAINER, 0, "Rar!", 0x1a, 0x07),
+            Signature("zip", CONTAINER, 0, "PK", 3, 4),
+            Signature("zip", CONTAINER, 0, "PK", 5, 6), // "empty archive" after wikipedia
+            Signature("zip", CONTAINER, 0, "PK", 7, 8), // "spanned archive"
+            Signature("tar", CONTAINER, 0, 0x1F, 0x9D), // lempel-ziv-welch
+            Signature("tar", CONTAINER, 0, 0x1F, 0xA0),// lzh
             // Signature("tar", 257, "ustar"), // this large offset is unfortunate; we'd have to adjust the signature readout for ALL others
-            Signature("gzip", 0, 0x1F, 0x8B), // gz/tar.gz
-            Signature("xz", 0, byteArrayOf(0xFD.toByte()), "7zXZ", byteArrayOf(0)), // xz compression
-            Signature("lz4", 0, 0x04, 0x22, 0x4D, 0x18), // another compression
-            Signature("7z", 0, "7z", 0xBC, 0xAF, 0x27, 0x1C),
-            Signature("xar", 0, "xar!"), // file compression for apple stuff?
-            Signature("oar", 0, "OAR"), // oar compression (mmh)
-            Signature("java", 0, 0xCA, 0xFE, 0xBA, 0xBE), // java class
-            Signature("text", 0, 0xEF, 0xBB, 0xBF), // UTF8
-            Signature("text", 0, 0xFF, 0xFE), // UTF16
-            Signature("text", 0, 0xFE, 0xFF),
-            Signature("text", 0, 0xFF, 0xFE, 0, 0), // UTF32
-            Signature("text", 0, 0xFE, 0xFF, 0, 0),
-            Signature("text", 0, "+/v8"), // UTF7
-            Signature("text", 0, "+/v9"), // UTF7
-            Signature("text", 0, "+/v+"), // UTF7
-            Signature("text", 0, "+/v/"), // UTF7
-            Signature("text", 0, 0x0E, 0xFE, 0xFF), // SOSU compressed text
-            Signature("pdf", 0, "%PDF"),
-            Signature("wasm", 0, byteArrayOf(0), "asm"),
-            Signature("ttf", 0, 0, 1, 0, 0, 0),// true type font
-            Signature("woff1", 0, "wOFF"),
-            Signature("woff2", 0, "wOF2"),
-            Signature("lua-bytecode", 0, byteArrayOf(0x1B), "Lua"),
-            Signature("shell", 0, "#!"),
+            Signature("gzip", CONTAINER, 0, 0x1F, 0x8B), // gz/tar.gz
+            Signature("xz", CONTAINER, 0, byteArrayOf(0xFD.toByte()), "7zXZ", byteArrayOf(0)), // xz compression
+            Signature("lz4", CONTAINER, 0, 0x04, 0x22, 0x4D, 0x18), // another compression
+            Signature("7z", CONTAINER, 0, "7z", 0xBC, 0xAF, 0x27, 0x1C),
+            Signature("xar", CONTAINER, 0, "xar!"), // file compression for apple stuff?
+            Signature("oar", CONTAINER, 0, "OAR"), // oar compression (mmh)
+            Signature("java", CODE, 0, 0xCA, 0xFE, 0xBA, 0xBE), // java class
+            Signature("text", TEXT, 0, 0xEF, 0xBB, 0xBF), // UTF8
+            Signature("text", TEXT, 0, 0xFF, 0xFE), // UTF16
+            Signature("text", TEXT, 0, 0xFE, 0xFF),
+            Signature("text", TEXT, 0, 0xFF, 0xFE, 0, 0), // UTF32
+            Signature("text", TEXT, 0, 0xFE, 0xFF, 0, 0),
+            Signature("text", TEXT, 0, "+/v8"), // UTF7
+            Signature("text", TEXT, 0, "+/v9"), // UTF7
+            Signature("text", TEXT, 0, "+/v+"), // UTF7
+            Signature("text", TEXT, 0, "+/v/"), // UTF7
+            Signature("text", TEXT, 0, 0x0E, 0xFE, 0xFF), // SOSU compressed text
+            Signature("pdf", "PDF", 0, "%PDF"),
+            Signature("wasm", COMPILED, 0, byteArrayOf(0), "asm"),
+            Signature("ttf", FONT, 0, 0, 1, 0, 0, 0),// true type font
+            Signature("woff1", FONT, 0, "wOFF"),
+            Signature("woff2", FONT, 0, "wOF2"),
+            Signature("lua-bytecode", COMPILED, 0, byteArrayOf(0x1B), "Lua"),
+            Signature("shell", CODE, 0, "#!"),
             // images
-            Signature("png", 0, byteArrayOf(0x89.toByte()), "PNG", byteArrayOf(0xd, 0xa, 0x1a, 0x0a)),
-            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xDB),
-            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xE0),
-            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xEE),
-            Signature("jpg", 0, 0xFF, 0xD8, 0xFF, 0xE1),
+            Signature("png", IMAGE, 0, byteArrayOf(0x89.toByte()), "PNG", byteArrayOf(0xd, 0xa, 0x1a, 0x0a)),
+            Signature("jpg", IMAGE, 0, 0xFF, 0xD8, 0xFF, 0xDB),
+            Signature("jpg", IMAGE, 0, 0xFF, 0xD8, 0xFF, 0xE0),
+            Signature("jpg", IMAGE, 0, 0xFF, 0xD8, 0xFF, 0xEE),
+            Signature("jpg", IMAGE, 0, 0xFF, 0xD8, 0xFF, 0xE1),
             bmp,
-            Signature("psd", 0, "8BPS"), // photoshop image format
-            Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
-            Signature("ico", 0, 0, 0, 1, 0, 1),// ico with 1 "image"
-            Signature("ico", 0, 0, 0, 2, 0, 1),// cursor with 1 "image"
-            Signature("dds", 0, "DDS "), // direct x image file format
-            Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
-            Signature("gimp", 0, "gimp xcf "), // gimp image file
-            Signature("qoi", 0, "qoif"),
-            Signature("exr", 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
-            Signature("webp", 8, "WEBP"), // after RIFF header
+            Signature("psd", IMAGE, 0, "8BPS"), // photoshop image format
+            Signature("hdr", CUBEMAP_EQU, 0, "#?RADIANCE"), // high dynamic range
+            Signature("ico", IMAGE, 0, 0, 0, 1, 0, 1),// ico with 1 "image"
+            Signature("ico", IMAGE, 0, 0, 0, 2, 0, 1),// cursor with 1 "image"
+            Signature("dds", IMAGE, 0, "DDS "), // direct x image file format
+            Signature("gif", VIDEO, 0, "GIF8"), // graphics interchange format, often animated
+            Signature("gimp", IMAGE, 0, "gimp xcf "), // gimp image file
+            Signature("qoi", IMAGE, 0, "qoif"),
+            Signature("exr", IMAGE, 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
+            Signature("webp", IMAGE, 8, "WEBP"), // after RIFF header
             // tga has header at the end of the file, and only sometimes...
             // other
-            Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
+            Signature("xml", METADATA, 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             // are we using 1.0??
-            Signature("xml-re", 0, "<?xml version=\"1.0\" encoding=\"utf-8\"?><RemsEngine"),
-            Signature("xml-re", 0, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<RemsEngine"),
-            Signature("svg", 0, "<svg"),
-            Signature("exe", 0, "MZ"),
-            Signature("rem", 0, "RemsEngineZZ"), // deflate-compressed binary format for Rem's Engine
+            Signature("xml-re", METADATA, 0, "<?xml version=\"1.0\" encoding=\"utf-8\"?><RemsEngine"),
+            Signature("xml-re", METADATA, 0, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<RemsEngine"),
+            Signature("svg", IMAGE, 0, "<svg"),
+            Signature("exe", EXECUTABLE, 0, "MZ"),
+            Signature("rem", METADATA, 0, "RemsEngineZZ"), // deflate-compressed binary format for Rem's Engine
             // media (video/audio)
-            Signature("media", 0, 0x1A, 0x45, 0xDF, 0xA3), // mkv, mka, mks, mk3d, webm
-            Signature("media", 0, "ID3"),// mp3 container
-            Signature("media", 0, 0xFF, 0xFB),// mp3
-            Signature("media", 0, 0xFF, 0xF3),// mp3
-            Signature("media", 0, 0xFF, 0xF2),// mp3
-            Signature("media", 0, "OggS"),// ogg, opus
-            Signature("media", 0, "RIFF"),// can be a lot of stuff, e.g., wav, avi
-            Signature("media", 0, "FLV"),// flv
-            Signature("media", 0, 0x47),// mpeg stream
-            Signature("media", 0, 0x00, 0x00, 0x01, 0xBA), // m2p, vob, mpg, mpeg
-            Signature("media", 0, 0x00, 0x00, 0x01, 0xB3),// mpg, mpeg
-            Signature("media", 4, "ftypisom"), // mp4
-            Signature("media", 4, "ftypmp42"), // mp4
-            Signature("media", 4, "ftypdash"), // m4a
-            Signature("media", 4, "ftyp"), // probably media... (I am unsure)
-            Signature("media", 0, 0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11), // wmv, wma, asf (Windows Media file)
+            Signature("media", VIDEO, 0, 0x1A, 0x45, 0xDF, 0xA3), // mkv, mka, mks, mk3d, webm
+            Signature("media", AUDIO, 0, "ID3"),// mp3 container
+            Signature("media", AUDIO, 0, 0xFF, 0xFB),// mp3
+            Signature("media", AUDIO, 0, 0xFF, 0xF3),// mp3
+            Signature("media", AUDIO, 0, 0xFF, 0xF2),// mp3
+            Signature("media", VIDEO, 0, "OggS"),// ogg, opus
+            Signature("media", VIDEO, 0, "RIFF"),// can be a lot of stuff, e.g., wav, avi
+            Signature("media", VIDEO, 0, "FLV"),// flv, flash video format
+            Signature("media", VIDEO, 0, 0x47),// mpeg stream
+            Signature("media", VIDEO, 0, 0x00, 0x00, 0x01, 0xBA), // m2p, vob, mpg, mpeg
+            Signature("media", VIDEO, 0, 0x00, 0x00, 0x01, 0xB3),// mpg, mpeg
+            Signature("media", VIDEO, 4, "ftypisom"), // mp4
+            Signature("media", VIDEO, 4, "ftypmp42"), // mp4
+            Signature("media", VIDEO, 4, "ftypdash"), // m4a
+            Signature("media", VIDEO, 4, "ftyp"), // probably media... (I am unsure)
+            // wmv, wma, asf (Windows Media file)
+            Signature("media", VIDEO, 0, 0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11),
             // meshes
-            Signature("vox", 0, "VOX "),
-            Signature("fbx", 0, "Kaydara FBX Binary"),
-            Signature("fbx", 0, "; FBX "), // text fbx, is followed by a version
-            Signature("obj", -1, "\nmtllib "),
-            Signature("obj", -1, "OBJ File"),
-            Signature("obj", 0, "o "), // ^^, stripped, very compact obj
-            Signature("mtl", -1, "newmtl "),
-            Signature("mtl", 0, "# Blender MTL"), // ^^
-            Signature("blend", 0, "BLENDER"),
-            Signature("gltf", 0, "glTF"),
-            Signature("gltf", -1, "\"scenes\""),
-            Signature("mesh-draco", 0, "DRACO"),
-            Signature("md2", 0, "IDP2"),
-            Signature("md5mesh", 0, "MD5Version"),
-            Signature("dae", -1, "<COLLADA"),
-            Signature("maya", 0, "//Maya ASCII "),
-            Signature("ply", 0, "ply"),
+            Signature("vox", MESH, 0, "VOX "),
+            Signature("fbx", MESH, 0, "Kaydara FBX Binary"),
+            Signature("fbx", MESH, 0, "; FBX "), // text fbx, is followed by a version
+            Signature("obj", MESH, -1, "\nmtllib "),
+            Signature("obj", MESH, -1, "OBJ File"),
+            Signature("obj", MESH, 0, "o "), // ^^, stripped, very compact obj
+            Signature("mtl", MESH, -1, "newmtl "),
+            Signature("mtl", MESH, 0, "# Blender MTL"), // ^^
+            Signature("blend", MESH, 0, "BLENDER"),
+            Signature("gltf", MESH, 0, "glTF"),
+            Signature("gltf", MESH, -1, "\"scenes\""),
+            Signature("mesh-draco", MESH, 0, "DRACO"),
+            Signature("md2", MESH, 0, "IDP2"),
+            Signature("md5mesh", MESH, 0, "MD5Version"),
+            Signature("dae", MESH, -1, "<COLLADA"),
+            Signature("maya", MESH, 0, "//Maya ASCII "),
+            Signature("ply", MESH, 0, "ply"),
             // scenes and meshes from mitsuba renderer
-            Signature("mitsuba-meshes", 0, byteArrayOf(0x1c, 0x04)),
-            Signature("mitsuba-scene", 0, "<scene version="),
-            Signature("mitsuba-scene", -1, "<scene version="),
+            Signature("mitsuba-meshes", MESH, 0, byteArrayOf(0x1c, 0x04)),
+            Signature("mitsuba-scene", MESH, 0, "<scene version="),
+            Signature("mitsuba-scene", MESH, -1, "<scene version="),
             // unity support
-            Signature("yaml", 0, "%YAML"),
-            Signature("yaml-re", 0, "RemsEngine:\n - class"),
+            Signature("yaml", METADATA, 0, "%YAML"),
+            Signature("yaml-re", METADATA, 0, "RemsEngine:\n - class"),
             // json, kind of
-            Signature("json", 0, "["),
-            Signature("json", 0, "[{"),
-            Signature("json", 0, "[{\"class\":"),
-            Signature("json", 0, "{"),
-            Signature("sims", 0, "DBPF"),
+            json,
+            Signature("json", METADATA, 0, "[{"),
+            Signature("json", METADATA, 0, "[{\"class\":"),
+            Signature("json", METADATA, 0, "{"),
+            Signature("sims", METADATA, 0, "DBPF"),
             // windows link file
-            Signature("lnk", 0, byteArrayOf(0x4c, 0, 0, 0)),
+            Signature("lnk", LINK, 0, byteArrayOf(0x4c, 0, 0, 0)),
             // window url file
-            Signature("url", 0, "[InternetShortcut]"),
+            Signature("url", LINK, 0, "[InternetShortcut]"),
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortBy { it.order }

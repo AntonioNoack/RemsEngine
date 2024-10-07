@@ -27,6 +27,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerByteSliceFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
@@ -492,7 +493,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
             }
             is PrefabReadable -> AssetThumbnails.generateAssetFrame(srcFile, dstFile, size, callback)
-            else -> Signature.find(srcFile) { signature, _ ->
+            else -> SignatureCache.getAsync(srcFile) { signature ->
                 generate(srcFile, dstFile, size, signature, callback)
             }
         }

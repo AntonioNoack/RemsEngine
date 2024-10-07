@@ -20,7 +20,7 @@ import org.joml.Vector4f
  *
  * this class cleans up after you: it creates a prefab from your "hacked" instance, so you can be lazy
  * */
-class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
+class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(InvalidRef, false) {
 
     val doneObjects = HashSet<PrefabSaveable>()
     var currentPath: Path = Path.ROOT_PATH
@@ -104,7 +104,7 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) write(name, value)
     }
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean) {
         if (force || value != InvalidRef) write(name, value)
     }
 

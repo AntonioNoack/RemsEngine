@@ -121,7 +121,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     var renderMode = RenderMode.DEFAULT
 
-    var radius = 50.0
+    var radius = 10.0
         set(value) {
             field = clamp(value, 1e-130, 1e130)
         }

@@ -20,7 +20,6 @@ import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
-import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
@@ -184,13 +183,13 @@ object InspectorUtils {
         val properties = reflections.propertiesByClass
         for (i in properties.indices) {
             val (clazz, propertiesI) = properties[i]
+            if (propertiesI.isEmpty()) continue
             val relevantInstances = instances.filter { clazz.isInstance(it) }
             val firstInstance = relevantInstances.firstOrNull() ?: continue
             val propertiesJ = propertiesI.filter {
-                it.serialize && it.hideInInspector.none2 { condition ->
-                    condition(firstInstance)
-                }
+                it.serialize && !it.hideInInspector(firstInstance)
             }
+
             if (propertiesJ.isEmpty()) continue
 
             val defaultGroup = ""

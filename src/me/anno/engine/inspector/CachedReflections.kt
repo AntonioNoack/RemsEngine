@@ -6,7 +6,9 @@ import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.EditorField
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.io.saveable.Saveable
 import me.anno.ui.input.EnumInput.Companion.getEnumConstants
+import me.anno.utils.Reflections
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Strings.isNotBlank2
@@ -18,7 +20,6 @@ import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.isAccessible
 
 class CachedReflections private constructor(
@@ -127,7 +128,7 @@ class CachedReflections private constructor(
 
         fun getMemberProperties(clazz: KClass<*>): Map<String, CachedProperty> {
             val jc = clazz.java
-            return findProperties(
+            return findProperties(jc,
                 allFields(jc, ArrayList())
                     .filter { !Modifier.isStatic(it.modifiers) },
                 allMethods(jc, ArrayList())
@@ -151,53 +152,25 @@ class CachedReflections private constructor(
             return dst
         }
 
-        private fun listClasses(clazz: KClass<*>): List<KClass<*>> {
-            val classes = ArrayList<KClass<*>>()
-            classes.add(clazz)
-            while (true) {
-                val lastClass = classes.last()
-                val superClasses = lastClass.superclasses
-                if (superClasses.isEmpty()) break
-                classes.addAll(superClasses)
-            }
-            return classes
-        }
-
-        fun getPropertiesByDeclaringClass(
-            classes: List<KClass<*>>, allProperties: Map<String, CachedProperty>
-        ): List<Pair<KClass<*>, List<CachedProperty>>> {
-            // the earlier something is found, the better
-            val doneNames = HashSet<String>()
-            val result = ArrayList<Pair<KClass<*>, List<CachedProperty>>>(classes.size)
-            for (ci in classes.indices.reversed()) {
-                val clazz2 = classes[ci]
-                val clazz2i = clazz2.java
-                val methods = allMethods(clazz2i, ArrayList())
-                val fields = allFields(clazz2i, ArrayList())
-                val partialResult = ArrayList<CachedProperty>()
-                for ((name, property) in findProperties(fields, methods)) {
-                    if (allProperties[name]?.serialize != true) {
-                        // LOGGER.warn("Skipping $name, not serialized")
-                        continue
-                    } // not serialized
-                    if (doneNames.add(name)) {
-                        partialResult.add(property)
-                    }
-                }
-                partialResult.sortBy { it.name }
-                result.add(clazz2 to partialResult)
-            }
-            return result
+        private fun sortProperties(input: Collection<CachedProperty>): List<CachedProperty> {
+            return input.sortedBy { it.name }
         }
 
         fun getPropertiesByDeclaringClass(
             clazz: KClass<*>, allProperties: Map<String, CachedProperty>
         ): List<Pair<KClass<*>, List<CachedProperty>>> {
-            val classes = listClasses(clazz)
-            return getPropertiesByDeclaringClass(classes, allProperties)
+            val superClass = Reflections.getParentClass(clazz)
+            if (superClass != null && !superClass.java.isInterface) {
+                val superReflections = Saveable.getReflections(superClass)
+                val superPropertyNames = superReflections.allProperties
+                    .map { it.key }.toHashSet()
+                val customProperties = allProperties.filter { it.key !in superPropertyNames }.values
+                return superReflections.propertiesByClass + (clazz to sortProperties(customProperties))
+            } else return listOf(clazz to sortProperties(allProperties.values))
         }
 
         fun findProperties(
+            clazz: Class<*>,
             properties: List<Field>,
             methods: List<Method>,
         ): Map<String, CachedProperty> {
@@ -224,7 +197,7 @@ class CachedReflections private constructor(
                 if (name.isNullOrBlank()) name = field.name
                 if (name in map || name == null) continue
                 try {
-                    map[name] = saveField(field, field.name, name, serial, serialize, annotations.toList())
+                    map[name] = saveField(clazz, field, field.name, name, serial, serialize, annotations.toList())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -287,6 +260,7 @@ class CachedReflections private constructor(
         }
 
         private fun saveField(
+            clazz: Class<*>,
             field: Field,
             javaName: String, savedName: String,
             serial: SerializedProperty?,
@@ -296,18 +270,20 @@ class CachedReflections private constructor(
             // save the field
             field.isAccessible = true
             val setterMethod = try {
-                field.declaringClass.getMethod("set${javaName.titlecase()}", field.type)
+                clazz.getMethod("set${javaName.titlecase()}", field.type)
             } catch (e: NoSuchMethodException) {
                 null
             }
+            if (serialize && setterMethod == null) {
+                LOGGER.warn("Missing setter for $clazz.$javaName")
+            }
             val getterMethod = try {
-                field.declaringClass.getMethod("get${javaName.titlecase()}")
+                clazz.getMethod("get${javaName.titlecase()}")
             } catch (e: NoSuchMethodException) {
                 null
             }
             return saveField(
-                field.declaringClass,
-                field.type, savedName, serial,
+                clazz, field.type, savedName, serial,
                 serialize && setterMethod != null, annotations,
                 if (getterMethod != null && getterMethod.returnType == field.type) { it -> getterMethod.invoke(it) }
                 else field::get,

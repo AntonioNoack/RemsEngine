@@ -16,6 +16,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.SignatureCache
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.NamedSaveable
@@ -211,8 +212,8 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
     private fun indexResource(file: FileReference) {
         if (file.isDirectory) return
-        Signature.findName(file) { sign, _ ->
-            when (sign) {
+        SignatureCache.getAsync(file) { signature ->
+            when (signature?.name) {
                 "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> {
                     addToIndex(file, "Image") // cpu-side name
                     addToIndex(file, "Texture") // gpu-side name
