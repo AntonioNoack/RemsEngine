@@ -394,13 +394,14 @@ object Strings {
 
     @JvmStatic
     fun CharSequence.toLong(i0: Int = 0, i1: Int = length): Long {
+        if (i0 >= i1) return 0L
         val c0 = this[i0]
-        if (c0 == '-') return -toLong(i0 + 1, i1)
-        var number = c0.code - 48L
-        for (i in i0 + 1 until i1) {
-            number = 10 * number + this[i].code - 48
+        val ix = if (c0 == '+' || c0 == '-') i0 + 1 else i0
+        var number = 0L
+        for (i in ix until i1) {
+            number = 10 * number - this[i].code - 48
         }
-        return number
+        return if (c0 == '-') number else -number
     }
 
     @JvmStatic

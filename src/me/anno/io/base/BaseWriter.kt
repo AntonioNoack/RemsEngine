@@ -42,6 +42,7 @@ abstract class BaseWriter(
     val canSkipDefaultValues: Boolean
 ) {
 
+    var resourceMap: Map<FileReference, FileReference> = emptyMap()
     val todoPointers = ArrayList<Saveable>(256)
     val todoPointersSet = HashSet<Saveable>(256)
     val pointers = HashMap<Saveable, Int>(256)
@@ -511,9 +512,9 @@ abstract class BaseWriter(
 
     private fun write1DList(self: Saveable?, name: String, value: List<*>, sample: Any?, forceSaving: Boolean) {
         when (sample) {
-
             is String -> writeStringList(name, cast(value), forceSaving)
-
+            is FileReference -> writeFileList(name, cast(value), forceSaving)
+            // vectors
             is Vector2f -> writeVector2fList(name, cast(value), forceSaving)
             is Vector3f -> writeVector3fList(name, cast(value), forceSaving)
             is Vector4f -> writeVector4fList(name, cast(value), forceSaving)
@@ -523,21 +524,26 @@ abstract class BaseWriter(
             is Vector2i -> writeVector2iList(name, cast(value), forceSaving)
             is Vector3i -> writeVector3iList(name, cast(value), forceSaving)
             is Vector4i -> writeVector4iList(name, cast(value), forceSaving)
-
+            // matrices
             is Matrix2f -> writeMatrix2x2fList(name, cast(value), forceSaving)
             is Matrix3x2f -> writeMatrix3x2fList(name, cast(value), forceSaving)
             is Matrix3f -> writeMatrix3x3fList(name, cast(value), forceSaving)
             is Matrix4x3f -> writeMatrix4x3fList(name, cast(value), forceSaving)
             is Matrix4f -> writeMatrix4x4fList(name, cast(value), forceSaving)
-
             is Matrix2d -> writeMatrix2x2dList(name, cast(value), forceSaving)
             is Matrix3x2d -> writeMatrix3x2dList(name, cast(value), forceSaving)
             is Matrix3d -> writeMatrix3x3dList(name, cast(value), forceSaving)
             is Matrix4x3d -> writeMatrix4x3dList(name, cast(value), forceSaving)
             is Matrix4d -> writeMatrix4x4dList(name, cast(value), forceSaving)
-
+            // quaternions
             is Quaternionf -> writeQuaternionfList(name, cast(value), forceSaving)
             is Quaterniond -> writeQuaterniondList(name, cast(value), forceSaving)
+            // planes
+            is Planef -> writePlanefList(name, cast(value), forceSaving)
+            is Planed -> writePlanedList(name, cast(value), forceSaving)
+            // aabbs
+            is AABBf -> writeAABBfList(name, cast(value), forceSaving)
+            is AABBd -> writeAABBdList(name, cast(value), forceSaving)
 
             is BooleanArray -> writeBooleanArray2D(name, cast(value), forceSaving)
             is CharArray -> writeCharArray2D(name, cast(value), forceSaving)
@@ -547,20 +553,19 @@ abstract class BaseWriter(
             is LongArray -> writeLongArray2D(name, cast(value), forceSaving)
             is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
             is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
-            is PrefabSaveable -> writeNullableObjectList(
-                self,
-                name,
-                filterII(value, PrefabSaveable::class),
-                forceSaving
-            )
-            is Saveable -> writeNullableObjectList(self, name, filterII(value, Saveable::class), forceSaving)
-            is FileReference -> writeFileList(name, cast(value), forceSaving)
+            is PrefabSaveable ->
+                writeNullableObjectList(self, name, filterII(value, PrefabSaveable::class), forceSaving)
+            is Saveable ->
+                writeNullableObjectList(self, name, filterII(value, Saveable::class), forceSaving)
             is List<*> -> {
                 if (sample.isNotEmpty()) {
                     write2DList(name, cast(value), sample[0], forceSaving)
                 } // else ...
             }
-            else -> throw RuntimeException("Not yet implemented: saving a list of $sample")
+            else -> throw RuntimeException(
+                "Not yet implemented: saving a list of $sample, " +
+                        "${if (sample == null) null else sample::class}"
+            )
         }
     }
 
@@ -599,6 +604,7 @@ abstract class BaseWriter(
             // other
             is String -> writeStringList2D(name, cast(value), forceSaving)
             is FileReference -> writeFileList2D(name, cast(value), forceSaving)
+            is Saveable -> writeObjectList2D<Saveable>(null, name, cast(value), forceSaving)
             else -> LOGGER.warn("Writing 2d array '$name' of type ${if (sample1 != null) sample1::class else null} hasn't been implemented")
         }
     }
@@ -657,16 +663,24 @@ abstract class BaseWriter(
             is Vector2i -> writeVector2i(name, value, forceSaving)
             is Vector3i -> writeVector3i(name, value, forceSaving)
             is Vector4i -> writeVector4i(name, value, forceSaving)
+            // matrices
+            is Matrix2f -> writeMatrix2x2f(name, value,forceSaving)
+            is Matrix3x2f -> writeMatrix3x2f(name, value,forceSaving)
             is Matrix3f -> writeMatrix3x3f(name, value, forceSaving)
             is Matrix4x3f -> writeMatrix4x3f(name, value, forceSaving)
             is Matrix4f -> writeMatrix4x4f(name, value, forceSaving)
+            is Matrix2d -> writeMatrix2x2d(name, value,forceSaving)
+            is Matrix3x2d -> writeMatrix3x2d(name, value,forceSaving)
             is Matrix3d -> writeMatrix3x3d(name, value, forceSaving)
             is Matrix4x3d -> writeMatrix4x3d(name, value, forceSaving)
             is Matrix4d -> writeMatrix4x4d(name, value, forceSaving)
+            // quaternions
             is Quaternionf -> writeQuaternionf(name, value, forceSaving)
             is Quaterniond -> writeQuaterniond(name, value, forceSaving)
+            // planes
             is Planef -> writePlanef(name, value, forceSaving)
             is Planed -> writePlaned(name, value, forceSaving)
+            // aabbs
             is AABBf -> writeAABBf(name, value, forceSaving)
             is AABBd -> writeAABBd(name, value, forceSaving)
             // others

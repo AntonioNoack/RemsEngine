@@ -18,9 +18,10 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 
 /**
- * test for all encodings, whether they work
+ * test for all encodings, whether they work;
+ * small, general test on actually used classes
  * */
-class FileEncodingTest {
+class GeneralFileEncodingTest {
 
     init {
         registerCustomClass(Prefab::class)

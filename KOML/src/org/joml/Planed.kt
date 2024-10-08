@@ -47,6 +47,22 @@ open class Planed(
     fun findY(x: Double, z: Double): Double = -dot(x, 0.0, z) / dirY
     fun findZ(x: Double, y: Double): Double = -dot(x, y, 0.0) / dirZ
 
+    override fun equals(other: Any?): Boolean {
+        return other is Planed &&
+                dirX == other.dirX &&
+                dirY == other.dirY &&
+                dirZ == other.dirZ &&
+                distance == other.distance
+    }
+
+    override fun hashCode(): Int {
+        var hash = dirX.hashCode()
+        hash = hash * 31 + dirY.hashCode()
+        hash = hash * 31 + dirZ.hashCode()
+        hash = hash * 31 + distance.hashCode()
+        return hash
+    }
+
     override fun toString(): String {
         return "Plane($dirX, $dirY, $dirZ, $distance)"
     }

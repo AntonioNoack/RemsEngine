@@ -3,15 +3,6 @@ package me.anno.io.json.saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.saveable.SimpleType.BOOLEAN
-import me.anno.io.json.saveable.SimpleType.CHAR
-import me.anno.io.json.saveable.SimpleType.COLOR
-import me.anno.io.json.saveable.SimpleType.DOUBLE
-import me.anno.io.json.saveable.SimpleType.FLOAT
-import me.anno.io.json.saveable.SimpleType.INT
-import me.anno.io.json.saveable.SimpleType.LONG
-import me.anno.io.json.saveable.SimpleType.REFERENCE
-import me.anno.io.json.saveable.SimpleType.STRING
 import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths
 import me.anno.utils.Color
@@ -109,6 +100,10 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
         }
     }
 
+    private fun writeAttributeStart(type: SimpleType, name: String?) {
+        writeAttributeStart(type.scalar, name)
+    }
+
     private fun append(value: Float) {
         append(value.toDouble())
     }
@@ -124,14 +119,14 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
         if (force || value) {
-            writeAttributeStart(BOOLEAN.scalar, name)
+            writeAttributeStart(SimpleType.BOOLEAN, name)
             append(if (value) "true" else "false")
         }
     }
 
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(BOOLEAN.array, name)
+            writeAttributeStart(SimpleType.BOOLEAN.array, name)
             writeList(values.size, values.indexOfLast { it }) {
                 append(if (values[it]) '1' else '0')
             }
@@ -139,7 +134,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeBooleanArray2D(name: String, values: List<BooleanArray>, force: Boolean) {
-        writeList(name, values, force, BOOLEAN.array2d) { arr ->
+        writeList(name, values, force, SimpleType.BOOLEAN.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it }) {
                 append(if (arr[it]) '1' else '0')
             }
@@ -160,14 +155,14 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeChar(name: String, value: Char, force: Boolean) {
         if (force || value != 0.toChar()) {
-            writeAttributeStart(CHAR.scalar, name)
+            writeAttributeStart(SimpleType.CHAR, name)
             appendCharValue(value)
         }
     }
 
     override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(CHAR.array, name)
+            writeAttributeStart(SimpleType.CHAR.array, name)
             writeList(values.size, values.indexOfLast { it.code != 0 }) {
                 appendCharValue(values[it])
             }
@@ -175,7 +170,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeCharArray2D(name: String, values: List<CharArray>, force: Boolean) {
-        writeList(name, values, force, CHAR.array2d) { arr ->
+        writeList(name, values, force, SimpleType.CHAR.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it.code != 0 }) {
                 appendCharValue(arr[it])
             }
@@ -184,7 +179,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeByte(name: String, value: Byte, force: Boolean) {
         if (force || value != 0.toByte()) {
-            writeAttributeStart(SimpleType.BYTE.scalar, name)
+            writeAttributeStart(SimpleType.BYTE, name)
             append(value.toInt())
         }
     }
@@ -208,7 +203,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeShort(name: String, value: Short, force: Boolean) {
         if (force || value != 0.toShort()) {
-            writeAttributeStart(SimpleType.SHORT.scalar, name)
+            writeAttributeStart(SimpleType.SHORT, name)
             append(value)
         }
     }
@@ -232,7 +227,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeInt(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
-            writeAttributeStart(SimpleType.INT.scalar, name)
+            writeAttributeStart(SimpleType.INT, name)
             append(value)
         }
     }
@@ -287,14 +282,14 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeColor(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
-            writeAttributeStart(COLOR.scalar, name)
+            writeAttributeStart(SimpleType.COLOR, name)
             appendColor(value)
         }
     }
 
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(INT.array, name)
+            writeAttributeStart(SimpleType.INT.array, name)
             // 18-23ns/e
             writeList(values.size, values.indexOfLast { it != 0 }) {
                 append(values[it])
@@ -304,7 +299,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeColorArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(COLOR.array, name)
+            writeAttributeStart(SimpleType.COLOR.array, name)
             // 18-23ns/e
             writeList(values.size, values.indexOfLast { it != 0 }) {
                 appendColor(values[it])
@@ -313,7 +308,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeIntArray2D(name: String, values: List<IntArray>, force: Boolean) {
-        writeList(name, values, force, INT.array2d) { arr ->
+        writeList(name, values, force, SimpleType.INT.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it != 0 }) {
                 append(arr[it])
             }
@@ -321,7 +316,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeColorArray2D(name: String, values: List<IntArray>, force: Boolean) {
-        writeList(name, values, force, COLOR.array2d) { arr ->
+        writeList(name, values, force, SimpleType.COLOR.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it != 0 }) {
                 appendColor(arr[it])
             }
@@ -330,14 +325,14 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeFloat(name: String, value: Float, force: Boolean) {
         if (force || value != 0f) {
-            writeAttributeStart(FLOAT.scalar, name)
+            writeAttributeStart(SimpleType.FLOAT, name)
             append(value)
         }
     }
 
     override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(FLOAT.array, name)
+            writeAttributeStart(SimpleType.FLOAT.array, name)
             writeList(values.size, values.indexOfLast { it != 0f }) {
                 append(values[it])
             }
@@ -345,7 +340,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeFloatArray2D(name: String, values: List<FloatArray>, force: Boolean) {
-        writeList(name, values, force, FLOAT.array2d) { arr ->
+        writeList(name, values, force, SimpleType.FLOAT.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it != 0f }) {
                 append(arr[it])
             }
@@ -354,14 +349,14 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeDouble(name: String, value: Double, force: Boolean) {
         if (force || value != 0.0) {
-            writeAttributeStart(DOUBLE.scalar, name)
+            writeAttributeStart(SimpleType.DOUBLE, name)
             append(value)
         }
     }
 
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(DOUBLE.array, name)
+            writeAttributeStart(SimpleType.DOUBLE.array, name)
             writeList(values.size, values.indexOfLast { it != 0.0 }) {
                 append(values[it])
             }
@@ -369,7 +364,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeDoubleArray2D(name: String, values: List<DoubleArray>, force: Boolean) {
-        writeList(name, values, force, DOUBLE.array2d) { arr ->
+        writeList(name, values, force, SimpleType.DOUBLE.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it != 0.0 }) {
                 append(arr[it])
             }
@@ -378,55 +373,55 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeString(name: String, value: String, force: Boolean) {
         if (force || value != "") {
-            writeAttributeStart(STRING.scalar, name)
+            writeAttributeStart(SimpleType.STRING, name)
             appendString(value)
         }
     }
 
     override fun writeStringList(name: String, values: List<String>, force: Boolean) {
-        writeList(name, values, force, STRING.array) {
+        writeList(name, values, force, SimpleType.STRING) {
             appendString(it)
         }
     }
 
     override fun writeStringList2D(name: String, values: List<List<String>>, force: Boolean) {
-        writeList2D(name, values, force, STRING.array2d, ::appendString)
+        writeList2D(name, values, force, SimpleType.STRING, ::appendString)
     }
 
-    open fun writeFile(value: FileReference?, workspace: FileReference) {
-        if (value == null || value == InvalidRef) appendString("")
-        else appendString(value.toLocalPath(workspace.ifUndefined(this.workspace)))
+    private fun appendFile(value: FileReference) {
+        val mapped = resourceMap[value] ?: value
+        appendString(mapped.toLocalPath(workspace))
     }
 
     override fun writeFile(name: String, value: FileReference, force: Boolean) {
         if (force || value != InvalidRef) {
-            writeAttributeStart(REFERENCE.scalar, name)
-            writeFile(value, workspace)
+            writeAttributeStart(SimpleType.REFERENCE, name)
+            appendFile(value)
         }
     }
 
     override fun writeFileList(name: String, values: List<FileReference>, force: Boolean) {
-        writeList(name, values, force, REFERENCE.array) {
-            writeFile(it, workspace)
+        writeList(name, values, force, SimpleType.REFERENCE) {
+            appendFile(it)
         }
     }
 
     override fun writeFileList2D(name: String, values: List<List<FileReference>>, force: Boolean) {
-        writeList2D(name, values, force, REFERENCE.array2d) {
-            writeFile(it, workspace)
+        writeList2D(name, values, force, SimpleType.REFERENCE) {
+            appendFile(it)
         }
     }
 
     override fun writeLong(name: String, value: Long, force: Boolean) {
         if (force || value != 0L) {
-            writeAttributeStart(LONG.scalar, name)
+            writeAttributeStart(SimpleType.LONG, name)
             append(value)
         }
     }
 
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart(LONG.array, name)
+            writeAttributeStart(SimpleType.LONG.array, name)
             writeList(values.size, values.indexOfLast { it != 0L }) {
                 append(values[it])
             }
@@ -434,7 +429,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeLongArray2D(name: String, values: List<LongArray>, force: Boolean) {
-        writeList(name, values, force, LONG.array2d) { arr ->
+        writeList(name, values, force, SimpleType.LONG.array2d) { arr ->
             writeList(arr.size, arr.indexOfLast { it != 0L }) {
                 append(arr[it])
             }
@@ -528,22 +523,22 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 1f) {
-            writeAttributeStart("q4", name)
+            writeAttributeStart(SimpleType.QUATERNIONF, name)
             writeQuaternionf(value)
         }
     }
 
     override fun writeQuaternionfList(name: String, values: List<Quaternionf>, force: Boolean) =
-        writeList(name, values, force, "q4[]", ::writeQuaternionf)
+        writeList(name, values, force, SimpleType.QUATERNIONF, ::writeQuaternionf)
 
     override fun writeQuaternionfList2D(name: String, values: List<List<Quaternionf>>, force: Boolean) =
-        writeList2D(name, values, force, "q4[][]", ::writeQuaternionf)
+        writeList2D(name, values, force, SimpleType.QUATERNIONF, ::writeQuaternionf)
 
     override fun writeQuaterniondList(name: String, values: List<Quaterniond>, force: Boolean) =
-        writeList(name, values, force, "q4d[]", ::writeQuaterniond)
+        writeList(name, values, force, SimpleType.QUATERNIOND, ::writeQuaterniond)
 
     override fun writeQuaterniondList2D(name: String, values: List<List<Quaterniond>>, force: Boolean) =
-        writeList2D(name, values, force, "q4d[][]", ::writeQuaterniond)
+        writeList2D(name, values, force, SimpleType.QUATERNIOND, ::writeQuaterniond)
 
     private fun writeVector2d(value: Vector2d) {
         writeVector2d(value.x, value.y)
@@ -600,7 +595,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) {
-            writeAttributeStart("q4d", name)
+            writeAttributeStart(SimpleType.QUATERNIOND, name)
             writeQuaterniond(value)
         }
     }
@@ -637,126 +632,122 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     override fun writeVector2i(name: String, value: Vector2i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0) {
-            writeAttributeStart("v2i", name)
+            writeAttributeStart(SimpleType.VECTOR2I, name)
             writeVector2i(value)
         }
     }
 
     override fun writeVector2iList(name: String, values: List<Vector2i>, force: Boolean) =
-        writeList(name, values, force, "v2i[]", ::writeVector2i)
+        writeList(name, values, force, SimpleType.VECTOR2I, ::writeVector2i)
 
     override fun writeVector2iList2D(name: String, values: List<List<Vector2i>>, force: Boolean) =
-        writeList2D(name, values, force, "v2i[][]", ::writeVector2i)
+        writeList2D(name, values, force, SimpleType.VECTOR2I, ::writeVector2i)
 
     override fun writeVector3i(name: String, value: Vector3i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0 || value.z != 0) {
-            writeAttributeStart("v3i", name)
+            writeAttributeStart(SimpleType.VECTOR3I, name)
             writeVector3i(value)
         }
     }
 
     override fun writeVector3iList(name: String, values: List<Vector3i>, force: Boolean) =
-        writeList(name, values, force, "v3i[]", ::writeVector3i)
+        writeList(name, values, force, SimpleType.VECTOR3I, ::writeVector3i)
 
     override fun writeVector3iList2D(name: String, values: List<List<Vector3i>>, force: Boolean) =
-        writeList2D(name, values, force, "v3i[][]", ::writeVector3i)
+        writeList2D(name, values, force, SimpleType.VECTOR3I, ::writeVector3i)
 
     override fun writeVector4i(name: String, value: Vector4i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0) {
-            writeAttributeStart("v4i", name)
+            writeAttributeStart(SimpleType.VECTOR4I, name)
             writeVector4i(value)
         }
     }
 
     override fun writeVector4iList(name: String, values: List<Vector4i>, force: Boolean) =
-        writeList(name, values, force, "v4i[]", ::writeVector4i)
+        writeList(name, values, force, SimpleType.VECTOR4I, ::writeVector4i)
 
     override fun writeVector4iList2D(name: String, values: List<List<Vector4i>>, force: Boolean) =
-        writeList2D(name, values, force, "v4i[][]", ::writeVector4i)
+        writeList2D(name, values, force, SimpleType.VECTOR4I, ::writeVector4i)
 
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f) {
-            writeAttributeStart("v2", name)
+            writeAttributeStart(SimpleType.VECTOR2F, name)
             writeVector2f(value)
         }
     }
 
     override fun writeVector2fList(name: String, values: List<Vector2f>, force: Boolean) =
-        writeList(name, values, force, "v2[]", ::writeVector2f)
+        writeList(name, values, force, SimpleType.VECTOR2F, ::writeVector2f)
 
     override fun writeVector2fList2D(name: String, values: List<List<Vector2f>>, force: Boolean) =
-        writeList2D(name, values, force, "v2[][]", ::writeVector2f)
+        writeList2D(name, values, force, SimpleType.VECTOR2F, ::writeVector2f)
 
     override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f) {
-            writeAttributeStart("v3", name)
+            writeAttributeStart(SimpleType.VECTOR3F, name)
             writeVector3f(value)
         }
     }
 
     override fun writeVector3fList(name: String, values: List<Vector3f>, force: Boolean) =
-        writeList(name, values, force, "v3[]", ::writeVector3f)
+        writeList(name, values, force, SimpleType.VECTOR3F, ::writeVector3f)
 
     override fun writeVector3fList2D(name: String, values: List<List<Vector3f>>, force: Boolean) =
-        writeList2D(name, values, force, "v3[][]", ::writeVector3f)
+        writeList2D(name, values, force, SimpleType.VECTOR3F, ::writeVector3f)
 
     override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f) {
-            writeAttributeStart("v4", name)
+            writeAttributeStart(SimpleType.VECTOR4F, name)
             writeVector4f(value)
         }
     }
 
     override fun writeVector4fList(name: String, values: List<Vector4f>, force: Boolean) =
-        writeList(name, values, force, "v4[]", ::writeVector4f)
+        writeList(name, values, force, SimpleType.VECTOR4F, ::writeVector4f)
 
     override fun writeVector4fList2D(name: String, values: List<List<Vector4f>>, force: Boolean) =
-        writeList2D(name, values, force, "v4[][]", ::writeVector4f)
+        writeList2D(name, values, force, SimpleType.VECTOR4F, ::writeVector4f)
 
     override fun writeVector2d(name: String, value: Vector2d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0) {
-            writeAttributeStart("v2d", name)
+            writeAttributeStart(SimpleType.VECTOR2D, name)
             writeVector2d(value)
         }
     }
 
     override fun writeVector2dList(name: String, values: List<Vector2d>, force: Boolean) =
-        writeList(name, values, force, "v2d[]", ::writeVector2d)
+        writeList(name, values, force, SimpleType.VECTOR2D, ::writeVector2d)
 
     override fun writeVector2dList2D(name: String, values: List<List<Vector2d>>, force: Boolean) =
-        writeList2D(name, values, force, "v2d[][]", ::writeVector2d)
+        writeList2D(name, values, force, SimpleType.VECTOR2D, ::writeVector2d)
 
     override fun writeVector3d(name: String, value: Vector3d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0) {
-            writeAttributeStart("v3d", name)
+            writeAttributeStart(SimpleType.VECTOR3D, name)
             writeVector3d(value)
         }
     }
 
     override fun writeVector3dList(name: String, values: List<Vector3d>, force: Boolean) =
-        writeList(name, values, force, "v3d[]", ::writeVector3d)
+        writeList(name, values, force, SimpleType.VECTOR3D, ::writeVector3d)
 
     override fun writeVector3dList2D(name: String, values: List<List<Vector3d>>, force: Boolean) =
-        writeList2D(name, values, force, "v3d[][]", ::writeVector3d)
+        writeList2D(name, values, force, SimpleType.VECTOR3D, ::writeVector3d)
 
     override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0) {
-            writeAttributeStart("vd4", name)
+            writeAttributeStart(SimpleType.VECTOR4D.scalar, name)
             writeVector4d(value)
         }
     }
 
     override fun writeVector4dList(name: String, values: List<Vector4d>, force: Boolean) =
-        writeList(name, values, force, "v4d[]", ::writeVector4d)
+        writeList(name, values, force, SimpleType.VECTOR4D, ::writeVector4d)
 
     override fun writeVector4dList2D(name: String, values: List<List<Vector4d>>, force: Boolean) =
-        writeList2D(name, values, force, "v4d[][]", ::writeVector4d)
+        writeList2D(name, values, force, SimpleType.VECTOR4D, ::writeVector4d)
 
-    private fun writeList(
-        size: Int,
-        lastIndex: Int,
-        writeValue: (Int) -> Unit
-    ) {
+    private fun writeList(size: Int, lastIndex: Int, writeValue: (Int) -> Unit) {
         open(true)
         append(size)
         for (i in 0 until Maths.min(lastIndex + 1, size)) {
@@ -767,11 +758,15 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     private fun <V> writeList(
-        name: String,
-        values: List<V>?,
-        force: Boolean,
-        type: String,
-        writeValue: (V) -> Unit
+        name: String, values: List<V>?, force: Boolean,
+        type: SimpleType, writeValue: (V) -> Unit
+    ) {
+        writeList(name, values, force, type.array, writeValue)
+    }
+
+    private fun <V> writeList(
+        name: String, values: List<V>?, force: Boolean,
+        type: String, writeValue: (V) -> Unit
     ) {
         if (values == null) {
             if (force) {
@@ -794,9 +789,9 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
 
     private fun <V> writeList2D(
         name: String, values: List<List<V>>,
-        force: Boolean, type: String, writeValue: (V) -> Unit
+        force: Boolean, type: SimpleType, writeValue: (V) -> Unit
     ) {
-        writeList(name, values, force, type) { array ->
+        writeList(name, values, force, type.array2d) { array ->
             writeList(array.size, array.size) {
                 writeValue(array[it])
             }
@@ -864,59 +859,59 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean) {
-        writeAttributeStart("m2x2", name)
+        writeAttributeStart(SimpleType.MATRIX2X2F, name)
         writeMatrix2x2f(value)
     }
 
     override fun writeMatrix3x2f(name: String, value: Matrix3x2f, force: Boolean) {
-        writeAttributeStart("m3x2", name)
+        writeAttributeStart(SimpleType.MATRIX3X2F, name)
         writeMatrix3x2f(value)
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3f, force: Boolean) {
-        writeAttributeStart("m3x3", name)
+        writeAttributeStart(SimpleType.MATRIX3X3F, name)
         writeMatrix3x3f(value)
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3f, force: Boolean) {
-        writeAttributeStart("m4x3", name)
+        writeAttributeStart(SimpleType.MATRIX4X3F, name)
         writeMatrix4x3f(value)
     }
 
-    override fun writeMatrix2x2fList(name: String, values: List<Matrix2f>, force: Boolean) =
-        writeList(name, values, force, "m2x2[]", ::writeMatrix2x2f)
-
-    override fun writeMatrix3x2fList(name: String, values: List<Matrix3x2f>, force: Boolean) =
-        writeList(name, values, force, "m3x2[]", ::writeMatrix3x2f)
-
-    override fun writeMatrix3x3fList(name: String, values: List<Matrix3f>, force: Boolean) =
-        writeList(name, values, force, "m3x3[]", ::writeMatrix3x3f)
-
-    override fun writeMatrix4x3fList(name: String, values: List<Matrix4x3f>, force: Boolean) =
-        writeList(name, values, force, "m4x3[]", ::writeMatrix4x3f)
-
-    override fun writeMatrix4x4fList(name: String, values: List<Matrix4f>, force: Boolean) =
-        writeList(name, values, force, "m4x4[]", ::writeMatrix4x4f)
-
-    override fun writeMatrix2x2fList2D(name: String, values: List<List<Matrix2f>>, force: Boolean) =
-        writeList2D(name, values, force, "m2x2[][]", ::writeMatrix2x2f)
-
-    override fun writeMatrix3x2fList2D(name: String, values: List<List<Matrix3x2f>>, force: Boolean) =
-        writeList2D(name, values, force, "m3x2[][]", ::writeMatrix3x2f)
-
-    override fun writeMatrix3x3fList2D(name: String, values: List<List<Matrix3f>>, force: Boolean) =
-        writeList2D(name, values, force, "m3x3[][]", ::writeMatrix3x3f)
-
-    override fun writeMatrix4x3fList2D(name: String, values: List<List<Matrix4x3f>>, force: Boolean) =
-        writeList2D(name, values, force, "m4x3[][]", ::writeMatrix4x3f)
-
-    override fun writeMatrix4x4fList2D(name: String, values: List<List<Matrix4f>>, force: Boolean) =
-        writeList2D(name, values, force, "m4x4[][]", ::writeMatrix4x4f)
-
     override fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean) {
-        writeAttributeStart("m4x4", name)
+        writeAttributeStart(SimpleType.MATRIX4X4F, name)
         writeMatrix4x4f(value)
     }
+
+    override fun writeMatrix2x2fList(name: String, values: List<Matrix2f>, force: Boolean) =
+        writeList(name, values, force, SimpleType.MATRIX2X2F, ::writeMatrix2x2f)
+
+    override fun writeMatrix3x2fList(name: String, values: List<Matrix3x2f>, force: Boolean) =
+        writeList(name, values, force, SimpleType.MATRIX3X2F, ::writeMatrix3x2f)
+
+    override fun writeMatrix3x3fList(name: String, values: List<Matrix3f>, force: Boolean) =
+        writeList(name, values, force, SimpleType.MATRIX3X3F, ::writeMatrix3x3f)
+
+    override fun writeMatrix4x3fList(name: String, values: List<Matrix4x3f>, force: Boolean) =
+        writeList(name, values, force, SimpleType.MATRIX4X3F, ::writeMatrix4x3f)
+
+    override fun writeMatrix4x4fList(name: String, values: List<Matrix4f>, force: Boolean) =
+        writeList(name, values, force, SimpleType.MATRIX4X4F, ::writeMatrix4x4f)
+
+    override fun writeMatrix2x2fList2D(name: String, values: List<List<Matrix2f>>, force: Boolean) =
+        writeList2D(name, values, force, SimpleType.MATRIX2X2F, ::writeMatrix2x2f)
+
+    override fun writeMatrix3x2fList2D(name: String, values: List<List<Matrix3x2f>>, force: Boolean) =
+        writeList2D(name, values, force, SimpleType.MATRIX3X2F, ::writeMatrix3x2f)
+
+    override fun writeMatrix3x3fList2D(name: String, values: List<List<Matrix3f>>, force: Boolean) =
+        writeList2D(name, values, force, SimpleType.MATRIX3X3F, ::writeMatrix3x3f)
+
+    override fun writeMatrix4x3fList2D(name: String, values: List<List<Matrix4x3f>>, force: Boolean) =
+        writeList2D(name, values, force, SimpleType.MATRIX4X3F, ::writeMatrix4x3f)
+
+    override fun writeMatrix4x4fList2D(name: String, values: List<List<Matrix4f>>, force: Boolean) =
+        writeList2D(name, values, force, SimpleType.MATRIX4X4F, ::writeMatrix4x4f)
 
     private fun writeMatrix2x2d(value: Matrix2d) {
         val tmp = tmp16d
@@ -979,59 +974,59 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean) {
-        writeAttributeStart("m2x2d", name)
+        writeAttributeStart(SimpleType.MATRIX2X2D, name)
         writeMatrix2x2d(value)
     }
 
     override fun writeMatrix3x2d(name: String, value: Matrix3x2d, force: Boolean) {
-        writeAttributeStart("m3x2d", name)
+        writeAttributeStart(SimpleType.MATRIX3X2D, name)
         writeMatrix3x2d(value)
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3d, force: Boolean) {
-        writeAttributeStart("m3x3d", name)
+        writeAttributeStart(SimpleType.MATRIX3X3D, name)
         writeMatrix3x3d(value)
     }
 
     override fun writeMatrix4x3d(name: String, value: Matrix4x3d, force: Boolean) {
-        writeAttributeStart("m4x3d", name)
+        writeAttributeStart(SimpleType.MATRIX4X3D, name)
         writeMatrix4x3d(value)
     }
 
     override fun writeMatrix4x4d(name: String, value: Matrix4d, force: Boolean) {
-        writeAttributeStart("m4x4d", name)
+        writeAttributeStart(SimpleType.MATRIX4X4D, name)
         writeMatrix4x4d(value)
     }
 
     override fun writeMatrix2x2dList(name: String, values: List<Matrix2d>, force: Boolean) =
-        writeList(name, values, force, "m2x2d[]", ::writeMatrix2x2d)
+        writeList(name, values, force, SimpleType.MATRIX2X2D, ::writeMatrix2x2d)
 
     override fun writeMatrix3x2dList(name: String, values: List<Matrix3x2d>, force: Boolean) =
-        writeList(name, values, force, "m3x2d[]", ::writeMatrix3x2d)
+        writeList(name, values, force, SimpleType.MATRIX3X2D, ::writeMatrix3x2d)
 
     override fun writeMatrix3x3dList(name: String, values: List<Matrix3d>, force: Boolean) =
-        writeList(name, values, force, "m3x3d[]", ::writeMatrix3x3d)
+        writeList(name, values, force, SimpleType.MATRIX3X3D, ::writeMatrix3x3d)
 
     override fun writeMatrix4x3dList(name: String, values: List<Matrix4x3d>, force: Boolean) =
-        writeList(name, values, force, "m4x3d[]", ::writeMatrix4x3d)
+        writeList(name, values, force, SimpleType.MATRIX4X3D, ::writeMatrix4x3d)
 
     override fun writeMatrix4x4dList(name: String, values: List<Matrix4d>, force: Boolean) =
-        writeList(name, values, force, "m4x4d[]", ::writeMatrix4x4d)
+        writeList(name, values, force, SimpleType.MATRIX4X4D, ::writeMatrix4x4d)
 
     override fun writeMatrix2x2dList2D(name: String, values: List<List<Matrix2d>>, force: Boolean) =
-        writeList2D(name, values, force, "m2x2d[][]", ::writeMatrix2x2d)
+        writeList2D(name, values, force, SimpleType.MATRIX2X2D, ::writeMatrix2x2d)
 
     override fun writeMatrix3x2dList2D(name: String, values: List<List<Matrix3x2d>>, force: Boolean) =
-        writeList2D(name, values, force, "m3x2d[][]", ::writeMatrix3x2d)
+        writeList2D(name, values, force, SimpleType.MATRIX3X2D, ::writeMatrix3x2d)
 
     override fun writeMatrix3x3dList2D(name: String, values: List<List<Matrix3d>>, force: Boolean) =
-        writeList2D(name, values, force, "m3x3d[][]", ::writeMatrix3x3d)
+        writeList2D(name, values, force, SimpleType.MATRIX3X3D, ::writeMatrix3x3d)
 
     override fun writeMatrix4x3dList2D(name: String, values: List<List<Matrix4x3d>>, force: Boolean) =
-        writeList2D(name, values, force, "m4x3d[][]", ::writeMatrix4x3d)
+        writeList2D(name, values, force, SimpleType.MATRIX4X3D, ::writeMatrix4x3d)
 
     override fun writeMatrix4x4dList2D(name: String, values: List<List<Matrix4d>>, force: Boolean) =
-        writeList2D(name, values, force, "m4x4[][]", ::writeMatrix4x4d)
+        writeList2D(name, values, force, SimpleType.MATRIX4X4D, ::writeMatrix4x4d)
 
     // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
     private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
@@ -1181,26 +1176,26 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
-        writeAttributeStart("AABBf", name)
+        writeAttributeStart(SimpleType.AABBF, name)
         writeAABBf(value)
     }
 
     override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
-        writeAttributeStart("AABBd", name)
+        writeAttributeStart(SimpleType.AABBD, name)
         writeAABBd(value)
     }
 
     override fun writeAABBfList(name: String, values: List<AABBf>, force: Boolean) =
-        writeList(name, values, force, "AABBf[]", ::writeAABBf)
+        writeList(name, values, force, SimpleType.AABBF, ::writeAABBf)
 
     override fun writeAABBdList(name: String, values: List<AABBd>, force: Boolean) =
-        writeList(name, values, force, "AABBd[]", ::writeAABBd)
+        writeList(name, values, force, SimpleType.AABBD, ::writeAABBd)
 
     override fun writeAABBfList2D(name: String, values: List<List<AABBf>>, force: Boolean) =
-        writeList2D(name, values, force, "AABBf[][]", ::writeAABBf)
+        writeList2D(name, values, force, SimpleType.AABBF, ::writeAABBf)
 
     override fun writeAABBdList2D(name: String, values: List<List<AABBd>>, force: Boolean) =
-        writeList2D(name, values, force, "AABBd[][]", ::writeAABBd)
+        writeList2D(name, values, force, SimpleType.AABBD, ::writeAABBd)
 
     fun writePlanef(value: Planef) {
         append('[')
@@ -1227,26 +1222,26 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
-        writeAttributeStart("p4", name)
+        writeAttributeStart(SimpleType.PLANEF, name)
         writePlanef(value)
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
-        writeAttributeStart("p4d", name)
+        writeAttributeStart(SimpleType.PLANED, name)
         writePlaned(value)
     }
 
     override fun writePlanefList(name: String, values: List<Planef>, force: Boolean) =
-        writeList(name, values, force, "p4[]", ::writePlanef)
+        writeList(name, values, force, SimpleType.PLANEF, ::writePlanef)
 
     override fun writePlanedList(name: String, values: List<Planed>, force: Boolean) =
-        writeList(name, values, force, "p4d[]", ::writePlaned)
+        writeList(name, values, force, SimpleType.PLANED, ::writePlaned)
 
     override fun writePlanefList2D(name: String, values: List<List<Planef>>, force: Boolean) =
-        writeList2D(name, values, force, "p4[][]", ::writePlanef)
+        writeList2D(name, values, force, SimpleType.PLANEF, ::writePlanef)
 
     override fun writePlanedList2D(name: String, values: List<List<Planed>>, force: Boolean) =
-        writeList2D(name, values, force, "p4d[][]", ::writePlaned)
+        writeList2D(name, values, force, SimpleType.PLANED, ::writePlaned)
 
     override fun writeNull(name: String?) {
         writeAttributeStart("?", name)

@@ -48,6 +48,22 @@ open class Planef(
     fun findY(x: Float, z: Float): Float = -dot(x, 0f, z) / dirY
     fun findZ(x: Float, y: Float): Float = -dot(x, y, 0f) / dirZ
 
+    override fun equals(other: Any?): Boolean {
+        return other is Planef &&
+                dirX == other.dirX &&
+                dirY == other.dirY &&
+                dirZ == other.dirZ &&
+                distance == other.distance
+    }
+
+    override fun hashCode(): Int {
+        var hash = dirX.hashCode()
+        hash = hash * 31 + dirY.hashCode()
+        hash = hash * 31 + dirZ.hashCode()
+        hash = hash * 31 + distance.hashCode()
+        return hash
+    }
+
     override fun toString(): String {
         return "Plane($dirX, $dirY, $dirZ, $distance)"
     }

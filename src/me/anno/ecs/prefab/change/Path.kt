@@ -4,6 +4,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.NumberFormatter.reverse
+import me.anno.utils.types.Strings.toInt
 import java.util.concurrent.ThreadLocalRandom
 
 /**
@@ -218,7 +219,6 @@ class Path(
     override fun isDefaultValue(): Boolean = this === ROOT_PATH
 
     override fun onReadingEnded() {
-        println("read path $this")
     }
 
     companion object {
@@ -256,13 +256,14 @@ class Path(
         }
 
         fun parseInt(str: String, startIndex: Int, endIndex: Int): Int {
-            var v = str[startIndex].code - 48
-            for (index in startIndex + 1 until endIndex) {
-                v = v * 10 + str[index].code - 48
-            }
-            return v
+            return (str as CharSequence).toInt(startIndex, endIndex)
         }
 
+        /**
+         * Paths are a sequence separated by slash '/',
+         * each element is first a type-char, then an index,
+         * then a comma ',', and finally its name as a string until the end or next slash '/'
+         * */
         fun fromString(str: String?): Path {
             if (str.isNullOrEmpty()) return ROOT_PATH
             var path = ROOT_PATH

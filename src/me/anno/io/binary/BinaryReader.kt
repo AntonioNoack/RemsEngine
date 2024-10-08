@@ -158,12 +158,14 @@ class BinaryReader(val input: InputStream) : BaseReader() {
             if (typeId < -1) break
             val typeName = readTypeName(typeId)
             val name = typeName.name
+            // println("typeName: $typeName")
             val reader = readers.getOrNull(typeName.type)
-            if (reader != null) {
-                val value = reader.invoke(this)
-                obj.setProperty(name, value)
-            } else when (typeName.type) {
-                OBJECT_PTR -> {
+            when {
+                reader != null -> {
+                    val value = reader.invoke(this)
+                    obj.setProperty(name, value)
+                }
+                typeName.type == OBJECT_PTR -> {
                     val ptr2 = input.readBE32()
                     val child = getByPointer(ptr2, false)
                     if (child == null) {
@@ -172,7 +174,9 @@ class BinaryReader(val input: InputStream) : BaseReader() {
                         obj.setProperty(name, child)
                     }
                 }
-                else -> assertFail("Unknown type ${typeName.type}")
+                else -> {
+                    assertFail("Unknown type ${typeName.type}")
+                }
             }
         }
         if (readPointer) {

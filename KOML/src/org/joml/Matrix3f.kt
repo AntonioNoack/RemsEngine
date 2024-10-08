@@ -1486,8 +1486,8 @@ open class Matrix3f {
     override fun equals(other: Any?): Boolean {
         return other === this || (other is Matrix3f &&
                 other.m00 == m00 && other.m01 == m01 && other.m02 == m02 &&
-                other.m10 == m10 && other.m11 == m11 && other.m12 == m02 &&
-                other.m20 == m20 && other.m21 == m21 && other.m22 == m02
+                other.m10 == m10 && other.m11 == m11 && other.m12 == m12 &&
+                other.m20 == m20 && other.m21 == m21 && other.m22 == m22
                 )
     }
 

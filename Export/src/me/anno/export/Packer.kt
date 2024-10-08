@@ -1,6 +1,7 @@
 package me.anno.export
 
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.projects.FileEncoding
 import me.anno.image.ImageCache
 import me.anno.image.raw.IFloatImage
 import me.anno.io.files.BundledRef
@@ -13,7 +14,6 @@ import me.anno.io.files.ImportType.METADATA
 import me.anno.io.files.ImportType.VIDEO
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.SignatureCache
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.OS.res
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
@@ -70,13 +70,6 @@ object Packer {
 
     private val LOGGER = LogManager.getLogger(Packer::class)
 
-    // in a game, there are assets, so
-    // todo - we need to pack assets
-    // done - it would be nice, if FileReferences could point to local files as well
-    // always ship the editor with the game? would make creating mods easier :)
-    // yes, low overhead + games should be able to be based on the editor
-    // (and cheating, but there always will be cheaters, soo...)
-
     private fun isLossyImageFormat(resource: FileReference): Boolean {
         return resource.absolutePath.contains(".jpg/", true) ||
                 resource.absolutePath.contains(".jpeg/", true) ||
@@ -118,16 +111,14 @@ object Packer {
 
     private fun packPrefab(resource: FileReference, resourceMap: Map<FileReference, FileReference>): ByteArray? {
         val prefab = PrefabCache[resource] ?: return null
-        // todo use binary writer?
-        val writer = MappedJsonWriter(resourceMap)
+        val encoding = FileEncoding.BINARY
         val history = prefab.history
+        // to do clone the prefab before unlinking history and deleting collapsed-data??
         prefab.history = null // not needed
-        // to do clone the prefab before deleting this data?
         prefab.sets.removeIf { _, k2, _ -> k2 == "isCollapsed" }
-        writer.add(prefab)
-        writer.writeAllInList()
-        prefab.history = history
-        return writer.toString().encodeToByteArray()
+        val bytes = encoding.encode(listOf(prefab), InvalidRef, resourceMap)
+        prefab.history = history // restore history
+        return bytes
     }
 
     /**
@@ -187,7 +178,7 @@ object Packer {
 
         fun nextName(src: FileReference): FileReference {
             return nextName(src.lcExtension.ifEmpty {
-                SignatureCache[src, false]?.name
+                SignatureCache[src, false]?.name // mmmh...
             } ?: "bin")
         }
 
@@ -237,15 +228,5 @@ object Packer {
             resources.getOrPut(res) { nextName(res) }
         }
         return resources
-    }
-
-    private class MappedJsonWriter(val resourceMap: Map<FileReference, FileReference>) : JsonStringWriter(InvalidRef) {
-        override fun writeFile(value: FileReference?, workspace: FileReference) {
-            if (value == null || value == InvalidRef) appendString("")
-            else {
-                val mapped = resourceMap[value] ?: value
-                appendString(mapped.toLocalPath(workspace.ifUndefined(this.workspace)))
-            }
-        }
     }
 }

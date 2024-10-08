@@ -18,6 +18,10 @@ class UnknownSaveable() : Saveable() {
         properties[name] = value
     }
 
+    override fun get(propertyName: String): Any? {
+        return properties[propertyName]
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         for ((name, value) in properties) {

@@ -246,7 +246,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
         assertEquals(c0, '[')
         val rawLength = readLong()
-        assertTrue(rawLength in 0 .. Int.MAX_VALUE) {
+        assertTrue(rawLength in 0..Int.MAX_VALUE) {
             "Invalid $typeName[] length '$rawLength'"
         }
         val length = rawLength.toInt()
@@ -830,38 +830,68 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         { DoubleArray(it) }, { array, index -> array[index] = readDouble() }
     )
 
+    private fun readMixedArray(): ArrayList<Saveable?> {
+        return readArray("Any", {
+            createArrayList(it, null)
+        }, { array, index ->
+            array[index] = when (val next = skipSpace()) {
+                'n' -> readNull()
+                '{' -> readObject()
+                in '0'..'9' -> readPtr(next)
+                else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+            }
+        })
+    }
+
+    private fun readMixedArray2D(): ArrayList<List<Saveable?>> {
+        return readArray("Any[]", {
+            createArrayList(it, emptyList())
+        }, { array, index ->
+            array[index] = readMixedArray()
+        })
+    }
+
+    private fun readFixedArray(type: String): ArrayList<Saveable?> {
+        return readArray(type, {
+            createArrayList(it, null)
+        }, { array, index ->
+            array[index] = when (val next = skipSpace()) {
+                'n' -> readNull()
+                '{' -> readObjectAndRegister(type)
+                in '0'..'9' -> readPtr(next)
+                else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+            }
+        })
+    }
+
+    private fun readFixedArray2D(type: String): ArrayList<List<Saveable?>> {
+        return readArray(type, {
+            createArrayList(it, emptyList())
+        }, { array, index ->
+            array[index] = readFixedArray(type)
+        })
+    }
+
     private fun readProperty(obj: Saveable, typeName: String) {
         var (type, name) = splitTypeName(typeName)
         when (type) {
+            "*[][]", "[][]" -> {// array of mixed types
+                obj.setProperty(name, readMixedArray2D())
+            }
             "*[]", "[]" -> {// array of mixed types
-                val elements = readArray("Any", {
-                    createArrayList<Saveable?>(it, null)
-                }, { array, index ->
-                    array[index] = when (val next = skipSpace()) {
-                        'n' -> readNull()
-                        '{' -> readObject()
-                        in '0'..'9' -> readPtr(next)
-                        else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-                    }
-                })
-                obj.setProperty(name, elements)
+                obj.setProperty(name, readMixedArray())
             }
             else -> {
                 val reader = readers[type]
                 if (reader != null) {
                     reader(this, obj, name)
+                } else if (type.endsWith("[][]")) {// 2d-array, but all elements have the same type
+                    type = type.substring(0, type.length - 4)
+                    val elements = readFixedArray2D(type)
+                    obj.setProperty(name, elements)
                 } else if (type.endsWith("[]")) {// array, but all elements have the same type
                     type = type.substring(0, type.length - 2)
-                    val elements = readArray(type, {
-                        createArrayList<Saveable?>(it, null)
-                    }, { array, index ->
-                        array[index] = when (val next = skipSpace()) {
-                            'n' -> readNull()
-                            '{' -> readObjectAndRegister(type)
-                            in '0'..'9' -> readPtr(next)
-                            else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-                        }
-                    })
+                    val elements = readFixedArray(type)
                     obj.setProperty(name, elements)
                 } else {
                     when (val next = skipSpace()) {

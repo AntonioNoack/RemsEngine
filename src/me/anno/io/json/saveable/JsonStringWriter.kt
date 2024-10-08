@@ -1,7 +1,7 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 
 open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWriterBase(workspace) {
 
@@ -41,8 +41,12 @@ open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : Js
 
     companion object {
 
-        fun toText(data: Collection<Saveable>, workspace: FileReference): String {
+        fun toText(
+            data: Collection<Saveable>, workspace: FileReference,
+            resourceMap: Map<FileReference, FileReference> = emptyMap()
+        ): String {
             val writer = JsonStringWriter(workspace)
+            writer.resourceMap = resourceMap
             for (entry in data) writer.add(entry)
             writer.writeAllInList()
             return writer.toString()
