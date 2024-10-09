@@ -7,7 +7,7 @@ import me.anno.io.base.BaseWriter
  *  load stuff as far as possible, and just create stubs like this when sth couldn't be loaded properly
  * */
 class UnknownSaveable() : Saveable() {
-    override var className = "?"
+    override var className = "UnknownSaveable"
 
     constructor(className: String) : this() {
         this.className = className

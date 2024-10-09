@@ -3,7 +3,7 @@ package me.anno.io.xml.generic
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.utils.assertions.assertEquals
 import java.io.EOFException
-import java.io.InputStream
+import java.io.Reader
 
 /**
  * Reads an XML file without create objects
@@ -41,12 +41,12 @@ open class XMLScanner : XMLReader() {
         fun handle(depth: Int, type: CharSequence, key: CharSequence, value: CharSequence)
     }
 
-    fun scan(input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute): Any? {
+    fun scan(input: Reader, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute): Any? {
         return scan(-1, input, onStart, onEnd, onAttribute)
     }
 
     fun scan(
-        firstChar: Int, input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute,
+        firstChar: Int, input: Reader, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute,
         depth: Int = 0
     ): Any? {
         val first = if (firstChar < 0) input.skipSpaces() else firstChar

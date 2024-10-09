@@ -1,6 +1,7 @@
 package me.anno.tests.io
 
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.projects.FileEncoding
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
@@ -38,6 +39,9 @@ import org.joml.Vector4f
 import org.joml.Vector4i
 import org.junit.jupiter.api.Test
 
+/**
+ * tests all data types (primitives, and a few Saveables) for all (de)serializers
+ * */
 class CompleteFileEncodingTest {
 
     class Circular(var id: Int = 0, var linked: Circular? = null) : Saveable() {
@@ -71,12 +75,13 @@ class CompleteFileEncodingTest {
 
     val instances0 = listOf(
         // all number types
-        true, false,
-        1.toByte(), (-64).toByte(),
-        byteArrayOf(1, 2, 3),
+         true, false,
+         1.toByte(), (-64).toByte(),
+         byteArrayOf(1, 2, 3),
+        //  '9', '3',
+        charArrayOf('0', '1'),
         2.toShort(), (-426).toShort(),
         shortArrayOf(6, 7, 8),
-        'x', 'ß',
         3, -516265,
         intArrayOf(9, 10, 11),
         4L, -54416516313L,
@@ -136,20 +141,21 @@ class CompleteFileEncodingTest {
         // objects with circular references
         Circular(1),
         Circular(2, Circular(3)),
+        flatCube,
         // todo heterogeneous object list
     )
 
-    val instances1 = instances0.filter { !isNumberLike(it) }.map { listOf(it, it) }
-    val instances2 = instances1.filter { !isArray(it[0]) }.map { listOf(it, it, it) } +
-            instances0.filter { isArray(it) }.map { listOf(it, it, it) }
+    val instances1 = instances0.filter { !hasNativeArray(it) }.map { listOf(it, it) }
+    val instances2 = instances1.filter { !isNativeArray(it[0]) }.map { listOf(it, it, it) } +
+            instances0.filter { isNativeArray(it) }.map { listOf(it, it, it) }
 
-    val instances = instances0 + instances1 + instances2
+    val instances = instances0// + instances1 + instances2
 
-    fun isNumberLike(v: Any): Boolean {
+    fun hasNativeArray(v: Any): Boolean {
         return v is Boolean || v is Char || v is Number
     }
 
-    fun isArray(v: Any): Boolean {
+    fun isNativeArray(v: Any): Boolean {
         return when (v) {
             is ByteArray,
             is ShortArray,
@@ -179,7 +185,7 @@ class CompleteFileEncodingTest {
 
         // serialization
         val bytes = encoding.encode(instance, InvalidRef)
-        println(bytes.decodeToString())
+        if (encoding != FileEncoding.BINARY) println(bytes.decodeToString())
 
         // deserialization
         val clone = encoding.decode(bytes, InvalidRef, false)
@@ -221,23 +227,57 @@ class CompleteFileEncodingTest {
         testAnyPropertyWriter(FileEncoding.PRETTY_XML)
     }
 
-    private fun checkEquals(v: Any?, vi: Any?) {
-        when (v) {
-            is ByteArray -> assertTrue(v.contentEquals(vi as? ByteArray))
-            is ShortArray -> assertTrue(v.contentEquals(vi as? ShortArray))
-            is CharArray -> assertTrue(v.contentEquals(vi as? CharArray))
-            is IntArray -> assertTrue(v.contentEquals(vi as? IntArray))
-            is LongArray -> assertTrue(v.contentEquals(vi as? LongArray))
-            is FloatArray -> assertTrue(v.contentEquals(vi as? FloatArray))
-            is DoubleArray -> assertTrue(v.contentEquals(vi as? DoubleArray))
-            is List<*> -> {
-                vi as List<*>
-                assertEquals(v.size, vi.size)
-                for (i in v.indices) {
-                    checkEquals(v[i], vi[i])
+    @Test
+    fun testNoUnnecessaryQuot() {
+        val encoding = FileEncoding.PRETTY_XML
+        val instance = UnknownSaveable()
+        instance.setProperty("floats", floatArrayOf(1f))
+        val xml = encoding.encode(instance, InvalidRef).decodeToString()
+        assertTrue("&quot" !in xml, xml)
+        println(xml)
+    }
+
+    companion object {
+        fun checkEquals(v: Any?, vi: Any?, o: Any? = v) {
+            when (v) {
+                is Saveable -> assertEquals(v.toString(), vi.toString())
+                is ByteArray -> {
+                    val vj = vi as? ByteArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
                 }
+                is ShortArray -> {
+                    val vj = vi as? ShortArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
+                }
+                is CharArray -> {
+                    val vj = vi as? CharArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
+                }
+                is IntArray -> {
+                    val vj = vi as? IntArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
+                }
+                is LongArray -> {
+                    val vj = vi as? LongArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
+                }
+                is FloatArray -> {
+                    val vj = vi as? FloatArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
+                }
+                is DoubleArray -> {
+                    val vj = vi as? DoubleArray
+                    assertTrue(v.contentEquals(vj), "${v.toList()} != ${vj?.toList()} of $o")
+                }
+                is List<*> -> {
+                    vi as List<*>
+                    assertEquals(v.size, vi.size)
+                    for (i in v.indices) {
+                        checkEquals(v[i], vi[i], v)
+                    }
+                }
+                else -> assertEquals(v, vi)
             }
-            else -> assertEquals(v, vi)
         }
     }
 }

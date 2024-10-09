@@ -1,26 +1,19 @@
 package me.anno.io.xml.saveable
 
+import me.anno.engine.projects.FileEncoding
 import me.anno.io.Streams.readText
 import me.anno.io.files.FileReference
-import me.anno.io.json.generic.JsonFormatter
-import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.ReaderImpl
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.StreamReader
 import me.anno.io.saveable.StringReader
-import me.anno.io.xml.generic.XMLNode
-import me.anno.io.xml.generic.XMLReader
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 class XMLStringReader(val xmlStr: CharSequence, val workspace: FileReference) : ReaderImpl {
 
     override fun readAllInList() {
-        val stream = ByteArrayInputStream(xmlStr.toString().encodeToByteArray())
-        allInstances = JsonStringReader.read(
-            JsonFormatter.format(XML2JSON.fromXML(XMLReader().read(stream) as XMLNode)),
-            workspace, false
-        )
+        val bytes = xmlStr.toString().encodeToByteArray()
+        allInstances = FileEncoding.COMPACT_XML.decode(bytes, workspace, false)
     }
 
     override fun finish() {}

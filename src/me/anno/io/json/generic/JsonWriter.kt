@@ -13,12 +13,13 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.IOException
 import java.io.OutputStream
+import java.io.Writer
 
 /**
  * simple class to write JSON content; if you write Saveables, consider BinaryWriter and TextWriter first!
  * used in Rem's Studio to save UI layout
  * */
-open class JsonWriter(val output: OutputStream) {
+open class JsonWriter(val output: Writer) {
 
     private var first = true
     private var hasAttr = false
@@ -28,7 +29,7 @@ open class JsonWriter(val output: OutputStream) {
         output.write('"'.code)
         val sb = StringBuilder()
         Strings.writeEscaped(value, sb)
-        output.writeString(sb.toString())
+        output.write(sb.toString())
         output.write('"'.code)
     }
 
@@ -57,12 +58,12 @@ open class JsonWriter(val output: OutputStream) {
 
     fun write(b: Boolean) {
         next()
-        output.writeString(if (b) "true" else "false")
+        output.write(if (b) "true" else "false")
     }
 
     fun write(d: Number) {
         next()
-        output.writeString(d.toString())
+        output.write(d.toString())
     }
 
     fun write(value: String) {

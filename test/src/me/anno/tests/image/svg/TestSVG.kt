@@ -5,7 +5,6 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.OS.downloads
 import org.apache.logging.log4j.LogManager
-import java.io.ByteArrayInputStream
 
 fun main() {
 
@@ -26,10 +25,10 @@ fun main() {
 }
 
 fun testSVG(text: String) {
-    SVGMesh().parse(XMLReader().read(ByteArrayInputStream(text.encodeToByteArray())) as XMLNode)
+    SVGMesh().parse(XMLReader().read(text.reader()) as XMLNode)
 }
 
 fun testXML(text: String) {
     val logger = LogManager.getLogger("TestXML")
-    logger.info(XMLReader().read(ByteArrayInputStream(text.encodeToByteArray())))
+    logger.info(XMLReader().read(text.reader()))
 }

@@ -12,7 +12,7 @@ class IdeaLibrary(val project: IdeaProject, val name: String) {
     companion object {
         fun loadLibrary(project: IdeaProject, source: FileReference): IdeaLibrary {
             val root = source.inputStreamSync().use {
-                XMLReader().read(it) as XMLNode
+                XMLReader().read(it.reader()) as XMLNode
             }
             assertEquals("component", root.type)
             assertEquals("libraryTable", root["name"])

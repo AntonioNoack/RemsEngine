@@ -26,6 +26,7 @@ class AutoRefTest {
     @Test
     fun test() {
 
+        Engine.cancelShutdown()
         ECSRegistry.init()
 
         val scene = createScene()

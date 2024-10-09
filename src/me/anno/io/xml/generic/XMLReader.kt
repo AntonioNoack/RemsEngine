@@ -1,19 +1,17 @@
 package me.anno.io.xml.generic
 
-import me.anno.io.json.generic.JsonReader.Companion.isHex
-import me.anno.io.json.generic.JsonReader.Companion.toHex
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Strings.joinChars
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
-import java.io.InputStream
+import java.io.Reader
 
 open class XMLReader {
 
-    fun InputStream.skipSpaces(): Int {
+    fun Reader.skipSpaces(): Int {
         while (true) {
             when (val char = read()) {
                 ' '.code,
@@ -33,7 +31,7 @@ open class XMLReader {
     val keyBuilder = ComparableStringBuilder()
     val valueBuilder = ComparableStringBuilder()
 
-    fun InputStream.readTypeUntilSpaceOrEnd(builder: ComparableStringBuilder, last: Int = -1): ComparableStringBuilder {
+    fun Reader.readTypeUntilSpaceOrEnd(builder: ComparableStringBuilder, last: Int = -1): ComparableStringBuilder {
         builder.clear()
         if (last >= 0) builder.append(last.toChar())
         while (true) {
@@ -60,11 +58,11 @@ open class XMLReader {
         }
     }
 
-    fun InputStream.readString(startSymbol: Int, builder: ComparableStringBuilder): ComparableStringBuilder {
+    fun Reader.readString(startSymbol: Int, builder: ComparableStringBuilder): ComparableStringBuilder {
         builder.clear()
         while (true) {
             when (val char = read()) {
-                '\\'.code -> builder.append(readEscapeSequence(this))
+                '&'.code -> builder.append(readEscapeSequence())
                 startSymbol -> return builder
                 -1 -> throw EOFException()
                 else -> builder.append(char.toChar())
@@ -72,7 +70,43 @@ open class XMLReader {
         }
     }
 
-    fun InputStream.skipString(startSymbol: Int) {
+    fun Reader.readEscapeSequence(): String {
+        // apos -> '
+        // quot -> "
+        // #102 -> decimal
+        // #x4f -> hex
+        val builder = StringBuilder()
+        while (true) {
+            val c = read()
+            if (c < 0 || c == ';'.code) break
+            builder.append(c.toChar())
+        }
+        return when {
+            equals(builder, "apos") -> "'"
+            equals(builder, "quot") -> "\""
+            equals(builder, "amp") -> "&"
+            equals(builder, "lt") -> "<"
+            equals(builder, "gt") -> ">"
+            builder.startsWith("#x") -> {
+                builder.substring(2).toInt(16)
+                    .joinChars().toString()
+            }
+            builder.startsWith("#") -> {
+                builder.substring(1).toInt()
+                    .joinChars().toString()
+            }
+            else -> {
+                LOGGER.warn("Unknown escape sequence $builder")
+                return ""
+            }
+        }
+    }
+
+    fun equals(str: StringBuilder, str1: String): Boolean {
+        return str.length == str1.length && str.startsWith(str1)
+    }
+
+    fun Reader.skipString(startSymbol: Int) {
         while (true) {
             when (read()) {
                 '\\'.code -> read()
@@ -85,7 +119,7 @@ open class XMLReader {
 
     fun min(a: Int, b: Int) = kotlin.math.min(a, b)
 
-    fun InputStream.getStringUntil(end: String): String {
+    fun Reader.getStringUntil(end: String): String {
         val size = end.length
         val reversed = end.reversed()
         val buffer = CharArray(size)
@@ -121,7 +155,7 @@ open class XMLReader {
         }
     }
 
-    fun InputStream.readUntil(end: String) {
+    fun Reader.readUntil(end: String) {
         val size = end.length
         val reversed = end.reversed()
         val buffer = CharArray(size)
@@ -149,8 +183,8 @@ open class XMLReader {
     /**
      * returns String | XMLNode | Marker
      * */
-    fun read(input: InputStream) = read(-1, input)
-    fun read(firstChar: Int, input: InputStream): Any? {
+    fun read(input: Reader) = read(-1, input)
+    fun read(firstChar: Int, input: Reader): Any? {
         val first = if (firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             val type = input.readTypeUntilSpaceOrEnd(type0).toString()
@@ -238,7 +272,7 @@ open class XMLReader {
         } else return readString(first, input)
     }
 
-    fun readString(first: Int, input: InputStream): String {
+    fun readString(first: Int, input: Reader): String {
         val str = valueBuilder
         str.clear()
         if (first != 0) {
@@ -252,26 +286,6 @@ open class XMLReader {
         }
     }
 
-    private fun readEscapeSequence(input: InputStream): CharSequence {
-        return when (val second = input.read().toChar()) {
-            'n' -> "\n"
-            'r' -> "\r"
-            't' -> "\t"
-            '\'' -> "'"
-            '"' -> "\""
-            '\\' -> "\\"
-            'u', 'U' -> {
-                val a = input.read().toChar()
-                val b = input.read().toChar()
-                val c = input.read().toChar()
-                val d = input.read().toChar()
-                assertTrue(isHex(a) && isHex(b) && isHex(c) && isHex(d), "Expected 4 hex characters after \\u")
-                toHex(a, b, c, d).joinChars()
-            }
-            else -> assertFail("Special character \\$second not yet implemented")
-        }
-    }
-
     fun assert(a: Int, b: Char, c: Char) {
         val ac = a.toChar()
         assertTrue(ac == b || ac == c) {
@@ -280,6 +294,9 @@ open class XMLReader {
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(XMLReader::class)
+
         @JvmStatic
         val endElement = Any()
 

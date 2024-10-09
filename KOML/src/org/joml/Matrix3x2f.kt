@@ -33,6 +33,9 @@ open class Matrix3x2f {
         set(mat)
     }
 
+    constructor(v0: Vector2f, v1: Vector2f, v2: Vector2f) :
+            this(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y)
+
     constructor(m00: Float, m01: Float, m10: Float, m11: Float, m20: Float, m21: Float) {
         this.m00 = m00
         this.m01 = m01

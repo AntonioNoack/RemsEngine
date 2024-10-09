@@ -14,7 +14,7 @@ object OSMReaderV1 {
      * */
     fun readOSM1(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OSMap()): OSMap {
 
-        val xml = XMLReader().read(input) as XMLNode
+        val xml = XMLReader().read(input.reader()) as XMLNode
         val boundsNode = xml.children.first { it is XMLNode && it.type == "bounds" } as XMLNode
         map.minLon = boundsNode["minlon"]!!.toDouble()
         map.minLat = boundsNode["minlat"]!!.toDouble()

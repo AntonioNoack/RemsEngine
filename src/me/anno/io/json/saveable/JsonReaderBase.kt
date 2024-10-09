@@ -5,6 +5,8 @@ import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
+import me.anno.utils.Color.argb
+import me.anno.utils.Color.black
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertTrue
@@ -160,8 +162,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     /**
-     * reads a number string; may return invalid results;
-     * if a string starts here, the string is read instead
+     * reads a number string; may return invalid results
      * */
     private fun readNumber(): String {
         val str = tmpString
@@ -173,10 +174,6 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                     str.append(next)
                 }
                 '_' -> {
-                }
-                '"' -> {
-                    assertTrue(str.isEmpty(), "Unexpected symbol \" inside number!")
-                    return readString()
                 }
                 else -> {
                     tmpChar = next.code
@@ -238,22 +235,13 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         createArray: (arraySize: Int) -> ArrayType,
         putValue: (array: ArrayType, index: Int) -> Unit
     ): ArrayType {
-        val c0 = skipSpace()
-        if (c0 == '"') {
-            val array = readArray(typeName, createArray, putValue)
-            assertEquals(skipSpace(), '"', "end-of-str[]")
-            return array
-        }
-        assertEquals(c0, '[')
+        assertEquals(skipSpace(), '[')
         val rawLength = readLong()
         assertTrue(rawLength in 0..Int.MAX_VALUE) {
             "Invalid $typeName[] length '$rawLength'"
         }
-        val length = rawLength.toInt()
-        // mistakes of the past: ofc, there may be arrays with just zeros...
-        /*if (length < (data.length - index) / 2) {
-        } else error("Broken file :/, $typeName[].length > data.length ($rawLength)")*/
         var i = 0
+        val length = rawLength.toInt()
         val values = createArray(length)
         content@ while (true) {
             when (val next = skipSpace()) {
@@ -323,122 +311,93 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 assertEquals(next(), '"', "boolean:quotes")
                 value
             }
+            '\\' -> {
+                assertEquals(next(), '"', "boolean:escaped")
+                val value = readBool()
+                assertEquals(next(), '\\', "boolean:escaped")
+                assertEquals(next(), '"', "boolean:escaped")
+                value
+            }
             else -> throw InvalidFormatException("Unknown boolean value starting with $firstChar")
         }
     }
 
-    private fun readVector2f(allowCommaAtStart: Boolean = false): Vector2f {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readFloat()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector2f(rawX)
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readFloat()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector2f(rawX, rawY)
+    private fun readVector2f(skipComma: Boolean = false): Vector2f {
+        if (skipComma) skipComma()
+        return readWithBrackets("v2f") {
+            val rawX = readFloat()
+            val rawY = if (skipNextComma()) readFloat() else rawX
+            Vector2f(rawX, rawY)
+        }
     }
 
-    private fun readVector3f(allowCommaAtStart: Boolean = false): Vector3f {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readFloat()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector3f(rawX) // monotone / grayscale
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readFloat()
-        assertEquals(skipSpace(), ',', "Separator of Vector")
-        val rawZ = readFloat()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector3f(rawX, rawY, rawZ)
+    private fun readVector3f(skipComma: Boolean = false): Vector3f {
+        if (skipComma) skipComma()
+        return readWithBrackets("v3f") {
+            val rawX = readFloat()
+            if (skipNextComma()) {
+                val rawY = readFloat()
+                skipComma()
+                val rawZ = readFloat()
+                Vector3f(rawX, rawY, rawZ)
+            } else Vector3f(rawX)
+        }
     }
 
-    private fun readVector4f(allowCommaAtStart: Boolean = false): Vector4f {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readFloat()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector4f(rawX) // monotone
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readFloat()
-        val sep1 = skipSpace()
-        if (sep1 == ']') return Vector4f(rawX, rawX, rawX, rawY) // white with alpha
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readFloat()
-        val sep2 = skipSpace()
-        if (sep2 == ']') return Vector4f(rawX, rawY, rawZ, 1f) // opaque color
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readFloat()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector4f(rawX, rawY, rawZ, rawW)
+    private fun readVector4f(skipComma: Boolean = false): Vector4f {
+        if (skipComma) skipComma()
+        return readWithBrackets("v4f") {
+            val rawX = readFloat()
+            if (skipNextComma()) {
+                val rawY = readFloat()
+                if (skipNextComma()) {
+                    val rawZ = readFloat()
+                    if (skipNextComma()) {
+                        val rawW = readFloat()
+                        Vector4f(rawX, rawY, rawZ, rawW)
+                    } else Vector4f(rawX, rawY, rawZ, 1f) // opaque color
+                } else Vector4f(rawX, rawX, rawX, rawY) // white with alpha
+            } else Vector4f(rawX) // monotone
+        }
     }
 
-    private fun readQuaternionf(): Quaternionf {
-        assertEquals(skipSpace(), '[', "Start of Vector")
-        val rawX = readFloat()
-        val sep0 = skipSpace()
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readFloat()
-        val sep1 = skipSpace()
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readFloat()
-        val sep2 = skipSpace()
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readFloat()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Quaternionf(rawX, rawY, rawZ, rawW)
+    private fun readVector2d(skipComma: Boolean = false): Vector2d {
+        if (skipComma) skipComma()
+        return readWithBrackets("v2d") {
+            val rawX = readDouble()
+            val rawY = if (skipNextComma()) readDouble() else rawX
+            Vector2d(rawX, rawY)
+        }
     }
 
-    private fun readVector2d(allowCommaAtStart: Boolean = false): Vector2d {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readDouble()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector2d(rawX)
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readDouble()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector2d(rawX, rawY)
+    private fun readVector3d(skipComma: Boolean = false): Vector3d {
+        if (skipComma) skipComma()
+        return readWithBrackets("v3d") {
+            val rawX = readDouble()
+            if (skipNextComma()) {
+                val rawY = readDouble()
+                skipComma()
+                val rawZ = readDouble()
+                Vector3d(rawX, rawY, rawZ)
+            } else Vector3d(rawX)
+        }
     }
 
-    private fun readVector3d(allowCommaAtStart: Boolean = false): Vector3d {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readDouble()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector3d(rawX) // monotone / grayscale
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readDouble()
-        assertEquals(skipSpace(), ',', "Separator of Vector")
-        val rawZ = readDouble()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector3d(rawX, rawY, rawZ)
-    }
-
-    private fun readVector4d(allowCommaAtStart: Boolean = false): Vector4d {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readDouble()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector4d(rawX) // monotone
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readDouble()
-        val sep1 = skipSpace()
-        if (sep1 == ']') return Vector4d(rawX, rawX, rawX, rawY) // white with alpha
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readDouble()
-        val sep2 = skipSpace()
-        if (sep2 == ']') return Vector4d(rawX, rawY, rawZ, 1.0) // opaque color
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readDouble()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector4d(rawX, rawY, rawZ, rawW)
+    private fun readVector4d(skipComma: Boolean = false): Vector4d {
+        if (skipComma) skipComma()
+        return readWithBrackets("v4d") {
+            val rawX = readDouble()
+            if (skipNextComma()) {
+                val rawY = readDouble()
+                if (skipNextComma()) {
+                    val rawZ = readDouble()
+                    if (skipNextComma()) {
+                        val rawW = readDouble()
+                        Vector4d(rawX, rawY, rawZ, rawW)
+                    } else Vector4d(rawX, rawY, rawZ, 1.0) // opaque color
+                } else Vector4d(rawX, rawX, rawX, rawY) // white with alpha
+            } else Vector4d(rawX) // monotone
+        }
     }
 
     private fun readAABBf(): AABBf {
@@ -457,224 +416,204 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
     }
 
-    private fun readPlanef(allowCommaAtStart: Boolean = false): Planef {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readFloat()
+    private fun skipComma() {
         val sep0 = skipSpace()
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readFloat()
-        val sep1 = skipSpace()
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readFloat()
-        val sep2 = skipSpace()
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readFloat()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Planef(rawX, rawY, rawZ, rawW)
+        assertEquals(sep0, ',')
     }
 
-    private fun readPlaned(allowCommaAtStart: Boolean = false): Planed {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readDouble()
-        val sep0 = skipSpace()
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readDouble()
-        val sep1 = skipSpace()
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readDouble()
-        val sep2 = skipSpace()
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readDouble()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Planed(rawX, rawY, rawZ, rawW)
+    private fun nextFloat(): Float {
+        skipComma()
+        return readFloat()
+    }
+
+    private fun nextDouble(): Double {
+        skipComma()
+        return readDouble()
+    }
+
+    private fun readPlanef(): Planef {
+        return readWithBrackets("p4") {
+            val rawX = readFloat()
+            val rawY = nextFloat()
+            val rawZ = nextFloat()
+            val rawW = nextFloat()
+            Planef(rawX, rawY, rawZ, rawW)
+        }
+    }
+
+    private fun readPlaned(): Planed {
+        return readWithBrackets("p4d") {
+            val rawX = readDouble()
+            val rawY = nextDouble()
+            val rawZ = nextDouble()
+            val rawW = nextDouble()
+            Planed(rawX, rawY, rawZ, rawW)
+        }
+    }
+
+    private fun readQuaternionf(): Quaternionf {
+        return readWithBrackets("q4") {
+            val rawX = readFloat()
+            val rawY = nextFloat()
+            val rawZ = nextFloat()
+            val rawW = nextFloat()
+            Quaternionf(rawX, rawY, rawZ, rawW)
+        }
     }
 
     private fun readQuaterniond(): Quaterniond {
-        assertEquals(skipSpace(), '[', "Start of Vector")
-        val rawX = readDouble()
-        val sep0 = skipSpace()
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readDouble()
-        val sep1 = skipSpace()
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readDouble()
-        val sep2 = skipSpace()
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readDouble()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Quaterniond(rawX, rawY, rawZ, rawW)
+        return readWithBrackets("q4d") {
+            val rawX = readDouble()
+            val rawY = nextDouble()
+            val rawZ = nextDouble()
+            val rawW = nextDouble()
+            Quaterniond(rawX, rawY, rawZ, rawW)
+        }
     }
 
-    private fun readVector2i(allowCommaAtStart: Boolean = false): Vector2i {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readInt()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector2i(rawX)
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readInt()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector2i(rawX, rawY)
+    private fun skipNextComma(): Boolean {
+        val c0 = skipSpace()
+        if (c0 == ',') return true
+        tmpChar = c0.code
+        return false
     }
 
-    private fun readVector3i(allowCommaAtStart: Boolean = false): Vector3i {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readInt()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector3i(rawX) // monotone / grayscale
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readInt()
-        assertEquals(skipSpace(), ',', "Separator of Vector")
-        val rawZ = readInt()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector3i(rawX, rawY, rawZ)
+    private fun readVector2i(): Vector2i {
+        return readWithBrackets("v2i") {
+            val rawX = readInt()
+            val rawY = if (skipNextComma()) readInt() else rawX
+            Vector2i(rawX, rawY)
+        }
     }
 
-    private fun readVector4i(allowCommaAtStart: Boolean = false): Vector4i {
-        var c0 = skipSpace()
-        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assertEquals(c0, '[', "Start of Vector")
-        val rawX = readInt()
-        val sep0 = skipSpace()
-        if (sep0 == ']') return Vector4i(rawX) // monotone
-        assertEquals(sep0, ',', "Separator of Vector")
-        val rawY = readInt()
-        val sep1 = skipSpace()
-        if (sep1 == ']') return Vector4i(rawX, rawX, rawX, rawY) // white with alpha
-        assertEquals(sep1, ',', "Separator of Vector")
-        val rawZ = readInt()
-        val sep2 = skipSpace()
-        if (sep2 == ']') return Vector4i(rawX, rawY, rawZ, 255) // opaque color
-        assertEquals(sep2, ',', "Separator of Vector")
-        val rawW = readInt()
-        assertEquals(skipSpace(), ']', "End of Vector")
-        return Vector4i(rawX, rawY, rawZ, rawW)
+    private fun readVector3i(): Vector3i {
+        return readWithBrackets("v3i") {
+            val rawX = readInt()
+            if (skipNextComma()) {
+                val rawY = readInt()
+                skipComma()
+                val rawZ = readInt()
+                Vector3i(rawX, rawY, rawZ)
+            } else Vector3i(rawX)
+        }
+    }
+
+    private fun readVector4i(): Vector4i {
+        return readWithBrackets("v4i") {
+            val rawX = readInt()
+            if (skipNextComma()) {
+                val rawY = readInt()
+                if (skipNextComma()) {
+                    val rawZ = readInt()
+                    if (skipNextComma()) {
+                        val rawW = readInt()
+                        Vector4i(rawX, rawY, rawZ, rawW)
+                    } else Vector4i(rawX, rawY, rawZ, 255) // opaque color
+                } else Vector4i(rawX, rawX, rawX, rawY) // white with alpha
+            } else Vector4i(rawX) // monotone
+        }
     }
 
     private fun readMatrix2x2(): Matrix2f {
-        assertEquals(skipSpace(), '[', "Start of m2x2")
-        val m = Matrix2f(
-            readVector2f(),
-            readVector2f(true),
-        )
-        assertEquals(skipSpace(), ']', "End of m2x2")
-        return m
+        return readWithBrackets("mat2") {
+            Matrix2f(
+                readVector2f(),
+                readVector2f(true)
+            )
+        }
     }
 
     private fun readMatrix2x2d(): Matrix2d {
-        assertEquals(skipSpace(), '[', "Start of m2x2d")
-        val m = Matrix2d(
-            readVector2d(),
-            readVector2d(true),
-        )
-        assertEquals(skipSpace(), ']', "End of m2x2d")
-        return m
+        return readWithBrackets("mat2d") {
+            Matrix2d(
+                readVector2d(),
+                readVector2d(true)
+            )
+        }
     }
 
     private fun readMatrix3x2(): Matrix3x2f {
-        assertEquals(skipSpace(), '[', "Start of m3x2")
-        val a = readVector2f()
-        val b = readVector2f(true)
-        val c = readVector2f(true)
-        val m = Matrix3x2f(
-            a.x, a.y,
-            b.x, b.y,
-            c.x, c.y
-        )
-        assertEquals(skipSpace(), ']', "End of m3x2")
-        return m
+        return readWithBrackets("mat3x2") {
+            Matrix3x2f(
+                readVector2f(),
+                readVector2f(true),
+                readVector2f(true)
+            )
+        }
     }
 
     private fun readMatrix3x2d(): Matrix3x2d {
-        assertEquals(skipSpace(), '[', "Start of m3x2d")
-        val a = readVector2d()
-        val b = readVector2d(true)
-        val c = readVector2d(true)
-        val m = Matrix3x2d(
-            a.x, a.y,
-            b.x, b.y,
-            c.x, c.y
-        )
-        assertEquals(skipSpace(), ']', "End of m3x2d")
-        return m
+        return readWithBrackets("mat3x2d") {
+            Matrix3x2d(
+                readVector2d(),
+                readVector2d(true),
+                readVector2d(true)
+            )
+        }
     }
 
     private fun readMatrix3x3(): Matrix3f {
-        assertEquals(skipSpace(), '[', "Start of m3x3")
-        val m = Matrix3f(
-            readVector3f(),
-            readVector3f(true),
-            readVector3f(true)
-        )
-        assertEquals(skipSpace(), ']', "End of m3x3")
-        return m
+        return readWithBrackets("mat3") {
+            Matrix3f(
+                readVector3f(),
+                readVector3f(true),
+                readVector3f(true)
+            )
+        }
     }
 
     private fun readMatrix3x3d(): Matrix3d {
-        assertEquals(skipSpace(), '[', "Start of m3x3d")
-        val m = Matrix3d(
-            readVector3d(),
-            readVector3d(true),
-            readVector3d(true)
-        )
-        assertEquals(skipSpace(), ']', "End of m3x3d")
-        return m
+        return readWithBrackets("mat3d") {
+            Matrix3d(
+                readVector3d(),
+                readVector3d(true),
+                readVector3d(true)
+            )
+        }
     }
 
     private fun readMatrix4x3(): Matrix4x3f {
-        assertEquals(skipSpace(), '[', "Start of m4x3")
-        val m = Matrix4x3f(
-            readVector3f(),
-            readVector3f(true),
-            readVector3f(true),
-            readVector3f(true)
-        )
-        assertEquals(skipSpace(), ']', "End of m4x3")
-        return m
+        return readWithBrackets("mat4x3") {
+            Matrix4x3f(
+                readVector3f(),
+                readVector3f(true),
+                readVector3f(true),
+                readVector3f(true)
+            )
+        }
     }
 
     private fun readMatrix4x3d(): Matrix4x3d {
-        assertEquals(skipSpace(), '[', "Start of m4x3d")
-        val m = Matrix4x3d() // constructor is missing somehow...
-        m.set(
-            readVector3d(),
-            readVector3d(true),
-            readVector3d(true),
-            readVector3d(true)
-        )
-        assertEquals(skipSpace(), ']', "End of m4x3d")
-        return m
+        return readWithBrackets("mat4x3d") {
+            Matrix4x3d(
+                readVector3d(),
+                readVector3d(true),
+                readVector3d(true),
+                readVector3d(true)
+            )
+        }
     }
 
     private fun readMatrix4x4(): Matrix4f {
-        assertEquals(skipSpace(), '[', "Start of m4x4")
-        val m = Matrix4f(
-            readVector4f(),
-            readVector4f(true),
-            readVector4f(true),
-            readVector4f(true)
-        )
-        assertEquals(skipSpace(), ']', "End of m4x4")
-        return m
+        return readWithBrackets("mat4") {
+            Matrix4f(
+                readVector4f(),
+                readVector4f(true),
+                readVector4f(true),
+                readVector4f(true)
+            )
+        }
     }
 
     private fun readMatrix4x4d(): Matrix4d {
-        assertEquals(skipSpace(), '[', "Start of m4x4d")
-        val m = Matrix4d(
-            readVector4d(),
-            readVector4d(true),
-            readVector4d(true),
-            readVector4d(true)
-        )
-        assertEquals(skipSpace(), ']', "End of m4x4d")
-        return m
+        return readWithBrackets("mat4d") {
+            Matrix4d(
+                readVector4d(),
+                readVector4d(true),
+                readVector4d(true),
+                readVector4d(true)
+            )
+        }
     }
 
     fun readProperty(obj: Saveable) {
@@ -684,9 +623,9 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         readProperty(obj, typeName)
     }
 
-    private fun readByte() = readLong().toByte()
+    private fun readByte(): Byte = readLong().toByte()
 
-    private fun readShort() = readLong().toShort()
+    private fun readShort(): Short = readLong().toShort()
 
     private fun readChar(): Char {
         return when (val first = skipSpace()) {
@@ -703,6 +642,46 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private fun readInt(): Int = readLong().toInt()
+
+    private fun readColorArray(): IntArray {
+        return readArray("color", { IntArray(it) }, { array, index -> array[index] = readColor() })
+    }
+
+    private fun readColor(): Int {
+        val first = skipSpace()
+        if (first == '"') {
+            assertEquals('#', next())
+            val str = readString()
+            when (str.length) {
+                3 -> { // #rgb
+                    val v = str.toInt(16)
+                    return argb(
+                        255,
+                        v.ushr(8).and(15) * 17,
+                        v.ushr(4).and(15) * 17,
+                        v.and(15) * 17,
+                    )
+                }
+                4 -> { // #argb
+                    val v = str.toInt(16)
+                    return argb(
+                        v.ushr(12).and(15) * 17,
+                        v.ushr(8).and(15) * 17,
+                        v.ushr(4).and(15) * 17,
+                        v.and(15) * 17,
+                    )
+                }
+                // #rrggbb
+                6 -> return str.toInt(16) or black
+                // ##aarrggbb
+                8 -> return str.toInt(16)
+                else -> assertFail("Unknown color format")
+            }
+        } else {
+            tmpChar = first.code
+            return readInt()
+        }
+    }
 
     private fun readLong(): Long {
         // originally 3x as fast as readNumber().toLong()
@@ -765,16 +744,6 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 }
                 '_' -> { // allowed for better readability of large numbers
                 }
-                '"', '\'' -> {
-                    if (isFirst) {
-                        number = readLong()
-                        assertEquals(next(), next)
-                        break@loop
-                    } else {
-                        tmpChar = next.code
-                        break@loop
-                    }
-                }
                 else -> {
                     tmpChar = next.code
                     break@loop
@@ -830,16 +799,23 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         { DoubleArray(it) }, { array, index -> array[index] = readDouble() }
     )
 
+    private fun readSaveable(type: String?): Saveable? {
+        return when (val next = skipSpace()) {
+            'n' -> readNull()
+            '{' -> {
+                if (type != null) readObjectAndRegister(type)
+                else readObject()
+            }
+            in '0'..'9', '"' -> readPtr(next)
+            else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+        }
+    }
+
     private fun readMixedArray(): ArrayList<Saveable?> {
         return readArray("Any", {
             createArrayList(it, null)
         }, { array, index ->
-            array[index] = when (val next = skipSpace()) {
-                'n' -> readNull()
-                '{' -> readObject()
-                in '0'..'9' -> readPtr(next)
-                else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-            }
+            array[index] = readSaveable(null)
         })
     }
 
@@ -855,12 +831,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return readArray(type, {
             createArrayList(it, null)
         }, { array, index ->
-            array[index] = when (val next = skipSpace()) {
-                'n' -> readNull()
-                '{' -> readObjectAndRegister(type)
-                in '0'..'9' -> readPtr(next)
-                else -> assertFail("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-            }
+            array[index] = readSaveable(type)
         })
     }
 
@@ -1030,7 +1001,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             register2(SimpleType.DOUBLE, DoubleArray(0), JsonReaderBase::readDouble, JsonReaderBase::readDoubleArray)
             register2(SimpleType.BOOLEAN, BooleanArray(0), JsonReaderBase::readBool, JsonReaderBase::readBoolArray)
             register2(SimpleType.CHAR, CharArray(0), JsonReaderBase::readChar, JsonReaderBase::readCharArray)
-            register2(SimpleType.COLOR, IntArray(0), JsonReaderBase::readInt, JsonReaderBase::readIntArray)
+            register2(SimpleType.COLOR, IntArray(0), JsonReaderBase::readColor, JsonReaderBase::readColorArray)
             register1(SimpleType.STRING, "", JsonReaderBase::readStringValue)
             register1(SimpleType.REFERENCE, InvalidRef, JsonReaderBase::readFile)
             register1(SimpleType.VECTOR2F, Vector2f(), JsonReaderBase::readVector2f)

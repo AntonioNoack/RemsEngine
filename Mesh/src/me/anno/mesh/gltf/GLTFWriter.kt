@@ -71,7 +71,10 @@ import kotlin.math.max
  * writes a GLTF file from an Entity or Mesh,
  * writes materials and textures, too
  * */
-class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
+class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
+    JsonWriter(json.writer()) {
+
+    constructor() : this(ByteArrayOutputStream(4096))
 
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
@@ -91,7 +94,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
     private fun copyRaw(value: String) {
         // raw copy
         next()
-        output.write(value.encodeToByteArray())
+        output.write(value)
     }
 
     private val textures = HashMap<IntPair, Int>() // source, sampler
@@ -106,7 +109,6 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
     private val animations = ArrayList<AnimationData>()
 
     private val binary = ByteArrayOutputStream(4096)
-    private val json get() = output as ByteArrayOutputStream
 
     private val nodes = ArrayList<Saveable>()
     private val children = ArrayList<IntArrayList>()
@@ -1175,6 +1177,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
 
     private fun writeChunks(dst: FileReference) {
 
+        output.close() // finish writing into json
         ensureAlignment(json, ' '.code)
         ensureAlignment(binary, 0)
 

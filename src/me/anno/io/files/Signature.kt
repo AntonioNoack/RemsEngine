@@ -284,6 +284,7 @@ class Signature(
             // unity support
             Signature("yaml", METADATA, 0, "%YAML"),
             Signature("yaml-re", METADATA, 0, "RemsEngine:\n - class"),
+            Signature("yaml-re", METADATA, 0, "RemsEngine:\n  - class"),
             // json, kind of
             json,
             Signature("json", METADATA, 0, "[{"),

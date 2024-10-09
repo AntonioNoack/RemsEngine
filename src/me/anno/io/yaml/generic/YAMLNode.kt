@@ -46,7 +46,22 @@ class YAMLNode(
             builder.append(key).append(if (value != null) ": " else ":\n")
         }
         if (value != null) {
-            builder.append(value).append('\n')
+            // escape value if necessary
+            val needsEscape = value.trim() != value || value.any { it == '\n' || it == '\'' }
+            if (needsEscape) {
+                builder.append("'")
+                for (c in value) {
+                    when (c) {
+                        '\'' -> builder.append("\'")
+                        '\n' -> builder.append("\n")
+                        '\\' -> builder.append("\\\\")
+                        else -> builder.append(c)
+                    }
+                }
+                builder.append("'\n")
+            } else {
+                builder.append(value).append('\n')
+            }
         }
         var startTabs = !isList
         val children = children

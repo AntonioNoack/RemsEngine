@@ -87,7 +87,7 @@ class ImagePlugin : Plugin() {
                 dst.ready = false
                 file.inputStream { stream, err ->
                     if (stream != null) {
-                        val xml = XMLReader().read(stream)
+                        val xml = XMLReader().read(stream.reader())
                         if (xml is XMLNode && xml.type == "svg") {
                             dst.hasVideo = true
                             // width="800px" height="800px"

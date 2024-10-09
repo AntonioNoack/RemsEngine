@@ -56,7 +56,7 @@ class IdeaProject(val projectDir: FileReference) {
             val moduleConfig = projectDir.getChild(".idea/modules.xml")
             if (!moduleConfig.exists) return emptyList()
             val node0 = moduleConfig.inputStreamSync().use {
-                XMLReader().read(it) as XMLNode
+                XMLReader().read(it.reader()) as XMLNode
             }
             assertEquals("project", node0.type)
             val node1 = node0.children.filterIsInstance<XMLNode>()

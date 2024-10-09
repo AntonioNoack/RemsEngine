@@ -931,11 +931,10 @@ class SVGMesh {
 
         fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
             // Engine.requestShutdown()
-            file.inputStream { it, exc ->
-                if (it != null) {
+            file.inputStream { str, exc ->
+                if (str != null) {
                     val svg = SVGMesh()
-                    svg.parse(XMLReader().read(it) as XMLNode)
-                    it.close()
+                    svg.parse(XMLReader().read(str.reader()) as XMLNode)
                     val mesh = svg.mesh // may be null if the parsing failed / the svg is blank
                     if (mesh != null) {
                         val folder = InnerFolder(file)

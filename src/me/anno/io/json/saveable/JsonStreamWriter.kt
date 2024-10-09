@@ -3,10 +3,10 @@ package me.anno.io.json.saveable
 import me.anno.io.files.FileReference
 import java.io.OutputStream
 import java.io.OutputStreamWriter
+import java.io.Writer
 
-class JsonStreamWriter(val data: OutputStream, workspace: FileReference) : JsonWriterBase(workspace) {
+class JsonStreamWriter(val writer: Writer, workspace: FileReference) : JsonWriterBase(workspace) {
 
-    private val writer = OutputStreamWriter(data)
     private val c = CharArray(1)
 
     override fun flush() {

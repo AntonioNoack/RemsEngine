@@ -1,13 +1,14 @@
 package me.anno.io.xml.saveable
 
+import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.saveable.SimpleType
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLWriter.escapeXML
+import me.anno.utils.structures.lists.Lists.any2
 
 object XML2JSON {
 
-    // todo make special symbols in lists work
-
-    // convert XML into JSON and vice-versa
+    // convert XML into JSON and vice versa
     //  object ->
     //   small values become attributes
     //   big values become nodes
@@ -34,12 +35,15 @@ object XML2JSON {
             is Map<*, *> -> {
                 for ((k, v) in json) {
                     // these key-replacements are to make it XML-spec-compliant
-                    var ks = k.toString()
+                    val k0 = k.toString()
+                    var ks = k0
                         .replace("[]", "ZZ")
                         .replaceFirst(':', '.')
                     if (ks == "i.*ptr") ks = "ptr"
-                    if (isSmall(v)) {
-                        node.attributes[ks] = v.toString()
+                    val type = getType(k0)
+                    if (isSimpleType(type) && isSmall(v)) {
+                        node.attributes[ks] = if (v is Number || v is String || v is Boolean) v.toString()
+                        else smallString(type, v)
                     } else {
                         node.children.add(toXML(ks, v))
                     }
@@ -51,11 +55,52 @@ object XML2JSON {
         return node
     }
 
+    fun getType(typeName: String): String {
+        if (typeName == "class") return typeName
+        val i = typeName.indexOf(':')
+        if (i < 0) return ""
+        val type = typeName.substring(0, i)
+        return type
+    }
+
+    private fun isSimpleType(type: String): Boolean {
+        if (type == "class") return true
+        return SimpleType.entries.any2 { it.array2d == type || it.array == type || it.scalar == type }
+    }
+
+    private fun smallString(type: String, value: Any?): String {
+        return when (value) {
+            is String -> {
+                if (value.toDoubleOrNull() == null || type == SimpleType.CHAR.scalar) {
+                    escape(value)
+                } else value
+            }
+            is List<*> -> {
+                val isArray = type.endsWith("[]")
+                val type1 = if (isArray) type.substring(0, type.length - 2) else type
+                value.indices.joinToString(", ", "[", "]") {
+                    smallString(if (isArray && it == 0) "i" else type1, value[it])
+                }
+            }
+            else -> value.toString()
+        }
+    }
+
+    private fun escape(value: String): String {
+        val builder = StringBuilder(value.length + 2) // +2 for quotes
+        JsonFormatter.appendEscapedString(value, builder)
+        return builder.toString()
+    }
+
     private fun replace(k: String): String {
+        if (k == "ptr") return "i:*ptr"
         return k.replace("ZZ", "[]")
             .replaceFirst('.', ':')
     }
 
+    /**
+     * returns json-like
+     * */
     fun fromXML(xml: XMLNode, setClass: Boolean = true): Any {
         if (xml.attributes.size == 1 && xml.attributes["isList"] == "1" &&
             xml.children.all { it is XMLNode }
@@ -65,13 +110,24 @@ object XML2JSON {
                 fromXML(it, it.type != LIST_ITEM_CLASS)
             }
         } else if (xml.type == LIST_ITEM_CLASS && xml.attributes.isEmpty() &&
-            xml.children.size == 1 && xml.children[0] is String
-        ) { // a string/number value
+            xml.children.size == 1 && isSmall(xml.children[0])
+        ) {
+            return xml.children[0].toString().trim()
+        } else if (xml.attributes.isEmpty() && xml.children.size == 1 &&
+            isSmall(xml.children[0])
+        ) {
             return xml.children[0].toString().trim()
         } else {
             // create object
             val json = LinkedHashMap<String, Any?>()
-            if (setClass) json["class"] = replace(xml.type)
+            if (setClass) {
+                var type = xml.type
+                val dotIdx = type.indexOf('.')
+                if (dotIdx > 0) {
+                    type = type.substring(0, dotIdx)
+                }
+                json["class"] = replace(type)
+            }
             for ((k, v) in xml.attributes) {
                 json[replace(k)] = v
             }
@@ -86,7 +142,7 @@ object XML2JSON {
 
     private fun isSmall(json: Any?): Boolean {
         return when (json) {
-            null, is String, is Number, is Boolean -> true
+            null, is String, is Number, is Boolean, is Char -> true
             is List<*> -> json.all { isSmall(it) }
             else -> false
         }

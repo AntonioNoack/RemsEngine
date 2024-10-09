@@ -35,7 +35,7 @@ object SVGMeshCache : CacheSection("Meshes") {
     private fun loadSVGMeshSync(input: InputStream?): StaticBuffer? {
         input ?: return null
         val svg = SVGMesh()
-        svg.parse(XMLReader().read(input) as XMLNode)
+        svg.parse(XMLReader().read(input.reader()) as XMLNode)
         val buffer = svg.buffer // may be null if the parsing failed / the svg is blank
         buffer?.bounds = svg.bounds
         return buffer

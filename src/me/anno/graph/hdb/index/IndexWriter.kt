@@ -3,10 +3,10 @@ package me.anno.graph.hdb.index
 import me.anno.utils.types.size
 import me.anno.io.json.generic.JsonWriter
 import me.anno.utils.InternalAPI
-import java.io.OutputStream
+import java.io.Writer
 
 @InternalAPI
-class IndexWriter(stream: OutputStream) : JsonWriter(stream) {
+class IndexWriter(stream: Writer) : JsonWriter(stream) {
 
     fun writeFolder(folder: Folder) {
         // todo why is this crashing????

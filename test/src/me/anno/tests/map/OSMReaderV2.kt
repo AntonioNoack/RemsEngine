@@ -67,7 +67,7 @@ object OSMReaderV2 {
             return ((lon - minLon) * lonScale).toFloat()
         }
 
-        XMLScanner().scan(file, { _, type ->
+        XMLScanner().scan(file.reader(), { _, type ->
             shallReadTags || type != "tag"
         }, { depth, type ->
             when (type) {

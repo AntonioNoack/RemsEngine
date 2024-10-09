@@ -60,18 +60,16 @@ open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : Js
         }
 
         fun save(entry: Saveable, file: FileReference, workspace: FileReference) {
-            file.outputStream().use {
-                val writer = JsonStreamWriter(it, workspace)
-                writer.add(entry)
-                writer.writeAllInList()
-            }
+            save(listOf(entry), file, workspace)
         }
 
         fun save(data: Collection<Saveable>, file: FileReference, workspace: FileReference) {
-            file.outputStream().use {
-                val writer = JsonStreamWriter(it, workspace)
-                for (entry in data) writer.add(entry)
-                writer.writeAllInList()
+            file.outputStream().use { stream ->
+                stream.writer().use { writer ->
+                    val jsonWriter = JsonStreamWriter(writer, workspace)
+                    for (entry in data) jsonWriter.add(entry)
+                    jsonWriter.writeAllInList()
+                }
             }
         }
 

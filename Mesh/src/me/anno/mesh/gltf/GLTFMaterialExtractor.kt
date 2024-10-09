@@ -20,14 +20,15 @@ object GLTFMaterialExtractor {
                 first = input.read()
             }
             if (first == '{'.code) {
-                JsonReader(input).readObject(false) { name ->
-                    when (name) {
-                        "materials", "name", "pbrMetallicRoughness",
-                        "baseColorTexture", "index", "metallicFactor",
-                        "roughnessFactor" -> true
-                        else -> false
+                JsonReader(input.reader())
+                    .readObject(false) { name ->
+                        when (name) {
+                            "materials", "name", "pbrMetallicRoughness",
+                            "baseColorTexture", "index", "metallicFactor",
+                            "roughnessFactor" -> true
+                            else -> false
+                        }
                     }
-                }
             } else emptyMap()
         }["materials"] as? List<*> ?: return null
         // sample: [{name=fox_material, pbrMetallicRoughness={baseColorTexture={index=0}, metallicFactor=0.0, roughnessFactor=0.6036471918720245}}]

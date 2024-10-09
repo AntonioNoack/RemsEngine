@@ -1,5 +1,7 @@
 package me.anno.io.yaml.saveable
 
+import me.anno.io.json.saveable.SimpleType
+import me.anno.io.xml.saveable.XML2JSON
 import me.anno.io.yaml.generic.YAMLNode
 import me.anno.io.yaml.generic.YAMLReader.LIST_KEY
 
@@ -8,17 +10,22 @@ object YAML2JSON {
         return when (json) {
             is List<*> -> {
                 // optimization for long arrays, so they don't produce too many long lists
-                if (json.all { it is Number } || json.all { it is String && it.toDoubleOrNull() != null }) {
+                val type = XML2JSON.getType(name)
+                val typeAllowsInline = type != SimpleType.CHAR.array && type != SimpleType.CHAR.array2d
+                val valueAllowsInline = json.all { it is Number } ||
+                        json.all { it is String && it.toDoubleOrNull() != null }
+                if (typeAllowsInline && valueAllowsInline) {
                     YAMLNode(name, depth, json.joinToString(",", "[", "]"))
                 } else {
                     YAMLNode(name, depth, null, json.map {
-                        toYAML(LIST_KEY, it, depth + 1)
+                        toYAML(LIST_KEY, it, depth + 2)
                     })
                 }
             }
             is Map<*, *> -> {
-                YAMLNode(name, depth, null, json.map { (k, v) ->
-                    toYAML(k.toString(), v, depth + 2)
+                YAMLNode(name, depth, null, json.map { (k, value) ->
+                    val key = k.toString()
+                    toYAML(key, value, depth + 2)
                 })
             }
             else -> YAMLNode(name, depth, json.toString())

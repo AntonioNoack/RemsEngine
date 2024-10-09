@@ -6,6 +6,7 @@ object JsonFormatter {
 
         val result = StringBuilder(size * 2)
         val closingBracketStack = StringBuilder(16)
+        val pretty = indentation.isNotEmpty()
 
         var shouldSwitchLine = false
         var depth = 0
@@ -24,7 +25,7 @@ object JsonFormatter {
 
         fun breakIfHadClosingBracket() {
             if (closingBracketStack.isNotEmpty()) {
-                breakLine()
+                if (pretty) breakLine()
                 result.append(closingBracketStack)
                 closingBracketsInLine = closingBracketStack.length
                 closingBracketStack.clear()
@@ -39,7 +40,7 @@ object JsonFormatter {
             while (i < size) {
                 when (val char = str[i++]) {
                     '[', '{' -> {
-                        if (result.endsWith(',')) result.append(' ')
+                        if (pretty && result.endsWith(',')) result.append(' ')
                         result.append(char)
                         depth++
                         // quicker ascent than directly switching lines
@@ -53,12 +54,14 @@ object JsonFormatter {
                     }
                     ' ', '\t', '\r', '\n' -> {
                     } // skip, done automatically
-                    ':' -> result.append(": ")
+                    ':' -> result.append(if (pretty) ": " else ":")
                     '"', '\'' -> {
                         // skip a string
                         breakIfHadClosingBracket()
-                        if (shouldSwitchLine || closingBracketsInLine > 1) breakLine()
-                        else if (result.endsWith(',')) result.append(' ')
+                        if (pretty) {
+                            if (shouldSwitchLine || closingBracketsInLine > 1) breakLine()
+                            else if (result.endsWith(',')) result.append(' ')
+                        }
                         result.append(char)
                         while (i < size) {
                             when (val c2 = str[i++]) {
@@ -82,8 +85,10 @@ object JsonFormatter {
                     }
                     else -> {
                         breakIfHadClosingBracket()
-                        if (shouldSwitchLine) breakLine()
-                        else if (result.endsWith(',')) result.append(' ')
+                        if (pretty) {
+                            if (shouldSwitchLine) breakLine()
+                            else if (result.endsWith(',')) result.append(' ')
+                        }
                         result.append(char)
                     }
                 }
@@ -119,7 +124,7 @@ object JsonFormatter {
         var first = true
         for ((key, value) in map) {
             if (!first) builder.append(',')
-            append(key.toString(), builder)
+            appendEscapedString(key.toString(), builder)
             builder.append(":")
             append(value, builder)
             first = false
@@ -132,17 +137,17 @@ object JsonFormatter {
             null, true, false -> builder.append(value)
             is List<*> -> append(value, builder)
             is Map<*, *> -> append(value, builder)
-            is Char -> append(value.toString(), builder)
+            is Char -> appendEscapedString(value.toString(), builder)
             is Byte, is Short, is Int, is Long, is Float, is Double ->
                 builder.append(value.toString())
             is ByteArray -> builder.append('[').append(value.joinToString(",")).append(']')
-            is CharArray -> append(value.concatToString(), builder)
+            is CharArray -> appendEscapedString(value.concatToString(), builder)
             is ShortArray -> builder.append('[').append(value.joinToString(",")).append(']')
             is IntArray -> builder.append('[').append(value.joinToString(",")).append(']')
             is LongArray -> builder.append('[').append(value.joinToString(",")).append(']')
             is FloatArray -> builder.append('[').append(value.joinToString(",")).append(']')
             is DoubleArray -> builder.append('[').append(value.joinToString(",")).append(']')
-            else -> append(value.toString(), builder)
+            else -> appendEscapedString(value.toString(), builder)
         }
     }
 
@@ -157,7 +162,7 @@ object JsonFormatter {
         builder.append(']')
     }
 
-    fun append(str: String, builder: StringBuilder) {
+    fun appendEscapedString(str: String, builder: StringBuilder) {
         builder.ensureCapacity(builder.length + str.length + 2)
         builder.append('"')
         for (c in str) {

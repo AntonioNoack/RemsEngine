@@ -17,12 +17,13 @@ import me.anno.io.binary.BinaryReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.generic.JsonLike.MAIN_NODE_NAME
+import me.anno.io.json.generic.JsonLike.jsonLikeToJson
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.Saveable
 import me.anno.io.xml.generic.XMLNode
@@ -208,8 +209,8 @@ object PrefabCache : CacheSection("Prefab") {
     private fun readXMLRE(file: FileReference, callback: Callback<Saveable>) {
         file.inputStream { str, err ->
             if (str != null) {
-                val node = XMLReader().read(str) as XMLNode
-                assertEquals("RemsEngine", node.type)
+                val node = XMLReader().read(str.reader()) as XMLNode
+                assertEquals(MAIN_NODE_NAME, node.type)
                 val jsonLike = XML2JSON.fromXML(node)
                 readJSONLike(file, jsonLike, callback)
             } else callback.err(err)
@@ -228,8 +229,7 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun readJSONLike(file: FileReference, jsonLike: Any?, callback: Callback<Saveable>) {
-        val root = ((jsonLike as? Map<*, *>)?.get("RemsEngine") ?: jsonLike) as List<*>
-        val json = JsonFormatter.format(root, "", Int.MAX_VALUE)
+        val json = jsonLikeToJson(jsonLike)
         val prefab = JsonStringReader.readFirstOrNull(json, EngineBase.workspace, Saveable::class)
         onReadPrefab(file, prefab, callback)
     }

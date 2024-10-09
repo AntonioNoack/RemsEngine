@@ -8,12 +8,13 @@ import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.InputStream
+import java.io.Reader
 
 /**
  * to avoid the import of FasterXML (17 MB) or similar, we create our own light-weight solution to reading JSON files;
  * this has no reflection support, so it is safe to use (except for OutOfMemoryError), but you have to implement the mapping yourself
  * */
-open class JsonReader(val data: InputStream) {
+open class JsonReader(val data: Reader) {
 
     companion object {
         fun isHex(c: Char): Boolean {
@@ -37,8 +38,9 @@ open class JsonReader(val data: InputStream) {
         }
     }
 
+    constructor(stream: InputStream): this(stream.reader())
     constructor(data: ByteArray) : this(ByteArrayInputStream(data))
-    constructor(data: String) : this(data.encodeToByteArray())
+    constructor(data: String) : this(data.reader())
 
     var index = 0
     var tmpChar = 0.toChar()

@@ -1,6 +1,5 @@
 package me.anno.engine.projects
 
-import me.anno.engine.EngineBase
 import me.anno.engine.projects.GameEngineProject.Companion.encoding
 import me.anno.io.Streams.consumeMagic
 import me.anno.io.Streams.writeString
@@ -8,17 +7,14 @@ import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonFormatter
-import me.anno.io.json.generic.JsonReader
+import me.anno.io.json.generic.JsonLike.decodeJsonLike
+import me.anno.io.json.generic.JsonLike.jsonToXML
+import me.anno.io.json.generic.JsonLike.jsonToYAML
+import me.anno.io.json.generic.JsonLike.xmlBytesToJsonLike
+import me.anno.io.json.generic.JsonLike.yamlBytesToJsonLike
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
-import me.anno.io.xml.generic.XMLNode
-import me.anno.io.xml.generic.XMLReader
-import me.anno.io.xml.generic.XMLWriter
-import me.anno.io.xml.saveable.XML2JSON
-import me.anno.io.yaml.generic.YAMLReader
-import me.anno.io.yaml.saveable.YAML2JSON
-import me.anno.utils.assertions.assertEquals
 import java.io.ByteArrayOutputStream
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
@@ -33,7 +29,6 @@ enum class FileEncoding(val id: Int) {
 
     companion object {
         const val BINARY_MAGIC = "RemsEngineZZ"
-        const val MAIN_NODE_NAME = "RemsEngine"
     }
 
     val extension: String
@@ -64,32 +59,17 @@ enum class FileEncoding(val id: Int) {
         }
     }
 
-    fun encode(value: Saveable, workspace: FileReference): ByteArray {
-        return encode(listOf(value), workspace)
-    }
-
-    private fun decodeJsonLike(jsonLike: Any?, safely: Boolean): List<Saveable> {
-        val root = ((jsonLike as? Map<*, *>)?.get(MAIN_NODE_NAME) ?: jsonLike) as List<*>
-        val json = JsonFormatter.format(root, "", Int.MAX_VALUE)
-        return JsonStringReader.read(json, EngineBase.workspace, safely)
-    }
-
     fun decode(bytes: ByteArray, workspace: FileReference, safely: Boolean): List<Saveable> {
         when (this) {
-            PRETTY_JSON, COMPACT_JSON -> {
+            COMPACT_JSON, PRETTY_JSON -> {
                 return JsonStringReader.read(bytes.inputStream(), workspace, safely)
             }
-            YAML -> {
-                val reader = bytes.inputStream().bufferedReader()
-                val node = YAMLReader.parseYAML(reader, beautify = false)
-                val jsonLike = YAML2JSON.fromYAML(node)
+            COMPACT_XML, PRETTY_XML -> {
+                val jsonLike = xmlBytesToJsonLike(bytes)
                 return decodeJsonLike(jsonLike, safely)
             }
-            COMPACT_XML, PRETTY_XML -> {
-                val str = bytes.inputStream()
-                val node = XMLReader().read(str) as XMLNode
-                assertEquals(MAIN_NODE_NAME, node.type)
-                val jsonLike = XML2JSON.fromXML(node)
+            YAML -> {
+                val jsonLike = yamlBytesToJsonLike(bytes)
                 return decodeJsonLike(jsonLike, safely)
             }
             else -> {
@@ -103,6 +83,10 @@ enum class FileEncoding(val id: Int) {
         }
     }
 
+    fun encode(value: Saveable, workspace: FileReference): ByteArray {
+        return encode(listOf(value), workspace)
+    }
+
     fun encode(
         values: List<Saveable>, workspace: FileReference,
         resourceMap: Map<FileReference, FileReference> = emptyMap()
@@ -110,20 +94,13 @@ enum class FileEncoding(val id: Int) {
         val encoding = this
         return if (encoding != BINARY) {
             val json = JsonStringWriter.toText(values, workspace, resourceMap)
+            println("json: $json")
             when (encoding) {
-                PRETTY_JSON -> JsonFormatter.format(json)
                 COMPACT_JSON -> json
-                YAML -> {
-                    val jsonNode = JsonReader(json).readArray()
-                    val yamlNode = YAML2JSON.toYAML(MAIN_NODE_NAME, jsonNode, 0)
-                    yamlNode.toString()
-                }
-                COMPACT_XML, PRETTY_XML -> {
-                    val jsonNode = JsonReader(json).readArray()
-                    val xmlNode = XML2JSON.toXML(MAIN_NODE_NAME, jsonNode)
-                    val indentation = if (this == PRETTY_XML) "  " else null
-                    XMLWriter.write(xmlNode, indentation, true)
-                }
+                PRETTY_JSON -> JsonFormatter.format(json)
+                COMPACT_XML -> jsonToXML(json, false)
+                PRETTY_XML -> jsonToXML(json, true)
+                YAML -> jsonToYAML(json)
                 else -> ""
             }.encodeToByteArray()
         } else {

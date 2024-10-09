@@ -399,7 +399,7 @@ object Strings {
         val ix = if (c0 == '+' || c0 == '-') i0 + 1 else i0
         var number = 0L
         for (i in ix until i1) {
-            number = 10 * number - this[i].code - 48
+            number = 10 * number - (this[i].code - 48)
         }
         return if (c0 == '-') number else -number
     }

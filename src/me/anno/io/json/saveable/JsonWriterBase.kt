@@ -44,15 +44,11 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     private val tmp16d = DoubleArray(16)
 
     abstract fun append(v: Char)
-
     abstract fun append(v: String)
-
     abstract fun append(v: Int)
-
     abstract fun append(v: Long)
 
     open fun append(v: Byte): Unit = append(v.toInt())
-
     open fun append(v: Short): Unit = append(v.toInt())
 
     fun open(array: Boolean) {
@@ -142,15 +138,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     fun appendCharValue(value: Char) {
-        when (value) {
-            in 'A'..'Z', in 'a'..'z', in '0'..'9',
-            in " _+-*/!§$%&()[]{}|~<>" -> {
-                append('"')
-                append(value)
-                append('"')
-            }
-            else -> append(value.code)
-        }
+        appendString(value.toString())
     }
 
     override fun writeChar(name: String, value: Char, force: Boolean) {

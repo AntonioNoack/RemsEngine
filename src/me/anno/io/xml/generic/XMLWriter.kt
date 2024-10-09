@@ -1,6 +1,6 @@
 package me.anno.io.xml.generic
 
-import me.anno.utils.Color.hex16
+import me.anno.fonts.Codepoints.codepoints
 
 object XMLWriter {
 
@@ -22,18 +22,20 @@ object XMLWriter {
     }
 
     fun StringBuilder.appendStringEscaped(str: String): StringBuilder {
-        for (c in str) {
-            when (c) {
-                in 'A'..'Z', in 'a'..'z', in '0'..'9', in " .:,;-_!§$%&/()=?[]{}<>'" -> {
-                    append(c)
+        for (cx in str.codepoints()) {
+            if (cx in 32 until 128) {
+                when (val c = cx.toChar()) {
+                    in 'A'..'Z', in 'a'..'z',
+                    in '0'..'9', in " .:,;-_!§$%&/()=?[]{}<>'" -> append(c)
+                    '<' -> append("&lt;")
+                    '>' -> append("&gt;")
+                    '"' -> append("&quot;")
+                    '\'' -> append("&apos;")
+                    '&' -> append("&amp;")
+                    else -> append("&#").append(c.code).append(';')
                 }
-                '\n' -> append("\\n")
-                '"' -> append("\\\"")
-                '\\' -> append("\\\\")
-                else -> {
-                    append("\\u")
-                    append(hex16(c.code))
-                }
+            } else {
+                append("&#").append(cx).append(';')
             }
         }
         return this
@@ -45,6 +47,9 @@ object XMLWriter {
                 '<' -> append("&lt;")
                 '>' -> append("&gt;")
                 '\n' -> append("<br/>")
+                '"' -> append("&quot;")
+                '\'' -> append("&apos;")
+                '&' -> append("&amp;")
                 else -> append(c)
             }
         }
@@ -52,8 +57,8 @@ object XMLWriter {
     }
 
     fun escapeXML(str: String): String {
-        val extra = str.count { it in "<>\n" }
-        if (extra <= 0) return str
+        val extra = str.count { it in "<>\n\"'&" }
+        if (extra == 0) return str
         val builder = StringBuilder(str.length + extra * 3)
         builder.appendXMLEscaped(str)
         return builder.toString()

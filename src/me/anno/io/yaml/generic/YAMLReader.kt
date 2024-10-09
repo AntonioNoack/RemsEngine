@@ -37,10 +37,30 @@ object YAMLReader {
         var size = 0
 
         // will this be inlined? mmh...
-        fun add(depth: Int, key: String, value: String?) {
+        fun add(depth: Int, key: String, value0: String?) {
+            var value1 = value0
+            if (value0 != null && value0.startsWith('\'') && value0.endsWith('\'')) {
+                var i = 1
+                val builder = StringBuilder(max(value0.length - 2, 16))
+                while (i < value0.length - 1) {
+                    when (val c = value0[i++]) {
+                        '\\' -> when (value0[i++]) {
+                            '\'' -> builder.append('\'')
+                            'n' -> builder.append('\n')
+                            '\\' -> builder.append('\\')
+                            else -> {
+                                i-- // undo reading value
+                                builder.append('\\')
+                            }
+                        }
+                        else -> builder.append(c)
+                    }
+                }
+                value1 = builder.toString()
+            }
             // find the depth in the stack
             // if the value is JSON-like object, parse it as well
-            val node = YAMLNode(key, depth, value)
+            val node = YAMLNode(key, depth, value1)
             when {
                 depth == lastDepth -> {
                     // fine, just add to parent
@@ -51,7 +71,7 @@ object YAMLReader {
                     // go back
                     // how much?
                     val treeDepth = stack.binarySearch { it.depth.compareTo(depth) }
-                    if (treeDepth < 0) throw IOException("Went backwards, but this depth has never appeared before: $depth out of ${stack.joinToString { "${it.depth}" }}, $key: $value")
+                    if (treeDepth < 0) throw IOException("Went backwards, but this depth has never appeared before: $depth out of ${stack.joinToString { "${it.depth}" }}, $key: $value1")
                     for (i in stack.size - 1 downTo treeDepth + 1) stack.removeAt(i)
                     stack[treeDepth - 1].add(node)
                     stack[treeDepth] = node
@@ -76,7 +96,7 @@ object YAMLReader {
             if (trimmed.isNotEmpty()) {
                 var startIndex = line.indexOf(trimmed.first())
                 var depth = startIndex
-                if (trimmed.startsWith("- ")) {
+                while (trimmed.startsWith("- ")) {
                     // node in-between for this key-point
                     // this is sometimes needed:
                     // - name: leName

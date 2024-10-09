@@ -38,7 +38,7 @@ object FFMPEGMetadata {
 
         // get and parse the data :)
         FFMPEGStream.logOutput(null, file.absolutePath, process.errorStream, true)
-        val data = JsonReader(process.inputStream.useBuffered()).readObject()
+        val data = JsonReader(process.inputStream.bufferedReader()).readObject()
 
         val streams = data["streams"] as? ArrayList<*> ?: ArrayList<Any?>()
         val format = data["format"] as? HashMap<*, *> ?: HashMap<String, Any?>()

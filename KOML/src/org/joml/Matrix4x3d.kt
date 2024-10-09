@@ -70,6 +70,10 @@ open class Matrix4x3d {
         determineProperties()
     }
 
+    constructor(col0: Vector3d, col1: Vector3d, col2: Vector3d, col3: Vector3d) {
+        this.set(col0, col1, col2, col3).determineProperties()
+    }
+
     fun assume(properties: Int): Matrix4x3d {
         this.flags = properties
         return this

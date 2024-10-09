@@ -66,7 +66,9 @@ class HierarchicalDatabase(
     fun storeIndex() {
         synchronized(this) {
             indexFile.outputStream(false).use { stream ->
-                IndexWriter(stream).writeFolder(root)
+                stream.writer().use { writer ->
+                    IndexWriter(writer).writeFolder(root)
+                }
             }
         }
     }

@@ -70,6 +70,7 @@ class NodeSerializationTests {
         val style1 = LanguageStyle()
         style1.color = 0x775533
         val text = JsonStringWriter.toText(style1, InvalidRef)
+        println(text)
         val style2 = JsonStringReader.readFirst(text, InvalidRef, LanguageStyle::class)
         assertEquals(style1.color, style2.color)
     }
