@@ -14,6 +14,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Ints.toIntOrDefault
+import java.io.Writer
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
@@ -272,7 +273,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun writeEscaped(value: String, data: StringBuilder) {
+    fun writeEscaped(value: String, data: StringBuilder, enclosing: Char) {
         var i = 0
         var lastI = 0
         while (i < value.length) {
@@ -294,23 +295,48 @@ object Strings {
         if (i > lastI) data.append(value, lastI, i)
     }
 
+    const val DONT_ESCAPE = 0.toChar()
+
     @JvmStatic
-    fun writeEscaped(value: String, data: JsonWriterBase) {
-        loop@ for (index in value.indices) {
-            val esc = when (val char = value[index]) {
-                '\\', '"' -> char
-                '\t' -> 't'
-                '\r' -> 'r'
-                '\n' -> 'n'
-                '\b' -> 'b'
-                12.toChar() -> 'f'
-                else -> {
-                    data.append(char)
-                    continue@loop
-                }
+    fun getEscapeChar(char: Char, quotes: Char): Char {
+        return when (char) {
+            '\\' -> char
+            quotes -> char
+            '"', '\'' -> DONT_ESCAPE
+            '\t' -> 't'
+            '\r' -> 'r'
+            '\n' -> 'n'
+            '\b' -> 'b'
+            12.toChar() -> 'f'
+            else -> DONT_ESCAPE
+        }
+    }
+
+    @JvmStatic
+    fun writeEscaped(value: String, data: Writer, quotes: Char) {
+        for (index in value.indices) {
+            val char = value[index]
+            val esc = getEscapeChar(char, quotes)
+            if (esc == DONT_ESCAPE) {
+                data.append(char)
+            } else {
+                data.append('\\')
+                data.append(esc)
             }
-            data.append('\\')
-            data.append(esc)
+        }
+    }
+
+    @JvmStatic
+    fun writeEscaped(value: String, data: JsonWriterBase, quotes: Char) {
+        for (index in value.indices) {
+            val char = value[index]
+            val esc = getEscapeChar(char, quotes)
+            if (esc == DONT_ESCAPE) {
+                data.append(char)
+            } else {
+                data.append('\\')
+                data.append(esc)
+            }
         }
     }
 

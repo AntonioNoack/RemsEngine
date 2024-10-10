@@ -1,6 +1,9 @@
 package me.anno.io.yaml.generic
 
 import me.anno.io.yaml.generic.YAMLReader.LIST_KEY
+import me.anno.utils.types.Strings
+import me.anno.utils.types.Strings.isBlank
+import me.anno.utils.types.Strings.writeEscaped
 
 class YAMLNode(
     val key: String, val depth: Int, val value: String? = null,
@@ -47,21 +50,17 @@ class YAMLNode(
         }
         if (value != null) {
             // escape value if necessary
-            val needsEscape = value.trim() != value || value.any { it == '\n' || it == '\'' }
+            val needsEscape = value.isEmpty() ||
+                    (value.first().isBlank() || value.last().isBlank()) ||
+                    value.any { Strings.getEscapeChar(it, '\'') != Strings.DONT_ESCAPE || it == '"' }
             if (needsEscape) {
-                builder.append("'")
-                for (c in value) {
-                    when (c) {
-                        '\'' -> builder.append("\'")
-                        '\n' -> builder.append("\n")
-                        '\\' -> builder.append("\\\\")
-                        else -> builder.append(c)
-                    }
-                }
-                builder.append("'\n")
+                builder.append('\'')
+                writeEscaped(value, builder, '\'')
+                builder.append('\'')
             } else {
-                builder.append(value).append('\n')
+                builder.append(value)
             }
+            builder.append('\n')
         }
         var startTabs = !isList
         val children = children

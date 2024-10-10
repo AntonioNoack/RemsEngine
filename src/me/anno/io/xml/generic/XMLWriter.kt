@@ -26,7 +26,7 @@ object XMLWriter {
             if (cx in 32 until 128) {
                 when (val c = cx.toChar()) {
                     in 'A'..'Z', in 'a'..'z',
-                    in '0'..'9', in " .:,;-_!§$%&/()=?[]{}<>'" -> append(c)
+                    in '0'..'9', in " .:,;-_!§$%/()=?[]{}" -> append(c)
                     '<' -> append("&lt;")
                     '>' -> append("&gt;")
                     '"' -> append("&quot;")

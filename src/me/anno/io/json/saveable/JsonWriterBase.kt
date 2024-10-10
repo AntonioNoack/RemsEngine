@@ -69,7 +69,7 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     }
 
     fun appendEscaped(value: String) {
-        Strings.writeEscaped(value, this)
+        Strings.writeEscaped(value, this, '"')
     }
 
     fun appendString(value: String) {

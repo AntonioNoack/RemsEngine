@@ -1,5 +1,7 @@
 package me.anno.io.yaml.generic
 
+import me.anno.io.json.generic.JsonReader.Companion.toHex
+import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.titlecase
 import java.io.BufferedReader
 import java.io.IOException
@@ -42,19 +44,36 @@ object YAMLReader {
             if (value0 != null && value0.startsWith('\'') && value0.endsWith('\'')) {
                 var i = 1
                 val builder = StringBuilder(max(value0.length - 2, 16))
-                while (i < value0.length - 1) {
+                while (i < value0.length - 2) { // check for escape sequences; last one doesn't need that care
+                    fun undoReadingEscapeSequence() {
+                        i-- // undo reading value
+                        builder.append('\\')
+                    }
                     when (val c = value0[i++]) {
-                        '\\' -> when (value0[i++]) {
-                            '\'' -> builder.append('\'')
+                        '\\' -> when (val ci = value0[i++]) {
+                            '\'', '\\', '"' -> builder.append(ci)
                             'n' -> builder.append('\n')
-                            '\\' -> builder.append('\\')
-                            else -> {
-                                i-- // undo reading value
-                                builder.append('\\')
+                            'r' -> builder.append('\r')
+                            't' -> builder.append('\t')
+                            'b' -> builder.append('\b')
+                            'f' -> builder.append(12.toChar())
+                            'u' -> {
+                                if (i + 5 < value0.length) {
+                                    val c0 = value0[i++]
+                                    val c1 = value0[i++]
+                                    val c2 = value0[i++]
+                                    val c3 = value0[i++]
+                                    val code = toHex(c0, c1, c2, c3)
+                                    builder.append(code.joinChars())
+                                } else undoReadingEscapeSequence()
                             }
+                            else -> undoReadingEscapeSequence()
                         }
                         else -> builder.append(c)
                     }
+                }
+                if (i < value0.length - 1) {
+                    builder.append(value0[i++])
                 }
                 value1 = builder.toString()
             }

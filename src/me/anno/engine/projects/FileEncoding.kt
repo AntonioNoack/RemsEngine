@@ -94,7 +94,6 @@ enum class FileEncoding(val id: Int) {
         val encoding = this
         return if (encoding != BINARY) {
             val json = JsonStringWriter.toText(values, workspace, resourceMap)
-            println("json: $json")
             when (encoding) {
                 COMPACT_JSON -> json
                 PRETTY_JSON -> JsonFormatter.format(json)

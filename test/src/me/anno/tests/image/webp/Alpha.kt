@@ -1,5 +1,6 @@
 package me.anno.tests.image.webp
 
+import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.io.files.SignatureCache
@@ -14,4 +15,6 @@ fun main() {
     for (file in pictures.getChild("Anime").listChildren()) {
         SignatureCache.getAsync(file) { println(it?.name) }
     }
+    // wait for results?
+    Engine.requestShutdown()
 }

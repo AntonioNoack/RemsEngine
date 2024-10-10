@@ -40,7 +40,8 @@ import org.joml.Vector4i
 import org.junit.jupiter.api.Test
 
 /**
- * tests all data types (primitives, and a few Saveables) for all (de)serializers
+ * tests all data types (primitives, and a few Saveables) for all (de)serializers;
+ * testing special unicode characters is done in a separate test
  * */
 class CompleteFileEncodingTest {
 

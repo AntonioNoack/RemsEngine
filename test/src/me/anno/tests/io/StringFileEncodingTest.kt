@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 
 /**
  * tests special symbols in strings that could cause issues
- * todo make all tests pass
  * */
 class StringFileEncodingTest {
 
@@ -65,6 +64,11 @@ class StringFileEncodingTest {
     @Test
     fun testMultiline() {
         testStrings(listOf("\n", "\n\n"))
+    }
+
+    @Test
+    fun testEvilLineBreaks() {
+        testStrings(listOf("\r", "\r\n"))
     }
 
     @Test

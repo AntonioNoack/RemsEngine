@@ -27,9 +27,7 @@ open class JsonWriter(val output: Writer) {
 
     private fun writeEscapedString(value: String) {
         output.write('"'.code)
-        val sb = StringBuilder()
-        Strings.writeEscaped(value, sb)
-        output.write(sb.toString())
+        Strings.writeEscaped(value, output, '"')
         output.write('"'.code)
     }
 
