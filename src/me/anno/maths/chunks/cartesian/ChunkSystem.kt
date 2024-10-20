@@ -283,8 +283,4 @@ abstract class ChunkSystem<Chunk, Element>(
         super.destroy()
         removeIf { _, _ -> true }
     }
-
-    operator fun Vector3i.component1() = x
-    operator fun Vector3i.component2() = y
-    operator fun Vector3i.component3() = z
 }

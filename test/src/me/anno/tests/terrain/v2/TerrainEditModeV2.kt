@@ -1,4 +1,4 @@
-package me.anno.tests.terrain
+package me.anno.tests.terrain.v2
 
 import me.anno.Time
 import me.anno.ecs.Component
