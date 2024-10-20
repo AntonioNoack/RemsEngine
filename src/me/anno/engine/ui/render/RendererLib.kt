@@ -18,7 +18,7 @@ object RendererLib {
             "float fresnelSchlick(float cosine, float ior) {\n" +
             "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
             "   r0 = r0 * r0;\n" +
-            "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
+            "   return r0 + (1.0 - r0) * sqrt(max(1.0 - cosine, 0.0));\n" +
             "}\n" +
             "#endif\n"
 

@@ -31,9 +31,11 @@ class NormalMap : CalculationNode(
         return "(vec3 finalNormal, vec3 finalTangent, vec3 finalBitangent, float strength, vec3 normalMapRGB){\n" +
                 "   if(strength == 0.0) return finalNormal;\n" +
                 "   mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
-                "   vec3 normalFromTex = normalMapRGB * 2.0 - 1.0;\n" + // normalize?
+                "   vec3 normalFromTex = normalMapRGB * 2.0 - 1.0;\n" +
                 "        normalFromTex = matMul(tbn, normalFromTex);\n" +
-                "   return mix(finalNormal, normalFromTex, strength);\n" +
+                "   vec3 result = mix(finalNormal, normalFromTex, strength);\n" +
+                "        result *= 1.0 / (1e-38 + length(result));\n" +
+                "   return result;\n" +
                 "}"
     }
 

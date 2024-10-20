@@ -72,10 +72,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val v0 = "vec3 V0 = normalize(-finalPosition);\n"
         val sheenCalculation = "" +
                 // sheen calculation
-                "if(sheen > 0.0){\n" +
+                "if (sheen > 0.0) {\n" +
                 "   vec3 sheenNormal = finalNormal;\n" +
                 "   if(finalSheen * normalStrength.y > 0.0){\n" +
                 "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
+                "           normalFromTex = normalize(normalFromTex);\n" +
                 "           normalFromTex = matMul(tbn, normalFromTex);\n" +
                 // original or transformed "finalNormal"? mmh...
                 // transformed probably is better
@@ -88,7 +89,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val clearCoatCalculation = "" +
                 colorToSRGB +
-                "if(finalClearCoat.w > 0.0){\n" +
+                "if (finalClearCoat.w > 0.0) {\n" +
                 // cheap clear coat effect
                 "   float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
                 "   float clearCoatEffect = pow(fresnel, 3.0) * finalClearCoat.w;\n" +
@@ -103,10 +104,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val reflectionPlaneCalculation = "" +
                 // reflections
-                "if(hasReflectionPlane){\n" +
-                "   float effect = dot(reflectionPlaneNormal,finalNormal) * finalReflectivity;\n" +
-                "   float factor = min(effect, 1.0);\n" +
-                "   if(factor > 0.0){\n" +
+                "if (hasReflectionPlane) {\n" +
+                "   float effect0 = dot(reflectionPlaneNormal,finalNormal);\n" +
+                "   float effect = effect0 * finalReflectivity;\n" +
+                "   if (effect > 0.0) {\n" +
                 // todo distance to plane, and fading
                 // todo use normal for pseudo-refractive offset
                 "       vec2 uv7 = gl_FragCoord.xy/renderSize;\n" +
@@ -126,11 +127,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "           textureLod(reflectionPlane, uv7 - duv0, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 + duv1, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 - duv1, lod).rgb)) * 0.06125, vec3($gamma));\n" +
-                "       finalEmissive += skyEmissive * factor;\n" +
-                "       finalColor    *= 1.0 - factor;\n" +
+                "       finalRoughness = mix(finalRoughness,  1.0, effect);\n" +
+                "       finalMetallic  = mix(finalMetallic,   0.0, effect);\n" +
+                reflectivityCalculation +
+                // new reflectivity might not be zero -> only subtract, what we're allowed to remove
+                "       effect -= effect0 * finalReflectivity;\n" +
+                "       finalEmissive += skyEmissive * effect;\n" +
+                "       finalColor *= 1.0 - effect;\n" +
                 // prevents reflection map and SSR from being applied
-                "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
-                "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
                 "}\n"
 
@@ -178,6 +182,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                 // normalize?
                 "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
+                "   finalNormal *= 1.0 / (1e-38 + length(finalNormal));\n" +
                 // for debugging
                 // "   finalColor = rawColor*.5+.5;\n" +
                 "}\n"

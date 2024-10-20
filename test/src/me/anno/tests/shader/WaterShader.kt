@@ -83,6 +83,7 @@ object WaterShader : ECSMeshShader("Water") {
                                     "   vec3(0.3)\n" +
                                     ") * 2.0 - 1.0;\n" +
                                     "finalNormal = matMul(tbn, loadedNormal);\n" +
+                                    "finalNormal = normalize(finalNormal);\n" +
                                     "float foamDistance = deltaDepth * absorption + loadedNormal.x;\n" +
                                     "#define HAS_ROUGHNESS\n" +
                                     "finalRoughness = clamp((1.0 - 5.0 * foamDistance) * (cos(foamDistance*30.0)*0.5+0.5), 0.0, 1.0);\n" +

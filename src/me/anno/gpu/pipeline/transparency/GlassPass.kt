@@ -93,7 +93,7 @@ class GlassPass : TransparentPass() {
                                 colorToSRGB +
                                 "float milkiness = 0.5 * finalRoughness;\n" +
                                 "float iorValue = gl_FrontFacing ? 1.0 / IOR : IOR;\n" +
-                                "float fresnel = fresnelSchlick(abs(dot(finalNormal,normalize(finalPosition))), iorValue);\n" +
+                                "float fresnel = fresnelSchlick(NdotV, iorValue);\n" +
                                 "finalAlpha = mix(fresnel, 1.0, milkiness);\n" +
                                 "finalReflections = finalColor * finalAlpha;\n" +
                                 "finalTinting = -log(finalColor0) * finalAlpha;\n" +
