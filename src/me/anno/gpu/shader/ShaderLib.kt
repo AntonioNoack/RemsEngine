@@ -399,6 +399,7 @@ object ShaderLib {
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 Variable(GLSLType.V2F, "windowSize"),
                 Variable(GLSLType.V1B, "disableSubpixelRendering"),
+                Variable(GLSLType.V1B, "enableTrueBlending"),
                 Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
             ) + (if (instanced) emptyList() else listOf(
                 Variable(GLSLType.V4F, "textColor"),
@@ -416,10 +417,8 @@ object ShaderLib {
                     "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0) {\n" +
                     "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
                     "   }\n" +
-                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
-                    "   if(color.a < 0.001) discard;\n" +
-                    "   finalColor = color.rgb;\n" +
-                    "   finalAlpha = 1.0;\n" +
+                    "   finalColor = mix(backgroundColor.rgb, textColor.rgb, mixing);\n" +
+                    "   finalAlpha = enableTrueBlending ? mixingAlpha : step(0.001, mixingAlpha);\n" +
                     "}"
         )
     }

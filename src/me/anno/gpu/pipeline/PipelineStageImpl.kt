@@ -48,6 +48,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
+import kotlin.math.min
 
 class PipelineStageImpl(
     var name: String,
@@ -210,7 +211,7 @@ class PipelineStageImpl(
                 // define all randomnesses: depends on framebuffer
                 // and needs to be set for all shaders
                 val layers = deferred.storageLayers
-                for (index in layers.indices) {
+                for (index in 0 until min(layers.size, target.numTextures)) {
                     val layer = layers[index]
                     val m: Float // (1+m)*x+n
                     val n: Float

@@ -67,7 +67,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     val ranges = ArrayList<IntRange>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
-    private var buffer1 = StaticBuffer("urm1", attributes, 0, BufferUsage.DYNAMIC)
+    private var buffer1 = StaticBuffer("umr1", attributes, 0, BufferUsage.DYNAMIC)
 
     @DebugProperty
     @NotSerializedProperty
@@ -247,7 +247,8 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     companion object {
         private val LOGGER = LogManager.getLogger(UniqueMeshRenderer::class)
         private fun createBuffer(): IntBuffer {
-            return ByteBufferPool.allocateDirect(4096 * 4).asIntBuffer()
+            val tmpCapacity = 16 * 1024
+            return ByteBufferPool.allocateDirect(tmpCapacity).asIntBuffer()
         }
 
         private val tmpStarts = createBuffer()

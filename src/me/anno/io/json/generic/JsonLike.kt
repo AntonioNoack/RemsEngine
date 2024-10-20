@@ -213,6 +213,7 @@ object JsonLike {
             SimpleType.SHORT.scalar,
             SimpleType.INT.scalar,
             SimpleType.LONG.scalar -> true
+            // char is not an integer, but instead a restricted, 1-long-string
             else -> false
         }
     }

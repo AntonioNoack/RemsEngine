@@ -27,15 +27,14 @@ class Element(val name: String, val id: Int) {
     override fun toString() = name
 }
 
-val elements = arrayOfNulls<Element>(1000 * 80)
+val elements = ArrayList<Element?>(1 shl 17)
 
 fun readCached(path: String, id: String): String {
     val cf = cacheFolder.getChild("${path.hashCode()}-$id.bin")
     if (cf.exists && abs(System.currentTimeMillis() - cf.lastModified) < 24 * 3600 * 1000L) {// reload once every 24 hours
         return cf.readTextSync()
     }
-    val text = getReference(path)
-        .readTextSync()
+    val text = getReference(path).readTextSync()
     cf.writeText(text)
     return text
 }
@@ -48,11 +47,10 @@ fun main() {
             val c = it.split(':')
             if (c.size >= 3) { // c.size will be 4
                 val id = c[0].toInt()
-                if (id in elements.indices) {
-                    // val group = c[1].toInt()
-                    val name = c[2]
-                    elements[id] = Element(name, id)
-                } else println("Element index out of bounds: $it")
+                // val group = c[1].toInt()
+                val name = c[2]
+                while (elements.size <= id) elements.add(null)
+                elements[id] = Element(name, id)
             }
         }
 

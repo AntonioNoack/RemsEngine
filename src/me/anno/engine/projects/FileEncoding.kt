@@ -15,6 +15,7 @@ import me.anno.io.json.generic.JsonLike.yamlBytesToJsonLike
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertFail
 import java.io.ByteArrayOutputStream
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
@@ -100,7 +101,7 @@ enum class FileEncoding(val id: Int) {
                 COMPACT_XML -> jsonToXML(json, false)
                 PRETTY_XML -> jsonToXML(json, true)
                 YAML -> jsonToYAML(json)
-                else -> ""
+                else -> assertFail()
             }.encodeToByteArray()
         } else {
             ByteArrayOutputStream().use { bos ->

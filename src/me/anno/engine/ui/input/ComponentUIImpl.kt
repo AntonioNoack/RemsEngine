@@ -24,8 +24,10 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.NumberType
+import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
+import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.AnyToLong
 import org.joml.AABBd
 import org.joml.AABBf
@@ -42,7 +44,10 @@ object ComponentUIImpl {
         nameDesc: NameDesc, value: Any?, default: Any?,
         property: IProperty<Any?>, style: Style,
     ): Panel {
-        return BooleanInput(nameDesc, value as Boolean, default as? Boolean ?: false, style).apply {
+        return BooleanInput(
+            nameDesc, AnyToBool.anyToBool(value),
+            AnyToBool.anyToBool(default), style
+        ).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)
             setResetListener { property.reset(this) as Boolean }
@@ -57,7 +62,7 @@ object ComponentUIImpl {
         nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
-        val type = NumberType(default as Byte,
+        val type = NumberType(AnyToInt.getInt(default, 0).toByte(),
             { clamp(AnyToLong.getLong(it, 0), range.minByte().toLong(), range.maxByte().toLong()).toByte() },
             { it })
         return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toByte() }
@@ -67,7 +72,7 @@ object ComponentUIImpl {
         nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
-        val type = NumberType(default as Short,
+        val type = NumberType(AnyToInt.getInt(default, 0).toShort(),
             { clamp(AnyToLong.getLong(it, 0), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
             { it })
         return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toShort() }
@@ -77,7 +82,7 @@ object ComponentUIImpl {
         nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
-        val type = NumberType(default as Int,
+        val type = NumberType(AnyToInt.getInt(default, 0),
             { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()).toInt() },
             { it })
         return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toInt() }

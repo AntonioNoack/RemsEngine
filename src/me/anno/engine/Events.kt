@@ -31,14 +31,12 @@ object Events {
 
     /**
      * schedules a task that will be executed on the main loop;
-     * will wait at least deltaMillis before it is executed
+     * will wait at least deltaMillis before it is executed;
+     *
+     * if deltaMillis = 0, this is like addGPUTask { addEvent { run() } }
      * */
     fun addEvent(deltaMillis: Long, event: () -> Unit) {
-        if (deltaMillis <= 0) {
-            addEvent(event)
-        } else {
-            scheduledTasks.add(ScheduledTask(Time.nanoTime + deltaMillis * Maths.MILLIS_TO_NANOS, event))
-        }
+        scheduledTasks.add(ScheduledTask(Time.nanoTime + deltaMillis * Maths.MILLIS_TO_NANOS, event))
     }
 
     fun workTasks(tasks: Queue<() -> Unit>) {

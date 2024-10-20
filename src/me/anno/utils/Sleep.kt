@@ -120,7 +120,7 @@ object Sleep {
         if (isFinished()) {
             callback()
         } else if (!(canBeKilled && shutdown)) { // wait a little
-            addEvent(1) {
+            addEvent(0) {
                 waitUntil(canBeKilled, isFinished, callback)
             }
         } // else cancelled
@@ -172,7 +172,7 @@ object Sleep {
         if (value != null) {
             callback(value)
         } else if (!(canBeKilled && shutdown)) {
-            addEvent(1) {
+            addEvent(0) {
                 waitUntilDefined(canBeKilled, getValueOrNull, callback)
             }
         } // else process cancelled

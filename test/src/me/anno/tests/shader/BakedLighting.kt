@@ -739,7 +739,7 @@ fun bakeIllumination(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) 
             }
             progress.progress++
             BakedLightingShader.bakedIllumTex = srcI.getTexture0()
-            addEvent(1) { // delay it a little
+            addEvent(0) { // delay it a little
                 addGPUTask("bakeIllum", 100, ::nextFrame)
             }
         } else {

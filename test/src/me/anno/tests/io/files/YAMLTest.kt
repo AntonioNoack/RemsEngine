@@ -12,6 +12,8 @@ import me.anno.mesh.Shapes.flatCube
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
+// this currently fails, but only because -0=0 is serialized as -0,
+// and only sometimes...
 class YAMLTest {
     @Test
     fun testYAMLReaderAndWriter() {

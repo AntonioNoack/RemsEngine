@@ -40,7 +40,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
     fun invalidateMesh() {
         if(!needsMeshUpdate) {
             needsMeshUpdate = true
-            addEvent(1) {
+            addEvent(0) {
                 getMesh()
             }
         }

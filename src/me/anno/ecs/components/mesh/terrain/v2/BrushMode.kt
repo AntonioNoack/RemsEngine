@@ -84,7 +84,7 @@ abstract class BrushMode(override val nameDesc: NameDesc, override val id: Int, 
 
         val RANDOM = object : BrushMode(NameDesc("Random"), 6, true) {
             override fun createBrush(): TerrainBrush {
-                val strength = 0.02f * Time.deltaTime.toFloat() * (if (Input.isShiftDown) -1f else +1f)
+                val strength = 0.07f * Time.deltaTime.toFloat() * (if (Input.isShiftDown) -1f else +1f)
                 val noise = FullNoise(1024)
                 return TerrainBrush {
                     val noise11 = noise.getSmooth(it.x * 100f, it.z * 100f) - 0.5f

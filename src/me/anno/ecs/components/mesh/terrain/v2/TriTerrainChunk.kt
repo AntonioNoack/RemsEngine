@@ -8,6 +8,7 @@ import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
+import me.anno.maths.Maths.length
 import me.anno.utils.callbacks.F2F
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -15,7 +16,6 @@ import org.joml.Vector2i
 import org.joml.Vector3f
 import kotlin.math.exp
 import kotlin.math.max
-import kotlin.math.sqrt
 
 class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
 
@@ -69,7 +69,7 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         return data.getBounds().getMax(Vector3f())
     }
 
-    fun initTile(bounds: AABBf, resolution: Vector2i, getHeight: F2F) {
+    fun createTile(bounds: AABBf, resolution: Vector2i, getHeight: F2F): Mesh {
         val mesh = Mesh()
         TerrainUtils.generateRegularQuadHeightMesh(
             resolution.x, resolution.y, false,
@@ -89,13 +89,14 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
             // calculate normal
             val dx = (getHeight.call(px - sx, pz) - py) / sx
             val dz = (getHeight.call(px, pz - sy) - py) / sy
-            val rn = 1f / sqrt(dx * dx + 1f + dz * dz)
+            val rn = 1f / length(dx, 1f, dz)
             nor[i] = dx * rn
             nor[i + 1] = rn
             nor[i + 2] = dz * rn
         }
         mesh.invalidateGeometry()
         addMesh(mesh, true)
+        return mesh
     }
 
     private fun addMesh(mesh: Mesh, addToTree: Boolean) {

@@ -214,12 +214,12 @@ abstract class KdTree<Point, Data>(
     }
 
     override fun iterator(): Iterator<Data> {
-        var iter = left?.iterator()
-        iter = iter.then(right?.iterator())
-        iter = iter.then(children?.iterator())
-        return iter ?: emptyIterator()
+        return left.then(right).then(children) ?: emptyIterator()
     }
 
+    /**
+     * removes the element, and returns true on success
+     * */
     fun remove(d: Data, minI: Point = getMin(d), maxI: Point = getMax(d)): Boolean {
         val left = left
         val right = right
@@ -241,18 +241,24 @@ abstract class KdTree<Point, Data>(
         } else {
             val children = children
             if (children != null && children.remove(d)) {
-                // todo if children is empty, or |left|+|right| <= maxNumChildren/2
+                // if |left|+|right| <= maxNumChildren/2, join siblings to reduce tree-height
                 val parent = parent
                 if (parent != null) {
-                    if (children.isEmpty()) {
+                    var other = parent.left
+                    if (other === this) other = parent.right
+                    val otherChildren = other?.children
+                    if (other == null || otherChildren == null ||
+                        children.size + otherChildren.size <= maxNumChildren shr 1
+                    ) {
                         // join with partner
                         parent.join()
+                        return true
                     }
                 }
                 // update bounds
                 size--
                 recalculateBoundsChildren()
-                return false
+                return true
             }
         }
         return false
@@ -335,7 +341,13 @@ abstract class KdTree<Point, Data>(
         } else if (right.size == 0) {
             // copy states from left
             copyFrom(right)
-        } else throw IllegalStateException()
+        } else {
+            copyFrom(left)
+            for (element in right) {
+                add(element)
+            }
+            recalculateBoundsLeftRight(left, right)
+        }
     }
 
     private fun copyFrom(src: KdTree<Point, Data>) {

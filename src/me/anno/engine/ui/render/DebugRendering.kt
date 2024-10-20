@@ -370,6 +370,7 @@ object DebugRendering {
     ) {
         val texts = DebugShapes.debugTexts
         val cameraMatrix = view.cameraMatrix
+        val ptb = DrawTexts.pushTrueBlending(true)
         val batch = DrawTexts.startSimpleBatch()
         for (index in texts.indices) {
             val text = texts[index]
@@ -390,6 +391,7 @@ object DebugRendering {
             }
         }
         DrawTexts.finishSimpleBatch(batch)
+        DrawTexts.popTrueBlending(ptb)
     }
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {

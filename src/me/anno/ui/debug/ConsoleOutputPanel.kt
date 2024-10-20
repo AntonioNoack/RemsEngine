@@ -3,7 +3,6 @@ package me.anno.ui.debug
 import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
-import me.anno.gpu.texture.Texture2D
 import me.anno.input.ActionManager
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -24,6 +23,7 @@ import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.Logging.lastConsoleLines
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.Pools
@@ -36,21 +36,23 @@ import kotlin.math.max
  * */
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
+    val textColor0 = textColor
+
     override fun onUpdate() {
         val text = lastConsoleLines.lastOrNull() ?: ""
         this.text = text
         tooltip = text.ifBlank2("Double-click to open history")
-        textColor = getTextColor(text) and 0x77ffffff
+        textColor = getTextColor(text).withAlpha(127)
         super.onUpdate()
     }
 
     fun getTextColor(msg: String): Int {
         return when {
-            msg.startsWith("[INF") -> textColor
+            msg.startsWith("[INF") -> textColor0
             msg.startsWith("[WAR") -> 0xffff00
             msg.startsWith("[ERR") -> 0xff0000
             msg.startsWith("[DEB") || msg.startsWith("[FIN") -> 0x77ff77
-            else -> -1
+            else -> textColor0
         } or black
     }
 

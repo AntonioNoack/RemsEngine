@@ -212,6 +212,19 @@ object DrawTexts {
         enableComputeRendering = pbb
     }
 
+    var enableTrueBlending = false
+        private set
+
+    fun pushTrueBlending(enabled: Boolean): Boolean {
+        val pbb = enableTrueBlending
+        enableTrueBlending = enabled
+        return pbb
+    }
+
+    fun popTrueBlending(pbb: Boolean) {
+        enableTrueBlending = pbb
+    }
+
     fun canUseComputeShader(): Boolean {
         if (!enableComputeRendering) return false
         if (!GFX.supportsComputeShaders) return false
@@ -400,6 +413,7 @@ object DrawTexts {
         shader.v4f("textColor", textColor)
         shader.v4f("backgroundColor", backgroundColor)
         shader.v1b("disableSubpixelRendering", disableSubpixelRendering)
+        shader.v1b("enableTrueBlending", enableTrueBlending)
         GFX.check()
         val windowWidth = GFX.viewportWidth.toFloat()
         val windowHeight = GFX.viewportHeight.toFloat()

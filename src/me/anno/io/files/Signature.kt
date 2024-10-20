@@ -157,25 +157,6 @@ class Signature(
             signatures.remove(signature)
         }
 
-        @Deprecated("Please use SignatureCache")
-        fun find(file: FileReference, callback: Callback<Signature?>) {
-            if (file is SignatureFile) return callback.ok(file.signature)
-            if (!file.exists) return callback.ok(null)
-            return when (file) {
-                is PrefabReadable -> callback.ok(json)
-                else -> {
-                    // reads the bytes, or 255 if at end of file
-                    // how much do we read? 🤔
-                    // some formats are easy, others require more effort
-                    // maybe we could read them piece by piece...
-                    file.inputStream(sampleSize.toLong()) { input, err ->
-                        if (input != null) callback.ok(find(input.readNBytes2(sampleSize, false)))
-                        else callback.err(err)
-                    }
-                }
-            }
-        }
-
         val bmp = Signature("bmp", IMAGE, 0, "BM")
         val json = Signature("json", METADATA, 0, "[")
 

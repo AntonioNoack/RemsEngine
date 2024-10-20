@@ -2,7 +2,6 @@ package me.anno.engine.ui
 
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.pipeline.Pipeline
@@ -10,12 +9,10 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-object TextShapes {
+object TextShapes : CacheSection("TextShapes") {
 
-    private val textCache = CacheSection("TextMeshes")
     private val font by lazy { DefaultConfig.defaultFont }
 
-    // draw bone names where they are
     fun drawTextMesh(
         pipeline: Pipeline,
         text: String,
@@ -24,10 +21,10 @@ object TextShapes {
         scale: Double,
         transform: Matrix4x3d?
     ) {
-        val mesh = textCache.getEntry(text, 10000, false) {
+        val mesh = getEntry(text, 10000, false) {
             TextMeshGroup(font, text, 0f, false)
                 .getOrCreateMesh()
-        } as Mesh
+        } ?: return
         val matrix = MovingGrid.init()
         if (transform != null) matrix.mul(transform)
         matrix.translate(position)

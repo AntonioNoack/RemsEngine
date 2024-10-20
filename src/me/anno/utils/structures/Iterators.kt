@@ -114,4 +114,12 @@ object Iterators {
             }
         }
     }
+
+    fun <V> Iterator<V>?.then(other: Iterable<V>?): Iterator<V>? {
+        return then(other?.iterator())
+    }
+
+    fun <V> Iterable<V>?.then(other: Iterable<V>?): Iterator<V>? {
+        return this?.iterator().then(other?.iterator())
+    }
 }
