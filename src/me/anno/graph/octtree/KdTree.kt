@@ -1,5 +1,6 @@
 package me.anno.graph.octtree
 
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.Iterators.then
 import java.util.Collections.emptyIterator
 
@@ -342,10 +343,12 @@ abstract class KdTree<Point, Data>(
             // copy states from left
             copyFrom(right)
         } else {
+            val prevSize = size
             copyFrom(left)
-            for (element in right) {
-                add(element)
-            }
+            assertNull(right.left)
+            assertNull(right.right)
+            children!!.addAll(right.children!!)
+            size = prevSize
             recalculateBoundsLeftRight(left, right)
         }
     }

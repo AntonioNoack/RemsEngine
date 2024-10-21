@@ -9,12 +9,7 @@ import java.io.ByteArrayOutputStream
 
 fun main() {
     // an example how I downscaled lots of images for my homepage
-    LogManager.disableLogger("FFMPEGMetadata")
-    LogManager.disableLogger("FFMPEGStream")
-    LogManager.disableLogger("BetterProcessBuilder")
-    LogManager.disableLogger("Saveable")
-    LogManager.disableLogger("Clock")
-    LogManager.disableLogger("FrameReader")
+    LogManager.disableLoggers("FFMPEGMetadata,FFMPEGStream,BetterProcessBuilder,Saveable,Clock,FrameReader")
     val folder = getReference("C:/XAMPP/htdocs/anionoa")
     val src = folder.getChild("ico512")
     val dst = folder.getChild("ico384")

@@ -7,7 +7,7 @@ import me.anno.lua.QuickScriptComponent
 import me.anno.utils.OS.res
 
 /**
- * Shows how Lua scripting can be used.
+ * Shows how Lua scripting can be used to populate a simple scene
  * */
 fun main() {
     OfficialExtensions.initForTests()

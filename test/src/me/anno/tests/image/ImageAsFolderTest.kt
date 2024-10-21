@@ -6,6 +6,7 @@ import me.anno.image.ImageReadable
 import me.anno.image.raw.AlphaMaskImage
 import me.anno.image.raw.BGRAImage
 import me.anno.image.raw.ComponentImage
+import me.anno.image.raw.GrayscaleImage
 import me.anno.image.raw.IntImage
 import me.anno.image.raw.OpaqueImage
 import me.anno.io.files.FileReference
@@ -55,6 +56,10 @@ class ImageAsFolderTest {
         expectImage(
             intArrayOf(red or black, green or black, blue or black, white),
             ref.getChild("rgb.png"), OpaqueImage::class
+        )
+        expectImage(
+            intArrayOf(0x363636 or black, 0xb6b6b6 or black, 0x121212 or black, white),
+            ref.getChild("grayscale.png"), GrayscaleImage::class
         )
         Engine.requestShutdown()
     }
