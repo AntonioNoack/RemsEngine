@@ -4,6 +4,8 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.wait
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -95,5 +97,15 @@ object ImageCache : CacheSection("Image") {
         } ?: return null
         if (!async) data.waitForGFX()
         return data.value
+    }
+
+    fun getAsync(file0: FileReference, timeout: Long, async: Boolean, callback: Callback<Image>) {
+        if (file0 is ImageReadable) {
+            callback.ok(file0.readCPUImage())
+        } else {
+            getFileEntryAsync(file0, false, timeout, async, { file, _ ->
+                ImageAsFolder.readImage(file, false)
+            }, callback.wait())
+        }
     }
 }

@@ -13,11 +13,11 @@ import kotlin.reflect.safeCast
 @Suppress("unused")
 object EntityQuery {
 
-    fun <V1 : Any> Entity.hasComponent(clazz: KClass<V1>, includingDisabled: Boolean = false): Boolean {
+    fun <V : Any> Entity.hasComponent(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
         return getComponent(clazz, includingDisabled) != null
     }
 
-    fun <V1 : Any> Component.hasComponent(clazz: KClass<V1>, includingDisabled: Boolean = false): Boolean {
+    fun <V : Any> Component.hasComponent(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
         return entity?.hasComponent(clazz, includingDisabled) == true
     }
 

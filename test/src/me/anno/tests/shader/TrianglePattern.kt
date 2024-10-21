@@ -1,14 +1,14 @@
 package me.anno.tests.shader
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.utils.OS.documents
-import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 
 fun main() {
     OfficialExtensions.initForTests()
@@ -16,7 +16,7 @@ fun main() {
     //  draw a pixelated image such that it appears to have triangular pixels
     val mesh = MeshComponent(documents.getChild("triangle.obj"))
     mesh.materials = listOf(Material().apply {
-        diffuseMap = pictures.getChild("Textures/grass.jpg")
+        diffuseMap = res.getChild("textures/UVChecker.png")
         linearFiltering = false
         shader = object : ECSMeshShader("triangular-pixels") {
             override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {

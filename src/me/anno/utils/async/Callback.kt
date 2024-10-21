@@ -1,5 +1,6 @@
 package me.anno.utils.async
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
 import me.anno.utils.structures.lists.Lists.createArrayList
 
@@ -16,6 +17,21 @@ fun interface Callback<V> {
     fun err(exception: Exception?) = call(null, exception)
 
     companion object {
+
+        fun <V, W> Callback<V>.map(valueMapping: (W) -> V): Callback<W> {
+            return Callback { value, err ->
+                call(if (value != null) valueMapping(value) else null, err)
+            }
+        }
+
+        fun <V> Callback<V>.wait(): Callback<AsyncCacheData<V>> {
+            val self = this
+            return Callback { value, err ->
+                if (value != null) {
+                    value.waitForGFX { self.call(it, err) }
+                } else self.err(err)
+            }
+        }
 
         /**
          * joins all callbacks; starts generator functions serially, but you could easily make them

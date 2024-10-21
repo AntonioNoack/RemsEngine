@@ -2,13 +2,13 @@ package me.anno.io.files.inner.lazy
 
 import me.anno.image.Image
 import me.anno.image.ImageReadable
-import me.anno.image.bmp.BMPWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.structures.tuples.IntPair
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 open class InnerLazyImageFile(
@@ -31,8 +31,10 @@ open class InnerLazyImageFile(
         compressedSize = size // unknown until we compress it
     }
 
-    val bytes by lazy {
-        BMPWriter.createBMP(readCPUImage())
+    val bytes: ByteArray by lazy {
+        val bos = ByteArrayOutputStream()
+        readCPUImage().write(bos, lcExtension)
+        bos.toByteArray()
     }
 
     override fun readCPUImage(): Image = cpuImage.value

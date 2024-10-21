@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.fonts.Codepoints.countCodepoints
 import me.anno.fonts.keys.FontKey
+import me.anno.image.ImageCache
 import me.anno.utils.InternalAPI
 import org.joml.Vector2f
 
@@ -18,8 +19,13 @@ object FontStats {
     var getTextGeneratorImpl: ((FontKey) -> TextGenerator)? = null
     fun getTextGenerator(key: FontKey): TextGenerator {
         val tmp = getTextGeneratorImpl
-            ?: return FallbackFontGenerator(key)
+            ?: return getFallbackFontGenerator(key)
         return tmp(key)
+    }
+
+    private fun getFallbackFontGenerator(key: FontKey): TextGenerator {
+        return if ("png" in ImageCache.streamReaders) AtlasFontGenerator(key)
+        else LinesFontGenerator(key)
     }
 
     @InternalAPI

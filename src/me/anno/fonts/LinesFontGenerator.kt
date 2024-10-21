@@ -17,9 +17,9 @@ import me.anno.utils.types.Booleans.hasFlag
 import kotlin.math.min
 
 /**
- * generates a fallback font when other text sources are unavailable
+ * generates a fallback font when other text sources are unavailable using 7-segment-style lines
  * */
-class FallbackFontGenerator(val key: FontKey) : TextGenerator {
+class LinesFontGenerator(val key: FontKey) : TextGenerator {
 
     companion object {
         // - 4 -

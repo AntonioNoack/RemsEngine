@@ -105,7 +105,7 @@ class GlassPass : TransparentPass() {
         }
 
         // override diffuseColor and finalEmissive in shader
-        val applyShader = LazyMap<Boolean, Shader> { multisampled ->
+        val applyShader = LazyMap { multisampled: Boolean ->
             val sampleType = if (multisampled) GLSLType.S2DMS else GLSLType.S2D
             Shader(
                 "applyGlass", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(

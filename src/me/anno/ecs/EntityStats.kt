@@ -1,5 +1,7 @@
 package me.anno.ecs
 
+import me.anno.utils.structures.Recursion
+
 // (how) can we call them from Lua? -> the Java way, because Lua is using Java reflection iirc
 object EntityStats {
 
@@ -19,23 +21,23 @@ object EntityStats {
         get(): Int = calcTotalNumEntities(this)
 
     private fun calcTotalNumEntities(entity: Entity): Int {
-        var sum = 1 // self
-        val children = entity.children
-        for (i in children.indices) {
-            sum += calcTotalNumEntities(children[i])
+        var count = 0
+        Recursion.processRecursive(entity) { entityI, remaining ->
+            remaining.addAll(entityI.children)
+            count++
         }
-        return sum
+        return count
     }
 
     val Entity.totalNumComponents
         get(): Int = calcTotalNumComponents(this)
 
     private fun calcTotalNumComponents(entity: Entity): Int {
-        var sum = entity.components.size
-        val children = entity.children
-        for (i in children.indices) {
-            sum += calcTotalNumComponents(children[i])
+        var count = 0
+        Recursion.processRecursive(entity) { entityI, remaining ->
+            remaining.addAll(entityI.children)
+            count += entityI.components.size
         }
-        return sum
+        return count
     }
 }
