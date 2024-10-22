@@ -76,9 +76,9 @@ class CompleteFileEncodingTest {
 
     val instances0 = listOf(
         // all number types
-         true, false,
-         1.toByte(), (-64).toByte(),
-         byteArrayOf(1, 2, 3),
+        true, false,
+        1.toByte(), (-64).toByte(),
+        byteArrayOf(1, 2, 3),
         //  '9', '3',
         charArrayOf('0', '1'),
         2.toShort(), (-426).toShort(),
@@ -87,7 +87,7 @@ class CompleteFileEncodingTest {
         intArrayOf(9, 10, 11),
         4L, -54416516313L,
         longArrayOf(12, 13, 14),
-        5f, -7.9f,
+        -0f, 5f, -7.9f,
         floatArrayOf(15f, 16f, 17f),
         6.0, -98.0,
         doubleArrayOf(18.0, 19.0, 20.0),

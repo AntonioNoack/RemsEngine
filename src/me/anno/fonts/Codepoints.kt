@@ -50,10 +50,10 @@ object Codepoints {
     }
 
     @JvmStatic
-    fun CharSequence.codepoints(length: Int = countCodepoints()): IntArray {
-        val result = IntArray(length)
+    fun CharSequence.codepoints(dstLength: Int = countCodepoints()): IntArray {
+        val result = IntArray(dstLength)
         var readIndex = 0
-        for (writeIndex in 0 until length) {
+        for (writeIndex in 0 until dstLength) {
             val high = this[readIndex]
             val low = this[kotlin.math.min(readIndex + 1, length - 1)]
             val isPair = isSurrogatePair(high, low)

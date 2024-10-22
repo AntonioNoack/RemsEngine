@@ -1,5 +1,6 @@
 package me.anno.tests.gfx.textures
 
+import me.anno.engine.OfficialExtensions
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
@@ -8,6 +9,7 @@ import me.anno.tests.gfx.testTexture
 import me.anno.tests.image.createUVCheckerImage
 
 fun main() {
+    OfficialExtensions.initForTests()
     val largeImage = createUVCheckerImage().scaleUp(6, 6) // 700x6 ~ 4200
     testTexture("MipmapGen", false) {
         val texture = TextureCache[largeImage.ref, false] as Texture2D

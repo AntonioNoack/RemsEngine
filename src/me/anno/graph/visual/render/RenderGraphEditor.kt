@@ -49,7 +49,10 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (drawResultInBackground) {
+            // these two calls could be joined
+            drawBackground(x0, y0, x1, y1)
             drawTransparentBackground(x, y, width, height)
+            // actually drawing the graph
             RenderGraph.draw(rv, this, graph as FlowGraph)
             drawNodeGroups(x0, y0, x1, y1)
             drawNodeConnections(x0, y0, x1, y1)
