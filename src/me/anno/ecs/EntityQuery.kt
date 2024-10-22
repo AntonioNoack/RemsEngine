@@ -1,6 +1,7 @@
 package me.anno.ecs
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.Recursion
 import org.joml.AABBd
@@ -37,6 +38,10 @@ object EntityQuery {
         clazz: KClass<V>, includingDisabled: Boolean = false
     ): Boolean {
         return entity?.hasComponentInChildren(clazz, includingDisabled) == true
+    }
+
+    fun <V : Any> Entity.getComponent(clazz: String, includingDisabled: Boolean = false): V? {
+        return getComponent(Saveable.getClass(clazz) as? KClass<V> ?: return null, includingDisabled)
     }
 
     fun <V : Any> Entity.getComponent(clazz: KClass<V>, includingDisabled: Boolean = false): V? {

@@ -20,6 +20,7 @@ import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.input.ColorInput.Companion.pickColor
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
+import me.anno.utils.Color.black4
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.types.Booleans.toInt
@@ -220,10 +221,10 @@ open class ColorChooser(
         }
     }
 
-    var resetListener: () -> Vector4f = { Vector4f(0f, 0f, 0f, 1f) }
+    var resetListener: (() -> Vector4f)? = null
         private set
 
-    fun setResetListener(listener: () -> Vector4f): ColorChooser {
+    fun setResetListener(listener: (() -> Vector4f)?): ColorChooser {
         resetListener = listener
         return this
     }
@@ -254,7 +255,7 @@ open class ColorChooser(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val default = resetListener()
+        val default = resetListener?.invoke() ?: black4
         setRGBA(default.x, default.y, default.z, default.w, -1, true)
     }
 

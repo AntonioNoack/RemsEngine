@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.MediaMetadata
 import me.anno.io.Streams.readText
 import me.anno.io.files.FileReference

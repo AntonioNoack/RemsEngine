@@ -102,6 +102,11 @@ class BooleanInput(
         return this
     }
 
+    override fun onEmpty(x: Float, y: Float) {
+        if (isInputAllowed) checkView.onEmpty(x, y)
+        else super.onEmpty(x, y)
+    }
+
     override fun onCopyRequested(x: Float, y: Float) = checkView.value.toString()
 
     override fun clone(): BooleanInput {

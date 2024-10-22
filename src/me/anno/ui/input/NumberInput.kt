@@ -50,7 +50,7 @@ abstract class NumberInput<BaseType>(
         }
 
     override var isInputAllowed
-        get() = inputPanel.isInputAllowed && isEnabled && inputPanel.isEnabled
+        get() = inputPanel.isInputAllowed
         set(value) {
             inputPanel.isInputAllowed = value
         }

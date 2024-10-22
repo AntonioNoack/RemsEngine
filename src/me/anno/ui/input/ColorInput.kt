@@ -33,6 +33,7 @@ import me.anno.ui.editor.color.ColorPreviewField
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
+import me.anno.utils.Color.black4
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
@@ -48,12 +49,12 @@ open class ColorInput(
     oldValue: Vector4f,
     val withAlpha: Boolean,
     style: Style,
-    val contentView: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
+    val base: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
 ) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {
 
     constructor(style: Style) : this(NameDesc.EMPTY, "", Vector4f(), true, style)
 
-    val titleView = TitlePanel(nameDesc, contentView, style)
+    val titleView = TitlePanel(nameDesc, base, style)
     private val previewField = ColorPreviewField(titleView, 2, style)
         .apply {
             addLeftClickListener { if (isInputAllowed) openColorChooser() }
@@ -76,14 +77,14 @@ open class ColorInput(
         }
 
     override val value: Vector4f
-        get() = contentView.getColor()
+        get() = base.getColor()
 
     override fun setValue(newValue: Vector4f, mask: Int, notify: Boolean): Panel {
         val newValue1 = newValue.toARGB()
         previewField.color = if (withAlpha) newValue1
         else newValue1.withAlpha(255)
         previewField.invalidateDrawing()
-        contentView.setRGBA(newValue, mask, false)
+        base.setRGBA(newValue, mask, false)
         return this
     }
 
@@ -117,8 +118,8 @@ open class ColorInput(
         if (nameDesc.name.isNotEmpty()) this += titleView
         titleView.enableHoverColor = true
         titleView.disableFocusColors()
-        contentView.setRGBA(oldValue, -1, false)
-        contentView.setChangeRGBListener { r, g, b, a, mask ->
+        base.setRGBA(oldValue, -1, false)
+        base.setChangeRGBListener { r, g, b, a, mask ->
             setValue(Vector4f(r, g, b, a), mask, true)
         }
         tooltip = nameDesc.desc
@@ -130,13 +131,13 @@ open class ColorInput(
     }
 
     fun openColorChooser() {
-        contentView.colorSpace = ColorChooser.getDefaultColorSpace()
+        base.colorSpace = ColorChooser.getDefaultColorSpace()
         val window = window!!
         val title = NameDesc(nameDesc.name.ifEmpty { "Choose Color" })
         val width = min(max(windowStack.width / 5, 200), windowStack.width)
         Menu.openMenuByPanels(
             window.windowStack, window.mouseXi, window.mouseYi, title, listOf(
-                SizeLimitingContainer(contentView, width, -1, style)
+                SizeLimitingContainer(base, width, -1, style)
             )
         )
     }
@@ -152,22 +153,23 @@ open class ColorInput(
                 Menu.openMenu(
                     windowStack, listOf(
                         MenuOption(NameDesc("Copy")) {
-                            Input.copy(window, contentView)
+                            Input.copy(window, base)
                         }, MenuOption(NameDesc("Copy #rrggbb")) {
                             Clipboard.setClipboardContent(value.toARGB().toHexColor())
                         }, MenuOption(NameDesc("Copy Vector")) {
                             Clipboard.setClipboardContent(value.toString())
                         }, MenuOption(NameDesc("Paste")) {
-                            Input.paste(window, contentView)
+                            Input.paste(window, base)
                         }.checkEnabled(),
                         MenuOption(NameDesc("Pick Color")) {
                             pickColor(windowStack, style) { color ->
-                                contentView.setARGB(color, -1, true)
+                                base.setARGB(color, -1, true)
                                 invalidateDrawing()
                             }
                         }.checkEnabled(),
                         MenuOption(NameDesc("Reset")) {
-                            setValue(contentView.resetListener(), -1, true)
+                            val newValue = base.resetListener?.invoke() ?: black4
+                            setValue(newValue, -1, true)
                         }.checkEnabled()
                     )
                 )
@@ -181,11 +183,16 @@ open class ColorInput(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        return contentView.onCopyRequested(x, y)
+        return base.onCopyRequested(x, y)
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        return contentView.onPaste(x, y, data, type)
+        return base.onPaste(x, y, data, type)
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        if (isInputAllowed) base.onEmpty(x, y)
+        else super.onEmpty(x, y)
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
@@ -206,7 +213,7 @@ open class ColorInput(
             val delta = (dx - dy) * speed
             val scaleFactor = 1.10f
             val scale = pow(scaleFactor, delta)
-            contentView.apply {
+            base.apply {
                 if (Input.isControlDown) {
                     setHSL(hue, saturation, lightness * scale, opacity, colorSpace, 4, true)
                 } else {
@@ -217,13 +224,13 @@ open class ColorInput(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titleView.isInFocus || contentView.any { it.isInFocus }
+        val focused1 = titleView.isInFocus || base.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
         super.onDraw(x0, y0, x1, y1)
     }
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float, mask: Int) -> Unit): ColorInput {
-        contentView.setChangeRGBListener { r, g, b, a, mask ->
+        base.setChangeRGBListener { r, g, b, a, mask ->
             if (isInputAllowed) {
                 previewField.color = rgba(r, g, b, if (withAlpha) a else 1f)
                 listener(r, g, b, a, mask)
@@ -238,8 +245,8 @@ open class ColorInput(
         return this
     }
 
-    fun setResetListener(listener: () -> Vector4f): ColorInput {
-        contentView.setResetListener(listener)
+    fun setResetListener(listener: (() -> Vector4f)?): ColorInput {
+        base.setResetListener(listener)
         return this
     }
 
@@ -254,7 +261,7 @@ open class ColorInput(
         if (dst !is ColorInput) return
         // only works, if there is no references
         dst.isSelectedListener = isSelectedListener
-        dst.setResetListener(contentView.resetListener)
+        dst.setResetListener(base.resetListener)
     }
 
     companion object {

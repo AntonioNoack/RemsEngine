@@ -6,6 +6,7 @@ import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
+import me.anno.ecs.EntityQuery
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.MeshCache
@@ -149,6 +150,8 @@ open class ScriptComponent : Component(), OnUpdate {
             g.set("PrefabCache", PrefabCache.toLua())
             g.set("ImageCache", ImageCache.toLua())
             g.set("TextureCache", TextureCache.toLua())
+            g.set("EntityQuery", EntityQuery.toLua())
+            g.set("FindClass", LuaFindClass)
             return g
         }
 

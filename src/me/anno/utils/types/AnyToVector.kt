@@ -1,6 +1,8 @@
 package me.anno.utils.types
 
 import me.anno.utils.Color
+import me.anno.utils.Color.toVecRGB
+import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -61,6 +63,7 @@ object AnyToVector {
             is Vector3f -> any
             true -> white3f
             false -> black3f
+            is Int -> any.toVecRGB()
             is Number -> Vector3f(any.toFloat())
             is Vector -> Vector3f(
                 any.getCompOr(0, defaultValue.x.toDouble()).toFloat(),
@@ -93,6 +96,7 @@ object AnyToVector {
             is Vector4f -> any
             true -> white4f
             false -> black4f
+            is Int -> any.toVecRGBA()
             is Number -> Vector4f(any.toFloat())
             is Vector -> Vector4f(
                 any.getCompOr(0, defaultValue.x.toDouble()).toFloat(),

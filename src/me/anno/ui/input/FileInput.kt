@@ -201,6 +201,11 @@ open class FileInput(
         return this
     }
 
+    override fun onEmpty(x: Float, y: Float) {
+        if (isInputAllowed) base.onEmpty(x, y)
+        else super.onEmpty(x, y)
+    }
+
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         if (isInputAllowed) {
             if (files.size == 1) {

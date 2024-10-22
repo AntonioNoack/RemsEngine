@@ -164,7 +164,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
 
             if (!mismatch) {
                 if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus ||
-                    (oldPanel is ColorInput && oldPanel.contentView.isAnyChildInFocus)
+                    (oldPanel is ColorInput && oldPanel.base.isAnyChildInFocus)
                 ) {
                     isInFocus = true
                     break

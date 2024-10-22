@@ -84,6 +84,7 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToLong
+import me.anno.utils.types.AnyToVector
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
@@ -276,7 +277,7 @@ object ComponentUI {
             is CharArray,
             is IntArray, is LongArray,
             is FloatArray, is DoubleArray,
-            -> value::class.simpleName ?: "anonymous"
+                -> value::class.simpleName ?: "anonymous"
 
             is PrefabSaveable -> "PrefabSaveable"
             is Inspectable -> "Inspectable"
@@ -362,7 +363,8 @@ object ComponentUI {
                 val title2 = nameDesc.name.ifBlank { saveable.className }
                 // todo list/array-views should have their content visibility be toggleable
                 panel2.add(object : TextPanel(title2, style) {
-                    override fun onCopyRequested(x: Float, y: Float): String = JsonStringWriter.toText(saveable, InvalidRef)
+                    override fun onCopyRequested(x: Float, y: Float): String =
+                        JsonStringWriter.toText(saveable, InvalidRef)
                 }.apply {
                     // make it look like a title
                     isItalic = true
@@ -602,7 +604,21 @@ object ComponentUI {
             }
 
             // colors, e.g. for materials
-            "Color3", "Color3HDR" -> {
+            "Color3" -> {
+                val value0 = AnyToVector.getVector4f(value)
+                return ColorInput(title, visibilityKey, value0, false, style).apply {
+                    alignmentX = AxisAlignment.FILL
+                    property.init(this)
+                    setResetListener { AnyToVector.getVector4f(property.reset(this)) }
+                    askForReset(property) {
+                        setValue(AnyToVector.getVector4f(value), -1, false)
+                    }
+                    setChangeListener { r, g, b, _, mask ->
+                        property.set(this, Vector3f(r, g, b), mask)
+                    }
+                }
+            }
+            "Color3HDR" -> {
                 value as Vector3f
                 val maxPower = 1e3f
 
@@ -619,21 +635,17 @@ object ComponentUI {
                     val power = maxPower.pow(l.w * 2f - 1f)
                     return Vector3f(l.x, l.y, l.z).mul(power)
                 }
-                return object : ColorInput(title, visibilityKey, b2l(value), type0 == "Color3HDR", style) {
-                    override fun onCopyRequested(x: Float, y: Float): String? {
-                        if (type0 == "Color3") return super.onCopyRequested(x, y)
+                return object : ColorInput(title, visibilityKey, b2l(value), true, style) {
+                    override fun onCopyRequested(x: Float, y: Float): String {
                         val v = l2b(this.value)
                         return "vec3(${v.x},${v.y},${v.z})"
                     }
                 }.apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
-                    // todo reset listener for color inputs
                     // todo brightness should have different background than alpha
-                    // setResetListener { property.reset(this) }
-                    askForReset(property) {
-                        setValue(b2l(it as Vector3f), -1, false)
-                    }
+                    setResetListener { b2l(property.reset(this) as Vector3f) }
+                    askForReset(property) { setValue(b2l(it as Vector3f), -1, false) }
                     setChangeListener { r, g, b, a, mask ->
                         val rgbMask = mask.and(7) or mask.hasFlag(8).toInt(7)
                         property.set(this, l2b(Vector4f(r, g, b, a)), rgbMask)
@@ -647,8 +659,7 @@ object ComponentUI {
                     .apply {
                         alignmentX = AxisAlignment.FILL
                         property.init(this)
-                        // todo reset listener for color inputs
-                        // setResetListener { property.reset(this) }
+                        setResetListener { property.reset(this) as Vector4f }
                         askForReset(property) { setValue(it as Vector4f, -1, false) }
                         setChangeListener { r, g, b, a, mask ->
                             property.set(this, Vector4f(r, g, b, a), mask)

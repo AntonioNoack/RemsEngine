@@ -1,10 +1,11 @@
 package me.anno.lua
 
 import me.anno.ecs.annotations.Type
-import me.anno.lua.ScriptComponent.Companion.toLua
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Key
+import me.anno.lua.ScriptComponent.Companion.toLua
+import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -126,8 +127,15 @@ open class QuickInputScriptComponent : QuickScriptComponent(), InputListener {
             ret.isboolean() -> ret.toboolean()
             ret.isint() -> ret.toint() != 0
             ret.isnil() -> false
+            ret.isstring() -> {
+                LOGGER.warn(ret.tojstring())
+                false
+            }
             else -> true
         }
     }
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(QuickInputScriptComponent::class)
+    }
 }

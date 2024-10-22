@@ -4,11 +4,11 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
-import me.anno.ui.Style
 import me.anno.ui.input.components.PureTextInputML
 
 @Suppress("unused")
@@ -119,7 +119,7 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
     }
 
     override var isInputAllowed: Boolean
-        get() = base.isInputAllowed && base.isEnabled && isEnabled
+        get() = base.isInputAllowed
         set(value) {
             base.isInputAllowed = value
         }
@@ -130,6 +130,11 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
 
     override fun onCopyRequested(x: Float, y: Float): Any? {
         return base.onCopyRequested(x, y)
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        if (isInputAllowed) base.onEmpty(x, y)
+        else super.onEmpty(x, y)
     }
 
     override fun clone(): TextInput {

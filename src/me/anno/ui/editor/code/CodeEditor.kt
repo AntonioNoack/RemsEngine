@@ -388,7 +388,7 @@ open class CodeEditor(style: Style) : Panel(style) {
             val isIncorrectlySpelled = variable != null && charIndex in variable
                     && variable.spellcheck()
                 ?.any { suggestion -> (charIndex - variable.startIndex) in suggestion } == true
-            val xi = getCharX(indexInLine)
+            val xi = getCharX(cn + indexInLine)
             val yi = getCharY(lineIndex)
             if (style.squiggles) {
                 drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6, squigglesHeight, textColor)

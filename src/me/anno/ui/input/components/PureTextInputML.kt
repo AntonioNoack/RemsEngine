@@ -745,14 +745,15 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        if (!isInputAllowed) return
-        if (isNothingSelected()) {
-            resetToDefault()
-        } else {
-            // empty selection
-            deleteSelection()
-            update(true)
-        }
+        if (isInputAllowed) {
+            if (isNothingSelected()) {
+                resetToDefault()
+            } else {
+                // empty selection
+                deleteSelection()
+                update(true)
+            }
+        } else super.onEmpty(x, y)
     }
 
     fun isNothingSelected(): Boolean {

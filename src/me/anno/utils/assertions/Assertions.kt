@@ -80,10 +80,28 @@ fun assertEquals(
 }
 
 fun assertEquals(
+    expected: Double, actual: Double, absoluteThreshold: Double,
+    message: () -> String
+) {
+    assertTrue(abs(expected - actual) <= absoluteThreshold, message)
+}
+
+fun assertEquals(
     expected: Float, actual: Float, absoluteThreshold: Float,
     message: String = "expected equal values"
 ) {
     assertEquals(expected.toDouble(), actual.toDouble(), absoluteThreshold.toDouble(), message)
+}
+
+fun <V: Vector> assertEquals(
+    expected: V, actual: V, absoluteThreshold: Double,
+    message: String = "expected equal values"
+) {
+    for(i in 0 until expected.numComponents){
+        assertEquals(expected.getComp(i), actual.getComp(i), absoluteThreshold){
+            "|$expected - $actual| > $absoluteThreshold"
+        }
+    }
 }
 
 fun assertNotEquals(forbidden: Any?, actual: Any?, message: String = "expected different values") {
