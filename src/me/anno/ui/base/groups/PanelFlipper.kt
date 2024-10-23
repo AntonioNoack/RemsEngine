@@ -11,6 +11,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.groups.PanelContainer.Companion.setPosSizeWithPadding
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.abs
@@ -106,7 +107,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
                 val posIndex = position.roundToIntOr()
                 for ((index, child) in children.withIndex()) {
                     if (index == posIndex) {
-                        placeChild(child, x, y, width, height)
+                        setPosSizeWithPadding(child, x, y, width, height, padding)
                     } else {
                         child.setPosSize(x, y, 0, 0)
                     }
@@ -115,7 +116,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             TransitionType.SWIPE_HORIZONTAL, TransitionType.ROTATE_HORIZONTAL -> {
                 for ((index, child) in children.withIndex()) {
                     val offset = (width * (index - position)).roundToIntOr()
-                    placeChild(child, x + offset, y, width, height)
+                    setPosSizeWithPadding(child, x + offset, y, width, height, padding)
                     child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                     // todo for rotated children, set their approximate position properly
                 }
@@ -123,20 +124,11 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             TransitionType.SWIPE_VERTICAL, TransitionType.ROTATE_VERTICAL -> {
                 for ((index, child) in children.withIndex()) {
                     val offset = (height * (index - position)).roundToIntOr()
-                    placeChild(child, x, y + offset, width, height)
+                    setPosSizeWithPadding(child, x, y + offset, width, height, padding)
                     child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                 }
             }
         }
-    }
-
-    private fun placeChild(child: Panel, x: Int, y: Int, width: Int, height: Int) {
-        child.setPosSize(
-            x + child.alignmentX.getOffset(width, child.minW),
-            y + child.alignmentY.getOffset(height, child.minH),
-            child.alignmentX.getSize(width, child.minW),
-            child.alignmentX.getSize(height, child.minH)
-        )
     }
 
     override fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {

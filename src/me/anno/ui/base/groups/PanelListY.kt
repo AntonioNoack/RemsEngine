@@ -132,14 +132,10 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                         }
                         //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
                         // something changes, or constraints are used
-                        val alignment = child.alignmentX
-                        val minW = min(availableW, child.minW)
-                        val offset = alignment.getOffset(availableW, minW)
-                        val childW = alignment.getSize(availableW, minW)
-                        child.setPosSize(childX + offset, currentY, childW, childH)
+                        child.setPosSizeAligned(childX, currentY, availableW, childH)
                         //}
                         currentY += childH + spacing
-                    } else child.setPosSize(childX, currentY, 1, 1)
+                    } else child.setPosSize(childX, currentY, 0, 0)
                 }
             }
         }

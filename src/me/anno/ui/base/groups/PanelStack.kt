@@ -2,41 +2,33 @@ package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.groups.PanelContainer.Companion.setPosSizeWithPadding
 import kotlin.math.max
-import kotlin.math.min
 
 open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
 
     constructor(style: Style) : this(null, style)
 
     override fun calculateSize(w: Int, h: Int) {
-        super.calculateSize(w, h)
         var minW = 0
         var minH = 0
+        val wi = w - padding.width
+        val hi = h - padding.height
         val children = children
         for (index in children.indices) {
             val child = children[index]
-            child.calculateSize(w, h)
+            child.calculateSize(wi, hi)
             minW = max(minW, child.minW)
             minH = max(minH, child.minH)
         }
-        this.minW = minW
-        this.minH = minH
+        this.minW = minW + padding.width
+        this.minH = minH + padding.height
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val children = children
         for (index in children.indices) {
-            val child = children[index]
-            val ax = child.alignmentX
-            val ay = child.alignmentY
-            val minW = min(width, child.minW)
-            val minH = min(height, child.minH)
-            val dx = ax.getOffset(width, minW)
-            val cw = ax.getSize(width, minW)
-            val dy = ay.getOffset(height, minH)
-            val ch = ay.getSize(height, minH)
-            child.setPosSize(x + dx, y + dy, cw, ch)
+            setPosSizeWithPadding(children[index], x, y, width, height, padding)
         }
     }
 

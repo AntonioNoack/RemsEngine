@@ -182,13 +182,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
                 val x0 = xs[xi]
                 val x1 = xs[xi + 1] - spacing
                 val w = x1 - x0
-                val alignmentX = child.alignmentX
-                val alignmentY = child.alignmentY
-                val cw = alignmentX.getSize(w, child.minW)
-                val ch = alignmentY.getSize(h, child.minH)
-                val cx = x + x0 + alignmentX.getOffset(w, child.minW)
-                val cy = y + y0 + alignmentY.getOffset(h, child.minH)
-                child.setPosSize(cx, cy, cw, ch)
+                child.setPosSizeAligned(x + x0, y + y0, w, h)
             }
         }
     }

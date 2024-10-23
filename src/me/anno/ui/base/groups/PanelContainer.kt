@@ -47,14 +47,7 @@ open class PanelContainer(
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        val wi = width - padding.width
-        val hi = height - padding.height
-        child.setPosSize(
-            x + padding.left + child.alignmentX.getOffset(wi, child.minW),
-            y + padding.top + child.alignmentY.getOffset(hi, child.minH),
-            child.alignmentX.getSize(wi, child.minW),
-            child.alignmentY.getSize(hi, child.minH)
-        )
+        setPosSizeWithPadding(child, x, y, width, height, padding)
     }
 
     override fun clone(): PanelContainer {
@@ -64,7 +57,18 @@ open class PanelContainer(
     }
 
     companion object {
+
         fun Panel.withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)
-        const val maxLength = 2_000_000_000 // max value, but also enough for any padding addition/subtraction
+
+        const val MAX_LENGTH = 2_000_000_000 // max value, but also enough for any padding addition/subtraction
+
+        fun setPosSizeWithPadding(child: Panel, x: Int, y: Int, width: Int, height: Int, padding: Padding) {
+            child.setPosSizeAligned(
+                x + padding.left,
+                y + padding.top,
+                width - padding.width,
+                height - padding.height
+            )
+        }
     }
 }

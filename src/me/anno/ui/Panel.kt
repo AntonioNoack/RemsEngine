@@ -351,6 +351,16 @@ open class Panel(val style: Style) : PrefabSaveable() {
         drawBackground(x0, y0, x1, y1)
     }
 
+    fun setPosSizeAligned(x: Int, y: Int, availableW: Int, availableH: Int) {
+        val minW = min(availableW, minW)
+        val minH = min(availableH, minH)
+        val dx = alignmentX.getOffset(availableW, minW)
+        val dy = alignmentY.getOffset(availableH, minH)
+        val nw = alignmentX.getSize(availableW, minW)
+        val nh = alignmentY.getSize(availableH, minH)
+        setPosSize(x + dx, y + dy, nw, nh)
+    }
+
     fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
         setSize(w, h)
         setPosition(x, y)

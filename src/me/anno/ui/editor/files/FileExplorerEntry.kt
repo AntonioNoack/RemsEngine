@@ -212,7 +212,7 @@ open class FileExplorerEntry(
             minW = titleSize * 5 // idk
             minH = titleSize
         } else {
-            val size = min(minW, minH - titleSize)
+            val size = min(w, h - titleSize)
             minW = size
             minH = size + titleSize
         }

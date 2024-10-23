@@ -26,6 +26,7 @@ import me.anno.ui.Style
 import me.anno.ui.WindowStack
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.ListAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -312,8 +313,15 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         val esi = entrySize.toInt()
         content2d.childWidth = esi
         content2d.childHeight = esi * 4 / 3
-        // I prefer: scaleChildren > scaleSpaces > nothing
-        content2d.scaleChildren = true
+        if (isY) {
+            content2d.listAlignmentX = ListAlignment.SCALE_CHILDREN
+            content2d.listAlignmentY = ListAlignment.ALIGN_MIN
+        } else {
+            content2d.listAlignmentY = ListAlignment.SCALE_CHILDREN
+            content2d.listAlignmentX = ListAlignment.ALIGN_MIN
+        }
+        content2d.invalidateLayout()
+
         val topBar = PanelListX(style)
         this += topBar
         topBar += pathPanel
@@ -659,14 +667,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     var hoveredItemIndex = 0
-    var hoverFractionY = 0f
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (!Input.isControlDown) {
             // find, which item is being hovered
             hoveredItemIndex = content2d.getItemIndexAt(x.toInt(), y.toInt())
-            hoverFractionY = clamp(content2d.getItemFractionY(y), 0.25f, 0.75f)
         }
     }
 
@@ -693,7 +699,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     fun onUpdateEntrySize(newEntrySize: Float = entrySize) {
         listMode = newEntrySize < minEntrySize
         val esi = entrySize.toInt()
-        content2d.maxColumns = if (listMode) 1 else Int.MAX_VALUE
+        content2d.maxTilesX = if (listMode) 1 else Int.MAX_VALUE
         content2d.childWidth = if (listMode) max(width, 65536) else esi
         favourites.invalidateLayout()
         // define the aspect ratio by 2 lines of space for the name

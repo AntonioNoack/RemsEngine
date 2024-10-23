@@ -132,7 +132,7 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         val padding = padding
         // calculation must not depend on hasScrollbar, or we get flickering
         val paddingY = padding.height + hasScrollbar.toInt(scrollbarHeight)
-        child.calculateSize(maxLength - padding.width, h - paddingY)
+        child.calculateSize(MAX_LENGTH - padding.width, h - paddingY)
         minW = min(child.minW + padding.width, w)
         minH = min(child.minH + paddingY, h)
     }

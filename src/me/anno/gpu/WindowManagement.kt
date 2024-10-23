@@ -311,6 +311,7 @@ object WindowManagement {
             GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, msgPtr: Long, _: Long ->
                 var msg = if (msgPtr != 0L) MemoryUtil.memUTF8(msgPtr) else null
                 if (msg != null && "will use VIDEO memory as the source for buffer object operations" !in msg &&
+                    "detailed info: Based on the usage hint and actual usage," !in msg &&
                     // this could be fixed by creating a shader for each attribute-configuration
                     // todo we want to be able to use our own buffer formats anyway, so somehow implement it that we load/create the shader based on the actually used layout
                     // todo after that's done, disable this check (?)
