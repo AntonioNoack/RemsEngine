@@ -4,9 +4,7 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.Events
 import me.anno.engine.OfficialExtensions
-import me.anno.gpu.GPUTasks
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageCache
 import me.anno.jvm.HiddenOpenGLContext
@@ -35,10 +33,4 @@ fun main() {
         assertEquals(image.width, asIntImage.width)
         Engine.requestShutdown()
     })
-
-    while (!Engine.shutdown) {
-        Events.workEventTasks()
-        GPUTasks.workGPUTasks(false)
-        CacheSection.updateAll()
-    }
 }

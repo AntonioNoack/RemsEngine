@@ -95,48 +95,28 @@ open class Vector4i(
         return sub(v.x, v.y, v.z, v.w, dst)
     }
 
-    fun sub(x: Int, y: Int, z: Int, w: Int, dst: Vector4i = this): Vector4i {
-        dst.x = this.x - x
-        dst.y = this.y - y
-        dst.z = this.z - z
-        dst.w = this.w - w
-        return dst
+    fun sub(vx: Int, vy: Int, vz: Int, vw: Int, dst: Vector4i = this): Vector4i {
+        return dst.set(x - vx, y - vy, z - vz, w - vw)
     }
 
     fun add(v: Vector4i, dst: Vector4i = this): Vector4i {
         return add(v.x, v.y, v.z, v.w, dst)
     }
 
-    fun add(x: Int, y: Int, z: Int, w: Int, dst: Vector4i = this): Vector4i {
-        dst.x = this.x + x
-        dst.y = this.y + y
-        dst.z = this.z + z
-        dst.w = this.w + w
-        return dst
+    fun add(vx: Int, vy: Int, vz: Int, vw: Int, dst: Vector4i = this): Vector4i {
+        return dst.set(x + vx, y + vy, z + vz, w + vw)
     }
 
     fun mul(v: Vector4i, dst: Vector4i = this): Vector4i {
-        dst.x = x * v.x
-        dst.y = y * v.y
-        dst.z = z * v.z
-        dst.w = w * v.w
-        return dst
+        return dst.set(x * v.x, y * v.y, z * v.z, w * v.w)
     }
 
     fun div(v: Vector4i, dst: Vector4i = this): Vector4i {
-        dst.x = x / v.x
-        dst.y = y / v.y
-        dst.z = z / v.z
-        dst.w = w / v.w
-        return dst
+        return dst.set(x / v.x, y / v.y, z / v.z, w / v.w)
     }
 
     fun mul(scalar: Int, dst: Vector4i = this): Vector4i {
-        dst.x = x * scalar
-        dst.y = y * scalar
-        dst.z = z * scalar
-        dst.w = w * scalar
-        return dst
+        return dst.set(x * scalar, y * scalar, z * scalar, w * scalar)
     }
 
     fun div(scalar: Float, dst: Vector4i = this): Vector4i {
@@ -149,11 +129,7 @@ open class Vector4i(
     }
 
     fun div(scalar: Int, dst: Vector4i = this): Vector4i {
-        dst.x = x / scalar
-        dst.y = y / scalar
-        dst.z = z / scalar
-        dst.w = w / scalar
-        return dst
+        return dst.set(x/scalar,y/scalar,z/scalar,w/scalar)
     }
 
     fun lengthSquared(): Long {
@@ -202,6 +178,7 @@ open class Vector4i(
     fun dot(v: Vector4i): Long = dot(v.x, v.y, v.z, v.w)
 
     fun zero(): Vector4i = set(0, 0, 0, 0)
+
     fun negate(dst: Vector4i = this): Vector4i {
         dst.x = -x
         dst.y = -y

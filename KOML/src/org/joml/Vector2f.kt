@@ -143,19 +143,16 @@ open class Vector2f(
     fun mul(x: Float, y: Float, dst: Vector2f = this) = dst.set(this.x * x, this.y * y)
 
     @JvmOverloads
-    fun mul(v: Vector2f, dst: Vector2f = this) =
-        dst.set(x * v.x, y * v.y)
+    fun mul(v: Vector2f, dst: Vector2f = this) = dst.set(x * v.x, y * v.y)
 
     @JvmOverloads
-    fun div(v: Vector2f, dst: Vector2f = this) =
-        dst.set(x / v.x, y / v.y)
+    fun div(v: Vector2f, dst: Vector2f = this) = dst.set(x / v.x, y / v.y)
 
     @JvmOverloads
     fun div(scalar: Float, dst: Vector2f = this) = dst.mul(1f / scalar)
 
     @JvmOverloads
-    fun div(x: Float, y: Float, dst: Vector2f = this) =
-        dst.set(this.x / x, this.y / y)
+    fun div(x: Float, y: Float, dst: Vector2f = this) = dst.set(this.x / x, this.y / y)
 
     @JvmOverloads
     fun mul(mat: Matrix2f, dst: Vector2f = this) =

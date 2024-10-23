@@ -590,8 +590,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         private fun callListeners(listeners: List<() -> Unit>) {
             synchronized(listeners) {
-                for (listener in listeners) {
-                    listener()
+                for (i in listeners.indices) {
+                    listeners[i]()
                 }
             }
         }

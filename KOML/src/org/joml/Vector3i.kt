@@ -138,17 +138,15 @@ open class Vector3i(
 
     fun div(scalar: Float, dst: Vector3i = this): Vector3i {
         val inv = 1f / scalar
-        dst.x = (x.toFloat() * inv).toInt()
-        dst.y = (y.toFloat() * inv).toInt()
-        dst.z = (z.toFloat() * inv).toInt()
-        return dst
+        return dst.set((x.toFloat() * inv).toInt(), (y.toFloat() * inv).toInt(), (z.toFloat() * inv).toInt())
     }
 
     fun div(scalar: Int, dst: Vector3i = this): Vector3i {
-        dst.x = x / scalar
-        dst.y = y / scalar
-        dst.z = z / scalar
-        return dst
+        return dst.set(x / scalar, y / scalar, z / scalar)
+    }
+
+    fun div(other: Vector3i, dst: Vector3i = this): Vector3i {
+        return dst.set(x / other.x, y / other.y, z / other.z)
     }
 
     fun lengthSquared(): Long {
@@ -280,8 +278,8 @@ open class Vector3i(
         return dst
     }
 
-    operator fun plus(s: Vector3i) = Vector3i(x + s.x, y + s.y, z + s.z)
-    operator fun minus(s: Vector3i) = Vector3i(x - s.x, y - s.y, z - s.z)
+    operator fun plus(s: Vector3i) = add(s, Vector3i())
+    operator fun minus(s: Vector3i) = sub(s, Vector3i())
     operator fun times(s: Float) = Vector3f(x * s, y * s, z * s)
     operator fun minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
     operator fun plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)

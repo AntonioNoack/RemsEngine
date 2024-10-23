@@ -1646,16 +1646,9 @@ open class Matrix4f {
     }
 
     fun translationRotateScale(
-        tx: Float,
-        ty: Float,
-        tz: Float,
-        qx: Float,
-        qy: Float,
-        qz: Float,
-        qw: Float,
-        sx: Float,
-        sy: Float,
-        sz: Float
+        tx: Float, ty: Float, tz: Float,
+        qx: Float, qy: Float, qz: Float, qw: Float,
+        sx: Float, sy: Float, sz: Float
     ): Matrix4f {
         val dqx = qx + qx
         val dqy = qy + qy
@@ -1678,27 +1671,15 @@ open class Matrix4f {
 
     fun translationRotateScale(translation: Vector3f, quat: Quaternionf, scale: Vector3f): Matrix4f {
         return this.translationRotateScale(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale.x,
-            scale.y,
-            scale.z
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale.x, scale.y, scale.z
         )
     }
 
     fun translationRotateScale(
-        tx: Float,
-        ty: Float,
-        tz: Float,
-        qx: Float,
-        qy: Float,
-        qz: Float,
-        qw: Float,
+        tx: Float, ty: Float, tz: Float,
+        qx: Float, qy: Float, qz: Float, qw: Float,
         scale: Float
     ): Matrix4f {
         return this.translationRotateScale(tx, ty, tz, qx, qy, qz, qw, scale, scale, scale)
@@ -1706,30 +1687,16 @@ open class Matrix4f {
 
     fun translationRotateScale(translation: Vector3f, quat: Quaternionf, scale: Float): Matrix4f {
         return this.translationRotateScale(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale,
-            scale,
-            scale
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale, scale, scale
         )
     }
 
     fun translationRotateScaleInvert(
-        tx: Float,
-        ty: Float,
-        tz: Float,
-        qx: Float,
-        qy: Float,
-        qz: Float,
-        qw: Float,
-        sx: Float,
-        sy: Float,
-        sz: Float
+        tx: Float, ty: Float, tz: Float,
+        qx: Float, qy: Float, qz: Float, qw: Float,
+        sx: Float, sy: Float, sz: Float
     ): Matrix4f {
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
         return if (one) {
@@ -1763,46 +1730,24 @@ open class Matrix4f {
 
     fun translationRotateScaleInvert(translation: Vector3f, quat: Quaternionf, scale: Vector3f): Matrix4f {
         return this.translationRotateScaleInvert(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale.x,
-            scale.y,
-            scale.z
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale.x, scale.y, scale.z
         )
     }
 
     fun translationRotateScaleInvert(translation: Vector3f, quat: Quaternionf, scale: Float): Matrix4f {
         return this.translationRotateScaleInvert(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale,
-            scale,
-            scale
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale, scale, scale
         )
     }
 
     fun translationRotateScaleMulAffine(
-        tx: Float,
-        ty: Float,
-        tz: Float,
-        qx: Float,
-        qy: Float,
-        qz: Float,
-        qw: Float,
-        sx: Float,
-        sy: Float,
-        sz: Float,
-        m: Matrix4f
+        tx: Float, ty: Float, tz: Float,
+        qx: Float, qy: Float, qz: Float, qw: Float,
+        sx: Float, sy: Float, sz: Float, m: Matrix4f
     ): Matrix4f {
         val w2 = qw * qw
         val x2 = qx * qx
@@ -1846,17 +1791,9 @@ open class Matrix4f {
         m: Matrix4f
     ): Matrix4f {
         return this.translationRotateScaleMulAffine(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale.x,
-            scale.y,
-            scale.z,
-            m
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale.x, scale.y, scale.z, m
         )
     }
 

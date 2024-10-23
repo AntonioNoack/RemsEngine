@@ -38,7 +38,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.concurrent.thread
 
-// todo bug: paths seem to be corrupted when exporting things... why/how???
 class ExportPlugin : Plugin() {
 
     companion object {

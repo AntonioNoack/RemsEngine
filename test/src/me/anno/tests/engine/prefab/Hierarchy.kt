@@ -125,16 +125,6 @@ class HierarchyTests {
     }
 
     @Test
-    fun testJsonFormatter() {
-        Engine.cancelShutdown()
-        val ref = OS.documents.getChild("RemsEngine/SampleProject/Scene.json")
-        if (ref.exists) { // not guaranteed to exist xD
-            val prefab = PrefabCache[ref]
-            println(JsonFormatter.format(prefab.toString()))
-        }
-    }
-
-    @Test
     fun testPrefab() {
         val prefab = Prefab("Entity")
         val sample1 = prefab.getSampleInstance()

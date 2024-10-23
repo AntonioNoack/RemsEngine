@@ -3,11 +3,13 @@ package org.joml
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
+import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
+import kotlin.math.sin
 
 @Suppress("unused")
 open class Vector2d(
@@ -144,6 +146,12 @@ open class Vector2d(
     fun angle(v: Vector2d): Double {
         val det = x * v.y - y * v.x
         return atan2(det, dot(v))
+    }
+
+    fun rotate(radians: Double, dst: Vector2d = this): Vector2d {
+        val c = cos(radians)
+        val s = sin(radians)
+        return dst.set(c * x - s * y, c * y + s * x)
     }
 
     fun lengthSquared() = x * x + y * y
@@ -311,10 +319,10 @@ open class Vector2d(
         return dst.set(x * f + b.x, y * f + b.y)
     }
 
-    operator fun plus(s: Vector2d) = Vector2d(x + s.x, y + s.y)
-    operator fun minus(s: Vector2d) = Vector2d(x - s.x, y - s.y)
-    operator fun times(f: Double) = Vector2d(x * f, y * f)
-    operator fun times(s: Vector2d) = Vector2d(x * s.x, y * s.y)
+    operator fun plus(s: Vector2d) = add(s, Vector2d())
+    operator fun minus(s: Vector2d) = sub(s, Vector2d())
+    operator fun times(f: Double) = mul(f, Vector2d())
+    operator fun times(s: Vector2d) = mul(s, Vector2d())
 
     fun makePerpendicular(other: Vector2d): Vector2d {
         val f = dot(other)

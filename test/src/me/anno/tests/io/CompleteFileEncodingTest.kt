@@ -277,6 +277,12 @@ class CompleteFileEncodingTest {
                         checkEquals(v[i], vi[i], v)
                     }
                 }
+                is Float -> {
+                    assertEquals(v, vi as Float)
+                }
+                is Double -> {
+                    assertEquals(v, vi as Double)
+                }
                 else -> assertEquals(v, vi)
             }
         }

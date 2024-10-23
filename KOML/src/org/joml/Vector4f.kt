@@ -404,6 +404,7 @@ open class Vector4f(
     }
 
     fun zero(): Vector4f = set(0f)
+
     fun negate(dst: Vector4f = this): Vector4f {
         dst.x = -x
         dst.y = -y

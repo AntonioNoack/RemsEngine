@@ -126,16 +126,17 @@ open class Vector2i(
     @JvmOverloads
     fun div(scalar: Float, dst: Vector2i = this): Vector2i {
         val inv = 1f / scalar
-        dst.x = (x.toFloat() * inv).toInt()
-        dst.y = (y.toFloat() * inv).toInt()
-        return dst
+        return dst.set((x * inv).toInt(), (y * inv).toInt())
     }
 
     @JvmOverloads
     fun div(scalar: Int, dst: Vector2i = this): Vector2i {
-        dst.x = x / scalar
-        dst.y = y / scalar
-        return dst
+        return dst.set(x / scalar, y / scalar)
+    }
+
+    @JvmOverloads
+    fun div(other: Vector2i, dst: Vector2i = this): Vector2i {
+        return dst.set(x / other.x, y / other.y)
     }
 
     fun zero() = set(0, 0)
