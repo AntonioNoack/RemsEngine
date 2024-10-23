@@ -18,9 +18,9 @@ import java.nio.ByteBuffer
 
 open class ByteImage(
     width: Int, height: Int,
-    val format: Format,
-    val data: ByteArray = ByteArray(width * height * format.numChannels),
-) : Image(width, height, format.numChannels, format.numChannels > 3) {
+    val format: Format, val data: ByteArray,
+    offset: Int, stride: Int
+) : Image(width, height, format.numChannels, format.numChannels > 3, offset, stride) {
 
     enum class Format(val numChannels: Int) {
         R(1),
@@ -31,6 +31,9 @@ open class ByteImage(
 
     constructor(width: Int, height: Int, format: Format) :
             this(width, height, format, ByteArray(width * height * format.numChannels))
+
+    constructor(width: Int, height: Int, format: Format, data: ByteArray) :
+            this(width, height, format, data, 0, width)
 
     override fun getRGB(index: Int): Int {
         return when (format) {
@@ -116,5 +119,9 @@ open class ByteImage(
             Format.BGRA -> texture.createBGRA(data, checkRedundancy)
         }
         callback.ok(texture)
+    }
+
+    override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
+        return ByteImage(w0, h0, format, data, getIndex(x0, y0), stride)
     }
 }

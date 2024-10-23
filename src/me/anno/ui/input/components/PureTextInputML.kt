@@ -23,7 +23,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
-import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.getIndexFromText
@@ -44,8 +43,8 @@ open class PureTextInputML(style: Style) :
         }
     }
 
-    private val cursor1 = CursorPosition(0, 0)
-    private val cursor2 = CursorPosition(0, 0)
+    val cursor1 = CursorPosition(0, 0)
+    val cursor2 = CursorPosition(0, 0)
 
     var placeholder = ""
         set(value) {
@@ -168,7 +167,7 @@ open class PureTextInputML(style: Style) :
 
     private val changeListeners = ArrayList<(text: String) -> Unit>()
 
-    private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
+    val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val actualChildren = (child as PanelListY).children
@@ -186,50 +185,7 @@ open class PureTextInputML(style: Style) :
         }
         val content = content as PanelListY
         while (lines.size > children.size) {// add new TextInput panels
-            val panel = object : CorrectingTextPanel(style) {
-
-                override val className: String get() = "PureTextInputML/CorrectingTextInput"
-
-                override val effectiveTextColor: Int
-                    get() = if (isInputAllowed && isEnabled) super.effectiveTextColor else
-                        mixARGB(textColor, backgroundColor, 0.5f)
-
-                override val isShowingPlaceholder: Boolean
-                    get() = this@PureTextInputML.text.isEmpty()
-
-                override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
-                override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
-                override fun onKeyDown(x: Float, y: Float, key: Key) = this@PureTextInputML.onKeyDown(x, y, key)
-                override fun onKeyUp(x: Float, y: Float, key: Key) = this@PureTextInputML.onKeyUp(x, y, key)
-
-                override fun setCursor(position: Int) {
-                    // set cursor after replacement
-                    if (cursor1 != cursor2 || cursor1.x != position || cursor1.y != indexInParent) {
-                        cursor1.set(position, indexInParent)
-                        cursor2.set(cursor1)
-                        this@PureTextInputML.invalidateDrawing()
-                    }
-                }
-
-                override fun updateChars(notify: Boolean) {
-                    // replace chars in main string...
-                    // convert text back to lines
-                    lines[indexInParent] = text.codepoints().toMutableList()
-                    this@PureTextInputML.update(true)
-                }
-
-                override fun onCopyRequested(x: Float, y: Float): Any? {
-                    return this@PureTextInputML.onCopyRequested(x, y)
-                }
-
-                override fun isKeyInput(): Boolean {
-                    return this@PureTextInputML.isKeyInput()
-                }
-
-                override fun acceptsChar(char: Int): Boolean {
-                    return this@PureTextInputML.acceptsChar(char)
-                }
-            }
+            val panel = PureTextInputLine(this)
             panel.enableSpellcheck = enableSpellcheck
             content.add(panel)
         }
@@ -824,7 +780,7 @@ open class PureTextInputML(style: Style) :
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is PureTextInputML) return
-        dst.text = text
+        dst.setValue(text, false)
         dst.cursor1.set(cursor1)
         dst.cursor2.set(cursor2)
         dst.lineLimit = lineLimit

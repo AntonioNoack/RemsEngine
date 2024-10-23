@@ -20,4 +20,10 @@ class ConsoleLogFullscreen(style: Style) : ScrollPanelXY(Padding(5), style) {
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
         onSelectAll(x, y)
     }
+
+    override fun clone(): ConsoleLogFullscreen {
+        val clone = ConsoleLogFullscreen(style)
+        copyInto(clone)
+        return clone
+    }
 }

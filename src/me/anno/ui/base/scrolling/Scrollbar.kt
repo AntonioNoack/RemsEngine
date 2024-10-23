@@ -42,4 +42,10 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawRect(x0, y0, x1 - x0, y1 - y0, scrollBackground.mulAlpha(activeAlpha * alpha))
     }
+
+    override fun clone(): Scrollbar {
+        val clone = Scrollbar(style)
+        copyInto(clone)
+        return clone
+    }
 }

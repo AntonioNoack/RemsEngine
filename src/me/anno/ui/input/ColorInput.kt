@@ -257,7 +257,7 @@ open class ColorInput(
     }
 
     override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
+        super.copyIntoExceptChildren(dst)
         if (dst !is ColorInput) return
         // only works, if there is no references
         dst.isSelectedListener = isSelectedListener

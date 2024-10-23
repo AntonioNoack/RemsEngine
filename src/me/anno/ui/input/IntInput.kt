@@ -165,7 +165,7 @@ open class IntInput(
     }
 
     override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
+        super.copyIntoExceptChildren(dst)
         if (dst !is IntInput) return
         // only works if there are no hard references
         dst.changeListener = changeListener

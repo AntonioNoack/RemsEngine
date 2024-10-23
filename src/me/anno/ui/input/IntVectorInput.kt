@@ -282,7 +282,7 @@ open class IntVectorInput(
     }
 
     override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
+        super.copyIntoExceptChildren(dst)
         if (dst !is IntVectorInput) return
         // only works if there are no hard references
         dst.changeListeners.clear()

@@ -414,6 +414,12 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         }
     }
 
+    override fun clone(): HexEditor {
+        val clone = HexEditor(style)
+        copyInto(clone)
+        return clone
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(HexEditor::class)

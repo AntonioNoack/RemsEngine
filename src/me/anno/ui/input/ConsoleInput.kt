@@ -1,15 +1,15 @@
 package me.anno.ui.input
 
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Style
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Style
 
 @Suppress("unused")
 class ConsoleInput(nameDesc: NameDesc, enableSuggestions: Boolean, style: Style) :
     TextInput(nameDesc, "", enableSuggestions, style) {
 
     @Suppress("unused")
-    constructor(style: Style): this(NameDesc.EMPTY, true, style)
+    constructor(style: Style) : this(NameDesc.EMPTY, true, style)
 
     var actionListener: (String) -> Unit = {}
 
@@ -41,12 +41,12 @@ class ConsoleInput(nameDesc: NameDesc, enableSuggestions: Boolean, style: Style)
     }
 
     fun moveDown() {
-        indexFromTop = clamp(indexFromTop-1, -1, history.lastIndex)
+        indexFromTop = clamp(indexFromTop - 1, -1, history.lastIndex)
         showHistoryEntry()
     }
 
     fun moveUp() {
-        indexFromTop = clamp(indexFromTop-1, -1, history.lastIndex)
+        indexFromTop = clamp(indexFromTop - 1, -1, history.lastIndex)
         showHistoryEntry()
     }
 
@@ -56,11 +56,16 @@ class ConsoleInput(nameDesc: NameDesc, enableSuggestions: Boolean, style: Style)
         }
     }
 
+    override fun clone(): ConsoleInput {
+        val clone = ConsoleInput(style)
+        copyInto(clone)
+        return clone
+    }
+
     companion object {
         @JvmField
         val history = ArrayList<String>()
         // todo save the history, maybe per instance...
         // todo also load it ;)
     }
-
 }

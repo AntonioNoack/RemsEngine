@@ -8,7 +8,6 @@ import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.StretchModes
 import me.anno.utils.types.Floats.roundToIntOr
-import kotlin.math.roundToInt
 
 open class ImagePanelBase(style: Style) : Panel(style) {
 
@@ -93,5 +92,11 @@ open class ImagePanelBase(style: Style) : Panel(style) {
             }
             invalidateDrawing()
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
+    }
+
+    override fun clone(): ImagePanelBase {
+        val clone = ImagePanelBase(style)
+        copyInto(clone)
+        return clone
     }
 }

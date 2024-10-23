@@ -82,6 +82,12 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
+    override fun clone(): ConsoleOutputPanel {
+        val clone = ConsoleOutputPanel(style)
+        copyInto(clone)
+        return clone
+    }
+
     companion object {
 
         @JvmStatic

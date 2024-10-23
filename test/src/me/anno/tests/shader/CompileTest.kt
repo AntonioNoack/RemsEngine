@@ -22,11 +22,16 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader
 import me.anno.ecs.components.mesh.material.shaders.PlanarShader
+import me.anno.ecs.components.text.SDFTextComponent
+import me.anno.ecs.components.text.TextMeshComponent
+import me.anno.ecs.components.text.TextTextureComponent
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.extensions.ExtensionLoader
+import me.anno.fonts.Font
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -35,6 +40,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.ui.UITests
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
 import org.junit.jupiter.api.Test
@@ -72,6 +78,10 @@ class CompileTest {
         scene.add(MeshComponent(flatCube.front).apply {
             isInstanced = true
         })
+        val font = Font("Verdana", 16f)
+        scene.add(TextMeshComponent("textMesh", font, AxisAlignment.CENTER))
+        scene.add(TextTextureComponent("textureText", font, AxisAlignment.CENTER))
+        scene.add(SDFTextComponent("sdfText", font, AxisAlignment.CENTER))
         // add an animated mesh, instanced and non-instanced
         val animatedMesh = flatCube.front.clone() as Mesh
         val numPos = animatedMesh.positions!!.size / 3
@@ -118,6 +128,11 @@ class CompileTest {
         val scene = createTestScene()
         val rv = object : RenderView(PlayMode.EDITING, style) {
             override fun getWorld() = scene
+        }
+        scene.forAll { entityOrComponent ->
+            if (entityOrComponent is OnUpdate) {
+                entityOrComponent.onUpdate()
+            }
         }
         ui.prepareUI(rv)
         rv.setPosSize(0, 0, ui.osWindow.width, ui.osWindow.height)

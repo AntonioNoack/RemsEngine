@@ -124,6 +124,12 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         textColor = textColor.withAlpha(127)
     }
 
+    override fun clone(): RuntimeInfoPanel {
+        val clone = RuntimeInfoPanel(style)
+        copyInto(clone)
+        return clone
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(RuntimeInfoPanel::class)
     }

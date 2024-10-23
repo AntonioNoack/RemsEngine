@@ -1,6 +1,7 @@
 package me.anno.utils.assertions
 
 import me.anno.maths.Maths.sq
+import me.anno.utils.Logging.hash32
 import org.joml.Vector
 import kotlin.math.abs
 import kotlin.reflect.KClass
@@ -52,6 +53,14 @@ fun assertFail(message: String = "condition failed"): Nothing {
 
 fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal values") {
     assertTrue(expected == actual) { "$message, \n  expected '$expected' != \n  actually '$actual'" }
+}
+
+fun assertSame(expected: Any?, actual: Any?, message: String = "expected equal values") {
+    assertTrue(expected === actual) { "$message, \n  expected '$expected'@${hash32(expected)} !== \n  actually '$actual'@${hash32(actual)}" }
+}
+
+fun assertNotSame(expected: Any?, actual: Any?, message: String = "expected equal values") {
+    assertTrue(expected !== actual) { "$message, \n  expected '$expected'@${hash32(expected)} === \n  actually @${hash32(actual)}" }
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: () -> String) {

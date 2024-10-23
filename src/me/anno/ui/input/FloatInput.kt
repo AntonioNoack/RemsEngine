@@ -177,7 +177,7 @@ open class FloatInput(
     }
 
     override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
+        super.copyIntoExceptChildren(dst)
         if (dst !is FloatInput) return
         // only works without hard references
         dst.changeListener = changeListener

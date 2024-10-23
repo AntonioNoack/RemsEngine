@@ -142,10 +142,6 @@ abstract class IFloatImage(
         }
     }
 
-    override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): IFloatImage {
-        return CroppedFloatImage(this, x0, y0, w0, h0)
-    }
-
     open fun normalize(): IFloatImage {
         return toFloatImage().normalize()
     }

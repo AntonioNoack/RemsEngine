@@ -604,6 +604,12 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         }
     }
 
+    override fun clone(): ECSTreeView {
+        val clone = ECSTreeView(style)
+        copyInto(clone)
+        return clone
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
 

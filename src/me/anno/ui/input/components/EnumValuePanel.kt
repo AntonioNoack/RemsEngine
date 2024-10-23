@@ -23,15 +23,15 @@ class EnumValuePanel(nameDesc: NameDesc, private var owner: EnumInput, style: St
 
     override fun isKeyInput() = true
 
+    override fun getCursor(): Cursor? {
+        return if (owner.isInputAllowed) super.getCursor()
+        else null
+    }
+
     override fun clone(): EnumValuePanel {
         val clone = EnumValuePanel(NameDesc(text, tooltip, ""), owner, style)
         copyInto(clone)
         return clone
-    }
-
-    override fun getCursor(): Cursor? {
-        return if (owner.isInputAllowed) super.getCursor()
-        else null
     }
 
     override fun copyInto(dst: PrefabSaveable) {

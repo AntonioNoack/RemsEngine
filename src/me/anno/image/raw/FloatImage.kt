@@ -5,6 +5,7 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.Image
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
@@ -132,5 +133,9 @@ class FloatImage(
             }
         }
         return this
+    }
+
+    override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
+        return FloatImage(w0, h0, numChannels, data, map, getIndex(x0, y0), stride)
     }
 }

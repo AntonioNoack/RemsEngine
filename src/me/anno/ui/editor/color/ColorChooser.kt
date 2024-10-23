@@ -20,6 +20,7 @@ import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.input.ColorInput.Companion.pickColor
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
+import me.anno.ui.input.components.EmptyColorPalette
 import me.anno.utils.Color.black4
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
@@ -38,10 +39,7 @@ open class ColorChooser(
 ) : PanelListY(style) {
 
     constructor(style: Style, palette: ColorPalette) : this(style, true, palette)
-    constructor(style: Style) : this(style, true, object : ColorPalette(1, 1, style) {
-        override fun setColor(x: Int, y: Int, color: Int) {}
-        override fun getColor(x: Int, y: Int) = 0
-    })
+    constructor(style: Style) : this(style, true, EmptyColorPalette(style))
 
     // color section
     // bottom section:
@@ -269,7 +267,7 @@ open class ColorChooser(
     }
 
     override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
+        super.copyIntoExceptChildren(dst)
         if (dst !is ColorChooser) return
         dst.colorSpace = colorSpace
         dst.visualisation = visualisation

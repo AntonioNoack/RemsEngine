@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -60,5 +61,9 @@ open class TitledListY(val title: NameDesc, val visibilityKey: String, sorter: C
         val clone = TitledListY(title, visibilityKey, sorter, style)
         copyInto(clone)
         return clone
+    }
+
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyIntoExceptChildren(dst)
     }
 }

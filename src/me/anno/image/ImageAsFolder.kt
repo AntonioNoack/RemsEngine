@@ -57,7 +57,7 @@ object ImageAsFolder {
 
         // bgra
         createSwizzle(file, folder, "bgra.png") {
-            if (it is BGRAImage) it.base // bgra.bgra = rgba
+            if (it is BGRAImage) it.base // bgra.bgra = argb
             else BGRAImage(it)
         }
 

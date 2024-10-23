@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
@@ -188,6 +189,16 @@ open class EnumInput(
             inputPanel.isItalic = value
             titleView?.isItalic = value
         }
+
+    override fun clone(): EnumInput {
+        val clone = EnumInput(nameDesc, titleView != null, value, options, style)
+        copyInto(clone)
+        return clone
+    }
+
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyIntoExceptChildren(dst)
+    }
 
     companion object {
 

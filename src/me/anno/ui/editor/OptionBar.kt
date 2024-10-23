@@ -114,4 +114,10 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
     val majors = HashMap<String, Major>()
     private val keyListeners = ExtraKeyListeners()
+
+    override fun clone(): OptionBar {
+        val clone = OptionBar(style)
+        copyInto(clone)
+        return clone
+    }
 }

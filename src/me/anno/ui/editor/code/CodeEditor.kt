@@ -1,5 +1,6 @@
 package me.anno.ui.editor.code
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.history.StringHistory
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
@@ -774,6 +775,19 @@ open class CodeEditor(style: Style) : Panel(style) {
     // accept tabs
     override fun isKeyInput(): Boolean = true
     override fun acceptsChar(char: Int): Boolean = true
+
+    override fun clone(): Panel {
+        val clone = CodeEditor(style)
+        copyInto(clone)
+        return clone
+    }
+
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        if (dst !is CodeEditor) return
+        dst.language = language
+        // todo more to copy?
+    }
 
     companion object {
 
