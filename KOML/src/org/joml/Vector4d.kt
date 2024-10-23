@@ -564,6 +564,15 @@ open class Vector4d(
         return dst
     }
 
+    fun rotateInv(q: Quaterniond, dst: Vector4d = this): Vector4d {
+        synchronized(q) {
+            q.conjugate()
+            q.transform(this, dst)
+            q.conjugate()
+        }
+        return dst
+    }
+
     fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector4d = this): Vector4d {
         return if (aY == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aX)) {
             this.rotateX(aX * angle, dst)

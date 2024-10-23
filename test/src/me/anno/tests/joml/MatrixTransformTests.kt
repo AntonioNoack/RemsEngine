@@ -129,7 +129,7 @@ class MatrixTransformTests {
     }
 
     @Test
-    fun testRotatingPositions() {
+    fun testRotating() {
         testMatrixTransform(
             Matrix3x2f().rotate(5f), ::Vector2f,
             { m, v -> m.transformPosition(v) },

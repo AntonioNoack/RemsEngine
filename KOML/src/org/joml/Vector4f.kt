@@ -272,6 +272,15 @@ open class Vector4f(
         return quat.transform(this, dst)
     }
 
+    fun rotateInv(q: Quaternionf, dst: Vector4f = this): Vector4f {
+        synchronized(q) {
+            q.conjugate()
+            q.transform(this, dst)
+            q.conjugate()
+        }
+        return dst
+    }
+
     fun rotateAbout(angle: Float, x: Float, y: Float, z: Float): Vector4f {
         return if (y == 0f && z == 0f && JomlMath.absEqualsOne(x)) {
             this.rotateX(x * angle, this)
