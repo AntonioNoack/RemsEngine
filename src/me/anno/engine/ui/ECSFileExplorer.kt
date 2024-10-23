@@ -5,11 +5,11 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.engine.Events.addEvent
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.AssetImport.deepCopyImport
@@ -20,7 +20,6 @@ import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.image.thumbs.Thumbs
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
@@ -52,12 +51,17 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
 
     override fun onDoubleClick(file: FileReference) {
         // open the file
-        val prefab = PrefabCache[file]
+        PrefabCache.getPrefabAsync(file) { prefab, err ->
+            err?.printStackTrace()
+            addEvent { onDoubleClick1(file, prefab) }
+        }
+    }
+
+    private fun onDoubleClick1(file: FileReference, prefab: Prefab?) {
         if (prefab != null) {
             ECSSceneTabs.open(file, PlayMode.EDITING, true)
         } else {
             switchTo(file)
-            // msg(NameDesc("Could not open prefab!"))
         }
     }
 
@@ -365,6 +369,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                     else listOf(file)
                 }
             }
+
             val clearHistory = FileExplorerOption(NameDesc("Clear History")) { _, files ->
                 for (file in flattenFiles(files)) {
                     val prefab = PrefabCache[file] ?: continue

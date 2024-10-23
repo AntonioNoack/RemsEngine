@@ -2,6 +2,7 @@ package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.scalar.MathNodeData
 import me.anno.graph.visual.scalar.TypedMathNode
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -40,7 +41,7 @@ class VectorLengthNode : TypedMathNode<VectorLengthMode>(vectorLengthData, vecto
                 is Vector2i -> a.length()
                 is Vector3i -> a.length()
                 is Vector4i -> a.length()
-                else -> throw NotImplementedError()
+                else -> assertFail("Unsupported Type")
             }
             VectorLengthMode.LENGTH_SQUARED -> when (a) {
                 is Vector2f -> a.lengthSquared()
@@ -52,7 +53,7 @@ class VectorLengthNode : TypedMathNode<VectorLengthMode>(vectorLengthData, vecto
                 is Vector2i -> a.lengthSquared() // not really double... is that an issue?
                 is Vector3i -> a.lengthSquared()
                 is Vector4i -> a.lengthSquared()
-                else -> throw NotImplementedError()
+                else -> assertFail("Unsupported Type")
             }
             VectorLengthMode.NORM1 -> when (a) {
                 is Vector2f -> abs(a.x) + abs(a.y)
@@ -64,7 +65,7 @@ class VectorLengthNode : TypedMathNode<VectorLengthMode>(vectorLengthData, vecto
                 is Vector2i -> abs(a.x).toLong() + abs(a.y) // not really double... is that an issue?
                 is Vector3i -> abs(a.x).toLong() + abs(a.y) + abs(a.z)
                 is Vector4i -> abs(a.x).toLong() + abs(a.y) + abs(a.z) + abs(a.w)
-                else -> throw NotImplementedError()
+                else -> assertFail("Unsupported Type")
             }
         }
         setOutput(0, v)

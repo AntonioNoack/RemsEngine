@@ -160,7 +160,7 @@ object FontManager {
             entry
         } as AsyncCacheData<*>
         // todo it would be nice if we could prioritize loading our task
-        entry.waitForGFX()
+        entry.waitFor()
         val curr = entry.value as Texture2DArray
         asciiTexLRU[font] = curr
         return curr
@@ -183,7 +183,7 @@ object FontManager {
             font2.generateTexture(key.text, wl, hl, key.isGrayscale(), entry)
             entry
         } as? AsyncCacheData<*>
-        if (!async) entry?.waitForGFX()
+        if (!async) entry?.waitFor()
         return entry?.value as? ITexture2D
     }
 

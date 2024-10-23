@@ -95,7 +95,7 @@ object ImageCache : CacheSection("Image") {
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
             ImageAsFolder.readImage(file, false)
         } ?: return null
-        if (!async) data.waitForGFX()
+        if (!async) data.waitFor()
         return data.value
     }
 

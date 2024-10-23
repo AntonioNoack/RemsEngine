@@ -78,7 +78,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
     private fun loadTexture(signature: Signature?) {
         when (signature?.name) {
             "dds", "media" -> tryUsingVideoCache(file)
-            else -> ImageAsFolder.readImage(file, true).waitForGFX(::loadImage)
+            else -> ImageAsFolder.readImage(file, true).waitFor(::loadImage)
         }
     }
 

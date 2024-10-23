@@ -272,7 +272,7 @@ object AssetThumbHelper {
     private const val TEXTURE_TIMEOUT = 25000L
     fun waitForTextures(textures: Collection<FileReference>) {
         val endTime = getEndTime()
-        Sleep.waitForGFXThread(true) {
+        Sleep.waitUntil(true) {
             doneCondition(textures, endTime)
         }
     }

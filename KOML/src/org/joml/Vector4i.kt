@@ -196,9 +196,10 @@ open class Vector4i(
         return lengthSquared(dx, dy, dz, dw)
     }
 
-    fun dot(v: Vector4i): Int {
-        return x * v.x + y * v.y + z * v.z + w * v.w
-    }
+    fun dot(vx: Int, vy: Int, vz: Int, vw: Int): Long =
+        x * vx.toLong() + y * vy.toLong() + z * vz.toLong() + w * vw.toLong()
+
+    fun dot(v: Vector4i): Long = dot(v.x, v.y, v.z, v.w)
 
     fun zero(): Vector4i = set(0, 0, 0, 0)
     fun negate(dst: Vector4i = this): Vector4i {

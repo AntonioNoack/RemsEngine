@@ -9,7 +9,6 @@ import me.anno.image.Image
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.jvm.utils.BetterProcessBuilder
-import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
@@ -17,7 +16,6 @@ import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -56,22 +54,15 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (Image) -> Unit,
             finishedCallback: (List<Image>) -> Unit
         ) {
-            thread(name = "$input/${w}x${h}/$frameIndex") {
-                try {
-                    CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
-                        getImageSequenceArguments(
-                            input, signature, w, h,
-                            frameIndex / max(fps, 1e-3), frameCount, fps,
-                            originalWidth, originalFPS,
-                            totalFrameCount
-                        )
-                    )
-                } catch (_: ShutdownException) {
-                } catch (e: IOException) {
-                    finishedCallback(emptyList())
-                    e.printStackTrace()
-                }
-            }
+            val threadName = "$input/${w}x${h}/$frameIndex"
+            val args = getImageSequenceArguments(
+                input, signature, w, h,
+                frameIndex / max(fps, 1e-3), frameCount, fps,
+                originalWidth, originalFPS,
+                totalFrameCount
+            )
+            CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback)
+                .runAsync(threadName, args)
         }
 
         @JvmStatic
@@ -84,19 +75,15 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (GPUFrame) -> Unit,
             finishedCallback: (List<GPUFrame>) -> Unit
         ) {
-            thread(name = "$input/${w}x${h}/$frameIndex") {
-                try {
-                    GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
-                        getImageSequenceArguments(
-                            input, signature, w, h,
-                            frameIndex / max(fps, 1e-3), frameCount, fps,
-                            originalWidth, originalFPS,
-                            totalFrameCount
-                        )
-                    )
-                } catch (_: ShutdownException) {
-                }
-            }
+            val threadName = "$input/${w}x${h}/$frameIndex"
+            val args = getImageSequenceArguments(
+                input, signature, w, h,
+                frameIndex / max(fps, 1e-3), frameCount, fps,
+                originalWidth, originalFPS,
+                totalFrameCount
+            )
+            GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback)
+                .runAsync(threadName, args)
         }
 
         @JvmStatic
@@ -152,8 +139,8 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             sampleRate: Int
         ): AsyncCacheData<SoundBuffer> {
             val loader = FFMPEGAudio(input, MediaMetadata.getMeta(input, false)!!.audioChannels, sampleRate, duration)
-            loader.run(
-                listOf(
+            loader.runAsync(
+                "$input/$startTime/$duration/$sampleRate", listOf(
                     "-ss", "$startTime", // important!!!
                     "-i", input.absolutePath,
                     "-t", "$duration", // duration
@@ -257,22 +244,27 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         }
     }
 
-    fun run(arguments: List<String>): FFMPEGStream {
+    fun runAsync(threadName: String, arguments: List<String>, isLimited: Boolean = isProcessCountLimited) {
+        if (isLimited) {
+            Sleep.acquire(true, processLimiter) { // wait for running permission
+                runAsync(threadName, arguments, false)
+            }
+        } else {
+            thread(name = threadName) {
+                LOGGER.info(arguments.joinToString(" "))
 
-        if (isProcessCountLimited) Sleep.acquire(true, processLimiter)
+                val builder = BetterProcessBuilder(FFMPEG.ffmpeg, arguments.size + 1, true)
+                if (arguments.isNotEmpty()) builder += "-hide_banner"
+                builder.addAll(arguments)
 
-        LOGGER.info(arguments.joinToString(" "))
+                val process = builder.start()
+                process(process, arguments)
 
-        val builder = BetterProcessBuilder(FFMPEG.ffmpeg, arguments.size + 1, true)
-        if (arguments.isNotEmpty()) builder += "-hide_banner"
-        builder.addAll(arguments)
-
-        val process = builder.start()
-        process(process, arguments)
-        if (isProcessCountLimited) {
-            waitForRelease(process)
+                if (isProcessCountLimited) {
+                    waitForRelease(process)
+                }
+            }
         }
-        return this
     }
 
     fun waitForRelease(process: Process) {

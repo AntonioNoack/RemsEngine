@@ -65,6 +65,13 @@ open class ImagePanelBase(style: Style) : Panel(style) {
         this.lih = lih
     }
 
+    fun resetTransform(){
+        offsetX = 0f
+        offsetY = 0f
+        zoom = 1f
+        invalidateDrawing()
+    }
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (allowMovement && Input.mouseKeysDown.isNotEmpty()) {
             offsetX += dx / zoom

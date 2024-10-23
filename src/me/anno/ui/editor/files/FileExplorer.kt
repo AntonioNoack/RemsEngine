@@ -309,10 +309,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     //
 
     init {
-
-        val esi = entrySize.toInt()
-        content2d.childWidth = esi
-        content2d.childHeight = esi * 4 / 3
         if (isY) {
             content2d.listAlignmentX = ListAlignment.SCALE_CHILDREN
             content2d.listAlignmentY = ListAlignment.ALIGN_MIN
@@ -320,6 +316,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             content2d.listAlignmentY = ListAlignment.SCALE_CHILDREN
             content2d.listAlignmentX = ListAlignment.ALIGN_MIN
         }
+        calculateChildSize()
         content2d.invalidateLayout()
 
         val topBar = PanelListX(style)
@@ -694,20 +691,24 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
-    private var lastScrollChangedPanel: FileExplorerEntry? = null
-    private var lastScrollChangeTime = 0L
-    fun onUpdateEntrySize(newEntrySize: Float = entrySize) {
-        listMode = newEntrySize < minEntrySize
+    private fun calculateChildSize() {
         val esi = entrySize.toInt()
         content2d.maxTilesX = if (listMode) 1 else Int.MAX_VALUE
         content2d.childWidth = if (listMode) max(width, 65536) else esi
-        favourites.invalidateLayout()
         // define the aspect ratio by 2 lines of space for the name
         val sample = content2d.firstOfAll { it is TextPanel } as? TextPanel
         val sampleFont = sample?.font ?: style.getFont("text")
         val textSize = sampleFont.sizeInt
         content2d.childHeight = if (listMode) (textSize * 1.5f).roundToIntOr()
         else esi + (textSize * 2.5f).roundToIntOr()
+        content2d.invalidateLayout()
+    }
+
+    private var lastScrollChangedPanel: FileExplorerEntry? = null
+    private var lastScrollChangeTime = 0L
+    fun onUpdateEntrySize(newEntrySize: Float = entrySize) {
+        listMode = newEntrySize < minEntrySize
+        calculateChildSize()
         val time = Time.nanoTime
         if (lastScrollChangedPanel != null && abs(time - lastScrollChangeTime) < 700 * MILLIS_TO_NANOS) {
             panelToScrollTo = lastScrollChangedPanel

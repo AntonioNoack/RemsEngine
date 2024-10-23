@@ -59,6 +59,4 @@ class UIEvent(
             UIEventType.ACTION -> r.onGotAction(x, y, dx, dy, action)
         }
     }
-
-
 }

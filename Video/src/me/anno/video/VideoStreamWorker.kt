@@ -16,7 +16,6 @@ import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
-import kotlin.concurrent.thread
 
 class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val self: VideoStream) :
     FFMPEGStream(file, false) {
@@ -121,24 +120,22 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
         ) {
             val file = self.file
             val meta = self.meta
-            thread(name = "Stream/$id/${file.name}") {
-                val signature = SignatureCache[file, false]?.name
-                val process = VideoStreamWorker(file, frameIndex0, id, self)
+            SignatureCache.getAsync(file) { signature ->
                 // scale video as needed
                 val scale = clamp(maxSize.toDouble() / max(meta.videoWidth, meta.videoHeight).toDouble())
                 val w0 = max((scale * meta.videoWidth).toInt(), 2)
                 val h0 = max((scale * meta.videoHeight).toInt(), 2)
                 val w1 = w0 - w0.and(1)
                 val h1 = h0 - h0.and(1)
-                process.run(
-                    getImageSequenceArguments(
-                        file, signature, w1, h1,
-                        frameIndex0 / fps,
-                        maxNumFrames, fps,
-                        meta.videoWidth, meta.videoFPS,
-                        meta.videoFrameCount
-                    )
+                val threadName = "Stream/$id/${file.name}"
+                val args = getImageSequenceArguments(
+                    file, signature?.name, w1, h1,
+                    frameIndex0 / fps,
+                    maxNumFrames, fps,
+                    meta.videoWidth, meta.videoFPS,
+                    meta.videoFrameCount
                 )
+                VideoStreamWorker(file, frameIndex0, id, self).runAsync(threadName, args)
             }
         }
     }

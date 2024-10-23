@@ -16,8 +16,9 @@ interface FileReaderRegistry<Value> {
     fun unregisterSignatures(signatures: String)
     fun unregisterFileExtensions(fileExtensions: String)
     fun getReaders(signature: Signature?, fileExtension: String): List<Value> {
-        val bySig = readerBySignature[signature?.name] ?: emptyList()
-        val byFE = readerByFileExtension[fileExtension] ?: emptyList()
+        val bySig = readerBySignature[signature?.name]
+        val byFE = readerByFileExtension[fileExtension]
+        if (bySig == null || byFE == null) return bySig ?: byFE ?: emptyList()
         return bySig + byFE
     }
 }

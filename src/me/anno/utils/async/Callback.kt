@@ -28,7 +28,7 @@ fun interface Callback<V> {
             val self = this
             return Callback { value, err ->
                 if (value != null) {
-                    value.waitForGFX { self.call(it, err) }
+                    value.waitFor { self.call(it, err) }
                 } else self.err(err)
             }
         }

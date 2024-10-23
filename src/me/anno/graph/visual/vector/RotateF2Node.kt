@@ -6,8 +6,6 @@ import org.joml.Vector2f
 import kotlin.math.cos
 import kotlin.math.sin
 
-// order should be the same as in JOML
-
 class RotateF2Node : CalculationNode(
     "Vector2f Rotate",
     listOf("Vector2f", "Vector", "Vector2f", "Center", "Float", "Angle(Rad)"),

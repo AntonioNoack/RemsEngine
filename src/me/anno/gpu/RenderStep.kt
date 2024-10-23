@@ -2,12 +2,10 @@ package me.anno.gpu
 
 import me.anno.audio.streams.AudioStream
 import me.anno.engine.EngineBase
-import me.anno.engine.Events
 import me.anno.gpu.GFX.resetFBStack
 import me.anno.gpu.GFX.shallRenderVR
 import me.anno.gpu.GFX.vrRenderingRoutine
 import me.anno.gpu.GFX.windows
-import me.anno.gpu.GPUTasks.workGPUTasks
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader
@@ -15,6 +13,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.utils.OS
+import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
 
 object RenderStep {
@@ -34,17 +33,15 @@ object RenderStep {
 
         me.anno.utils.pooling.Stack.resetAll()
 
-        resetFBStack()
-
-        workGPUTasks(false)
-
-        resetFBStack()
-
         // rendering and editor section
 
         Input.resetFrameSpecificKeyStates()
 
-        Events.workEventTasks()
+        resetFBStack()
+
+        Sleep.work(true)
+
+        resetFBStack()
 
         setFrameNullSize(window)
 
@@ -86,5 +83,4 @@ object RenderStep {
             }
         }
     }
-
 }

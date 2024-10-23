@@ -23,7 +23,7 @@ class CacheEntry private constructor(
         this.timeoutNanoTime = nanoTime + timeoutMillis * MILLIS_TO_NANOS
         this.generatorThread = Thread.currentThread()
         deletingThreadName = null
-        hasValue = false
+        hasValueMaybe = false
     }
 
     fun update(timeout: Long) {
@@ -34,10 +34,10 @@ class CacheEntry private constructor(
     var data: ICacheData? = null
         set(value) {
             field = value
-            hasValue = true
+            hasValueMaybe = true
         }
 
-    var hasValue = false
+    private var hasValueMaybe = false
     val hasBeenDestroyed get() = deletingThreadName != null
     var hasGenerator = false
 
@@ -46,12 +46,12 @@ class CacheEntry private constructor(
         Sleep.waitUntilOrThrow(true, limitNanos, key) {
             update(500) // ensure that it stays loaded; 500 is a little high,
             // but we need the image to stay loaded for addGPUTask() afterward in some places
-            shouldKeepWaiting()
+            hasValue()
         }
     }
 
-    fun shouldKeepWaiting(): Boolean {
-        return (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
+    fun hasValue(): Boolean {
+        return (hasValueMaybe && (data as? AsyncCacheData<*>)?.hasValue != false)
                 || hasBeenDestroyed
     }
 
@@ -60,7 +60,7 @@ class CacheEntry private constructor(
         Sleep.waitUntil(true, {
             update(500) // ensure that it stays loaded; 500 is a little high,
             // but we need the image to stay loaded for addGPUTask() afterward in some places
-            shouldKeepWaiting() || nanoTime >= timeLimit
+            hasValue() || nanoTime >= timeLimit
         }) { this.callback(null, callback) }
     }
 
@@ -72,8 +72,7 @@ class CacheEntry private constructor(
     fun waitForValueReturnWhetherIncomplete(limitNanos: Long = 500_000_000): Boolean {
         return Sleep.waitUntilReturnWhetherIncomplete(true, limitNanos) {
             update(16) // ensure it's loaded
-            (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
-                    || hasBeenDestroyed
+            hasValue()
         }
     }
 

@@ -12,7 +12,6 @@ import me.anno.video.VideoCache.minSize
 import me.anno.video.VideoCache.scale
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
-import java.util.concurrent.TimeUnit
 
 object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     "ProxyCache.json", "proxies", "VideoProxies"
@@ -73,12 +72,12 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
                 devLog("input", process.inputStream)
-                waitUntil(true) { process.waitFor(1, TimeUnit.MILLISECONDS) }
-                onSuccess()
+                waitUntil(true, { !process.isAlive }, onSuccess)
             }
 
             override fun destroy() {}
-        }.run(
+        }.runAsync(
+            key.toString(),
             listOf(
                 "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
                 "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time

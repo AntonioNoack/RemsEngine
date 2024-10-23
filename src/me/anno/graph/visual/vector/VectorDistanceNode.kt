@@ -2,6 +2,7 @@ package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.scalar.MathNodeData
 import me.anno.graph.visual.scalar.TypedMathNode
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -39,7 +40,7 @@ class VectorDistanceNode : TypedMathNode<VectorLengthMode>(vectorDistanceData, v
             is Vector2i -> a.distanceSquared(b as Vector2i).toDouble() // not really double -> is that an issue?
             is Vector3i -> a.distanceSquared(b as Vector3i).toDouble()
             is Vector4i -> a.distanceSquared(b as Vector4i).toDouble()
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
     }
 
@@ -59,7 +60,7 @@ class VectorDistanceNode : TypedMathNode<VectorLengthMode>(vectorDistanceData, v
                 is Vector2i -> abs(a.x - (b as Vector2i).x).toLong() + abs(a.y - b.y) // not really double -> is that an issue?
                 is Vector3i -> abs(a.x - (b as Vector3i).x).toLong() + abs(a.y - b.y) + abs(a.z - b.z)
                 is Vector4i -> abs(a.x - (b as Vector4i).x).toLong() + abs(a.y - b.y) + abs(a.z - b.z) + abs(a.w - b.w)
-                else -> throw NotImplementedError()
+                else -> assertFail("Unsupported Type")
             }
         }
         setOutput(0, v)

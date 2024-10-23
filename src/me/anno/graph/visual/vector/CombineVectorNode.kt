@@ -3,6 +3,7 @@ package me.anno.graph.visual.vector
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import me.anno.graph.visual.scalar.TypedNode
 import me.anno.graph.visual.scalar.TypedNodeData
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -25,7 +26,7 @@ private val data = LazyMap { type: String ->
             "Vector2i" -> "ivec2"
             "Vector3i" -> "ivec3"
             "Vector4i" -> "ivec4"
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         } to null,
         listOf(iType, "X", iType, "Y", iType, "Z", iType, "W").subList(0, numComp * 2),
         listOf(type, "Result")
@@ -44,7 +45,7 @@ class CombineVectorNode : TypedNode(data, vectorTypes), GLSLFuncNode {
             "Vector2i" -> Vector2i(getIntInput(0), getIntInput(1))
             "Vector3i" -> Vector3i(getIntInput(0), getIntInput(1), getIntInput(2))
             "Vector4i" -> Vector4i(getIntInput(0), getIntInput(1), getIntInput(2), getIntInput(3))
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
         setOutput(0, v)
     }

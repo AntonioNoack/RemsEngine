@@ -2,6 +2,7 @@ package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.scalar.TypedNode
 import me.anno.graph.visual.scalar.TypedNodeData
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -16,7 +17,7 @@ class CrossProductNode : TypedNode(crossData, types) {
             is Vector3f -> a.cross(b as Vector3f)
             is Vector2d -> a.cross(b as Vector2d)
             is Vector3d -> a.cross(b as Vector3d)
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
         setOutput(0, v)
     }

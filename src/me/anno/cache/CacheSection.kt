@@ -164,7 +164,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun hasEntry(key: Any, delta: Long = 1L): Boolean {
         val entry = synchronized(cache) { cache[key] } ?: return false
         if (delta > 0L) entry.update(delta)
-        return entry.hasValue
+        return entry.hasValue()
     }
 
     /**
@@ -173,7 +173,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun hasDualEntry(key1: Any, key2: Any, delta: Long = 1L): Boolean {
         val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return false
         if (delta > 0L) entry.update(delta)
-        return entry.hasValue
+        return entry.hasValue()
     }
 
     /**
@@ -411,13 +411,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 entry.callback(null, resultCallback)
             }
         } else {
-            if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
+            if (entry.hasValue()) {
+                entry.callback(null, resultCallback)
+            } else {
                 waitAsync("WaitingFor<$key>") {
                     entry.waitForValueOrThrow(key)
                     entry.callback(null, resultCallback)
                 }
-            } else {
-                entry.callback(null, resultCallback)
             }
         }
     }
@@ -458,16 +458,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 entry.callback(null, resultCallback)
             }
         } else {
-            if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
-                entry.waitForValueOrTimeout(resultCallback)
-            } else {
+            if (entry.hasValue()) {
                 entry.callback(null, resultCallback)
+            } else {
+                entry.waitForValueOrTimeout(resultCallback)
             }
         }
     }
 
     private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any?, key1: Any?) {
-        if (!async && entry.generatorThread != Thread.currentThread()) {
+        if (!async) {
             // else no need/sense in waiting
             if (entry.waitForValueReturnWhetherIncomplete()) {
                 val key = if (key1 == null) key0 else key0 to key1

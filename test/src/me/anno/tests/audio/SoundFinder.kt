@@ -2,7 +2,6 @@ package me.anno.tests.audio
 
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.utils.OS.downloads
-import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.formatTime
@@ -22,7 +21,7 @@ fun main() {
 
     fun getData(start: Double, duration: Double): ShortBuffer {
         val sequence = FFMPEGStream.getAudioSequence(sourceFile, start, duration, sampleRate)
-        return Sleep.waitUntilDefined(true) { sequence.value?.data }
+        return sequence.waitFor()?.data!!
     }
 
     val sourceData = getData(0.0, meta.audioDuration)

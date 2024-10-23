@@ -6,7 +6,6 @@ import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks
-import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -21,12 +20,15 @@ import java.util.concurrent.TimeoutException
  * */
 object Sleep {
 
-    private val LOGGER = LogManager.getLogger(Sleep::class)
+    var debugSleepingOnMainThread = false
 
     @JvmStatic
     @Deprecated("Avoid throwing functions")
     private fun checkShutdown(canBeKilled: Boolean) {
         if (canBeKilled && shutdown) throw ShutdownException()
+        if (debugSleepingOnMainThread && GFX.isGFXThread()) {
+            RuntimeException("Sleeping on main thread!").printStackTrace()
+        }
     }
 
     @JvmStatic
@@ -46,8 +48,10 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use the variant with callback")
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
+        val mustWork = mustWorkTasks()
         while (!isFinished()) {
-            sleepABit(canBeKilled)
+            if (mustWork) work(canBeKilled)
+            else sleepABit(canBeKilled)
         }
     }
 
@@ -60,11 +64,13 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use non-throwing versions")
     fun waitUntilOrThrow(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, isFinished: () -> Boolean) {
-        if (timeoutNanos < 0) return waitUntil(canBeKilled, isFinished)
+        if (timeoutNanos < 0) return this.waitUntil(canBeKilled, isFinished)
         val startTime = Time.nanoTime
+        val mustWork = mustWorkTasks()
         while (!isFinished()) {
             if (hasExceededLimit(startTime, timeoutNanos)) throw TimeoutException("Time limit exceeded for $key")
-            sleepABit(canBeKilled)
+            if (mustWork) work(canBeKilled)
+            else sleepABit(canBeKilled)
         }
     }
 
@@ -75,10 +81,12 @@ object Sleep {
     @Deprecated("Please use the variant with callback")
     fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val startTime = Time.nanoTime
+        val mustWork = mustWorkTasks()
         while (!isFinished()) {
             if (canBeKilled && shutdown) return true
             if (hasExceededLimit(startTime, timeoutNanos)) return true
-            sleepABit(canBeKilled)
+            if (mustWork) work(canBeKilled)
+            else sleepABit(canBeKilled)
         }
         return false
     }
@@ -86,7 +94,7 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use the variant with callback")
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
-        waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
+        this.waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
     @JvmStatic
@@ -94,30 +102,17 @@ object Sleep {
         waitUntil(canBeKilled, semaphore::tryAcquire, callback)
     }
 
-    private fun warnIfGFXMissing() {
-        if (GFX.glThread == null) {
-            LOGGER.warn("Missing OpenGL Thread! Maybe waiting forever.")
-        }
-    }
-
     @JvmStatic
-    @Deprecated("Please use the variant with callback")
-    fun waitForGFXThread(canBeKilled: Boolean, isFinished: () -> Boolean) {
-        warnIfGFXMissing()
-        // if we are the gfx thread ourselves, we have to fulfil our processing duties
-        if (GFX.isGFXThread()) {
-            waitUntil(canBeKilled) {
-                work(canBeKilled)
-                isFinished()
-            }
-        } else {
-            waitUntil(canBeKilled, isFinished)
-        }
+    private fun mustWorkTasks(): Boolean {
+        return workingThread == null && (GFX.isGFXThread() || GFX.glThread == null)
     }
 
     @JvmStatic
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
-        if (isFinished()) {
+        if (mustWorkTasks()) {
+            this.waitUntil(canBeKilled, isFinished)
+            callback()
+        } else if (isFinished()) {
             callback()
         } else if (!(canBeKilled && shutdown)) { // wait a little
             addEvent(0) {
@@ -126,40 +121,14 @@ object Sleep {
         } // else cancelled
     }
 
+    /**
+     * returns V (or null on shutdown)
+     * */
     @JvmStatic
     @Deprecated("Please use the variant with callback")
-    fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
-        warnIfGFXMissing()
-        // if we are the gfx thread ourselves, we have to fulfil our processing duties
-        return if (GFX.isGFXThread()) {
-            waitUntilDefined(canBeKilled) {
-                work(canBeKilled)
-                getValueOrNull()
-            }
-        } else {
-            waitUntilDefined(canBeKilled, getValueOrNull)
-        }
-    }
-
-    @JvmStatic
-    fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?, callback: (V) -> Unit) {
-        warnIfGFXMissing()
-        // if we are the gfx thread ourselves, we have to fulfil our processing duties
-        if (GFX.isGFXThread()) {
-            waitUntilDefined(canBeKilled, {
-                work(canBeKilled)
-                getValueOrNull()
-            }, callback)
-        } else {
-            waitUntilDefined(canBeKilled, getValueOrNull, callback)
-        }
-    }
-
-    @JvmStatic
-    @Deprecated("Please use the variant with callback")
-    fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
+    fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V? {
         var value: V? = null
-        waitUntil(canBeKilled) {
+        this.waitUntil(canBeKilled) {
             value = getValueOrNull()
             value != null
         }
@@ -168,18 +137,26 @@ object Sleep {
 
     @JvmStatic
     fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?, callback: (V) -> Unit) {
-        val value = getValueOrNull()
-        if (value != null) {
-            callback(value)
-        } else if (!(canBeKilled && shutdown)) {
-            addEvent(0) {
-                waitUntilDefined(canBeKilled, getValueOrNull, callback)
+        var value: V? = null
+        waitUntil(canBeKilled, {
+            value = getValueOrNull()
+            value != null
+        }, {
+            val result = value
+            if (result != null) {
+                callback(result)
             }
-        } // else process cancelled
+        })
     }
 
-    private fun work(canBeKilled: Boolean) {
-        Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
-        GPUTasks.workGPUTasks(canBeKilled)
+    @InternalAPI
+    private var workingThread: Thread? = null
+    fun work(canBeKilled: Boolean) {
+        synchronized(Sleep) {
+            workingThread = Thread.currentThread()
+            Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
+            GPUTasks.workGPUTasks(canBeKilled)
+            workingThread = null
+        }
     }
 }

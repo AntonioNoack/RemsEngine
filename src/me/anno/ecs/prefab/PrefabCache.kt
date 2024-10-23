@@ -21,7 +21,6 @@ import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.generic.JsonLike.MAIN_NODE_NAME
 import me.anno.io.json.generic.JsonLike.jsonLikeToJson
 import me.anno.io.json.saveable.JsonStringReader

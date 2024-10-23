@@ -65,7 +65,7 @@ object TextureCache : CacheSection("Texture") {
         return if (imageData != null) {
             if (!asyncGenerator && !OS.isWeb) {
                 // the texture was forced to be loaded -> wait for it
-                imageData.waitForGFX()
+                imageData.waitFor()
             }
             val texture = imageData.value
             if (texture != null && texture.isCreated()) texture else null
@@ -107,7 +107,7 @@ object TextureCache : CacheSection("Texture") {
             }
             tex
         }
-        if (!async) entry?.waitForGFX()
+        if (!async) entry?.waitFor()
         return entry
     }
 

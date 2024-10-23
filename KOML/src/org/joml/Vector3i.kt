@@ -181,6 +181,9 @@ open class Vector3i(
         return (abs(x - this.x) + abs(y - this.y) + abs(z - this.z)).toLong()
     }
 
+    fun dot(ox: Int, oy: Int, oz: Int): Long = x * ox.toLong() + y * oy.toLong() + z * oz.toLong()
+    fun dot(other: Vector3i): Long = dot(other.x, other.y, other.z)
+
     fun distanceSquared(v: Vector3i): Long {
         val dx = x - v.x
         val dy = y - v.y

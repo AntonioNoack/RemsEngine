@@ -5,6 +5,7 @@ import me.anno.graph.visual.scalar.FloatMathTernary
 import me.anno.graph.visual.scalar.FloatMathUnary
 import me.anno.graph.visual.scalar.MathNodeData
 import me.anno.graph.visual.scalar.TypedMathNode
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -27,7 +28,7 @@ private val dataF1X = LazyMap { type: String ->
                     "Vector3f", "Vector3d" -> "vec3(ivec3(a))"
                     "Vector4f", "Vector4d" -> "vec4(ivec4(a))"
                     "Vector2i", "Vector3i", "Vector4i" -> "a" // already is truncated -> nothing left to do
-                    else -> throw NotImplementedError()
+                    else -> assertFail("Unsupported Type")
                 }
             } else mode.glsl
         }
@@ -47,7 +48,7 @@ class MathF1XNode : TypedMathNode<FloatMathUnary>(dataF1X, vectorTypes) {
             is Vector2i -> Vector2i(t.i32(a.x), t.i32(a.y))
             is Vector3i -> Vector3i(t.i32(a.x), t.i32(a.y), t.i32(a.z))
             is Vector4i -> Vector4i(t.i32(a.x), t.i32(a.y), t.i32(a.z), t.i32(a.w))
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
         setOutput(0, v)
     }
@@ -75,7 +76,7 @@ class MathF2XNode : TypedMathNode<FloatMathBinary>(dataF22, vectorTypes) {
             is Vector2i -> Vector2i(t.i32(a.x, (b as Vector2i).x), t.i32(a.y, b.y))
             is Vector3i -> Vector3i(t.i32(a.x, (b as Vector3i).x), t.i32(a.y, b.y), t.i32(a.z, b.z))
             is Vector4i -> Vector4i(t.i32(a.x, (b as Vector4i).x), t.i32(a.y, b.y), t.i32(a.z, b.z), t.i32(a.w, b.w))
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
         setOutput(0, v)
     }
@@ -122,7 +123,7 @@ class MathF3XNode : TypedMathNode<FloatMathTernary>(dataF3X, vectorTypes) {
                 t.i32(a.x, (b as Vector4i).x, (c as Vector4i).x),
                 t.i32(a.y, b.y, c.y), t.i32(a.z, b.z, c.z), t.i32(a.w, b.w, c.w)
             )
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
         setOutput(0, v)
     }

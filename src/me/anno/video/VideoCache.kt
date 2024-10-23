@@ -51,7 +51,7 @@ object VideoCache : CacheSection("Videos") {
         val localIndex = frameIndex % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
         return if (frameIndex < videoData.numTotalFramesInSrc && !async) {
-            Sleep.waitForGFXThreadUntilDefined(true) {
+            Sleep.waitUntilDefined(true) {
                 videoData.getFrame(localIndex, needsToBeCreated)
             }
         } else videoData.getFrame(localIndex, needsToBeCreated)
@@ -67,7 +67,7 @@ object VideoCache : CacheSection("Videos") {
         val localIndex = frameIndex % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, false)
         if (videoData != null && frameIndex < videoData.numTotalFramesInSrc) {
-            Sleep.waitForGFXThreadUntilDefined(true, {
+            Sleep.waitUntilDefined(true, {
                 val frame = videoData.getFrame(localIndex, needsToBeCreated)
                 if (frame != null && (!needsToBeCreated || frame.isCreated || frame.isDestroyed)) frame
                 else null

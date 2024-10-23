@@ -78,7 +78,7 @@ object ImageThumbnailsImpl {
     ) {
         SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout) { bufferI, err ->
             if (bufferI != null) {
-                bufferI.waitForGFX {
+                bufferI.waitFor {
                     val buffer = bufferI.value
                     if (buffer != null) {
                         val bounds = buffer.bounds!!

@@ -14,6 +14,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -127,7 +128,7 @@ class MainStage {
                     2 -> "(int index, vec2 uv){\n"
                     3 -> "(int index, vec3 uv){\n"
                     4 -> "(int index, vec4 uv){\n"
-                    else -> throw NotImplementedError()
+                    else -> assertFail("Unsupported num dimensions")
                 }
             )
             if (isMoreThanOne) code.append("switch(index){\n")

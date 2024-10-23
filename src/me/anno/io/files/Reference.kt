@@ -57,7 +57,7 @@ object Reference {
         fileCache.remove { key, _ ->
             key is String && key.startsWith(absolutePath)
         }
-        for(li in invalidateListeners.indices) {
+        for (li in invalidateListeners.indices) {
             invalidateListeners[li](absolutePath)
         }
     }
@@ -169,8 +169,9 @@ object Reference {
     }
 
     @JvmStatic
-    private fun appendPath(fileI: File, i: Int, parts: List<String>) =
-        appendPath(FileFileRef(fileI), i, parts)
+    private fun appendPath(fileI: File, i: Int, parts: List<String>): FileReference {
+        return appendPath(FileFileRef(fileI), i, parts)
+    }
 
     @JvmStatic
     fun appendPath(parent: String, name: String): String {

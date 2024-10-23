@@ -83,7 +83,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
         createTexture(tex, false, false) { ready, _ ->
             isReady = ready != null
         }
-        Sleep.waitForGFXThread(true) { isReady && tex.isCreated() }
+        Sleep.waitUntil(true) { isReady && tex.isCreated() }
         return tex.createImage(false, false)
     }
 

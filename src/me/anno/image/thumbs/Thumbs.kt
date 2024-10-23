@@ -31,8 +31,9 @@ import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerByteSliceFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
-import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
+import me.anno.utils.hpc.ProcessingQueue
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
@@ -107,9 +108,14 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         val lastModified = file.lastModified
         val key = ThumbnailKey(file, lastModified, size)
 
-        val texture = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
+        val async1 = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             generate0(key, callback)
-        }?.value
+        }
+        if (!async) async1?.waitFor()
+        val texture = async1?.value
+        if (!async && texture != null && !texture.isCreated()) {
+            Sleep.waitUntil(true) { texture.isCreated() || texture.isDestroyed }
+        }
         return if (texture != null && texture.isCreated()) texture
         else findSmallerThumbnail(size, file, lastModified)
     }
@@ -299,7 +305,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
             callback1(false)
         } else {
             val promise = readImage(dstFile)
-            promise.waitForGFX { image ->
+            promise.waitFor { image ->
                 if (image != null) {
                     TextureReader.getRotation(srcFile) { rot, _ ->
                         addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
@@ -415,7 +421,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
             val keyI = getCacheKey(srcFile, hash, sizeI)
             hdb.get(keyI, false) { bytes ->
                 if (bytes != null) {
-                    readImage(bytes).waitForGFX { image ->
+                    readImage(bytes).waitFor { image ->
                         if (image != null) {
                             scaleDownSolution(srcFile, size, image, callback)
                         } else checkResolutionI(srcFile, size, hash, callback, ifFoundNothing, sizeIndex + 1)

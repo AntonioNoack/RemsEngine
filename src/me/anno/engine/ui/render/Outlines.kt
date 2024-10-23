@@ -105,7 +105,7 @@ object Outlines {
                 GFXState.cullMode.use(cullMode) {
                     val material = Materials.getMaterial(comp.materials, mesh.materials, 0)
                     val baseShader = material.shader ?: pbrModelShader
-                    val animated = comp.hasAnimation
+                    val animated = comp.hasAnimation(true)
                     if (!material.isDoubleSided) GFXState.animated.use(animated) {
 
                         val shader = baseShader.value

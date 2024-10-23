@@ -58,7 +58,8 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     fun move(index: Int, delta: Float) {
-        val w = delta / (if (isY) height else width)
+        val available = if (isY) height - padding.height else width - padding.width
+        val w = delta / max(available, 1)
         var li = index
         val minSize = minSize
         var w0 = change(children[li--], +w, minSize)
@@ -100,7 +101,8 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     override fun calculateSize(w: Int, h: Int) {
         val minWeight = 0.0001f
-        val available = (if (isY) h else w) - (children.size - 1) * spacing
+        val available0 = (if (isY) h - padding.height else w - padding.width)
+        val available = available0 - (children.size - 1) * spacing
         val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
         val weightScale = 1f / sumWeight
         val children = children
@@ -113,17 +115,28 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
             if (isY) child.calculateSize(w, childSize)
             else child.calculateSize(childSize, h)
         }
+        minW = w
+        minH = h
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+        placeChildrenWithoutPadding(
+            x + padding.left,
+            y + padding.top,
+            width - padding.width,
+            height - padding.height
+        )
+    }
+
+    fun placeChildrenWithoutPadding(x: Int, y: Int, width: Int, height: Int) {
         if (children.size == 1) {
             val child = children.first()
             child.setPosSize(x, y, width, height)
         } else {
             val minWeight = 0.0001f
             val available = (if (isY) height else width) - (children.size - 1) * spacing
-            val sumWeight = children.sumOfDouble { max(minWeight, it.weight).toDouble() }.toFloat()
-            val weightScale = 1f / sumWeight
+            val sumWeight = children.sumOfDouble { it.weight.toDouble() }.toFloat()
+            val weightScale = 1f / max(1e-38f, sumWeight)
             var childPos = if (isY) y else x
             val children = children
             for (index in children.indices) {

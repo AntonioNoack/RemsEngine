@@ -21,6 +21,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
 
     companion object {
         private val LOGGER = LogManager.getLogger(GPUImage::class)
+        private val blankImage = IntImage(1, 1, false)
     }
 
     constructor(texture: ITexture2D, numChannels: Int) : this(texture, numChannels, numChannels > 3)
@@ -73,6 +74,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
                 image = asIntImage()
             }
             waitUntilDefined(true) { image }
+                ?: blankImage
         }
     }
 

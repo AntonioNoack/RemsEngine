@@ -105,11 +105,10 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         }
     }
 
-    override val hasAnimation: Boolean
-        get() {
-            val skeleton = SkeletonCache[skeleton]
-            return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
-        }
+    override fun hasAnimation(async: Boolean): Boolean {
+        val skeleton = SkeletonCache[skeleton, async]
+        return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
+    }
 
     fun addState(state: AnimationState) {
         synchronized(this) {

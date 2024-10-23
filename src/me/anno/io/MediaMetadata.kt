@@ -166,7 +166,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
                 file, false, 300_000,
                 async, Companion::createMetadata
             ) ?: return null
-            if (!async) Sleep.waitForGFXThread(true) { meta.ready }
+            if (!async) Sleep.waitUntil(true) { meta.ready }
             return meta
         }
 
@@ -184,7 +184,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             val meta = metadataCache.getFileEntry(file, false, 300_000, async) { f, _ ->
                 createMetadata(f, signature)
             } ?: return null
-            if (!async) Sleep.waitForGFXThread(true) { meta.ready }
+            if (!async) Sleep.waitUntil(true) { meta.ready }
             return meta
         }
 

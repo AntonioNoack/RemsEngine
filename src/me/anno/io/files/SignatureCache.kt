@@ -34,8 +34,11 @@ object SignatureCache : CacheSection("Signatures") {
                 // some formats are easy, others require more effort
                 // maybe we could read them piece by piece...
                 file.inputStream(sampleSize.toLong()) { input, err ->
-                    if (input != null) callback.ok(Signature.find(input.readNBytes2(sampleSize, false)))
-                    else callback.err(err)
+                    if (input != null) {
+                        val bytes = input.readNBytes2(sampleSize, false)
+                        val sign = Signature.find(bytes)
+                        callback.ok(sign)
+                    } else callback.err(err)
                 }
             }
         }
@@ -50,7 +53,7 @@ object SignatureCache : CacheSection("Signatures") {
         val file1 = getValidFile(file, false)
         if (file1 != null) {
             getDualEntryAsync(file1, file1.lastModified, timeoutMillis, true, ::generate) { sig, _ ->
-                if (sig != null) sig.waitForGFX(callback)
+                if (sig != null) sig.waitFor(callback)
                 else callback(null)
             }
         } else callback(null)

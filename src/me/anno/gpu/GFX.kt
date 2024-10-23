@@ -238,4 +238,18 @@ object GFX {
             }
         }
     }
+
+    @JvmStatic
+    fun checkWithoutCrashing(name: String) {
+        // assumes that the first access is indeed from the OpenGL thread
+        if (isDebug) {
+            checkIsGFXThread()
+            while (true) {
+                val error = glGetError()
+                if (error != 0) {
+                    LOGGER.warn("GLException by $name: ${getErrorTypeName(error)}")
+                } else break
+            }
+        }
+    }
 }

@@ -13,6 +13,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
@@ -207,11 +208,14 @@ class ECSSceneTab(
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when (button) {
             Key.BUTTON_LEFT -> {
-                try {
-                    ECSSceneTabs.open(this, true)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Menu.msg(windowStack, NameDesc(e.toString()))
+                PrefabCache.getPrefabAsync(file) { _, err ->
+                    err?.printStackTrace()
+                    try {
+                        ECSSceneTabs.open(this, true)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Menu.msg(windowStack, NameDesc(e.toString()))
+                    }
                 }
             }
             Key.BUTTON_RIGHT -> {

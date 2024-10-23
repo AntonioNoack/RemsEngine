@@ -122,7 +122,20 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         fun createSimpleVideoPlayer(source: FileReference): Panel {
             val list = PanelListY(DefaultConfig.style)
             val controls = PanelListX(DefaultConfig.style)
-            val movie = VideoPanel(source, MediaMetadata.getMeta(source, false)!!, true, DefaultConfig.style)
+            val meta = MediaMetadata.getMeta(source, false)!!
+            val movie = object : VideoPanel(source, meta, true, DefaultConfig.style) {
+                override fun onKeyTyped(x: Float, y: Float, key: Key) {
+                    when (key) {
+                        Key.KEY_SPACE -> stream.togglePlaying()
+                        Key.KEY_PERIOD -> if (stream.isPlaying) stream.togglePlaying()
+                        else stream.skipTo(max(stream.getTime() + 1.0 / meta.videoFPS, 0.0))
+                        Key.KEY_COMMA -> if (stream.isPlaying) stream.togglePlaying()
+                        else stream.skipTo(min(stream.getTime(), meta.videoDuration) - 1.0 / meta.videoFPS)
+                        Key.KEY_0, Key.KEY_KP_0 -> resetTransform()
+                        else -> super.onKeyTyped(x, y, key)
+                    }
+                }
+            }
             movie.looping = LoopingState.PLAY_LOOP
             controls.add(
                 TextButton(NameDesc(">"), 1.5f, DefaultConfig.style)
@@ -137,6 +150,8 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
                     DrawRectangles.drawRect(x + 2, y + height / 2 - 1, width - 4, 2, Color.white.withAlpha(127))
                     DrawRectangles.drawRect(xi - 1, y + 3, 3, height - 3, Color.white)
                 }
+
+                override fun getVisualState() = movie.stream.getTime()
 
                 private var lastScrubbed = 0L
 

@@ -49,7 +49,7 @@ object Queues {
             try {
                 task.work()
                 if (queue === gpuTasks) {
-                    GFX.check()
+                    GFX.checkWithoutCrashing(task.name)
                 }
             } catch (e: Throwable) {
                 RuntimeException(task.name, e)

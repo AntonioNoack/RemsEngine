@@ -1,8 +1,8 @@
 package me.anno.ui.editor.files
 
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
-import me.anno.engine.Events.addEvent
 import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.utils.files.Files.listFiles2
 import org.apache.logging.log4j.LogManager
@@ -23,12 +23,10 @@ object SearchAlgorithm {
         val toBeShown = ArrayList<FileReference>(refreshThreshold)
         var isFirstCall = true
 
-        private fun runOnUIThread(runnable: () -> Unit) {
-            if (isActive()) {
-                addEvent {
-                    if (isActive()) {
-                        runnable()
-                    }
+        private fun addEventIfActive(callback: () -> Unit) {
+            addEvent {
+                if (isActive()) {
+                    callback()
                 }
             }
         }
@@ -38,7 +36,7 @@ object SearchAlgorithm {
         }
 
         fun removeOldFiles() {
-            runOnUIThread {
+            addEventIfActive {
                 self.removeOldFiles()
                 val parent = self.folder.getParent()
                 if (self.shouldShowFile(parent)) {
@@ -59,7 +57,7 @@ object SearchAlgorithm {
                 toBeShown.add(file)
             }
             if (file == null || toBeShown.size >= index + refreshThreshold) {
-                runOnUIThread {
+                addEventIfActive {
                     // check if the folder is still the same
                     val endIndex = toBeShown.size
                     for (idx in index until endIndex) {

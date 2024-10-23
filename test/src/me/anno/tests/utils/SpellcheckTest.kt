@@ -12,17 +12,16 @@ class SpellcheckTest {
     @Test
     fun testSimpleSample() {
         OfficialExtensions.initForTests()
-
-        val answers = Sleep.waitUntilDefined(canBeKilled = false) {
+        Sleep.waitUntilDefined(canBeKilled = false, {
             Spellchecking.check("I lov you", allowFirstLowercase = true)
-        }
-
-        println(answers)
-        assertEquals(1, answers.size)
-        val answer = answers[0]
-        assertEquals(2, answer.start)
-        assertEquals(5, answer.end)
-        assertContains("love", answer.improvements)
-        Engine.requestShutdown()
+        }, { answers ->
+            println(answers)
+            assertEquals(1, answers.size)
+            val answer = answers[0]
+            assertEquals(2, answer.start)
+            assertEquals(5, answer.end)
+            assertContains("love", answer.improvements)
+            Engine.requestShutdown()
+        })
     }
 }

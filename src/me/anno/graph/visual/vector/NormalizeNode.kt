@@ -2,6 +2,7 @@ package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.scalar.TypedNode
 import me.anno.graph.visual.scalar.TypedNodeData
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector2d
 import org.joml.Vector2f
@@ -24,7 +25,7 @@ class NormalizeNode : TypedNode(data, vectorTypes) {
             is Vector2d -> a.normalize(length)
             is Vector3d -> a.normalize(length)
             is Vector4d -> a.normalize(length)
-            else -> throw NotImplementedError()
+            else -> assertFail("Unsupported Type")
         }
         setOutput(0, v)
     }

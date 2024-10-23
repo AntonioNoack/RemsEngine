@@ -4,6 +4,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.graph.visual.node.NodeLibrary
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
+import me.anno.utils.assertions.assertFail
 
 // todo quat to vec?
 // todo fully support int vectors
@@ -21,7 +22,7 @@ object MaterialGraph {
             "Vector3i" -> "ivec3"
             "Vector4i" -> "ivec4"
             "Bool", "Boolean" -> "bool"
-            else -> throw NotImplementedError(type)
+            else -> assertFail("Unsupported $type")
         }
     }
 

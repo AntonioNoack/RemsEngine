@@ -7,6 +7,7 @@ import me.anno.ui.base.groups.ListAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.custom.CustomList
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -148,6 +149,48 @@ class ListAlignmentTest {
         checkPosSize(list.children[2], 160, 50, 40, 60)
         checkPosSize(list.children[3], 22, 112, 58, 88)
         checkPosSize(list.children[4], 82, 112, 58, 88)
+    }
+
+    @Test
+    fun testCustomListX() {
+        val list = CustomList(false, style)
+        list.spacing = 10
+        list.padding.set(10)
+        // 10 (pos) | 10 (padding) | 30 (child#0) | 10 (spacer) | 60 (child#1) | 10 (spacer) | 90 (child#2) | 10 (padding)
+        for (i in 0 until 3) {
+            val child = ExactSizePanel(10, 10)
+            list.add(child, 1f + i)
+            // these alignments should be ignored
+            child.alignmentX = getTestAlignment(i)
+            child.alignmentY = getTestAlignment(i)
+        }
+        list.calculateSize(220, 120)
+        list.setPosSize(10, 10, 220, 120)
+        checkPosSize(list, 10, 10, 220, 120)
+        checkPosSize(list.children[0], 20, 20, 30, 100)
+        checkPosSize(list.children[1], 60, 20, 60, 100)
+        checkPosSize(list.children[2], 130, 20, 90, 100)
+    }
+
+    @Test
+    fun testCustomListY() {
+        val list = CustomList(true, style)
+        list.spacing = 10
+        list.padding.set(10)
+        // 10 (pos) | 10 (padding) | 30 (child#0) | 10 (spacer) | 60 (child#1) | 10 (spacer) | 90 (child#2) | 10 (padding)
+        for (i in 0 until 3) {
+            val child = ExactSizePanel(10, 10)
+            list.add(child, 1f + i)
+            // these alignments should be ignored
+            child.alignmentX = getTestAlignment(i)
+            child.alignmentY = getTestAlignment(i)
+        }
+        list.calculateSize(120, 220)
+        list.setPosSize(10, 10, 120, 220)
+        checkPosSize(list, 10, 10, 120, 220)
+        checkPosSize(list.children[0], 20, 20, 100, 30)
+        checkPosSize(list.children[1], 20, 60, 100, 60)
+        checkPosSize(list.children[2], 20, 130, 100, 90)
     }
 
     fun checkPosSize(child: Panel, x: Int, y: Int, w: Int, h: Int) {

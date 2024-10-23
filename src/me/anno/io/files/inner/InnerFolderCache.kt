@@ -5,9 +5,11 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.extensions.FileReaderRegistry
 import me.anno.extensions.FileReaderRegistryImpl
+import me.anno.gpu.GFX
 import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
+import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.mesh.vox.VOXReader
 import kotlin.math.max
@@ -40,21 +42,32 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
             generate(file1)
         }
-        if (!async && data != null) data.waitFor()
+        if (!async) data?.waitFor()
         return data?.value
     }
 
     private fun generate(file1: FileReference): AsyncCacheData<InnerFolder?> {
-        val signature = SignatureCache[file1, false]
+        val result = AsyncCacheData<InnerFolder?>()
+        if (GFX.glThread != null) {
+            // todo can we get this working without introducing a dead-lock for tests?
+            SignatureCache.getAsync(file1) { signature ->
+                generate1(file1, signature, result)
+            }
+        } else {
+            val signature = SignatureCache[file1, false]
+            generate1(file1, signature, result)
+        }
+        return result
+    }
+
+    private fun generate1(file1: FileReference, signature: Signature?, result: AsyncCacheData<InnerFolder?>) {
         val ext = file1.lcExtension
-        val data = AsyncCacheData<InnerFolder?>()
         if (signature?.name == "json" && ext == "json") {
-            data.value = null
+            result.value = null
         } else {
             val readers = getReaders(signature, ext)
-            generate(file1, data, readers, 0)
+            generate(file1, result, readers, 0)
         }
-        return data
     }
 
     private fun generate(

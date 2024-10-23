@@ -18,18 +18,12 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
         }
 
     @Deprecated(message = "Not supported on web")
-    fun waitForGFX(): V? {
-        Sleep.waitForGFXThread(true) { hasValue }
-        return value
-    }
-
-    @Deprecated(message = "Not supported on web")
     fun waitFor(): V? {
         Sleep.waitUntil(true) { hasValue }
         return value
     }
 
-    fun waitForGFX(callback: (V?) -> Unit) {
+    fun waitFor(callback: (V?) -> Unit) {
         Sleep.waitUntil(true, { hasValue }) {
             callback(value)
         }
