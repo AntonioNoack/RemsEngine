@@ -83,7 +83,7 @@ object Systems : PrefabSaveable() {
 
     fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean) {
         Recursion.processRecursive(root) { element, remaining ->
-            if (element.isEnabled) {
+            if (element.isEnabled or (root === element)) {
                 for (type in element.listChildTypes()) {
                     remaining.addAll(element.getChildListByType(type))
                 }

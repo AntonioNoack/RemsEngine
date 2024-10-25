@@ -16,7 +16,6 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Docs
-import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
@@ -77,15 +76,6 @@ open class Rigidbody : Component(), OnDrawGUI {
         else bi.applyCentralImpulse(javax.vecmath.Vector3d(0.0, 10.0 * mass, 0.0))
     }
 
-    @EditorField
-    override var isEnabled: Boolean = true
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidatePhysics()
-            }
-        }
-
     @SerializedProperty
     var deleteWhenKilledByDepth = false // mmh... depending on edit mode?
 
@@ -128,21 +118,17 @@ open class Rigidbody : Component(), OnDrawGUI {
         }
 
     @Docs("Friction against motion when moving through air / water")
-    var linearDamping = 0.1
+    var linearDamping = 0.0
         set(value) {
-            if (field != value) {
-                field = value
-                invalidatePhysics()
-            }
+            field = value
+            bulletInstance?.setDamping(value, angularDamping)
         }
 
     @Docs("Friction against rotation when moving through air / water")
-    var angularDamping = 0.1
+    var angularDamping = 0.0
         set(value) {
-            if (field != value) {
-                field = value
-                invalidatePhysics()
-            }
+            field = value
+            bulletInstance?.setDamping(linearDamping, value)
         }
 
     @Docs("How bouncy a body is: 1 = perfectly bouncy, 0 = all energy absorbed (knead)")
@@ -179,20 +165,11 @@ open class Rigidbody : Component(), OnDrawGUI {
 
     @Docs("velocity in global space")
     @DebugProperty
-    var velocity = Vector3d()
-        get() {
-            val bi = bulletInstance
-            if (bi != null) {
-                val tmp = Stack.borrowVec()
-                bulletInstance?.getLinearVelocity(tmp)
-                field.set(tmp.x, tmp.y, tmp.z)
-            }
-            return field
-        }
+    var linearVelocity = Vector3d()
         set(value) {
             field.set(value)
             val bi = bulletInstance
-            if (bi != null) {
+            if (bi != null && mass > 0.0) {
                 val tmp = Stack.borrowVec()
                 tmp.set(value.x, value.y, value.z)
                 bulletInstance?.setLinearVelocity(tmp)
@@ -200,15 +177,13 @@ open class Rigidbody : Component(), OnDrawGUI {
         }
 
     @DebugProperty
-    var localVelocity = Vector3d()
+    var localLinearVelocity = Vector3d()
         get() {
             val bi = bulletInstance
             val tr = transform
-            if (bi != null && tr != null) {
-                val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
-                bulletInstance?.getLinearVelocity(tmp)
-                t.transformDirection(field.set(tmp.x, tmp.y, tmp.z))
+            if (bi != null && tr != null && mass > 0.0) {
+                tr.globalTransform
+                    .transformDirection(linearVelocity, field)
             }
             return field
         }
@@ -216,7 +191,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             field.set(value)
             val bi = bulletInstance
             val tr = transform
-            if (tr != null) { // not yet tested, and inverse might be costly
+            if (tr != null && mass > 0.0) { // not yet tested, and inverse might be costly
                 tr.globalTransform.invert(Matrix4x3d())
                     .transformDirection(field)
                 if (bi != null && !isStatic) {
@@ -231,7 +206,7 @@ open class Rigidbody : Component(), OnDrawGUI {
         get() {
             val tr = transform
             val bi = bulletInstance
-            return if (tr != null && bi != null) {
+            return if (tr != null && bi != null && mass > 0.0) {
                 val t = tr.globalTransform
                 val tmp = Stack.borrowVec()
                 bulletInstance?.getLinearVelocity(tmp)
@@ -243,7 +218,7 @@ open class Rigidbody : Component(), OnDrawGUI {
         get() {
             val tr = transform
             val bi = bulletInstance
-            return if (tr != null && bi != null) {
+            return if (tr != null && bi != null && mass > 0.0) {
                 val t = tr.globalTransform
                 val tmp = Stack.borrowVec()
                 bulletInstance?.getLinearVelocity(tmp)
@@ -255,7 +230,7 @@ open class Rigidbody : Component(), OnDrawGUI {
         get() {
             val tr = transform
             val bi = bulletInstance
-            return if (tr != null && bi != null) {
+            return if (tr != null && bi != null && mass > 0.0) {
                 val t = tr.globalTransform
                 val tmp = Stack.borrowVec()
                 bulletInstance?.getLinearVelocity(tmp)
@@ -266,19 +241,10 @@ open class Rigidbody : Component(), OnDrawGUI {
     @Docs("Angular velocity in global space")
     @DebugProperty
     var angularVelocity = Vector3d()
-        get() {
-            val bi = bulletInstance
-            if (bi != null) {
-                val tmp = Stack.borrowVec()
-                bulletInstance?.getAngularVelocity(tmp)
-                field.set(tmp.x, tmp.y, tmp.z)
-            }
-            return field
-        }
         set(value) {
             field.set(value)
             val bi = bulletInstance
-            if (bi != null) {
+            if (bi != null && mass > 0.0) {
                 val tmp = Stack.borrowVec()
                 tmp.set(value.x, value.y, value.z)
                 bulletInstance?.setAngularVelocity(tmp)
@@ -295,7 +261,7 @@ open class Rigidbody : Component(), OnDrawGUI {
      * slowing down on contact
      * */
     @Range(0.0, 1.0)
-    var friction = 0.1
+    var friction = 0.5
         set(value) {
             field = value
             bulletInstance?.friction = friction
@@ -446,10 +412,10 @@ open class Rigidbody : Component(), OnDrawGUI {
         if (dst !is Rigidbody) return
         dst.centerOfMass = centerOfMass
         dst.activeByDefault = activeByDefault
+        dst.linearDamping = linearDamping
         dst.angularDamping = angularDamping
         dst.friction = friction
         dst.mass = mass
-        dst.linearDamping = linearDamping
         dst.sleepingTimeThreshold = sleepingTimeThreshold
         dst.angularSleepingThreshold = angularSleepingThreshold
         dst.linearSleepingThreshold = linearSleepingThreshold

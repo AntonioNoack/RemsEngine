@@ -1,13 +1,11 @@
 package me.anno.box2d
 
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
-import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.Stack
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
@@ -46,7 +44,7 @@ import kotlin.math.sin
  * Sleeping (removes motionless bodies from simulation until touched)
  * Serialization? idk, should be done by the engine
  * */
-class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
+object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     var velocityIterations = 6
     var positionIterations = 2
@@ -59,12 +57,6 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         Settings.maxTranslationSquared = sq(Settings.maxTranslation)
     }
 
-    override fun invalidate(entity: Entity) {
-        val rb = entity.getComponent(Rigidbody2d::class, false)?.entity ?: return
-        if (printValidations) LOGGER.debug("Invalidated {}", hash32(this))
-        invalidEntities.add(rb)
-    }
-
     override fun updateGravity() {
         world.gravity.set(gravity.x.toFloat(), gravity.y.toFloat())
     }
@@ -73,122 +65,120 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         world.step(step.toFloat(), velocityIterations, positionIterations)
     }
 
-    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): BodyWithScale<Body>? {
+    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody2d): BodyWithScale<Rigidbody2d, Body>? {
 
         val colliders = getValidComponents(entity, Collider2d::class).toList()
+        if (colliders.isEmpty()) return null
 
-        return if (colliders.isNotEmpty()) {
+        entity.validateTransform()
 
-            entity.validateTransform()
-
-            val massData = MassData()
-            var mass = 0f
-            val shapes = colliders.map { collider ->
-                val trans = collider.entity!!.fromLocalToOtherLocal(entity)
-                val shape = when (collider) {
-                    is CircleCollider -> {
-                        val shape = CircleShape()
-                        shape.radius = collider.radius
-                        shape
-                    }
-                    is RectCollider -> {
-                        val shape = PolygonShape()
-                        val halfExtends = collider.halfExtends
-                        shape.setAsBox(halfExtends.x, halfExtends.y)
-                        shape
-                    }
-                    else -> {
-                        LOGGER.warn("Unknown collider {}", collider.className)
-                        null
-                    }
+        val massData = MassData()
+        var mass = 0f
+        val shapes = colliders.map { collider ->
+            val trans = collider.entity!!.fromLocalToOtherLocal(entity)
+            val shape = when (collider) {
+                is CircleCollider -> {
+                    val shape = CircleShape()
+                    shape.radius = collider.radius
+                    shape
                 }
-                when (shape) {
-                    is CircleShape -> {
-                        shape.m_p.set(trans.m30.toFloat(), trans.m31.toFloat())
-                        shape.radius *= (trans.getScaleLength() / SQRT3).toFloat()
-                        // rotation doesn't matter
-                    }
-                    is PolygonShape -> {
-                        if (
-                            abs(trans.m00 - 1.0) +
-                            abs(trans.m10) +
-                            abs(trans.m30) +
-                            abs(trans.m11 - 1.0) +
-                            abs(trans.m11) +
-                            abs(trans.m31) > 1e-5
-                        ) {
-                            val v0 = shape.vertices
-                            // copy is unfortunately needed
-                            val vertices = Array(v0.size) { i -> Vec2(v0[i]) } // must be an array
-                            // transform all vertices individually
-                            // translation, rotation and scale are all included automatically :)
-                            for (i in 0 until shape.m_count) {
-                                // this is correct, at least for an identity transform
-                                val vert = vertices[i]
-                                val vx = vert.x
-                                val vy = vert.y
-                                vert.set(
-                                    (trans.m00 * vx + trans.m10 * vy + trans.m30).toFloat(),
-                                    (trans.m01 * vx + trans.m11 * vy + trans.m31).toFloat(),
-                                )
-                            }
-                            shape.set(
-                                vertices,
-                                shape.m_count
+                is RectCollider -> {
+                    val shape = PolygonShape()
+                    val halfExtends = collider.halfExtends
+                    shape.setAsBox(halfExtends.x, halfExtends.y)
+                    shape
+                }
+                else -> {
+                    LOGGER.warn("Unknown collider {}", collider.className)
+                    null
+                }
+            }
+            when (shape) {
+                is CircleShape -> {
+                    shape.m_p.set(trans.m30.toFloat(), trans.m31.toFloat())
+                    shape.radius *= (trans.getScaleLength() / SQRT3).toFloat()
+                    // rotation doesn't matter
+                }
+                is PolygonShape -> {
+                    if (
+                        abs(trans.m00 - 1.0) +
+                        abs(trans.m10) +
+                        abs(trans.m30) +
+                        abs(trans.m11 - 1.0) +
+                        abs(trans.m11) +
+                        abs(trans.m31) > 1e-5
+                    ) {
+                        val v0 = shape.vertices
+                        // copy is unfortunately needed
+                        val vertices = Array(v0.size) { i -> Vec2(v0[i]) } // must be an array
+                        // transform all vertices individually
+                        // translation, rotation and scale are all included automatically :)
+                        for (i in 0 until shape.m_count) {
+                            // this is correct, at least for an identity transform
+                            val vert = vertices[i]
+                            val vx = vert.x
+                            val vy = vert.y
+                            vert.set(
+                                (trans.m00 * vx + trans.m10 * vy + trans.m30).toFloat(),
+                                (trans.m01 * vx + trans.m11 * vy + trans.m31).toFloat(),
                             )
                         }
+                        shape.set(
+                            vertices,
+                            shape.m_count
+                        )
                     }
-                    null -> {}
-                    else -> LOGGER.warn("todo implement shape ${shape::class}")
                 }
-                if (shape != null && collider.hasPhysics) {
-                    shape.computeMass(massData, collider.density)
-                    mass += massData.mass
-                }
-                shape
+                null -> {}
+                else -> LOGGER.warn("todo implement shape ${shape::class}")
             }
-
-            val def = BodyDef()
-            val transform = entity.transform
-            val global = transform.globalTransform
-            def.position.set(global.m30.toFloat(), global.m31.toFloat())
-            def.angle = -atan2(global.m10, global.m00).toFloat() // not perfect, but good enough probably
-            def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
-            def.bullet = rigidBody.preventTunneling
-            def.gravityScale = rigidBody.gravityScale
-            def.linearDamping = rigidBody.linearDamping
-            val lv = rigidBody.linearVelocity
-            def.linearVelocity.set(lv.x, lv.y)
-            def.angularDamping = rigidBody.angularDamping
-            def.angularVelocity = rigidBody.angularVelocity
-            def.fixedRotation = rigidBody.preventRotation
-            // def.userData = rigidBody // maybe for callbacks :)
-
-            val body = world.createBody(def)
-            body.isSleepingAllowed = !rigidBody.alwaysActive
-
-            for (index in colliders.indices) {
-                val collider = colliders[index]
-                val shape = shapes[index] ?: continue
-                // add shape
-                val fixDef = FixtureDef()
-                fixDef.shape = shape
-                fixDef.density = collider.density
-                fixDef.friction = collider.friction
-                fixDef.restitution = collider.restitution
-                fixDef.isSensor = !collider.hasPhysics
-                fixDef.filter.maskBits = collider.collisionMask
-                // fixDef.userData = collider // maybe could be used :)
-                body.createFixture(fixDef)
+            if (shape != null && collider.hasPhysics) {
+                shape.computeMass(massData, collider.density)
+                mass += massData.mass
             }
+            shape
+        }
 
-            return BodyWithScale(body, Vector3d(1.0))
-        } else null
+        val def = BodyDef()
+        val transform = entity.transform
+        val global = transform.globalTransform
+        def.position.set(global.m30.toFloat(), global.m31.toFloat())
+        def.angle = -atan2(global.m10, global.m00).toFloat() // not perfect, but good enough probably
+        def.type = if (mass > 0f) BodyType.DYNAMIC else BodyType.STATIC // set that depending on state... Kinematic?
+        def.bullet = rigidBody.preventTunneling
+        def.gravityScale = rigidBody.gravityScale
+        def.linearDamping = rigidBody.linearDamping
+        val lv = rigidBody.linearVelocity
+        def.linearVelocity.set(lv.x, lv.y)
+        def.angularDamping = rigidBody.angularDamping
+        def.angularVelocity = rigidBody.angularVelocity
+        def.fixedRotation = rigidBody.preventRotation
+        // def.userData = rigidBody // maybe for callbacks :)
+
+        val body = world.createBody(def)
+        body.isSleepingAllowed = !rigidBody.alwaysActive
+
+        for (index in colliders.indices) {
+            val collider = colliders[index]
+            val shape = shapes[index] ?: continue
+            // add shape
+            val fixDef = FixtureDef()
+            fixDef.shape = shape
+            fixDef.density = collider.density
+            fixDef.friction = collider.friction
+            fixDef.restitution = collider.restitution
+            fixDef.isSensor = !collider.hasPhysics
+            fixDef.filter.maskBits = collider.collisionMask
+            // fixDef.userData = collider // maybe could be used :)
+            body.createFixture(fixDef)
+        }
+
+        return BodyWithScale(rigidBody, body, Vector3d(1.0))
     }
 
-    override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, bodyWithScale: BodyWithScale<Body>) {
+    override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, bodyWithScale: BodyWithScale<Rigidbody2d, Body>) {
 
-        val body = bodyWithScale.body
+        val body = bodyWithScale.external
 
         rigidbody.box2dInstance = body
         rigidBodies[entity] = bodyWithScale
@@ -221,8 +211,6 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         )
     }
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(Box2dPhysics::class)
-        val vec2f = Stack { Vec2() }
-    }
+    private val LOGGER = LogManager.getLogger(Box2dPhysics::class)
+    val vec2f = Stack { Vec2() }
 }

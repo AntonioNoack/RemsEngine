@@ -1,13 +1,11 @@
 package me.anno.ecs
 
 import me.anno.ecs.EntityPhysics.checkNeedsPhysics
-import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
 import me.anno.ecs.EntityQuery.anyComponent
 import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.hasComponent
-import me.anno.ecs.EntityQuery.hasComponentInChildren
 import me.anno.ecs.EntityStats.sizeOfHierarchy
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -15,7 +13,6 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.PositionType
 import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
-import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -195,7 +192,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     private fun onChangeTransform() {
         invalidateAABBsCompletely()
         // scale is not just transform in bullet, it is scaling the collider
-        invalidatePhysics(false)
+        invalidatePhysicsTransform()
         validateTransform()
     }
 
@@ -240,7 +237,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         transform.globalPosition = position
         transform.smoothUpdate()
         invalidateAABBsCompletely()
-        invalidatePhysicsTransform(false)
+        invalidatePhysicsTransform()
     }
 
     /**
@@ -250,7 +247,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         transform.globalPosition = position
         transform.teleportUpdate()
         invalidateAABBsCompletely()
-        invalidatePhysicsTransform(false)
+        invalidatePhysicsTransform()
     }
 
     fun canCollide(collisionMask: Int): Boolean {
@@ -328,8 +325,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     override var isEnabled: Boolean
         get() = super.isEnabled
         set(value) {
-            super.isEnabled = value
-            invalidatePhysics(false)
+            if (super.isEnabled != value) {
+                super.isEnabled = value
+                getSystems()?.addOrRemoveRecursively(this, value)
+            }
         }
 
     /**
@@ -497,12 +496,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return if (root === Systems.world) Systems else null
     }
 
-    fun onChangeComponent(component: Component, additive: Boolean) {
+    fun onChangeComponent(component: Component, wasAdded: Boolean) {
         val isRenderable = component is Renderable
         if (isRenderable) {
             hasRenderables = hasComponent(Renderable::class, false)
         }
-        if (additive) {
+        if (wasAdded) {
             if (component.fillSpace(transform.globalTransform, aabb)) {
                 hasSpaceFillingComponents = true
                 onExtendAABB()
@@ -519,6 +518,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             }
             JomlPools.aabbd.sub(1)
         }
+        getSystems()?.addOrRemoveRecursively(component, wasAdded)
         forAllComponents(false) { comp ->
             comp.onChangeStructure(this)
         }
@@ -591,13 +591,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         if (child.parent !== this) return false
         val found = internalChildren.remove(child) // should be true
         if (!found) LOGGER.warn("Weird removal, where child.parent === this, but not found in children list")
-        if (child.parent == this) {
-            child.parent = null
-        }
-        if (child.hasComponentInChildren(Collider::class)) {
-            invalidatePhysics(false)
-        }
         getSystems()?.addOrRemoveRecursively(child, false)
+        child.parent = null
         return found
     }
 

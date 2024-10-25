@@ -19,6 +19,20 @@ class ParallelCollection<V, C : MutableCollection<V>>(
         }
     }
 
+    fun addAll(elements: Collection<V>) {
+        val addable = inputList
+        synchronized(addable) {
+            addable.addAll(elements)
+        }
+    }
+
+    fun clear(){
+        val addable = inputList
+        synchronized(addable) {
+            addable.clear()
+        }
+    }
+
     private fun swapGetRemovable(): C {
         return synchronized(this) {
             val tmp = inputList

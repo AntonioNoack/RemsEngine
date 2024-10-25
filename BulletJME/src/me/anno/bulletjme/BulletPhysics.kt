@@ -62,10 +62,10 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
     override fun onCreateRigidbody(
         entity: Entity,
         rigidbody: Rigidbody,
-        bodyWithScale: BodyWithScale<PhysicsRigidBody>
+        bodyWithScale: BodyWithScale<Rigidbody, PhysicsRigidBody>
     ) {
-        bulletInstance.addCollisionObject(bodyWithScale.body)
-        rigidbody.bulletInstance = bodyWithScale.body
+        bulletInstance.addCollisionObject(bodyWithScale.external)
+        rigidbody.bulletInstance = bodyWithScale.external
         registerNonStatic(entity, rigidbody.isStatic, bodyWithScale)
         // todo constraints
     }
@@ -176,7 +176,7 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
         }
     }
 
-    override fun createRigidbody(entity: Entity, src: Rigidbody): BodyWithScale<PhysicsRigidBody>? {
+    override fun createRigidbody(entity: Entity, src: Rigidbody): BodyWithScale<Rigidbody, PhysicsRigidBody>? {
         val colliders = getValidComponents(entity, Collider::class)
             .filter { it.hasPhysics }.toList()
         return if (colliders.isNotEmpty()) {
@@ -209,7 +209,7 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
             val box = collider.boundingBox(Vector3f(), Quaternion(), BoundingBox())
             dst.ccdSweptSphereRadius = max(max(box.xExtent, box.yExtent), box.zExtent)
 
-            BodyWithScale(dst, scale)
+            BodyWithScale(src, dst, scale)
         } else null
     }
 

@@ -14,11 +14,11 @@ import me.anno.maths.Maths
 import javax.vecmath.Vector3d
 
 fun main() {
-    test1()
-    test2()
+    libraryTest3d()
+    engineTest3d()
 }
 
-private fun test1() {
+private fun libraryTest3d() {
     println("Library Test")
     // create test world
     // test gravity and maybe collisions
@@ -60,7 +60,7 @@ private fun test1() {
     }
 }
 
-private fun test2() {
+private fun engineTest3d() {
     println("Own World Test")
     // create the same world as in test 1, now just with our own classes
     // create test world

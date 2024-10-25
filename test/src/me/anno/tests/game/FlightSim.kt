@@ -160,7 +160,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
         override fun update(instances: Collection<Component>) {
             val dt = Time.deltaTime
             val transform = transform!!
-            val lv = body.localVelocity
+            val lv = body.localLinearVelocity
             val dir = (Input.isShiftDown || Input.isKeyDown(Key.KEY_W)).toInt() - (Input.isKeyDown(Key.KEY_S)).toInt()
             speed = mix(speed, dir * 50.0, dt)
             position += dt * speed

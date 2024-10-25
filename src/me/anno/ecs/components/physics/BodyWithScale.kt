@@ -2,7 +2,12 @@ package me.anno.ecs.components.physics
 
 import org.joml.Vector3d
 
-class BodyWithScale<BodyType>(val body: BodyType, val scale: Vector3d) {
-    operator fun component1() = body
-    operator fun component2() = scale
+class BodyWithScale<InternalRigidbody, ExternalRigidbody>(
+    val internal: InternalRigidbody,
+    val external: ExternalRigidbody,
+    val scale: Vector3d
+) {
+    operator fun component1() = internal
+    operator fun component2() = external
+    operator fun component3() = scale
 }

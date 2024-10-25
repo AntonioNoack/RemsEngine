@@ -1,6 +1,5 @@
 package me.anno.tests.physics
 
-import me.anno.Time
 import me.anno.box2d.Box2dPhysics
 import me.anno.box2d.CircleCollider
 import me.anno.box2d.Collider2d
@@ -25,7 +24,6 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.toDegrees
-import me.anno.utils.types.Floats.toLongOr
 import me.anno.utils.types.Triangles.subCross
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Vec2
@@ -42,12 +40,12 @@ import kotlin.math.sin
 import kotlin.math.tan
 
 fun main() {
-    test1()
-    test2()
-    test3()
+    libraryTest2d()
+    engineTest2d()
+    run2dPhysicsWithUI()
 }
 
-private fun test1() {
+private fun libraryTest2d() {
     println("Library Test")
     // works, just why is it not accelerating?
     // create test world
@@ -68,7 +66,7 @@ private fun test1() {
     val fixtureDef = FixtureDef()
     fixtureDef.shape = boxShape
     fixtureDef.density = 1f
-    fixtureDef.friction = 0.3f
+    fixtureDef.friction = 0.1f
     boxBody.createFixture(fixtureDef)
     for (i in 0 until 10) {
         println(boxBody.position.toString() + ", " + boxBody.angle.toDegrees() + "°")
@@ -76,16 +74,17 @@ private fun test1() {
     }
 }
 
-private fun test2() {
+private fun engineTest2d() {
     // why is the result slightly different?
     println("Own World Test")
     // create the same world as in test 1, now just with our own classes
     // create test world
     val world = Entity()
-    val physics = Box2dPhysics()
+    val physics = Box2dPhysics
     physics.velocityIterations = 1
     physics.positionIterations = 1
     Systems.registerSystem(physics)
+    Systems.world = world
     val ground = Entity()
     val groundRB = Rigidbody2d()
     ground.add(groundRB)
@@ -115,15 +114,17 @@ private fun test2() {
     }
 }
 
-fun test3() {
+// todo this sample is broken :(
+fun run2dPhysicsWithUI() {
     val world = Entity("World")
-    val physics = Box2dPhysics()
+    val physics = Box2dPhysics
     physics.velocityIterations = 1
     physics.positionIterations = 1
     physics.gravity.y = 90.0
     physics.allowedSpace.all()
     physics.updateGravity()
     Systems.registerSystem(physics)
+    Systems.world = world
 
     val width = 1000
     val height = 1000
@@ -217,7 +218,9 @@ fun test3() {
 
             override fun onUpdate() {
                 super.onUpdate()
-                physics.step((Time.deltaTime * 1e9f).toLongOr(), false)
+
+                Systems.onUpdate()
+
                 if (Input.isKeyDown(dragButton)) {
                     val hovered = hovered
                     val entity = hovered?.entity

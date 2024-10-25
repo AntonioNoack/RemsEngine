@@ -1,7 +1,7 @@
 package me.anno.ecs
 
 import me.anno.ecs.components.physics.Physics
-import me.anno.engine.EngineBase
+import me.anno.ecs.systems.Systems
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
@@ -11,14 +11,8 @@ import kotlin.reflect.safeCast
  * */
 object EntityPhysics {
 
-    fun Entity.invalidatePhysics(force: Boolean) {
-        if (force || hasPhysicsInfluence()) {
-            forAllPhysics { it.invalidate(this) }
-        }
-    }
-
-    fun Entity.invalidatePhysicsTransform(force: Boolean) {
-        if (force || hasPhysicsInfluence()) {
+    fun Entity.invalidatePhysicsTransform() {
+        if (hasPhysicsInfluence()) {
             forAllPhysics { it.invalidateTransform(this) }
         }
     }
@@ -38,7 +32,7 @@ object EntityPhysics {
     }
 
     inline fun forAllPhysics(crossinline callback: (Physics<*, *>) -> Unit) {
-        EngineBase.instance?.systems?.forAllSystems(Physics::class) { callback(it) }
+        Systems.forAllSystems(Physics::class) { callback(it) }
     }
 
     fun Entity.hasPhysicsInfluence(): Boolean {

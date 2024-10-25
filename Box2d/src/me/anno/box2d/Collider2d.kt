@@ -28,8 +28,7 @@ abstract class Collider2d : Collider() {
             if (field != value) {
                 field = value
                 box2dInstance?.density = value
-                // to do check if this works
-                // invalidateRigidbody()
+                invalidateRigidbody()
             }
         }
 

@@ -128,7 +128,7 @@ fun main() {
             val rb = player.getComponent(Rigidbody::class)!!
             player.position = player.position.set(p.position)
             player.rotation = player.rotation.set(p.rotation)
-            rb.velocity = rb.velocity.set(p.linearVelocity)
+            rb.linearVelocity = rb.linearVelocity.set(p.linearVelocity)
             rb.angularVelocity = rb.angularVelocity.set(p.angularVelocity)
         }
         Unit
@@ -220,7 +220,7 @@ fun main() {
                 newPosition.y += radius - query.result.distance
                 entity.position = newPosition
                 val rb = entity.getComponent(Rigidbody::class)!!
-                rb.velocity = Vector3d()
+                rb.linearVelocity = Vector3d()
                 rb.angularVelocity = Vector3d()
                 break
             }
@@ -340,7 +340,7 @@ fun main() {
             instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
                 val rot = selfPlayerEntity.rotation
                 val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
-                val vel = rb.velocity
+                val vel = rb.linearVelocity
                 val ang = rb.angularVelocity
                 position.set(pos)
                 rotation.set(rot)
