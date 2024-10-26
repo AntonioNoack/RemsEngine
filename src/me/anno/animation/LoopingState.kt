@@ -2,6 +2,7 @@ package me.anno.animation
 
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.posMod
 
 enum class LoopingState(val id: Int, val naming: NameDesc) {
     PLAY_ONCE(0, NameDesc("Once")) {
@@ -13,21 +14,22 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
             return clamp(time, 0, duration)
         }
     },
+
     /**
      * this plays on repeat
      * */
     PLAY_LOOP(1, NameDesc("Looping")) {
         override fun get(time: Double, duration: Double): Double {
-            val t = time % duration
-            return if (t < 0.0) t + duration else t
+            if (duration == 0.0) return time
+            return posMod(time, duration)
         }
 
         override fun get(time: Long, duration: Long): Long {
-            if (duration == 0L) return 0L
-            val t = time % duration
-            return if (t < 0) t + duration else t
+            if (duration == 0L) return time
+            return posMod(time, duration)
         }
     },
+
     /**
      * This plays forward, then backward, then repeat.
      * It's not supported everywhere, e.g., getting videos to play backwards isn't that common/straight forward.

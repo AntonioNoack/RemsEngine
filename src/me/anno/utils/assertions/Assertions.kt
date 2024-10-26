@@ -21,6 +21,10 @@ fun <V : Comparable<V>> assertLessThan(value: V, maxValue: V, message: String = 
     assertTrue(value < maxValue) { "$value >= $maxValue, $message" }
 }
 
+fun <V : Comparable<V>> assertGreaterThan(value: V, maxValue: V, message: String = "compare failed") {
+    assertTrue(value > maxValue) { "$value <= $maxValue, $message" }
+}
+
 fun assertContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
     assertTrue(value in collection) { "'$value' !in '$collection', $message" }
 }

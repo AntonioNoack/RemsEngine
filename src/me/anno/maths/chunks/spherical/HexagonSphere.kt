@@ -71,20 +71,26 @@ class HexagonSphere(
         )
 
         val vertices = run {
-            val s = 0.276385f
-            val t = 0.723600f
-            val u = 0.447215f
-            val v = 0.850640f
-            val w = 0.525720f
-            val x = 0.894425f
-            listOf(
-                Vector3f(0f, -1f, 0f), Vector3f(t, -u, w),
-                Vector3f(-s, -u, v), Vector3f(-x, -u, 0f),
-                Vector3f(-s, -u, -v), Vector3f(t, -u, -w),
-                Vector3f(s, u, v), Vector3f(-t, u, w),
-                Vector3f(-t, u, -w), Vector3f(s, u, -v),
-                Vector3f(x, u, 0f), Vector3f(0f, 1f, 0f)
+            // these values were derived via HexagonSpherePositionTests
+            // we could increase their precision to double, if we need it...
+            val a = 0.2763932f
+            val b = 0.4472136f
+            val c = 0.8506508f
+            val d = 0.7236068f
+            val e = 0.5257311f
+            val f = 0.8944272f
+            val list = listOf(
+                Vector3f(0f, -1f, 0f), Vector3f(d, -b, e),
+                Vector3f(-a, -b, c), Vector3f(-f, -b, 0f),
+                Vector3f(-a, -b, -c), Vector3f(d, -b, -e),
+                Vector3f(a, b, c), Vector3f(-d, b, e),
+                Vector3f(-d, b, -e), Vector3f(a, b, -c),
+                Vector3f(f, b, 0f), Vector3f(0f, 1f, 0f)
             )
+            for (idx in list.indices) {
+                list[idx].normalize()
+            }
+            list
         }
 
         val lineIndices = intArrayOf(
@@ -112,7 +118,7 @@ class HexagonSphere(
     val special0 = LINE_COUNT * (hexagonsPerSide + 1L)
     val special = special0 + PENTAGON_COUNT
     val perSide = (hexagonsPerSide * (hexagonsPerSide + 1L)) shr 1
-    val total = special + perSide * 20
+    val numHexagons = special + perSide * 20
 
     val i0 = (hexagonsPerSide - 1) / 3f
     val j0 = (hexagonsPerSide - 1.5f) * 0.5f - hexagonsPerSide / 6f + 0.4f // why 0.4???
@@ -201,8 +207,8 @@ class HexagonSphere(
 
     fun find(id: Long, connect: Boolean = true): Hexagon {
         return when {
-            id !in 0 until total -> {
-                assertFail("Id out of bounds: $id !in 0 until $total")
+            id !in 0 until numHexagons -> {
+                assertFail("Id out of bounds: $id !in 0 until $numHexagons")
             }
             id < special0 -> {
                 val n1 = (hexagonsPerSide + 1L)
@@ -315,7 +321,7 @@ class HexagonSphere(
                 val tri = pentagonTris[(id - special0).toInt()]
                 return chunk(tri, 0, 0)
             }
-            in special until total -> {
+            in special until numHexagons -> {
                 val id1 = id - special
                 val tri = (id1 / perSide).toInt()
                 if (chunkCount == 1) return chunk(tri, 0, 0)
@@ -842,8 +848,7 @@ class HexagonSphere(
         return idx0 + j + hexagonsPerSide.toLong() * i - (i * (i - 1L)).shr(1)
     }
 
-    fun queryChunk(sc: Chunk): ArrayList<Hexagon> =
-        queryChunk(sc.tri, sc.si, sc.sj)
+    fun queryChunk(sc: Chunk): ArrayList<Hexagon> = queryChunk(sc.tri, sc.si, sc.sj)
 
     /**
      * group lines onto triangle faces

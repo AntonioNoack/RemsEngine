@@ -105,7 +105,7 @@ fun testFindingChunks(sphere: HexagonSphere) {
 
     image.write(desktop.getChild("chunk.png"))
 
-    val total = sphere.total.toFloat()
+    val total = sphere.numHexagons.toFloat()
     println("${ok / total}/${w1 / total}/${w2 / total} ok/wrong-tri/wrong-chunk")
 }
 

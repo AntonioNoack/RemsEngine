@@ -1,5 +1,6 @@
 package me.anno.maths.patterns
 
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import org.joml.Vector3i
 import kotlin.math.PI
@@ -60,21 +61,22 @@ object SpiralPattern {
     @Suppress("unused")
     fun spiral3d(radius: Int, fillBlock: Boolean): List<Vector3i> {
         val result = ArrayList<Vector3i>()
-        for (r in 0 .. if (fillBlock) radius * 2 else radius) {
+        val maxRadius = if (fillBlock) radius * 2 else radius
+        for (r in 0..maxRadius) {
             if (r < radius) {
-                result.addAll(spiral2d(r, 0, false))
+                spiral2d(r, 0, false, result)
             }
             // first build floor, then ceiling
-            for (dy in 1 .. radius) {
+            for (dy in 1..radius) {
                 val r2 = r - dy
-                if (r2 in 0 .. radius) {
-                    result.addAll(spiral2d(r2, -dy, false))
+                if (r2 in 0..radius) {
+                    spiral2d(r2, -dy, false, result)
                 }
             }
-            for (dy in 1 .. radius) {
+            for (dy in 1..radius) {
                 val r2 = r - dy
-                if (r2 in 0 .. radius) {
-                    result.addAll(spiral2d(r2, +dy, false))
+                if (r2 in 0..radius) {
+                    spiral2d(r2, +dy, false, result)
                 }
             }
         }
@@ -102,16 +104,25 @@ object SpiralPattern {
      * radius is inclusive
      * */
     fun spiral2d(radius: Int, y: Int, full: Boolean): List<Vector3i> {
+        val size =
+            if (full) sq(radius * 2 + 1)
+            else max((radius * 2) * 4, 1)
+        val result = ArrayList<Vector3i>(size)
+        spiral2d(radius, y, full, result)
+        return result
+    }
+
+    /**
+     * radius is inclusive
+     * */
+    fun spiral2d(radius: Int, y: Int, full: Boolean, result: ArrayList<Vector3i>) {
         if (full) {
-            val result = ArrayList<Vector3i>()
             for (r in 0..radius) {
-                result.addAll(spiral2d(r, y, false))
+                spiral2d(r, y, false, result)
             }
-            return result
         } else if (radius == 0) {
-            return listOf(Vector3i(0, y, 0))
+            result.add(Vector3i(0, y, 0))
         } else {
-            val result = ArrayList<Vector3i>((radius * 2) * 4)
             // center to right on the top
             for (x in 0 until radius) {
                 result.add(Vector3i(x, y, radius))
@@ -131,7 +142,6 @@ object SpiralPattern {
             for (x in -radius until 0) {
                 result.add(Vector3i(x, y, radius))
             }
-            return result
         }
     }
 }

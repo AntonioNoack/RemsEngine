@@ -73,7 +73,7 @@ fun main() {
 
 fun createHexSphere(n: Int): Pair<ArrayList<Hexagon>, Float> {
     val sphere = HexagonSphere(n, 1)
-    val all = ArrayList<Hexagon>(sphere.total.toInt())
+    val all = ArrayList<Hexagon>(sphere.numHexagons.toInt())
     for (tri in 0 until 20) all.addAll(sphere.queryChunk(tri, 0, 0))
     return all to sphere.len
 }

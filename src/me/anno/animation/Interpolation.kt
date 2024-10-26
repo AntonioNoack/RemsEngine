@@ -144,7 +144,7 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
     },
     CUBIC_SYM(32, "Cubic Symmetric") {
         override fun getIn(x: Double): Double = CUBIC_IN.getInOut(x)
-        override fun getOut(x: Double): Double = CIRCLE_IN.getInOut(x)
+        override fun getOut(x: Double): Double = CUBIC_IN.getInOut(x)
     },
     QUART_IN(40, "Quart In") {
         override fun getReversedType(): Interpolation = QUART_OUT
@@ -179,7 +179,9 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
         override fun getOut(x: Double): Double = QUINT_IN.getInOut(x)
     },
     EXP_IN(60, "Exponential In") {
-        override fun getIn(x: Double): Double = pow(2.0, 10.0 * x - 10.0)
+        val zero = pow(2.0, -10.0)
+        val scale = 1.0 / (1.0 - zero)
+        override fun getIn(x: Double): Double = (pow(2.0, 10.0 * x - 10.0) - zero) * scale
         override fun getReversedType(): Interpolation = EXP_OUT
     },
     EXP_OUT(61, "Exponential Out") {
@@ -225,7 +227,7 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
         private val magic = 2.0 * PI / 3.0
         override fun getReversedType(): Interpolation = ELASTIC_OUT
         override fun getIn(x: Double): Double {
-            return -pow(2.0, 10.0 * x - 10.0) * sin((x * 10.0 - 10.75) * magic)
+            return -EXP_IN.getIn(x) * sin((x * 10.0 - 10.75) * magic)
         }
     },
     ELASTIC_OUT(91, "Elastic Out") {
@@ -245,30 +247,33 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
         private val invD1x15 = 1.5 / d1
         private val invD1x25 = 2.5 / d1
         private val invD1x225 = 2.25 / d1
-        private val invD1x265 = 2.65 / d1
+        private val invD1x265 = 2.625 / d1
         override fun getReversedType(): Interpolation = BOUNCE_OUT
         override fun getOut(x: Double): Double {
-            return when {
-                x < invD1 -> n1 * x * x
+            var offsetIn = 0.0
+            var offsetOut = 0.0
+            when {
+                x < invD1 -> {}
                 x < invD1x2 -> {
-                    val y = x - invD1x15
-                    n1 * y * y + 0.75
+                    offsetIn = invD1x15
+                    offsetOut = 0.75
                 }
                 x < invD1x25 -> {
-                    val y = x - invD1x225
-                    n1 * y * y + 0.9375
+                    offsetIn = invD1x225
+                    offsetOut = 0.9375
                 }
                 else -> {
-                    val y = x - invD1x265
-                    n1 * y * y + 0.984375
+                    offsetIn = invD1x265
+                    offsetOut = 0.984375
                 }
             }
+            val y = x - offsetIn
+            return n1 * y * y + offsetOut
         }
     },
     BOUNCE_OUT(101, "Bounce Out") {
         override fun getIn(x: Double): Double = BOUNCE_IN.getOut(x)
         override fun getOut(x: Double): Double = BOUNCE_IN.getIn(x)
-        override fun getInOut(x: Double): Double = BOUNCE_IN.getInOut(x)
         override fun getReversedType(): Interpolation = BOUNCE_IN
     },
     BOUNCE_SYM(102, "Bounce Symmetric") {

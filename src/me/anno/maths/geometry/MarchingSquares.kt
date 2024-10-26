@@ -1,18 +1,14 @@
 package me.anno.maths.geometry
 
-import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector2f
 
 object MarchingSquares {
-
-    private val LOGGER = LogManager.getLogger(MarchingSquares::class)
 
     /**
      * finds the intersection with the x-axis between (0,a) and (1,b)
@@ -60,42 +56,8 @@ object MarchingSquares {
 
         // there is at max 1 point per edge & they will always be on edges
 
+        val s2c = SegmentToContours(w, h, values)
         val edges = createArrayList(4) { Vector2f() }
-        val next = HashMap<Vector2f, Vector2f>()
-        val field = FloatImage(w, h, 1, values)
-
-        fun registerEdge2(a: Vector2f, b: Vector2f) {
-            val ai = Vector2f(a)
-            val bi = Vector2f(b)
-            next[ai] = bi
-        }
-
-        fun registerEdge1(a: Vector2f, b: Vector2f) {
-            if (a == b) return
-            // switch them, if they are reversed
-            // check order
-            val e = 0.01f
-            val mx = (a.x + b.x) * 0.5f
-            val my = (a.y + b.y) * 0.5f
-            // todo get gradient properly: this could give fx=fy=f0, if mx is big, and fx~fy~f0
-            //  don't forget to run tests
-            val f0 = field.getValue(mx, my)
-            val fx = field.getValue(mx + e, my)
-            val fy = field.getValue(mx, my + e)
-            // gradient of field
-            val gx = fx - f0
-            val gy = fy - f0
-            val dx = b.x - a.x
-            val dy = b.y - a.y
-            // cross product
-            val cross = gx * dy - gy * dx
-            // println("($gx,$gy,$dx,$dy) -> $cross")
-            if (cross > 0f) {
-                registerEdge2(a, b)
-            } else {
-                registerEdge2(b, a)
-            }
-        }
 
         val xs = FloatArray(w) { mix(bounds.minX, bounds.maxX, it / (w - 1f)) }
         val ys = FloatArray(h) { mix(bounds.minY, bounds.maxY, it / (h - 1f)) }
@@ -129,7 +91,7 @@ object MarchingSquares {
                     lerp(edges[0], xi, yi)
                     lerp(edges[1], xi, yi)
                     if (ei == 2) {
-                        registerEdge1(edges[0], edges[1])
+                        s2c.addEdge(edges[0], edges[1])
                     } else {
                         assertEquals(4, ei)
                         // ei must be 4
@@ -138,11 +100,11 @@ object MarchingSquares {
                         // test point in center to decide direction
                         val center = v00 + v01 + v10 + v11 >= 0f
                         if (center == b00) {
-                            registerEdge1(edges[0], edges[3])
-                            registerEdge1(edges[1], edges[2])
+                            s2c.addEdge(edges[0], edges[3])
+                            s2c.addEdge(edges[1], edges[2])
                         } else {
-                            registerEdge1(edges[0], edges[1])
-                            registerEdge1(edges[2], edges[3])
+                            s2c.addEdge(edges[0], edges[1])
+                            s2c.addEdge(edges[2], edges[3])
                         }
                     }
                 }
@@ -152,34 +114,7 @@ object MarchingSquares {
             }
         }
 
-        // convert stripes into real texture
-        // orientation order by gradient inside/outside
-        val polygons = ArrayList<ArrayList<Vector2f>>()
-        while (true) {
-            var (v0, v1) = next.entries.firstOrNull() ?: break
-            next.remove(v0)
-            val polygon = ArrayList<Vector2f>()
-            polygon.add(v0)
-            while (v0 != v1) {
-                polygon.add(v1)
-                // if no entry is found, we'd need to do a search
-                var v2 = next[v1]
-                if (v2 == null) {
-                    // sometimes, due to small inaccuracies, we need to find the next partner
-                    //   test chains... they'll fail and be partial strips only -> we clear the border, so it's fine
-                    LOGGER.warn("Missing $v1 -> ...")
-                    val closestKey = next.minBy {
-                        it.key.distanceSquared(v1)
-                    }
-                    v2 = closestKey.value
-                    next.remove(closestKey.key)
-                } else next.remove(v1)
-                v1 = v2
-            }
-            polygons.add(polygon)
-        }
-
-        return polygons
+        return s2c.calculateContours()
     }
 
     /**

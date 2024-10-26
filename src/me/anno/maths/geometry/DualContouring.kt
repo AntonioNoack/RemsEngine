@@ -171,7 +171,7 @@ object DualContouring {
         sx: Int, sy: Int,
         func: Func2d,
         grad: Grad2d = gradient(func)
-    ): Pair<List<Vector2f>, List<Vector2f>> {
+    ): List<List<Vector2f>> {
         val pointsInGrid = (sx + 1) * (sy + 1)
         // calculate all positions and all gradients
         val values = FloatArray(pointsInGrid)
@@ -191,7 +191,8 @@ object DualContouring {
         sx: Int, sy: Int,
         values: FloatArray,
         func: Func2d, gradient: Grad2d
-    ): Pair<List<Vector2f>, List<Vector2f>> {
+    ): List<List<Vector2f>> {
+
         val invalid = Vector2f()
         val vertices = createArrayList(sx * sy, invalid)
         var writeIndex = 0
@@ -199,6 +200,7 @@ object DualContouring {
         val di = sx + 1
         val qef = QEF2d(0.01f)
         val tmp = Vector2f()
+
         for (y in 0 until sy) {
             val y0 = y.toFloat()
             val y1 = y0 + 1f
@@ -213,7 +215,9 @@ object DualContouring {
             }
             i++
         }
-        val edges = ArrayList<Vector2f>()
+
+        val s2c = SegmentToContours(sx, sy, values)
+
         // dx edges
         val sx1 = sx + 1
         for (y in 0 until sy) {
@@ -223,8 +227,7 @@ object DualContouring {
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     // find correct vertex indices
                     val vk = x + sx * y
-                    edges += vertices[vk - 1]
-                    edges += vertices[vk]
+                    s2c.addEdge(vertices[vk - 1], vertices[vk])
                 }
             }
         }
@@ -235,11 +238,11 @@ object DualContouring {
                 val vj = vi + 1
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     val vk = x + sx * y
-                    edges += vertices[vk - sx]
-                    edges += vertices[vk]
+                    s2c.addEdge(vertices[vk - sx], vertices[vk])
                 }
             }
         }
-        return edges to vertices.filter { it !== invalid }
+
+        return s2c.calculateContours()
     }
 }

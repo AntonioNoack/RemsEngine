@@ -16,7 +16,7 @@ object Packing {
 
     fun unpackLowFrom16(pack16: Int, signed: Boolean): Int {
         return if (signed) {
-            pack16.shl(24).shr(8)
+            pack16.shl(24).shr(24)
         } else {
             pack16.and(0xff)
         }

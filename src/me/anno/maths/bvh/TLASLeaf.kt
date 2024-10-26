@@ -68,7 +68,7 @@ class TLASLeaf(
         group.tlasCtr++
         if (group.intersects(bounds)) {
 
-            if (!Input.isControlDown) {
+            /*if (!Input.isControlDown) {
                 val dir = JomlPools.vec3f.create()
                 val hit = group.hit
                 for (i in 0 until group.size) {
@@ -89,7 +89,7 @@ class TLASLeaf(
                 }
                 JomlPools.vec3f.sub(1)
                 return
-            }
+            }*/
 
             // transform from global to local coordinates
             // and trace the ray inside the local bounds

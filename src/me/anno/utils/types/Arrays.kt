@@ -1,6 +1,5 @@
 package me.anno.utils.types
 
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createList
 
 object Arrays {
@@ -33,11 +32,17 @@ object Arrays {
     }
 
     @JvmStatic
-    fun <V> List<V>.copyInto(dst: MutableList<V>, dstI0: Int, srcI: Int, srcEndI: Int) {
-        assertTrue(this !== dst)
-        var dstI = dstI0
-        for (i in srcI until srcEndI) {
-            dst[dstI++] = this[i]
+    fun <V> List<V>.copyInto(dst: MutableList<V>, dstI0: Int, srcI0: Int, srcI1: Int) {
+        if (srcI0 < dstI0) {
+            var dstI = dstI0
+            for (i in srcI0 until srcI1) {
+                dst[dstI++] = this[i]
+            }
+        } else {
+            var dstI = dstI0 + (srcI1 - srcI0)
+            for (i in srcI1 - 1 downTo srcI0) {
+                dst[dstI--] = this[i]
+            }
         }
     }
 

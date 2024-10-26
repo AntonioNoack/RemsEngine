@@ -19,7 +19,7 @@ fun main() {
                     }
                 }
             }
-            if (total.size != world.total.toInt()) throw IllegalStateException("Incorrect total!")
+            if (total.size != world.numHexagons.toInt()) throw IllegalStateException("Incorrect total!")
         }
     }
 

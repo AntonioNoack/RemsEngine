@@ -85,7 +85,6 @@ object Optimization {
         } while (wasChanged && stepCtr++ < maxSteps)
 
         return Pair(lastError, v0)
-
     }
 
     fun simplexAlgorithm(
@@ -212,7 +211,5 @@ object Optimization {
         } while (wasChanged && stepCtr++ < maxSteps)
 
         return Pair(lastError, v0)
-
     }
-
 }

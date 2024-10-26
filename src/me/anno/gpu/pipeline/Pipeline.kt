@@ -241,7 +241,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         // todo reuse the pipeline state for multiple frames
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
-        rootElement.getBounds()
         val lastClickId = subFill(rootElement, lastClickId)
         this.lastClickId = lastClickId
         return lastClickId
