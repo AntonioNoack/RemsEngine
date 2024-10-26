@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 import kotlin.math.tan
 
 @Suppress("unused")
-open class Matrix4f {
+open class Matrix4f : Matrix {
 
     var m00 = 0f
     var m01 = 0f
@@ -77,6 +77,9 @@ open class Matrix4f {
     constructor(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f) {
         set(col0, col1, col2, col3)
     }
+
+    override val numCols: Int get() = 4
+    override val numRows: Int get() = 4
 
     fun _properties(properties: Int): Matrix4f {
         this.flags = properties
@@ -5741,33 +5744,36 @@ open class Matrix4f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + (m00).toBits()
-        result = 31 * result + (m01).toBits()
-        result = 31 * result + (m02).toBits()
-        result = 31 * result + (m03).toBits()
-        result = 31 * result + (m10).toBits()
-        result = 31 * result + (m11).toBits()
-        result = 31 * result + (m12).toBits()
-        result = 31 * result + (m13).toBits()
-        result = 31 * result + (m20).toBits()
-        result = 31 * result + (m21).toBits()
-        result = 31 * result + (m22).toBits()
-        result = 31 * result + (m23).toBits()
-        result = 31 * result + (m30).toBits()
-        result = 31 * result + (m31).toBits()
-        result = 31 * result + (m32).toBits()
-        result = 31 * result + (m33).toBits()
+        result = 31 * result + m00.toRawBits()
+        result = 31 * result + m01.toRawBits()
+        result = 31 * result + m02.toRawBits()
+        result = 31 * result + m03.toRawBits()
+        result = 31 * result + m10.toRawBits()
+        result = 31 * result + m11.toRawBits()
+        result = 31 * result + m12.toRawBits()
+        result = 31 * result + m13.toRawBits()
+        result = 31 * result + m20.toRawBits()
+        result = 31 * result + m21.toRawBits()
+        result = 31 * result + m22.toRawBits()
+        result = 31 * result + m23.toRawBits()
+        result = 31 * result + m30.toRawBits()
+        result = 31 * result + m31.toRawBits()
+        result = 31 * result + m32.toRawBits()
+        result = 31 * result + m33.toRawBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        return (other is Matrix4f &&
+        return other is Matrix4f &&
                 m00 == other.m00 && m01 == other.m01 && m02 == other.m02 && m03 == other.m03 &&
                 m10 == other.m10 && m11 == other.m11 && m12 == other.m12 && m13 == other.m13 &&
                 m20 == other.m20 && m21 == other.m21 && m22 == other.m22 && m23 == other.m23 &&
                 m30 == other.m30 && m31 == other.m31 && m32 == other.m32 && m33 == other.m33
-                )
+    }
+
+    override fun equals1(other: Matrix, threshold: Double): Boolean {
+        return equals(other as? Matrix4f, threshold.toFloat())
     }
 
     fun equals(m: Matrix4f?, delta: Float): Boolean {

@@ -10,7 +10,7 @@ open class Vector3i(
     @JvmField var x: Int,
     @JvmField var y: Int,
     @JvmField var z: Int
-) : Vector() {
+) : Vector {
 
     constructor() : this(0, 0, 0)
     constructor(d: Int) : this(d, d, d)
@@ -296,6 +296,7 @@ open class Vector3i(
     }
 
     override fun equals(other: Any?): Boolean {
+        if (other === this) return true
         return other is Vector3i && other.x == x && other.y == y && other.z == z
     }
 

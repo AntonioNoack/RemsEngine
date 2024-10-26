@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 class AABBi(
     var minX: Int, var minY: Int, var minZ: Int,
     var maxX: Int, var maxY: Int, var maxZ: Int
-) : Vector() {
+) : Vector {
 
     constructor(base: AABBi) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Int, max: Int) : this(min, min, min, max, max, max)
@@ -309,5 +309,16 @@ class AABBi(
         return other is AABBi &&
                 other.minX == minX && other.minY == minY && other.minZ == minZ &&
                 other.maxX == maxX && other.maxY == maxY && other.maxZ == maxZ
+    }
+
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + minX
+        result = 31 * result + minY
+        result = 31 * result + minZ
+        result = 31 * result + maxX
+        result = 31 * result + maxY
+        result = 31 * result + maxZ
+        return result
     }
 }

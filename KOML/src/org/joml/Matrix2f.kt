@@ -9,7 +9,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix2f {
+open class Matrix2f : Matrix {
 
     var m00 = 0f
     var m01 = 0f
@@ -45,6 +45,9 @@ open class Matrix2f {
         m10 = col1.x
         m11 = col1.y
     }
+
+    override val numRows: Int get() = 2
+    override val numCols: Int get() = 2
 
     fun m00(m00: Float): Matrix2f {
         this.m00 = m00
@@ -484,10 +487,10 @@ open class Matrix2f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + (m00).toBits()
-        result = 31 * result + (m01).toBits()
-        result = 31 * result + (m10).toBits()
-        result = 31 * result + (m11).toBits()
+        result = 31 * result + m00.toRawBits()
+        result = 31 * result + m01.toRawBits()
+        result = 31 * result + m10.toRawBits()
+        result = 31 * result + m11.toRawBits()
         return result
     }
 
@@ -495,20 +498,14 @@ open class Matrix2f {
         return other is Matrix2f && m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
     }
 
+    override fun equals1(other: Matrix, threshold: Double): Boolean {
+        return other is Matrix2f && equals(other, threshold.toFloat())
+    }
+
     fun equals(m: Matrix2f?, delta: Float): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else {
-            Runtime.equals(m11, m.m11, delta)
-        }
+        return m is Matrix2f &&
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta)
     }
 
     @JvmOverloads

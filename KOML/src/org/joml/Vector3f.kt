@@ -19,7 +19,7 @@ open class Vector3f(
     @JvmField var x: Float,
     @JvmField var y: Float,
     @JvmField var z: Float
-) : Vector() {
+) : Vector {
 
     constructor() : this(0f, 0f, 0f)
     constructor(d: Float) : this(d, d, d)
@@ -485,22 +485,22 @@ open class Vector3f(
     }
 
     override fun hashCode(): Int {
-        var result = (x).toBits()
-        result = 31 * result + (y).toBits()
-        result = 31 * result + (z).toBits()
+        var result = 1
+        result = 31 * result + x.toRawBits()
+        result = 31 * result + y.toRawBits()
+        result = 31 * result + z.toRawBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Vector3f) false
-        else x == other.x && y == other.y && z == other.z
+        if (this === other) return true
+        return other is Vector3f && x == other.x && y == other.y && z == other.z
     }
 
     fun equals(v: Vector3f?, delta: Float): Boolean {
-        return if (this === v) true
-        else if (v == null) false
-        else Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta) && Runtime.equals(z, v.z, delta)
+        if (this === v) return true
+        return v != null &&
+                Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta) && Runtime.equals(z, v.z, delta)
     }
 
     fun equals(x: Float, y: Float, z: Float): Boolean {

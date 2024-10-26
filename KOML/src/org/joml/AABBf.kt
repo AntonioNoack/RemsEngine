@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 class AABBf(
     var minX: Float, var minY: Float, var minZ: Float,
     var maxX: Float, var maxY: Float, var maxZ: Float
-) : Vector() {
+) : Vector {
 
     constructor(base: AABBf) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Float, max: Float) : this(min, min, min, max, max, max)
@@ -766,5 +766,16 @@ class AABBf(
         return other is AABBf &&
                 other.minX == minX && other.minY == minY && other.minZ == minZ &&
                 other.maxX == maxX && other.maxY == maxY && other.maxZ == maxZ
+    }
+
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + minX.toRawBits()
+        result = 31 * result + minY.toRawBits()
+        result = 31 * result + minZ.toRawBits()
+        result = 31 * result + maxX.toRawBits()
+        result = 31 * result + maxY.toRawBits()
+        result = 31 * result + maxZ.toRawBits()
+        return result
     }
 }

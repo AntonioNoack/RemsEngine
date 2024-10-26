@@ -1,5 +1,6 @@
 package org.joml
 
+import org.joml.JomlMath.hash
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -8,7 +9,7 @@ import kotlin.math.sqrt
 class AABBd(
     var minX: Double, var minY: Double, var minZ: Double,
     var maxX: Double, var maxY: Double, var maxZ: Double
-) : Vector() {
+) : Vector {
 
     constructor(base: AABBd) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
@@ -478,5 +479,16 @@ class AABBd(
         return other is AABBd &&
                 other.minX == minX && other.minY == minY && other.minZ == minZ &&
                 other.maxX == maxX && other.maxY == maxY && other.maxZ == maxZ
+    }
+
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + hash(minX)
+        result = 31 * result + hash(minY)
+        result = 31 * result + hash(minZ)
+        result = 31 * result + hash(maxX)
+        result = 31 * result + hash(maxY)
+        result = 31 * result + hash(maxZ)
+        return result
     }
 }

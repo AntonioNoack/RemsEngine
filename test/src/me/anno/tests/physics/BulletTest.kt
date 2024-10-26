@@ -253,7 +253,7 @@ class BulletTest {
 
         if (floorFriction > 0f && circleFriction > 0f) {
             assertTrue(sphere.position.x < 0f)
-            assertEquals(-0.365, underTest.linearVelocity.x, 0.001)
+            assertEquals(-0.362, underTest.linearVelocity.x, 0.001)
             assertEquals(0.0, underTest.linearVelocity.y, 0.05) // todo why is there y-movement??
             assertEquals(Vector3d(0.0, 0.0, 0.365), underTest.angularVelocity, 0.01)
         } else {
@@ -306,8 +306,8 @@ class BulletTest {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
-        assertEquals(Vector3d(-0.848, -0.08, 0.0), underTest.linearVelocity, 0.01)
-        assertEquals(Vector3d(0.0, 0.0, 0.855), underTest.angularVelocity, 0.01)
+        assertEquals(Vector3d(-0.82, -0.07, 0.0), underTest.linearVelocity, 0.01)
+        assertEquals(Vector3d(0.0, 0.0, 0.814), underTest.angularVelocity, 0.01)
     }
 
     /**

@@ -11,7 +11,7 @@ open class Vector4i(
     @JvmField var y: Int,
     @JvmField var z: Int,
     @JvmField var w: Int
-) : Vector() {
+) : Vector {
 
     constructor() : this(0, 0, 0, 1)
     constructor(v: Vector4i) : this(v.x, v.y, v.z, v.w)
@@ -129,7 +129,7 @@ open class Vector4i(
     }
 
     fun div(scalar: Int, dst: Vector4i = this): Vector4i {
-        return dst.set(x/scalar,y/scalar,z/scalar,w/scalar)
+        return dst.set(x / scalar, y / scalar, z / scalar, w / scalar)
     }
 
     fun lengthSquared(): Long {
@@ -228,6 +228,7 @@ open class Vector4i(
     }
 
     override fun equals(other: Any?): Boolean {
+        if (other === this) return true
         return other is Vector4i && equals(other.x, other.y, other.z, other.w)
     }
 

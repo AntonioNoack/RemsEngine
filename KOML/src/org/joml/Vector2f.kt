@@ -15,7 +15,7 @@ import kotlin.math.sin
 open class Vector2f(
     @JvmField var x: Float,
     @JvmField var y: Float
-) : Vector() {
+) : Vector {
 
     constructor() : this(0f, 0f)
     constructor(v: Float) : this(v, v)
@@ -186,7 +186,7 @@ open class Vector2f(
     }
 
     override fun hashCode(): Int {
-        return 31 * x.toBits() + y.toBits()
+        return 31 * x.toRawBits() + y.toRawBits()
     }
 
     override fun equals(other: Any?): Boolean {

@@ -14,7 +14,7 @@ open class Quaternionf(
     @JvmField var y: Float,
     @JvmField var z: Float,
     @JvmField var w: Float
-) : Vector() {
+) : Vector {
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(x: Double, y: Double, z: Double, w: Double) : this(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
@@ -1901,14 +1901,15 @@ open class Quaternionf(
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + (w).toBits()
-        result = 31 * result + (x).toBits()
-        result = 31 * result + (y).toBits()
-        result = 31 * result + (z).toBits()
+        result = 31 * result + w.toRawBits()
+        result = 31 * result + x.toRawBits()
+        result = 31 * result + y.toRawBits()
+        result = 31 * result + z.toRawBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
+        if (other === this) return true
         return other is Quaternionf && equals(other.x, other.y, other.z, other.w)
     }
 

@@ -1,13 +1,14 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
+import org.joml.JomlMath.hash
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
 @Suppress("unused")
-open class Matrix3x2d {
+open class Matrix3x2d : Matrix {
 
     var m00 = 0.0
     var m01 = 0.0
@@ -46,6 +47,9 @@ open class Matrix3x2d {
         this.m20 = m20
         this.m21 = m21
     }
+
+    override val numCols: Int get() = 3
+    override val numRows: Int get() = 2
 
     fun _m00(m00: Double): Matrix3x2d {
         this.m00 = m00
@@ -716,32 +720,32 @@ open class Matrix3x2d {
     }
 
     override fun hashCode(): Int {
-        var temp = m00.toBits()
-        var result = (temp xor (temp ushr 32)).toInt()
-        temp = m01.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = m10.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = m11.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = m20.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = m21.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        var result = 1
+        result = 31 * result + hash(m00)
+        result = 31 * result + hash(m01)
+        result = 31 * result + hash(m10)
+        result = 31 * result + hash(m11)
+        result = 31 * result + hash(m20)
+        result = 31 * result + hash(m21)
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Matrix3x2d) false
-        else m00 == other.m00 && m01 == other.m01 &&
+        if (this === other) return true
+        return other is Matrix3x2d &&
+                m00 == other.m00 && m01 == other.m01 &&
                 m10 == other.m10 && m11 == other.m11 &&
                 m20 == other.m20 && m21 == other.m21
     }
 
-    fun equals(m: Matrix3x2d, delta: Double): Boolean {
-        return if (this === m) true
-        else Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+    override fun equals1(other: Matrix, threshold: Double): Boolean {
+        return equals(other as? Matrix3x2d, threshold)
+    }
+
+    fun equals(m: Matrix3x2d?, delta: Double): Boolean {
+        if (this === m) return true
+        return m != null &&
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
                 Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
                 Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta)
     }

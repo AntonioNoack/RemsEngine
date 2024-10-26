@@ -1,5 +1,6 @@
 package org.joml
 
+import org.joml.JomlMath.hash
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -15,7 +16,7 @@ import kotlin.math.sin
 open class Vector2d(
     @JvmField var x: Double,
     @JvmField var y: Double
-) : Vector() {
+) : Vector {
 
     constructor() : this(0.0, 0.0)
     constructor(v: Double) : this(v, v)
@@ -215,10 +216,8 @@ open class Vector2d(
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = (x).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (y).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        result = 31 * result + hash(x)
+        result = 31 * result + hash(y)
         return result
     }
 

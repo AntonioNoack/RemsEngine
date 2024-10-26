@@ -9,7 +9,7 @@ import kotlin.math.sqrt
 open class Vector2i(
     @JvmField var x: Int,
     @JvmField var y: Int
-) : Vector() {
+) : Vector {
 
     constructor() : this(0, 0)
     constructor(d: Int) : this(d, d)
@@ -184,6 +184,7 @@ open class Vector2i(
     override fun hashCode() = x * 31 + y
 
     override fun equals(other: Any?): Boolean {
+        if (other === this) return true
         return other is Vector2i && other.x == x && other.y == y
     }
 

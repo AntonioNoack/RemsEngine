@@ -1,5 +1,6 @@
 package org.joml
 
+import org.joml.JomlMath.hash
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.acos
@@ -19,7 +20,7 @@ open class Vector3d(
     @JvmField var x: Double,
     @JvmField var y: Double,
     @JvmField var z: Double,
-) : Vector() {
+) : Vector {
 
     constructor() : this(0.0, 0.0, 0.0)
     constructor(v: Double) : this(v, v, v)
@@ -650,12 +651,9 @@ open class Vector3d(
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = (x).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (y).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (z).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        result = 31 * result + hash(x)
+        result = 31 * result + hash(y)
+        result = 31 * result + hash(z)
         return result
     }
 

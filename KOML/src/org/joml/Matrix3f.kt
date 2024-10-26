@@ -8,7 +8,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix3f {
+open class Matrix3f : Matrix {
 
     var m00 = 0f
     var m01 = 0f
@@ -63,6 +63,9 @@ open class Matrix3f {
     constructor(col0: Vector3f, col1: Vector3f, col2: Vector3f) {
         set(col0, col1, col2)
     }
+
+    override val numCols: Int get() = 3
+    override val numRows: Int get() = 3
 
     fun m00(m00: Float): Matrix3f {
         this.m00 = m00
@@ -1471,28 +1474,33 @@ open class Matrix3f {
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + (m00).toBits()
-        result = 31 * result + (m01).toBits()
-        result = 31 * result + (m02).toBits()
-        result = 31 * result + (m10).toBits()
-        result = 31 * result + (m11).toBits()
-        result = 31 * result + (m12).toBits()
-        result = 31 * result + (m20).toBits()
-        result = 31 * result + (m21).toBits()
-        result = 31 * result + (m22).toBits()
+        result = 31 * result + m00.toRawBits()
+        result = 31 * result + m01.toRawBits()
+        result = 31 * result + m02.toRawBits()
+        result = 31 * result + m10.toRawBits()
+        result = 31 * result + m11.toRawBits()
+        result = 31 * result + m12.toRawBits()
+        result = 31 * result + m20.toRawBits()
+        result = 31 * result + m21.toRawBits()
+        result = 31 * result + m22.toRawBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return other === this || (other is Matrix3f &&
+        if (other === this) return true
+        return other is Matrix3f &&
                 other.m00 == m00 && other.m01 == m01 && other.m02 == m02 &&
                 other.m10 == m10 && other.m11 == m11 && other.m12 == m12 &&
                 other.m20 == m20 && other.m21 == m21 && other.m22 == m22
-                )
     }
 
-    fun equals(m: Matrix3f, delta: Float): Boolean {
-        return this === m ||
+    override fun equals1(other: Matrix, threshold: Double): Boolean {
+        return equals(other as? Matrix3f, threshold.toFloat())
+    }
+
+    fun equals(m: Matrix3f?, delta: Float): Boolean {
+        if (m === this) return true
+        return m is Matrix3f &&
                 Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
                 Runtime.equals(m02, m.m02, delta) && Runtime.equals(m10, m.m10, delta) &&
                 Runtime.equals(m11, m.m11, delta) && Runtime.equals(m12, m.m12, delta) &&

@@ -11,7 +11,7 @@ import kotlin.math.min
 import kotlin.math.sin
 
 @Suppress("unused")
-open class Matrix3x2f {
+open class Matrix3x2f : Matrix {
 
     var m00 = 0f
     var m01 = 0f
@@ -44,6 +44,9 @@ open class Matrix3x2f {
         this.m20 = m20
         this.m21 = m21
     }
+
+    override val numCols: Int get() = 3
+    override val numRows: Int get() = 2
 
     fun _m00(m00: Float): Matrix3x2f {
         this.m00 = m00
@@ -741,26 +744,32 @@ open class Matrix3x2f {
     }
 
     override fun hashCode(): Int {
-        var result = m00.toBits()
-        result = 31 * result + m01.toBits()
-        result = 31 * result + m10.toBits()
-        result = 31 * result + m11.toBits()
-        result = 31 * result + m20.toBits()
-        result = 31 * result + m21.toBits()
+        var result = 1
+        result = 31 * result + m00.toRawBits()
+        result = 31 * result + m01.toRawBits()
+        result = 31 * result + m10.toRawBits()
+        result = 31 * result + m11.toRawBits()
+        result = 31 * result + m20.toRawBits()
+        result = 31 * result + m21.toRawBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Matrix3x2f) false
-        else m00 == other.m00 && m01 == other.m01 &&
+        if (this === other) return true
+        return other is Matrix3x2f &&
+                m00 == other.m00 && m01 == other.m01 &&
                 m10 == other.m10 && m11 == other.m11 &&
                 m20 == other.m20 && m21 == other.m21
     }
 
-    fun equals(m: Matrix3x2f, delta: Float): Boolean {
-        return if (this === m) true
-        else Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+    override fun equals1(other: Matrix, threshold: Double): Boolean {
+        return equals(other as? Matrix3x2f, threshold.toFloat())
+    }
+
+    fun equals(m: Matrix3x2f?, delta: Float): Boolean {
+        if (this === m) return true
+        return m != null &&
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
                 Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
                 Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta)
     }

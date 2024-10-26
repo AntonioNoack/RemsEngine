@@ -17,7 +17,7 @@ open class Vector4f(
     @JvmField var y: Float,
     @JvmField var z: Float,
     @JvmField var w: Float
-) : Vector() {
+) : Vector {
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(v: Vector4f) : this(v.x, v.y, v.z, v.w)
@@ -444,22 +444,22 @@ open class Vector4f(
 
     override fun hashCode(): Int {
         var result = 1
-        result = 31 * result + (w).toBits()
-        result = 31 * result + (x).toBits()
-        result = 31 * result + (y).toBits()
-        result = 31 * result + (z).toBits()
+        result = 31 * result + w.toRawBits()
+        result = 31 * result + x.toRawBits()
+        result = 31 * result + y.toRawBits()
+        result = 31 * result + z.toRawBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
+        if (other === this) return true
         return other is Vector4f && other.x == x && other.y == y && other.z == z && other.w == w
     }
 
     fun equals(v: Vector4f, delta: Float): Boolean {
-        return Runtime.equals(x, v.x, delta) &&
-                Runtime.equals(y, v.y, delta) &&
-                Runtime.equals(z, v.z, delta) &&
-                Runtime.equals(w, v.w, delta)
+        if (v === this) return true
+        return Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta) &&
+                Runtime.equals(z, v.z, delta) && Runtime.equals(w, v.w, delta)
     }
 
     fun equals(x: Float, y: Float, z: Float, w: Float): Boolean {

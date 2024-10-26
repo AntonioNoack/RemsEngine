@@ -5,7 +5,7 @@ open class Planef(
     @JvmField var dirY: Float,
     @JvmField var dirZ: Float,
     @JvmField var distance: Float
-) : Vector() {
+) : Vector {
 
     constructor() : this(0f, 0f, 0f, 0f)
 
@@ -57,10 +57,11 @@ open class Planef(
     }
 
     override fun hashCode(): Int {
-        var hash = dirX.hashCode()
-        hash = hash * 31 + dirY.hashCode()
-        hash = hash * 31 + dirZ.hashCode()
-        hash = hash * 31 + distance.hashCode()
+        var hash = 1
+        hash = hash * 31 + dirX.toRawBits()
+        hash = hash * 31 + dirY.toRawBits()
+        hash = hash * 31 + dirZ.toRawBits()
+        hash = hash * 31 + distance.toRawBits()
         return hash
     }
 

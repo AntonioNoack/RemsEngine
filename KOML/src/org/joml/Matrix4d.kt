@@ -1,6 +1,7 @@
 package org.joml
 
 import org.joml.JomlMath.addSigns
+import org.joml.JomlMath.hash
 import org.joml.Runtime.f
 import kotlin.math.acos
 import kotlin.math.atan2
@@ -12,7 +13,7 @@ import kotlin.math.sqrt
 import kotlin.math.tan
 
 @Suppress("unused")
-open class Matrix4d {
+open class Matrix4d : Matrix {
 
     var m00 = 0.0
     var m01 = 0.0
@@ -85,6 +86,9 @@ open class Matrix4d {
     constructor(col0: Vector4d, col1: Vector4d, col2: Vector4d, col3: Vector4d) {
         set(col0, col1, col2, col3)
     }
+
+    override val numCols: Int get() = 4
+    override val numRows: Int get() = 4
 
     fun assume(properties: Int): Matrix4d {
         this.flags = properties.toByte().toInt()
@@ -6548,92 +6552,49 @@ open class Matrix4d {
 
     override fun hashCode(): Int {
         var result = 1
-        var temp = (m00).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m01).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m02).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m03).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m10).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m11).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m12).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m13).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m20).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m21).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m22).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m23).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m30).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m31).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m32).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m33).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        result = 31 * result + hash(m00)
+        result = 31 * result + hash(m01)
+        result = 31 * result + hash(m02)
+        result = 31 * result + hash(m03)
+        result = 31 * result + hash(m10)
+        result = 31 * result + hash(m11)
+        result = 31 * result + hash(m12)
+        result = 31 * result + hash(m13)
+        result = 31 * result + hash(m20)
+        result = 31 * result + hash(m21)
+        result = 31 * result + hash(m22)
+        result = 31 * result + hash(m23)
+        result = 31 * result + hash(m30)
+        result = 31 * result + hash(m31)
+        result = 31 * result + hash(m32)
+        result = 31 * result + hash(m33)
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other !is Matrix4d) {
-            false
-        } else {
-            return m00 == other.m00 && m01 == other.m01 && m02 == other.m02 && m03 == other.m03 &&
-                    m10 == other.m10 && m11 == other.m11 && m12 == other.m12 && m13 == other.m13 &&
-                    m20 == other.m20 && m21 == other.m21 && m22 == other.m22 && m23 == other.m23 &&
-                    m30 == other.m30 && m31 == other.m31 && m32 == other.m32 && m33 == other.m33
-        }
+        if (this === other) return true
+        return other is Matrix4d &&
+                m00 == other.m00 && m01 == other.m01 && m02 == other.m02 && m03 == other.m03 &&
+                m10 == other.m10 && m11 == other.m11 && m12 == other.m12 && m13 == other.m13 &&
+                m20 == other.m20 && m21 == other.m21 && m22 == other.m22 && m23 == other.m23 &&
+                m30 == other.m30 && m31 == other.m31 && m32 == other.m32 && m33 == other.m33
+    }
+
+    override fun equals1(other: Matrix, threshold: Double): Boolean {
+        return equals(other as? Matrix4d, threshold)
     }
 
     fun equals(m: Matrix4d?, delta: Double): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m02, m.m02, delta)) {
-            false
-        } else if (!Runtime.equals(m03, m.m03, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else if (!Runtime.equals(m11, m.m11, delta)) {
-            false
-        } else if (!Runtime.equals(m12, m.m12, delta)) {
-            false
-        } else if (!Runtime.equals(m13, m.m13, delta)) {
-            false
-        } else if (!Runtime.equals(m20, m.m20, delta)) {
-            false
-        } else if (!Runtime.equals(m21, m.m21, delta)) {
-            false
-        } else if (!Runtime.equals(m22, m.m22, delta)) {
-            false
-        } else if (!Runtime.equals(m23, m.m23, delta)) {
-            false
-        } else if (!Runtime.equals(m30, m.m30, delta)) {
-            false
-        } else if (!Runtime.equals(m31, m.m31, delta)) {
-            false
-        } else if (!Runtime.equals(m32, m.m32, delta)) {
-            false
-        } else {
-            Runtime.equals(m33, m.m33, delta)
-        }
+        if (this === m) return true
+        return m != null &&
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m02, m.m02, delta) && Runtime.equals(m03, m.m03, delta) &&
+                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
+                Runtime.equals(m12, m.m12, delta) && Runtime.equals(m13, m.m13, delta) &&
+                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
+                Runtime.equals(m22, m.m22, delta) && Runtime.equals(m23, m.m23, delta) &&
+                Runtime.equals(m30, m.m30, delta) && Runtime.equals(m31, m.m31, delta) &&
+                Runtime.equals(m32, m.m32, delta) && Runtime.equals(m33, m.m33, delta)
     }
 
     @JvmOverloads
@@ -6642,11 +6603,11 @@ open class Matrix4d {
         val sy = viewport[3] / height
         val tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width
         val ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height
-        dst._m30(m00 * tx + m10 * ty + m30)._m31(m01 * tx + m11 * ty + m31)._m32(m02 * tx + m12 * ty + m32)._m33(
-            m03 * tx + m13 * ty + m33
-        )._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)._m12(m12 * sy)._m13(
-            m13 * sy
-        )._properties(0)
+        dst._m30(m00 * tx + m10 * ty + m30)._m31(m01 * tx + m11 * ty + m31)
+            ._m32(m02 * tx + m12 * ty + m32)._m33(m03 * tx + m13 * ty + m33)
+            ._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)
+            ._m10(m10 * sy)._m11(m11 * sy)._m12(m12 * sy)._m13(m13 * sy)
+            ._properties(0)
         return dst
     }
 
