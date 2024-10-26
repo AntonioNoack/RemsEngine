@@ -94,10 +94,6 @@ abstract class Component : PrefabSaveable() {
     open val components
         get() = entity?.components ?: listOf(this)
 
-    override fun toString(): String {
-        return "$className('$name')"
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         saveSerializableProperties(writer)

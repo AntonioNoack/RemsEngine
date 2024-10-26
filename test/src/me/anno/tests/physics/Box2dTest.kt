@@ -23,6 +23,8 @@ import kotlin.math.sin
 
 class Box2dTest {
 
+    val physics get() = Box2dPhysics
+
     @Test
     fun testGravity() {
 
@@ -47,7 +49,7 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
             expectedVelocity += gravity * dt
             expectedPosition += expectedVelocity * dt //  + (gravity * dt² * 0.5)
@@ -57,7 +59,7 @@ class Box2dTest {
     @Test
     fun testDisabledStates() {
 
-        Systems.registerSystem(Box2dPhysics)
+        Systems.registerSystem(physics)
 
         val gravity = 1f
         setupGravityTest(gravity)
@@ -102,7 +104,7 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
             if (disabledMask == 0) {
                 expectedVelocity += gravity * dt
@@ -112,12 +114,12 @@ class Box2dTest {
     }
 
     private fun setupGravityTest(gravity: Float) {
-        Systems.registerSystem(Box2dPhysics)
+        Systems.registerSystem(physics)
 
-        Box2dPhysics.gravity = Vector3d(0.0, gravity.toDouble(), 0.0)
-        Box2dPhysics.positionIterations = 1
-        Box2dPhysics.velocityIterations = 1
-        Box2dPhysics.allowedSpace.all()
+        physics.gravity = Vector3d(0.0, gravity.toDouble(), 0.0)
+        physics.positionIterations = 1
+        physics.velocityIterations = 1
+        physics.allowedSpace.all()
     }
 
     /**
@@ -158,7 +160,7 @@ class Box2dTest {
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
             expectedVelocity += (gravity + extraAcceleration) * dt
             expectedPosition += expectedVelocity * dt // + gravity * 0.5 * dt²
@@ -208,7 +210,7 @@ class Box2dTest {
         assertEquals(1f, underTest.angularVelocity)
 
         val dt = 1f / 8f
-        Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+        physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
         // sphere falls down completely
         assertEquals(Vector3d(0.0, 1.0, 0.0), sphere.position, 0.01)
@@ -216,7 +218,7 @@ class Box2dTest {
         assertEquals(1f, underTest.angularVelocity)
 
         for (i in 0 until 3) {
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
         if (floorFriction > 0f && circleFriction > 0f) {
@@ -268,7 +270,7 @@ class Box2dTest {
 
         val dt = 1f / 8f
         for (i in 0 until 8) {
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
         assertEquals(Vector2f(-0.66f, -0.066f), underTest.linearVelocity, 0.01)
@@ -314,7 +316,7 @@ class Box2dTest {
 
         val dt = 1f / 8f
         for (i in 0 until 8) {
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
             println("${sphere.position} += ${underTest.linearVelocity}/${underTest.angularVelocity}")
         }
     }
@@ -348,12 +350,12 @@ class Box2dTest {
         Systems.world = world
 
         // todo we'd expect the impulse to be transferred perfectly from s0 to s1,
-        // but instead, they stick together
+        //  but instead, they stick together
 
         val dt = 1f / 8f
         for (i in 0 until 20) {
             println("${s0.position.x} += ${b0.linearVelocity.x} | ${s1.position.x} += ${b1.linearVelocity.x}")
-            Box2dPhysics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
         assertTrue(s0.position.x > -2.5)

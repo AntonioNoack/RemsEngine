@@ -2,6 +2,8 @@ package me.anno.tests.joml
 
 import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
+import org.joml.AxisAngle4d
+import org.joml.AxisAngle4f
 import org.joml.Matrix2d
 import org.joml.Matrix2f
 import org.joml.Matrix3d
@@ -17,7 +19,10 @@ import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 import org.junit.jupiter.api.Test
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 class MatrixTransformTests {
@@ -277,6 +282,58 @@ class MatrixTransformTests {
             { m, v -> m.transformDirection(v) }, {
                 it.z = -it.z; it
             })
+    }
+
+    @Test
+    fun testAxisAngle() {
+        for (aa in getAxisAnglesF()) {
+            testMatrixTransform(Matrix3f().set(aa), ::Vector3f, { m, v -> m.transform(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4f().set(aa), ::Vector4f, { m, v -> m.transform(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4x3f().set(aa), ::Vector3f, { m, v -> m.transformPosition(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4x3f().set(aa), ::Vector3f, { m, v -> m.transformDirection(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4x3f().set(aa), ::Vector4f, { m, v -> m.transform(v) }, { aa.transform(it) })
+        }
+        for (aa in getAxisAnglesD()) {
+            testMatrixTransform(Matrix3d().set(aa), ::Vector3d, { m, v -> m.transform(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4d().set(aa), ::Vector4d, { m, v -> m.transform(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4x3d().set(aa), ::Vector3d, { m, v -> m.transformPosition(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4x3d().set(aa), ::Vector3d, { m, v -> m.transformDirection(v) }, { aa.transform(it) })
+            testMatrixTransform(Matrix4x3d().set(aa), ::Vector4d, { m, v -> m.transform(v) }, { aa.transform(it) })
+        }
+    }
+
+    // todo test all chaining operations,
+    //  so translation, rotation (quaternion/axis-angle), scale
+
+    fun getAxisAnglesF(): List<AxisAngle4f> {
+        return getAxisAnglesD().map { AxisAngle4f().set(it) }
+    }
+
+    fun getAxisAnglesD(): List<AxisAngle4d> {
+        val q = sqrt(0.5)
+        return listOf(
+            AxisAngle4d(1.0, 1.0, 0.0, 0.0),
+            AxisAngle4d(2.0, 1.0, 0.0, 0.0),
+            AxisAngle4d(-2.0, 1.0, 0.0, 0.0),
+            AxisAngle4d(1.0, 0.0, 1.0, 0.0),
+            AxisAngle4d(2.0, 0.0, 1.0, 0.0),
+            AxisAngle4d(-2.0, 0.0, 1.0, 0.0),
+            AxisAngle4d(1.0, 0.0, 0.0, 1.0),
+            AxisAngle4d(2.0, 0.0, 0.0, 1.0),
+            AxisAngle4d(-2.0, 0.0, 0.0, 1.0),
+            AxisAngle4d(1.0, -1.0, 0.0, 0.0),
+            AxisAngle4d(2.0, -1.0, 0.0, 0.0),
+            AxisAngle4d(-2.0, -1.0, 0.0, 0.0),
+            AxisAngle4d(1.0, 0.0, -1.0, 0.0),
+            AxisAngle4d(2.0, 0.0, -1.0, 0.0),
+            AxisAngle4d(-2.0, 0.0, -1.0, 0.0),
+            AxisAngle4d(1.0, 0.0, 0.0, -1.0),
+            AxisAngle4d(2.0, 0.0, 0.0, -1.0),
+            AxisAngle4d(-2.0, 0.0, 0.0, -1.0),
+            AxisAngle4d(1.0, q, q, 0.0),
+            AxisAngle4d(1.0, q, 0.0, q),
+            AxisAngle4d(1.0, 0.0, q, q),
+        )
     }
 
     fun <M : Any, V : Vector> testMatrixTransform(

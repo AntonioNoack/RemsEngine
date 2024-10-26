@@ -24,15 +24,32 @@ import org.joml.Vector2f
  * */
 object DefaultAssets {
 
+    // registry
     @InternalAPI
     val assets = HashMap<String, HashSet<FileReference>>()
 
+    // meshes
     val flatCube = Shapes.flatCube.front
     val smoothCube = Shapes.smoothCube.front
     val cylinderY11 = CylinderModel.createCylinder(32, 2, top = true, bottom = true, null, 3f, Mesh())
     val uvSphere = UVSphereModel.createUVSphere(40, 20)
     val icoSphere = IcosahedronModel.createIcosphere(3)
     val plane = PlaneModel.createPlaneXZ(2, 2, Vector2f(1f))
+
+    // textures
+    val uvCheckerTexture = res.getChild("textures/UVChecker.png")
+    val iconTexture = res.getChild("icon.png")
+
+    // materials
+    val mirrorMaterial = Material.metallic(-1, 0f)
+    val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f)
+    val glassMaterial = Material.metallic(white, 0f).apply {
+        diffuseBase.w = 0.5f
+        pipelineStage = PipelineStage.TRANSPARENT
+    }
+    val blackMaterial = Material.diffuse(0)
+    val emissiveMaterial = Material().apply { emissiveBase.set(10f) }
+    val uvDebugMaterial = Material().apply { diffuseMap = uvCheckerTexture }
 
     fun init() {}
 
@@ -53,24 +70,17 @@ object DefaultAssets {
 
     private fun registerMaterials() {
         register("materials/Default.json", "Material", defaultMaterial.ref)
-        register("materials/Mirror.json", "Material", Material.metallic(-1, 0f).ref)
-        register("materials/Golden.json", "Material", Material.metallic(0xf5ba6c, 0.2f).ref)
-        val glass = Material.metallic(white, 0f)
-        glass.diffuseBase.w = 0.5f
-        glass.pipelineStage = PipelineStage.TRANSPARENT
-        register("materials/Glass.json", "Material", glass.ref)
-        register("materials/Black.json", "Material", Material.diffuse(0).ref)
-        val emissive = Material()
-        emissive.emissiveBase.set(10f)
-        register("materials/Emissive.json", "Material", emissive.ref)
-        val uvDebug = Material()
-        uvDebug.diffuseMap = res.getChild("textures/UVChecker.png")
-        register("materials/UVDebug.json", "Material", uvDebug.ref)
+        register("materials/Mirror.json", "Material", mirrorMaterial.ref)
+        register("materials/Golden.json", "Material", goldenMaterial.ref)
+        register("materials/Glass.json", "Material", glassMaterial.ref)
+        register("materials/Black.json", "Material", blackMaterial.ref)
+        register("materials/Emissive.json", "Material", emissiveMaterial.ref)
+        register("materials/UVDebug.json", "Material", uvDebugMaterial.ref)
     }
 
     private fun registerTextures() {
-        register("textures/UVChecker.png", "Texture", res.getChild("textures/UVChecker.png"))
-        register("textures/Icon.png", "Texture", res.getChild("icon.png"))
+        register("textures/UVChecker.png", "Texture", uvCheckerTexture)
+        register("textures/Icon.png", "Texture", iconTexture)
     }
 
     fun register(name: String, type: String, file: FileReference) {

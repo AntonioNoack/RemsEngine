@@ -567,21 +567,21 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     override fun toString(): String {
-        return toString(0).toString().trim()
+        return toString(StringBuilder(), 0).toString().trim()
     }
 
-    fun toString(depth: Int): StringBuilder {
-        val text = StringBuilder()
-        for (i in 0 until depth) text.append('\t')
-        text.append("Entity('$name',$sizeOfHierarchy):\n")
+    fun toString(result: StringBuilder, depth: Int): StringBuilder {
+        for (i in 0 until depth) result.append('\t')
+        result.append("Entity('").append(name).append("',").append(sizeOfHierarchy).append("):\n")
         val nextDepth = depth + 1
         forAllChildren(true) { child ->
-            text.append(child.toString(nextDepth))
+            child.toString(result, nextDepth)
         }
         forAllComponents(true) { component ->
-            text.append(component.toString(nextDepth))
+            for (i in 0 until nextDepth) result.append('\t')
+            result.append(component.className).append("('").append(component.name).append("')\n")
         }
-        return text
+        return result
     }
 
     fun add(child: Entity) = addEntity(child)

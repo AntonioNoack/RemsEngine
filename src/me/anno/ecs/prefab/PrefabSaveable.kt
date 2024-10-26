@@ -134,6 +134,10 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
     }
 
+    fun toShortString(): String {
+        return "$className('$name')"
+    }
+
     fun getDefaultValue(name: String): Any? {
         val original = getOriginalOrDefault()
         if (original.className != className) {

@@ -3,6 +3,8 @@ package me.anno.ecs.components.mesh.shapes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.mix
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.PI
@@ -26,6 +28,9 @@ object CylinderModel {
         middleTopBottom: List<FileReference>?, uScale: Float, mesh: Mesh,
         y0: Float, y1: Float, radius: Float,
     ): Mesh {
+
+        assertTrue(us >= 3)
+        assertTrue(vs >= 1)
 
         val quadCount = us * (vs - 1)
         val triangleCount = quadCount * 2 + (us - 2) * (top.toInt() + bottom.toInt())

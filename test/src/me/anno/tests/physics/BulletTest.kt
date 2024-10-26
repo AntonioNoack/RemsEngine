@@ -7,11 +7,22 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityUtils.setContains
 import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.collider.CapsuleCollider
+import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.collider.ConeCollider
+import me.anno.ecs.components.collider.ConvexCollider
+import me.anno.ecs.components.collider.CylinderCollider
+import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.Systems
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.Level
@@ -25,7 +36,7 @@ class BulletTest {
 
     object BulletPhysicsImpl : BulletPhysics()
 
-    val physics = BulletPhysicsImpl
+    val physics get() = BulletPhysicsImpl
 
     init {
         LogManager.define("BulletPhysics", Level.DEBUG)
@@ -347,6 +358,7 @@ class BulletTest {
 
     // todo test interaction between all shapes
     //  - no sliding gravity; same mass, crash on one shall stop it and give the other equal velocity
+
     @Test
     fun testTransferringImpulse() {
 
@@ -354,33 +366,150 @@ class BulletTest {
 
         val world = Entity()
 
-        fun createSphere(x: Double, dx: Double): Pair<Entity, Rigidbody> {
+        fun createShapes(): List<Collider> {
+            return listOf(
+                // todo why do only these support this crash-scenario??
+                BoxCollider(),
+                SphereCollider(),
+            )
+        }
+
+        fun createShape(): Pair<Entity, Rigidbody> {
             val body = Rigidbody()
-            body.linearVelocity.x = dx
-            val sphere = Entity()
-                .setPosition(x, 1.0, 0.0)
+            val entity = Entity()
                 .add(body.apply {
                     mass = 1.0
                     friction = 0.0
+                    restitution = 1.0
                 })
                 .add(SphereCollider())
-            world.add(sphere)
-            return (sphere to body)
+            world.add(entity)
+            return (entity to body)
         }
 
-        val (s0, b0) = createSphere(-2.5, 1.0)
-        val (s1, b1) = createSphere(0.0, 0.0)
+        fun resetShape(entity: Entity, body: Rigidbody, x: Double, dx: Double, collider: Collider) {
+            body.linearVelocity = Vector3d(dx, 0.0, 0.0)
+            entity.setPosition(x, 0.0, 0.0)
+            entity.remove(entity.components[1] as Collider)
+            entity.add(collider)
+        }
+
+        val (s0, b0) = createShape()
+        val (s1, b1) = createShape()
 
         Systems.world = world
 
-        val dt = 1f / 8f
-        for (i in 0 until 20) {
-            println("${s0.position.x} += ${b0.linearVelocity.x} | ${s1.position.x} += ${b1.linearVelocity.x}")
-            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+        for (shape1 in createShapes()) {
+
+            val shape2 = shape1.clone() as Collider
+            assertEquals(shape1::class, shape2::class)
+            assertNotSame(shape1, shape2)
+
+            resetShape(s0, b0, -2.5, 1.0, shape1)
+            resetShape(s1, b1, 0.0, 0.0, shape2)
+
+            println("Checking $shape1 vs $shape2")
+
+            val dt = 1f / 8f
+            for (i in 0 until 10) {
+                physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+            }
+
+            // check that all impulse has been transferred perfectly
+            assertEquals(Vector3d(-2.0, 0.0, 0.0), s0.position, 0.1)
+            assertEquals(Vector3d(0.0), b0.linearVelocity, 0.05)
+            assertEquals(Vector3d(1.0, 0.0, 0.0), b1.linearVelocity, 0.05)
         }
     }
 
-    // what happens when one collider has a !=0-density, and another has a =0-density within the same rigidbody?
-    // iff any shape has mass, the body is dynamic
+    @Test
+    fun testInteraction() {
 
+        fun createShapes(): List<Collider> {
+            return listOf(
+                BoxCollider(),
+                SphereCollider(),
+                CapsuleCollider().apply { name = "x"; axis = 0 },
+                CapsuleCollider().apply { name = "y"; axis = 1 },
+                CapsuleCollider().apply { name = "z"; axis = 2 },
+                CylinderCollider().apply { name = "x"; axis = 0 },
+                CylinderCollider().apply { name = "y"; axis = 1 },
+                CylinderCollider().apply { name = "z"; axis = 2 },
+                ConeCollider().apply { name = "x"; axis = 0 },
+                // todo y and z are incompatible??
+                ConeCollider().apply { name = "y"; axis = 1 },
+                // ConeCollider().apply { name = "z"; axis = 2 },
+                ConvexCollider().apply {
+                    points = floatArrayOf(
+                        -1f, +1f, +1f,
+                        +1f, -1f, +1f,
+                        +1f, +1f, -1f,
+                        +1f, -1f, -1f,
+                        -1f, +1f, -1f,
+                        -1f, -1f, +1f
+                    )
+                },
+                MeshCollider(flatCube),
+                MeshCollider(IcosahedronModel.createIcosphere(0)),
+            )
+        }
+
+        var good = 0
+        var failed = 0
+        for (shape1 in createShapes()) {
+            for (shape2 in createShapes()) {
+
+                setupGravityTest(0f)
+
+                val world = Entity()
+
+                fun createShape(x: Double, dx: Double, collider: Collider): Pair<Entity, Rigidbody> {
+                    val body = Rigidbody()
+                    body.linearVelocity = Vector3d(dx, 0.0, 0.0)
+                    val entity = Entity()
+                        .setPosition(x, 0.0, 0.0)
+                        .setRotation(0.0, 0.0, 0.0)
+                        .add(body.apply {
+                            mass = 1.0
+                            friction = 0.0
+                            restitution = 1.0
+                        })
+                        .add(collider)
+                    world.add(entity)
+                    return (entity to body)
+                }
+
+                val (s0, b0) = createShape(-2.5, 1.0, shape1)
+                val (s1, b1) = createShape(0.0, 0.0, shape2)
+
+                Systems.world = world
+
+                // println("Checking ${shape1.toShortString()} vs ${shape2.toShortString()}")
+
+                val dt = 1f / 8f
+                for (i in 0 until 10) {
+                    physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+                }
+
+                try {
+                    // check that all impulse has been transferred perfectly
+                    assertNotEquals(Vector3d(0.0), s1.position)
+                    assertNotEquals(Vector3d(0.0), b1.linearVelocity)
+
+                    assertNotEquals(Vector3d(-2.5, 0.0, 0.0), s0.position)
+                    assertNotEquals(Vector3d(1.0, 0.0, 0.0), b0.linearVelocity)
+
+                    // check impulse sum
+                    assertEquals(Vector3d(1.0, 0.0, 0.0), b0.linearVelocity + b1.linearVelocity, 0.01)
+                    good++
+                } catch (e: Exception) {
+                    LOGGER.warn("Failed ${shape1.toShortString()} vs ${shape2.toShortString()}")
+                    failed++
+                }
+            }
+        }
+
+        println("Good: $good/${good + failed}")
+        assertEquals(0, failed)
+    }
 }

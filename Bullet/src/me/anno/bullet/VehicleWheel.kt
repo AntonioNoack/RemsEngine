@@ -49,14 +49,14 @@ class VehicleWheel : Component(), OnDrawGUI {
         }
 
     @SerializedProperty
-    var suspensionCompression = 0.83
+    var suspensionDampingCompression = 0.83
         set(value) {
             field = value
             bulletInstance?.wheelDampingCompression = value
         }
 
     @SerializedProperty
-    var suspensionDamping = 0.88
+    var suspensionDampingRelaxation = 0.88
         set(value) {
             field = value
             bulletInstance?.wheelDampingRelaxation = value
@@ -140,9 +140,9 @@ class VehicleWheel : Component(), OnDrawGUI {
         val wheelAxle = Vector3d(-transform.m00, -transform.m01, -transform.m02)
         val tuning = VehicleTuning()
         tuning.frictionSlip = tuning.frictionSlip
-        tuning.suspensionDamping = suspensionDamping
+        tuning.suspensionDamping = suspensionDampingRelaxation
         tuning.suspensionStiffness = suspensionStiffness
-        tuning.suspensionCompression = suspensionCompression
+        tuning.suspensionCompression = suspensionDampingCompression
         tuning.maxSuspensionTravelCm = maxSuspensionTravelCm
         val wheel = vehicle.addWheel(
             position, wheelDirection, wheelAxle,
@@ -164,10 +164,10 @@ class VehicleWheel : Component(), OnDrawGUI {
         dst.engineForce = engineForce
         dst.steering = steering
         dst.rollInfluence = rollInfluence
-        dst.suspensionDamping = suspensionDamping
+        dst.suspensionDampingRelaxation = suspensionDampingRelaxation
         dst.suspensionStiffness = suspensionStiffness
         dst.suspensionRestLength = suspensionRestLength
-        dst.suspensionCompression = suspensionCompression
+        dst.suspensionDampingCompression = suspensionDampingCompression
         dst.maxSuspensionTravelCm = maxSuspensionTravelCm
         dst.steeringMultiplier = steeringMultiplier
         dst.engineForceMultiplier = engineForceMultiplier

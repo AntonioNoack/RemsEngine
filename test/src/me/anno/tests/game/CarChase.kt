@@ -155,7 +155,7 @@ fun createUI(): Panel {
             val wheel = VehicleWheel()
             wheel.suspensionRestLength = 0.1
             wheel.suspensionStiffness = 50.0
-            wheel.suspensionDamping = 0.95
+            wheel.suspensionDampingRelaxation = 0.95
             wheel.maxSuspensionTravelCm = 20.0
             wheel.brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
             wheelObj.add(wheel)

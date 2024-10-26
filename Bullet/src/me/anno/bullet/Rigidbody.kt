@@ -131,7 +131,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.setDamping(linearDamping, value)
         }
 
-    @Docs("How bouncy a body is: 1 = perfectly bouncy, 0 = all energy absorbed (knead)")
+    @Docs("How elastic a body is, 1 = fully elastic, 0 = all energy absorbed (knead)")
     @Range(0.0, 1.0)
     var restitution = 0.1
         set(value) {
