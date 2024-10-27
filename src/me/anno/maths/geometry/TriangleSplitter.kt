@@ -1,15 +1,13 @@
 package me.anno.maths.geometry
 
 import me.anno.maths.Maths.clamp
+import me.anno.utils.types.Booleans.toInt
+import kotlin.math.sign
 
 object TriangleSplitter {
 
     private fun safeSplit(d1: Float, d2: Float): Float {
         return clamp(d1 / (d1 - d2))
-    }
-
-    private fun sign(a: Float): Boolean {
-        return a >= 0f
     }
 
     /**
@@ -22,9 +20,16 @@ object TriangleSplitter {
         d1: Float, d2: Float, d3: Float // plane.dot(tri.a/b/c.position)
     ): List<Point> {
 
-        if (sign(d1) == sign(d2)) {
+        val s1 = sign(d1)
+        val s2 = sign(d2)
+        val s3 = sign(d3)
+
+        val isNull = (s1 == 0f).toInt() + (s2 == 0f).toInt() + (s3 == 0f).toInt()
+        if (isNull >= 2) return listOf(v1, v2, v3)
+
+        if (s1 == s2 || (s1 == 0f || s2 == 0f)) {
             // if all signs are the same, don't split
-            if (sign(d1) == sign(d3)) {
+            if (s1 == s3) {
                 return listOf(v1, v2, v3)
             }
             // AB does not cross the plane
@@ -35,36 +40,36 @@ object TriangleSplitter {
         // intersection point
         val ab = v1.split(v2, safeSplit(d1, d2))
 
-        return if (!sign(d1)) {
-            if (!sign(d3)) {
+        return if (s1 > 0f) {
+            if (s3 > 0f) {
                 val bc = v2.split(v3, safeSplit(d2, d3))
                 listOf(
                     v2, bc, ab,
-                    bc, v3, v1,
-                    ab, bc, v1
+                    v1, ab, bc,
+                    v3, v1, bc
                 )
             } else {
-                val ac = v1.split(v3, safeSplit(d1, d3))
-                listOf(
-                    v1, ab, ac,
-                    ab, v2, v3,
-                    ac, ab, v3
-                )
-            }
-        } else {
-            if (!sign(d3)) {
                 val ac = v1.split(v3, safeSplit(d1, d3))
                 listOf(
                     v1, ab, ac,
                     ac, ab, v2,
                     v2, v3, ac
                 )
+            }
+        } else {
+            if (s3 > 0f) {
+                val ac = v1.split(v3, safeSplit(d1, d3))
+                listOf(
+                    v1, ab, ac,
+                    ab, v2, v3,
+                    ac, ab, v3
+                )
             } else {
                 val bc = v2.split(v3, safeSplit(d2, d3))
                 listOf(
                     v2, bc, ab,
-                    v1, ab, bc,
-                    v3, v1, bc
+                    bc, v3, v1,
+                    ab, bc, v1
                 )
             }
         }

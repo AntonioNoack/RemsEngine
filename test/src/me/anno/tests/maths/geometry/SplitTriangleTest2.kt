@@ -2,6 +2,7 @@ package me.anno.tests.maths.geometry
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.TransformMesh.transformMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -11,24 +12,19 @@ import me.anno.ui.UIColors
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.white
 import me.anno.utils.structures.arrays.IntArrayList
+import org.joml.Matrix4x3d
 import org.joml.Vector4f
 
 /**
- * split a sphere mesh by an SDF shape;
+ * split a sphere mesh by y=0;
  *
  * e.g., could be used for cutting vegetables
  * */
 fun main() {
 
-    val sdfShape = SDFPlane()
-
     val mesh = UVSphereModel.createUVSphere(20, 10)
-    val pos = Vector4f()
-    val seeds = IntArrayList(0)
-    val split = MeshSplitter.split(mesh) { v ->
-        pos.set(v, 0f)
-        sdfShape.computeSDF(pos, seeds)
-    }
+    transformMesh(mesh, Matrix4x3d().rotateX(1.0))
+    val split = MeshSplitter.split(mesh) { v -> v.y }
 
     val scene = Entity("Scene")
         .add(

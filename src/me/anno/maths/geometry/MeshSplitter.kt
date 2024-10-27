@@ -14,9 +14,11 @@ import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.toDegrees
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.atan2
 
 /**
  * can split a Mesh on a plane; will return four meshes (maybe only one, if no cut was needed),
@@ -123,7 +125,7 @@ object MeshSplitter {
         fun getVertex(i: Int): SplittableVertex {
             val i3 = i * 3
             val posI = Vector3f(positions, i3)
-            val tangents  = mesh.tangents
+            val tangents = mesh.tangents
             val uvs = mesh.uvs
             val colors = mesh.color0
             return SplittableVertex(
@@ -145,11 +147,13 @@ object MeshSplitter {
 
         val rings = HashMap<Vector3f, SplittableVertex>()
         fun addLine(a: SplittableVertex, b: SplittableVertex) {
-            rings[a.position] = b
+            if (a.position != b.position) {
+                rings[a.position] = b
+            }
         }
 
         fun isLine(a: SplittableVertex): Boolean {
-            return a.dist > -1e-3f
+            return a.dist > -0.001f
         }
 
         fun addTriangle(a: SplittableVertex, b: SplittableVertex, c: SplittableVertex) {
