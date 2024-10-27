@@ -60,4 +60,52 @@ class AxisAngleTest {
         assertEquals(Matrix4d().rotateY(1.0), Matrix4d().rotate(AxisAngle4d(1.0, 0.0, 1.0, 0.0)), 1e-15)
         assertEquals(Matrix4d().rotateZ(1.0), Matrix4d().rotate(AxisAngle4d(1.0, 0.0, 0.0, 1.0)), 1e-15)
     }
+
+    @Test
+    fun testFromM3x3fAndBack() {
+        val original = Matrix3f().rotateYXZ(1f, 2f, 3f)
+        val tested = AxisAngle4f().set(original)
+        val cloned = Matrix3f().rotate(tested)
+        assertEquals(original, cloned, 1e-6)
+    }
+
+    @Test
+    fun testFromM4x3fAndBack() {
+        val original = Matrix4x3f().rotateYXZ(1f, 2f, 3f)
+        val tested = AxisAngle4f().set(original)
+        val cloned = Matrix4x3f().rotate(tested)
+        assertEquals(original, cloned, 1e-6)
+    }
+
+    @Test
+    fun testFromM4x4fAndBack() {
+        val original = Matrix4f().rotateYXZ(1f, 2f, 3f)
+        val tested = AxisAngle4f().set(original)
+        val cloned = Matrix4f().rotate(tested)
+        assertEquals(original, cloned, 1e-6)
+    }
+
+    @Test
+    fun testFromM3x3dAndBack() {
+        val original = Matrix3d().rotateYXZ(1.0, 2.0, 3.0)
+        val tested = AxisAngle4d().set(original)
+        val cloned = Matrix3d().rotate(tested)
+        assertEquals(original, cloned, 1e-15)
+    }
+
+    @Test
+    fun testFromM4x3dAndBack() {
+        val original = Matrix4x3d().rotateYXZ(1.0, 2.0, 3.0)
+        val tested = AxisAngle4d().set(original)
+        val cloned = Matrix4x3d().rotate(tested)
+        assertEquals(original, cloned, 1e-15)
+    }
+
+    @Test
+    fun testFromM4x4dAndBack() {
+        val original = Matrix4d().rotateYXZ(1.0, 2.0, 3.0)
+        val tested = AxisAngle4d().set(original)
+        val cloned = Matrix4d().rotate(tested)
+        assertEquals(original, cloned, 1e-15)
+    }
 }

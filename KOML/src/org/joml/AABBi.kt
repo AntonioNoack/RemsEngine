@@ -235,13 +235,10 @@ class AABBi(
         return dx * dx + dy * dy + dz * dz
     }
 
-    fun addMargin(r: Int) {
-        minX -= r
-        minY -= r
-        minZ -= r
-        maxX += r
-        maxY += r
-        maxZ += r
+    fun addMargin(r: Int, dst: AABBi = this): AABBi {
+        return dst
+            .setMin(minX - r, minY - r, minZ - r)
+            .setMax(maxX + r, maxY + r, maxZ + r)
     }
 
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {

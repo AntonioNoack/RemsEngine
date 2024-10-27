@@ -261,16 +261,10 @@ open class Quaternionf(
     }
 
     private fun setFromUnnormalized(
-        m00: Float,
-        m01: Float,
-        m02: Float,
-        m10: Float,
-        m11: Float,
-        m12: Float,
-        m20: Float,
-        m21: Float,
-        m22: Float
-    ) {
+        m00: Float, m01: Float, m02: Float,
+        m10: Float, m11: Float, m12: Float,
+        m20: Float, m21: Float, m22: Float
+    ): Quaternionf {
         val lenX = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val lenY = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val lenZ = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
@@ -283,20 +277,14 @@ open class Quaternionf(
         val nm20 = m20 * lenZ
         val nm21 = m21 * lenZ
         val nm22 = m22 * lenZ
-        this.setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
+        return setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     private fun setFromNormalized(
-        m00: Float,
-        m01: Float,
-        m02: Float,
-        m10: Float,
-        m11: Float,
-        m12: Float,
-        m20: Float,
-        m21: Float,
-        m22: Float
-    ) {
+        m00: Float, m01: Float, m02: Float,
+        m10: Float, m11: Float, m12: Float,
+        m20: Float, m21: Float, m22: Float
+    ): Quaternionf {
         val tr = m00 + m11 + m22
         var t: Float
         if (tr >= 0f) {
@@ -328,140 +316,83 @@ open class Quaternionf(
             y = (m21 + m12) * t
             w = (m01 - m10) * t
         }
+        return this
     }
 
     private fun setFromUnnormalized(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double
-    ) {
-        val lenX = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
-        val lenY = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
-        val lenZ = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        val nm00 = m00 * lenX
-        val nm01 = m01 * lenX
-        val nm02 = m02 * lenX
-        val nm10 = m10 * lenY
-        val nm11 = m11 * lenY
-        val nm12 = m12 * lenY
-        val nm20 = m20 * lenZ
-        val nm21 = m21 * lenZ
-        val nm22 = m22 * lenZ
-        this.setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double
+    ): Quaternionf {
+        return setFromUnnormalized(
+            m00.toFloat(), m01.toFloat(), m02.toFloat(),
+            m10.toFloat(), m11.toFloat(), m12.toFloat(),
+            m20.toFloat(), m21.toFloat(), m22.toFloat()
+        )
     }
 
     private fun setFromNormalized(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double
-    ) {
-        val tr = m00 + m11 + m22
-        var t: Double
-        if (tr >= 0.0) {
-            t = sqrt(tr + 1.0)
-            w = (t * 0.5).toFloat()
-            t = 0.5 / t
-            x = ((m12 - m21) * t).toFloat()
-            y = ((m20 - m02) * t).toFloat()
-            z = ((m01 - m10) * t).toFloat()
-        } else if (m00 >= m11 && m00 >= m22) {
-            t = sqrt(m00 - (m11 + m22) + 1.0)
-            x = (t * 0.5).toFloat()
-            t = 0.5 / t
-            y = ((m10 + m01) * t).toFloat()
-            z = ((m02 + m20) * t).toFloat()
-            w = ((m12 - m21) * t).toFloat()
-        } else if (m11 > m22) {
-            t = sqrt(m11 - (m22 + m00) + 1.0)
-            y = (t * 0.5).toFloat()
-            t = 0.5 / t
-            z = ((m21 + m12) * t).toFloat()
-            x = ((m10 + m01) * t).toFloat()
-            w = ((m20 - m02) * t).toFloat()
-        } else {
-            t = sqrt(m22 - (m00 + m11) + 1.0)
-            z = (t * 0.5).toFloat()
-            t = 0.5 / t
-            x = ((m02 + m20) * t).toFloat()
-            y = ((m21 + m12) * t).toFloat()
-            w = ((m01 - m10) * t).toFloat()
-        }
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double
+    ): Quaternionf {
+        return setFromNormalized(
+            m00.toFloat(), m01.toFloat(), m02.toFloat(),
+            m10.toFloat(), m11.toFloat(), m12.toFloat(),
+            m20.toFloat(), m21.toFloat(), m22.toFloat()
+        )
     }
 
     fun setFromUnnormalized(mat: Matrix4f): Quaternionf {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromUnnormalized(mat: Matrix4x3f): Quaternionf {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromUnnormalized(mat: Matrix4x3d): Quaternionf {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix4f): Quaternionf {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix4x3f): Quaternionf {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix4x3d): Quaternionf {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromUnnormalized(mat: Matrix4d): Quaternionf {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix4d): Quaternionf {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromUnnormalized(mat: Matrix3f): Quaternionf {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix3f): Quaternionf {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromUnnormalized(mat: Matrix3d): Quaternionf {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix3d): Quaternionf {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun fromAxisAngleRad(axis: Vector3f, angle: Float): Quaternionf {
-        return this.fromAxisAngleRad(axis.x, axis.y, axis.z, angle)
+        return fromAxisAngleRad(axis.x, axis.y, axis.z, angle)
     }
 
     fun fromAxisAngleRad(axisX: Float, axisY: Float, axisZ: Float, angle: Float): Quaternionf {
@@ -477,12 +408,7 @@ open class Quaternionf(
 
     @JvmOverloads
     fun mul(q: Quaternionf, dst: Quaternionf = this): Quaternionf {
-        return dst.set(
-            w * q.x + x * q.w + y * q.z - z * q.y,
-            w * q.y - x * q.z + y * q.w + z * q.x,
-            w * q.z + x * q.y - y * q.x + z * q.w,
-            w * q.w - x * q.x - y * q.y - z * q.z
-        )
+        return mul(q.x, q.y, q.z, q.w, dst)
     }
 
     @JvmOverloads
@@ -497,12 +423,7 @@ open class Quaternionf(
 
     @JvmOverloads
     fun premul(q: Quaternionf, dst: Quaternionf = this): Quaternionf {
-        return dst.set(
-            w * q.x + x * q.w + y * q.z - z * q.y,
-            w * q.y - x * q.z + y * q.w + z * q.x,
-            w * q.z + x * q.y - y * q.x + z * q.w,
-            w * q.w - x * q.x - y * q.y - z * q.z
-        )
+        return premul(q.x, q.y, q.z, q.w, dst)
     }
 
     @JvmOverloads
@@ -692,11 +613,11 @@ open class Quaternionf(
     }
 
     fun transform(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transform(vec.x, vec.y, vec.z, dst)
+        return transform(vec.x, vec.y, vec.z, dst)
     }
 
     fun transformInverse(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transformInverse(vec.x, vec.y, vec.z, dst)
+        return transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
     fun transform(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
@@ -743,19 +664,19 @@ open class Quaternionf(
     }
 
     fun transformUnit(vec: Vector3f): Vector3f {
-        return this.transformUnit(vec.x, vec.y, vec.z, vec)
+        return transformUnit(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformInverseUnit(vec: Vector3f): Vector3f {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, vec)
+        return transformInverseUnit(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformUnit(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transformUnit(vec.x, vec.y, vec.z, dst)
+        return transformUnit(vec.x, vec.y, vec.z, dst)
     }
 
     fun transformInverseUnit(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
+        return transformInverseUnit(vec.x, vec.y, vec.z, dst)
     }
 
     fun transformUnit(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {

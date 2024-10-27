@@ -75,23 +75,27 @@ class AABBd(
         else (if (dim == 1) maxY else maxZ)
 
     fun union(other: AABBd, dst: AABBd = this): AABBd {
-        dst.minX = min(minX, other.minX)
-        dst.minY = min(minY, other.minY)
-        dst.minZ = min(minZ, other.minZ)
-        dst.maxX = max(maxX, other.maxX)
-        dst.maxY = max(maxY, other.maxY)
-        dst.maxZ = max(maxZ, other.maxZ)
-        return this
+        return dst.setMin(
+            min(minX, other.minX),
+            min(minY, other.minY),
+            min(minZ, other.minZ)
+        ).setMax(
+            max(maxX, other.maxX),
+            max(maxY, other.maxY),
+            max(maxZ, other.maxZ)
+        )
     }
 
     fun union(other: AABBf, dst: AABBd = this): AABBd {
-        dst.minX = min(minX, other.minX.toDouble())
-        dst.minY = min(minY, other.minY.toDouble())
-        dst.minZ = min(minZ, other.minZ.toDouble())
-        dst.maxX = max(maxX, other.maxX.toDouble())
-        dst.maxY = max(maxY, other.maxY.toDouble())
-        dst.maxZ = max(maxZ, other.maxZ.toDouble())
-        return this
+        return dst.setMin(
+            min(minX, other.minX.toDouble()),
+            min(minY, other.minY.toDouble()),
+            min(minZ, other.minZ.toDouble())
+        ).setMax(
+            max(maxX, other.maxX.toDouble()),
+            max(maxY, other.maxY.toDouble()),
+            max(maxZ, other.maxZ.toDouble())
+        )
     }
 
     fun union(other: Vector3d, dst: AABBd = this): AABBd =
@@ -104,13 +108,9 @@ class AABBd(
         union(x.toDouble(), y.toDouble(), z.toDouble(), dst)
 
     fun union(x: Double, y: Double, z: Double, dst: AABBd = this): AABBd {
-        dst.minX = min(minX, x)
-        dst.minY = min(minY, y)
-        dst.minZ = min(minZ, z)
-        dst.maxX = max(maxX, x)
-        dst.maxY = max(maxY, y)
-        dst.maxZ = max(maxZ, z)
-        return this
+        return dst
+            .setMin(min(minX, x), min(minY, y), min(minZ, z))
+            .setMax(max(maxX, x), max(maxY, y), max(maxZ, z))
     }
 
     fun testPoint(v: Vector3d): Boolean {
@@ -138,12 +138,12 @@ class AABBd(
         val dx = maxX - minX
         val dy = maxY - minY
         val dz = maxZ - minZ
-        var minx = Double.POSITIVE_INFINITY
-        var miny = Double.POSITIVE_INFINITY
-        var minz = Double.POSITIVE_INFINITY
-        var maxx = Double.NEGATIVE_INFINITY
-        var maxy = Double.NEGATIVE_INFINITY
-        var maxz = Double.NEGATIVE_INFINITY
+        var minX = Double.POSITIVE_INFINITY
+        var minY = Double.POSITIVE_INFINITY
+        var minZ = Double.POSITIVE_INFINITY
+        var maxX = Double.NEGATIVE_INFINITY
+        var maxY = Double.NEGATIVE_INFINITY
+        var maxZ = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
             val x = minX + (i and 1).toDouble() * dx
             val y = minY + (i shr 1 and 1).toDouble() * dy
@@ -151,19 +151,19 @@ class AABBd(
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
-            minx = min(tx, minx)
-            miny = min(ty, miny)
-            minz = min(tz, minz)
-            maxx = max(tx, maxx)
-            maxy = max(ty, maxy)
-            maxz = max(tz, maxz)
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
         }
-        dst.minX = minx
-        dst.minY = miny
-        dst.minZ = minz
-        dst.maxX = maxx
-        dst.maxY = maxy
-        dst.maxZ = maxz
+        dst.minX = minX
+        dst.minY = minY
+        dst.minZ = minZ
+        dst.maxX = maxX
+        dst.maxY = maxY
+        dst.maxZ = maxZ
         return dst
     }
 
@@ -259,12 +259,12 @@ class AABBd(
         val dx: Double = this.maxX - this.minX
         val dy: Double = this.maxY - this.minY
         val dz: Double = this.maxZ - this.minZ
-        var minx = Double.POSITIVE_INFINITY
-        var miny = Double.POSITIVE_INFINITY
-        var minz = Double.POSITIVE_INFINITY
-        var maxx = Double.NEGATIVE_INFINITY
-        var maxy = Double.NEGATIVE_INFINITY
-        var maxz = Double.NEGATIVE_INFINITY
+        var minX = Double.POSITIVE_INFINITY
+        var minY = Double.POSITIVE_INFINITY
+        var minZ = Double.POSITIVE_INFINITY
+        var maxX = Double.NEGATIVE_INFINITY
+        var maxY = Double.NEGATIVE_INFINITY
+        var maxZ = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
             val x = this.minX + (i and 1).toDouble() * dx
             val y = this.minY + ((i shr 1) and 1).toDouble() * dy
@@ -272,19 +272,19 @@ class AABBd(
             val tx = trans.m00 * x + trans.m10 * y + trans.m20 * z + trans.m30
             val ty = trans.m01 * x + trans.m11 * y + trans.m21 * z + trans.m31
             val tz = trans.m02 * x + trans.m12 * y + trans.m22 * z + trans.m32
-            minx = min(tx, minx)
-            miny = min(ty, miny)
-            minz = min(tz, minz)
-            maxx = max(tx, maxx)
-            maxy = max(ty, maxy)
-            maxz = max(tz, maxz)
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
         }
-        dst.minX = minx
-        dst.minY = miny
-        dst.minZ = minz
-        dst.maxX = maxx
-        dst.maxY = maxy
-        dst.maxZ = maxz
+        dst.minX = minX
+        dst.minY = minY
+        dst.minZ = minZ
+        dst.maxX = maxX
+        dst.maxY = maxY
+        dst.maxZ = maxZ
         return dst
     }
 
@@ -296,12 +296,12 @@ class AABBd(
         val dx = this.maxX - this.minX
         val dy = this.maxY - this.minY
         val dz = this.maxZ - this.minZ
-        var minx = base.minX
-        var miny = base.minY
-        var minz = base.minZ
-        var maxx = base.maxX
-        var maxy = base.maxY
-        var maxz = base.maxZ
+        var minX = base.minX
+        var minY = base.minY
+        var minZ = base.minZ
+        var maxX = base.maxX
+        var maxY = base.maxY
+        var maxZ = base.maxZ
         for (i in 0..7) {
             val x = this.minX + (i and 1).toDouble() * dx
             val y = this.minY + (i shr 1 and 1).toDouble() * dy
@@ -309,19 +309,19 @@ class AABBd(
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
-            minx = min(tx, minx)
-            miny = min(ty, miny)
-            minz = min(tz, minz)
-            maxx = max(tx, maxx)
-            maxy = max(ty, maxy)
-            maxz = max(tz, maxz)
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
         }
-        dst.minX = minx
-        dst.minY = miny
-        dst.minZ = minz
-        dst.maxX = maxx
-        dst.maxY = maxy
-        dst.maxZ = maxz
+        dst.minX = minX
+        dst.minY = minY
+        dst.minZ = minZ
+        dst.maxX = maxX
+        dst.maxY = maxY
+        dst.maxZ = maxZ
         return dst
     }
 
@@ -336,12 +336,12 @@ class AABBd(
         val dx = this.maxX - mx
         val dy = this.maxY - my
         val dz = this.maxZ - mz
-        var minx = base.minX.toDouble()
-        var miny = base.minY.toDouble()
-        var minz = base.minZ.toDouble()
-        var maxx = base.maxX.toDouble()
-        var maxy = base.maxY.toDouble()
-        var maxz = base.maxZ.toDouble()
+        var minX = base.minX.toDouble()
+        var minY = base.minY.toDouble()
+        var minZ = base.minZ.toDouble()
+        var maxX = base.maxX.toDouble()
+        var maxY = base.maxY.toDouble()
+        var maxZ = base.maxZ.toDouble()
         for (i in 0..7) {
             val x = mx + (i and 1).toDouble() * dx
             val y = my + ((i shr 1) and 1).toDouble() * dy
@@ -349,19 +349,19 @@ class AABBd(
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
-            minx = min(tx, minx)
-            miny = min(ty, miny)
-            minz = min(tz, minz)
-            maxx = max(tx, maxx)
-            maxy = max(ty, maxy)
-            maxz = max(tz, maxz)
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
         }
-        dst.minX = minx
-        dst.minY = miny
-        dst.minZ = minz
-        dst.maxX = maxx
-        dst.maxY = maxy
-        dst.maxZ = maxz
+        dst.minX = minX
+        dst.minY = minY
+        dst.minZ = minZ
+        dst.maxX = maxX
+        dst.maxY = maxY
+        dst.maxZ = maxZ
         return dst
     }
 

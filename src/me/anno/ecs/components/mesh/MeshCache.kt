@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.TransformMesh.transformMesh
 import me.anno.ecs.components.mesh.material.Materials.getMaterialRef
 import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabByFileCache
-import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.Recursion

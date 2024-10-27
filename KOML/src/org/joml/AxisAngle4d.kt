@@ -66,28 +66,35 @@ class AxisAngle4d(
 
     fun set(q: Quaterniond): AxisAngle4d = setByQuaternion(q.x, q.y, q.z, q.w)
 
-    fun set(m: Matrix3f): AxisAngle4d {
-        var nm00 = m.m00.toDouble()
-        var nm01 = m.m01.toDouble()
-        var nm02 = m.m02.toDouble()
-        var nm10 = m.m10.toDouble()
-        var nm11 = m.m11.toDouble()
-        var nm12 = m.m12.toDouble()
-        var nm20 = m.m20.toDouble()
-        var nm21 = m.m21.toDouble()
-        var nm22 = m.m22.toDouble()
-        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
-        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
-        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
-        nm00 *= lenX
-        nm01 *= lenX
-        nm02 *= lenX
-        nm10 *= lenY
-        nm11 *= lenY
-        nm12 *= lenY
-        nm20 *= lenZ
-        nm21 *= lenZ
-        nm22 *= lenZ
+    fun set(
+        m00: Float, m01: Float, m02: Float,
+        m10: Float, m11: Float, m12: Float,
+        m20: Float, m21: Float, m22: Float
+    ): AxisAngle4d {
+        return set(
+            m00.toDouble(), m01.toDouble(), m02.toDouble(),
+            m10.toDouble(), m11.toDouble(), m12.toDouble(),
+            m20.toDouble(), m21.toDouble(), m22.toDouble()
+        )
+    }
+
+    fun set(
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double
+    ): AxisAngle4d {
+        val lenX = JomlMath.invLength(m00, m01, m02)
+        val lenY = JomlMath.invLength(m10, m11, m12)
+        val lenZ = JomlMath.invLength(m20, m21, m22)
+        val nm00 = m00 * lenX
+        val nm01 = m01 * lenX
+        val nm02 = m02 * lenX
+        val nm10 = m10 * lenY
+        val nm11 = m11 * lenY
+        val nm12 = m12 * lenY
+        val nm20 = m20 * lenZ
+        val nm21 = m21 * lenZ
+        val nm22 = m22 * lenZ
         val epsilon = 1.0E-4
         val epsilon2 = 0.001
         val xx: Double
@@ -131,274 +138,54 @@ class AxisAngle4d(
             z = (nm01 - nm10) / xx
         }
         return this
+    }
+
+    fun set(m: Matrix3f): AxisAngle4d {
+        return set(
+            m.m00, m.m01, m.m02,
+            m.m10, m.m11, m.m12,
+            m.m20, m.m21, m.m22
+        )
     }
 
     fun set(m: Matrix3d): AxisAngle4d {
-        var nm00 = m.m00
-        var nm01 = m.m01
-        var nm02 = m.m02
-        var nm10 = m.m10
-        var nm11 = m.m11
-        var nm12 = m.m12
-        var nm20 = m.m20
-        var nm21 = m.m21
-        var nm22 = m.m22
-        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
-        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
-        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
-        nm00 *= lenX
-        nm01 *= lenX
-        nm02 *= lenX
-        nm10 *= lenY
-        nm11 *= lenY
-        nm12 *= lenY
-        nm20 *= lenZ
-        nm21 *= lenZ
-        nm22 *= lenZ
-        val epsilon = 1.0E-4
-        val epsilon2 = 0.001
-        val xx: Double
-        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
-            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
-                    nm00 + nm11 + nm22 - 3.0
-                ) < epsilon2
-            ) {
-                x = 0.0
-                y = 0.0
-                z = 1.0
-                angle = 0.0
-            } else {
-                angle = PI
-                xx = (nm00 + 1.0) / 2.0
-                val yy = (nm11 + 1.0) / 2.0
-                val zz = (nm22 + 1.0) / 2.0
-                val xy = (nm10 + nm01) / 4.0
-                val xz = (nm20 + nm02) / 4.0
-                val yz = (nm21 + nm12) / 4.0
-                if (xx > yy && xx > zz) {
-                    x = sqrt(xx)
-                    y = xy / x
-                    z = xz / x
-                } else if (yy > zz) {
-                    y = sqrt(yy)
-                    x = xy / y
-                    z = yz / y
-                } else {
-                    z = sqrt(zz)
-                    x = xz / z
-                    y = yz / z
-                }
-            }
-        } else {
-            xx =
-                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
-            x = (nm12 - nm21) / xx
-            y = (nm20 - nm02) / xx
-            z = (nm01 - nm10) / xx
-        }
-        return this
+        return set(
+            m.m00, m.m01, m.m02,
+            m.m10, m.m11, m.m12,
+            m.m20, m.m21, m.m22
+        )
     }
 
     fun set(m: Matrix4f): AxisAngle4d {
-        var nm00 = m.m00.toDouble()
-        var nm01 = m.m01.toDouble()
-        var nm02 = m.m02.toDouble()
-        var nm10 = m.m10.toDouble()
-        var nm11 = m.m11.toDouble()
-        var nm12 = m.m12.toDouble()
-        var nm20 = m.m20.toDouble()
-        var nm21 = m.m21.toDouble()
-        var nm22 = m.m22.toDouble()
-        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
-        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
-        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
-        nm00 *= lenX
-        nm01 *= lenX
-        nm02 *= lenX
-        nm10 *= lenY
-        nm11 *= lenY
-        nm12 *= lenY
-        nm20 *= lenZ
-        nm21 *= lenZ
-        nm22 *= lenZ
-        val epsilon = 1.0E-4
-        val epsilon2 = 0.001
-        val xx: Double
-        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
-            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(
-                    nm21 + nm12
-                ) < epsilon2 && abs(nm00 + nm11 + nm22 - 3.0) < epsilon2
-            ) {
-                x = 0.0
-                y = 0.0
-                z = 1.0
-                angle = 0.0
-            } else {
-                angle = PI
-                xx = (nm00 + 1.0) / 2.0
-                val yy = (nm11 + 1.0) / 2.0
-                val zz = (nm22 + 1.0) / 2.0
-                val xy = (nm10 + nm01) / 4.0
-                val xz = (nm20 + nm02) / 4.0
-                val yz = (nm21 + nm12) / 4.0
-                if (xx > yy && xx > zz) {
-                    x = sqrt(xx)
-                    y = xy / x
-                    z = xz / x
-                } else if (yy > zz) {
-                    y = sqrt(yy)
-                    x = xy / y
-                    z = yz / y
-                } else {
-                    z = sqrt(zz)
-                    x = xz / z
-                    y = yz / z
-                }
-            }
-        } else {
-            xx =
-                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
-            x = (nm12 - nm21) / xx
-            y = (nm20 - nm02) / xx
-            z = (nm01 - nm10) / xx
-        }
-        return this
+        return set(
+            m.m00, m.m01, m.m02,
+            m.m10, m.m11, m.m12,
+            m.m20, m.m21, m.m22
+        )
     }
 
     fun set(m: Matrix4x3f): AxisAngle4d {
-        var nm00 = m.m00.toDouble()
-        var nm01 = m.m01.toDouble()
-        var nm02 = m.m02.toDouble()
-        var nm10 = m.m10.toDouble()
-        var nm11 = m.m11.toDouble()
-        var nm12 = m.m12.toDouble()
-        var nm20 = m.m20.toDouble()
-        var nm21 = m.m21.toDouble()
-        var nm22 = m.m22.toDouble()
-        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02).toDouble()
-        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12).toDouble()
-        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22).toDouble()
-        nm00 *= lenX
-        nm01 *= lenX
-        nm02 *= lenX
-        nm10 *= lenY
-        nm11 *= lenY
-        nm12 *= lenY
-        nm20 *= lenZ
-        nm21 *= lenZ
-        nm22 *= lenZ
-        val epsilon = 1.0E-4
-        val epsilon2 = 0.001
-        val xx: Double
-        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
-            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
-                    nm00 + nm11 + nm22 - 3.0
-                ) < epsilon2
-            ) {
-                x = 0.0
-                y = 0.0
-                z = 1.0
-                angle = 0.0
-            } else {
-                angle = PI
-                xx = (nm00 + 1.0) / 2.0
-                val yy = (nm11 + 1.0) / 2.0
-                val zz = (nm22 + 1.0) / 2.0
-                val xy = (nm10 + nm01) / 4.0
-                val xz = (nm20 + nm02) / 4.0
-                val yz = (nm21 + nm12) / 4.0
-                if (xx > yy && xx > zz) {
-                    x = sqrt(xx)
-                    y = xy / x
-                    z = xz / x
-                } else if (yy > zz) {
-                    y = sqrt(yy)
-                    x = xy / y
-                    z = yz / y
-                } else {
-                    z = sqrt(zz)
-                    x = xz / z
-                    y = yz / z
-                }
-            }
-        } else {
-            xx =
-                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
-            x = (nm12 - nm21) / xx
-            y = (nm20 - nm02) / xx
-            z = (nm01 - nm10) / xx
-        }
-        return this
+        return set(
+            m.m00, m.m01, m.m02,
+            m.m10, m.m11, m.m12,
+            m.m20, m.m21, m.m22
+        )
+    }
+
+    fun set(m: Matrix4x3d): AxisAngle4d {
+        return set(
+            m.m00, m.m01, m.m02,
+            m.m10, m.m11, m.m12,
+            m.m20, m.m21, m.m22
+        )
     }
 
     fun set(m: Matrix4d): AxisAngle4d {
-        var nm00 = m.m00
-        var nm01 = m.m01
-        var nm02 = m.m02
-        var nm10 = m.m10
-        var nm11 = m.m11
-        var nm12 = m.m12
-        var nm20 = m.m20
-        var nm21 = m.m21
-        var nm22 = m.m22
-        val lenX = JomlMath.invsqrt(m.m00 * m.m00 + m.m01 * m.m01 + m.m02 * m.m02)
-        val lenY = JomlMath.invsqrt(m.m10 * m.m10 + m.m11 * m.m11 + m.m12 * m.m12)
-        val lenZ = JomlMath.invsqrt(m.m20 * m.m20 + m.m21 * m.m21 + m.m22 * m.m22)
-        nm00 *= lenX
-        nm01 *= lenX
-        nm02 *= lenX
-        nm10 *= lenY
-        nm11 *= lenY
-        nm12 *= lenY
-        nm20 *= lenZ
-        nm21 *= lenZ
-        nm22 *= lenZ
-        val epsilon = 1.0E-4
-        val epsilon2 = 0.001
-        val xx: Double
-        if (abs(nm10 - nm01) < epsilon && abs(nm20 - nm02) < epsilon && abs(nm21 - nm12) < epsilon) {
-            if (abs(nm10 + nm01) < epsilon2 && abs(nm20 + nm02) < epsilon2 && abs(nm21 + nm12) < epsilon2 && abs(
-                    nm00 + nm11 + nm22 - 3.0
-                ) < epsilon2
-            ) {
-                x = 0.0
-                y = 0.0
-                z = 1.0
-                angle = 0.0
-            } else {
-                angle = PI
-                xx = (nm00 + 1.0) / 2.0
-                val yy = (nm11 + 1.0) / 2.0
-                val zz = (nm22 + 1.0) / 2.0
-                val xy = (nm10 + nm01) / 4.0
-                val xz = (nm20 + nm02) / 4.0
-                val yz = (nm21 + nm12) / 4.0
-                if (xx > yy && xx > zz) {
-                    x = sqrt(xx)
-                    y = xy / x
-                    z = xz / x
-                } else if (yy > zz) {
-                    y = sqrt(yy)
-                    x = xy / y
-                    z = yz / y
-                } else {
-                    z = sqrt(zz)
-                    x = xz / z
-                    y = yz / z
-                }
-            }
-        } else {
-            xx =
-                sqrt((nm12 - nm21) * (nm12 - nm21) + (nm20 - nm02) * (nm20 - nm02) + (nm01 - nm10) * (nm01 - nm10))
-            angle = JomlMath.safeAcos((nm00 + nm11 + nm22 - 1.0) / 2.0)
-            x = (nm12 - nm21) / xx
-            y = (nm20 - nm02) / xx
-            z = (nm01 - nm10) / xx
-        }
-        return this
+        return set(
+            m.m00, m.m01, m.m02,
+            m.m10, m.m11, m.m12,
+            m.m20, m.m21, m.m22
+        )
     }
 
     operator fun get(q: Quaternionf): Quaternionf {

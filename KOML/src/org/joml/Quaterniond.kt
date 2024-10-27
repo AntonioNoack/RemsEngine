@@ -114,31 +114,8 @@ open class Quaterniond(
     }
 
     fun get(dst: AxisAngle4f): AxisAngle4f {
-        var x = x
-        var y = y
-        var z = z
-        var w = w
-        var s: Double
-        if (w > 1.0) {
-            s = JomlMath.invsqrt(lengthSquared())
-            x *= s
-            y *= s
-            z *= s
-            w *= s
-        }
-        dst.angle = (2.0 * acos(w)).toFloat()
-        s = sqrt(1.0 - w * w)
-        if (s < 0.001) {
-            dst.x = x.toFloat()
-            dst.y = y.toFloat()
-            dst.z = z.toFloat()
-        } else {
-            s = 1.0 / s
-            dst.x = (x * s).toFloat()
-            dst.y = (y * s).toFloat()
-            dst.z = (z * s).toFloat()
-        }
-        return dst
+        // allocation is fine here, because d->f
+        return dst.set(get(AxisAngle4d()))
     }
 
     fun get(dst: AxisAngle4d): AxisAngle4d {
@@ -226,42 +203,25 @@ open class Quaterniond(
     }
 
     private fun setFromUnnormalized(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double
-    ) {
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double
+    ): Quaterniond {
         val lenX = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val lenY = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val lenZ = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        val nm00 = m00 * lenX
-        val nm01 = m01 * lenX
-        val nm02 = m02 * lenX
-        val nm10 = m10 * lenY
-        val nm11 = m11 * lenY
-        val nm12 = m12 * lenY
-        val nm20 = m20 * lenZ
-        val nm21 = m21 * lenZ
-        val nm22 = m22 * lenZ
-        this.setFromNormalized(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
+        return setFromNormalized(
+            m00 * lenX, m01 * lenX, m02 * lenX,
+            m10 * lenY, m11 * lenY, m12 * lenY,
+            m20 * lenZ, m21 * lenZ, m22 * lenZ
+        )
     }
 
     private fun setFromNormalized(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double
-    ) {
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double
+    ): Quaterniond {
         val tr = m00 + m11 + m22
         var t: Double
         if (tr >= 0.0) {
@@ -293,90 +253,75 @@ open class Quaterniond(
             y = (m21 + m12) * t
             w = (m01 - m10) * t
         }
+        return this
     }
 
     fun setFromUnnormalized(mat: Matrix4f): Quaterniond {
-        this.setFromUnnormalized(
-            mat.m00.toDouble(),
-            mat.m01.toDouble(),
-            mat.m02.toDouble(),
-            mat.m10.toDouble(),
-            mat.m11.toDouble(),
-            mat.m12.toDouble(),
-            mat.m20.toDouble(),
-            mat.m21.toDouble(),
-            mat.m22.toDouble()
+        return setFromUnnormalized(
+            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
+            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
+            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
         )
-        return this
     }
 
     fun setFromUnnormalized(mat: Matrix4x3f): Quaterniond {
-        this.setFromUnnormalized(
-            mat.m00.toDouble(),
-            mat.m01.toDouble(),
-            mat.m02.toDouble(),
-            mat.m10.toDouble(),
-            mat.m11.toDouble(),
-            mat.m12.toDouble(),
-            mat.m20.toDouble(),
-            mat.m21.toDouble(),
-            mat.m22.toDouble()
+        return setFromUnnormalized(
+            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
+            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
+            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
         )
-        return this
     }
 
     fun setFromUnnormalized(mat: Matrix4x3d): Quaterniond {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(
+            mat.m00, mat.m01, mat.m02,
+            mat.m10, mat.m11, mat.m12,
+            mat.m20, mat.m21, mat.m22
+        )
     }
 
     fun setFromNormalized(mat: Matrix4f): Quaterniond {
-        this.setFromNormalized(
-            mat.m00.toDouble(),
-            mat.m01.toDouble(),
-            mat.m02.toDouble(),
-            mat.m10.toDouble(),
-            mat.m11.toDouble(),
-            mat.m12.toDouble(),
-            mat.m20.toDouble(),
-            mat.m21.toDouble(),
-            mat.m22.toDouble()
+        return setFromNormalized(
+            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
+            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
+            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
         )
-        return this
     }
 
     fun setFromNormalized(mat: Matrix4x3f): Quaterniond {
-        this.setFromNormalized(
-            mat.m00.toDouble(),
-            mat.m01.toDouble(),
-            mat.m02.toDouble(),
-            mat.m10.toDouble(),
-            mat.m11.toDouble(),
-            mat.m12.toDouble(),
-            mat.m20.toDouble(),
-            mat.m21.toDouble(),
-            mat.m22.toDouble()
+        return setFromNormalized(
+            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
+            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
+            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
         )
-        return this
     }
 
     fun setFromNormalized(mat: Matrix4x3d): Quaterniond {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(
+            mat.m00, mat.m01, mat.m02,
+            mat.m10, mat.m11, mat.m12,
+            mat.m20, mat.m21, mat.m22
+        )
     }
 
     fun setFromUnnormalized(mat: Matrix4d): Quaterniond {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(
+            mat.m00, mat.m01, mat.m02,
+            mat.m10, mat.m11, mat.m12,
+            mat.m20, mat.m21, mat.m22
+        )
     }
 
     fun setFromNormalized(mat: Matrix4d): Quaterniond {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(
+            mat.m00, mat.m01, mat.m02,
+            mat.m10, mat.m11, mat.m12,
+            mat.m20, mat.m21, mat.m22
+        )
     }
 
     fun setFromUnnormalized(mat: Matrix3f): Quaterniond {
-        this.setFromUnnormalized(
+        return setFromUnnormalized(
             mat.m00.toDouble(),
             mat.m01.toDouble(),
             mat.m02.toDouble(),
@@ -387,11 +332,10 @@ open class Quaterniond(
             mat.m21.toDouble(),
             mat.m22.toDouble()
         )
-        return this
     }
 
     fun setFromNormalized(mat: Matrix3f): Quaterniond {
-        this.setFromNormalized(
+        return setFromNormalized(
             mat.m00.toDouble(),
             mat.m01.toDouble(),
             mat.m02.toDouble(),
@@ -402,17 +346,22 @@ open class Quaterniond(
             mat.m21.toDouble(),
             mat.m22.toDouble()
         )
-        return this
     }
 
     fun setFromUnnormalized(mat: Matrix3d): Quaterniond {
-        this.setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromUnnormalized(
+            mat.m00, mat.m01, mat.m02,
+            mat.m10, mat.m11, mat.m12,
+            mat.m20, mat.m21, mat.m22
+        )
     }
 
     fun setFromNormalized(mat: Matrix3d): Quaterniond {
-        this.setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-        return this
+        return setFromNormalized(
+            mat.m00, mat.m01, mat.m02,
+            mat.m10, mat.m11, mat.m12,
+            mat.m20, mat.m21, mat.m22
+        )
     }
 
     fun fromAxisAngleRad(axis: Vector3d, angle: Double): Quaterniond {
@@ -1336,20 +1285,11 @@ open class Quaterniond(
     @JvmOverloads
     fun scale(factor: Double, dst: Quaterniond = this): Quaterniond {
         val sqrt = sqrt(factor)
-        dst.x = sqrt * x
-        dst.y = sqrt * y
-        dst.z = sqrt * z
-        dst.w = sqrt * w
-        return dst
+        return dst.set(sqrt * x, sqrt * y, sqrt * z, sqrt * w)
     }
 
     fun scaling(factor: Double): Quaterniond {
-        val sqrt = sqrt(factor)
-        x = 0.0
-        y = 0.0
-        z = 0.0
-        w = sqrt
-        return this
+        return set(0.0, 0.0, 0.0, sqrt(factor))
     }
 
     @JvmOverloads
@@ -1545,7 +1485,7 @@ open class Quaterniond(
     }
 
     override fun equals(other: Any?): Boolean {
-        if(other === this) return true
+        if (other === this) return true
         return other is Quaterniond && equals(other.x, other.y, other.z, other.w)
     }
 

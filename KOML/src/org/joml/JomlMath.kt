@@ -20,7 +20,7 @@ object JomlMath {
                     res.append('+')
                     continue
                 }
-                if (c in '0' .. '9' && eIndex == i - 1) {
+                if (c in '0'..'9' && eIndex == i - 1) {
                     res.append('+')
                 }
             }
@@ -40,6 +40,12 @@ object JomlMath {
 
     @JvmStatic
     fun invsqrt(x: Double): Double = 1.0 / sqrt(x)
+
+    @JvmStatic
+    fun invLength(x: Float, y: Float, z: Float): Float = invsqrt(x * x + y * y + z * z)
+
+    @JvmStatic
+    fun invLength(x: Double, y: Double, z: Double): Double = invsqrt(x * x + y * y + z * z)
 
     // can be replaced in the future
     @JvmStatic
