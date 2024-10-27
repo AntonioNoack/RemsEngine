@@ -28,6 +28,7 @@ import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.ecs.components.text.TextMeshComponent
 import me.anno.ecs.components.text.TextTextureComponent
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -40,7 +41,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.jvm.HiddenOpenGLContext
-import me.anno.mesh.Shapes.flatCube
+import me.anno.mesh.Shapes
 import me.anno.tests.ui.UITests
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.base.components.AxisAlignment
@@ -77,8 +78,8 @@ class CompileTest {
         scene.add(RectangleLight())
         scene.add(PlanarReflection())
         scene.add(EnvironmentMap())
-        scene.add(MeshComponent(flatCube.front))
-        scene.add(MeshComponent(flatCube.front).apply {
+        scene.add(MeshComponent(flatCube))
+        scene.add(MeshComponent(flatCube).apply {
             isInstanced = true
         })
         val font = Font("Verdana", 16f)
@@ -86,7 +87,7 @@ class CompileTest {
         scene.add(TextTextureComponent("textureText", font, AxisAlignment.CENTER))
         scene.add(SDFTextComponent("sdfText", font, AxisAlignment.CENTER))
         // add an animated mesh, instanced and non-instanced
-        val animatedMesh = flatCube.front.clone() as Mesh
+        val animatedMesh = flatCube.clone() as Mesh
         val numPos = animatedMesh.positions!!.size / 3
         animatedMesh.boneIndices = ByteArray(numPos * 4) { (it and 1).toByte() }
         animatedMesh.boneWeights = FloatArray(numPos * 4) { if (it.and(3) == 0) 1f else 0f }
@@ -113,16 +114,18 @@ class CompileTest {
             this.animations = listOf(animState)
             this.isInstanced = true
         })
-        scene.add(MeshComponent(flatCube.front, AutoTileableMaterial()))
-        scene.add(MeshComponent(flatCube.front, PlanarMaterial()))
+        scene.add(MeshComponent(flatCube, AutoTileableMaterial()))
+        scene.add(MeshComponent(flatCube, PlanarMaterial()))
         // todo bug: DecalMaterial is causing issues :/
-        // scene.add(MeshComponent(flatCube.front, DecalMaterial()))
-        scene.add(MeshComponent(flatCube.front, TriplanarMaterial()))
-        scene.add(FurMeshComponent(flatCube.front))
+        // scene.add(MeshComponent(flatCube, DecalMaterial()))
+        scene.add(MeshComponent(flatCube, TriplanarMaterial()))
+        // needs clone, because it modifies the mesh by setting procedural length
+        // todo calling .clone() on flatCube isn't enough to prevent RaycastMeshTest from failing, we need .scaled()???
+        scene.add(FurMeshComponent(Shapes.flatCube.scaled(1f).front))
         val testWorld = TestWorld()
         scene.add(testWorld.createRaytracingMesh(0, 0, 0, 8, 8, 8))
         scene.add(testWorld.createRaytracingMeshV2(0, 0, 0, 8, 8, 8))
-        scene.add(MeshComponent(flatCube.front, Material().apply { pipelineStage = TRANSPARENT_PASS }))
+        scene.add(MeshComponent(flatCube, Material().apply { pipelineStage = TRANSPARENT_PASS }))
         return scene
     }
 
