@@ -45,8 +45,19 @@ open class Planed(
     fun dot(x: Double, y: Double, z: Double): Double = x * dirX + y * dirY + z * dirZ + distance
     fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)
 
+    /**
+     * given y and z, calculates x
+     * */
     fun findX(y: Double, z: Double): Double = -dot(0.0, y, z) / dirX
+
+    /**
+     * given x and z, calculates y
+     * */
     fun findY(x: Double, z: Double): Double = -dot(x, 0.0, z) / dirY
+
+    /**
+     * given x and y, calculates z
+     * */
     fun findZ(x: Double, y: Double): Double = -dot(x, y, 0.0) / dirZ
 
     override fun equals(other: Any?): Boolean {

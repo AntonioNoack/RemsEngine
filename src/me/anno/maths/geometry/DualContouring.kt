@@ -167,15 +167,14 @@ object DualContouring {
         }
     }
 
-    fun contour2d(
+    private fun fillInValues(
         sx: Int, sy: Int,
-        func: Func2d,
-        grad: Grad2d = gradient(func)
-    ): List<List<Vector2f>> {
+        func: Func2d
+    ): FloatArray {
         val pointsInGrid = (sx + 1) * (sy + 1)
-        // calculate all positions and all gradients
+        // calculate all positions
         val values = FloatArray(pointsInGrid)
-        // fill positions & gradients
+        // fill positions
         var i = 0
         for (y in 0..sy) {
             val py = y.toFloat()
@@ -184,6 +183,15 @@ object DualContouring {
                 values[i++] = func.calc(px, py)
             }
         }
+        return values
+    }
+
+    fun contour2d(
+        sx: Int, sy: Int,
+        func: Func2d,
+        grad: Grad2d = gradient(func)
+    ): List<List<Vector2f>> {
+        val values = fillInValues(sx, sy, func)
         return contour2d(sx, sy, values, func, grad)
     }
 
@@ -227,7 +235,7 @@ object DualContouring {
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     // find correct vertex indices
                     val vk = x + sx * y
-                    s2c.addEdge(vertices[vk - 1], vertices[vk])
+                    s2c.addEdge(vertices[vk - 1], vertices[vk], gradient)
                 }
             }
         }
@@ -238,11 +246,11 @@ object DualContouring {
                 val vj = vi + 1
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     val vk = x + sx * y
-                    s2c.addEdge(vertices[vk - sx], vertices[vk])
+                    s2c.addEdge(vertices[vk - sx], vertices[vk], gradient)
                 }
             }
         }
 
-        return s2c.calculateContours()
+        return s2c.joinLinesToPolygons()
     }
 }

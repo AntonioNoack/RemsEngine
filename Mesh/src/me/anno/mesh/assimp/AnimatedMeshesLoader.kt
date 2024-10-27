@@ -7,6 +7,7 @@ import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.mesh.BoneWeights
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.prefab.Prefab
@@ -32,6 +33,7 @@ import me.anno.mesh.fbx.FBX6000
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortByParent
 import org.apache.logging.log4j.LogManager
@@ -57,6 +59,7 @@ import kotlin.math.min
 object AnimatedMeshesLoader {
 
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
+    private const val MAX_BONE_ID = 255
 
     private fun matrixFix(metadata: Map<String, Any>, isFBX: Boolean): Matrix3f? {
 
@@ -655,7 +658,8 @@ object AnimatedMeshesLoader {
         if (numBones > 0) {
 
             val numVertices = aiMesh.mNumVertices()
-            val weightSet = arrayOfNulls<MutableList<VertexWeight>>(numVertices)
+            val weightSet =
+                arrayListOfNulls<MutableList<BoneWeights.VertexWeight>>(numVertices)
 
             val boneIds = ByteArray(vertexCount * MAX_WEIGHTS)
             val boneWeights = FloatArray(vertexCount * MAX_WEIGHTS)
@@ -685,7 +689,8 @@ object AnimatedMeshesLoader {
                     aiWeights.get(j, aiWeight)
                     val vertexId = aiWeight.mVertexId()
                     val weight = aiWeight.mWeight()
-                    val vw = VertexWeight(bone.id, weight)
+                    if (bone.id < 0 || bone.id > MAX_BONE_ID) continue
+                    val vw = BoneWeights.VertexWeight(weight, bone.id.toByte())
                     var vertexWeightList = weightSet[vertexId]
                     if (vertexWeightList == null) {
                         vertexWeightList = ArrayList(MAX_WEIGHTS)
@@ -696,20 +701,9 @@ object AnimatedMeshesLoader {
             }
             aiWeight.free()
 
-            val maxBoneId = 255 // maxBones - 1
             for (i in 0 until numVertices) {
                 val vertexWeightList = weightSet[i]
-                if (vertexWeightList != null) {
-                    vertexWeightList.sortByDescending { it.weight }
-                    val size = min(vertexWeightList.size, MAX_WEIGHTS)
-                    val startIndex = i * MAX_WEIGHTS
-                    boneWeights[startIndex] = 1f
-                    for (j in 0 until size) {
-                        val vw = vertexWeightList[j]
-                        boneWeights[startIndex + j] = vw.weight
-                        boneIds[startIndex + j] = min(vw.boneId, maxBoneId).toByte()
-                    }
-                } else boneWeights[i * MAX_WEIGHTS] = 1f
+                BoneWeights.joinBoneWeights(vertexWeightList, boneWeights, boneIds, i)
             }
 
             return boneIds to boneWeights

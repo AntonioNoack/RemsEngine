@@ -2,7 +2,7 @@ package me.anno.maths.geometry
 
 import me.anno.maths.Maths.clamp
 
-object SplitTriangle {
+object TriangleSplitter {
 
     private fun safeSplit(d1: Float, d2: Float): Float {
         return clamp(d1 / (d1 - d2))

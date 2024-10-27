@@ -4,13 +4,12 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.MarchingSquares
-import me.anno.tests.maths.geometry.DualContouringTests.Companion.getPolygonArea
+import me.anno.maths.geometry.Polygons.getPolygonArea
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MarchingSquaresTests {
-
     @Test
     fun testPointsOnZero() {
 
@@ -35,8 +34,7 @@ class MarchingSquaresTests {
         assertTrue(pts.size.toFloat() in expectedSize..expectedSize * 1.5f)
 
         val expectedArea = sq(r) * PIf // 113.1
-        val actualArea = getPolygonArea(pts) // -112.1
-        // todo how is the sign of this different than dual-contouring???
+        val actualArea = getPolygonArea(pts) // 112.1
         assertTrue(actualArea in expectedArea * 0.97f..expectedArea * 1.03f)
     }
 }

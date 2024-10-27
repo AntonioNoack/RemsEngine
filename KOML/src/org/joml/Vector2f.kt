@@ -281,7 +281,11 @@ open class Vector2f(
     fun dot2(x: Float, y: Float) = this.x * x + this.y * y
 
     fun cross(other: Vector2f): Float {
-        return x * other.y - y * other.x
+        return cross(other.x, other.y)
+    }
+
+    fun cross(vx: Float, vy: Float): Float {
+        return x * vy - y * vx
     }
 
     fun mulAdd(f: Float, b: Vector2f, dst: Vector2f): Vector2f {

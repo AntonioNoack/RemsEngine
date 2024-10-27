@@ -1,19 +1,18 @@
 package me.anno.maths.geometry
 
 import me.anno.image.raw.FloatImage
-import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 
-class SegmentToContours(w: Int, h: Int, values: FloatArray) {
+class SegmentToContours(w: Int, h: Int, values: FloatArray) : DualContouring.Grad2d {
 
     companion object {
         private val LOGGER = LogManager.getLogger(SegmentToContours::class)
     }
 
-    val edges = createArrayList(4) { Vector2f() }
-    val next = HashMap<Vector2f, Vector2f>()
-    val field = FloatImage(w, h, 1, values)
+    private val next = HashMap<Vector2f, Vector2f>()
+    private val field = FloatImage(w, h, 1, values)
+    private val tmpV2 = Vector2f()
 
     private fun registerEdge2(a: Vector2f, b: Vector2f) {
         val ai = Vector2f(a)
@@ -21,25 +20,23 @@ class SegmentToContours(w: Int, h: Int, values: FloatArray) {
         next[ai] = bi
     }
 
-    fun addEdge(a: Vector2f, b: Vector2f) {
+    override fun calc(x: Float, y: Float, dst: Vector2f) {
+        val e = 0.01f
+        val f0 = field.getValue(x, y)
+        val fx = field.getValue(x + e, y)
+        val fy = field.getValue(x, y + e)
+        // gradient of field
+        dst.set(fx - f0, fy - f0)
+    }
+
+    fun addEdge(a: Vector2f, b: Vector2f, grad: DualContouring.Grad2d) {
         if (a == b) return
         // switch them, if they are reversed
         // check order
-        val e = 0.01f
         val mx = (a.x + b.x) * 0.5f
         val my = (a.y + b.y) * 0.5f
-        // todo get gradient properly: this could give fx=fy=f0, if mx is big, and fx~fy~f0
-        //  don't forget to run tests
-        val f0 = field.getValue(mx, my)
-        val fx = field.getValue(mx + e, my)
-        val fy = field.getValue(mx, my + e)
-        // gradient of field
-        val gx = fx - f0
-        val gy = fy - f0
-        val dx = b.x - a.x
-        val dy = b.y - a.y
-        // cross product
-        val cross = gx * dy - gy * dx
+        grad.calc(mx, my, tmpV2)
+        val cross = tmpV2.cross(b.x - a.x, b.y - a.y)
         // println("($gx,$gy,$dx,$dy) -> $cross")
         if (cross > 0f) {
             registerEdge2(a, b)
@@ -48,8 +45,11 @@ class SegmentToContours(w: Int, h: Int, values: FloatArray) {
         }
     }
 
-    fun calculateContours(): List<List<Vector2f>> {
+    fun addEdge(a: Vector2f, b: Vector2f) {
+        addEdge(a, b, this)
+    }
 
+    fun joinLinesToPolygons(): List<List<Vector2f>> {
         // convert stripes into real texture
         // orientation order by gradient inside/outside
         val polygons = ArrayList<ArrayList<Vector2f>>()

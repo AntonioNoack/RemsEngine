@@ -44,8 +44,19 @@ open class Planef(
     fun dot(x: Float, y: Float, z: Float): Float = x * dirX + y * dirY + z * dirZ + distance
     fun dot(v: Vector3f): Float = dot(v.x, v.y, v.z)
 
+    /**
+     * given y and z, calculates x
+     * */
     fun findX(y: Float, z: Float): Float = -dot(0f, y, z) / dirX
+
+    /**
+     * given x and z, calculates y
+     * */
     fun findY(x: Float, z: Float): Float = -dot(x, 0f, z) / dirY
+
+    /**
+     * given x and y, calculates z
+     * */
     fun findZ(x: Float, y: Float): Float = -dot(x, y, 0f) / dirZ
 
     override fun equals(other: Any?): Boolean {

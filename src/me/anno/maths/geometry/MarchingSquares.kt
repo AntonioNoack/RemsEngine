@@ -114,7 +114,7 @@ object MarchingSquares {
             }
         }
 
-        return s2c.calculateContours()
+        return s2c.joinLinesToPolygons()
     }
 
     /**
