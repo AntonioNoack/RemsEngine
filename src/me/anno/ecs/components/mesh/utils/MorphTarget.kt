@@ -8,6 +8,7 @@ import me.anno.io.base.BaseWriter
  * */
 class MorphTarget(name: String, var positions: FloatArray, var weight: Float = 0f) : NamedSaveable() {
 
+    @Suppress("unused")
     constructor() : this("", FloatArray(0))
 
     init {

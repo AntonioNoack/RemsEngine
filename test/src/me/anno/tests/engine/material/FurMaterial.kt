@@ -9,7 +9,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.downloads
 
 /**
- * implement shell texturing like in https://www.youtube.com/watch?v=9dr-tRQzij4 by Acerola
+ * shell texturing like in https://www.youtube.com/watch?v=9dr-tRQzij4 by Acerola
  * */
 fun main() {
     OfficialExtensions.initForTests()

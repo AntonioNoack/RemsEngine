@@ -700,19 +700,11 @@ open class Vector4d(
     }
 
     fun min(v: Vector4d, dst: Vector4d = this): Vector4d {
-        dst.x = min(x, v.x)
-        dst.y = min(y, v.y)
-        dst.z = min(z, v.z)
-        dst.w = min(w, v.w)
-        return dst
+        return dst.set(min(x, v.x), min(y, v.y), min(z, v.z), min(w, v.w))
     }
 
     fun max(v: Vector4d, dst: Vector4d = this): Vector4d {
-        dst.x = max(x, v.x)
-        dst.y = max(y, v.y)
-        dst.z = max(z, v.z)
-        dst.w = max(w, v.w)
-        return dst
+        return dst.set(max(x, v.x), max(y, v.y), max(z, v.z), max(w, v.w))
     }
 
     override fun toString(): String {

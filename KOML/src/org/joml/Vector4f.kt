@@ -338,11 +338,7 @@ open class Vector4f(
         val cos = cos(angle)
         val y = y * cos - z * sin
         val z = this.y * sin + z * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(x, y, z, w)
     }
 
     fun rotateY(angle: Float, dst: Vector4f = this): Vector4f {
@@ -350,11 +346,7 @@ open class Vector4f(
         val cos = cos(angle)
         val x = x * cos + z * sin
         val z = -this.x * sin + z * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(x, y, z, w)
     }
 
     fun rotateZ(angle: Float, dst: Vector4f = this): Vector4f {
@@ -362,11 +354,7 @@ open class Vector4f(
         val cos = cos(angle)
         val x = x * cos - y * sin
         val y = this.x * sin + y * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(x, y, z, w)
     }
 
     fun lengthSquared() = x * x + y * y + z * z + w * w
@@ -427,19 +415,11 @@ open class Vector4f(
     }
 
     fun min(v: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = min(x, v.x)
-        dst.y = min(y, v.y)
-        dst.z = min(z, v.z)
-        dst.w = min(w, v.w)
-        return dst
+        return dst.set(min(x, v.x), min(y, v.y), min(z, v.z), min(w, v.w))
     }
 
     fun max(v: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = max(x, v.x)
-        dst.y = max(y, v.y)
-        dst.z = max(z, v.z)
-        dst.w = max(w, v.w)
-        return dst
+        return dst.set(max(x, v.x), max(y, v.y), max(z, v.z), max(w, v.w))
     }
 
     override fun hashCode(): Int {

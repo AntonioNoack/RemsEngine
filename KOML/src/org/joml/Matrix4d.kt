@@ -4554,15 +4554,14 @@ open class Matrix4d : Matrix {
         val rm30 = (left + right) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
         val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
-            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
-        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)
-            ._m03(m03 * rm00)._m10(
-                m10 * rm11
-            )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(m20 * rm22)._m21(m21 * rm22)._m22(m22 * rm22)
-            ._m23(
-                m23 * rm22
-            )._properties(flags and -30)
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)
+            ._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)
+            ._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m20(m20 * rm22)._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)
+            ._properties(flags and -30)
         return dst
     }
 
@@ -4824,15 +4823,8 @@ open class Matrix4d : Matrix {
         upZ: Double,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ) else lookAlongGeneric(
-            dirX,
-            dirY,
-            dirZ,
-            upX,
-            upY,
-            upZ,
-            dst
-        )
+        return if (flags and 4 != 0) dst.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ)
+        else lookAlongGeneric(dirX, dirY, dirZ, upX, upY, upZ, dst)
     }
 
     private fun lookAlongGeneric(
@@ -4906,15 +4898,9 @@ open class Matrix4d : Matrix {
     }
 
     fun setLookAt(
-        eyeX: Double,
-        eyeY: Double,
-        eyeZ: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double
+        eyeX: Double, eyeY: Double, eyeZ: Double,
+        centerX: Double, centerY: Double, centerZ: Double,
+        upX: Double, upY: Double, upZ: Double
     ): Matrix4d {
         var dirX = eyeX - centerX
         var dirY = eyeY - centerY
@@ -4949,46 +4935,25 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun lookAt(
-        eyeX: Double,
-        eyeY: Double,
-        eyeZ: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
-        dst: Matrix4d = this
+        eyeX: Double, eyeY: Double, eyeZ: Double,
+        centerX: Double, centerY: Double, centerZ: Double,
+        upX: Double, upY: Double, upZ: Double, dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0) {
             dst.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
         } else {
             if (flags and 1 != 0) lookAtPerspective(
-                eyeX,
-                eyeY,
-                eyeZ,
-                centerX,
-                centerY,
-                centerZ,
-                upX,
-                upY,
-                upZ,
-                dst
+                eyeX, eyeY, eyeZ,
+                centerX, centerY, centerZ,
+                upX, upY, upZ, dst
             ) else lookAtGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dst)
         }
     }
 
     private fun lookAtGeneric(
-        eyeX: Double,
-        eyeY: Double,
-        eyeZ: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
-        dst: Matrix4d
+        eyeX: Double, eyeY: Double, eyeZ: Double,
+        centerX: Double, centerY: Double, centerZ: Double,
+        upX: Double, upY: Double, upZ: Double, dst: Matrix4d
     ): Matrix4d {
         var dirX = eyeX - centerX
         var dirY = eyeY - centerY
