@@ -278,8 +278,6 @@ open class Vector2f(
         return dst
     }
 
-    fun dot2(x: Float, y: Float) = this.x * x + this.y * y
-
     fun cross(other: Vector2f): Float {
         return cross(other.x, other.y)
     }
@@ -292,13 +290,13 @@ open class Vector2f(
         return dst.set(x * f + b.x, y * f + b.y)
     }
 
-    operator fun plus(s: Vector2f) = Vector2f(x + s.x, y + s.y)
-    operator fun minus(s: Vector2f) = Vector2f(x - s.x, y - s.y)
-    operator fun times(f: Float) = Vector2f(x * f, y * f)
-    operator fun times(s: Vector2f) = Vector2f(x * s.x, y * s.y)
+    operator fun plus(s: Vector2f) = add(s, Vector2f())
+    operator fun minus(s: Vector2f) = sub(s, Vector2f())
+    operator fun times(f: Float) = mul(f, Vector2f())
+    operator fun times(s: Vector2f) = mul(s, Vector2f())
 
     fun makePerpendicular(other: Vector2f): Vector2f {
-        val f = dot(other)
+        val f = dot(other) / other.lengthSquared()
         x -= other.x * f
         y -= other.y * f
         return this

@@ -357,8 +357,8 @@ class SDFVoronoiArray : PositionMapper() {
 
     private fun hash(p: Vector2f, dst: Vector2f): Vector2f {
         return dst.set(
-            fract(sin(p.dot2(127.1f, 311.7f)) * 43758.547f),
-            fract(sin(p.dot2(269.5f, 183.3f)) * 43758.547f)
+            fract(sin(p.dot(127.1f, 311.7f)) * 43758.547f),
+            fract(sin(p.dot(269.5f, 183.3f)) * 43758.547f)
         )
     }
 

@@ -59,8 +59,8 @@ class SDFBlob : SDFShape() {
             pz = t
         }
         val b = max(
-            max(v0.dot(px, py, pz), v1.dot2(px, pz)),
-            max(v2.dot2(py, px), v2.dot2(px, pz)),
+            max(v0.dot(px, py, pz), v1.dot(px, pz)),
+            max(v2.dot(py, px), v2.dot(px, pz)),
         )
         val l = length(px, py, pz)
         return l - 1.5f - vx * cos(min(sqrt(1.01f - b / l) * (PIf * 4f), PIf))

@@ -24,6 +24,7 @@ open class Vector2d(
     constructor(v: Vector2f) : this(v.x.toDouble(), v.y.toDouble())
     constructor(v: Vector2i) : this(v.x.toDouble(), v.y.toDouble())
     constructor(xy: DoubleArray) : this(xy[0], xy[1])
+    constructor(xy: DoubleArray, offset: Int) : this(xy[offset], xy[offset + 1])
     constructor(xy: FloatArray) : this(xy[0].toDouble(), xy[1].toDouble())
 
     override val numComponents: Int get() = 2
@@ -46,6 +47,7 @@ open class Vector2d(
     fun set(v: Vector2f) = set(v.x.toDouble(), v.y.toDouble())
     fun set(v: Vector2i) = set(v.x.toDouble(), v.y.toDouble())
     fun set(xy: DoubleArray) = set(xy[0], xy[1])
+    fun set(xy: DoubleArray, offset: Int) = set(xy[offset], xy[offset + 1])
     fun set(xy: FloatArray) = set(xy[0].toDouble(), xy[1].toDouble())
 
     operator fun get(component: Int): Double {
@@ -181,6 +183,12 @@ open class Vector2d(
     @JvmOverloads
     fun normalize(length: Double, dst: Vector2d = this) = mul(length / length(), dst)
 
+    fun safeNormalize(length: Double = 1.0): Vector2d {
+        normalize(length)
+        if (!isFinite) set(0.0)
+        return this
+    }
+
     @JvmOverloads
     fun add(x: Double, y: Double, dst: Vector2d = this): Vector2d {
         dst.x = this.x + x
@@ -310,8 +318,12 @@ open class Vector2d(
         return dst
     }
 
+    fun cross(ox: Double, oy: Double): Double {
+        return x * oy - y * ox
+    }
+
     fun cross(other: Vector2d): Double {
-        return x * other.y - y * other.x
+        return cross(other.x, other.y)
     }
 
     fun mulAdd(f: Double, b: Vector2d, dst: Vector2d): Vector2d {
@@ -323,8 +335,9 @@ open class Vector2d(
     operator fun times(f: Double) = mul(f, Vector2d())
     operator fun times(s: Vector2d) = mul(s, Vector2d())
 
+    // other should be normalized
     fun makePerpendicular(other: Vector2d): Vector2d {
-        val f = dot(other)
+        val f = dot(other) / other.lengthSquared()
         x -= other.x * f
         y -= other.y * f
         return this

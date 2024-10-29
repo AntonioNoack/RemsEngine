@@ -901,13 +901,13 @@ open class Matrix4f : Matrix {
     }
 
     fun mulTranslationAffine(right: Matrix4f, dst: Matrix4f): Matrix4f {
-        return dst._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)._m10(right.m10)._m11(right.m11)
-            ._m12(right.m12)._m13(
-                m13
-            )._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(m23)._m30(right.m30 + m30)._m31(right.m31 + m31)
-            ._m32(right.m32 + m32)._m33(
-                m33
-            )._properties(2 or (right.properties() and 16))
+        return dst
+            ._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)
+            ._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(m13)
+            ._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(m23)
+            ._m30(right.m30 + m30)._m31(right.m31 + m31)
+            ._m32(right.m32 + m32)._m33(m33)
+            ._properties(2 or (right.properties() and 16))
     }
 
     @JvmOverloads

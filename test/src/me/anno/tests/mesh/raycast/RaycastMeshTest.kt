@@ -17,7 +17,6 @@ object RaycastMeshTest {
 
     // todo tests for global raycasting with transform
     // todo tests (and implementation) for animated meshes
-    // todo tests using acceleration structures, with more complicated mesh???
 
     private val mesh = flatCube.front
 

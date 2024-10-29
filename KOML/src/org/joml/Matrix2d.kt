@@ -22,39 +22,27 @@ open class Matrix2d : Matrix {
     }
 
     constructor(mat: Matrix2d) {
-        setMatrix2d(mat)
+        set(mat)
     }
 
     constructor(mat: Matrix2f) {
-        m00 = mat.m00.toDouble()
-        m01 = mat.m01.toDouble()
-        m10 = mat.m10.toDouble()
-        m11 = mat.m11.toDouble()
+        set(mat)
     }
 
     constructor(mat: Matrix3d) {
-        setMatrix3d(mat)
+        set(mat)
     }
 
     constructor(mat: Matrix3f) {
-        m00 = mat.m00.toDouble()
-        m01 = mat.m01.toDouble()
-        m10 = mat.m10.toDouble()
-        m11 = mat.m11.toDouble()
+        set(mat)
     }
 
     constructor(m00: Double, m01: Double, m10: Double, m11: Double) {
-        this.m00 = m00
-        this.m01 = m01
-        this.m10 = m10
-        this.m11 = m11
+        set(m00, m01, m10, m11)
     }
 
     constructor(col0: Vector2d, col1: Vector2d) {
-        m00 = col0.x
-        m01 = col0.y
-        m10 = col1.x
-        m11 = col1.y
+        set(col0, col1)
     }
 
     override val numCols: Int get() = 2
@@ -101,98 +89,57 @@ open class Matrix2d : Matrix {
     }
 
     fun set(m: Matrix2d): Matrix2d {
-        setMatrix2d(m)
-        return this
-    }
-
-    private fun setMatrix2d(mat: Matrix2d) {
-        m00 = mat.m00
-        m01 = mat.m01
-        m10 = mat.m10
-        m11 = mat.m11
+        return set(m.m00, m.m01, m.m10, m.m11)
     }
 
     fun set(m: Matrix2f): Matrix2d {
-        m00 = m.m00.toDouble()
-        m01 = m.m01.toDouble()
-        m10 = m.m10.toDouble()
-        m11 = m.m11.toDouble()
-        return this
+        return set(m.m00, m.m01, m.m10, m.m11)
     }
 
     fun set(m: Matrix3x2d): Matrix2d {
-        m00 = m.m00
-        m01 = m.m01
-        m10 = m.m10
-        m11 = m.m11
-        return this
+        return set(m.m00, m.m01, m.m10, m.m11)
     }
 
     fun set(m: Matrix3x2f): Matrix2d {
-        m00 = m.m00.toDouble()
-        m01 = m.m01.toDouble()
-        m10 = m.m10.toDouble()
-        m11 = m.m11.toDouble()
-        return this
+        return set(m.m00, m.m01, m.m10, m.m11)
     }
 
     fun set(m: Matrix3d): Matrix2d {
-        setMatrix3d(m)
-        return this
-    }
-
-    private fun setMatrix3d(mat: Matrix3d) {
-        m00 = mat.m00
-        m01 = mat.m01
-        m10 = mat.m10
-        m11 = mat.m11
+        return set(m.m00, m.m01, m.m10, m.m11)
     }
 
     fun set(m: Matrix3f): Matrix2d {
-        m00 = m.m00.toDouble()
-        m01 = m.m01.toDouble()
-        m10 = m.m10.toDouble()
-        m11 = m.m11.toDouble()
-        return this
+        return set(m.m00, m.m01, m.m10, m.m11)
     }
 
     @JvmOverloads
     fun mul(right: Matrix2d, dst: Matrix2d = this): Matrix2d {
-        val nm00 = m00 * right.m00 + m10 * right.m01
-        val nm01 = m01 * right.m00 + m11 * right.m01
-        val nm10 = m00 * right.m10 + m10 * right.m11
-        val nm11 = m01 * right.m10 + m11 * right.m11
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(
+            m00 * right.m00 + m10 * right.m01,
+            m01 * right.m00 + m11 * right.m01,
+            m00 * right.m10 + m10 * right.m11,
+            m01 * right.m10 + m11 * right.m11
+        )
     }
 
     @JvmOverloads
     fun mul(right: Matrix2f, dst: Matrix2d = this): Matrix2d {
-        val nm00 = m00 * right.m00.toDouble() + m10 * right.m01.toDouble()
-        val nm01 = m01 * right.m00.toDouble() + m11 * right.m01.toDouble()
-        val nm10 = m00 * right.m10.toDouble() + m10 * right.m11.toDouble()
-        val nm11 = m01 * right.m10.toDouble() + m11 * right.m11.toDouble()
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(
+            m00 * right.m00.toDouble() + m10 * right.m01.toDouble(),
+            m01 * right.m00.toDouble() + m11 * right.m01.toDouble(),
+            m00 * right.m10.toDouble() + m10 * right.m11.toDouble(),
+            m01 * right.m10.toDouble() + m11 * right.m11.toDouble()
+        )
     }
 
     @JvmOverloads
     fun mulLocal(left: Matrix2d, dst: Matrix2d = this): Matrix2d {
-        val nm00 = left.m00 * m00 + left.m10 * m01
-        val nm01 = left.m01 * m00 + left.m11 * m01
-        val nm10 = left.m00 * m10 + left.m10 * m11
-        val nm11 = left.m01 * m10 + left.m11 * m11
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(
+            left.m00 * m00 + left.m10 * m01,
+            left.m01 * m00 + left.m11 * m01,
+            left.m00 * m10 + left.m10 * m11,
+            left.m01 * m10 + left.m11 * m11
+        )
     }
 
     fun set(m00: Double, m01: Double, m10: Double, m11: Double): Matrix2d {
@@ -203,14 +150,14 @@ open class Matrix2d : Matrix {
         return this
     }
 
+    fun set(m00: Float, m01: Float, m10: Float, m11: Float): Matrix2d {
+        return set(m00.toDouble(), m01.toDouble(), m10.toDouble(), m11.toDouble())
+    }
+
     fun set(m: DoubleArray) = set(m[0], m[1], m[2], m[3])
 
     fun set(col0: Vector2d, col1: Vector2d): Matrix2d {
-        m00 = col0.x
-        m01 = col0.y
-        m10 = col1.x
-        m11 = col1.y
-        return this
+        return set(col0.x, col0.y, col1.x, col1.y)
     }
 
     fun determinant(): Double {
@@ -220,15 +167,10 @@ open class Matrix2d : Matrix {
     @JvmOverloads
     fun invert(dst: Matrix2d = this): Matrix2d {
         val s = 1.0 / determinant()
-        val nm00 = m11 * s
-        val nm01 = -m01 * s
-        val nm10 = -m10 * s
-        val nm11 = m00 * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(
+            m11 * s, -m01 * s,
+            -m10 * s, m00 * s
+        )
     }
 
     @JvmOverloads
@@ -260,78 +202,50 @@ open class Matrix2d : Matrix {
         return arr
     }
 
-    fun zero() = set(0.0, 0.0, 0.0, 0.0)
+    fun zero(): Matrix2d {
+        return set(0.0, 0.0, 0.0, 0.0)
+    }
 
     fun identity(): Matrix2d {
-        m00 = 1.0
-        m01 = 0.0
-        m10 = 0.0
-        m11 = 1.0
-        return this
+        return set(1.0, 0.0, 0.0, 1.0)
     }
 
-    fun scale(xy: Vector2d, dst: Matrix2d): Matrix2d {
-        return this.scale(xy.x, xy.y, dst)
-    }
-
-    fun scale(xy: Vector2d): Matrix2d {
-        return this.scale(xy.x, xy.y, this)
+    @JvmOverloads
+    fun scale(xy: Vector2d, dst: Matrix2d = this): Matrix2d {
+        return scale(xy.x, xy.y, dst)
     }
 
     @JvmOverloads
     fun scale(x: Double, y: Double, dst: Matrix2d = this): Matrix2d {
-        dst.m00 = m00 * x
-        dst.m01 = m01 * x
-        dst.m10 = m10 * y
-        dst.m11 = m11 * y
-        return dst
+        return dst.set(m00 * x, m01 * x, m10 * y, m11 * y)
     }
 
-    fun scale(xy: Double, dst: Matrix2d): Matrix2d {
-        return this.scale(xy, xy, dst)
-    }
-
-    fun scale(xy: Double): Matrix2d {
-        return this.scale(xy, xy)
+    @JvmOverloads
+    fun scale(xy: Double, dst: Matrix2d = this): Matrix2d {
+        return scale(xy, xy, dst)
     }
 
     @JvmOverloads
     fun scaleLocal(x: Double, y: Double, dst: Matrix2d = this): Matrix2d {
-        dst.m00 = x * m00
-        dst.m01 = y * m01
-        dst.m10 = x * m10
-        dst.m11 = y * m11
-        return dst
+        return dst.set(x * m00, y * m01, x * m10, y * m11)
     }
 
     fun scaling(factor: Double): Matrix2d {
-        m00 = factor
-        m01 = 0.0
-        m10 = 0.0
-        m11 = factor
-        return this
+        return scaling(factor, factor)
     }
 
     fun scaling(x: Double, y: Double): Matrix2d {
-        m00 = x
-        m01 = 0.0
-        m10 = 0.0
-        m11 = y
-        return this
+        return set(x, 0.0, 0.0, y)
     }
 
     fun scaling(xy: Vector2d): Matrix2d {
-        return this.scaling(xy.x, xy.y)
+        return scaling(xy.x, xy.y)
     }
 
     fun rotation(angle: Double): Matrix2d {
         val sin = sin(angle)
         val cos = cos(angle)
-        m00 = cos
-        m01 = sin
-        m10 = -sin
-        m11 = cos
-        return this
+        return set(cos, sin, -sin, cos)
     }
 
     fun transform(v: Vector2d): Vector2d {
@@ -370,11 +284,7 @@ open class Matrix2d : Matrix {
         val nm01 = m01 * c + m11 * s
         val nm10 = m10 * c - m00 * s
         val nm11 = m11 * c - m01 * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11)
     }
 
     @JvmOverloads
@@ -385,11 +295,7 @@ open class Matrix2d : Matrix {
         val nm01 = s * m00 + c * m01
         val nm10 = c * m10 - s * m11
         val nm11 = s * m10 + c * m11
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11)
     }
 
     fun getRow(row: Int, dst: Vector2d): Vector2d {
@@ -404,7 +310,7 @@ open class Matrix2d : Matrix {
     }
 
     fun setRow(row: Int, src: Vector2d): Matrix2d {
-        return this.setRow(row, src.x, src.y)
+        return setRow(row, src.x, src.y)
     }
 
     fun setRow(row: Int, x: Double, y: Double): Matrix2d {
@@ -430,7 +336,7 @@ open class Matrix2d : Matrix {
     }
 
     fun setColumn(column: Int, src: Vector2d): Matrix2d {
-        return this.setColumn(column, src.x, src.y)
+        return setColumn(column, src.x, src.y)
     }
 
     fun setColumn(column: Int, x: Double, y: Double): Matrix2d {
@@ -485,17 +391,14 @@ open class Matrix2d : Matrix {
         val nm01 = -m10 * s
         val nm10 = -m01 * s
         val nm11 = m00 * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11)
     }
 
     fun getScale(dst: Vector2d): Vector2d {
-        dst.x = sqrt(m00 * m00 + m01 * m01)
-        dst.y = sqrt(m10 * m10 + m11 * m11)
-        return dst
+        return dst.set(
+            sqrt(m00 * m00 + m01 * m01),
+            sqrt(m10 * m10 + m11 * m11)
+        )
     }
 
     fun positiveX(dir: Vector2d): Vector2d {
@@ -575,43 +478,33 @@ open class Matrix2d : Matrix {
 
     @JvmOverloads
     fun add(other: Matrix2d, dst: Matrix2d = this): Matrix2d {
-        dst.m00 = m00 + other.m00
-        dst.m01 = m01 + other.m01
-        dst.m10 = m10 + other.m10
-        dst.m11 = m11 + other.m11
-        return dst
+        return dst.set(
+            m00 + other.m00, m01 + other.m01,
+            m10 + other.m10, m11 + other.m11
+        )
     }
 
-    fun sub(subtrahend: Matrix2d): Matrix2d {
-        return this.sub(subtrahend, this)
+    @JvmOverloads
+    fun sub(other: Matrix2d, dst: Matrix2d = this): Matrix2d {
+        return dst.set(
+            m00 - other.m00, m01 - other.m01,
+            m10 - other.m10, m11 - other.m11
+        )
     }
 
-    fun sub(other: Matrix2d, dst: Matrix2d): Matrix2d {
-        dst.m00 = m00 - other.m00
-        dst.m01 = m01 - other.m01
-        dst.m10 = m10 - other.m10
-        dst.m11 = m11 - other.m11
-        return dst
-    }
-
-    fun mulComponentWise(other: Matrix2d): Matrix2d {
-        return this.sub(other, this)
-    }
-
-    fun mulComponentWise(other: Matrix2d, dst: Matrix2d): Matrix2d {
-        dst.m00 = m00 * other.m00
-        dst.m01 = m01 * other.m01
-        dst.m10 = m10 * other.m10
-        dst.m11 = m11 * other.m11
-        return dst
+    @JvmOverloads
+    fun mulComponentWise(other: Matrix2d, dst: Matrix2d = this): Matrix2d {
+        return dst.set(
+            m00 * other.m00, m01 * other.m01,
+            m10 * other.m10, m11 * other.m11
+        )
     }
 
     fun mix(other: Matrix2d, t: Double, dst: Matrix2d = this): Matrix2d {
-        dst.m00 = (other.m00 - m00) * t + m00
-        dst.m01 = (other.m01 - m01) * t + m01
-        dst.m10 = (other.m10 - m10) * t + m10
-        dst.m11 = (other.m11 - m11) * t + m11
-        return dst
+        return dst.set(
+            (other.m00 - m00) * t + m00, (other.m01 - m01) * t + m01,
+            (other.m10 - m10) * t + m10, (other.m11 - m11) * t + m11
+        )
     }
 
     @JvmOverloads
@@ -620,5 +513,6 @@ open class Matrix2d : Matrix {
     }
 
     val isFinite: Boolean
-        get() = m00.isFinite() && m01.isFinite() && m10.isFinite() && m11.isFinite()
+        get() = m00.isFinite() && m01.isFinite() &&
+                m10.isFinite() && m11.isFinite()
 }
