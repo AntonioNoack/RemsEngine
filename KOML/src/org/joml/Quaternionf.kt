@@ -245,7 +245,7 @@ open class Quaternionf(
     fun rotationX(angle: Float): Quaternionf {
         val sin = sin(angle * 0.5f)
         val cos = cos(angle * 0.5f)
-        return this.set(sin, 0f, 0f, cos)
+        return set(sin, 0f, 0f, cos)
     }
 
     fun rotationY(angle: Float): Quaternionf {
@@ -1548,22 +1548,17 @@ open class Quaternionf(
     }
 
     fun lookAlong(dir: Vector3f, up: Vector3f): Quaternionf {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
     fun lookAlong(dir: Vector3f, up: Vector3f, dst: Quaternionf): Quaternionf {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
     fun lookAlong(
-        dirX: Float,
-        dirY: Float,
-        dirZ: Float,
-        upX: Float,
-        upY: Float,
-        upZ: Float,
-        dst: Quaternionf = this
+        dirX: Float, dirY: Float, dirZ: Float,
+        upX: Float, upY: Float, upZ: Float, dst: Quaternionf = this
     ): Quaternionf {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val dirnX = -dirX * invDirLength
@@ -1623,12 +1618,8 @@ open class Quaternionf(
     }
 
     fun rotationTo(
-        fromDirX: Float,
-        fromDirY: Float,
-        fromDirZ: Float,
-        toDirX: Float,
-        toDirY: Float,
-        toDirZ: Float
+        fromDirX: Float, fromDirY: Float, fromDirZ: Float,
+        toDirX: Float, toDirY: Float, toDirZ: Float
     ): Quaternionf {
         val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
         val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
@@ -1809,11 +1800,11 @@ open class Quaternionf(
     }
 
     fun rotateAxis(angle: Float, axis: Vector3f, dst: Quaternionf): Quaternionf {
-        return this.rotateAxis(angle, axis.x, axis.y, axis.z, dst)
+        return rotateAxis(angle, axis.x, axis.y, axis.z, dst)
     }
 
     fun rotateAxis(angle: Float, axis: Vector3f): Quaternionf {
-        return this.rotateAxis(angle, axis.x, axis.y, axis.z, this)
+        return rotateAxis(angle, axis.x, axis.y, axis.z, this)
     }
 
     override fun toString(): String {

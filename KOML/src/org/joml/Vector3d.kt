@@ -825,13 +825,7 @@ open class Vector3d(
         return orthogonalize(v, dst)
     }
 
-    fun floor(): Vector3d {
-        x = floor(x)
-        y = floor(y)
-        z = floor(z)
-        return this
-    }
-
+    @JvmOverloads
     fun floor(dst: Vector3d = this): Vector3d {
         dst.x = floor(x)
         dst.y = floor(y)
@@ -839,13 +833,7 @@ open class Vector3d(
         return dst
     }
 
-    fun ceil(): Vector3d {
-        x = ceil(x)
-        y = ceil(y)
-        z = ceil(z)
-        return this
-    }
-
+    @JvmOverloads
     fun ceil(dst: Vector3d = this): Vector3d {
         dst.x = ceil(x)
         dst.y = ceil(y)
@@ -853,13 +841,7 @@ open class Vector3d(
         return dst
     }
 
-    fun round(): Vector3d {
-        x = round(x)
-        y = round(y)
-        z = round(z)
-        return this
-    }
-
+    @JvmOverloads
     fun round(dst: Vector3d = this): Vector3d {
         dst.x = round(x)
         dst.y = round(y)

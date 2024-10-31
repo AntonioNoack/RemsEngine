@@ -1644,7 +1644,7 @@ open class Quaterniond(
     fun rotationX(angle: Double): Quaterniond {
         val sin = sin(angle * 0.5)
         val cos = cos(angle * 0.5)
-        return this.set(sin, 0.0, cos, 0.0)
+        return set(sin, 0.0, 0.0, cos)
     }
 
     fun rotationY(angle: Double): Quaterniond {
@@ -1832,12 +1832,9 @@ open class Quaterniond(
         )
     }
 
-    fun rotateAxis(angle: Double, axis: Vector3d, dst: Quaterniond): Quaterniond {
-        return this.rotateAxis(angle, axis.x, axis.y, axis.z, dst)
-    }
-
-    fun rotateAxis(angle: Double, axis: Vector3d): Quaterniond {
-        return this.rotateAxis(angle, axis.x, axis.y, axis.z, this)
+    @JvmOverloads
+    fun rotateAxis(angle: Double, axis: Vector3d, dst: Quaterniond = this): Quaterniond {
+        return rotateAxis(angle, axis.x, axis.y, axis.z, dst)
     }
 
     fun positiveX(dir: Vector3d): Vector3d {

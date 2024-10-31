@@ -18,7 +18,6 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tan
 
-@Suppress("unused")
 class Frustum {
 
     // this class might be replaceable with org.joml.FrustumIntersection,

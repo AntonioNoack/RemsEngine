@@ -1993,12 +1993,8 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun scaleAround(
-        sx: Double,
-        sy: Double,
-        sz: Double,
-        ox: Double,
-        oy: Double,
-        oz: Double,
+        sx: Double, sy: Double, sz: Double,
+        ox: Double, oy: Double, oz: Double,
         dst: Matrix4d = this
     ): Matrix4d {
         val nm30 = m00 * ox + m10 * oy + m20 * oz + m30
@@ -2006,16 +2002,14 @@ open class Matrix4d : Matrix {
         val nm32 = m02 * ox + m12 * oy + m22 * oz + m32
         val nm33 = m03 * ox + m13 * oy + m23 * oz + m33
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
-        return dst._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)
-            ._m12(m12 * sy)._m13(
-                m13 * sy
-            )._m20(m20 * sz)._m21(m21 * sz)._m22(m22 * sz)._m23(m23 * sz)._m30(
-                -dst.m00 * ox - dst.m10 * oy - dst.m20 * oz + nm30
-            )._m31(-dst.m01 * ox - dst.m11 * oy - dst.m21 * oz + nm31)._m32(
-                -dst.m02 * ox - dst.m12 * oy - dst.m22 * oz + nm32
-            )._m33(-dst.m03 * ox - dst.m13 * oy - dst.m23 * oz + nm33)._properties(
-                flags and (13 or if (one) 0 else 16).inv()
-            )
+        return dst._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)
+            ._m10(m10 * sy)._m11(m11 * sy)._m12(m12 * sy)._m13(m13 * sy)
+            ._m20(m20 * sz)._m21(m21 * sz)._m22(m22 * sz)._m23(m23 * sz)
+            ._m30(-dst.m00 * ox - dst.m10 * oy - dst.m20 * oz + nm30)
+            ._m31(-dst.m01 * ox - dst.m11 * oy - dst.m21 * oz + nm31)
+            ._m32(-dst.m02 * ox - dst.m12 * oy - dst.m22 * oz + nm32)
+            ._m33(-dst.m03 * ox - dst.m13 * oy - dst.m23 * oz + nm33)
+            ._properties(flags and (13 or if (one) 0 else 16).inv())
     }
 
     fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double): Matrix4d {
@@ -2045,10 +2039,11 @@ open class Matrix4d : Matrix {
         val nm31 = y * m31
         val nm32 = z * m32
         val one = JomlMath.absEqualsOne(x) && JomlMath.absEqualsOne(y) && JomlMath.absEqualsOne(z)
-        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)._m21(nm21)
-            ._m22(nm22)._m23(
-                m23
-            )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(flags and (13 or if (one) 0 else 16).inv())
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(m23)
+            ._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)
+            ._properties(flags and (13 or if (one) 0 else 16).inv())
         return dst
     }
 
@@ -2069,18 +2064,14 @@ open class Matrix4d : Matrix {
     ): Matrix4d {
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
         dst._m00(sx * (m00 - ox * m03) + ox * m03)._m01(sy * (m01 - oy * m03) + oy * m03)
-            ._m02(sz * (m02 - oz * m03) + oz * m03)._m03(
-                m03
-            )._m10(sx * (m10 - ox * m13) + ox * m13)._m11(sy * (m11 - oy * m13) + oy * m13)
-            ._m12(sz * (m12 - oz * m13) + oz * m13)._m13(
-                m13
-            )._m20(sx * (m20 - ox * m23) + ox * m23)._m21(sy * (m21 - oy * m23) + oy * m23)
-            ._m22(sz * (m22 - oz * m23) + oz * m23)._m23(
-                m23
-            )._m30(sx * (m30 - ox * m33) + ox * m33)._m31(sy * (m31 - oy * m33) + oy * m33)
-            ._m32(sz * (m32 - oz * m33) + oz * m33)._m33(
-                m33
-            )._properties(flags and (13 or if (one) 0 else 16).inv())
+            ._m02(sz * (m02 - oz * m03) + oz * m03)._m03(m03)
+            ._m10(sx * (m10 - ox * m13) + ox * m13)._m11(sy * (m11 - oy * m13) + oy * m13)
+            ._m12(sz * (m12 - oz * m13) + oz * m13)._m13(m13)
+            ._m20(sx * (m20 - ox * m23) + ox * m23)._m21(sy * (m21 - oy * m23) + oy * m23)
+            ._m22(sz * (m22 - oz * m23) + oz * m23)._m23(m23)
+            ._m30(sx * (m30 - ox * m33) + ox * m33)._m31(sy * (m31 - oy * m33) + oy * m33)
+            ._m32(sz * (m32 - oz * m33) + oz * m33)._m33(m33)
+            ._properties(flags and (13 or if (one) 0 else 16).inv())
         return dst
     }
 
@@ -2099,13 +2090,8 @@ open class Matrix4d : Matrix {
         } else if (flags and 8 != 0) {
             this.rotateTranslation(ang, x, y, z, dst)
         } else {
-            if (flags and 2 != 0) this.rotateAffine(ang, x, y, z, dst) else this.rotateGeneric(
-                ang,
-                x,
-                y,
-                z,
-                dst
-            )
+            if (flags and 2 != 0) this.rotateAffine(ang, x, y, z, dst)
+            else rotateGeneric(ang, x, y, z, dst)
         }
     }
 
@@ -2115,10 +2101,8 @@ open class Matrix4d : Matrix {
         } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
             rotateY(y * ang, dst)
         } else {
-            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateZ(
-                z * ang,
-                dst
-            ) else rotateGenericInternal(ang, x, y, z, dst)
+            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateZ(z * ang, dst)
+            else rotateGenericInternal(ang, x, y, z, dst)
         }
     }
 
@@ -2149,12 +2133,12 @@ open class Matrix4d : Matrix {
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
-        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
-            m02 * rm20 + m12 * rm21 + m22 * rm22
-        )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
-            ._m12(nm12)._m13(nm13)._m30(
-                m30
-            )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
+            ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and -14)
         return dst
     }
 
@@ -2191,10 +2175,11 @@ open class Matrix4d : Matrix {
         val rm20 = xz * C + y * s
         val rm21 = yz * C - x * s
         val rm22 = zz * C + c
-        return dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)
-            ._m11(rm11)._m12(rm12)._m13(0.0)._m30(
-                m30
-            )._m31(m31)._m32(m32)._m33(1.0)._properties(flags and -14)
+        return dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)
+            ._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)
+            ._m10(rm10)._m11(rm11)._m12(rm12)._m13(0.0)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(1.0)
+            ._properties(flags and -14)
     }
 
     @JvmOverloads
@@ -2204,10 +2189,8 @@ open class Matrix4d : Matrix {
         } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
             rotateY(y * ang, dst)
         } else {
-            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateZ(
-                z * ang,
-                dst
-            ) else rotateAffineInternal(ang, x, y, z, dst)
+            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateZ(z * ang, dst)
+            else rotateAffineInternal(ang, x, y, z, dst)
         }
     }
 
@@ -2236,12 +2219,11 @@ open class Matrix4d : Matrix {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
-            m02 * rm20 + m12 * rm21 + m22 * rm22
-        )._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m30(m30)
-            ._m31(
-                m31
-            )._m32(m32)._m33(m33)._properties(flags and -14)
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
+            ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(0.0)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
         return dst
     }
 
@@ -3668,10 +3650,11 @@ open class Matrix4d : Matrix {
         val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
         val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
         val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
-        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
-            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(
-                m33
-            )._properties(flags and -14)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
+            ._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)
+            ._properties(flags and -14)
         return dst
     }
 
@@ -3704,10 +3687,10 @@ open class Matrix4d : Matrix {
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
-        )._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m30(m30)
-            ._m31(
-                m31
-            )._m32(m32)._m33(m33)._properties(flags and -14)
+        )._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and -14)
         return dst
     }
 
@@ -3747,10 +3730,9 @@ open class Matrix4d : Matrix {
         val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
         val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
         val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
-        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
-            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(
-                m33
-            )._properties(flags and -14)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)
+            ._properties(flags and -14)
         return dst
     }
 
@@ -3948,7 +3930,8 @@ open class Matrix4d : Matrix {
         return if (flags and 4 != 0) {
             dst.identity()
         } else {
-            if (flags and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
+            if (flags and 16 != 0) normalOrthonormal(dst)
+            else normalGeneric(dst)
         }
     }
 
@@ -3977,10 +3960,11 @@ open class Matrix4d : Matrix {
         val nm20 = (m01m12 - m02m11) * s
         val nm21 = (m02m10 - m00m12) * s
         val nm22 = (m00m11 - m01m10) * s
-        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m20(nm20)
-            ._m21(nm21)._m22(nm22)._m23(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)._properties(
-                flags or 2 and -10
-            )
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)
+            ._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)
+            ._properties(flags or 2 and -10)
     }
 
     fun normal(dst: Matrix3d): Matrix3d {
@@ -4002,17 +3986,16 @@ open class Matrix4d : Matrix {
         val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
         val s = 1.0 / det
         return dst._m00((m11 * m22 - m21 * m12) * s)._m01((m20 * m12 - m10 * m22) * s)
-            ._m02((m10 * m21 - m20 * m11) * s)._m10((m21 * m02 - m01 * m22) * s)._m11((m00 * m22 - m20 * m02) * s)
-            ._m12((m20 * m01 - m00 * m21) * s)._m20((m01m12 - m02m11) * s)._m21((m02m10 - m00m12) * s)
+            ._m02((m10 * m21 - m20 * m11) * s)._m10((m21 * m02 - m01 * m22) * s)
+            ._m11((m00 * m22 - m20 * m02) * s)._m12((m20 * m01 - m00 * m21) * s)
+            ._m20((m01m12 - m02m11) * s)._m21((m02m10 - m00m12) * s)
             ._m22((m00m11 - m01m10) * s)
     }
 
     fun cofactor3x3(dst: Matrix3d): Matrix3d {
         return dst._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)
-            ._m10(m21 * m02 - m01 * m22)._m11(
-                m00 * m22 - m20 * m02
-            )._m12(m20 * m01 - m00 * m21)._m20(m01 * m12 - m02 * m11)._m21(m02 * m10 - m00 * m12)
-            ._m22(m00 * m11 - m01 * m10)
+            ._m10(m21 * m02 - m01 * m22)._m11(m00 * m22 - m20 * m02)._m12(m20 * m01 - m00 * m21)
+            ._m20(m01 * m12 - m02 * m11)._m21(m02 * m10 - m00 * m12)._m22(m00 * m11 - m01 * m10)
     }
 
     @JvmOverloads
@@ -4023,11 +4006,13 @@ open class Matrix4d : Matrix {
         val nm20 = m01 * m12 - m11 * m02
         val nm21 = m02 * m10 - m12 * m00
         val nm22 = m00 * m11 - m10 * m01
-        return dst._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)._m03(0.0)
-            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)._m30(0.0)._m31(0.0)
-            ._m32(0.0)._m33(1.0)._properties(
-                flags or 2 and -10
-            )
+        return dst._m00(m11 * m22 - m21 * m12)
+            ._m01(m20 * m12 - m10 * m22)
+            ._m02(m10 * m21 - m20 * m11)._m03(0.0)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)
+            ._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)
+            ._properties(flags or 2 and -10)
     }
 
     @JvmOverloads
@@ -4035,11 +4020,10 @@ open class Matrix4d : Matrix {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dst._m00(m00 * invXlen)._m01(m01 * invXlen)._m02(m02 * invXlen)._m10(m10 * invYlen)._m11(m11 * invYlen)._m12(
-            m12 * invYlen
-        )._m20(m20 * invZlen)._m21(m21 * invZlen)._m22(m22 * invZlen)._m30(m30)._m31(m31)._m32(m32)._m33(
-            m33
-        )._properties(flags)
+        dst._m00(m00 * invXlen)._m01(m01 * invXlen)._m02(m02 * invXlen)
+            ._m10(m10 * invYlen)._m11(m11 * invYlen)._m12(m12 * invYlen)
+            ._m20(m20 * invZlen)._m21(m21 * invZlen)._m22(m22 * invZlen)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags)
         return dst
     }
 
@@ -4143,19 +4127,16 @@ open class Matrix4d : Matrix {
     }
 
     fun unproject(winCoords: Vector3d, viewport: IntArray, dst: Vector4d): Vector4d {
-        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
+        return unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
     fun unproject(winCoords: Vector3d, viewport: IntArray, dst: Vector3d): Vector3d {
-        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
+        return unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
     fun unprojectRay(
-        winX: Double,
-        winY: Double,
-        viewport: IntArray,
-        origindst: Vector3d,
-        dirdst: Vector3d
+        winX: Double, winY: Double, viewport: IntArray,
+        origindst: Vector3d, dirdst: Vector3d
     ): Matrix4d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
@@ -4210,11 +4191,11 @@ open class Matrix4d : Matrix {
     }
 
     fun unprojectRay(winCoords: Vector2d, viewport: IntArray, origindst: Vector3d, dirdst: Vector3d): Matrix4d {
-        return this.unprojectRay(winCoords.x, winCoords.y, viewport, origindst, dirdst)
+        return unprojectRay(winCoords.x, winCoords.y, viewport, origindst, dirdst)
     }
 
     fun unprojectInv(winCoords: Vector3d, viewport: IntArray, dst: Vector4d): Vector4d {
-        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
+        return unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
     fun unprojectInv(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dst: Vector4d): Vector4d {
@@ -4230,7 +4211,7 @@ open class Matrix4d : Matrix {
     }
 
     fun unprojectInv(winCoords: Vector3d, viewport: IntArray, dst: Vector3d): Vector3d {
-        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
+        return unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
     fun unprojectInv(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dst: Vector3d): Vector3d {
@@ -4245,15 +4226,12 @@ open class Matrix4d : Matrix {
     }
 
     fun unprojectInvRay(winCoords: Vector2d, viewport: IntArray, origindst: Vector3d, dirdst: Vector3d): Matrix4d {
-        return this.unprojectInvRay(winCoords.x, winCoords.y, viewport, origindst, dirdst)
+        return unprojectInvRay(winCoords.x, winCoords.y, viewport, origindst, dirdst)
     }
 
     fun unprojectInvRay(
-        winX: Double,
-        winY: Double,
-        viewport: IntArray,
-        origindst: Vector3d,
-        dirdst: Vector3d
+        winX: Double, winY: Double, viewport: IntArray,
+        origindst: Vector3d, dirdst: Vector3d
     ): Matrix4d {
         val ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0
         val ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0
@@ -4302,11 +4280,11 @@ open class Matrix4d : Matrix {
     }
 
     fun project(position: Vector3d, viewport: IntArray, dst: Vector4d): Vector4d {
-        return this.project(position.x, position.y, position.z, viewport, dst)
+        return project(position.x, position.y, position.z, viewport, dst)
     }
 
     fun project(position: Vector3d, viewport: IntArray, dst: Vector3d): Vector3d {
-        return this.project(position.x, position.y, position.z, viewport, dst)
+        return project(position.x, position.y, position.z, viewport, dst)
     }
 
     @JvmOverloads
@@ -4342,14 +4320,14 @@ open class Matrix4d : Matrix {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
-            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
-        )._m33(m33)._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(
-            m01 * rm20 + m11 * rm21 + m21 * rm22
-        )._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)
-            ._m11(nm11)._m12(nm12)._m13(0.0)._properties(
-                flags and -14
-            )
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)
+            ._m33(m33)._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)
+            ._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
+            ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(0.0)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._properties(flags and -14)
         return dst
     }
 
@@ -4378,13 +4356,16 @@ open class Matrix4d : Matrix {
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
-        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
-            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
-        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
-            m00 * rm20 + m10 * rm21 + m20 * rm22
-        )._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(
-            m03 * rm20 + m13 * rm21 + m23 * rm22
-        )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)
+            ._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)
+            ._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)
+            ._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
+            ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)
+            ._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._properties(flags and -14)
         return dst
     }
@@ -4399,11 +4380,11 @@ open class Matrix4d : Matrix {
         val nnx = nx * invLength
         val nny = ny * invLength
         val nnz = nz * invLength
-        return this.reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dst)
+        return reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dst)
     }
 
     fun reflect(normal: Vector3d, point: Vector3d): Matrix4d {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z)
+        return reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z)
     }
 
     @JvmOverloads
@@ -4414,11 +4395,11 @@ open class Matrix4d : Matrix {
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1.0 - (orientation.x * num1 + orientation.y * num2)
-        return this.reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dst)
+        return reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dst)
     }
 
     fun reflect(normal: Vector3d, point: Vector3d, dst: Matrix4d): Matrix4d {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dst)
+        return reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dst)
     }
 
     fun reflection(a: Double, b: Double, c: Double, d: Double): Matrix4d {
@@ -4437,11 +4418,11 @@ open class Matrix4d : Matrix {
         val nnx = nx * invLength
         val nny = ny * invLength
         val nnz = nz * invLength
-        return this.reflection(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz)
+        return reflection(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz)
     }
 
     fun reflection(normal: Vector3d, point: Vector3d): Matrix4d {
-        return this.reflection(normal.x, normal.y, normal.z, point.x, point.y, point.z)
+        return reflection(normal.x, normal.y, normal.z, point.x, point.y, point.z)
     }
 
     fun reflection(orientation: Quaterniond, point: Vector3d): Matrix4d {
@@ -4451,19 +4432,13 @@ open class Matrix4d : Matrix {
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1.0 - (orientation.x * num1 + orientation.y * num2)
-        return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
+        return reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
     }
 
     @JvmOverloads
     fun ortho(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean = false,
-        dst: Matrix4d = this
+        left: Double, right: Double, bottom: Double, top: Double,
+        zNear: Double, zFar: Double, zZeroToOne: Boolean = false, dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0) dst.setOrtho(
             left,
@@ -4477,14 +4452,8 @@ open class Matrix4d : Matrix {
     }
 
     private fun orthoGeneric(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
-        dst: Matrix4d
+        left: Double, right: Double, bottom: Double, top: Double,
+        zNear: Double, zFar: Double, zZeroToOne: Boolean, dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / (right - left)
         val rm11 = 2.0 / (top - bottom)
@@ -4505,15 +4474,10 @@ open class Matrix4d : Matrix {
     }
 
     fun ortho(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        dst: Matrix4d
+        left: Double, right: Double, bottom: Double, top: Double,
+        zNear: Double, zFar: Double, dst: Matrix4d
     ): Matrix4d {
-        return this.ortho(left, right, bottom, top, zNear, zFar, false, dst)
+        return ortho(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -4527,26 +4491,13 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean = false,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setOrthoLH(
-            left,
-            right,
-            bottom,
-            top,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else orthoLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0) dst.setOrthoLH(left, right, bottom, top, zNear, zFar, zZeroToOne)
+        else orthoLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoLHGeneric(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
-        dst: Matrix4d
+        left: Double, right: Double, bottom: Double, top: Double,
+        zNear: Double, zFar: Double, zZeroToOne: Boolean, dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / (right - left)
         val rm11 = 2.0 / (top - bottom)
@@ -4566,25 +4517,15 @@ open class Matrix4d : Matrix {
     }
 
     fun orthoLH(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        dst: Matrix4d
+        left: Double, right: Double, bottom: Double, top: Double,
+        zNear: Double, zFar: Double, dst: Matrix4d
     ): Matrix4d {
-        return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dst)
+        return orthoLH(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setOrtho(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean
+        left: Double, right: Double, bottom: Double, top: Double,
+        zNear: Double, zFar: Double, zZeroToOne: Boolean
     ): Matrix4d {
         if (flags and 4 == 0) {
             _identity()
@@ -4596,7 +4537,7 @@ open class Matrix4d : Matrix {
     }
 
     fun setOrtho(left: Double, right: Double, bottom: Double, top: Double, zNear: Double, zFar: Double): Matrix4d {
-        return this.setOrtho(left, right, bottom, top, zNear, zFar, false)
+        return setOrtho(left, right, bottom, top, zNear, zFar, false)
     }
 
     fun setOrthoLH(
@@ -4623,29 +4564,19 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun orthoSymmetric(
-        width: Double,
-        height: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean = false,
-        dst: Matrix4d = this
+        width: Double, height: Double,
+        zNear: Double, zFar: Double,
+        zZeroToOne: Boolean = false, dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setOrthoSymmetric(
-            width,
-            height,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else orthoSymmetricGeneric(width, height, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0)
+            dst.setOrthoSymmetric(width, height, zNear, zFar, zZeroToOne)
+        else orthoSymmetricGeneric(width, height, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoSymmetricGeneric(
-        width: Double,
-        height: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
-        dst: Matrix4d
+        width: Double, height: Double,
+        zNear: Double, zFar: Double,
+        zZeroToOne: Boolean, dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / width
         val rm11 = 2.0 / height
@@ -4662,7 +4593,7 @@ open class Matrix4d : Matrix {
     }
 
     fun orthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4d): Matrix4d {
-        return this.orthoSymmetric(width, height, zNear, zFar, false, dst)
+        return orthoSymmetric(width, height, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -4674,13 +4605,9 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean = false,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setOrthoSymmetricLH(
-            width,
-            height,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else orthoSymmetricLHGeneric(width, height, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0)
+            dst.setOrthoSymmetricLH(width, height, zNear, zFar, zZeroToOne)
+        else orthoSymmetricLHGeneric(width, height, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoSymmetricLHGeneric(
@@ -4695,55 +4622,51 @@ open class Matrix4d : Matrix {
         val rm11 = 2.0 / height
         val rm22 = (if (zZeroToOne) 1.0 else 2.0) / (zFar - zNear)
         val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        dst._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
-            ._m00(m00 * rm00)._m01(
-                m01 * rm00
-            )._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
-            ._m20(
-                m20 * rm22
-            )._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)._properties(flags and -30)
+        dst._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)
+            ._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
+            ._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m20(m20 * rm22)._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)
+            ._properties(flags and -30)
         return dst
     }
 
     fun orthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4d): Matrix4d {
-        return this.orthoSymmetricLH(width, height, zNear, zFar, false, dst)
+        return orthoSymmetricLH(width, height, zNear, zFar, false, dst)
     }
 
     fun setOrthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, zZeroToOne: Boolean): Matrix4d {
         if (flags and 4 == 0) {
             _identity()
         }
-        _m00(2.0 / width)._m11(2.0 / height)._m22((if (zZeroToOne) 1.0 else 2.0) / (zNear - zFar))
+        _m00(2.0 / width)._m11(2.0 / height)
+            ._m22((if (zZeroToOne) 1.0 else 2.0) / (zNear - zFar))
             ._m32((if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)).flags = 2
         return this
     }
 
     fun setOrthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double): Matrix4d {
-        return this.setOrthoSymmetric(width, height, zNear, zFar, false)
+        return setOrthoSymmetric(width, height, zNear, zFar, false)
     }
 
     fun setOrthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double, zZeroToOne: Boolean): Matrix4d {
         if (flags and 4 == 0) {
             _identity()
         }
-        _m00(2.0 / width)._m11(2.0 / height)._m22((if (zZeroToOne) 1.0 else 2.0) / (zFar - zNear))
+        _m00(2.0 / width)._m11(2.0 / height)
+            ._m22((if (zZeroToOne) 1.0 else 2.0) / (zFar - zNear))
             ._m32((if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)).flags = 2
         return this
     }
 
     fun setOrthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double): Matrix4d {
-        return this.setOrthoSymmetricLH(width, height, zNear, zFar, false)
+        return setOrthoSymmetricLH(width, height, zNear, zFar, false)
     }
 
     @JvmOverloads
     fun ortho2D(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dst.setOrtho2D(left, right, bottom, top) else ortho2DGeneric(
-            left,
-            right,
-            bottom,
-            top,
-            dst
-        )
+        return if (flags and 4 != 0) dst.setOrtho2D(left, right, bottom, top)
+        else ortho2DGeneric(left, right, bottom, top, dst)
     }
 
     private fun ortho2DGeneric(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d): Matrix4d {
@@ -4751,25 +4674,18 @@ open class Matrix4d : Matrix {
         val rm11 = 2.0 / (top - bottom)
         val rm30 = (right + left) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
-        dst._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
-            m02 * rm30 + m12 * rm31 + m32
-        )._m33(m03 * rm30 + m13 * rm31 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(
-            m10 * rm11
-        )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(-m20)._m21(-m21)._m22(-m22)._m23(-m23)._properties(
-            flags and -30
-        )
+        dst._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m32)._m33(m03 * rm30 + m13 * rm31 + m33)
+            ._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m20(-m20)._m21(-m21)._m22(-m22)._m23(-m23)._properties(flags and -30)
         return dst
     }
 
     @JvmOverloads
     fun ortho2DLH(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dst.setOrtho2DLH(left, right, bottom, top) else ortho2DLHGeneric(
-            left,
-            right,
-            bottom,
-            top,
-            dst
-        )
+        return if (flags and 4 != 0) dst.setOrtho2DLH(left, right, bottom, top)
+        else ortho2DLHGeneric(left, right, bottom, top, dst)
     }
 
     private fun ortho2DLHGeneric(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d): Matrix4d {
@@ -4777,13 +4693,11 @@ open class Matrix4d : Matrix {
         val rm11 = 2.0 / (top - bottom)
         val rm30 = (right + left) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
-        dst._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
-            m02 * rm30 + m12 * rm31 + m32
-        )._m33(m03 * rm30 + m13 * rm31 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(
-            m10 * rm11
-        )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(m20)._m21(m21)._m22(m22)._m23(m23)._properties(
-            flags and -30
-        )
+        dst._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m32)._m33(m03 * rm30 + m13 * rm31 + m33)
+            ._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m20(m20)._m21(m21)._m22(m22)._m23(m23)._properties(flags and -30)
         return dst
     }
 
@@ -4791,7 +4705,8 @@ open class Matrix4d : Matrix {
         if (flags and 4 == 0) {
             _identity()
         }
-        _m00(2.0 / (right - left))._m11(2.0 / (top - bottom))._m22(-1.0)._m30((right + left) / (left - right))
+        _m00(2.0 / (right - left))._m11(2.0 / (top - bottom))
+            ._m22(-1.0)._m30((right + left) / (left - right))
             ._m31((top + bottom) / (bottom - top)).flags = 2
         return this
     }
@@ -4800,28 +4715,24 @@ open class Matrix4d : Matrix {
         if (flags and 4 == 0) {
             _identity()
         }
-        _m00(2.0 / (right - left))._m11(2.0 / (top - bottom))._m30((right + left) / (left - right))
+        _m00(2.0 / (right - left))._m11(2.0 / (top - bottom))
+            ._m30((right + left) / (left - right))
             ._m31((top + bottom) / (bottom - top)).flags = 2
         return this
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d): Matrix4d {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
     fun lookAlong(
-        dirX: Double,
-        dirY: Double,
-        dirZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
-        dst: Matrix4d = this
+        dirX: Double, dirY: Double, dirZ: Double,
+        upX: Double, upY: Double, upZ: Double, dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0) dst.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ)
         else lookAlongGeneric(dirX, dirY, dirZ, upX, upY, upZ, dst)
@@ -4867,7 +4778,7 @@ open class Matrix4d : Matrix {
     }
 
     fun setLookAlong(dir: Vector3d, up: Vector3d): Matrix4d {
-        return this.setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun setLookAlong(dirX: Double, dirY: Double, dirZ: Double, upX: Double, upY: Double, upZ: Double): Matrix4d {
@@ -4894,7 +4805,7 @@ open class Matrix4d : Matrix {
     }
 
     fun setLookAt(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4d {
-        return this.setLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
+        return setLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
     }
 
     fun setLookAt(
@@ -4926,11 +4837,11 @@ open class Matrix4d : Matrix {
     }
 
     fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
+        return lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
     }
 
     fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4d {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
+        return lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
     }
 
     @JvmOverloads
@@ -4995,16 +4906,9 @@ open class Matrix4d : Matrix {
     }
 
     fun lookAtPerspective(
-        eyeX: Double,
-        eyeY: Double,
-        eyeZ: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
-        dst: Matrix4d
+        eyeX: Double, eyeY: Double, eyeZ: Double,
+        centerX: Double, centerY: Double, centerZ: Double,
+        upX: Double, upY: Double, upZ: Double, dst: Matrix4d
     ): Matrix4d {
         var dirX = eyeX - centerX
         var dirY = eyeY - centerY
@@ -5033,27 +4937,20 @@ open class Matrix4d : Matrix {
         val nm31 = m11 * rm31
         val nm32 = m22 * rm32 + m32
         val nm33 = m23 * rm32
-        return dst._m00(m00 * leftX)._m01(m11 * upnX)._m02(m22 * dirX)._m03(m23 * dirX)._m10(nm10)._m11(m11 * upnY)
-            ._m12(
-                m22 * dirY
-            )._m13(m23 * dirY)._m20(nm20)._m21(nm21)._m22(m22 * dirZ)._m23(m23 * dirZ)._m30(nm30)._m31(nm31)._m32(nm32)
-            ._m33(nm33)._properties(0)
+        return dst._m00(m00 * leftX)._m01(m11 * upnX)._m02(m22 * dirX)._m03(m23 * dirX)
+            ._m10(nm10)._m11(m11 * upnY)._m12(m22 * dirY)._m13(m23 * dirY)
+            ._m20(nm20)._m21(nm21)._m22(m22 * dirZ)._m23(m23 * dirZ)
+            ._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
     fun setLookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4d {
-        return this.setLookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
+        return setLookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
     }
 
     fun setLookAtLH(
-        eyeX: Double,
-        eyeY: Double,
-        eyeZ: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double
+        eyeX: Double, eyeY: Double, eyeZ: Double,
+        centerX: Double, centerY: Double, centerZ: Double,
+        upX: Double, upY: Double, upZ: Double
     ): Matrix4d {
         var dirX = centerX - eyeX
         var dirY = centerY - eyeY
@@ -5072,9 +4969,12 @@ open class Matrix4d : Matrix {
         val upnX = dirY * leftZ - dirZ * leftY
         val upnY = dirZ * leftX - dirX * leftZ
         val upnZ = dirX * leftY - dirY * leftX
-        _m00(leftX)._m01(upnX)._m02(dirX)._m03(0.0)._m10(leftY)._m11(upnY)._m12(dirY)._m13(0.0)._m20(leftZ)._m21(upnZ)
-            ._m22(dirZ)._m23(0.0)._m30(-(leftX * eyeX + leftY * eyeY + leftZ * eyeZ))
-            ._m31(-(upnX * eyeX + upnY * eyeY + upnZ * eyeZ))._m32(-(dirX * eyeX + dirY * eyeY + dirZ * eyeZ))
+        _m00(leftX)._m01(upnX)._m02(dirX)._m03(0.0)
+            ._m10(leftY)._m11(upnY)._m12(dirY)._m13(0.0)
+            ._m20(leftZ)._m21(upnZ)._m22(dirZ)._m23(0.0)
+            ._m30(-(leftX * eyeX + leftY * eyeY + leftZ * eyeZ))
+            ._m31(-(upnX * eyeX + upnY * eyeY + upnZ * eyeZ))
+            ._m32(-(dirX * eyeX + dirY * eyeY + dirZ * eyeZ))
             ._m33(1.0).flags = 18
         return this
     }
@@ -5103,18 +5003,8 @@ open class Matrix4d : Matrix {
         return if (flags and 4 != 0) {
             dst.setLookAtLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
         } else {
-            if (flags and 1 != 0) lookAtPerspectiveLH(
-                eyeX,
-                eyeY,
-                eyeZ,
-                centerX,
-                centerY,
-                centerZ,
-                upX,
-                upY,
-                upZ,
-                dst
-            ) else lookAtLHGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dst)
+            if (flags and 1 != 0) lookAtPerspectiveLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dst)
+            else lookAtLHGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dst)
         }
     }
 
@@ -5158,13 +5048,16 @@ open class Matrix4d : Matrix {
         val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
         val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
         val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
-        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
-            m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
-        )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
-            m00 * leftZ + m10 * upnZ + m20 * dirZ
-        )._m21(m01 * leftZ + m11 * upnZ + m21 * dirZ)._m22(m02 * leftZ + m12 * upnZ + m22 * dirZ)._m23(
-            m03 * leftZ + m13 * upnZ + m23 * dirZ
-        )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)
+            ._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)
+            ._m20(m00 * leftZ + m10 * upnZ + m20 * dirZ)
+            ._m21(m01 * leftZ + m11 * upnZ + m21 * dirZ)
+            ._m22(m02 * leftZ + m12 * upnZ + m22 * dirZ)
+            ._m23(m03 * leftZ + m13 * upnZ + m23 * dirZ)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._properties(flags and -14)
         return dst
     }
@@ -5246,13 +5139,9 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setPerspective(
-            fovy,
-            aspect,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else perspectiveGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0)
+            dst.setPerspective(fovy, aspect, zNear, zFar, zZeroToOne)
+        else perspectiveGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveGeneric(
@@ -5287,18 +5176,16 @@ open class Matrix4d : Matrix {
         val nm21 = m21 * rm22 - m31
         val nm22 = m22 * rm22 - m32
         val nm23 = m23 * rm22 - m33
-        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
-            m12 * rm11
-        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
-            ._m22(nm22)._m23(nm23)._properties(
-                flags and -31
-            )
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)
+            ._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(flags and -31)
         return dst
     }
 
     @JvmOverloads
     fun perspective(fovy: Double, aspect: Double, zNear: Double, zFar: Double, dst: Matrix4d = this): Matrix4d {
-        return this.perspective(fovy, aspect, zNear, zFar, false, dst)
+        return perspective(fovy, aspect, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -5310,13 +5197,9 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setPerspectiveRect(
-            width,
-            height,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else perspectiveRectGeneric(width, height, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0)
+            dst.setPerspectiveRect(width, height, zNear, zFar, zZeroToOne)
+        else perspectiveRectGeneric(width, height, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveRectGeneric(
@@ -5350,12 +5233,10 @@ open class Matrix4d : Matrix {
         val nm21 = m21 * rm22 - m31
         val nm22 = m22 * rm22 - m32
         val nm23 = m23 * rm22 - m33
-        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
-            m12 * rm11
-        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
-            ._m22(nm22)._m23(nm23)._properties(
-                flags and -31
-            )
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)
+            ._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(flags and -31)
         return dst
     }
 
@@ -5375,15 +5256,9 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setPerspectiveOffCenter(
-            fovy,
-            offAngleX,
-            offAngleY,
-            aspect,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else perspectiveOffCenterGeneric(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0)
+            dst.setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne)
+        else perspectiveOffCenterGeneric(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveOffCenterGeneric(
@@ -5424,13 +5299,11 @@ open class Matrix4d : Matrix {
         val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 - m31
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 - m32
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 - m33
-        dst._m00(m00 * xScale)._m01(m01 * xScale)._m02(m02 * xScale)._m03(m03 * xScale)._m10(m10 * yScale)
-            ._m11(m11 * yScale)._m12(
-                m12 * yScale
-            )._m13(m13 * yScale)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
-            ._m22(nm22)._m23(nm23)._properties(
-                flags and (30 or if (rm20 == 0.0 && rm21 == 0.0) 0 else 1).inv()
-            )
+        dst._m00(m00 * xScale)._m01(m01 * xScale)._m02(m02 * xScale)._m03(m03 * xScale)
+            ._m10(m10 * yScale)._m11(m11 * yScale)._m12(m12 * yScale)._m13(m13 * yScale)
+            ._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)
+            ._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)
+            ._properties(flags and (30 or if (rm20 == 0.0 && rm21 == 0.0) 0 else 1).inv())
         return dst
     }
 
@@ -5444,7 +5317,7 @@ open class Matrix4d : Matrix {
         zFar: Double,
         dst: Matrix4d = this
     ): Matrix4d {
-        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false, dst)
+        return perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -5459,14 +5332,9 @@ open class Matrix4d : Matrix {
         dst: Matrix4d = this
     ): Matrix4d {
         return this.frustum(
-            tan(angleLeft) * zNear,
-            tan(angleRight) * zNear,
-            tan(angleDown) * zNear,
-            tan(angleUp) * zNear,
-            zNear,
-            zFar,
-            zZeroToOne,
-            dst
+            tan(angleLeft) * zNear, tan(angleRight) * zNear,
+            tan(angleDown) * zNear, tan(angleUp) * zNear,
+            zNear, zFar, zZeroToOne, dst
         )
     }
 
@@ -5493,16 +5361,12 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun perspectiveOffCenterFovLH(
-        angleLeft: Double,
-        angleRight: Double,
-        angleDown: Double,
-        angleUp: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
+        angleLeft: Double, angleRight: Double,
+        angleDown: Double, angleUp: Double,
+        zNear: Double, zFar: Double, zZeroToOne: Boolean,
         dst: Matrix4d = this
     ): Matrix4d {
-        return this.frustumLH(
+        return frustumLH(
             tan(angleLeft) * zNear,
             tan(angleRight) * zNear,
             tan(angleDown) * zNear,
@@ -5516,22 +5380,14 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun perspectiveOffCenterFovLH(
-        angleLeft: Double,
-        angleRight: Double,
-        angleDown: Double,
-        angleUp: Double,
-        zNear: Double,
-        zFar: Double,
-        dst: Matrix4d = this
+        angleLeft: Double, angleRight: Double,
+        angleDown: Double, angleUp: Double,
+        zNear: Double, zFar: Double, dst: Matrix4d = this
     ): Matrix4d {
-        return this.frustumLH(
-            tan(angleLeft) * zNear,
-            tan(angleRight) * zNear,
-            tan(angleDown) * zNear,
-            tan(angleUp) * zNear,
-            zNear,
-            zFar,
-            dst
+        return frustumLH(
+            tan(angleLeft) * zNear, tan(angleRight) * zNear,
+            tan(angleDown) * zNear, tan(angleUp) * zNear,
+            zNear, zFar, dst
         )
     }
 
@@ -5556,7 +5412,7 @@ open class Matrix4d : Matrix {
     }
 
     fun setPerspective(fovy: Double, aspect: Double, zNear: Double, zFar: Double): Matrix4d {
-        return this.setPerspective(fovy, aspect, zNear, zFar, false)
+        return setPerspective(fovy, aspect, zNear, zFar, false)
     }
 
     fun setPerspectiveRect(width: Double, height: Double, zNear: Double, zFar: Double, zZeroToOne: Boolean): Matrix4d {
@@ -5584,7 +5440,7 @@ open class Matrix4d : Matrix {
     }
 
     fun setPerspectiveRect(width: Double, height: Double, zNear: Double, zFar: Double): Matrix4d {
-        return this.setPerspectiveRect(width, height, zNear, zFar, false)
+        return setPerspectiveRect(width, height, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenter(
@@ -5595,7 +5451,7 @@ open class Matrix4d : Matrix {
         zNear: Double,
         zFar: Double
     ): Matrix4d {
-        return this.setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false)
+        return setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenter(
@@ -5639,17 +5495,13 @@ open class Matrix4d : Matrix {
         zNear: Double,
         zFar: Double
     ): Matrix4d {
-        return this.setPerspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
+        return setPerspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenterFov(
-        angleLeft: Double,
-        angleRight: Double,
-        angleDown: Double,
-        angleUp: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean
+        angleLeft: Double, angleRight: Double,
+        angleDown: Double, angleUp: Double,
+        zNear: Double, zFar: Double, zZeroToOne: Boolean
     ): Matrix4d {
         return this.setFrustum(
             tan(angleLeft) * zNear,
@@ -5663,23 +5515,17 @@ open class Matrix4d : Matrix {
     }
 
     fun setPerspectiveOffCenterFovLH(
-        angleLeft: Double,
-        angleRight: Double,
-        angleDown: Double,
-        angleUp: Double,
-        zNear: Double,
-        zFar: Double
+        angleLeft: Double, angleRight: Double,
+        angleDown: Double, angleUp: Double,
+        zNear: Double, zFar: Double
     ): Matrix4d {
-        return this.setPerspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
+        return setPerspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenterFovLH(
-        angleLeft: Double,
-        angleRight: Double,
-        angleDown: Double,
-        angleUp: Double,
-        zNear: Double,
-        zFar: Double,
+        angleLeft: Double, angleRight: Double,
+        angleDown: Double, angleUp: Double,
+        zNear: Double, zFar: Double,
         zZeroToOne: Boolean
     ): Matrix4d {
         return this.setFrustumLH(
@@ -5702,13 +5548,8 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setPerspectiveLH(
-            fovy,
-            aspect,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0) dst.setPerspectiveLH(fovy, aspect, zNear, zFar, zZeroToOne)
+        else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveLHGeneric(
@@ -5743,12 +5584,10 @@ open class Matrix4d : Matrix {
         val nm21 = m21 * rm22 + m31
         val nm22 = m22 * rm22 + m32
         val nm23 = m23 * rm22 + m33
-        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
-            m12 * rm11
-        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
-            ._m22(nm22)._m23(nm23)._properties(
-                flags and -31
-            )
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)
+            ._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(flags and -31)
         return dst
     }
 
@@ -5783,35 +5622,20 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun frustum(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
-        dst: Matrix4d = this
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
+        zZeroToOne: Boolean, dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setFrustum(
-            left,
-            right,
-            bottom,
-            top,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0) dst.setFrustum(left, right, bottom, top, zNear, zFar, zZeroToOne)
+        else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun frustumGeneric(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
-        dst: Matrix4d
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
+        zZeroToOne: Boolean, dst: Matrix4d
     ): Matrix4d {
         val rm00 = (zNear + zNear) / (right - left)
         val rm11 = (zNear + zNear) / (top - bottom)
@@ -5847,24 +5671,18 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun frustum(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
         dst: Matrix4d = this
     ): Matrix4d {
         return this.frustum(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setFrustum(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
         zZeroToOne: Boolean
     ): Matrix4d {
         if (flags and 4 == 0) {
@@ -5903,26 +5721,16 @@ open class Matrix4d : Matrix {
         zZeroToOne: Boolean,
         dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dst.setFrustumLH(
-            left,
-            right,
-            bottom,
-            top,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else frustumLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0)
+            dst.setFrustumLH(left, right, bottom, top, zNear, zFar, zZeroToOne)
+        else frustumLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun frustumLHGeneric(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
-        zZeroToOne: Boolean,
-        dst: Matrix4d
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
+        zZeroToOne: Boolean, dst: Matrix4d
     ): Matrix4d {
         val rm00 = (zNear + zNear) / (right - left)
         val rm11 = (zNear + zNear) / (top - bottom)
@@ -5949,33 +5757,27 @@ open class Matrix4d : Matrix {
         val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 + m31
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 + m32
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 + m33
-        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
-            m12 * rm11
-        )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
-            ._m22(nm22)._m23(nm23)._properties(0)
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)
+            ._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
+            ._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)
+            ._m20(e)._m21(nm21)._m22(nm22)._m23(nm23)._properties(0)
         return dst
     }
 
     @JvmOverloads
     fun frustumLH(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
         dst: Matrix4d = this
     ): Matrix4d {
-        return this.frustumLH(left, right, bottom, top, zNear, zFar, false, dst)
+        return frustumLH(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setFrustumLH(
-        left: Double,
-        right: Double,
-        bottom: Double,
-        top: Double,
-        zNear: Double,
-        zFar: Double,
+        left: Double, right: Double,
+        bottom: Double, top: Double,
+        zNear: Double, zFar: Double,
         zZeroToOne: Boolean
     ): Matrix4d {
         if (flags and 4 == 0) {
@@ -6000,7 +5802,7 @@ open class Matrix4d : Matrix {
     }
 
     fun setFrustumLH(left: Double, right: Double, bottom: Double, top: Double, zNear: Double, zFar: Double): Matrix4d {
-        return this.setFrustumLH(left, right, bottom, top, zNear, zFar, false)
+        return setFrustumLH(left, right, bottom, top, zNear, zFar, false)
     }
 
     fun setFromIntrinsic(
@@ -6368,14 +6170,8 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun shadow(
-        lightX: Double,
-        lightY: Double,
-        lightZ: Double,
-        lightW: Double,
-        a: Double,
-        b: Double,
-        c: Double,
-        d: Double,
+        lightX: Double, lightY: Double, lightZ: Double, lightW: Double,
+        a: Double, b: Double, c: Double, d: Double,
         dst: Matrix4d = this
     ): Matrix4d {
         val invPlaneLen = JomlMath.invsqrt(a * a + b * b + c * c)
@@ -6466,8 +6262,10 @@ open class Matrix4d : Matrix {
         dirX *= invDirLen
         dirY *= invDirLen
         dirZ *= invDirLen
-        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0.0)._m10(up.x)._m11(up.y)._m12(up.z)._m13(0.0)._m20(dirX)._m21(dirY)
-            ._m22(dirZ)._m23(0.0)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1.0).flags = 18
+        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0.0)
+            ._m10(up.x)._m11(up.y)._m12(up.z)._m13(0.0)
+            ._m20(dirX)._m21(dirY)._m22(dirZ)._m23(0.0)
+            ._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1.0).flags = 18
         return this
     }
 
@@ -6489,8 +6287,10 @@ open class Matrix4d : Matrix {
         val upX = dirY * leftZ - dirZ * leftY
         val upY = dirZ * leftX - dirX * leftZ
         val upZ = dirX * leftY - dirY * leftX
-        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0.0)._m10(upX)._m11(upY)._m12(upZ)._m13(0.0)._m20(dirX)._m21(dirY)
-            ._m22(dirZ)._m23(0.0)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1.0).flags = 18
+        _m00(leftX)._m01(leftY)._m02(leftZ)._m03(0.0)
+            ._m10(upX)._m11(upY)._m12(upZ)._m13(0.0)
+            ._m20(dirX)._m21(dirY)._m22(dirZ)._m23(0.0)
+            ._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1.0).flags = 18
         return this
     }
 
@@ -6509,9 +6309,10 @@ open class Matrix4d : Matrix {
         val q01 = (x + x) * y
         val q03 = (x + x) * w
         val q13 = (y + y) * w
-        _m00(1.0 - q11)._m01(q01)._m02(-q13)._m03(0.0)._m10(q01)._m11(1.0 - q00)._m12(q03)._m13(0.0)._m20(q13)
-            ._m21(-q03)._m22(1.0 - q11 - q00)._m23(0.0)._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)
-            ._m33(1.0).flags = 18
+        _m00(1.0 - q11)._m01(q01)._m02(-q13)._m03(0.0)
+            ._m10(q01)._m11(1.0 - q00)._m12(q03)._m13(0.0)
+            ._m20(q13)._m21(-q03)._m22(1.0 - q11 - q00)._m23(0.0)
+            ._m30(objPos.x)._m31(objPos.y)._m32(objPos.z)._m33(1.0).flags = 18
         return this
     }
 
@@ -6636,13 +6437,8 @@ open class Matrix4d : Matrix {
 
     @JvmOverloads
     fun arcball(
-        radius: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        angleX: Double,
-        angleY: Double,
-        dst: Matrix4d = this
+        radius: Double, centerX: Double, centerY: Double, centerZ: Double,
+        angleX: Double, angleY: Double, dst: Matrix4d = this
     ): Matrix4d {
         val m30 = m20 * -radius + m30
         val m31 = m21 * -radius + m31
@@ -6669,12 +6465,13 @@ open class Matrix4d : Matrix {
         val nm22 = m02 * sin + m22 * cos
         val nm23 = m03 * sin + m23 * cos
         dst._m30(-nm00 * centerX - nm10 * centerY - nm20 * centerZ + m30)
-            ._m31(-nm01 * centerX - nm11 * centerY - nm21 * centerZ + m31)._m32(
-                -nm02 * centerX - nm12 * centerY - nm22 * centerZ + m32
-            )._m33(-nm03 * centerX - nm13 * centerY - nm23 * centerZ + m33)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
-            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._properties(
-                flags and -14
-            )
+            ._m31(-nm01 * centerX - nm11 * centerY - nm21 * centerZ + m31)
+            ._m32(-nm02 * centerX - nm12 * centerY - nm22 * centerZ + m32)
+            ._m33(-nm03 * centerX - nm13 * centerY - nm23 * centerZ + m33)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._properties(flags and -14)
         return dst
     }
 
@@ -6773,17 +6570,20 @@ open class Matrix4d : Matrix {
                     invW = 1.0 / (projector.m03 * ix + projector.m23 * iz + projector.m33)
                     val px = (projector.m00 * ix + projector.m20 * iz + projector.m30) * invW
                     val py = (projector.m01 * ix + projector.m21 * iz + projector.m31) * invW
-                    minX = kotlin.math.min(minX, px)
-                    minY = kotlin.math.min(minY, py)
-                    maxX = kotlin.math.max(maxX, px)
-                    maxY = kotlin.math.max(maxY, py)
+                    minX = min(minX, px)
+                    minY = min(minY, py)
+                    maxX = max(maxX, px)
+                    maxY = max(maxY, py)
                 }
             }
         }
         return if (!intersection) {
             null
         } else {
-            dst.set(maxX - minX, 0.0, 0.0, 0.0, 0.0, maxY - minY, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, minX, minY, 0.0, 1.0)
+            dst.set(maxX - minX, 0.0, 0.0, 0.0,
+                0.0, maxY - minY, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                minX, minY, 0.0, 1.0)
                 ._properties(2)
             dst
         }
@@ -6831,14 +6631,8 @@ open class Matrix4d : Matrix {
     }
 
     fun trapezoidCrop(
-        p0x: Double,
-        p0y: Double,
-        p1x: Double,
-        p1y: Double,
-        p2x: Double,
-        p2y: Double,
-        p3x: Double,
-        p3y: Double
+        p0x: Double, p0y: Double, p1x: Double, p1y: Double,
+        p2x: Double, p2y: Double, p3x: Double, p3y: Double
     ): Matrix4d {
         val aX = p1y - p0y
         val aY = p0x - p1x
@@ -6873,14 +6667,9 @@ open class Matrix4d : Matrix {
     }
 
     fun transformAab(
-        minX: Double,
-        minY: Double,
-        minZ: Double,
-        maxX: Double,
-        maxY: Double,
-        maxZ: Double,
-        outMin: Vector3d,
-        outMax: Vector3d
+        minX: Double, minY: Double, minZ: Double,
+        maxX: Double, maxY: Double, maxZ: Double,
+        outMin: Vector3d, outMax: Vector3d
     ): Matrix4d {
         val xax = m00 * minX
         val xay = m01 * minX
@@ -6991,7 +6780,7 @@ open class Matrix4d : Matrix {
     }
 
     fun transformAab(min: Vector3d, max: Vector3d, outMin: Vector3d, outMax: Vector3d): Matrix4d {
-        return this.transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
+        return transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
     fun mix(other: Matrix4d, t: Double, dst: Matrix4d = this): Matrix4d {
@@ -7105,19 +6894,13 @@ open class Matrix4d : Matrix {
     }
 
     fun translationRotateTowards(pos: Vector3d, dir: Vector3d, up: Vector3d): Matrix4d {
-        return this.translationRotateTowards(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return translationRotateTowards(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun translationRotateTowards(
-        posX: Double,
-        posY: Double,
-        posZ: Double,
-        dirX: Double,
-        dirY: Double,
-        dirZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double
+        posX: Double, posY: Double, posZ: Double,
+        dirX: Double, dirY: Double, dirZ: Double,
+        upX: Double, upY: Double, upZ: Double
     ): Matrix4d {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val ndirX = dirX * invDirLength
@@ -7236,7 +7019,9 @@ open class Matrix4d : Matrix {
         val pzY = m13 - m12
         val pzZ = m23 - m22
         val pzW = m33 - m32
-        return nxX * x + nxY * y + nxZ * z + nxW >= 0.0 && pxX * x + pxY * y + pxZ * z + pxW >= 0.0 && nyX * x + nyY * y + nyZ * z + nyW >= 0.0 && pyX * x + pyY * y + pyZ * z + pyW >= 0.0 && nzX * x + nzY * y + nzZ * z + nzW >= 0.0 && pzX * x + pzY * y + pzZ * z + pzW >= 0.0
+        return nxX * x + nxY * y + nxZ * z + nxW >= 0.0 && pxX * x + pxY * y + pxZ * z + pxW >= 0.0 &&
+                nyX * x + nyY * y + nyZ * z + nyW >= 0.0 && pyX * x + pyY * y + pyZ * z + pyW >= 0.0 &&
+                nzX * x + nzY * y + nzZ * z + nzW >= 0.0 && pzX * x + pzY * y + pzZ * z + pzW >= 0.0
     }
 
     fun testSphere(x: Double, y: Double, z: Double, r: Double): Boolean {
@@ -7341,8 +7126,11 @@ open class Matrix4d : Matrix {
     }
 
     fun obliqueZ(a: Double, b: Double, dst: Matrix4d): Matrix4d {
-        dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)
-            ._m20(m00 * a + m10 * b + m20)._m21(m01 * a + m11 * b + m21)._m22(m02 * a + m12 * b + m22)
+        dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(m00 * a + m10 * b + m20)
+            ._m21(m01 * a + m11 * b + m21)
+            ._m22(m02 * a + m12 * b + m22)
             ._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
             ._properties(flags and 2)
         return dst
@@ -7371,9 +7159,11 @@ open class Matrix4d : Matrix {
         val nm11 = s * m10 + c * m11
         val nm21 = s * m20 + c * m21
         val nm30 = c * m30 - s * m31
-        dst._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31)
+        dst._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)
+            ._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31)
         if (dst !== this) {
-            dst._m02(m02)._m12(m12)._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33)
+            dst._m02(m02)._m12(m12)._m22(m22)._m32(m32)
+                ._m03(m03)._m13(m13)._m23(m23)._m33(m33)
         }
         dst._properties(flags and -14)
         return dst
@@ -7553,10 +7343,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)._m21(m11)
-            ._m22(m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
+            ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7567,10 +7358,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
-            ._m21(-m11)._m22(-m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
+            ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7578,10 +7370,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)._m21(m01)
-            ._m22(m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7589,10 +7382,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
-            ._m21(-m01)._m22(-m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7603,10 +7397,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
-            ._m21(m11)._m22(m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
+            ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7617,10 +7412,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
-            ._m21(-m11)._m22(-m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
+            ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7628,10 +7424,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
-            ._m21(m01)._m22(m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7639,18 +7436,20 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
-            ._m21(-m01)._m22(-m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
     fun mapnXYnZ(dst: Matrix4d = this): Matrix4d {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
-            ._m21(-m21)._m22(-m22)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7658,10 +7457,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m10)
-            ._m21(m11)._m22(m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
+            ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7669,26 +7469,29 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m10)
-            ._m21(-m11)._m22(-m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
+            ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
     fun mapnXnYZ(dst: Matrix4d = this): Matrix4d {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)
-            ._m21(
-                m21
-            )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
     fun mapnXnYnZ(dst: Matrix4d = this): Matrix4d {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m20)
-            ._m21(-m21)._m22(-m22)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7696,10 +7499,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m10)
-            ._m21(m11)._m22(m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
+            ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7707,10 +7511,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m10)
-            ._m21(-m11)._m22(-m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
+            ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7718,9 +7523,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m20)._m21(
-            m21
-        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
+            ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7728,10 +7535,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m20)
-            ._m21(-m21)._m22(-m22)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
+            ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7739,10 +7547,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m00)
-            ._m21(m01)._m22(m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
+            ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7750,10 +7559,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m00)
-            ._m21(-m01)._m22(-m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
+            ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7761,10 +7571,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m20)
-            ._m21(
-                m21
-            )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
+            ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7772,10 +7583,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m20)
-            ._m21(-m21)._m22(-m22)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
+            ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7783,10 +7595,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m00)
-            ._m21(m01)._m22(m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
+            ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7794,10 +7607,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m00)
-            ._m21(-m01)._m22(-m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)
+            ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
+            ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7808,10 +7622,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)
-            ._m21(m11)._m22(m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
+            ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7822,10 +7637,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
-            ._m21(-m11)._m22(-m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
+            ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7833,10 +7649,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)
-            ._m21(m01)._m22(m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7844,10 +7661,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
-            ._m21(-m01)._m22(-m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7858,10 +7676,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
-            ._m21(m11)._m22(m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
+            ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7872,10 +7691,11 @@ open class Matrix4d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
-            ._m21(-m11)._m22(-m12)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
+            ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7883,10 +7703,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
-            ._m21(m01)._m22(m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     @JvmOverloads
@@ -7894,10 +7715,11 @@ open class Matrix4d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
-            ._m21(-m01)._m22(-m02)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     fun negateX(): Matrix4d {
@@ -7905,9 +7727,11 @@ open class Matrix4d : Matrix {
     }
 
     fun negateX(dst: Matrix4d): Matrix4d {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m20)._m21(
-            m21
-        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     fun negateY(): Matrix4d {
@@ -7915,9 +7739,11 @@ open class Matrix4d : Matrix {
     }
 
     fun negateY(dst: Matrix4d): Matrix4d {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)._m21(
-            m21
-        )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)
+            ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
+            ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     fun negateZ(): Matrix4d {
@@ -7925,10 +7751,11 @@ open class Matrix4d : Matrix {
     }
 
     fun negateZ(dst: Matrix4d): Matrix4d {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
-            ._m21(-m21)._m22(-m22)._m23(
-                m23
-            )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
+        return dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+            ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and 18)
     }
 
     val isFinite: Boolean
