@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
 import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
 import me.anno.ecs.components.mesh.utils.TangentCalculator
@@ -201,7 +202,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     var ignoreStrayPointsInAABB = false
 
-    fun unlink() {
+    fun unlinkGPUData() {
         buffer = null
         triBuffer = null
         lineBuffer = null
@@ -209,6 +210,32 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         prefabPath = Path.ROOT_PATH
         prefab = null
         needsMeshUpdate = true
+    }
+
+    fun unlinkGeometry() {
+        positions = positions?.copyOf()
+        normals = normals?.copyOf()
+        uvs = uvs?.copyOf()
+        tangents = tangents?.copyOf()
+        color0 = color0?.copyOf()
+        color1 = color1?.copyOf()
+        color2 = color2?.copyOf()
+        color3 = color3?.copyOf()
+        color4 = color4?.copyOf()
+        color5 = color5?.copyOf()
+        color6 = color6?.copyOf()
+        color7 = color7?.copyOf()
+        boneWeights = boneWeights?.copyOf()
+        boneIndices = boneIndices?.copyOf()
+        indices = indices?.copyOf()
+        lineIndices = lineIndices?.copyOf()
+    }
+
+    fun deepClone(): Mesh {
+        val clone = clone() as Mesh
+        clone.unlinkGPUData()
+        clone.unlinkGeometry()
+        return clone
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -280,11 +307,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     fun calculateNormals(smooth: Boolean) {
+        if (smooth && indices == null) generateIndices()
         val positions = positions!!
-        if (smooth && indices == null) {
-            indices = NormalCalculator.generateIndices(positions, uvs, color0, materialIds, boneIndices, boneWeights)
-            LOGGER.debug("Generated indices for mesh")
-        }
         normals = normals.resize(positions.size)
         NormalCalculator.checkNormals(this, positions, normals!!, indices, drawMode)
     }

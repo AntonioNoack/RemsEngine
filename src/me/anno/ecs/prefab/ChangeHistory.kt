@@ -8,6 +8,7 @@ import me.anno.engine.history.StringHistory
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.ui.editor.PropertyInspector
+import me.anno.utils.assertions.assertNotSame
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -19,6 +20,7 @@ class ChangeHistory : StringHistory() {
     var prefab: Prefab? = null
 
     override fun apply(prev: String, curr: String) {
+
         if (prev == curr || prev.isEmpty()) return
         val prefab = prefab ?: return
         if ("CAdd" !in objectTypeRegistry) {
@@ -32,14 +34,12 @@ class ChangeHistory : StringHistory() {
 
         val prevSets = prefab.sets
         val currSets = changes.sets
+        assertNotSame(prevSets, currSets)
 
         val major = prevAdds != currAdds || // warning: we should sort them
                 prevSets.size != currSets.size // warning: one could have been added and one removed
 
         if (major) prefab.invalidateInstance()
-
-        RuntimeException("Change: ${prev.length} -> ${curr.length}, major? $major")
-            .printStackTrace()
 
         if (!major && prefab._sampleInstance != null) {
             // if instance exists, and no major changes, we only need to apply what really has changed

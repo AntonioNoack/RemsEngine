@@ -3,13 +3,12 @@ package me.anno.ecs.components.mesh.utils
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
+import me.anno.ecs.components.mesh.utils.IndexRemover.removeIndices
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.cos
@@ -19,8 +18,7 @@ import kotlin.math.sqrt
 // todo something seems to be incorrect... some blender meshes have broken normals
 object NormalCalculator {
 
-    private val LOGGER = LogManager.getLogger(NormalCalculator::class)
-
+    @JvmStatic
     fun needsNormalsComputation(normals: FloatArray, stride: Int): Boolean {
         for (j in 0 until normals.size / stride) {
             if (!isNormalValid(normals, j * stride)) return true
@@ -28,6 +26,7 @@ object NormalCalculator {
         return false
     }
 
+    @JvmStatic
     fun isNormalValid(normals: FloatArray, offset: Int): Boolean {
         val nx = normals[offset]
         val ny = normals[offset + 1]
@@ -38,6 +37,7 @@ object NormalCalculator {
 
     // calculate = pure arithmetics
     // compute = calculations with rules
+    @JvmStatic
     private fun calculateFlatNormal(
         positions: FloatArray,
         i0: Int, i1: Int, i2: Int,
@@ -56,6 +56,7 @@ object NormalCalculator {
         // b-c: Shape.tetrahedron.front, mesh from nav mesh
     }
 
+    @JvmStatic
     private fun computeNormalsIndexed(mesh: Mesh, positions: FloatArray, normals: FloatArray) {
         val a = JomlPools.vec3f.create()
         val b = JomlPools.vec3f.create()
@@ -106,6 +107,7 @@ object NormalCalculator {
         JomlPools.vec3f.sub(3)
     }
 
+    @JvmStatic
     private fun computeNormalsNonIndexed(positions: FloatArray, normals: FloatArray) {
         val a = JomlPools.vec3f.create()
         val b = JomlPools.vec3f.create()
@@ -131,11 +133,13 @@ object NormalCalculator {
         JomlPools.vec3f.sub(3)
     }
 
+    @JvmStatic
     private fun computeNormalsNonIndexedStrip(positions: FloatArray, normals: FloatArray) {
         // todo normal is avg from all 3 triangles containing it :)
         return computeNormalsNonIndexed(positions, normals)
     }
 
+    @JvmStatic
     fun checkNormals(mesh: Mesh, positions: FloatArray, normals: FloatArray, indices: IntArray?, drawMode: DrawMode) {
         // first an allocation free check
         when (drawMode) {
@@ -163,6 +167,7 @@ object NormalCalculator {
         }
     }
 
+    @JvmStatic
     private fun addWeightAndNormal(weights: IntArray, i0: Int, normals: FloatArray, normal: Vector3f) {
         weights[i0]++
         val j = i0 * 3
@@ -171,129 +176,14 @@ object NormalCalculator {
         normals[j + 2] += normal.z
     }
 
-    fun generateIndices(
-        positions: FloatArray,
-        uvs: FloatArray?,
-        color0: IntArray?,
-        materialIndices: IntArray?,
-        boneIndices: ByteArray?,
-        boneWeights: FloatArray?
-    ): IntArray {
-
-        // todo we probably should be able to specify a merging radius, so close points get merged
-        // for that however, we need other acceleration structures like oct-trees to accelerate the queries
-
-        // what defines a unique point:
-        // position, uvs, material index, bone indices and bone weights
-        // in the future, we should maybe support all colors...
-        class Point(
-            var x: Float, var y: Float, var z: Float,
-            var u: Float, var v: Float,
-            var color0: Int,
-            var materialIndex: Int,
-            var b0: Byte, var b1: Byte, var b2: Byte, var b3: Byte,
-            var w0: Float, var w1: Float, var w2: Float, var w3: Float,
-        ) {
-
-            constructor(x: Float, y: Float, z: Float) :
-                    this(x, y, z, 0f, 0f, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0f)
-
-            // I would use a data class, if they were mutable...
-            private var _hashCode = 0
-            override fun hashCode(): Int {
-                if (_hashCode != 0) return _hashCode
-                var hashCode = x.hashCode() * 31
-                hashCode = hashCode * 31 + y.hashCode()
-                hashCode = hashCode * 31 + z.hashCode()
-                hashCode = hashCode * 31 + u.hashCode()
-                hashCode = hashCode * 31 + v.hashCode()
-                hashCode = hashCode * 31 + this.color0.hashCode()
-                hashCode = hashCode * 31 + materialIndex.hashCode()
-                hashCode = hashCode * 31 + b0.hashCode()
-                hashCode = hashCode * 31 + b1.hashCode()
-                hashCode = hashCode * 31 + b2.hashCode()
-                hashCode = hashCode * 31 + b3.hashCode()
-                hashCode = hashCode * 31 + w0.hashCode()
-                hashCode = hashCode * 31 + w1.hashCode()
-                hashCode = hashCode * 31 + w2.hashCode()
-                hashCode = hashCode * 31 + w3.hashCode()
-                this._hashCode = hashCode
-                return hashCode
-            }
-
-            override fun equals(other: Any?): Boolean {
-                if (other !is Point) return false
-                return x == other.x && y == other.y && z == other.z &&
-                        other.u == u && other.v == v &&
-                        other.color0 == this.color0 &&
-                        other.materialIndex == materialIndex &&
-                        other.b0 == b0 && other.b1 == b1 && other.b2 == b2 && other.b3 == b3 &&
-                        other.w0 == w0 && other.w1 == w1 && other.w2 == w2 && other.w3 == w3
-            }
-        }
-
-        // generate all points
-        val points = createArrayList(positions.size / 3) {
-            val i3 = it * 3
-            Point(positions[i3], positions[i3 + 1], positions[i3 + 2])
-        }
-
-        if (uvs != null) {
-            for (i in 0 until Maths.min(uvs.size shr 1, points.size)) {
-                val i2 = i + i
-                val p = points[i]
-                p.u = uvs[i2]
-                p.v = uvs[i2 + 1]
-            }
-        }
-
-        if (color0 != null) {
-            for (i in 0 until Maths.min(color0.size, points.size)) {
-                points[i].materialIndex = color0[i]
-            }
-        }
-
-        if (materialIndices != null) {
-            for (i in 0 until Maths.min(materialIndices.size, points.size)) {
-                points[i].materialIndex = materialIndices[i]
-            }
-        }
-
-        if (boneWeights != null && boneIndices != null) {
-            for (i in 0 until Maths.min(Maths.min(boneWeights.size, boneIndices.size) shr 2, points.size)) {
-                val i4 = i shl 2
-                val p = points[i]
-                p.b0 = boneIndices[i4]
-                p.b1 = boneIndices[i4 + 1]
-                p.b2 = boneIndices[i4 + 2]
-                p.b3 = boneIndices[i4 + 3]
-                p.w0 = boneWeights[i4]
-                p.w1 = boneWeights[i4 + 1]
-                p.w2 = boneWeights[i4 + 2]
-                p.w3 = boneWeights[i4 + 3]
-            }
-        }
-
-        val uniquePoints = HashMap<Point, Int>()
-        for (i in points.lastIndex downTo 0) {
-            uniquePoints[points[i]] = i
-        }
-
-        LOGGER.debug("Merged {} into {} points", points.size, uniquePoints.size)
-
-        return IntArray(points.size) {
-            uniquePoints[points[it]]!!
-        }
-    }
-
     /**
      * @param mesh the mesh, where the normals shall be recalculated; indices should be null, but it might work anyway
      * @param maxAllowedAngle maximum allowed angle for smoothing, in radians, typically 15°-45°
      * @param largeLength all triangles, which have a larger perimeter than largeLength, will be ignored
      * @param normalScale internal parameter for a deviation; shall be ~MinVertexDistance/3, or if unknown, ~MeshScale/100; must not be too small
      * */
+    @JvmStatic
     fun calculateSmoothNormals(mesh: Mesh, maxAllowedAngle: Float, largeLength: Float, normalScale: Float) {
-        mesh.getBounds()
         val llSq = largeLength * largeLength
         val maxD = Maths.length(cos(maxAllowedAngle) - 1f, sin(maxAllowedAngle))
         calculateSmoothNormals(mesh, normalScale) { a, b, c ->
@@ -307,9 +197,9 @@ object NormalCalculator {
      * @param normalScale internal parameter for a deviation; shall be ~MinVertexDistance/3, or if unknown, ~MeshScale/100; must not be too small
      * @param getTriangleSmoothness how smooth the triangle shall be; 0 = flat shaded, 1 = fully smooth (no matter the angle up to 180°), 2 = fully smooth, any angle
      * */
+    @JvmStatic
     fun calculateSmoothNormals(
-        mesh: Mesh,
-        normalScale: Float,
+        mesh: Mesh, normalScale: Float,
         getTriangleSmoothness: (Vector3f, Vector3f, Vector3f) -> Float
     ) {
         // merge points with same normals
@@ -323,7 +213,7 @@ object NormalCalculator {
             val maxC = getTriangleSmoothness(a, b, c)
             if (maxC > 0f) {
                 val maxD = maxC * normalScale
-                normal.normalize(normalScale)
+                normal.safeNormalize(normalScale)
                 add(map, min, max, a, normal, maxD)
                 add(map, min, max, b, normal, maxD)
                 add(map, min, max, c, normal, maxD)
@@ -336,32 +226,31 @@ object NormalCalculator {
         val a = Vector3f()
         val b = Vector3f()
         val c = Vector3f()
-        var i = 0
-        val limit = positions.size - 8
         val tmp = Vector3f()
-        while (i < limit) {
-            a.set(positions[i++], positions[i++], positions[i++])
-            b.set(positions[i++], positions[i++], positions[i++])
-            c.set(positions[i++], positions[i++], positions[i++])
+        for (i in 0 until positions.size - 8) {
+            a.set(positions, i)
+            b.set(positions, i + 3)
+            c.set(positions, i + 6)
             Triangles.subCross(a, b, c, normal)
             val maxC = getTriangleSmoothness(a, b, c)
             if (maxC > 0f) {
                 val maxD = maxC * normalScale
-                normal.normalize(normalScale)
+                normal.safeNormalize(normalScale)
                 // query normal at each point
-                get(map, min, max, a.add(normal), maxD, tmp).get(normals, i - 9)
-                get(map, min, max, b.add(normal), maxD, tmp).get(normals, i - 6)
-                get(map, min, max, c.add(normal), maxD, tmp).get(normals, i - 3)
+                get(map, min, max, a.add(normal), maxD, tmp).get(normals, i)
+                get(map, min, max, b.add(normal), maxD, tmp).get(normals, i + 3)
+                get(map, min, max, c.add(normal), maxD, tmp).get(normals, i + 6)
             } else {
                 // disable smoothing on large triangles
                 normal.normalize()
-                normal.get(normals, i - 9)
-                normal.get(normals, i - 6)
-                normal.get(normals, i - 3)
+                normal.get(normals, i)
+                normal.get(normals, i + 3)
+                normal.get(normals, i + 6)
             }
         }
     }
 
+    @JvmStatic
     fun add(
         map: NormalHelperTree<Vector3f>,
         min: Vector3f, max: Vector3f,
@@ -394,6 +283,7 @@ object NormalCalculator {
         }
     }
 
+    @JvmStatic
     fun get(
         map: NormalHelperTree<Vector3f>,
         min: Vector3f, max: Vector3f,
@@ -411,30 +301,9 @@ object NormalCalculator {
         return dst.normalize()
     }
 
+    @JvmStatic
     fun Mesh.makeFlatShaded(calculateNormals: Boolean = true) {
-        val indices = indices
-        val positions = positions ?: return
-        val colors = color0
-        if (indices == null) {
-            if (calculateNormals) calculateNormals(false)
-        } else {
-            val newPositions = FloatArray(indices.size * 3)
-            val newColors = if (colors != null) IntArray(indices.size) else null
-            for (i in indices.indices) {
-                val i3 = i * 3
-                val j = indices[i]
-                val j3 = j * 3
-                newPositions[i3] = positions[j3]
-                newPositions[i3 + 1] = positions[j3 + 1]
-                newPositions[i3 + 2] = positions[j3 + 2]
-                if (colors != null) newColors!![i] = colors[j]
-            }
-            this.positions = newPositions
-            this.normals = normals.resize(newPositions.size)
-            this.color0 = newColors
-            this.indices = null
-            if (calculateNormals) calculateNormals(false)
-        }
+        if (indices != null) removeIndices()
+        if (calculateNormals) calculateNormals(false)
     }
-
 }

@@ -112,7 +112,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class, "Mesh") {
         // only needed for position, normal and tangents
         val clone = mesh.clone() as Mesh
         clone.materials = materials
-        clone.unlink()
+        clone.unlinkGPUData()
         if (!identityTransform && matrix != null) {
             clone.positions = mesh.positions?.copyOf()
             clone.normals = mesh.normals?.copyOf()

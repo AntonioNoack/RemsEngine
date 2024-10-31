@@ -14,8 +14,7 @@ object UVSphereModel {
      * */
     fun createUVSphere(us: Int, vs: Int, mesh: Mesh = Mesh()): Mesh {
 
-        val faceCount = us * vs * 2
-        val triangleCount = faceCount * 2
+        val triangleCount = 2 * us * (vs - 1)
         val indexCount = triangleCount * 3
 
         val vertexCount = (us + 1) * (vs + 1)
@@ -63,7 +62,13 @@ object UVSphereModel {
 
         k = 0
         val ms = us + 1
-        for (v in 0 until vs) {
+        for (u in 0 until us) {
+            // create triangle on north-pole
+            indices[k++] = u + ms
+            indices[k++] = u + 1 + ms
+            indices[k++] = u + 1
+        }
+        for (v in 1 until vs - 1) {
             val w = v + 1
             for (u in 0 until us) {
                 // create quad face
@@ -78,6 +83,13 @@ object UVSphereModel {
                 indices[k++] = v2
                 indices[k++] = v3
             }
+        }
+        val di = (vs - 1) * ms
+        for (u in 0 until us) {
+            // create triangle on south-pole
+            indices[k++] = u + ms + di
+            indices[k++] = u + 1 + di
+            indices[k++] = u + di
         }
         return mesh
     }

@@ -71,10 +71,12 @@ abstract class History<V : Any>(startState: V) : Saveable() {
         }
     }
 
-    fun undo(): Boolean {
+    fun undo(delta: Int = 1): Boolean {
+        if (delta <= 0) return false
         return synchronized(states) {
-            if (nextInsertIndex >= 2) {
-                nextState(nextInsertIndex - 1)
+            val newNextInsertIndex = nextInsertIndex - delta
+            if (newNextInsertIndex >= 1) {
+                nextState(newNextInsertIndex)
                 true
             } else {
                 LOGGER.info("Nothing left to undo!")

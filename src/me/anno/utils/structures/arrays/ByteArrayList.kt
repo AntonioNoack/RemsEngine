@@ -19,6 +19,11 @@ open class ByteArrayList(initialCapacity: Int) {
 
     fun add(value: Byte) = plusAssign(value)
 
+    fun add(src: ByteArray?, startIndex: Int, length: Int) {
+        ensureExtra(length)
+        addUnsafe(src, startIndex, length)
+    }
+
     operator fun set(index: Int, value: Byte) {
         values[index] = value
     }

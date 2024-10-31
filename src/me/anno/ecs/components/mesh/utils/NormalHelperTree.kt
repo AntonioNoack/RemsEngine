@@ -4,9 +4,7 @@ import me.anno.graph.octtree.KdTree
 import org.joml.Vector3f
 
 class NormalHelperTree<V> : KdTree<Vector3f, Pair<Vector3f, Vector3f>>(
-    16,
-    Vector3f(Float.NEGATIVE_INFINITY),
-    Vector3f(Float.POSITIVE_INFINITY)
+    16, Vector3f(Float.NEGATIVE_INFINITY), Vector3f(Float.POSITIVE_INFINITY)
 ) {
 
     override fun get(p: Vector3f, axis: Int) = p[axis].toDouble()

@@ -2,15 +2,15 @@ package me.anno.ecs.prefab
 
 import me.anno.engine.inspector.CachedProperty
 import me.anno.utils.types.Booleans.hasFlag
-import org.joml.Vector2f
 import org.joml.Vector2d
-import org.joml.Vector3f
+import org.joml.Vector2f
 import org.joml.Vector3d
-import org.joml.Vector4f
+import org.joml.Vector3f
 import org.joml.Vector4d
+import org.joml.Vector4f
 
 object PropertySetter {
-    fun setPropertyRespectingMask(value: Any?, mask: Int, property: CachedProperty, instance: Any){
+    fun setPropertyRespectingMask(value: Any?, mask: Int, property: CachedProperty, instance: Any) {
         when (value) {
             is Vector2f -> {
                 val value1 = property[instance] as Vector2f

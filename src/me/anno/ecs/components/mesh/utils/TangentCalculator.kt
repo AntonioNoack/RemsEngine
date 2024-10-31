@@ -12,13 +12,6 @@ import kotlin.math.sqrt
 object TangentCalculator {
 
     @JvmStatic
-    fun add(v: FloatArray, i: Int, x: Float, y: Float, z: Float) {
-        v[i] += x
-        v[i + 1] += y
-        v[i + 2] += z
-    }
-
-    @JvmStatic
     fun add(v: FloatArray, i: Int, s: Vector3f) {
         v[i] += s.x
         v[i + 1] += s.y
@@ -160,10 +153,8 @@ object TangentCalculator {
 
     @JvmStatic
     private fun computeTangentsNonIndexed(
-        positions: FloatArray,
-        normals: FloatArray,
-        dst: FloatArray,
-        uvs: FloatArray
+        positions: FloatArray, normals: FloatArray,
+        dst: FloatArray, uvs: FloatArray
     ) {
         dst.fill(0f) // in the future we could keep old values, probably not worth the effort
         val size = min(positions.size / 9, uvs.size / 6)

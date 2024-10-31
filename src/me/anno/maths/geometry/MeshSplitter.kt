@@ -3,22 +3,18 @@ package me.anno.maths.geometry
 import me.anno.ecs.components.mesh.BoneWeights
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
+import me.anno.ecs.components.mesh.utils.MeshBuilder
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.TriangleSplitter.splitTriangle
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.mixARGB2
-import me.anno.utils.structures.arrays.ByteArrayList
-import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Floats.toDegrees
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.atan2
 
 /**
  * can split a Mesh on a plane; will return four meshes (maybe only one, if no cut was needed),
@@ -30,20 +26,11 @@ object MeshSplitter {
         fun call(v: Vector3f): Float
     }
 
-    class MeshBuilder(vc: Mesh) {
-
-        val positions = FloatArrayList(64)
-        val normals = FloatArrayList(64)
-        val tangents = if (vc.tangents != null) FloatArrayList(64) else null
-        val colors = if (vc.color0 != null) IntArrayList(64) else null
-        val uvs = if (vc.uvs != null) FloatArrayList(64) else null
-
-        val boneWeights = if (vc.boneWeights != null) FloatArrayList(64) else null
-        val boneIndices = if (vc.boneIndices != null) ByteArrayList(64) else null
+    class MeshBuilderImpl(vc: Mesh) : MeshBuilder(vc) {
 
         fun addVertex(a: SplittableVertex, normal: Vector3f) {
             positions.add(a.position)
-            normals.add(normal)
+            normals?.add(normal)
             uvs?.add(a.uv!!)
             colors?.add(a.color)
             if (a.boneWeights != null) {
@@ -68,22 +55,15 @@ object MeshSplitter {
             addVertex(c)
         }
 
-        fun addTriangle(a: SplittableVertex, b: SplittableVertex, c: SplittableVertex, normal: Vector3f) {
+        fun addTriangle(
+            a: SplittableVertex,
+            b: SplittableVertex,
+            c: SplittableVertex,
+            normal: Vector3f
+        ) {
             addVertex(a, normal)
             addVertex(b, normal)
             addVertex(c, normal)
-        }
-
-        fun build(): Mesh {
-            val mesh = Mesh()
-            mesh.positions = positions.toFloatArray()
-            mesh.normals = normals.toFloatArray()
-            mesh.uvs = uvs?.toFloatArray()
-            mesh.color0 = colors?.toIntArray()
-            mesh.tangents = tangents?.toFloatArray()
-            mesh.boneWeights = boneWeights?.toFloatArray()
-            mesh.boneIndices = boneIndices?.toByteArray()
-            return mesh
         }
     }
 
@@ -142,7 +122,7 @@ object MeshSplitter {
     class MeshSplitter(vc: VertexCreator) {
 
         val result = createList(4) {
-            MeshBuilder(vc.mesh)
+            MeshBuilderImpl(vc.mesh)
         }
 
         val rings = HashMap<Vector3f, SplittableVertex>()

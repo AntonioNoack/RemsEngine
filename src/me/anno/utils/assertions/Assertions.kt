@@ -172,7 +172,7 @@ fun <V : Vector> assertEquals(expected: V?, actual: V?, distanceTolerance: Doubl
 }
 
 fun assertNull(v: Any?, message: String = "expected null, but got value") {
-    assertEquals(v, null, message)
+    assertEquals(null, v, message)
 }
 
 fun <V> assertNotNull(v: V?, message: String = "expected not null"): V {

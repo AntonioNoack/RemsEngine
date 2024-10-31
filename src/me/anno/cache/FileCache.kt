@@ -104,7 +104,7 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
         var freed = 0L
         val children = cacheFolder.listChildren()
         for (file in children) {
-            if (!file.isDirectory && abs(info[file.name, file.lastModified] - startDateTime) > proxyValidityTimeout) {
+            if (!file.isDirectory && abs(info[file.name, file.lastModified] - startDateTime) > FILE_TIMEOUT) {
                 freed += file.length()
                 file.delete()
                 deleted++
@@ -113,11 +113,11 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
             }
         }
         if (deleted > 0) LOGGER.info("[$name] Deleted ${deleted}/${deleted + kept} files, which haven't been used in the last 7 days. Freed ${freed.formatFileSize()}")
-        info.removeIf { (_, value) -> value !is Long || abs(value - startDateTime) > proxyValidityTimeout }
+        info.removeIf { (_, value) -> value !is Long || abs(value - startDateTime) > FILE_TIMEOUT }
     }
 
     companion object {
-        private const val proxyValidityTimeout = 7 * 24 * 3600 * 1000 // delete values after one week of not-used
+        private const val FILE_TIMEOUT = 7 * 24 * 3600 * 1000 // delete values after one week of not-used
         private val LOGGER = LogManager.getLogger(FileCache::class)
     }
 

@@ -10,6 +10,8 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
@@ -281,9 +283,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         writeBytes(byte2, 0, byte2.size)
     }
 
-    // todo test this function, because removeRange never worked as expected
     open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {
-        if (maxNumBackPaths < 1 && !absolutePath.startsWith(basePath.absolutePath)) return null
         val parts = absolutePath.split('/')
         val baseParts = basePath.absolutePath.split('/')
         var matchingStartPaths = 0 // those can be skipped
@@ -292,7 +292,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (!parts[i].equals(baseParts[i], ignoreCase)) break
             matchingStartPaths++
         }
-        if (parts.size - matchingStartPaths > maxNumBackPaths) return null
+        if (baseParts.size - matchingStartPaths > maxNumBackPaths) return null
         // calculate size for result
         var resultSize = (baseParts.size - matchingStartPaths) * 3
         for (i in matchingStartPaths until parts.size) {
@@ -300,13 +300,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
         val result = StringBuilder(resultSize)
         for (i in matchingStartPaths until baseParts.size) {
-            result.append("/..")
+            result.append(if (result.isEmpty()) ".." else "/..")
         }
         for (i in matchingStartPaths until parts.size) {
-            result.append('/')
+            if (result.isNotEmpty()) result.append('/')
             result.append(parts[i])
         }
-        result.removeRange2(0, 1)
         return result.toString()
     }
 
@@ -387,7 +386,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract val creationTime: Long
 
     override fun equals(other: Any?): Boolean {
-        return other is FileReference && other._hashCode == _hashCode && other.absolutePath == absolutePath
+        return other is FileReference &&
+                other._hashCode == _hashCode &&
+                other.absolutePath == absolutePath
     }
 
     override fun hashCode(): Int {
