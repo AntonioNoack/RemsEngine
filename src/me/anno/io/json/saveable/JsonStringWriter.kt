@@ -33,6 +33,17 @@ open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : Js
         data.append(v)
     }
 
+    override fun append(value: Double) {
+        data.append(value)
+        if (data.endsWith(".0")) {
+            data.setLength(data.length - 2)
+        }
+        if (data.endsWith("-0")) {
+            data.setLength(data.length - 2)
+            data.append("0")
+        }
+    }
+
     /**
      * returns the result as a string;
      * only call it, if all writing operations have finished!

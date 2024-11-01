@@ -503,15 +503,16 @@ class PipelineStageImpl(
     }
 
     fun bind(draw: () -> Unit) {
-        val blendMode = if (GFXState.ditherMode.currentValue == DitherMode.DITHER2X2) null
-        else this.blendMode
+        val blendMode = if (GFXState.ditherMode.currentValue == DitherMode.DITHER2X2) null else blendMode
         GFXState.blendMode.use(blendMode) {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(writeDepth) {
                     GFXState.cullMode.use(cullMode) {
-                        GFX.check()
-                        draw()
-                        GFX.check()
+                        GFXState.drawLines.use(Mesh.drawDebugLines) {
+                            GFX.check()
+                            draw()
+                            GFX.check()
+                        }
                     }
                 }
             }

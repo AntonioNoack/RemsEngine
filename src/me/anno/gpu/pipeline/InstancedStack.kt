@@ -152,7 +152,7 @@ open class InstancedStack {
                 // todo test with lots and lots of attributes
                 //  (whether we still fail before this)
                 val useBakedLayout = false && mesh is Mesh && mesh.helperMeshes == null &&
-                        !Mesh.drawDebugLines && mesh.lineBuffer == null && mesh.buffer != null // && Input.isShiftDown
+                        !Mesh.drawDebugLines && mesh.buffer != null // && Input.isShiftDown
 
                 val tmpShader = stage.getShader(material)
                 // to enable this mode, your vertex shader needs to be adjusted; motion vectors will only work with static meshes properly

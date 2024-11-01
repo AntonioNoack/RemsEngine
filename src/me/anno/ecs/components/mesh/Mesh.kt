@@ -9,7 +9,6 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
-import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
@@ -35,7 +34,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.bvh.BLASNode
-import me.anno.mesh.FindLines
 import me.anno.mesh.MeshRendering.drawImpl
 import me.anno.mesh.MeshRendering.drawInstancedImpl
 import me.anno.mesh.MeshUtils.countPrimitives
@@ -155,14 +153,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     val isIndexed get() = indices != null
 
     @HideInInspector
-    @NotSerializedProperty
-    var debugLineIndices: IntArray? = null
-
-    @Docs("Automatically found lines (for rendering); can be set manually")
-    @NotSerializedProperty
-    var lineIndices: IntArray? = null
-
-    @HideInInspector
     var indices: IntArray? = null
 
     @SerializedProperty
@@ -205,8 +195,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun unlinkGPUData() {
         buffer = null
         triBuffer = null
-        lineBuffer = null
-        debugLineBuffer = null
         prefabPath = Path.ROOT_PATH
         prefab = null
         needsMeshUpdate = true
@@ -228,7 +216,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         boneWeights = boneWeights?.copyOf()
         boneIndices = boneIndices?.copyOf()
         indices = indices?.copyOf()
-        lineIndices = lineIndices?.copyOf()
     }
 
     fun deepClone(): Mesh {
@@ -258,7 +245,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         dst.color7 = color7
         dst.tangents = tangents
         dst.indices = indices
-        dst.lineIndices = lineIndices
         dst.boneWeights = boneWeights
         dst.boneIndices = boneIndices
         dst.materialIds = materialIds
@@ -271,8 +257,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         dst.needsMeshUpdate = needsMeshUpdate
         dst.buffer = buffer
         dst.triBuffer = triBuffer
-        dst.lineBuffer = lineBuffer
-        dst.debugLineBuffer = debugLineBuffer
         dst.hasUVs = hasUVs
         dst.hasVertexColors = hasVertexColors
         dst.hasBonesInBuffer = hasBonesInBuffer
@@ -318,16 +302,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @NotSerializedProperty
     var triBuffer: IndexBuffer? = null
-
-    @NotSerializedProperty
-    var lineBuffer: IndexBuffer? = null
-
-    @NotSerializedProperty
-    var debugLineBuffer: IndexBuffer? = null
-
-    @InternalAPI
-    @NotSerializedProperty
-    var invalidDebugLines = true
 
     var hasUVs = false
     override var hasVertexColors = 0
@@ -407,16 +381,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             TangentCalculator.checkTangents(this, positions, normals, tangents, uvs)
     }
 
-    fun ensureDebugLines() {
-        val buffer = buffer
-        if (invalidDebugLines && buffer != null) {
-            invalidDebugLines = false
-            debugLineIndices = FindLines.getAllLines(this, indices)
-            debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
-            debugLineBuffer?.drawMode = DrawMode.LINES
-        }
-    }
-
     override fun destroy() {
         // todo only if we were not cloned...
         destroyHelperMeshes()
@@ -427,11 +391,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun clearGPUData() {
         buffer?.destroy()
         triBuffer?.destroy()
-        lineBuffer?.destroy()
-        debugLineBuffer?.destroy()
         buffer = null
         triBuffer = null
-        debugLineBuffer = null
         needsMeshUpdate = true
     }
 
@@ -442,17 +403,11 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         val proceduralLength = proceduralLength
         if (proceduralLength <= 0) {
-            drawImpl(shader, materialIndex, drawLines)
+            drawImpl(shader, materialIndex)
         } else if ((positions?.size ?: 0) == 0) {
             StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
         } else {
-            if (drawLines) {
-                ensureDebugLines()
-                debugLineBuffer?.drawInstanced(shader, proceduralLength)
-            } else {
-                (triBuffer ?: buffer)?.drawInstanced(shader, proceduralLength)
-                lineBuffer?.drawInstanced(shader, proceduralLength)
-            }
+            (triBuffer ?: buffer)?.drawInstanced(shader, proceduralLength)
         }
     }
 

@@ -108,10 +108,8 @@ object Shapes {
             if (GFX.isGFXThread()) {
                 front.ensureBuffer()
                 back.buffer = front.buffer
-                back.lineBuffer = front.lineBuffer
                 back.triBuffer = front.triBuffer
                 both.buffer = front.buffer
-                both.lineBuffer = front.lineBuffer
                 both.triBuffer = front.triBuffer
             }
         }

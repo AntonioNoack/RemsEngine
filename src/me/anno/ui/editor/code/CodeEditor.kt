@@ -724,7 +724,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     private fun applySuggestion(textSection: TextSection, suggestion: Suggestion, choice: String) {
-        val cp = choice.codepoints()
+        val codepoints = choice.codepoints()
         val si = textSection.startIndex
         val charIndex = si + suggestion.start
         // remove incorrect letters
@@ -732,8 +732,8 @@ open class CodeEditor(style: Style) : Panel(style) {
             content.remove(charIndex + i)
         }
         // insert corrected letters
-        for (c in cp.reversed()) {
-            content.insert(charIndex, c)
+        for (i in codepoints.indices.reversed()) {
+            content.insert(charIndex, codepoints[i])
         }
         onChangeText()
     }

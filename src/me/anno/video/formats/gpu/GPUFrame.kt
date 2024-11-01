@@ -62,7 +62,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
 
     fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
         val tex = getTextures()
-        for (i in tex.lastIndex downTo 0) {
+        for (i in tex.indices.reversed()) {
             tex[i].bind(offset + i, nearestFiltering, clamping)
         }
     }
@@ -72,14 +72,14 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     }
 
     fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<ITexture2D>) {
-        for ((index, texture) in tex.withIndex().reversed()) {
-            texture.bind(offset + index, filtering, clamping)
+        for (index in tex.indices.reversed()) {
+            tex[index].bind(offset + index, filtering, clamping)
         }
     }
 
     fun bind2(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<IFramebuffer>) {
-        for ((index, texture) in tex.withIndex().reversed()) {
-            texture.bindTexture0(offset + index, filtering, clamping)
+        for (index in tex.indices.reversed()) {
+            tex[index].bindTexture0(offset + index, filtering, clamping)
         }
     }
 

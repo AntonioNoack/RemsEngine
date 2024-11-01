@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline.transparency
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RenderState
@@ -169,7 +170,9 @@ class GlassPass : TransparentPass() {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(false) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
-                        stage.draw(pipeline)
+                        GFXState.drawLines.use(Mesh.drawDebugLines) {
+                            stage.draw(pipeline)
+                        }
                     }
                 }
             }

@@ -538,8 +538,7 @@ fun computeRasterizer() {
         ) {
 
             mesh.ensureBuffer()
-            if (drawLines) mesh.ensureDebugLines()
-            val triBuffer = if (drawLines) mesh.debugLineBuffer else mesh.triBuffer
+            val triBuffer = mesh.triBuffer
             val target = GFXState.currentBuffer
 
             // copy depth to color
@@ -556,8 +555,7 @@ fun computeRasterizer() {
             val (rasterizer, outputs) = shaders[key]
             rasterizer.use()
 
-            val numPrimitives = if (drawLines) mesh.debugLineBuffer!!.elementCount / 2
-            else mesh.numPrimitives.toInt()
+            val numPrimitives = mesh.numPrimitives.toInt()
 
             bindBuffers(rasterizer, instanceData, triBuffer)
             bindUniforms(pipeline, rasterizer, materialIndex, instanceData, target, numPrimitives)

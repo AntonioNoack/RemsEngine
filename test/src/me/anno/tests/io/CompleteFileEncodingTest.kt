@@ -278,10 +278,10 @@ class CompleteFileEncodingTest {
                     }
                 }
                 is Float -> {
-                    assertEquals(v, vi as Float)
+                    assertEquals(v, vi as Float, 0f)
                 }
                 is Double -> {
-                    assertEquals(v, vi as Double)
+                    assertEquals(v, vi as Double, 0.0)
                 }
                 else -> assertEquals(v, vi)
             }

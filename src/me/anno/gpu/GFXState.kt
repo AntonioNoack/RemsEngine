@@ -30,6 +30,10 @@ import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4i
+import org.lwjgl.opengl.GL11C.GL_FILL
+import org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK
+import org.lwjgl.opengl.GL11C.GL_LINE
+import org.lwjgl.opengl.GL11C.glPolygonMode
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_BACK
 import org.lwjgl.opengl.GL46C.GL_BLEND
@@ -73,12 +77,14 @@ object GFXState {
         lastDepthMode = null
         lastDepthMask = null
         lastCullMode = null
+        lastDrawLines = null
     }
 
     private var lastBlendMode: Any? = Unit
     private var lastDepthMode: DepthMode? = null
     private var lastDepthMask: Boolean? = null
     private var lastCullMode: CullMode? = null
+    private var lastDrawLines: Boolean? = null
 
     private fun bindBlendMode(newValue: Any?) {
         if (newValue == lastBlendMode) return
@@ -135,8 +141,16 @@ object GFXState {
         lastDepthMask = newValue
     }
 
+    private fun bindDrawLines() {
+        val newValue = drawLines.currentValue
+        if (lastDrawLines == newValue) return
+        glPolygonMode(GL_FRONT_AND_BACK, if (newValue) GL_LINE else GL_FILL)
+        lastDrawLines = newValue
+    }
+
     private fun bindCullMode() {
-        val newValue = cullMode.currentValue
+        var newValue = cullMode.currentValue
+        if (drawLines.currentValue) newValue = CullMode.BOTH
         if (lastCullMode == newValue) return
         when (newValue) {
             CullMode.BOTH -> {
@@ -159,6 +173,7 @@ object GFXState {
         bindDepthMode()
         bindDepthMask()
         bindCullMode()
+        bindDrawLines()
     }
 
     /**
@@ -195,6 +210,7 @@ object GFXState {
     val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
     val depthMode = SecureStack(alwaysDepthMode)
     val depthMask = SecureStack(true)
+    val drawLines = SecureStack(false)
 
     /**
      * a flag for shaders whether their animated version (slower) is used
@@ -210,7 +226,6 @@ object GFXState {
      * defines how the instanced transform is derived from available attributes (depends on InstancedStack)
      * */
     val instanceData = SecureStack(MeshInstanceData.DEFAULT)
-
     val ditherMode = SecureStack(DitherMode.DRAW_EVERYTHING)
 
     val cullMode = SecureStack(CullMode.BOTH)

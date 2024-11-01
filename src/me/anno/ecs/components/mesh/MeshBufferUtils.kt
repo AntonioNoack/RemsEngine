@@ -6,10 +6,8 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
-import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.mesh.FindLines
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
@@ -161,18 +159,6 @@ object MeshBufferUtils {
         }
 
         updateHelperMeshes()
-
-        // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
-        defineLineIndices(buffer)
-
-        invalidDebugLines = true
-    }
-
-    fun Mesh.defineLineIndices(buffer: StaticBuffer) {
-        // find regular lines
-        lineIndices = lineIndices ?: FindLines.findLines(this, indices, positions)
-        lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
-        lineBuffer?.drawMode = DrawMode.LINES
     }
 
     fun putPosition(buffer: StaticBuffer, positions: FloatArray, i3: Int) {

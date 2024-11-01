@@ -275,7 +275,8 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         val y = windowStack.mouseY
         val xi = x.toInt()
         val yi = y.toInt()
-        for (window in windowStack.reversed()) {
+        for (wi in windowStack.indices.reversed()) {
+            val window = windowStack[wi]
             val panel = window.panel.getPanelAt(xi, yi)
             if (panel != null) {
                 callback(panel, x, y)

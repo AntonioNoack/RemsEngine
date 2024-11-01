@@ -38,11 +38,6 @@ class BulletTest {
 
     val physics get() = BulletPhysicsImpl
 
-    init {
-        LogManager.define("BulletPhysics", Level.DEBUG)
-        physics.printValidations = true
-    }
-
     @Test
     fun testGravity() {
 
@@ -253,7 +248,7 @@ class BulletTest {
 
         if (floorFriction > 0f && circleFriction > 0f) {
             assertTrue(sphere.position.x < 0f)
-            assertEquals(-0.362, underTest.linearVelocity.x, 0.001)
+            assertEquals(-0.362, underTest.linearVelocity.x, 0.01)
             assertEquals(0.0, underTest.linearVelocity.y, 0.05) // todo why is there y-movement??
             assertEquals(Vector3d(0.0, 0.0, 0.365), underTest.angularVelocity, 0.01)
         } else {

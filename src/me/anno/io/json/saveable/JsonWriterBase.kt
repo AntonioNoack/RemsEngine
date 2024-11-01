@@ -104,13 +104,11 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
         append(value.toDouble())
     }
 
-    private fun append(value: Double) {
-        val str = value.toString()
-        if (str.endsWith(".0")) {
-            append(str.substring(0, str.length - 2))
-        } else {
-            append(str)
-        }
+    open fun append(value: Double) {
+        var str = value.toString()
+        if (str.endsWith(".0")) str = str.substring(0, str.length - 2)
+        if (str == "-0") str = "0"
+        append(str)
     }
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {

@@ -25,7 +25,7 @@ class RenderForwardNode : RenderViewNode(
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Boolean", "Apply ToneMapping",
+        "Boolean", "Apply Tone Mapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
     ) + listLayers(),

@@ -7,7 +7,6 @@ import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBufferUtils.addNormalAttribute
 import me.anno.ecs.components.mesh.MeshBufferUtils.addUVAttributes
-import me.anno.ecs.components.mesh.MeshBufferUtils.defineLineIndices
 import me.anno.ecs.components.mesh.MeshBufferUtils.putNormal
 import me.anno.ecs.components.mesh.MeshBufferUtils.putPosition
 import me.anno.ecs.components.mesh.MeshBufferUtils.putTangent
@@ -154,9 +153,6 @@ fun Mesh.createMeshBufferImpl1() {
     }
 
     updateHelperMeshes()
-    defineLineIndices(buffer)
-
-    invalidDebugLines = true
 }
 
 /**

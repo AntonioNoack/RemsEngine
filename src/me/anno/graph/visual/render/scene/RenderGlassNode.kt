@@ -26,9 +26,6 @@ class RenderGlassNode : RenderViewNode(
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Boolean", "Apply ToneMapping",
-        "Int", "Skybox Resolution", // or 0 to not bake it
-        "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky", // todo draw sky maybe
         "Texture", "Illuminated",
         "Texture", "Depth"
     ),
@@ -40,9 +37,6 @@ class RenderGlassNode : RenderViewNode(
         setInput(2, 256) // height
         setInput(3, 1) // samples
         setInput(4, PipelineStage.TRANSPARENT) // stage
-        setInput(5, false) // don't apply tonemapping
-        setInput(6, 0) // don't bake skybox
-        setInput(7, DrawSkyMode.DONT_DRAW_SKY)
     }
 
     var renderer = pbrRendererNoDepth
@@ -50,7 +44,7 @@ class RenderGlassNode : RenderViewNode(
     val width get() = getIntInput(1)
     val height get() = getIntInput(2)
     val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
-    val prepassTex get() = getInput(8) as? Texture
+    val prepassTex get() = getInput(5) as? Texture
 
     override fun executeAction() {
         val width = width
@@ -65,7 +59,6 @@ class RenderGlassNode : RenderViewNode(
         timeRendering("$name-$stage", timer) {
             // val sorting = getInput(5) as Int
             // val cameraIndex = getInput(6) as Int
-            val applyToneMapping = getBoolInput(5)
 
             val framebuffer = FBStack["scene-glass",
                 width, height, TargetType.Float16x4,
@@ -73,10 +66,9 @@ class RenderGlassNode : RenderViewNode(
 
             val prepassColor0 = if (samples > 1) prepassTex.texMSOrNull else prepassTex.texOrNull
             val prepassColor = prepassColor0 ?: whiteTexture
-            val depthTex = getInput(9) as? Texture
+            val depthTex = getInput(6) as? Texture
             val prepassDepth = if (samples > 1) depthTex.texMSOrNull else depthTex.texOrNull
 
-            pipeline.applyToneMapping = applyToneMapping
             GFXState.useFrame(width, height, true, framebuffer, renderer) {
                 defineInputs(framebuffer, prepassColor, prepassDepth, depthTex.mask1Index)
                 val stageImpl = pipeline.stages.getOrNull(stage.id)
