@@ -7,14 +7,12 @@ import me.anno.engine.OfficialExtensions
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.jvm.HiddenOpenGLContext
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.AssetThumbnails
 import me.anno.image.thumbs.Thumbs
-import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.assimp.findAllBones
 import me.anno.utils.Color.a01
@@ -55,47 +53,41 @@ fun main() {
     // done test animation / skeleton
     @Suppress("SpellCheckingInspection")
     val file = downloads.getChild("3d/taryk/scene.gltf")
-    val aiScene = StaticMeshesLoader.loadFile(file, StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS).first
-    val rootNode = aiScene.mRootNode()!!
+    StaticMeshesLoader.loadFile(file, StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS) { aiScene1, _ ->
 
-    val boneList = ArrayList<Bone>()
-    val boneMap = HashMap<String, Bone>()
+        val (aiScene, _) = aiScene1!!
+        val rootNode = aiScene.mRootNode()!!
 
-    val skeleton = Skeleton()
-    skeleton.bones = boneList
+        val boneList = ArrayList<Bone>()
+        val boneMap = HashMap<String, Bone>()
 
-    // check what is the result using the animations
-    // loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
-    val dst0 = desktop.getChild("byAnimation.png")
-    AssetThumbnails.generateSkeletonFrame(dst0, HDBKey.InvalidKey, skeleton, size) { result, exc ->
-        if (result is Texture2D) GPUImage(result).write(dst0)
-        exc?.printStackTrace()
-    }
-    println("by animation: ${boneList.map { it.name }}")
+        val skeleton = Skeleton()
+        skeleton.bones = boneList
+
+        // check what is the result using the animations
+        // loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
+        val dst0 = desktop.getChild("byAnimation.png")
+        AssetThumbnails.generateSkeletonFrame(dst0, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+            if (result is Texture2D) GPUImage(result).write(dst0)
+            exc?.printStackTrace()
+        }
+        println("by animation: ${boneList.map { it.name }}")
 
 
 
 
-    boneList.clear()
-    boneMap.clear()
+        boneList.clear()
+        boneMap.clear()
 
-    findAllBones(aiScene, rootNode, boneList, boneMap)
-    val dst1 = desktop.getChild("byTree.png")
-    AssetThumbnails.generateSkeletonFrame(dst1, HDBKey.InvalidKey, skeleton, size) { result, exc ->
-        if (result is Texture2D) GPUImage(result).write(dst1)
-        exc?.printStackTrace()
-    }
-    println("by tree, full: ${boneList.map { it.name }}")
+        findAllBones(aiScene, rootNode, boneList, boneMap)
+        val dst1 = desktop.getChild("byTree.png")
+        AssetThumbnails.generateSkeletonFrame(dst1, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+            if (result is Texture2D) GPUImage(result).write(dst1)
+            exc?.printStackTrace()
+        }
+        println("by tree, full: ${boneList.map { it.name }}")
 
-    Engine.requestShutdown()
-}
-
-@Suppress("unused", "SpellCheckingInspection")
-fun walkingTest() {
-    // val loader = AnimatedMeshesLoader
-    val (_, prefab) = AnimatedMeshesLoader.readAsFolder2(downloads.getChild("fbx/simple pack anims/Walking.fbx"))
-    for (change in prefab.adds) {
-        println(change)
+        Engine.requestShutdown()
     }
 }
 

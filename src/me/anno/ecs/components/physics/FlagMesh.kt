@@ -120,7 +120,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
     private var fract = 0f
     var dt = 1f / 30f
 
-    // todo test this
+    // doesn't work yet :/
     var useCustomMesh = false
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

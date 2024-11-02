@@ -40,6 +40,8 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.files.FileExplorerOptions.copyNameDesc
+import me.anno.ui.editor.files.FileExplorerOptions.copyPathDesc
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
@@ -223,8 +225,9 @@ class ECSSceneTab(
                     windowStack, listOf(
                         MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) { play() },
                         MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },
-                        MenuOption(NameDesc("Copy Path")) { setClipboardContent(file.absolutePath) },
-                        MenuOption(NameDesc("Copy Name")) { setClipboardContent(file.name) },
+                        MenuOption(copyPathDesc) { setClipboardContent(file.absolutePath) },
+                        MenuOption(copyNameDesc) { setClipboardContent(file.name) },
+                        MenuOption(NameDesc("Save"), ::save),
                         MenuOption(NameDesc("Clear History")) {
                             ECSSceneTabs.open(this, true)
                             val history = inspector.prefab.history

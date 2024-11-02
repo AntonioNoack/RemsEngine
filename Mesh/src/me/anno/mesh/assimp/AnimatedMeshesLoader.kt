@@ -15,6 +15,7 @@ import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.NamedSaveable
@@ -51,7 +52,6 @@ import org.lwjgl.assimp.AINode
 import org.lwjgl.assimp.AINodeAnim
 import org.lwjgl.assimp.AIScene
 import org.lwjgl.assimp.AIVertexWeight
-import java.io.IOException
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
@@ -97,44 +97,26 @@ object AnimatedMeshesLoader {
         return Matrix3f(rightVec, upVec, forwardVec)
     }
 
-    fun readAsFolder(
-        file: FileReference,
-        resources: FileReference = file.getParent(), flags: Int = DEFAULT_ASSIMP_FLAGS
-    ): InnerFolder = readAsFolder2(file, resources, flags).first
+    fun readAsFolder(file: FileReference, callback: InnerFolderCallback) {
 
-    fun readAsFolder2(
-        file: FileReference,
-        resources: FileReference = file.getParent(),
-        flags: Int = DEFAULT_ASSIMP_FLAGS
-    ): Pair<InnerFolder, Prefab> {
+        val flags = DEFAULT_ASSIMP_FLAGS
 
         var name = file.nameWithoutExtension
         if (name.equals("scene", true)) name = file.getParent().name
 
-        // it creates prefabs from the whole file content,
-        // so we can inherit from the materials, meshes, animations, ...
-        // all and separately
-        val aiScene: AIScene
-        val isFBX: Boolean
-        try {
-            val (aiScene1, isFBX1) = loadFile(file, flags)
-            aiScene = aiScene1
-            isFBX = isFBX1
-        } catch (e: IOException) {
-            if (e.message?.contains("FBX-DOM unsupported") == true) {
-                try {
-                    val pair = FBX6000.readBinaryFBX6000AsFolder(file)
-                    if (pair != null) return pair
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    throw e
-                }
-            } else {
-                LOGGER.warn("$e from $file")
-            }
-            throw e
+        loadFile(file, flags) { result, e ->
+            if (result != null) {
+                val (aiScene1, isFBX1) = result
+                callback.ok(readAsFolder2(file, aiScene1, isFBX1, name))
+            } else if (e?.message?.contains("FBX-DOM unsupported") == true) {
+                val pair = FBX6000.readBinaryFBX6000AsFolder(file)
+                callback.call(pair?.first, e)
+            } else callback.err(e)
         }
+    }
 
+    private fun readAsFolder2(file: FileReference, aiScene: AIScene, isFBX: Boolean, name: String): InnerFolder {
+        val resources = file.getParent()
         val root = InnerFolder(file)
         val rootNode = aiScene.mRootNode()!!
         val loadedTextures = if (aiScene.mNumTextures() > 0) {
@@ -247,7 +229,7 @@ object AnimatedMeshesLoader {
 
         root.sealPrefabs()
 
-        return root to hierarchy
+        return root
     }
 
     @Suppress("SpellCheckingInspection")

@@ -23,8 +23,11 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture3D
 import me.anno.image.thumbs.AssetThumbHelper
-import me.anno.image.thumbs.AssetThumbHelper.removeMissingTextures
+import me.anno.image.thumbs.AssetThumbHelper.doneCondition
+import me.anno.image.thumbs.AssetThumbHelper.getEndTime
+import me.anno.image.thumbs.AssetThumbHelper.removeMissingFiles
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
+import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -33,10 +36,12 @@ import me.anno.mesh.Shapes.smoothCube
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
+import me.anno.utils.Sleep
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
+import sun.management.GcInfoCompositeData.getEndTime
 import kotlin.math.cbrt
 import kotlin.math.ceil
 import kotlin.math.pow
@@ -84,6 +89,13 @@ val mergeChannelsShader = ComputeShader(
             "}\n"
 )
 
+fun waitForTextures(textures: Collection<FileReference>) {
+    val endTime = getEndTime()
+    Sleep.waitUntil(true) {
+        doneCondition(textures, endTime)
+    }
+}
+
 fun meshToSeparatedVoxels(
     mesh: Mesh, renderer: Renderer,
     blocksX: Int, blocksY: Int, blocksZ: Int,
@@ -121,7 +133,7 @@ fun meshToSeparatedVoxels(
     if (waitForTextures) {
         val materials = mesh.materials
         val textures = HashSet(materials.flatMap(AssetThumbHelper::listTextures))
-        removeMissingTextures(textures, mesh.ref)
+        removeMissingFiles(textures, mesh.ref)
         waitForTextures(textures)
     }
     GFXState.depthMode.use(DepthMode.FORWARD_ALWAYS) {

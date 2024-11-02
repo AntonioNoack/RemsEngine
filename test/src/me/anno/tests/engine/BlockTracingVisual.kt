@@ -27,6 +27,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBf
 import org.joml.AABBi
 import org.joml.Quaternionf

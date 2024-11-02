@@ -3,9 +3,9 @@ package me.anno.engine.ui.render
 import me.anno.ecs.components.light.LightType
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.gpu.pipeline.LightShaders.addDiffuseLight
 import me.anno.gpu.pipeline.LightShaders.addSpecularLight
 import me.anno.gpu.pipeline.LightShaders.combineLightFinishLine
-import me.anno.gpu.pipeline.LightShaders.addDiffuseLight
 import me.anno.gpu.pipeline.LightShaders.mixAndClampLight
 import me.anno.gpu.pipeline.LightShaders.startLightSum
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
@@ -15,9 +15,13 @@ object RendererLib {
     val fresnelSchlick = "" +
             "#ifndef FRESNEL_SCHLICK\n" +
             "#define FRESNEL_SCHLICK\n" +
-            "float fresnelSchlick(float cosine, float ior) {\n" +
+            "float fresnelSchlickR0(float ior) {\n" +
             "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
             "   r0 = r0 * r0;\n" +
+            "   return r0;\n" +
+            "}\n" +
+            "float fresnelSchlick(float cosine, float ior) {\n" +
+            "   float r0 = fresnelSchlickR0(ior);\n" +
             "   return r0 + (1.0 - r0) * sqrt(max(1.0 - cosine, 0.0));\n" +
             "}\n" +
             "#endif\n"

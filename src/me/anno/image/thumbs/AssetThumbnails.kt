@@ -1,9 +1,11 @@
 package me.anno.image.thumbs
 
+import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
+import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
@@ -13,12 +15,16 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.render.PlayMode
@@ -30,22 +36,23 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureCache
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
 import me.anno.image.thumbs.AssetThumbHelper.findModelMatrix
 import me.anno.image.thumbs.AssetThumbHelper.listTextures
-import me.anno.image.thumbs.AssetThumbHelper.removeMissingTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.utils.InternalAPI
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Warning
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists
+import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -127,14 +134,51 @@ object AssetThumbnails {
         }
     }
 
-    private fun loadTextures(scene: Entity, srcFile: FileReference) {
-        val sceneMaterials = AssetThumbHelper.collectMaterials(scene)
-        val sceneTextures = HashSet(sceneMaterials.flatMap(AssetThumbHelper::listTextures))
-        removeMissingTextures(sceneTextures, srcFile)
-        for (i in 0 until 3) { // make sure both are loaded
-            AssetThumbHelper.waitForMeshes(scene)
-            waitForTextures(sceneTextures)
+    private fun loadAssets(scene: Entity, callback: () -> Unit) {
+
+        val meshComponents = scene
+            .getComponentsInChildren(MeshComponent::class)
+
+        val meshFiles = meshComponents
+            .map { it.meshFile }.toHashSet()
+            .filter { it.exists }
+
+        val materialFiles = meshComponents
+            .flatMap { it.materials }.toHashSet()
+            .filter { it.exists }.toHashSet()
+
+        val textureFiles = HashSet<FileReference>()
+        val meshToMat = HashSet<FileReference>()
+        val matToTex = HashSet<FileReference>()
+        val async = true
+        val delta = 50L
+
+        fun <V : ICacheData> checkAsset(
+            cache: PrefabByFileCache<V>, file: FileReference,
+            mapFileOnce: HashSet<FileReference>,
+            addChildFiles: (V) -> Unit,
+        ): Boolean {
+            val mesh = cache[file, async]
+            if (mesh != null && mapFileOnce.add(file)) {
+                addChildFiles(mesh)
+            }
+            return mesh != null || cache.hasFileEntry(file, delta)
         }
+
+        waitUntil(true, {
+            meshFiles.all2 { meshFile ->
+                checkAsset(MeshCache, meshFile, meshToMat) { mesh ->
+                    materialFiles.addAll(mesh.materials.filter { it.exists })
+                }
+            } && materialFiles.all { materialFile ->
+                checkAsset(MaterialCache, materialFile, matToTex) { material ->
+                    textureFiles.addAll(material.listTextures().filter { it.exists })
+                }
+            } && textureFiles.all { textureFile ->
+                TextureCache[textureFile, async] != null ||
+                        TextureCache.hasFileEntry(textureFile, delta)
+            }
+        }, callback)
     }
 
     @JvmStatic
@@ -146,31 +190,32 @@ object AssetThumbnails {
         callback: Callback<ITexture2D>
     ) {
         // todo draw gui (colliders), entity positions
-        loadTextures(scene, srcFile)
-        scene.validateTransform()
-        val bounds = getBoundsForRendering(scene)
-        ThumbsRendering.renderToImage(
-            srcFile, false,
-            dstFile, true,
-            Renderers.previewRenderer,
-            true, callback, size, size
-        ) {
-            GFX.checkIsGFXThread()
-            val rv = rv
-            val cam = rv.editorCamera
-            findFramingRadius(scene, bounds)
-            rv.near = rv.radius * 0.01
-            rv.far = rv.radius * 2.0
-            rv.updateEditorCameraTransform()
-            rv.setRenderState()
-            rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
-            // don't use EditorState
-            GFXState.ditherMode.use(DitherMode.DITHER2X2) {
-                rv.pipeline.clear()
-                rv.pipeline.fill(scene)
+        loadAssets(scene) {
+            scene.validateTransform()
+            val bounds = getBoundsForRendering(scene)
+            ThumbsRendering.renderToImage(
+                srcFile, false,
+                dstFile, true,
+                Renderers.previewRenderer,
+                true, callback, size, size
+            ) {
+                GFX.checkIsGFXThread()
+                val rv = rv
+                val cam = rv.editorCamera
+                findFramingRadius(scene, bounds)
+                rv.near = rv.radius * 0.01
+                rv.far = rv.radius * 2.0
+                rv.updateEditorCameraTransform()
                 rv.setRenderState()
-                GFXState.currentBuffer.clearColor(0, depth = true)
-                rv.pipeline.singlePassWithoutSky()
+                rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
+                // don't use EditorState
+                GFXState.ditherMode.use(DitherMode.DITHER2X2) {
+                    rv.pipeline.clear()
+                    rv.pipeline.fill(scene)
+                    rv.setRenderState()
+                    GFXState.currentBuffer.clearColor(0, depth = true)
+                    rv.pipeline.singlePassWithoutSky()
+                }
             }
         }
     }

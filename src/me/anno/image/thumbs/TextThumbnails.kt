@@ -48,8 +48,9 @@ object TextThumbnails {
             key, text, size * 2, size * 2, 0, false
         )
         if (texture != null) {
-            Sleep.waitUntil(true) { texture.wasCreated }
-            callback.ok(texture)
+            Sleep.waitUntil(true, { texture.wasCreated }) {
+                callback.ok(texture)
+            }
         } else callback.err(null)
     }
 

@@ -21,14 +21,15 @@ class MeshLoaderPlugin : Plugin() {
     override fun onEnable() {
 
         // read as folder
-        InnerFolderCache.registerSignatures("fbx,gltf,dae,draco,md2,md5mesh,ply,json") { it, c ->
-            c.ok(AnimatedMeshesLoader.readAsFolder(it))
-        }
+        InnerFolderCache.registerSignatures(
+            "fbx,gltf,dae,draco,md2,md5mesh,ply,json",
+            AnimatedMeshesLoader::readAsFolder
+        )
         InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
         InnerFolderCache.registerSignatures("obj", OBJReader.Companion::readAsFolder)
-        InnerFolderCache.registerFileExtensions("dae,gltf") { it, c -> // their signatures are xml and json
-            c.ok(AnimatedMeshesLoader.readAsFolder(it))
-        }
+
+        // their signatures are xml and json
+        InnerFolderCache.registerFileExtensions("dae,gltf", AnimatedMeshesLoader::readAsFolder)
         InnerFolderCache.registerFileExtensions("obj", OBJReader.Companion::readAsFolder)
         InnerFolderCache.registerSignatures("mtl", MTLReader.Companion::readAsFolder)
         InnerFolderCache.registerSignatures("maya", MayaASCII2015::readAsFolder)

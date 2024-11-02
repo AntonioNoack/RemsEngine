@@ -177,7 +177,7 @@ object AssetThumbHelper {
                     err?.printStackTrace()
                     if (res != null) {
                         val textures = res.flatten().toHashSet()
-                        removeMissingTextures(textures, srcFile)
+                        removeMissingFiles(textures, srcFile)
                         waitForTextures(textures, callback)
                     } else {
                         callback()
@@ -189,17 +189,18 @@ object AssetThumbHelper {
         waitForTextures(emptyList(), mesh, srcFile, callback)
     }
 
-    fun removeMissingTextures(textures: MutableSet<FileReference>, srcFile: FileReference) {
-        textures.removeAll { it == InvalidRef || isTextureFileMissing(it, srcFile) }
+    fun removeMissingFiles(files: MutableSet<FileReference>, srcFile: FileReference) {
+        files.removeAll { it == InvalidRef || isFileMissing(it, srcFile) }
     }
 
-    private fun isTextureFileMissing(it: FileReference, srcFile: FileReference): Boolean {
+    private fun isFileMissing(it: FileReference, srcFile: FileReference): Boolean {
         return if (!it.exists) {
-            LOGGER.warn("Missing texture $it by $srcFile")
+            LOGGER.warn("Missing file '$it' by '$srcFile'")
             true
         } else false
     }
 
+    @Deprecated("Use async method")
     fun waitForMeshes(entity: Entity) {
         // wait for all textures
         entity.forAllComponentsInChildren(MeshComponentBase::class) {
@@ -208,7 +209,7 @@ object AssetThumbHelper {
         }
     }
 
-    fun collectMaterials(entity: Entity): HashSet<FileReference> {
+    fun collectMaterials(entity: Entity, callback: Callback<HashSet<FileReference>>): HashSet<FileReference> {
         val materials = HashSet<FileReference>()
         entity.forAllComponentsInChildren(MeshComponentBase::class) { comp ->
             val mesh = comp.getMesh()
@@ -251,7 +252,7 @@ object AssetThumbHelper {
             { _, matRef, cb -> listTextures(matRef, cb) },
             { res, err ->
                 val textures = HashSet((res ?: emptyList()).flatten())
-                removeMissingTextures(textures, srcFile)
+                removeMissingFiles(textures, srcFile)
                 callback(textures)
                 err?.printStackTrace()
             })
@@ -265,19 +266,13 @@ object AssetThumbHelper {
         // listing all textures
         // does not include personal materials / shaders...
         val textures = material.listTextures().toHashSet()
-        removeMissingTextures(textures, srcFile)
+        removeMissingFiles(textures, srcFile)
         waitForTextures(textures, callback)
     }
 
     private const val TEXTURE_TIMEOUT = 25000L
-    fun waitForTextures(textures: Collection<FileReference>) {
-        val endTime = getEndTime()
-        Sleep.waitUntil(true) {
-            doneCondition(textures, endTime)
-        }
-    }
 
-    private fun doneCondition(textures: Collection<FileReference>, endTime: Long): Boolean {
+    fun doneCondition(textures: Collection<FileReference>, endTime: Long): Boolean {
         // textures may be missing; just ignore them, if they cannot be read
         return if (Time.gameTimeN > endTime) {
             warnMissingTextures(textures)
@@ -287,7 +282,7 @@ object AssetThumbHelper {
         }
     }
 
-    private fun getEndTime(): Long {
+    fun getEndTime(): Long {
         return Time.gameTimeN + TEXTURE_TIMEOUT * Maths.MILLIS_TO_NANOS
     }
 

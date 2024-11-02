@@ -169,6 +169,7 @@ open class Material : PrefabSaveable(), Renderable {
     @Type("Texture/Reference")
     var sheenNormalMap: FileReference = InvalidRef
 
+    // todo bug: input is allowing values < 1
     @Docs("Defines refraction/reflection strength for transparent materials")
     @Range(1.0, 5.0)
     var indexOfRefraction = 1.5f

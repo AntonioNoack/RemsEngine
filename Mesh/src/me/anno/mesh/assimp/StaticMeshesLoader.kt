@@ -23,7 +23,7 @@ import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.ForLoop.forLoop
-import me.anno.utils.Sleep
+import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
@@ -120,47 +120,55 @@ object StaticMeshesLoader {
         return 1f / (shininessExponent * 0.01f + 1f)
     }
 
-    fun loadFile(file0: FileReference, flags: Int): Pair<AIScene, Boolean> {
+    fun loadFile(file: FileReference, flags: Int, callback: Callback<Pair<AIScene, Boolean>>) {
         // obj files should use our custom importer
-        var file = file0
-        val signature = SignatureCache[file, false]?.name
+        val signature = SignatureCache[file, false]?.name // todo should be async
         if ((signature == "dae" || signature == "xml") && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)
-            val xml = file.inputStreamSync().use { stream ->
-                XMLReader().read(stream.reader())!!
-            }
-
-            fun clean(xml: Any): Any {
-                return if (xml is XMLNode) {
-                    for (i in xml.children.indices) {
-                        xml.children[i] = clean(xml.children[i])
+            return file.inputStream { str, err ->
+                if (str != null) {
+                    val xml = XMLReader().read(str.reader())!!
+                    fun clean(xml: Any): Any {
+                        return if (xml is XMLNode) {
+                            for (i in xml.children.indices) {
+                                xml.children[i] = clean(xml.children[i])
+                            }
+                            xml
+                        } else xml.toString().trim()
                     }
-                    xml
-                } else xml.toString().trim()
-            }
 
-            val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
-            file = InnerTmpTextFile(better)
+                    val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
+                    val tmp = InnerTmpTextFile(better)
+                    loadFile2(file, tmp, flags, signature, callback)
+                } else callback.err(err)
+            }
         }
 
         // glb cannot be loaded from memory properly... (a bug in Assimp)
-        if (file0 !is FileFileRef && (signature == "gltf" || signature == "json")) {
-            val tmp = FileFileRef.createTempFile(file0.nameWithoutExtension, file0.extension)
-            var done = false
-            file0.copyTo(tmp) {
-                done = true
-            }
-            Sleep.waitUntil(true) { done }
+        if (file !is FileFileRef && (signature == "gltf" || signature == "json")) {
+            val tmp = FileFileRef.createTempFile(file.nameWithoutExtension, file.extension)
             tmp.deleteOnExit()
-            return loadFile(tmp, flags)
+            file.copyTo(tmp) {
+                loadFile2(file, tmp, flags, signature, callback)
+            }
+            return
         }
 
+        loadFile2(file, file, flags, signature, callback)
+    }
+
+    fun loadFile2(
+        file0: FileReference,
+        file: FileReference, flags: Int, signature: String?,
+        callback: Callback<Pair<AIScene, Boolean>>
+    ) {
         // we could load in parallel,
         // but we'd need to keep track of the scale factor;
         // it only is allowed to be set, if the file is a fbx file
-        return synchronized(StaticMeshesLoader) {
-            val isFBXFile = signature == "fbx"
+        val isFBXFile = signature == "fbx"
+        var error: String? = null
+        val obj = synchronized(StaticMeshesLoader) {
             val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
             val obj = if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
                 val store = aiCreatePropertyStore()!!
@@ -173,10 +181,14 @@ object StaticMeshesLoader {
                     file.readByteBufferSync(true), flags, null as ByteBuffer?, store
                 )
             }
-            // should be sync as well
-            if (obj == null) throw IOException("Error loading model $file, ${aiGetErrorString()}")
-            Pair(obj, isFBXFile)
+            if (obj == null) {
+                error = aiGetErrorString()
+            }
+            obj
         }
+        // should be sync as well
+        if (obj != null) callback.ok(Pair(obj, isFBXFile))
+        else callback.err(IOException("Error loading model $file0, $error"))
     }
 
     private fun buildScene(

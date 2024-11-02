@@ -29,10 +29,6 @@ class HelperMesh(val indices: IntArray) : ICacheData {
         }
 
         fun Mesh.createHelperMeshes(materialIds: IntArray, init: Boolean = true) {
-            // todo use the same geometry data buffers: allow different index buffers per buffer
-            // lines, per-material, all-together
-            // creating separate buffers on the gpu,
-            // split indices / data, would be of advantage here
             val length = materialIds.maxOrNull()!! + 1
             if (length == 1) return
             val drawMode = drawMode

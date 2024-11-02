@@ -55,7 +55,7 @@ open class FileInput(
     init {
         // base.tooltip = f0.absolutePath
         base.apply {
-            alignmentX = AxisAlignment.CENTER
+            alignmentX = AxisAlignment.FILL
             alignmentY = AxisAlignment.CENTER
             addChangeListener {
                 notifyListeners(it.toGlobalFile())

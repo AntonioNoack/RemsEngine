@@ -18,7 +18,7 @@ fun main() {
     val json = JsonFormatter.format(shorten(parseBinaryFBX6000(source.inputStreamSync())))
     desktop.getChild("fbx6100.json").writeText(json)
     println(json)
-    println(readAsFolder(source))
+    readAsFolder(source) { it, _ -> println(it) }
     val meshes = readBinaryFBX6000AsMeshes(source.inputStreamSync())
     val entity = Entity()
     for (mesh in meshes) entity.add(MeshComponent(mesh))

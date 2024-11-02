@@ -94,13 +94,13 @@ class GlassPass : TransparentPass() {
                                 colorToSRGB +
                                 "float milkiness = 0.5 * finalRoughness;\n" +
                                 "float iorValue = gl_FrontFacing ? 1.0 / IOR : IOR;\n" +
-                                "float fresnel = fresnelSchlick(NdotV, iorValue);\n" +
+                                "float fresnel = 0.04;\n" + // we don't have SSR for glass, so this is the best we can do visually
                                 "finalAlpha = mix(fresnel, 1.0, milkiness);\n" +
-                                "finalReflections = finalColor * finalAlpha;\n" +
-                                "finalTinting = -log(finalColor0) * finalAlpha;\n" +
+                                "finalReflections = finalColor * finalAlpha;\n" + // color from sky
+                                "finalTinting = -log(finalColor0) * finalAlpha;\n" + // actual color
                                 "finalRefraction = IOR == 1.0 ? 0.0 : -log(IOR) * finalAlpha;\n" +
                                 "finalNormal2D = IOR == 1.0 ? vec2(0.0) : vec2(dot(finalNormal,dirX), dot(finalNormal,dirY)) * finalAlpha;\n"
-                    ).add(fresnelSchlick).add(getReflectivity).add(sampleSkyboxForAmbient).add(brightness)
+                    ).add(getReflectivity).add(sampleSkyboxForAmbient).add(brightness)
                 )
             }
         }
@@ -137,7 +137,7 @@ class GlassPass : TransparentPass() {
                         "       float tr = clamp(diffuseData.a,0.0,1.0);\n" +
                         "       vec3 tint = exp(-diffuseData.rgb);\n" +
                         "       vec4 surface = getTex(surfaceGlassTex);\n" +
-                        "       float normFactor = 1.0 / (diffuseData.a + 0.01);\n" +
+                        "       float normFactor = 0.5 / (diffuseData.a + 0.01);\n" +
                         "       vec2 normalData = getTex(normalGlassTex).xy;\n" +
                         // only a part is refracted -> mix it in -> how much?
                         "       vec2 refractUV = -normalData * emissiveData.a * normFactor;\n" +
