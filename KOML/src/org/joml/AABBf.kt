@@ -531,6 +531,13 @@ class AABBf(
         return dx * dx + dy * dy + dz * dz
     }
 
+    fun distanceSquared(v: Vector3d): Double {
+        val dx = max(max(minX - v.x, v.x - maxX), 0.0)
+        val dy = max(max(minY - v.y, v.y - maxY), 0.0)
+        val dz = max(max(minZ - v.z, v.z - maxZ), 0.0)
+        return dx * dx + dy * dy + dz * dz
+    }
+
     fun testLine(start: Vector3f, end: Vector3f): Boolean {
         if (isEmpty()) return false
         return testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&

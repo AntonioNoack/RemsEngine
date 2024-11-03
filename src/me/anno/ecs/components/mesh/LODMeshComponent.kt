@@ -1,12 +1,14 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.files.FileReference
-import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -50,29 +52,43 @@ class LODMeshComponent() : MeshComponentBase() {
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         if (aabbIndex < 0) {
+            fillSpaceStart()
             for (index in meshes.indices) {
-                val mesh = MeshCache[meshes[index]] ?: continue
-                fillSpace(mesh, globalTransform, aabb)
+                fillSpaceAdd(MeshCache[meshes[index]] ?: continue)
             }
+            fillSpaceEnd(globalTransform, aabb)
         } else {
             val index = clamp(aabbIndex, 0, meshes.lastIndex)
             val mesh = MeshCache[meshes[index]]
-            if (mesh != null) fillSpace(mesh, globalTransform, aabb)
+            if (mesh != null) fillSpaceSet(mesh, globalTransform, aabb)
         }
         return true
     }
 
-    override fun getMeshOrNull(): Mesh? {
+    @DebugProperty
+    val lodIndex: Int get() = getLODIndex()
+
+    private fun getLODIndex(): Int {
         val pos = RenderState.cameraPosition
-        val transform = transform
-        val index = if (transform != null) {
-            val relDistSq = globalAABB.distanceSquared(pos) / (lod1Dist * lod1Dist)
-            val index = (lodBias + lodScale * log2(relDistSq.toFloat())).toInt()
-            clamp(index, 0, meshes.lastIndex)
-        } else 0
-        val ref = meshes.getOrNull(index)
-        return MeshCache[ref]
+        val distSq = if (transform != null) {
+            // globalAABB should be filled
+            globalAABB.distanceSquared(pos)
+        } else {
+            val mesh = MeshCache[meshes.firstOrNull()] ?: return 0 // maybe should use aabbIndex
+            mesh.getBounds().distanceSquared(pos)
+        }
+        val relDistSq = distSq / (lod1Dist * lod1Dist)
+        val index = (lodBias + lodScale * log2(relDistSq.toFloat())).toInt()
+        return clamp(index, 0, meshes.lastIndex)
     }
+
+    private fun getLODMeshRef(): FileReference {
+        val index = getLODIndex()
+        return meshes.getOrNull(index) ?: InvalidRef
+    }
+
+    override fun getMeshOrNull(): Mesh? = MeshCache[getLODMeshRef(), true]
+    override fun getMesh(): IMesh? = MeshCache[getLODMeshRef(), false]
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

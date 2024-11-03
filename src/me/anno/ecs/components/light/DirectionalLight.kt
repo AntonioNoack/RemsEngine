@@ -13,13 +13,11 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-// todo where is the shadow number format decided?
-//  for directional lights, only integer-based formats are sensible
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     /**
      * typically a directional light will be the sun;
-     * it's influence should be over the whole scene, while its shadows may not
+     * its influence should be over the whole scene, while its shadows may not
      *
      * with cutoff != 0, it is cutoff, as if it was a plane light
      * */
