@@ -2,6 +2,7 @@ package me.anno.engine
 
 import me.anno.Engine
 import me.anno.Time
+import me.anno.gpu.GFX.checkIfGFX
 import me.anno.maths.Maths
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -13,20 +14,31 @@ import java.util.concurrent.PriorityBlockingQueue
  * */
 object Events {
 
-    private class ScheduledTask(val time: Long, val runnable: () -> Unit) : Comparable<ScheduledTask> {
+    private class ScheduledTask(val name: String, val time: Long, val runnable: () -> Unit) :
+        Comparable<ScheduledTask> {
         override fun compareTo(other: ScheduledTask): Int {
             return time.compareTo(other.time)
         }
     }
 
-    private val eventTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()
+    private val eventTasks: Queue<NamedTask> = ConcurrentLinkedQueue()
     private val scheduledTasks: Queue<ScheduledTask> = PriorityBlockingQueue(16)
+
+    fun getCalleeName(): String {
+        val entry = Exception().stackTrace
+            .getOrNull(2) ?: return "?"
+        return entry.toString()
+    }
 
     /**
      * schedules a task that will be executed on the main loop
      * */
+    fun addEvent(name: String, event: () -> Unit) {
+        eventTasks.add(NamedTask(name, event))
+    }
+
     fun addEvent(event: () -> Unit) {
-        eventTasks += event
+        addEvent(getCalleeName(), event)
     }
 
     /**
@@ -35,17 +47,23 @@ object Events {
      *
      * if deltaMillis = 0, this is like addGPUTask { addEvent { run() } }
      * */
-    fun addEvent(deltaMillis: Long, event: () -> Unit) {
-        scheduledTasks.add(ScheduledTask(Time.nanoTime + deltaMillis * Maths.MILLIS_TO_NANOS, event))
+    fun addEvent(name: String, deltaMillis: Long, event: () -> Unit) {
+        scheduledTasks.add(ScheduledTask(name, Time.nanoTime + deltaMillis * Maths.MILLIS_TO_NANOS, event))
     }
 
-    fun workTasks(tasks: Queue<() -> Unit>) {
+    fun addEvent(deltaMillis: Long, event: () -> Unit) {
+        addEvent(getCalleeName(), deltaMillis, event)
+    }
+
+    fun workTasks(tasks: Queue<NamedTask>) {
         while (tasks.isNotEmpty()) {
+            val task = tasks.poll()!!
             try {
-                tasks.poll()!!.invoke()
+                task.runnable()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
+            checkIfGFX(task.name)
         }
     }
 
@@ -56,14 +74,16 @@ object Events {
     private fun workScheduledTasks() {
         val time = Time.nanoTime
         while (scheduledTasks.isNotEmpty()) {
-            try {
-                val peeked = scheduledTasks.peek()!!
-                if (time >= peeked.time) {
-                    scheduledTasks.poll()!!.runnable()
-                } else break
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
+            val peeked = scheduledTasks.peek()!!
+            if (time >= peeked.time) {
+                val task = scheduledTasks.poll()!!
+                try {
+                    task.runnable()
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
+                checkIfGFX(task.name)
+            } else break
         }
     }
 

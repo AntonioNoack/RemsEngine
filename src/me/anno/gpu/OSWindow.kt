@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.Events.addEvent
+import me.anno.engine.NamedTask
 import me.anno.gpu.WindowManagement.glfwTasks
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
@@ -261,10 +262,10 @@ open class OSWindow(var title: String) {
      * may not succeed, test with getWindowTransparency()
      */
     fun setWindowOpacity(opacity: Float) {
-        glfwTasks += {
+        glfwTasks.add(NamedTask("setWindowOpacity") {
             GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_FALSE)
             GLFW.glfwSetWindowOpacity(pointer, opacity)
-        }
+        })
     }
 
     /**
@@ -273,10 +274,10 @@ open class OSWindow(var title: String) {
      * may not succeed, test with isFramebufferTransparent()
      */
     fun makeFramebufferTransparent() {
-        glfwTasks += {
+        glfwTasks.add(NamedTask("makeFramebufferTransparent") {
             GLFW.glfwSetWindowOpacity(pointer, 1f)
             GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_TRUE)
-        }
+        })
     }
 
     /**
@@ -293,10 +294,10 @@ open class OSWindow(var title: String) {
         shouldClose = true
         if (isHidden) return
         isHidden = true
-        glfwTasks += {
+        glfwTasks.add(NamedTask("requestClose") {
             GLFW.glfwHideWindow(pointer)
             GLFW.glfwSetWindowShouldClose(pointer, true)
-        }
+        })
     }
 
     fun makeCurrent(): Boolean {

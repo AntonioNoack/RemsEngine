@@ -7,6 +7,7 @@ import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
+import me.anno.engine.NamedTask
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GLNames.getErrorTypeName
@@ -78,7 +79,7 @@ object WindowManagement {
     private val windows get() = GFX.windows
 
     @JvmStatic
-    val glfwTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()
+    val glfwTasks: Queue<NamedTask> = ConcurrentLinkedQueue()
 
     /**
      * must be used when calling GLFW, because it's not thread-safe

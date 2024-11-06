@@ -227,13 +227,13 @@ object GFX {
      * Only runs in debug mode.
      * */
     @JvmStatic
-    fun check() {
+    fun check(name: String = "") {
         // assumes that the first access is indeed from the OpenGL thread
         if (isDebug) {
             checkIsGFXThread()
             val error = glGetError()
             if (error != 0) {
-                val title = "GLException: ${getErrorTypeName(error)}"
+                val title = "GLException[$name]: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
             }
         }
@@ -250,6 +250,13 @@ object GFX {
                     LOGGER.warn("GLException by $name: ${getErrorTypeName(error)}")
                 } else break
             }
+        }
+    }
+
+    @JvmStatic
+    fun checkIfGFX(name: String) {
+        if (isDebug && isGFXThread()) {
+            check(name)
         }
     }
 }

@@ -137,7 +137,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val mesh = getMesh()
         if (mesh != null) {
-            fillSpaceSet(mesh, globalTransform, globalAABB)
+            fillSpaceSet(mesh, globalTransform, aabb)
         }
         return true
     }

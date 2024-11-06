@@ -40,7 +40,9 @@ object Queues {
 
         // changing to 10 doesn't make the frame rate smoother :/
         val framesForWork = 5
-        if (Thread.currentThread() == glThread) GFX.check()
+        if (Thread.currentThread() == glThread) {
+            GFX.checkWithoutCrashing("workQueue")
+        }
 
         val workTodo = max(1000, queue.sumOf { it.cost } / framesForWork)
         var workDone = 0

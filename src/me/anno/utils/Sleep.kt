@@ -4,6 +4,7 @@ import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
+import me.anno.engine.Events.getCalleeName
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks
 import java.util.concurrent.Semaphore
@@ -109,14 +110,20 @@ object Sleep {
 
     @JvmStatic
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
+        val name = getCalleeName()
+        waitUntil(name, canBeKilled, isFinished, callback)
+    }
+
+    @JvmStatic
+    fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
         if (mustWorkTasks()) {
             this.waitUntil(canBeKilled, isFinished)
             callback()
         } else if (isFinished()) {
             callback()
         } else if (!(canBeKilled && shutdown)) { // wait a little
-            addEvent(0) {
-                waitUntil(canBeKilled, isFinished, callback)
+            addEvent(name, 0) {
+                waitUntil(name, canBeKilled, isFinished, callback)
             }
         } // else cancelled
     }

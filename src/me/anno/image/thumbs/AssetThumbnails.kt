@@ -34,6 +34,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
@@ -178,7 +179,11 @@ object AssetThumbnails {
                 TextureCache[textureFile, async] != null ||
                         TextureCache.hasFileEntry(textureFile, delta)
             }
-        }, callback)
+        }) {
+            addGPUTask("loadAssets", 1000) {
+                callback()
+            }
+        }
     }
 
     @JvmStatic
