@@ -330,9 +330,13 @@ open class Texture2D(
         data: Any,
         unbind: Boolean = true
     ) {
+        check()
         ensurePointer()
+        check()
         bindBeforeUpload()
+        check()
         setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
+        check()
         when (data) {
             is ByteBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
             is ShortBuffer -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
@@ -344,6 +348,7 @@ open class Texture2D(
             is DoubleArray -> glTexSubImage2D(target, level, x, y, w, h, dataFormat, dataType, data)
             else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
         }
+        check()
     }
 
     fun upload(type: TargetType, data: ByteBuffer?) {
@@ -492,7 +497,7 @@ open class Texture2D(
         val tiles = Maths.max(Maths.roundDiv(height, Maths.max(1, (1024) / width)), 1)
         val useTiles = tiles >= 4 && dataI.capacity() > 16
         if (useTiles) {
-            addGPUTask("IntImage", width, height) {
+            addGPUTask("IntImage.createTiled[0]", width, height) {
                 if (!isDestroyed) {
                     create(creationType)
                     this.channels = numChannels
@@ -503,7 +508,7 @@ open class Texture2D(
                 val y0 = WorkSplitter.partition(y, height, tiles)
                 val y1 = WorkSplitter.partition(y + 1, height, tiles)
                 val dy = y1 - y0
-                addGPUTask("IntImage", width, dy) {
+                addGPUTask("IntImage.createTiled[$y/$tiles]", width, dy) {
                     if (!isDestroyed) {
                         wasCreated = true // reset to true state
                         dataI.position(y0 * width)
@@ -520,7 +525,7 @@ open class Texture2D(
                 }
             }
         } else {
-            addGPUTask("IntImage", width, height) {
+            addGPUTask("IntImage.create", width, height) {
                 if (!isDestroyed) {
                     create(creationType, uploadingType, dataI)
                     callback.call(this, null)

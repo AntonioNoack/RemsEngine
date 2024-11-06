@@ -54,6 +54,7 @@ import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.effects.VignetteNode
+import me.anno.graph.visual.render.scene.CellShadingNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DepthPrepassNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
@@ -559,6 +560,27 @@ class RenderMode private constructor(
         val FOG_TEST = RenderMode("Fog Test", postProcessGraph(HeightExpFogNode()))
         val NIGHT_TEST = RenderMode("Night Test", postProcessGraph(NightNode()))
         val ANIME_OUTLINES = RenderMode("Anime Outlines", postProcessGraph(AnimeOutlineNode()))
+
+        val CELL_SHADING = RenderMode(
+            "Cell Shading",
+            QuickPipeline()
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
+                .then(RenderDecalsNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CellShadingNode())
+                .then(SSRNode())
+                .then(RenderGlassNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(AnimeOutlineNode())
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
+                .then(GizmoNode())
+                .then(UnditherNode())
+                .then(FXAANode())
+                .finish()
+        )
+
         val VIGNETTE = RenderMode("Vignette", postProcessGraph(VignetteNode()))
         val PIXELATION = RenderMode("Pixelation", postProcessGraph(PixelationNode()))
 
