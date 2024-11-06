@@ -567,7 +567,6 @@ class RenderMode private constructor(
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
-                .then(SSAONode())
                 .then(CellShadingNode())
                 .then(SSRNode())
                 .then(RenderGlassNode())
