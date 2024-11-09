@@ -52,7 +52,6 @@ class CellShadingNode : RenderViewNode(
         "Vector3f", "Diffuse",
         "Vector3f", "Emissive",
         "Float", "Reflectivity",
-        "Float", "Occlusion",
         "Float", "Ambient Occlusion",
     ), listOf("Texture", "Illuminated")
 ) {
@@ -65,7 +64,6 @@ class CellShadingNode : RenderViewNode(
                 Variable(GLSLType.SCube, "reflectionMap"),
                 Variable(GLSLType.V3F, "finalNormal"),
                 Variable(GLSLType.V1F, "finalReflectivity"),
-                Variable(GLSLType.V1F, "finalOcclusion"),
                 Variable(GLSLType.V1B, "applyToneMapping"),
                 Variable(GLSLType.V3F, "finalLight"),
                 Variable(GLSLType.V1F, "ambientOcclusion"),
@@ -76,12 +74,10 @@ class CellShadingNode : RenderViewNode(
                     "   float finalRoughness = 1.0-finalReflectivity;\n" +
                     "#endif\n" +
                     "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, finalReflectivity);\n" +
-                    "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
-                    "   vec3 emissive = finalEmissive * mix(1.0, invOcclusion, finalReflectivity);\n" +
                     "   float light0 = max(brightness(light), 1e-38);\n" +
                     "   float power = 3.333;\n" +
-                    "   float light0Scale = pow(2.0*power, clamp(round(log2(light0)/power), -3.0, 3.0));\n" +
-                    "   finalColor = finalColor * light0Scale + emissive;\n" +
+                    "   float light0Scale = pow(2.0*power, clamp(round(log2(light0)/power), -3.0, 4.0));\n" +
+                    "   finalColor = finalColor * light0Scale + finalEmissive;\n" +
                     "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
                     colorToSRGB +
                     "   color = vec4(finalColor, 1.0);\n"
@@ -112,12 +108,11 @@ class CellShadingNode : RenderViewNode(
             val shader: Shader
 
             init {
-                val sizes = intArrayOf(3, 3, 3, 1, 1, 1)
+                val sizes = intArrayOf(3, 3, 3, 1, 1)
                 val names = listOf(
                     DeferredLayerType.LIGHT_SUM.glslName,
                     DeferredLayerType.COLOR.glslName,
                     DeferredLayerType.EMISSIVE.glslName,
-                    DeferredLayerType.OCCLUSION.glslName,
                     DeferredLayerType.REFLECTIVITY.glslName,
                     "ambientOcclusion"
                 )
@@ -131,7 +126,9 @@ class CellShadingNode : RenderViewNode(
                         "$nameI=$exprI;\n"
                     }
                 defineLocalVars(builder)
-                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } + listOf(
+                val variables = typeValues.map { (k, v) ->
+                    Variable(v.type, k)
+                } + listOf(
                     Variable(GLSLType.V2F, "uv"),
                     Variable(GLSLType.V4F, "result", VariableMode.OUT)
                 ) + depthVars + sizes.indices.map { i ->
