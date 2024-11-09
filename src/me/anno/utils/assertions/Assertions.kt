@@ -126,7 +126,7 @@ fun <V : Vector> assertEquals(
 ) {
     for (i in 0 until expected.numComponents) {
         assertEquals(expected.getComp(i), actual.getComp(i), absoluteThreshold) {
-            "|$expected - $actual| > $absoluteThreshold"
+            "$message, |$expected - $actual| > $absoluteThreshold"
         }
     }
 }
