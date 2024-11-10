@@ -6,6 +6,7 @@ import me.anno.utils.assertions.assertEquals
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
+import kotlin.math.tan
 
 /**
  * this is partially JOML, partially custom
@@ -33,6 +34,38 @@ class PerspectiveTests {
         Perspective.setPerspective(m, fovRadians, aspect, near, Float.NaN, 0f, 0f, true)
         val far = 1e38f // close to infinity, but not exactly, so we don't get NaNs
         testPerspective(m, expectedPositions(far, 1f, 0f), far)
+    }
+
+    @Test
+    fun testSetPerspectiveVR() {
+        val m0 = Matrix4f()
+        Perspective.setPerspective(m0, fovRadians, aspect, near, far, 0f, 0f, false)
+        val m1 = Matrix4f()
+        Perspective.setPerspectiveVR(
+            m1,
+            aspect * tan(-fovRadians * 0.5f),
+            aspect * tan(+fovRadians * 0.5f),
+            tan(+fovRadians * 0.5f),
+            tan(-fovRadians * 0.5f),
+            near, far, false
+        )
+        assertEquals(m0, m1, 1e-6)
+    }
+
+    @Test
+    fun testSetPerspectiveVRReverse() {
+        val m0 = Matrix4f()
+        Perspective.setPerspective(m0, fovRadians, aspect, near, far, 0f, 0f, true)
+        val m1 = Matrix4f()
+        Perspective.setPerspectiveVR(
+            m1,
+            aspect * tan(-fovRadians * 0.5f),
+            aspect * tan(+fovRadians * 0.5f),
+            tan(+fovRadians * 0.5f),
+            tan(-fovRadians * 0.5f),
+            near, far, true
+        )
+        assertEquals(m0, m1, 1e-6)
     }
 
     private fun expectedPositions(far: Float, zNear: Float, zFar: Float): List<Vector3f> {

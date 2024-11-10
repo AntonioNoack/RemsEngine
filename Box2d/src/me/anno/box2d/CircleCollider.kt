@@ -24,7 +24,7 @@ class CircleCollider : Collider2d() {
     }
 
     override fun drawShape() {
-        LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0)
+        LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0, null, getLineColor(hasPhysics))
     }
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {

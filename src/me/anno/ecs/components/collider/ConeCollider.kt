@@ -2,9 +2,9 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawCone
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
@@ -62,16 +62,17 @@ class ConeCollider : Collider() {
         val d = min(a2, b2)
         val s = max(k * (dist2D * h - dist1D * r), k * (dist1D - h))
         return sqrt(d) * sign(s) - roundness
-
     }
 
     override fun drawShape() {
         // todo check whether they are correct (the same as the physics behaviour)
-        when (axis) {
-            0 -> drawCone(entity, radius, radius, height, 0.0, LineShapes.zToX)
-            1 -> drawCone(entity, radius, radius, height, 0.0, LineShapes.zToY)
-            2 -> drawCone(entity, radius, radius, height, 0.0, null)
+        val matrix = when (axis) {
+            0 -> LineShapes.zToX
+            1 -> LineShapes.zToY
+            else -> null
         }
+        val color = getLineColor(hasPhysics)
+        drawCone(entity, radius, radius, height, 0.0, matrix, color)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

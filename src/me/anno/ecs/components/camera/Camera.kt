@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.collider.Collider.Companion.guiLineColor
+import me.anno.ecs.components.collider.Collider.Companion.getLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.components.player.Player
 import me.anno.ecs.prefab.PrefabSaveable
@@ -76,6 +76,7 @@ class Camera : Component(), OnDrawGUI {
         val entity = entity
         val aspect = RenderView.currentInstance?.run { width.toFloat() / height } ?: 1f
         LineShapes.drawArrowZ(entity, 0.0, -1.0)
+        val color = getLineColor(false)
         if (isPerspective) {
             // draw camera symbol with all the properties
             val dy = tan(fovY.toRadians() * 0.5f)
@@ -96,13 +97,13 @@ class Camera : Component(), OnDrawGUI {
             f01.set(+dx * far, -dy * far, -far)
             f10.set(-dx * far, +dy * far, -far)
             f11.set(-dx * far, -dy * far, -far)
-            drawRect(entity, n00, n01, n11, n10, guiLineColor)
-            drawRect(entity, f00, f01, f11, f10, guiLineColor)
+            drawRect(entity, n00, n01, n11, n10, color)
+            drawRect(entity, f00, f01, f11, f10, color)
             n00.set(0f) // start lines from camera itself
-            drawLine(entity, n00, f00, guiLineColor)
-            drawLine(entity, n00, f01, guiLineColor)
-            drawLine(entity, n00, f10, guiLineColor)
-            drawLine(entity, n00, f11, guiLineColor)
+            drawLine(entity, n00, f00, color)
+            drawLine(entity, n00, f01, color)
+            drawLine(entity, n00, f10, color)
+            drawLine(entity, n00, f11, color)
             JomlPools.vec3f.sub(8)
         } else {
             val sy = fovOrthographic * 0.5
@@ -113,7 +114,7 @@ class Camera : Component(), OnDrawGUI {
                     .setMin(-sx, -sy, -far)
                     .setMax(+sx, +sy, -near),
                 RenderState.worldScale,
-                guiLineColor
+                color
             )
         }
     }

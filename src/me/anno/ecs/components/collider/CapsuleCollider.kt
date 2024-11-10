@@ -3,7 +3,8 @@ package me.anno.ecs.components.collider
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.LineShapes.drawLine
+import me.anno.engine.ui.LineShapes.drawPartialSphere
 import me.anno.maths.Maths.TAU
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -49,30 +50,31 @@ class CapsuleCollider : Collider() {
         val r = radius
         val xi = PI / 2
         val zi = xi * 3
+        val color = getLineColor(hasPhysics)
         when (axis) {
             0 -> {
-                LineShapes.drawLine(entity, -h, -r, 0.0, +h, -r, 0.0)
-                LineShapes.drawLine(entity, -h, +r, 0.0, +h, +r, 0.0)
-                LineShapes.drawLine(entity, -h, 0.0, -r, +h, 0.0, -r)
-                LineShapes.drawLine(entity, -h, 0.0, +r, +h, 0.0, +r)
-                LineShapes.drawPartialSphere(entity, r, Vector3d(-h, 0.0, 0.0), 0.0, TAU, PI, PI, xi, PI)
-                LineShapes.drawPartialSphere(entity, r, Vector3d(+h, 0.0, 0.0), 0.0, TAU, 0.0, PI, zi, PI)
+                drawLine(entity, -h, -r, 0.0, +h, -r, 0.0, color)
+                drawLine(entity, -h, +r, 0.0, +h, +r, 0.0, color)
+                drawLine(entity, -h, 0.0, -r, +h, 0.0, -r, color)
+                drawLine(entity, -h, 0.0, +r, +h, 0.0, +r, color)
+                drawPartialSphere(entity, r, Vector3d(-h, 0.0, 0.0), 0.0, TAU, PI, PI, xi, PI, color)
+                drawPartialSphere(entity, r, Vector3d(+h, 0.0, 0.0), 0.0, TAU, 0.0, PI, zi, PI, color)
             }
             1 -> {
-                LineShapes.drawLine(entity, -r, -h, 0.0, -r, +h, 0.0)
-                LineShapes.drawLine(entity, +r, -h, 0.0, +r, +h, 0.0)
-                LineShapes.drawLine(entity, 0.0, -h, -r, 0.0, +h, -r)
-                LineShapes.drawLine(entity, 0.0, -h, +r, 0.0, +h, +r)
-                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, -h, 0.0), xi, PI, 0.0, TAU, PI, PI)
-                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, +h, 0.0), zi, PI, 0.0, TAU, 0.0, PI)
+                drawLine(entity, -r, -h, 0.0, -r, +h, 0.0, color)
+                drawLine(entity, +r, -h, 0.0, +r, +h, 0.0, color)
+                drawLine(entity, 0.0, -h, -r, 0.0, +h, -r, color)
+                drawLine(entity, 0.0, -h, +r, 0.0, +h, +r, color)
+                drawPartialSphere(entity, r, Vector3d(0.0, -h, 0.0), xi, PI, 0.0, TAU, PI, PI, color)
+                drawPartialSphere(entity, r, Vector3d(0.0, +h, 0.0), zi, PI, 0.0, TAU, 0.0, PI, color)
             }
             2 -> {
-                LineShapes.drawLine(entity, -r, 0.0, -h, -r, 0.0, +h)
-                LineShapes.drawLine(entity, +r, 0.0, -h, +r, 0.0, +h)
-                LineShapes.drawLine(entity, 0.0, -r, -h, 0.0, -r, +h)
-                LineShapes.drawLine(entity, 0.0, +r, -h, 0.0, +r, +h)
-                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, 0.0, -h), PI, PI, xi, PI, 0.0, TAU)
-                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, 0.0, +h), 0.0, PI, zi, PI, 0.0, TAU)
+                drawLine(entity, -r, 0.0, -h, -r, 0.0, +h, color)
+                drawLine(entity, +r, 0.0, -h, +r, 0.0, +h, color)
+                drawLine(entity, 0.0, -r, -h, 0.0, -r, +h, color)
+                drawLine(entity, 0.0, +r, -h, 0.0, +r, +h, color)
+                drawPartialSphere(entity, r, Vector3d(0.0, 0.0, -h), PI, PI, xi, PI, 0.0, TAU, color)
+                drawPartialSphere(entity, r, Vector3d(0.0, 0.0, +h), 0.0, PI, zi, PI, 0.0, TAU, color)
             }
         }
     }

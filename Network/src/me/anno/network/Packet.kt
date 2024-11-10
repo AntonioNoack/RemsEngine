@@ -1,7 +1,7 @@
 package me.anno.network
 
 import me.anno.io.saveable.Saveable
-import me.anno.io.Signature.be32Signature
+import me.anno.io.SignatureUtils.be32Signature
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.base.BaseWriter
 import org.apache.logging.log4j.LogManager

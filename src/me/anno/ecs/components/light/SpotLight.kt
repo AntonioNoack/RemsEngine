@@ -10,7 +10,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.drawing.Perspective.setPerspective2
+import me.anno.gpu.drawing.Perspective.setPerspectiveSpotLight
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -66,7 +66,7 @@ class SpotLight : LightComponent(LightType.SPOT) {
         val far = 1.0
         val coneAngle = coneAngle * cascadeScale
         val fovYRadians = 2.0 * atan(coneAngle)
-        setPerspective2(dstCameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
+        setPerspectiveSpotLight(dstCameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
         dstCameraMatrix.rotate(Quaternionf(cameraRotation).invert())
         pipeline.frustum.definePerspective(
             near / worldScale, far / worldScale, fovYRadians, resolution, 1.0,

@@ -46,8 +46,12 @@ object ImageAsFolder {
 
     @JvmStatic
     fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-
         val folder = InnerFolder(file)
+        readAsFolder(file, folder, callback)
+    }
+
+    @JvmStatic
+    fun readAsFolder(file: FileReference, folder: InnerFolder, callback: Callback<InnerFolder>) {
 
         // add the most common swizzles: r,g,b,a
         createSwizzle(file, folder, "r.png", 'r', false)
@@ -222,7 +226,7 @@ object ImageAsFolder {
             tryFFMPEG(file, signature, forGPU, data)
         } else {
             val reader = ImageCache.byteReaders[signature] ?: ImageCache.byteReaders[file.lcExtension]
-            if (reader != null) reader.read(bytes, data)
+            if (reader != null) reader.read(file, bytes, data)
             else data.value = null
         }
     }
@@ -235,7 +239,7 @@ object ImageAsFolder {
             tryFFMPEG(file, signature, forGPU, data)
         } else {
             val reader = ImageCache.fileReaders[signature] ?: ImageCache.fileReaders[file.lcExtension]
-            if (reader != null) reader.read(file, data)
+            if (reader != null) reader.read(file, file, data)
             else data.value = null
         }
     }

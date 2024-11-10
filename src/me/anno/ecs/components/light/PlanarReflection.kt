@@ -37,13 +37,17 @@ import org.joml.Vector3f
 import org.joml.Vector4i
 import kotlin.math.abs
 
-// todo this needs two framebuffers and rendering passes for VR
 class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     // todo support lower resolution, e.g. half
 
     @NotSerializedProperty
-    var framebuffer: Framebuffer? = null
+    var framebuffer0: Framebuffer? = null
+
+    // todo render both framebuffers for VR
+    @NotSerializedProperty
+    var framebuffer1: Framebuffer? = null
+
     var samples = 1
     var usesFP = true
 
@@ -93,8 +97,11 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     fun draw(
         ci: RenderView,
-        pipeline: Pipeline, w: Int, h: Int,
-        cameraMatrix0: Matrix4f, cameraPosition: Vector3d, worldScale: Double
+        pipeline: Pipeline,
+        w: Int, h: Int,
+        cameraMatrix0: Matrix4f,
+        cameraPosition: Vector3d,
+        worldScale: Double
     ) {
         val transform = transform!!.getDrawMatrix(Time.gameTimeN)
         val mirrorPosition = transform.getTranslation(tmp0d)
@@ -109,8 +116,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             if (bothSided) {
                 mirrorNormal.mul(-1.0)
             } else {
-                framebuffer?.destroy()
-                framebuffer = null
+                destroyFramebuffers()
                 return
             }
         }
@@ -161,12 +167,12 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         // is that worth it?
         // todo cut frustum into local area by bounding box
 
-        val buffer = framebuffer ?: Framebuffer(
+        val buffer = framebuffer0 ?: Framebuffer(
             "planarReflection", w, h, samples,
             if (usesFP) TargetType.Float32x3
             else TargetType.UInt8x3, DepthBufferType.INTERNAL
         )
-        framebuffer = buffer
+        framebuffer0 = buffer
 
         // find the correct sub-frame of work: we don't need to draw everything
         val aabb = findRegion(tmpAABB, cameraMatrix0, transform, cameraPosition)
@@ -238,6 +244,9 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         }
     }
 
+    val framebuffer: Framebuffer?
+        get() = if (RenderState.viewIndex == 1) framebuffer1 else framebuffer0
+
     override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         if (framebuffer?.isCreated() == true) {
             pipeline.planarReflections.add(this)
@@ -245,10 +254,16 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         return clickId // not itself clickable
     }
 
+    private fun destroyFramebuffers() {
+        framebuffer0?.destroy()
+        framebuffer0 = null
+        framebuffer1?.destroy()
+        framebuffer1 = null
+    }
+
     override fun destroy() {
         super.destroy()
-        framebuffer?.destroy()
-        framebuffer = null
+        destroyFramebuffers()
         timer.destroy()
     }
 

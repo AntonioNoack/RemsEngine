@@ -6,13 +6,11 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.AABBf
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.sign
 
 class BoxCollider : Collider() {
 
@@ -38,7 +36,7 @@ class BoxCollider : Collider() {
     }
 
     override fun drawShape() {
-        drawBox(entity, guiLineColor, halfExtends)
+        drawBox(entity, getLineColor(hasPhysics), halfExtends)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

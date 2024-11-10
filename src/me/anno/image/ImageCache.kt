@@ -37,11 +37,11 @@ object ImageCache : CacheSection("Image") {
         signatures: String,
         streamReader: AsyncImageReader<InputStream>
     ) {
-        registerReader(signatures, { bytes, callback ->
-            streamReader.read(ByteArrayInputStream(bytes), callback)
-        }, { fileRef, callback ->
+        registerReader(signatures, { src, bytes, callback ->
+            streamReader.read(src, ByteArrayInputStream(bytes), callback)
+        }, { src, fileRef, callback ->
             fileRef.inputStream { input, e ->
-                if (input != null) streamReader.read(input, callback)
+                if (input != null) streamReader.read(src, input, callback)
                 else callback.err(e)
             }
         }, streamReader)
@@ -54,14 +54,14 @@ object ImageCache : CacheSection("Image") {
         signatures: String,
         streamReader: (InputStream) -> Any
     ) {
-        registerStreamReader(signatures) { stream, callback ->
+        registerStreamReader(signatures) { _, stream, callback ->
             val result = streamReader(stream)
             callback.call(result as? Image, result as? Exception)
         }
     }
 
     init {
-        registerStreamReader("hdr") { it, callback ->
+        registerStreamReader("hdr") { _, it, callback ->
             callback.ok(HDRReader.readHDR(it))
         }
     }

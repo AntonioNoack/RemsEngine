@@ -14,8 +14,11 @@ import kotlin.math.abs
 /**
  * a cache, which writes files to remember values
  * */
-abstract class FileCache<Key, Value>(val configFileName: String, val configFolderName: String, cacheName: String) :
-    CacheSection(cacheName) {
+abstract class FileCache<Key, Value>(
+    val configFileName: String,
+    val configFolderName: String,
+    cacheName: String
+) : CacheSection(cacheName) {
 
     // create a metadata file, where last used (Rem's Studio starting time) is written
     lateinit var info: StringMap

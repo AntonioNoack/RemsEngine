@@ -41,7 +41,7 @@ class RectCollider : Collider2d() {
         val p1 = v3.create().set(+x, -y, 0f)
         val p2 = v3.create().set(-x, -y, 0f)
         val p3 = v3.create().set(-x, +y, 0f)
-        LineShapes.drawRect(entity, p0, p1, p2, p3)
+        LineShapes.drawRect(entity, p0, p1, p2, p3, getLineColor(hasPhysics))
         v3.sub(4)
     }
 

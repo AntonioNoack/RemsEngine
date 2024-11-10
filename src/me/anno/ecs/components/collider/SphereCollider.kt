@@ -3,8 +3,8 @@ package me.anno.ecs.components.collider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
-import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes.drawSphere
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -77,6 +77,6 @@ class SphereCollider : Collider() {
     }
 
     override fun drawShape() {
-        drawSphere(entity, radius)
+        drawSphere(entity, radius, null, getLineColor(hasPhysics))
     }
 }

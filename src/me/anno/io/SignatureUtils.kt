@@ -3,7 +3,7 @@ package me.anno.io
 import me.anno.utils.Color.argb
 import me.anno.utils.assertions.assertEquals
 
-object Signature {
+object SignatureUtils {
     @JvmStatic
     fun le32Signature(str: String): Int {
         assertEquals(4, str.length)

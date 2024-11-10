@@ -210,7 +210,7 @@ open class MeshCollider() : Collider() {
     override fun drawShape() {
         val mesh = mesh ?: return
         val tr = meshTransform
-        val color = -1
+        val color = getLineColor(hasPhysics)
         if (tr.isIdentity()) {
             mesh.forEachTriangle { a, b, c ->
                 drawLine(entity, a, b, color)

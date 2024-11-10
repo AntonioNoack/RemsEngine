@@ -3,11 +3,12 @@ package me.anno.cache.instances
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
+import me.anno.image.ImageCache
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.async.Callback
+import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
 
 // todo my downloads folder is still lagging :/, why/how???

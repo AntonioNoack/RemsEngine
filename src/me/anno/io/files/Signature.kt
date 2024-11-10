@@ -1,8 +1,6 @@
 package me.anno.io.files
 
-import me.anno.ecs.prefab.PrefabReadable
 import me.anno.graph.hdb.ByteSlice
-import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.ImportType.AUDIO
 import me.anno.io.files.ImportType.CODE
 import me.anno.io.files.ImportType.COMPILED
@@ -16,10 +14,7 @@ import me.anno.io.files.ImportType.MESH
 import me.anno.io.files.ImportType.METADATA
 import me.anno.io.files.ImportType.TEXT
 import me.anno.io.files.ImportType.VIDEO
-import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
-import me.anno.utils.async.Callback
-import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.size
 import java.nio.ByteBuffer
 import kotlin.math.min

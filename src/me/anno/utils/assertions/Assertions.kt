@@ -142,7 +142,7 @@ fun <M : Matrix> assertEquals(a: M, b: M, threshold: Double) {
             val getter = clazz.getMethod(name)
             val fa = AnyToDouble.getDouble(getter.invoke(a))
             val fb = AnyToDouble.getDouble(getter.invoke(b))
-            assertEquals(fa, fb, threshold) { "$a != $b [|$fa-$fb| > $threshold, $name]" }
+            assertEquals(fa, fb, threshold) { "\n$a !=\n$b\n[|$fa-$fb| > $threshold, $name]" }
         }
     }
 }

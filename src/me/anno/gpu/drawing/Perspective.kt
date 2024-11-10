@@ -48,16 +48,19 @@ object Perspective {
         }
     }
 
-    fun setPerspective2(
+    /**
+     * used for spot-light
+     * */
+    fun setPerspectiveSpotLight(
         viewTransform: Matrix4f,
-        aspectRatio: Float,
+        coneAngle: Float,
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
         cx: Float, cy: Float,
         reverseDepth: Boolean = defaultReverseDepth()
     ) {
         if (reverseDepth) {
-            val y = 1f / aspectRatio
+            val y = 1f / coneAngle
             //  x  0  0  0
             //  0  y  0  0
             //  0  0  0  n
@@ -71,7 +74,7 @@ object Perspective {
             )
         } else {
             // fy = tan(fovYRadians * 0.5f)
-            val fov = atan(aspectRatio) * 2f
+            val fov = atan(coneAngle) * 2f
             setPerspective(viewTransform, fov, 1f, near, far, cx, cy, false)
         }
     }
@@ -106,8 +109,8 @@ object Perspective {
             viewTransform.set(
                 x, 0f, 0f, 0f,
                 0f, y, 0f, 0f,
-                m20, m21, c, d,
-                0f, 0f, -1f, 0f
+                m20, m21, c, -1f,
+                0f, 0f, d, 0f
             )
         }
     }

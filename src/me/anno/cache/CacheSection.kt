@@ -129,15 +129,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun <V> getEntry(
-        file: FileReference, allowDirectories: Boolean,
-        key: V, timeout: Long, asyncGenerator: Boolean,
-        generator: (FileReference, V) -> ICacheData?
-    ): ICacheData? {
-        if (!file.exists || (!allowDirectories && file.isDirectory)) return null
-        return getDualEntry(file, key, timeout, asyncGenerator, generator)
-    }
-
     /**
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded

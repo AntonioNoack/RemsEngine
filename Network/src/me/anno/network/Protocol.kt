@@ -2,7 +2,7 @@ package me.anno.network
 
 import me.anno.Engine
 import me.anno.Time
-import me.anno.io.Signature.be32Signature
+import me.anno.io.SignatureUtils.be32Signature
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket

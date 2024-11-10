@@ -26,10 +26,11 @@ class Path(
     private fun calculateDepth(): Int {
         var depth = 0
         var node = this
-        while (true) {
+        while (depth < 1000) {
             node = node.parent ?: return depth
             depth++
         }
+        throw RuntimeException("Recursive Path.calculateDepth()")
     }
 
     fun fromRootToThis(includeRoot: Boolean, run: (index: Int, path: Path) -> Unit): Int {

@@ -2,11 +2,11 @@ package me.anno.engine.ui
 
 import me.anno.Time
 import me.anno.ecs.Entity
-import me.anno.ecs.components.collider.Collider
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.mix
+import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -21,6 +21,7 @@ object LineShapes {
 
     private val tmpVec3f = createArrayList(16) { Vector3f() }
     val tmpVec3d = createArrayList(16) { Vector3d() }
+    private val defaultColor = 0x77ffff or black
 
     fun getDrawMatrix(entity: Entity?, time: Long = Time.gameTimeN): Matrix4x3d? {
         return entity?.transform?.getDrawMatrix(time)
@@ -38,7 +39,7 @@ object LineShapes {
         tipZ: Double = -1.0,
         baseZ: Double = 0.0,
         imm: Matrix4x3d? = null,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
 
         // from +z to -z
@@ -67,7 +68,7 @@ object LineShapes {
         }
     }
 
-    fun drawArrowZ(from: Vector3d, to: Vector3d, color: Int = Collider.guiLineColor) {
+    fun drawArrowZ(from: Vector3d, to: Vector3d, color: Int = defaultColor) {
 
         val positions = tmpVec3d
         positions[0].set(from)
@@ -102,7 +103,7 @@ object LineShapes {
         JomlPools.vec3d.sub(3)
     }
 
-    fun drawArrowZ(entity: Entity?, z0: Double, z1: Double, color: Int = Collider.guiLineColor) {
+    fun drawArrowZ(entity: Entity?, z0: Double, z1: Double, color: Int = defaultColor) {
 
         // from z0 to z1; used for lights
 
@@ -135,10 +136,10 @@ object LineShapes {
     }
 
     fun drawCross(entity: Entity?, halfExtends: Vector3d? = null) {
-        drawCross(entity, Collider.guiLineColor, halfExtends)
+        drawCross(entity, defaultColor, halfExtends)
     }
 
-    fun drawCross(entity: Entity?, color: Int = Collider.guiLineColor, halfExtends: Vector3d? = null) {
+    fun drawCross(entity: Entity?, color: Int = defaultColor, halfExtends: Vector3d? = null) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
@@ -163,10 +164,10 @@ object LineShapes {
 
 
     fun drawBox(entity: Entity?, halfExtends: Vector3d?) {
-        drawBox(entity, Collider.guiLineColor, halfExtends)
+        drawBox(entity, defaultColor, halfExtends)
     }
 
-    fun drawBox(entity: Entity?, color: Int = Collider.guiLineColor, halfExtends: Vector3d? = null) {
+    fun drawBox(entity: Entity?, color: Int = defaultColor, halfExtends: Vector3d? = null) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
@@ -195,7 +196,7 @@ object LineShapes {
         }
     }
 
-    fun drawXYPlane(entity: Entity?, z: Double, color: Int = Collider.guiLineColor, halfExtends: Vector3d? = null) {
+    fun drawXYPlane(entity: Entity?, z: Double, color: Int = defaultColor, halfExtends: Vector3d? = null) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
@@ -217,7 +218,7 @@ object LineShapes {
         putRelativeLine(positions[2], positions[0], color)
     }
 
-    fun drawPoint(entity: Entity?, center: Vector3d, sideLength: Double, color: Int = Collider.guiLineColor) =
+    fun drawPoint(entity: Entity?, center: Vector3d, sideLength: Double, color: Int = defaultColor) =
         drawPoint(entity, center.x, center.y, center.z, sideLength, color)
 
     fun drawPoint(
@@ -226,7 +227,7 @@ object LineShapes {
         cy: Double,
         cz: Double,
         sideLength: Double,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         // iterate over all lines:
         // all bits that can flip
@@ -252,14 +253,14 @@ object LineShapes {
     }
 
     fun drawPoint(
-        entity: Entity?, cx: Float, cy: Float, cz: Float, sideLength: Double, color: Int = Collider.guiLineColor
+        entity: Entity?, cx: Float, cy: Float, cz: Float, sideLength: Double, color: Int = defaultColor
     ) = drawPoint(entity, cx.toDouble(), cy.toDouble(), cz.toDouble(), sideLength, color)
 
     fun drawLine(
         entity: Entity?,
         x0: Double, y0: Double, z0: Double,
         x1: Double, y1: Double, z1: Double,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
@@ -288,7 +289,7 @@ object LineShapes {
     fun drawLine(
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         val positions = tmpVec3f
         val p0 = positions[0]
@@ -313,7 +314,7 @@ object LineShapes {
         entity: Entity?,
         p0: Vector3f,
         p1: Vector3f,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
@@ -331,7 +332,7 @@ object LineShapes {
         entity: Entity?,
         p0: Vector3d,
         p1: Vector3d,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
@@ -351,7 +352,7 @@ object LineShapes {
         p1: Vector3f,
         p2: Vector3f,
         p3: Vector3f,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
@@ -373,7 +374,7 @@ object LineShapes {
         entity: Entity?,
         radius: Double,
         offset: Vector3d? = null,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         drawCircle(entity, radius, 1, 2, 0.0, offset, color)
         drawCircle(entity, radius, 2, 0, 0.0, offset, color)
@@ -387,7 +388,7 @@ object LineShapes {
         ax: Double, dax: Double,
         ay: Double, day: Double,
         az: Double, daz: Double,
-        color: Int = Collider.guiLineColor
+        color: Int = defaultColor
     ) {
         drawCircle(entity, radius, 1, 2, 0.0, offset, color, ax, dax)
         drawCircle(entity, radius, 2, 0, 0.0, offset, color, ay, day)
@@ -401,7 +402,7 @@ object LineShapes {
         sinAxis: Int,
         otherAxis: Double,
         offset: Vector3d? = null,
-        color: Int = Collider.guiLineColor,
+        color: Int = defaultColor,
         angle0: Double = 0.0,
         deltaAngle: Double = TAU,
     ) {
@@ -438,9 +439,9 @@ object LineShapes {
         end: Vector3f,
         radiusAtOrigin: Float,
         radiusPerUnit: Float,
-        centralColor: Int = Collider.guiLineColor,
-        outerRayColor: Int = Collider.guiLineColor,
-        circleColor: Int = Collider.guiLineColor
+        centralColor: Int = defaultColor,
+        outerRayColor: Int = defaultColor,
+        circleColor: Int = defaultColor
     ) {
 
         // only correct if the scale is uniform

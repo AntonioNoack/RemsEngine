@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
-import me.anno.io.Signature.le32Signature
+import me.anno.io.SignatureUtils.le32Signature
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.mesh.vox.VoxPalette.defaultPalette

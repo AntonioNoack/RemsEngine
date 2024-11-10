@@ -74,7 +74,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
     override fun drawShape() {
         // how? draw bounds...
         val sdf = sdf ?: return
-        val color = guiLineColor
+        val color = getLineColor(hasPhysics)
         val transform = transform?.getDrawMatrix()
         // draw local aabb
         // DrawAABB.drawAABB(sdf.globalAABB, RenderView.worldScale, color)

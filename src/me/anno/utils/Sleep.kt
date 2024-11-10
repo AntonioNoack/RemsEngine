@@ -105,7 +105,8 @@ object Sleep {
 
     @JvmStatic
     private fun mustWorkTasks(): Boolean {
-        return workingThread == null && (GFX.isGFXThread() || GFX.glThread == null)
+        return (workingThread == null || workingThread == Thread.currentThread()) &&
+                (GFX.isGFXThread() || GFX.glThread == null)
     }
 
     @JvmStatic
@@ -119,13 +120,15 @@ object Sleep {
         if (mustWorkTasks()) {
             this.waitUntil(canBeKilled, isFinished)
             callback()
-        } else if (isFinished()) {
-            callback()
-        } else if (!(canBeKilled && shutdown)) { // wait a little
-            addEvent(name, 0) {
-                waitUntil(name, canBeKilled, isFinished, callback)
-            }
-        } // else cancelled
+        } else {
+            if (isFinished()) {
+                callback()
+            } else if (!(canBeKilled && shutdown)) { // wait a little
+                addEvent(name, 0) {
+                    waitUntil(name, canBeKilled, isFinished, callback)
+                }
+            } // else cancelled
+        }
     }
 
     /**
