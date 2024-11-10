@@ -49,7 +49,7 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use the variant with callback")
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
-        val mustWork = mustWorkTasks()
+        val mustWork = mustWorkTasks(true)
         while (!isFinished()) {
             if (mustWork) work(canBeKilled)
             else sleepABit(canBeKilled)
@@ -67,7 +67,7 @@ object Sleep {
     fun waitUntilOrThrow(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, isFinished: () -> Boolean) {
         if (timeoutNanos < 0) return this.waitUntil(canBeKilled, isFinished)
         val startTime = Time.nanoTime
-        val mustWork = mustWorkTasks()
+        val mustWork = mustWorkTasks(true)
         while (!isFinished()) {
             if (hasExceededLimit(startTime, timeoutNanos)) throw TimeoutException("Time limit exceeded for $key")
             if (mustWork) work(canBeKilled)
@@ -82,7 +82,7 @@ object Sleep {
     @Deprecated("Please use the variant with callback")
     fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val startTime = Time.nanoTime
-        val mustWork = mustWorkTasks()
+        val mustWork = mustWorkTasks(true)
         while (!isFinished()) {
             if (canBeKilled && shutdown) return true
             if (hasExceededLimit(startTime, timeoutNanos)) return true
@@ -104,8 +104,8 @@ object Sleep {
     }
 
     @JvmStatic
-    private fun mustWorkTasks(): Boolean {
-        return (workingThread == null || workingThread == Thread.currentThread()) &&
+    private fun mustWorkTasks(isSync: Boolean): Boolean {
+        return (workingThread == null || (isSync && workingThread == Thread.currentThread())) &&
                 (GFX.isGFXThread() || GFX.glThread == null)
     }
 
@@ -117,7 +117,7 @@ object Sleep {
 
     @JvmStatic
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
-        if (mustWorkTasks()) {
+        if (mustWorkTasks(false)) {
             this.waitUntil(canBeKilled, isFinished)
             callback()
         } else {

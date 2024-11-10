@@ -1,8 +1,11 @@
 package me.anno.tests.pdf
 
 import me.anno.engine.OfficialExtensions
+import me.anno.image.Image
 import me.anno.image.ImageCache
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector4f
@@ -56,7 +59,23 @@ class PDFTests {
         val px = ImageCache[testFile.getChild("256px.png"), false]!!
         assertEquals(256, px.width)
         assertEquals(12 * 256 / 23, px.height) // 12 x 23 is the dimensions of the media box
+        checkColors(px)
+    }
 
+    @Test
+    fun testPDFThumbnail() {
+        OfficialExtensions.initForTests()
+        HiddenOpenGLContext.createOpenGL()
+
+        val testFile = InnerTmpTextFile(samplePDF)
+        val tex = Thumbs[testFile.getChild("256px.png"), 256, false]!!
+        assertEquals(256, tex.width)
+        assertEquals(12 * 256 / 23, tex.height) // 12 x 23 is the dimensions of the media box
+
+        checkColors(tex.createImage(flipY = false, withAlpha = false))
+    }
+
+    private fun checkColors(px: Image) {
         // check the color (min,max,avg)
         val minColor = Vector4f(Float.POSITIVE_INFINITY)
         val maxColor = Vector4f(Float.NEGATIVE_INFINITY)

@@ -151,10 +151,10 @@ object ICOReader {
 
         val input1 = CountingInputStream(input0)
 
-        // Reserved 2 byte =0
+        // Reserved 2 bytes = 0
         input1.readLE16()
 
-        // Type 2 byte =1
+        // Type 2 bytes = 1
         input1.readLE16()
 
         // Count, 2 byte: number of icons in this file
@@ -259,36 +259,6 @@ object ICOReader {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, MAX_SIZE)
         if (bestLayer !is IconEntry) return bestLayer
-        if (bestLayer.width == 0 || bestLayer.height == 0) {
-            // the best layer can have its size incorrectly written as 0 x 0,
-            // if this is the case, read the size more directly
-            ensureOffset(input1, bestLayer, bestLayer.index)
-            return when (input1.readLE32()) {
-                40 -> {
-                    // bitmap
-                    val infoHeader = BMPDecoder.readInfoHeader(input1)
-                    IntPair(infoHeader.width, infoHeader.height)
-                }
-                PNG_MAGIC_LE -> {
-                    val info2 = input1.readLE32()
-                    if (info2 != PNG_MAGIC2_LE) {
-                        return IOException("Unrecognized icon format for image #${bestLayer.index}")
-                    }
-
-                    val pngBytes = packPNGBytes(input1, bestLayer.sizeInBytes)
-                    if (pngBytes !is ByteArray) return pngBytes // exception case
-                    for (reader in ImageIO.getImageReadersBySuffix("png")) {
-                        val stream = ByteArrayInputStream(pngBytes)
-                        return stream.use { input: InputStream ->
-                            reader.input = ImageIO.createImageInputStream(input)
-                            IntPair(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
-                        }
-                    }
-                    IntPair(0, 0)
-                }
-                else -> return IOException("Unrecognized icon format for image #${bestLayer.index}")
-            }
-        }
         return IntPair(bestLayer.width, bestLayer.height)
     }
 

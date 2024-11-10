@@ -25,25 +25,27 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
     private var nextReadIndex = frameIndex0
     private var frameSizeForSkipping = 0L
 
-    override fun process(process: Process, arguments: List<String>) {
+    override fun process(process: Process, arguments: List<String>, callback: () -> Unit) {
         parseAsync(parser, process.errorStream)
-        try {
-            waitForMetadata(parser)
-            if (codec.isNotEmpty() && codec != FFMPEGMetaParser.invalidCodec) {
-                process.inputStream.use { stream ->
-                    while (id == self.workerId.get() && !Engine.shutdown) {
-                        loadNextFrameMaybe(stream)
+        waitForMetadata(parser) {
+            try {
+                if (codec.isNotEmpty() && codec != FFMPEGMetaParser.invalidCodec) {
+                    process.inputStream.use { stream ->
+                        while (id == self.workerId.get() && !Engine.shutdown) {
+                            loadNextFrameMaybe(stream)
+                        }
                     }
-                }
-            } else LOGGER.debug("${file!!.absolutePath.shorten(200)} cannot be read as image(s) by FFMPEG")
-        } catch (e: OutOfMemoryError) {
-            LOGGER.warn("Engine has run out of memory!!")
-        } catch (_: EOFException) {
-        } catch (_: IgnoredException) {
-        } catch (e: Exception) {
-            e.printStackTrace()
+                } else LOGGER.debug("${file!!.absolutePath.shorten(200)} cannot be read as image(s) by FFMPEG")
+            } catch (e: OutOfMemoryError) {
+                LOGGER.warn("Engine has run out of memory!!")
+            } catch (_: EOFException) {
+            } catch (_: IgnoredException) {
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            destroy()
+            callback()
         }
-        destroy()
     }
 
     private fun readFrame(input: InputStream) {

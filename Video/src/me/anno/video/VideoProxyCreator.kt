@@ -67,12 +67,15 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
         }
         dst.delete()
         object : FFMPEGStream(null, true) {
-            override fun process(process: Process, arguments: List<String>) {
+            override fun process(process: Process, arguments: List<String>, callback: () -> Unit) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
                 devLog("input", process.inputStream)
-                waitUntil(true, { !process.isAlive }, onSuccess)
+                waitUntil(true, { !process.isAlive }) {
+                    onSuccess()
+                    callback()
+                }
             }
 
             override fun destroy() {}

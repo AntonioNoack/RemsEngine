@@ -6,7 +6,6 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
-import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
@@ -77,10 +76,9 @@ object PDFCache : CacheSection("PDFCache") {
             if (it != null) {
                 val ref = getDocumentRef(src, it, borrow = true, async = false)!!
                 val doc = ref.doc
-                var numberOfPages: Int
                 val folder = InnerFolder(src)
                 synchronized(Synchronizer) {
-                    numberOfPages = doc.numberOfPages
+                    val numberOfPages = doc.numberOfPages
                     if (numberOfPages > 1) {
                         // not optimal, but finding sth optimal is hard anyway, because
                         // we can read a document only sequentially
@@ -100,24 +98,17 @@ object PDFCache : CacheSection("PDFCache") {
                             val bytes = bos.toByteArray()
                             folder.createByteChild(fileName, bytes)
                         }
+                    } else {
+                        for (pow in 6..12) {
+                            val size = 1 shl pow
+                            folder.createLazyImageChild("${size}px.png", lazy {
+                                getImageCachedBySize(doc, size, 1)!!
+                            }, null)
+                        }
                     }
                 }
                 ref.returnInstance()
-                if (numberOfPages <= 1) {
-                    // create pngs/jpegs of different resolution?
-                    //  create image type from it :)
-                    //  add attribute, that marks it as infinite resolution?
-                    val dst = InnerFolder(src)
-                    for (pow in 6..12) {
-                        val size = 1 shl pow
-                        dst.createLazyImageChild("${size}px.png", lazy {
-                            getImageCachedBySize(doc, 256, 1)!!
-                        }, null)
-                    }
-                    ImageAsFolder.readAsFolder(src, dst, callback)
-                } else {
-                    callback.ok(folder)
-                }
+                callback.ok(folder)
             } else callback.err(exc)
         }
     }

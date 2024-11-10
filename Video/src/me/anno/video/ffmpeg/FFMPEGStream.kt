@@ -208,13 +208,13 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var width = 0
     var height = 0
 
-    abstract fun process(process: Process, arguments: List<String>)
+    abstract fun process(process: Process, arguments: List<String>, callback: () -> Unit)
 
     abstract fun destroy()
 
-    fun waitForMetadata(parser: FFMPEGMetaParser) {
+    fun waitForMetadata(parser: FFMPEGMetaParser, callback: () -> Unit) {
         var lt = Time.nanoTime
-        Sleep.waitUntil(true) {
+        Sleep.waitUntil(true, {
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
             val timeLimit = 30e9
             if (codec == FFMPEGMetaParser.invalidCodec) true
@@ -227,7 +227,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()
             }
-        }
+        }, {
+            thread(name = toString()) {
+                callback()
+            }
+        })
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
@@ -258,10 +262,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 builder.addAll(arguments)
 
                 val process = builder.start()
-                process(process, arguments)
-
-                if (isProcessCountLimited) {
-                    waitForRelease(process)
+                process(process, arguments) {
+                    if (isProcessCountLimited) {
+                        waitForRelease(process)
+                    }
                 }
             }
         }

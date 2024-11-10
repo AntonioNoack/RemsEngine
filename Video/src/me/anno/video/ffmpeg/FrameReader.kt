@@ -19,34 +19,36 @@ abstract class FrameReader<FrameType>(
     val frames = ArrayList<FrameType>(bufferLength)
     val parser = FFMPEGMetaParser()
 
-    override fun process(process: Process, arguments: List<String>) {
+    override fun process(process: Process, arguments: List<String>, callback: () -> Unit) {
         parseAsync(parser, process.errorStream)
-        try {
-            val frameCount = bufferLength
-            waitForMetadata(parser)
-            if (codec.isNotEmpty() && codec != invalidCodec) {
-                val input = process.inputStream
-                var frameIndex = frame0
-                input.use { input1: InputStream ->
-                    readFrame(frameIndex++, input1)
-                    if (!isFinished) {
-                        for (i in 1 until frameCount) {
-                            readFrame(frameIndex++, input1)
-                            if (isFinished) break
+        waitForMetadata(parser) {
+            try {
+                val frameCount = bufferLength
+                if (codec.isNotEmpty() && codec != invalidCodec) {
+                    val input = process.inputStream
+                    var frameIndex = frame0
+                    input.use { input1: InputStream ->
+                        readFrame(frameIndex++, input1)
+                        if (!isFinished) {
+                            for (i in 1 until frameCount) {
+                                readFrame(frameIndex++, input1)
+                                if (isFinished) break
+                            }
+                            isFinished = true
                         }
-                        isFinished = true
                     }
-                }
-            } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
-        } catch (e: OutOfMemoryError) {
-            LOGGER.warn("Engine has run out of memory!!")
-        } catch (e: EOFException) {
-            isFinished = true
-        } catch (_: IgnoredException) {
-        } catch (e: Exception) {
-            e.printStackTrace()
+                } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
+            } catch (e: OutOfMemoryError) {
+                LOGGER.warn("Engine has run out of memory!!")
+            } catch (e: EOFException) {
+                isFinished = true
+            } catch (_: IgnoredException) {
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            finishedCallback(frames)
+            callback()
         }
-        finishedCallback(frames)
     }
 
     // what do we do, if we run out of memory?
