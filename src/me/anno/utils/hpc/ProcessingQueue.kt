@@ -14,7 +14,6 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
 
     private val tasks = ConcurrentLinkedQueue<() -> Unit>()
 
-    private var hasBeenStarted = false
     private var shouldStop = false
 
     val size get() = tasks.size
@@ -26,7 +25,6 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
 
     fun stop() {
         shouldStop = true
-        hasBeenStarted = false
     }
 
     fun waitUntilDone(canBeKilled: Boolean) {
@@ -45,8 +43,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     }
 
     open fun start(name: String = this.name, force: Boolean = false) {
-        if (hasBeenStarted && !force) return
-        hasBeenStarted = true
+        if (aliveThreads.get() >= numThreads && !force) return
         shouldStop = false
         // LOGGER.info("Starting queue $name")
         aliveThreads.incrementAndGet()
@@ -104,7 +101,11 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     }
 
     override operator fun plusAssign(task: () -> Unit) {
-        if (!hasBeenStarted) start()
         tasks.add(task)
+        start()
+    }
+
+    override fun toString(): String {
+        return "ProcessingQueue(\"$name\", ${aliveThreads.get()}/${numThreads}, ${sleepingThreads.get()})"
     }
 }

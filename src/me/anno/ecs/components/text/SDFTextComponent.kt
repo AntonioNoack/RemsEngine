@@ -12,6 +12,7 @@ import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.TextSDFGroup
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
@@ -19,6 +20,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
+import me.anno.video.MissingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.math.sign
@@ -102,6 +104,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
 
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
         init.value
+
         var i = 0
         val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
         val meshGroup = meshGroup ?: TextSDFGroup(font, text, 0.0)
@@ -130,6 +133,8 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
 
                 i++
                 run(mesh, material, transform)
+            } else if (texture is Texture2D && isFinalRendering) {
+                throw MissingFrameException(className)
             } else false
         }
     }

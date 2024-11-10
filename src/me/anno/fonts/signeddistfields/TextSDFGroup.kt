@@ -34,7 +34,7 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
             val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) {
                 CacheData(SignedDistanceField.createTexture(font, text, roundCorners))
             } as? CacheData<*>
-            if (isFinalRendering && cacheData == null) throw MissingFrameException("")
+            if (isFinalRendering && cacheData == null) throw MissingFrameException("TextSDFGroup")
             val textSDF = cacheData?.value as? TextSDF
             val texture = textSDF?.texture
             if (texture?.wasCreated == true) {
@@ -51,15 +51,15 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
     ) {
         val roundCorners = roundCorners
         for (index in startIndex until endIndex) {
-            val codePoint = codepoints[index]
+            val codepoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
-            val key = SDFCharKey(font, codePoint, roundCorners)
+            val key = SDFCharKey(font, codepoint, roundCorners)
             val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) { key2 ->
                 val charAsText = key2.codePoint.joinChars()
                 val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
                 CacheData(texture)
             } as? CacheData<*>
-            if (isFinalRendering && cacheData == null) throw MissingFrameException("")
+            if (isFinalRendering && cacheData == null) throw MissingFrameException("TextSDFGroup, $codepoint")
             val textSDF = cacheData?.value as? TextSDF
             drawBuffer.draw(null, textSDF, offset)
         }
