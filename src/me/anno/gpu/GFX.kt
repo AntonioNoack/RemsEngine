@@ -6,6 +6,7 @@ import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.GPUShader
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertNull
@@ -191,7 +192,7 @@ object GFX {
     }
 
     @JvmField
-    var gpuTaskBudget = 1f / 90f
+    var gpuTaskBudgetNanos = 11L * MILLIS_TO_NANOS
 
     var vrRenderingRoutine: VRRenderingRoutine? = null
     var shallRenderVR = false

@@ -21,8 +21,8 @@ object Queues {
      * returns whether time is left
      * */
     @JvmStatic
-    fun workQueue(queue: Queue<Task>, timeLimit: Float, all: Boolean): Boolean {
-        return workQueue(queue, if (all) Float.POSITIVE_INFINITY else timeLimit)
+    fun workQueue(queue: Queue<Task>, timeLimitNanos: Long, all: Boolean): Boolean {
+        return workQueue(queue, if (all) Long.MAX_VALUE else timeLimitNanos)
     }
 
     /**
@@ -30,7 +30,7 @@ object Queues {
      * returns whether time is left
      * */
     @JvmStatic
-    fun workQueue(queue: Queue<Task>, timeLimit: Float): Boolean {
+    fun workQueue(queue: Queue<Task>, timeLimitNanos: Long): Boolean {
         if (queue.isEmpty()) return true // fast-path
 
         // async work section
@@ -40,7 +40,8 @@ object Queues {
 
         // changing to 10 doesn't make the frame rate smoother :/
         val framesForWork = 5
-        if (Thread.currentThread() == glThread) {
+        val isGLThread = Thread.currentThread() == glThread
+        if (isGLThread) {
             GFX.checkWithoutCrashing("workQueue")
         }
 
@@ -50,22 +51,21 @@ object Queues {
             val task = queue.poll() ?: return true
             try {
                 task.work()
-                if (queue === gpuTasks) {
-                    GFX.checkWithoutCrashing(task.name)
-                }
             } catch (e: Throwable) {
                 RuntimeException(task.name, e)
                     .printStackTrace()
             }
-            if (Thread.currentThread() == glThread) GFX.check()
+            if (isGLThread || queue === gpuTasks) {
+                GFX.checkWithoutCrashing(task.name)
+            }
             workDone += task.cost
             val currentTime = Time.nanoTime
-            val workTime = abs(currentTime - startTime) * 1e-9f
-            if (workTime > 2f * timeLimit) {
-                LOGGER.warn("Spent ${workTime.f3()}s on '${task.name}' with cost ${task.cost}")
+            val workTime = abs(currentTime - startTime)
+            if (workTime.shr(1) > timeLimitNanos) {
+                LOGGER.warn("Spent ${(workTime / 1e9).f3()}s on '${task.name}' with cost ${task.cost}")
             }
             if (workDone >= workTodo) return false
-            if (workTime > timeLimit) return false // too much work
+            if (workTime > timeLimitNanos) return false // too much work
             FBStack.reset() // so we can reuse resources in different tasks
         }
     }

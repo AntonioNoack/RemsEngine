@@ -2,7 +2,7 @@ package me.anno.gpu
 
 import me.anno.Engine
 import me.anno.Time
-import me.anno.gpu.GFX.gpuTaskBudget
+import me.anno.gpu.GFX.gpuTaskBudgetNanos
 import me.anno.utils.async.Queues.workQueue
 import me.anno.utils.structures.Task
 import java.util.Queue
@@ -23,7 +23,7 @@ object GPUTasks {
     fun combineCost(w: Int, h: Int): Int = max(1, ((w * h.toLong()) ushr 13).toInt())
 
     @JvmStatic
-    fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, false, task)
+    fun addGPUTask(name: String, w: Int, h: Int, task: () -> Unit) = addGPUTask(name, w, h, true, task)
 
     @JvmStatic
     fun addGPUTask(name: String, w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
@@ -31,11 +31,12 @@ object GPUTasks {
     }
 
     @JvmStatic
-    fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, false, task)
+    fun addGPUTask(name: String, weight: Int, task: () -> Unit) = addGPUTask(name, weight, true, task)
 
     @JvmStatic
     fun addGPUTask(name: String, weight: Int, lowPriority: Boolean, task: () -> Unit) {
-        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += Task(name, weight, task)
+        val queue = if (lowPriority) lowPriorityGPUTasks else gpuTasks
+        queue.add(Task(name, weight, task))
     }
 
     @JvmStatic
@@ -44,22 +45,27 @@ object GPUTasks {
 
     @JvmStatic
     fun addNextGPUTask(name: String, weight: Int, task: () -> Unit) {
-        nextGPUTasks += Task(name, weight, task)
+        synchronized(nextGPUTasks) {
+            nextGPUTasks.add(Task(name, weight, task))
+        }
     }
 
     @JvmStatic
     fun workGPUTasks(all: Boolean) {
-        val t0 = Time.nanoTime
         // todo just in case, clear gfx state here:
         //  we might be waiting on the gfx thread, and if so, state would be different than usual
         synchronized(nextGPUTasks) {
             gpuTasks.addAll(nextGPUTasks)
             nextGPUTasks.clear()
         }
-        if (workQueue(gpuTasks, gpuTaskBudget, all)) {
-            val remainingTime = Time.nanoTime - t0
-            workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)
+        if (workQueue(gpuTasks, getBudget(), all)) {
+            workQueue(lowPriorityGPUTasks, getBudget(), all)
         }
+    }
+
+    private fun getBudget(): Long {
+        val t0 = Time.nanoTime
+        return max(gpuTaskBudgetNanos + Time.frameTimeNanos - t0, 1)
     }
 
     @JvmStatic

@@ -1,5 +1,6 @@
 package me.anno.audio.openal
 
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.async.Queues
 import me.anno.utils.structures.Task
 import java.util.Queue
@@ -29,6 +30,6 @@ object AudioTasks {
                 nextAudioTasks.clear()
             }
         }
-        Queues.workQueue(audioTasks, 1f / 60f, false)
+        Queues.workQueue(audioTasks, 16 * MILLIS_TO_NANOS, false)
     }
 }

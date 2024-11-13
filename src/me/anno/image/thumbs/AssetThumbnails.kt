@@ -204,7 +204,7 @@ object AssetThumbnails {
                 Renderers.previewRenderer,
                 true, callback, size, size
             ) {
-                GFX.checkIsGFXThread()
+                GFX.check()
                 val rv = rv
                 val cam = rv.editorCamera
                 findFramingRadius(scene, bounds)
@@ -221,6 +221,7 @@ object AssetThumbnails {
                     GFXState.currentBuffer.clearColor(0, depth = true)
                     rv.pipeline.singlePassWithoutSky()
                 }
+                GFX.check()
             }
         }
     }

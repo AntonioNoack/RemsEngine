@@ -173,7 +173,7 @@ class AWTFont(
         if (hasPriority) {
             createTexture(texture, image, callback)
         } else {
-            addGPUTask("awt-font-v5", width, height) {
+            addGPUTask("awt-font-v5", width, height, false) {
                 createTexture(texture, image, callback)
             }
         }
@@ -205,7 +205,7 @@ class AWTFont(
             createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
             callback.ok(texture)
         } else {
-            addGPUTask("awtAtlas", width, height) {
+            addGPUTask("awtAtlas", width, height, false) {
                 createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
                 callback.ok(texture)
             }
@@ -481,7 +481,7 @@ class AWTFont(
             createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
             callback.ok(texture)
         } else {
-            addGPUTask("awt-font-v6", width, height) {
+            addGPUTask("awt-font-v6", width, height, false) {
                 createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
                 callback.ok(texture)
             }
