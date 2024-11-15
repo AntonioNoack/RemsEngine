@@ -1,8 +1,8 @@
 package me.anno.games.flatworld.vehicles
 
 import me.anno.maths.paths.PathFinding.aStar
-import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.streets.ReversibleSegment
+import me.anno.games.flatworld.FlatWorld
+import me.anno.games.flatworld.streets.ReversibleSegment
 
 object Routes {
     fun distance(start: ReversibleSegment, end: ReversibleSegment): Double {

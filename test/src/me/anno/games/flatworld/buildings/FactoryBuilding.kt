@@ -1,7 +1,7 @@
 package me.anno.games.flatworld.buildings
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.tests.game.flatworld.humans.Human
+import me.anno.games.flatworld.humans.Human
 import kotlin.math.max
 
 class FactoryBuilding(

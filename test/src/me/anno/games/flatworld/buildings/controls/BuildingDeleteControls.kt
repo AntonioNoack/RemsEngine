@@ -9,9 +9,9 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
-import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.buildings.Building
-import me.anno.tests.game.flatworld.streets.controls.StreetDeletingControls
+import me.anno.games.flatworld.FlatWorld
+import me.anno.games.flatworld.buildings.Building
+import me.anno.games.flatworld.streets.controls.StreetDeletingControls
 import me.anno.utils.types.Floats.toRadians
 
 class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlScheme(rv) {

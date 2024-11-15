@@ -10,9 +10,9 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
-import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.streets.StreetSegment
-import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
+import me.anno.games.flatworld.FlatWorld
+import me.anno.games.flatworld.streets.StreetSegment
+import me.anno.games.flatworld.streets.StreetMeshBuilder
 import me.anno.ui.UIColors
 import kotlin.math.max
 

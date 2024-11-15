@@ -21,8 +21,8 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.dtTo01
 import me.anno.mesh.Shapes.flatCube
-import me.anno.tests.game.pacman.logic.Moveable
-import me.anno.tests.game.pacman.logic.PacmanLogic
+import me.anno.games.pacman.logic.Moveable
+import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.debug.PureTestEngine.Companion.testPureUI

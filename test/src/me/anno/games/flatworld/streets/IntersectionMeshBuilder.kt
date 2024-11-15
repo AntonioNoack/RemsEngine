@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
-import me.anno.tests.game.flatworld.FlatWorld
+import me.anno.games.flatworld.FlatWorld
 import kotlin.math.max
 import kotlin.math.min
 

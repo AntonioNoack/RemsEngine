@@ -8,8 +8,8 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
-import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.streets.StreetSegment
+import me.anno.games.flatworld.FlatWorld
+import me.anno.games.flatworld.streets.StreetSegment
 import org.joml.Vector3d
 import kotlin.math.atan2
 import kotlin.math.max

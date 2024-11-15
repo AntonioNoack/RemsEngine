@@ -15,10 +15,10 @@ import me.anno.input.Key
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
-import me.anno.tests.game.creeperworld.RockTypes.dissolved
-import me.anno.tests.game.creeperworld.RockTypes.hardness
-import me.anno.tests.game.creeperworld.RockTypes.rock
-import me.anno.tests.game.creeperworld.RockTypes.stone
+import me.anno.games.creeperworld.RockTypes.dissolved
+import me.anno.games.creeperworld.RockTypes.hardness
+import me.anno.games.creeperworld.RockTypes.rock
+import me.anno.games.creeperworld.RockTypes.stone
 import me.anno.tests.physics.fluid.RWState
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel

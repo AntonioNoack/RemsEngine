@@ -11,8 +11,8 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.mesh.Shapes.flatCube
-import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.buildings.LivingBuilding
+import me.anno.games.flatworld.FlatWorld
+import me.anno.games.flatworld.buildings.LivingBuilding
 import me.anno.utils.types.Floats.toRadians
 
 class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlScheme(rv) {

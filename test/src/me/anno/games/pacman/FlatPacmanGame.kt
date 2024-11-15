@@ -10,7 +10,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.maths.Maths.min
-import me.anno.tests.game.pacman.logic.PacmanLogic
+import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.mixARGB

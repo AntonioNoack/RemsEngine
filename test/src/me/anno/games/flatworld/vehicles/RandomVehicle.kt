@@ -8,11 +8,11 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes.flatCube
-import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.streets.IntersectionMeshBuilder
-import me.anno.tests.game.flatworld.streets.ReversibleSegment
-import me.anno.tests.game.flatworld.streets.StreetSegment
-import me.anno.tests.game.flatworld.vehicles.Routes.findRoute
+import me.anno.games.flatworld.FlatWorld
+import me.anno.games.flatworld.streets.IntersectionMeshBuilder
+import me.anno.games.flatworld.streets.ReversibleSegment
+import me.anno.games.flatworld.streets.StreetSegment
+import me.anno.games.flatworld.vehicles.Routes.findRoute
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.weightedRandomOrNull

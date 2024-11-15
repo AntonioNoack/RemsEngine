@@ -2,7 +2,7 @@ package me.anno.games.flatworld.streets
 
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.tests.game.flatworld.FlatWorld
+import me.anno.games.flatworld.FlatWorld
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d

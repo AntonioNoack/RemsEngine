@@ -1,6 +1,6 @@
 package me.anno.games.creeperworld
 
-import me.anno.tests.game.creeperworld.FluidFramebuffer.Companion.mixRGB2
+import me.anno.games.creeperworld.FluidFramebuffer.Companion.mixRGB2
 import me.anno.utils.Color
 import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB

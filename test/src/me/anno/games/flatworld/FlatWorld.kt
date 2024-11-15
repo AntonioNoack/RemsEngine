@@ -5,14 +5,14 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.NamedSaveable
-import me.anno.tests.game.flatworld.buildings.Building
-import me.anno.tests.game.flatworld.streets.Intersection
-import me.anno.tests.game.flatworld.streets.IntersectionMeshBuilder
-import me.anno.tests.game.flatworld.streets.ReversibleSegment
-import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
-import me.anno.tests.game.flatworld.streets.StreetSegment
-import me.anno.tests.game.flatworld.streets.StreetSegmentData
-import me.anno.tests.game.flatworld.vehicles.Vehicle
+import me.anno.games.flatworld.buildings.Building
+import me.anno.games.flatworld.streets.Intersection
+import me.anno.games.flatworld.streets.IntersectionMeshBuilder
+import me.anno.games.flatworld.streets.ReversibleSegment
+import me.anno.games.flatworld.streets.StreetMeshBuilder
+import me.anno.games.flatworld.streets.StreetSegment
+import me.anno.games.flatworld.streets.StreetSegmentData
+import me.anno.games.flatworld.vehicles.Vehicle
 import org.joml.Vector3d
 
 class FlatWorld : NamedSaveable() {

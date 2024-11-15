@@ -3,6 +3,7 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
@@ -19,15 +20,18 @@ import me.anno.gpu.CullMode
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.maths.Maths.sq
 import me.anno.mesh.FindLines.makeLineMesh
 import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -42,6 +46,246 @@ import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.min
+
+class SpiderPrediction(val floorY: Double) : Component(), OnUpdate {
+
+    // know the spider's transform in the future to plan steps
+    val futureTransform = Matrix4x3d()
+    var stepFrequency = 3.0
+    val predictionDeltaTime get() = 0.25 / stepFrequency
+
+    var timeAccu = 1.0
+    var timeAccu0 = 0.0
+
+    var nextLeftStep = true
+
+    val legs = ArrayList<SpiderLegLogic>()
+
+    val stepDistanceSq = sq(3.0)
+
+    override fun onUpdate() {
+        val step = Time.deltaTime * stepFrequency
+        timeAccu0 += step
+        val ta1 = timeAccu + step
+        val limit = if (nextLeftStep) 0.499 else 0.999
+        if (limit - timeAccu < 0.2 && needsStep()) {
+
+            val idealFrequency = 0.5 / clamp(timeAccu0, 0.05, 0.5)
+            stepFrequency *= pow(idealFrequency / stepFrequency, 0.1)
+
+            // take step :)
+            step(nextLeftStep)
+
+            timeAccu = if (nextLeftStep) 0.5 else 0.0
+            timeAccu0 = 0.0
+            nextLeftStep = !nextLeftStep
+        } else {
+            timeAccu = min(ta1, limit)
+        }
+    }
+
+    fun needsStep(): Boolean {
+        assertEquals(8, legs.size)
+        return needsStep(legs[0]) || needsStep(legs[3]) ||
+                needsStep(legs[4]) || needsStep(legs[7])
+    }
+
+    private val tmp = Vector3d()
+    fun needsStep(leg: SpiderLegLogic): Boolean {
+        futureTransform.transformPosition(leg.zero, tmp)
+        return tmp.distanceSquared(leg.lastTarget) > stepDistanceSq
+    }
+
+    fun step(isLeft: Boolean) {
+        for (i in legs.indices) {
+            val leg = legs[i]
+            if (leg.isLeft == isLeft) leg.step()
+        }
+    }
+}
+
+val black1 = Material.diffuse(0x070707)
+val gray2 = Material.diffuse(0x171717)
+
+val white = Material.diffuse(0xffffff)
+val gray = Material.diffuse(0x333333)
+
+val spiderBody = lazy {
+
+    val spider = Entity("Spider")
+    val xs = listOf(-1, +1)
+
+    fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: Material) {
+        target.add(MeshComponent(flatCube.linear(offset, scale).front, material))
+    }
+
+    add(spider, Vector3f(0f, 0.2f, -0.1f), Vector3f(1.0f, 0.6f, 1.5f), gray)
+    add(spider, Vector3f(0f, 0.2f, +2.8f), Vector3f(1.4f, 1.0f, 1.4f), gray)
+
+    for (x in xs) {
+        // teeth
+        add(spider, Vector3f(x * 0.4f, -0.4f, -1.68f), Vector3f(0.12f, 0.5f, 0.12f), white)
+        // eyes
+        add(spider, Vector3f(x * 0.3f, +0.6f, -1.68f), Vector3f(0.08f), black1)
+    }
+
+    spider.ref
+}
+
+
+val legDimensions = listOf(
+    Vector3f(1f, 0.20f, 0.20f),
+    Vector3f(1f, 0.18f, 0.18f),
+    Vector3f(1f, 0.16f, 0.16f),
+    Vector3f(0.4f, 0.12f, 0.12f),
+)
+
+val upperLegMesh = flatCube.linear(Vector3f(-0.9f, 0f, 0f), legDimensions[0]).front
+val middleLegMesh = flatCube.linear(Vector3f(-0.9f, 0f, 0f), legDimensions[1]).front
+val lowerLegMesh = flatCube.linear(Vector3f(-0.9f, 0f, 0f), legDimensions[2]).front
+val footMesh = flatCube.linear(Vector3f(-0.3f, 0f, 0f), legDimensions[3]).front
+
+class SpiderLegLogic(
+    val x: Int, val z: Int, zf: Double,
+    val scene: Entity, val spider: Entity,
+    val spiderComp: SpiderPrediction,
+    val upperLeg: Entity, val middleLeg: Entity,
+    val lowerLeg: Entity, val foot: Entity
+) : Component(), OnUpdate {
+
+    val zero = Vector3d(x * 3.0, -0.5, zf)
+    val target = Vector3d()
+    val lastTarget = Vector3d()
+
+    val isLeft = (z + (x + 1) / 2).hasFlag(1)
+
+    val angles = Vector4d()
+    var isWalking = false
+
+    val futureTransform get() = spiderComp.futureTransform
+
+    fun step() {
+        // find new target to step on
+        // use raycast to find floor's y
+        futureTransform.transformPosition(zero, target)
+        val up = 5.0
+        val len = 10.0
+        val floorY = spiderComp.floorY
+        if (floorY.isNaN()) {
+            val query1 = RayQuery(
+                Vector3d(0.0, up, 0.0).add(target), Vector3d(0.0, -1.0, 0.0), len,
+                -1, -1, false, setOf(spider)
+            )
+            if (Raycast.raycastClosestHit(scene, query1)) {
+                val footThickness = legDimensions.last().y
+                target.y += up - query1.result.distance - footThickness
+            }
+            isWalking = true // lastTarget.distanceSquared(target) > 1e-2 * sq(step)
+        } else {
+            target.y = floorY
+            isWalking = true
+        }
+        lastTarget.set(target)
+    }
+
+    override fun onUpdate() {
+
+        val step = Time.deltaTime * spiderComp.stepFrequency
+        val timeAccu = fract(spiderComp.timeAccu + if (isLeft) 0.5 else 0.0)
+        val dtMix = dtTo01(5.0 * step)
+
+        // convert target into "spiderBody" space
+        val toLocal = spider.transform.globalTransform.invert(Matrix4x3d())
+        val localTarget = toLocal.transformPosition(target, Vector3d())
+        // add stepping up at the start of each step
+        if (isWalking) localTarget.y += max(1.0 - 10.0 * timeAccu, 0.0)
+
+        val upperLegPos = toLocal.transformPosition(upperLeg.transform.globalPosition, Vector3d())
+        val distance0 = length(upperLegPos.x - localTarget.x, upperLegPos.z - localTarget.z)
+        val distance = min(distance0 / (3 * 1.8), 1.0)
+        val downwards = (upperLegPos.y - localTarget.y) / distance0 * .5
+        val alpha = -clamp(
+            mix(
+                mix(1.57, -0.2, downwards), // close
+                mix(0.7, -0.5, downwards), // far away
+                distance
+            ), -1.0, PI / 2
+        )
+        val rotY = -x * atan2(
+            upperLeg.position.z - localTarget.z,
+            -x * (upperLeg.position.x - localTarget.x)
+        )
+        val rotY1 = clamp(-rotY, -1.2, 1.2) + (if (x > 0) PI else 0.0)
+        angles.x = mix(angles.x, alpha, dtMix)
+        angles.y = mix(angles.y, rotY1, dtMix)
+        upperLeg.setRotation(0.0, angles.y, angles.x)
+        upperLeg.validateTransform()
+        middleLeg.validateTransform()
+        val middleLegPos = toLocal.transformPosition(middleLeg.transform.globalPosition, Vector3d())
+        val delta = Vector3d(middleLegPos).sub(localTarget).rotateY(rotY) // z-component is 0
+        delta.x *= -x
+        val (beta, gamma) = calc(alpha, delta, 1.8)
+        val beta1 = max(beta, 0.0)
+        val gamma1 = max(gamma, 0.0)
+        angles.z = mix(angles.z, beta1, dtMix)
+        angles.w = mix(angles.w, gamma1, dtMix)
+        middleLeg.setRotation(0.0, 0.0, angles.z)
+        lowerLeg.setRotation(0.0, 0.0, angles.w)
+        foot.setRotation(0.0, 0.0, -(angles.x + angles.z + angles.w))
+    }
+}
+
+// create 8 legs
+fun calc(alpha: Double, delta: Vector3d, c: Double): Pair<Double, Double> {
+    val len = delta.length()
+    val gamma = 2.0 * asin(min(len / (2 * c), 1.0))
+    val a2 = alpha + PI / 2
+    val x1 = (PI - gamma) / 2
+    val z1 = atan2(delta.x, delta.y)
+    val beta = PI - x1 - z1 - a2
+    return beta to (PI - gamma)
+}
+
+fun createSpider(scene: Entity, floorY: Double): Entity {
+    val baseY = 40.0
+    val spider = Entity("Spider", scene)
+        .add(MeshComponent(spiderBody.value))
+        .setPosition(0.0, baseY, 0.0)
+
+    val spiderComp = SpiderPrediction(floorY)
+    spider.add(spiderComp)
+
+    val xs = listOf(-1, +1)
+
+    // animate body with legs
+    for (x in xs) {
+        for (z in 0 until 4) {
+
+            val zf = z - 1.5
+            val upperLeg = Entity("UpperLeg", spider)
+                .add(MeshComponent(upperLegMesh, gray2))
+                .setPosition(x * 0.9, 0.0, zf * 0.5)
+            val middleLeg = Entity("MiddleLeg", upperLeg)
+                .add(MeshComponent(middleLegMesh, gray2))
+                .setPosition(-1.8, 0.0, 0.0)
+            val lowerLeg = Entity("LowerLeg", middleLeg)
+                .add(MeshComponent(lowerLegMesh, gray2))
+                .setPosition(-1.8, 0.0, 0.0)
+            val foot = Entity("Foot", lowerLeg)
+                .add(MeshComponent(footMesh, black1))
+                .setPosition(-1.8, 0.0, 0.0)
+
+            val leg = SpiderLegLogic(
+                x, z, zf, scene, spider, spiderComp,
+                upperLeg, middleLeg, lowerLeg, foot
+            )
+            spiderComp.legs.add(leg)
+            upperLeg.add(leg)
+        }
+    }
+
+    return spider
+}
 
 /**
  * eight-legged spider, which walks
@@ -105,57 +349,9 @@ fun main() {
     val config = CrowdConfig(navMesh1.agentRadius)
     val crowd = Crowd(config, navMesh)
 
-    val baseY = 40.0
-    val spider = Entity("Spider", scene)
-    spider.setPosition(0.0, baseY, 0.0)
-
-    val xs = listOf(-1, +1)
-    val black1 = Material.diffuse(0x070707)
-    val white = Material.diffuse(0xffffff)
-    val gray = Material.diffuse(0x333333)
-    val gray2 = Material.diffuse(0x171717)
-
-    fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: Material) {
-        target.add(MeshComponent(flatCube.linear(offset, scale).front, material))
-    }
-
-    add(spider, Vector3f(0f, 0.2f, -0.1f), Vector3f(1.0f, 0.6f, 1.5f), gray)
-    add(spider, Vector3f(0f, 0.2f, +2.8f), Vector3f(1.4f, 1.0f, 1.4f), gray)
-
-    for (x in xs) {
-        // teeth
-        add(spider, Vector3f(x * 0.4f, -0.4f, -1.68f), Vector3f(0.12f, 0.5f, 0.12f), white)
-        // eyes
-        add(spider, Vector3f(x * 0.3f, +0.6f, -1.68f), Vector3f(0.08f), black1)
-    }
-
-    val legDimensions = listOf(
-        Vector3f(1f, 0.20f, 0.20f),
-        Vector3f(1f, 0.18f, 0.18f),
-        Vector3f(1f, 0.16f, 0.16f),
-        Vector3f(0.4f, 0.12f, 0.12f),
-    )
-
-    // create 8 legs
-    val upperLegMesh = flatCube.linear(Vector3f(-0.9f, 0f, 0f), legDimensions[0]).front
-    val middleLegMesh = flatCube.linear(Vector3f(-0.9f, 0f, 0f), legDimensions[1]).front
-    val lowerLegMesh = flatCube.linear(Vector3f(-0.9f, 0f, 0f), legDimensions[2]).front
-    val footMesh = flatCube.linear(Vector3f(-0.3f, 0f, 0f), legDimensions[3]).front
-
-    fun calc(alpha: Double, delta: Vector3d, c: Double): Pair<Double, Double> {
-        val len = delta.length()
-        val gamma = 2.0 * asin(min(len / (2 * c), 1.0))
-        val a2 = alpha + PI / 2
-        val x1 = (PI - gamma) / 2
-        val z1 = atan2(delta.x, delta.y)
-        val beta = PI - x1 - z1 - a2
-        return beta to (PI - gamma)
-    }
-
-    // know the spider's transform in the future to plan steps
-    val stepFrequency = 3.0
-    val futureTransform = Matrix4x3d()
-    val predictionDeltaTime = 0.5 / stepFrequency
+    val spider = createSpider(scene, Double.NaN)
+    val spiderComp = spider.getComponent(SpiderPrediction::class)!!
+    val futureTransform = spiderComp.futureTransform
 
     val agent = object : NavMeshAgent(
         meshData, navMesh, query, filter, Random(1234),
@@ -203,111 +399,13 @@ fun main() {
 
             spider.setRotation(rotX, rotY, rotZ)
             futureTransform.identity()
-                .setTranslation(spider.position + velocity * predictionDeltaTime)
+                .setTranslation(spider.position + velocity * spiderComp.predictionDeltaTime)
                 .rotateZ(rotZ)
                 .rotateX(rotX)
                 .rotateY(rotY)
         }
     }
     spider.add(agent)
-
-    // animate body with legs
-    for (x in xs) {
-        for (z in 0 until 4) {
-
-            val zf = z - 1.5
-            val upperLeg = Entity("UpperLeg", spider)
-                .add(MeshComponent(upperLegMesh, gray2))
-                .setPosition(x * 0.9, 0.0, zf * 0.5)
-            val middleLeg = Entity("MiddleLeg", upperLeg)
-                .add(MeshComponent(middleLegMesh, gray2))
-                .setPosition(-1.8, 0.0, 0.0)
-            val lowerLeg = Entity("LowerLeg", middleLeg)
-                .add(MeshComponent(lowerLegMesh, gray2))
-                .setPosition(-1.8, 0.0, 0.0)
-            val foot = Entity("Foot", lowerLeg)
-                .add(MeshComponent(footMesh, black1))
-                .setPosition(-1.8, 0.0, 0.0)
-
-            class Leg : Component(), OnUpdate {
-
-                val zero = Vector3d(x * 3.0, -0.5, zf)
-                val target = Vector3d()
-                val lastTarget = Vector3d()
-
-                var timeAccu = if ((z + (x + 1) / 2).hasFlag(1)) 1.0 else 1.5
-                val angles = Vector4d()
-                var isWalking = false
-
-                override fun onUpdate() {
-
-                    val step = Time.deltaTime * stepFrequency
-                    timeAccu += step
-                    if (timeAccu > 1.0) {
-                        timeAccu -= 1.0
-                        // find new target to step on
-                        // use raycast to find floor's y
-                        futureTransform.transformPosition(zero, target)
-                        val up = 5.0
-                        val len = 10.0
-                        val query1 = RayQuery(
-                            Vector3d(0.0, up, 0.0).add(target), Vector3d(0.0, -1.0, 0.0), len,
-                            -1, -1, false, setOf(spider)
-                        )
-                        if (Raycast.raycastClosestHit(scene, query1)) {
-                            val footThickness = legDimensions.last().y
-                            target.y += up - query1.result.distance - footThickness
-                        }
-                        isWalking = lastTarget.distanceSquared(target) > 1e-2 * sq(step)
-                        lastTarget.set(target)
-                    }
-
-                    val dtMix = dtTo01(5.0 * step)
-
-                    // convert target into "spiderBody" space
-                    val toLocal = spider.transform.globalTransform.invert(Matrix4x3d())
-                    val localTarget = toLocal.transformPosition(target, Vector3d())
-                    // add stepping up at the start of each step
-                    if (isWalking) localTarget.y += max(1.0 - 10.0 * timeAccu, 0.0)
-
-                    val upperLegPos = toLocal.transformPosition(upperLeg.transform.globalPosition, Vector3d())
-                    val distance0 = length(upperLegPos.x - localTarget.x, upperLegPos.z - localTarget.z)
-                    val distance = min(distance0 / (3 * 1.8), 1.0)
-                    val downwards = (upperLegPos.y - localTarget.y) / distance0 * .5
-                    val alpha = -clamp(
-                        mix(
-                            mix(1.57, -0.2, downwards), // close
-                            mix(0.7, -0.5, downwards), // far away
-                            distance
-                        ), -1.0, PI / 2
-                    )
-                    val rotY = -x * atan2(
-                        upperLeg.position.z - localTarget.z,
-                        -x * (upperLeg.position.x - localTarget.x)
-                    )
-                    val rotY1 = clamp(-rotY, -1.2, 1.2) + (if (x > 0) PI else 0.0)
-                    angles.x = mix(angles.x, alpha, dtMix)
-                    angles.y = mix(angles.y, rotY1, dtMix)
-                    upperLeg.setRotation(0.0, angles.y, angles.x)
-                    upperLeg.validateTransform()
-                    middleLeg.validateTransform()
-                    val middleLegPos = toLocal.transformPosition(middleLeg.transform.globalPosition, Vector3d())
-                    val delta = Vector3d(middleLegPos).sub(localTarget).rotateY(rotY) // z-component is 0
-                    delta.x *= -x
-                    val (beta, gamma) = calc(alpha, delta, 1.8)
-                    val beta1 = max(beta, 0.0)
-                    val gamma1 = max(gamma, 0.0)
-                    angles.z = mix(angles.z, beta1, dtMix)
-                    angles.w = mix(angles.w, gamma1, dtMix)
-                    middleLeg.setRotation(0.0, 0.0, angles.z)
-                    lowerLeg.setRotation(0.0, 0.0, angles.w)
-                    foot.setRotation(0.0, 0.0, -(angles.x + angles.z + angles.w))
-                }
-            }
-
-            upperLeg.add(Leg())
-        }
-    }
 
     testSceneWithUI("Spider IK", scene) {
         it.editControls = object : DraggingControls(it.renderView) {
