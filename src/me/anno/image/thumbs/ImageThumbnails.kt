@@ -1,16 +1,13 @@
 package me.anno.image.thumbs
 
-import me.anno.Time
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
-import me.anno.image.Image
-import me.anno.image.ImageCache
+import me.anno.image.ImageAsFolder
 import me.anno.image.ImageScale
 import me.anno.image.hdr.HDRReader
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
-import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.getImportTypeByExtension
@@ -59,37 +56,37 @@ object ImageThumbnails {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        // a small timeout, because we need that image shortly only
-        val totalNanos = 30_000_000_000L
-        val timeout = 50L
-        var image: Image? = null
-        val startTime = Time.nanoTime
-        Sleep.waitUntil(true, {
-            if (Time.nanoTime < startTime + totalNanos) {
-                image = ImageCache[srcFile, timeout, true]
-                image != null || ImageCache.hasFileEntry(srcFile, timeout)
-            } else true
-        }, {
-            if (image == null) {
-                val ext = srcFile.lcExtension
-                when (getImportTypeByExtension(ext)) {
-                    "Video", "Audio" -> { // audio can have thumbnail, too
-                        LOGGER.info("Generating frame for $srcFile")
-                        generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
-                    }
-                    // else nothing to do
+        ImageAsFolder.readImage(srcFile, true).waitFor { image ->
+            if (image != null) {
+                Thumbs.transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+            } else {
+                generateImage2(srcFile, dstFile, size, callback)
+            }
+        }
+    }
+
+    @JvmStatic
+    private fun generateImage2(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: Callback<ITexture2D>
+    ) {
+        val ext = srcFile.lcExtension
+        when (getImportTypeByExtension(ext)) {
+            "Video", "Audio" -> { // audio can have thumbnail, too
+                LOGGER.info("Generating frame for $srcFile")
+                generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+            }
+            // else nothing to do
+            else -> {
+                when (srcFile.lcExtension) {
+                    "txt", "md" -> TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
                     else -> {
-                        when (srcFile.lcExtension) {
-                            "txt", "md" -> TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
-                            else -> {
-                                LOGGER.warn("No thumbnail generator found for $srcFile")
-                                callback.err(null)
-                            }
-                        }
+                        LOGGER.warn("No thumbnail generator found for $srcFile")
+                        callback.err(null)
                     }
                 }
-            } else Thumbs.transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
-        })
+            }
+        }
     }
 
     private fun generateVideoFrame(

@@ -32,13 +32,22 @@ object ImageThumbnailsImpl {
     ) {
         JPGThumbnails.extractThumbnail(srcFile) { bytes ->
             if (bytes != null) {
-                try {
-                    val image = ImageIO.read(ByteArrayInputStream(bytes))
-                    Thumbs.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
-                } catch (e: Exception) {
-                    generateImage(srcFile, dstFile, size, callback)
+                Thumbs.worker += {
+                    generateJPGFrame2(srcFile, dstFile, size, callback, bytes)
                 }
             } else generateImage(srcFile, dstFile, size, callback)
+        }
+    }
+
+    private fun generateJPGFrame2(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: Callback<ITexture2D>, bytes: ByteArray?
+    ) {
+        try {
+            val image = ImageIO.read(ByteArrayInputStream(bytes))
+            Thumbs.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
+        } catch (_: Exception) {
+            generateImage(srcFile, dstFile, size, callback)
         }
     }
 

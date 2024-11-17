@@ -7,6 +7,8 @@ import me.anno.engine.Events.addEvent
 import me.anno.engine.Events.getCalleeName
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks
+import me.anno.maths.Maths.SECONDS_TO_NANOS
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -20,6 +22,8 @@ import java.util.concurrent.TimeoutException
  * All synchronous functions in this class aren't available on all platforms though! Avoid them if possible.
  * */
 object Sleep {
+
+    private val LOGGER = LogManager.getLogger(Sleep::class)
 
     var debugSleepingOnMainThread = false
 
@@ -49,29 +53,32 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use the variant with callback")
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
-        val mustWork = mustWorkTasks(true)
-        while (!isFinished()) {
-            if (mustWork) work(canBeKilled)
-            else sleepABit(canBeKilled)
-        }
+        waitUntil(getCalleeName(), canBeKilled, isFinished)
     }
 
     @JvmStatic
-    private fun hasExceededLimit(startTime: Long, timeoutNanos: Long): Boolean {
-        val time = Time.nanoTime - startTime
-        return time > timeoutNanos
+    @Deprecated("Please use the variant with callback")
+    fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean) {
+        var lastTime = Time.nanoTime
+        val mustWork = mustWorkTasks(true)
+        while (!isFinished()) {
+            if (mustWork) {
+                work(canBeKilled)
+                val time = Time.nanoTime
+                if (time - lastTime > SECONDS_TO_NANOS) {
+                    LOGGER.warn("Waiting on $name, #$time")
+                    lastTime = time
+                }
+            } else sleepABit(canBeKilled)
+        }
     }
 
     @JvmStatic
     @Deprecated("Please use non-throwing versions")
     fun waitUntilOrThrow(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, isFinished: () -> Boolean) {
-        if (timeoutNanos < 0) return this.waitUntil(canBeKilled, isFinished)
-        val startTime = Time.nanoTime
-        val mustWork = mustWorkTasks(true)
-        while (!isFinished()) {
-            if (hasExceededLimit(startTime, timeoutNanos)) throw TimeoutException("Time limit exceeded for $key")
-            if (mustWork) work(canBeKilled)
-            else sleepABit(canBeKilled)
+        val timedOut = waitUntilReturnWhetherIncomplete(canBeKilled, timeoutNanos, isFinished)
+        if (timedOut && !(canBeKilled && shutdown)) {
+            throw TimeoutException("Time limit exceeded for $key")
         }
     }
 
@@ -81,11 +88,11 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use the variant with callback")
     fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
-        val startTime = Time.nanoTime
+        val timeLimit = Time.nanoTime + timeoutNanos
         val mustWork = mustWorkTasks(true)
         while (!isFinished()) {
             if (canBeKilled && shutdown) return true
-            if (hasExceededLimit(startTime, timeoutNanos)) return true
+            if (Time.nanoTime > timeLimit) return true
             if (mustWork) work(canBeKilled)
             else sleepABit(canBeKilled)
         }
@@ -95,7 +102,7 @@ object Sleep {
     @JvmStatic
     @Deprecated("Please use the variant with callback")
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
-        this.waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
+        this.waitUntil(getCalleeName(), canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
     @JvmStatic

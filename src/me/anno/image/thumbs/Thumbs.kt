@@ -50,7 +50,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
-    private val worker = ProcessingQueue("Thumbnails")
+    val worker = ProcessingQueue("Thumbnails")
 
     private val hdb = HierarchicalDatabase(
         "Thumbs", folder, 5_000_000, 10_000L,
@@ -108,9 +108,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         val lastModified = file.lastModified
         val key = ThumbnailKey(file, lastModified, size)
 
-        val async1 = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
-            generate0(key, callback)
-        }
+        val async1 = TextureCache.getLateinitTextureLimited(key, timeout, async, 4, ::generate0)
         if (!async) async1?.waitFor()
         val texture = async1?.value
         if (!async && texture != null && !texture.isCreated()) {

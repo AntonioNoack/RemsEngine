@@ -44,10 +44,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         thread(name = name, block = runnable)
     }
 
-    private fun waitAsync(name: String, runnable: () -> Unit) {
-        thread(name = name, block = runnable)
-    }
-
     fun remove(filter: (Any?, CacheEntry) -> Boolean): Int {
         return synchronized(cache) {
             cache.removeIf { (k, v) ->
@@ -405,7 +401,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (entry.hasValue()) {
                 entry.callback(null, resultCallback)
             } else {
-                waitAsync("WaitingFor<$key>") {
+                runAsync("WaitingFor<$key>") {
                     entry.waitForValueOrThrow(key)
                     entry.callback(null, resultCallback)
                 }
