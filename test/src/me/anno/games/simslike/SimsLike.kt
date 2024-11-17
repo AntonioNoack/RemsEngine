@@ -1,6 +1,5 @@
 package me.anno.games.simslike
 
-import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
@@ -10,6 +9,7 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.wrap
 
 // todo
@@ -77,18 +77,20 @@ fun main() {
     val sims = Entity("Sims", scene)
     val household = Household()
     val names = listOf("Rem", "Ram", "Emilia", "Satou")
-    val animatedMeshSrc = getReference("E:/Assets/Quaternius/Animated Woman.zip/Animated Woman.fbx")
+    val animatedMeshSrc = getReference("E:/Assets/Mixamo XBot/Female Locomotion Pack.zip")
     for ((i, nameI) in names.withIndex()) {
         Entity(nameI, sims)
             .add(Sim().apply { name = nameI; household.sims.add(this) })
             .add(AnimMeshComponent().apply {
-                meshFile = animatedMeshSrc
-                skeleton = animatedMeshSrc.getChild("skeletons/Skeleton.json")
+                meshFile = animatedMeshSrc.getChild("X Bot.fbx")
+                skeleton = animatedMeshSrc.getChild("X Bot.fbx/skeletons/Skeleton.json").apply {
+                    assertTrue(exists)
+                }
                 animations = listOf(
                     AnimationState(
-                        // todo this animation is broken :(
-                        animatedMeshSrc.getChild("animations/Armature|Idle/Imported.json"),
-                        1f, 0f, 1f, LoopingState.PLAY_LOOP
+                        animatedMeshSrc.getChild("idle.fbx").apply {
+                            assertTrue(exists)
+                        }
                     )
                 )
                 materials = Material.diffuse(0xFFC8AA).ref.wrap()

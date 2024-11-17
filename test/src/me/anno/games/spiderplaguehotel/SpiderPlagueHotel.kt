@@ -13,7 +13,7 @@ import me.anno.tests.utils.createSpider
 import org.joml.Vector2f
 import kotlin.random.Random
 
-// todo basic mechanics [I]:
+// basic mechanics [I]:
 //  - one or two rooms -> later each room will have its own infestation,
 //         maybe spiders could dig tunnels to other rooms or migrate if doors are left open
 //  - spiders live there
@@ -38,10 +38,13 @@ import kotlin.random.Random
 //  - spawning trap on spider vs randomly on wall
 
 // todo additional gamification [IV]
-//  -
+//  - beautify/decorate rooms
+//  - add more rooms
+//  - upgrade rooms
+//  - upgrade & hire staff
 
 // todo beautification [V]:
-//  - spiders build walls
+//  - spiders build nets ^^
 
 // todo publishing/controls [VI]:
 //  - steam??
@@ -60,7 +63,7 @@ import kotlin.random.Random
 fun main() {
 
     // todo optimize spiders when far enough away
-    // todo optimize base spider mesh
+    // done optimize base spider mesh
 
     // start with a simple scene and a few randomly-initialized spiders
     val scene = Entity("Scene")

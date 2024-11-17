@@ -71,7 +71,7 @@ class SpiderPrediction(val floorY: Double) : Component(), OnUpdate {
         if (limit - timeAccu < 0.2 && needsStep()) {
 
             val idealFrequency = 0.5 / clamp(timeAccu0, 0.05, 0.5)
-            stepFrequency *= pow(idealFrequency / stepFrequency, 0.1)
+            stepFrequency *= pow(idealFrequency / stepFrequency, 0.33)
 
             // take step :)
             step(nextLeftStep)

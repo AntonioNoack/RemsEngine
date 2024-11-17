@@ -588,21 +588,21 @@ object AnimatedMeshesLoader {
         return result
     }
 
-    fun createNodeCache(node: AINode, map: HashMap<String, AINode>) {
-        map[node.mName().dataString()] = node
+    fun createNodeCache(node: AINode, dst: HashMap<String, AINode>) {
+        dst[node.mName().dataString()] = node
         val numChildren = node.mNumChildren()
         if (numChildren > 0) {
             val children = node.mChildren()!!
             for (index in 0 until numChildren) {
-                createNodeCache(AINode.create(children[index]), map)
+                createNodeCache(AINode.create(children[index]), dst)
             }
         }
     }
 
-    fun createAnimationCache(aiAnimation: AIAnimation, nodeCache: Map<String, AINode>): HashMap<String, NodeAnim> {
+    fun createAnimationCache(aiAnimation: AIAnimation, nodeCache: Map<String, AINode>): Map<String, NodeAnim> {
         val channelCount = aiAnimation.mNumChannels()
-        val result = HashMap<String, NodeAnim>(channelCount)
-        if (channelCount > 0) {
+        return if (channelCount > 0) {
+            val result = HashMap<String, NodeAnim>(channelCount)
             val channels = aiAnimation.mChannels()!!
             for (i in 0 until channelCount) {
                 val aiNodeAnim = AINodeAnim.create(channels[i])
@@ -612,8 +612,8 @@ object AnimatedMeshesLoader {
                     result[name] = NodeAnim(node, aiNodeAnim)
                 } else LOGGER.warn("Missing node '$name'")
             }
-        }
-        return result
+            result
+        } else emptyMap()
     }
 
     private fun calcAnimationMaxFrames(aiAnimation: AIAnimation): Int {
