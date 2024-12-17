@@ -21,6 +21,9 @@ fun main() {
     OfficialExtensions.initForTests()
     val cone = getReference("G:/Assets/Quaternius/Public Transport.zip/TrafficCone.fbx")
     val fence = getReference("G:/Assets/Quaternius/Farm Buildings.zip/Fence.fbx")
+    val trees = (1..4).map {
+        getReference("G:/Assets/Quaternius/Ultimate Nature.zip/PineTree_$it.fbx")
+    }
     val coneMaterial = Material.diffuse(0xff9900)
 
     val streetProfile = SplineProfile(
@@ -63,47 +66,71 @@ fun main() {
     addPoint(Vector3d(5.0, 0.0, 10.0), 90.0)
     addPoint(Vector3d(-5.0, 0.0, 0.0), 0.0)
 
+    // todo fences should (optionally! - not trees) rotate to the surface on xz-level, too
+
     spline.add(SplineMesh().apply {
         profile = streetProfile
     })
 
     // test cones
     spline.add(SplineSpawner().apply {
-        meshFile = cone
+        meshFiles = listOf(cone)
         materialOverride = coneMaterial.ref
         useCenterLength = true
-        distance = 10.0
+        spacing = 10.0
         offsetX = +2.5
         offsetY = 0.53
     })
     spline.add(SplineSpawner().apply {
-        meshFile = cone
+        meshFiles = listOf(cone)
         materialOverride = coneMaterial.ref
         useCenterLength = true
-        distance = 10.0
+        spacing = 10.0
         offsetX = -2.5
         offsetY = 0.53
     })
 
     // test fences
     spline.add(SplineSpawner().apply {
-        meshFile = fence
+        meshFiles = listOf(fence)
         rotation = PI / 2
         // useCenterLength = true
         scaleIfNeeded = true
-        distance = 6.0
+        spacing = 6.0
         offsetX = -4.5
         offsetY = 0.53
     })
 
     spline.add(SplineSpawner().apply {
-        meshFile = fence
+        meshFiles = listOf(fence)
         rotation = PI / 2
         // useCenterLength = true
         scaleIfNeeded = true
-        distance = 6.0
+        spacing = 6.0
         offsetX = +4.5
         offsetY = 0.53
+    })
+
+    spline.add(SplineSpawner().apply {
+        meshFiles = trees
+        scaleIfNeeded = false
+        randomRotations = true
+        alwaysUp = true
+        spawnChance = 0.7f
+        spacing = 3.0
+        offsetX = 6.2
+        offsetY = -0.3
+    })
+
+    spline.add(SplineSpawner().apply {
+        meshFiles = trees
+        scaleIfNeeded = false
+        randomRotations = true
+        alwaysUp = true
+        spawnChance = 0.7f
+        spacing = 3.0
+        offsetX = -6.2
+        offsetY = -0.3
     })
 
     testSceneWithUI("SplineSpawner", scene)

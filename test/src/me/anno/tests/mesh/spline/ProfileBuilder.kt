@@ -11,16 +11,35 @@ import kotlin.math.abs
 
 class ProfileBuilder(mesh: Mesh) {
 
+    private class Link(val prev: Point, val next: Point)
+    private class Point(val pos: Vector3f, val u: Float, val color: Int)
+
     private val pos: FloatArray = mesh.positions!!
     private val uvs: FloatArray? = mesh.uvs
     private val colors: IntArray? = mesh.color0
 
-    class Link(val prev: Point, val next: Point)
-    class Point(val pos: Vector3f, val u: Float, val color: Int)
-
     private val connectivity = HashMap<Vector3f, ArrayList<Link>>()
 
-    fun isOnLine(p: FloatArray, i: Int): Boolean {
+    fun addLine(ai: Int, bi: Int) {
+        val a = addPoint(ai)
+        val b = addPoint(bi)
+        if (a != null && b != null) {
+            addLink(a, b)
+            addLink(b, a)
+        }
+    }
+
+    fun build(): SplineProfile? {
+        val start = findStart() ?: return null
+        val points = findPoints(start)
+        val profile = SplineProfile()
+        profile.positions = getPositions(points)
+        profile.uvs = if (uvs != null) getUs(points) else null
+        profile.colors = if (colors != null) getColors(points) else null
+        return profile
+    }
+
+    private fun isOnLine(p: FloatArray, i: Int): Boolean {
         return abs(p[i * 3 + 2]) < 0.03f
     }
 
@@ -43,15 +62,6 @@ class ProfileBuilder(mesh: Mesh) {
     private fun addLink(a: Point, b: Point) {
         connectivity.getOrPut(a.pos, ::ArrayList)
             .add(Link(a, b))
-    }
-
-    fun addLine(ai: Int, bi: Int) {
-        val a = addPoint(ai)
-        val b = addPoint(bi)
-        if (a != null && b != null) {
-            addLink(a, b)
-            addLink(b, a)
-        }
     }
 
     private fun findStart(): Point? {
@@ -88,7 +98,7 @@ class ProfileBuilder(mesh: Mesh) {
         return col1
     }
 
-    private fun getPoints(start: Point): List<Point> {
+    private fun findPoints(start: Point): List<Point> {
         val points = ArrayList<Point>()
         points.add(start)
         while (true) {
@@ -100,15 +110,5 @@ class ProfileBuilder(mesh: Mesh) {
             add(points, nextPoint.next)
         }
         return points
-    }
-
-    fun build(): SplineProfile? {
-        val start = findStart() ?: return null
-        val points = getPoints(start)
-        val profile = SplineProfile()
-        profile.positions = getPositions(points)
-        profile.uvs = if (uvs != null) getUs(points) else null
-        profile.colors = if (colors != null) getColors(points) else null
-        return profile
     }
 }

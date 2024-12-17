@@ -25,17 +25,18 @@ import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.round
+import kotlin.random.Random
 
 class SplineSpawner : MeshSpawner() {
 
+    // spline settings
     var pointsPerRadian = 10.0
-
     var piecewiseLinear = false
     var isClosed = false
 
-    var distance = 1.0
+    // spawn settings
+    var spacing = 1.0
 
-    // todo scale meshes to be toughing when length is e.g. 5.5 * distance
     var scaleIfNeeded = false
 
     @Docs("Use offsetX = 0 for length calculation, so they are spaced evenly on both sides")
@@ -44,7 +45,7 @@ class SplineSpawner : MeshSpawner() {
     var offsetX = 0.0
     var offsetY = 0.0
 
-    var meshFile: FileReference = InvalidRef
+    var meshFiles: List<FileReference> = emptyList()
     var materialOverride: FileReference = InvalidRef
 
     // decide which points to use as anchors for angle
@@ -53,6 +54,10 @@ class SplineSpawner : MeshSpawner() {
     var normalDt = 0.0
 
     var rotation = 0.0
+    var randomRotations = false
+    var spawnChance = 1f
+    var seed = 0L
+    var alwaysUp = false
 
     private fun getPoints(controlPoints: List<SplineControlPoint>, offsetX: Double): List<Vector3d> {
         return if (piecewiseLinear) {
@@ -86,9 +91,11 @@ class SplineSpawner : MeshSpawner() {
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
 
         val entity = entity ?: return
-        val mesh = MeshCache[meshFile] ?: return
         val material = MaterialCache[materialOverride]
-        if (distance <= 0.0) return
+        if (spacing <= 0.0) return
+
+        val meshFiles = meshFiles
+        if (meshFiles.isEmpty()) return
 
         val controlPoints = entity.children.mapNotNull {
             it.getComponent(SplineControlPoint::class)
@@ -97,32 +104,49 @@ class SplineSpawner : MeshSpawner() {
         val lengthPoints = if (useCenterLength) {
             getPoints(controlPoints, 0.0)
         } else splinePoints
+
         val length = calculateLength(lengthPoints)
-        val numPoints0 = length / distance
+        val numPoints0 = length / spacing
         val numPoints = round(numPoints0).toIntOr()
         val dt = getDt(length)
+
         val weightedList = getWeightedPoints(splinePoints)
         val scale = if (scaleIfNeeded) {
             if (useCenterLength) {
-                calculateLength(splinePoints) / (distance * numPoints)
+                calculateLength(splinePoints) / (spacing * numPoints)
             } else {
                 numPoints0 / numPoints
             }
         } else 1.0
+
+        val random = Random(seed)
+        var transformId = 0
         for (i in 0 until numPoints) {
-            val transform = getTransform(i)
+            if (spawnChance < random.nextFloat()) continue
+            val meshIdx = random.nextInt(meshFiles.size)
+            val mesh = MeshCache[meshFiles[meshIdx]] ?: continue
+
+            val transform = getTransform(transformId++)
+            val addedRotation = if (randomRotations) random.nextFloat() * TAU else rotation
 
             // calculate position and rotation
             val t = (i + 0.5) / numPoints
             val p0 = interpolate(weightedList, t, transform.localPosition)
             val p1 = interpolate(weightedList, t + dt, Vector3d())
-            transform.localRotation = transform.localRotation
-                .identity().rotateY(atan2((p1.x - p0.x) * dt, (p1.z - p0.z) * dt) + rotation)
+            val dx = p1.x - p0.x
+            val dy = p1.y - p0.y
+            val dz = p1.z - p0.z
+            val baseRotation = atan2(dx, dz)
+            val rotation = transform.localRotation.identity().rotateY(baseRotation)
+            if (!alwaysUp) rotation.rotateX(atan2(-dy, p1.distance(p0)))
+            rotation.rotateY(addedRotation)
+            transform.localRotation = rotation
+
             p0.y += offsetY
             transform.localPosition = p0
             if (scaleIfNeeded) {
                 val sc = transform.localScale.set(1.0)
-                val scaleX = posMod((rotation * 4.0 / TAU).roundToIntOr(), 2) == 1
+                val scaleX = posMod(((baseRotation + addedRotation) * 4.0 / TAU).roundToIntOr(), 2) == 1
                 sc[scaleX.toInt(0, 2)] = scale
                 transform.localScale = sc
             }

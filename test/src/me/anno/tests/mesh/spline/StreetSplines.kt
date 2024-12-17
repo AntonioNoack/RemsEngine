@@ -53,7 +53,6 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     val materialToTint = materials.map { it.diffuseBase }
     val colors = IntArray(mesh.positions!!.size / 3)
     val baseColor = mesh.color0
-    // todo bug: middle color is missing :/
     val helperMeshes = mesh.helperMeshes !!
     materialToTint.mapIndexed { mi, tint ->
         val tintRGB = tint.toARGB()
@@ -143,11 +142,10 @@ fun main() {
 
     // todo for extruding, extrude UVs
     // todo for copying, allow custom spacing
-    // todo use multiple SplineMeshes on the same entity to build a street:
-    //  - street, lamps, water outlets, stripes?, ...
 
-    // test interpolation with 1 and 2 intermediate points
-    // interpolation with 1 point: just a line, and therefore useless
+    // use multiple SplineMeshes on the same entity to build a street:
+    //  - street, lamps, water outlets, stripes?, ...
+    // -> see SplineSpawnerTest as an example on how to do that
 
     testUI("SplineMesh") {
         ECSRegistry.init()
