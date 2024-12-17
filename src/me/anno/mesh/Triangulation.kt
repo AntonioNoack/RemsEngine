@@ -10,41 +10,29 @@ import org.the3deers.util.EarCut
 object Triangulation {
 
     @JvmStatic
-    @Suppress("unused")
-    fun ringToTriangles2f(points: FloatArray): FloatArray {
-        val indices = EarCut.earcut(points, 2) ?: return FloatArray(0)
-        val result = FloatArray(indices.size * 2)
-        for (i in indices.indices) {
-            val index = indices[i] * 2
-            result[i * 2] = points[index]
-            result[i * 2 + 1] = points[index + 1]
-        }
-        return result
-    }
-
-    @JvmStatic
-    fun ringToTrianglesVec2f(points: List<Vector2f>): List<Vector2f> {
-        val joint = FloatArray(points.size * 2)
+    fun ringToTrianglesVec2d(points: List<Vector2d>): List<Vector2d> {
+        val joint = DoubleArray(points.size * 2)
         for (index in points.indices) {
             val v = points[index]
             joint[index * 2] = v.x
             joint[index * 2 + 1] = v.y
         }
-        val indices = EarCut.earcut(joint, 2) ?: return emptyList()
-        return indices.toList().map { index -> points[index] }
+        val indices = EarCut.earcut(joint, 2)
+            ?: return emptyList()
+        return indices.map { index -> points[index] }
     }
 
     @JvmStatic
     @Suppress("unused")
-    fun ringToTrianglesVec2d(points: List<Vector2d>): List<Vector2d> {
-        val map = HashMap<Vector2f, Vector2d>()
-        val points2f = points.map {
-            val newVec = JomlPools.vec2f.create().set(it)
+    fun ringToTrianglesVec2f(points: List<Vector2f>): List<Vector2f> {
+        val map = HashMap<Vector2d, Vector2f>()
+        val tmp = points.map {
+            val newVec = JomlPools.vec2d.create().set(it)
             map[newVec] = it
             newVec
         }
-        val result = ringToTrianglesVec2f(points2f).map { map[it]!! }
-        JomlPools.vec2f.sub(points.size)
+        val result = ringToTrianglesVec2d(tmp).map { map[it]!! }
+        JomlPools.vec2d.sub(points.size)
         return result
     }
 
@@ -56,7 +44,8 @@ object Triangulation {
             map[vec3d] = vec3f
             vec3d
         }
-        val result = ringToTrianglesVec3d(points3d).map { vec3d -> map[vec3d]!! }
+        val result = ringToTrianglesVec3d(points3d)
+            .map { vec3d -> map[vec3d]!! }
         JomlPools.vec3d.sub(points.size)
         return result
     }
@@ -64,9 +53,11 @@ object Triangulation {
     @JvmStatic
     fun ringToTrianglesVec3d(points: List<Vector3d>): List<Vector3d> {
         if (points.size > 2) {
-            val normal = JomlPools.vec3d.create().set(0.0)
-            val tmp1 = JomlPools.vec3d.create()
-            val tmp2 = JomlPools.vec3d.create()
+            val pool2 = JomlPools.vec2d
+            val pool3 = JomlPools.vec3d
+            val normal = pool3.create().set(0.0)
+            val tmp1 = pool3.create()
+            val tmp2 = pool3.create()
             for (i in points.indices) {
                 val a = points[i]
                 val b = points[(i + 1) % points.size]
@@ -77,24 +68,24 @@ object Triangulation {
             }
             normal.normalize()
             if (normal.length() < 0.5) {
-                JomlPools.vec3d.sub(3)
+                pool3.sub(3)
                 return emptyList()
             }
             // find 2d coordinate system
-            val xAxis = normal.findSecondAxis(JomlPools.vec3d.create())
+            val xAxis = normal.findSecondAxis(pool3.create())
             val yAxis = normal.cross(xAxis)
             val projected = points.map {
-                JomlPools.vec2f.create()
+                pool2.create()
                     .set(it.dot(xAxis), it.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2f, Vector3d>()
+            val reverseMap = HashMap<Vector2d, Vector3d>()
             for (index in points.indices) {
                 reverseMap[projected[index]] = points[index]
             }
-            val triangles2d = ringToTrianglesVec2f(projected)
+            val triangles2d = ringToTrianglesVec2d(projected)
             val result = triangles2d.map { reverseMap[it]!! }
-            JomlPools.vec2f.sub(projected.size)
-            JomlPools.vec3d.sub(4)
+            pool2.sub(projected.size)
+            pool3.sub(4)
             return result
         } else return emptyList()
     }
@@ -102,9 +93,11 @@ object Triangulation {
     @JvmStatic
     fun ringToTrianglesPoint(points: List<Point>): List<Point> {
         if (points.size > 2) {
-            val normal = JomlPools.vec3f.create().set(0f)
-            val tmp1 = JomlPools.vec3f.create()
-            val tmp2 = JomlPools.vec3f.create()
+            val pool2 = JomlPools.vec2d
+            val pool3 = JomlPools.vec3d
+            val normal = pool3.create().set(0.0)
+            val tmp1 = pool3.create()
+            val tmp2 = pool3.create()
             for (i in points.indices) {
                 val a = points[i].position
                 val b = points[(i + 1) % points.size].position
@@ -114,25 +107,24 @@ object Triangulation {
                 normal.add(tmp1.cross(tmp2))
             }
             normal.normalize()
-            if (normal.length() < 0.5f) {
-                JomlPools.vec3f.sub(3)
+            if (normal.length() < 0.5) {
+                pool3.sub(3)
                 return emptyList()
             }
             // find 2d coordinate system
-            val xAxis = normal.findSecondAxis(JomlPools.vec3f.create())
+            val xAxis = normal.findSecondAxis(pool3.create())
             val yAxis = normal.cross(xAxis)
             val projected = points.map {
-                JomlPools.vec2f.create()
-                    .set(it.position.dot(xAxis), it.position.dot(yAxis))
+                pool2.create().set(it.position.dot(xAxis), it.position.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2f, Point>()
+            val reverseMap = HashMap<Vector2d, Point>()
             for (index in points.indices) {
                 reverseMap[projected[index]] = points[index]
             }
-            val triangles2f = ringToTrianglesVec2f(projected)
+            val triangles2f = ringToTrianglesVec2d(projected)
             val result = triangles2f.map { reverseMap[it]!! }
-            JomlPools.vec2f.sub(projected.size)
-            JomlPools.vec3f.sub(4)
+            pool2.sub(projected.size)
+            pool3.sub(4)
             return result
         } else return emptyList()
     }

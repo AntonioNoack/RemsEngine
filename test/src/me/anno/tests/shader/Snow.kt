@@ -50,6 +50,7 @@ import org.joml.Vector3f
 // todo render snow as SDF instead (?), so we can apply lighting to it without extra cost.
 // our snow is transparent though... so that's a little more complicated...
 
+// todo when it's snowing, the sky exactly has snow-flake color, and that everywhere
 val snowShader = Shader(
     "Snow", emptyList(), coordsUVVertexShader, uvList, listOf(
         Variable(GLSLType.V3F, "cameraPosition"),

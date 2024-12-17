@@ -187,6 +187,14 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Nat
 
     fun toIntArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toIntArray(size, canReturnSelf, exact)
     fun toList(): List<Int> = subList(0, size)
+    fun <V> map(mapping: (Int) -> V): List<V> {
+        val dst = ArrayList<V>(size)
+        for (i in 0 until size) {
+            dst.add(mapping(this[i]))
+        }
+        return dst
+    }
+
     val indices: IntRange get() = 0 until size
     val lastIndex: Int get() = size - 1
     fun isNotEmpty(): Boolean = !isEmpty()

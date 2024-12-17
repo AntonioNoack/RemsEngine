@@ -70,16 +70,16 @@ class GimpImage {
             file.readByteBuffer(false) { data, exc ->
                 if (data != null) {
                     data.order(ByteOrder.BIG_ENDIAN)
-                    val image = readImage(data)
+                    val image = readImage(file, data)
                     callback(image as? GimpImage, image as? Exception)
                 } else callback(null, exc)
             }
         }
 
-        fun readImage(input: InputStream): Any {
+        fun readImage(file: FileReference, input: InputStream): Any {
             val bytes = input.readBytes()
             input.close()
-            return readImage(ByteBuffer.wrap(bytes))
+            return readImage(file, ByteBuffer.wrap(bytes))
         }
 
         fun read(file: FileReference, callback: (Image?, Exception?) -> Unit) {
@@ -92,8 +92,8 @@ class GimpImage {
         /**
          * returns image or exception
          * */
-        fun read(input: InputStream): Any {
-            val result = readImage(input)
+        fun read(file: FileReference, input: InputStream): Any {
+            val result = readImage(file, input)
             return if (result is GimpImage) combineLayers(result)
             else result
         }
@@ -146,15 +146,15 @@ class GimpImage {
             return IntImage(w, h, dst, reallyHasAlpha)
         }
 
-        private fun readImage(data: ByteBuffer): Any {
+        private fun readImage(src: FileReference, data: ByteBuffer): Any {
             data.order(ByteOrder.BIG_ENDIAN)
             for (char in MAGIC) {
                 if (data.get() != char.code.toByte()) {
-                    return IOException("Magic doesn't match")
+                    return IOException("Magic doesn't match [$src]")
                 }
             }
             val image = GimpImage()
-            val error = image.readContent(data)
+            val error = image.readContent(src, data)
             return error ?: image
         }
 
@@ -179,7 +179,7 @@ class GimpImage {
         }
 
         fun readAsFolder(file: FileReference, input: ByteBuffer, callback: Callback<InnerFolder>) {
-            val info = readImage(input)
+            val info = readImage(file, input)
             if (info !is GimpImage) {
                 callback.err(info as? Exception)
                 return
@@ -220,7 +220,7 @@ class GimpImage {
     var channels = ArrayList<Channel>()
     var layers = ArrayList<Layer>()
 
-    fun readContent(data: ByteBuffer): Exception? {
+    fun readContent(src: FileReference, data: ByteBuffer): Exception? {
 
         val tmp = ByteArray(5)
         data.get(tmp)
@@ -229,7 +229,7 @@ class GimpImage {
             0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
             fileThing.substring(1, 4).toIntOrDefault(0)
-        } else return IOException("Expected 'file' or 'v'-version")
+        } else return IOException("Expected 'file' or 'v'-version [$src]")
 
         if (fileVersion >= 11) {
             bytesPerOffset = 8
@@ -238,11 +238,11 @@ class GimpImage {
         width = data.int
         height = data.int
         if (width <= 0 || height <= 0) {
-            return IOException("Image must not be empty $width x $height")
+            return IOException("Image must not be empty $width x $height [$src]")
         }
 
         imageType = ImageType.entries.getOrNull(data.int)
-            ?: return IOException("Unknown image type")
+            ?: return IOException("Unknown image type [$src]")
 
         precision = if (fileVersion >= 4) {
             val p = data.int
@@ -253,7 +253,7 @@ class GimpImage {
                     2 -> DataType.U32_LINEAR
                     3 -> DataType.HALF_LINEAR
                     4 -> DataType.FLOAT_LINEAR
-                    else -> return IOException("Unknown precision")
+                    else -> return IOException("Unknown precision [$src]")
                 }
                 5, 6 -> {
                     when (p) {
@@ -267,11 +267,11 @@ class GimpImage {
                         450 -> DataType.HALF_NON_LINEAR
                         500 -> DataType.FLOAT_LINEAR
                         550 -> DataType.FLOAT_NON_LINEAR
-                        else -> return IOException("Unknown precision")
+                        else -> return IOException("Unknown precision [$src]")
                     }
                 }
                 else -> DataType.entries.firstOrNull { it.value == p }
-                    ?: return IOException("Unknown precision")
+                    ?: return IOException("Unknown precision [$src]")
             }
         } else DataType.U8_NON_LINEAR
 

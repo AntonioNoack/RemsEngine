@@ -125,7 +125,7 @@ object Sleep {
     @JvmStatic
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
         if (mustWorkTasks(false)) {
-            this.waitUntil(canBeKilled, isFinished)
+            this.waitUntil(name, canBeKilled, isFinished)
             callback()
         } else {
             if (isFinished()) {

@@ -261,6 +261,7 @@ fun main() {
             val rot = Quaternionf()
             val nor = Vector3f()
             var dynamicAngle = true
+            var randomRotation = true
 
             val placingCenter = Vector3d()
             val placingTransform = Transform()
@@ -279,13 +280,14 @@ fun main() {
                 val newFile = selected
                 if (newFile != file) {
                     file = newFile
-                    randomizeAngle()
+                    if (randomRotation) {
+                        // after something has been placed, rotate around y randomly
+                        randomizeAngle()
+                    }
                 }
             }
 
             fun randomizeAngle() {
-                // todo <optionally>, after something has been placed, rotate around y randomly
-                //  -> we need settings
                 // we need finer rotation control, or need to snap this angle to sth
                 placingRotation = TAU * random()
                 placingRotation -= placingRotation % (PI / 32)
@@ -369,6 +371,7 @@ fun main() {
                     Key.KEY_KP_ADD -> placingScale *= 1.1
                     Key.KEY_KP_SUBTRACT -> placingScale /= 1.1
                     Key.KEY_KP_MULTIPLY -> dynamicAngle = !dynamicAngle
+                    Key.KEY_KP_DIVIDE -> randomRotation = !randomRotation
                     Key.KEY_KP_DECIMAL -> renderView.renderMode =
                         if (renderView.renderMode == RenderMode.DEFAULT)
                             RenderMode.TAA else RenderMode.DEFAULT

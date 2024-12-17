@@ -8,25 +8,25 @@ import kotlin.math.min
 
 /**
  * from the3deers.org, a derivative work from https://github.com/mapbox/earcut
- * converted to Kotlin by Antonio Noack
+ * converted to Kotlin and doubles by Antonio Noack
  * (copyright (https://github.com/mapbox/earcut/blob/main/LICENSE) removed, because it's like spam for programmers)
  */
 object EarCut {
 
     @JvmStatic
-    fun earcut(data: FloatArray, dim: Int): IntArrayList? {
+    fun earcut(data: DoubleArray, dim: Int): IntArrayList? {
 
         val outerLen = data.size
         val outerNode = linkedList(data, 0, outerLen, dim, true)
         if (outerNode == null || outerNode.next === outerNode.prev) return null
         val triangles = IntArrayList(max(data.size, 16))
-        var minX = 0f
-        var minY = 0f
-        var maxX: Float
-        var maxY: Float
-        var x: Float
-        var y: Float
-        var invSize = 0f
+        var minX = 0.0
+        var minY = 0.0
+        var maxX: Double
+        var maxY: Double
+        var x: Double
+        var y: Double
+        var invSize = 0.0
 
         // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
         if (data.size > 80 * dim) {
@@ -47,7 +47,7 @@ object EarCut {
 
             // minX, minY and invSize are later used to transform coords into integers for z-order calculation
             invSize = max(maxX - minX, maxY - minY)
-            invSize = if (invSize != 0f) 1f / invSize else 0f
+            invSize = if (invSize != 0.0) 1f / invSize else 0.0
         }
         earcutLinked(outerNode, triangles, dim, minX, minY, invSize, 0)
         return triangles
@@ -55,19 +55,19 @@ object EarCut {
 
     @JvmStatic
     @Suppress("unused")
-    fun earcut(data: FloatArray, holeIndices: IntArray?, dim: Int): IntArrayList? {
+    fun earcut(data: DoubleArray, holeIndices: IntArray?, dim: Int): IntArrayList? {
         val hasHoles = holeIndices != null && holeIndices.isNotEmpty()
         val outerLen = if (hasHoles) holeIndices!![0] * dim else data.size
         var outerNode = linkedList(data, 0, outerLen, dim, true)
         if (outerNode == null || outerNode.next === outerNode.prev) return null
         val triangles = IntArrayList(max(data.size, 16))
-        var minX = 0f
-        var minY = 0f
-        var maxX: Float
-        var maxY: Float
-        var x: Float
-        var y: Float
-        var invSize = 0f
+        var minX = 0.0
+        var minY = 0.0
+        var maxX: Double
+        var maxY: Double
+        var x: Double
+        var y: Double
+        var invSize = 0.0
         if (hasHoles && holeIndices != null) {
             outerNode = eliminateHoles(data, holeIndices, outerNode, dim)
         }
@@ -91,7 +91,7 @@ object EarCut {
 
             // minX, minY and invSize are later used to transform coords into integers for z-order calculation
             invSize = max(maxX - minX, maxY - minY)
-            invSize = if (invSize != 0f) 1f / invSize else 0f
+            invSize = if (invSize != 0.0) 1f / invSize else 0.0
         }
         earcutLinked(outerNode, triangles, dim, minX, minY, invSize, 0)
         return triangles
@@ -101,7 +101,7 @@ object EarCut {
      * create a circular doubly linked list from polygon points in the specified winding order
      * */
     @JvmStatic
-    private fun linkedList(data: FloatArray, start: Int, end: Int, dim: Int, clockwise: Boolean): EarCutNode? {
+    private fun linkedList(data: DoubleArray, start: Int, end: Int, dim: Int, clockwise: Boolean): EarCutNode? {
         var i: Int
         var last: EarCutNode? = null
         if (clockwise == signedArea(data, start, end, dim) > 0) {
@@ -133,7 +133,7 @@ object EarCut {
         var p = start
         do {
             var again = false
-            if (!p.isSteinerPoint && (p == p.next || signedTriangleArea(p.prev, p, p.next) == 0f)) {
+            if (!p.isSteinerPoint && (p == p.next || signedTriangleArea(p.prev, p, p.next) == 0.0)) {
                 removeNode(p)
                 end = p.prev
                 p = end
@@ -154,15 +154,15 @@ object EarCut {
         ear0: EarCutNode?,
         triangles: IntArrayList,
         dim: Int,
-        minX: Float,
-        minY: Float,
-        invSize: Float,
+        minX: Double,
+        minY: Double,
+        invSize: Double,
         pass: Int
     ) {
         var ear: EarCutNode = ear0 ?: return
 
         // interlink polygon nodes in z-order
-        if (pass == 0 && invSize != 0f) {
+        if (pass == 0 && invSize != 0.0) {
             indexCurve(ear, minX, minY, invSize)
         }
 
@@ -171,7 +171,7 @@ object EarCut {
         while (ear.prev !== ear.next) {
             val prev = ear.prev
             val next = ear.next
-            if (if (invSize != 0f) isEarHashed(ear, minX, minY, invSize) else isEar(ear)) {
+            if (if (invSize != 0.0) isEarHashed(ear, minX, minY, invSize) else isEar(ear)) {
                 // cut off the triangle
                 triangles.add(prev.i / dim)
                 triangles.add(ear.i / dim)
@@ -223,7 +223,7 @@ object EarCut {
     }
 
     @JvmStatic
-    private fun isEarHashed(ear: EarCutNode, minX: Float, minY: Float, invSize: Float): Boolean {
+    private fun isEarHashed(ear: EarCutNode, minX: Double, minY: Double, invSize: Double): Boolean {
 
         val a = ear.prev
         val c = ear.next
@@ -309,9 +309,9 @@ object EarCut {
         start: EarCutNode,
         triangles: IntArrayList,
         dim: Int,
-        minX: Float,
-        minY: Float,
-        invSize: Float
+        minX: Double,
+        minY: Double,
+        invSize: Double
     ) {
         // look for a valid diagonal, that divides the polygon into two
         var an: EarCutNode = start
@@ -342,7 +342,7 @@ object EarCut {
      * link every hole into the outer loop, producing a single-ring polygon without holes
      * */
     @JvmStatic
-    private fun eliminateHoles(data: FloatArray, holeIndices: IntArray, outerNode0: EarCutNode, dim: Int): EarCutNode {
+    private fun eliminateHoles(data: DoubleArray, holeIndices: IntArray, outerNode0: EarCutNode, dim: Int): EarCutNode {
         val queue = createArrayList(holeIndices.size) { i ->
             val start = holeIndices[i] * dim
             val end = if (i < holeIndices.lastIndex) holeIndices[i + 1] * dim else data.size
@@ -385,7 +385,7 @@ object EarCut {
         var p = outerNode
         val hx = hole.x
         val hy = hole.y
-        var qx = -Float.MAX_VALUE
+        var qx = -Double.MAX_VALUE
         var m: EarCutNode? = null
 
         // find a segment intersected by a ray from the hole's leftmost point to the left;
@@ -413,8 +413,8 @@ object EarCut {
         val stop: EarCutNode = m
         val mx = m.x
         val my = m.y
-        var tanMin = Float.MAX_VALUE
-        var tan: Float
+        var tanMin = Double.MAX_VALUE
+        var tan: Double
         p = m
         do {
             if (p.x in mx..hx && hx != p.x &&
@@ -445,7 +445,7 @@ object EarCut {
      * interlink polygon nodes in z-order
      * */
     @JvmStatic
-    private fun indexCurve(start: EarCutNode, minX: Float, minY: Float, invSize: Float) {
+    private fun indexCurve(start: EarCutNode, minX: Double, minY: Double, invSize: Double) {
         var p: EarCutNode = start
         do {
             if (p.z == -1) p.z = zOrder(p.x, p.y, minX, minY, invSize)
@@ -516,7 +516,7 @@ object EarCut {
      * z-order of a point given coords and inverse of the longer side of data bounding box
      * */
     @JvmStatic
-    fun zOrder(x0: Float, y0: Float, minX: Float, minY: Float, invSize: Float): Int {
+    fun zOrder(x0: Double, y0: Double, minX: Double, minY: Double, invSize: Double): Int {
         // coords are transformed into non-negative 15-bit integer range
         var x = (32767 * (x0 - minX) * invSize).toInt()
         var y = (32767 * (y0 - minY) * invSize).toInt()
@@ -550,14 +550,29 @@ object EarCut {
      * */
     @JvmStatic
     fun pointInTriangle(
+        ax: Double, ay: Double,
+        bx: Double, by: Double,
+        cx: Double, cy: Double,
+        px: Double, py: Double
+    ): Boolean {
+        return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0.0 &&
+                (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0.0 &&
+                (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0.0
+    }
+
+    /**
+     * check if a point lies within a triangle
+     * */
+    @JvmStatic
+    fun pointInTriangle(
         ax: Float, ay: Float,
         bx: Float, by: Float,
         cx: Float, cy: Float,
         px: Float, py: Float
     ): Boolean {
-        return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0f &&
-                (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0f &&
-                (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0f
+        return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0.0 &&
+                (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0.0 &&
+                (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0.0
     }
 
     /**
@@ -569,13 +584,13 @@ object EarCut {
                 !intersectsPolygon(a, b) && // doesn't intersect other edges
                 (locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b) && // locally visible
                         // does not create opposite-facing sectors
-                        (signedTriangleArea(a.prev, a, b.prev) != 0f || signedTriangleArea(a, b.prev, b) != 0f) ||
+                        (signedTriangleArea(a.prev, a, b.prev) != 0.0 || signedTriangleArea(a, b.prev, b) != 0.0) ||
                         a == b && signedTriangleArea(a.prev, a, a.next) > 0 &&
                         signedTriangleArea(b.prev, b, b.next) > 0) // special zero-length case
     }
 
     @JvmStatic
-    private fun signedTriangleArea(p: EarCutNode, q: EarCutNode, r: EarCutNode): Float {
+    private fun signedTriangleArea(p: EarCutNode, q: EarCutNode, r: EarCutNode): Double {
         return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
     }
 
@@ -607,7 +622,7 @@ object EarCut {
     }
 
     @JvmStatic
-    private fun sign(num: Float): Int {
+    private fun sign(num: Double): Int {
         return if (num > 0) 1 else if (num < 0) -1 else 0
     }
 
@@ -632,9 +647,9 @@ object EarCut {
     @JvmStatic
     private fun locallyInside(a: EarCutNode, b: EarCutNode): Boolean {
         return if (signedTriangleArea(a.prev, a, a.next) < 0)
-            signedTriangleArea(a, b, a.next) >= 0f && signedTriangleArea(a, a.prev, b) >= 0f
+            signedTriangleArea(a, b, a.next) >= 0.0 && signedTriangleArea(a, a.prev, b) >= 0.0
         else
-            signedTriangleArea(a, b, a.prev) < 0f || signedTriangleArea(a, a.next, b) < 0f
+            signedTriangleArea(a, b, a.prev) < 0.0 || signedTriangleArea(a, a.next, b) < 0.0
     }
 
     /**
@@ -678,7 +693,7 @@ object EarCut {
      * create a node and optionally link it with previous one (in a circular doubly linked list)
      * */
     @JvmStatic
-    private fun insertNode(i: Int, x: Float, y: Float, last: EarCutNode?): EarCutNode {
+    private fun insertNode(i: Int, x: Double, y: Double, last: EarCutNode?): EarCutNode {
         val p = EarCutNode(i, x, y)
         if (last == null) {
             p.prev = p
@@ -701,8 +716,8 @@ object EarCut {
     }
 
     @JvmStatic
-    private fun signedArea(data: FloatArray, start: Int, end: Int, dim: Int): Float {
-        var sum = 0f
+    private fun signedArea(data: DoubleArray, start: Int, end: Int, dim: Int): Double {
+        var sum = 0.0
         var i = start
         var j = end - dim
         while (i < end) {
@@ -717,7 +732,7 @@ object EarCut {
         // vertex index in coordinates array
         var i: Int,
         // vertex coordinates
-        var x: Float, var y: Float,
+        var x: Double, var y: Double,
     ) {
 
         // z-order curve value

@@ -60,6 +60,19 @@ object ImageCache : CacheSection("Image") {
         }
     }
 
+    /**
+     * reader shall return image or exception
+     * */
+    fun registerDirectStreamReader(
+        signatures: String,
+        streamReader: (FileReference, InputStream) -> Any
+    ) {
+        registerStreamReader(signatures) { src, stream, callback ->
+            val result = streamReader(src, stream)
+            callback.call(result as? Image, result as? Exception)
+        }
+    }
+
     init {
         registerStreamReader("hdr") { _, it, callback ->
             callback.ok(HDRReader.readHDR(it))
