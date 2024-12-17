@@ -13,10 +13,8 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.EditorState
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -150,34 +148,32 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             invalidateMesh()
             return
         }
-        val points = entity.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
-        when (points.size) {
-            0, 1 -> {
-                lastWarning = "SplineMesh doesn't have enough points"
-                invalidateMesh()
-            }
-            else -> {
-                lastWarning = null
-                if (piecewiseLinear) {
-                    val list = ArrayList<Mesh>()
-                    val profile = profile
-                    for (i in 1 until points.size) {
-                        list.add(
-                            generateLinearMesh(
-                                points[i - 1], points[i], Mesh(),
-                                // closed start/end is a bit questionable here
-                                profile, isClosed, closedStart, closedEnd, isStrictlyUp
-                            )
-                        )
-                    }
-                    merge(list, mesh)
-                } else {
-                    generateSplineMesh(
-                        points, pointsPerRadian, mesh,
+        val points = entity.children
+            .mapNotNull { it.getComponent(SplineControlPoint::class) }
+        if (points.size < 2) {
+            lastWarning = "SplineMesh doesn't have enough points"
+            invalidateMesh()
+            return
+        }
+        lastWarning = null
+        if (piecewiseLinear) {
+            val list = ArrayList<Mesh>()
+            val profile = profile
+            for (i in 1 until points.size) {
+                list.add(
+                    generateLinearMesh(
+                        points[i - 1], points[i], Mesh(),
+                        // closed start/end is a bit questionable here
                         profile, isClosed, closedStart, closedEnd, isStrictlyUp
                     )
-                }
+                )
             }
+            merge(list, mesh)
+        } else {
+            generateSplineMesh(
+                points, pointsPerRadian, mesh,
+                profile, isClosed, closedStart, closedEnd, isStrictlyUp
+            )
         }
     }
 

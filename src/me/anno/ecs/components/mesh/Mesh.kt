@@ -195,9 +195,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun unlinkGPUData() {
         buffer = null
         triBuffer = null
-        prefabPath = Path.ROOT_PATH
-        prefab = null
         needsMeshUpdate = true
+        unlinkPrefab()
     }
 
     fun unlinkGeometry() {

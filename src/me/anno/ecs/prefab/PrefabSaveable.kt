@@ -120,6 +120,11 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             field = value
         }
 
+    fun unlinkPrefab() {
+        prefabPath = Path.ROOT_PATH
+        prefab = null
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("flags", flags, true)

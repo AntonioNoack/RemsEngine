@@ -22,6 +22,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS.res
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -52,10 +53,11 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     val materialToTint = materials.map { it.diffuseBase }
     val colors = IntArray(mesh.positions!!.size / 3)
     val baseColor = mesh.color0
-    mesh.helperMeshes!!.forEachIndexed { mi, helper ->
-        val tint = materialToTint[mi]
+    // todo bug: middle color is missing :/
+    val helperMeshes = mesh.helperMeshes !!
+    materialToTint.mapIndexed { mi, tint ->
         val tintRGB = tint.toARGB()
-        helper?.forEachPointIndex { pi ->
+        helperMeshes[mi]?.forEachPointIndex { pi ->
             colors[pi] = if (baseColor != null) {
                 mulARGB(baseColor[pi], tint)
             } else tintRGB
@@ -65,9 +67,10 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     clone.color0 = colors
     clone.hasVertexColors = 1
     val material0 = materials[0].clone() as Material
+    material0.unlinkPrefab()
     material0.diffuseBase = Vector4f(1f)
     clone.numMaterials = 1
-    clone.materials = emptyList() // listOf(material0.ref)
+    clone.materials = listOf(material0.ref)
     clone.materialIds = null
     clone.helperMeshes = null
     return clone
@@ -160,7 +163,6 @@ fun main() {
                 .addControl()
         }
 
-        // todo the default order probably shouldn't be backwards...
         add(splineEntity, Vector3d(0.0, 3.0, 30.0))
         add(splineEntity, Vector3d(0.0, 0.0, 20.0))
         add(splineEntity, Vector3d(3.0, 0.0, 10.0))
