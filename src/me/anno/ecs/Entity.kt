@@ -205,6 +205,11 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return setPosition(position.set(x, y, z))
     }
 
+    fun setRotation(q: Quaterniond): Entity {
+        rotation = rotation.set(q)
+        return this
+    }
+
     fun setRotation(radiansX: Double, radiansY: Double, radiansZ: Double): Entity {
         rotation = rotation
             .identity()

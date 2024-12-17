@@ -59,6 +59,10 @@ class SplineCrossing : ProceduralMesh() {
             }
         }
 
+    override fun onChangeStructure(entity: Entity) {
+        invalidateMesh()
+    }
+
     override fun generateMesh(mesh: Mesh) {
         val children = (entity?.children ?: emptyList())
         generateMesh(mesh, children.mapNotNull { it.getComponent(SplineControlPoint::class) })
