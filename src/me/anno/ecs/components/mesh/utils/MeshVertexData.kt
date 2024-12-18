@@ -82,9 +82,16 @@ class MeshVertexData(
         val flatNormalsFragment = ShaderStage(
             "flat-px-nor", listOf(
                 Variable(GLSLType.V3F, "finalPosition"),
-                Variable(GLSLType.V3F, "normal", VariableMode.OUT)
-            ), "normal = normalize(cross(dFdx(finalPosition), dFdy(finalPosition)));\n"
-            // todo calculate tangent??? how??
+                Variable(GLSLType.V2F, "uv"),
+                Variable(GLSLType.V3F, "normal", VariableMode.OUT),
+                Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
+            ), "" +
+                    "vec3 dPdx = dFdx(finalPosition), dPdy = dFdy(finalPosition);\n" +
+                    "normal = normalize(cross(dPdx, dPdy));\n" +
+                    // tangent calculation by
+                    // https://community.khronos.org/t/computing-the-tangent-space-in-the-fragment-shader/52861
+                    "vec2 dUVdx = dFdx(uv), dUVdy = dFdy(uv);\n" +
+                    "tangent = vec4(normalize(dPdx * dUVdy.t - dPdy * dUVdx.t), 1.0);\n"
         )
 
         val noColors = ShaderStage(

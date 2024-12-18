@@ -45,7 +45,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
         val colorOverrideStage = ShaderStage(
             "vertex",
             listOf(
-                Variable(GLSLType.V4F, "colors0"),
+                Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
                 Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT),
                 Variable(GLSLType.V2F, "uv", VariableMode.OUT)
             ), "" +

@@ -10,8 +10,6 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.spline.Splines.generateSplinePoints
-import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.TAU
@@ -151,7 +149,7 @@ class SplineSpawner : MeshSpawner() {
                 transform.localScale = sc
             }
 
-            DebugShapes.debugPoints.add(DebugPoint(p0, -1, 0f))
+            // DebugShapes.debugPoints.add(DebugPoint(p0, -1, 0f))
 
             transform.smoothUpdate() // smooth or teleport?
             if (run(mesh, material, transform)) break

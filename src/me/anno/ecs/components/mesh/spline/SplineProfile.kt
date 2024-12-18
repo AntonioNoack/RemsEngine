@@ -152,6 +152,12 @@ class SplineProfile() : Saveable() {
         return colors[posMod(index, colors.size)]
     }
 
+    fun getU(i: Int, first: Boolean): Float {
+        val uvs = uvs ?: return 0f
+        val index = if (mixColors) (i + 1 - first.toInt()) else i
+        return uvs[posMod(index, uvs.size)]
+    }
+
     override fun equals(other: Any?): Boolean {
         return other is SplineProfile &&
                 other.positions == positions &&

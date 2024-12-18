@@ -22,7 +22,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS.res
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -139,9 +138,6 @@ fun main() {
             profile = testProfile
         })
     }
-
-    // todo for extruding, extrude UVs
-    // todo for copying, allow custom spacing
 
     // use multiple SplineMeshes on the same entity to build a street:
     //  - street, lamps, water outlets, stripes?, ...

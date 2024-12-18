@@ -9,14 +9,17 @@ import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.rotateRight
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
+import org.joml.Matrix3f
 import org.joml.Vector3f
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.ln
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 class HexagonSphere(
@@ -34,20 +37,26 @@ class HexagonSphere(
 
         fun findLength(n: Int): Float {
             // todo find this value mathematically
-            return findLength0(n) / (n + 1)
+            //  ~ 4/3 / (1+1/(1+n)) / (n+1)
+            //  = 4/3 / (n+2)
+            return findLength0(n) * baseLength(n)
         }
 
-        // scale factor, that is needed, why ever
-        // values measured by eye; will be kind-of fixed
-        private val lengthI = intArrayOf(
+        fun baseLength(n: Int): Float {
+            return (4f / 3f) / (n + 2)
+        }
+
+        // magic values, calculated using linear search
+        // by comparing the size of the pentagons with their neighbors
+        val lengthI = intArrayOf(
             0, 1, 2, 3, 4, 5, 6, 7, 8,
-            10, 15, 20, 25, 40, 60, 90, 150, 200,
-            500, 2000, 5000, 10_000, 50_000, 100_000
+            10, 15, 20, 25, 40, 60, 90, 150, 200, 500,
+            2000, 5000, 10_000, 20_000, 50_000, 100_000
         )
-        private val lengthF = floatArrayOf(
-            2f / 3f, 0.87f, 0.98f, 1.05f, 1.097f, 1.151f, 1.158f, 1.165f, 1.185f,
-            1.20f, 1.24f, 1.253f, 1.268f, 1.288f, 1.302f, 1.308f, 1.314f, 1.316f,
-            1.320f, 1.3223885f, 1.3228698f, 1.3230022f, 1.323151f, 1.3231488f
+        val lengthF = floatArrayOf(
+            1f, 0.9522594f, 0.9678919f, 0.9774843f, 0.98317885f, 0.98666704f, 0.9888875f, 0.9903511f, 0.9913437f,
+            0.9925203f, 0.9935367f, 0.99372196f, 0.993703f, 0.9934611f, 0.9932019f, 0.9929746f, 0.9927591f,
+            0.9926703f, 0.99249905f, 0.9924079f, 0.99238926f, 0.99238306f, 0.99237984f, 0.99237794f, 0.99237734f
         )
 
         private fun findLength0(n: Int): Float {
@@ -113,7 +122,8 @@ class HexagonSphere(
         )
     }
 
-    val hexagonsPerChunk = hexagonsPerSide / chunkCount
+    // if hexagonsPerSide = 0, chunkCount will be 0, too, and then hexagonsPerChunk shall be 0
+    val hexagonsPerChunk = hexagonsPerSide / max(chunkCount, 1)
 
     val special0 = LINE_COUNT * (hexagonsPerSide + 1L)
     val special = special0 + PENTAGON_COUNT
@@ -151,30 +161,55 @@ class HexagonSphere(
     }
 
     class Triangle(
-        val self: HexagonSphere, val index: Int,
+        val sphere: HexagonSphere, val index: Int,
         val center: Vector3f, val ab: Vector3f, val ac: Vector3f,
     ) {
+
         lateinit var abLine: Line
         lateinit var acLine: Line
         lateinit var baLine: Line
         lateinit var caLine: Line
         lateinit var bcLine: Line
+
+        val hexPosMatrix = sphere.calcHexPosMatrix(center, ab, ac)
+
+        val i0: Float
+        val di: Float
+        val j0: Float
+        val dj: Float
+
+        init {
+            val t = sphere.hexagonsPerSide
+            val tmp = JomlPools.vec3f.create()
+            sphere.calcHexPos(hexPosMatrix, 0, 0, tmp)
+            sphere.calcChunkUVW(this, tmp, tmp)
+            i0 = tmp.x
+            j0 = tmp.y
+            sphere.calcHexPos(hexPosMatrix, t, 0, tmp)
+            sphere.calcChunkUVW(this, tmp, tmp)
+            di = t / (tmp.x - i0)
+            sphere.calcHexPos(hexPosMatrix, 0, t, tmp)
+            sphere.calcChunkUVW(this, tmp, tmp)
+            dj = t / (tmp.y - j0)
+            JomlPools.vec3f.sub(1)
+        }
+
         val aabb = AABBf()
-        val idx0 = self.special + index * self.perSide
+        val idx0 = sphere.special + index * sphere.perSide
         operator fun get(i: Int, j: Int): Hexagon {
-            return get(i, j, self.triIdx(idx0, i, j))
+            return get(i, j, sphere.triIdx(idx0, i, j))
         }
 
         operator fun get(i: Int, j: Int, id: Long): Hexagon {
-            return self.create(center, ab, ac, id, i - self.i0, j - self.j0)
+            return sphere.create(center, ab, ac, id, i - sphere.i0, j - sphere.j0)
         }
 
         fun getChunkCenter(si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
-            if (si !in 0 until self.chunkCount || sj !in 0 until self.chunkCount - si) {
-                assertFail("$si,$sj !in ${self.chunkCount}")
+            if (si !in 0 until sphere.chunkCount || sj !in 0 until sphere.chunkCount - si) {
+                assertFail("$si,$sj !in ${sphere.chunkCount}")
             }
 
-            val t = self.hexagonsPerChunk
+            val t = sphere.hexagonsPerChunk
             val j0 = t * sj
             val tj = t * 0.5f
 
@@ -182,7 +217,7 @@ class HexagonSphere(
             val jj = tj + j0
             val ti = i0 + (t - 1) * 0.5f
 
-            return self.calcHexPos(center, ab, ac, ti - self.i0, jj - self.j0, dst).normalize()
+            return sphere.calcHexPos(center, ab, ac, ti - sphere.i0, jj - sphere.j0, dst).normalize()
         }
     }
 
@@ -345,40 +380,51 @@ class HexagonSphere(
 
     data class Chunk(val center: Vector3f, val tri: Int, val si: Int, val sj: Int)
 
+    /**
+     * iterative, correct finding algorithm
+     * */
     fun findClosestChunk(dir: Vector3f): Chunk {
         return findChunk(findClosestHexagon(dir))
     }
 
-    fun findChunk(tri: Triangle, dir: Vector3f): Chunk {
-        if (hexagonsPerSide == 0 || chunkCount <= 1)
-            return Chunk(tri.center, tri.index, 0, 0)
+    fun calcChunkUVW(tri: Triangle, dir: Vector3f, dst: Vector3f): Vector3f {
         val i3 = tri.index * 3
         val a = vertices[indices[i3]]
         val b = vertices[indices[i3 + 1]]
         val c = vertices[indices[i3 + 2]]
-        val tmp = JomlPools.vec3f.borrow()
+        dir.div(dir.dot(tri.center), dst)
+        return barycentric(a, b, c, dst, dst)
+    }
+
+    /**
+     * analytical estimation to find chunks
+     * */
+    fun findChunk(tri: Triangle, dir: Vector3f): Chunk {
+        if (hexagonsPerSide == 0 || chunkCount <= 1) {
+            return Chunk(tri.center, tri.index, 0, 0)
+        }
+        val tmp = JomlPools.vec3f.create()
         dir.div(dir.dot(tri.center), tmp)
-        val uvw = barycentric(a, b, c, tmp, tmp)
-        val ii = findI(uvw.x).toInt()
-        val ji = findJ(uvw.y).toInt()
+        val uvw = calcChunkUVW(tri, dir, tmp)
+        val ii = findI(tri, uvw.x)
+        val ji = findJ(tri, uvw.y)
+        JomlPools.vec3f.sub(1)
         val sj = clamp((ji) / hexagonsPerChunk, 0, chunkCount - 1)
         val si = clamp((ii + (ji % hexagonsPerChunk) / 2) / hexagonsPerChunk, 0, chunkCount - 1 - sj)
         val pos = tri.getChunkCenter(si, sj)
         return Chunk(pos, tri.index, si, sj)
     }
 
-    private fun findI(x: Float): Double {
-        // todo find the proper formula without magic numbers
-        return ((x - 0.5) * 0.797 + 0.5) * hexagonsPerSide - 0.667 * hexagonsPerChunk
+    private fun findI(triangle: Triangle, x: Float): Int {
+        return ((x - triangle.i0) * triangle.di).roundToInt()
     }
 
-    private fun findJ(y: Float): Double {
-        // todo find the proper formula without magic numbers
-        return ((y - 0.5) * 0.795 + 0.5) * hexagonsPerSide - 0.667 * hexagonsPerChunk
+    private fun findJ(triangle: Triangle, y: Float): Int {
+        return ((y - triangle.j0) * triangle.dj).roundToInt()
     }
 
     fun findClosestHexagon(dir: Vector3f): Hexagon {
-        if (!dir.isFinite) throw IllegalArgumentException(dir.toString())
+        assertTrue(dir.isFinite)
         var bestDistance = triangles[0].center.distanceSquared(dir)
         var bestI = 0
         for (i in 1 until triangles.size) {
@@ -395,15 +441,12 @@ class HexagonSphere(
         val hex0 = if (hexagonsPerSide == 0) {
             pentagons.minByOrNull { it.center.distanceSquared(dir) }
         } else {
-            val i3 = tri.index * 3
-            val a = vertices[indices[i3]]
-            val b = vertices[indices[i3 + 1]]
-            val c = vertices[indices[i3 + 2]]
-            val tmp = JomlPools.vec3f.borrow()
+            val tmp = JomlPools.vec3f.create()
             dir.div(dir.dot(tri.center), tmp)
-            val uvw = barycentric(a, b, c, tmp, tmp)
-            val ii = clamp(findI(uvw.x).toInt(), 0, hexagonsPerSide - 1)
-            val ji = clamp(findJ(uvw.y).toInt(), 0, hexagonsPerSide - 1 - ii)
+            val uvw = calcChunkUVW(tri, dir, tmp)
+            JomlPools.vec3f.sub(1)
+            val ii = clamp(findI(tri, uvw.x), 0, hexagonsPerSide - 1)
+            val ji = clamp(findJ(tri, uvw.y), 0, hexagonsPerSide - 1 - ii)
             val hex = tri[ii, ji]
             connectTriHex(tri, hex, ii, ji)
             hex
@@ -431,39 +474,47 @@ class HexagonSphere(
 
     private class Checker(
         var tri: Triangle, val s: Int, val dir: Vector3f,
-        val checked: HashSet<Long>,
         val maxAngleCos1: Float, val callback: (Chunk) -> Boolean
     ) {
 
-        private fun scKey(i: Int, j: Int): Long {
-            return i.toLong() * s + j
+        private val remaining = ArrayList<IntPair>()
+        private val checked = HashSet<IntPair>()
+
+        fun reset() {
+            checked.clear()
         }
 
-        fun checkChunk(si: Int, sj: Int): Boolean {
-            if (checked.add(scKey(si, sj))) {
+        fun checkChunk(si0: Int, sj0: Int): Boolean {
+            enqueue(si0, sj0)
+            while (true) {
+                val (si, sj) = remaining.removeLastOrNull()
+                    ?: return false // done, no valid entry found
                 val center = tri.getChunkCenter(si, sj)
                 if (center.angleCos(dir) >= maxAngleCos1) {
-                    if (callback(Chunk(center, tri.index, si, sj))) return true
-                    checkNeighbors(si, sj)
+                    if (callback(Chunk(center, tri.index, si, sj))) {
+                        return true
+                    }
+                    if (si > 0) {
+                        enqueue(si - 1, sj)
+                        enqueue(si - 1, sj + 1)
+                    }
+                    if (sj > 0) {
+                        enqueue(si, sj - 1)
+                        enqueue(si + 1, sj - 1)
+                    }
+                    if (si + sj + 1 < s) {
+                        enqueue(si, sj + 1)
+                        enqueue(si + 1, sj)
+                    }
                 }
             }
-            return false
         }
 
-        fun checkNeighbors(si: Int, sj: Int): Boolean {
-            if (si > 0) {
-                if (checkChunk(si - 1, sj)) return true
-                if (checkChunk(si - 1, sj + 1)) return true
+        fun enqueue(si: Int, sj: Int) {
+            val key = IntPair(si, sj)
+            if (checked.add(key)) {
+                remaining.add(key)
             }
-            if (sj > 0) {
-                if (checkChunk(si, sj - 1)) return true
-                if (checkChunk(si + 1, sj - 1)) return true
-            }
-            if (si + sj + 1 < s) {
-                if (checkChunk(si, sj + 1)) return true
-                if (checkChunk(si + 1, sj)) return true
-            }
-            return false
         }
     }
 
@@ -473,29 +524,31 @@ class HexagonSphere(
      * */
     fun queryChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (Chunk) -> Boolean): Boolean {
         if (!dir.isFinite || dir.lengthSquared() < 1e-19f) throw IllegalArgumentException(dir.toString())
-        val triangleSelfRadius = triangles.first().run { vertices[indices[0]].angle(center) } // ~37.4°
+        // ~37.4°
+        val triangleSelfRadius = 1.002f * triangles.first().run { vertices[indices[0]].angle(center) }
         val chunkRadius = triangleSelfRadius * 1.4f / max(chunkCount, 1)
         val maxAngleCos0 = cos(min(angleRadiusRadians + triangleSelfRadius, PIf))
         val maxAngleCos1 = cos(min(angleRadiusRadians + chunkRadius, PIf))
-        val checked = HashSet<Long>()
-        val checker = Checker(triangles.first(), chunkCount, dir, checked, maxAngleCos1, callback)
+        val checker = Checker(triangles.first(), chunkCount, dir, maxAngleCos1, callback)
         for (tri in triangles) {
             if (tri.center.angleCos(dir) >= maxAngleCos0) {
                 checker.tri = tri
-                checked.clear()
+                checker.reset()
                 // find the closest chunk to dir
                 val sub = findChunk(tri, dir)
-                if (checker.checkChunk(sub.si, sub.sj)) return true
-                if (checker.checkNeighbors(sub.si, sub.sj)) return true
+                if (checker.checkChunk(sub.si, sub.sj)) {
+                    return true
+                }
             }
         }
         return false
     }
 
     fun barycentric(a: Vector3f, b: Vector3f, c: Vector3f, p: Vector3f, dst: Vector3f): Vector3f {
-        val v0 = b - a
-        val v1 = c - a
-        val v2 = p - a
+        val pool = JomlPools.vec3f
+        val v0 = b.sub(a, pool.create())
+        val v1 = c.sub(a, pool.create())
+        val v2 = p.sub(a, pool.create())
         val d00 = v0.lengthSquared()
         val d01 = v0.dot(v1)
         val d11 = v1.lengthSquared()
@@ -505,6 +558,7 @@ class HexagonSphere(
         dst.x = (d11 * d20 - d01 * d21) / denominator
         dst.y = (d00 * d21 - d01 * d20) / denominator
         dst.z = 1.0f - dst.x - dst.y
+        pool.sub(3)
         return dst
     }
 
@@ -554,10 +608,10 @@ class HexagonSphere(
         }
     }
 
-    private val lines = ArrayList<Line>(lineIndices.size)
-    private val pentagons = createArrayList(PENTAGON_COUNT) {
-        val v = vertices[it]
-        creator.create(special0 + it, v, createArrayList(5, v))
+    val lines = ArrayList<Line>(lineIndices.size)
+    val pentagons = createArrayList(PENTAGON_COUNT) { idx ->
+        val center = vertices[idx]
+        creator.create(special0 + idx, center, createArrayList(5, center))
     }
 
     private fun calcHexPos(
@@ -575,6 +629,29 @@ class HexagonSphere(
             .add(ac.x * c1, ac.y * c1, ac.z * c1)
     }
 
+    private fun calcHexPos(
+        m: Matrix3f, i: Int, j: Int,
+        dst: Vector3f = Vector3f()
+    ): Vector3f = calcHexPos(m, i - i0, j - j0, dst)
+
+    private fun calcHexPos(
+        m: Matrix3f, b0: Float, b1: Float,
+        dst: Vector3f = Vector3f()
+    ): Vector3f = m.transform(b0, b1, 1f, dst)
+
+    /**
+     * return matrix such that
+     * hexPos = result * (b0,b1,1)
+     * */
+    private fun calcHexPosMatrix(
+        center: Vector3f,
+        ab: Vector3f,
+        ac: Vector3f,
+    ): Matrix3f {
+        return Matrix3f(ab, ac, center)
+            .scale(len, len, 1f)
+    }
+
     private fun create(center: Vector3f, ab: Vector3f, ac: Vector3f, index: Long, b0: Float, b1: Float): Hexagon {
         val pos = calcHexPos(center, ab, ac, b0, b1)
         val hex = creator.create(index, pos, createArrayList(6) { create(pos, ab, ac, it) })
@@ -582,30 +659,29 @@ class HexagonSphere(
         return hex
     }
 
-    private fun createLineHexagon(ab: TRef, ba: TRef, i0: Int, index: Long): Hexagon {
+    private fun createLineHexagon(ab: TRef, ba: TRef, i: Int, index: Long): Hexagon {
 
-        val i0Inv = hexagonsPerSide - i0
+        val i0Inv = hexagonsPerSide - i
 
         val j = -1
-        val ps00 = calcHexPos(ab.tri.center, ab.tri.ab, ab.tri.ac, ab.mapI(i0, j) - this.i0, ab.mapJ(i0, j) - j0)
-        val ps10 =
-            calcHexPos(ba.tri.center, ba.tri.ab, ba.tri.ac, ba.mapI(i0Inv, j) - this.i0, ba.mapJ(i0Inv, j) - j0)
+        val pos0 = ab.calcHexPos(this, i, j)
+        val pos1 = ba.calcHexPos(this, i0Inv, j)
 
-        val corners = createArrayList(6) {
-            val a = (it % 6) < 3
+        val corners = createArrayList(6) { idx ->
+            val a = (idx % 6) < 3
             val x = if (a) ab else ba
             val tri = x.tri
-            var i = it + x.d
-            if (!a) i += 3
-            if (i >= 12) i -= 12
-            if (i >= 6) i -= 6
-            val ps = if (a) ps00 else ps10
-            create(ps, tri.ab, tri.ac, i)
+            var k = idx + x.d
+            if (!a) k += 3
+            if (k >= 12) k -= 12
+            if (k >= 6) k -= 6
+            val ps = if (a) pos0 else pos1
+            create(ps, tri.ab, tri.ac, k)
         }
 
         val pos = Vector3f()
-        for (i in corners.indices) {
-            pos.add(corners[i])
+        for (k in corners.indices) {
+            pos.add(corners[k])
         }
         pos.normalize()
         return creator.create(index, pos, corners)
@@ -670,6 +746,11 @@ class HexagonSphere(
     open class TRef(val tri: Triangle, val d: Int = 0) {
         open fun mapI(i: Int, j: Int) = i
         open fun mapJ(i: Int, j: Int) = j
+
+        fun calcHexPos(sphere: HexagonSphere, i: Int, j: Int): Vector3f {
+            return sphere.calcHexPos(tri.hexPosMatrix, mapI(i, j), mapJ(i, j))
+        }
+
         override fun toString() = "TRef(${tri.index},x$d)"
     }
 

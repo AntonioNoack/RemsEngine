@@ -259,6 +259,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             val pos = mesh.positions.resize(numCoords)
             val nor = mesh.normals.resize(numCoords)
             val col = mesh.color0.resize(numPoints)
+            val uvs = mesh.uvs.resize(numPoints * 2)
             var k = 0
             val n0 = Vector2f()
             val n1 = Vector2f()
@@ -298,6 +299,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             val dirX1a = Vector3f()
             val dirX0b = Vector3f()
             val dirX1b = Vector3f()
+
             for (j in 0 until profileSize) {
 
                 val pro0 = profile.getPosition(j)
@@ -334,11 +336,17 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
                 findDirXs(dirX0a, dirX0b, dirY0, 0)
 
+                val u0 = profile.getU(j, true)
+                val u1 = profile.getU(j + 1, false)
+
+                var v0 = 0f
                 for (i in 0 until splineSize) {
 
                     val i2 = i * 2
                     val p1a = splinePoints[i2 + 2]
                     val p1b = splinePoints[i2 + 3]
+
+                    val v1 = v0 + (p0a.distance(p1a) + p0b.distance(p1b)).toFloat() * 0.5f
 
                     if (!isStrictlyUp && i2 + 5 < splinePoints.size) {
                         findDirY(p1a, p1b, splinePoints[i2 + 5], dirY1)
@@ -347,13 +355,13 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     findDirXs(dirX1a, dirX1b, dirY1, i2)
 
                     // 012 230
-                    add(pos, nor, col, k++, p0a, p0b, pro0, n0, c0, dirX0a, dirX0b, dirY0)
-                    add(pos, nor, col, k++, p1a, p1b, pro1, n1, c1, dirX1a, dirX1b, dirY1)
-                    add(pos, nor, col, k++, p1a, p1b, pro0, n0, c0, dirX1a, dirX1b, dirY1)
+                    add(pos, nor, col, uvs, k++, p0a, p0b, pro0, n0, c0, dirX0a, dirX0b, dirY0, u0, v0)
+                    add(pos, nor, col, uvs, k++, p1a, p1b, pro1, n1, c1, dirX1a, dirX1b, dirY1, u1, v1)
+                    add(pos, nor, col, uvs, k++, p1a, p1b, pro0, n0, c0, dirX1a, dirX1b, dirY1, u1, v0)
 
-                    add(pos, nor, col, k++, p0a, p0b, pro1, n1, c1, dirX0a, dirX0b, dirY0)
-                    add(pos, nor, col, k++, p1a, p1b, pro1, n1, c1, dirX1a, dirX1b, dirY1)
-                    add(pos, nor, col, k++, p0a, p0b, pro0, n0, c0, dirX0a, dirX0b, dirY0)
+                    add(pos, nor, col, uvs, k++, p0a, p0b, pro1, n1, c1, dirX0a, dirX0b, dirY0, u0, v1)
+                    add(pos, nor, col, uvs, k++, p1a, p1b, pro1, n1, c1, dirX1a, dirX1b, dirY1, u1, v1)
+                    add(pos, nor, col, uvs, k++, p0a, p0b, pro0, n0, c0, dirX0a, dirX0b, dirY0, u0, v0)
 
                     p0a = p1a
                     p0b = p1b
@@ -361,16 +369,24 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     dirX0a.set(dirX1a)
                     dirX0b.set(dirX1b)
                     dirY0.set(dirY1)
+                    v0 = v1
                 }
             }
-            return createMesh(mesh, pos, nor, col)
+            return createMesh(mesh, pos, nor, col, uvs)
         }
 
-        fun createMesh(mesh: Mesh?, positions: FloatArray, normals: FloatArray, colors: IntArray): Mesh {
+        fun createMesh(
+            mesh: Mesh?,
+            positions: FloatArray,
+            normals: FloatArray,
+            colors: IntArray,
+            uvs: FloatArray
+        ): Mesh {
             val mesh1 = mesh ?: Mesh()
             mesh1.positions = positions
             mesh1.normals = normals
             mesh1.color0 = colors
+            mesh1.uvs = uvs
             return mesh1
         }
 
@@ -405,12 +421,13 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
         }
 
         fun add(
-            positions: FloatArray, normals: FloatArray, colors: IntArray,
+            positions: FloatArray, normals: FloatArray, colors: IntArray, uvs: FloatArray,
             k: Int, p0: Vector3d, p1: Vector3d, profile: Vector2f, n: Vector2f, c: Int,
-            dirXa: Vector3f, dirXb: Vector3f, dirY: Vector3f
+            dirXa: Vector3f, dirXb: Vector3f, dirY: Vector3f, u: Float, v: Float
         ) {
-            val dirX = if (n.x > 0f) dirXa else dirXb // todo is this correct???
-            val k3 = k * 3
+            val dirX = if (n.x > 0f) dirXa else dirXb
+            val k2 = k * 2
+            val k3 = k2 + k
             val px = (profile.x * .5f + .5f).toDouble()
             val py = profile.y
             positions[k3 + 0] = (mix(p0.x, p1.x, px) + py * dirY.x).toFloat()
@@ -419,6 +436,8 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             normals[k3 + 0] = n.x * dirX.x + n.y * dirY.x
             normals[k3 + 1] = n.x * dirX.y + n.y * dirY.y
             normals[k3 + 2] = n.x * dirX.z + n.y * dirY.z
+            uvs[k2] = u
+            uvs[k2 + 1] = v
             colors[k] = c
         }
 
@@ -460,6 +479,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             val pos = mesh.positions.resize(numPoints * 3)
             val nor = mesh.normals.resize(numPoints * 3)
             val col = mesh.color0.resize(numPoints)
+            val uvs = mesh.uvs.resize(numPoints * 2)
             val dirY = Vector3f(point.getLocalUp(Vector3d()))
             val angleOffset = useRightForEnd.toInt() * PI
 
@@ -504,13 +524,20 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     halfProfile.getNormal(si - 1, false, n0)
                     halfProfile.getNormal(si - 1, true, n1)
 
-                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirX0, dirY)
-                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirX1, dirY)
-                    add(pos, nor, col, k++, p1a, p1b, p0, n0, c0, dirX1, dirX1, dirY)
+                    val u0 = halfProfile.getU(si - 1, true)
+                    val u1 = halfProfile.getU(si, false)
 
-                    add(pos, nor, col, k++, p0a, p0b, p1, n1, c1, dirX0, dirX0, dirY)
-                    add(pos, nor, col, k++, p1a, p1b, p1, n1, c1, dirX1, dirX1, dirY)
-                    add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirX0, dirY)
+                    // todo find proper vs by length somehow...
+                    val v0 = 0f
+                    val v1 = 1f
+
+                    add(pos, nor, col, uvs, k++, p0a, p0b, p0, n0, c0, dirX0, dirX0, dirY, u0, v0)
+                    add(pos, nor, col, uvs, k++, p1a, p1b, p1, n1, c1, dirX1, dirX1, dirY, u1, v1)
+                    add(pos, nor, col, uvs, k++, p1a, p1b, p0, n0, c0, dirX1, dirX1, dirY, u1, v0)
+
+                    add(pos, nor, col, uvs, k++, p0a, p0b, p1, n1, c1, dirX0, dirX0, dirY, u0, v1)
+                    add(pos, nor, col, uvs, k++, p1a, p1b, p1, n1, c1, dirX1, dirX1, dirY, u1, v1)
+                    add(pos, nor, col, uvs, k++, p0a, p0b, p0, n0, c0, dirX0, dirX0, dirY, u0, v0)
 
                     p0 = p1
                 }
@@ -522,6 +549,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             mesh.positions = pos
             mesh.normals = nor
             mesh.color0 = col
+            mesh.uvs = uvs
         }
 
         fun merge(meshes: List<Mesh>, dst: Mesh) {

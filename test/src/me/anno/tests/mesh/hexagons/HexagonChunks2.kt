@@ -18,6 +18,8 @@ import kotlin.random.Random
 
 fun main() {
 
+    // todo bug: this has become invisible... why??
+
     var dj = 0
     var dk = 20
     var n = 10
@@ -25,7 +27,7 @@ fun main() {
     val scene = Entity()
     fun recalculate() {
 
-        scene.removeAllChildren()
+        scene.removeAllComponents()
 
         val t = if (n % 25 == 0 && n > 25) 25
         else if (n % 10 == 0 && n > 10) 10
@@ -33,7 +35,7 @@ fun main() {
         else if (n % 3 == 0 && n > 3) 3
         else 1
         val s = max(1, n / t)
-        if (n > 150) { // if you're testing a large world, only generate a single chunk
+        if (n > 150) { // if you're testing a large world, only generate a single triangle
             dj = 16
             dk = 17
         }
@@ -46,10 +48,8 @@ fun main() {
             fun add(si: Int, sj: Int) {
                 val chunk = hexagons.queryChunk(tri.index, si, sj)
                 hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
-                scene.add(Entity().apply {
-                    add(MeshComponent(chunkToFaceMesh(chunk, random.nextInt(16_777_216))))
-                    // add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
-                })
+                scene.add(MeshComponent(chunkToFaceMesh(chunk, random.nextInt(16_777_216))))
+                // .add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
             }
             if (outlineOnly) {
                 for (si in 0 until s) {
