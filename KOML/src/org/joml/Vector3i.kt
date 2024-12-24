@@ -279,10 +279,14 @@ open class Vector3i(
     }
 
     operator fun plus(s: Vector3i) = add(s, Vector3i())
-    operator fun minus(s: Vector3i) = sub(s, Vector3i())
-    operator fun times(s: Float) = Vector3f(x * s, y * s, z * s)
-    operator fun minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
     operator fun plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
+    operator fun minus(s: Vector3i) = sub(s, Vector3i())
+    operator fun times(o: Int): Vector3i = mul(o, Vector3i())
+    operator fun times(s: Float) = Vector3f(x * s, y * s, z * s)
+    operator fun times(o: Vector3i): Vector3i = mul(o, Vector3i())
+    operator fun minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
+    operator fun div(o: Vector3i): Vector3i = div(o, Vector3i())
+    operator fun div(o: Int): Vector3i = div(o, Vector3i())
 
     fun shr(i: Int): Vector3i = set(x shr i, y shr i, z shr i)
     fun shl(i: Int): Vector3i = set(x shl i, y shl i, z shl i)

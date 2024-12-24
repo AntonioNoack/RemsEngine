@@ -50,8 +50,6 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
     // todo update based on distance
 
-    // todo load profile from mesh file?
-
     var isClosed = false
         set(value) {
             if (field != value) {

@@ -2,11 +2,13 @@ package me.anno.maths.chunks.hexagon
 
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Vector2d
 import org.joml.Vector2i
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.round
@@ -124,6 +126,19 @@ object HexagonGridMaths {
     @Suppress("unused")
     fun getVertex(i: Int, j: Int, vertexIndex: Int, dst: Vector2d): Vector2d {
         return indexToCoords(i, j, dst).add(vertices[vertexIndex])
+    }
+
+    fun getGridDistance(delta: Vector2i): Int {
+        return getGridDistance(delta.x, delta.y)
+    }
+
+    fun getGridDistance(di: Int, dj: Int): Int {
+        val distI = when {
+            dj > 0 && di < 0 -> max(-dj, di) - di // = -(min(dj, -di) + di)
+            dj < 0 && di > 0 -> max(dj, -di) + di // = +(max(dj, -di) + di)
+            else -> abs(di) // not shortcut possible
+        }
+        return distI + abs(dj)
     }
 
     /**

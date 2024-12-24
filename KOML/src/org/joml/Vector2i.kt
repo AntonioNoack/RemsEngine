@@ -129,13 +129,11 @@ open class Vector2i(
         return dst.set((x * inv).toInt(), (y * inv).toInt())
     }
 
-    @JvmOverloads
-    fun div(scalar: Int, dst: Vector2i = this): Vector2i {
+    fun div(scalar: Int, dst: Vector2i): Vector2i {
         return dst.set(x / scalar, y / scalar)
     }
 
-    @JvmOverloads
-    fun div(other: Vector2i, dst: Vector2i = this): Vector2i {
+    fun div(other: Vector2i, dst: Vector2i): Vector2i {
         return dst.set(x / other.x, y / other.y)
     }
 
@@ -180,6 +178,13 @@ open class Vector2i(
 
     @JvmOverloads
     fun absolute(dst: Vector2i = this) = dst.set(abs(x), abs(y))
+
+    operator fun plus(o: Vector2i): Vector2i = add(o, Vector2i())
+    operator fun minus(o: Vector2i): Vector2i = sub(o, Vector2i())
+    operator fun times(o: Vector2i): Vector2i = mul(o, Vector2i())
+    operator fun times(o: Int): Vector2i = mul(o, Vector2i())
+    operator fun div(o: Vector2i): Vector2i = div(o, Vector2i())
+    operator fun div(o: Int): Vector2i = div(o, Vector2i())
 
     override fun hashCode() = x * 31 + y
 

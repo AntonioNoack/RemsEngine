@@ -33,9 +33,9 @@ abstract class WorkSplitter(val numThreads: Int) {
     companion object {
         private val LOGGER = LogManager.getLogger(WorkSplitter::class)
 
-        /** a * b / c */
-        fun partition(a: Int, b: Int, c: Int): Int {
-            return (a.toLong() * b.toLong() / c.toLong()).toInt()
+        /** workerIndex * totalWorkToSplit / numWorkers */
+        fun partition(workerIndex: Int, totalWorkToSplit: Int, numWorkers: Int): Int {
+            return (workerIndex.toLong() * totalWorkToSplit.toLong() / numWorkers.toLong()).toInt()
         }
     }
 

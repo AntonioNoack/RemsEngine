@@ -1,11 +1,12 @@
 package me.anno.tests.maths.grid
 
+import me.anno.maths.Maths.TAU
 import me.anno.maths.chunks.hexagon.HexagonGridMaths
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.coordsToIndex
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getGridDistance
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.indexToCoords
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.neighbors
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.vertices
-import me.anno.maths.Maths.TAU
 import org.joml.Vector2d
 import org.joml.Vector2i
 import org.junit.jupiter.api.Test
@@ -96,6 +97,34 @@ class HexagonGridMathsTest {
                     val byNei = neiIdx.distanceSquared(coords)
                     assertTrue(byCenter <= byNei + 1e-15)
                 }
+            }
+        }
+    }
+
+    @Test
+    fun testGridDistanceNeighbors0() {
+        assertEquals(0, getGridDistance(Vector2i()))
+    }
+
+    @Test
+    fun testGridDistanceNeighbors1() {
+        assertEquals(1, getGridDistance(neighbors[0]))
+        assertEquals(1, getGridDistance(neighbors[1]))
+        assertEquals(1, getGridDistance(neighbors[2]))
+        assertEquals(1, getGridDistance(neighbors[3]))
+        assertEquals(1, getGridDistance(neighbors[4]))
+        assertEquals(1, getGridDistance(neighbors[5]))
+    }
+
+    @Test
+    fun testGridDistanceNeighbors2() {
+        for (nei1 in neighbors) {
+            for (nei2 in neighbors) {
+                val nei = nei1 + nei2
+                if (nei.lengthSquared() == 0L || nei in neighbors) {
+                    continue
+                }
+                assertEquals(2, getGridDistance(nei))
             }
         }
     }
