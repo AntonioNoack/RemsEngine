@@ -29,10 +29,6 @@ class Transform() : Saveable() {
         VALID, CHILDREN_NEED_UPDATE, VALID_LOCAL, VALID_GLOBAL
     }
 
-    fun apply() {
-        invalidateForChildren()
-    }
-
     var state: State = State.VALID
         private set(value) {
             field = value

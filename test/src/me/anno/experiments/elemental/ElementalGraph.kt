@@ -1,4 +1,4 @@
-package me.anno.tests.elemental
+package me.anno.experiments.elemental
 
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts

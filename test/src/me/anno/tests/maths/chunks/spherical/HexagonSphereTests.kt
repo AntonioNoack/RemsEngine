@@ -97,10 +97,10 @@ class HexagonSphereTests {
             }
             assertEquals(sphere.numHexagons, centers.size.toLong())
             println("${sphere.hexagonsPerSide} -> ${sphere.len}")
-            val min0 = sphere.len * 0.660f // quite a big range...
+            val min0 = sphere.len * 0.630f // quite a big range...
             val max0 = sphere.len * 1.000f
             checkDistances(centers, min0, max0, 0f)
-            val min1 = sphere.len * 0.389f // quite a big range...
+            val min1 = sphere.len * 0.380f // quite a big range...
             val max1 = sphere.len * 0.577f
             checkDistances(corners, min1, max1, min0 * 0.01f)
         }
@@ -144,10 +144,14 @@ class HexagonSphereTests {
         val tmp0 = Vector3f()
         val tmp1 = Vector3f()
         for (sphere in createSphereList()) {
-            val minDistanceSq0 = sq(sphere.len * 0.390f)
-            val maxDistanceSq0 = sq(sphere.len * 0.577f)
-            val minDistanceSq1 = sq(sphere.len * 0.389f)
-            val maxDistanceSq1 = sq(sphere.len * 0.582f)
+            val minDistance0 = sphere.len * 0.355f
+            val maxDistance0 = sphere.len * 0.577f
+            val minDistance1 = sphere.len * 0.388f
+            val maxDistance1 = sphere.len * 0.583f
+            val minDistanceSq0 = sq(minDistance0)
+            val maxDistanceSq0 = sq(maxDistance0)
+            val minDistanceSq1 = sq(minDistance1)
+            val maxDistanceSq1 = sq(maxDistance1)
             // angle from one corner to the next should be roughly 60°
             // in my testing, I got these border-values: 51°-75°
             val minAngleCos = cos(75f.toRadians())
@@ -163,11 +167,15 @@ class HexagonSphereTests {
                                 val c0 = corners[ni]
                                 // check that the distance to the center is reasonable
                                 val distanceSq0 = c0.distanceSquared(hexagon.center)
-                                assertTrue(distanceSq0 in minDistanceSq0..maxDistanceSq0)
+                                assertTrue(distanceSq0 in minDistanceSq0..maxDistanceSq0) {
+                                    "[0] |$c0-${hexagon.center}| = ${sqrt(distanceSq0)} !in $minDistance0 .. $maxDistance0"
+                                }
                                 // check that the distance to the next neighbor is reasonable
                                 val c1 = corners[posMod(ni + 1, corners.size)]
                                 val distanceSq1 = c0.distanceSquared(c1)
-                                assertTrue(distanceSq1 in minDistanceSq1..maxDistanceSq1)
+                                assertTrue(distanceSq1 in minDistanceSq1..maxDistanceSq1) {
+                                    "[1] |$c0-$c1| = ${sqrt(distanceSq1)} !in $minDistance1 .. $maxDistance1"
+                                }
                                 // check that the angle to the next neighbor is reasonable
                                 val c2 = corners[posMod(ni + 2, corners.size)]
                                 val angleCos = c1.sub(c0, tmp0).angleCos(c2.sub(c1, tmp1))

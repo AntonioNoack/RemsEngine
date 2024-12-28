@@ -26,7 +26,7 @@ class SetLocalVariableNode(type: String = "?") :
         }
 
     init {
-        if (type != "?") name = "SetLocal $type"
+        this.type = type // update name
         inputs[2].isCustom = true // for type
         outputs[1].isCustom = true
     }

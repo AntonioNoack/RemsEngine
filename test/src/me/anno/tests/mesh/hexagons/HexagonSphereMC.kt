@@ -3,39 +3,20 @@ package me.anno.tests.mesh.hexagons
 import me.anno.bullet.BulletPhysics
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.maths.chunks.spherical.Hexagon
-import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.pipeline.PipelineStage
-import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.clamp
-import me.anno.maths.noise.FullNoise
-import me.anno.utils.hpc.threadLocal
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.pooling.Pools
-import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Triangles
 import org.joml.Quaterniond
-import org.joml.Vector2f
 import org.joml.Vector3d
-import org.joml.Vector3f
-import kotlin.math.cos
-import kotlin.math.sign
-import kotlin.math.sin
 
 // create a Minecraft world on a hex sphere :3
 // use chunks

@@ -34,8 +34,8 @@ object SignedDistanceField {
         val stats = getDistanceComputer(font, text, roundEdges)
         val buffer = stats?.distances ?: return TextSDF.empty
 
-        val tex = Texture2D("SDF", stats.w, stats.h, 1)
-        addGPUTask("SDF.createTexture()", stats.w, stats.h) {
+        val tex = Texture2D("SDF[$font,'$text',$roundEdges]", stats.w, stats.h, 1)
+        addGPUTask("${tex.name}.createTexture()", stats.w, stats.h) {
             tex.createMonochromeFP16(buffer, true)
             tex.ensureFilterAndClamping(Filtering.TRULY_LINEAR, Clamping.CLAMP)
             ByteBufferPool.free(buffer)

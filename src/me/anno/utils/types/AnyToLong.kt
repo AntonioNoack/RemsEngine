@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.utils.ColorParsing
 import me.anno.utils.types.Ints.toLongOrDefault
 
 object AnyToLong {
@@ -17,7 +18,11 @@ object AnyToLong {
                 0 -> value
                 else -> defaultValue
             }
-            is CharSequence -> value.toLongOrDefault(defaultValue)
+            is CharSequence -> when {
+                value.startsWith("0x") -> value.substring(2).toLongOrNull(16) ?: defaultValue
+                value.startsWith("#") -> ColorParsing.parseColor(value.toString())?.toLong() ?: defaultValue
+                else -> value.toLongOrDefault(defaultValue)
+            }
             else -> {
                 val v = AnyToDouble.getDouble(value, index, Double.NaN)
                 return if (v.isNaN()) defaultValue else v.toLong()

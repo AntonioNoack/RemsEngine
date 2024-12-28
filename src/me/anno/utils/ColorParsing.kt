@@ -141,7 +141,7 @@ object ColorParsing {
      * @return argb color code or null on failure
      * */
     @JvmStatic
-    fun parseColor(name: String): Int? {
+    fun parseColor(name: CharSequence): Int? {
         return when {
             name.startsWith('#') -> parseHex(name.substring(1))
             name.startsWith("0x") -> parseHex(name.substring(2))
@@ -193,7 +193,7 @@ object ColorParsing {
                     rgba(rgba[0], rgba[1], rgba[2], rgba[3])
                 } else null
             }
-            else -> colorMap[name.trim().lowercase()]?.or(black)
+            else -> colorMap[name.trim().toString().lowercase()]?.or(black)
         }
     }
 

@@ -238,8 +238,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
      * smoothly transitions to the next position
      * */
     fun moveToGlobal(position: Vector3d) {
-        transform.globalTransform.setTranslation(position)
         transform.globalPosition = position
+        validateTransform()
         transform.smoothUpdate()
         invalidateAABBsCompletely()
         invalidatePhysicsTransform()
@@ -250,6 +250,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
      * */
     fun teleportToGlobal(position: Vector3d) {
         transform.globalPosition = position
+        validateTransform()
         transform.teleportUpdate()
         invalidateAABBsCompletely()
         invalidatePhysicsTransform()
