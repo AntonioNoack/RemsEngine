@@ -12,6 +12,7 @@ import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.maths.Maths.TAUf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
@@ -55,6 +56,91 @@ class Box2dTest {
             expectedPosition += expectedVelocity * dt //  + (gravity * dt² * 0.5)
         }
     }
+
+    @Test
+    fun testApplyForceAtCenter() {
+
+        val gravity = 0f
+        setupGravityTest(gravity)
+
+        val rigidbody = Rigidbody2d()
+        val sphere = Entity()
+            .add(rigidbody)
+            .add(CircleCollider().apply { density = 1f })
+            .add(object : Component(), OnPhysicsUpdate {
+                override fun onPhysicsUpdate(dt: Double) {
+                    val mass = 1f * PIf
+                    rigidbody.applyForce(Vector2f(1f * mass, 2f * mass))
+                }
+            })
+
+        val world = Entity().add(sphere)
+        Systems.world = world
+
+        val dt = 1.0
+        val expectedPosition = Vector3d()
+        val expectedVelocity = Vector2f()
+        for (i in 0 until 20) {
+
+            val actualPosition = sphere.position
+            val actualVelocity = rigidbody.linearVelocity
+            assertEquals(expectedPosition, actualPosition)
+            assertEquals(expectedVelocity, actualVelocity)
+
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+
+            expectedVelocity.add(1f, 2f)
+            expectedPosition.add(expectedVelocity.x * dt, expectedVelocity.y * dt, 0.0)
+        }
+    }
+
+    @Test
+    fun testApplyForceNonCenter() {
+
+        val gravity = 0f
+        setupGravityTest(gravity)
+
+        val speed = 0.02f
+        val rigidbody = Rigidbody2d()
+        val sphere = Entity()
+            .add(rigidbody)
+            .add(CircleCollider().apply { density = 1f })
+            .add(object : Component(), OnPhysicsUpdate {
+                override fun onPhysicsUpdate(dt: Double) {
+                    val mass = speed * PIf
+                    for (i in 0 until 4) {
+                        val angle = i * TAUf * 0.25f
+                        rigidbody.applyForce(
+                            Vector2f(0f, mass).rotate(angle),
+                            Vector2f(mass, 0f).rotate(angle)
+                        )
+                    }
+                }
+            })
+
+        val world = Entity().add(sphere)
+        Systems.world = world
+
+        val dt = 1.0
+        var expectedRotation = 0.0
+        for (i in 0 until 20) {
+
+            val actualPosition = sphere.position
+            val actualRotation = sphere.rotation.getEulerAnglesYXZ(Vector3d()).z
+            val actualVelocity = rigidbody.linearVelocity
+            // todo why is this 0.0 below a certain threshold force???
+            val actualRotationVel = rigidbody.angularVelocity
+            assertEquals(Vector3d(), actualPosition, 1e-6)
+            assertEquals(Vector2f(), actualVelocity, 1e-6)
+            assertEquals(expectedRotation, actualRotation, 0.002)
+
+            physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
+
+            expectedRotation += 0.5 * speed
+        }
+    }
+
+    // todo test apply impulse
 
     @Test
     fun testDisabledStates() {
@@ -363,7 +449,6 @@ class Box2dTest {
         assertTrue(b0.linearVelocity.x >= 0.0)
         assertTrue(b1.linearVelocity.x > 0.0)
         assertEquals(1f, b0.linearVelocity.x + b1.linearVelocity.x)
-
     }
 
     // what happens when one collider has a !=0-density, and another has a =0-density within the same rigidbody?

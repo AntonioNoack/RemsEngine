@@ -84,10 +84,11 @@ class Rigidbody2d : Component() {
     }
 
     fun applyForce(forceX: Float, forceY: Float, pointX: Float, pointY: Float) {
-        val force = Box2dPhysics.vec2f.create().set(forceX, forceY)
-        val point = Box2dPhysics.vec2f.create().set(pointX, pointY)
+        val pool = Box2dPhysics.vec2f
+        val force = pool.create().set(forceX, forceY)
+        val point = pool.create().set(pointX, pointY)
         box2dInstance?.applyForce(force, point)
-        Box2dPhysics.vec2f.sub(2)
+        pool.sub(2)
     }
 
     fun applyImpulse(impulse: Vector2f, point: Vector2f, wake: Boolean = true) {
@@ -95,17 +96,18 @@ class Rigidbody2d : Component() {
     }
 
     fun applyImpulse(impulseX: Float, impulseY: Float, pointX: Float, pointY: Float, wake: Boolean = true) {
-        val impulse = Box2dPhysics.vec2f.create().set(impulseX, impulseY)
-        val point = Box2dPhysics.vec2f.create().set(pointX, pointY)
+        val pool = Box2dPhysics.vec2f
+        val impulse = pool.create().set(impulseX, impulseY)
+        val point = pool.create().set(pointX, pointY)
         box2dInstance?.applyLinearImpulse(impulse, point, wake)
-        Box2dPhysics.vec2f.sub(2)
+        pool.sub(2)
     }
 
     fun applyAngularImpulse(impulse: Float) {
         box2dInstance?.applyAngularImpulse(impulse)
     }
 
-    val inertia get(): Float? = box2dInstance?.inertia
+    val inertia get(): Float = box2dInstance?.inertia ?: 0f
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

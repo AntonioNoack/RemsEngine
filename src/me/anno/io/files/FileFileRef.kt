@@ -23,6 +23,13 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             return FileFileRef(File.createTempFile(name.padEnd(5, '-'), if (extension.isEmpty()) "" else ".$extension"))
         }
 
+        fun createTempFolder(name: String): FileReference {
+            val file = createTempFile(name, "tmp")
+            file.delete()
+            file.tryMkdirs()
+            return file
+        }
+
         private fun beautifyPath(path: String): String {
             var p = path.replace('\\', '/')
             while (p.endsWith('/')) p = p.substring(0, p.length - 1)

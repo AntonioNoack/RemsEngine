@@ -273,7 +273,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                 files.mapCallback<FileReference, Unit>({ _, src, cb ->
                     PrefabCache.getPrefabAsync(src) { prefab, err ->
                         if (prefab != null) {
-                            Menu.askRename(
+                            askRename(
                                 p.windowStack, NameDesc("Extend ${prefab.clazzName} \"${src.name}\""),
                                 "${src.nameWithoutExtension}.$defaultExtension",
                                 NameDesc("Extend"), src.getParent()

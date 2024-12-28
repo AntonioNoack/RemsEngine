@@ -1,6 +1,5 @@
 package me.anno.engine.projects
 
-import me.anno.engine.projects.GameEngineProject.Companion.encoding
 import me.anno.io.Streams.consumeMagic
 import me.anno.io.Streams.writeString
 import me.anno.io.binary.BinaryReader
@@ -33,7 +32,7 @@ enum class FileEncoding(val id: Int) {
     }
 
     val extension: String
-        get() = when (encoding) {
+        get() = when (this) {
             PRETTY_JSON, COMPACT_JSON -> "json"
             PRETTY_XML, COMPACT_XML -> "xml"
             YAML -> "yaml"

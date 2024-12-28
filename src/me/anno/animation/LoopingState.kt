@@ -37,7 +37,7 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
     PLAY_REVERSING_LOOP(2, NameDesc("Reversing")) {
         override fun get(time: Double, duration: Double): Double {
             val doubleDuration = 2.0 * duration
-            val time0 = time % doubleDuration
+            val time0 = posMod(time, doubleDuration)
             return if (time0 >= duration) {
                 // reverse
                 doubleDuration - time0
@@ -49,7 +49,7 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
 
         override fun get(time: Long, duration: Long): Long {
             val doubleDuration = 2 * duration
-            val time1 = time % doubleDuration
+            val time1 = posMod(time, doubleDuration)
             return if (time1 >= duration) {
                 // reverse
                 doubleDuration - time1
@@ -60,16 +60,16 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
         }
     };
 
+    abstract operator fun get(time: Double, duration: Double): Double
+    abstract operator fun get(time: Long, duration: Long): Long
+
     operator fun get(time: Float, duration: Float): Float {
         return get(time.toDouble(), duration.toDouble()).toFloat()
     }
 
-    abstract operator fun get(time: Double, duration: Double): Double
     operator fun get(time: Int, duration: Int): Int {
         return get(time.toLong(), duration.toLong()).toInt()
     }
-
-    abstract operator fun get(time: Long, duration: Long): Long
 
     companion object {
         @JvmStatic

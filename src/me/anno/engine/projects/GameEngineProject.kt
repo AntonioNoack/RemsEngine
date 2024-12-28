@@ -15,7 +15,6 @@ import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -43,26 +42,25 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?): GameEngineProject? {
-            location ?: return null
-            if (location == InvalidRef) return null
-            return if (location.exists) {
-                if (location.isDirectory) {
-                    val configFile = location.getChild("Project.json")
-                    if (configFile.exists) {
-                        val instance = JsonStringReader.readFirstOrNull(configFile, location, GameEngineProject::class)
-                        instance?.location = location
-                        instance
-                    } else {
-                        val project = GameEngineProject(location)
-                        val encoding = encoding.getForExtension(location)
-                        configFile.writeBytes(encoding.encode(project, location))
-                        project
-                    }
-                } else {
-                    // probably the config file
-                    readOrCreate(location.getParent())
-                }
-            } else GameEngineProject(location)
+            if (location == null || location == InvalidRef) return null
+            val location2 = if (location.exists && !location.isDirectory) location.getParent() else location
+            val configFile = location2.getChild("Project.json")
+            return readProject(location2, configFile) ?: createProject(location2, configFile)
+        }
+
+        private fun readProject(location: FileReference, configFile: FileReference): GameEngineProject? {
+            return if (configFile.exists) {
+                val instance = JsonStringReader.readFirstOrNull(configFile, location, GameEngineProject::class)
+                instance?.location = location
+                instance
+            } else null
+        }
+
+        private fun createProject(location: FileReference, configFile: FileReference): GameEngineProject {
+            val project = GameEngineProject(location)
+            val encoding = encoding.getForExtension(location)
+            configFile.writeBytes(encoding.encode(project, location))
+            return project
         }
 
         fun save(file: FileReference, value: Saveable) {
