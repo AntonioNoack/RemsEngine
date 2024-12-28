@@ -38,11 +38,11 @@ fun assertNotContains(value: CharSequence, collection: CharSequence, message: St
 }
 
 fun <V> assertContains(value: V, collection: Collection<V>, message: String = "condition failed") {
-    assertTrue(value in collection) { "'$value' !in '$collection', $message" }
+    assertTrue(value in collection) { "${str(value)} !in '$collection', $message" }
 }
 
 fun <V> assertNotContains(value: V, collection: Collection<V>, message: String = "condition failed") {
-    assertTrue(value !in collection) { "'$value' in '$collection', $message" }
+    assertTrue(value !in collection) { "${str(value)} in '$collection', $message" }
 }
 
 fun assertFalse(condition: Boolean, message: String = "condition failed") {
@@ -58,31 +58,33 @@ fun assertFail(message: String = "condition failed"): Nothing {
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal values") {
-    assertTrue(expected == actual) { "$message, \n  expected '$expected' != \n  actually '$actual'" }
+    assertTrue(expected == actual) {
+        "$message, \n  expected ${str(expected)} != \n  actually ${str(actual)}"
+    }
+}
+
+fun str(value: Any?): String {
+    return if (value != null) "'$value'" else "null"
+}
+
+fun strAt(value: Any?): String {
+    return if (value != null) "'$value'@${hash32(value)}" else "null"
 }
 
 fun assertSame(expected: Any?, actual: Any?, message: String = "expected equal values") {
     assertTrue(expected === actual) {
-        "$message, \n  expected '$expected'@${hash32(expected)} !== \n  actually '$actual'@${
-            hash32(
-                actual
-            )
-        }"
+        "$message, \n  expected ${strAt(expected)} === \n  actually ${strAt(actual)}"
     }
 }
 
 fun assertNotSame(expected: Any?, actual: Any?, message: String = "expected equal values") {
     assertTrue(expected !== actual) {
-        "$message, \n  expected '$expected'@${hash32(expected)} === \n  actually @${
-            hash32(
-                actual
-            )
-        }"
+        "$message, \n  must not be the same, ${strAt(expected)}"
     }
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: () -> String) {
-    assertTrue(expected == actual) { "${message()}, \n'$expected' != \n'$actual'" }
+    assertTrue(expected == actual) { "${message()}, \n${str(expected)} != \n${str(actual)}" }
 }
 
 fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {

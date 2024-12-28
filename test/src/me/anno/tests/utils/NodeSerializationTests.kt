@@ -19,7 +19,7 @@ class NodeSerializationTests {
     fun testDeserializingNode() {
         registerCustomClass(NodeInput())
         registerCustomClass(NodeOutput())
-        registerCustomClass(SetLocalVariableNode("Vector4f"))
+        registerCustomClass(SetLocalVariableNode())
         val source = "[{\"class\":\"SetLocalVariableNode\",\"i:*ptr\":1,\"NodeInput[]:inputs\":[3,{\"i:*ptr\":2," +
                 "\"NodeOutput[]:others\":[1,{\"i:*ptr\":3,\"NodeInput[]:others\":[1,2]}]},{\"i:*ptr\":4," +
                 "\"S:value\":\"var\"},{\"i:*ptr\":5,\"NodeOutput[]:others\":[1,{\"i:*ptr\":6," +
