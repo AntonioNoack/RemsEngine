@@ -90,34 +90,34 @@ object ImageCache : CacheSection("Image") {
     }
 
     @JvmStatic
-    operator fun get(file: FileReference, async: Boolean): Image? {
-        return get(file, timeoutMillis, async)
+    operator fun get(source: FileReference, async: Boolean): Image? {
+        return get(source, timeoutMillis, async)
     }
 
-    fun getImageWithoutGenerator(file: FileReference): Image? {
-        if (file is ImageReadable && file.hasInstantCPUImage()) return file.readCPUImage()
-        return when (val data = getDualEntryWithoutGenerator(file, file.lastModified, 0)) {
+    fun getImageWithoutGenerator(source: FileReference): Image? {
+        if (source is ImageReadable && source.hasInstantCPUImage()) return source.readCPUImage()
+        return when (val data = getDualEntryWithoutGenerator(source, source.lastModified, 0)) {
             is Image -> data
             is CacheData<*> -> data.value as? Image
             else -> null
         }
     }
 
-    operator fun get(file0: FileReference, timeout: Long, async: Boolean): Image? {
-        if (file0 is ImageReadable) return file0.readCPUImage()
-        val data = getFileEntry(file0, false, timeout, async) { file, _ ->
-            ImageAsFolder.readImage(file, false)
+    operator fun get(source: FileReference, timeout: Long, async: Boolean): Image? {
+        if (source is ImageReadable) return source.readCPUImage()
+        val data = getFileEntry(source, false, timeout, async) { file1, _ ->
+            ImageAsFolder.readImage(file1, false)
         } ?: return null
         if (!async) data.waitFor()
         return data.value
     }
 
-    fun getAsync(file0: FileReference, timeout: Long, async: Boolean, callback: Callback<Image>) {
-        if (file0 is ImageReadable) {
-            callback.ok(file0.readCPUImage())
+    fun getAsync(source: FileReference, timeout: Long, async: Boolean, callback: Callback<Image>) {
+        if (source is ImageReadable) {
+            callback.ok(source.readCPUImage())
         } else {
-            getFileEntryAsync(file0, false, timeout, async, { file, _ ->
-                ImageAsFolder.readImage(file, false)
+            getFileEntryAsync(source, false, timeout, async, { file1, _ ->
+                ImageAsFolder.readImage(file1, false)
             }, callback.wait())
         }
     }

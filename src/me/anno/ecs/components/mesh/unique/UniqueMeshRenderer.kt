@@ -215,9 +215,11 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     override fun allocate(newSize: Int): StaticBuffer {
         val buffer = buffer1
         buffer.vertexCount = newSize
-        val clock = Clock(LOGGER)
-        buffer.uploadEmpty(newSize.toLong() * stride)
-        clock.stop("UploadEmpty")
+        if (newSize > 0) {
+            val clock = Clock(LOGGER)
+            buffer.uploadEmpty(newSize.toLong() * stride)
+            clock.stop("UploadEmpty")
+        }
         return buffer
     }
 

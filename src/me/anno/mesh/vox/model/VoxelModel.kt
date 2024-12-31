@@ -3,16 +3,14 @@ package me.anno.mesh.vox.model
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.mesh.vox.meshing.BakeMesh
+import me.anno.mesh.vox.meshing.BakeMesh.getColors
 import me.anno.mesh.vox.meshing.BlockSide
-import me.anno.mesh.vox.meshing.IsSolid
+import me.anno.mesh.vox.meshing.GetBlockId
+import me.anno.mesh.vox.meshing.NeedsFace
 import me.anno.mesh.vox.meshing.VoxelMeshBuilder
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.types.Floats.f2
-import me.anno.utils.types.Floats.roundToIntOr
-import org.apache.logging.log4j.LogManager
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
@@ -84,43 +82,37 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
      * */
     fun createMesh(
         palette: IntArray?,
-        insideIsSolid: IsSolid?,
-        outsideIsSolid: IsSolid?,
+        outsideIsSolid: GetBlockId?,
+        needsFace: NeedsFace?,
         dst: Mesh = Mesh()
-    ) = createMesh(palette, insideIsSolid, outsideIsSolid, allSides, dst)
+    ) = createMesh(palette, outsideIsSolid, needsFace, BlockSide.entries, dst)
+
+    fun createBuilder(vertexPointGuess: Int, palette: IntArray?): VoxelMeshBuilder {
+        val vertices = FloatArrayList(vertexPointGuess)
+        val colors = IntArrayList(vertexPointGuess / 3 + 1)
+        val normals = FloatArrayList(vertexPointGuess)
+        return VoxelMeshBuilder(palette, vertices, colors, normals)
+    }
 
     /**
      * Creates an optimized triangle mesh in voxel shape.
      *
-     * @param insideIsSolid whether a cell needs a wall as border; if null, color != 0 is solid
-     * @param outsideIsSolid whether a cell outside the box needs a wall as border; if null, all outside blocks get walls
-     * */
-    @Suppress("unused")
-    fun createMesh(
-        palette: IntArray?,
-        insideIsSolid: IsSolid?,
-        outsideIsSolid: IsSolid?,
-        side: BlockSide,
-        dst: Mesh = Mesh()
-    ) = createMesh(palette, insideIsSolid, outsideIsSolid, sideList[side.ordinal], dst)
-
-    /**
-     * Creates an optimized triangle mesh in voxel shape.
-     *
-     * @param insideIsSolid whether a cell needs a wall as border; if null, color != 0 is solid
-     * @param outsideIsSolid whether a cell outside the box needs a wall as border; if null, all outside blocks get walls
+     * @param insideBlocks whether a cell needs a wall as border; if null, color != 0 is solid
+     * @param outsideBlocks whether a cell outside the box needs a wall as border; if null, all outside blocks get walls
      * */
     fun createMesh(
         palette: IntArray?,
-        insideIsSolid: IsSolid?,
-        outsideIsSolid: IsSolid?,
+        outsideBlocks: GetBlockId?,
+        needsFace: NeedsFace?,
         sides: List<BlockSide>,
         dst: Mesh = Mesh()
     ): Mesh {
 
         // create a mesh
         // merge voxels of the same color
-        // todo only create for a certain material (e.g., same glossiness, different color, same reflectivity, ...)
+
+        // todo support multiple-materials with glossiness and metallic for VOX-reader
+        // only create for a certain material (e.g., same glossiness, different color, same reflectivity, ...)
 
         // idea: create textures for large, flat sections
         // could increase performance massively
@@ -128,37 +120,23 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
         // guess the number of required points
         val vertexPointGuess = max(countBlocks() * 3, 18)
-
-        val vertices = FloatArrayList(vertexPointGuess)
-        val colors = IntArrayList(vertexPointGuess / 3 + 1)
-        val normals = FloatArrayList(vertexPointGuess)
-
-        val builder = VoxelMeshBuilder(palette, vertices, colors, normals)
+        val builder = createBuilder(vertexPointGuess, palette)
 
         // go over all six directions
         // just reuse our old code for minecraft like stuff
-        var removed = 0f
 
-        for (side in sides) {
+        val colors = getColors(this, builder)
+        val insideBlocks1 = GetBlockId(this::getBlock)
+        for (si in sides.indices) {
+            val side = sides[si]
             // an estimate
-            removed += BakeMesh.bakeMesh(this, side, builder, insideIsSolid, outsideIsSolid)
+            BakeMesh.bakeMesh(this, side, builder, insideBlocks1, outsideBlocks, needsFace, colors)
             builder.finishSide(side)
         }
 
-        if (printReduction && removed > 0) {
-            val numberOfBlocks = countBlocks()
-            val triangleCount = vertices.size / 9
-            removed = removed * 100f / 6f
-            LOGGER.info(
-                "" +
-                        "Removed ${removed.roundToIntOr()}% of $numberOfBlocks blocks, " +
-                        "created $triangleCount triangles, ${(triangleCount.toFloat() / numberOfBlocks).f2()}/block"
-            )
-        }
-
-        dst.positions = vertices.toFloatArray()
-        dst.normals = normals.toFloatArray()
-        dst.color0 = colors.toIntArray()
+        dst.positions = builder.vertices.toFloatArray()
+        dst.normals = builder.normals?.toFloatArray()
+        dst.color0 = builder.colors?.toIntArray()
 
         return dst
     }
@@ -174,12 +152,5 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         prefab["color0"] = mesh.color0
 
         return prefab
-    }
-
-    companion object {
-        var printReduction = false
-        private val allSides = BlockSide.entries
-        private val sideList = allSides.map { listOf(it) }
-        private val LOGGER = LogManager.getLogger(VoxelModel::class)
     }
 }

@@ -61,6 +61,16 @@ object Arrays {
         return true
     }
 
+    fun ByteArray.startsWith(other: String, i: Int): Boolean {
+        if (i < 0 || i > size - other.length) return false
+        for (j in other.indices) {
+            if (this[i + j].toInt() != other[j].code) {
+                return false
+            }
+        }
+        return true
+    }
+
     fun ByteArray.indexOf2(other: ByteArray, i0: Int): Int {
         for (i in i0 until size - other.size) {
             if (startsWith(other, i)) {

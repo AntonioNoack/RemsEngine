@@ -40,9 +40,9 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
             }
         }
         model.center0()
-        val mesh = model.createMesh(TestWorld.palette, null, { x, y, z ->
-            world.getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
-        })
+        val mesh = model.createMesh(TestWorld.palette, { x, y, z ->
+            world.getElementAt(x0 + x, y0 + y, z0 + z).toInt()
+        }, null)
 
         val data = chunkRenderer.getData(chunkId, mesh)
         if (data != null) {

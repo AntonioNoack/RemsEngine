@@ -20,7 +20,6 @@ object FFMPEGMetadata {
     private val LOGGER = LogManager.getLogger(VideoPlugin::class)
 
     fun MediaMetadata.loadFFMPEG() {
-
         val args = listOf(
             "-v", "quiet",
             "-print_format", "json",

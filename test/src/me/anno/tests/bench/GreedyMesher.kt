@@ -15,7 +15,7 @@ fun main() {
             chunk[getIndex(x, y, z)].toInt()
     }
     // 1.7ms on Ryzen 5 2600 -> ok-ish :)
-    // 1.35ms on Ryzen 9 7950x3d
+    // 1.1ms on Ryzen 9 7950x3d
     clock.benchmark(100, 1000, "Greedy Meshing") {
         model.createMesh(null, null, null, mesh)
     }

@@ -46,7 +46,7 @@ class ImagePlugin : Plugin() {
     }
 
     private fun registerMediaMetadata() {
-        MediaMetadata.registerSignatureHandler(100, "gimp") { file, signature, dst ->
+        MediaMetadata.registerSignatureHandler(100, "gimp") { file, signature, dst, _ ->
             if (signature == "gimp") {
                 // Gimp files are a special case, which is not covered by FFMPEG
                 dst.ready = false
@@ -61,27 +61,27 @@ class ImagePlugin : Plugin() {
                 true
             } else false
         }
-        MediaMetadata.registerSignatureHandler(100, "qoi") { _, signature, dst ->
+        MediaMetadata.registerSignatureHandler(100, "qoi") { _, signature, dst, ri ->
             if (signature == "qoi") {
                 // we have a simple reader, so use it :)
-                dst.setImageByStream(QOIReader::findSize)
+                dst.setImageByStream(QOIReader::findSize, ri)
             } else false
         }
-        MediaMetadata.registerSignatureHandler(100, "ico") { _, signature, dst ->
+        MediaMetadata.registerSignatureHandler(100, "ico") { _, signature, dst, ri ->
             if (signature == "ico") {
-                dst.setImageByStream(ICOReader::findSize)
+                dst.setImageByStream(ICOReader::findSize, ri)
             } else false
         }
-        MediaMetadata.registerSignatureHandler(100, "tga/ico") { file, signature, dst ->
+        MediaMetadata.registerSignatureHandler(100, "tga/ico") { file, signature, dst, ri ->
             if (signature == "" || signature == null) {
                 when (file.lcExtension) {
-                    "tga" -> dst.setImageByStream(TGAReader::findSize)
-                    "ico" -> dst.setImageByStream(ICOReader::findSize)
+                    "tga" -> dst.setImageByStream(TGAReader::findSize, ri)
+                    "ico" -> dst.setImageByStream(ICOReader::findSize, ri)
                     else -> false // unknown
                 }
             } else false
         }
-        MediaMetadata.registerSignatureHandler(100, "svg") { file, signature, dst ->
+        MediaMetadata.registerSignatureHandler(100, "svg") { file, signature, dst, _ ->
             if ((signature == "xml" && file.lcExtension == "svg") || signature == "svg") {
                 // find out size from first XML node
                 dst.ready = false

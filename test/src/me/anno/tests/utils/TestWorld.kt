@@ -194,9 +194,9 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
                 getElementAt(x0 + x, y0 + y, z0 + z).toInt()
         }
         model.center0()
-        return model.createMesh(palette, null, { x, y, z ->
-            getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
-        })
+        return model.createMesh(palette, { x, y, z ->
+            getElementAt(x0 + x, y0 + y, z0 + z).toInt()
+        }, null)
     }
 
     fun createTriangleMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): MeshComponent {

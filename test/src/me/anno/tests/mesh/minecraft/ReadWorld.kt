@@ -11,6 +11,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.mesh.vox.meshing.BlockSide
+import me.anno.mesh.vox.meshing.NeedsFace
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.LOGGER
 import me.anno.utils.Clock
@@ -21,21 +22,19 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Booleans.toInt
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.log2
 import kotlin.math.max
 
-class FilterModel(val colors: IntArray, val solid: Boolean) : VoxelModel(16, 16, 16) {
+class DenseI32Model(val colors: IntArray) : VoxelModel(16, 16, 16) {
     override fun getIndex(x: Int, y: Int, z: Int): Int {
         return y.shl(8) or z.shl(4) or x
     }
 
     override fun getBlock(x: Int, y: Int, z: Int): Int {
-        val color = colors[y.shl(8) or z.shl(4) or x]
-        return if ((color.a() == 255) == solid) color else 0
+        return colors[getIndex(x, y, z)]
     }
 }
 
@@ -240,7 +239,7 @@ fun main() {
     clock.stop("Reading structure")
 
     val chunkData = createArrayList(1024) {
-        ArrayList<Pair<VoxelModel?, VoxelModel?>?>()
+        ArrayList<VoxelModel?>()
     }
 
     val crash = AtomicBoolean(false)
@@ -263,36 +262,24 @@ fun main() {
                 val packedBlockIds = section["BlockStates"] as? LongArray
                 val chunkSize = 16 * 16 * 16
 
-                fun addModel(solid: VoxelModel?, transparent: VoxelModel?) {
+                fun addModel(solid: VoxelModel?) {
                     val list = chunkData[ci]
                     for (i in list.size..y) {
                         list.add(null)
                     }
-                    list[y] = Pair(solid, transparent)
+                    list[y] = solid
                 }
 
                 fun addModel(colors: IntArray) {
-                    val hasSolid = colors.any { it.a() == 255 }
-                    val hasTrans = colors.any { it.a() in 1 until 255 }
-                    addModel(
-                        if (hasSolid) FilterModel(colors, true) else null,
-                        if (hasTrans) FilterModel(colors, false) else null
-                    )
+                    val hasBlocks = colors.any { it.a() > 0 }
+                    addModel(if (hasBlocks) DenseI32Model(colors) else null)
                 }
 
                 if (palette.size == 1) {
                     val color = paletteColors[0]
-                    if (color == 0) {
-                        // air -> skip
-                        continue
-                    } else {
+                    if (color != 0) {
                         // create mono-colored cube
-                        val model = MonoModel(color)
-                        if (color.a() == 255) {
-                            addModel(model, null)
-                        } else {
-                            addModel(null, model)
-                        }
+                        addModel(MonoModel(color))
                     }
                 } else {
                     try {
@@ -329,16 +316,24 @@ fun main() {
 
     clock.stop("Loading models")
 
-    val materials = listOf(false, true).map { isTransparent ->
-        listOf(Material().apply {
-            if (isTransparent) {
-                pipelineStage = PipelineStageImpl.TRANSPARENT_PASS
-                metallicMinMax.set(1f)
-                roughnessMinMax.set(0f)
-            }
-        }.ref)
-    }
+    val materials = listOf(false, true)
+        .map { isTransparent ->
+            listOf(Material().apply {
+                if (isTransparent) {
+                    pipelineStage = PipelineStageImpl.TRANSPARENT_PASS
+                    metallicMinMax.set(1f)
+                    roughnessMinMax.set(0f)
+                }
+            }.ref)
+        }
 
+    val needsFace = listOf(false, true).map { isTransparent ->
+        if (isTransparent) {
+            NeedsFace { inside, outside -> inside.a() in 1 until 255 && outside.a() == 0 }
+        } else {
+            NeedsFace { inside, outside -> inside.a() == 255 && outside.a() != 255 }
+        }
+    }
     val entities = arrayOfNulls<Entity>(1024)
     worker.processUnbalanced(0, 1024, 4) { i0, i1 ->
         for (ci in i0 until i1) {
@@ -353,9 +348,8 @@ fun main() {
             val data = chunkData[ci]
             entities[ci] = chunkEntity
             for (y in data.indices) {
-                for (i in 0 until 2) {
-                    val models = data[y] ?: continue
-                    val model = models[i == 0] ?: continue
+                for (materialId in 0 until 2) {
+                    val model = data[y] ?: continue
                     model.center0()
                     val x = ci and 31
                     val z = ci shr 5
@@ -364,25 +358,15 @@ fun main() {
                         val nz = z + it.z
                         if (nx in 0 until 32 && nz in 0 until 32) {
                             val ny = y + it.y
-                            chunkData[nx + nz.shl(5)].getOrNull(ny)?.get(i == 0)
+                            chunkData[nx + nz.shl(5)].getOrNull(ny)
                         } else null
                     }
-                    // todo override isSolid for transparent mesh to remove z-fighting
-                    val mesh = model.createMesh(null, null, { xi, yi, zi ->
-                        // todo there is some cracks here and there
-                        val side = when {
-                            yi < 0 && xi in 0 until 16 && zi in 0 until 16 -> BlockSide.NY
-                            yi >= 16 && xi in 0 until 16 && zi in 0 until 16 -> BlockSide.PY
-                            xi < 0 && yi in 0 until 16 && zi in 0 until 16 -> BlockSide.NX
-                            xi >= 16 && yi in 0 until 16 && zi in 0 until 16 -> BlockSide.PX
-                            zi < 0 && xi in 0 until 16 && yi in 0 until 16 -> BlockSide.NZ
-                            zi >= 16 && xi in 0 until 16 && yi in 0 until 16 -> BlockSide.PZ
-                            else -> null
-                        }
+                    val mesh = model.createMesh(null, { xi, yi, zi ->
+                        val side = getNeighborSide(xi, yi, zi)
                         val neighbor = if (side != null) neighbors[side.ordinal] else null
-                        neighbor != null && neighbor.getBlock(x and 15, y and 15, z and 15) != 0
-                    })
-                    mesh.materials = materials[i]
+                        neighbor?.getBlock(x and 15, y and 15, z and 15) ?: 0
+                    }, needsFace[materialId])
+                    mesh.materials = materials[materialId]
                     Entity("$y", chunkEntity)
                         .setPosition(0.0, y * 16.0, 0.0)
                         .add(MeshComponent(mesh))
@@ -400,4 +384,16 @@ fun main() {
     worker.stop()
 
     testSceneWithUI("Minecraft World", scene)
+}
+
+fun getNeighborSide(xi: Int, yi: Int, zi: Int): BlockSide? {
+    return when {
+        yi < 0 && xi in 0 until 16 && zi in 0 until 16 -> BlockSide.NY
+        yi >= 16 && xi in 0 until 16 && zi in 0 until 16 -> BlockSide.PY
+        xi < 0 && yi in 0 until 16 && zi in 0 until 16 -> BlockSide.NX
+        xi >= 16 && yi in 0 until 16 && zi in 0 until 16 -> BlockSide.PX
+        zi < 0 && xi in 0 until 16 && yi in 0 until 16 -> BlockSide.NZ
+        zi >= 16 && xi in 0 until 16 && yi in 0 until 16 -> BlockSide.PZ
+        else -> null
+    }
 }

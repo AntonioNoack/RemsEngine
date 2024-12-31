@@ -13,6 +13,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
@@ -153,12 +154,13 @@ abstract class OpenGLBuffer(
 
     open fun uploadEmpty(newLimit: Long) {
 
+        assertTrue(newLimit > 0)
         if (pointer >= 0) glDeleteBuffers(pointer)
 
         prepareUpload()
         bindBuffer(type, pointer)
 
-        GL46C.glBufferStorage(type, newLimit, GL_DYNAMIC_STORAGE_BIT)
+        glBufferStorage(type, newLimit, GL_DYNAMIC_STORAGE_BIT)
         // GL46C.glBufferData(type, newLimit, usage.id)
         locallyAllocated = allocate(locallyAllocated, newLimit)
 

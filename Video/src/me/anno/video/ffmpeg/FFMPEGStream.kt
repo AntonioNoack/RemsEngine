@@ -178,15 +178,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun devNull(name: String, stream: InputStream) {
-            thread(name = "devNull-$name") {
-                try {
-                    stream.use { stream1: InputStream ->
-                        Sleep.waitUntil(true) {// wait until we are done
-                            stream1.available() > 0 && stream1.read() < 0
-                        }
-                    }
-                } catch (_: IgnoredException) {
-                }
+            val name1 = "devNull-$name"
+            thread(name = name1) {
+                Sleep.waitUntil(name1, true, {// wait until we are done
+                    stream.available() > 0 && stream.read() < 0
+                }, { stream.close() }, mightWork = false)
             }
         }
 
@@ -214,7 +210,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     fun waitForMetadata(parser: FFMPEGMetaParser, callback: () -> Unit) {
         var lt = Time.nanoTime
-        Sleep.waitUntil(true, {
+        Sleep.waitUntil("waitForMetadata(${file?.name})", true, {
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
             val timeLimit = 30e9
             if (codec == FFMPEGMetaParser.invalidCodec) true
@@ -227,11 +223,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()
             }
-        }, {
-            thread(name = toString()) {
-                callback()
-            }
-        })
+            // todo why are we not allowed to work here???
+            //  working causes the engine to hang a long time
+        }, { thread(name = toString(), block = callback) }, mightWork = false)
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
