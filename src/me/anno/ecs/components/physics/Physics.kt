@@ -10,6 +10,7 @@ import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.System
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -458,7 +459,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         val dst = entity.transform
         val dstTransform = dst.globalTransform
         convertTransformMatrix(rigidbody, scale, dstTransform)
-        dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
+        dst.setStateAndUpdate(Transform.State.VALID_GLOBAL)
     }
 
     open fun updateWheels() {

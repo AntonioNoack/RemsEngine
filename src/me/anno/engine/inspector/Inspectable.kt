@@ -21,8 +21,8 @@ interface Inspectable {
 
     fun createInspector(inspected: List<Inspectable>, list: PanelListY, style: Style) {
         val groups = HashMap<NameDesc, SettingCategory>()
-        createInspector(inspected, list, style) {
-            groups.getOrPut(it) { SettingCategory(it, style) }
+        createInspector(inspected, list, style) { name ->
+            groups.getOrPut(name) { SettingCategory(name, style) }
         }
     }
 }

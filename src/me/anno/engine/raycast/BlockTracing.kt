@@ -8,14 +8,22 @@ import kotlin.math.min
 import kotlin.math.sign
 
 /**
- * Result:
- *  &gt;= 1.0 -&gt; skip that many blocks
- *  &gt;= 0.5 -&gt; skip one block, and set normal
- *  &gt;= 0.0 -&gt; skip one block, don't set normal
- *  else -> hit something solid, stop tracing
+ * Traces a ray through a cubic voxel grid without triangle/mesh-overhead.
  * */
 object BlockTracing {
 
+    const val CUSTOM_SKIP_DISTANCE = 1.0
+    const val AIR_BLOCK = 0.5
+    const val AIR_SKIP_NORMAL = 0.0
+    const val SOLID_BLOCK = -1.0
+
+    /**
+     * Result:
+     *  1. &gt;= CUSTOM_SKIP_DISTANCE -&gt; skip that many blocks
+     *  2. AIR_BLOCK: skip one block, and set normal
+     *  3. AIR_SKIP_NORMAL: skip one block, don't set normal
+     *  4. SOLID_BLOCK: hit something solid, stop tracing
+     * */
     fun interface BlockChecker {
         fun getSkipDistance(x: Int, y: Int, z: Int): Double
     }
@@ -32,7 +40,7 @@ object BlockTracing {
         hitBlock: BlockChecker,
     ): Boolean {
 
-        if (bounds.maxX < bounds.minX || bounds.maxY < bounds.minY || bounds.maxZ < bounds.minZ) {
+        if (bounds.isEmpty()) {
             return false
         }
 
@@ -82,7 +90,7 @@ object BlockTracing {
         for (i in 0 until maxSteps) {
             val nextDist = min(dist3X, min(dist3Y, dist3Z))
             val skippingDist = hitBlock.getSkipDistance(blockPosX, blockPosY, blockPosZ)
-            if (skippingDist >= 1.0) {
+            if (skippingDist >= CUSTOM_SKIP_DISTANCE) {
                 val dist1 = dist + skippingDist
                 blockPosX = floor(localStart.x + dir.x * dist1).toInt()
                 blockPosY = floor(localStart.y + dir.y * dist1).toInt()
@@ -97,8 +105,8 @@ object BlockTracing {
                     dist3Y = (ds0Y + blockPosY - localStart.y) * invDirY
                     dist3Z = (ds0Z + blockPosZ - localStart.z) * invDirZ
                 } else break
-            } else if (skippingDist >= 0.0) {
-                val setNormal = skippingDist >= 0.5
+            } else if (skippingDist >= AIR_SKIP_NORMAL) {
+                val setNormal = skippingDist >= AIR_BLOCK
                 if (nextDist == dist3X) {
                     blockPosX += dirSignX
                     dist3X += invUStepX

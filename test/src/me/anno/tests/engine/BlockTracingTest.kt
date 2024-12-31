@@ -2,6 +2,7 @@ package me.anno.tests.engine
 
 import me.anno.engine.raycast.BlockTracing
 import me.anno.engine.raycast.RayQuery
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBi
@@ -24,8 +25,7 @@ class BlockTracingTest {
                     1e3
                 )
                 BlockTracing.blockTrace(query, 10, AABBi()) { _, _, _ ->
-                    assertTrue(false, "Must not evaluate blocks that don't exist")
-                    1.0
+                    assertFail("Must not evaluate blocks that don't exist")
                 }
                 assertEquals(1e3, query.result.distance)
             }
@@ -46,10 +46,11 @@ class BlockTracingTest {
                     query, 10,
                     AABBi(0, 0, 0, size, size, size)
                 ) { xi, yi, zi ->
-                    assertTrue(xi in 0 .. size)
-                    assertTrue(yi in 0 .. size)
-                    assertTrue(zi in 0 .. size)
-                    Math.random()
+                    assertTrue(xi in 0..size)
+                    assertTrue(yi in 0..size)
+                    assertTrue(zi in 0..size)
+                    if (Math.random() < 0.5) BlockTracing.SOLID_BLOCK
+                    else BlockTracing.AIR_BLOCK
                 }
                 assertFalse(hit)
                 assertEquals(1e3, query.result.distance)

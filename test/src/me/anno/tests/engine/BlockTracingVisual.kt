@@ -3,6 +3,8 @@ package me.anno.tests.engine
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.raycast.BlockTracing
+import me.anno.engine.raycast.BlockTracing.SOLID_BLOCK
+import me.anno.engine.raycast.BlockTracing.AIR_BLOCK
 import me.anno.engine.raycast.RayQuery
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts
@@ -27,7 +29,6 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBf
 import org.joml.AABBi
 import org.joml.Quaternionf
@@ -67,7 +68,7 @@ fun main() {
 
     val queries = threadLocal { RayQuery(Vector3d(), Vector3d(), 1e3) }
     val blockGetter = BlockTracing.BlockChecker { x, y, z ->
-        if (world.getElementAt(x, y, z).toInt() != 0) -0.5 else 0.5
+        if (world.getElementAt(x, y, z).toInt() != 0) SOLID_BLOCK else AIR_BLOCK
     }
 
     val sunDirInv = Vector3d(1.0, -0.9, 0.3).normalize()
