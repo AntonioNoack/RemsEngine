@@ -44,7 +44,7 @@ open class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
         return callEvent(UIEvent(window, x, y, dx, dy, Key.KEY_UNKNOWN, -1, false, false, UIEventType.ACTION, action))
     }
 
-    override fun checkMovement() {
+    override fun moveCameraByInputs() {
         // no pre-defined movement
     }
 }

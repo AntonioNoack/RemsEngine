@@ -173,10 +173,13 @@ object Sleep {
     private var workingThread: Thread? = null
     fun work(canBeKilled: Boolean) {
         synchronized(Sleep) {
-            workingThread = Thread.currentThread()
+            val prevThread = workingThread
+            val thisThread = Thread.currentThread()
+            workingThread = thisThread
             Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
             GPUTasks.workGPUTasks(canBeKilled)
-            workingThread = null
+            if (workingThread !== thisThread) throw IllegalStateException()
+            workingThread = prevThread
         }
     }
 }

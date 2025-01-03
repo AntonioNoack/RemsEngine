@@ -77,4 +77,18 @@ object JomlMath {
         val tmp = d.toRawBits()
         return tmp.toInt() xor (tmp shr 32).toInt()
     }
+
+    fun satAdd(a: Int, b: Int): Int {
+        val tmp = a.toLong() + b.toLong()
+        return clamp(tmp, Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
+    }
+
+    fun satSub(a: Int, b: Int): Int {
+        val tmp = a.toLong() - b.toLong()
+        return clamp(tmp, Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
+    }
+
+    private fun clamp(x: Long, min: Long, max: Long): Long {
+        return if (x < min) min else if (x > max) max else x
+    }
 }

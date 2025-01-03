@@ -33,6 +33,7 @@ import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
+import me.anno.utils.async.firstPromise
 import me.anno.utils.hpc.ProcessingQueue
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
@@ -509,30 +510,8 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         signature: Signature?, callback: Callback<ITexture2D>
     ) {
         val readers = getReaders(signature, srcFile.lcExtension)
-        generate(srcFile, dstFile, size, callback, readers, 0)
-    }
-
-    @JvmStatic
-    private fun generate(
-        srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: Callback<ITexture2D>,
-        generators: List<ThumbGenerator>, gi: Int
-    ) {
-        try {
-            if (gi < generators.size) {
-                val generator = generators[gi]
-                generator.generate(srcFile, dstFile, size) { res, err ->
-                    if (res != null) {
-                        callback.call(res, err)
-                    } else {
-                        err?.printStackTrace()
-                        generate(srcFile, dstFile, size, callback, generators, gi + 1)
-                    }
-                }
-            } else ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
-        } catch (_: IgnoredException) {
-        } catch (e: Exception) {
-            LOGGER.warn("Could not load image from $srcFile: ${e.message}", e)
-        }
+        firstPromise(readers) { reader, cb -> reader.generate(srcFile, dstFile, size, cb) }
+            .then(callback)
+            .catch { ImageThumbnails.generateImage(srcFile, dstFile, size, callback) }
     }
 }

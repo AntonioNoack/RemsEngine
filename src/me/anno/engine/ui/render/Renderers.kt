@@ -401,6 +401,21 @@ object Renderers {
     }
 
     @JvmField
+    val normalMapRenderer = object : Renderer("showNormalMap") {
+        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage(
+                    "showNormalMap", listOf(
+                        Variable(GLSLType.V2F, "uv"),
+                        Variable(GLSLType.S2D, "normalMap"),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "finalResult = vec4(texture(normalMap,uv).rgb,1.0);\n"
+                )
+            )
+        }
+    }
+
+    @JvmField
     val boneIndicesRenderer = object : Renderer("bone-indices") {
         override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(

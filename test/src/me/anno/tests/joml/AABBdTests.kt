@@ -128,6 +128,14 @@ class AABBdTests {
     }
 
     @Test
+    fun testTranslate() {
+        assertEquals(
+            AABBd(2.0, 4.0, 6.0, 5.0, 7.0, 9.0),
+            AABBd(1.0, 2.0, 3.0, 4.0, 5.0, 6.0).translate(1.0, 2.0, 3.0)
+        )
+    }
+
+    @Test
     fun testAddMargin() {
         assertEquals(
             AABBd(-1.0, 0.0, 1.0, 6.0, 7.0, 8.0),

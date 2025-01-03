@@ -2,7 +2,6 @@ package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase.Companion.dragged
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -15,6 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
 import me.anno.input.Clipboard
 import me.anno.input.Input
+import me.anno.input.Input.shiftSlowdown
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp

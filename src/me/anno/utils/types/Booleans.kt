@@ -1,20 +1,18 @@
 package me.anno.utils.types
 
 object Booleans {
-    @JvmStatic
-    fun Boolean.toInt(): Int = if (this) 1 else 0
 
     @JvmStatic
-    fun Boolean.toInt(n: Int): Int = if (this) n else 0
+    fun Boolean.toInt(ifTrue: Int = 1, ifFalse: Int = 0): Int = if (this) ifTrue else ifFalse
 
     @JvmStatic
-    fun Boolean.toInt(ifTrue: Int, ifFalse: Int): Int = if (this) ifTrue else ifFalse
+    fun Boolean.toLong(ifTrue: Long = 1L, ifFalse: Long = 0L): Long = if (this) ifTrue else ifFalse
 
     @JvmStatic
-    fun Boolean.toLong(): Long = if (this) 1 else 0
+    fun Boolean.toFloat(ifTrue: Float = 1f, ifFalse: Float = 0f): Float = if (this) ifTrue else ifFalse
 
     @JvmStatic
-    fun Boolean.toLong(n: Long): Long = if (this) n else 0
+    fun Boolean.toDouble(ifTrue: Double = 1.0, ifFalse: Double = 0.0): Double = if (this) ifTrue else ifFalse
 
     @JvmStatic
     fun Int.hasFlag(flag: Int): Boolean = (this and flag) == flag

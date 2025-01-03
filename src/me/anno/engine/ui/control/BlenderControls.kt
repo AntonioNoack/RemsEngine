@@ -58,7 +58,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             } else {
                 Vector3d(0.0, 0.0, 1.0)
             }
-            else -> cameraNode.transform.globalTransform.transformDirection(Vector3d(1.0, 0.0, 0.0)).normalize()
+            else -> camera.transform!!.globalTransform.transformDirection(Vector3d(1.0, 0.0, 0.0)).normalize()
         }
     }
 
@@ -110,7 +110,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
 
         } else {
 
-            val direction = cameraNode.transform.globalTransform.transformDirection(
+            val direction = camera.transform!!.globalTransform.transformDirection(
                 Vector3d(
                     deltaX.toDouble(),
                     deltaY.toDouble(),
@@ -200,7 +200,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             transform.checkTransform(parentGlobal)
             val selfGlobal = parentGlobal.mul(base)
             transform.checkTransform(selfGlobal)
-            val distance = selfGlobal.transformPosition(Vector3d()).distance(cameraNode.position)
+            val distance = selfGlobal.transformPosition(Vector3d()).distance(camera.transform!!.localPosition)
             transformFunction(selfGlobal, distance)
             transform.checkTransform(selfGlobal)
             transform.globalTransform.set(selfGlobal)

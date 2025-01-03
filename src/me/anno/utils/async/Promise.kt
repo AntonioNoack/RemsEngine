@@ -1,6 +1,5 @@
 package me.anno.utils.async
 
-import me.anno.cache.IgnoredException
 
 open class Promise<V : Any> {
 
@@ -13,42 +12,58 @@ open class Promise<V : Any> {
 
     var error: Exception? = null
 
-    private var callbacks: ArrayList<Callback<V>>? = ArrayList()
+    private var hasResultToBePassedOn = false
+    private var onError: ((Exception?) -> Unit)? = null
+    private var onSuccess: ((V) -> Unit)? = null
+    private var prevPromise: Promise<*>? = null
+    private var nextPromise: Promise<*>? = null
 
     open fun ensureLoading() {}
 
     fun setValue(v: V?, err: Exception?) {
-        value = v
-        error = err
-        val callbacks = synchronized(this) {
-            val callbacks = callbacks
-            this.callbacks = null
-            callbacks
-        }
-        if (callbacks != null) {
-            onSet(callbacks, v, err)
+        synchronized(this) {
+            value = v
+            error = err
+            hasResultToBePassedOn = true
+            if (v != null) handleValue(v)
+            else handleError(err)
         }
     }
 
-    private fun onSet(callbacks: List<Callback<V>>, v: V?, err: Exception?) {
-        for (i in callbacks.indices) {
-            try {
-                callbacks[i].call(v, err)
-            } catch (ignored: IgnoredException) {
-            } catch (e: Exception) { // nothing we can do about it
-                e.printStackTrace()
+    fun handleValue(value: V) {
+        onSuccess?.invoke(value)
+        onSuccess = null
+    }
+
+    fun handleError(err: Exception?, allowPrev: Boolean = true) {
+        synchronized(this) {
+            this.error = err
+
+            val onError = onError
+            if (onError != null) {
+                onError(err)
+                this.onError = null
             }
         }
+
+        val prevPromise = prevPromise
+        if (allowPrev && prevPromise != null) {
+            prevPromise.handleError(err, true)
+            return
+        }
+
+        nextPromise?.handleError(err, false)
     }
 
-    fun <W : Any> then(onSuccess: (V) -> W): Promise<W> {
+    fun then(onSuccess: Callback<V>): Promise<Unit> {
+        return then(onSuccess::ok)
+    }
+
+    fun <W : Any> then(mapSuccess: (V) -> W): Promise<W> {
         ensureLoading()
         // not needed on all calls, BUT this is rarely called, so it shouldn't matter
         val result = Promise<W>()
-        val callImmediately = append { _, _ -> thenMapIt(result, onSuccess) }
-        if (callImmediately) {
-            thenMapIt(result, onSuccess)
-        }
+        append(result) { value -> result.setValue(mapSuccess(value), null) }
         return result
     }
 
@@ -56,58 +71,66 @@ open class Promise<V : Any> {
         ensureLoading()
         // not needed on all calls, BUT this is rarely called, so it shouldn't matter
         val result = Promise<W>()
-        val callImmediately = append { _, _ -> thenMapIt(result, onSuccess) }
-        if (callImmediately) {
-            thenMapIt(result, onSuccess)
-        }
+        append(result) { value -> onSuccess(value, result::setValue) }
         return result
     }
 
-    fun catch(onError: (Exception?) -> Unit): Promise<V> {
+    fun thenFulfill(mapSuccess: Promise<V>) {
+        // then { value -> mapSuccess.setValue(value, null) }
+        synchronized(this) {
+            if (hasResultToBePassedOn) {
+                mapSuccess.setValue(value, error)
+            } else {
+                nextPromise = mapSuccess
+            }
+        }
+    }
+
+    private fun <T> joinCallbacks(prevCallback: ((T) -> Unit)?, currCallback: (T) -> Unit): (T) -> Unit {
+        return if (prevCallback != null) {
+            { v ->
+                prevCallback(v)
+                currCallback(v)
+            }
+        } else currCallback
+    }
+
+    private fun append(result: Promise<*>, onSuccess1: (V) -> Unit) {
+        synchronized(this) {
+            linkToNext(result)
+            if (hasResultToBePassedOn) {
+                result.hasResultToBePassedOn = true
+                val value = value
+                if (value != null) {
+                    onSuccess1(value)
+                } else {
+                    // register the error, so future calls on result immediately know about it
+                    // registering the success-callback isn't necessary, because the process failed
+                    result.error = error
+                }
+            } else {
+                onSuccess = joinCallbacks(onSuccess, onSuccess1)
+            }
+        }
+    }
+
+    private fun linkToNext(result: Promise<*>) {
+        if (prevPromise != null || result.nextPromise != null) {
+            throw IllegalStateException()
+        }
+        prevPromise = result
+        result.nextPromise = this
+    }
+
+    fun catch(onError1: (Exception?) -> Unit): Promise<V> {
         ensureLoading()
-        // not needed on all calls, BUT this is rarely called, so it shouldn't matter
-        val callImmediately = append { _, _ -> if (value == null) onError(error) }
-        if (callImmediately && value == null) {
-            onError(error)
+        synchronized(this) {
+            if (hasResultToBePassedOn && value == null) {
+                onError1(error)
+            } else {
+                onError = joinCallbacks(onError, onError1)
+            }
         }
         return this
-    }
-
-    private fun append(callback: Callback<V>): Boolean {
-       return synchronized(this) {
-            val afterThis = callbacks
-            afterThis?.add(callback)
-            afterThis == null
-        }
-    }
-
-    private fun <W : Any> thenMapIt(result: Promise<W>, map: (V) -> W) {
-        val value = value
-        val newValue = if (value != null) {
-            // we need to catch errors when mapping
-            try {
-                map(value)
-            } catch (ignored: IgnoredException) {
-                return // ignored completely
-            } catch (err: Exception) {
-                result.setValue(null, err)
-                return
-            }
-        } else null
-        result.setValue(newValue, error)
-        return
-    }
-
-    private fun <W : Any> thenMapIt(result: Promise<W>, map: (V, Callback<W>) -> Unit) {
-        val value = value
-        if (value != null) {
-            // we need to catch errors when mapping
-            try {
-                map(value, result::setValue)
-            } catch (ignored: IgnoredException) {
-            } catch (err: Exception) {
-                result.setValue(null, err)
-            }
-        }
     }
 }

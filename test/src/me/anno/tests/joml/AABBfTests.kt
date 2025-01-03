@@ -127,6 +127,14 @@ class AABBfTests {
     }
 
     @Test
+    fun testTranslate() {
+        assertEquals(
+            AABBf(2f, 4f, 6f, 5f, 7f, 9f),
+            AABBf(1f, 2f, 3f, 4f, 5f, 6f).translate(1f, 2f, 3f)
+        )
+    }
+
+    @Test
     fun testAddMargin() {
         assertEquals(
             AABBf(-1f, 0f, 1f, 6f, 7f, 8f),

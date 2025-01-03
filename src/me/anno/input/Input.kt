@@ -118,6 +118,8 @@ object Input {
     var layoutFrameCount = 10
     fun needsLayoutUpdate(window: OSWindow) = window.framesSinceLastInteraction < layoutFrameCount
 
+    val shiftSlowdown get() = if (isAltDown) 5f else if (isShiftDown) 0.2f else 1f
+
     fun initForGLFW(window: OSWindow) {
 
         GLFW.glfwSetDropCallback(window.pointer) { _: Long, count: Int, names: Long ->

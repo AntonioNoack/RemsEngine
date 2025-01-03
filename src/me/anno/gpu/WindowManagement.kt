@@ -380,7 +380,7 @@ object WindowManagement {
         while (shouldContinueUpdates()) {
             updateWindows()
             val currTime = Time.nanoTime
-            lastTime = if (currTime - lastTime < 1_000_000) {
+            lastTime = if (currTime - lastTime < MILLIS_TO_NANOS) {
                 // reduce load on CPU if the method call is very lightweight
                 Thread.sleep(1)
                 Time.nanoTime

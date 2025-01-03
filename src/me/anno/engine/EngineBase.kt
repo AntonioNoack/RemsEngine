@@ -359,7 +359,5 @@ abstract class EngineBase(
         private val LOGGER = LogManager.getLogger(EngineBase::class)
 
         var dragged: IDraggable? = null
-
-        val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
     }
 }

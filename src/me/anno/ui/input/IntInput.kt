@@ -1,8 +1,8 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.input.Input.shiftSlowdown
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser

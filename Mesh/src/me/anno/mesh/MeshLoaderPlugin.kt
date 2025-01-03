@@ -30,8 +30,8 @@ class MeshLoaderPlugin : Plugin() {
 
         // their signatures are xml and json
         InnerFolderCache.registerFileExtensions("dae,gltf", AnimatedMeshesLoader::readAsFolder)
-        InnerFolderCache.registerFileExtensions("obj", OBJReader.Companion::readAsFolder)
-        InnerFolderCache.registerSignatures("mtl", MTLReader.Companion::readAsFolder)
+        InnerFolderCache.registerFileExtensions("obj", OBJReader::readAsFolder)
+        InnerFolderCache.registerSignatures("mtl", MTLReader::readAsFolder)
         InnerFolderCache.registerSignatures("maya", MayaASCII2015::readAsFolder)
         InnerFolderCache.registerSignatures("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
         InnerFolderCache.registerSignatures("mitsuba-scene", MitsubaReader::readSceneAsFolder)
@@ -42,6 +42,7 @@ class MeshLoaderPlugin : Plugin() {
             AssetThumbnails::generateAssetFrame
         )
         Thumbs.registerFileExtensions("mtl", ::generateMTLThumbnail)
+        Thumbs.registerFileExtensions("obj",  AssetThumbnails::generateAssetFrame)
     }
 
     private fun generateMTLThumbnail(

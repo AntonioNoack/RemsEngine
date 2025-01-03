@@ -1,14 +1,13 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Input.isShiftDown
+import me.anno.input.Input.shiftSlowdown
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -18,6 +17,7 @@ import me.anno.ui.input.components.VectorInputList
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
+import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.Planed
 import org.joml.Planef

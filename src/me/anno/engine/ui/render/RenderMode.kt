@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.Renderers.diffFromNormalRenderer
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.isIndexedRenderer
 import me.anno.engine.ui.render.Renderers.isInstancedRenderer
+import me.anno.engine.ui.render.Renderers.normalMapRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -613,5 +614,6 @@ class RenderMode private constructor(
         val BONE_WEIGHTS = RenderMode("Bone Weights", boneWeightsRenderer)
 
         val DIFF_FROM_NORMAL = RenderMode("Diff From Normal", diffFromNormalRenderer)
+        val NORMAL_MAP = RenderMode("Normal Map", normalMapRenderer)
     }
 }

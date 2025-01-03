@@ -134,6 +134,11 @@ class AABBd(
                 minX <= otherMaxX && minY <= otherMaxY && minZ <= otherMaxZ
     }
 
+    fun translate(dx: Double, dy: Double, dz: Double, dst: AABBd = this): AABBd {
+        return dst.setMin(minX + dx, minY + dy, minZ + dz)
+            .setMax(maxX + dx, maxY + dy, maxZ + dz)
+    }
+
     fun transform(m: Matrix4d, dst: AABBd = this): AABBd {
         val dx = maxX - minX
         val dy = maxY - minY

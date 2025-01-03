@@ -1,5 +1,7 @@
 package org.joml
 
+import org.joml.JomlMath.satAdd
+import org.joml.JomlMath.satSub
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -237,8 +239,13 @@ class AABBi(
 
     fun addMargin(r: Int, dst: AABBi = this): AABBi {
         return dst
-            .setMin(minX - r, minY - r, minZ - r)
-            .setMax(maxX + r, maxY + r, maxZ + r)
+            .setMin(satSub(minX, r), satSub(minY, r), satSub(minZ, r)) // satAdd(x,-r) != satSub(x,r) for r == Int.MIN_VALUE
+            .setMax(satAdd(maxX, r), satAdd(maxY, r), satAdd(maxZ, r))
+    }
+
+    fun translate(dx: Int, dy: Int, dz: Int, dst: AABBi = this): AABBi {
+        return dst.setMin(satAdd(minX, dx), satAdd(minY, dy), satAdd(minZ, dz))
+            .setMax(satAdd(maxX, dx), satAdd(maxY, dy), satAdd(maxZ, dz))
     }
 
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {

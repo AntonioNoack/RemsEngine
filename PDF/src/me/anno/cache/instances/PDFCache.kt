@@ -71,7 +71,6 @@ object PDFCache : CacheSection("PDFCache") {
     }
 
     fun readAsFolder(src: FileReference, callback: InnerFolderCallback) {
-        println("reading $src as PDF folder")
         src.inputStream { it, exc ->
             if (it != null) {
                 val ref = getDocumentRef(src, it, borrow = true, async = false)!!

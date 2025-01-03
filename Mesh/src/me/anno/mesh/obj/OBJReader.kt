@@ -11,9 +11,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.mesh.Triangulation
+import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
-import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
@@ -146,6 +146,8 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         }
     }
 
+    private val usedNames = HashMap<Path, HashSet<String>>()
+
     private fun finishMesh() {
         if (facePositions.size > 0) {
             if (lastObjectPath.isEmpty()) newObject()
@@ -179,16 +181,14 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             val meshRef = meshesFolder.createPrefabChild(fileName, mesh)
             mesh.source = meshRef
             var prefabName = name
-            var meshPath: Path
-            nameSearch@ while (true) {
-                try {
-                    meshPath = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", prefabName, meshCountInObject)
-                    break@nameSearch
-                } catch (e: IllegalArgumentException) {
-                    // continue searching a better name...
-                    prefabName = findNextName(prefabName, '.')
-                }
+            val usedNames = usedNames.getOrPut(lastObjectPath, ::HashSet)
+            while (!usedNames.add(prefabName)) {
+                prefabName = findNextName(prefabName, '.')
             }
+            val meshPath = scenePrefab.add(
+                lastObjectPath, 'c', "MeshComponent",
+                prefabName, meshCountInObject
+            )
             meshCountInObject++
             scenePrefab[meshPath, "meshFile"] = meshRef
             // LOGGER.debug("Clearing at ${facePositions.size / 3}")

@@ -224,6 +224,11 @@ class AABBf(
         return dst
     }
 
+    fun translate(dx: Float, dy: Float, dz: Float, dst: AABBf = this): AABBf {
+        return dst.setMin(minX + dx, minY + dy, minZ + dz)
+            .setMax(maxX + dx, maxY + dy, maxZ + dz)
+    }
+
     fun transform(m: Matrix4f, dst: AABBf = this): AABBf {
         if (isEmpty()) return dst.clear()
         val dx = maxX - minX

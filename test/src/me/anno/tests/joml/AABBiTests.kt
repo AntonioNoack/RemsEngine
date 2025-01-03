@@ -125,10 +125,37 @@ class AABBiTests {
     }
 
     @Test
+    fun testTranslate() {
+        // normal operation
+        assertEquals(
+            AABBi(1, 2, 3, 2, 3, 4),
+            AABBi(0, 0, 0, 1, 1, 1).translate(1, 2, 3)
+        )
+        // empty, translated, is still empty
+        assertTrue(AABBi().isEmpty())
+        assertTrue(AABBi().translate(1, 2, 3).isEmpty())
+        // all() + translate() shrinks the box
+        assertEquals(
+            AABBi(
+                Int.MIN_VALUE + 1, Int.MIN_VALUE + 2, Int.MIN_VALUE + 3,
+                Int.MAX_VALUE - 1, Int.MAX_VALUE - 2, Int.MAX_VALUE - 3
+            ),
+            AABBi().all()
+                .translate(2, 4, 6)
+                .translate(-1, -2, -3)
+        )
+    }
+
+    @Test
     fun testAddMargin() {
+        // normal operation
         assertEquals(
             AABBi(-1, 0, 1, 6, 7, 8),
             AABBi(1, 2, 3, 4, 5, 6).addMargin(2)
         )
+        // empty plus margin is still empty
+        assertTrue(AABBi().isEmpty())
+        assertTrue(AABBi().addMargin(100).isEmpty())
+        assertEquals(AABBi(), AABBi().addMargin(-100))
     }
 }
