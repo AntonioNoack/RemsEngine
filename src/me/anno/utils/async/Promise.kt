@@ -1,5 +1,7 @@
 package me.anno.utils.async
 
+import me.anno.cache.IgnoredException
+
 
 open class Promise<V : Any> {
 
@@ -15,8 +17,8 @@ open class Promise<V : Any> {
     private var hasResultToBePassedOn = false
     private var onError: ((Exception?) -> Unit)? = null
     private var onSuccess: ((V) -> Unit)? = null
-    private var prevPromise: Promise<*>? = null
     private var nextPromise: Promise<*>? = null
+    private var prevPromise: Promise<*>? = null
 
     open fun ensureLoading() {}
 
@@ -31,8 +33,11 @@ open class Promise<V : Any> {
     }
 
     fun handleValue(value: V) {
-        onSuccess?.invoke(value)
-        onSuccess = null
+        val onSuccess = onSuccess
+        if (onSuccess != null) {
+            callSuccess(value, onSuccess)
+            this.onSuccess = null
+        }
     }
 
     fun handleError(err: Exception?, allowPrev: Boolean = true) {
@@ -46,13 +51,13 @@ open class Promise<V : Any> {
             }
         }
 
-        val prevPromise = prevPromise
+        val prevPromise = nextPromise
         if (allowPrev && prevPromise != null) {
             prevPromise.handleError(err, true)
             return
         }
 
-        nextPromise?.handleError(err, false)
+        this.prevPromise?.handleError(err, false)
     }
 
     fun then(onSuccess: Callback<V>): Promise<Unit> {
@@ -102,7 +107,7 @@ open class Promise<V : Any> {
                 result.hasResultToBePassedOn = true
                 val value = value
                 if (value != null) {
-                    onSuccess1(value)
+                    callSuccess(value, onSuccess1)
                 } else {
                     // register the error, so future calls on result immediately know about it
                     // registering the success-callback isn't necessary, because the process failed
@@ -114,12 +119,31 @@ open class Promise<V : Any> {
         }
     }
 
-    private fun linkToNext(result: Promise<*>) {
-        if (prevPromise != null || result.nextPromise != null) {
-            throw IllegalStateException()
+    private fun callSuccess(value: V, onSuccess1: (V) -> Unit) {
+        try {
+            onSuccess1(value)
+        } catch (ignored: IgnoredException) {
+        } catch (e: Exception) {
+            setValue(null, e)
         }
-        prevPromise = result
-        result.nextPromise = this
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <W : Any> linkToNext(next1: Promise<W>) {
+        if (next1.prevPromise != null) throw IllegalStateException()
+        val next0 = nextPromise as? Promise<W>
+        if (next0 != null) {
+            // this -> [next0...] -> next1
+            next0.linkToNext(next1)
+        } else {
+            // this -> next1
+            linkToNextUnsafe(next1)
+        }
+    }
+
+    private fun linkToNextUnsafe(result1: Promise<*>) {
+        this.nextPromise = result1
+        result1.prevPromise = this
     }
 
     fun catch(onError1: (Exception?) -> Unit): Promise<V> {

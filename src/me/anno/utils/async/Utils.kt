@@ -1,9 +1,16 @@
 package me.anno.utils.async
 
+import me.anno.cache.IgnoredException
+
 inline fun <V : Any> promise(initialize: (Callback<V>) -> Unit): Promise<V> {
-    val value = Promise<V>()
-    initialize(value::setValue)
-    return value
+    val promise = Promise<V>()
+    try {
+        initialize(promise::setValue)
+    } catch (ignored: IgnoredException) {
+    } catch (e: Exception) {
+        promise.setValue(null, e)
+    }
+    return promise
 }
 
 fun <K, V : Any> firstPromise(samples: List<K>, initialize: (K, Callback<V>) -> Unit): Promise<V> {

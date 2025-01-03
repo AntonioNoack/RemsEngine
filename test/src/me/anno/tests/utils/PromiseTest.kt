@@ -4,8 +4,8 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.async.promise
 import me.anno.utils.async.firstPromise
+import me.anno.utils.async.promise
 import org.junit.jupiter.api.Test
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -264,5 +264,130 @@ class PromiseTest {
             assertEquals(2, reached++)
         }
         assertEquals(3, reached)
+    }
+
+    @Test
+    fun testPromiseMultiLinkSync() {
+        var reached = 0
+        val promise = promise { cb ->
+            assertEquals(0, reached++)
+            cb.ok("value")
+        }
+        for (i in 0 until 3) {
+            promise.then { value ->
+                assertEquals("value", value)
+                assertEquals(i * 3 + 1, reached++)
+                value + "1"
+            }.then { value ->
+                assertEquals("value1", value)
+                assertEquals(i * 3 + 2, reached++)
+                value + "2"
+            }.then { value ->
+                assertEquals("value12", value)
+                assertEquals(i * 3 + 3, reached++)
+            }
+        }
+        promise.catch { assertFail("shall not be reached") }
+        assertEquals(10, reached++)
+    }
+
+    @Test
+    fun testPromiseMultiLinkAsync() {
+        var reached = 0
+        val thread = Thread1()
+        val promise = promise { cb ->
+            assertEquals(0, reached++)
+            thread += {
+                assertEquals(1, reached++)
+                cb.ok("value")
+            }
+        }
+        for (i in 0 until 3) {
+            promise.then { value ->
+                assertEquals("value", value)
+                assertEquals(i * 3 + 2, reached++)
+                value + "1"
+            }.then { value ->
+                assertEquals("value1", value)
+                assertEquals(i * 3 + 3, reached++)
+                value + "2"
+            }.then { value ->
+                assertEquals("value12", value)
+                assertEquals(i * 3 + 4, reached++)
+            }
+        }
+        promise.catch { assertFail("shall not be reached") }
+        thread.work()
+        assertEquals(11, reached++)
+    }
+
+    @Test
+    fun testPromiseMultiLinkAsyncFail() {
+        var reached = 0
+        val thread = Thread1()
+        val promise = promise<Int> { cb ->
+            thread += { cb.err(IOException()) }
+        }
+        for (i in 0 until 3) {
+            promise.then {
+                assertFail("shall not be reached")
+            }.catch {
+                assertTrue(it is IOException)
+                assertEquals(i, reached++)
+            }
+        }
+        thread.work()
+        assertEquals(3, reached++)
+    }
+
+    @Test
+    fun testPromiseExceptionInInit() {
+        var reached = 0
+        promise<Int> { _ ->
+            assertEquals(0, reached++)
+            throw NumberFormatException()
+        }.then {
+            assertFail("shouldn't be reached")
+        }.catch { err ->
+            assertEquals(1, reached++)
+            assertTrue(err is NumberFormatException)
+        }
+        assertEquals(2, reached++)
+    }
+
+    @Test
+    fun testPromiseExceptionInThen() {
+        var reached = 0
+        promise { cb ->
+            assertEquals(0, reached++)
+            cb.ok(17)
+        }.then { v ->
+            assertEquals(1, reached++)
+            assertEquals(17, v)
+            throw NumberFormatException()
+        }.catch { err ->
+            assertEquals(2, reached++)
+            assertTrue(err is NumberFormatException)
+        }
+        assertEquals(3, reached++)
+    }
+
+    @Test
+    fun testPromiseExceptionInThenAsync() {
+        var reached = 0
+        val thread = Thread1()
+        promise { cb ->
+            assertEquals(0, reached++)
+            thread += { cb.ok(17) }
+        }.then { v ->
+            assertEquals(1, reached++)
+            assertEquals(17, v)
+            throw NumberFormatException()
+        }.catch { err ->
+            assertEquals(2, reached++)
+            assertTrue(err is NumberFormatException)
+        }
+        thread.work()
+        assertEquals(3, reached++)
     }
 }

@@ -8,6 +8,7 @@ import me.anno.utils.assertions.assertTrue
 import org.joml.AABBi
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
+import java.util.Random
 import kotlin.test.assertEquals
 
 // todo test a more complex world
@@ -35,6 +36,7 @@ class BlockTracingTest {
     @Test
     fun testEmptyRandomWorld() {
         val size = 5
+        val random = Random(1234)
         for (y in xs) {
             for (x in xs) {
                 val query = RayQuery(
@@ -49,7 +51,7 @@ class BlockTracingTest {
                     assertTrue(xi in 0..size)
                     assertTrue(yi in 0..size)
                     assertTrue(zi in 0..size)
-                    if (Math.random() < 0.5) BlockTracing.SOLID_BLOCK
+                    if (random.nextBoolean()) BlockTracing.AIR_SKIP_NORMAL
                     else BlockTracing.AIR_BLOCK
                 }
                 assertFalse(hit)
