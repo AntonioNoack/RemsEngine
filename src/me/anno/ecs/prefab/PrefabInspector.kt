@@ -432,7 +432,9 @@ class PrefabInspector(var reference: FileReference) {
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
         val encoding = GameEngineProject.encoding.getForExtension(reference)
+        val prefab = prefab
         reference.writeBytes(encoding.encode(prefab, workspace))
+        prefab.wasModified = false // kind of needs to happen in-between...
         addEvent(500) { restoreSelected(selected) }
     }
 

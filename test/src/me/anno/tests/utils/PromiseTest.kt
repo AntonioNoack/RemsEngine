@@ -20,8 +20,8 @@ class PromiseTest {
             thread += {
                 cb.ok("Test")
             }
-        }.then {
-            assertEquals("Test", it)
+        }.then { v ->
+            assertEquals("Test", v)
             assertEquals(0, reached++)
         }.catch {
             assertFail()
@@ -38,16 +38,16 @@ class PromiseTest {
             thread += {
                 cb.ok(17)
             }
-        }.then {
-            assertEquals(17, it)
+        }.then { i17 ->
+            assertEquals(17, i17)
             assertEquals(0, reached++)
             39
-        }.then {
-            assertEquals(39, it)
+        }.then { i39 ->
+            assertEquals(39, i39)
             assertEquals(1, reached++)
             21
-        }.then {
-            assertEquals(21, it)
+        }.then { i21 ->
+            assertEquals(21, i21)
             assertEquals(2, reached++)
         }.catch {
             assertFail()
@@ -64,19 +64,19 @@ class PromiseTest {
             thread += {
                 cb.ok(17)
             }
-        }.thenAsync { it, cb ->
+        }.thenAsync { i17, cb ->
             thread += {
-                assertEquals(17, it)
+                assertEquals(17, i17)
                 assertEquals(0, reached++)
                 cb.ok(39)
             }
-        }.then {
-            assertEquals(39, it)
+        }.then { i39 ->
+            assertEquals(39, i39)
             assertEquals(1, reached++)
-            -16
-        }.thenAsync { it, cb ->
+            16
+        }.thenAsync { i16, cb ->
             thread += {
-                assertEquals(-16, it)
+                assertEquals(16, i16)
                 assertEquals(2, reached++)
                 cb.ok(100)
             }

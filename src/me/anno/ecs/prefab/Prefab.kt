@@ -47,8 +47,13 @@ class Prefab : Saveable {
 
     var clazzName = ""
 
-    val addCounts = CountMap<Pair<Char, Path>>()
     val adds = HashMap<Path, ArrayList<CAdd>>()
+    val numAdds get() = adds.values.sumOf { it.size }
+
+    /**
+     * statistics on how many paths were added
+     * */
+    val addCounts = CountMap<Pair<Char, Path>>()
 
     /**
      * to detect duplicates
@@ -58,8 +63,10 @@ class Prefab : Saveable {
     val sets = KeyPairMap<Path, String, Any?>(256)
 
     var prefab: FileReference = InvalidRef
-    var wasCreatedFromJson = false
     var source: FileReference = InvalidRef
+
+    var wasCreatedFromJson = false
+    var wasModified = true
 
     val listeners = HashSet<Prefab>()
 
@@ -191,6 +198,7 @@ class Prefab : Saveable {
 
     fun checkIsMutable() {
         assertTrue(isWritable) { "$source is immutable " }
+        wasModified = true
     }
 
     operator fun set(path: Path, name: String, value: Any?) {
@@ -313,18 +321,19 @@ class Prefab : Saveable {
         return change
     }
 
-    fun remove(path: Path) {
+    fun remove(path: Path): Boolean {
         checkIsMutable()
-        val adds = adds
-        val success = adds[path.parent ?: ROOT_PATH]?.removeIf { it.nameId == path.nameId }
-        if (success == true) {
+        val canRemove = adds[path.parent ?: ROOT_PATH]?.removeIf { it.nameId == path.nameId } == true
+        if (canRemove) {
             // good :)
             adds.removeIf { (key, _) -> key.startsWith(path) }
             sets.removeIf { k1, _, _ -> k1.startsWith(path) }
             invalidateInstance()
         } else {
+            sets.removeIf { k1, _, _ -> k1.startsWith(path) }
             this[path, "isEnabled"] = false
         }
+        return canRemove
     }
 
     private fun updateSample(path: Path, name: String, value: Any?) {
@@ -472,6 +481,10 @@ class Prefab : Saveable {
 
     override fun isDefaultValue(): Boolean =
         adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null
+
+    override fun onReadingEnded() {
+        wasModified = false
+    }
 
     companion object {
         var maxPrefabDepth = 25

@@ -289,6 +289,15 @@ class ECSSceneTab(
             needsStart = false
             onStart()
         }
+        if (ECSSceneTabs.currentTab == this) {
+            val needsStar = PrefabCache[file, true]?.wasModified == true
+            val hasStar = text.endsWith("*")
+            if (needsStar != hasStar) {
+                val name = findName(file)
+                text = if (needsStar) "$name*" else name
+                invalidateDrawing()
+            }
+        }
     }
 
     override fun onCopyRequested(x: Float, y: Float) = file
@@ -309,6 +318,9 @@ class ECSSceneTab(
     override fun getTooltipText(x: Float, y: Float) = file.absolutePath
 
     fun save() {
+        // todo issue/bug: when we save something,
+        //  because the file is replaced/written, and we immediately load it again,
+        //  it might be empty at that point in time, and then throw exceptions in all kinds of places
         inspector.save()
     }
 

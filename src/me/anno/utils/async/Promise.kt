@@ -40,24 +40,23 @@ open class Promise<V : Any> {
         }
     }
 
-    fun handleError(err: Exception?, allowPrev: Boolean = true) {
+    fun handleError(err: Exception?, allowNext: Boolean = true) {
         synchronized(this) {
             this.error = err
-
             val onError = onError
             if (onError != null) {
+                this.onError = null // first set null to prevent recursive issues
                 onError(err)
-                this.onError = null
             }
         }
 
-        val prevPromise = nextPromise
-        if (allowPrev && prevPromise != null) {
-            prevPromise.handleError(err, true)
+        val nextPromise = nextPromise
+        if (allowNext && nextPromise != null) {
+            nextPromise.handleError(err, true)
             return
         }
 
-        this.prevPromise?.handleError(err, false)
+        prevPromise?.handleError(err, false)
     }
 
     fun then(onSuccess: Callback<V>): Promise<Unit> {

@@ -8,7 +8,6 @@ import me.anno.engine.RemsEngine
  * here, all extensions are available, while the main project turns into a "base" project.
  * */
 fun main() {
-    // todo tabs need a save button
     // todo tabs need to show that their scenes were modified
     if (false) Build.isDebug = false
     RemsEngine().run()

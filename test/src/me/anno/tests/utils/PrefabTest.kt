@@ -1,59 +1,33 @@
 package me.anno.tests.utils
 
 import me.anno.bullet.Rigidbody
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityStats.totalNumComponents
+import me.anno.ecs.EntityStats.totalNumEntities
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ECSRegistry
-import me.anno.engine.EngineBase
-import me.anno.engine.ui.EditorState
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
-import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-fun main() {
-
-    ECSRegistry.init()
-
-    disableRenderDoc()
-
-    val sample = Entity()
-
-    // broken text input
-    // testSceneWithUI(sample)
-    testUI("PrefabTest") {
-        EngineBase.enableVSync = true
-        sample.prefabPath = Path.ROOT_PATH
-        EditorState.prefabSource = sample.ref
-        PrefabInspector.currentInspector = PrefabInspector(sample.ref)
-        EditorState.select(sample)
-        PropertyInspector({ EditorState.selection }, DefaultConfig.style)
-    }
-    /*testUI { // works
-        val list = PanelListY(style)
-        sample.prefabPath = Path.ROOT_PATH
-        PrefabInspector(sample.ref).inspect(sample, list, style)
-        list
-    }*/
-}
-
 class PrefabTest {
+    companion object {
+        private val LOGGER = LogManager.getLogger("PrefabTest")
+    }
 
     @BeforeEach
     fun init() {
@@ -67,9 +41,7 @@ class PrefabTest {
     }
 
     @Test
-    fun test1() {
-
-        val logger = LogManager.getLogger("PrefabTest")
+    fun testAddingAppendingAndPropertySetting() {
 
         // test adding, appending, setting of properties
         // todo test with and without prefabs
@@ -100,32 +72,157 @@ class PrefabTest {
         prefab[rigidbody, "overrideGravity"] = true
         prefab[rigidbody, "gravity"] = Vector3d()
 
-        logger.info(prefab.getSampleInstance()) // shall have two mesh components
+        LOGGER.info(prefab.getSampleInstance()) // shall have two mesh components
+
+        // todo make this an automated test
 
         val text = JsonStringWriter.toText(prefab, InvalidRef)
-        logger.info(text)
+        LOGGER.info(text)
 
         val copied = JsonStringReader.readFirst(text, InvalidRef, Prefab::class)
-        logger.info(copied.getSampleInstance())
+        LOGGER.info(copied.getSampleInstance())
     }
 
     @Test
-    fun test2() {
-
-        val logger = LogManager.getLogger("PrefabTest")
-
-        // test removing, deleting
-
+    fun testRemovingLowestChild() {
         val prefab = Prefab("Entity")
         val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "E")
+        prefab[child, "name"] = "Test"
         val rigid = prefab.add(child, 'c', "Rigidbody", "RB")
         prefab[rigid, "overrideGravity"] = true
         prefab[rigid, "gravity"] = Vector3d()
 
-        val text = JsonStringWriter.toText(prefab, InvalidRef)
-        logger.info(JsonFormatter.format(text))
+        assertEquals(2, prefab.numAdds)
+        assertEquals(1, prefab.sets.count { path, _, _ -> path == child })
+        assertEquals(2, prefab.sets.count { path, _, _ -> path == rigid })
 
-        val copied = JsonStringReader.readFirst(text, InvalidRef, Prefab::class)
-        logger.info(copied.getSampleInstance())
+        val sample0 = prefab.getSampleInstance() as Entity
+        assertEquals(0, sample0.depthInHierarchy)
+        assertEquals(2, sample0.totalNumEntities)
+        assertEquals(1, sample0.totalNumComponents)
+
+        assertTrue(prefab.remove(rigid))
+
+        assertEquals(1, prefab.numAdds)
+        assertEquals(1, prefab.sets.count { path, _, _ -> path == child })
+        assertEquals(0, prefab.sets.count { path, _, _ -> path == rigid })
+
+        val sample1 = prefab.getSampleInstance() as Entity
+        assertEquals(0, sample1.depthInHierarchy)
+        assertEquals(2, sample1.totalNumEntities)
+        assertEquals(0, sample1.totalNumComponents)
+    }
+
+    @Test
+    fun testRemovingMiddleChild() {
+        val prefab = Prefab("Entity")
+        val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "E")
+        prefab[child, "name"] = "Test"
+        val rigid = prefab.add(child, 'c', "Rigidbody", "RB")
+        prefab[rigid, "overrideGravity"] = true
+        prefab[rigid, "gravity"] = Vector3d()
+
+        assertEquals(2, prefab.numAdds)
+        assertEquals(3, prefab.sets.size)
+        assertEquals(0, prefab.sets.count { path, _, _ -> path == Path.ROOT_PATH })
+        assertEquals(1, prefab.sets.count { path, _, _ -> path == child })
+        assertEquals(2, prefab.sets.count { path, _, _ -> path == rigid })
+
+        val sample0 = prefab.getSampleInstance() as Entity
+        assertEquals(0, sample0.depthInHierarchy)
+        assertEquals(2, sample0.totalNumEntities)
+        assertEquals(1, sample0.totalNumComponents)
+
+        assertTrue(prefab.remove(child))
+
+        assertEquals(0, prefab.numAdds)
+        assertEquals(0, prefab.sets.size)
+
+        val sample1 = prefab.getSampleInstance() as Entity
+        assertEquals(0, sample1.depthInHierarchy)
+        assertEquals(1, sample1.totalNumEntities)
+        assertEquals(0, sample1.totalNumComponents)
+    }
+
+    @Test
+    fun testRemovingLowestChildWithInheritance() {
+        val original = Entity()
+        val childE = Entity(original)
+        val rigidE = Rigidbody()
+        childE.add(rigidE)
+
+        val prefab0 = original.ref
+        val child = childE.prefabPath
+        assertNotEquals(Path.ROOT_PATH, child)
+        val rigid = rigidE.prefabPath
+        assertNotEquals(Path.ROOT_PATH, rigid)
+        assertNotEquals(child, rigid)
+        assertEquals(0, original.prefabPath.depth)
+        assertEquals(1, child.depth)
+        assertEquals(2, rigid.depth)
+
+        val prefab = Prefab("Entity")
+        prefab.prefab = prefab0
+        prefab[rigid, "gravity"] = Vector3d()
+
+        assertEquals(0, prefab.numAdds)
+        assertEquals(1, prefab.sets.size)
+
+        val sample0 = prefab.getSampleInstance() as Entity
+        assertEquals(0, sample0.depthInHierarchy)
+        assertEquals(2, sample0.totalNumEntities)
+        assertEquals(1, sample0.totalNumComponents)
+
+        assertFalse(prefab.remove(rigid))
+        assertEquals(false, prefab[rigid, "isEnabled"])
+
+        assertEquals(0, prefab.numAdds)
+        assertEquals(1, prefab.sets.size)
+
+        val sample1 = prefab.getSampleInstance() as Entity
+        assertEquals(0, sample1.depthInHierarchy)
+        assertEquals(2, sample1.totalNumEntities)
+        assertEquals(1, sample1.totalNumComponents)
+        val rigid1 = Hierarchy.getInstanceAt(sample1, rigid)
+        assertEquals(rigidE::class, rigid1!!::class)
+        assertFalse(rigid1.isEnabled)
+    }
+
+    private fun newPrefab(prefab0: Prefab = Prefab("Entity")): Prefab {
+        assertTrue(prefab0.wasModified)
+        val prefab = JsonStringReader.clone(prefab0)
+        assertTrue(prefab0.wasModified)
+        assertFalse(prefab.wasModified)
+        return prefab
+    }
+
+    @Test
+    fun testModifiedSet() {
+        val tested = newPrefab()
+        tested["name"] = "Modified"
+        assertTrue(tested.wasModified)
+    }
+
+    @Test
+    fun testModifiedSetUnsafe() {
+        val tested = newPrefab()
+        tested.setUnsafe("name", "Modified")
+        assertTrue(tested.wasModified)
+    }
+
+    @Test
+    fun testModifiedAdd() {
+        val tested = newPrefab()
+        tested.add(Path.ROOT_PATH, 'e', "Entity", "test")
+        assertTrue(tested.wasModified)
+    }
+
+    @Test
+    fun testModifiedRemove() {
+        val withChild = Prefab()
+        val path = withChild.add(Path.ROOT_PATH, 'e', "Entity", "test")
+        val tested = newPrefab(withChild)
+        tested.remove(path)
+        assertTrue(tested.wasModified)
     }
 }
