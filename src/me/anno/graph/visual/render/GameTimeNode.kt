@@ -10,7 +10,7 @@ import me.anno.graph.visual.render.compiler.GLSLExprNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
 
 @Suppress("unused")
-class GameTime : CalculationNode("Game Time (%1h,FP32)", emptyList(), listOf("Float", "Game Time")), GLSLExprNode {
+class GameTimeNode : CalculationNode("Game Time (%1h,FP32)", emptyList(), listOf("Float", "Game Time")), GLSLExprNode {
 
     // repeats once every 1h to ensure relatively consistent accuracy
     // if you need more accuracy, create your own nodes, but remember that OpenGL uses single precision!

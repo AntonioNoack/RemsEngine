@@ -538,7 +538,7 @@ class NodePanel(
             }
             con0 != null -> {
                 // open new node menu, and then connect them automatically
-                gp.openNewNodeMenu(con0.type, con0 is NodeInput) {
+                gp.openNewNodeMenu(con0.type, con0 is NodeInput, this.node) {
                     val base = if (con0 is NodeInput) it.outputs else it.inputs
                     for (newCon in base) {
                         if (connect(con0, newCon))

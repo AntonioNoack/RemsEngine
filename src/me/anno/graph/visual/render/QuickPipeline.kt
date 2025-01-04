@@ -1,11 +1,12 @@
 package me.anno.graph.visual.render
 
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.StartNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.RenderGraph.startArguments
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.StartNode
+import kotlin.math.max
 
 /**
  * quickly creates pipelines for RenderModes
@@ -51,9 +52,35 @@ class QuickPipeline {
         }
     }
 
+    private var graphWidth = 0.0
+    private val nodeSpacing get() = 25.0
     private fun placeNode(node: Node) {
-        node.position.set(350.0 * graph.nodes.size, 0.0, 0.0)
+        val width = estimateNodeWidth(node)
+        node.position.set(graphWidth + width * 0.5, 0.0, 0.0)
         node.graph = graph
+        graphWidth += width + nodeSpacing
+    }
+
+    private fun estimateNodeWidth(node: Node): Double {
+        var maxLength = node.name.length
+        val inputs = node.inputs
+        val outputs = node.outputs
+        for (i in 0 until max(inputs.size, outputs.size)) {
+            val input = inputs.getOrNull(i)
+            val inputName = input?.name ?: ""
+            val inputValue = if (input != null && hasUI(input.type))
+                input.getValue().toString() else ""
+            val outputName = outputs.getOrNull(i)?.name ?: ""
+            maxLength = max(maxLength, inputName.length + inputValue.length + outputName.length)
+        }
+        return maxLength * 18.0
+    }
+
+    private fun hasUI(type: String): Boolean {
+        return when (type) {
+            "Int", "Long", "Float", "Double", "Bool", "Boolean" -> true
+            else -> type.startsWith("Enum<")
+        }
     }
 
     private fun connectInputs(node: Node, extraInputs: Map<String, Any?>) {

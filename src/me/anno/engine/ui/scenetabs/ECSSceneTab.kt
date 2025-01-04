@@ -29,6 +29,7 @@ import me.anno.image.thumbs.AssetThumbnails.getBoundsForRendering
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Style
@@ -180,7 +181,7 @@ class ECSSceneTab(
             resetCamera(root)
         }
 
-        for (window in window?.windowStack ?: emptyList()) {
+        for (window in windowStack) {
             window.panel.forAll { panel ->
                 if (panel is RenderView) {
                     val radius = radius
@@ -195,7 +196,6 @@ class ECSSceneTab(
     }
 
     fun onStop() {
-        val windowStack = window?.windowStack ?: return
         for (window in windowStack) {
             window.panel.forAll { panel ->
                 if (panel is RenderView) {
@@ -290,7 +290,10 @@ class ECSSceneTab(
             onStart()
         }
         if (ECSSceneTabs.currentTab == this) {
-            val needsStar = PrefabCache[file, true]?.wasModified == true
+            val prefab = PrefabCache[file, true]
+            val needsStar = prefab != null &&
+                    prefab.wasModified && prefab.isWritable &&
+                    prefab.source !is InnerTmpFile
             val hasStar = text.endsWith("*")
             if (needsStar != hasStar) {
                 val name = findName(file)

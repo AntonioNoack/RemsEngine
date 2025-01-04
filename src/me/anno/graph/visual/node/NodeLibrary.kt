@@ -22,25 +22,15 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
     }
 
     companion object {
-
-        private const val NODE_CLASS_NAMES = "" +
-                "ConfigGetBoolNode,ConfigGetIntNode,ConfigGetFloatNode,ForNode,IfElseNode,WhileNode,DoWhileNode,PrintNode," +
-                "NotNode,MathB2Node,MathB3Node," +
-                "MathI1Node,MathI2Node,MathI3Node," +
-                "MathF1Node,MathF2Node,MathF3Node," +
-                "MathF1XNode,MathF2XNode,MathF3XNode," +
-                "DotProductNode,CrossProductNode,NormalizeNode," +
-                "RotateF2Node,RotateF3XNode,RotateF3YNode,RotateF3ZNode," +
-                "FresnelNode3,CompareNode,CombineVectorNode,SeparateVectorNode," +
-                "ColorNode,GameTime,RandomNode," +
-                "VectorLengthNode,VectorDistanceNode"
-
-        private const val TYPE_NAMES = "?,String,Boolean,Float,Int,Vector2f,Vector3f,Vector4f"
-
         val flowNodes by lazy {
             // ensure all available nodes have been registered
-            val typeNames = TYPE_NAMES.split(',')
             ECSRegistry.init()
+
+            val typeNames = "?,String,Boolean,Float,Int,Vector2f,Vector3f,Vector4f"
+                .split(',')
+            val nodeClassNames = Saveable.objectTypeRegistry.keys
+                .filter { it.endsWith("Node") }
+
             NodeLibrary(
                 typeNames.map { typeName ->
                     { GetLocalVariableNode(typeName) }
@@ -50,7 +40,7 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
                     { ValueNode(typeName) }
                 } + typeNames.map { typeName ->
                     { InlineBranchNode(typeName) }
-                } + NODE_CLASS_NAMES.split(',')
+                } + nodeClassNames
                     .filter { name -> Saveable.createOrNull(name) is Node }
                     .map { name -> { Saveable.createOrNull(name) as Node } }
             )

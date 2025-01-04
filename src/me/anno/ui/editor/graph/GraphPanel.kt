@@ -11,10 +11,10 @@ import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.render.NodeGroup
 import me.anno.input.Key
-import me.anno.io.saveable.Saveable
-import me.anno.io.saveable.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.SaveableArray
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
@@ -32,6 +32,7 @@ import me.anno.utils.Color
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning
+import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.structures.maps.Maps.removeIf
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
@@ -41,7 +42,6 @@ import kotlin.math.floor
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
@@ -499,7 +499,13 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             }
             "File", "FileReference" -> {
                 if (old is FileInput) return old.apply { old.textSize = font.size }
-                return FileInput(NameDesc.EMPTY, style, con.currValue as? FileReference ?: InvalidRef, emptyList(), false)
+                return FileInput(
+                    NameDesc.EMPTY,
+                    style,
+                    con.currValue as? FileReference ?: InvalidRef,
+                    emptyList(),
+                    false
+                )
                     .addChangeListener {
                         con.currValue = it
                         onChange(false)
@@ -564,12 +570,24 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         return null
     }
 
+    fun getFocussedNode(): Node? {
+        return children.mapFirstNotNull(::isFocussed)
+    }
+
+    fun getFocussedNodes(): List<Node> {
+        return children.mapNotNull(::isFocussed)
+    }
+
+    private fun isFocussed(child: Panel): Node? {
+        return if (child is NodePanel && child.isAnyChildInFocus) child.node else null
+    }
+
     override fun onCopyRequested(x: Float, y: Float): Any? {
-        val focussedNodes = children.mapNotNull { if (it is NodePanel && it.isAnyChildInFocus) it.node else null }
-        if (focussedNodes.isEmpty()) return super.onCopyRequested(x, y)
+        val focussedNodes = getFocussedNodes()
         // center at mouse cursor
         val center = getCursorPosition(x, y)
         return when (focussedNodes.size) {
+            0 -> super.onCopyRequested(x, y)
             1 -> {
                 // clone, but remove all connections
                 val original = focussedNodes.first()

@@ -121,7 +121,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var window: Window? = null
         get() = uiParent?.window ?: field
 
-    val windowStack get() = window!!.windowStack
+    val windowStack: WindowStack
+        get() = window?.windowStack ?: GFX.someWindow.windowStack
 
     val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 

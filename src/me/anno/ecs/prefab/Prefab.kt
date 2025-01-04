@@ -468,8 +468,8 @@ class Prefab : Saveable {
                 }
             }
             for (adds2 in adds.values) {
-                for (add in adds2) {
-                    result.add(add.prefab)
+                for (i in adds2.indices) {
+                    result.add(adds2[i].prefab)
                 }
             }
             result.remove(InvalidRef)

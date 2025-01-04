@@ -9,8 +9,8 @@ import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.node.NodeLibrary
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.saveable.SaveableArray
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.saveable.SaveableArray
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
@@ -84,16 +84,17 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             // todo reset graph? idk...
             // todo button to save graph (?)
             // todo button to create new sub function (?)
-            openNewNodeMenu(null, false)
+            openNewNodeMenu(null, false, null)
         }
     }
 
     // todo if node is dragged on a line, connect left & right sides where types match from top to bottom
     // todo -> detect, if a line is being hovered
 
-    fun openNewNodeMenu(type: String?, typeIsInput: Boolean, callback: ((Node) -> Unit)? = null) {
+    fun openNewNodeMenu(type: String?, typeIsInput: Boolean, nodeHere0: Node?, callback: ((Node) -> Unit)? = null) {
         val window = window ?: return
         val graph = graph ?: return
+        val nodeHere = nodeHere0 ?: getFocussedNode()
         val mouseX = window.mouseX
         val mouseY = window.mouseY
         var candidates = library.allNodes
@@ -116,15 +117,38 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             candidates.map { (sample, newNodeGenerator) ->
                 MenuOption(NameDesc(sample.name, sample.description, "")) {
                     // place node at mouse position
-                    val node = newNodeGenerator()
-                    node.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
-                    graph.add(node)
-                    if (callback != null) callback(node)
+                    val newNode = newNodeGenerator()
+                    newNode.position.set(windowToCoordsX(mouseX.toDouble()), windowToCoordsY(mouseY.toDouble()), 0.0)
+                    graph.add(newNode)
+
+                    if (nodeHere != null) {
+                        autoConnect(nodeHere, newNode)
+                    }
+
+                    if (callback != null) callback(newNode)
                     onChange(false)
                     invalidateLayout()
                 }
             }
         )
+    }
+
+    private fun autoConnect(fromNode: Node, toNode: Node) {
+        // connect all inputs and outputs by name
+        val graph = graph ?: return
+        val outputByName = fromNode.outputs.associateBy { it.name }
+        val prevOutputByName = fromNode.inputs.associateBy { it.name }
+        for (input in toNode.inputs) {
+            val inputName = input.name
+            val output = outputByName[inputName]
+                ?: prevOutputByName[inputName]?.others?.firstOrNull()
+                ?: continue
+            if (graph.canConnectTo(input, output)) {
+                input.connect(output)
+            }
+        }
+        // todo if nothing matched, and there is only a few outputs, match them by type?
+        //  e.g. would be good for maths
     }
 
     var selectingStart: Vector2f? = null
