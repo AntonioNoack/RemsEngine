@@ -24,7 +24,7 @@ object LineShapes {
     private val defaultColor = 0x77ffff or black
 
     fun getDrawMatrix(entity: Entity?, time: Long = Time.gameTimeN): Matrix4x3d? {
-        return entity?.transform?.getDrawMatrix(time)
+        return entity?.transform?.getDrawMatrix()
     }
 
     val zToX: Matrix4x3d = Matrix4x3d()

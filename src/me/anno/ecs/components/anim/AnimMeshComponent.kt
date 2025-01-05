@@ -31,7 +31,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
-import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f

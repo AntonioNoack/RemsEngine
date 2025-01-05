@@ -68,7 +68,6 @@ class TerrainEditModeV2 : Component(), CustomEditMode {
                 cursor.localPosition = query.result.positionWS + ui.mouseDirection * (-0.1 * query.result.distance)
                 cursor.localRotation = normal.normalToQuaternionY()
                 cursor.localScale = cursor.localScale.set(0.1 * query.result.distance)
-                cursor.smoothUpdate()
             }
             return Input.isLeftDown
         } else {

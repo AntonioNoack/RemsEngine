@@ -165,7 +165,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             speed = mix(speed, dir * 50.0, dt)
             position += dt * speed
             transform.localRotation = transform.localRotation
-                .identity().rotateZ(position)
+                .rotationZ(position)
             // impulse is global, torque probably, too
             val l2g = body.transform!!.globalRotation
             // add lift based on velocity on Z axis

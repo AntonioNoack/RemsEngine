@@ -51,12 +51,11 @@ class PacmanControls(
                 currPosition.x - prevPosition.x,
                 currPosition.y - prevPosition.y
             )
-            rot.identity().rotateY(angle.toDouble())
+            rot.rotationY(angle.toDouble())
         }
         prevPosition.mix(currPosition, mixDt)
         transform.localPosition = pos
         transform.localRotation = rot
-        transform.smoothUpdate()
         entity.invalidateOwnAABB()
     }
 
@@ -71,7 +70,6 @@ class PacmanControls(
             val pos = transform.localPosition
             pos.y = baseCameraHeight * rv.height.toDouble() / min(rv.width, rv.height)
             transform.localPosition = pos
-            transform.smoothUpdate()
         }
         val mixDt = dtTo01(Time.deltaTime.toFloat() * 5f)
         for (i in game.enemies.indices) {

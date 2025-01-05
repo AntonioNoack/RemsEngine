@@ -32,7 +32,7 @@ class TransformTest {
 
         t.validate()
 
-        assertEquals(t.localTransform, t.globalTransform)
+        assertEquals(t.globalTransform, t.getLocalTransform(Matrix4x3d()))
 
         assertEquals(pos, t.localPosition)
         assertEquals(pos, t.globalPosition)
@@ -86,7 +86,7 @@ class TransformTest {
 
         // tests
         val parentMatrix = Matrix4x3d().translationRotateScale(pos, rot, sca)
-        assertTrue(parentMatrix.equals(parent.transform.localTransform, 1e-15))
+        assertTrue(parentMatrix.equals(parent.transform.getLocalTransform(Matrix4x3d()), 1e-15))
         assertTrue(parentMatrix.equals(parent.transform.globalTransform, 1e-15))
 
         assertTrue(
@@ -95,7 +95,7 @@ class TransformTest {
         )
         val childLocal = Matrix4x3d().translationRotateScale(pos2, rot2, sca2)
         val childGlobal = parentMatrix.mul(childLocal, Matrix4x3d())
-        assertTrue(childLocal.equals(child.transform.localTransform, 1e-15))
+        assertTrue(childLocal.equals(child.transform.getLocalTransform(Matrix4x3d()), 1e-15))
         assertTrue(childGlobal.equals(child.transform.globalTransform, 1e-15))
 
         assertTrue(childGlobal.getTranslation(Vector3d()).equals(child.transform.globalPosition, 1e-15))

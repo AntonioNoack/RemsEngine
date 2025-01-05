@@ -135,7 +135,7 @@ class SplineSpawner : MeshSpawner() {
             val dy = p1.y - p0.y
             val dz = p1.z - p0.z
             val baseRotation = atan2(dx, dz)
-            val rotation = transform.localRotation.identity().rotateY(baseRotation)
+            val rotation = transform.localRotation.rotationY(baseRotation)
             if (!alwaysUp) rotation.rotateX(atan2(-dy, p1.distance(p0)))
             rotation.rotateY(addedRotation)
             transform.localRotation = rotation
@@ -150,8 +150,6 @@ class SplineSpawner : MeshSpawner() {
             }
 
             // DebugShapes.debugPoints.add(DebugPoint(p0, -1, 0f))
-
-            transform.smoothUpdate() // smooth or teleport?
             if (run(mesh, material, transform)) break
         }
     }

@@ -148,7 +148,7 @@ class PipelineStageImpl(
             time: Long
         ) {
             if (transform != null) {
-                val localTransform = transform.getDrawMatrix(time)
+                val localTransform = transform.getDrawMatrix()
                 tmp4x3.set4x3Delta(localTransform)
                 shader.m4x3("localTransform", tmp4x3)
 
@@ -161,7 +161,7 @@ class PipelineStageImpl(
                 if (shader.hasUniform("prevLocalTransform")) {
                     val prevWorldScale = RenderState.prevWorldScale
                     shader.m4x3delta(
-                        "prevLocalTransform", transform.getDrawnMatrix(time),
+                        "prevLocalTransform", transform.getDrawnMatrix(),
                         RenderState.prevCameraPosition, prevWorldScale
                     )
                     shader.v1f("prevWorldScale", prevWorldScale)

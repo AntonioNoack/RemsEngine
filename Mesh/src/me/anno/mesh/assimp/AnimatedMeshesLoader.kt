@@ -260,7 +260,8 @@ object AnimatedMeshesLoader {
         if (localRotation != null) transform0.localRotation = localRotation
         if (localScale != null) transform0.localScale = localScale
 
-        val transform = transform0.localTransform // root, so global = local
+        val tmp = JomlPools.mat4x3d.create()
+        val transform = transform0.getLocalTransform(tmp) // root, so global = local
 
         // correct order? at least the rotation is correct;
         // correct scale?
@@ -269,6 +270,7 @@ object AnimatedMeshesLoader {
         prefab["position"] = transform.getTranslation(Vector3d())
         prefab["rotation"] = transform.getUnnormalizedRotation(Quaterniond())
         prefab["scale"] = transform.getScale(Vector3d())
+        JomlPools.mat4x3d.sub(1)
     }
 
     private fun fixBoneOrder(boneList: ArrayList<Bone>, meshes: List<Prefab>) {

@@ -36,6 +36,7 @@ object Systems : PrefabSaveable() {
         registerSystem(UpdateSystem)
         registerSystem(BeforeDrawSystem)
         registerSystem(UIEventSystem)
+        registerSystem(MotionVectorSystem)
     }
 
     init {

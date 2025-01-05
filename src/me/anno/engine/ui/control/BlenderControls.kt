@@ -1,6 +1,5 @@
 package me.anno.engine.ui.control
 
-import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.drawing.DrawTexts
@@ -38,7 +37,6 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
 
         DrawTexts.drawSimpleTextCharByChar(x, y, 2, number)
         DrawTexts.drawSimpleTextCharByChar(x, y + 20, 2, mode.name)
-
     }
 
     fun getAxis(): Vector3d {
@@ -107,7 +105,6 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
                 }
             }
             applyTransform(axis)
-
         } else {
 
             val direction = camera.transform!!.globalTransform.transformDirection(
@@ -155,7 +152,6 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             }
 
             applyTransform(direction)
-
         }
     }
 
@@ -252,7 +248,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         for ((index, transform) in selectedTransforms.withIndex()) {
             if (index >= old.size) break
             transform.setLocal(old[index])
-            transform.teleportUpdate(Time.gameTimeN)
+            transform.teleportUpdate()
         }
         old = emptyList()
         mode = Mode.NOTHING
@@ -278,22 +274,19 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             'b' -> {
                 if (mode == Mode.NOTHING) reset()
                 mode = Mode.TRANSLATING
-                old = selectedTransforms
-                    .map { Matrix4x3d(it.localTransform) }
+                old = selectedLocalTransforms()
                 showChange()
             }
             'n' -> {
                 if (mode == Mode.NOTHING) reset()
                 mode = Mode.ROTATING
-                old = selectedTransforms
-                    .map { Matrix4x3d(it.localTransform) }
+                old = selectedLocalTransforms()
                 showChange()
             }
             'm' -> {
                 if (mode == Mode.NOTHING) reset()
                 mode = Mode.SCALING
-                old = selectedTransforms
-                    .map { Matrix4x3d(it.localTransform) }
+                old = selectedLocalTransforms()
                 showChange()
             }
             'h' -> {
@@ -312,10 +305,13 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
+    private fun selectedLocalTransforms(): List<Matrix4x3d> {
+        return selectedTransforms.map { it.getLocalTransform(Matrix4x3d()) }
+    }
+
     override fun onBackSpaceKey(x: Float, y: Float) {
         if (number.isNotEmpty()) {
             number = number.substring(0, number.length - 1)
         }
     }
-
 }

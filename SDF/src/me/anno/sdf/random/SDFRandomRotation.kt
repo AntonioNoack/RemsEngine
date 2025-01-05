@@ -85,17 +85,17 @@ class SDFRandomRotation : SDFRandom() {
         val dz = min(abs(maxAngleDegrees.z - minAngleDegrees.z) * 0.5f, 90f).toRadians()
 
         if (dy > 0f) {
-            m.identity().rotateY(dy)
+            m.rotationY(dy)
             bounds.transformUnion(m, bounds)
         }
 
         if (dx > 0f) {
-            m.identity().rotateX(dx)
+            m.rotationX(dx)
             bounds.transformUnion(m, bounds)
         }
 
         if (dz > 0f) {
-            m.identity().rotateZ(dz)
+            m.rotationZ(dz)
             bounds.transformUnion(m, bounds)
         }
     }

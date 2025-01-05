@@ -338,7 +338,7 @@ fun main() {
                 if (dynamicAngle && abs(normal.y) in 0.1f..0.9f) {
                     nor.set(normal).normalToQuaternionY2(rot)
                 } else {
-                    rot.identity().rotateY(atan2(normal.x, normal.z).toFloat())
+                    rot.rotationY(atan2(normal.x, normal.z).toFloat())
                 }
 
                 sample.localRotation = sample.localRotation

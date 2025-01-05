@@ -919,11 +919,11 @@ open class Vector3d(
         val x = x * fromDegrees
         val y = y * fromDegrees
         val z = z * fromDegrees
-        return dst.identity().rotateYXZ(y, x, z)
+        return dst.rotationYXZ(y, x, z)
     }
 
     fun toQuaternionRadians(dst: Quaterniond = Quaterniond()): Quaterniond {
-        return dst.identity().rotateYXZ(y, x, z)
+        return dst.rotationYXZ(y, x, z)
     }
 
     fun rotate(q: Quaternionf): Vector3d {

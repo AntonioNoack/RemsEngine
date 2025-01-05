@@ -94,7 +94,7 @@ object MeshUtils {
     fun getBounds(root: Entity, transform: Matrix4f): AABBf {
         root.forAllEntitiesInChildren(false) { entity ->
             entity.validateTransform()
-            entity.transform.teleportUpdate(0)
+            entity.transform.teleportUpdate()
         }
         val vf = Vector3f()
         val aabb = AABBf()

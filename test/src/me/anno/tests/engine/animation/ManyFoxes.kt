@@ -126,7 +126,9 @@ fun main() {
                     val duration = AnimationCache[state.source]!!.duration
                     state.progress = randomProgress * duration
                 }
-                it.isInstanced = true
+                // todo this is not supported with motion vectors :(,
+                //  because too many attributes...
+                it.isInstanced = false
             }
             ring.add(entity)
         }

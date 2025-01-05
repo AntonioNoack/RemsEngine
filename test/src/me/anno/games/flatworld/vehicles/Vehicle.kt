@@ -110,9 +110,7 @@ class Vehicle(
                 prevPosition.set(position)
                 angle = atan2(dx, dz)
                 transform.localPosition = position
-                transform.localRotation = transform.localRotation
-                    .identity().rotateY(angle)
-                transform.smoothUpdate()
+                transform.localRotation = transform.localRotation.rotationY(angle)
                 invalidateAABB()
             } else speed = 0.0
         }

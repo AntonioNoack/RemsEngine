@@ -44,11 +44,9 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
         //  - check terrain for streets
         canBePlaced = true
 
-        transform.setLocal(
-            transform.localTransform.identity()
-                .translate(query.result.positionWS)
-                .rotateY(rotationYDegrees.toRadians())
-        )
+        transform.localPosition = query.result.positionWS
+        transform.localRotation = transform.localRotation
+            .rotationY(rotationYDegrees.toRadians())
         transform.teleportUpdate()
 
         // todo correct terrain until fitting on right press
@@ -96,7 +94,7 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
             .add(MeshComponent(type.mesh))
             .add(instance)
             .transform
-        transform.setLocal(this.transform.localTransform)
+        transform.setLocal(this.transform)
         transform.teleportUpdate()
         world.buildingInstances.add(instance)
     }

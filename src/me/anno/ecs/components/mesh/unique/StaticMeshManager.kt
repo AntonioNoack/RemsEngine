@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.unique
 
-import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
@@ -56,17 +55,25 @@ class StaticMeshManager : System(), Renderable {
             val root = Systems.world as? Entity
             collectStackE.add(root ?: return)
         }
-        val time = Time.frameIndex + numIdleFrames
         for (i in 0 until scanLimit) {
             val idx = collectStackE.size - 1
             if (idx < 0) break
             val entity = collectStackE.removeAt(idx)
             val transform = entity.transform
-            if (transform.lastUpdateFrameIndex <= time) {
+            if (hasBeenIdleForNumIdleFrames(transform)) {
                 collectStackE.addAll(entity.children)
                 collectComponents(entity)
             }
         }
+    }
+
+    private fun isIdle(transform: Transform): Boolean {
+        return transform.globalTransform == transform.getDrawnMatrix()
+    }
+
+    private fun hasBeenIdleForNumIdleFrames(transform: Transform): Boolean {
+        // todo implement properly
+        return isIdle(transform)
     }
 
     private fun collectComponents(entity: Entity) {

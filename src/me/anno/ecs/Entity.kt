@@ -240,7 +240,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun moveToGlobal(position: Vector3d) {
         transform.globalPosition = position
         validateTransform()
-        transform.smoothUpdate()
         invalidateAABBsCompletely()
         invalidatePhysicsTransform()
     }

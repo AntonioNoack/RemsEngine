@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
+import me.anno.utils.pooling.JomlPools
 
 /**
  * Controls its entity such that it follows the bone of another entity's AnimMeshComponent.
@@ -44,13 +45,14 @@ class BoneAttachmentComponent() : Component(), OnUpdate {
         val entity = animMeshComponent?.entity
         lastWarning = if (target != null && bone != null && entity != null && entity !== target) {
             val offsetMatrix = animMeshComponent?.getMatrix(bone.id)
-            if (target.parent === entity.parent) { // optimization: if they have the same parent, save a matrix-inverse by using setLocal() instead of setGlobal()
-                val animGlobal = entity.transform.localTransform
-                val tmp = target.transform.localTransform // overridden anyway
+            if (target.parent === entity.parent) {
+                // optimization: if they have the same parent, save a matrix-inverse by using setLocal() instead of setGlobal()
+                val tmp = JomlPools.mat4x3d.borrow()
+                val animGlobal = entity.transform.getLocalTransform(tmp)
                 // apply animation, if is animated
-                val newLocal = if (offsetMatrix != null) animGlobal.mul(offsetMatrix, tmp) else animGlobal
-                newLocal.mul(bone.bindPose) // move us to actual bone
-                target.transform.setLocal(newLocal)
+                val newLocal = if (offsetMatrix != null) animGlobal.mul(offsetMatrix) else animGlobal
+                val newLocal2 = newLocal.mul(bone.bindPose) // move us to actual bone
+                target.transform.setLocal(newLocal2)
             } else { // normal path
                 val animGlobal = entity.transform.getDrawMatrix()
                 val tmp = target.transform.globalTransform // overridden anyway

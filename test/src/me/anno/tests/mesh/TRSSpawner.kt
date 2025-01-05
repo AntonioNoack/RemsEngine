@@ -25,7 +25,7 @@ fun main() {
         val y = it / 5
         Transform().apply {
             localPosition = localPosition.set(x * 2.5, 0.0, y * 2.5)
-            localRotation = localRotation.identity().rotateX(x * 0.1).rotateY(y * 0.1)
+            localRotation = localRotation.rotationX(x * 0.1).rotateY(y * 0.1)
         }
     }
     val mesh = Shapes.flatCube.front

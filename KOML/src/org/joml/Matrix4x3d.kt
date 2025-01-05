@@ -2376,16 +2376,9 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translationRotateScale(
-        tx: Double,
-        ty: Double,
-        tz: Double,
-        qx: Double,
-        qy: Double,
-        qz: Double,
-        qw: Double,
-        sx: Double,
-        sy: Double,
-        sz: Double
+        tx: Double, ty: Double, tz: Double,
+        qx: Double, qy: Double, qz: Double, qw: Double,
+        sx: Double, sy: Double, sz: Double
     ): Matrix4x3d {
         val dqx = qx + qx
         val dqy = qy + qy
@@ -2416,46 +2409,25 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translationRotateScale(translation: Vector3f, quat: Quaternionf, scale: Vector3f): Matrix4x3d {
-        return this.translationRotateScale(
-            translation.x.toDouble(),
-            translation.y.toDouble(),
-            translation.z.toDouble(),
-            quat.x.toDouble(),
-            quat.y.toDouble(),
-            quat.z.toDouble(),
-            quat.w.toDouble(),
-            scale.x.toDouble(),
-            scale.y.toDouble(),
-            scale.z.toDouble()
+        return translationRotateScale(
+            translation.x.toDouble(), translation.y.toDouble(), translation.z.toDouble(),
+            quat.x.toDouble(), quat.y.toDouble(), quat.z.toDouble(), quat.w.toDouble(),
+            scale.x.toDouble(), scale.y.toDouble(), scale.z.toDouble()
         )
     }
 
     fun translationRotateScale(translation: Vector3d, quat: Quaterniond, scale: Vector3d): Matrix4x3d {
-        return this.translationRotateScale(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale.x,
-            scale.y,
-            scale.z
+        return translationRotateScale(
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale.x, scale.y, scale.z
         )
     }
 
     fun translationRotateScaleMul(
-        tx: Double,
-        ty: Double,
-        tz: Double,
-        qx: Double,
-        qy: Double,
-        qz: Double,
-        qw: Double,
-        sx: Double,
-        sy: Double,
-        sz: Double,
+        tx: Double, ty: Double, tz: Double,
+        qx: Double, qy: Double, qz: Double, qw: Double,
+        sx: Double, sy: Double, sz: Double,
         m: Matrix4x3d
     ): Matrix4x3d {
         val dqx = qx + qx
@@ -2479,48 +2451,31 @@ open class Matrix4x3d : Matrix {
         val nm20 = (q02 + q13) * sz
         val nm21 = (q12 - q03) * sz
         val nm22 = sz - (q11 + q00) * sz
-        val m00 = nm00 * m.m00 + nm10 * m.m01 + nm20 * m.m02
-        val m01 = nm01 * m.m00 + nm11 * m.m01 + nm21 * m.m02
-        m02 = nm02 * m.m00 + nm12 * m.m01 + nm22 * m.m02
-        this.m00 = m00
-        this.m01 = m01
-        val m10 = nm00 * m.m10 + nm10 * m.m11 + nm20 * m.m12
-        val m11 = nm01 * m.m10 + nm11 * m.m11 + nm21 * m.m12
-        m12 = nm02 * m.m10 + nm12 * m.m11 + nm22 * m.m12
-        this.m10 = m10
-        this.m11 = m11
-        val m20 = nm00 * m.m20 + nm10 * m.m21 + nm20 * m.m22
-        val m21 = nm01 * m.m20 + nm11 * m.m21 + nm21 * m.m22
-        m22 = nm02 * m.m20 + nm12 * m.m21 + nm22 * m.m22
-        this.m20 = m20
-        this.m21 = m21
-        val m30 = nm00 * m.m30 + nm10 * m.m31 + nm20 * m.m32 + tx
-        val m31 = nm01 * m.m30 + nm11 * m.m31 + nm21 * m.m32 + ty
-        m32 = nm02 * m.m30 + nm12 * m.m31 + nm22 * m.m32 + tz
-        this.m30 = m30
-        this.m31 = m31
-        flags = 0
-        return this
+        return set(
+            nm00 * m.m00 + nm10 * m.m01 + nm20 * m.m02,
+            nm01 * m.m00 + nm11 * m.m01 + nm21 * m.m02,
+            nm02 * m.m00 + nm12 * m.m01 + nm22 * m.m02,
+            nm00 * m.m10 + nm10 * m.m11 + nm20 * m.m12,
+            nm01 * m.m10 + nm11 * m.m11 + nm21 * m.m12,
+            nm02 * m.m10 + nm12 * m.m11 + nm22 * m.m12,
+            nm00 * m.m20 + nm10 * m.m21 + nm20 * m.m22,
+            nm01 * m.m20 + nm11 * m.m21 + nm21 * m.m22,
+            nm02 * m.m20 + nm12 * m.m21 + nm22 * m.m22,
+            nm00 * m.m30 + nm10 * m.m31 + nm20 * m.m32 + tx,
+            nm01 * m.m30 + nm11 * m.m31 + nm21 * m.m32 + ty,
+            nm02 * m.m30 + nm12 * m.m31 + nm22 * m.m32 + tz,
+        )._properties(0)
     }
 
     fun translationRotateScaleMul(
-        translation: Vector3d,
-        quat: Quaterniond,
-        scale: Vector3d,
-        m: Matrix4x3d
+        translation: Vector3d, quat: Quaterniond, scale: Vector3d,
+        other: Matrix4x3d
     ): Matrix4x3d {
-        return this.translationRotateScaleMul(
-            translation.x,
-            translation.y,
-            translation.z,
-            quat.x,
-            quat.y,
-            quat.z,
-            quat.w,
-            scale.x,
-            scale.y,
-            scale.z,
-            m
+        return translationRotateScaleMul(
+            translation.x, translation.y, translation.z,
+            quat.x, quat.y, quat.z, quat.w,
+            scale.x, scale.y, scale.z,
+            other
         )
     }
 
@@ -5241,9 +5196,11 @@ open class Matrix4x3d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m10)._m11(m11)._m12(m12)._m20(m00)._m21(m01)._m22(m02)._m30(
-            m30
-        )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)
+            ._m10(m10)._m11(m11)._m12(m12)
+            ._m20(m00)._m21(m01)._m22(m02)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5251,10 +5208,11 @@ open class Matrix4x3d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m10)._m11(m11)._m12(m12)._m20(-m00)._m21(-m01)._m22(-m02)
-            ._m30(
-                m30
-            )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)
+            ._m10(m10)._m11(m11)._m12(m12)
+            ._m20(-m00)._m21(-m01)._m22(-m02)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5265,10 +5223,11 @@ open class Matrix4x3d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m10)._m21(m11)._m22(m12)
-            ._m30(
-                m30
-            )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)
+            ._m10(-m00)._m11(-m01)._m12(-m02)
+            ._m20(m10)._m21(m11)._m22(m12)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5279,10 +5238,11 @@ open class Matrix4x3d : Matrix {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m10)._m21(-m11)._m22(-m12)
-            ._m30(
-                m30
-            )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)
+            ._m10(-m00)._m11(-m01)._m12(-m02)
+            ._m20(-m10)._m21(-m11)._m22(-m12)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5290,10 +5250,11 @@ open class Matrix4x3d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m00)._m21(m01)._m22(m02)
-            ._m30(
-                m30
-            )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)
+            ._m10(-m10)._m11(-m11)._m12(-m12)
+            ._m20(m00)._m21(m01)._m22(m02)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5301,10 +5262,11 @@ open class Matrix4x3d : Matrix {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m00)._m21(-m01)._m22(-m02)
-            ._m30(
-                m30
-            )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)
+            ._m10(-m10)._m11(-m11)._m12(-m12)
+            ._m20(-m00)._m21(-m01)._m22(-m02)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     fun negateX(): Matrix4x3d {
@@ -5312,19 +5274,24 @@ open class Matrix4x3d : Matrix {
     }
 
     fun negateX(dst: Matrix4x3d): Matrix4x3d {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m10)._m11(m11)._m12(m12)._m20(m20)._m21(m21)._m22(m22)._m30(
-            m30
-        )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)
+            ._m10(m10)._m11(m11)._m12(m12)
+            ._m20(m20)._m21(m21)._m22(m22)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     fun negateY(): Matrix4x3d {
-        return _m10(-m10)._m11(-m11)._m12(-m12)._properties(flags and 16)
+        return _m10(-m10)._m11(-m11)._m12(-m12)
+            ._properties(flags and 16)
     }
 
     fun negateY(dst: Matrix4x3d): Matrix4x3d {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m20)._m21(m21)._m22(m22)._m30(
-            m30
-        )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(m00)._m01(m01)._m02(m02)
+            ._m10(-m10)._m11(-m11)._m12(-m12)
+            ._m20(m20)._m21(m21)._m22(m22)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     fun negateZ(): Matrix4x3d {
@@ -5332,19 +5299,18 @@ open class Matrix4x3d : Matrix {
     }
 
     fun negateZ(dst: Matrix4x3d): Matrix4x3d {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(m10)._m11(m11)._m12(m12)._m20(-m20)._m21(-m21)._m22(-m22)._m30(
-            m30
-        )._m31(m31)._m32(m32)._properties(flags and 16)
+        return dst._m00(m00)._m01(m01)._m02(m02)
+            ._m10(m10)._m11(m11)._m12(m12)
+            ._m20(-m20)._m21(-m21)._m22(-m22)
+            ._m30(m30)._m31(m31)._m32(m32)
+            ._properties(flags and 16)
     }
 
     val isFinite: Boolean
-        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m02) && JomlMath.isFinite(
-            m10
-        ) && JomlMath.isFinite(m11) && JomlMath.isFinite(m12) && JomlMath.isFinite(m20) && JomlMath.isFinite(
-            m21
-        ) && JomlMath.isFinite(m22) && JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(
-            m32
-        )
+        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m02) &&
+                JomlMath.isFinite(m10) && JomlMath.isFinite(m11) && JomlMath.isFinite(m12) &&
+                JomlMath.isFinite(m20) && JomlMath.isFinite(m21) && JomlMath.isFinite(m22) &&
+                JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32)
 
     fun distanceSquared(other: Matrix4x3d): Double {
         return lengthSquared(m30 - other.m30, m31 - other.m31, m32 - other.m32)

@@ -103,7 +103,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         cameraPosition: Vector3d,
         worldScale: Double
     ) {
-        val transform = transform!!.getDrawMatrix(Time.gameTimeN)
+        val transform = transform!!.getDrawMatrix()
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction

@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.ecs.Component
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3d
 
 /**
@@ -22,7 +23,7 @@ class SplineControlPoint : Component() {
             ?.invalidateMesh()
     }
 
-    private val localTransform get() = transform!!.localTransform
+    private val localTransform get() = transform!!.getLocalTransform(JomlPools.mat4x3d.borrow())
 
     fun getLocalPosition(dst: Vector3d, fx: Double, fz: Double = 0.0): Vector3d =
         localTransform.transformPosition(dst.set(fx * width, 0.0, fz * width))

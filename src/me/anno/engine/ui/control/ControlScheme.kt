@@ -386,7 +386,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             val x = r.x * fromDegrees
             val z = r.z * fromDegrees
             val m = JomlPools.mat3d.borrow()
-            m.identity().rotateYXZ(y, x, z).transpose()
+            m.rotationYXZ(y, x, z).transpose()
             dirX.set(1.0, 0.0, 0.0).mul(m)
             dirY.set(0.0, 1.0, 0.0).mul(m)
             dirZ.set(0.0, 0.0, 1.0).mul(m)

@@ -186,7 +186,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
             camRotation.identity()
                 .rotateY(it.mx / it.height * 2f)
                 .rotateX(it.my / it.height * 2f)
-            camMatrix.identity().rotate(camRotation)
+            camMatrix.rotation(camRotation)
             shader.m3x3("camMatrix", camMatrix)
             for ((key, value) in uniforms) {
                 value.bind(shader, key)

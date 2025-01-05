@@ -19,6 +19,7 @@ import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
 import me.anno.gpu.pipeline.InstancedTRSStack
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.maps.KeyTripleMap
@@ -186,12 +187,14 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         // calculate local aabb
         val local = localAABB
         local.clear()
+        val tmp = JomlPools.mat4x3d.create()
         forEachMesh { mesh, _, transform ->
             transform.validate()
-            val lt = transform.localTransform
+            val lt = transform.getLocalTransform(tmp)
             mesh.getBounds().transformUnion(lt, local, local)
             false
         }
+        JomlPools.mat4x3d.sub(1)
 
         // calculate global aabb
         val global = globalAABB

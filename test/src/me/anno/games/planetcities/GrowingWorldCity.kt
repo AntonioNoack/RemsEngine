@@ -239,7 +239,6 @@ fun main() {
         private fun applyRotation() {
             camBase.transform.localPosition = Vector3d(0.0, scale * 1.5, 0.0).rotate(planetRotation)
             camBase.transform.localRotation = Quaterniond(planetRotation).invert()
-            camBase.transform.smoothUpdate()
         }
     }
 

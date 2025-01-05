@@ -28,13 +28,12 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
         // find which instance is used...
         val instance = query.result.component?.getComponent(Building::class) ?: return
         selectedInstance = instance
-        transform.setLocal(
-            transform.localTransform
-                .identity()
-                .translate(instance.position)
-                .rotateY(instance.rotationYDegrees.toRadians())
-                .scale(1.01)
-        )
+        transform.localPosition = transform.localPosition
+            .set(instance.position)
+        transform.localRotation = transform.localRotation
+            .rotationY(instance.rotationYDegrees.toRadians())
+        transform.localScale = transform.localScale
+            .set(1.01)
         transform.teleportUpdate()
     }
 

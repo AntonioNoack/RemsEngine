@@ -10,6 +10,8 @@ import me.anno.mesh.Shapes
 import me.anno.utils.types.Floats.toRadians
 
 /**
+ * outdated! no longer supported like that!!
+ *
  * scripts may be expensive, so I thought it may be useful to run
  * some logic only once in a while, and that it may be useful to
  * allow for frame-interpolation including geometry on the engine side;
@@ -29,7 +31,7 @@ fun main() {
                 if (skippableUpdates-- <= 0) {
                     val transform = transform!!
                     transform.localRotation = transform.localRotation.rotateY(120.0.toRadians())
-                    transform.smoothUpdate()
+                    // transform.smoothUpdate() // no longer exists
                     skippableUpdates = Time.currentFPS.toInt()
                 }
             }

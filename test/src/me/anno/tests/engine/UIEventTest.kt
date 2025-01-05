@@ -18,8 +18,8 @@ fun main() {
             override fun onKeyTyped(key: Key): Boolean {
                 val transform = transform ?: return false
                 when (key) {
-                    Key.KEY_W -> transform.translateLocal(0.0, +0.2, 0.0).smoothUpdate()
-                    Key.KEY_S -> transform.translateLocal(0.0, -0.2, 0.0).smoothUpdate()
+                    Key.KEY_W -> transform.translateLocal(0.0, +0.2, 0.0)
+                    Key.KEY_S -> transform.translateLocal(0.0, -0.2, 0.0)
                     Key.KEY_A -> transform.translateLocal(-0.2, 0.0, 0.0).teleportUpdate()
                     Key.KEY_D -> transform.translateLocal(+0.2, 0.0, 0.0).teleportUpdate()
                     else -> LOGGER.warn("Unknown key $key")

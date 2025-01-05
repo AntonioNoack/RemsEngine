@@ -111,14 +111,14 @@ class SpiderLogic(val brain: FullyConnectedNN, val traps: Entity) : Component(),
                 (position.y * 2.0 - 1.0) * spiderWorldScale
             )
         transform.localRotation = transform.localRotation
-            .identity().rotateY(rotation.toDouble())
+            .rotationY(rotation.toDouble())
 
         val spiderComp = getComponent(SpiderPrediction::class)!!
         // todo calculate position in future
-        spiderComp.futureTransform.set(transform.localTransform)
+        transform.getLocalTransform(dst = spiderComp.futureTransform)
 
         // todo teleport on edge transition
-        transform.smoothUpdate()
+        // transform.smoothUpdate()
         invalidateAABB()
     }
 }

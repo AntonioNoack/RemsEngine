@@ -221,7 +221,6 @@ class VRHandController : Component(), OnUpdate {
                     .add(controller.position)
                 inHandTransform.globalRotation = controller.rotation
             }
-            inHandTransform.smoothUpdate()
         }
     }
 

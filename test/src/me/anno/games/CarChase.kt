@@ -139,10 +139,9 @@ fun createUI(): Panel {
         override fun update(instances: Collection<Component>) {
             val tr = steeringWheel.transform
             val mesh = steeringWheelMesh.getMeshOrNull()?.getBounds() ?: return
-            q.identity().rotateZ(-5.0 * controller.lastSteering)
+            q.rotationZ(-5.0 * controller.lastSteering)
             c.set(mesh.centerX.toDouble(), mesh.centerY.toDouble(), mesh.centerZ.toDouble())
             tr.setOffsetForLocalRotation(q, c)
-            tr.smoothUpdate()
         }
     })
     car1.add(steeringWheel)

@@ -738,11 +738,11 @@ open class Vector3f(
         val x = x * fromDegrees
         val y = y * fromDegrees
         val z = z * fromDegrees
-        return dst.identity().rotateYXZ(y, x, z)
+        return dst.rotationYXZ(y, x, z)
     }
 
     fun toQuaternionRadians(dst: Quaternionf = Quaternionf()): Quaternionf {
-        return dst.identity().rotateYXZ(y, x, z)
+        return dst.rotationYXZ(y, x, z)
     }
 
     companion object {

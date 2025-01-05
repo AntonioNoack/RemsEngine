@@ -400,12 +400,12 @@ open class InstancedStack {
         ) {
             for (index in baseIndex until endIndex) {
                 val transform = transforms[index] as Transform
-                val tri = transform.getDrawMatrix(time)
+                val tri = transform.getDrawMatrix()
                 if (noWorldScale) M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
                 else M4x3Delta.m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
                 if (motionVectors) {
                     // put previous matrix
-                    val tri2 = transform.getDrawnMatrix(time)
+                    val tri2 = transform.getDrawnMatrix()
                     if (noWorldScale) M4x3Delta.m4x3delta(tri2, prevCameraPosition, nioBuffer)
                     else M4x3Delta.m4x3delta(tri2, prevCameraPosition, prevWorldScale, nioBuffer)
                     // put animation data
