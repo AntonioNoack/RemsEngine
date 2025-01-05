@@ -51,14 +51,16 @@ class ShaderGraphNode : ActionNode(
 ) {
 
     companion object {
-        val library = NodeLibrary(
-            NodeLibrary.flowNodes.nodes + listOf(
-                { SGNReturn() },
-                { DiscardNode() },
-                { UVNode() },
-                { UViNode() },
+        val library by lazy {
+            NodeLibrary(
+                NodeLibrary.flowNodes.nodes + listOf(
+                    { SGNReturn() },
+                    { DiscardNode() },
+                    { UVNode() },
+                    { UViNode() },
+                )
             )
-        )
+        }
         val startListArgs = listOf(
             "Texture", "Data0",
             "Texture", "Data1",

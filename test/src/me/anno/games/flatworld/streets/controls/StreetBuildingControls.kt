@@ -9,27 +9,20 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.pipeline.Pipeline
-import me.anno.input.Key
-import me.anno.maths.Maths.min
-import me.anno.maths.Maths.sq
 import me.anno.games.flatworld.FlatWorld
 import me.anno.games.flatworld.streets.StreetMeshBuilder
 import me.anno.games.flatworld.streets.StreetSegment
-import me.anno.ui.UIColors
+import me.anno.gpu.pipeline.Pipeline
+import me.anno.input.Input
+import me.anno.input.Key
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.sq
+import me.anno.utils.Color
 import org.joml.Vector2d
 import org.joml.Vector3d
 import kotlin.math.max
 
 class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingControls(rv) {
-
-    // todo dragging is also intuitive -> define street by dragging
-    //  - collect points
-    //  - find middle
-    //  - calculate anchors
-    //  - place street, if dragging was long enough
-
-    // todo handle double click as additional normal click
 
     enum class StreetPlacingStage {
         EXPLORING,
@@ -49,9 +42,18 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         super.onUpdate()
         when (stage) {
             StreetPlacingStage.EXPLORING -> {
-                anchor0 = getAnchorAt(0)
-                if (anchor0 != null) {
-                    buildMesh()
+                if (!Input.isLeftDown) {
+                    anchor0 = getAnchorAt(0)
+                    if (anchor0 != null) {
+                        buildMesh()
+                    }
+                } else {
+                    val fromAnchor = anchor0
+                    val toAnchor = getAnchorAt0()
+                    if (toAnchor != null && fromAnchor != null) {
+                        moveAnchor(fromAnchor, toAnchor)
+                        anchor0 = toAnchor
+                    }
                 }
             }
             StreetPlacingStage.DRAGGING_2 -> {
@@ -65,6 +67,33 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                 buildMesh()
             }
         }
+    }
+
+    private fun moveAnchor(fromAnchor: Vector3d, toAnchor: Vector3d) {
+        moveAnchorStart(fromAnchor, toAnchor)
+        moveAnchorMiddle(fromAnchor, toAnchor)
+    }
+
+    private fun moveAnchorStart(fromAnchor: Vector3d, toAnchor: Vector3d) {
+        // move the anchor from anchor0 to moved
+        val intersection = world.intersections[fromAnchor] ?: return
+        val segments = intersection.segments.toList() // toList() must be used!
+        // todo when this is used, and the mouse stands still, there are tons of dead meshes... why???
+        for (segment in segments) {
+            world.removeStreetSegment(segment.segment)
+        }
+        for (segment in segments) {
+            world.addStreetSegment(StreetSegment(toAnchor, segment.b, segment.c))
+        }
+        world.validateMeshes()
+    }
+
+    private fun moveAnchorMiddle(fromAnchor: Vector3d, toAnchor: Vector3d) {
+        val segment = world.streetSegments
+            .firstOrNull { it.b == fromAnchor } ?: return
+        world.removeStreetSegment(segment)
+        world.addStreetSegment(StreetSegment(segment.a, toAnchor, segment.c))
+        world.validateMeshes()
     }
 
     fun getCurrentSegment(): StreetSegment {
@@ -81,15 +110,13 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
             DebugShapes.debugPoints.add(
                 DebugPoint(
                     Vector3d(anchor0!!).add(0.0, 1.0, 0.0),
-                    UIColors.greenYellow, 0f
+                    Color.black, 0f
                 )
             )
-            return
         } else {
             StreetMeshBuilder.buildMesh(getCurrentSegment(), previewMesh)
         }
     }
-
 
     val comp = MeshComponent()
     val transform = Transform()
@@ -101,35 +128,53 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         }
     }
 
+    fun getAnchorAt0(): Vector3d? {
+        val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
+        if (!Raycast.raycastClosestHit(world.terrain, query)) return null
+        return query.result.positionWS
+    }
+
     fun getAnchorAt(i: Int): Vector3d? {
         val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
-        return if (Raycast.raycastClosestHit(world.terrain, query)) {
-            val position0 = query.result.positionWS
-            val position = Vector3d(position0)
-            val hitDistance = query.result.distance
-            val streetThickness = 4.8
-            val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
-            val tolerance = max(tolerance10px, streetThickness)
-            // todo snap to tangent, if present
-            // todo snap to certain degrees / distances of the map? definitely must be configurable
-            // snap to other streets, not just their anchor points
-            val bestOnRoad = world.streetSegments
-                .map { it to it.distanceToRay(renderView.cameraPosition, renderView.mouseDirection) }
-                .minByOrNull { it.second }
-            if (bestOnRoad != null && bestOnRoad.second.distance < tolerance) {
-                position.set(bestOnRoad.first.interpolate(bestOnRoad.second.t))
+        if (!Raycast.raycastClosestHit(world.terrain, query)) return null
+        val position0 = query.result.positionWS
+        val position = Vector3d(position0)
+        val hitDistance = query.result.distance
+        val streetThickness = 4.8
+        val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
+        val tolerance = max(tolerance10px, streetThickness)
+        // todo snap to tangent, if present
+        // todo snap to certain degrees / distances of the map? definitely must be configurable
+        // snap to other streets, not just their anchor points
+        val bestOnRoad = world.streetSegments
+            .map { it to it.distanceToRay(renderView.cameraPosition, renderView.mouseDirection) }
+            .minByOrNull { (_, distance) -> distance }
+        if (bestOnRoad != null) {
+            val (bestSegment, bestDistance) = bestOnRoad
+            if (bestDistance.distance < tolerance) {
+                position.set(bestSegment.interpolate(bestDistance.t))
+                if (bestSegment.b != null && i == 0) {
+                    // todo if this is chosen, can we display what we drag differently?
+                    //  would probably make more sense...
+                    // todo also, 0.5 isn't necessarily, where b is closest...
+                    //  can we find the t, where b is closest?
+                    val dt = tolerance / bestSegment.length
+                    if (bestDistance.t in 0.5 - dt..0.5 + dt) {
+                        position.set(bestSegment.b)
+                    }
+                }
             }
-            // if anchor already exists within 10px radius, use that
-            val bestOnAnchor = world.streetSegments
-                .flatMap { listOf(it.a, it.c) }
-                .minByOrNull { it.distanceSquared(position) }
-            if (bestOnAnchor != null && bestOnAnchor.distanceSquared(position) < sq(tolerance)) {
-                position.set(bestOnAnchor)
-            }
-            if (i > 0 && anchor0!!.distance(position) < 5.0) return null
-            if (i > 1 && anchor1!!.distance(position) < 5.0) return null
-            position
-        } else null
+        }
+        // if anchor already exists within 10px radius, use that
+        val bestOnAnchor = world.streetSegments
+            .flatMap { listOf(it.a, it.c) }
+            .minByOrNull { it.distanceSquared(position) }
+        if (bestOnAnchor != null && bestOnAnchor.distanceSquared(position) < sq(tolerance)) {
+            position.set(bestOnAnchor)
+        }
+        if (i > 0 && anchor0!!.distance(position) < 5.0) return null
+        if (i > 1 && anchor1!!.distance(position) < 5.0) return null
+        return position
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {

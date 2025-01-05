@@ -35,6 +35,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.menu.ComplexMenuEntry
 import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.ComplexMenuOption
 import me.anno.ui.base.menu.Menu.menuSeparator1
@@ -508,7 +509,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                                 optionToMenu(parent, options.first(), type)
                             }
                         }
-                        .sortedBy { groupOrder[it.nameDesc.englishName] ?: it.nameDesc.name }
+                        .sortedBy(::getSorting)
                 })
                     .filter { it.isNotEmpty() }
                     .flattenWithSeparator(menuSeparator1.toComplex())
@@ -618,10 +619,24 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             return getMenuGroup(sample)
         }
 
-        val groupOrder = listOf(
-            "Light", "Mesh", "Material",
-            "Text", "SDF", "Collider", "Constraint", "Physics", "Other"
-        ).withIndex().associate { it.value to it.index.toString() }
+        fun getSorting(complexMenuEntry: ComplexMenuEntry): String {
+            return getSorting(complexMenuEntry.nameDesc)
+        }
+
+        private val groupOrder = parseGroupOrder("Light,Mesh,Material,Text,SDF,Collider,Constraint,Physics,Other")
+        private fun getSorting(nameDesc: NameDesc): String {
+            return groupOrder[nameDesc.englishName] ?: nameDesc.name
+        }
+
+        @Suppress("SameParameterValue")
+        private fun parseGroupOrder(groups: String): Map<String, String> {
+            val names = groups.split(',')
+            val dst = HashMap<String, String>()
+            for (i in names.indices) {
+                dst[names[i]] = i.toChar().toString()
+            }
+            return dst
+        }
 
         fun optionToMenu(option: Option, onClicked: (PrefabSaveable) -> Unit): ComplexMenuOption {
             val title = option.nameDesc.name

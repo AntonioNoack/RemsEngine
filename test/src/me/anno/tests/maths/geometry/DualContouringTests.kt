@@ -4,7 +4,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.DualContouring
-import me.anno.maths.geometry.Polygons.getPolygonArea
+import me.anno.maths.geometry.Polygons.getPolygonArea2f
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -28,7 +28,7 @@ class DualContouringTests {
         assertTrue(pts.size.toFloat() in expectedSize..expectedSize * 1.5f)
 
         val expectedArea = sq(r) * PIf // 113.1
-        val actualArea = getPolygonArea(pts) // 112.3
+        val actualArea = getPolygonArea2f(pts) // 112.3
         assertTrue(actualArea in expectedArea * 0.98f..expectedArea * 1.02f)
     }
 }

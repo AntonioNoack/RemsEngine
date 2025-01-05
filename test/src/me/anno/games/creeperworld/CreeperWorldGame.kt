@@ -4,6 +4,10 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
+import me.anno.games.creeperworld.RockTypes.dissolved
+import me.anno.games.creeperworld.RockTypes.hardness
+import me.anno.games.creeperworld.RockTypes.rock
+import me.anno.games.creeperworld.RockTypes.stone
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -15,10 +19,6 @@ import me.anno.input.Key
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
-import me.anno.games.creeperworld.RockTypes.dissolved
-import me.anno.games.creeperworld.RockTypes.hardness
-import me.anno.games.creeperworld.RockTypes.rock
-import me.anno.games.creeperworld.RockTypes.stone
 import me.anno.tests.physics.fluid.RWState
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
@@ -211,9 +211,14 @@ fun main() {
 
             override fun shallMoveMap() = Input.isRightDown
 
+            override fun onUpdate() {
+                super.onUpdate()
+                updateIfNeeded()
+                invalidateDrawing()
+            }
+
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
-                updateIfNeeded()
                 drawWorldTexture()
                 drawFluidAtCursor()
                 drawFluidTotals()

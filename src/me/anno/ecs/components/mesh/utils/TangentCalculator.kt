@@ -154,32 +154,32 @@ object TangentCalculator {
     @JvmStatic
     private fun computeTangentsNonIndexed(
         positions: FloatArray, normals: FloatArray,
-        dst: FloatArray, uvs: FloatArray
+        tangents: FloatArray, uvs: FloatArray
     ) {
-        dst.fill(0f) // in the future we could keep old values, probably not worth the effort
-        val size = min(positions.size / 9, uvs.size / 6)
+        tangents.fill(0f) // in the future we could keep old values, probably not worth the effort
+        val numTriangles = min(min(positions.size / 9, uvs.size / 6), min(normals.size / 9, tangents.size / 12))
         val n = Vector3f()
         val s = Vector3f()
         val t = Vector3f()
-        for (k in 0 until size) {
+        for (k in 0 until numTriangles) {
 
             val i = k * 3
             val i3 = i * 3
             val i4 = i shl 2
 
-            val needsUpdate = !NormalCalculator.isNormalValid(dst, i4) ||
-                    !NormalCalculator.isNormalValid(dst, i4 + 3) ||
-                    !NormalCalculator.isNormalValid(dst, i4 + 6)
+            val needsUpdate = !NormalCalculator.isNormalValid(tangents, i4) ||
+                    !NormalCalculator.isNormalValid(tangents, i4 + 4) ||
+                    !NormalCalculator.isNormalValid(tangents, i4 + 8)
 
             if (needsUpdate) {
                 // calculate
                 addTriangle(positions, i, i + 1, i + 2, uvs, s, t)
                 n.set(normals, i3)
-                compute(n, s, t, dst, i4)
+                compute(n, s, t, tangents, i4)
                 n.set(normals, i3 + 3)
-                compute(n, s, t, dst, i4 + 4)
+                compute(n, s, t, tangents, i4 + 4)
                 n.set(normals, i3 + 6)
-                compute(n, s, t, dst, i4 + 8)
+                compute(n, s, t, tangents, i4 + 8)
             }
         }
     }

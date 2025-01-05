@@ -882,12 +882,12 @@ open class Vector3d(
     fun findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)
         else dst.set(1.0, 0.0, 0.0)
-        return cross(thirdAxis, dst).normalize()
+        return cross(thirdAxis, dst).safeNormalize()
     }
 
     fun findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
         findSecondAxis(dstY)
-        cross(dstY, dstZ).normalize()
+        cross(dstY, dstZ).safeNormalize()
     }
 
     fun rotateInv(q: Quaternionf, dst: Vector3d = this): Vector3d {

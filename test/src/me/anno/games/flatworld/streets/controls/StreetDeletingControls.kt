@@ -8,11 +8,11 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.pipeline.Pipeline
-import me.anno.input.Key
 import me.anno.games.flatworld.FlatWorld
-import me.anno.games.flatworld.streets.StreetSegment
 import me.anno.games.flatworld.streets.StreetMeshBuilder
+import me.anno.games.flatworld.streets.StreetSegment
+import me.anno.gpu.pipeline.Pipeline
+import me.anno.input.Input
 import me.anno.ui.UIColors
 import kotlin.math.max
 
@@ -78,11 +78,15 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         }
     }
 
+    // todo drag to delete a t-range
+    // todo different move to delete whole street segments only
+
     // todo highlight end-caps/crossings, if they're selected
     val selected = ArrayList<ToBeDeleted>()
 
-    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-        if (button == Key.BUTTON_LEFT) deleteSelected()
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        if (Input.isLeftDown) deleteSelected()
+        else super.onMouseMoved(x, y, dx, dy)
     }
 
     fun deleteSelected() {

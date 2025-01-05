@@ -14,7 +14,6 @@ import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
-import me.anno.engine.ui.ECSTreeView.Companion.groupOrder
 import me.anno.engine.ui.ECSTreeView.Companion.optionToMenu
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
@@ -244,7 +243,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                                     optionToMenu(options.first(), ::onChoseType)
                                 }
                             }
-                            .sortedBy { groupOrder[it.nameDesc.englishName] ?: it.nameDesc.name }
+                            .sortedBy(ECSTreeView::getSorting)
                     )
                 }
             })

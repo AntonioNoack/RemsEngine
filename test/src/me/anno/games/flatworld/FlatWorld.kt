@@ -29,6 +29,8 @@ class FlatWorld : NamedSaveable() {
     //  - for pathing: no abrupt rotation
 
     val streetSegments = HashSet<StreetSegment>()
+    val intersections = HashMap<Vector3d, Intersection>()
+
     val buildingInstances = HashSet<Building>()
 
     override fun save(writer: BaseWriter) {
@@ -47,12 +49,16 @@ class FlatWorld : NamedSaveable() {
                 }
             }
             /*"buildingInstances" -> {
+                if (value !is List<*>) return
+                for (v in value) {
+                    v as? Building ?: continue
+
+                }
             }*/
             else -> super.setProperty(name, value)
         }
     }
 
-    val intersections = HashMap<Vector3d, Intersection>()
     private val dirtyStreets = HashSet<StreetSegment>()
     private val dirtyIntersections = HashSet<Intersection>()
 

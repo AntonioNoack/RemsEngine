@@ -21,12 +21,12 @@ object IntersectionMeshBuilder {
         return 1.0 - getT0(segmentLength, closeIntersection, farIntersection)
     }
 
-    fun createIntersection(intersection: Intersection, world: FlatWorld, streetMesh: Mesh) {
+    fun createIntersection(intersection: Intersection, world: FlatWorld, dstMesh: Mesh) {
         // create a mesh
         val position = intersection.segments.first().a
         val entity = Entity()
         entity.transform.localPosition = position
-        entity.transform.teleportUpdate()
+        entity.transform.validate()
         val crossing = SplineCrossing()
         entity.add(crossing)
         for (segment in intersection.segments) {
@@ -41,9 +41,9 @@ object IntersectionMeshBuilder {
                 .setPosition(posI.x - position.x, posI.y - position.y, posI.z - position.z)
                 .setRotation(0.0, ry, 0.0)
                 .add(pt)
-            child.transform.teleportUpdate()
+            child.transform.validate()
         }
-        crossing.generateMesh(streetMesh)
-        streetMesh.invalidateGeometry()
+        crossing.generateMesh(dstMesh)
+        dstMesh.invalidateGeometry()
     }
 }

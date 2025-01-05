@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
 import me.anno.maths.Maths.posMod
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.white
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d
@@ -101,14 +102,38 @@ class SplineCrossing : ProceduralMesh() {
         }
     }
 
+    private fun isCorrectOrder(p: SplineControlPoint): Boolean {
+        val tmp = JomlPools.vec3d.create()
+        val tmp2 = JomlPools.vec3d.create()
+        val correct = p.getLocalPosition(tmp, 0.0).dot(p.getLocalForward(tmp2)) > 0.0
+        JomlPools.vec3d.sub(2)
+        return correct
+    }
+
+    private fun createPoint(p: SplineControlPoint, flip: Boolean): SplineControlPoint {
+        val clone = p.clone() as SplineControlPoint
+        val cloneEntity = Entity()
+        // rotate 180° if looking wrong direction (can be found using its spline, or atan2)
+        // rotate 180° * f
+        // copy transform
+        val correct = isCorrectOrder(p)
+        val angle = (correct.toInt() + flip.toInt() + useRight.toInt()) * PI
+        val pt = p.entity!!.transform
+        val ct = cloneEntity.transform
+        ct.localPosition = pt.localPosition
+        // y might be(come) incorrect...
+        ct.localRotation = pt.localRotation.rotateY(angle, ct.localRotation)
+        ct.localScale = pt.localScale
+        ct.validate()
+        cloneEntity.add(clone)
+        return clone
+    }
+
     private fun generateMeshN(mesh: Mesh, streets0: List<SplineControlPoint>) {
         var streets = streets0
 
         // consists of the main area (middle segment), and then, given by the profile,
         // outer paths can be implemented using half profiles
-
-        val tmp = Vector3d()
-        val tmp2 = Vector3d()
 
         // auto sort by angle
         if (autoSort) {
@@ -117,25 +142,6 @@ class SplineCrossing : ProceduralMesh() {
 
         val meshes = ArrayList<Mesh>()
         val centerPoints = ArrayList<Vector3d>()
-
-        fun createPoint(p: SplineControlPoint, flip: Boolean): SplineControlPoint {
-            val clone = p.clone() as SplineControlPoint
-            val cloneEntity = Entity()
-            // rotate 180° if looking wrong direction (can be found using its spline, or atan2)
-            // rotate 180° * f
-            // copy transform
-            val correct = p.getLocalPosition(tmp, 0.0).dot(p.getLocalForward(tmp2)) > 0.0
-            val angle = (correct.toInt() + flip.toInt() + useRight.toInt()) * PI
-            val pe = p.entity!!
-            cloneEntity.transform.localPosition = pe.transform.localPosition
-            cloneEntity.rotation = cloneEntity.rotation
-                .set(pe.rotation)
-                .rotateY(angle) // correct coordinate system?
-            cloneEntity.transform.localScale = cloneEntity.transform.localScale
-            cloneEntity.validateTransform()
-            cloneEntity.add(clone)
-            return clone
-        }
 
         for (index in streets.indices) {
             val s0 = streets[index]
@@ -174,6 +180,7 @@ class SplineCrossing : ProceduralMesh() {
             val triangulation = Triangulation
                 .ringToTrianglesVec3d(centerPoints)
 
+
             // find central color
             // interpolation won't work -> use single color
             val profile = streets.first().profile
@@ -188,7 +195,9 @@ class SplineCrossing : ProceduralMesh() {
             if (coverTop) {
                 // raise all points up
                 // todo find points on upper railing
-                for (p in centerPoints) p.add(0f, topY, 0f)
+                for (p in centerPoints) {
+                    p.add(0f, topY, 0f)
+                }
                 meshes.add(triangleListToMesh(triangulation, Vector3d(0.0, 1.0, 0.0), topColor))
                 /*if (coverBottom) {
                     tmp3.set(yAxis).mul(bottomY - topY)

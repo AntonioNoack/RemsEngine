@@ -15,11 +15,11 @@ import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.input.controller.Controller
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
@@ -791,5 +791,16 @@ object Input {
     fun wasKeyReleased(key: String): Boolean {
         val keyCode = KeyCombination.keyMapping[key] ?: return false
         return wasKeyReleased(keyCode)
+    }
+
+    @Suppress("unused")
+    fun getDownTimeNanos(key: Key): Long {
+        val downTimeNanos = keysDown[key] ?: return -1L
+        return downTimeNanos - nanoTime
+    }
+
+    @Suppress("unused")
+    fun getDownTimeMillis(key: Key): Long {
+        return getDownTimeNanos(key) / MILLIS_TO_NANOS
     }
 }

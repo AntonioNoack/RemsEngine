@@ -158,9 +158,10 @@ object ActionManager : StringMap() {
 
     @JvmStatic
     fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
+        val nowTime = Time.nanoTime
         for ((key, downTime) in Input.keysDown) {
             onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.PRESSING)
-            val deltaTime = (Time.nanoTime - downTime) * 1e-9f
+            val deltaTime = (nowTime - downTime) * 1e-9f
             val wasWaiting = deltaTime >= keyDragDelay
             val mouseMoved = Input.mouseMovementSinceMouseDown > minDragDistance
             val isDragging = if (enableQuickDragging) {
