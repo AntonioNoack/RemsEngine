@@ -1,4 +1,4 @@
-package me.anno.image.tar
+package me.anno.image.tga
 
 import me.anno.image.raw.ByteImage
 import me.anno.io.Streams.readBE16

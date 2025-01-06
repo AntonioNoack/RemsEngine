@@ -17,12 +17,15 @@ object DepthTransforms {
             "#ifndef RAW_TO_DEPTH\n" +
             "#define RAW_TO_DEPTH\n" +
             "float rawToDepth(float rawDepth){\n" +
-            "   if(d_near < 0.0) return rawDepth;\n" +  // orthographic
+            // todo depth is offset... why???
+            // for now, this is correct, confirmed by DEPTH_TEST
+            "   if(d_near < 0.0) return rawDepth * 2.0 - 1.0;\n" +  // orthographic
             "   if(reverseDepth) return d_near / max(rawDepth, 0.0);\n" + // perspective, reverse-depth
             "   else             return d_near / max(1.0 - rawDepth, 0.0);\n" + // perspective, normal depth
             "}\n" +
             "float depthToRaw(float depth){\n" +
-            "   if(d_near < 0.0) return depth;\n" +  // orthographic
+            // todo depth is offset... why???
+            "   if(d_near < 0.0) return depth * 0.5 + 0.5;\n" +  // orthographic
             "   if(reverseDepth) return d_near / max(depth, 0.0);\n" + // perspective, reverse-depth
             "   else      return 1.0 - (d_near / max(depth, 0.0));\n" + // perspective, normal depth
             "}\n" +

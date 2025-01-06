@@ -1,7 +1,7 @@
-package me.anno.tests.image
+package me.anno.tests.image.tga
 
 import me.anno.image.raw.ByteImage
-import me.anno.image.tar.TGAReader
+import me.anno.image.tga.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager

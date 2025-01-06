@@ -11,6 +11,7 @@ object Polygons {
 
     // surely, we have this implemented already somewhere, find it
     // -> only an ugly version in EarCut operating on FloatArray
+    @JvmStatic
     fun getPolygonArea2f(points: List<Vector2f>): Float {
         var sum = 0f
         for (j in points.indices) {

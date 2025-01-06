@@ -1,7 +1,6 @@
 package me.anno.sdf
 
 import me.anno.Build
-import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -1141,13 +1140,15 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
 
         fun defineUniform(uniforms: HashMap<String, TypeValue>, value: Any): String {
             val type = when (value) {
+                is Float -> GLSLType.V1F
+                is Int -> GLSLType.V1I
                 is Vector2f -> GLSLType.V2F
                 is Vector2i -> GLSLType.V2I
                 is Vector3f -> GLSLType.V3F
                 is Vector3i -> GLSLType.V3I
                 is Vector4f, is Quaternionf, is Planef -> GLSLType.V4F
                 is Vector4i -> GLSLType.V4I
-                else -> throw IllegalArgumentException("Unknown type, use defineUniforms(uniforms, type, value) instead!")
+                else -> throw IllegalArgumentException("Unknown type '${value::class}', use defineUniforms(uniforms, type, value) instead!")
             }
             return defineUniform(uniforms, type, value)
         }

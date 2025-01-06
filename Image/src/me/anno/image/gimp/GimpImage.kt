@@ -335,12 +335,18 @@ class GimpImage {
 
     private fun readString(data: ByteBuffer): String {
         val size = data.int - 1
-        if (size == 0) return ""
-        val tmp = ByteArray(size)
-        data.get(tmp)
-        val str = tmp.decodeToString()
-        data.get() // \0
-        return str
+        return if (size < 0) {
+            "" // shouldn't happen
+        } else if (size == 0) {
+            data.get() // \0
+            ""
+        } else {
+            val tmp = ByteArray(size)
+            data.get(tmp)
+            val str = tmp.decodeToString()
+            data.get() // \0
+            str
+        }
     }
 
     private fun loadLayer(data: ByteBuffer): Any? {
@@ -672,6 +678,7 @@ class GimpImage {
             loadProp(data)
             val position = data.position()
             when (propType) {
+                PropertyType.END -> break
                 PropertyType.OPACITY -> channel.opacity = data.int / 255f
                 PropertyType.FLOAT_OPACITY -> channel.opacity = data.float
                 PropertyType.COLOR_TAG -> channel.colorTag = data.int

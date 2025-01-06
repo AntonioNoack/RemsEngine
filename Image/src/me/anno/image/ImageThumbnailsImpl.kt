@@ -9,7 +9,7 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.svg.DrawSVGs
 import me.anno.image.svg.SVGMeshCache
-import me.anno.image.tar.TGAReader
+import me.anno.image.tga.TGAReader
 import me.anno.image.thumbs.ImageThumbnails.generateImage
 import me.anno.image.thumbs.Thumbs
 import me.anno.image.thumbs.ThumbsRendering

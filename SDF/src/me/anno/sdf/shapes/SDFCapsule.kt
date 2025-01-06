@@ -2,6 +2,7 @@ package me.anno.sdf.shapes
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
@@ -59,13 +60,13 @@ open class SDFCapsule : SDFShape() {
         smartMinBegin(builder, dstIndex)
         builder.append("sdCapsule(pos").append(trans.posIndex).append(',')
         val dynamicSize = dynamicSize || globalDynamic
-        if (dynamicSize) builder.appendUniform(uniforms, p0)
+        if (dynamicSize) builder.appendUniform(uniforms, GLSLType.V3F, p0)
         else builder.appendVec(p0)
         builder.append(',')
-        if (dynamicSize) builder.appendUniform(uniforms, p1)
+        if (dynamicSize) builder.appendUniform(uniforms, GLSLType.V3F, p1)
         else builder.appendVec(p1)
         builder.append(',')
-        if (dynamicSize) builder.appendUniform(uniforms) { radius }
+        if (dynamicSize) builder.appendUniform(uniforms, GLSLType.V1F) { radius }
         else builder.append(radius)
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)

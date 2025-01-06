@@ -8,7 +8,7 @@ import me.anno.image.jpg.ExifOrientation
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.qoi.QOIReader
 import me.anno.image.svg.SVGMesh
-import me.anno.image.tar.TGAReader
+import me.anno.image.tga.TGAReader
 import me.anno.image.thumbs.ImageThumbnails
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.MediaMetadata

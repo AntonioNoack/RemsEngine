@@ -32,6 +32,7 @@ object Defaults {
     fun getDefaultValue(type: String): Any? {
         if (type.endsWith("?")) return null
         return when (type) {
+            "Bool", "Boolean" -> false
             "Byte" -> 0.toByte()
             "Short" -> 0.toShort()
             "Char" -> ' '
