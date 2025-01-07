@@ -589,7 +589,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         entityBaseClickId = pipeline.lastClickId
     }
 
-    private val inverseDepth get() = renderMode == RenderMode.INVERSE_DEPTH
+    private val inverseDepth
+        get() = renderMode == RenderMode.INVERSE_DEPTH
 
     val depthMode: DepthMode
         get() {

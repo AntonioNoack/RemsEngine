@@ -2,6 +2,14 @@ package me.anno.utils.types
 
 object Ints {
 
+    fun Int.isPowerOf2(): Boolean {
+        return this.and(this - 1) == 0
+    }
+
+    fun Long.isPowerOf2(): Boolean {
+        return this.and(this - 1) == 0L
+    }
+
     @JvmStatic
     fun CharSequence?.toIntOrDefault(default: Int): Int {
         val v = toLongOrDefault(default.toLong())

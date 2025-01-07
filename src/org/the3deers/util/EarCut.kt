@@ -15,42 +15,7 @@ object EarCut {
 
     @JvmStatic
     fun earcut(data: DoubleArray, dim: Int): IntArrayList? {
-
-        val outerLen = data.size
-        val outerNode = linkedList(data, 0, outerLen, dim, true)
-        if (outerNode == null || outerNode.next === outerNode.prev) return null
-        val triangles = IntArrayList(max(data.size, 16))
-        var minX = 0.0
-        var minY = 0.0
-        var maxX: Double
-        var maxY: Double
-        var x: Double
-        var y: Double
-        var invSize = 0.0
-
-        // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
-        if (data.size > 80 * dim) {
-            maxX = data[0]
-            minX = maxX
-            maxY = data[1]
-            minY = maxY
-            var i = dim
-            while (i < outerLen) {
-                x = data[i]
-                y = data[i + 1]
-                if (x < minX) minX = x
-                if (y < minY) minY = y
-                if (x > maxX) maxX = x
-                if (y > maxY) maxY = y
-                i += dim
-            }
-
-            // minX, minY and invSize are later used to transform coords into integers for z-order calculation
-            invSize = max(maxX - minX, maxY - minY)
-            invSize = if (invSize != 0.0) 1f / invSize else 0.0
-        }
-        earcutLinked(outerNode, triangles, dim, minX, minY, invSize, 0)
-        return triangles
+        return earcut(data, null, dim)
     }
 
     @JvmStatic

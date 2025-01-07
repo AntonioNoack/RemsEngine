@@ -116,6 +116,22 @@ fun assertEquals(
 }
 
 fun assertEquals(
+    expected: Long, actual: Long, absoluteThreshold: Long,
+    message: String = "expected equal values"
+) {
+    assertTrue(abs(expected - actual) <= absoluteThreshold) {
+        "$message, |$expected - $actual| > $absoluteThreshold"
+    }
+}
+
+fun assertEquals(
+    expected: Int, actual: Int, absoluteThreshold: Int,
+    message: String = "expected equal values"
+) {
+    assertEquals(expected.toLong(), actual.toLong(), absoluteThreshold.toLong(), message)
+}
+
+fun assertEquals(
     expected: Float, actual: Float, absoluteThreshold: Float,
     message: String = "expected equal values"
 ) {
