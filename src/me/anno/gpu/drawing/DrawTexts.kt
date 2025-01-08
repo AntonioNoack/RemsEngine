@@ -599,7 +599,7 @@ object DrawTexts {
     }
 
     fun getOffset(size: Int, alignment: AxisAlignment): Int {
-        return alignment.getOffset(0, size)
+        return alignment.getOffset(0, size - 1)
     }
 
     fun drawText(

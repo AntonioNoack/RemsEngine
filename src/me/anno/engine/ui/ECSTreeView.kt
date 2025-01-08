@@ -51,11 +51,14 @@ import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
 import me.anno.utils.structures.lists.Lists.wrapWith
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
+import java.util.WeakHashMap
 
 open class ECSTreeView(style: Style) : TreeView<Saveable>(
     ECSFileImporter as FileContentImporter<Saveable>,
@@ -331,6 +334,33 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         }
     }
 
+    private val isOursFlag = 1
+    private val isPrefabFlag = 2
+
+    private val isDirectPrefabCache = WeakHashMap<PrefabSaveable, Int>()
+
+    private fun getOursPrefabState(element: PrefabSaveable): Int {
+        return isDirectPrefabCache.getOrPut(element) {
+            calcOursPrefabState(element)
+        }
+    }
+
+    private fun calcOursPrefabState(element: PrefabSaveable): Int {
+        val prefab = element.prefab
+        val path = element.prefabPath
+        var result = 0
+        if (prefab != null && path != Path.ROOT_PATH) {
+            val add = prefab.findCAdd(path)
+            val isOurs = add != null && add.prefab == InvalidRef
+            result += isOurs.toInt()
+            if (!isOurs) {
+                val isPrefab = add != null
+                result += isPrefab.toInt(2)
+            }
+        }
+        return result
+    }
+
     override fun getLocalColor(element: Saveable, isHovered: Boolean, isInFocus: Boolean): Int {
 
         val isInFocus2 = isInFocus || (element is PrefabSaveable && element in EditorState.selection)
@@ -345,19 +375,15 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
         // check if it is a direct prefab, ours, or inside a prefab
         if (element is PrefabSaveable) {
-            val prefab = element.prefab
-            val path = element.prefabPath
-            if (prefab != null && path != Path.ROOT_PATH) {
-                val add = prefab.findCAdd(path)
-                val isOurs = add != null && add.prefab == InvalidRef
-                if (!isOurs) {
-                    val isPrefab = add != null
-                    var blueIntensity = if (isPrefab) 1f else 0.6f
-                    if (isInFocus2 || isIndirectlyInFocus) {
-                        blueIntensity *= 0.5f
-                    }
-                    color = mixARGB2(color, 0x3160f7, blueIntensity * 0.6f)
+            val state = getOursPrefabState(element)
+            val isOurs = state.hasFlag(isOursFlag)
+            if (!isOurs) {
+                val isPrefab = state.hasFlag(isPrefabFlag)
+                var blueIntensity = if (isPrefab) 1f else 0.6f
+                if (isInFocus2 || isIndirectlyInFocus) {
+                    blueIntensity *= 0.5f
                 }
+                color = mixARGB2(color, 0x3160f7, blueIntensity * 0.6f)
             }
         }
 

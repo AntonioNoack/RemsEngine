@@ -43,12 +43,12 @@ fun main() {
             val x = (random.nextFloat() - 0.5f) * r
             val y = (random.nextFloat() - 0.5f) * r
             val z = (random.nextFloat() - 0.5f) * r
-            val child = Entity(entity)
-            child.setPosition(x, y, z)
             val comp = MeshComponent(mesh)
             comp.materials = materials.random()
             comp.isInstanced = false // for testing
-            child.add(comp)
+            val child = Entity(entity)
+                .setPosition(x, y, z)
+                .add(comp)
             create(child, mi - 1)
         }
     }
