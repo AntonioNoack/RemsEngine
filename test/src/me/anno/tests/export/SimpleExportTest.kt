@@ -47,7 +47,7 @@ class SimpleExportTest {
         // optimization
         settings.excludedModules.addAll(
             ("Network,OpenXR,PDF,SDF,Recast,Image,Lua," +
-                    "Bullet,BulletJME,Box2d,Export,test,Tests,Unpack,Video")
+                    "Bullet,Box2d,Export,test,Tests,Unpack,Video")
                 .split(',')
         )
         settings.gameTitle = "SimpleExportTest"

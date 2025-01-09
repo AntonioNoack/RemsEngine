@@ -1,4 +1,0 @@
-mod-name: Bullet JME Integration
-authors: Antonio Noack
-description: 3d physics simulation
-main-class: me.anno.bulletjme.BulletJMEMod

@@ -695,7 +695,9 @@ class HexagonSphere(
         val a = vertices[ai]
         val b = vertices[bi]
         val c = vertices[ci]
-        Vector3f(a).add(b).add(c).div(3f).normalize()
+        Vector3f(a).add(b).add(c)
+            // .div(3f) // can be skipped
+            .normalize()
     }
 
     val triangles = createArrayList(20) { i ->

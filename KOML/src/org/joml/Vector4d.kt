@@ -46,83 +46,47 @@ open class Vector4d(
     operator fun component4() = w
 
     fun set(v: Vector4d): Vector4d {
-        x = v.x
-        y = v.y
-        z = v.z
-        w = v.w
-        return this
+        return set(v.x, v.y, v.z, v.w)
     }
 
     fun set(v: Vector4f): Vector4d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        w = v.w.toDouble()
-        return this
+        return set(v.x, v.y, v.z, v.w)
     }
 
     fun set(v: Vector4i): Vector4d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        w = v.w.toDouble()
-        return this
+        return set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
     }
 
     fun set(v: Vector3d, w: Double): Vector4d {
-        x = v.x
-        y = v.y
-        z = v.z
-        this.w = w
-        return this
+        return set(v.x, v.y, v.z, w)
     }
 
     fun set(v: Vector3i, w: Double): Vector4d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        this.w = w
-        return this
+        return set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
     }
 
     fun set(v: Vector3f, w: Double): Vector4d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        this.w = w
-        return this
+        return set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
     }
 
     fun set(v: Vector2d, z: Double, w: Double): Vector4d {
-        x = v.x
-        y = v.y
-        this.z = z
-        this.w = w
-        return this
+        return set(v.x, v.y, z, w)
     }
 
     fun set(v: Vector2i, z: Double, w: Double): Vector4d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
-        this.w = w
-        return this
+        return set(v.x.toDouble(), v.y.toDouble(), z, w)
     }
 
     fun set(d: Double): Vector4d {
-        x = d
-        y = d
-        z = d
-        w = d
-        return this
+        return set(d, d, d, d)
     }
 
     fun set(v: Vector2f, z: Double, w: Double): Vector4d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
-        this.w = w
-        return this
+        return set(v.x.toDouble(), v.y.toDouble(), z, w)
+    }
+
+    fun set(x: Float, y: Float, z: Float, w: Float): Vector4d {
+        return set(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
     }
 
     fun set(x: Double, y: Double, z: Double, w: Double): Vector4d {
@@ -140,20 +104,12 @@ open class Vector4d(
         return this
     }
 
-    fun set(xyzw: DoubleArray): Vector4d {
-        x = xyzw[0]
-        y = xyzw[1]
-        z = xyzw[2]
-        w = xyzw[3]
-        return this
+    fun set(xyzw: DoubleArray, offset: Int = 0): Vector4d {
+        return set(xyzw[offset], xyzw[offset + 1], xyzw[offset + 2], xyzw[offset + 3])
     }
 
-    fun set(xyzw: FloatArray): Vector4d {
-        x = xyzw[0].toDouble()
-        y = xyzw[1].toDouble()
-        z = xyzw[2].toDouble()
-        w = xyzw[3].toDouble()
-        return this
+    fun set(xyzw: FloatArray, offset: Int = 0): Vector4d {
+        return set(xyzw[offset], xyzw[offset + 1], xyzw[offset + 2], xyzw[offset + 3])
     }
 
     operator fun set(component: Int, value: Double) = setComp(component, value)
@@ -167,47 +123,18 @@ open class Vector4d(
         return this
     }
 
-    fun sub(v: Vector4d): Vector4d {
-        x -= v.x
-        y -= v.y
-        z -= v.z
-        w -= v.w
-        return this
+    @JvmOverloads
+    fun sub(v: Vector4d, dst: Vector4d = this): Vector4d {
+        return sub(v.x, v.y, v.z, v.w, dst)
     }
 
-    fun sub(v: Vector4d, dst: Vector4d): Vector4d {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        dst.w = w - v.w
-        return dst
+    @JvmOverloads
+    fun sub(v: Vector4f, dst: Vector4d = this): Vector4d {
+        return sub(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble(), dst)
     }
 
-    fun sub(v: Vector4f): Vector4d {
-        x -= v.x.toDouble()
-        y -= v.y.toDouble()
-        z -= v.z.toDouble()
-        w -= v.w.toDouble()
-        return this
-    }
-
-    fun sub(v: Vector4f, dst: Vector4d): Vector4d {
-        dst.x = x - v.x.toDouble()
-        dst.y = y - v.y.toDouble()
-        dst.z = z - v.z.toDouble()
-        dst.w = w - v.w.toDouble()
-        return dst
-    }
-
-    fun sub(x: Double, y: Double, z: Double, w: Double): Vector4d {
-        this.x -= x
-        this.y -= y
-        this.z -= z
-        this.w -= w
-        return this
-    }
-
-    fun sub(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun sub(x: Double, y: Double, z: Double, w: Double, dst: Vector4d = this): Vector4d {
         dst.x = this.x - x
         dst.y = this.y - y
         dst.z = this.z - z
@@ -215,39 +142,18 @@ open class Vector4d(
         return dst
     }
 
-    fun add(v: Vector4d): Vector4d {
-        x += v.x
-        y += v.y
-        z += v.z
-        w += v.w
-        return this
+    @JvmOverloads
+    fun add(v: Vector4d, dst: Vector4d = this): Vector4d {
+        return add(v.x, v.y, v.z, v.w, dst)
     }
 
-    fun add(v: Vector4d, dst: Vector4d): Vector4d {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        dst.w = w + v.w
-        return dst
+    @JvmOverloads
+    fun add(v: Vector4f, dst: Vector4d = this): Vector4d {
+        return add(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble(), dst)
     }
 
-    fun add(v: Vector4f, dst: Vector4d): Vector4d {
-        dst.x = x + v.x.toDouble()
-        dst.y = y + v.y.toDouble()
-        dst.z = z + v.z.toDouble()
-        dst.w = w + v.w.toDouble()
-        return dst
-    }
-
-    fun add(x: Double, y: Double, z: Double, w: Double): Vector4d {
-        this.x += x
-        this.y += y
-        this.z += z
-        this.w += w
-        return this
-    }
-
-    fun add(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun add(x: Double, y: Double, z: Double, w: Double, dst: Vector4d = this): Vector4d {
         dst.x = this.x + x
         dst.y = this.y + y
         dst.z = this.z + z
@@ -255,31 +161,8 @@ open class Vector4d(
         return dst
     }
 
-    fun add(v: Vector4f): Vector4d {
-        x += v.x.toDouble()
-        y += v.y.toDouble()
-        z += v.z.toDouble()
-        w += v.w.toDouble()
-        return this
-    }
-
-    fun fma(a: Vector4d, b: Vector4d): Vector4d {
-        x = a.x * b.x + x
-        y = a.y * b.y + y
-        z = a.z * b.z + z
-        w = a.w * b.w + w
-        return this
-    }
-
-    fun fma(a: Double, b: Vector4d): Vector4d {
-        x = a * b.x + x
-        y = a * b.y + y
-        z = a * b.z + z
-        w = a * b.w + w
-        return this
-    }
-
-    fun fma(a: Vector4d, b: Vector4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun fma(a: Vector4d, b: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = a.x * b.x + x
         dst.y = a.y * b.y + y
         dst.z = a.z * b.z + z
@@ -287,7 +170,8 @@ open class Vector4d(
         return dst
     }
 
-    fun fma(a: Double, b: Vector4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun fma(a: Double, b: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = a * b.x + x
         dst.y = a * b.y + y
         dst.z = a * b.z + z
@@ -295,43 +179,24 @@ open class Vector4d(
         return dst
     }
 
-    fun mulAdd(a: Vector4d, b: Vector4d): Vector4d {
-        x = x * a.x + b.x
-        y = y * a.y + b.y
-        z = z * a.z + b.z
-        return this
-    }
-
-    fun mulAdd(a: Double, b: Vector4d): Vector4d {
-        x = x * a + b.x
-        y = y * a + b.y
-        z = z * a + b.z
-        return this
-    }
-
-    fun mulAdd(a: Vector4d, b: Vector4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mulAdd(a: Vector4d, b: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = x * a.x + b.x
         dst.y = y * a.y + b.y
         dst.z = z * a.z + b.z
         return dst
     }
 
-    fun mulAdd(a: Double, b: Vector4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mulAdd(a: Double, b: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = x * a + b.x
         dst.y = y * a + b.y
         dst.z = z * a + b.z
         return dst
     }
 
-    fun mul(v: Vector4d): Vector4d {
-        x *= v.x
-        y *= v.y
-        z *= v.z
-        w *= v.w
-        return this
-    }
-
-    fun mul(v: Vector4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(v: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = x * v.x
         dst.y = y * v.y
         dst.z = z * v.z
@@ -339,15 +204,8 @@ open class Vector4d(
         return dst
     }
 
-    fun div(v: Vector4d): Vector4d {
-        x /= v.x
-        y /= v.y
-        z /= v.z
-        w /= v.w
-        return this
-    }
-
-    fun div(v: Vector4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun div(v: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = x / v.x
         dst.y = y / v.y
         dst.z = z / v.z
@@ -355,15 +213,8 @@ open class Vector4d(
         return dst
     }
 
-    fun mul(v: Vector4f): Vector4d {
-        x *= v.x.toDouble()
-        y *= v.y.toDouble()
-        z *= v.z.toDouble()
-        w *= v.w.toDouble()
-        return this
-    }
-
-    fun mul(v: Vector4f, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(v: Vector4f, dst: Vector4d = this): Vector4d {
         dst.x = x * v.x.toDouble()
         dst.y = y * v.y.toDouble()
         dst.z = z * v.z.toDouble()
@@ -371,19 +222,13 @@ open class Vector4d(
         return dst
     }
 
-    fun mul(mat: Matrix4d): Vector4d {
-        return if (mat.properties() and 2 != 0) this.mulAffine(mat, this) else this.mulGeneric(mat, this)
-    }
-
-    fun mul(mat: Matrix4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(mat: Matrix4d, dst: Vector4d = this): Vector4d {
         return if (mat.properties() and 2 != 0) this.mulAffine(mat, dst) else this.mulGeneric(mat, dst)
     }
 
-    fun mulTranspose(mat: Matrix4d): Vector4d {
-        return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, this) else mulGenericTranspose(mat, this)
-    }
-
-    fun mulTranspose(mat: Matrix4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mulTranspose(mat: Matrix4d, dst: Vector4d = this): Vector4d {
         return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dst) else mulGenericTranspose(mat, dst)
     }
 
@@ -434,17 +279,8 @@ open class Vector4d(
         return dst
     }
 
-    fun mul(mat: Matrix4x3d): Vector4d {
-        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
-        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
-        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
-        x = rx
-        y = ry
-        z = rz
-        return this
-    }
-
-    fun mul(mat: Matrix4x3d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(mat: Matrix4x3d, dst: Vector4d = this): Vector4d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
@@ -455,17 +291,8 @@ open class Vector4d(
         return dst
     }
 
-    fun mul(mat: Matrix4x3f): Vector4d {
-        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
-        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
-        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
-        x = rx
-        y = ry
-        z = rz
-        return this
-    }
-
-    fun mul(mat: Matrix4x3f, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(mat: Matrix4x3f, dst: Vector4d = this): Vector4d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
@@ -476,11 +303,8 @@ open class Vector4d(
         return dst
     }
 
-    fun mul(mat: Matrix4f): Vector4d {
-        return if (mat.properties() and 2 != 0) this.mulAffine(mat, this) else this.mulGeneric(mat, this)
-    }
-
-    fun mul(mat: Matrix4f, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(mat: Matrix4f, dst: Vector4d = this): Vector4d {
         return if (mat.properties() and 2 != 0) this.mulAffine(mat, dst) else this.mulGeneric(mat, dst)
     }
 
@@ -542,15 +366,8 @@ open class Vector4d(
         return dst
     }
 
-    fun mul(scalar: Double): Vector4d {
-        x *= scalar
-        y *= scalar
-        z *= scalar
-        w *= scalar
-        return this
-    }
-
-    fun mul(scalar: Double, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mul(scalar: Double, dst: Vector4d = this): Vector4d {
         dst.x = x * scalar
         dst.y = y * scalar
         dst.z = z * scalar
@@ -691,6 +508,8 @@ open class Vector4d(
     }
 
     fun zero(): Vector4d = set(0.0)
+
+    @JvmOverloads
     fun negate(dst: Vector4d = this): Vector4d {
         dst.x = -x
         dst.y = -y
@@ -699,10 +518,12 @@ open class Vector4d(
         return dst
     }
 
+    @JvmOverloads
     fun min(v: Vector4d, dst: Vector4d = this): Vector4d {
         return dst.set(min(x, v.x), min(y, v.y), min(z, v.z), min(w, v.w))
     }
 
+    @JvmOverloads
     fun max(v: Vector4d, dst: Vector4d = this): Vector4d {
         return dst.set(max(x, v.x), max(y, v.y), max(z, v.z), max(w, v.w))
     }
@@ -820,39 +641,23 @@ open class Vector4d(
     }
 
     fun floor(dst: Vector4d = this): Vector4d {
-        dst.x = floor(x)
-        dst.y = floor(y)
-        dst.z = floor(z)
-        dst.w = floor(w)
-        return dst
+        return dst.set(floor(x), floor(y), floor(z), floor(w))
     }
 
     fun ceil(dst: Vector4d = this): Vector4d {
-        dst.x = ceil(x)
-        dst.y = ceil(y)
-        dst.z = ceil(z)
-        dst.w = ceil(w)
-        return dst
+        return dst.set(ceil(x), ceil(y), ceil(z), ceil(w))
     }
 
     fun round(dst: Vector4d = this): Vector4d {
-        dst.x = round(x)
-        dst.y = round(y)
-        dst.z = round(z)
-        dst.w = round(w)
-        return dst
+        return dst.set(round(x), round(y), round(z), round(w))
+    }
+
+    fun absolute(dst: Vector4d = this): Vector4d {
+        return dst.set(abs(x), abs(y), abs(z), abs(w))
     }
 
     val isFinite: Boolean
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
-
-    fun absolute(dst: Vector4d = this): Vector4d {
-        dst.x = abs(x)
-        dst.y = abs(y)
-        dst.z = abs(z)
-        dst.w = abs(w)
-        return dst
-    }
 
     companion object {
 

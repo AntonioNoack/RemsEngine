@@ -4,6 +4,7 @@ import me.anno.maths.geometry.Rasterizer
 import me.anno.tests.maths.DistancesTest.Companion.testAllAxes3f
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.types.Triangles.getTriangleArea
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBf

@@ -82,6 +82,10 @@ class AABBiTests {
         assertEquals(6, tested.getMax(2))
         assertEquals(Vector3i(1, 2, 3), tested.getMin())
         assertEquals(Vector3i(4, 5, 6), tested.getMax())
+        assertEquals(2.5, tested.centerX)
+        assertEquals(3.5, tested.centerY)
+        assertEquals(4.5, tested.centerZ)
+        assertEquals(Vector3i(2, 3, 4), tested.getCenter(Vector3i()))
     }
 
     @Test

@@ -4,6 +4,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBf
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
@@ -81,6 +82,11 @@ class AABBfTests {
         assertEquals(6f, tested.getMax(2))
         assertEquals(Vector3f(1f, 2f, 3f), tested.getMin())
         assertEquals(Vector3f(4f, 5f, 6f), tested.getMax())
+        assertEquals(2.5f, tested.centerX)
+        assertEquals(3.5f, tested.centerY)
+        assertEquals(4.5f, tested.centerZ)
+        assertEquals(Vector3f(2.5f, 3.5f, 4.5f), tested.getCenter(Vector3f()))
+        assertEquals(Vector3d(2.5, 3.5, 4.5), tested.getCenter(Vector3d()))
     }
 
     @Test

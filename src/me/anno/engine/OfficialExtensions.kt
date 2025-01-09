@@ -13,7 +13,6 @@ object OfficialExtensions {
             "pdf-ext.info",
             "box2d-ext.info",
             "bullet-ext.info",
-            "bullet-jme-ext.info",
             "recast-ext.info",
             "sdf-ext.info",
             "lua-ext.info",

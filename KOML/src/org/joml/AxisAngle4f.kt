@@ -11,7 +11,7 @@ class AxisAngle4f(
     @JvmField var x: Float,
     @JvmField var y: Float,
     @JvmField var z: Float
-) {
+) : Vector {
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(a: AxisAngle4f) : this(a.angle, a.x, a.y, a.z)
@@ -171,36 +171,56 @@ class AxisAngle4f(
         )
     }
 
-    operator fun get(q: Quaternionf): Quaternionf {
+    fun get(q: Quaternionf): Quaternionf {
         return q.set(this)
     }
 
-    operator fun get(q: Quaterniond): Quaterniond {
+    fun get(q: Quaterniond): Quaterniond {
         return q.set(this)
     }
 
-    operator fun get(m: Matrix4f): Matrix4f {
+    fun get(m: Matrix4f): Matrix4f {
         return m.set(this)
     }
 
-    operator fun get(m: Matrix3f): Matrix3f {
+    fun get(m: Matrix3f): Matrix3f {
         return m.set(this)
     }
 
-    operator fun get(m: Matrix4d): Matrix4d {
+    fun get(m: Matrix4d): Matrix4d {
         return m.set(this)
     }
 
-    operator fun get(m: Matrix3d): Matrix3d {
+    fun get(m: Matrix3d): Matrix3d {
         return m.set(this)
     }
 
-    operator fun get(dst: AxisAngle4d): AxisAngle4d {
+    fun get(dst: AxisAngle4d): AxisAngle4d {
         return dst.set(this)
     }
 
-    operator fun get(dst: AxisAngle4f): AxisAngle4f {
+    fun get(dst: AxisAngle4f): AxisAngle4f {
         return dst.set(this)
+    }
+
+    override val numComponents: Int get() = 4
+
+    override fun getComp(i: Int): Double {
+        return when (i) {
+            0 -> angle
+            1 -> x
+            2 -> y
+            else -> z
+        }.toDouble()
+    }
+
+    override fun setComp(i: Int, v: Double) {
+        when (i) {
+            0 -> angle = v.toFloat()
+            1 -> x = v.toFloat()
+            2 -> y = v.toFloat()
+            else -> z = v.toFloat()
+        }
     }
 
     fun normalize(): AxisAngle4f {
@@ -250,10 +270,11 @@ class AxisAngle4f(
     private fun posMod(value: Float): Float {
         val a = value.toDouble()
         val tau = PI * 2.0
-        return if (a < 0.0) {
-            (tau + a % tau)
+        val base = a % tau
+        return if (base < 0.0) {
+            (tau + base)
         } else {
-            a % tau
+            base
         }.toFloat()
     }
 

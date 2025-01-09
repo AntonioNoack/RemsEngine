@@ -8,7 +8,6 @@ import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertTrue
 import java.awt.SystemTray
 import java.awt.TrayIcon
-import kotlin.system.exitProcess
 
 /**
  * Just testing a feature in AWT: showing Windows notifications.
@@ -26,5 +25,4 @@ fun main() {
     // none/icon/warn/error
     icon.displayMessage("Lö Title", "You got a message, check it out!", TrayIcon.MessageType.INFO)
     Engine.requestShutdown()
-    exitProcess(0) // todo BulletJME isn't shutting down properly :(
 }

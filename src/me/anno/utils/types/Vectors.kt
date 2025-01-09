@@ -216,6 +216,11 @@ object Vectors {
         return cx * cx + cy * cy + cz * cz
     }
 
+    @JvmStatic
+    fun cross(ax: Float, ay: Float, bx: Float, by: Float): Float {
+        return ax * by - ay * bx
+    }
+
     fun getMaxComponent(x: Double, y: Double): Int = if (y >= x) 1 else 0
     fun getMaxComponent(x: Double, y: Double, z: Double): Int = if (z >= max(x, y)) 2 else getMaxComponent(x, y)
     fun getMaxComponent(x: Double, y: Double, z: Double, w: Double): Int =

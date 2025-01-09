@@ -6,6 +6,7 @@ import me.anno.utils.assertions.assertTrue
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
 class AABBdTests {
@@ -82,6 +83,11 @@ class AABBdTests {
         assertEquals(6.0, tested.getMax(2))
         assertEquals(Vector3d(1.0, 2.0, 3.0), tested.getMin())
         assertEquals(Vector3d(4.0, 5.0, 6.0), tested.getMax())
+        assertEquals(2.5, tested.centerX)
+        assertEquals(3.5, tested.centerY)
+        assertEquals(4.5, tested.centerZ)
+        assertEquals(Vector3d(2.5, 3.5, 4.5), tested.getCenter(Vector3d()))
+        assertEquals(Vector3f(2.5f, 3.5f, 4.5f), tested.getCenter(Vector3f()))
     }
 
     @Test

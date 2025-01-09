@@ -11,7 +11,7 @@ class AxisAngle4d(
     @JvmField var x: Double,
     @JvmField var y: Double,
     @JvmField var z: Double
-) {
+): Vector {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(a: AxisAngle4d) : this(a.angle, a.x, a.y, a.z)
@@ -43,7 +43,6 @@ class AxisAngle4d(
     }
 
     fun set(angle: Double, v: Vector3d): AxisAngle4d = set(angle, v.x, v.y, v.z)
-    fun set(angle: Double, v: Vector3f): AxisAngle4d = set(angle, v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
 
     fun setByQuaternion(qx: Double, qy: Double, qz: Double, qw: Double): AxisAngle4d {
         val acos = JomlMath.safeAcos(qw)
@@ -188,36 +187,56 @@ class AxisAngle4d(
         )
     }
 
-    operator fun get(q: Quaternionf): Quaternionf {
+    fun get(q: Quaternionf): Quaternionf {
         return q.set(this)
     }
 
-    operator fun get(q: Quaterniond): Quaterniond {
+    fun get(q: Quaterniond): Quaterniond {
         return q.set(this)
     }
 
-    operator fun get(m: Matrix4f): Matrix4f {
+    fun get(m: Matrix4f): Matrix4f {
         return m.set(this)
     }
 
-    operator fun get(m: Matrix3f): Matrix3f {
+    fun get(m: Matrix3f): Matrix3f {
         return m.set(this)
     }
 
-    operator fun get(m: Matrix4d): Matrix4d {
+    fun get(m: Matrix4d): Matrix4d {
         return m.set(this)
     }
 
-    operator fun get(m: Matrix3d): Matrix3d {
+    fun get(m: Matrix3d): Matrix3d {
         return m.set(this)
     }
 
-    operator fun get(dst: AxisAngle4d): AxisAngle4d {
+    fun get(dst: AxisAngle4d): AxisAngle4d {
         return dst.set(this)
     }
 
-    operator fun get(dst: AxisAngle4f): AxisAngle4f {
+    fun get(dst: AxisAngle4f): AxisAngle4f {
         return dst.set(this)
+    }
+
+    override val numComponents: Int get() = 4
+
+    override fun getComp(i: Int): Double {
+        return when (i) {
+            0 -> angle
+            1 -> x
+            2 -> y
+            else -> z
+        }
+    }
+
+    override fun setComp(i: Int, v: Double) {
+        when (i) {
+            0 -> angle = v
+            1 -> x = v
+            2 -> y = v
+            else -> z = v
+        }
     }
 
     fun normalize(): AxisAngle4d {

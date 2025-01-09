@@ -73,13 +73,10 @@ open class Vector4f(
     }
 
     fun sub(v: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        dst.w = w - v.w
-        return dst
+        return sub(v.x, v.y, v.z, v.w, dst)
     }
 
+    @JvmOverloads
     fun sub(x: Float, y: Float, z: Float, w: Float, dst: Vector4f = this): Vector4f {
         dst.x = this.x - x
         dst.y = this.y - y
@@ -88,14 +85,12 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun add(v: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        dst.w = w + v.w
-        return dst
+        return add(v.x, v.y, v.z, v.w, dst)
     }
 
+    @JvmOverloads
     fun add(x: Float, y: Float, z: Float, w: Float, dst: Vector4f = this): Vector4f {
         dst.x = this.x + x
         dst.y = this.y + y
@@ -104,6 +99,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun fma(a: Vector4f, b: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = a.x * b.x + x
         dst.y = a.y * b.y + y
@@ -112,6 +108,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun fma(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = a * b.x + x
         dst.y = a * b.y + y
@@ -120,6 +117,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mulAdd(a: Vector4f, b: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = x * a.x + b.x
         dst.y = y * a.y + b.y
@@ -127,6 +125,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mulAdd(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = x * a + b.x
         dst.y = y * a + b.y
@@ -134,6 +133,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mul(v: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = x * v.x
         dst.y = y * v.y
@@ -142,6 +142,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun div(v: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = x / v.x
         dst.y = y / v.y
@@ -150,14 +151,17 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mul(mat: Matrix4f, dst: Vector4f = this): Vector4f {
         return if (mat.properties() and 2 != 0) mulAffine(mat, dst) else mulGeneric(mat, dst)
     }
 
+    @JvmOverloads
     fun mulTranspose(mat: Matrix4f, dst: Vector4f = this): Vector4f {
         return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dst) else mulGenericTranspose(mat, dst)
     }
 
+    @JvmOverloads
     fun mulAffine(mat: Matrix4f, dst: Vector4f = this): Vector4f {
         val x = x
         val y = y
@@ -182,6 +186,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mulAffineTranspose(mat: Matrix4f, dst: Vector4f = this): Vector4f {
         val x = x
         val y = y
@@ -206,6 +211,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mul(mat: Matrix4x3f, dst: Vector4f = this): Vector4f {
         val x = x
         val y = y
@@ -218,6 +224,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mulProject(mat: Matrix4f, dst: Vector4f = this): Vector4f {
         val x = x
         val y = y
@@ -243,6 +250,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mul(scalar: Float, dst: Vector4f = this): Vector4f {
         dst.x = x * scalar
         dst.y = y * scalar
@@ -251,6 +259,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mul(x: Float, y: Float, z: Float, w: Float, dst: Vector4f = this): Vector4f {
         dst.x = this.x * x
         dst.y = this.y * y
@@ -259,7 +268,10 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun div(scalar: Float, dst: Vector4f = this) = mul(1f / scalar, dst)
+
+    @JvmOverloads
     fun div(x: Float, y: Float, z: Float, w: Float, dst: Vector4f = this): Vector4f {
         dst.x = this.x / x
         dst.y = this.y / y
@@ -268,10 +280,12 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun rotate(quat: Quaternionf, dst: Vector4f = this): Vector4f {
         return quat.transform(this, dst)
     }
 
+    @JvmOverloads
     fun rotateInv(q: Quaternionf, dst: Vector4f = this): Vector4f {
         synchronized(q) {
             q.conjugate()
@@ -333,6 +347,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun rotateX(angle: Float, dst: Vector4f = this): Vector4f {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -341,6 +356,7 @@ open class Vector4f(
         return dst.set(x, y, z, w)
     }
 
+    @JvmOverloads
     fun rotateY(angle: Float, dst: Vector4f = this): Vector4f {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -349,6 +365,7 @@ open class Vector4f(
         return dst.set(x, y, z, w)
     }
 
+    @JvmOverloads
     fun rotateZ(angle: Float, dst: Vector4f = this): Vector4f {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -402,6 +419,7 @@ open class Vector4f(
 
     fun zero(): Vector4f = set(0f)
 
+    @JvmOverloads
     fun negate(dst: Vector4f = this): Vector4f {
         dst.x = -x
         dst.y = -y
@@ -414,10 +432,12 @@ open class Vector4f(
         return "($x,$y,$z,$w)"
     }
 
+    @JvmOverloads
     fun min(v: Vector4f, dst: Vector4f = this): Vector4f {
         return dst.set(min(x, v.x), min(y, v.y), min(z, v.z), min(w, v.w))
     }
 
+    @JvmOverloads
     fun max(v: Vector4f, dst: Vector4f = this): Vector4f {
         return dst.set(max(x, v.x), max(y, v.y), max(z, v.z), max(w, v.w))
     }
@@ -446,6 +466,7 @@ open class Vector4f(
         return this.x == x && this.y == y && this.z == z && this.w == w
     }
 
+    @JvmOverloads
     fun smoothStep(v: Vector4f, t: Float, dst: Vector4f = this): Vector4f {
         val t2 = t * t
         val t3 = t2 * t
@@ -460,6 +481,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun hermite(t0: Vector4f, v1: Vector4f, t1: Vector4f, t: Float, dst: Vector4f = this): Vector4f {
         val t2 = t * t
         val t3 = t2 * t
@@ -474,6 +496,7 @@ open class Vector4f(
         return dst
     }
 
+    @JvmOverloads
     fun mix(other: Vector4f, t: Float, dst: Vector4f = this): Vector4f {
         dst.x = (other.x - x) * t + x
         dst.y = (other.y - y) * t + y
@@ -539,39 +562,23 @@ open class Vector4f(
     }
 
     fun floor(dst: Vector4f = this): Vector4f {
-        dst.x = floor(x)
-        dst.y = floor(y)
-        dst.z = floor(z)
-        dst.w = floor(w)
-        return dst
+        return dst.set(floor(x), floor(y), floor(z), floor(w))
     }
 
     fun ceil(dst: Vector4f = this): Vector4f {
-        dst.x = ceil(x)
-        dst.y = ceil(y)
-        dst.z = ceil(z)
-        dst.w = ceil(w)
-        return dst
+        return dst.set(ceil(x), ceil(y), ceil(z), ceil(w))
     }
 
     fun round(dst: Vector4f = this): Vector4f {
-        dst.x = round(x)
-        dst.y = round(y)
-        dst.z = round(z)
-        dst.w = round(w)
-        return dst
+        return dst.set(round(x), round(y), round(z), round(w))
+    }
+
+    fun absolute(dst: Vector4f = this): Vector4f {
+        return dst.set(abs(x), abs(y), abs(z), abs(z))
     }
 
     val isFinite: Boolean
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
-
-    fun absolute(dst: Vector4f = this): Vector4f {
-        dst.x = abs(x)
-        dst.y = abs(y)
-        dst.z = abs(z)
-        dst.w = abs(w)
-        return dst
-    }
 
     operator fun minus(s: Vector4f) = Vector4f(x - s.x, y - s.y, z - s.z, w - s.w)
     operator fun plus(s: Vector4f) = Vector4f(x + s.x, y + s.y, z + s.z, w + s.w)

@@ -261,7 +261,6 @@ Currently extracted modules:
 - PDF (pdf document to image converter)
 - SDF (signed distance functions)
 - Bullet (3d physics)
-- BulletJME (3d physics running in C++ code)
 - Box2d (2d physics)
 - Recast (path finding)
 - Image (image loaders)

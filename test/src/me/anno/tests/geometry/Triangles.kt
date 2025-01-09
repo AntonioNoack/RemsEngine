@@ -2,16 +2,11 @@ package me.anno.tests.geometry
 
 import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageWriter
-import me.anno.maths.Maths
 import me.anno.utils.types.Triangles
 import org.joml.Vector3d
-import org.joml.Vector3f
 
 fun main() {
-
     OfficialExtensions.initForTests()
-
-    testSubCrossDot()
     testTriangleTest()
 }
 
@@ -29,13 +24,4 @@ fun testTriangleTest() {
             ).isFinite()
         ) 0 else -1
     }
-}
-
-fun testSubCrossDot() {
-    val a = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
-    val b = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
-    val c = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
-    val n = Vector3f(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
-    println((b - a).cross(c - a).dot(n))
-    println(Triangles.subCrossDot(a, b, c, n))
 }

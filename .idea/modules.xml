@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Box2d/Box2d.iml" filepath="$PROJECT_DIR$/Box2d/Box2d.iml" />
       <module fileurl="file://$PROJECT_DIR$/Bullet/Bullet.iml" filepath="$PROJECT_DIR$/Bullet/Bullet.iml" />
-      <module fileurl="file://$PROJECT_DIR$/BulletJME/BulletJME.iml" filepath="$PROJECT_DIR$/BulletJME/BulletJME.iml" />
       <module fileurl="file://$PROJECT_DIR$/Engine.iml" filepath="$PROJECT_DIR$/Engine.iml" />
       <module fileurl="file://$PROJECT_DIR$/Export/Export.iml" filepath="$PROJECT_DIR$/Export/Export.iml" />
       <module fileurl="file://$PROJECT_DIR$/Image/Image.iml" filepath="$PROJECT_DIR$/Image/Image.iml" />

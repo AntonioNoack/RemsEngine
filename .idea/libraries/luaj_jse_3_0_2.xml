@@ -3,11 +3,5 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/luaj-jse-3.0.2.jar!/" />
     </CLASSES>
-    <JAVADOC>
-      <root url="jar://$USER_HOME$/Downloads/lib/java/lua/luaj-jse-3.0.1-javadoc.jar!/" />
-    </JAVADOC>
-    <SOURCES>
-      <root url="jar://$USER_HOME$/Downloads/lib/java/lua/luaj-jse-3.0.1-sources.jar!/" />
-    </SOURCES>
   </library>
 </component>

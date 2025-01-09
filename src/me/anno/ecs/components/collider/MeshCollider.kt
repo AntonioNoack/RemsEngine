@@ -20,7 +20,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
-import me.anno.utils.types.Triangles.thirdF
+import me.anno.utils.types.Triangles.ONE_THIRD_F
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
@@ -97,7 +97,7 @@ open class MeshCollider() : Collider() {
             meshTransform.transformPosition(a)
             meshTransform.transformPosition(b)
             meshTransform.transformPosition(c)
-            mid.set(a).add(b).add(c).mul(thirdF)
+            mid.set(a).add(b).add(c).mul(ONE_THIRD_F)
             a.mix(mid, scaleUp)
             b.mix(mid, scaleUp)
             c.mix(mid, scaleUp)
