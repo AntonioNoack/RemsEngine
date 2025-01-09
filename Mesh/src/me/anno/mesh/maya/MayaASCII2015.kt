@@ -181,25 +181,27 @@ object MayaASCII2015 {
                             node = null
                         }
                     }
-                    if (node != null) {
+                    // the newest compiler version is a little buggy
+                    val node1 = node
+                    if (node1 != null) {
                         val name = namedArguments["-n"]
                         if (name != null) {
                             val theName = name.toString()
-                            node.name = theName
-                            namedNodes[theName] = node
+                            node1.name = theName
+                            namedNodes[theName] = node1
                         }
                     }
-                    if (node != null) {
+                    if (node1 != null) {
                         fun link(parentInstance: PrefabSaveable) {
                             when {
-                                parentInstance is Entity && node is Mesh -> {
-                                    parentInstance.add(MeshComponent(node))
+                                parentInstance is Entity && node1 is Mesh -> {
+                                    parentInstance.add(MeshComponent(node1))
                                 }
-                                parentInstance is Entity && (node is Component || node is Entity) -> {
-                                    parentInstance.addChild(node)
+                                parentInstance is Entity && (node1 is Component || node1 is Entity) -> {
+                                    parentInstance.addChild(node1)
                                 }
                                 else -> {
-                                    LOGGER.warn("Unknown relationship ${parentInstance.className} -> ${node.className}")
+                                    LOGGER.warn("Unknown relationship ${parentInstance.className} -> ${node1.className}")
                                 }
                             }
                         }

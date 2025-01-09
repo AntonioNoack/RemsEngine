@@ -23,11 +23,11 @@ object DefaultRenderingHints {
         val desktopHints = if(OS.isWindows) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints")
         else null // crashes on Linux Mint with a segfault, so I'd guess it's only fine on Windows
         LOGGER.info("Hints for font rendering: $desktopHints")
-        val hints = (desktopHints as? Map<*, *>
+        val hints1 = (desktopHints as? Map<*, *>
             ?: mapOf(RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB)
                 ).toMutableMap()
-        hints.putAll(portableHints)
-        DefaultRenderingHints.hints = hints
+        hints1.putAll(portableHints)
+        hints = hints1
     }
 
     fun Graphics2D.prepareGraphics(font: Font, portableImages: Boolean) {
