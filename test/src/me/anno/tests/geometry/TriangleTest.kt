@@ -29,6 +29,26 @@ class TriangleTest {
 
     private val numTries = 100
 
+    companion object {
+        fun Vector2d.isInsideTriangleBaseline(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
+            var sum = 0
+            if (getSideSign(a, b) > 0f) sum++
+            if (getSideSign(b, c) > 0f) sum++
+            if (getSideSign(c, a) > 0f) sum++
+            // left or right of all lines
+            return sum == 0 || sum == 3
+        }
+
+        fun Vector2f.isInsideTriangleBaseline(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
+            var sum = 0
+            if (getSideSign(a, b) > 0f) sum++
+            if (getSideSign(b, c) > 0f) sum++
+            if (getSideSign(c, a) > 0f) sum++
+            // left or right of all lines
+            return sum == 0 || sum == 3
+        }
+    }
+
     @Test
     fun testSubCross2f() {
         val random = Random(1234)
@@ -196,24 +216,6 @@ class TriangleTest {
             assertEquals(exp.set(0.5f, 0f, 0.5f), getBarycentrics(a, b, c, ca, tmp), e)
             assertEquals(exp.set(1f / 3f, 1f / 3f, 1f / 3f), getBarycentrics(a, b, c, m, tmp), e)
         }
-    }
-
-    fun Vector2d.isInsideTriangleBaseline(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
-        var sum = 0
-        if (getSideSign(a, b) > 0f) sum++
-        if (getSideSign(b, c) > 0f) sum++
-        if (getSideSign(c, a) > 0f) sum++
-        // left or right of all lines
-        return sum == 0 || sum == 3
-    }
-
-    fun Vector2f.isInsideTriangleBaseline(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
-        var sum = 0
-        if (getSideSign(a, b) > 0f) sum++
-        if (getSideSign(b, c) > 0f) sum++
-        if (getSideSign(c, a) > 0f) sum++
-        // left or right of all lines
-        return sum == 0 || sum == 3
     }
 
     @Test

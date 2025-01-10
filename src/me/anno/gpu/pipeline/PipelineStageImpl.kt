@@ -43,6 +43,7 @@ import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.structures.lists.ResetArrayList
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -451,31 +452,6 @@ class PipelineStageImpl(
 
     var nextInsertIndex = 0
     val drawRequests = ResetArrayList<DrawRequest>()
-
-    class ResetArrayList<V>(cap: Int = 16) {
-
-        var size = 0
-
-        private val content = ArrayList<V>(cap)
-
-        fun resize(newSize: Int) {
-            if (newSize > content.size) {
-                content.subList(newSize, content.size).clear()
-                content.trimToSize()
-            }
-        }
-
-        fun add(element: V) {
-            if (size >= content.size) content.add(element)
-            else content[size] = element
-            size++
-        }
-
-        operator fun get(index: Int): V = content[index]
-        fun sortWith(comp: Comparator<V>) {
-            content.subList(0, size).sortWith(comp)
-        }
-    }
 
     // doesn't work yet, why ever
     var occlusionQueryPrepass = false

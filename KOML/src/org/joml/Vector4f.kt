@@ -574,7 +574,7 @@ open class Vector4f(
     }
 
     fun absolute(dst: Vector4f = this): Vector4f {
-        return dst.set(abs(x), abs(y), abs(z), abs(z))
+        return dst.set(abs(x), abs(y), abs(z), abs(w))
     }
 
     val isFinite: Boolean
