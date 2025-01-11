@@ -118,7 +118,7 @@ open class Vector4f(
     }
 
     @JvmOverloads
-    fun mulAdd(a: Vector4f, b: Vector4f, dst: Vector4f = this): Vector4f {
+    fun mulAdd3(a: Vector4f, b: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = x * a.x + b.x
         dst.y = y * a.y + b.y
         dst.z = z * a.z + b.z
@@ -126,10 +126,24 @@ open class Vector4f(
     }
 
     @JvmOverloads
-    fun mulAdd(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
+    fun mulAdd3(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
         dst.x = x * a + b.x
         dst.y = y * a + b.y
         dst.z = z * a + b.z
+        return dst
+    }
+
+    @JvmOverloads
+    fun mulAdd(a: Vector4f, b: Vector4f, dst: Vector4f = this): Vector4f {
+        mulAdd3(a, b, dst)
+        dst.w = w * a.w + b.w
+        return dst
+    }
+
+    @JvmOverloads
+    fun mulAdd(a: Float, b: Vector4f, dst: Vector4f = this): Vector4f {
+        mulAdd3(a, b, dst)
+        dst.w = w * a + b.w
         return dst
     }
 
@@ -385,6 +399,13 @@ open class Vector4f(
 
     @JvmOverloads
     fun normalize3(dst: Vector4f = this) = mul(1f / length3(), dst)
+
+    @JvmOverloads
+    fun safeNormalize(length: Float = 1f): Vector4f {
+        normalize(length)
+        if (!isFinite) set(0f)
+        return this
+    }
 
     fun length3() = sqrt(x * x + y * y + z * z)
 

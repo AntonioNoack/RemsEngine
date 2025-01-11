@@ -18,7 +18,7 @@ open class Vector4i(
     constructor(v: Vector3i, w: Int) : this(v.x, v.y, v.z, w)
     constructor(v: Vector2i, z: Int, w: Int) : this(v.x, v.y, z, w)
     constructor(s: Int) : this(s, s, s, s)
-    constructor(xyzw: IntArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+    constructor(v: IntArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
 
     override val numComponents: Int get() = 4
     override fun getComp(i: Int): Double = get(i).toDouble()
@@ -36,7 +36,7 @@ open class Vector4i(
     fun set(v: Vector3i, w: Int) = set(v.x, v.y, v.z, w)
     fun set(v: Vector2i, z: Int, w: Int) = set(v.x, v.y, z, w)
     fun set(s: Int) = set(s, s, s, s)
-    fun set(v: IntArray) = set(v[0], v[1], v[2], v[3])
+    fun set(v: IntArray, i: Int = 0) = set(v[i], v[i + 1], v[i + 2], v[i + 3])
 
     fun set(x: Int, y: Int, z: Int, w: Int): Vector4i {
         this.x = x
@@ -136,20 +136,14 @@ open class Vector4i(
         return x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w
     }
 
-    fun length() = sqrt(lengthSquared().toFloat()).toDouble()
+    fun length() = sqrt(lengthSquared().toDouble())
     fun distance(v: Vector4i): Double = distance(v.x, v.y, v.z, v.w)
     fun distance(x: Int, y: Int, z: Int, w: Int): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        val dw = this.w - w
-        return length(dx, dy, dz, dw)
+        return distance(this.x, this.y, this.z, this.w, x, y, z, w)
     }
 
     fun gridDistance(v: Vector4i): Long {
-        return (abs(v.x - x) + abs(v.y - y) + abs(v.z - z) + abs(
-            v.w - w
-        )).toLong()
+        return gridDistance(v.x, v.y, v.z, v.w)
     }
 
     fun gridDistance(x: Int, y: Int, z: Int, w: Int): Long {
@@ -165,11 +159,7 @@ open class Vector4i(
     }
 
     fun distanceSquared(x: Int, y: Int, z: Int, w: Int): Long {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        val dw = this.w - w
-        return lengthSquared(dx, dy, dz, dw)
+        return distanceSquared(this.x, this.y, this.z, this.w, x, y, z, w)
     }
 
     fun dot(vx: Int, vy: Int, vz: Int, vw: Int): Long =
@@ -245,16 +235,12 @@ open class Vector4i(
 
         @JvmStatic
         fun length(x: Int, y: Int, z: Int, w: Int): Double {
-            return sqrt((x.toLong() * x + y.toLong() * y + z.toLong() * z + w.toLong() * w).toDouble())
+            return sqrt(lengthSquared(x, y, z, w).toDouble())
         }
 
         @JvmStatic
         fun distance(x1: Int, y1: Int, z1: Int, w1: Int, x2: Int, y2: Int, z2: Int, w2: Int): Double {
-            val dx = x1 - x2
-            val dy = y1 - y2
-            val dz = z1 - z2
-            val dw = w1 - w2
-            return sqrt(lengthSquared(dx, dy, dz, dw).toDouble())
+            return sqrt(distanceSquared(x1, y1, z1, w1, x2, y2, z2, w2).toDouble())
         }
 
         @JvmStatic

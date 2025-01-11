@@ -65,7 +65,10 @@ class RasterizerTest {
                 }
             }
         }
-        // println("Points: $pointsInTriangle")
+        // corners aren't really inside the triangle, but they should still be part of the rasterized result
+        if (isIntCorner(a)) pointsInTriangle.add(Vector2i(a.x.toInt(), a.y.toInt()))
+        if (isIntCorner(b)) pointsInTriangle.add(Vector2i(b.x.toInt(), b.y.toInt()))
+        if (isIntCorner(c)) pointsInTriangle.add(Vector2i(c.x.toInt(), c.y.toInt()))
         assertTrue(pointsInTriangle.size > 0)
         Rasterizer.rasterize(a, b, c, testBounds) { minXi, maxXi, y ->
             for (x in minXi..maxXi) {
@@ -73,6 +76,14 @@ class RasterizerTest {
             }
         }
         assertEquals(emptySet(), pointsInTriangle)
+    }
+
+    private fun isIntCorner(a: Vector2f): Boolean {
+        return isIntCorner(a.x) && isIntCorner(a.y)
+    }
+
+    private fun isIntCorner(a: Float): Boolean {
+        return a.toInt().toFloat() == a
     }
 
     @Test

@@ -14,7 +14,7 @@ open class Vector2i(
     constructor() : this(0, 0)
     constructor(d: Int) : this(d, d)
     constructor(v: Vector2i) : this(v.x, v.y)
-    constructor(xy: IntArray) : this(xy[0], xy[1])
+    constructor(v: IntArray, i: Int = 0) : this(v[i], v[i + 1])
 
     override val numComponents: Int get() = 2
     override fun getComp(i: Int): Double = get(i).toDouble()
@@ -34,7 +34,7 @@ open class Vector2i(
 
     fun set(v: Vector2i) = set(v.x, v.y)
     fun set(v: Vector2d) = set(v.x.toInt(), v.y.toInt())
-    fun set(xy: IntArray) = set(xy[0], xy[1])
+    fun set(v: IntArray, i: Int = 0) = set(v[i], v[i + 1])
 
     operator fun get(component: Int): Int {
         return if (component == 0) x else y
@@ -198,16 +198,17 @@ open class Vector2i(
     override fun toString() = "($x,$y)"
 
     companion object {
-        @JvmStatic
-        fun lengthSquared(x: Int, y: Int) = x.toLong() * x + y.toLong() * y
 
         @JvmStatic
-        fun length(x: Int, y: Int) = sqrt(lengthSquared(x, y).toDouble())
+        fun length(x: Int, y: Int): Double = sqrt(lengthSquared(x, y).toDouble())
 
         @JvmStatic
-        fun distance(x1: Int, y1: Int, x2: Int, y2: Int) = length(x1 - x2, y1 - y2)
+        fun lengthSquared(x: Int, y: Int): Long = x.toLong() * x + y.toLong() * y
 
         @JvmStatic
-        fun distanceSquared(x1: Int, y1: Int, x2: Int, y2: Int) = lengthSquared(x1 - x2, y1 - y2)
+        fun distance(x1: Int, y1: Int, x2: Int, y2: Int): Double = length(x1 - x2, y1 - y2)
+
+        @JvmStatic
+        fun distanceSquared(x1: Int, y1: Int, x2: Int, y2: Int): Long = lengthSquared(x1 - x2, y1 - y2)
     }
 }

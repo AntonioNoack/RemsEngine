@@ -16,7 +16,7 @@ open class Vector3i(
     constructor(d: Int) : this(d, d, d)
     constructor(v: Vector3i) : this(v.x, v.y, v.z)
     constructor(v: Vector2i, z: Int) : this(v.x, v.y, z)
-    constructor(xyz: IntArray) : this(xyz[0], xyz[1], xyz[2])
+    constructor(v: IntArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2])
 
     override val numComponents: Int get() = 3
     override fun getComp(i: Int): Double = get(i).toDouble()
@@ -29,31 +29,19 @@ open class Vector3i(
     operator fun component3() = z
 
     fun set(v: Vector3i): Vector3i {
-        x = v.x
-        y = v.y
-        z = v.z
-        return this
+        return set(v.x, v.y, v.z)
     }
 
     fun set(v: Vector3d): Vector3i {
-        x = v.x.toInt()
-        y = v.y.toInt()
-        z = v.z.toInt()
-        return this
+        return set(v.x.toInt(), v.y.toInt(), v.z.toInt())
     }
 
     fun set(v: Vector2i, z: Int): Vector3i {
-        x = v.x
-        y = v.y
-        this.z = z
-        return this
+        return set(v.x, v.y, z)
     }
 
     fun set(d: Int): Vector3i {
-        x = d
-        y = d
-        z = d
-        return this
+        return set(d, d, d)
     }
 
     fun set(x: Int, y: Int, z: Int): Vector3i {
@@ -63,11 +51,8 @@ open class Vector3i(
         return this
     }
 
-    fun set(xyz: IntArray): Vector3i {
-        x = xyz[0]
-        y = xyz[1]
-        z = xyz[2]
-        return this
+    fun set(v: IntArray, i: Int = 0): Vector3i {
+        return set(v[i], v[i + 1], v[i + 2])
     }
 
     operator fun get(component: Int): Int {
@@ -88,10 +73,7 @@ open class Vector3i(
     }
 
     fun sub(v: Vector3i, dst: Vector3i = this): Vector3i {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        return dst
+        return sub(v.x, v.y, v.z, dst)
     }
 
     fun sub(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
@@ -102,10 +84,7 @@ open class Vector3i(
     }
 
     fun add(v: Vector3i, dst: Vector3i = this): Vector3i {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        return dst
+        return add(v.x, v.y, v.z, dst)
     }
 
     fun add(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
@@ -116,17 +95,11 @@ open class Vector3i(
     }
 
     fun mul(scalar: Int, dst: Vector3i = this): Vector3i {
-        dst.x = x * scalar
-        dst.y = y * scalar
-        dst.z = z * scalar
-        return dst
+        return mul(scalar, scalar, scalar, dst)
     }
 
     fun mul(v: Vector3i, dst: Vector3i = this): Vector3i {
-        dst.x = x * v.x
-        dst.y = y * v.y
-        dst.z = z * v.z
-        return dst
+        return mul(v.x, v.y, v.z, dst)
     }
 
     fun mul(x: Int, y: Int, z: Int, dst: Vector3i = this): Vector3i {
@@ -154,21 +127,18 @@ open class Vector3i(
     }
 
     fun length(): Double {
-        return sqrt(lengthSquared().toFloat()).toDouble()
+        return sqrt(lengthSquared().toDouble())
     }
 
     fun distance(v: Vector3i): Double {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        return length(dx, dy, dz)
+        return distance(v.x, v.y, v.z)
     }
 
     fun distance(x: Int, y: Int, z: Int): Double {
         val dx = this.x - x
         val dy = this.y - y
         val dz = this.z - z
-        return lengthSquared(dx, dy, dz).toDouble()
+        return length(dx, dy, dz)
     }
 
     fun gridDistance(v: Vector3i): Long {
@@ -183,10 +153,7 @@ open class Vector3i(
     fun dot(other: Vector3i): Long = dot(other.x, other.y, other.z)
 
     fun distanceSquared(v: Vector3i): Long {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        return lengthSquared(dx, dy, dz)
+        return distanceSquared(v.x, v.y, v.z)
     }
 
     fun distanceSquared(x: Int, y: Int, z: Int): Long {
@@ -317,12 +284,12 @@ open class Vector3i(
 
         @JvmStatic
         fun length(x: Int, y: Int, z: Int): Double {
-            return sqrt(lengthSquared(x, y, z).toFloat()).toDouble()
+            return sqrt(lengthSquared(x, y, z).toDouble())
         }
 
         @JvmStatic
         fun distance(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): Double {
-            return sqrt(lengthSquared(x1 - x2, y1 - y2, z1 - z2).toFloat()).toDouble()
+            return sqrt(distanceSquared(x1, y1, z1, x2, y2, z2).toDouble())
         }
 
         @JvmStatic

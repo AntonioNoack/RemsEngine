@@ -22,6 +22,14 @@ class AABBiTests {
     }
 
     @Test
+    fun testSetters() {
+        assertEquals(
+            AABBi(1, 2, 3, 4, 5, 6),
+            AABBi().set(AABBi(1, 2, 3, 4, 5, 6))
+        )
+    }
+
+    @Test
     fun testConstructors() {
         assertEquals(AABBi(1, 1, 1, 2, 2, 2), AABBi(1, 2))
         assertEquals(AABBi(Int.MAX_VALUE, Int.MIN_VALUE), AABBi())

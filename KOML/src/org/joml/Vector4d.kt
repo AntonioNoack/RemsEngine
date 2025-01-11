@@ -31,8 +31,10 @@ open class Vector4d(
     constructor(v: Vector4f) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
     constructor(v: Vector3f, w: Double) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
     constructor(v: Vector2f, z: Double, w: Double) : this(v.x.toDouble(), v.y.toDouble(), z, w)
-    constructor(xyzw: FloatArray) : this(xyzw[0].toDouble(), xyzw[1].toDouble(), xyzw[2].toDouble(), xyzw[3].toDouble())
-    constructor(xyzw: DoubleArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+    constructor(v: DoubleArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
+    constructor(v: FloatArray, i: Int = 0) : this() {
+        set(v, i)
+    }
 
     override val numComponents: Int get() = 4
     override fun getComp(i: Int): Double = get(i)
@@ -180,7 +182,7 @@ open class Vector4d(
     }
 
     @JvmOverloads
-    fun mulAdd(a: Vector4d, b: Vector4d, dst: Vector4d = this): Vector4d {
+    fun mulAdd3(a: Vector4d, b: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = x * a.x + b.x
         dst.y = y * a.y + b.y
         dst.z = z * a.z + b.z
@@ -188,10 +190,24 @@ open class Vector4d(
     }
 
     @JvmOverloads
-    fun mulAdd(a: Double, b: Vector4d, dst: Vector4d = this): Vector4d {
+    fun mulAdd(a: Vector4d, b: Vector4d, dst: Vector4d = this): Vector4d {
+        mulAdd3(a, b, dst)
+        dst.w = w * a.w + b.w
+        return dst
+    }
+
+    @JvmOverloads
+    fun mulAdd3(a: Double, b: Vector4d, dst: Vector4d = this): Vector4d {
         dst.x = x * a + b.x
         dst.y = y * a + b.y
         dst.z = z * a + b.z
+        return dst
+    }
+
+    @JvmOverloads
+    fun mulAdd(a: Double, b: Vector4d, dst: Vector4d = this): Vector4d {
+        mulAdd3(a, b, dst)
+        dst.w = w * a + b.w
         return dst
     }
 
@@ -331,7 +347,8 @@ open class Vector4d(
         return dst
     }
 
-    fun mulProject(mat: Matrix4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mulProject(mat: Matrix4d, dst: Vector4d = this): Vector4d {
         val invW = 1.0 / (mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w)
         val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
         val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
@@ -341,18 +358,6 @@ open class Vector4d(
         dst.z = rz
         dst.w = 1.0
         return dst
-    }
-
-    fun mulProject(mat: Matrix4d): Vector4d {
-        val invW = 1.0 / (mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w)
-        val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
-        val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
-        val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
-        x = rx
-        y = ry
-        z = rz
-        w = 1.0
-        return this
     }
 
     fun mulProject(mat: Matrix4d, dst: Vector3d): Vector3d {
@@ -375,13 +380,16 @@ open class Vector4d(
         return dst
     }
 
+    @JvmOverloads
     fun div(scalar: Double, dst: Vector4d = this) = mul(1.0 / scalar, dst)
 
+    @JvmOverloads
     fun rotate(quat: Quaterniond, dst: Vector4d = this): Vector4d {
         quat.transform(this, dst)
         return dst
     }
 
+    @JvmOverloads
     fun rotateInv(q: Quaterniond, dst: Vector4d = this): Vector4d {
         synchronized(q) {
             q.conjugate()
@@ -430,6 +438,7 @@ open class Vector4d(
         return dst
     }
 
+    @JvmOverloads
     fun rotateX(angle: Double, dst: Vector4d = this): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -442,6 +451,7 @@ open class Vector4d(
         return dst
     }
 
+    @JvmOverloads
     fun rotateY(angle: Double, dst: Vector4d = this): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -454,6 +464,7 @@ open class Vector4d(
         return dst
     }
 
+    @JvmOverloads
     fun rotateZ(angle: Double, dst: Vector4d = this): Vector4d {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -466,29 +477,40 @@ open class Vector4d(
         return dst
     }
 
-    fun lengthSquared() = x * x + y * y + z * z + w * w
-    fun length() = sqrt(lengthSquared())
+    fun lengthSquared(): Double = Companion.lengthSquared(x, y, z, w)
+    fun length(): Double = Companion.length(x, y, z, w)
+    fun length3(): Double = sqrt(x * x + y * y + z * z)
 
+    @JvmOverloads
     fun normalize(dst: Vector4d = this) = div(length(), dst)
 
+    @JvmOverloads
     fun normalize(length: Double, dst: Vector4d = this) = mul(length / length(), dst)
 
-    fun normalize3(dst: Vector4d = this) = div(sqrt(x * x + y * y + z * z), dst)
+    @JvmOverloads
+    fun normalize3(dst: Vector4d = this) = div(length3(), dst)
+
+    @JvmOverloads
+    fun safeNormalize(length: Double = 1.0): Vector4d {
+        normalize(length)
+        if (!isFinite) set(0.0)
+        return this
+    }
 
     fun distance(v: Vector4d): Double {
-        return Companion.length(x - v.x, y - v.y, z - v.w, w - v.w)
+        return distance(v.x, v.y, v.z, v.w)
     }
 
     fun distance(x: Double, y: Double, z: Double, w: Double): Double {
-        return Companion.length(this.x - x, this.y - y, this.z - z, this.w - w)
+        return Companion.distance(this.x, this.y - y, this.z, this.w, x, y, z, w)
     }
 
     fun distanceSquared(v: Vector4d): Double {
-        return Companion.lengthSquared(x - v.x, y - v.y, z - v.w, w - v.w)
+        return distanceSquared(v.x, v.y, v.z, v.w)
     }
 
     fun distanceSquared(x: Double, y: Double, z: Double, w: Double): Double {
-        return Companion.lengthSquared(this.x - x, this.y - y, this.z - z, this.w - w)
+        return Companion.distanceSquared(this.x, this.y - y, this.z, this.w, x, y, z, w)
     }
 
     fun dot(v: Vector4f): Double = dot(v.x, v.y, v.z, v.w)
@@ -668,7 +690,7 @@ open class Vector4d(
 
         @JvmStatic
         fun length(x: Double, y: Double, z: Double, w: Double): Double {
-            return sqrt(x * x + y * y + z * z + w * w)
+            return sqrt(lengthSquared(x, y, z, w))
         }
 
         @JvmStatic
@@ -676,11 +698,7 @@ open class Vector4d(
             x1: Double, y1: Double, z1: Double, w1: Double,
             x2: Double, y2: Double, z2: Double, w2: Double
         ): Double {
-            val dx = x1 - x2
-            val dy = y1 - y2
-            val dz = z1 - z2
-            val dw = w1 - w2
-            return length(dx, dy, dz, dw)
+            return sqrt(distanceSquared(x1, y1, z1, w1, x2, y2, z2, w2))
         }
 
         @JvmStatic
