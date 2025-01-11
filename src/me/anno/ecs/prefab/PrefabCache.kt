@@ -92,6 +92,17 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
+    fun newPrefabInstance(
+        resource: FileReference?,
+        depth: Int = maxPrefabDepth,
+        async: Boolean = false
+    ): PrefabSaveable? {
+        val base = getPrefabSampleInstance(resource, depth, async) as? PrefabSaveable ?: return null
+        val clone = base.clone()
+        clone.prefab = null // make mutable
+        return clone
+    }
+
     fun getPrefabAsync(resource: FileReference?, depth: Int = maxPrefabDepth, callback: Callback<Prefab?>) {
         getPrefabPairAsync(resource, { pair, err ->
             if (pair != null) {

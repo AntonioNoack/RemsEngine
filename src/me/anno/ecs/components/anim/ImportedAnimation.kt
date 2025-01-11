@@ -79,6 +79,14 @@ class ImportedAnimation : Animation() {
         }
     }
 
+    fun withFrames(frameList: List<Int>): ImportedAnimation {
+        val clone = ImportedAnimation()
+        clone.duration = duration
+        clone.frames = frameList.map { frames[it] }
+        clone.skeleton = skeleton
+        return clone
+    }
+
     private fun splitValues(values: FloatArray): List<Matrix4x3f> {
         val size = values.size / 12
         val result = ArrayList<Matrix4x3f>(size)

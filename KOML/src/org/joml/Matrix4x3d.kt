@@ -3776,15 +3776,9 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setLookAt(
-        eyeX: Double,
-        eyeY: Double,
-        eyeZ: Double,
-        centerX: Double,
-        centerY: Double,
-        centerZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double
+        eyeX: Double, eyeY: Double, eyeZ: Double,
+        centerX: Double, centerY: Double, centerZ: Double,
+        upX: Double, upY: Double, upZ: Double
     ): Matrix4x3d {
         var dirX = eyeX - centerX
         var dirY = eyeY - centerY

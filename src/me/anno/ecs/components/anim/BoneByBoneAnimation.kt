@@ -261,48 +261,66 @@ class BoneByBoneAnimation() : Animation() {
         dst.globalInvTransform.set(globalInvTransform)
     }
 
-    constructor(anim: ImportedAnimation) : this() {
-        fromImported(anim)
+    constructor(anim: ImportedAnimation, frameList: List<Int>? = null) : this() {
+        fromImported(anim, frameList)
     }
 
-    fun fromImported(src: ImportedAnimation): BoneByBoneAnimation {
+    fun fromImported(src: ImportedAnimation, frameList: List<Int>?): BoneByBoneAnimation {
         skeleton = src.skeleton
         val skeleton = SkeletonCache[skeleton]!!
         boneCount = skeleton.bones.size
-        frameCount = src.frames.size
-        val boneCount = skeleton.bones.size
-        val s1 = boneCount * frameCount
-        translations = FloatArray(s1 * 3)
-        rotations = FloatArray(s1 * 4)
-        scales = FloatArray(s1 * 3)
-        val pos = Vector3f()
-        val sca = Vector3f()
-        val rot = Quaternionf()
-        val tmpM = Matrix4x3f()
+        frameCount = frameList?.size ?: src.frames.size
+        initFloatArrays()
         val frames = src.frames
         val bones = skeleton.bones
+        checkBoneOrder(bones)
+        for (i in 0 until numFrames) {
+            val frameIndex = frameList?.get(i) ?: i
+            setFrameByImported(bones, i, frames[frameIndex])
+        }
+        return this
+    }
+
+    private fun initFloatArrays() {
+        val size = boneCount * frameCount
+        translations = FloatArray(size * 3)
+        rotations = FloatArray(size * 4)
+        scales = FloatArray(size * 3)
+    }
+
+    fun checkBoneOrder(bones: List<Bone>) {
         for (j in bones.indices) {
             val bone = bones[j]
             val pj = bone.parentId
             if (pj >= j) LOGGER.warn("Bones out of order, $j -> $pj")
         }
-        for (i in frames.indices) {
-            val frame = frames[i]
-            // calculate rotations
-            for (j in bones.indices) {
-                val bone = bones[j]
-                val pj = bone.parentId
-                val pose = frame[j] // bind pose [world space] -> animated pose [world space]
-                fromImported(
-                    bone.bindPose, bone.inverseBindPose,
-                    pose, frame.getOrNull(pj), tmpM, pos, rot, sca
-                )
-                setTranslation(i, j, pos)
-                setRotation(i, j, rot)
-                setScale(i, j, sca)
-            }
+    }
+
+    fun setFrameByImported(bones: List<Bone>, dstFrameIndex: Int, frameByImported: List<Matrix4x3f>) {
+        for (j in bones.indices) {
+            setFrameForBoneByImported(bones[j], dstFrameIndex, frameByImported)
         }
-        return this
+    }
+
+    fun setFrameForBoneByImported(bone: Bone, frameId: Int, frameByImported: List<Matrix4x3f>) {
+        val pos = JomlPools.vec3f.create()
+        val sca = JomlPools.vec3f.create()
+        val rot = JomlPools.quat4f.create()
+        val tmpM = JomlPools.mat4x3f.create()
+        // calculate rotations
+        val boneId = bone.id
+        val pose = frameByImported[boneId] // bind pose [world space] -> animated pose [world space]
+        val parentPose = frameByImported.getOrNull(bone.parentId)
+        fromImported(
+            bone.bindPose, bone.inverseBindPose,
+            pose, parentPose, tmpM, pos, rot, sca
+        )
+        setTranslation(frameId, boneId, pos)
+        setRotation(frameId, boneId, rot)
+        setScale(frameId, boneId, sca)
+        JomlPools.vec3f.sub(2)
+        JomlPools.quat4f.sub(1)
+        JomlPools.mat4x3f.sub(1)
     }
 
     @Suppress("unused")
@@ -311,7 +329,7 @@ class BoneByBoneAnimation() : Animation() {
         val skel = SkeletonCache[skeleton]!!
         val tmpPos = JomlPools.vec3f.create()
         val tmpSca = JomlPools.vec3f.create()
-        val tmpRot = JomlPools.quat4f.borrow()
+        val tmpRot = JomlPools.quat4f.create()
         val bones = skel.bones
         dst.frames = createArrayList(frameCount) { i ->
             val matrices = createArrayList(bones.size) { Matrix4x3f() }
@@ -326,6 +344,7 @@ class BoneByBoneAnimation() : Animation() {
             matrices
         }
         JomlPools.vec3f.sub(2)
+        JomlPools.quat4f.sub(1)
         return dst
     }
 

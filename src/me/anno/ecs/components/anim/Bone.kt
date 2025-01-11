@@ -68,8 +68,17 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     fun hasBoneInHierarchy(name: String, bones: List<Bone>): Boolean {
         if (name == this.name) return true
-        val parent = bones.getOrNull(parentId) ?: return false
+        val parent = getParent(bones) ?: return false
         return parent.hasBoneInHierarchy(name, bones)
+    }
+
+    fun length(bones: List<Bone>): Float {
+        val parent = getParent(bones) ?: return 0f
+        return bindPosition.distance(parent.bindPosition)
+    }
+
+    fun getParent(bones: List<Bone>): Bone? {
+        return bones.getOrNull(parentId)
     }
 
     override val approxSize get() = 1

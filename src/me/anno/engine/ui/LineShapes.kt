@@ -1,6 +1,5 @@
 package me.anno.engine.ui
 
-import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
@@ -23,8 +22,10 @@ object LineShapes {
     val tmpVec3d = createArrayList(16) { Vector3d() }
     private val defaultColor = 0x77ffff or black
 
-    fun getDrawMatrix(entity: Entity?, time: Long = Time.gameTimeN): Matrix4x3d? {
-        return entity?.transform?.getDrawMatrix()
+    fun getDrawMatrix(entity: Entity?): Matrix4x3d? {
+        val entity1 = entity ?: return null
+        entity1.validateTransform()
+        return entity1.transform.getDrawMatrix()
     }
 
     val zToX: Matrix4x3d = Matrix4x3d()

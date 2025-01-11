@@ -142,39 +142,41 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 }
 
 fun CapsuleCollider.createBulletShape(scale: Vector3d): CollisionShape {
+    val self = this
     return when (axis) {
         0 -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis) // x
         1 -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis) // y
         else -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
-    }
+    }.apply { margin = self.margin }
 }
 
 fun ConeCollider.createBulletShape(scale: Vector3d): CollisionShape {
+    val self = this
     return when (axis) {
         0 -> ConeShapeX(radius * scale.y, height * scale.x)
         2 -> ConeShapeZ(radius * scale.x, height * scale.z)
         else -> ConeShape(radius * scale.x, height * scale.y)
-    }
+    }.apply { margin = self.margin }
 }
 
 fun CylinderCollider.createBulletShape(scale: Vector3d): CollisionShape {
+    val self = this
     return when (axis) {
         0 -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
         1 -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
         else -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
-    }
+    }.apply { margin = self.margin }
 }
 
 fun BoxCollider.createBulletShape(scale: Vector3d): CollisionShape {
-    val shape = BoxShape(
+    val self = this
+    return BoxShape(
         javax.vecmath.Vector3d(
             halfExtends.x * scale.x,
             halfExtends.y * scale.y,
             halfExtends.z * scale.z
         )
-    )
-    shape.margin = margin
-    return shape
+    ).apply { margin = self.margin }
 }
 
 fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {

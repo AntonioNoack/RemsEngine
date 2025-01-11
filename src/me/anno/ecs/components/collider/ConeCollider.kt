@@ -30,6 +30,9 @@ class ConeCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
+    @SerializedProperty
+    var margin = 0.04
+
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the peak and the bottom ring
         val h = height * 0.5
@@ -81,5 +84,6 @@ class ConeCollider : Collider() {
         dst.axis = axis
         dst.height = height
         dst.radius = radius
+        dst.margin = margin
     }
 }

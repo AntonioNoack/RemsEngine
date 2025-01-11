@@ -620,21 +620,12 @@ open class Matrix4x3f : Matrix {
             ._m30(m30)._m31(m31)._m32(m32)._properties(0)
     }
 
-    fun mul(src: Matrix4x3d, dst: Matrix4x3f = this): Matrix4x3f {
+    fun mul(right: Matrix4x3d, dst: Matrix4x3f = this): Matrix4x3f {
         return mulGeneric(
-            src.m00.toFloat(),
-            src.m01.toFloat(),
-            src.m02.toFloat(),
-            src.m10.toFloat(),
-            src.m11.toFloat(),
-            src.m12.toFloat(),
-            src.m20.toFloat(),
-            src.m21.toFloat(),
-            src.m22.toFloat(),
-            src.m30.toFloat(),
-            src.m31.toFloat(),
-            src.m32.toFloat(),
-            dst
+            right.m00.toFloat(), right.m01.toFloat(), right.m02.toFloat(),
+            right.m10.toFloat(), right.m11.toFloat(), right.m12.toFloat(),
+            right.m20.toFloat(), right.m21.toFloat(), right.m22.toFloat(),
+            right.m30.toFloat(), right.m31.toFloat(), right.m32.toFloat(), dst
         )
     }
 
@@ -1662,6 +1653,14 @@ open class Matrix4x3f : Matrix {
     }
 
     fun transformPosition(v: Vector3f, dst: Vector3f = v): Vector3f {
+        return dst.set(
+            m00 * v.x + m10 * v.y + m20 * v.z + m30,
+            m01 * v.x + m11 * v.y + m21 * v.z + m31,
+            m02 * v.x + m12 * v.y + m22 * v.z + m32
+        )
+    }
+
+    fun transformPosition(v: Vector3d, dst: Vector3d = v): Vector3d {
         return dst.set(
             m00 * v.x + m10 * v.y + m20 * v.z + m30,
             m01 * v.x + m11 * v.y + m21 * v.z + m31,

@@ -298,7 +298,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             Stack.printClassUsage()
             Stack.printSizes()
         }
-        Stack.limit = 1024
+        // Stack.limit = 1024
         Stack.reset(printSlack)
         super.step(dt, printSlack)
     }

@@ -1,6 +1,5 @@
 package me.anno.ecs.components.anim
 
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
@@ -13,7 +12,6 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.length
@@ -179,6 +177,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             val sizeEstimate = fillInSizeEstimate(bones, bonePositions)
             val maxBoneThickness = 0.2f * sizeEstimate
             var firstBone = true
+            // todo for all bones without children, add a symbolic bone there...
             for (boneId in bones.indices) {
                 val dstBone = bones[boneId]
                 if (dstBone.parentId < 0) continue

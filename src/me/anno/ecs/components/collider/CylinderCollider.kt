@@ -25,6 +25,9 @@ class CylinderCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
+    @SerializedProperty
+    var margin = 0.04
+
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the two rings
         val h = halfHeight
