@@ -2,6 +2,7 @@ package me.anno.box2d
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.jbox2d.collision.shapes.PolygonShape
@@ -32,7 +33,7 @@ class RectCollider : Collider2d() {
         return outer + inner
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         val halfExtends = halfExtends
         val x = halfExtends.x
         val y = halfExtends.y

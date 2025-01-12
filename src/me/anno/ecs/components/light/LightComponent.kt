@@ -115,10 +115,10 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     }
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        drawShape()
+        drawShape(pipeline)
     }
 
-    abstract fun drawShape()
+    abstract fun drawShape(pipeline: Pipeline)
 
     abstract fun getLightPrimitive(): Mesh
 

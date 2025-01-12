@@ -10,10 +10,10 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
@@ -89,19 +89,19 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
             }
         }
 
-        bindRandomness(shader)
+        bindJitterUniforms(shader)
 
         // update material and light properties
         val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
         if (previousMaterial == null) {
-            initShader(shader, pipeline.applyToneMapping)
+            bindCameraUniforms(shader, pipeline.applyToneMapping)
         }
 
         if (previousMaterial == null) {
             val aabb = PipelineStageImpl.tmpAABBd
             aabb.clear()
             // pipeline.frustum.union(aabb)
-            setupLights(pipeline, shader, aabb, true)
+            bindLightUniforms(pipeline, shader, aabb, true)
         }
 
         shader.v4f("tint", 1f)

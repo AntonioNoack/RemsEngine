@@ -3,6 +3,7 @@ package me.anno.box2d
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import org.jbox2d.collision.shapes.CircleShape
 import org.joml.AABBd
@@ -23,7 +24,7 @@ class CircleCollider : Collider2d() {
         return Maths.length(deltaPos.x, deltaPos.y) - radius
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0, null, getLineColor(hasPhysics))
     }
 

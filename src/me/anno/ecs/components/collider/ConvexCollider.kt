@@ -3,6 +3,7 @@ package me.anno.ecs.components.collider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -28,7 +29,7 @@ class ConvexCollider : Collider() {
         }
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         // currently drawn as a point cloud
         // triangles or polygons would be better, but we don't have them
         val points = points ?: return

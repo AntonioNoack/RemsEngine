@@ -37,7 +37,7 @@ class RectangleLight : LightComponent(LightType.RECTANGLE) {
     ) {
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         LineShapes.drawBox(
             entity, JomlPools.vec3d.borrow().set(
                 width.toDouble(), height.toDouble(), 0.0

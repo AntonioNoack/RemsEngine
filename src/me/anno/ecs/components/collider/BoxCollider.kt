@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawBox
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -35,7 +36,7 @@ class BoxCollider : Collider() {
         return and3SDFs(deltaPos)
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         drawBox(entity, getLineColor(hasPhysics), halfExtends)
     }
 

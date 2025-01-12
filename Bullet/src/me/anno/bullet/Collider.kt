@@ -50,7 +50,6 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 
     val indices = mesh.indices
 
-    val meshTransform = meshTransform
     Stack.reset(false)
 
     if (isConvex) {
@@ -58,14 +57,13 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
         // calculate convex hull
         // simplify it maybe
         val convex =
-            if (scale.x in 0.99..1.01 && scale.y in 0.99..1.01 && scale.z in 0.99..1.01 && meshTransform.isIdentity()) {
+            if (scale.x in 0.99..1.01 && scale.y in 0.99..1.01 && scale.z in 0.99..1.01) {
                 ConvexHullShape3(positions)
             } else {
                 val tmp = Vector3f()
                 val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
                 for (i in positions.indices step 3) {
                     tmp.set(positions[i], positions[i + 1], positions[i + 2])
-                    meshTransform.transformPosition(tmp)
                     val x = tmp.x * scale.x
                     val y = tmp.y * scale.y
                     val z = tmp.z * scale.z
@@ -112,7 +110,7 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
             .order(ByteOrder.nativeOrder())
 
         val fb = vertexBase.asFloatBuffer()
-        if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0 && meshTransform.isIdentity()) {
+        if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
             fb.put(positions)
         } else {
             val sx = scale.x.toFloat()
@@ -121,7 +119,6 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
             val tmp = Vector3f()
             for (i in positions.indices step 3) {
                 tmp.set(positions[i], positions[i + 1], positions[i + 2])
-                meshTransform.transformPosition(tmp)
                 fb.put(tmp.x * sx)
                 fb.put(tmp.y * sy)
                 fb.put(tmp.z * sz)

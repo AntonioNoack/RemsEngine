@@ -19,9 +19,7 @@ import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.allComponents
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.Collider
@@ -95,8 +93,9 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     }
 
     override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): BodyWithScale<Rigidbody, RigidBody>? {
-        val colliders = getValidComponents(entity, Collider::class)
-            .filter { it.hasPhysics }.toList()
+        val colliders = rigidBody.activeColliders
+        getValidComponents(entity, Collider::class, colliders)
+        colliders.removeIf { !it.hasPhysics }
         if (colliders.isEmpty()) return null
 
         // bullet does not work correctly with scale changes: create larger shapes directly
@@ -203,7 +202,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
         registerNonStatic(entity, rigidbody.isStatic, bodyWithScale)
 
-        val constraints = rigidbody.constraints
+        val constraints = rigidbody.linkedConstraints
         for (i in constraints.indices) {
             val constraint = constraints[i]
             if (constraint.isEnabled) {
@@ -214,12 +213,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         }
 
         // create all constraints
-        entity.allComponents(Constraint::class, false) { c ->
+        entity.forAllComponents(Constraint::class, false) { c ->
             val other = c.other
             if (other != null && other != rigidbody && other.isEnabled) {
                 addConstraint(c, body, rigidbody, other)
             }
-            false
         }
     }
 
@@ -263,9 +261,10 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 // LOGGER.debug("- ${it.prefabPath}")
             }
         }
-        val rigid2 = entity.getComponent(Rigidbody::class, false)
-        if (rigid2 != null) {
-            for (c in rigid2.constraints) {
+        val rigidbody = entity.getComponent(Rigidbody::class, false)
+        if (rigidbody != null) {
+            rigidbody.activeColliders.clear()
+            for (c in rigidbody.linkedConstraints) {
                 val bi = c.bulletInstance
                 if (bi != null) {
                     world.removeConstraint(bi)
@@ -278,14 +277,14 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         world.removeVehicle(vehicle)
         entity.isPhysicsControlled = false
         if (fallenOutOfWorld) {
-            if (rigid2 != null) {
+            if (rigidbody != null) {
                 // when something falls of the world, often it's nice to directly destroy the object,
                 // because it will no longer be needed
                 // call event, so e.g., we could add it back to a pool of entities, or respawn it
-                entity.forAllComponents(Component::class) {
-                    if (it is FallenOutOfWorld) it.onFallOutOfWorld()
+                entity.forAllComponents(FallenOutOfWorld::class) {
+                    it.onFallOutOfWorld()
                 }
-                if (rigid2.deleteWhenKilledByDepth) {
+                if (rigidbody.deleteWhenKilledByDepth) {
                     entity.parentEntity?.deleteChild(entity)
                 }
             }
@@ -371,18 +370,45 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         JomlPools.vec3d.sub(1)
     }
 
-    private fun drawDebug(view: RenderView?) {
-
-        val debugDraw = debugDraw ?: return
-
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
+        val view = RenderView.currentInstance
+        if (view?.renderMode != RenderMode.PHYSICS) return
         // define camera transform
-        debugDraw.stack.set(cameraMatrix)
-        debugDraw.cam.set(cameraPosition)
+        BulletDebugDraw.stack.set(cameraMatrix)
+        BulletDebugDraw.cam.set(cameraPosition)
+        // draw stuff
+        drawConstraints(pipeline)
+        drawColliders(pipeline)
+        drawContactPoints()
+        drawAABBs()
+        drawVehicles()
+    }
 
-        if (view == null || showDebug || view.renderMode == RenderMode.PHYSICS) {
-            drawContactPoints()
-            drawAABBs()
-            drawVehicles()
+    private fun drawColliders(pipeline: Pipeline) {
+        for ((_, bodyWithScale) in rigidBodies) {
+            drawColliders(pipeline, bodyWithScale?.internal ?: continue)
+        }
+    }
+
+    private fun drawColliders(pipeline: Pipeline, rigidbody: Rigidbody) {
+        val colliders = rigidbody.activeColliders
+        for (i in colliders.indices) {
+            val collider = colliders.getOrNull(i) ?: continue
+            collider.drawShape(pipeline)
+        }
+    }
+
+    private fun drawConstraints(pipeline: Pipeline) {
+        for ((_, bodyWithScale) in nonStaticRigidBodies) {
+            drawConstraints(pipeline, bodyWithScale.internal)
+        }
+    }
+
+    private fun drawConstraints(pipeline: Pipeline, rigidbody: Rigidbody) {
+        val constraints = rigidbody.linkedConstraints
+        for (i in constraints.indices) {
+            val constraint = constraints.getOrNull(i) ?: continue
+            constraint.onDrawGUI(pipeline, true)
         }
     }
 
@@ -529,7 +555,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val actions = world.actions
         for (i in 0 until actions.size) {
             val action = actions[i] ?: break
-            action.debugDraw(debugDraw)
+            action.debugDraw(BulletDebugDraw)
         }
     }
 
@@ -543,16 +569,9 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         rigidbody.bulletInstance?.setWorldTransform(transform)
     }
 
-    private var debugDraw: BulletDebugDraw? = null
-    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        val view = RenderView.currentInstance
-        drawDebug(view)
-    }
-
     private fun createBulletWorld(): DiscreteDynamicsWorld {
         val world = Companion.createBulletWorld()
-        debugDraw = debugDraw ?: BulletDebugDraw()
-        world.debugDrawer = debugDraw
+        world.debugDrawer = BulletDebugDraw
         return world
     }
 

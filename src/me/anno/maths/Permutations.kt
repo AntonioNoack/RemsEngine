@@ -1,5 +1,7 @@
 package me.anno.maths
 
+import me.anno.utils.structures.lists.Lists.swap
+
 @Suppress("unused")
 object Permutations {
 
@@ -21,9 +23,7 @@ object Permutations {
             if (stack[stackPointer] < stackPointer) {
                 val i = if (stackPointer and 1 == 0) 0 else stack[stackPointer]
                 val j = stackPointer
-                val tmp = elements[i]
-                elements[i] = elements[j]
-                elements[j] = tmp
+                elements.swap(i, j)
                 onNextPermutation(elements)
                 // Swap has occurred ending the for-loop.
                 // Simulate the increment of the for-loop counter

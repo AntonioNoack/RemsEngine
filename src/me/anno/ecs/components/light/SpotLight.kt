@@ -77,7 +77,7 @@ class SpotLight : LightComponent(LightType.SPOT) {
         RenderState.fovYRadians = fovYRadians.toFloat()
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         drawCone(entity, coneAngle.toDouble())
         drawArrowZ(entity, 0.0, -1.0)
     }

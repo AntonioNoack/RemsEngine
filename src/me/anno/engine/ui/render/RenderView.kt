@@ -15,6 +15,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.Systems
 import me.anno.engine.debug.DebugShapes
+import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DebugRendering.drawDebugStats
@@ -748,11 +749,15 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             world.onDrawGUI(pipeline, world.isSelectedIndirectly)
         }
 
+        val systems = Systems.readonlySystems
+        for (i in systems.indices) {
+            val system = systems[i] as? OnDrawGUI ?: continue
+            system.onDrawGUI(pipeline, system is Inspectable && system in EditorState.selection)
+        }
+
         drawGrid(pipeline, drawGridMask)
 
-        if (drawDebugShapes) {
-            DebugRendering.drawDebugShapes(this, cameraMatrix)
-        }
+        if (drawDebugShapes) DebugRendering.drawDebugShapes(this, cameraMatrix)
         DebugShapes.removeExpired()
 
         LineBuffer.finish(cameraMatrix)

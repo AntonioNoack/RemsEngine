@@ -15,15 +15,15 @@ import me.anno.gpu.GFXState.animated
 import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferA
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferM
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferMA
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferSlim
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -170,18 +170,18 @@ open class InstancedStack {
 
                     shader.use()
                     GFX.check()
-                    bindRandomness(shader)
+                    bindJitterUniforms(shader)
 
                     // update material and light properties
                     val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
                     if (previousMaterial == null) {
-                        initShader(shader, pipeline.applyToneMapping)
+                        bindCameraUniforms(shader, pipeline.applyToneMapping)
                     }
 
                     if (!depth && previousMaterial == null && !needsLightUpdateForEveryMesh) {
                         aabb.clear()
                         // pipeline.frustum.union(aabb)
-                        setupLights(pipeline, shader, aabb, true)
+                        bindLightUniforms(pipeline, shader, aabb, true)
                     }
 
                     GFX.check()
@@ -340,7 +340,7 @@ open class InstancedStack {
                 val transform = transforms[index] as Transform
                 localAABB.transformUnion(transform.getDrawMatrix(), aabb)
             }
-            setupLights(pipeline, shader, aabb, receiveShadows)
+            bindLightUniforms(pipeline, shader, aabb, receiveShadows)
             shader.checkIsUsed()
         }
 

@@ -10,10 +10,10 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.collider.MeshCollider
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
@@ -119,12 +119,12 @@ fun createUI(): Panel {
     car0.setPosition(0.0, 3.0, 0.0) // move car into air
     vehicle.centerOfMass.set(0.0, -0.3, 0.0)
     car0.add(vehicle)
-    car0.add(MeshCollider(carModelMain).apply {
-        val pos = car1.position
-        meshTransform.translate(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
-        val sca = car1.scale
-        meshTransform.scale(sca.x.toFloat(), sca.y.toFloat(), sca.z.toFloat())
-    })
+    car0.add(
+        Entity("CarCollider")
+            .setPosition(car1.position)
+            .setScale(car1.scale)
+            .add(MeshCollider(carModelMain))
+    )
     val controller = TestVehicleController()
     controller.controls = "wasd"
     car0.add(controller)

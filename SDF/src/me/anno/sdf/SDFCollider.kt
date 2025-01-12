@@ -8,6 +8,7 @@ import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.sq
 import me.anno.sdf.physics.ConcaveSDFShape
 import me.anno.sdf.physics.ConvexSDFShape
@@ -71,7 +72,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
         }
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         // how? draw bounds...
         val sdf = sdf ?: return
         val color = getLineColor(hasPhysics)

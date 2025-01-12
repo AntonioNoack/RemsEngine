@@ -122,7 +122,7 @@ class PointLight : LightComponent(LightType.POINT) {
         dst.near = near
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         drawBox(entity, JomlPools.vec3d.borrow().set(near))
         drawSphere(entity, 1.0)
     }

@@ -87,7 +87,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     override fun getShaderV1(): Float = shadowMapPower.toFloat()
     override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         drawBox(entity)
         drawArrowZ(entity, +1.0, -1.0)
     }

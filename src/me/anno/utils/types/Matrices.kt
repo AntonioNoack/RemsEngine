@@ -2,9 +2,11 @@ package me.anno.utils.types
 
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
+import org.joml.Matrix3d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Vector3d
 import org.joml.Vector3f
 
 @Suppress("unused")
@@ -26,6 +28,25 @@ object Matrices {
             ((src.m32 - position.z) * scale).toFloat(),
         )
         return this
+    }
+
+    @JvmStatic
+    fun Matrix3d.sampleDistanceSquared(other: Matrix3d): Double {
+        // compare a few sample points in every direction to also detect rotation issues
+        // in my case, the matrices were identical
+        return transform(Vector3d(1.0, 0.0, 0.0)).distanceSquared(other.transform(Vector3d(1.0, 0.0, 0.0))) +
+                transform(Vector3d(0.0, 1.0, 0.0)).distanceSquared(other.transform(Vector3d(0.0, 1.0, 0.0))) +
+                transform(Vector3d(0.0, 0.0, 1.0)).distanceSquared(other.transform(Vector3d(0.0, 0.0, 1.0)))
+    }
+
+    @JvmStatic
+    fun Matrix4x3d.sampleDistanceSquared(other: Matrix4x3d): Double {
+        // compare a few sample points in every direction to also detect rotation issues
+        // in my case, the matrices were identical
+        return transformPosition(Vector3d()).distanceSquared(other.transformPosition(Vector3d())) +
+                transformPosition(Vector3d(1.0, 0.0, 0.0)).distanceSquared(other.transformPosition(Vector3d(1.0, 0.0, 0.0))) +
+                transformPosition(Vector3d(0.0, 1.0, 0.0)).distanceSquared(other.transformPosition(Vector3d(0.0, 1.0, 0.0))) +
+                transformPosition(Vector3d(0.0, 0.0, 1.0)).distanceSquared(other.transformPosition(Vector3d(0.0, 0.0, 1.0)))
     }
 
     @JvmStatic

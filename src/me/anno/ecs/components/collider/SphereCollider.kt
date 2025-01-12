@@ -5,6 +5,7 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawSphere
+import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -76,7 +77,7 @@ class SphereCollider : Collider() {
         return raycastClosestHit(query, surfaceNormal)
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         drawSphere(entity, radius, null, getLineColor(hasPhysics))
     }
 }

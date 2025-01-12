@@ -16,7 +16,6 @@ import me.anno.ecs.components.mesh.utils.NormalCalculator
 import me.anno.ecs.components.mesh.utils.TangentCalculator
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.prefab.change.Path
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderMode

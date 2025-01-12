@@ -13,10 +13,10 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
@@ -96,18 +96,18 @@ open class InstancedI32Stack(
 
         val shader = stage.getShader(material)
         shader.use()
-        bindRandomness(shader)
+        bindJitterUniforms(shader)
 
         // update material and light properties
         val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
         if (previousMaterial == null) {
-            initShader(shader, pipeline.applyToneMapping)
+            bindCameraUniforms(shader, pipeline.applyToneMapping)
         }
 
         if (!depth && previousMaterial == null) {
             aabb.clear()
             // pipeline.frustum.union(aabb)
-            setupLights(pipeline, shader, aabb, true)
+            bindLightUniforms(pipeline, shader, aabb, true)
         }
 
         material.bind(shader)

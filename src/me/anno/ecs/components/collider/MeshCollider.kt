@@ -12,6 +12,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLine
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
@@ -24,7 +25,6 @@ import me.anno.utils.types.Triangles.ONE_THIRD_F
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
-import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.sqrt
@@ -46,8 +46,6 @@ open class MeshCollider() : Collider() {
 
     @SerializedProperty
     var margin = 0.04
-
-    val meshTransform = Matrix4x3f()
 
     @DebugProperty
     val meshTriangles get() = mesh?.numPrimitives
@@ -91,12 +89,8 @@ open class MeshCollider() : Collider() {
         val mid = JomlPools.vec3f.create()
         val scaleUp = -0.001f // against small inaccuracies
         var neg = false
-        val meshTransform = meshTransform
         mesh.forEachTriangle { a, b, c ->
             // make the triangle slightly larger than it is
-            meshTransform.transformPosition(a)
-            meshTransform.transformPosition(b)
-            meshTransform.transformPosition(c)
             mid.set(a).add(b).add(c).mul(ONE_THIRD_F)
             a.mix(mid, scaleUp)
             b.mix(mid, scaleUp)
@@ -158,13 +152,6 @@ open class MeshCollider() : Collider() {
         return dx * dx + dy * dy + dz * dz
     }
 
-    /*override fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {
-        val tmp = JomlPools.vec3f.create()
-        val distance = getSignedDistance(deltaPos, tmp)
-        JomlPools.vec3f.sub(1)
-        return distance
-    }*/
-
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
         // combine the sdfs of all faces :3 (will be slow, but might be beautiful :3)
@@ -175,14 +162,10 @@ open class MeshCollider() : Collider() {
         val pa = JomlPools.vec3f.create()
         var best = Float.POSITIVE_INFINITY
         var neg = false // only works for convex shapes with center at zero
-        val meshTransform = meshTransform
         mesh.forEachTriangle { a, b, c ->
-            meshTransform.transformPosition(a)
-            meshTransform.transformPosition(b)
-            meshTransform.transformPosition(c)
-            ac.set(a).sub(c)
-            ba.set(b).sub(a)
-            nor.set(ba).cross(ac)
+            a.sub(c, ac)
+            b.sub(a, ba)
+            ba.cross(ac, nor)
             val sgn = complexMaths1(a, b, nor, deltaPos) +
                     complexMaths1(b, c, nor, deltaPos) +
                     complexMaths1(c, a, nor, deltaPos)
@@ -207,36 +190,22 @@ open class MeshCollider() : Collider() {
         return if (neg) -distance else +distance
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         val mesh = mesh ?: return
-        val tr = meshTransform
         val color = getLineColor(hasPhysics)
-        if (tr.isIdentity()) {
-            mesh.forEachTriangle { a, b, c ->
-                drawLine(entity, a, b, color)
-                drawLine(entity, b, c, color)
-                drawLine(entity, c, a, color)
-                false
-            }
-        } else {
-            mesh.forEachTriangle { a, b, c ->
-                tr.transformPosition(a)
-                tr.transformPosition(b)
-                tr.transformPosition(c)
-                drawLine(entity, a, b, color)
-                drawLine(entity, b, c, color)
-                drawLine(entity, c, a, color)
-                false
-            }
+        mesh.forEachTriangle { a, b, c ->
+            drawLine(entity, a, b, color)
+            drawLine(entity, b, c, color)
+            drawLine(entity, c, a, color)
+            false
         }
     }
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val mesh = mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
-        val matrix = globalTransform.mul(meshTransform, JomlPools.mat4x3d.borrow())
         mesh.forEachPoint(preferExact) { x, y, z ->
             tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
-            matrix.transformPosition(tmp)
+            globalTransform.transformPosition(tmp)
             aabb.union(tmp)
             false
         }
@@ -248,6 +217,5 @@ open class MeshCollider() : Collider() {
         dst.meshFile = meshFile
         dst.isConvex = isConvex
         dst.margin = margin
-        dst.meshTransform.set(meshTransform)
     }
 }

@@ -1,6 +1,7 @@
 package me.anno.tests.engine.collider
 
 import me.anno.ecs.components.collider.Collider
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.assertions.assertEquals
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -47,5 +48,5 @@ class ColliderTest : Collider() {
         assertEquals(m.transformPosition(Vector3d(1.0, 2.0, 3.0)), b.getMax(Vector3d()))
     }
 
-    override fun drawShape() {}
+    override fun drawShape(pipeline: Pipeline) {}
 }

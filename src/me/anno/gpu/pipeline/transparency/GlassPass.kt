@@ -5,7 +5,6 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RendererLib
-import me.anno.engine.ui.render.RendererLib.fresnelSchlick
 import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers.pbrRenderer

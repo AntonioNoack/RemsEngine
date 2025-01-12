@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawCone
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
@@ -67,7 +68,7 @@ class ConeCollider : Collider() {
         return sqrt(d) * sign(s) - roundness
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         // todo check whether they are correct (the same as the physics behaviour)
         val matrix = when (axis) {
             0 -> LineShapes.zToX

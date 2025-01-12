@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawPartialSphere
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.TAU
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -48,7 +49,7 @@ class CapsuleCollider : Collider() {
         return deltaPos.length() - radius.toFloat()
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         val h = halfHeight
         val r = radius
         val xi = PI / 2

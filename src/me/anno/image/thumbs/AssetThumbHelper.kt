@@ -14,6 +14,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
@@ -130,10 +131,11 @@ object AssetThumbHelper {
     }
 
     fun Collider.drawAssimp(
+        pipeline: Pipeline,
         stack: Matrix4f,
         localStack: Matrix4x3f?
     ) {
-        drawShape()
+        drawShape(pipeline)
         finishLines(stack, localStack)
     }
 

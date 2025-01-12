@@ -50,6 +50,7 @@ import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import kotlin.math.min
+import kotlin.reflect.KClass
 
 class PipelineStageImpl(
     var name: String,
@@ -143,11 +144,7 @@ class PipelineStageImpl(
 
         val tmpAABBd = AABBd()
 
-        fun setupLocalTransform(
-            shader: GPUShader,
-            transform: Transform?,
-            time: Long
-        ) {
+        fun bindTransformUniforms(shader: GPUShader, transform: Transform?) {
             if (transform != null) {
                 val localTransform = transform.getDrawMatrix()
                 tmp4x3.set4x3Delta(localTransform)
@@ -169,12 +166,12 @@ class PipelineStageImpl(
                 }
             } else {
                 val localTransform = JomlPools.mat4x3d.create().identity()
-                setupLocalTransform(shader, localTransform)
+                bindTransformUniforms(shader, localTransform)
                 JomlPools.mat4x3d.sub(1)
             }
         }
 
-        fun setupLocalTransform(shader: GPUShader, transform: Matrix4x3d) {
+        fun bindTransformUniforms(shader: GPUShader, transform: Matrix4x3d) {
             shader.m4x3("localTransform", tmp4x3.set4x3Delta(transform))
             shader.v1f("worldScale", RenderState.worldScale)
             if (shader.hasUniform("prevLocalTransform")) {
@@ -190,7 +187,7 @@ class PipelineStageImpl(
             }
         }
 
-        fun initShader(shader: GPUShader, applyToneMapping: Boolean) {
+        fun bindCameraUniforms(shader: GPUShader, applyToneMapping: Boolean) {
             // information for the shader, which is material agnostic
             // add all things, the shader needs to know, e.g., light direction, strength, ...
             // (for the cheap shaders, which are not deferred)
@@ -203,7 +200,7 @@ class PipelineStageImpl(
             shader.v1b("reverseDepth", GFXState.depthMode.currentValue.reversedDepth)
         }
 
-        fun bindRandomness(shader: GPUShader) {
+        fun bindJitterUniforms(shader: GPUShader) {
             val renderer = GFXState.currentRenderer
             val deferred = renderer.deferredSettings
             val target = GFXState.currentBuffer
@@ -239,7 +236,49 @@ class PipelineStageImpl(
             }
         }
 
-        fun setupPlanarReflection(pipeline: Pipeline, shader: GPUShader, aabb: AABBd) {
+        private var lastTransform: Transform? = null
+        private var lastMesh: IMesh? = null
+        private var lastShader: Shader? = null
+        private var lastComp: Component? = null
+
+        private fun Any?.getClass(): KClass<*>? {
+            return if (this == null) null else this::class
+        }
+
+        fun bindSkeletalUniforms(transform: Transform, shader: Shader, mesh: IMesh, renderer: Component) {
+            if (lastTransform !== transform ||
+                lastMesh !== mesh ||
+                lastShader !== shader ||
+                lastComp.getClass() != renderer::class
+            ) {
+                val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
+                    renderer.defineVertexTransform(shader, transform, mesh)
+                else false
+                shader.v1b("hasAnimation", hasAnim)
+                lastTransform = transform
+                lastMesh = mesh
+                lastShader = shader
+                lastComp = renderer
+            }
+        }
+
+        fun bindUtilityUniforms(
+            shader: Shader, material: Material, mesh: IMesh,
+            renderer: Component
+        ) {
+            shader.v4f("tint", 1f)
+            shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
+            val renderMode = RenderView.currentInstance?.renderMode
+            val finalId = if (renderMode == RenderMode.DRAW_CALL_ID) drawCallId++ else renderer.gfxId
+            shader.v4f("finalId", finalId)
+            shader.v2i(
+                "randomIdData",
+                if (mesh.proceduralLength > 0) 3 else 0,
+                if (renderer is MeshComponentBase) renderer.randomTriangleId else 0
+            )
+        }
+
+        fun bindPlanarReflectionUniforms(pipeline: Pipeline, shader: GPUShader, aabb: AABBd) {
 
             shader.v4f("reflectionCullingPlane", pipeline.reflectionCullingPlane)
             shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
@@ -286,7 +325,7 @@ class PipelineStageImpl(
             }
         }
 
-        fun setupReflectionMap(pipeline: Pipeline, shader: GPUShader, aabb: AABBd) {
+        fun bindReflectionMapUniforms(pipeline: Pipeline, shader: GPUShader, aabb: AABBd) {
             val envMapSlot = shader.getTextureIndex("reflectionMap")
             if (envMapSlot >= 0) {
                 // find the closest environment map
@@ -322,10 +361,10 @@ class PipelineStageImpl(
             }
         }
 
-        fun setupLights(pipeline: Pipeline, shader: GPUShader, aabb: AABBd, receiveShadows: Boolean) {
+        fun bindLightUniforms(pipeline: Pipeline, shader: GPUShader, aabb: AABBd, receiveShadows: Boolean) {
 
-            setupPlanarReflection(pipeline, shader, aabb)
-            setupReflectionMap(pipeline, shader, aabb)
+            bindPlanarReflectionUniforms(pipeline, shader, aabb)
+            bindReflectionMapUniforms(pipeline, shader, aabb)
 
             val numberOfLightsPtr = shader["numberOfLights"]
             if (numberOfLightsPtr >= 0) {
@@ -495,10 +534,6 @@ class PipelineStageImpl(
         }
     }
 
-    var lastTransform: Transform? = null
-    var lastMesh: IMesh? = null
-    var lastShader: Shader? = null
-    var lastComp: Component? = null
     var lastReceiveShadows = false
     var previousMaterialInScene: Material? = null
     var hasLights = false
@@ -596,11 +631,11 @@ class PipelineStageImpl(
 
                 val shader = getShader(material)
                 shader.use()
-                bindRandomness(shader)
+                bindJitterUniforms(shader)
 
                 val previousMaterialByShader = lastMaterial.put(shader, material)
                 if (previousMaterialByShader == null) {
-                    initShader(shader, pipeline.applyToneMapping)
+                    bindCameraUniforms(shader, pipeline.applyToneMapping)
                 }
 
                 val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
@@ -611,12 +646,12 @@ class PipelineStageImpl(
                     ) {
                         // upload all light data
                         val aabb = tmpAABBd.set(mesh.getBounds()).transform(transform.getDrawMatrix())
-                        setupLights(pipeline, shader, aabb, receiveShadows)
+                        bindLightUniforms(pipeline, shader, aabb, receiveShadows)
                         lastReceiveShadows = receiveShadows
                     }
                 }
 
-                setupLocalTransform(shader, transform, Time.gameTimeN)
+                bindTransformUniforms(shader, transform)
 
                 // the state depends on textures (global) and uniforms (per shader),
                 // so test both
@@ -629,35 +664,8 @@ class PipelineStageImpl(
 
                 mesh.ensureBuffer()
 
-                // only if the entity or mesh changed
-                // not if the material has changed
-                // this updates the skeleton and such
-                if (lastTransform !== transform ||
-                    lastMesh !== mesh ||
-                    lastShader !== shader ||
-                    lastComp == null ||
-                    lastComp!!::class != renderer::class
-                ) {
-                    val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
-                        renderer.defineVertexTransform(shader, transform, mesh)
-                    else false
-                    shader.v1b("hasAnimation", hasAnim)
-                    lastTransform = transform
-                    lastMesh = mesh
-                    lastShader = shader
-                    lastComp = renderer
-                }
-
-                shader.v4f("tint", 1f)
-                shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
-                val renderMode = RenderView.currentInstance?.renderMode
-                val finalId = if (renderMode == RenderMode.DRAW_CALL_ID) drawCallId++ else renderer.gfxId
-                shader.v4f("finalId", finalId)
-                shader.v2i(
-                    "randomIdData",
-                    if (mesh.proceduralLength > 0) 3 else 0,
-                    if (renderer is MeshComponentBase) renderer.randomTriangleId else 0
-                )
+                bindSkeletalUniforms(transform, shader, mesh, renderer)
+                bindUtilityUniforms(shader, material, mesh, renderer)
 
                 GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
                     mesh.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
@@ -675,7 +683,7 @@ class PipelineStageImpl(
     private var hadTooMuchSpace = 0
     fun clear() {
 
-        // there is has been much space for many iterations
+        // there has been much space for many iterations
         if (nextInsertIndex < drawRequests.size shr 1) {
             if (hadTooMuchSpace++ > 100) {
                 drawRequests.resize(nextInsertIndex)

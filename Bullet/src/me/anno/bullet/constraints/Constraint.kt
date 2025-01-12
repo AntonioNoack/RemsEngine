@@ -17,6 +17,7 @@ import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.ui.UIColors
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
@@ -38,8 +39,8 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     var other: Rigidbody? = null
         set(value) {
             if (field != value) {
-                value?.constraints?.add(this)
-                field?.constraints?.remove(this)
+                value?.linkedConstraints?.add(this)
+                field?.linkedConstraints?.remove(this)
                 field = value
             }
         }
@@ -117,8 +118,11 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        LineShapes.drawPoint(entity, selfPosition, 1.0)
-        LineShapes.drawPoint(other?.entity ?: entity, otherPosition, 1.0)
+        LineShapes.drawPoint(entity, selfPosition, 1.0, constraintColor)
+        LineShapes.drawLine(entity, zero, selfPosition, constraintColor)
+        val other = other?.entity ?: entity
+        LineShapes.drawPoint(other, otherPosition, 1.0, constraintColor)
+        LineShapes.drawLine(other, zero, otherPosition, constraintColor)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -130,5 +134,10 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         dst.otherPosition.set(otherPosition)
         dst.otherRotation.set(otherRotation)
         dst.disableCollisionsBetweenLinked = disableCollisionsBetweenLinked
+    }
+
+    companion object {
+        private val zero = Vector3d()
+        private val constraintColor = UIColors.dodgerBlue
     }
 }

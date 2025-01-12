@@ -1,6 +1,5 @@
 package me.anno.gpu.pipeline
 
-import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.light.sky.SkyboxUpscaler
@@ -21,10 +20,10 @@ import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths
@@ -84,10 +83,10 @@ object DrawSky {
             val material = getMaterial(sky.materials, mesh.materials, i)
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
-            initShader(shader, pipeline.applyToneMapping)
-            bindRandomness(shader)
-            setupLights(pipeline, shader, allAABB, false)
-            setupLocalTransform(shader, sky.transform, Time.gameTimeN)
+            bindCameraUniforms(shader, pipeline.applyToneMapping)
+            bindJitterUniforms(shader)
+            bindLightUniforms(pipeline, shader, allAABB, false)
+            bindTransformUniforms(shader, sky.transform)
             shader.v1b("hasAnimation", false)
             shader.v4f("tint", 1f)
             shader.v1f("finalAlpha", 1f)

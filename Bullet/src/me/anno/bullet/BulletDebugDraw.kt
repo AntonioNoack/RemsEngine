@@ -4,16 +4,14 @@ import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.utils.pooling.JomlPools
+import me.anno.gpu.buffer.LineBuffer.vToByte
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import javax.vecmath.Vector3d
 
-class BulletDebugDraw : IDebugDraw() {
+object BulletDebugDraw : IDebugDraw() {
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
-    }
+    private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
 
     var stack = Matrix4f()
     var cam = org.joml.Vector3d()
@@ -37,8 +35,6 @@ class BulletDebugDraw : IDebugDraw() {
 
     var mode = 2047 // all flags
 
-    // private val textInstance = Text()
-
     override fun getDebugMode() = mode
 
     override fun setDebugMode(debugMode: Int) {
@@ -51,28 +47,10 @@ class BulletDebugDraw : IDebugDraw() {
 
     override fun draw3dText(location: Vector3d, textString: String) {
         // is not being used by discrete dynamics world
-        /*val localPosition = toLocal(location)
-        textInstance.position.set(localPosition)
-        // set scale based on distance
-        val distance = localPosition.length()
-        val defaultScale = 1f
-        textInstance.scale.set(Vector3f(defaultScale / distance))
-        textInstance.alignWithCamera.set(1f)
-        textInstance.text.set(textString)
-        textInstance.draw(stack, 1.0, white4)*/
     }
 
-    /*private fun toLocal(global: Vector3d): Vector3f {
-        return Vector3f(
-            ((global.x - cam.x) * worldScale).toFloat(),
-            ((global.y - cam.y) * worldScale).toFloat(),
-            ((global.z - cam.z) * worldScale).toFloat()
-        )
-    }
-
-    private fun toColor(color: Vector3d, alpha: Float = 1f): Vector4f {
-        return Vector4f(color.x.toFloat(), color.y.toFloat(), color.z.toFloat(), alpha)
-    }*/
+    private val tmpA = org.joml.Vector3d()
+    private val tmpB = org.joml.Vector3d()
 
     override fun drawContactPoint(
         position: Vector3d,
@@ -82,22 +60,15 @@ class BulletDebugDraw : IDebugDraw() {
         color: Vector3d
     ) {
         // instead of a line, draw a shape with arrow
-        val p0 = JomlPools.vec3d.create().set(position.x, position.y, position.z)
-        val p1 = JomlPools.vec3d.create().set(normal.x, normal.y, normal.z).add(p0)
+        val p0 = tmpA.set(position.x, position.y, position.z)
+        val p1 = tmpB.set(normal.x, normal.y, normal.z).add(p0)
         LineShapes.drawArrowZ(p0, p1)
-        // drawLine(position, Vector3d(position).apply { add(normal) }, color)
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
         LineBuffer.putRelativeLine(
-            from.x, from.y, from.z,
-            to.x, to.y, to.z,
-            cam, worldScale,
-            LineBuffer.vToByte(color.x),
-            LineBuffer.vToByte(color.y),
-            LineBuffer.vToByte(color.z),
-            LineBuffer.vToByte(1.0)
+            from.x, from.y, from.z, to.x, to.y, to.z, cam, worldScale,
+            vToByte(color.x), vToByte(color.y), vToByte(color.z), -1
         )
     }
-
 }

@@ -46,7 +46,10 @@ open class Rigidbody : Component(), OnDrawGUI {
     var bulletInstance: RigidBody? = null
 
     @NotSerializedProperty
-    val constraints = ArrayList<Constraint<*>>()
+    val linkedConstraints = ArrayList<Constraint<*>>()
+
+    @NotSerializedProperty
+    val activeColliders = ArrayList<Collider>()
 
     @DebugProperty
     @NotSerializedProperty

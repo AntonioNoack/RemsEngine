@@ -1,6 +1,5 @@
 package me.anno.tests.physics
 
-import cz.advel.stack.Stack
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.bullet.constraints.ConeTwistConstraint
@@ -25,6 +24,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.ui.UIColors
@@ -88,18 +88,10 @@ fun main() {
         DebugShapes.debugPoints.add(DebugPoint(pos, UIColors.fireBrick, 1000f))
     }
 
-    scene.add(object : Component(), OnUpdate {
-        override fun onUpdate() {
-            for (capsule in capsules) {
-                capsule.drawShape()
-            }
-        }
-    })
-
     // todo add bone visually
     val entities = ArrayList<Entity?>()
     val rigidbodies = ArrayList<Rigidbody?>()
-    val baseTransforms = ArrayList<Matrix4x3d?>()
+    val baseTransformInvs = ArrayList<Matrix4x3d?>()
     val roots = ArrayList<Pair<Double, Rigidbody>>()
     var isRootBone = true
     for (bone in bones) {
@@ -117,7 +109,7 @@ fun main() {
         if (parent == null) {
             entities.add(null)
             rigidbodies.add(null)
-            baseTransforms.add(null)
+            baseTransformInvs.add(null)
             continue
         }
 
@@ -125,7 +117,7 @@ fun main() {
         if (isRootBone && parentPos.distance(bonePos) < 0.001) {
             entities.add(null)
             rigidbodies.add(null)
-            baseTransforms.add(null)
+            baseTransformInvs.add(null)
             continue
         }
 
@@ -134,7 +126,7 @@ fun main() {
             isRootBone = false
             entities.add(null)
             rigidbodies.add(null)
-            baseTransforms.add(null)
+            baseTransformInvs.add(null)
             continue
         }
 
@@ -161,7 +153,7 @@ fun main() {
         val baseRotation = direction.normalize().normalToQuaternionY()
         val parentBody = rigidbodies[parent.id]
         if (parentBody != null) {
-            entity.add(ConeTwistConstraint().apply {
+            if (false) entity.add(ConeTwistConstraint().apply {
                 other = parentBody
                 selfPosition.set(0.0, +length * 0.5, 0.0)
                 otherPosition.set(0.0, -parent.length(bones) * 0.5, 0.0)
@@ -177,7 +169,7 @@ fun main() {
         entity.rotation = baseRotation
         entity.validateTransform()
         entities.add(entity)
-        baseTransforms.add(Matrix4x3d(entity.transform.globalTransform).invert())
+        baseTransformInvs.add(Matrix4x3d(entity.transform.globalTransform).invert())
     }
 
     val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
@@ -204,6 +196,8 @@ fun main() {
     var firstFrame = true
     val animationUpdateComponent = object : Component(), OnUpdate {
         override fun onUpdate() {
+            val invTransformD = sampleComponent.transform!!.globalTransform.invert(Matrix4x3d())
+            val invTransform = Matrix4x3f().set(invTransformD)
             for (boneId in bones.indices) {
                 val ragdoll = entities[boneId] ?: continue
                 val ragdollT = ragdoll.transform
@@ -211,10 +205,10 @@ fun main() {
                 val dstMatrix = ragdollAnimation.frames[0][boneId]
                 val bone = bones[boneId]
                 if (Input.isShiftDown) {
-                    dstMatrix.set(initialPose[0])
+                    dstMatrix.set(initialPose[boneId])
                 } else {
                     // todo this transform isn't correct yet, this must be equal for the first frame
-                    val baseTransform = baseTransforms[boneId]!!
+                    val baseTransformInv = baseTransformInvs[boneId]!!
                     val target = initialPose[boneId]
 
                     val length = bone.length(bones)
@@ -222,25 +216,43 @@ fun main() {
                     // because we simulate the center, but actually mean the root
                     val physicsPos = Vector3d(ragdollT.localPosition)
                         .sub(physicsTransform.transformDirection(Vector3d(0.0, length * 0.5, 0.0)))
-                    val basePos = Vector3d(bone.bindPosition) // baseTransform.getTranslation(Vector3d())
+                    val bindPos = Vector3d(bone.bindPosition) // baseTransform.getTranslation(Vector3d())
 
                     val physicsRot = physicsTransform.getUnnormalizedRotation(Quaternionf())
                     // baseTransform.transformRotation(physicsRot)
-                    val baseRot = baseTransform.getUnnormalizedRotation(Quaternionf())
+                    val baseRotInv = baseTransformInv.getUnnormalizedRotation(Quaternionf())
+
+                    if (firstFrame) {
+                        println("Checking '${bone.name}':")
+                        println("  baseInv: $baseTransformInv")
+                        println("  invTransform: $invTransformD")
+                        println("  physics: $physicsTransform")
+                        println("  bindPose: ${bone.bindPose}")
+                        println("  relPose: ${bone.relativeTransform}")
+                        println("  target: ${initialPose[boneId]}")
+                    }
 
                     // physicsRot should be the same as baseRotation before physics sets in
                     // why is it changing soo much after just one frame???
                     if (firstFrame) {
                         println("Checking '${bone.name}':")
                         println("  physics: $physicsRot")
-                        println("  base:    $baseRot")
-                        assertEquals(Matrix3f(), Matrix3f()
-                            .rotation(physicsRot.mul(baseRot, Quaternionf())), 0.01)
+                        println("  base:    $baseRotInv")
+                        assertEquals(
+                            Matrix3f(), Matrix3f()
+                                .rotation(physicsRot.mul(baseRotInv, Quaternionf())), 0.01
+                        )
                     }
 
+                    // todo what is the correct local rotation???
+                    //  * baseRot^-1 *
+
+
                     dstMatrix.identity()
-                        // .rotate(Quaternionf(baseRot.mul(physicsRot)))
-                        .translate(Vector3f(physicsPos - basePos))
+                        // .rotate(Quaternionf(baseRotInv.mul(physicsRot)))
+                        .translate(Vector3f(physicsPos - bindPos))
+
+                    invTransform.mul(dstMatrix, dstMatrix)
 
                     if (boneId == 160) {
                         assertEquals(dstMatrix, target, 0.9)
@@ -277,5 +289,7 @@ fun main() {
     // adjust ragdoll to start on specific animation state/frame (e.g., walking)
     // make skin stick to ragdoll physics
     // test physics for ragdoll -> looks very weird, and there is two parts for some reason :/
-    testSceneWithUI("Ragdoll Test", scene)
+    testSceneWithUI("Ragdoll Test", scene) {
+        it.renderView.renderMode = RenderMode.PHYSICS
+    }
 }

@@ -302,12 +302,12 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         if (all ||
             // entity?.physics?.showDebug == true ||
             RenderView.currentInstance?.renderMode == RenderMode.PHYSICS
-        ) drawShape()
+        ) drawShape(pipeline)
         // todo color based on physics / trigger (?)
         // todo draw transformation gizmos for easy collider manipulation
     }
 
-    abstract fun drawShape()
+    abstract fun drawShape(pipeline: Pipeline)
 
     companion object {
 

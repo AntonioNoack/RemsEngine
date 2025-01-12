@@ -168,9 +168,11 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     abstract fun removeConstraints(entity: Entity)
 
-    fun <V : Component> getValidComponents(root: Entity, clazz: KClass<V>): List<V> {
+    fun <V : Component> getValidComponents(
+        root: Entity, clazz: KClass<V>,
+        dst: ArrayList<V> = ArrayList()
+    ): List<V> {
         // only collect colliders, which are appropriate for this: stop at any other rigidbody
-        val dst = ArrayList<V>()
         val tmp = ArrayList<Entity>()
         tmp.add(root)
         while (tmp.isNotEmpty()) { // non-recursive should be faster
@@ -287,8 +289,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 field = value
             }
         }
-
-    var showDebug = false
 
     @DebugAction
     fun reloadScene() {

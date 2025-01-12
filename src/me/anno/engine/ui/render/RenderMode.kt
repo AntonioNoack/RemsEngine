@@ -440,6 +440,7 @@ class RenderMode private constructor(
                 .then(FXAANode())
                 .finish()
         )
+
         val PHYSICS = RenderMode("Physics", DEFAULT)
 
         val POST_OUTLINE = RenderMode(

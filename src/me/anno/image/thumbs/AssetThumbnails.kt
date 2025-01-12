@@ -287,7 +287,7 @@ object AssetThumbnails {
             srcFile, false, dstFile, true,
             renderer, true, callback, size, size
         ) {
-            collider.drawAssimp(cameraMatrix, modelMatrix)
+            collider.drawAssimp(rv.pipeline, cameraMatrix, modelMatrix)
         }
     }
 

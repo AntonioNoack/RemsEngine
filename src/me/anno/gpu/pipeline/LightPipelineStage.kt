@@ -23,7 +23,7 @@ import me.anno.gpu.pipeline.LightShaders.countPerPixel
 import me.anno.gpu.pipeline.LightShaders.lightInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -149,7 +149,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
                 shader.v1b("fullscreen", light is DirectionalLight && light.cutoff == 0f)
 
-                setupLocalTransform(shader, transform)
+                bindTransformUniforms(shader, transform)
 
                 // define the light data
                 // data0: color, type;

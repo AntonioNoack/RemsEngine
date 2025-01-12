@@ -33,7 +33,7 @@ class CircleLight : LightComponent(LightType.CIRCLE) {
     ) {
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         drawCircle(entity, radius.toDouble(), 0, 1, 0.0)
     }
 

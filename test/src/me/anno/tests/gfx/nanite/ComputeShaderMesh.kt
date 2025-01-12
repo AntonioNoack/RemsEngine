@@ -19,10 +19,10 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.Shader
@@ -162,10 +162,10 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
     ) {
         val material = Materials.getMaterial(null, mesh.materials, materialIndex)
         material.bind(shader)
-        initShader(shader, false)
-        bindRandomness(shader)
-        setupLocalTransform(shader, null, 0L)
-        setupLights(pipeline, shader, AABBd(), true)
+        bindCameraUniforms(shader, false)
+        bindJitterUniforms(shader)
+        bindTransformUniforms(shader, null)
+        bindLightUniforms(pipeline, shader, AABBd(), true)
         shader.v1i("numPrimitives", numPrimitives)
         shader.v1i("numInstances", instanceData?.drawLength ?: 1)
         shader.v2i("viewportSize", target.width, target.height)

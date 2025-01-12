@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.length
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -50,7 +51,7 @@ class CylinderCollider : Collider() {
         return and2SDFs(deltaPos, roundness.toFloat())
     }
 
-    override fun drawShape() {
+    override fun drawShape(pipeline: Pipeline) {
         val h = halfHeight
         val r = radius
         val e = entity
