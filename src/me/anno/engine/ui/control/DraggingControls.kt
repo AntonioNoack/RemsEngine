@@ -2,6 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
@@ -60,6 +61,8 @@ import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
 
+// todo for physics controlled objects, what do we need to make it possible to make them float? remember reference position?
+
 // todo adjust movement speed and mouse rotation based on FOV
 
 // todo select a bunch of assets, make it a collection,
@@ -102,10 +105,12 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val topLeft = PanelListX(style)
         drawModeInput.alignmentY = AxisAlignment.CENTER
         topLeft.add(drawModeInput)
-        topLeft.add(TextButton(NameDesc("Play", "Start the game", ""), false, style)
+        topLeft.add(
+            TextButton(NameDesc("Play", "Start the game", ""), false, style)
             .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
             .apply { alignmentY = AxisAlignment.MIN })
-        topLeft.add(TextButton(NameDesc("⚙"), 1f, style)
+        topLeft.add(
+            TextButton(NameDesc("⚙"), 1f, style)
             .setTooltip("Settings")
             .addLeftClickListener { EditorState.select(settings) }
             .apply { alignmentY = AxisAlignment.MIN })
@@ -595,6 +600,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         if (entity != null) {
             entity.invalidateAABBsCompletely()
             entity.invalidateChildTransforms()
+            entity.invalidatePhysicsTransform()
         }
         invalidateInspector()
         PrefabInspector.currentInspector?.onChange(false)

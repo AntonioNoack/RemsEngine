@@ -38,11 +38,9 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
     @Type("Rigidbody/SameSceneRef")
     var other: Rigidbody? = null
         set(value) {
-            if (field != value) {
-                value?.linkedConstraints?.add(this)
-                field?.linkedConstraints?.remove(this)
-                field = value
-            }
+            field?.linkedConstraints?.remove(this)
+            value?.linkedConstraints?.add(this)
+            field = value
         }
 
     @DebugProperty

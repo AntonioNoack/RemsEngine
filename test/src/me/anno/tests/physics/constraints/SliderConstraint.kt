@@ -38,24 +38,25 @@ fun main() {
     val body1 = Rigidbody()
     box1.add(body1)
 
-    val sliding = SliderConstraint()
-    sliding.enableLinearMotor = true
-    sliding.motorMaxForce = 10000.0
-    sliding.targetMotorVelocity = 0.0
-    sliding.disableCollisionsBetweenLinked = true
-    sliding.lowerLimit = -0.01
-    sliding.upperLimit = +0.01
-    sliding.other = body1
+    val sliding = SliderConstraint().apply {
+        enableLinearMotor = true
+        motorMaxForce = 10000.0
+        targetMotorVelocity = 0.0
+        disableCollisionsBetweenLinked = true
+        lowerLimit = -0.01
+        upperLimit = +0.01
+        other = body1
+    }
     box0.add(sliding)
 
-    val floor = Entity("Floor", scene)
-    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
-    floor.add(BoxCollider())
-    floor.add(Rigidbody().apply {
-        friction = 1.0
-    })
-    floor.setPosition(0.0, -22.0, 0.0)
-    floor.setScale(20.0)
+    Entity("Floor", scene)
+        .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
+        .add(BoxCollider())
+        .add(Rigidbody().apply {
+            friction = 1.0
+        })
+        .setPosition(0.0, -22.0, 0.0)
+        .setScale(20.0)
 
     testSceneWithUI("Slider Constraint", scene)
 }

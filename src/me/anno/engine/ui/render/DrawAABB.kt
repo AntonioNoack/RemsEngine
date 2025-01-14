@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.buffer.LineBuffer.ensureSize
-import me.anno.gpu.buffer.LineBuffer.lineSize
+import me.anno.gpu.buffer.LineBuffer.bytesPerLine
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -47,7 +47,7 @@ object DrawAABB {
         x1: Float, y1: Float, z1: Float,
         color: Int
     ) {
-        ensureSize(lineSize * 12)
+        ensureSize(bytesPerLine * 12)
 
         // dx
         addLine(x0, y0, z0, x1, y0, z0, color)

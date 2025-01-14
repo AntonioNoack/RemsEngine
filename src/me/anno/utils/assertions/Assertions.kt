@@ -104,7 +104,7 @@ fun assertEquals(
     message: String = "expected equal values"
 ) {
     assertTrue(abs(expected - actual) <= absoluteThreshold) {
-        "$message, |$expected - $actual| > $absoluteThreshold"
+        "$message, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
     }
 }
 
@@ -120,7 +120,7 @@ fun assertEquals(
     message: String = "expected equal values"
 ) {
     assertTrue(abs(expected - actual) <= absoluteThreshold) {
-        "$message, |$expected - $actual| > $absoluteThreshold"
+        "$message, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
     }
 }
 
@@ -144,7 +144,7 @@ fun <V : Vector> assertEquals(
 ) {
     for (i in 0 until expected.numComponents) {
         assertEquals(expected.getComp(i), actual.getComp(i), absoluteThreshold) {
-            "$message, |$expected - $actual| > $absoluteThreshold"
+            "$message, |$expected - $actual|[$i] = ${abs(expected.getComp(i) - actual.getComp(i))} > $absoluteThreshold"
         }
     }
 }

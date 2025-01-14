@@ -217,5 +217,6 @@ open class MeshCollider() : Collider() {
         dst.meshFile = meshFile
         dst.isConvex = isConvex
         dst.margin = margin
+        dst.enableSimplifications = enableSimplifications
     }
 }

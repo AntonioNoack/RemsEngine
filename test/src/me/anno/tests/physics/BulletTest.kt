@@ -2,6 +2,7 @@ package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
+import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
@@ -19,18 +20,22 @@ import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
+import me.anno.maths.Optimization.simplexAlgorithm
 import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
-import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.LogManager
+import me.anno.utils.types.Floats.f3s
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 import kotlin.math.cos
+import kotlin.math.cosh
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 class BulletTest {
 
@@ -506,5 +511,193 @@ class BulletTest {
 
         println("Good: $good/${good + failed}")
         assertEquals(0, failed)
+    }
+
+    @Test
+    fun testPointConstraintByBuildingAHangingBridge() {
+
+        setupGravityTest(-10f)
+
+        val debug = false
+        val n = 31
+        val dist = 2.5
+        val chainFactor = 0.5
+
+        val cosh0 = cosh(0.0) // 1.0
+        val cosh1 = cosh(1.0)
+
+        // trying to find a good start, so we don't have too much bounce
+        fun initialShape(i: Int): Double {
+            val halfN = (n - 1) * 0.5
+            val x11 = (i - halfN) / halfN
+            val dy = 23.3
+            return (cosh(x11) - cosh1) * dy / (cosh1 - cosh0)
+        }
+
+        val world = Entity()
+        fun createPoint(i: Int, mass: Double): Rigidbody {
+            val result = Rigidbody().apply {
+                this.mass = mass
+                linearDamping = 0.999
+            }
+            Entity("$i", world)
+                .setPosition(i * dist, initialShape(i), 0.0)
+                .add(SphereCollider())
+                .add(result)
+            return result
+        }
+
+        // create nodes
+        val chain = ArrayList<Rigidbody>(n)
+        for (i in 0 until n) {
+            chain.add(createPoint(i, if (i == 0 || i == n - 1) 0.0 else 1.0))
+        }
+
+        // create links
+        for (i in 1 until n) {
+            val c0 = chain[i - 1].entity!!
+            val c1 = chain[i]
+            c0.addChild(PointConstraint().apply {
+                selfPosition = selfPosition.set(-dist * chainFactor, 0.0, 0.0)
+                otherPosition = otherPosition.set(+dist * chainFactor, 0.0, 0.0)
+                other = c1
+            })
+        }
+
+        Systems.world = world
+
+        fun getY(i: Int): Double {
+            return chain[i].transform!!.globalPosition.y
+        }
+
+        for (k in 0 until 100) {
+            physics.step((0.1f * SECONDS_TO_NANOS).toLong(), false)
+            if (debug) println(chain.indices.map { i -> getY(i).f3s() })
+        }
+
+        // trying to fit the chain against a theoretical chain
+        fun fitShape(i: Int, y0: Double, y1: Double): Double {
+            val halfN = (n - 1) * 0.5
+            val x11 = (i - halfN) / halfN
+            return mix(y0, y1, (cosh(x11) - cosh1) / (cosh1 - cosh0))
+        }
+
+        fun fitShapeError(y0: Double, y1: Double): Double {
+            var err = 0.0
+            for (i in 1 until n - 1) {
+                err += sq(fitShape(i, y0, y1) - getY(i))
+            }
+            return err
+        }
+
+        val (bestErr, bestParams) = simplexAlgorithm(
+            doubleArrayOf(0.0, 23.3), 0.3, 0.0, 100
+        ) { params -> fitShapeError(params[0], params[1]) }
+        val (y0, y1) = bestParams
+
+        if (debug) println(chain.mapIndexed { i, it -> (it.transform!!.globalPosition.y - fitShape(i, y0, y1)).f3s() })
+        val avgErr = sqrt(bestErr / (n - 2))
+
+        assertEquals(3.6, y0, 1.0)
+        assertEquals(30.8, y1, 1.0)
+        assertTrue(avgErr < 0.4)
+        println("$bestErr -> $avgErr, $y0,$y1")
+    }
+
+    @Test
+    fun testPointConstraintByBuildingABowBridge() {
+
+        setupGravityTest(-10f)
+
+        val debug = true
+        val n = 31
+        val dist = 2.5
+        val chainFactor = 0.51
+
+        val cosh0 = cosh(0.0) // 1.0
+        val cosh1 = cosh(1.0)
+
+        // trying to find a good start, so we don't have too much bounce
+        fun initialShape(i: Int): Double {
+            val halfN = (n - 1) * 0.5
+            val x11 = (i - halfN) / halfN
+            val dy = 43.3
+            return (cosh(x11) - cosh1) * dy / (cosh1 - cosh0)
+        }
+
+        val world = Entity()
+        fun createPoint(i: Int, mass: Double): Rigidbody {
+            val result = Rigidbody().apply {
+                this.mass = mass
+                linearDamping = 0.999
+            }
+            Entity("$i", world)
+                .setPosition(i * dist, initialShape(i), 0.0)
+                .add(SphereCollider())
+                .add(result)
+            return result
+        }
+
+        // create nodes
+        val chain = ArrayList<Rigidbody>(n)
+        for (i in 0 until n) {
+            chain.add(createPoint(i, if (i == 0 || i == n - 1) 0.0 else 1.0))
+        }
+
+        // create links
+        for (i in 1 until n) {
+            val c0 = chain[i - 1].entity!!
+            val c1 = chain[i]
+            val dx = 2.0
+            c0.addChild(PointConstraint().apply {
+                selfPosition = selfPosition.set(-dist * chainFactor, dx, 0.0)
+                otherPosition = otherPosition.set(+dist * chainFactor, dx, 0.0)
+                other = c1
+            })
+            c0.addChild(PointConstraint().apply {
+                selfPosition = selfPosition.set(-dist * chainFactor, -dx, 0.0)
+                otherPosition = otherPosition.set(+dist * chainFactor, -dx, 0.0)
+                other = c1
+            })
+        }
+
+        Systems.world = world
+
+        fun getY(i: Int): Double {
+            return chain[i].transform!!.globalPosition.y
+        }
+
+        for (k in 0 until 1000) {
+            physics.step((0.1f * SECONDS_TO_NANOS).toLong(), false)
+            // if (debug) println((chain.indices step 3).map { i -> getY(i).f3s() })
+        }
+
+        // trying to fit the chain against a theoretical chain
+        fun fitShape(i: Int, y0: Double, y1: Double): Double {
+            val halfN = (n - 1) * 0.5
+            val x11 = (i - halfN) / halfN
+            return mix(y0, y1, (cosh(x11) - cosh1) / (cosh1 - cosh0))
+        }
+
+        fun fitShapeError(y0: Double, y1: Double): Double {
+            var err = 0.0
+            for (i in 1 until n - 1) {
+                err += sq(fitShape(i, y0, y1) - getY(i))
+            }
+            return err
+        }
+
+        val (bestErr, bestParams) = simplexAlgorithm(
+            doubleArrayOf(0.0, 23.3), 0.3, 0.0, 100
+        ) { params -> fitShapeError(params[0], params[1]) }
+        val (y0, y1) = bestParams
+
+        if (debug) println(chain.mapIndexed { i, it -> (it.transform!!.globalPosition.y - fitShape(i, y0, y1)).f3s() })
+        val avgErr = sqrt(bestErr / (n - 2))
+
+        assertEquals(9.5, y0, 1.0)
+        assertEquals(58.4, y1, 1.0)
+        assertTrue(avgErr < 2.66, "$avgErr")
+        println("$bestErr -> $avgErr, $y0,$y1")
     }
 }

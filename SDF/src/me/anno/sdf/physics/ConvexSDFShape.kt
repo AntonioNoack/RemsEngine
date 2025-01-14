@@ -49,30 +49,33 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     ) = localGetSupportingVertex(dir, out, margin)
 
     private val seeds = IntArrayList(8)
+
+    /**
+     * return the closest point to that
+     * */
     fun localGetSupportingVertex(
-        dir: javax.vecmath.Vector3d,
+        pos: javax.vecmath.Vector3d,
         out: javax.vecmath.Vector3d,
         margin: Double
     ): javax.vecmath.Vector3d {
 
-        dir.normalize()
-
         val bounds = sdf.localAABB
-        val dir2 = JomlPools.vec3f.create().set(dir.x, dir.y, dir.z)
+        val dir2 = JomlPools.vec3f.create().set(pos.x, pos.y, pos.z).normalize()
         val maxDistance =
-            (bounds.deltaX * abs(dir.x) + bounds.deltaY * abs(dir.y) + bounds.deltaZ * abs(dir.z)).toFloat()
+            (bounds.deltaX * abs(dir2.x) + bounds.deltaY * abs(dir2.y) + bounds.deltaZ * abs(dir2.z)).toFloat()
+
         val start = JomlPools.vec3f.create().set(dir2).mul(maxDistance)
             .add(bounds.centerX.toFloat(), bounds.centerY.toFloat(), bounds.centerZ.toFloat())
         dir2.mul(-1f)
+
         val distance = sdf.raycast(
             start, dir2, 0f,
             maxDistance * 2f,
             maxSteps, seeds,
         ) - margin.toFloat()
 
-        start.add(dir2.x * distance, dir2.y * distance, dir2.z * distance)
-        out.set(start.x.toDouble(), start.y.toDouble(), start.z.toDouble())
-
+        val hit = dir2.mulAdd(distance, start, start)
+        out.set(hit.x.toDouble(), hit.y.toDouble(), hit.z.toDouble())
         JomlPools.vec3f.sub(2)
         return out
     }

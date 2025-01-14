@@ -22,7 +22,7 @@ class BoxCollider : Collider() {
         }
 
     @SerializedProperty
-    var margin = 0.05
+    var margin = 0.04
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val halfExtends = halfExtends

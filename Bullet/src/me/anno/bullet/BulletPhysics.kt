@@ -5,8 +5,11 @@ import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
+import com.bulletphysics.collision.narrowphase.ManifoldPoint
+import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
+import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo
@@ -27,6 +30,9 @@ import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.ecs.systems.OnDrawGUI
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugPoint
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
@@ -38,6 +44,7 @@ import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
+import me.anno.ui.UIColors
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
@@ -207,8 +214,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             val constraint = constraints[i]
             if (constraint.isEnabled) {
                 // ensure the constraint exists
-                val rigidbody2 = constraint.entity!!.getComponent(Rigidbody::class, false)!!
-                addConstraint(constraint, getRigidbody(rigidbody2)!!, rigidbody2, rigidbody)
+                val rigidbody2 = constraint.entity
+                    ?.getComponent(Rigidbody::class, false)
+                    ?: continue
+                val rigidbody3 = getRigidbody(rigidbody2) ?: continue
+                addConstraint(constraint, rigidbody3, rigidbody2, rigidbody)
             }
         }
 
@@ -393,8 +403,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     private fun drawColliders(pipeline: Pipeline, rigidbody: Rigidbody) {
         val colliders = rigidbody.activeColliders
         for (i in colliders.indices) {
-            val collider = colliders.getOrNull(i) ?: continue
-            collider.drawShape(pipeline)
+            colliders.getOrNull(i)?.drawShape(pipeline)
         }
     }
 
@@ -407,34 +416,34 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     private fun drawConstraints(pipeline: Pipeline, rigidbody: Rigidbody) {
         val constraints = rigidbody.linkedConstraints
         for (i in constraints.indices) {
-            val constraint = constraints.getOrNull(i) ?: continue
-            constraint.onDrawGUI(pipeline, true)
+            constraints.getOrNull(i)?.onDrawGUI(pipeline, true)
         }
     }
 
     private fun drawContactPoints() {
         val dispatcher = bulletInstance.dispatcher
         val numManifolds = dispatcher.numManifolds
-        val worldScale = RenderState.worldScale
-        val cam = cameraPosition
-        val color = black or 0x777777
         for (i in 0 until numManifolds) {
-            val contactManifold = dispatcher.getManifoldByIndexInternal(i) ?: break
-            for (j in 0 until contactManifold.numContacts) {
-                val cp = contactManifold.getContactPoint(j)
-                val a = cp.positionWorldOnB
-                val n = cp.normalWorldOnB
-                addLine(
-                    (a.x - cam.x) * worldScale,
-                    (a.y - cam.y) * worldScale,
-                    (a.z - cam.z) * worldScale,
-                    (a.x + n.x - cam.x) * worldScale,
-                    (a.y + n.y - cam.y) * worldScale,
-                    (a.z + n.z - cam.z) * worldScale,
-                    color
-                )
-            }
+            val contactManifold = dispatcher.getManifoldByIndexInternal(i)
+            drawContactManifold(contactManifold ?: break)
         }
+    }
+
+    private fun drawContactManifold(contactManifold: PersistentManifold) {
+        for (j in 0 until contactManifold.numContacts) {
+            drawContactPoint(contactManifold.getContactPoint(j))
+        }
+    }
+
+    private fun drawContactPoint(point: ManifoldPoint) {
+        val color = UIColors.magenta
+        val cam = cameraPosition
+        val a = point.positionWorldOnB
+        val n = point.normalWorldOnB
+        val d = 0.05 * cam.distance(a.x, a.y, a.z)
+        val a2 = org.joml.Vector3d(a.x, a.y, a.z)
+        val b2 = org.joml.Vector3d(a.x + n.x * d, a.y + n.y * d, a.z + n.z * d)
+        DebugShapes.debugArrows.add(DebugLine(a2, b2, color, 0f))
     }
 
     override fun createInspector(
@@ -480,7 +489,16 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
 
             try {
-                colObj.collisionShape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+                val shape = colObj.collisionShape
+                shape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+                if (shape is ConvexHullShape) {
+                    val p1 = Vector3d()
+                    for (p in shape.points) {
+                        p1.set(p)
+                        tmpTrans.transform(p1)
+                        DebugShapes.debugPoints.add(DebugPoint(org.joml.Vector3d(p1.x, p1.y, p1.z), -1, 0f))
+                    }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -498,9 +516,25 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         Stack.subVec(2)
     }
 
+    private fun transform(a: Vector3d, dst: Vector3f): Vector3f {
+        val worldScale = RenderState.worldScale
+        val pos = cameraPosition
+        return dst.set(
+            ((a.x - pos.x) * worldScale).toFloat(),
+            ((a.y - pos.y) * worldScale).toFloat(),
+            ((a.z - pos.z) * worldScale).toFloat()
+        )
+    }
+
+    private fun drawLine(a: Vector3d, b: Vector3d, color: Int) {
+        val t0 = JomlPools.vec3f.create()
+        val t1 = JomlPools.vec3f.create()
+        addLine(transform(a, t0), transform(b, t1), color)
+        JomlPools.vec3f.sub(2)
+    }
+
     private fun drawVehicles() {
 
-        val worldScale = RenderState.worldScale
         val world = bulletInstance
         val vehicles = world.vehicles
 
@@ -508,45 +542,21 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val axle = Stack.newVec()
         val tmp = Stack.newVec()
 
-        fun transform(a: Vector3d, worldScale: Double, dst: Vector3f = Vector3f()): Vector3f {
-            val pos = cameraPosition
-            return dst.set(
-                ((a.x - pos.x) * worldScale).toFloat(),
-                ((a.y - pos.y) * worldScale).toFloat(),
-                ((a.z - pos.z) * worldScale).toFloat()
-            )
-        }
-
-        fun drawLine(a: Vector3d, b: Vector3d, worldScale: Double, color: Int) {
-            val t0 = JomlPools.vec3f.create()
-            val t1 = JomlPools.vec3f.create()
-            addLine(
-                transform(a, worldScale, t0),
-                transform(b, worldScale, t1),
-                color
-            )
-            JomlPools.vec3f.sub(2)
-        }
-
         for (i in 0 until vehicles.size) {
             val vehicle = vehicles[i] ?: break
             for (v in 0 until vehicle.numWheels) {
+                val wheelInfo = vehicle.getWheelInfo(v)
+                val wheelColor = (if (wheelInfo.raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
 
-                val wheelColor = (if (vehicle.getWheelInfo(v).raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
-
-                wheelPosWS.set(vehicle.getWheelInfo(v).worldTransform.origin)
-                axle.set(
-                    vehicle.getWheelInfo(v).worldTransform.basis.getElement(0, vehicle.rightAxis),
-                    vehicle.getWheelInfo(v).worldTransform.basis.getElement(1, vehicle.rightAxis),
-                    vehicle.getWheelInfo(v).worldTransform.basis.getElement(2, vehicle.rightAxis)
-                )
+                wheelPosWS.set(wheelInfo.worldTransform.origin)
+                val basis = wheelInfo.worldTransform.basis
+                val rightAxis = vehicle.rightAxis
+                axle.set(basis.getElement(0, rightAxis), basis.getElement(1, rightAxis), basis.getElement(2, rightAxis))
 
                 tmp.add(wheelPosWS, axle)
-                drawLine(wheelPosWS, tmp, worldScale, wheelColor)
-                drawLine(
-                    wheelPosWS, vehicle.getWheelInfo(v).raycastInfo.contactPointWS,
-                    worldScale, wheelColor
-                )
+                drawLine(wheelPosWS, tmp, wheelColor)
+                val contact = wheelInfo.raycastInfo.contactPointWS
+                drawLine(wheelPosWS, contact, wheelColor)
             }
         }
 

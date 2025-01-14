@@ -2,7 +2,6 @@ package me.anno.gpu.buffer
 
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
-import me.anno.gpu.GFX
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -20,7 +19,6 @@ import org.lwjgl.opengl.GL46C.GL_LINE_SMOOTH
 import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
 import java.nio.ByteBuffer
-import kotlin.math.max
 
 /**
  * a buffer for rapidly drawing thousands of lines,
@@ -63,7 +61,7 @@ object LineBuffer {
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
 
     private val buffer = StaticBuffer("lines", attributes, 65536, BufferUsage.STREAM)
-    const val lineSize = 2 * (3 * 4 + 4)
+    val bytesPerLine = 2 * buffer.stride
 
     init {
         buffer.drawMode = DrawMode.LINES
@@ -118,7 +116,7 @@ object LineBuffer {
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         // ensure that there is enough space in bytes
-        ensureSize(lineSize)
+        ensureSize(bytesPerLine)
         // write two data points
         val bytes = bytes
         bytes.putFloat(x0)
@@ -185,6 +183,7 @@ object LineBuffer {
         )
     }
 
+    @Suppress("unused")
     fun addLine(
         x0: Double, y0: Double, z0: Double,
         x1: Double, y1: Double, z1: Double,
@@ -261,7 +260,7 @@ object LineBuffer {
         worldScale: Double,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        ensureSize(lineSize)
+        ensureSize(bytesPerLine)
         putRelativePoint(x0, y0, z0, cam, worldScale, r, g, b, a)
         putRelativePoint(x1, y1, z1, cam, worldScale, r, g, b, a)
     }

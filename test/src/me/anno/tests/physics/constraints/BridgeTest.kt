@@ -3,16 +3,23 @@ package me.anno.tests.physics.constraints
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.bullet.constraints.PointConstraint
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.pow
 
 /**
  * using bullet constraints, build a hanging bridge, and a few objects on top for testing
@@ -36,11 +43,14 @@ fun main() {
 
     val height = 3.0
     val pillarSize = Vector3d(1.5, height, 1.5)
+    val pillarMaterial = Material.diffuse(0x333333)
 
     val barMesh = flatCube.scaled(Vector3f(barSize).mul(0.5f)).front
     val pillarMesh = flatCube.scaled(Vector3f(pillarSize).mul(0.5f)).front
 
     val toLink = ArrayList<Entity>()
+    val linkMaterial = Material.diffuse(0x777777)
+    val barMaterial = Material.diffuse(0x6A5540)
 
     fun addPillar(i: Int, sign: Int) {
         val z = (i - (numBars - 1) * 0.5) * (barSpacing + barSize.z) + sign * 0.5 * (pillarSize.z - barSize.z)
@@ -50,7 +60,7 @@ fun main() {
                 halfExtends.set(pillarSize).mul(0.5)
                 margin = 0.0
             })
-            .add(MeshComponent(pillarMesh))
+            .add(MeshComponent(pillarMesh, pillarMaterial))
             .add(Rigidbody().apply {
                 friction = 1.0
             })
@@ -67,7 +77,7 @@ fun main() {
                 halfExtends.set(barSize).mul(0.5)
                 margin = 0.0
             })
-            .add(MeshComponent(barMesh))
+            .add(MeshComponent(barMesh, barMaterial))
             .add(Rigidbody().apply {
                 mass = density * barSize.x * barSize.y * barSize.z
                 friction = 0.5
@@ -78,6 +88,8 @@ fun main() {
     addPillar(numBars, +1)
 
     // add all links
+    val linkThickness = 0.02f
+    val linkMesh = flatCube.scaled(Vector3f(linkThickness, barSpacing.toFloat(), linkThickness)).front
     val linkY = height - barSize.y * 0.5
     for (i in 1 until toLink.size) {
         val a = toLink[i - 1]
@@ -90,31 +102,46 @@ fun main() {
             a.add(link)
             val z = ((i - 1.5) - (numBars - 1) * 0.5) * (barSpacing + barSize.z)
             val x = (j - (numLinks - 1) * 0.5) * linkSpacing
-            val fakeSpacing = barSpacing * 0.9
-            link.selfPosition.set(x, linkY - a.position.y, z - a.position.z + fakeSpacing * 0.5)
-            link.otherPosition.set(x, linkY - b.position.y, z - b.position.z - fakeSpacing * 0.5)
+            val barSpacingHalf = barSpacing * 0.5
+            link.selfPosition.set(x, linkY - a.position.y, z - a.position.z + barSpacingHalf)
+            link.otherPosition.set(x, linkY - b.position.y, z - b.position.z - barSpacingHalf)
+            Entity("Link[$i]", scene)
+                .setPosition(x, linkY, z)
+                .add(MeshComponent(linkMesh, linkMaterial))
+                .add(object : Component(), OnUpdate {
+                    override fun onUpdate() {
+                        // this calculation isn't ideal, but it should be sufficient for now
+                        val transform = transform ?: return
+                        val tmp = JomlPools.vec3d.create()
+                        val globalA = JomlPools.vec3d.create().set(link.selfPosition)
+                        val globalB = JomlPools.vec3d.create().set(link.otherPosition)
+
+                        globalA.z -= barSpacing
+                        globalB.z += barSpacing
+
+                        // use better a.position and b.position by using the anchors
+                        a.transform.globalTransform.transformPosition(globalA)
+                        b.transform.globalTransform.transformPosition(globalB)
+
+                        val dir = globalB.sub(globalA, tmp).normalize()
+                        transform.localRotation = dir.normalToQuaternionY(transform.localRotation)
+                        transform.localPosition = globalA.add(globalB, transform.localPosition).mul(0.5)
+                        invalidateAABB()
+                        JomlPools.vec3d.sub(3)
+                    }
+                })
         }
     }
 
-    // spawn a few cubes, we can lay on top
-    val numCubes = 5
-    val cubeDensity = 1.0
-    val cubeSize = { i: Int -> 1f / (i + 1) }
-    for (i in 0 until numCubes) {
-        val size = cubeSize(i)
-        Entity("Cube[$i]", scene)
-            .add(BoxCollider().apply {
-                margin = 0.0
-                halfExtends.set(size * 0.5)
-            })
-            .add(MeshComponent(flatCube.scaled(size * 0.5f).front))
-            .add(Rigidbody().apply {
-                friction = 0.5
-                mass = cubeDensity * size * size * size
-            })
-            .setPosition(8.0, size * 0.5, (i - (numCubes - 1) * 0.5) * 3.5)
-    }
+    spawnFloor(scene)
+    spawnSampleCubes(scene)
 
+    testSceneWithUI("Bridge", scene) {
+        it.renderView.renderMode = RenderMode.PHYSICS
+    }
+}
+
+fun spawnFloor(scene: Entity) {
     Entity("Floor", scene)
         .add(BoxCollider().apply {
             margin = 0.0
@@ -123,6 +150,27 @@ fun main() {
         .add(Rigidbody().apply { friction = 1.0 })
         .setScale(10.0)
         .setPosition(0.0, -10.0, 0.0)
+}
 
-    testSceneWithUI("Bridge", scene)
+fun spawnSampleCubes(scene: Entity) {
+    // spawn a few cubes, we can lay on top
+    val numCubes = 5
+    val cubeDensity = 1.0
+    val cubeSize = { i: Int -> 1f / (i + 1) }
+    val cubeMaterial = Material.diffuse(0x5599ff)
+    val cubeMesh = flatCube.front
+    for (i in 0 until numCubes) {
+        val size = cubeSize(i)
+        Entity("Cube[$i]", scene)
+            .add(BoxCollider().apply {
+                margin = 0.0
+            })
+            .add(MeshComponent(cubeMesh, cubeMaterial))
+            .setScale(size * 0.5)
+            .add(Rigidbody().apply {
+                friction = 0.5
+                mass = cubeDensity * size.pow(3)
+            })
+            .setPosition(8.0, size * 0.5, (i - (numCubes - 1) * 0.5) * 3.5)
+    }
 }

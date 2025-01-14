@@ -26,7 +26,7 @@ class ParallelCollection<V, C : MutableCollection<V>>(
         }
     }
 
-    fun clear(){
+    fun clear() {
         val addable = inputList
         synchronized(addable) {
             addable.clear()

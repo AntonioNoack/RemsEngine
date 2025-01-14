@@ -26,40 +26,41 @@ fun main() {
     physics.updateInEditMode = true
 
     val box0 = Entity("Door", scene)
-    box0.add(MeshComponent(flatCube.scaled(Vector3f(0.45f, 1.0f, 0.04f)).front))
-    box0.add(BoxCollider().apply {
-        halfExtends.set(0.45, 1.0, 0.04)
-    })
-    box0.setPosition(0.0, 2.3, 0.0)
-    val body0 = Rigidbody()
-    body0.mass = 1.0
-    box0.add(body0)
+        .add(MeshComponent(flatCube.scaled(Vector3f(0.45f, 1.0f, 0.04f)).front))
+        .add(BoxCollider().apply {
+            halfExtends.set(0.45, 1.0, 0.04)
+        })
+        .setPosition(0.0, 2.3, 0.0)
+        .add(Rigidbody().apply {
+            mass = 1.0
+            angularDamping = 0.1
+        })
 
-    val box1 = Entity("Pillar", scene)
-    box1.add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
-    box1.add(BoxCollider().apply { halfExtends.set(0.1f, 1f, 0.1f) })
-    box1.setRotation(5.0.toRadians(), 0.0, 0.0)
-    val body1 = Rigidbody()
-    box1.add(body1)
+    val pillarRB = Rigidbody()
+    Entity("Pillar", scene)
+        .add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
+        .add(BoxCollider().apply { halfExtends.set(0.1f, 1f, 0.1f) })
+        .setRotation(5.0.toRadians(), 0.0, 0.0)
+        .add(pillarRB)
 
     fun addHinge(y: Double) {
-        val sliding = PointConstraint()
-        sliding.otherPosition.set(0.0, y, 0.0)
-        sliding.selfPosition.set(0.55, y, 0.0)
-        sliding.other = body1
-        box0.add(sliding)
+        val constraint = PointConstraint()
+        constraint.otherPosition.set(0.0, y, 0.0)
+        constraint.selfPosition.set(0.55, y, 0.0)
+        constraint.other = pillarRB
+        box0.add(constraint)
     }
     addHinge(-0.9)
     addHinge(+0.9)
 
-    val floor = Entity("Floor", scene)
-    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
-    floor.add(BoxCollider())
-    floor.add(Rigidbody().apply {
-        friction = 1.0
-    })
-    floor.setPosition(0.0, -22.0, 0.0)
-    floor.setScale(20.0)
+    Entity("Floor", scene)
+        .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
+        .add(BoxCollider())
+        .add(Rigidbody().apply {
+            friction = 1.0
+        })
+        .setPosition(0.0, -1.5, 0.0)
+        .setScale(1.0, 0.3, 1.0)
 
     testSceneWithUI("Point Constraint", scene)
 }
