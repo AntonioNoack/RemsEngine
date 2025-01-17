@@ -27,7 +27,7 @@ fun main() {
     })
 
     val bridge = Entity("Bridge", scene)
-    val meshes = createBridgeMeshes(20, 0.5f, 0.3f)
+    val meshes = createBridgeMeshes(20, 0.5f, 0.3f, 0f)
     for (i in meshes.indices) {
         val (mesh, pos) = meshes[i]
         val x = (i.toFloat() / meshes.lastIndex) * 2f - 1f

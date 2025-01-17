@@ -24,12 +24,12 @@ abstract class FlowGraphNode(name: String, inputs: List<String>, outputs: List<S
      * */
     abstract fun execute(): NodeOutput?
 
-    open fun continueExecution(state: Any?): NodeOutput? {
+    open fun continueExecution(state: Saveable?): NodeOutput? {
         LOGGER.warn("If you use the graph-stack, you must implement execute(state)")
         return null
     }
 
-    fun requestNextExection(state: Saveable?) {
+    fun requestNextExecution(state: Saveable?) {
         (graph as? FlowGraph)?.push(this, state)
     }
 

@@ -5,7 +5,6 @@ import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Floats.f4
-import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -52,7 +51,7 @@ class Clock(
     }
 
     fun stop(wasUsedFor: String): Double {
-        return stop(wasUsedFor, minTime)
+        return stop(wasUsedFor, minTime, 1L)
     }
 
     fun stop(wasUsedFor: String, elementCount: Int): Double {
@@ -60,6 +59,14 @@ class Clock(
     }
 
     fun stop(wasUsedFor: String, elementCount: Long): Double {
+        return stop(wasUsedFor, minTime, elementCount)
+    }
+
+    fun stop(wasUsedFor: String, minTime: Double): Double {
+        return stop(wasUsedFor, minTime, 1L)
+    }
+
+    fun stop(wasUsedFor: String, minTime: Double, elementCount: Long): Double {
         val time = Time.nanoTime
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
@@ -68,7 +75,7 @@ class Clock(
             val nanosPerElement = dt0.toDouble() / elementCount
             reportStopTime(dt, wasUsedFor, nanosPerElement)
         }
-        return dt
+        return dt / elementCount
     }
 
     fun update(wasUsedFor: String) {
@@ -76,21 +83,11 @@ class Clock(
     }
 
     fun update(wasUsedFor: String, minTime: Double) {
-        stop(wasUsedFor, minTime)
+        stop(wasUsedFor, minTime, 1L)
     }
 
     fun update(wasUsedFor: () -> String, minTime: Double) {
         stop(wasUsedFor, minTime)
-    }
-
-    fun stop(wasUsedFor: String, minTime: Double): Double {
-        val time = Time.nanoTime
-        val dt = (time - lastTime) * 1e-9
-        lastTime = time
-        if (dt > minTime) {
-            reportStopTime(dt, wasUsedFor)
-        }
-        return dt
     }
 
     fun stop(wasUsedFor: () -> String, minTime: Double): Double {
@@ -103,11 +100,11 @@ class Clock(
         return dt
     }
 
-    private fun reportStopTime(dt: Double, wasUsedFor: String){
+    private fun reportStopTime(dt: Double, wasUsedFor: String) {
         logger.info("Used ${formatDt(dt)}s for $wasUsedFor")
     }
 
-    private fun reportStopTime(dt: Double, wasUsedFor: String, nanosPerElement: Double){
+    private fun reportStopTime(dt: Double, wasUsedFor: String, nanosPerElement: Double) {
         logger.info("Used ${formatDt(dt)}s for $wasUsedFor, ${formatDtPerElement(nanosPerElement)}")
     }
 

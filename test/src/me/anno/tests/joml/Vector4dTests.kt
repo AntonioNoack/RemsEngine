@@ -4,16 +4,18 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
+import org.joml.Matrix4d
+import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector2i
 import org.joml.Vector3d
-import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import org.junit.jupiter.api.Test
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class Vector4dTests {
     @Test
@@ -148,7 +150,7 @@ class Vector4dTests {
     @Test
     fun testIsFinite() {
         assertTrue(Vector4d(1e38).isFinite)
-        assertFalse(Vector4d(0.0,Double.NaN, 0.0, 5.0).isFinite)
+        assertFalse(Vector4d(0.0, Double.NaN, 0.0, 5.0).isFinite)
         assertFalse(Vector4d(Double.POSITIVE_INFINITY, 1.0, 5.0, 1.0).isFinite)
         assertFalse(Vector4d(1.0, -5.0, Double.NEGATIVE_INFINITY, 7.0).isFinite)
     }
@@ -168,5 +170,42 @@ class Vector4dTests {
             Vector4d(8.0, 13.0, 18.0, 23.0),
             Vector4d(1.0, 2.0, 3.0, 4.0).mulAdd(3.0, Vector4d(5.0, 7.0, 9.0, 11.0), Vector4d())
         )
+    }
+
+    @Test
+    fun testMulMat4f() {
+        val mat4d = Matrix4d()
+        val row = Vector4d()
+        val random = Random(1234)
+        for (i in 0 until 4) {
+            for (j in 0 until 4) {
+                row[j] = random.nextDouble() * 2.0 - 1.0
+            }
+            mat4d.setRow(i, row)
+        }
+        val mat4f = Matrix4f()
+        val vector = Vector4d()
+        for (j in 0 until 4) {
+            vector[j] = random.nextDouble()
+        }
+        val baselineVec = vector.mul(mat4d, Vector4d())
+        assertEquals(baselineVec, vector.mul(mat4f.set(mat4d), Vector4d()), 1e-7)
+    }
+
+    @Test
+    fun testMulProject() {
+        val mat4d = Matrix4d()
+        val row = Vector4d()
+        val random = Random(1234)
+        for (i in 0 until 4) {
+            for (j in 0 until 4) {
+                row[j] = random.nextDouble() * 2.0 - 1.0
+            }
+            mat4d.setRow(i, row)
+        }
+        val vec3 = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
+        val vec4 = Vector4d(vec3, 1.0)
+        val baselineVec = vec4.mulProject(mat4d, Vector4d())
+        assertEquals(baselineVec, Vector4d(vec3.mulProject(mat4d, Vector3d()), 1.0), 1e-7)
     }
 }

@@ -223,10 +223,7 @@ open class Vector2d(
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + hash(x)
-        result = 31 * result + hash(y)
-        return result
+        return 31 * hash(x) + hash(y)
     }
 
     override fun equals(other: Any?): Boolean {

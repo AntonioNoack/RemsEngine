@@ -454,43 +454,22 @@ open class Vector3d(
         return dst.rotationTo(x, y, z, toDirX, toDirY, toDirZ)
     }
 
-    fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector3d = this): Vector3d {
-        return if (aY == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aX)) {
-            this.rotateX(aX * angle, dst)
-        } else if (aX == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aY)) {
-            this.rotateY(aY * angle, dst)
-        } else {
-            if (aX == 0.0 && aY == 0.0 && JomlMath.absEqualsOne(aZ)) this.rotateZ(
-                aZ * angle,
-                dst
-            ) else rotateAxisInternal(angle, aX, aY, aZ, dst)
-        }
-    }
-
-    private fun rotateAxisInternal(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector3d = this): Vector3d {
-        val halfAngle = angle * 0.5
-        val sinAngle = sin(halfAngle)
-        val qx = aX * sinAngle
-        val qy = aY * sinAngle
-        val qz = aZ * sinAngle
-        val qw = cos(halfAngle)
-        val w2 = qw * qw
-        val x2 = qx * qx
-        val y2 = qy * qy
-        val z2 = qz * qz
-        val zw = qz * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yw = qy * qw
-        val yz = qy * qz
-        val xw = qx * qw
-        val nx = (w2 + x2 - z2 - y2) * x + (-zw + xy - zw + xy) * y + (yw + xz + xz + yw) * z
-        val ny = (xy + zw + zw + xy) * x + (y2 - z2 + w2 - x2) * y + (yz + yz - xw - xw) * z
-        val nz = (xz - yw + xz - yw) * x + (yz + yz + xw + xw) * y + (z2 - y2 - x2 + w2) * z
-        dst.x = nx
-        dst.y = ny
-        dst.z = nz
-        return dst
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
+    fun rotateAxis(angle: Double, ax: Double, ay: Double, az: Double, dst: Vector3d = this): Vector3d {
+        val sin = sin(angle)
+        val cos = cos(angle)
+        val vx = x
+        val vy = y
+        val vz = z
+        val dot = ax * vx + ay * vy + az * vz
+        val invCos = 1.0 - cos
+        return dst.set(
+            vx * cos + sin * (ay * vz - az * vy) + invCos * dot * ax,
+            vy * cos + sin * (az * vx - ax * vz) + invCos * dot * ay,
+            vz * cos + sin * (ax * vy - ay * vx) + invCos * dot * az
+        )
     }
 
     fun rotateX(angle: Double, dst: Vector3d = this): Vector3d {
@@ -558,10 +537,7 @@ open class Vector3d(
         val rx = (this.y * z + -this.z * y)
         val ry = (this.z * x + -this.x * z)
         val rz = (this.x * y + -this.y * x)
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun distance(v: Vector3d) = distance(v.x, v.y, v.z)
@@ -726,26 +702,29 @@ open class Vector3d(
     fun smoothStep(v: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
         val t2 = t * t
         val t3 = t2 * t
-        dst.x = (x + x - v.x - v.x) * t3 + (3.0 * v.x - 3.0 * x) * t2 + x * t + x
-        dst.y = (y + y - v.y - v.y) * t3 + (3.0 * v.y - 3.0 * y) * t2 + y * t + y
-        dst.z = (z + z - v.z - v.z) * t3 + (3.0 * v.z - 3.0 * z) * t2 + z * t + z
-        return dst
+        return dst.set(
+            JomlMath.smoothStep(x, v.x, t, t2, t3),
+            JomlMath.smoothStep(y, v.y, t, t2, t3),
+            JomlMath.smoothStep(z, v.z, t, t2, t3),
+        )
     }
 
     fun hermite(t0: Vector3d, v1: Vector3d, t1: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
         val t2 = t * t
         val t3 = t2 * t
-        dst.x = (x + x - v1.x - v1.x + t1.x + t0.x) * t3 + (3.0 * v1.x - 3.0 * x - t0.x - t0.x - t1.x) * t2 + x * t + x
-        dst.y = (y + y - v1.y - v1.y + t1.y + t0.y) * t3 + (3.0 * v1.y - 3.0 * y - t0.y - t0.y - t1.y) * t2 + y * t + y
-        dst.z = (z + z - v1.z - v1.z + t1.z + t0.z) * t3 + (3.0 * v1.z - 3.0 * z - t0.z - t0.z - t1.z) * t2 + z * t + z
-        return dst
+        return dst.set(
+            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+        )
     }
 
     fun mix(other: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
-        dst.x = (other.x - x) * t + x
-        dst.y = (other.y - y) * t + y
-        dst.z = (other.z - z) * t + z
-        return dst
+        return dst.set(
+            JomlMath.mix(x, other.x, t),
+            JomlMath.mix(y, other.y, t),
+            JomlMath.mix(z, other.z, t),
+        )
     }
 
     @JvmOverloads
@@ -938,7 +917,7 @@ open class Vector3d(
         fun lengthSquared(x: Double, y: Double, z: Double) = x * x + y * y + z * z
 
         @JvmStatic
-        fun length(x: Double, y: Double, z: Double) = sqrt(x * x + y * y + z * z)
+        fun length(x: Double, y: Double, z: Double): Double = sqrt(lengthSquared(x, y, z))
 
         @JvmStatic
         fun distance(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Double {

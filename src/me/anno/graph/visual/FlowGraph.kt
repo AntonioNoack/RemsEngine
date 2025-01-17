@@ -1,5 +1,6 @@
 package me.anno.graph.visual
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.node.NodeInput
@@ -88,4 +89,8 @@ open class FlowGraph : Graph() {
     fun getValue(input: NodeInput): Any? {
         return input.getValue()
     }
+
+    override fun getValidTypesForChild(child: PrefabSaveable) = "n"
+    override fun getChildListByType(type: Char) = nodes
+    override fun getChildListNiceName(type: Char): String = "Nodes"
 }

@@ -21,7 +21,7 @@ import kotlin.math.sinh
  * */
 fun main() {
     val scene = Entity()
-    val meshes = createBridgeMeshes(15, 0.2f, 0.1f)
+    val meshes = createBridgeMeshes(15, 0.2f, 0.1f, 0.01f)
     for ((mesh, pos) in meshes) {
         Entity(scene)
             .setPosition(pos)
@@ -42,11 +42,11 @@ fun getBridgePoint(i: Int, dy: Float, n: Int): Vector2f {
     return getBridgePoint(i.toFloat(), dy, n)
 }
 
-fun createBridgeMeshes(n: Int, dx: Float, dy: Float): List<Pair<Mesh, Vector3d>> {
+fun createBridgeMeshes(n: Int, dx: Float, dy: Float, dxHalfOffset: Float): List<Pair<Mesh, Vector3d>> {
     val m0 = Material.diffuse(0x808080)
     val m1 = Material.diffuse(0x707070)
     return createList(n) { i ->
-        val dxI = 0.01f * if (i.hasFlag(1)) -1f else 1f
+        val dxI = if (i.hasFlag(1)) -dxHalfOffset else dxHalfOffset
         val center = getBridgePoint(i + 0.5f, dy * 0.5f, n)
         val mesh = extrudePolygonToMesh(
             listOf(

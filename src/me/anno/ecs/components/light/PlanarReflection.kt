@@ -23,7 +23,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.DrawSky
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.GPUClockNanos
-import me.anno.input.Input
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.AABBd
@@ -74,8 +73,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         pipeline.ignoredComponent = this
         val frustumLen = pipeline.frustum.length
         draw(
-            instance, pipeline, w, h,
-            instance.cameraMatrix,
+            pipeline, w, h, instance.cameraMatrix,
             instance.cameraPosition,
             RenderState.worldScale
         )
@@ -96,7 +94,6 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
     var isBackSide = false
 
     fun draw(
-        ci: RenderView,
         pipeline: Pipeline,
         w: Int, h: Int,
         cameraMatrix0: Matrix4f,
@@ -135,21 +132,12 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
         val root = getRoot(Entity::class)
         pipeline.clear()
-        // todo define the correct frustum using the correct rotation & position
-        if (Input.isAltDown) {
-            // todo why is this not working?
-            // todo can we define the frustum from our matrix?
-            pipeline.frustum.definePerspective(
-                near, far, RenderState.fovYRadians.toDouble(), h, w.toDouble() / h.toDouble(), reflectedCameraPosition,
-                reflectedCameraRotation
-            )
-        } else {
-            pipeline.frustum.setToEverything(reflectedCameraPosition, ci.cameraRotation)
-        }
+        // todo check that this is correct...
+        pipeline.frustum.defineGenerally(cameraMatrix1, reflectedCameraPosition, reflectedCameraRotation)
+        pipeline.frustum.showPlanes()
 
         // define last frustum plane
-        pipeline.frustum.planes[pipeline.frustum.length].set(mirrorPos, mirrorNormal) // todo is this correct??, scale?
-        pipeline.frustum.length++
+        pipeline.frustum.planes[pipeline.frustum.length++].set(mirrorPos, mirrorNormal)
 
         pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)

@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.sortedAdd
 import kotlin.reflect.KClass
@@ -15,21 +16,37 @@ import kotlin.reflect.safeCast
  * */
 object Systems : PrefabSaveable() {
 
-    private val registeredIDs = HashSet<String>()
-    private val systems = ArrayList<System>()
+    private val systemByName = HashMap<String, System>()
+    private val systems = ArrayList<System>() // sorted by priority
     val readonlySystems: List<System> = systems
 
     fun registerSystem(instance: System) {
         registerSystem(instance.className, instance)
     }
 
+    private val systemSorter = Comparator<System> { o1, o2 ->
+        o1.priority.compareTo(o2.priority)
+            .ifSame(o1.className.compareTo(o2.className))
+    }
+
     // do we need unregistering?
-    fun registerSystem(id: String, instance: System) {
-        synchronized(registeredIDs) {
-            if (registeredIDs.add(id)) {
-                systems.sortedAdd(instance, Comparator.comparingInt(System::priority), true)
-            }
+    /**
+     * registers a system by its class name;
+     * returns whether the system was changed
+     * */
+    fun registerSystem(id: String, system: System): Boolean {
+        val prevSystem: System?
+        synchronized(systemByName) {
+            prevSystem = systemByName.put(id, system)
+            if (prevSystem !== system) {
+                if (prevSystem != null) systems.remove(prevSystem)
+                systems.sortedAdd(system, systemSorter, true)
+            } else return false // done
         }
+        prevSystem?.clear()
+        val world = world
+        if (world != null) addOrRemoveRecursively(world, true, system)
+        return true
     }
 
     init {
@@ -79,6 +96,20 @@ object Systems : PrefabSaveable() {
         val systems = readonlySystems
         for (i in systems.indices) {
             callback(clazz.safeCast(systems[i]) ?: continue)
+        }
+    }
+
+    fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean, system: System) {
+        Recursion.processRecursive(root) { element, remaining ->
+            if (element.isEnabled or (root === element)) {
+                for (type in element.listChildTypes()) {
+                    remaining.addAll(element.getChildListByType(type))
+                }
+                when (element) {
+                    is Entity -> system.setContains(element, add)
+                    is Component -> system.setContains(element, add)
+                }
+            }
         }
     }
 

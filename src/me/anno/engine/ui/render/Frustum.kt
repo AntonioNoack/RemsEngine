@@ -6,10 +6,12 @@ import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
 import org.joml.Matrix3d
+import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Planed
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector4f
 import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.max
@@ -247,6 +249,26 @@ class Frustum {
         transform(cameraPosition, cameraRotation)
 
         isPerspective = true
+    }
+
+    fun defineGenerally(
+        cameraMatrix: Matrix4f,
+        cameraPosition: Vector3d,
+        cameraRotation: Quaterniond
+    ) {
+
+        // unknown
+        sizeThreshold = 0.0
+
+        val tmp = Vector4f()
+        for (i in 0 until 6) {
+            cameraMatrix.frustumPlane(i, tmp)
+            planes[i].set(tmp.x.toDouble(), tmp.y.toDouble(), tmp.z.toDouble(), tmp.w.toDouble())
+        }
+
+        length = 6
+        transform(cameraPosition, cameraRotation)
+        isPerspective = cameraMatrix.m30 != 1f // mmh
     }
 
     fun showPlanes() {

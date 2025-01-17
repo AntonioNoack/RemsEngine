@@ -78,17 +78,50 @@ object JomlMath {
         return tmp.toInt() xor (tmp shr 32).toInt()
     }
 
+    @JvmStatic
     fun satAdd(a: Int, b: Int): Int {
         val tmp = a.toLong() + b.toLong()
         return clamp(tmp, Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
     }
 
+    @JvmStatic
     fun satSub(a: Int, b: Int): Int {
         val tmp = a.toLong() - b.toLong()
         return clamp(tmp, Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
     }
 
+    @JvmStatic
     private fun clamp(x: Long, min: Long, max: Long): Long {
         return if (x < min) min else if (x > max) max else x
+    }
+
+    @JvmStatic
+    fun smoothStep(x: Float, vx: Float, t: Float, t2: Float, t3: Float): Float {
+        return (x + x - vx - vx) * t3 + 3f * (vx - x) * t2 + x * t + x
+    }
+
+    @JvmStatic
+    fun smoothStep(x: Double, vx: Double, t: Double, t2: Double, t3: Double): Double {
+        return (x + x - vx - vx) * t3 + 3f * (vx - x) * t2 + x * t + x
+    }
+
+    @JvmStatic
+    fun mix(x: Float, ox: Float, t: Float): Float {
+        return (ox - x) * t + x
+    }
+
+    @JvmStatic
+    fun mix(x: Double, ox: Double, t: Double): Double {
+        return (ox - x) * t + x
+    }
+
+    @JvmStatic
+    fun hermite(x: Float, t0: Float, v1: Float, t1: Float, t: Float, t2: Float, t3: Float): Float {
+        return (x + x - v1 - v1 + t1 + t0) * t3 + (3f * v1 - 3f * x - t0 - t0 - t1) * t2 + x * t + x
+    }
+
+    @JvmStatic
+    fun hermite(x: Double, t0: Double, v1: Double, t1: Double, t: Double, t2: Double, t3: Double): Double {
+        return (x + x - v1 - v1 + t1 + t0) * t3 + (3.0 * v1 - 3.0 * x - t0 - t0 - t1) * t2 + x * t + x
     }
 }

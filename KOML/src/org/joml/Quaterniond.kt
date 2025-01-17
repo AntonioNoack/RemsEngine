@@ -1815,6 +1815,9 @@ open class Quaterniond(
         return eulerAngles
     }
 
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
     @JvmOverloads
     fun rotateAxis(angle: Double, axisX: Double, axisY: Double, axisZ: Double, dst: Quaterniond = this): Quaterniond {
         val halfAngle = angle / 2.0
@@ -1832,6 +1835,9 @@ open class Quaterniond(
         )
     }
 
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
     @JvmOverloads
     fun rotateAxis(angle: Double, axis: Vector3d, dst: Quaterniond = this): Quaterniond {
         return rotateAxis(angle, axis.x, axis.y, axis.z, dst)

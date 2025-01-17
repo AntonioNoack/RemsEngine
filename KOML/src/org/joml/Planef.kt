@@ -68,8 +68,7 @@ open class Planef(
     }
 
     override fun hashCode(): Int {
-        var hash = 1
-        hash = hash * 31 + dirX.toRawBits()
+        var hash = dirX.toRawBits()
         hash = hash * 31 + dirY.toRawBits()
         hash = hash * 31 + dirZ.toRawBits()
         hash = hash * 31 + distance.toRawBits()

@@ -3,6 +3,7 @@ package me.anno.graph.visual.control
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
+import me.anno.io.saveable.Saveable
 import kotlin.math.sign
 
 class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode {
@@ -21,12 +22,12 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode 
         val endInclusive = getBoolInput(4)
         if (endInclusive) endIndex += increment.sign // not safe regarding overflow, but that would be u64, so it should be rare
         if (increment != 0L) {
-            requestNextExection(ForLoopState(startIndex, endIndex, increment))
+            requestNextExecution(ForLoopState(startIndex, endIndex, increment))
         }
         return null
     }
 
-    override fun continueExecution(state: Any?): NodeOutput {
+    override fun continueExecution(state: Saveable?): NodeOutput {
         state as ForLoopState
         val index = state.currentIndex
         val comparison = index.compareTo(state.endIndex)
@@ -34,7 +35,7 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode 
         if (continueExecution) {
             setOutput(1, index)
             state.currentIndex = index + state.increment
-            requestNextExection(state)
+            requestNextExecution(state)
             return getNodeOutput(0)
         } else {
             return getNodeOutput(2)

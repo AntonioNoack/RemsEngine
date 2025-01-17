@@ -1781,6 +1781,9 @@ open class Quaternionf(
         return dst.set(c * x - s * y, c * y + s * x, c * z + s * w, c * w - s * z)
     }
 
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
     @JvmOverloads
     fun rotateAxis(angle: Float, axisX: Float, axisY: Float, axisZ: Float, dst: Quaternionf = this): Quaternionf {
         val halfAngle = angle / 2f
@@ -1799,10 +1802,16 @@ open class Quaternionf(
         )
     }
 
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
     fun rotateAxis(angle: Float, axis: Vector3f, dst: Quaternionf): Quaternionf {
         return rotateAxis(angle, axis.x, axis.y, axis.z, dst)
     }
 
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
     fun rotateAxis(angle: Float, axis: Vector3f): Quaternionf {
         return rotateAxis(angle, axis.x, axis.y, axis.z, this)
     }

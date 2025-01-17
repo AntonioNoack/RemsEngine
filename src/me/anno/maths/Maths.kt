@@ -670,13 +670,13 @@ object Maths {
     @JvmStatic
     fun posMod(value: Float, divisor: Float): Float {
         val rem = value % divisor
-        return if (rem < 0f) rem + divisor else rem
+        return if (value < 0f) rem + divisor else rem
     }
 
     @JvmStatic
     fun posMod(value: Double, divisor: Double): Double {
         val rem = value % divisor
-        return if (rem < 0f) rem + divisor else rem
+        return if (value < 0f) rem + divisor else rem
     }
 
     @JvmStatic

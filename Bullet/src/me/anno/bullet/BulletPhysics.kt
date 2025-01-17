@@ -17,7 +17,6 @@ import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSo
 import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
-import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
@@ -76,10 +75,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     // s
 
     @NotSerializedProperty
-    private val sampleWheels = ArrayList<WheelInfo>()
-
-    @NotSerializedProperty
-    private val bulletInstance: DiscreteDynamicsWorld = createBulletWorldWithGravity()
+    private var bulletInstance: DiscreteDynamicsWorld = createBulletWorldWithGravity()
 
     @NotSerializedProperty
     private val raycastVehicles = HashMap<Entity, RaycastVehicle>()
@@ -167,7 +163,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             val info = wheel.createBulletInstance(entity, vehicle)
             info.clientInfo = wheel
             wheel.bulletInstance = info
-            sampleWheels.add(info)
         }
         // vehicle.currentSpeedKmHour
         // vehicle.applyEngineForce()
@@ -597,6 +592,13 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val tmp = Stack.borrowVec()
         tmp.set(gravity.x, gravity.y, gravity.z)
         bulletInstance.setGravity(tmp)
+    }
+
+    override fun clear() {
+        super.clear()
+        bulletInstance = createBulletWorldWithGravity()
+        raycastVehicles.clear()
+        invalidEntities.clear()
     }
 
     companion object {

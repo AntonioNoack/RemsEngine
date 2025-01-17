@@ -399,43 +399,22 @@ open class Vector4d(
         return dst
     }
 
-    fun rotateAxis(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector4d = this): Vector4d {
-        return if (aY == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aX)) {
-            this.rotateX(aX * angle, dst)
-        } else if (aX == 0.0 && aZ == 0.0 && JomlMath.absEqualsOne(aY)) {
-            this.rotateY(aY * angle, dst)
-        } else {
-            if (aX == 0.0 && aY == 0.0 && JomlMath.absEqualsOne(aZ)) this.rotateZ(
-                aZ * angle,
-                dst
-            ) else rotateAxisInternal(angle, aX, aY, aZ, dst)
-        }
-    }
-
-    private fun rotateAxisInternal(angle: Double, aX: Double, aY: Double, aZ: Double, dst: Vector4d): Vector4d {
-        val halfAngle = angle * 0.5
-        val sinAngle = sin(halfAngle)
-        val qx = aX * sinAngle
-        val qy = aY * sinAngle
-        val qz = aZ * sinAngle
-        val qw = cos(halfAngle)
-        val w2 = qw * qw
-        val x2 = qx * qx
-        val y2 = qy * qy
-        val z2 = qz * qz
-        val zw = qz * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yw = qy * qw
-        val yz = qy * qz
-        val xw = qx * qw
-        val nx = (w2 + x2 - z2 - y2) * x + (-zw + xy - zw + xy) * y + (yw + xz + xz + yw) * z
-        val ny = (xy + zw + zw + xy) * x + (y2 - z2 + w2 - x2) * y + (yz + yz - xw - xw) * z
-        val nz = (xz - yw + xz - yw) * x + (yz + yz + xw + xw) * y + (z2 - y2 - x2 + w2) * z
-        dst.x = nx
-        dst.y = ny
-        dst.z = nz
-        return dst
+    /**
+     * Warning: ax,ay,az must be normalized!
+     * */
+    fun rotateAxis(angle: Double, ax: Double, ay: Double, az: Double, dst: Vector4d = this): Vector4d {
+        val sin = sin(angle)
+        val cos = cos(angle)
+        val vx = x
+        val vy = y
+        val vz = z
+        val dot = ax * vx + ay * vy + az * vz
+        val invCos = 1f - cos
+        return dst.set(
+            vx * cos + sin * (ay * vz - az * vy) + invCos * dot * ax,
+            vy * cos + sin * (az * vx - ax * vz) + invCos * dot * ay,
+            vz * cos + sin * (ax * vy - ay * vx) + invCos * dot * az, w
+        )
     }
 
     @JvmOverloads
@@ -444,11 +423,7 @@ open class Vector4d(
         val cos = cos(angle)
         val y = y * cos - z * sin
         val z = this.y * sin + z * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(x, y, z, w)
     }
 
     @JvmOverloads
@@ -457,11 +432,7 @@ open class Vector4d(
         val cos = cos(angle)
         val x = x * cos + z * sin
         val z = -this.x * sin + z * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(x, y, z, w)
     }
 
     @JvmOverloads
@@ -470,11 +441,7 @@ open class Vector4d(
         val cos = cos(angle)
         val x = x * cos - y * sin
         val y = this.x * sin + y * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(x, y, z, w)
     }
 
     fun lengthSquared(): Double = Companion.lengthSquared(x, y, z, w)
@@ -502,7 +469,7 @@ open class Vector4d(
     }
 
     fun distance(x: Double, y: Double, z: Double, w: Double): Double {
-        return Companion.distance(this.x, this.y - y, this.z, this.w, x, y, z, w)
+        return distance(this.x, this.y, this.z, this.w, x, y, z, w)
     }
 
     fun distanceSquared(v: Vector4d): Double {
@@ -510,7 +477,7 @@ open class Vector4d(
     }
 
     fun distanceSquared(x: Double, y: Double, z: Double, w: Double): Double {
-        return Companion.distanceSquared(this.x, this.y - y, this.z, this.w, x, y, z, w)
+        return distanceSquared(this.x, this.y, this.z, this.w, x, y, z, w)
     }
 
     fun dot(v: Vector4f): Double = dot(v.x, v.y, v.z, v.w)
@@ -581,29 +548,32 @@ open class Vector4d(
     fun smoothStep(v: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
         val t2 = t * t
         val t3 = t2 * t
-        dst.x = (x + x - v.x - v.x) * t3 + (3.0 * v.x - 3.0 * x) * t2 + x * t + x
-        dst.y = (y + y - v.y - v.y) * t3 + (3.0 * v.y - 3.0 * y) * t2 + y * t + y
-        dst.z = (z + z - v.z - v.z) * t3 + (3.0 * v.z - 3.0 * z) * t2 + z * t + z
-        dst.w = (w + w - v.w - v.w) * t3 + (3.0 * v.w - 3.0 * w) * t2 + w * t + w
-        return dst
+        return dst.set(
+            JomlMath.smoothStep(x, v.x, t, t2, t3),
+            JomlMath.smoothStep(y, v.y, t, t2, t3),
+            JomlMath.smoothStep(z, v.z, t, t2, t3),
+            JomlMath.smoothStep(w, v.w, t, t2, t3),
+        )
     }
 
     fun hermite(t0: Vector4d, v1: Vector4d, t1: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
         val t2 = t * t
         val t3 = t2 * t
-        dst.x = (x + x - v1.x - v1.x + t1.x + t0.x) * t3 + (3.0 * v1.x - 3.0 * x - t0.x - t0.x - t1.x) * t2 + x * t + x
-        dst.y = (y + y - v1.y - v1.y + t1.y + t0.y) * t3 + (3.0 * v1.y - 3.0 * y - t0.y - t0.y - t1.y) * t2 + y * t + y
-        dst.z = (z + z - v1.z - v1.z + t1.z + t0.z) * t3 + (3.0 * v1.z - 3.0 * z - t0.z - t0.z - t1.z) * t2 + z * t + z
-        dst.w = (w + w - v1.w - v1.w + t1.w + t0.w) * t3 + (3.0 * v1.w - 3.0 * w - t0.w - t0.w - t1.w) * t2 + w * t + w
-        return dst
+        return dst.set(
+            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+            JomlMath.hermite(y, t0.y, v1.y, t1.y, t, t2, t3),
+            JomlMath.hermite(z, t0.z, v1.z, t1.z, t, t2, t3),
+            JomlMath.hermite(w, t0.w, v1.w, t1.w, t, t2, t3)
+        )
     }
 
     fun mix(other: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
-        dst.x = (other.x - x) * t + x
-        dst.y = (other.y - y) * t + y
-        dst.z = (other.z - z) * t + z
-        dst.w = (other.w - w) * t + w
-        return dst
+        return dst.set(
+            JomlMath.mix(x, other.x, t),
+            JomlMath.mix(y, other.y, t),
+            JomlMath.mix(z, other.z, t),
+            JomlMath.mix(w, other.w, t)
+        )
     }
 
     @JvmOverloads
@@ -697,9 +667,7 @@ open class Vector4d(
         fun distance(
             x1: Double, y1: Double, z1: Double, w1: Double,
             x2: Double, y2: Double, z2: Double, w2: Double
-        ): Double {
-            return sqrt(distanceSquared(x1, y1, z1, w1, x2, y2, z2, w2))
-        }
+        ): Double = sqrt(distanceSquared(x1, y1, z1, w1, x2, y2, z2, w2))
 
         @JvmStatic
         fun distanceSquared(

@@ -98,17 +98,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    /*override fun onCreate() {
-        super.onCreate()
-        rigidBodies.clear()
-        nonStaticRigidBodies.clear()
-    }
-
-    override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
-        invalidateRecursively(entity)
-    }*/
-
     fun registerNonStatic(
         entity: Entity,
         isStatic: Boolean,
@@ -303,8 +292,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             try {
                 while (!Engine.shutdown) {
 
-                    val targetUPS = targetUpdatesPerSecond
-                    val targetStep = 1.0 / targetUPS
+                    val targetStep = 1.0 / targetUpdatesPerSecond
                     val targetStepNanos = (targetStep * 1e9).toLongOr()
 
                     // stop if received updates for no more than 1-3s

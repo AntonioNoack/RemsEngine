@@ -29,6 +29,6 @@ fun main() {
 // todo define a graph into a file, and use them
 // todo node to call a function (be it Kotlin, Lua or graph)
 // todo define sub-functions in the same graph? group them, and then call them?
-// todo can we compile/generate efficient Kotlin from a graph? 😁
+// todo can we compile/generate efficient Kotlin/Java/JVM-ByteCode from a graph? 😁
 
 // todo logic for dragging-reordering in array-panels

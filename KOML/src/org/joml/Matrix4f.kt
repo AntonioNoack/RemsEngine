@@ -1007,21 +1007,6 @@ open class Matrix4f : Matrix {
             ._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33).determineProperties()
     }
 
-    /*@JvmOverloads
-    fun set(m: FloatArray, off: Int = 0): Matrix4f {
-        MemUtil.INSTANCE.copy(m, off, this)
-        return determineProperties()
-    }
-
-    fun setTransposed(m: FloatArray, off: Int): Matrix4f {
-        MemUtil.INSTANCE.copyTransposed(m, off, this)
-        return determineProperties()
-    }
-
-    fun setTransposed(m: FloatArray): Matrix4f {
-        return this.setTransposed(m, 0)
-    }*/
-
     fun set(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f): Matrix4f {
         return _m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)
             ._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)
@@ -2056,19 +2041,19 @@ open class Matrix4f : Matrix {
         dst: Matrix4f = this
     ): Matrix4f {
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
-        return dst._m00(sx * (m00 - ox * m03) + ox * m03)._m01(sy * (m01 - oy * m03) + oy * m03)
-            ._m02(sz * (m02 - oz * m03) + oz * m03)._m03(
-                m03
-            )._m10(sx * (m10 - ox * m13) + ox * m13)._m11(sy * (m11 - oy * m13) + oy * m13)
-            ._m12(sz * (m12 - oz * m13) + oz * m13)._m13(
-                m13
-            )._m20(sx * (m20 - ox * m23) + ox * m23)._m21(sy * (m21 - oy * m23) + oy * m23)
-            ._m22(sz * (m22 - oz * m23) + oz * m23)._m23(
-                m23
-            )._m30(sx * (m30 - ox * m33) + ox * m33)._m31(sy * (m31 - oy * m33) + oy * m33)
-            ._m32(sz * (m32 - oz * m33) + oz * m33)._m33(
-                m33
-            )._properties(flags and (13 or if (one) 0 else 16).inv())
+        return dst._m00(sx * (m00 - ox * m03) + ox * m03)
+            ._m01(sy * (m01 - oy * m03) + oy * m03)
+            ._m02(sz * (m02 - oz * m03) + oz * m03)._m03(m03)
+            ._m10(sx * (m10 - ox * m13) + ox * m13)
+            ._m11(sy * (m11 - oy * m13) + oy * m13)
+            ._m12(sz * (m12 - oz * m13) + oz * m13)._m13(m13)
+            ._m20(sx * (m20 - ox * m23) + ox * m23)
+            ._m21(sy * (m21 - oy * m23) + oy * m23)
+            ._m22(sz * (m22 - oz * m23) + oz * m23)._m23(m23)
+            ._m30(sx * (m30 - ox * m33) + ox * m33)
+            ._m31(sy * (m31 - oy * m33) + oy * m33)
+            ._m32(sz * (m32 - oz * m33) + oz * m33)._m33(m33)
+            ._properties(flags and (13 or if (one) 0 else 16).inv())
     }
 
     fun scaleAroundLocal(factor: Float, ox: Float, oy: Float, oz: Float): Matrix4f {
@@ -2104,8 +2089,9 @@ open class Matrix4f : Matrix {
         val lm21 = m21
         val lm22 = m22
         val lm23 = m23
-        return dst._m20(lm10 * -sin + lm20 * cos)._m21(lm11 * -sin + lm21 * cos)._m22(lm12 * -sin + lm22 * cos)
-            ._m23(lm13 * -sin + lm23 * cos)._m10(lm10 * cos + lm20 * sin)._m11(lm11 * cos + lm21 * sin)
+        return dst._m20(lm10 * -sin + lm20 * cos)._m21(lm11 * -sin + lm21 * cos)
+            ._m22(lm12 * -sin + lm22 * cos)._m23(lm13 * -sin + lm23 * cos)
+            ._m10(lm10 * cos + lm20 * sin)._m11(lm11 * cos + lm21 * sin)
             ._m12(lm12 * cos + lm22 * sin)._m13(lm13 * cos + lm23 * sin)
             ._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
             ._properties(flags and -14)
@@ -2132,8 +2118,9 @@ open class Matrix4f : Matrix {
         val nm01 = m01 * cos + m21 * -sin
         val nm02 = m02 * cos + m22 * -sin
         val nm03 = m03 * cos + m23 * -sin
-        return dst._m20(m00 * sin + m20 * cos)._m21(m01 * sin + m21 * cos)._m22(m02 * sin + m22 * cos)
-            ._m23(m03 * sin + m23 * cos)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+        return dst._m20(m00 * sin + m20 * cos)._m21(m01 * sin + m21 * cos)
+            ._m22(m02 * sin + m22 * cos)._m23(m03 * sin + m23 * cos)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
             ._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
             ._properties(flags and -14)
     }
@@ -2190,12 +2177,8 @@ open class Matrix4f : Matrix {
             val tz = m32
             dst.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
         } else {
-            if (flags and 2 != 0) dst.rotateAffineXYZ(angleX, angleY, angleZ) else rotateXYZInternal(
-                angleX,
-                angleY,
-                angleZ,
-                dst
-            )
+            if (flags and 2 != 0) dst.rotateAffineXYZ(angleX, angleY, angleZ)
+            else rotateXYZInternal(angleX, angleY, angleZ, dst)
         }
     }
 
@@ -2221,10 +2204,12 @@ open class Matrix4f : Matrix {
         val nm01 = m01 * cosY + nm21 * m_sinY
         val nm02 = m02 * cosY + nm22 * m_sinY
         val nm03 = m03 * cosY + nm23 * m_sinY
-        return dst._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)._m22(m02 * sinY + nm22 * cosY)
-            ._m23(m03 * sinY + nm23 * cosY)._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)
-            ._m02(nm02 * cosZ + nm12 * sinZ)._m03(nm03 * cosZ + nm13 * sinZ)._m10(nm00 * m_sinZ + nm10 * cosZ)
-            ._m11(nm01 * m_sinZ + nm11 * cosZ)._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)
+        return dst._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)
+            ._m22(m02 * sinY + nm22 * cosY)._m23(m03 * sinY + nm23 * cosY)
+            ._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)
+            ._m02(nm02 * cosZ + nm12 * sinZ)._m03(nm03 * cosZ + nm13 * sinZ)
+            ._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)
+            ._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)
             ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
     }
 
@@ -2285,12 +2270,8 @@ open class Matrix4f : Matrix {
             val tz = m32
             dst.rotationZYX(angleZ, angleY, angleX).setTranslation(tx, ty, tz)
         } else {
-            if (flags and 2 != 0) dst.rotateAffineZYX(angleZ, angleY, angleX) else rotateZYXInternal(
-                angleZ,
-                angleY,
-                angleX,
-                dst
-            )
+            if (flags and 2 != 0) dst.rotateAffineZYX(angleZ, angleY, angleX)
+            else rotateZYXInternal(angleZ, angleY, angleX, dst)
         }
     }
 
@@ -2316,12 +2297,13 @@ open class Matrix4f : Matrix {
         val nm21 = nm01 * sinY + m21 * cosY
         val nm22 = nm02 * sinY + m22 * cosY
         val nm23 = nm03 * sinY + m23 * cosY
-        return dst._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)._m02(nm02 * cosY + m22 * m_sinY)
-            ._m03(nm03 * cosY + m23 * m_sinY)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)
-            ._m12(nm12 * cosX + nm22 * sinX)._m13(nm13 * cosX + nm23 * sinX)._m20(nm10 * m_sinX + nm20 * cosX)
-            ._m21(nm11 * m_sinX + nm21 * cosX)._m22(nm12 * m_sinX + nm22 * cosX)._m23(nm13 * m_sinX + nm23 * cosX)._m30(
-                m30
-            )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
+        return dst._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)
+            ._m02(nm02 * cosY + m22 * m_sinY)._m03(nm03 * cosY + m23 * m_sinY)
+            ._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)
+            ._m12(nm12 * cosX + nm22 * sinX)._m13(nm13 * cosX + nm23 * sinX)
+            ._m20(nm10 * m_sinX + nm20 * cosX)._m21(nm11 * m_sinX + nm21 * cosX)
+            ._m22(nm12 * m_sinX + nm22 * cosX)._m23(nm13 * m_sinX + nm23 * cosX)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
     }
 
     @JvmOverloads
@@ -2344,12 +2326,12 @@ open class Matrix4f : Matrix {
         val nm20 = nm00 * sinY + m20 * cosY
         val nm21 = nm01 * sinY + m21 * cosY
         val nm22 = nm02 * sinY + m22 * cosY
-        return dst._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)._m02(nm02 * cosY + m22 * m_sinY)
-            ._m03(0f)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)._m12(nm12 * cosX + nm22 * sinX)
-            ._m13(0f)._m20(nm10 * m_sinX + nm20 * cosX)._m21(nm11 * m_sinX + nm21 * cosX)
-            ._m22(nm12 * m_sinX + nm22 * cosX)._m23(0f)._m30(
-                m30
-            )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
+        return dst._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)
+            ._m02(nm02 * cosY + m22 * m_sinY)._m03(0f)._m10(nm10 * cosX + nm20 * sinX)
+            ._m11(nm11 * cosX + nm21 * sinX)._m12(nm12 * cosX + nm22 * sinX)
+            ._m13(0f)._m20(nm10 * m_sinX + nm20 * cosX)
+            ._m21(nm11 * m_sinX + nm21 * cosX)._m22(nm12 * m_sinX + nm22 * cosX)._m23(0f)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
     }
 
     fun rotateYXZ(angles: Vector3f): Matrix4f {
@@ -2366,12 +2348,8 @@ open class Matrix4f : Matrix {
             val tz = m32
             dst.rotationYXZ(angleY, angleX, angleZ).setTranslation(tx, ty, tz)
         } else {
-            if (flags and 2 != 0) dst.rotateAffineYXZ(angleY, angleX, angleZ) else rotateYXZInternal(
-                angleY,
-                angleX,
-                angleZ,
-                dst
-            )
+            if (flags and 2 != 0) dst.rotateAffineYXZ(angleY, angleX, angleZ)
+            else rotateYXZInternal(angleY, angleX, angleZ, dst)
         }
     }
 
@@ -2453,10 +2431,8 @@ open class Matrix4f : Matrix {
         } else if (x == 0f && z == 0f && JomlMath.absEqualsOne(y)) {
             rotateY(y * ang, dst)
         } else {
-            if (x == 0f && y == 0f && JomlMath.absEqualsOne(z)) rotateZ(
-                z * ang,
-                dst
-            ) else rotateGenericInternal(ang, x, y, z, dst)
+            if (x == 0f && y == 0f && JomlMath.absEqualsOne(z)) rotateZ(z * ang, dst)
+            else rotateGenericInternal(ang, x, y, z, dst)
         }
     }
 
@@ -3878,24 +3854,15 @@ open class Matrix4f : Matrix {
     }
 
     fun setPerspectiveOffCenter(
-        fovy: Float,
-        offAngleX: Float,
-        offAngleY: Float,
-        aspect: Float,
-        zNear: Float,
-        zFar: Float
+        fovy: Float, offAngleX: Float, offAngleY: Float,
+        aspect: Float, zNear: Float, zFar: Float
     ): Matrix4f {
         return this.setPerspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenter(
-        fovy: Float,
-        offAngleX: Float,
-        offAngleY: Float,
-        aspect: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean
+        fovy: Float, offAngleX: Float, offAngleY: Float, aspect: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean
     ): Matrix4f {
         zero()
         val h = tan(fovy * 0.5f)
@@ -3921,24 +3888,17 @@ open class Matrix4f : Matrix {
     }
 
     fun setPerspectiveOffCenterFov(
-        angleLeft: Float,
-        angleRight: Float,
-        angleDown: Float,
-        angleUp: Float,
-        zNear: Float,
-        zFar: Float
+        angleLeft: Float, angleRight: Float,
+        angleDown: Float, angleUp: Float,
+        zNear: Float, zFar: Float
     ): Matrix4f {
         return this.setPerspectiveOffCenterFov(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenterFov(
-        angleLeft: Float,
-        angleRight: Float,
-        angleDown: Float,
-        angleUp: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean
+        angleLeft: Float, angleRight: Float,
+        angleDown: Float, angleUp: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean
     ): Matrix4f {
         return this.setFrustum(
             tan(angleLeft) * zNear,
@@ -3952,61 +3912,39 @@ open class Matrix4f : Matrix {
     }
 
     fun setPerspectiveOffCenterFovLH(
-        angleLeft: Float,
-        angleRight: Float,
-        angleDown: Float,
-        angleUp: Float,
-        zNear: Float,
-        zFar: Float
+        angleLeft: Float, angleRight: Float,
+        angleDown: Float, angleUp: Float,
+        zNear: Float, zFar: Float
     ): Matrix4f {
         return this.setPerspectiveOffCenterFovLH(angleLeft, angleRight, angleDown, angleUp, zNear, zFar, false)
     }
 
     fun setPerspectiveOffCenterFovLH(
-        angleLeft: Float,
-        angleRight: Float,
-        angleDown: Float,
-        angleUp: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean
+        angleLeft: Float, angleRight: Float,
+        angleDown: Float, angleUp: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean
     ): Matrix4f {
         return this.setFrustumLH(
             tan(angleLeft) * zNear,
             tan(angleRight) * zNear,
             tan(angleDown) * zNear,
             tan(angleUp) * zNear,
-            zNear,
-            zFar,
-            zZeroToOne
+            zNear, zFar, zZeroToOne
         )
     }
 
     @JvmOverloads
     fun perspectiveLH(
-        fovy: Float,
-        aspect: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean,
-        dst: Matrix4f = this
+        fovy: Float, aspect: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean, dst: Matrix4f = this
     ): Matrix4f {
-        return if (flags and 4 != 0) dst.setPerspectiveLH(
-            fovy,
-            aspect,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0) dst.setPerspectiveLH(fovy, aspect, zNear, zFar, zZeroToOne)
+        else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveLHGeneric(
-        fovy: Float,
-        aspect: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean,
-        dst: Matrix4f
+        fovy: Float, aspect: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean, dst: Matrix4f
     ): Matrix4f {
         val h = tan(fovy * 0.5f)
         val rm00 = 1f / (h * aspect)
@@ -4072,35 +4010,16 @@ open class Matrix4f : Matrix {
 
     @JvmOverloads
     fun frustum(
-        left: Float,
-        right: Float,
-        bottom: Float,
-        top: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean,
-        dst: Matrix4f = this
+        left: Float, right: Float, bottom: Float, top: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean, dst: Matrix4f = this
     ): Matrix4f {
-        return if (flags and 4 != 0) dst.setFrustum(
-            left,
-            right,
-            bottom,
-            top,
-            zNear,
-            zFar,
-            zZeroToOne
-        ) else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
+        return if (flags and 4 != 0) dst.setFrustum(left, right, bottom, top, zNear, zFar, zZeroToOne)
+        else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun frustumGeneric(
-        left: Float,
-        right: Float,
-        bottom: Float,
-        top: Float,
-        zNear: Float,
-        zFar: Float,
-        zZeroToOne: Boolean,
-        dst: Matrix4f
+        left: Float, right: Float, bottom: Float, top: Float,
+        zNear: Float, zFar: Float, zZeroToOne: Boolean, dst: Matrix4f
     ): Matrix4f {
         val rm00 = (zNear + zNear) / (right - left)
         val rm11 = (zNear + zNear) / (top - bottom)
@@ -4963,13 +4882,8 @@ open class Matrix4f : Matrix {
         return if (flags and 4 != 0) {
             dst.reflection(a, b, c, d)
         } else {
-            if (flags and 2 != 0) reflectAffine(a, b, c, d, dst) else reflectGeneric(
-                a,
-                b,
-                c,
-                d,
-                dst
-            )
+            if (flags and 2 != 0) reflectAffine(a, b, c, d, dst)
+            else reflectGeneric(a, b, c, d, dst)
         }
     }
 
@@ -5596,15 +5510,8 @@ open class Matrix4f : Matrix {
 
     @JvmOverloads
     fun shadow(
-        lightX: Float,
-        lightY: Float,
-        lightZ: Float,
-        lightW: Float,
-        a: Float,
-        b: Float,
-        c: Float,
-        d: Float,
-        dst: Matrix4f = this
+        lightX: Float, lightY: Float, lightZ: Float, lightW: Float,
+        a: Float, b: Float, c: Float, d: Float, dst: Matrix4f = this
     ): Matrix4f {
         val invPlaneLen = JomlMath.invsqrt(a * a + b * b + c * c)
         val an = a * invPlaneLen
@@ -5641,13 +5548,13 @@ open class Matrix4f : Matrix {
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 + m32 * rm23
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 + m33 * rm23
         dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30 * rm33)
-            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31 * rm33)._m32(
-                m02 * rm30 + m12 * rm31 + m22 * rm32 + m32 * rm33
-            )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33 * rm33)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
-            ._m10(nm10)
-            ._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._properties(
-                flags and -30
-            )
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31 * rm33)
+            ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32 * rm33)
+            ._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33 * rm33)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+            ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
+            ._properties(flags and -30)
         return dst
     }
 
@@ -6011,14 +5918,9 @@ open class Matrix4f : Matrix {
     }
 
     fun trapezoidCrop(
-        p0x: Float,
-        p0y: Float,
-        p1x: Float,
-        p1y: Float,
-        p2x: Float,
-        p2y: Float,
-        p3x: Float,
-        p3y: Float
+        p0x: Float, p0y: Float, p1x: Float,
+        p1y: Float, p2x: Float, p2y: Float,
+        p3x: Float, p3y: Float
     ): Matrix4f {
         val aX = p1y - p0y
         val aY = p0x - p1x
@@ -6053,14 +5955,9 @@ open class Matrix4f : Matrix {
     }
 
     fun transformAab(
-        minX: Float,
-        minY: Float,
-        minZ: Float,
-        maxX: Float,
-        maxY: Float,
-        maxZ: Float,
-        outMin: Vector3f,
-        outMax: Vector3f
+        minX: Float, minY: Float, minZ: Float,
+        maxX: Float, maxY: Float, maxZ: Float,
+        outMin: Vector3f, outMax: Vector3f
     ): Matrix4f {
         val xax = m00 * minX
         val xay = m01 * minX
@@ -6210,12 +6107,8 @@ open class Matrix4f : Matrix {
 
     @JvmOverloads
     fun rotateTowards(
-        dirX: Float,
-        dirY: Float,
-        dirZ: Float,
-        upX: Float,
-        upY: Float,
-        upZ: Float,
+        dirX: Float, dirY: Float, dirZ: Float,
+        upX: Float, upY: Float, upZ: Float,
         dst: Matrix4f = this
     ): Matrix4f {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
@@ -6280,15 +6173,9 @@ open class Matrix4f : Matrix {
     }
 
     fun translationRotateTowards(
-        posX: Float,
-        posY: Float,
-        posZ: Float,
-        dirX: Float,
-        dirY: Float,
-        dirZ: Float,
-        upX: Float,
-        upY: Float,
-        upZ: Float
+        posX: Float, posY: Float, posZ: Float,
+        dirX: Float, dirY: Float, dirZ: Float,
+        upX: Float, upY: Float, upZ: Float
     ): Matrix4f {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val ndirX = dirX * invDirLength
@@ -6392,7 +6279,9 @@ open class Matrix4f : Matrix {
         val pzY = m13 - m12
         val pzZ = m23 - m22
         val pzW = m33 - m32
-        return nxX * x + nxY * y + nxZ * z + nxW >= 0f && pxX * x + pxY * y + pxZ * z + pxW >= 0f && nyX * x + nyY * y + nyZ * z + nyW >= 0f && pyX * x + pyY * y + pyZ * z + pyW >= 0f && nzX * x + nzY * y + nzZ * z + nzW >= 0f && pzX * x + pzY * y + pzZ * z + pzW >= 0f
+        return nxX * x + nxY * y + nxZ * z + nxW >= 0f && pxX * x + pxY * y + pxZ * z + pxW >= 0f &&
+                nyX * x + nyY * y + nyZ * z + nyW >= 0f && pyX * x + pyY * y + pyZ * z + pyW >= 0f &&
+                nzX * x + nzY * y + nzZ * z + nzW >= 0f && pzX * x + pzY * y + pzZ * z + pzW >= 0f
     }
 
     fun testSphere(x: Float, y: Float, z: Float, r: Float): Boolean {
@@ -6450,7 +6339,9 @@ open class Matrix4f : Matrix {
         pzY *= invl
         pzZ *= invl
         pzW *= invl
-        return nxX * x + nxY * y + nxZ * z + nxW >= -r && pxX * x + pxY * y + pxZ * z + pxW >= -r && nyX * x + nyY * y + nyZ * z + nyW >= -r && pyX * x + pyY * y + pyZ * z + pyW >= -r && nzX * x + nzY * y + nzZ * z + nzW >= -r && pzX * x + pzY * y + pzZ * z + pzW >= -r
+        return nxX * x + nxY * y + nxZ * z + nxW >= -r && pxX * x + pxY * y + pxZ * z + pxW >= -r &&
+                nyX * x + nyY * y + nyZ * z + nyW >= -r && pyX * x + pyY * y + pyZ * z + pyW >= -r &&
+                nzX * x + nzY * y + nzZ * z + nzW >= -r && pzX * x + pzY * y + pzZ * z + pzW >= -r
     }
 
     fun testAab(minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float): Boolean {

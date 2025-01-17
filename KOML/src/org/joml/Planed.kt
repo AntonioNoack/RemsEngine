@@ -69,8 +69,7 @@ open class Planed(
     }
 
     override fun hashCode(): Int {
-        var hash = 1
-        hash = hash * 31 + hash(dirX)
+        var hash = hash(dirX)
         hash = hash * 31 + hash(dirY)
         hash = hash * 31 + hash(dirZ)
         hash = hash * 31 + hash(distance)

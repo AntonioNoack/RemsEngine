@@ -1,9 +1,8 @@
 package org.joml
 
+import org.joml.JomlMath.hash
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 class AxisAngle4d(
@@ -11,7 +10,7 @@ class AxisAngle4d(
     @JvmField var x: Double,
     @JvmField var y: Double,
     @JvmField var z: Double
-): Vector {
+) : Vector {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(a: AxisAngle4d) : this(a.angle, a.x, a.y, a.z)
@@ -248,73 +247,42 @@ class AxisAngle4d(
     }
 
     fun rotate(ang: Double): AxisAngle4d {
-        angle += ang
-        angle = (if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586
+        angle = posMod(angle + ang)
         return this
     }
 
     @JvmOverloads
     fun transform(v: Vector3d, dst: Vector3d = v): Vector3d {
-        val sin = sin(angle)
-        val cos = cos(angle)
-        val dot = x * v.x + y * v.y + z * v.z
-        dst.set(
-            v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x,
-            v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
-            v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z
-        )
-        return dst
+        return v.rotateAxis(angle, x, y, z, dst)
     }
 
     @JvmOverloads
     fun transform(v: Vector3f, dst: Vector3f = v): Vector3f {
-        val sin = sin(angle)
-        val cos = cos(angle)
-        val dot = x * v.x.toDouble() + y * v.y.toDouble() + z * v.z.toDouble()
-        dst.set(
-            (v.x.toDouble() * cos + sin * (y * v.z.toDouble() - z * v.y.toDouble()) + (1.0 - cos) * dot * x).toFloat(),
-            (v.y.toDouble() * cos + sin * (z * v.x.toDouble() - x * v.z.toDouble()) + (1.0 - cos) * dot * y).toFloat(),
-            (v.z.toDouble() * cos + sin * (x * v.y.toDouble() - y * v.x.toDouble()) + (1.0 - cos) * dot * z).toFloat()
-        )
-        return dst
+        return v.rotateAxis(angle.toFloat(), x.toFloat(), y.toFloat(), z.toFloat(), dst)
     }
 
     @JvmOverloads
     fun transform(v: Vector4d, dst: Vector4d = v): Vector4d {
-        val sin = sin(angle)
-        val cos = cos(angle)
-        val dot = x * v.x + y * v.y + z * v.z
-        return dst.set(
-            v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x,
-            v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
-            v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z,
-            dst.w
-        )
+        return v.rotateAxis(angle, x, y, z, dst)
     }
 
     override fun toString(): String {
         return "($x,$y,$z <| $angle)"
     }
 
-
     private fun posMod(value: Double): Double {
         val tau = PI * 2.0
+        val mod = value % tau
         return if (value < 0.0) {
-            (tau + value % tau)
-        } else {
-            value % tau
-        }
+            (tau + mod)
+        } else mod
     }
 
     override fun hashCode(): Int {
-        var temp = posMod(angle).toBits()
-        var result = (temp xor (temp ushr 32)).toInt()
-        temp = x.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = y.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = z.toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
+        var result = hash(posMod(angle))
+        result = 31 * result + hash(x)
+        result = 31 * result + hash(y)
+        result = 31 * result + hash(z)
         return result
     }
 
