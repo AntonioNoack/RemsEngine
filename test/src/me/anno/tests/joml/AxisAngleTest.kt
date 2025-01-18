@@ -125,7 +125,6 @@ class AxisAngleTest {
         val e = 1e-6
         assertEquals(expected, AxisAngle4f().set(Quaterniond(rotation)))
         assertEquals1(expected, AxisAngle4f().set(Matrix3f().rotate(rotation)), e)
-        assertEquals1(expected, AxisAngle4f().set(Matrix3d().rotate(rotation)), e)
         assertEquals1(expected, AxisAngle4f().set(Matrix4f().rotate(rotation)), e)
         assertEquals1(expected, AxisAngle4f().set(Matrix4d().rotate(rotation)), e)
         assertEquals1(expected, AxisAngle4f().set(Matrix4x3f().rotate(rotation)), e)
@@ -156,7 +155,6 @@ class AxisAngleTest {
         val expected = AxisAngle4f().set(rotation)
         assertEquals(expected, expected.get(AxisAngle4f()))
         assertEquals(Matrix3f().rotate(rotation), expected.get(Matrix3f()), e)
-        assertEquals(Matrix3d().rotate(rotation), expected.get(Matrix3d()), e)
         assertEquals(Matrix4f().rotate(rotation), expected.get(Matrix4f()), e)
         assertEquals(Matrix4d().rotate(rotation), expected.get(Matrix4d()), e)
         // 4x3 doesn't exist at all?

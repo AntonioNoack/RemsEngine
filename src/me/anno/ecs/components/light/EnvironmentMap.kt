@@ -110,13 +110,13 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         val transform = entity.transform
         val resolution = max(4, resolution)
         val global = transform.globalTransform
-        val position = global.getTranslation(tmpV3)
+        val position = global.getTranslation(JomlPools.vec3d.create())
         val sqrt3 = 1.7320508075688772
         val worldScale = sqrt3 / global.getScale(JomlPools.vec3d.borrow()).length()
 
         val deg90 = PIf * 0.5f
-        val camRot = tmpQ2
-        val camRotInv = tmpQ3
+        val camRot = JomlPools.quat4d.create()
+        val camRotInv = JomlPools.quat4d.create()
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
@@ -159,7 +159,10 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
                 }
             }
         }
+
         JomlPools.mat4f.sub(1)
+        JomlPools.vec3d.sub(1)
+        JomlPools.quat4d.sub(2)
 
         // todo create irradiance mipmaps: blur & size down, just like bloom
     }
@@ -171,10 +174,6 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
     }
 
     companion object {
-
-        private val tmpV3 = Vector3d()
-        private val tmpQ2 = Quaterniond()
-        private val tmpQ3 = Quaterniond()
 
         val crossExtends = Vector3d(0.1)
 

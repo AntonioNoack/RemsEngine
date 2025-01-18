@@ -101,15 +101,7 @@ open class Quaterniond(
         return dst.set(this)
     }
 
-    fun get(dst: Matrix3f): Matrix3f {
-        return dst.set(this)
-    }
-
     fun get(dst: Matrix4d): Matrix4d {
-        return dst.set(this)
-    }
-
-    fun get(dst: Matrix4f): Matrix4f {
         return dst.set(this)
     }
 

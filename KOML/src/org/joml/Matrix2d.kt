@@ -48,26 +48,6 @@ open class Matrix2d : Matrix {
     override val numCols: Int get() = 2
     override val numRows: Int get() = 2
 
-    fun m00(m00: Double): Matrix2d {
-        this.m00 = m00
-        return this
-    }
-
-    fun m01(m01: Double): Matrix2d {
-        this.m01 = m01
-        return this
-    }
-
-    fun m10(m10: Double): Matrix2d {
-        this.m10 = m10
-        return this
-    }
-
-    fun m11(m11: Double): Matrix2d {
-        this.m11 = m11
-        return this
-    }
-
     fun _m00(m00: Double): Matrix2d {
         this.m00 = m00
         return this

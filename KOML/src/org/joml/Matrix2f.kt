@@ -40,26 +40,6 @@ open class Matrix2f : Matrix {
     override val numRows: Int get() = 2
     override val numCols: Int get() = 2
 
-    fun m00(m00: Float): Matrix2f {
-        this.m00 = m00
-        return this
-    }
-
-    fun m01(m01: Float): Matrix2f {
-        this.m01 = m01
-        return this
-    }
-
-    fun m10(m10: Float): Matrix2f {
-        this.m10 = m10
-        return this
-    }
-
-    fun m11(m11: Float): Matrix2f {
-        this.m11 = m11
-        return this
-    }
-
     fun _m00(m00: Float): Matrix2f {
         this.m00 = m00
         return this

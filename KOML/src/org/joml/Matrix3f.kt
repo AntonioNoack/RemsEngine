@@ -67,51 +67,6 @@ open class Matrix3f : Matrix {
     override val numCols: Int get() = 3
     override val numRows: Int get() = 3
 
-    fun m00(m00: Float): Matrix3f {
-        this.m00 = m00
-        return this
-    }
-
-    fun m01(m01: Float): Matrix3f {
-        this.m01 = m01
-        return this
-    }
-
-    fun m02(m02: Float): Matrix3f {
-        this.m02 = m02
-        return this
-    }
-
-    fun m10(m10: Float): Matrix3f {
-        this.m10 = m10
-        return this
-    }
-
-    fun m11(m11: Float): Matrix3f {
-        this.m11 = m11
-        return this
-    }
-
-    fun m12(m12: Float): Matrix3f {
-        this.m12 = m12
-        return this
-    }
-
-    fun m20(m20: Float): Matrix3f {
-        this.m20 = m20
-        return this
-    }
-
-    fun m21(m21: Float): Matrix3f {
-        this.m21 = m21
-        return this
-    }
-
-    fun m22(m22: Float): Matrix3f {
-        this.m22 = m22
-        return this
-    }
-
     fun _m00(m00: Float): Matrix3f {
         this.m00 = m00
         return this
@@ -278,29 +233,6 @@ open class Matrix3f : Matrix {
 
     fun set(q: Quaternionf): Matrix3f {
         return rotation(q)
-    }
-
-    fun set(q: Quaterniond): Matrix3f {
-        val w2 = q.w * q.w
-        val x2 = q.x * q.x
-        val y2 = q.y * q.y
-        val z2 = q.z * q.z
-        val zw = q.z * q.w
-        val xy = q.x * q.y
-        val xz = q.x * q.z
-        val yw = q.y * q.w
-        val yz = q.y * q.z
-        val xw = q.x * q.w
-        m00 = (w2 + x2 - z2 - y2).toFloat()
-        m01 = (xy + zw + zw + xy).toFloat()
-        m02 = (xz - yw + xz - yw).toFloat()
-        m10 = (-zw + xy - zw + xy).toFloat()
-        m11 = (y2 - z2 + w2 - x2).toFloat()
-        m12 = (yz + yz + xw + xw).toFloat()
-        m20 = (yw + xz + xz + yw).toFloat()
-        m21 = (yz + yz - xw - xw).toFloat()
-        m22 = (z2 - y2 - x2 + w2).toFloat()
-        return this
     }
 
     @JvmOverloads

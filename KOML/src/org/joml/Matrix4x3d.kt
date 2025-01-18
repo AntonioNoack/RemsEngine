@@ -164,111 +164,6 @@ open class Matrix4x3d : Matrix {
         return this
     }
 
-    fun m00(m00: Double): Matrix4x3d {
-        this.m00 = m00
-        flags = flags and -17
-        if (m00 != 1.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m01(m01: Double): Matrix4x3d {
-        this.m01 = m01
-        flags = flags and -17
-        if (m01 != 0.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m02(m02: Double): Matrix4x3d {
-        this.m02 = m02
-        flags = flags and -17
-        if (m02 != 0.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m10(m10: Double): Matrix4x3d {
-        this.m10 = m10
-        flags = flags and -17
-        if (m10 != 0.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m11(m11: Double): Matrix4x3d {
-        this.m11 = m11
-        flags = flags and -17
-        if (m11 != 1.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m12(m12: Double): Matrix4x3d {
-        this.m12 = m12
-        flags = flags and -17
-        if (m12 != 0.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m20(m20: Double): Matrix4x3d {
-        this.m20 = m20
-        flags = flags and -17
-        if (m20 != 0.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m21(m21: Double): Matrix4x3d {
-        this.m21 = m21
-        flags = flags and -17
-        if (m21 != 0.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m22(m22: Double): Matrix4x3d {
-        this.m22 = m22
-        flags = flags and -17
-        if (m22 != 1.0) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m30(m30: Double): Matrix4x3d {
-        this.m30 = m30
-        if (m30 != 0.0) {
-            flags = flags and -5
-        }
-        return this
-    }
-
-    fun m31(m31: Double): Matrix4x3d {
-        this.m31 = m31
-        if (m31 != 0.0) {
-            flags = flags and -5
-        }
-        return this
-    }
-
-    fun m32(m32: Double): Matrix4x3d {
-        this.m32 = m32
-        if (m32 != 0.0) {
-            flags = flags and -5
-        }
-        return this
-    }
-
     fun identity(): Matrix4x3d {
         if (flags and 4 == 0) {
             m00 = 1.0
@@ -474,11 +369,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun set(q: Quaternionf): Matrix4x3d {
-        return this.rotation(q)
+        return rotation(q)
     }
 
     fun set(q: Quaterniond): Matrix4x3d {
-        return this.rotation(q)
+        return rotation(q)
     }
 
     @JvmOverloads
@@ -928,16 +823,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun transpose3x3(dst: Matrix3d): Matrix3d {
-        dst.m00(m00)
-        dst.m01(m10)
-        dst.m02(m20)
-        dst.m10(m01)
-        dst.m11(m11)
-        dst.m12(m21)
-        dst.m20(m02)
-        dst.m21(m12)
-        dst.m22(m22)
-        return dst
+        return dst.set(m00, m10, m20, m01, m11, m21, m02, m12, m22)
     }
 
     fun translation(x: Double, y: Double, z: Double): Matrix4x3d {
@@ -952,11 +838,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translation(offset: Vector3f): Matrix4x3d {
-        return this.translation(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
+        return translation(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
     }
 
     fun translation(offset: Vector3d): Matrix4x3d {
-        return this.translation(offset.x, offset.y, offset.z)
+        return translation(offset.x, offset.y, offset.z)
     }
 
     fun setTranslation(x: Double, y: Double, z: Double): Matrix4x3d {
@@ -968,14 +854,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setTranslation(xyz: Vector3d): Matrix4x3d {
-        return this.setTranslation(xyz.x, xyz.y, xyz.z)
+        return setTranslation(xyz.x, xyz.y, xyz.z)
     }
 
     fun getTranslation(dst: Vector3d): Vector3d {
-        dst.x = m30
-        dst.y = m31
-        dst.z = m32
-        return dst
+        return dst.set(m30, m31, m32)
     }
 
     fun getScale(dst: Vector3d): Vector3d {
@@ -1053,18 +936,6 @@ open class Matrix4x3d : Matrix {
         return arr
     }
 
-    /*@JvmOverloads
-    fun get4x4(arr: FloatArray, offset: Int = 0): FloatArray {
-        MemUtil.INSTANCE.copy4x4(this, arr, offset)
-        return arr
-    }
-
-    @JvmOverloads
-    fun get4x4(arr: DoubleArray, offset: Int = 0): DoubleArray {
-        MemUtil.INSTANCE.copy4x4(this, arr, offset)
-        return arr
-    }*/
-
     fun getTransposed(arr: DoubleArray, offset: Int): DoubleArray {
         arr[offset] = m00
         arr[offset + 1] = m10
@@ -1082,7 +953,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun getTransposed(arr: DoubleArray): DoubleArray {
-        return this.getTransposed(arr, 0)
+        return getTransposed(arr, 0)
     }
 
     fun zero(): Matrix4x3d {
@@ -1103,7 +974,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun scaling(factor: Double): Matrix4x3d {
-        return this.scaling(factor, factor, factor)
+        return scaling(factor, factor, factor)
     }
 
     fun scaling(x: Double, y: Double, z: Double): Matrix4x3d {
@@ -1119,22 +990,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun scaling(xyz: Vector3d): Matrix4x3d {
-        return this.scaling(xyz.x, xyz.y, xyz.z)
+        return scaling(xyz.x, xyz.y, xyz.z)
     }
 
     fun rotation(angle: Double, x: Double, y: Double, z: Double): Matrix4x3d {
-        return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
-            rotationX(x * angle)
-        } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
-            rotationY(y * angle)
-        } else {
-            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotationZ(z * angle) else rotationInternal(
-                angle,
-                x,
-                y,
-                z
-            )
-        }
+        return rotationInternal(angle, x, y, z)
     }
 
     private fun rotationInternal(angle: Double, x: Double, y: Double, z: Double): Matrix4x3d {
@@ -1377,11 +1237,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotation(angle: Double, axis: Vector3d): Matrix4x3d {
-        return this.rotation(angle, axis.x, axis.y, axis.z)
+        return rotation(angle, axis.x, axis.y, axis.z)
     }
 
     fun rotation(angle: Double, axis: Vector3f): Matrix4x3d {
-        return this.rotation(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble())
+        return rotation(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble())
     }
 
     fun transform(v: Vector4d): Vector4d {
@@ -1465,11 +1325,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun scale(xyz: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.scale(xyz.x, xyz.y, xyz.z, dst)
+        return scale(xyz.x, xyz.y, xyz.z, dst)
     }
 
     fun scale(xyz: Vector3d): Matrix4x3d {
-        return this.scale(xyz.x, xyz.y, xyz.z, this)
+        return scale(xyz.x, xyz.y, xyz.z, this)
     }
 
     @JvmOverloads
@@ -1495,19 +1355,19 @@ open class Matrix4x3d : Matrix {
     }
 
     fun scale(xyz: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.scale(xyz, xyz, xyz, dst)
+        return scale(xyz, xyz, xyz, dst)
     }
 
     fun scale(xyz: Double): Matrix4x3d {
-        return this.scale(xyz, xyz, xyz)
+        return scale(xyz, xyz, xyz)
     }
 
     fun scaleXY(x: Double, y: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.scale(x, y, 1.0, dst)
+        return scale(x, y, 1.0, dst)
     }
 
     fun scaleXY(x: Double, y: Double): Matrix4x3d {
-        return this.scale(x, y, 1.0)
+        return scale(x, y, 1.0)
     }
 
     @JvmOverloads
@@ -1535,11 +1395,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double): Matrix4x3d {
-        return this.scaleAround(factor, factor, factor, ox, oy, oz, this)
+        return scaleAround(factor, factor, factor, ox, oy, oz, this)
     }
 
     fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.scaleAround(factor, factor, factor, ox, oy, oz, dst)
+        return scaleAround(factor, factor, factor, ox, oy, oz, dst)
     }
 
     @JvmOverloads
@@ -1696,9 +1556,7 @@ open class Matrix4x3d : Matrix {
 
     private fun rotateAroundAffine(
         quat: Quaterniond,
-        ox: Double,
-        oy: Double,
-        oz: Double,
+        ox: Double, oy: Double, oz: Double,
         dst: Matrix4x3d
     ): Matrix4x3d {
         val w2 = quat.w * quat.w
@@ -1936,19 +1794,19 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translate(offset: Vector3d): Matrix4x3d {
-        return this.translate(offset.x, offset.y, offset.z)
+        return translate(offset.x, offset.y, offset.z)
     }
 
     fun translate(offset: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.translate(offset.x, offset.y, offset.z, dst)
+        return translate(offset.x, offset.y, offset.z, dst)
     }
 
     fun translate(offset: Vector3f): Matrix4x3d {
-        return this.translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
+        return translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
     }
 
     fun translate(offset: Vector3f, dst: Matrix4x3d): Matrix4x3d {
-        return this.translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dst)
+        return translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dst)
     }
 
     fun translate(x: Double, y: Double, z: Double, dst: Matrix4x3d): Matrix4x3d {
@@ -1985,19 +1843,19 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translateLocal(offset: Vector3f): Matrix4x3d {
-        return this.translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
+        return translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
     }
 
     fun translateLocal(offset: Vector3f, dst: Matrix4x3d): Matrix4x3d {
-        return this.translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dst)
+        return translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dst)
     }
 
     fun translateLocal(offset: Vector3d): Matrix4x3d {
-        return this.translateLocal(offset.x, offset.y, offset.z)
+        return translateLocal(offset.x, offset.y, offset.z)
     }
 
     fun translateLocal(offset: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.translateLocal(offset.x, offset.y, offset.z, dst)
+        return translateLocal(offset.x, offset.y, offset.z, dst)
     }
 
     @JvmOverloads
@@ -2130,7 +1988,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotateXYZ(angles: Vector3d): Matrix4x3d {
-        return this.rotateXYZ(angles.x, angles.y, angles.z)
+        return rotateXYZ(angles.x, angles.y, angles.z)
     }
 
     @JvmOverloads
@@ -2183,7 +2041,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotateZYX(angles: Vector3d): Matrix4x3d {
-        return this.rotateZYX(angles.z, angles.y, angles.x)
+        return rotateZYX(angles.z, angles.y, angles.x)
     }
 
     @JvmOverloads
@@ -2236,7 +2094,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotateYXZ(angles: Vector3d): Matrix4x3d {
-        return this.rotateYXZ(angles.y, angles.x, angles.z)
+        return rotateYXZ(angles.y, angles.x, angles.z)
     }
 
     @JvmOverloads
@@ -2289,7 +2147,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotation(angleAxis: AxisAngle4f): Matrix4x3d {
-        return this.rotation(
+        return rotation(
             angleAxis.angle.toDouble(),
             angleAxis.x.toDouble(),
             angleAxis.y.toDouble(),
@@ -2298,7 +2156,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotation(angleAxis: AxisAngle4d): Matrix4x3d {
-        return this.rotation(angleAxis.angle, angleAxis.x, angleAxis.y, angleAxis.z)
+        return rotation(angleAxis.angle, angleAxis.x, angleAxis.y, angleAxis.z)
     }
 
     fun rotation(quat: Quaterniond): Matrix4x3d {
@@ -2531,11 +2389,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translationRotate(translation: Vector3d, quat: Quaterniond): Matrix4x3d {
-        return this.translationRotate(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w)
+        return translationRotate(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w)
     }
 
     fun translationRotateMul(tx: Double, ty: Double, tz: Double, quat: Quaternionf, mat: Matrix4x3d): Matrix4x3d {
-        return this.translationRotateMul(
+        return translationRotateMul(
             tx, ty, tz, quat.x.toDouble(), quat.y.toDouble(), quat.z.toDouble(), quat.w.toDouble(), mat
         )
     }
@@ -2605,7 +2463,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translationRotateInvert(translation: Vector3d, quat: Quaterniond): Matrix4x3d {
-        return this.translationRotateInvert(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w)
+        return translationRotateInvert(translation.x, translation.y, translation.z, quat.x, quat.y, quat.z, quat.w)
     }
 
     @JvmOverloads
@@ -2905,7 +2763,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotate(axisAngle: AxisAngle4f): Matrix4x3d {
-        return this.rotate(
+        return rotate(
             axisAngle.angle.toDouble(),
             axisAngle.x.toDouble(),
             axisAngle.y.toDouble(),
@@ -2914,7 +2772,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotate(axisAngle: AxisAngle4f, dst: Matrix4x3d): Matrix4x3d {
-        return this.rotate(
+        return rotate(
             axisAngle.angle.toDouble(),
             axisAngle.x.toDouble(),
             axisAngle.y.toDouble(),
@@ -2924,27 +2782,27 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotate(axisAngle: AxisAngle4d): Matrix4x3d {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
+        return rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
     fun rotate(axisAngle: AxisAngle4d, dst: Matrix4x3d): Matrix4x3d {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dst)
+        return rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dst)
     }
 
     fun rotate(angle: Double, axis: Vector3d): Matrix4x3d {
-        return this.rotate(angle, axis.x, axis.y, axis.z)
+        return rotate(angle, axis.x, axis.y, axis.z)
     }
 
     fun rotate(angle: Double, axis: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.rotate(angle, axis.x, axis.y, axis.z, dst)
+        return rotate(angle, axis.x, axis.y, axis.z, dst)
     }
 
     fun rotate(angle: Double, axis: Vector3f): Matrix4x3d {
-        return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble())
+        return rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble())
     }
 
     fun rotate(angle: Double, axis: Vector3f, dst: Matrix4x3d): Matrix4x3d {
-        return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dst)
+        return rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dst)
     }
 
     fun getRow(row: Int, dst: Vector4d): Vector4d {
@@ -3116,16 +2974,16 @@ open class Matrix4x3d : Matrix {
         val m02m11 = m02 * m11
         val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
         val s = 1.0 / det
-        dst.m00((m11 * m22 - m21 * m12) * s)
-        dst.m01((m20 * m12 - m10 * m22) * s)
-        dst.m02((m10 * m21 - m20 * m11) * s)
-        dst.m10((m21 * m02 - m01 * m22) * s)
-        dst.m11((m00 * m22 - m20 * m02) * s)
-        dst.m12((m20 * m01 - m00 * m21) * s)
-        dst.m20((m01m12 - m02m11) * s)
-        dst.m21((m02m10 - m00m12) * s)
-        dst.m22((m00m11 - m01m10) * s)
-        return dst
+        val nm00 = ((m11 * m22 - m21 * m12) * s)
+        val nm01 = ((m20 * m12 - m10 * m22) * s)
+        val nm02 = ((m10 * m21 - m20 * m11) * s)
+        val nm10 = ((m21 * m02 - m01 * m22) * s)
+        val nm11 = ((m00 * m22 - m20 * m02) * s)
+        val nm12 = ((m20 * m01 - m00 * m21) * s)
+        val nm20 = ((m01m12 - m02m11) * s)
+        val nm21 = ((m02m10 - m00m12) * s)
+        val nm22 = ((m00m11 - m01m10) * s)
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     fun cofactor3x3(dst: Matrix3d): Matrix3d {
@@ -3173,32 +3031,23 @@ open class Matrix4x3d : Matrix {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dst.m00 = m00 * invXlen
-        dst.m01 = m01 * invXlen
-        dst.m02 = m02 * invXlen
-        dst.m10 = m10 * invYlen
-        dst.m11 = m11 * invYlen
-        dst.m12 = m12 * invYlen
-        dst.m20 = m20 * invZlen
-        dst.m21 = m21 * invZlen
-        dst.m22 = m22 * invZlen
-        return dst
+        return dst.set(
+            m00 * invXlen, m01 * invXlen, m02 * invXlen,
+            m10 * invYlen, m11 * invYlen, m12 * invYlen,
+            m20 * invZlen, m21 * invZlen, m22 * invZlen,
+            dst.m30, dst.m31, dst.m32
+        )
     }
 
     fun normalize3x3(dst: Matrix3d): Matrix3d {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dst.m00(m00 * invXlen)
-        dst.m01(m01 * invXlen)
-        dst.m02(m02 * invXlen)
-        dst.m10(m10 * invYlen)
-        dst.m11(m11 * invYlen)
-        dst.m12(m12 * invYlen)
-        dst.m20(m20 * invZlen)
-        dst.m21(m21 * invZlen)
-        dst.m22(m22 * invZlen)
-        return dst
+        return dst.set(
+            m00 * invXlen, m01 * invXlen, m02 * invXlen,
+            m10 * invYlen, m11 * invYlen, m12 * invYlen,
+            m20 * invZlen, m21 * invZlen, m22 * invZlen
+        )
     }
 
     @JvmOverloads
@@ -3259,11 +3108,11 @@ open class Matrix4x3d : Matrix {
         val nnx = nx * invLength
         val nny = ny * invLength
         val nnz = nz * invLength
-        return this.reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dst)
+        return reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dst)
     }
 
     fun reflect(normal: Vector3d, point: Vector3d): Matrix4x3d {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z)
+        return reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z)
     }
 
     @JvmOverloads
@@ -3274,11 +3123,11 @@ open class Matrix4x3d : Matrix {
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1.0 - (orientation.x * num1 + orientation.y * num2)
-        return this.reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dst)
+        return reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dst)
     }
 
     fun reflect(normal: Vector3d, point: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dst)
+        return reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dst)
     }
 
     fun reflection(a: Double, b: Double, c: Double, d: Double): Matrix4x3d {
@@ -3307,11 +3156,11 @@ open class Matrix4x3d : Matrix {
         val nnx = nx * invLength
         val nny = ny * invLength
         val nnz = nz * invLength
-        return this.reflection(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz)
+        return reflection(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz)
     }
 
     fun reflection(normal: Vector3d, point: Vector3d): Matrix4x3d {
-        return this.reflection(normal.x, normal.y, normal.z, point.x, point.y, point.z)
+        return reflection(normal.x, normal.y, normal.z, point.x, point.y, point.z)
     }
 
     fun reflection(orientation: Quaterniond, point: Vector3d): Matrix4x3d {
@@ -3321,7 +3170,7 @@ open class Matrix4x3d : Matrix {
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1.0 - (orientation.x * num1 + orientation.y * num2)
-        return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
+        return reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
     }
 
     @JvmOverloads
@@ -3366,7 +3215,7 @@ open class Matrix4x3d : Matrix {
         zFar: Double,
         dst: Matrix4x3d
     ): Matrix4x3d {
-        return this.ortho(left, right, bottom, top, zNear, zFar, false, dst)
+        return ortho(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -3411,7 +3260,7 @@ open class Matrix4x3d : Matrix {
         zFar: Double,
         dst: Matrix4x3d
     ): Matrix4x3d {
-        return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dst)
+        return orthoLH(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setOrtho(
@@ -3440,7 +3289,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setOrtho(left: Double, right: Double, bottom: Double, top: Double, zNear: Double, zFar: Double): Matrix4x3d {
-        return this.setOrtho(left, right, bottom, top, zNear, zFar, false)
+        return setOrtho(left, right, bottom, top, zNear, zFar, false)
     }
 
     fun setOrthoLH(
@@ -3469,7 +3318,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setOrthoLH(left: Double, right: Double, bottom: Double, top: Double, zNear: Double, zFar: Double): Matrix4x3d {
-        return this.setOrthoLH(left, right, bottom, top, zNear, zFar, false)
+        return setOrthoLH(left, right, bottom, top, zNear, zFar, false)
     }
 
     @JvmOverloads
@@ -3502,7 +3351,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun orthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.orthoSymmetric(width, height, zNear, zFar, false, dst)
+        return orthoSymmetric(width, height, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -3535,7 +3384,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun orthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.orthoSymmetricLH(width, height, zNear, zFar, false, dst)
+        return orthoSymmetricLH(width, height, zNear, zFar, false, dst)
     }
 
     fun setOrthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, zZeroToOne: Boolean): Matrix4x3d {
@@ -3556,7 +3405,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setOrthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double): Matrix4x3d {
-        return this.setOrthoSymmetric(width, height, zNear, zFar, false)
+        return setOrthoSymmetric(width, height, zNear, zFar, false)
     }
 
     fun setOrthoSymmetricLH(
@@ -3583,7 +3432,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setOrthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double): Matrix4x3d {
-        return this.setOrthoSymmetricLH(width, height, zNear, zFar, false)
+        return setOrthoSymmetricLH(width, height, zNear, zFar, false)
     }
 
     @JvmOverloads
@@ -3665,11 +3514,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
@@ -3726,7 +3575,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setLookAlong(dir: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun setLookAlong(dirX: Double, dirY: Double, dirZ: Double, upX: Double, upY: Double, upZ: Double): Matrix4x3d {
@@ -3764,7 +3613,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setLookAt(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.setLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
+        return setLookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
     }
 
     fun setLookAt(
@@ -3806,11 +3655,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
+        return lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
     }
 
     fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
+        return lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
     }
 
     @JvmOverloads
@@ -3894,7 +3743,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun setLookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.setLookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
+        return setLookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z)
     }
 
     fun setLookAtLH(
@@ -3942,11 +3791,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun lookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
+        return lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
     }
 
     fun lookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
+        return lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, this)
     }
 
     @JvmOverloads
@@ -4097,11 +3946,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun shadow(light: Vector4d, a: Double, b: Double, c: Double, d: Double): Matrix4x3d {
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, this)
+        return shadow(light.x, light.y, light.z, light.w, a, b, c, d, this)
     }
 
     fun shadow(light: Vector4d, a: Double, b: Double, c: Double, d: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dst)
+        return shadow(light.x, light.y, light.z, light.w, a, b, c, d, dst)
     }
 
     @JvmOverloads
@@ -4169,7 +4018,7 @@ open class Matrix4x3d : Matrix {
         val b = planeTransform.m11
         val c = planeTransform.m12
         val d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dst)
+        return shadow(light.x, light.y, light.z, light.w, a, b, c, d, dst)
     }
 
     @JvmOverloads
@@ -4185,7 +4034,7 @@ open class Matrix4x3d : Matrix {
         val b = planeTransform.m11
         val c = planeTransform.m12
         val d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32
-        return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dst)
+        return shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dst)
     }
 
     fun billboardCylindrical(objPos: Vector3d, targetPos: Vector3d, up: Vector3d): Matrix4x3d {
@@ -4443,11 +4292,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun arcball(radius: Double, center: Vector3d, angleX: Double, angleY: Double, dst: Matrix4x3d): Matrix4x3d {
-        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, dst)
+        return arcball(radius, center.x, center.y, center.z, angleX, angleY, dst)
     }
 
     fun arcball(radius: Double, center: Vector3d, angleX: Double, angleY: Double): Matrix4x3d {
-        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, this)
+        return arcball(radius, center.x, center.y, center.z, angleX, angleY, this)
     }
 
     fun transformAab(
@@ -4569,7 +4418,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun transformAab(min: Vector3d, max: Vector3d, outMin: Vector3d, outMax: Vector3d): Matrix4x3d {
-        return this.transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
+        return transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
     fun mix(other: Matrix4x3d, t: Double, dst: Matrix4x3d = this): Matrix4x3d {
@@ -4595,11 +4444,11 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotateTowards(dir: Vector3d, up: Vector3d, dst: Matrix4x3d): Matrix4x3d {
-        return this.rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
+        return rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     fun rotateTowards(dir: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
+        return rotateTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
     @JvmOverloads
@@ -4649,7 +4498,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun rotationTowards(dir: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.rotationTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return rotationTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun rotationTowards(dirX: Double, dirY: Double, dirZ: Double, upX: Double, upY: Double, upZ: Double): Matrix4x3d {
@@ -4684,7 +4533,7 @@ open class Matrix4x3d : Matrix {
     }
 
     fun translationRotateTowards(pos: Vector3d, dir: Vector3d, up: Vector3d): Matrix4x3d {
-        return this.translationRotateTowards(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return translationRotateTowards(pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun translationRotateTowards(

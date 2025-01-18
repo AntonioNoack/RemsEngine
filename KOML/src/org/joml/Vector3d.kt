@@ -442,6 +442,10 @@ open class Vector3d(
         return dst
     }
 
+    fun rotate(quat: Quaternionf, dst: Vector3d = this): Vector3d {
+        return Quaterniond(quat).transform(this, dst)
+    }
+
     fun rotate(quat: Quaterniond, dst: Vector3d = this): Vector3d {
         return quat.transform(this, dst)
     }
@@ -894,13 +898,6 @@ open class Vector3d(
 
     fun toQuaternionRadians(dst: Quaterniond = Quaterniond()): Quaterniond {
         return dst.rotationYXZ(y, x, z)
-    }
-
-    fun rotate(q: Quaternionf): Vector3d {
-        return Quaterniond.transform(
-            q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble(),
-            x, y, z, this
-        )
     }
 
     companion object {

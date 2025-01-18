@@ -84,10 +84,6 @@ open class Quaternionf(
         return dst.set(this)
     }
 
-    fun get(dst: Matrix3d): Matrix3d {
-        return dst.set(this)
-    }
-
     fun get(dst: Matrix4f): Matrix4f {
         return dst.set(this)
     }
@@ -653,9 +649,9 @@ open class Quaternionf(
     }
 
     fun getEulerAnglesZYX(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = atan2(y * z + w * x, 0.5f - x * x - y * y);
-        eulerAngles.y = JomlMath.safeAsin(-2f * (x * z - w * y));
-        eulerAngles.z = atan2(x * y + w * z, 0.5f - y * y - z * z);
+        eulerAngles.x = atan2(y * z + w * x, 0.5f - x * x - y * y)
+        eulerAngles.y = JomlMath.safeAsin(-2f * (x * z - w * y))
+        eulerAngles.z = atan2(x * y + w * z, 0.5f - y * y - z * z)
         return eulerAngles
     }
 
@@ -850,7 +846,7 @@ open class Quaternionf(
                 q2y *= s
                 q2z *= s
                 q2w *= s
-                alphaN = alphaN + alphaN
+                alphaN += alphaN
             } else {
                 q1x = scale0 * q1x + scale1 * q2x
                 q1y = scale0 * q1y + scale1 * q2y

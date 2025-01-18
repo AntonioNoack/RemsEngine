@@ -190,10 +190,11 @@ object LinearRegression {
      * */
     fun solve3d(x: List<Vector3d>, regularisation: Double): Vector4d {
         val xtx = calcXtX4(x)
-        xtx.m00(xtx.m00 + regularisation)
-        xtx.m11(xtx.m11 + regularisation)
-        xtx.m22(xtx.m22 + regularisation)
-        xtx.m33(xtx.m33 + regularisation)
+        xtx._m00(xtx.m00 + regularisation)
+        xtx._m11(xtx.m11 + regularisation)
+        xtx._m22(xtx.m22 + regularisation)
+        xtx._m33(xtx.m33 + regularisation)
+        xtx.determineProperties()
         xtx.invert()
         return calcInvXt4(xtx, x)
     }

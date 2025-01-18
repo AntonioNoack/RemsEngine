@@ -44,7 +44,8 @@ object Perspective {
                 fovYRadians,
                 aspectRatio,
                 near, far
-            ).m30(cx).m31(cy)
+            )._m30(cx)._m31(cy)
+                .determineProperties()
         }
     }
 

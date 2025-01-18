@@ -114,146 +114,6 @@ open class Matrix4f : Matrix {
         return flags
     }
 
-    fun m00(m00: Float): Matrix4f {
-        this.m00 = m00
-        flags = flags and -17
-        if (m00 != 1f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m01(m01: Float): Matrix4f {
-        this.m01 = m01
-        flags = flags and -17
-        if (m01 != 0f) {
-            flags = flags and -14
-        }
-        return this
-    }
-
-    fun m02(m02: Float): Matrix4f {
-        this.m02 = m02
-        flags = flags and -17
-        if (m02 != 0f) {
-            flags = flags and -14
-        }
-        return this
-    }
-
-    fun m03(m03: Float): Matrix4f {
-        this.m03 = m03
-        if (m03 != 0f) {
-            flags = 0
-        }
-        return this
-    }
-
-    fun m10(m10: Float): Matrix4f {
-        this.m10 = m10
-        flags = flags and -17
-        if (m10 != 0f) {
-            flags = flags and -14
-        }
-        return this
-    }
-
-    fun m11(m11: Float): Matrix4f {
-        this.m11 = m11
-        flags = flags and -17
-        if (m11 != 1f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m12(m12: Float): Matrix4f {
-        this.m12 = m12
-        flags = flags and -17
-        if (m12 != 0f) {
-            flags = flags and -14
-        }
-        return this
-    }
-
-    fun m13(m13: Float): Matrix4f {
-        this.m13 = m13
-        if (m13 != 0f) {
-            flags = 0
-        }
-        return this
-    }
-
-    fun m20(m20: Float): Matrix4f {
-        this.m20 = m20
-        flags = flags and -17
-        if (m20 != 0f) {
-            flags = flags and -14
-        }
-        return this
-    }
-
-    fun m21(m21: Float): Matrix4f {
-        this.m21 = m21
-        flags = flags and -17
-        if (m21 != 0f) {
-            flags = flags and -14
-        }
-        return this
-    }
-
-    fun m22(m22: Float): Matrix4f {
-        this.m22 = m22
-        flags = flags and -17
-        if (m22 != 1f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m23(m23: Float): Matrix4f {
-        this.m23 = m23
-        if (m23 != 0f) {
-            flags = flags and -31
-        }
-        return this
-    }
-
-    fun m30(m30: Float): Matrix4f {
-        this.m30 = m30
-        if (m30 != 0f) {
-            flags = flags and -6
-        }
-        return this
-    }
-
-    fun m31(m31: Float): Matrix4f {
-        this.m31 = m31
-        if (m31 != 0f) {
-            flags = flags and -6
-        }
-        return this
-    }
-
-    fun m32(m32: Float): Matrix4f {
-        this.m32 = m32
-        if (m32 != 0f) {
-            flags = flags and -6
-        }
-        return this
-    }
-
-    fun m33(m33: Float): Matrix4f {
-        this.m33 = m33
-        if (m33 != 0f) {
-            flags = flags and -2
-        }
-        if (m33 != 1f) {
-            flags = flags and -31
-        }
-        return this
-    }
-
     fun _m00(m00: Float): Matrix4f {
         this.m00 = m00
         return this
@@ -454,29 +314,6 @@ open class Matrix4f : Matrix {
     fun set(q: Quaternionf): Matrix4f {
         return rotation(q)
     }
-
-    fun set(q: Quaterniond): Matrix4f {
-        val w2 = q.w * q.w
-        val x2 = q.x * q.x
-        val y2 = q.y * q.y
-        val z2 = q.z * q.z
-        val zw = q.z * q.w
-        val xy = q.x * q.y
-        val xz = q.x * q.z
-        val yw = q.y * q.w
-        val yz = q.y * q.z
-        val xw = q.x * q.w
-        return _m00((w2 + x2 - z2 - y2).toFloat())._m01((xy + zw + zw + xy).toFloat())
-            ._m02((xz - yw + xz - yw).toFloat())._m03(0f)._m10((-zw + xy - zw + xy).toFloat())
-            ._m11((y2 - z2 + w2 - x2).toFloat())._m12((yz + yz + xw + xw).toFloat())._m13(0f)
-            ._m20((yw + xz + xz + yw).toFloat())._m21((yz + yz - xw - xw).toFloat())._m22((z2 - y2 - x2 + w2).toFloat())
-            ._m30(0f)._m31(0f)._m32(0f)._m33(1f)._properties(18)
-    }
-
-    /*fun set3x3(mat: Matrix4f): Matrix4f {
-        MemUtil.INSTANCE.copy3x3(mat, this)
-        return _properties(properties and mat.properties and -2)
-    }*/
 
     fun set4x3(mat: Matrix4x3f): Matrix4f {
         return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)
@@ -4214,6 +4051,21 @@ open class Matrix4f : Matrix {
         return rotateQ(quat.x, quat.y, quat.z, quat.w, dst)
     }
 
+    @JvmOverloads
+    fun rotate(quat: Quaterniond, dst: Matrix4f = this): Matrix4f {
+        return rotateQ(quat.x.toFloat(), quat.y.toFloat(), quat.z.toFloat(), quat.w.toFloat(), dst)
+    }
+
+    @JvmOverloads
+    fun rotateInv(quat: Quaternionf, dst: Matrix4f = this): Matrix4f {
+        return rotateQ(quat.x, quat.y, quat.z, -quat.w, dst)
+    }
+
+    @JvmOverloads
+    fun rotateInv(quat: Quaterniond, dst: Matrix4f = this): Matrix4f {
+        return rotateQ(quat.x.toFloat(), quat.y.toFloat(), quat.z.toFloat(), -quat.w.toFloat(), dst)
+    }
+
     fun rotateQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4f = this): Matrix4f {
         return if (flags and 4 != 0) {
             dst.rotationQ(qx, qy, qz, qw)
@@ -6435,14 +6287,6 @@ open class Matrix4f : Matrix {
 
     fun isIdentity(): Boolean {
         return flags.and(PROPERTY_IDENTITY) != 0
-    }
-
-    fun rotate(q: Quaterniond): Matrix4f {
-        return rotateQ(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
-    }
-
-    fun rotateInv(q: Quaterniond): Matrix4f {
-        return rotateQ(-q.x.toFloat(), -q.y.toFloat(), -q.z.toFloat(), q.w.toFloat())
     }
 
     companion object {

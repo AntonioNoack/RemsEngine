@@ -15,6 +15,7 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.NativeStringPointers.buffer
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
+import org.joml.Quaterniond
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_BOOLEAN_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_FLOAT_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_POSE_INPUT
@@ -339,7 +340,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             val pos = pose.`position$`()
             val rot = pose.orientation()
             controller.position.set(pos.x(), pos.y(), pos.z()) // play space
-                .rotate(additionalRotation) // -> scene space
+                .rotate(Quaterniond(additionalRotation)) // -> scene space
                 .add(additionalOffset)
             controller.rotation
                 .set(additionalRotation)

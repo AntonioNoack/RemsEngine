@@ -65,7 +65,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         // z must be mapped from [-1,1] to [0,1]
         // additionally it must be scaled to match the world size
         dstCameraMatrix.scaleLocal(sx.toFloat(), sx.toFloat(), (sz * 0.5).toFloat())
-        dstCameraMatrix.m32((1.0 / cascadeScale).toFloat()) // w
+        dstCameraMatrix.m32 = ((1.0 / cascadeScale).toFloat()) // w
+        dstCameraMatrix.determineProperties() // after writing a field, we need to recalculate them
 
         // is this correct if cascadeScale != 1.0?
         // should be

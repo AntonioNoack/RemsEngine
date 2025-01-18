@@ -90,111 +90,6 @@ open class Matrix4x3f : Matrix {
         return flags
     }
 
-    fun m00(m00: Float): Matrix4x3f {
-        this.m00 = m00
-        flags = flags and -17
-        if (m00 != 1f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m01(m01: Float): Matrix4x3f {
-        this.m01 = m01
-        flags = flags and -17
-        if (m01 != 0f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m02(m02: Float): Matrix4x3f {
-        this.m02 = m02
-        flags = flags and -17
-        if (m02 != 0f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m10(m10: Float): Matrix4x3f {
-        this.m10 = m10
-        flags = flags and -17
-        if (m10 != 0f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m11(m11: Float): Matrix4x3f {
-        this.m11 = m11
-        flags = flags and -17
-        if (m11 != 1f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m12(m12: Float): Matrix4x3f {
-        this.m12 = m12
-        flags = flags and -17
-        if (m12 != 0f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m20(m20: Float): Matrix4x3f {
-        this.m20 = m20
-        flags = flags and -17
-        if (m20 != 0f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m21(m21: Float): Matrix4x3f {
-        this.m21 = m21
-        flags = flags and -17
-        if (m21 != 0f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m22(m22: Float): Matrix4x3f {
-        this.m22 = m22
-        flags = flags and -17
-        if (m22 != 1f) {
-            flags = flags and -13
-        }
-        return this
-    }
-
-    fun m30(m30: Float): Matrix4x3f {
-        this.m30 = m30
-        if (m30 != 0f) {
-            flags = flags and -5
-        }
-        return this
-    }
-
-    fun m31(m31: Float): Matrix4x3f {
-        this.m31 = m31
-        if (m31 != 0f) {
-            flags = flags and -5
-        }
-        return this
-    }
-
-    fun m32(m32: Float): Matrix4x3f {
-        this.m32 = m32
-        if (m32 != 0f) {
-            flags = flags and -5
-        }
-        return this
-    }
-
     fun _properties(properties: Int): Matrix4x3f {
         this.flags = properties
         return this
@@ -894,16 +789,11 @@ open class Matrix4x3f : Matrix {
     }
 
     fun transpose3x3(dst: Matrix3f): Matrix3f {
-        dst.m00(m00)
-        dst.m01(m10)
-        dst.m02(m20)
-        dst.m10(m01)
-        dst.m11(m11)
-        dst.m12(m21)
-        dst.m20(m02)
-        dst.m21(m12)
-        dst.m22(m22)
-        return dst
+        return dst.set(
+            m00, m10, m20,
+            m01, m11, m21,
+            m02, m12, m22
+        )
     }
 
     fun translation(x: Float, y: Float, z: Float): Matrix4x3f {
@@ -3482,16 +3372,20 @@ open class Matrix4x3f : Matrix {
         val m02m11 = m02 * m11
         val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
         val s = 1f / det
-        dst.m00((m11 * m22 - m21 * m12) * s)
-        dst.m01((m20 * m12 - m10 * m22) * s)
-        dst.m02((m10 * m21 - m20 * m11) * s)
-        dst.m10((m21 * m02 - m01 * m22) * s)
-        dst.m11((m00 * m22 - m20 * m02) * s)
-        dst.m12((m20 * m01 - m00 * m21) * s)
-        dst.m20((m01m12 - m02m11) * s)
-        dst.m21((m02m10 - m00m12) * s)
-        dst.m22((m00m11 - m01m10) * s)
-        return dst
+        val nm00 = ((m11 * m22 - m21 * m12) * s)
+        val nm01 = ((m20 * m12 - m10 * m22) * s)
+        val nm02 = ((m10 * m21 - m20 * m11) * s)
+        val nm10 = ((m21 * m02 - m01 * m22) * s)
+        val nm11 = ((m00 * m22 - m20 * m02) * s)
+        val nm12 = ((m20 * m01 - m00 * m21) * s)
+        val nm20 = ((m01m12 - m02m11) * s)
+        val nm21 = ((m02m10 - m00m12) * s)
+        val nm22 = ((m00m11 - m01m10) * s)
+        return dst.set(
+            nm00, nm01, nm02,
+            nm10, nm11, nm12,
+            nm20, nm21, nm22
+        )
     }
 
     fun cofactor3x3(dst: Matrix3f): Matrix3f {
@@ -3539,33 +3433,23 @@ open class Matrix4x3f : Matrix {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dst.m00 = m00 * invXlen
-        dst.m01 = m01 * invXlen
-        dst.m02 = m02 * invXlen
-        dst.m10 = m10 * invYlen
-        dst.m11 = m11 * invYlen
-        dst.m12 = m12 * invYlen
-        dst.m20 = m20 * invZlen
-        dst.m21 = m21 * invZlen
-        dst.m22 = m22 * invZlen
-        dst.flags = flags
-        return dst
+        return dst.set(
+            m00 * invXlen, m01 * invXlen, m02 * invXlen,
+            m10 * invYlen, m11 * invYlen, m12 * invYlen,
+            m20 * invZlen, m21 * invZlen, m22 * invZlen,
+            dst.m30, dst.m31, dst.m32
+        )
     }
 
     fun normalize3x3(dst: Matrix3f): Matrix3f {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dst.m00(m00 * invXlen)
-        dst.m01(m01 * invXlen)
-        dst.m02(m02 * invXlen)
-        dst.m10(m10 * invYlen)
-        dst.m11(m11 * invYlen)
-        dst.m12(m12 * invYlen)
-        dst.m20(m20 * invZlen)
-        dst.m21(m21 * invZlen)
-        dst.m22(m22 * invZlen)
-        return dst
+        return dst.set(
+            m00 * invXlen, m01 * invXlen, m02 * invXlen,
+            m10 * invYlen, m11 * invYlen, m12 * invYlen,
+            m20 * invZlen, m21 * invZlen, m22 * invZlen,
+        )
     }
 
     fun frustumPlane(which: Int, dst: Vector4f): Vector4f {

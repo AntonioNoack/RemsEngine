@@ -172,12 +172,13 @@ class TAANode : TimedRenderingNode(
         fun jitter(m: Matrix4f, dx: Float, dy: Float) {
             // why are the signs changing?
             if (RenderState.isPerspective) {
-                m.m20(m.m20 + dx)
-                m.m21(m.m21 + dy)
+                m._m20(m.m20 + dx)
+                m._m21(m.m21 + dy)
             } else {
-                m.m30(m.m30 - dx)
-                m.m31(m.m31 - dy)
+                m._m30(m.m30 - dx)
+                m._m31(m.m31 - dy)
             }
+            m.determineProperties()
         }
 
         fun unjitter(m: Matrix4f) {
