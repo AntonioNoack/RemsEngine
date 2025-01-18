@@ -319,39 +319,11 @@ open class Quaternionf(
         return this
     }
 
-    private fun setFromUnnormalized(
-        m00: Double, m01: Double, m02: Double,
-        m10: Double, m11: Double, m12: Double,
-        m20: Double, m21: Double, m22: Double
-    ): Quaternionf {
-        return setFromUnnormalized(
-            m00.toFloat(), m01.toFloat(), m02.toFloat(),
-            m10.toFloat(), m11.toFloat(), m12.toFloat(),
-            m20.toFloat(), m21.toFloat(), m22.toFloat()
-        )
-    }
-
-    private fun setFromNormalized(
-        m00: Double, m01: Double, m02: Double,
-        m10: Double, m11: Double, m12: Double,
-        m20: Double, m21: Double, m22: Double
-    ): Quaternionf {
-        return setFromNormalized(
-            m00.toFloat(), m01.toFloat(), m02.toFloat(),
-            m10.toFloat(), m11.toFloat(), m12.toFloat(),
-            m20.toFloat(), m21.toFloat(), m22.toFloat()
-        )
-    }
-
     fun setFromUnnormalized(mat: Matrix4f): Quaternionf {
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromUnnormalized(mat: Matrix4x3f): Quaternionf {
-        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-    }
-
-    fun setFromUnnormalized(mat: Matrix4x3d): Quaternionf {
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
@@ -363,31 +335,11 @@ open class Quaternionf(
         return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
-    fun setFromNormalized(mat: Matrix4x3d): Quaternionf {
-        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-    }
-
-    fun setFromUnnormalized(mat: Matrix4d): Quaternionf {
-        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-    }
-
-    fun setFromNormalized(mat: Matrix4d): Quaternionf {
-        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-    }
-
     fun setFromUnnormalized(mat: Matrix3f): Quaternionf {
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
     fun setFromNormalized(mat: Matrix3f): Quaternionf {
-        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-    }
-
-    fun setFromUnnormalized(mat: Matrix3d): Quaternionf {
-        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
-    }
-
-    fun setFromNormalized(mat: Matrix3d): Quaternionf {
         return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
@@ -429,10 +381,10 @@ open class Quaternionf(
     @JvmOverloads
     fun premul(qx: Float, qy: Float, qz: Float, qw: Float, dst: Quaternionf = this): Quaternionf {
         return dst.set(
-            w * qx + x * qw + y * qz - z * qy,
-            w * qy - x * qz + y * qw + z * qx,
-            w * qz + x * qy - y * qx + z * qw,
-            w * qw - x * qx - y * qy - z * qz
+            qw * x + qx * w + qy * z - qz * y,
+            qw * y - qx * z + qy * w + qz * x,
+            qw * z + qx * y - qy * x + qz * w,
+            qw * w - qx * x - qy * y - qz * z
         )
     }
 
@@ -445,21 +397,6 @@ open class Quaternionf(
     }
 
     fun transformPositiveX(dst: Vector3f): Vector3f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        dst.x = ww + xx - zz - yy
-        dst.y = xy + zw + zw + xy
-        dst.z = xz - yw + xz - yw
-        return dst
-    }
-
-    fun transformPositiveX(dst: Vector4f): Vector4f {
         val ww = w * w
         val xx = x * x
         val yy = y * y
@@ -487,19 +424,6 @@ open class Quaternionf(
         return dst
     }
 
-    fun transformUnitPositiveX(dst: Vector4f): Vector4f {
-        val yy = y * y
-        val zz = z * z
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        val zw = z * w
-        dst.x = 1f - yy - yy - zz - zz
-        dst.y = xy + zw + xy + zw
-        dst.z = xz - yw + xz - yw
-        return dst
-    }
-
     fun transformPositiveY(dst: Vector3f): Vector3f {
         val ww = w * w
         val xx = x * x
@@ -511,34 +435,6 @@ open class Quaternionf(
         val xw = x * w
         dst.x = -zw + xy - zw + xy
         dst.y = yy - zz + ww - xx
-        dst.z = yz + yz + xw + xw
-        return dst
-    }
-
-    fun transformPositiveY(dst: Vector4f): Vector4f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        dst.x = -zw + xy - zw + xy
-        dst.y = yy - zz + ww - xx
-        dst.z = yz + yz + xw + xw
-        return dst
-    }
-
-    fun transformUnitPositiveY(dst: Vector4f): Vector4f {
-        val xx = x * x
-        val zz = z * z
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        val zw = z * w
-        dst.x = xy - zw + xy - zw
-        dst.y = 1f - xx - xx - zz - zz
         dst.z = yz + yz + xw + xw
         return dst
     }
@@ -568,34 +464,6 @@ open class Quaternionf(
         dst.x = yw + xz + xz + yw
         dst.y = yz + yz - xw - xw
         dst.z = zz - yy - xx + ww
-        return dst
-    }
-
-    fun transformPositiveZ(dst: Vector4f): Vector4f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val xz = x * z
-        val yw = y * w
-        val yz = y * z
-        val xw = x * w
-        dst.x = yw + xz + xz + yw
-        dst.y = yz + yz - xw - xw
-        dst.z = zz - yy - xx + ww
-        return dst
-    }
-
-    fun transformUnitPositiveZ(dst: Vector4f): Vector4f {
-        val xx = x * x
-        val yy = y * y
-        val xz = x * z
-        val yz = y * z
-        val xw = x * w
-        val yw = y * w
-        dst.x = xz + yw + xz + yw
-        dst.y = yz + yz - xw - xw
-        dst.z = 1f - xx - xx - yy - yy
         return dst
     }
 
@@ -766,14 +634,6 @@ open class Quaternionf(
         )
     }
 
-    fun transform(vec: Vector3d): Vector3d {
-        return this.transform(vec.x, vec.y, vec.z, vec)
-    }
-
-    fun transformInverse(vec: Vector3d): Vector3d {
-        return this.transformInverse(vec.x, vec.y, vec.z, vec)
-    }
-
     fun transformUnit(vec: Vector4f): Vector4f {
         return this.transformUnit(vec.x, vec.y, vec.z, vec)
     }
@@ -821,380 +681,6 @@ open class Quaternionf(
             (-2f * (yy + zz) + 1f) * x + (2f * (xy + zw) * y + 2f * (xz - yw) * z),
             2f * (xy - zw) * x + ((-2f * (xx + zz) + 1f) * y + 2f * (yz + xw) * z),
             2f * (xz + yw) * x + (2f * (yz - xw) * y + (-2f * (xx + yy) + 1f) * z)
-        )
-    }
-
-    fun transformPositiveX(dst: Vector3d): Vector3d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        dst.x = (ww + xx - zz - yy).toDouble()
-        dst.y = (xy + zw + zw + xy).toDouble()
-        dst.z = (xz - yw + xz - yw).toDouble()
-        return dst
-    }
-
-    fun transformPositiveX(dst: Vector4d): Vector4d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        dst.x = (ww + xx - zz - yy).toDouble()
-        dst.y = (xy + zw + zw + xy).toDouble()
-        dst.z = (xz - yw + xz - yw).toDouble()
-        return dst
-    }
-
-    fun transformUnitPositiveX(dst: Vector3d): Vector3d {
-        val yy = y * y
-        val zz = z * z
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        val zw = z * w
-        dst.x = (1f - yy - yy - zz - zz).toDouble()
-        dst.y = (xy + zw + xy + zw).toDouble()
-        dst.z = (xz - yw + xz - yw).toDouble()
-        return dst
-    }
-
-    fun transformUnitPositiveX(dst: Vector4d): Vector4d {
-        val yy = y * y
-        val zz = z * z
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        val zw = z * w
-        dst.x = (1f - yy - yy - zz - zz).toDouble()
-        dst.y = (xy + zw + xy + zw).toDouble()
-        dst.z = (xz - yw + xz - yw).toDouble()
-        return dst
-    }
-
-    fun transformPositiveY(dst: Vector3d): Vector3d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        dst.x = (-zw + xy - zw + xy).toDouble()
-        dst.y = (yy - zz + ww - xx).toDouble()
-        dst.z = (yz + yz + xw + xw).toDouble()
-        return dst
-    }
-
-    fun transformPositiveY(dst: Vector4d): Vector4d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        dst.x = (-zw + xy - zw + xy).toDouble()
-        dst.y = (yy - zz + ww - xx).toDouble()
-        dst.z = (yz + yz + xw + xw).toDouble()
-        return dst
-    }
-
-    fun transformUnitPositiveY(dst: Vector4d): Vector4d {
-        val xx = x * x
-        val zz = z * z
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        val zw = z * w
-        dst.x = (xy - zw + xy - zw).toDouble()
-        dst.y = (1f - xx - xx - zz - zz).toDouble()
-        dst.z = (yz + yz + xw + xw).toDouble()
-        return dst
-    }
-
-    fun transformUnitPositiveY(dst: Vector3d): Vector3d {
-        val xx = x * x
-        val zz = z * z
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        val zw = z * w
-        dst.x = (xy - zw + xy - zw).toDouble()
-        dst.y = (1f - xx - xx - zz - zz).toDouble()
-        dst.z = (yz + yz + xw + xw).toDouble()
-        return dst
-    }
-
-    fun transformPositiveZ(dst: Vector3d): Vector3d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val xz = x * z
-        val yw = y * w
-        val yz = y * z
-        val xw = x * w
-        dst.x = (yw + xz + xz + yw).toDouble()
-        dst.y = (yz + yz - xw - xw).toDouble()
-        dst.z = (zz - yy - xx + ww).toDouble()
-        return dst
-    }
-
-    fun transformPositiveZ(dst: Vector4d): Vector4d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val xz = x * z
-        val yw = y * w
-        val yz = y * z
-        val xw = x * w
-        dst.x = (yw + xz + xz + yw).toDouble()
-        dst.y = (yz + yz - xw - xw).toDouble()
-        dst.z = (zz - yy - xx + ww).toDouble()
-        return dst
-    }
-
-    fun transformUnitPositiveZ(dst: Vector4d): Vector4d {
-        val xx = x * x
-        val yy = y * y
-        val xz = x * z
-        val yz = y * z
-        val xw = x * w
-        val yw = y * w
-        dst.x = (xz + yw + xz + yw).toDouble()
-        dst.y = (yz + yz - xw - xw).toDouble()
-        dst.z = (1f - xx - xx - yy - yy).toDouble()
-        return dst
-    }
-
-    fun transformUnitPositiveZ(dst: Vector3d): Vector3d {
-        val xx = x * x
-        val yy = y * y
-        val xz = x * z
-        val yz = y * z
-        val xw = x * w
-        val yw = y * w
-        dst.x = (xz + yw + xz + yw).toDouble()
-        dst.y = (yz + yz - xw - xw).toDouble()
-        dst.z = (1f - xx - xx - yy - yy).toDouble()
-        return dst
-    }
-
-    fun transform(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transform(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformInverse(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transformInverse(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transform(x: Float, y: Float, z: Float, dst: Vector3d): Vector3d {
-        return this.transform(x.toDouble(), y.toDouble(), z.toDouble(), dst)
-    }
-
-    fun transformInverse(x: Float, y: Float, z: Float, dst: Vector3d): Vector3d {
-        return this.transformInverse(x.toDouble(), y.toDouble(), z.toDouble(), dst)
-    }
-
-    fun transform(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1f / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + 2f * (xy - zw) * k * y + 2f * (xz + yw) * k * z,
-            2f * (xy + zw) * k * x + (yy - xx - zz + ww) * k * y + 2f * (yz - xw) * k * z,
-            2f * (xz - yw) * k * x + 2f * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z
-        )
-    }
-
-    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        val n = 1f / lengthSquared()
-        val qx = this.x * n
-        val qy = this.y * n
-        val qz = this.z * n
-        val qw = w * n
-        val xx = qx * qx
-        val yy = qy * qy
-        val zz = qz * qz
-        val ww = qw * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yz = qy * qz
-        val xw = qx * qw
-        val zw = qz * qw
-        val yw = qy * qw
-        val k = 1f / (xx + yy + zz + ww)
-        return dst.set(
-            ((xx - yy - zz + ww) * k) * x + ((2f * (xy + zw) * k) * y + (2f * (xz - yw) * k) * z),
-            (2f * (xy - zw) * k) * x + (((yy - xx - zz + ww) * k) * y + (2f * (yz + xw) * k) * z),
-            (2f * (xz + yw) * k) * x + ((2f * (yz - xw) * k) * y + ((zz - xx - yy + ww) * k) * z)
-        )
-    }
-
-    @JvmOverloads
-    fun transform(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transform(vec.x, vec.y, vec.z, dst)
-    }
-
-    @JvmOverloads
-    fun transformInverse(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transformInverse(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transform(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1f / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + 2f * (xy - zw) * k * y + 2f * (xz + yw) * k * z,
-            2f * (xy + zw) * k * x + (yy - xx - zz + ww) * k * y + 2f * (yz - xw) * k * z,
-            2f * (xz - yw) * k * x + 2f * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z
-        )
-    }
-
-    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val n = 1f / lengthSquared()
-        val qx = this.x * n
-        val qy = this.y * n
-        val qz = this.z * n
-        val qw = w * n
-        val xx = qx * qx
-        val yy = qy * qy
-        val zz = qz * qz
-        val ww = qw * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yz = qy * qz
-        val xw = qx * qw
-        val zw = qz * qw
-        val yw = qy * qw
-        val k = 1f / (xx + yy + zz + ww)
-        return dst.set(
-            ((xx - yy - zz + ww) * k) * x + ((2f * (xy + zw) * k) * y + (2f * (xz - yw) * k) * z),
-            (2f * (xy - zw) * k) * x + (((yy - xx - zz + ww) * k) * y + (2f * (yz + xw) * k) * z),
-            (2f * (xz + yw) * k) * x + ((2f * (yz - xw) * k) * y + ((zz - xx - yy + ww) * k) * z)
-        )
-    }
-
-    fun transformUnit(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transformUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformInverseUnit(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformUnit(x: Float, y: Float, z: Float, dst: Vector3d): Vector3d {
-        return this.transformUnit(x.toDouble(), y.toDouble(), z.toDouble(), dst)
-    }
-
-    fun transformInverseUnit(x: Float, y: Float, z: Float, dst: Vector3d): Vector3d {
-        return this.transformInverseUnit(x.toDouble(), y.toDouble(), z.toDouble(), dst)
-    }
-
-    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2f * (yy + zz) + 1f) * x + (2f * (xy - zw)) * y + (2f * (xz + yw)) * z,
-            (2f * (xy + zw)) * x + (-2f * (xx + zz) + 1f) * y + (2f * (yz - xw)) * z,
-            (2f * (xz - yw)) * x + (2f * (yz + xw)) * y + (-2f * (xx + yy) + 1f) * z
-        )
-    }
-
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2f * (yy + zz) + 1f) * x + (2f * (xy + zw)) * y + (2f * (xz - yw)) * z,
-            (2f * (xy - zw)) * x + (-2f * (xx + zz) + 1f) * y + (2f * (yz + xw)) * z,
-            (2f * (xz + yw)) * x + (2f * (yz - xw)) * y + (-2f * (xx + yy) + 1f) * z
-        )
-    }
-
-    @JvmOverloads
-    fun transformUnit(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transformUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    @JvmOverloads
-    fun transformInverseUnit(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2f * (yy + zz) + 1f) * x + (2f * (xy - zw)) * y + (2f * (xz + yw)) * z,
-            (2f * (xy + zw)) * x + (-2f * (xx + zz) + 1f) * y + (2f * (yz - xw)) * z,
-            (2f * (xz - yw)) * x + (2f * (yz + xw)) * y + (-2f * (xx + yy) + 1f) * z
-        )
-    }
-
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2f * (yy + zz) + 1f) * x + (2f * (xy + zw)) * y + (2f * (xz - yw)) * z,
-            (2f * (xy - zw)) * x + (-2f * (xx + zz) + 1f) * y + (2f * (yz + xw)) * z,
-            (2f * (xz + yw)) * x + (2f * (yz - xw)) * y + (-2f * (xx + yy) + 1f) * z
         )
     }
 

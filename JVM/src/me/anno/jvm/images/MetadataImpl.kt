@@ -22,7 +22,7 @@ object MetadataImpl {
             try {
                 file.inputStreamSync().use { input: InputStream ->
                     reader.input = ImageIO.createImageInputStream(input)
-                    dst.setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
+                    dst.setImageSize(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                 }
                 return true
             } catch (_: IOException) {

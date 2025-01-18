@@ -8,6 +8,7 @@ import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 
 class VOXNode {
@@ -88,7 +89,7 @@ class VOXNode {
             ) {
                 // this also carries scale information...
                 // but is probably always will be zero :)
-                val rot1 = Quaterniond()
+                val rot1 = Quaternionf()
                 val rot0 = tmp.set(
                     0f, 0f, 0f,
                     0f, 0f, 0f,

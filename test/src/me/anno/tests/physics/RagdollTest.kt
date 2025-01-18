@@ -31,10 +31,10 @@ import me.anno.ui.UIColors
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Vectors.normalToQuaternionY
-import org.joml.Matrix3f
+import org.joml.Matrix3d
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Quaternionf
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -218,9 +218,9 @@ fun main() {
                         .sub(physicsTransform.transformDirection(Vector3d(0.0, length * 0.5, 0.0)))
                     val bindPos = Vector3d(bone.bindPosition) // baseTransform.getTranslation(Vector3d())
 
-                    val physicsRot = physicsTransform.getUnnormalizedRotation(Quaternionf())
+                    val physicsRot = physicsTransform.getUnnormalizedRotation(Quaterniond())
                     // baseTransform.transformRotation(physicsRot)
-                    val baseRotInv = baseTransformInv.getUnnormalizedRotation(Quaternionf())
+                    val baseRotInv = baseTransformInv.getUnnormalizedRotation(Quaterniond())
 
                     if (firstFrame) {
                         println("Checking '${bone.name}':")
@@ -239,8 +239,8 @@ fun main() {
                         println("  physics: $physicsRot")
                         println("  base:    $baseRotInv")
                         assertEquals(
-                            Matrix3f(), Matrix3f()
-                                .rotation(physicsRot.mul(baseRotInv, Quaternionf())), 0.01
+                            Matrix3d(), Matrix3d()
+                                .rotation(physicsRot.mul(baseRotInv, Quaterniond())), 0.01
                         )
                     }
 

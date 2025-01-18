@@ -679,15 +679,6 @@ open class Vector3f(
         return dst
     }
 
-    fun rotateInv(q: Quaterniond, dst: Vector3f = this): Vector3f {
-        synchronized(q) {
-            q.conjugate()
-            q.transform(this, dst)
-            q.conjugate()
-        }
-        return dst
-    }
-
     fun fract(dst: Vector3f = this): Vector3f =
         dst.set(Runtime.fract(x), Runtime.fract(y), Runtime.fract(z))
 

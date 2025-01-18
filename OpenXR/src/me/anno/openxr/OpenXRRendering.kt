@@ -177,7 +177,7 @@ class OpenXRRendering(
 
         rv.cameraRotation
             .set(additionalRotation)
-            .mul(rot.x(), rot.y(), rot.z(), rot.w())
+            .mul(rot.x().toDouble(), rot.y().toDouble(), rot.z().toDouble(), rot.w().toDouble())
 
         RenderState.viewIndex = viewIndex
         createProjectionFov(rv.cameraMatrix, view.fov(), rv.scaledNear.toFloat(), 0f, rv)

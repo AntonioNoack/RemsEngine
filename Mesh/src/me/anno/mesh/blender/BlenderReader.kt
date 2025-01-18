@@ -15,6 +15,7 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
@@ -37,6 +38,7 @@ import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.nio.ByteBuffer
@@ -380,11 +382,11 @@ object BlenderReader {
         if (!postTransform) translation.set(translation.x, translation.z, -translation.y)
         if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
             prefab.setUnsafe(path, "position", translation)
-        val rotation = localMatrix.getUnnormalizedRotation(Quaterniond())
+        val rotation = localMatrix.getUnnormalizedRotation(Quaternionf())
         if (!postTransform) rotation.set(rotation.x, rotation.z, -rotation.y, rotation.w)
-        if (isRoot && postTransform) rotation.rotateLocalX(-PI / 2)
-        if (rotation.w != 1.0)
-            prefab.setUnsafe(path, "rotation", rotation)
+        if (isRoot && postTransform) rotation.rotateLocalX(-PIf * 0.5f)
+        if (rotation.w != 1f)
+            prefab.setUnsafe(path, "rotation", Quaterniond(rotation))
         val scale = localMatrix.getScale(Vector3d())
         if (!postTransform) scale.set(scale.x, scale.z, -scale.y)
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
@@ -436,7 +438,8 @@ object BlenderReader {
                         val action =
                             armatureObject.animData?.action ?: obj.animData?.action // obj.animData just in case
                         if (action != null) {
-                            val animation = readAnimation(action, skeleton["bones"].castToList(Bone::class), skeletonRef, fps)
+                            val animation =
+                                readAnimation(action, skeleton["bones"].castToList(Bone::class), skeletonRef, fps)
                             if (animation != null) {
                                 val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
                                 prefab[c, "animations"] = listOf(animState)

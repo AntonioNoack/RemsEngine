@@ -77,7 +77,8 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
         val sampleCount = frameCount * channels
         val size = sampleCount * 2
         val bytes = AudioStream.byteBufferPool.get(size, clear = false, exactMatchesOnly = false)
-        input.readNBytes2(size, bytes, false)
+        val ex = input.readNBytes2(size, bytes, false)
+        if (ex is Exception) throw ex
         if (bytes.position() > 0) bytes.flip()
         val shorts = bytes.asShortBuffer()
         if (shorts.order() == ByteOrder.BIG_ENDIAN) {

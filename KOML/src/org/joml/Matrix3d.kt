@@ -527,14 +527,6 @@ open class Matrix3d : Matrix {
         return dst.set(this)
     }
 
-    fun getUnnormalizedRotation(dst: Quaternionf): Quaternionf {
-        return dst.setFromUnnormalized(this)
-    }
-
-    fun getNormalizedRotation(dst: Quaternionf): Quaternionf {
-        return dst.setFromNormalized(this)
-    }
-
     fun getUnnormalizedRotation(dst: Quaterniond): Quaterniond {
         return dst.setFromUnnormalized(this)
     }

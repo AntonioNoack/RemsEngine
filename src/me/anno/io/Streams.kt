@@ -48,19 +48,22 @@ object Streams {
         return bytes
     }
 
+    /**
+     * returns bytes or exception
+     * */
     @JvmStatic
-    fun InputStream.readNBytes2(bytes: ByteArray, startIndex: Int, length: Int): ByteArray {
+    fun InputStream.readNBytes2(bytes: ByteArray, startIndex: Int, length: Int): Any {
         var totalReadN = 0
         while (totalReadN < length) {
             val ithReadN = read(bytes, totalReadN + startIndex, length - totalReadN)
-            if (ithReadN < 0) throw EOFException()
+            if (ithReadN < 0) return EOFException()
             totalReadN += ithReadN
         }
         return bytes
     }
 
     @JvmStatic
-    fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, throwEOF: Boolean): ByteBuffer {
+    fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, throwEOF: Boolean): Any {
         bytes.position(0)
         bytes.limit(n)
         val tmp = tmpBuffer.get()
@@ -69,7 +72,7 @@ object Streams {
         while (totalReadN < n) {
             val ithReadN = read(tmp, 0, min(n - totalReadN, tmp.size))
             if (ithReadN < 0) {
-                if (throwEOF) throw EOFException()
+                if (throwEOF) return EOFException()
                 else break
             }
             bytes.put(tmp, 0, ithReadN)

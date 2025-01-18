@@ -452,14 +452,6 @@ open class Matrix3f : Matrix {
         return dst.setFromNormalized(this)
     }
 
-    fun getUnnormalizedRotation(dst: Quaterniond): Quaterniond {
-        return dst.setFromUnnormalized(this)
-    }
-
-    fun getNormalizedRotation(dst: Quaterniond): Quaterniond {
-        return dst.setFromNormalized(this)
-    }
-
     @JvmOverloads
     fun get(arr: FloatArray, offset: Int = 0): FloatArray {
         arr[offset] = m00

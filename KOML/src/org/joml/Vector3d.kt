@@ -869,15 +869,6 @@ open class Vector3d(
         cross(dstY, dstZ).safeNormalize()
     }
 
-    fun rotateInv(q: Quaternionf, dst: Vector3d = this): Vector3d {
-        synchronized(q) {
-            q.conjugate()
-            q.transform(this, dst)
-            q.conjugate()
-        }
-        return dst
-    }
-
     fun rotateInv(q: Quaterniond, dst: Vector3d = this): Vector3d {
         synchronized(q) {
             q.conjugate()

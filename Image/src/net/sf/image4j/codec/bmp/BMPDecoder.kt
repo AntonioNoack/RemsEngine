@@ -5,9 +5,12 @@ import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.skipN
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.tuples.IntPair
+import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
+import kotlin.math.abs
 
 /**
  * Decodes images in BMP format.
@@ -16,6 +19,36 @@ import java.io.InputStream
  * @author Ian McDonagh
  */
 object BMPDecoder {
+
+    private val LOGGER = LogManager.getLogger(BMPDecoder::class)
+
+    @JvmStatic
+    fun findSize(input: InputStream): Any {
+        /* header [14] */
+        // signature "BM" [2]
+        val s0 = input.read()
+        val s1 = input.read()
+        if (s0 < 0 || s1 < 0) return EOFException()
+        if (s0 != 'B'.code || s1 != 'M'.code) {
+            return IOException("Invalid signature '${s0.toChar()}${s1.toChar()}' for BMP format")
+        }
+
+        input.readLE32() // file size [4]
+        input.readLE32() // reserved = 0 [4]
+        input.readLE32() //DataOffset [4] file offset to raster data
+
+        /* info header [40] */
+        val headerSize = input.readLE32()
+        if (headerSize != 40) {
+            LOGGER.warn("Expected header size = 40, got $headerSize")
+        }
+
+        // it starts with our width and height
+        val width = input.readLE32()
+        val height = input.readLE32()
+        return IntPair(width, abs(height))
+    }
+
 
     /**
      * no compression

@@ -31,6 +31,7 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4i
@@ -128,12 +129,12 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
         val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)
             .scaleLocal(1f, -1f, 1f) // flip y, so we don't need to turn around the cull-mode
-        val reflectedCameraRotation = cameraMatrix1.getNormalizedRotation(Quaterniond()).invert()
+        val reflectedCameraRotation = cameraMatrix1.getNormalizedRotation(Quaternionf()).invert()
 
         val root = getRoot(Entity::class)
         pipeline.clear()
         // todo check that this is correct...
-        pipeline.frustum.defineGenerally(cameraMatrix1, reflectedCameraPosition, reflectedCameraRotation)
+        pipeline.frustum.defineGenerally(cameraMatrix1, reflectedCameraPosition, Quaterniond(reflectedCameraRotation))
         pipeline.frustum.showPlanes()
 
         // define last frustum plane

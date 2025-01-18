@@ -256,43 +256,11 @@ open class Quaterniond(
         return this
     }
 
-    fun setFromUnnormalized(mat: Matrix4f): Quaterniond {
-        return setFromUnnormalized(
-            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
-            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
-            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
-        )
-    }
-
-    fun setFromUnnormalized(mat: Matrix4x3f): Quaterniond {
-        return setFromUnnormalized(
-            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
-            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
-            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
-        )
-    }
-
     fun setFromUnnormalized(mat: Matrix4x3d): Quaterniond {
         return setFromUnnormalized(
             mat.m00, mat.m01, mat.m02,
             mat.m10, mat.m11, mat.m12,
             mat.m20, mat.m21, mat.m22
-        )
-    }
-
-    fun setFromNormalized(mat: Matrix4f): Quaterniond {
-        return setFromNormalized(
-            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
-            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
-            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
-        )
-    }
-
-    fun setFromNormalized(mat: Matrix4x3f): Quaterniond {
-        return setFromNormalized(
-            mat.m00.toDouble(), mat.m01.toDouble(), mat.m02.toDouble(),
-            mat.m10.toDouble(), mat.m11.toDouble(), mat.m12.toDouble(),
-            mat.m20.toDouble(), mat.m21.toDouble(), mat.m22.toDouble()
         )
     }
 
@@ -317,34 +285,6 @@ open class Quaterniond(
             mat.m00, mat.m01, mat.m02,
             mat.m10, mat.m11, mat.m12,
             mat.m20, mat.m21, mat.m22
-        )
-    }
-
-    fun setFromUnnormalized(mat: Matrix3f): Quaterniond {
-        return setFromUnnormalized(
-            mat.m00.toDouble(),
-            mat.m01.toDouble(),
-            mat.m02.toDouble(),
-            mat.m10.toDouble(),
-            mat.m11.toDouble(),
-            mat.m12.toDouble(),
-            mat.m20.toDouble(),
-            mat.m21.toDouble(),
-            mat.m22.toDouble()
-        )
-    }
-
-    fun setFromNormalized(mat: Matrix3f): Quaterniond {
-        return setFromNormalized(
-            mat.m00.toDouble(),
-            mat.m01.toDouble(),
-            mat.m02.toDouble(),
-            mat.m10.toDouble(),
-            mat.m11.toDouble(),
-            mat.m12.toDouble(),
-            mat.m20.toDouble(),
-            mat.m21.toDouble(),
-            mat.m22.toDouble()
         )
     }
 
@@ -382,11 +322,6 @@ open class Quaterniond(
     @JvmOverloads
     fun mul(q: Quaterniond, dst: Quaterniond = this): Quaterniond {
         return this.mul(q.x, q.y, q.z, q.w, dst)
-    }
-
-    @JvmOverloads
-    fun mul(qx: Float, qy: Float, qz: Float, qw: Float, dst: Quaterniond = this): Quaterniond {
-        return mul(qx.toDouble(), qy.toDouble(), qz.toDouble(), qw.toDouble(), dst)
     }
 
     @JvmOverloads
@@ -445,35 +380,7 @@ open class Quaterniond(
         return dst
     }
 
-    fun transformPositiveX(dst: Vector4d): Vector4d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        dst.x = ww + xx - zz - yy
-        dst.y = xy + zw + zw + xy
-        dst.z = xz - yw + xz - yw
-        return dst
-    }
-
     fun transformUnitPositiveX(dst: Vector3d): Vector3d {
-        val yy = y * y
-        val zz = z * z
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        val zw = z * w
-        dst.x = 1.0 - yy - yy - zz - zz
-        dst.y = xy + zw + xy + zw
-        dst.z = xz - yw + xz - yw
-        return dst
-    }
-
-    fun transformUnitPositiveX(dst: Vector4d): Vector4d {
         val yy = y * y
         val zz = z * z
         val xy = x * y
@@ -497,34 +404,6 @@ open class Quaterniond(
         val xw = x * w
         dst.x = -zw + xy - zw + xy
         dst.y = yy - zz + ww - xx
-        dst.z = yz + yz + xw + xw
-        return dst
-    }
-
-    fun transformPositiveY(dst: Vector4d): Vector4d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        dst.x = -zw + xy - zw + xy
-        dst.y = yy - zz + ww - xx
-        dst.z = yz + yz + xw + xw
-        return dst
-    }
-
-    fun transformUnitPositiveY(dst: Vector4d): Vector4d {
-        val xx = x * x
-        val zz = z * z
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        val zw = z * w
-        dst.x = xy - zw + xy - zw
-        dst.y = 1.0 - xx - xx - zz - zz
         dst.z = yz + yz + xw + xw
         return dst
     }
@@ -554,34 +433,6 @@ open class Quaterniond(
         dst.x = yw + xz + xz + yw
         dst.y = yz + yz - xw - xw
         dst.z = zz - yy - xx + ww
-        return dst
-    }
-
-    fun transformPositiveZ(dst: Vector4d): Vector4d {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val xz = x * z
-        val yw = y * w
-        val yz = y * z
-        val xw = x * w
-        dst.x = yw + xz + xz + yw
-        dst.y = yz + yz - xw - xw
-        dst.z = zz - yy - xx + ww
-        return dst
-    }
-
-    fun transformUnitPositiveZ(dst: Vector4d): Vector4d {
-        val xx = x * x
-        val yy = y * y
-        val xz = x * z
-        val yz = y * z
-        val xw = x * w
-        val yw = y * w
-        dst.x = xz + yw + xz + yw
-        dst.y = yz + yz - xw - xw
-        dst.z = 1.0 - xx - xx - yy - yy
         return dst
     }
 
@@ -688,14 +539,6 @@ open class Quaterniond(
         )
     }
 
-    fun transform(vec: Vector3f): Vector3f {
-        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), vec)
-    }
-
-    fun transformInverse(vec: Vector3f): Vector3f {
-        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), vec)
-    }
-
     fun transformUnit(vec: Vector3d, dst: Vector3d): Vector3d {
         return this.transformUnit(vec.x, vec.y, vec.z, dst)
     }
@@ -784,190 +627,6 @@ open class Quaterniond(
         )
     }
 
-    fun transformUnit(vec: Vector3f): Vector3f {
-        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), vec)
-    }
-
-    fun transformInverseUnit(vec: Vector3f): Vector3f {
-        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), vec)
-    }
-
-    fun transformPositiveX(dst: Vector3f): Vector3f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        dst.x = (ww + xx - zz - yy).toFloat()
-        dst.y = (xy + zw + zw + xy).toFloat()
-        dst.z = (xz - yw + xz - yw).toFloat()
-        return dst
-    }
-
-    fun transformPositiveX(dst: Vector4f): Vector4f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        dst.x = (ww + xx - zz - yy).toFloat()
-        dst.y = (xy + zw + zw + xy).toFloat()
-        dst.z = (xz - yw + xz - yw).toFloat()
-        return dst
-    }
-
-    fun transformUnitPositiveX(dst: Vector3f): Vector3f {
-        val yy = y * y
-        val zz = z * z
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        val zw = z * w
-        dst.x = (1.0 - yy - yy - zz - zz).toFloat()
-        dst.y = (xy + zw + xy + zw).toFloat()
-        dst.z = (xz - yw + xz - yw).toFloat()
-        return dst
-    }
-
-    fun transformUnitPositiveX(dst: Vector4f): Vector4f {
-        val yy = y * y
-        val zz = z * z
-        val xy = x * y
-        val xz = x * z
-        val yw = y * w
-        val zw = z * w
-        dst.x = (1.0 - yy - yy - zz - zz).toFloat()
-        dst.y = (xy + zw + xy + zw).toFloat()
-        dst.z = (xz - yw + xz - yw).toFloat()
-        return dst
-    }
-
-    fun transformPositiveY(dst: Vector3f): Vector3f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        dst.x = (-zw + xy - zw + xy).toFloat()
-        dst.y = (yy - zz + ww - xx).toFloat()
-        dst.z = (yz + yz + xw + xw).toFloat()
-        return dst
-    }
-
-    fun transformPositiveY(dst: Vector4f): Vector4f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val zw = z * w
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        dst.x = (-zw + xy - zw + xy).toFloat()
-        dst.y = (yy - zz + ww - xx).toFloat()
-        dst.z = (yz + yz + xw + xw).toFloat()
-        return dst
-    }
-
-    fun transformUnitPositiveY(dst: Vector4f): Vector4f {
-        val xx = x * x
-        val zz = z * z
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        val zw = z * w
-        dst.x = (xy - zw + xy - zw).toFloat()
-        dst.y = (1.0 - xx - xx - zz - zz).toFloat()
-        dst.z = (yz + yz + xw + xw).toFloat()
-        return dst
-    }
-
-    fun transformUnitPositiveY(dst: Vector3f): Vector3f {
-        val xx = x * x
-        val zz = z * z
-        val xy = x * y
-        val yz = y * z
-        val xw = x * w
-        val zw = z * w
-        dst.x = (xy - zw + xy - zw).toFloat()
-        dst.y = (1.0 - xx - xx - zz - zz).toFloat()
-        dst.z = (yz + yz + xw + xw).toFloat()
-        return dst
-    }
-
-    fun transformPositiveZ(dst: Vector3f): Vector3f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val xz = x * z
-        val yw = y * w
-        val yz = y * z
-        val xw = x * w
-        dst.x = (yw + xz + xz + yw).toFloat()
-        dst.y = (yz + yz - xw - xw).toFloat()
-        dst.z = (zz - yy - xx + ww).toFloat()
-        return dst
-    }
-
-    fun transformPositiveZ(dst: Vector4f): Vector4f {
-        val ww = w * w
-        val xx = x * x
-        val yy = y * y
-        val zz = z * z
-        val xz = x * z
-        val yw = y * w
-        val yz = y * z
-        val xw = x * w
-        dst.x = (yw + xz + xz + yw).toFloat()
-        dst.y = (yz + yz - xw - xw).toFloat()
-        dst.z = (zz - yy - xx + ww).toFloat()
-        return dst
-    }
-
-    fun transformUnitPositiveZ(dst: Vector4f): Vector4f {
-        val xx = x * x
-        val yy = y * y
-        val xz = x * z
-        val yz = y * z
-        val xw = x * w
-        val yw = y * w
-        dst.x = (xz + yw + xz + yw).toFloat()
-        dst.y = (yz + yz - xw - xw).toFloat()
-        dst.z = (1.0 - xx - xx - yy - yy).toFloat()
-        return dst
-    }
-
-    fun transformUnitPositiveZ(dst: Vector3f): Vector3f {
-        val xx = x * x
-        val yy = y * y
-        val xz = x * z
-        val yz = y * z
-        val xw = x * w
-        val yw = y * w
-        dst.x = (xz + yw + xz + yw).toFloat()
-        dst.y = (yz + yz - xw - xw).toFloat()
-        dst.z = (1.0 - xx - xx - yy - yy).toFloat()
-        return dst
-    }
-
-    fun transform(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    fun transformInverse(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
     fun transform(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
         val xx = this.x * this.x
         val yy = this.y * this.y
@@ -1008,147 +667,6 @@ open class Quaterniond(
             (xx - yy - zz + ww) * k * x + (2.0 * (xy + zw) * k * y + 2.0 * (xz - yw) * k * z),
             2.0 * (xy - zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz + xw) * k * z),
             2.0 * (xz + yw) * k * x + (2.0 * (yz - xw) * k * y + (zz - xx - yy + ww) * k * z)
-        )
-    }
-
-    @JvmOverloads
-    fun transform(vec: Vector4f, dst: Vector4f = vec): Vector4f {
-        return this.transform(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    @JvmOverloads
-    fun transformInverse(vec: Vector4f, dst: Vector4f = vec): Vector4f {
-        return this.transformInverse(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    fun transform(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            ((xx - yy - zz + ww) * k * x + (2.0 * (xy - zw) * k * y + 2.0 * (xz + yw) * k * z)).toFloat(),
-            (2.0 * (xy + zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz - xw) * k * z)).toFloat(),
-            (2.0 * (xz - yw) * k * x + (2.0 * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z)).toFloat(),
-            dst.w
-        )
-    }
-
-    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
-        val n = 1.0 / lengthSquared()
-        val qx = this.x * n
-        val qy = this.y * n
-        val qz = this.z * n
-        val qw = w * n
-        val xx = qx * qx
-        val yy = qy * qy
-        val zz = qz * qz
-        val ww = qw * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yz = qy * qz
-        val xw = qx * qw
-        val zw = qz * qw
-        val yw = qy * qw
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + (2.0 * (xy + zw) * k * y + 2.0 * (xz - yw) * k * z),
-            2.0 * (xy - zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz + xw) * k * z),
-            2.0 * (xz + yw) * k * x + (2.0 * (yz - xw) * k * y + (zz - xx - yy + ww) * k * z),
-            dst.w.toDouble()
-        )
-    }
-
-    fun transformUnit(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    fun transformInverseUnit(vec: Vector3f, dst: Vector3f): Vector3f {
-        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            ((-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy - zw) * y + 2.0 * (xz + yw) * z)).toFloat(),
-            (2.0 * (xy + zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz - xw) * z)).toFloat(),
-            (2.0 * (xz - yw) * x + (2.0 * (yz + xw) * y + (-2.0 * (xx + yy) + 1.0) * z)).toFloat()
-        )
-    }
-
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            ((-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy + zw) * y + 2.0 * (xz - yw) * z)).toFloat(),
-            (2.0 * (xy - zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz + xw) * z)).toFloat(),
-            (2.0 * (xz + yw) * x + (2.0 * (yz - xw) * y + (-2.0 * (xx + yy) + 1.0) * z)).toFloat()
-        )
-    }
-
-    @JvmOverloads
-    fun transformUnit(vec: Vector4f, dst: Vector4f = vec): Vector4f {
-        return this.transformUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    @JvmOverloads
-    fun transformInverseUnit(vec: Vector4f, dst: Vector4f = vec): Vector4f {
-        return this.transformInverseUnit(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble(), dst)
-    }
-
-    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            ((-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy - zw) * y + 2.0 * (xz + yw) * z)).toFloat(),
-            (2.0 * (xy + zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz - xw) * z)).toFloat(),
-            (2.0 * (xz - yw) * x + (2.0 * (yz + xw) * y + (-2.0 * (xx + yy) + 1.0) * z)).toFloat()
-        )
-    }
-
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector4f): Vector4f {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            ((-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy + zw) * y + 2.0 * (xz - yw) * z)).toFloat(),
-            (2.0 * (xy - zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz + xw) * z)).toFloat(),
-            (2.0 * (xz + yw) * x + (2.0 * (yz - xw) * y + (-2.0 * (xx + yy) + 1.0) * z)).toFloat()
         )
     }
 
@@ -1366,7 +884,7 @@ open class Quaterniond(
                 q2y *= s
                 q2z *= s
                 q2w *= s
-                alphaN = alphaN + alphaN
+                alphaN += alphaN
             } else {
                 q1x = scale0 * q1x + scale1 * q2x
                 q1y = scale0 * q1y + scale1 * q2y
@@ -1406,12 +924,8 @@ open class Quaterniond(
 
     @JvmOverloads
     fun lookAlong(
-        dirX: Double,
-        dirY: Double,
-        dirZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
+        dirX: Double, dirY: Double, dirZ: Double,
+        upX: Double, upY: Double, upZ: Double,
         dst: Quaterniond = this
     ): Quaterniond {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
@@ -1506,12 +1020,8 @@ open class Quaterniond(
     }
 
     fun rotationTo(
-        fromDirX: Double,
-        fromDirY: Double,
-        fromDirZ: Double,
-        toDirX: Double,
-        toDirY: Double,
-        toDirZ: Double
+        fromDirX: Double, fromDirY: Double, fromDirZ: Double,
+        toDirX: Double, toDirY: Double, toDirZ: Double
     ): Quaterniond {
         val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
         val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
@@ -1564,12 +1074,8 @@ open class Quaterniond(
 
     @JvmOverloads
     fun rotateTo(
-        fromDirX: Double,
-        fromDirY: Double,
-        fromDirZ: Double,
-        toDirX: Double,
-        toDirY: Double,
-        toDirZ: Double,
+        fromDirX: Double, fromDirY: Double, fromDirZ: Double,
+        toDirX: Double, toDirY: Double, toDirZ: Double,
         dst: Quaterniond = this
     ): Quaterniond {
         val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)

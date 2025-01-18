@@ -159,6 +159,10 @@ object TGAReader {
             GRAYSCALE_RLE -> return IOException("Black & White RLE is not supported")
             else -> return IOException("Unknown TGA type $imageType")
         }
+        if (numChannels !is Int) {
+            // return value should be exception
+            return numChannels
+        }
 
         // Create the Image object
         if (flipX) flipX(rawData, width, height, numChannels)
@@ -309,13 +313,16 @@ object TGAReader {
         return if (dl == 4) 4 else 3
     }
 
+    /**
+     * returns number of channels or exception
+     * */
     @JvmStatic
     private fun readTrueColor(
         pixelDepth: Int,
         width: Int, height: Int,
         flip: Boolean, rawData: ByteArray,
         dl: Int, dis: InputStream
-    ): Int {
+    ): Any {
         var rawDataIndex = 0
         return when (pixelDepth) {
             16 -> {
@@ -337,14 +344,16 @@ object TGAReader {
             24 -> {
                 for (y in 0 until height) {
                     rawDataIndex = (if (flip) y else height - 1 - y) * width * dl
-                    dis.readNBytes2(rawData, rawDataIndex, width * dl)
+                    val ex = dis.readNBytes2(rawData, rawDataIndex, width * dl)
+                    if (ex is Exception) return ex
                 }
                 3
             }
             32 -> {
                 for (y in 0 until height) {
                     rawDataIndex = (if (flip) y else height - 1 - y) * width * dl
-                    dis.readNBytes2(rawData, rawDataIndex, width * 4)
+                    val ex = dis.readNBytes2(rawData, rawDataIndex, width * 4)
+                    if (ex is Exception) return ex
                 }
                 4
             }

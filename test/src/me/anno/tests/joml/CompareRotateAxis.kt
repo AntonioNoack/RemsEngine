@@ -9,7 +9,8 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 fun main() {
-    // todo there was two implementations of rotateAxis... are they equivalent??
+    // there were two implementations of rotateAxis... are they equivalent??
+    // yes, they are
     val random = Random(1234)
     for (i in 0 until 1000) {
         val v1 = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())

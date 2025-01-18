@@ -17,6 +17,7 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Ints.toIntOrDefault
+import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.ico.ICOReader
 
 class ImagePlugin : Plugin() {
@@ -53,7 +54,7 @@ class ImagePlugin : Plugin() {
                 file.inputStream { it, exc ->
                     if (it != null) {
                         val size = GimpImage.findSize(it)
-                        if (size is IntPair) dst.setImage(size)
+                        if (size is IntPair) dst.setImageSize(size)
                         else (size as? Exception)?.printStackTrace()
                     } else exc?.printStackTrace()
                     dst.ready = true
@@ -81,6 +82,9 @@ class ImagePlugin : Plugin() {
                 }
             } else false
         }
+        MediaMetadata.registerSignatureHandler(100, "bmp") { _, signature, dst, ri ->
+            if (signature == "bmp") dst.setImageByStream(BMPDecoder::findSize, ri) else false
+        }
         MediaMetadata.registerSignatureHandler(100, "svg") { file, signature, dst, _ ->
             if ((signature == "xml" && file.lcExtension == "svg") || signature == "svg") {
                 // find out size from first XML node
@@ -89,11 +93,10 @@ class ImagePlugin : Plugin() {
                     if (stream != null) {
                         val xml = XMLReader().read(stream.reader())
                         if (xml is XMLNode && xml.type == "svg") {
-                            dst.hasVideo = true
                             // width="800px" height="800px"
-                            dst.videoWidth = parseSVGSize(xml["width"])
-                            dst.videoHeight = parseSVGSize(xml["height"])
-                            dst.videoFrameCount = 1
+                            val width = parseSVGSize(xml["width"])
+                            val height = parseSVGSize(xml["height"])
+                            dst.setImageSize(width, height)
                         }
                     } else err?.printStackTrace()
                     dst.ready = true

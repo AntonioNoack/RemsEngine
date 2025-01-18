@@ -79,11 +79,11 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         )
     }
 
-    fun setImage(wh: IntPair) {
-        setImage(wh.first, wh.second)
+    fun setImageSize(wh: IntPair) {
+        setImageSize(wh.first, wh.second)
     }
 
-    fun setImage(w: Int, h: Int) {
+    fun setImageSize(w: Int, h: Int) {
         hasVideo = true
         videoWidth = w
         videoHeight = h
@@ -97,7 +97,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
             if (it != null) {
                 val size = callback(it)
                 if (size is IntPair) {
-                    setImage(size)
+                    setImageSize(size)
                 } else if (size is Exception) {
                     if (nextReaderIndex > 0) load(nextReaderIndex)
                     else size.printStackTrace()
@@ -212,7 +212,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
             }
             registerHandler(150, "image-readable") { file, dst, _ ->
                 if (file is ImageReadable) {
-                    dst.setImage(file.readSize())
+                    dst.setImageSize(file.readSize())
                     true
                 } else false
             }

@@ -3,6 +3,7 @@ package net.sf.image4j.codec.ico
 import me.anno.image.Image
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.readNBytes2
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -242,13 +243,7 @@ object ICOReader {
         val bytes = ByteArray(sizeInBytes)
         bytes.set2(0, PNG_MAGIC)
         bytes.set2(4, PNG_MAGIC2)
-        var pos = 8
-        while (pos < sizeInBytes) {
-            val numReadChars = input1.read(bytes, pos, sizeInBytes - pos)
-            if (numReadChars < 0) return EOFException()
-            pos += numReadChars
-        }
-        return bytes
+        return input1.readNBytes2(bytes, 8, sizeInBytes - 8)
     }
 
     /**
