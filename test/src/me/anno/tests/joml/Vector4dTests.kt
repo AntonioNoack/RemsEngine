@@ -23,7 +23,6 @@ class Vector4dTests {
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector4d(1.0, 2.0, 3.0, 4.0)))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector4i(1, 2, 3, 4)))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector3d(1.0, 2.0, 3.0), 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(floatArrayOf(0f, 1f, 2f, 3f, 4f), 1))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(doubleArrayOf(0.0, 1.0, 2.0, 3.0, 4.0), 1))
     }
 

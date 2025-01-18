@@ -277,7 +277,7 @@ open class Matrix3f : Matrix {
     }
 
     fun set(q: Quaternionf): Matrix3f {
-        return this.rotation(q)
+        return rotation(q)
     }
 
     fun set(q: Quaterniond): Matrix3f {
@@ -493,11 +493,11 @@ open class Matrix3f : Matrix {
     }
 
     fun scale(xyz: Vector3f, dst: Matrix3f): Matrix3f {
-        return this.scale(xyz.x, xyz.y, xyz.z, dst)
+        return scale(xyz.x, xyz.y, xyz.z, dst)
     }
 
     fun scale(xyz: Vector3f): Matrix3f {
-        return this.scale(xyz.x, xyz.y, xyz.z, this)
+        return scale(xyz.x, xyz.y, xyz.z, this)
     }
 
     @JvmOverloads
@@ -515,11 +515,11 @@ open class Matrix3f : Matrix {
     }
 
     fun scale(xyz: Float, dst: Matrix3f): Matrix3f {
-        return this.scale(xyz, xyz, xyz, dst)
+        return scale(xyz, xyz, xyz, dst)
     }
 
     fun scale(xyz: Float): Matrix3f {
-        return this.scale(xyz, xyz, xyz)
+        return scale(xyz, xyz, xyz)
     }
 
     @JvmOverloads
@@ -557,11 +557,11 @@ open class Matrix3f : Matrix {
     fun scaling(xyz: Vector3f) = this.scaling(xyz.x, xyz.y, xyz.z)
 
     fun rotation(angle: Float, axis: Vector3f): Matrix3f {
-        return this.rotation(angle, axis.x, axis.y, axis.z)
+        return rotation(angle, axis.x, axis.y, axis.z)
     }
 
     fun rotation(axisAngle: AxisAngle4f): Matrix3f {
-        return this.rotation(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
+        return rotation(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
     fun rotation(angle: Float, x: Float, y: Float, z: Float): Matrix3f {
@@ -826,7 +826,7 @@ open class Matrix3f : Matrix {
     }
 
     fun rotateXYZ(angles: Vector3f): Matrix3f {
-        return this.rotateXYZ(angles.x, angles.y, angles.z)
+        return rotateXYZ(angles.x, angles.y, angles.z)
     }
 
     @JvmOverloads
@@ -862,7 +862,7 @@ open class Matrix3f : Matrix {
     }
 
     fun rotateZYX(angles: Vector3f): Matrix3f {
-        return this.rotateZYX(angles.z, angles.y, angles.x)
+        return rotateZYX(angles.z, angles.y, angles.x)
     }
 
     @JvmOverloads
@@ -898,7 +898,7 @@ open class Matrix3f : Matrix {
     }
 
     fun rotateYXZ(angles: Vector3f): Matrix3f {
-        return this.rotateYXZ(angles.y, angles.x, angles.z)
+        return rotateYXZ(angles.y, angles.x, angles.z)
     }
 
     @JvmOverloads
@@ -1132,7 +1132,7 @@ open class Matrix3f : Matrix {
         return rotateLocalQ(quat.x, quat.y, quat.z, quat.w, dst)
     }
 
-    fun rotateLocalQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix3f = this): Matrix3f {
+    private fun rotateLocalQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix3f = this): Matrix3f {
         val w2 = qw * qw
         val x2 = qx * qx
         val y2 = qy * qy
@@ -1180,27 +1180,27 @@ open class Matrix3f : Matrix {
     }
 
     fun rotate(axisAngle: AxisAngle4f): Matrix3f {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
+        return rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
     fun rotate(axisAngle: AxisAngle4f, dst: Matrix3f): Matrix3f {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dst)
+        return rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dst)
     }
 
     fun rotate(angle: Float, axis: Vector3f): Matrix3f {
-        return this.rotate(angle, axis.x, axis.y, axis.z)
+        return rotate(angle, axis.x, axis.y, axis.z)
     }
 
     fun rotate(angle: Float, axis: Vector3f, dst: Matrix3f): Matrix3f {
-        return this.rotate(angle, axis.x, axis.y, axis.z, dst)
+        return rotate(angle, axis.x, axis.y, axis.z, dst)
     }
 
     fun lookAlong(dir: Vector3f, up: Vector3f): Matrix3f {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
     fun lookAlong(dir: Vector3f, up: Vector3f, dst: Matrix3f): Matrix3f {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
@@ -1232,20 +1232,14 @@ open class Matrix3f : Matrix {
         val nm10 = m00 * leftY + m10 * upnY + m20 * dirYi
         val nm11 = m01 * leftY + m11 * upnY + m21 * dirYi
         val nm12 = m02 * leftY + m12 * upnY + m22 * dirYi
-        dst.m20 = m00 * leftZ + m10 * upnZ + m20 * dirZi
-        dst.m21 = m01 * leftZ + m11 * upnZ + m21 * dirZi
-        dst.m22 = m02 * leftZ + m12 * upnZ + m22 * dirZi
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        return dst
+        val nm20 = m00 * leftZ + m10 * upnZ + m20 * dirZi
+        val nm21 = m01 * leftZ + m11 * upnZ + m21 * dirZi
+        val nm22 = m02 * leftZ + m12 * upnZ + m22 * dirZi
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     fun setLookAlong(dir: Vector3f, up: Vector3f): Matrix3f {
-        return this.setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun setLookAlong(dirX: Float, dirY: Float, dirZ: Float, upX: Float, upY: Float, upZ: Float): Matrix3f {
@@ -1266,16 +1260,7 @@ open class Matrix3f : Matrix {
         val upnX = dirYi * leftZ - dirZi * leftY
         val upnY = dirZi * leftX - dirXi * leftZ
         val upnZ = dirXi * leftY - dirYi * leftX
-        m00 = leftX
-        m01 = upnX
-        m02 = dirXi
-        m10 = leftY
-        m11 = upnY
-        m12 = dirYi
-        m20 = leftZ
-        m21 = upnZ
-        m22 = dirZi
-        return this
+        return set(leftX, upnX, dirXi, leftY, upnY, dirYi, leftZ, upnZ, dirZi)
     }
 
     fun getRow(row: Int, dst: Vector3f): Vector3f {
@@ -1287,7 +1272,7 @@ open class Matrix3f : Matrix {
     }
 
     fun setRow(row: Int, src: Vector3f): Matrix3f {
-        return this.setRow(row, src.x, src.y, src.z)
+        return setRow(row, src.x, src.y, src.z)
     }
 
     fun setRow(row: Int, x: Float, y: Float, z: Float): Matrix3f {
@@ -1320,7 +1305,7 @@ open class Matrix3f : Matrix {
     }
 
     fun setColumn(column: Int, src: Vector3f): Matrix3f {
-        return this.setColumn(column, src.x, src.y, src.z)
+        return setColumn(column, src.x, src.y, src.z)
     }
 
     fun setColumn(column: Int, x: Float, y: Float, z: Float): Matrix3f {
@@ -1344,22 +1329,6 @@ open class Matrix3f : Matrix {
         return this
     }
 
-    /*operator fun get(column: Int, row: Int): Float {
-        return MemUtil.INSTANCE[this, column, row]
-    }
-
-    operator fun set(column: Int, row: Int, value: Float): Matrix3f {
-        return MemUtil.INSTANCE.set(this, column, row, value)
-    }
-
-    fun getRowColumn(row: Int, column: Int): Float {
-        return get(column, row)
-    }
-
-    fun setRowColumn(row: Int, column: Int, value: Float): Matrix3f {
-        return set(column, row, value)
-    }*/
-
     @JvmOverloads
     fun normal(dst: Matrix3f = this): Matrix3f {
         val m00m11 = m00 * m11
@@ -1379,16 +1348,7 @@ open class Matrix3f : Matrix {
         val nm20 = (m01m12 - m02m11) * s
         val nm21 = (m02m10 - m00m12) * s
         val nm22 = (m00m11 - m01m10) * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -1402,16 +1362,7 @@ open class Matrix3f : Matrix {
         val nm20 = m01 * m12 - m11 * m02
         val nm21 = m02 * m10 - m12 * m00
         val nm22 = m00 * m11 - m10 * m01
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     fun getScale(dst: Vector3f): Vector3f {
@@ -1430,10 +1381,7 @@ open class Matrix3f : Matrix {
     }
 
     fun normalizedPositiveZ(dir: Vector3f): Vector3f {
-        dir.x = m02
-        dir.y = m12
-        dir.z = m22
-        return dir
+        return dir.set(m02, m12, m22)
     }
 
     fun positiveX(dir: Vector3f): Vector3f {
@@ -1499,11 +1447,6 @@ open class Matrix3f : Matrix {
                 Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
                 Runtime.equals(m22, m.m22, delta)
     }
-
-    /*fun swap(other: Matrix3f?): Matrix3f {
-        MemUtil.INSTANCE.swap(this, other)
-        return this
-    }*/
 
     @JvmOverloads
     fun add(other: Matrix3f, dst: Matrix3f = this): Matrix3f {
@@ -1579,21 +1522,17 @@ open class Matrix3f : Matrix {
     }
 
     fun rotateTowards(direction: Vector3f, up: Vector3f, dst: Matrix3f): Matrix3f {
-        return this.rotateTowards(direction.x, direction.y, direction.z, up.x, up.y, up.z, dst)
+        return rotateTowards(direction.x, direction.y, direction.z, up.x, up.y, up.z, dst)
     }
 
     fun rotateTowards(direction: Vector3f, up: Vector3f): Matrix3f {
-        return this.rotateTowards(direction.x, direction.y, direction.z, up.x, up.y, up.z, this)
+        return rotateTowards(direction.x, direction.y, direction.z, up.x, up.y, up.z, this)
     }
 
     @JvmOverloads
     fun rotateTowards(
-        dirX: Float,
-        dirY: Float,
-        dirZ: Float,
-        upX: Float,
-        upY: Float,
-        upZ: Float,
+        dirX: Float, dirY: Float, dirZ: Float,
+        upX: Float, upY: Float, upZ: Float,
         dst: Matrix3f = this
     ): Matrix3f {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
@@ -1629,7 +1568,7 @@ open class Matrix3f : Matrix {
     }
 
     fun rotationTowards(dir: Vector3f, up: Vector3f): Matrix3f {
-        return this.rotationTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z)
+        return rotationTowards(dir.x, dir.y, dir.z, up.x, up.y, up.z)
     }
 
     fun rotationTowards(dirX: Float, dirY: Float, dirZ: Float, upX: Float, upY: Float, upZ: Float): Matrix3f {
@@ -1718,10 +1657,6 @@ open class Matrix3f : Matrix {
         )._m00(nm00)._m01(nm01)._m02(nm02)._m10(nm10)._m11(nm11)._m12(nm12)
     }
 
-    fun reflect(normal: Vector3f): Matrix3f {
-        return this.reflect(normal.x, normal.y, normal.z)
-    }
-
     @JvmOverloads
     fun reflect(orientation: Quaternionf, dst: Matrix3f = this): Matrix3f {
         val num1 = orientation.x + orientation.x
@@ -1730,11 +1665,12 @@ open class Matrix3f : Matrix {
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1f - (orientation.x * num1 + orientation.y * num2)
-        return this.reflect(normalX, normalY, normalZ, dst)
+        return reflect(normalX, normalY, normalZ, dst)
     }
 
-    fun reflect(normal: Vector3f, dst: Matrix3f): Matrix3f {
-        return this.reflect(normal.x, normal.y, normal.z, dst)
+    @JvmOverloads
+    fun reflect(normal: Vector3f, dst: Matrix3f = this): Matrix3f {
+        return reflect(normal.x, normal.y, normal.z, dst)
     }
 
     fun reflection(nx: Float, ny: Float, nz: Float): Matrix3f {
@@ -1754,7 +1690,7 @@ open class Matrix3f : Matrix {
     }
 
     fun reflection(normal: Vector3f): Matrix3f {
-        return this.reflection(normal.x, normal.y, normal.z)
+        return reflection(normal.x, normal.y, normal.z)
     }
 
     fun reflection(orientation: Quaternionf): Matrix3f {
@@ -1764,15 +1700,13 @@ open class Matrix3f : Matrix {
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1f - (orientation.x * num1 + orientation.y * num2)
-        return this.reflection(normalX, normalY, normalZ)
+        return reflection(normalX, normalY, normalZ)
     }
 
     val isFinite: Boolean
-        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m02) && JomlMath.isFinite(
-            m10
-        ) && JomlMath.isFinite(m11) && JomlMath.isFinite(m12) && JomlMath.isFinite(m20) && JomlMath.isFinite(
-            m21
-        ) && JomlMath.isFinite(m22)
+        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m02) &&
+                JomlMath.isFinite(m10) && JomlMath.isFinite(m11) && JomlMath.isFinite(m12) &&
+                JomlMath.isFinite(m20) && JomlMath.isFinite(m21) && JomlMath.isFinite(m22)
 
     fun quadraticFormProduct(x: Float, y: Float, z: Float): Float {
         val Axx = m00 * x + m10 * y + m20 * z
@@ -1782,394 +1716,6 @@ open class Matrix3f : Matrix {
     }
 
     fun quadraticFormProduct(v: Vector3f): Float {
-        return this.quadraticFormProduct(v.x, v.y, v.z)
-    }
-
-    @JvmOverloads
-    fun mapXZY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(m20)._m11(m21)._m12(m22)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapXZnY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(m20)._m11(m21)._m12(m22)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapXnYnZ(dst: Matrix3f = this): Matrix3f {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapXnZY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapXnZnY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapYXZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(m00)._m11(m01)._m12(m02)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    @JvmOverloads
-    fun mapYXnZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(m00)._m11(m01)._m12(m02)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapYZX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(m20)._m11(m21)._m12(m22)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapYZnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(m20)._m11(m21)._m12(m22)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapYnXZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    @JvmOverloads
-    fun mapYnXnZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapYnZX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapYnZnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapZXY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(m00)._m11(m01)._m12(m02)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapZXnY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(m00)._m11(m01)._m12(m02)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapZYX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(m10)._m11(m11)._m12(m12)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapZYnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(m10)._m11(m11)._m12(m12)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapZnXY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapZnXnY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapZnYX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapZnYnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapnXYnZ(dst: Matrix3f = this): Matrix3f {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m10)._m11(m11)._m12(m12)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapnXZY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m20)._m11(m21)._m12(m22)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapnXZnY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m20)._m11(m21)._m12(m22)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapnXnYZ(dst: Matrix3f = this): Matrix3f {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    @JvmOverloads
-    fun mapnXnYnZ(dst: Matrix3f = this): Matrix3f {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapnXnZY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapnXnZnY(dst: Matrix3f = this): Matrix3f {
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapnYXZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m00)._m11(m01)._m12(m02)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    @JvmOverloads
-    fun mapnYXnZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m00)._m11(m01)._m12(m02)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapnYZX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m20)._m11(m21)._m12(m22)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapnYZnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m20)._m11(m21)._m12(m22)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapnYnXZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    @JvmOverloads
-    fun mapnYnXnZ(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    @JvmOverloads
-    fun mapnYnZX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapnYnZnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapnZXY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m00)._m11(m01)._m12(m02)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapnZXnY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m00)._m11(m01)._m12(m02)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapnZYX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m10)._m11(m11)._m12(m12)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapnZYnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m10)._m11(m11)._m12(m12)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    @JvmOverloads
-    fun mapnZnXY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m10)._m21(m11)._m22(m12)
-    }
-
-    @JvmOverloads
-    fun mapnZnXnY(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        val m10 = m10
-        val m11 = m11
-        val m12 = m12
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m10)._m21(-m11)._m22(-m12)
-    }
-
-    @JvmOverloads
-    fun mapnZnYX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m00)._m21(m01)._m22(m02)
-    }
-
-    @JvmOverloads
-    fun mapnZnYnX(dst: Matrix3f = this): Matrix3f {
-        val m00 = m00
-        val m01 = m01
-        val m02 = m02
-        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m00)._m21(-m01)._m22(-m02)
-    }
-
-    fun negateX(): Matrix3f {
-        return _m00(-m00)._m01(-m01)._m02(-m02)
-    }
-
-    fun negateX(dst: Matrix3f): Matrix3f {
-        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m10)._m11(m11)._m12(m12)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    fun negateY(): Matrix3f {
-        return _m10(-m10)._m11(-m11)._m12(-m12)
-    }
-
-    fun negateY(dst: Matrix3f): Matrix3f {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m20)._m21(m21)._m22(m22)
-    }
-
-    fun negateZ(): Matrix3f {
-        return _m20(-m20)._m21(-m21)._m22(-m22)
-    }
-
-    fun negateZ(dst: Matrix3f): Matrix3f {
-        return dst._m00(m00)._m01(m01)._m02(m02)._m10(m10)._m11(m11)._m12(m12)._m20(-m20)._m21(-m21)._m22(-m22)
+        return quadraticFormProduct(v.x, v.y, v.z)
     }
 }

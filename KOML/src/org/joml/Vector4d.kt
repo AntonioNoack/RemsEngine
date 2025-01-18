@@ -28,9 +28,6 @@ open class Vector4d(
     constructor(v: Vector2d, z: Double, w: Double) : this(v.x, v.y, z, w)
     constructor(d: Double) : this(d, d, d, d)
     constructor(v: DoubleArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
-    constructor(v: FloatArray, i: Int = 0) : this() {
-        set(v, i)
-    }
 
     override val numComponents: Int get() = 4
     override fun getComp(i: Int): Double = get(i)
@@ -84,10 +81,6 @@ open class Vector4d(
     }
 
     fun set(xyzw: DoubleArray, offset: Int = 0): Vector4d {
-        return set(xyzw[offset], xyzw[offset + 1], xyzw[offset + 2], xyzw[offset + 3])
-    }
-
-    fun set(xyzw: FloatArray, offset: Int = 0): Vector4d {
         return set(xyzw[offset], xyzw[offset + 1], xyzw[offset + 2], xyzw[offset + 3])
     }
 
