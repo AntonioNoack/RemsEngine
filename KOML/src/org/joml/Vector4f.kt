@@ -24,9 +24,7 @@ open class Vector4f(
     constructor(v: Vector4d) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     constructor(v: Vector4i) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     constructor(v: Vector3f, w: Float) : this(v.x, v.y, v.z, w)
-    constructor(v: Vector3i, w: Float) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), w)
     constructor(v: Vector2f, z: Float, w: Float) : this(v.x, v.y, z, w)
-    constructor(v: Vector2i, z: Float, w: Float) : this(v.x.toFloat(), v.y.toFloat(), z, w)
     constructor(d: Float) : this(d, d, d, d)
     constructor(v: FloatArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
 
@@ -149,20 +147,12 @@ open class Vector4f(
 
     @JvmOverloads
     fun mul(v: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = x * v.x
-        dst.y = y * v.y
-        dst.z = z * v.z
-        dst.w = w * v.w
-        return dst
+        return dst.set(x * v.x, y * v.y, z * v.z, w * v.w)
     }
 
     @JvmOverloads
     fun div(v: Vector4f, dst: Vector4f = this): Vector4f {
-        dst.x = x / v.x
-        dst.y = y / v.y
-        dst.z = z / v.z
-        dst.w = w / v.w
-        return dst
+        return dst.set(x / v.x, y / v.y, z / v.z, w / v.w)
     }
 
     @JvmOverloads
@@ -266,47 +256,32 @@ open class Vector4f(
 
     @JvmOverloads
     fun mul(scalar: Float, dst: Vector4f = this): Vector4f {
-        dst.x = x * scalar
-        dst.y = y * scalar
-        dst.z = z * scalar
-        dst.w = w * scalar
-        return dst
+        return mul(scalar, scalar, scalar, scalar, dst)
     }
 
     @JvmOverloads
-    fun mul(x: Float, y: Float, z: Float, w: Float, dst: Vector4f = this): Vector4f {
-        dst.x = this.x * x
-        dst.y = this.y * y
-        dst.z = this.z * z
-        dst.w = this.w * w
-        return dst
+    fun mul(vx: Float, vy: Float, vz: Float, vw: Float, dst: Vector4f = this): Vector4f {
+        return dst.set(x * vx, y * vy, z * vz, w * vw)
     }
 
     @JvmOverloads
     fun div(scalar: Float, dst: Vector4f = this) = mul(1f / scalar, dst)
 
     @JvmOverloads
-    fun div(x: Float, y: Float, z: Float, w: Float, dst: Vector4f = this): Vector4f {
-        dst.x = this.x / x
-        dst.y = this.y / y
-        dst.z = this.z / z
-        dst.w = this.w / w
-        return dst
+    fun div(vx: Float, vy: Float, vz: Float, vw: Float, dst: Vector4f = this): Vector4f {
+        return dst.set(x / vx, y / vy, z / vz, w / vw)
     }
 
     @JvmOverloads
     fun rotate(quat: Quaternionf, dst: Vector4f = this): Vector4f {
-        return quat.transform(this, dst)
+        val tmp = Vector3f(x, y, z).rotate(quat)
+        return dst.set(tmp.x, tmp.y, tmp.z)
     }
 
     @JvmOverloads
-    fun rotateInv(q: Quaternionf, dst: Vector4f = this): Vector4f {
-        synchronized(q) {
-            q.conjugate()
-            q.transform(this, dst)
-            q.conjugate()
-        }
-        return dst
+    fun rotateInv(quat: Quaternionf, dst: Vector4f = this): Vector4f {
+        val tmp = Vector3f(x, y, z).rotateInv(quat)
+        return dst.set(tmp.x, tmp.y, tmp.z)
     }
 
     /**

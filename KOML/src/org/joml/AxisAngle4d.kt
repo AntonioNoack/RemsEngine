@@ -19,10 +19,6 @@ class AxisAngle4d(
     constructor(angle: Double, v: Vector3d) : this(angle, v.x, v.y, v.z)
     constructor(angle: Double, v: Vector3f) : this(angle, v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
 
-    constructor(q: Quaternionf) : this() {
-        set(q)
-    }
-
     constructor(q: Quaterniond) : this() {
         set(q)
     }
@@ -58,9 +54,6 @@ class AxisAngle4d(
         angle = acos + acos
         return this
     }
-
-    fun set(q: Quaternionf): AxisAngle4d =
-        setByQuaternion(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
 
     fun set(q: Quaterniond): AxisAngle4d = setByQuaternion(q.x, q.y, q.z, q.w)
 
@@ -138,31 +131,7 @@ class AxisAngle4d(
         return this
     }
 
-    fun set(m: Matrix3f): AxisAngle4d {
-        return set(
-            m.m00, m.m01, m.m02,
-            m.m10, m.m11, m.m12,
-            m.m20, m.m21, m.m22
-        )
-    }
-
     fun set(m: Matrix3d): AxisAngle4d {
-        return set(
-            m.m00, m.m01, m.m02,
-            m.m10, m.m11, m.m12,
-            m.m20, m.m21, m.m22
-        )
-    }
-
-    fun set(m: Matrix4f): AxisAngle4d {
-        return set(
-            m.m00, m.m01, m.m02,
-            m.m10, m.m11, m.m12,
-            m.m20, m.m21, m.m22
-        )
-    }
-
-    fun set(m: Matrix4x3f): AxisAngle4d {
         return set(
             m.m00, m.m01, m.m02,
             m.m10, m.m11, m.m12,
@@ -186,20 +155,8 @@ class AxisAngle4d(
         )
     }
 
-    fun get(q: Quaternionf): Quaternionf {
-        return q.set(this)
-    }
-
     fun get(q: Quaterniond): Quaterniond {
         return q.set(this)
-    }
-
-    fun get(m: Matrix4f): Matrix4f {
-        return m.set(this)
-    }
-
-    fun get(m: Matrix3f): Matrix3f {
-        return m.set(this)
     }
 
     fun get(m: Matrix4d): Matrix4d {

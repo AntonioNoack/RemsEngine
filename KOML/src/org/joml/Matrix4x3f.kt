@@ -990,10 +990,6 @@ open class Matrix4x3f : Matrix {
         return dst.set(this)
     }
 
-    fun getRotation(dst: AxisAngle4d): AxisAngle4d {
-        return dst.set(this)
-    }
-
     fun getUnnormalizedRotation(dst: Quaternionf): Quaternionf {
         return dst.setFromUnnormalized(this)
     }
@@ -1026,12 +1022,6 @@ open class Matrix4x3f : Matrix {
         arr.put(m30).put(m31).put(m32)
         return arr
     }
-
-    /*@JvmOverloads
-    fun get4x4(arr: FloatArray, offset: Int = 0): FloatArray {
-        MemUtil.INSTANCE.copy4x4(this, arr, offset)
-        return arr
-    }*/
 
     fun getTransposed(arr: FloatArray, offset: Int): FloatArray {
         arr[offset] = m00

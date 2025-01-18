@@ -30,15 +30,6 @@ open class Quaternionf(
         w = cos
     }
 
-    constructor(axisAngle: AxisAngle4d) : this() {
-        val sin = sin(axisAngle.angle * 0.5)
-        val cos = cos(axisAngle.angle * 0.5)
-        x = (axisAngle.x * sin).toFloat()
-        y = (axisAngle.y * sin).toFloat()
-        z = (axisAngle.z * sin).toFloat()
-        w = cos.toFloat()
-    }
-
     override val numComponents: Int get() = 4
     override fun getComp(i: Int): Double = when (i) {
         0 -> x
@@ -141,34 +132,6 @@ open class Quaternionf(
         return dst
     }
 
-    fun get(dst: AxisAngle4d): AxisAngle4d {
-        var x = x
-        var y = y
-        var z = z
-        var w = w
-        var s: Float
-        if (w > 1f) {
-            s = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
-            x *= s
-            y *= s
-            z *= s
-            w *= s
-        }
-        dst.angle = (2f * acos(w)).toDouble()
-        s = sqrt(1f - w * w)
-        if (s < 0.001f) {
-            dst.x = x.toDouble()
-            dst.y = y.toDouble()
-            dst.z = z.toDouble()
-        } else {
-            s = 1f / s
-            dst.x = (x * s).toDouble()
-            dst.y = (y * s).toDouble()
-            dst.z = (z * s).toDouble()
-        }
-        return dst
-    }
-
     fun get(dst: Quaterniond): Quaterniond {
         return dst.set(this)
     }
@@ -199,25 +162,12 @@ open class Quaternionf(
         return this.setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
-    fun set(axisAngle: AxisAngle4d): Quaternionf {
-        return this.setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
-    }
-
     fun setAngleAxis(angle: Float, x: Float, y: Float, z: Float): Quaternionf {
         val s = sin(angle * 0.5f)
         this.x = x * s
         this.y = y * s
         this.z = z * s
         w = cos(angle * 0.5f)
-        return this
-    }
-
-    fun setAngleAxis(angle: Double, x: Double, y: Double, z: Double): Quaternionf {
-        val s = sin(angle * 0.5)
-        this.x = (x * s).toFloat()
-        this.y = (y * s).toFloat()
-        this.z = (z * s).toFloat()
-        w = cos(angle * 0.5).toFloat()
         return this
     }
 
@@ -565,109 +515,6 @@ open class Quaternionf(
     }
 
     fun transformInverseUnit(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2f * (yy + zz) + 1f) * x + (2f * (xy + zw) * y + 2f * (xz - yw) * z),
-            2f * (xy - zw) * x + ((-2f * (xx + zz) + 1f) * y + 2f * (yz + xw) * z),
-            2f * (xz + yw) * x + (2f * (yz - xw) * y + (-2f * (xx + yy) + 1f) * z)
-        )
-    }
-
-    @JvmOverloads
-    fun transform(vec: Vector4f, dst: Vector4f = vec): Vector4f {
-        return this.transform(vec.x, vec.y, vec.z, dst)
-    }
-
-    @JvmOverloads
-    fun transformInverse(vec: Vector4f, dst: Vector4f = vec): Vector4f {
-        return this.transformInverse(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transform(x: Float, y: Float, z: Float, dst: Vector4f): Vector4f {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1f / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + 2f * (xy - zw) * k * y + 2f * (xz + yw) * k * z,
-            2f * (xy + zw) * k * x + (yy - xx - zz + ww) * k * y + 2f * (yz - xw) * k * z,
-            2f * (xz - yw) * k * x + 2f * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z
-        )
-    }
-
-    fun transformInverse(x: Float, y: Float, z: Float, dst: Vector4f): Vector4f {
-        val n = 1f / lengthSquared()
-        val qx = this.x * n
-        val qy = this.y * n
-        val qz = this.z * n
-        val qw = w * n
-        val xx = qx * qx
-        val yy = qy * qy
-        val zz = qz * qz
-        val ww = qw * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yz = qy * qz
-        val xw = qx * qw
-        val zw = qz * qw
-        val yw = qy * qw
-        val k = 1f / (xx + yy + zz + ww)
-        return dst.set(
-            ((xx - yy - zz + ww) * k) * x + ((2f * (xy + zw) * k) * y + (2f * (xz - yw) * k) * z),
-            (2f * (xy - zw) * k) * x + (((yy - xx - zz + ww) * k) * y + (2f * (yz + xw) * k) * z),
-            (2f * (xz + yw) * k) * x + ((2f * (yz - xw) * k) * y + ((zz - xx - yy + ww) * k) * z)
-        )
-    }
-
-    fun transformUnit(vec: Vector4f): Vector4f {
-        return this.transformUnit(vec.x, vec.y, vec.z, vec)
-    }
-
-    fun transformInverseUnit(vec: Vector4f): Vector4f {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, vec)
-    }
-
-    fun transformUnit(vec: Vector4f, dst: Vector4f): Vector4f {
-        return this.transformUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformInverseUnit(vec: Vector4f, dst: Vector4f): Vector4f {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformUnit(x: Float, y: Float, z: Float, dst: Vector4f): Vector4f {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2f * (yy + zz) + 1f) * x + (2f * (xy - zw)) * y + (2f * (xz + yw)) * z,
-            (2f * (xy + zw)) * x + (-2f * (xx + zz) + 1f) * y + (2f * (yz - xw)) * z,
-            (2f * (xz - yw)) * x + (2f * (yz + xw)) * y + (-2f * (xx + yy) + 1f) * z
-        )
-    }
-
-    fun transformInverseUnit(x: Float, y: Float, z: Float, dst: Vector4f): Vector4f {
         val xx = this.x * this.x
         val xy = this.x * this.y
         val xz = this.x * this.z

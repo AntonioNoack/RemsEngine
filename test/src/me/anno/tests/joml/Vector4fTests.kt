@@ -23,9 +23,7 @@ class Vector4fTests {
         assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(Vector4d(1.0, 2.0, 3.0, 4.0)))
         assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(Vector4i(1, 2, 3, 4)))
         assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(Vector3f(1f, 2f, 3f), 4f))
-        assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(Vector3i(1, 2, 3), 4f))
         assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(Vector2f(1f, 2f), 3f, 4f))
-        assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(Vector2i(1, 2), 3f, 4f))
         assertEquals(Vector4f(1f, 2f, 3f, 4f), Vector4f(floatArrayOf(0f, 1f, 2f, 3f, 4f), 1))
     }
 

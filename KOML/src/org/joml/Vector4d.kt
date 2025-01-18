@@ -23,14 +23,10 @@ open class Vector4d(
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)
     constructor(v: Vector4i) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
-    constructor(v: Vector3d, w: Double) : this(v.x, v.y, v.z, w)
-    constructor(v: Vector3i, w: Double) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
-    constructor(v: Vector2d, z: Double, w: Double) : this(v.x, v.y, z, w)
-    constructor(v: Vector2i, z: Double, w: Double) : this(v.x.toDouble(), v.y.toDouble(), z, w)
-    constructor(d: Double) : this(d, d, d, d)
     constructor(v: Vector4f) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
-    constructor(v: Vector3f, w: Double) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
-    constructor(v: Vector2f, z: Double, w: Double) : this(v.x.toDouble(), v.y.toDouble(), z, w)
+    constructor(v: Vector3d, w: Double) : this(v.x, v.y, v.z, w)
+    constructor(v: Vector2d, z: Double, w: Double) : this(v.x, v.y, z, w)
+    constructor(d: Double) : this(d, d, d, d)
     constructor(v: DoubleArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
     constructor(v: FloatArray, i: Int = 0) : this() {
         set(v, i)
@@ -63,28 +59,12 @@ open class Vector4d(
         return set(v.x, v.y, v.z, w)
     }
 
-    fun set(v: Vector3i, w: Double): Vector4d {
-        return set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
-    }
-
-    fun set(v: Vector3f, w: Double): Vector4d {
-        return set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), w)
-    }
-
     fun set(v: Vector2d, z: Double, w: Double): Vector4d {
         return set(v.x, v.y, z, w)
     }
 
-    fun set(v: Vector2i, z: Double, w: Double): Vector4d {
-        return set(v.x.toDouble(), v.y.toDouble(), z, w)
-    }
-
     fun set(d: Double): Vector4d {
         return set(d, d, d, d)
-    }
-
-    fun set(v: Vector2f, z: Double, w: Double): Vector4d {
-        return set(v.x.toDouble(), v.y.toDouble(), z, w)
     }
 
     fun set(x: Float, y: Float, z: Float, w: Float): Vector4d {
@@ -100,10 +80,7 @@ open class Vector4d(
     }
 
     fun set(x: Double, y: Double, z: Double): Vector4d {
-        this.x = x
-        this.y = y
-        this.z = z
-        return this
+        return set(x, y, z, w)
     }
 
     fun set(xyzw: DoubleArray, offset: Int = 0): Vector4d {
@@ -131,17 +108,8 @@ open class Vector4d(
     }
 
     @JvmOverloads
-    fun sub(v: Vector4f, dst: Vector4d = this): Vector4d {
-        return sub(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble(), dst)
-    }
-
-    @JvmOverloads
-    fun sub(x: Double, y: Double, z: Double, w: Double, dst: Vector4d = this): Vector4d {
-        dst.x = this.x - x
-        dst.y = this.y - y
-        dst.z = this.z - z
-        dst.w = this.w - w
-        return dst
+    fun sub(vx: Double, vy: Double, vz: Double, vw: Double, dst: Vector4d = this): Vector4d {
+        return dst.set(x - vx, y - vy, z - vz, w - vw)
     }
 
     @JvmOverloads
@@ -213,29 +181,17 @@ open class Vector4d(
 
     @JvmOverloads
     fun mul(v: Vector4d, dst: Vector4d = this): Vector4d {
-        dst.x = x * v.x
-        dst.y = y * v.y
-        dst.z = z * v.z
-        dst.w = w * v.w
-        return dst
+        return dst.set(x * v.x, y * v.y, z * v.z, w * v.w)
     }
 
     @JvmOverloads
     fun div(v: Vector4d, dst: Vector4d = this): Vector4d {
-        dst.x = x / v.x
-        dst.y = y / v.y
-        dst.z = z / v.z
-        dst.w = w / v.w
-        return dst
+        return dst.set(x / v.x, y / v.y, z / v.z, w / v.w)
     }
 
     @JvmOverloads
     fun mul(v: Vector4f, dst: Vector4d = this): Vector4d {
-        dst.x = x * v.x.toDouble()
-        dst.y = y * v.y.toDouble()
-        dst.z = z * v.z.toDouble()
-        dst.w = w * v.w.toDouble()
-        return dst
+        return dst.set(x * v.x, y * v.y, z * v.z, w * v.w)
     }
 
     @JvmOverloads
@@ -252,11 +208,7 @@ open class Vector4d(
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = w
-        return dst
+        return dst.set(rx, ry, rz, w)
     }
 
     private fun mulGeneric(mat: Matrix4d, dst: Vector4d): Vector4d {
@@ -264,11 +216,7 @@ open class Vector4d(
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
         val rw = mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = rw
-        return dst
+        return dst.set(rx, ry, rz, rw)
     }
 
     fun mulAffineTranspose(mat: Matrix4d, dst: Vector4d): Vector4d {
@@ -300,11 +248,7 @@ open class Vector4d(
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = w
-        return dst
+        return dst.set(rx, ry, rz, w)
     }
 
     @JvmOverloads
@@ -312,11 +256,7 @@ open class Vector4d(
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = w
-        return dst
+        return dst.set(rx, ry, rz, w)
     }
 
     @JvmOverloads
@@ -328,11 +268,7 @@ open class Vector4d(
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = w
-        return dst
+        return dst.set(rx, ry, rz, w)
     }
 
     private fun mulGeneric(mat: Matrix4f, dst: Vector4d): Vector4d {
@@ -340,11 +276,7 @@ open class Vector4d(
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
         val rw = mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = rw
-        return dst
+        return dst.set(rx, ry, rz, rw)
     }
 
     @JvmOverloads
@@ -353,11 +285,7 @@ open class Vector4d(
         val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
         val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
         val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        dst.w = 1.0
-        return dst
+        return dst.set(rx, ry, rz, 1.0)
     }
 
     fun mulProject(mat: Matrix4d, dst: Vector3d): Vector3d {
@@ -365,19 +293,12 @@ open class Vector4d(
         val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
         val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
         val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     @JvmOverloads
     fun mul(scalar: Double, dst: Vector4d = this): Vector4d {
-        dst.x = x * scalar
-        dst.y = y * scalar
-        dst.z = z * scalar
-        dst.w = w * scalar
-        return dst
+        return dst.set(x * scalar, y * scalar, z * scalar, w * scalar)
     }
 
     @JvmOverloads
@@ -385,18 +306,14 @@ open class Vector4d(
 
     @JvmOverloads
     fun rotate(quat: Quaterniond, dst: Vector4d = this): Vector4d {
-        quat.transform(this, dst)
-        return dst
+        val tmp = Vector3d(x, y, z).rotate(quat)
+        return dst.set(tmp.x, tmp.y, tmp.z)
     }
 
     @JvmOverloads
-    fun rotateInv(q: Quaterniond, dst: Vector4d = this): Vector4d {
-        synchronized(q) {
-            q.conjugate()
-            q.transform(this, dst)
-            q.conjugate()
-        }
-        return dst
+    fun rotateInv(quat: Quaterniond, dst: Vector4d = this): Vector4d {
+        val tmp = Vector3d(x, y, z).rotateInv(quat)
+        return dst.set(tmp.x, tmp.y, tmp.z)
     }
 
     /**

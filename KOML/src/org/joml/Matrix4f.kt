@@ -1362,15 +1362,7 @@ open class Matrix4f : Matrix {
         return dst.set(this)
     }
 
-    fun get3x3(dst: Matrix3d): Matrix3d {
-        return dst.set(this)
-    }
-
     fun getRotation(dst: AxisAngle4f): AxisAngle4f {
-        return dst.set(this)
-    }
-
-    fun getRotation(dst: AxisAngle4d): AxisAngle4d {
         return dst.set(this)
     }
 

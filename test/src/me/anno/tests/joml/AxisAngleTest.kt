@@ -141,14 +141,11 @@ class AxisAngleTest {
         assertEquals(AxisAngle4d(1.0, 2.0, 3.0, 4.0), AxisAngle4d().set(AxisAngle4d(1.0, 2.0, 3.0, 4.0)))
         assertEquals(AxisAngle4d(1.0, 2.0, 3.0, 4.0), AxisAngle4d(AxisAngle4f(1f, 2f, 3f, 4f)))
         assertEquals(AxisAngle4d(1.0, 2.0, 3.0, 4.0), AxisAngle4d(AxisAngle4d(1.0, 2.0, 3.0, 4.0)))
-        val rotation = Quaternionf().rotationXYZ(1f, 2f, 3f)
+        val rotation = Quaterniond().rotationXYZ(1.0, 2.0, 3.0)
         val expected = AxisAngle4d().set(rotation)
         assertEquals(expected, AxisAngle4d().set(Quaterniond(rotation)))
-        assertEquals1(expected, AxisAngle4d().set(Matrix3f().rotate(rotation)), e)
         assertEquals1(expected, AxisAngle4d().set(Matrix3d().rotate(rotation)), e)
-        assertEquals1(expected, AxisAngle4d().set(Matrix4f().rotate(rotation)), e)
         assertEquals1(expected, AxisAngle4d().set(Matrix4d().rotate(rotation)), e)
-        assertEquals1(expected, AxisAngle4d().set(Matrix4x3f().rotate(rotation)), e)
         assertEquals1(expected, AxisAngle4d().set(Matrix4x3d().rotate(rotation)), e)
     }
 
@@ -158,7 +155,6 @@ class AxisAngleTest {
         val rotation = Quaternionf().rotationXYZ(1f, 2f, 3f)
         val expected = AxisAngle4f().set(rotation)
         assertEquals(expected, expected.get(AxisAngle4f()))
-        assertEquals1(AxisAngle4d().set(rotation), expected.get(AxisAngle4d()), e)
         assertEquals(Matrix3f().rotate(rotation), expected.get(Matrix3f()), e)
         assertEquals(Matrix3d().rotate(rotation), expected.get(Matrix3d()), e)
         assertEquals(Matrix4f().rotate(rotation), expected.get(Matrix4f()), e)
@@ -169,13 +165,11 @@ class AxisAngleTest {
     @Test
     fun testGettersG() {
         val e = 1e-6
-        val rotation = Quaternionf().rotationXYZ(1f, 2f, 3f)
+        val rotation = Quaterniond().rotationXYZ(1.0, 2.0, 3.0)
         val expected = AxisAngle4d().set(rotation)
         assertEquals1(AxisAngle4f().set(rotation), expected.get(AxisAngle4f()), e)
         assertEquals1(AxisAngle4d().set(rotation), expected.get(AxisAngle4d()), e)
-        assertEquals(Matrix3f().rotate(rotation), expected.get(Matrix3f()), e)
         assertEquals(Matrix3d().rotate(rotation), expected.get(Matrix3d()), e)
-        assertEquals(Matrix4f().rotate(rotation), expected.get(Matrix4f()), e)
         assertEquals(Matrix4d().rotate(rotation), expected.get(Matrix4d()), e)
         // 4x3 doesn't exist at all?
     }

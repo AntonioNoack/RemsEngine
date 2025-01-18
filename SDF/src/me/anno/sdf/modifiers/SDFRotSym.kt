@@ -1,16 +1,16 @@
 package me.anno.sdf.modifiers
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.sdf.SDFComponent.Companion.appendUniform
-import me.anno.sdf.SDFComponent.Companion.defineUniform
-import me.anno.sdf.VariableCounter
-import me.anno.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
+import me.anno.sdf.SDFComponent.Companion.appendUniform
+import me.anno.sdf.SDFComponent.Companion.defineUniform
+import me.anno.sdf.VariableCounter
+import me.anno.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.roundToIntOr
@@ -65,18 +65,20 @@ class SDFRotSym : PositionMapper() {
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val offset = offset
-        pos.sub(offset.x, offset.y, offset.z, 0f)
-        rotation.transform(pos)
-        var angle = atan2(pos.z, pos.x)
+        val pos3 = JomlPools.vec3f.borrow()
+        pos3.set(pos).sub(offset)
+        rotation.transform(pos3)
+        var angle = atan2(pos3.z, pos3.x)
         val slices = slices
         val invSlice = slices * invTau
         if (slices < 1e9) {
             angle = round(angle * invSlice) / invSlice
         }
         // todo is this the correct direction?
-        pos.rotateY(-angle)
-        rotation.transformInverse(pos)
-        pos.add(offset.x, offset.y, offset.z, 0f)
+        pos3.rotateY(-angle)
+        rotation.transformInverse(pos3)
+        pos3.add(offset)
+        pos.set(pos3, pos.w)
     }
 
     override fun applyTransform(bounds: AABBf) {

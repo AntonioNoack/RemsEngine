@@ -6,10 +6,7 @@ import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.joml.Vector2f
-import org.joml.Vector2i
 import org.joml.Vector3d
-import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
@@ -26,9 +23,6 @@ class Vector4dTests {
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector4d(1.0, 2.0, 3.0, 4.0)))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector4i(1, 2, 3, 4)))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector3d(1.0, 2.0, 3.0), 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector3i(1, 2, 3), 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector2f(1.0, 2.0), 3.0, 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(Vector2i(1, 2), 3.0, 4.0))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(floatArrayOf(0f, 1f, 2f, 3f, 4f), 1))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d(doubleArrayOf(0.0, 1.0, 2.0, 3.0, 4.0), 1))
     }
@@ -43,9 +37,6 @@ class Vector4dTests {
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d().set(Vector4i(1, 2, 3, 4)))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 1.0), Vector4d().set(1.0, 2.0, 3.0))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d().set(Vector3d(1.0, 2.0, 3.0), 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d().set(Vector3i(1, 2, 3), 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d().set(Vector2f(1.0, 2.0), 3.0, 4.0))
-        assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d().set(Vector2i(1, 2), 3.0, 4.0))
         assertEquals(Vector4d(1.0, 2.0, 3.0, 4.0), Vector4d().set(doubleArrayOf(0.0, 1.0, 2.0, 3.0, 4.0), 1))
     }
 

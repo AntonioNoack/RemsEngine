@@ -485,60 +485,6 @@ open class Quaterniond(
         )
     }
 
-    @JvmOverloads
-    fun transform(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transform(vec.x, vec.y, vec.z, dst)
-    }
-
-    @JvmOverloads
-    fun transformInverse(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transformInverse(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transform(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + (2.0 * (xy - zw) * k * y + 2.0 * (xz + yw) * k * z),
-            2.0 * (xy + zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz - xw) * k * z),
-            2.0 * (xz - yw) * k * x + (2.0 * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z),
-            dst.w
-        )
-    }
-
-    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val n = 1.0 / lengthSquared()
-        val qx = this.x * n
-        val qy = this.y * n
-        val qz = this.z * n
-        val qw = w * n
-        val xx = qx * qx
-        val yy = qy * qy
-        val zz = qz * qz
-        val ww = qw * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yz = qy * qz
-        val xw = qx * qw
-        val zw = qz * qw
-        val yw = qy * qw
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + (2.0 * (xy + zw) * k * y + 2.0 * (xz - yw) * k * z),
-            2.0 * (xy - zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz + xw) * k * z),
-            2.0 * (xz + yw) * k * x + (2.0 * (yz - xw) * k * y + (zz - xx - yy + ww) * k * z)
-        )
-    }
-
     fun transformUnit(vec: Vector3d, dst: Vector3d): Vector3d {
         return this.transformUnit(vec.x, vec.y, vec.z, dst)
     }
@@ -578,95 +524,6 @@ open class Quaterniond(
             (-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy + zw) * y + 2.0 * (xz - yw) * z),
             2.0 * (xy - zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz + xw) * z),
             2.0 * (xz + yw) * x + (2.0 * (yz - xw) * y + (-2.0 * (xx + yy) + 1.0) * z)
-        )
-    }
-
-    @JvmOverloads
-    fun transformUnit(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transformUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    @JvmOverloads
-    fun transformInverseUnit(vec: Vector4d, dst: Vector4d = vec): Vector4d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
-    }
-
-    fun transformUnit(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy - zw) * y + 2.0 * (xz + yw) * z),
-            2.0 * (xy + zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz - xw) * z),
-            2.0 * (xz - yw) * x + (2.0 * (yz + xw) * y + (-2.0 * (xx + yy) + 1.0) * z),
-            dst.w
-        )
-    }
-
-    fun transformInverseUnit(x: Double, y: Double, z: Double, dst: Vector4d): Vector4d {
-        val xx = this.x * this.x
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val xw = this.x * w
-        val yy = this.y * this.y
-        val yz = this.y * this.z
-        val yw = this.y * w
-        val zz = this.z * this.z
-        val zw = this.z * w
-        return dst.set(
-            (-2.0 * (yy + zz) + 1.0) * x + (2.0 * (xy + zw) * y + 2.0 * (xz - yw) * z),
-            2.0 * (xy - zw) * x + ((-2.0 * (xx + zz) + 1.0) * y + 2.0 * (yz + xw) * z),
-            2.0 * (xz + yw) * x + (2.0 * (yz - xw) * y + (-2.0 * (xx + yy) + 1.0) * z),
-            dst.w
-        )
-    }
-
-    fun transform(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + (2.0 * (xy - zw) * k * y + 2.0 * (xz + yw) * k * z),
-            2.0 * (xy + zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz - xw) * k * z),
-            2.0 * (xz - yw) * k * x + (2.0 * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z)
-        )
-    }
-
-    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
-        val n = 1.0 / lengthSquared()
-        val qx = this.x * n
-        val qy = this.y * n
-        val qz = this.z * n
-        val qw = w * n
-        val xx = qx * qx
-        val yy = qy * qy
-        val zz = qz * qz
-        val ww = qw * qw
-        val xy = qx * qy
-        val xz = qx * qz
-        val yz = qy * qz
-        val xw = qx * qw
-        val zw = qz * qw
-        val yw = qy * qw
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            (xx - yy - zz + ww) * k * x + (2.0 * (xy + zw) * k * y + 2.0 * (xz - yw) * k * z),
-            2.0 * (xy - zw) * k * x + ((yy - xx - zz + ww) * k * y + 2.0 * (yz + xw) * k * z),
-            2.0 * (xz + yw) * k * x + (2.0 * (yz - xw) * k * y + (zz - xx - yy + ww) * k * z)
         )
     }
 
@@ -1123,15 +980,6 @@ open class Quaterniond(
             this.w * y - this.x * z + this.y * w + this.z * x,
             this.w * z + this.x * y - this.y * x + this.z * w,
             this.w * w - this.x * x - this.y * y - this.z * z
-        )
-    }
-
-    fun rotationAxis(axisAngle: AxisAngle4f): Quaterniond {
-        return this.rotationAxis(
-            axisAngle.angle.toDouble(),
-            axisAngle.x.toDouble(),
-            axisAngle.y.toDouble(),
-            axisAngle.z.toDouble()
         )
     }
 
