@@ -21,6 +21,7 @@ import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.image.Image
 import me.anno.image.ImageCache
+import me.anno.input.GLFWListeners
 import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Input.mouseLockWindow
@@ -188,7 +189,7 @@ object WindowManagement {
     @JvmStatic
     fun addCallbacks(window: OSWindow) {
         window.addCallbacks()
-        Input.initForGLFW(window)
+        GLFWListeners.registerCallbacks(window)
     }
 
     @JvmStatic

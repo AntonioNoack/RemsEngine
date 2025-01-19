@@ -199,15 +199,21 @@ open class OSWindow(var title: String) {
     private val xs = DoubleArray(1)
     private val ys = DoubleArray(1)
     fun updateMousePosition() {
-        GLFW.glfwGetCursorPos(pointer, xs, ys)
-        Input.onMouseMove(this, xs[0].toFloat(), ys[0].toFloat())
+        if (isInitialized()) {
+            GLFW.glfwGetCursorPos(pointer, xs, ys)
+            Input.onMouseMove(this, xs[0].toFloat(), ys[0].toFloat())
+        }
     }
 
     fun updateTitle() {
-        if (title != oldTitle) {
+        if (isInitialized() && title != oldTitle) {
             GLFW.glfwSetWindowTitle(pointer, title)
             oldTitle = title
         }
+    }
+
+    fun isInitialized(): Boolean {
+        return pointer != 0L
     }
 
     open fun addCallbacks() {

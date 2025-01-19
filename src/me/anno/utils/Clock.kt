@@ -72,8 +72,12 @@ class Clock(
         val dt = dt0 * 1e-9
         lastTime = time
         if (dt > minTime) {
-            val nanosPerElement = dt0.toDouble() / elementCount
-            reportStopTime(dt, wasUsedFor, nanosPerElement)
+            if (elementCount > 1) {
+                val nanosPerElement = dt0.toDouble() / elementCount
+                reportStopTime(dt, wasUsedFor, nanosPerElement)
+            } else {
+                reportStopTime(dt, wasUsedFor)
+            }
         }
         return dt / elementCount
     }

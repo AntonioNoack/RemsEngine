@@ -54,7 +54,7 @@ class Cursor : ICacheData {
         // the cursor is only updating when moving the mouse???
         // bug in the api maybe, how to fix that? -> we can't really fix that
         // -> don't use it as an important feature
-        if (this == window.lastCursor) return
+        if (this == window.lastCursor || !window.isInitialized()) return
         glfwSetCursor(window.pointer, this.pointer)
         window.lastCursor = this
     }
