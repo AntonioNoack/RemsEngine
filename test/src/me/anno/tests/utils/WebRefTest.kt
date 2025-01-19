@@ -2,10 +2,10 @@ package me.anno.tests.utils
 
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.WebRef
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class WebRefTest {
     @Suppress("PrivatePropertyName")

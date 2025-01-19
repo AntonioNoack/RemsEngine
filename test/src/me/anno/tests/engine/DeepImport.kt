@@ -5,7 +5,7 @@ import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
-import kotlin.test.assertEquals
+import me.anno.utils.assertions.assertEquals
 
 object DeepImport {
 

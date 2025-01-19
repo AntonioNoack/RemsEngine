@@ -4,11 +4,11 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.io.config.ConfigBasics
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNull
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import kotlin.concurrent.thread
-import kotlin.test.assertNull
 
 class HierarchicalDatabaseTest {
 

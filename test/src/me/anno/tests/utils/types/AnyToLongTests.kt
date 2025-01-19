@@ -1,8 +1,8 @@
 package me.anno.tests.utils.types
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.AnyToLong
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class AnyToLongTests {
     @Test

@@ -5,15 +5,15 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.ECSRegistry
 import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertIs
 import org.junit.jupiter.api.Test
-import kotlin.test.assertIs
 
 object TestLazyRegistry {
     @Test
     fun testPrefab() {
         ECSRegistry.init()
-        assertIs<Prefab>(Saveable.create("Prefab"))
-        assertIs<CSet>(Saveable.create("CSet"))
-        assertIs<CAdd>(Saveable.create("CAdd"))
+        assertIs(Prefab::class, Saveable.create("Prefab"))
+        assertIs(CSet::class, Saveable.create("CSet"))
+        assertIs(CAdd::class, Saveable.create("CAdd"))
     }
 }

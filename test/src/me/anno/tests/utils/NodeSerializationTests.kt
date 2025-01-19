@@ -10,8 +10,8 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.saveable.SaveableArray
 import me.anno.ui.editor.code.codemirror.LanguageStyle
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class NodeSerializationTests {
 

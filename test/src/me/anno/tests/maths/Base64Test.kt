@@ -2,9 +2,9 @@ package me.anno.tests.maths
 
 import me.anno.io.base64.Base64
 import me.anno.io.base64.Base64Impl
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNull
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class Base64Test {
 
@@ -55,7 +55,7 @@ class Base64Test {
         val enc0 = "8J+MjSE/"
         assertEquals(enc0, Base64.encodeBase64(msg0, true))
         testDecode(enc0, msg0)
-        val inst1 = Base64Impl('(',')')
+        val inst1 = Base64Impl('(', ')')
         val msg1 = "🌍!?"
         val enc1 = "8J(MjSE)"
         assertEquals(enc1, inst1.encodeBase64(msg1, true))

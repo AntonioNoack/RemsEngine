@@ -4,11 +4,11 @@ import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback.Companion.mapCallback
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import kotlin.test.assertIs
 
 class CallbackMappingTest {
 
@@ -80,7 +80,7 @@ class CallbackMappingTest {
                 }
             }, { result, err ->
                 assertNull(result)
-                assertIs<NullPointerException>(err)
+                assertIs(NullPointerException::class, err)
                 hasResult++
             })
         checkResult { hasResult }
@@ -98,7 +98,7 @@ class CallbackMappingTest {
                 }
             }, { result, err ->
                 assertNull(result)
-                assertIs<NullPointerException>(err)
+                assertIs(NullPointerException::class, err)
                 hasResult++
             })
         checkResult { hasResult }

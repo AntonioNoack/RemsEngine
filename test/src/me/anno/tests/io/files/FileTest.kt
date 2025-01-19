@@ -1,9 +1,9 @@
 package me.anno.tests.io.files
 
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertNull
 import org.apache.logging.log4j.LogManager
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 fun main() {
     val logger = LogManager.getLogger("FileTest")

@@ -87,6 +87,7 @@ import me.anno.utils.Color.r01
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists.createList
@@ -104,7 +105,6 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.random.Random
-import kotlin.test.assertEquals
 
 // bake lighting:
 //  - find out where sun shines directly (0..1)

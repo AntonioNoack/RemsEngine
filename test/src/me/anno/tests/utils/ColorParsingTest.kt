@@ -4,8 +4,8 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.rgba
 import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNull
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNull
 
 class ColorParsingTest {
 

@@ -1,8 +1,8 @@
 package me.anno.tests.utils
 
 import me.anno.parser.SimpleExpressionParser.parseDouble
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class SimpleParserTest {
 
@@ -65,5 +65,4 @@ class SimpleParserTest {
     fun test(expr: String, value: Double) {
         assertEquals(parseDouble(expr), value)
     }
-
 }

@@ -1,21 +1,19 @@
 package me.anno.tests.gfx.graphs
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
-import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.RenderGraphEditor
 import me.anno.tests.gfx.metalRoughness
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import kotlin.test.assertEquals
+import me.anno.utils.assertions.assertEquals
 
 /**
  * Displays a post-processing pipeline in graph form, which can be edited in real-time.

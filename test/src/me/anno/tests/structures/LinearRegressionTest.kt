@@ -1,9 +1,9 @@
 package me.anno.tests.structures
 
 import me.anno.maths.LinearRegression
+import me.anno.utils.assertions.assertEquals
 import org.joml.Vector2d
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class LinearRegressionTest {
     @Test

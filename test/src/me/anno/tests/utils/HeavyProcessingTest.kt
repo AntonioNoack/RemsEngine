@@ -1,9 +1,9 @@
 package me.anno.tests.utils
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.HeavyProcessing.splitWork
 import me.anno.utils.structures.tuples.IntPair
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class HeavyProcessingTest {
     @Test

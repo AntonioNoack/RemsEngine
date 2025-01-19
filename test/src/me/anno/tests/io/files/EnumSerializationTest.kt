@@ -2,12 +2,12 @@ package me.anno.tests.io.files
 
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class EnumSerializationTest : Saveable() {
     @SerializedProperty

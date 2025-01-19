@@ -1,9 +1,9 @@
 package me.anno.tests.ui
 
-import me.anno.ui.editor.code.CodeBlockCollapser
 import me.anno.ui.editor.code.CodeBlock
+import me.anno.ui.editor.code.CodeBlockCollapser
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class CodeEditorTest {
 

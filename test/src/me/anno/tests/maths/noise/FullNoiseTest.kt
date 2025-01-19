@@ -4,12 +4,12 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.smoothStepUnsafe
 import me.anno.maths.noise.FullNoise
 import me.anno.tests.LOGGER
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
 import kotlin.math.min
-import kotlin.test.assertEquals
 
 // todo test gradients
 class FullNoiseTest {

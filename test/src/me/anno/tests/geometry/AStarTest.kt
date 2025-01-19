@@ -2,11 +2,11 @@ package me.anno.tests.geometry
 
 import me.anno.maths.paths.PathFinding.aStar
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.Collections.crossMap
 import org.joml.Vector2d
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNull
 
 class AStarTest {
 

@@ -87,8 +87,48 @@ fun assertEquals(expected: Any?, actual: Any?, message: () -> String) {
     assertTrue(expected == actual) { "${message()}, \n${str(expected)} != \n${str(actual)}" }
 }
 
+fun assertEquals(expected: ByteArray?, actual: ByteArray?, message: String = "expected equal values") {
+    assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
 fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {
     assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
+fun assertEquals(expected: LongArray?, actual: LongArray?, message: String = "expected equal values") {
+    assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
+fun assertEquals(expected: FloatArray?, actual: FloatArray?, message: String = "expected equal values") {
+    assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
+fun assertEquals(expected: DoubleArray?, actual: DoubleArray?, message: String = "expected equal values") {
+    assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
+fun assertContentEquals(expected: ByteArray?, actual: ByteArray?, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
+}
+
+fun assertContentEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
+}
+
+fun assertContentEquals(expected: LongArray?, actual: LongArray?, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
+}
+
+fun assertContentEquals(expected: FloatArray?, actual: FloatArray?, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
+}
+
+fun assertContentEquals(expected: DoubleArray?, actual: DoubleArray?, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
+}
+
+fun <V> assertContentEquals(expected: List<V>, actual: List<V>, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
 }
 
 fun assertEquals(expected: Int, actual: Int, message: String = "expected equal values") {

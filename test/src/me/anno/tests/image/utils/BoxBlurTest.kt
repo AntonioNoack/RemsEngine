@@ -1,8 +1,8 @@
 package me.anno.tests.image.utils
 
 import me.anno.image.utils.BoxBlur
+import me.anno.utils.assertions.assertContentEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertContentEquals
 
 class BoxBlurTest {
 

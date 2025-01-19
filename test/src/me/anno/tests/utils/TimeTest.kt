@@ -2,11 +2,11 @@ package me.anno.tests.utils
 
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.test.assertEquals
 
 class TimeTest {
 

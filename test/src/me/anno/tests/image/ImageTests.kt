@@ -6,11 +6,11 @@ import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertNull
 import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2i
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 class ImageTests {
 
@@ -76,7 +76,7 @@ class ImageTests {
         val image = createSampleImage(true)
         val texture = TextureCache[image.ref, false]
         assertNotNull(texture)
-        val clonedImage = texture.createImage(false, withAlpha = true)
+        val clonedImage = texture!!.createImage(false, withAlpha = true)
         assertTrue(clonedImage !== image)
         assertTrue(clonedImage.data.contentEquals(image.data))
     }

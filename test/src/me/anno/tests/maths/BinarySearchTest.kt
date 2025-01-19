@@ -1,10 +1,10 @@
 package me.anno.tests.maths
 
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.search.BinarySearch.binarySearch
 import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class BinarySearchTest {
 

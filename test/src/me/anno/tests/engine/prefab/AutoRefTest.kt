@@ -9,8 +9,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 /**
  * Tests whether .ref creates a correct prefab:

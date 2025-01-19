@@ -7,11 +7,11 @@ import me.anno.maths.bvh.BLASLeaf
 import me.anno.maths.bvh.BLASNode
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class BVHBuilderTest {
 

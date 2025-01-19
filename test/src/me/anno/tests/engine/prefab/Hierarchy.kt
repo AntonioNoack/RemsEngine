@@ -13,11 +13,11 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ScenePrefab
 import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
-import me.anno.io.json.generic.JsonFormatter
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
-import me.anno.utils.OS
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Planef
 import org.joml.Vector3d
@@ -25,8 +25,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.math.PI
 import kotlin.random.Random
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class HierarchyTests {
 
@@ -131,12 +129,10 @@ class HierarchyTests {
         assertTrue(sample1 is Entity)
         val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight", "PL")
         prefab[child, "lightSize"] = PI
-        val sample2 = prefab.getSampleInstance()
-        assertTrue(sample2 is Entity)
+        val sample2 = prefab.getSampleInstance() as Entity
         assertEquals(sample2.components.count { it is PointLight }, 1)
-        val light1 = Hierarchy.getInstanceAt(sample2, child)
-        println("found ${light1?.prefabPath} at $child")
-        assertTrue(light1 is PointLight)
+        val light1 = Hierarchy.getInstanceAt(sample2, child) as PointLight
+        println("found ${light1.prefabPath} at $child")
         assertEquals(light1.lightSize, PI)
     }
 

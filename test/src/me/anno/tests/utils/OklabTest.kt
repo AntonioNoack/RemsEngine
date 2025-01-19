@@ -1,10 +1,10 @@
 package me.anno.tests.utils
 
 import me.anno.ui.editor.color.spaces.Oklab
+import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
-import kotlin.test.assertEquals
 
 class OklabTest {
     @Test

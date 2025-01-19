@@ -2,6 +2,7 @@ package me.anno.tests.engine
 
 import me.anno.engine.raycast.BlockTracing
 import me.anno.engine.raycast.RayQuery
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
@@ -9,7 +10,6 @@ import org.joml.AABBi
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 import java.util.Random
-import kotlin.test.assertEquals
 
 // todo test a more complex world
 class BlockTracingTest {

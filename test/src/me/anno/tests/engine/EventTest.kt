@@ -2,8 +2,8 @@ package me.anno.tests.engine
 
 import me.anno.engine.Events.addEvent
 import me.anno.engine.Events.workEventTasks
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class EventTest {
     @Test

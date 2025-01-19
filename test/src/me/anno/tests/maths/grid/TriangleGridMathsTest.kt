@@ -1,21 +1,21 @@
 package me.anno.tests.maths.grid
 
+import me.anno.maths.Maths.TAU
 import me.anno.maths.chunks.triangles.TriangleGridMaths.coordsToIndex
 import me.anno.maths.chunks.triangles.TriangleGridMaths.getNeighbors
 import me.anno.maths.chunks.triangles.TriangleGridMaths.getVertices
 import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCoords
-import me.anno.maths.Maths.TAU
+import me.anno.utils.assertions.assertContentEquals
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertSame
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2d
 import org.joml.Vector2i
 import org.junit.jupiter.api.Test
 import kotlin.math.atan2
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class TriangleGridMathsTest {
 

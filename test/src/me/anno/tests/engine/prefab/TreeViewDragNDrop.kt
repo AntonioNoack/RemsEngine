@@ -8,8 +8,8 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.ECSTreeView
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 /**
  * a few tests to verify that changing the order of Entities within the ECSTreeView is possible
@@ -41,7 +41,8 @@ class TreeViewDragNDrop {
     }
 
     fun checkPrefab(prefab: Prefab, adds: List<CAdd>, sets: List<CSet>) {
-        assertContentEquals(adds, prefab.adds.entries
+        assertContentEquals(
+            adds, prefab.adds.entries
             .sortedBy { it.key.depth }
             .flatMap { it.value }
         )

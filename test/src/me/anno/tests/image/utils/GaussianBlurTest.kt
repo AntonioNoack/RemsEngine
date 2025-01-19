@@ -1,9 +1,9 @@
 package me.anno.tests.image.utils
 
 import me.anno.image.utils.GaussianBlur
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.math.exp
-import kotlin.test.assertEquals
 
 class GaussianBlurTest {
 

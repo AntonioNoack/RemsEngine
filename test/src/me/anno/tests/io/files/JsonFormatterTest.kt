@@ -1,8 +1,8 @@
 package me.anno.tests.io.files
 
 import me.anno.io.json.generic.JsonFormatter
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class JsonFormatterTest {
     @Test

@@ -2,9 +2,9 @@ package me.anno.tests.utils
 
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Codepoints.countCodepoints
+import me.anno.utils.assertions.assertContentEquals
+import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
 
 class CodepointsTest {
     @Test

@@ -1,11 +1,11 @@
 package me.anno.tests.utils
 
 import me.anno.Engine
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 @Suppress("DEPRECATION")
 class ProcessingGroupTest {

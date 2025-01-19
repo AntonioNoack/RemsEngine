@@ -6,11 +6,11 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.indexOf2
 import java.io.IOException
-import kotlin.test.assertEquals
 
 /**
  * todo parse Unity's shaders and convert them to Rem's Engine

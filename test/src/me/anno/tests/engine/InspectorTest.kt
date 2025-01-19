@@ -2,9 +2,9 @@ package me.anno.tests.engine
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
 
 class InspectorTest {
     @Test

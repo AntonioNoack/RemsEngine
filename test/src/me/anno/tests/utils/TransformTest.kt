@@ -2,13 +2,13 @@ package me.anno.tests.utils
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class TransformTest {
 

@@ -9,12 +9,12 @@ import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertSame
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class PathTest {
 
@@ -46,13 +46,13 @@ class PathTest {
     fun testParents() {
         assertEquals(p1, p12.parent)
         assertEquals(p, p1.parent)
-        assertEquals(p, Path.ROOT_PATH)
+        assertEquals(p, ROOT_PATH)
         assertEquals(p12, p123.parent)
     }
 
     @Test
     fun testNotEqual() {
-        if (p !== Path.ROOT_PATH) throw RuntimeException()
+        if (p !== ROOT_PATH) throw RuntimeException()
 
         assertNotEquals(p, p1)
         assertNotEquals(p, p12)
@@ -113,10 +113,10 @@ class PathTest {
         val abc = createPath(listOf("a", "b", "c"), listOf(0, 1, 2), listOf('x', 'x', 'x'))
         val bcd = createPath(listOf("b", "c", "d"), listOf(1, 2, 3), listOf('x', 'x', 'x'))
 
-        assertSame(Path.ROOT_PATH, abc.getRestIfStartsWith(abc, 0))
+        assertSame(ROOT_PATH, abc.getRestIfStartsWith(abc, 0))
         assertTrue(null === abc.getRestIfStartsWith(ab, 0))
         assertTrue(null === abc.getRestIfStartsWith(abc, 1))
-        assertEquals(Path(Path.ROOT_PATH, "d", 3, 'x'), abc.getRestIfStartsWith(bcd, 1))
+        assertEquals(Path(ROOT_PATH, "d", 3, 'x'), abc.getRestIfStartsWith(bcd, 1))
     }
 
     @Test
@@ -130,8 +130,8 @@ class PathTest {
 
         val prefab = Prefab("Entity")
         val sample = prefab.getSampleInstance()
-        if (sample.prefabPath != Path.ROOT_PATH) throw RuntimeException()
-        val c1 = prefab.add(Path.ROOT_PATH, 'e', "Entity", "C1")
+        if (sample.prefabPath != ROOT_PATH) throw RuntimeException()
+        val c1 = prefab.add(ROOT_PATH, 'e', "Entity", "C1")
         /*val c2 = */prefab.add(c1, 'e', "Entity", "C2")
         // val c3 = prefab.add(c2, 'e', "Entity", "C3")
 

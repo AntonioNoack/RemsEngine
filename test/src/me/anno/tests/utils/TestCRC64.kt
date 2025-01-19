@@ -1,8 +1,8 @@
 package me.anno.tests.utils
 
+import me.anno.utils.assertions.assertEquals
 import net.boeckling.crc.CRC64
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class TestCRC64 {
     @Test

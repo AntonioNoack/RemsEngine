@@ -2,8 +2,8 @@ package me.anno.tests.image
 
 import me.anno.io.MediaMetadata
 import me.anno.io.files.InvalidRef
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
 
 class MediaMetadataOrderTest {
     @Test

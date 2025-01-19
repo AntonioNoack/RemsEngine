@@ -3,9 +3,9 @@ package me.anno.tests.image
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.image.ImageScale.scaleMin
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.tuples.IntPair
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 object ImageScaleTest {
     @Test

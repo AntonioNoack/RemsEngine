@@ -12,12 +12,13 @@ import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotContains
 import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertSame
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
-import kotlin.test.assertSame
 
 class SerializablePropertiesTest {
 
+    @Suppress("unused")
     class TestClass : Saveable() {
 
         var publicName = "public name"

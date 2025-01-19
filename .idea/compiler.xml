@@ -3,5 +3,10 @@
   <component name="CompilerConfiguration">
     <option name="BUILD_PROCESS_HEAP_SIZE" value="24000" />
     <addNotNullAssertions enabled="false" />
+    <bytecodeTargetLevel target="1.8">
+      <module name="RemsEngine" target="1.8" />
+      <module name="RemsEngine.main" target="1.8" />
+      <module name="RemsEngine.test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

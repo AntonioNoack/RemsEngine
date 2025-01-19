@@ -1,10 +1,10 @@
 package me.anno.tests.utils
 
 import me.anno.ui.editor.color.spaces.HSI
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
-import kotlin.test.assertTrue
 
 class HSITest {
     @Test

@@ -2,9 +2,9 @@ package me.anno.tests.structures
 
 import me.anno.maths.Maths.factorial
 import me.anno.maths.Permutations
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 object PermutationsTest {
     @Test

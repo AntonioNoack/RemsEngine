@@ -1,5 +1,7 @@
 package me.anno.tests.maths
 
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.search.Median.kthElement
 import me.anno.utils.search.Median.median
@@ -7,8 +9,6 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import org.junit.jupiter.api.Test
 import java.util.Random
 import kotlin.math.sqrt
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class MedianTest {
 

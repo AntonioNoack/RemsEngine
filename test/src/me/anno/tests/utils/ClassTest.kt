@@ -4,10 +4,10 @@ import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.export.reflect.clazz.Clazz
 import me.anno.utils.OS.desktop
+import me.anno.utils.assertions.assertContentEquals
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import kotlin.test.assertContentEquals
 
 fun main() {
     // todo read Java .class-files produced by Kotlin to find out about strip-able parts

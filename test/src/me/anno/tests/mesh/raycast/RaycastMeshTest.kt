@@ -8,10 +8,10 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.mesh.Shapes.flatCube
+import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 object RaycastMeshTest {
 

@@ -5,9 +5,9 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache.getPrefabSampleInstance
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.assertions.assertIs
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 class DefaultAssetsTest {
 
@@ -18,14 +18,14 @@ class DefaultAssetsTest {
     @Test
     fun testMeshesExist() {
         for (name in listOf("Cube", "CylinderY", "UVSphere", "IcoSphere", "PlaneY")) {
-            assertIs<Mesh>(getPrefabSampleInstance(getReference("meshes/$name.json")))
+            assertIs(Mesh::class, getPrefabSampleInstance(getReference("meshes/$name.json")))
         }
     }
 
     @Test
     fun testMaterialsExist() {
         for (name in listOf("Default", "Mirror", "Golden", "Glass", "Black", "Emissive", "UVDebug")) {
-            assertIs<Material>(getPrefabSampleInstance(getReference("materials/$name.json")))
+            assertIs(Material::class, getPrefabSampleInstance(getReference("materials/$name.json")))
         }
     }
 

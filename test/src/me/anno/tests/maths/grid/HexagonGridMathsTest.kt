@@ -7,13 +7,13 @@ import me.anno.maths.chunks.hexagon.HexagonGridMaths.getGridDistance
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.indexToCoords
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.neighbors
 import me.anno.maths.chunks.hexagon.HexagonGridMaths.vertices
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertSame
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2d
 import org.joml.Vector2i
 import org.junit.jupiter.api.Test
 import kotlin.math.atan2
-import kotlin.test.assertEquals
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class HexagonGridMathsTest {
 

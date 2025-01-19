@@ -1,11 +1,11 @@
 package me.anno.tests.maths
 
 import me.anno.parser.SimpleExpressionParser
+import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class SimpleExpressionParserTest {
 
@@ -16,7 +16,7 @@ class SimpleExpressionParserTest {
     private fun test(expression: String, targetValue: Double) {
         val value = SimpleExpressionParser.parseDouble(expression)
         assertNotNull(value)
-        assertTrue(isApprox(value, targetValue), "Expected $targetValue, but got $value")
+        assertTrue(isApprox(value!!, targetValue), "Expected $targetValue, but got $value")
     }
 
     @Test

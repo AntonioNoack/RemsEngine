@@ -3,13 +3,13 @@ package me.anno.tests.io
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
+import me.anno.utils.assertions.assertContentEquals
+import me.anno.utils.assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.random.Random
-import kotlin.test.assertContentEquals
-import kotlin.test.assertNull
 
 class HeavyAccessTest {
 

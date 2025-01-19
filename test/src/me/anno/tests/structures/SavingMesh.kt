@@ -1,12 +1,12 @@
 package me.anno.tests.structures
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.utils.assertions.assertContentEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertContentEquals
 
 class SavingMesh {
     @Test

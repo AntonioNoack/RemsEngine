@@ -26,7 +26,6 @@ import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.image.thumbs.AssetThumbHelper.doneCondition
 import me.anno.image.thumbs.AssetThumbHelper.getEndTime
 import me.anno.image.thumbs.AssetThumbHelper.removeMissingFiles
-import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
@@ -41,7 +40,6 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
-import sun.management.GcInfoCompositeData.getEndTime
 import kotlin.math.cbrt
 import kotlin.math.ceil
 import kotlin.math.pow

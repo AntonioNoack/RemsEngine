@@ -4,9 +4,9 @@ import me.anno.ecs.components.anim.BoneByBoneAnimation
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
-import kotlin.test.assertTrue
 
 class BoneByBoneTest {
 

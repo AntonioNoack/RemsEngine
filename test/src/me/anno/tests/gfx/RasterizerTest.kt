@@ -3,6 +3,7 @@ package me.anno.tests.gfx
 import me.anno.maths.geometry.Rasterizer
 import me.anno.tests.maths.DistancesTest.Companion.testAllAxes3f
 import me.anno.utils.assertions.assertContains
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Triangles.subCross
@@ -14,7 +15,6 @@ import org.joml.Vector3i
 import org.junit.jupiter.api.Test
 import kotlin.math.ceil
 import kotlin.math.floor
-import kotlin.test.assertEquals
 
 class RasterizerTest {
 
@@ -75,7 +75,7 @@ class RasterizerTest {
                 assertTrue(pointsInTriangle.remove(Vector2i(x, y)), "Missing ($x,$y)")
             }
         }
-        assertEquals(emptySet(), pointsInTriangle)
+        assertEquals(emptySet<Vector2i>(), pointsInTriangle)
     }
 
     private fun isIntCorner(a: Vector2f): Boolean {

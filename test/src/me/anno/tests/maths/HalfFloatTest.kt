@@ -1,10 +1,10 @@
 package me.anno.tests.maths
 
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.float16ToFloat32
 import me.anno.utils.types.Floats.float32ToFloat16
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class HalfFloatTest {
 

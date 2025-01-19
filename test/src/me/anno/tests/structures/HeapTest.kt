@@ -1,12 +1,12 @@
 package me.anno.tests.structures
 
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.heap.MinHeap
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.smallestKElements
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class HeapTest {
 

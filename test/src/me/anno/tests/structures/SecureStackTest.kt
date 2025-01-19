@@ -1,9 +1,9 @@
 package me.anno.tests.structures
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.stacks.SecureStack
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
 
 class SecureStackTest {
 

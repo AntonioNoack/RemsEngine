@@ -1,8 +1,8 @@
 package me.anno.tests.utils
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Strings.distance
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class LevenshteinTest {
     @Test
