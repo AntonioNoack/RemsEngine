@@ -81,7 +81,7 @@ fun main() {
             println("$min - $max")
             println(shape.margin)
             println(shape.shapeType)
-            println(shape.getBoundingSphere(javax.vecmath.Vector3d(), DoubleArray(1)))
+            println(shape.getBoundingSphere(javax.vecmath.Vector3d()))
             shape as ConvexShape
             println("${shape.numPreferredPenetrationDirections}") // only used for hull building
             println(samples.map { shape.localGetSupportingVertex(it, javax.vecmath.Vector3d()) })
