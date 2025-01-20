@@ -2,6 +2,7 @@ package me.anno.tests.joml
 
 import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
+import org.joml.AABBd
 import org.joml.AxisAngle4d
 import org.joml.AxisAngle4f
 import org.joml.Matrix2d
@@ -337,6 +338,70 @@ class MatrixTransformTests {
                     .rotateZ(3.0).rotateY(2.0).rotateX(1.0)
                     .add(5.0, 6.0, 7.0)
             })
+    }
+
+    @Test
+    fun testTransformTranspose() {
+        val rnd3f = Matrix3f(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f)
+        testMatrixTransform(Matrix3f(rnd3f).transpose(), ::Vector3f, { m, v -> v.mulTranspose(m) }, { it.mul(rnd3f) })
+        val rnd3d = Matrix3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
+        testMatrixTransform(Matrix3d(rnd3d).transpose(), ::Vector3d, { m, v -> v.mulTranspose(m) }, { it.mul(rnd3d) })
+    }
+
+    @Test
+    fun testTranspose() {
+        assertEquals(
+            Matrix2f(1f, 2f, 3f, 4f),
+            Matrix2f(1f, 3f, 2f, 4f).transpose()
+        )
+        assertEquals(
+            Matrix3f(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f),
+            Matrix3f(1f, 4f, 7f, 2f, 5f, 8f, 3f, 6f, 9f).transpose()
+        )
+        assertEquals(
+            Matrix4f(
+                1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f,
+                9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f
+            ),
+            Matrix4f(
+                1f, 5f, 9f, 13f, 2f, 6f, 10f, 14f,
+                3f, 7f, 11f, 15f, 4f, 8f, 12f, 16f
+            ).transpose()
+        )
+        assertEquals(
+            Matrix4x3f(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f),
+            Matrix4x3f(1f, 4f, 7f, 2f, 5f, 8f, 3f, 6f, 9f, 10f, 11f, 12f).transpose3x3()
+        )
+        assertEquals(
+            Matrix3f(1f, 4f, 7f, 2f, 5f, 8f, 3f, 6f, 9f),
+            Matrix4x3f(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f).transpose3x3(Matrix3f()),
+        )
+        assertEquals(
+            Matrix2d(1.0, 2.0, 3.0, 4.0),
+            Matrix2d(1.0, 3.0, 2.0, 4.0).transpose()
+        )
+        assertEquals(
+            Matrix3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0),
+            Matrix3d(1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0).transpose()
+        )
+        assertEquals(
+            Matrix4d(
+                1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
+                9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0
+            ),
+            Matrix4d(
+                1.0, 5.0, 9.0, 13.0, 2.0, 6.0, 10.0, 14.0,
+                3.0, 7.0, 11.0, 15.0, 4.0, 8.0, 12.0, 16.0
+            ).transpose()
+        )
+        assertEquals(
+            Matrix4x3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0),
+            Matrix4x3d(1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0, 10.0, 11.0, 12.0).transpose3x3()
+        )
+        assertEquals(
+            Matrix3d(1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0),
+            Matrix4x3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0).transpose3x3(Matrix3d()),
+        )
     }
 
     @Test

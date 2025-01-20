@@ -2,7 +2,6 @@ package me.anno.utils.assertions
 
 import me.anno.maths.Maths.sq
 import me.anno.utils.Logging.hash32
-import me.anno.utils.types.AnyToDouble
 import org.joml.Matrix
 import org.joml.Vector
 import kotlin.math.abs
@@ -189,18 +188,15 @@ fun <V : Vector> assertEquals(
     }
 }
 
-fun <M : Matrix> assertEquals(a: M, b: M, threshold: Double) {
+fun <M : Matrix<*, *, *>> assertEquals(a: M, b: M, threshold: Double) {
     assertEquals(a::class, b::class)
     assertEquals(a.numRows, b.numRows)
     assertEquals(a.numCols, b.numCols)
-    val clazz = a::class.java
-    for (y in 0 until a.numRows) {
-        for (x in 0 until a.numCols) {
-            val name = "getM$x$y"
-            val getter = clazz.getMethod(name)
-            val fa = AnyToDouble.getDouble(getter.invoke(a))
-            val fb = AnyToDouble.getDouble(getter.invoke(b))
-            assertEquals(fa, fb, threshold) { "\n$a !=\n$b\n[|$fa-$fb| > $threshold, $name]" }
+    for (row in 0 until a.numRows) {
+        for (col in 0 until a.numCols) {
+            val fa = a[col, row]
+            val fb = b[col, row]
+            assertEquals(fa, fb, threshold) { "\n$a !=\n$b\n[|$fa-$fb| > $threshold, m$col$row]" }
         }
     }
 }

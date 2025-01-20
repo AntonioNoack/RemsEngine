@@ -121,7 +121,7 @@ class TransformTest {
     }
 
     private fun checkIdentityTransform(transform: Transform) {
-        assertTrue(transform.globalTransform.equals1(Matrix4x3d(), 1e-15))
+        assertTrue(transform.globalTransform.equals(Matrix4x3d(), 1e-15))
         assertTrue(transform.globalPosition.equals(Vector3d(), 1e-15))
         assertTrue(transform.globalRotation.equals(Quaterniond(), 1e-15))
         assertTrue(transform.globalScale.equals(Vector3d(1.0), 1e-15))

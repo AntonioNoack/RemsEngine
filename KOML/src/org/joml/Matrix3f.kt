@@ -8,7 +8,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix3f : Matrix {
+open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
 
     var m00 = 0f
     var m01 = 0f
@@ -138,6 +138,10 @@ open class Matrix3f : Matrix {
         return this
     }
 
+    fun set(m: Matrix4x3d): Matrix3f {
+        return set(Matrix4x3f().set(m))
+    }
+
     fun set(mat: Matrix4f): Matrix3f {
         m00 = mat.m00
         m01 = mat.m01
@@ -233,6 +237,39 @@ open class Matrix3f : Matrix {
 
     fun set(q: Quaternionf): Matrix3f {
         return rotation(q)
+    }
+
+    override operator fun get(column: Int, row: Int): Double {
+        return when (column * 3 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m02
+            3 -> m10
+            4 -> m11
+            5 -> m12
+            6 -> m20
+            7 -> m21
+            else -> m22
+        }.toDouble()
+    }
+
+    override operator fun set(column: Int, row: Int, value: Double): Matrix3f {
+        return set(column, row, value.toFloat())
+    }
+
+    operator fun set(column: Int, row: Int, value: Float): Matrix3f {
+        when (column * 3 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m02 = value
+            3 -> m10 = value
+            4 -> m11 = value
+            5 -> m12 = value
+            6 -> m20 = value
+            7 -> m21 = value
+            else -> m22 = value
+        }
+        return this
     }
 
     @JvmOverloads
@@ -364,11 +401,11 @@ open class Matrix3f : Matrix {
                 "[${Runtime.f(m01)} ${Runtime.f(m11)} ${Runtime.f(m21)}] " +
                 "[${Runtime.f(m02)} ${Runtime.f(m12)} ${Runtime.f(m22)}]]").addSigns()
 
-    operator fun get(dst: Matrix3f): Matrix3f {
+    fun get(dst: Matrix3f): Matrix3f {
         return dst.set(this)
     }
 
-    operator fun get(dst: Matrix4f): Matrix4f {
+    fun get(dst: Matrix4f): Matrix4f {
         return dst.set(this)
     }
 
@@ -452,6 +489,11 @@ open class Matrix3f : Matrix {
 
     fun scale(xyz: Float): Matrix3f {
         return scale(xyz, xyz, xyz)
+    }
+
+    @JvmOverloads
+    fun scaleLocal(scale: Vector3f, dst: Matrix3f = this): Matrix3f {
+        return scaleLocal(scale.x, scale.y, scale.z, dst)
     }
 
     @JvmOverloads
@@ -1195,7 +1237,7 @@ open class Matrix3f : Matrix {
         return set(leftX, upnX, dirXi, leftY, upnY, dirYi, leftZ, upnZ, dirZi)
     }
 
-    fun getRow(row: Int, dst: Vector3f): Vector3f {
+    override fun getRow(row: Int, dst: Vector3f): Vector3f {
         return when (row) {
             0 -> dst.set(m00, m10, m20)
             1 -> dst.set(m01, m11, m21)
@@ -1203,7 +1245,7 @@ open class Matrix3f : Matrix {
         }
     }
 
-    fun setRow(row: Int, src: Vector3f): Matrix3f {
+    override fun setRow(row: Int, src: Vector3f): Matrix3f {
         return setRow(row, src.x, src.y, src.z)
     }
 
@@ -1228,7 +1270,7 @@ open class Matrix3f : Matrix {
         return this
     }
 
-    fun getColumn(column: Int, dst: Vector3f): Vector3f {
+    override fun getColumn(column: Int, dst: Vector3f): Vector3f {
         return when (column) {
             0 -> dst.set(m00, m01, m02)
             1 -> dst.set(m10, m11, m12)
@@ -1236,7 +1278,7 @@ open class Matrix3f : Matrix {
         }
     }
 
-    fun setColumn(column: Int, src: Vector3f): Matrix3f {
+    override fun setColumn(column: Int, src: Vector3f): Matrix3f {
         return setColumn(column, src.x, src.y, src.z)
     }
 
@@ -1366,8 +1408,8 @@ open class Matrix3f : Matrix {
                 other.m20 == m20 && other.m21 == m21 && other.m22 == m22
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix3f, threshold.toFloat())
+    override fun equals(other: Matrix3f?, threshold: Double): Boolean {
+        return equals(other, threshold.toFloat())
     }
 
     fun equals(m: Matrix3f?, delta: Float): Boolean {

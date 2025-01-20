@@ -23,6 +23,7 @@ open class Vector2d(
     constructor(v: Vector2d) : this(v.x, v.y)
     constructor(v: Vector2f) : this(v.x.toDouble(), v.y.toDouble())
     constructor(v: Vector2i) : this(v.x.toDouble(), v.y.toDouble())
+    constructor(x: Float, y: Float) : this(x.toDouble(), y.toDouble())
     constructor(xy: DoubleArray) : this(xy[0], xy[1])
     constructor(xy: DoubleArray, offset: Int) : this(xy[offset], xy[offset + 1])
     constructor(xy: FloatArray) : this(xy[0].toDouble(), xy[1].toDouble())

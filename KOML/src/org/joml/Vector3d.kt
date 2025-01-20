@@ -744,18 +744,30 @@ open class Vector3d(
         }
     }
 
-    operator fun get(dst: Vector3f): Vector3f {
+    fun get(dst: Vector3f): Vector3f {
         dst.x = x.toFloat()
         dst.y = y.toFloat()
         dst.z = z.toFloat()
         return dst
     }
 
-    operator fun get(dst: Vector3d = this): Vector3d {
+    fun get(dst: Vector3d): Vector3d {
         dst.x = x
         dst.y = y
         dst.z = z
         return dst
+    }
+
+    fun get(dst: FloatArray, i: Int) {
+        dst[i] = x.toFloat()
+        dst[i + 1] = y.toFloat()
+        dst[i + 2] = z.toFloat()
+    }
+
+    fun get(dst: DoubleArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+        dst[i + 2] = z
     }
 
     fun max(): Double {

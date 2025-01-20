@@ -3,6 +3,7 @@ package org.joml
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.asin
+import kotlin.math.max
 import kotlin.math.sqrt
 
 object JomlMath {
@@ -36,10 +37,10 @@ object JomlMath {
     fun clamp(x: Double, min: Double, max: Double): Double = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
-    fun invsqrt(x: Float): Float = 1f / sqrt(x)
+    fun invsqrt(x: Float): Float = 1f / max(sqrt(x), 1e-38f)
 
     @JvmStatic
-    fun invsqrt(x: Double): Double = 1.0 / sqrt(x)
+    fun invsqrt(x: Double): Double = 1.0 / max(sqrt(x), 1e-308)
 
     @JvmStatic
     fun invLength(x: Float, y: Float, z: Float): Float = invsqrt(x * x + y * y + z * z)

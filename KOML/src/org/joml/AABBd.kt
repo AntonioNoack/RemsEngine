@@ -140,9 +140,6 @@ class AABBd(
     }
 
     fun transform(m: Matrix4d, dst: AABBd = this): AABBd {
-        val dx = maxX - minX
-        val dy = maxY - minY
-        val dz = maxZ - minZ
         var minX = Double.POSITIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
         var minZ = Double.POSITIVE_INFINITY
@@ -150,9 +147,9 @@ class AABBd(
         var maxY = Double.NEGATIVE_INFINITY
         var maxZ = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x = minX + (i and 1).toDouble() * dx
-            val y = minY + (i shr 1 and 1).toDouble() * dy
-            val z = minZ + (i shr 2 and 1).toDouble() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -163,13 +160,7 @@ class AABBd(
             maxY = max(ty, maxY)
             maxZ = max(tz, maxZ)
         }
-        dst.minX = minX
-        dst.minY = minY
-        dst.minZ = minZ
-        dst.maxX = maxX
-        dst.maxY = maxY
-        dst.maxZ = maxZ
-        return dst
+        return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
     }
 
     fun testRay(px: Double, py: Double, pz: Double, dx: Double, dy: Double, dz: Double) =
@@ -261,9 +252,6 @@ class AABBd(
 
     fun transform(trans: Matrix4x3d, dst: AABBd = this): AABBd {
         if (isEmpty()) return dst.clear()
-        val dx: Double = this.maxX - this.minX
-        val dy: Double = this.maxY - this.minY
-        val dz: Double = this.maxZ - this.minZ
         var minX = Double.POSITIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
         var minZ = Double.POSITIVE_INFINITY
@@ -271,9 +259,9 @@ class AABBd(
         var maxY = Double.NEGATIVE_INFINITY
         var maxZ = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x = this.minX + (i and 1).toDouble() * dx
-            val y = this.minY + ((i shr 1) and 1).toDouble() * dy
-            val z = this.minZ + ((i shr 2) and 1).toDouble() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = trans.m00 * x + trans.m10 * y + trans.m20 * z + trans.m30
             val ty = trans.m01 * x + trans.m11 * y + trans.m21 * z + trans.m31
             val tz = trans.m02 * x + trans.m12 * y + trans.m22 * z + trans.m32
@@ -284,13 +272,7 @@ class AABBd(
             maxY = max(ty, maxY)
             maxZ = max(tz, maxZ)
         }
-        dst.minX = minX
-        dst.minY = minY
-        dst.minZ = minZ
-        dst.maxX = maxX
-        dst.maxY = maxY
-        dst.maxZ = maxZ
-        return dst
+        return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
     }
 
     /**
@@ -298,9 +280,6 @@ class AABBd(
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd = base): AABBd {
         if (isEmpty()) return dst.set(base)
-        val dx = this.maxX - this.minX
-        val dy = this.maxY - this.minY
-        val dz = this.maxZ - this.minZ
         var minX = base.minX
         var minY = base.minY
         var minZ = base.minZ
@@ -308,9 +287,9 @@ class AABBd(
         var maxY = base.maxY
         var maxZ = base.maxZ
         for (i in 0..7) {
-            val x = this.minX + (i and 1).toDouble() * dx
-            val y = this.minY + (i shr 1 and 1).toDouble() * dy
-            val z = this.minZ + (i shr 2 and 1).toDouble() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -321,13 +300,7 @@ class AABBd(
             maxY = max(ty, maxY)
             maxZ = max(tz, maxZ)
         }
-        dst.minX = minX
-        dst.minY = minY
-        dst.minZ = minZ
-        dst.maxX = maxX
-        dst.maxY = maxY
-        dst.maxZ = maxZ
-        return dst
+        return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
     }
 
     /**
@@ -335,12 +308,6 @@ class AABBd(
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBf, dst: AABBd): AABBd {
         if (isEmpty()) return dst.set(base)
-        val mx = minX
-        val my = minY
-        val mz = minZ
-        val dx = this.maxX - mx
-        val dy = this.maxY - my
-        val dz = this.maxZ - mz
         var minX = base.minX.toDouble()
         var minY = base.minY.toDouble()
         var minZ = base.minZ.toDouble()
@@ -348,9 +315,9 @@ class AABBd(
         var maxY = base.maxY.toDouble()
         var maxZ = base.maxZ.toDouble()
         for (i in 0..7) {
-            val x = mx + (i and 1).toDouble() * dx
-            val y = my + ((i shr 1) and 1).toDouble() * dy
-            val z = mz + ((i shr 2) and 1).toDouble() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -361,13 +328,7 @@ class AABBd(
             maxY = max(ty, maxY)
             maxZ = max(tz, maxZ)
         }
-        dst.minX = minX
-        dst.minY = minY
-        dst.minZ = minZ
-        dst.maxX = maxX
-        dst.maxY = maxY
-        dst.maxZ = maxZ
-        return dst
+        return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
     }
 
     /**

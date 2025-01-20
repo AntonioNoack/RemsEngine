@@ -9,7 +9,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix2d : Matrix {
+open class Matrix2d : Matrix<Matrix2d, Vector2d, Vector2d> {
 
     var m00 = 0.0
     var m01 = 0.0
@@ -278,18 +278,13 @@ open class Matrix2d : Matrix {
         return dst.set(nm00, nm01, nm10, nm11)
     }
 
-    fun getRow(row: Int, dst: Vector2d): Vector2d {
-        if (row == 0) {
-            dst.x = m00
-            dst.y = m10
-        } else {
-            dst.x = m01
-            dst.y = m11
-        }
+    override fun getRow(row: Int, dst: Vector2d): Vector2d {
+        if (row == 0) dst.set(m00, m10)
+        else dst.set(m01, m11)
         return dst
     }
 
-    fun setRow(row: Int, src: Vector2d): Matrix2d {
+    override fun setRow(row: Int, src: Vector2d): Matrix2d {
         return setRow(row, src.x, src.y)
     }
 
@@ -304,18 +299,13 @@ open class Matrix2d : Matrix {
         return this
     }
 
-    fun getColumn(column: Int, dst: Vector2d): Vector2d {
-        if (column == 0) {
-            dst.x = m00
-            dst.y = m01
-        } else {
-            dst.x = m10
-            dst.y = m11
-        }
+    override fun getColumn(column: Int, dst: Vector2d): Vector2d {
+        if (column == 0) dst.set(m00, m01)
+        else dst.set(m10, m11)
         return dst
     }
 
-    fun setColumn(column: Int, src: Vector2d): Matrix2d {
+    override fun setColumn(column: Int, src: Vector2d): Matrix2d {
         return setColumn(column, src.x, src.y)
     }
 
@@ -330,37 +320,23 @@ open class Matrix2d : Matrix {
         return this
     }
 
-    operator fun get(column: Int, row: Int): Double {
-        return if (column == 0) {
-            if (row == 0) m00 else m01
-        } else {
-            if (row == 0) m10 else m11
+    override operator fun get(column: Int, row: Int): Double {
+        return when (column * 2 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m10
+            else -> m11
         }
     }
 
-    operator fun set(column: Int, row: Int, value: Double): Matrix2d {
-        when (column) {
-            0 -> return when (row) {
-                0 -> {
-                    m00 = value
-                    this
-                }
-                else -> {
-                    m01 = value
-                    this
-                }
-            }
-            else -> when (row) {
-                0 -> {
-                    m10 = value
-                    return this
-                }
-                else -> {
-                    m11 = value
-                    return this
-                }
-            }
+    override operator fun set(column: Int, row: Int, value: Double): Matrix2d {
+        when (column * 2 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m10 = value
+            else -> m11 = value
         }
+        return this
     }
 
     @JvmOverloads
@@ -440,21 +416,12 @@ open class Matrix2d : Matrix {
                 m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix2d, threshold)
+    override fun equals(other: Matrix2d?, threshold: Double): Boolean {
+        if (other === this) return true
+        return other != null &&
+                Runtime.equals(m00, other.m00, threshold) && Runtime.equals(m01, other.m01, threshold) &&
+                Runtime.equals(m10, other.m10, threshold) && Runtime.equals(m11, other.m11, threshold)
     }
-
-    fun equals(m: Matrix2d?, delta: Double): Boolean {
-        if (m === this) return true
-        return m != null &&
-                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
-                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta)
-    }
-
-    /*fun swap(other: Matrix2d?): Matrix2d {
-        MemUtil.INSTANCE.swap(this, other)
-        return this
-    }*/
 
     @JvmOverloads
     fun add(other: Matrix2d, dst: Matrix2d = this): Matrix2d {

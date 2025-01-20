@@ -9,7 +9,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix4x3f : Matrix {
+open class Matrix4x3f : Matrix<Matrix4x3f, Vector3f, Vector4f> {
 
     var m00 = 0f
     var m01 = 0f
@@ -38,6 +38,10 @@ open class Matrix4x3f : Matrix {
     }
 
     constructor(mat: Matrix4x3f) {
+        this.set(mat)
+    }
+
+    constructor(mat: Matrix4x3d) {
         this.set(mat)
     }
 
@@ -208,11 +212,11 @@ open class Matrix4x3f : Matrix {
         return this
     }
 
-    operator fun get(dst: Matrix4f): Matrix4f {
+    fun get(dst: Matrix4f): Matrix4f {
         return dst.set4x3(this)
     }
 
-    operator fun get(dst: Matrix4d): Matrix4d {
+    fun get(dst: Matrix4d): Matrix4d {
         return dst.set4x3(this)
     }
 
@@ -358,6 +362,46 @@ open class Matrix4x3f : Matrix {
         m22 = mat.m22
         flags = flags and mat.properties()
         return this
+    }
+
+
+    override fun get(column: Int, row: Int): Double {
+        return when (column * 3 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m02
+            3 -> m10
+            4 -> m11
+            5 -> m12
+            6 -> m20
+            7 -> m21
+            8 -> m22
+            9 -> m30
+            10 -> m31
+            else -> m32
+        }.toDouble()
+    }
+
+    override fun set(column: Int, row: Int, value: Double): Matrix4x3f {
+        return set(column, row, value.toFloat())
+    }
+
+    fun set(column: Int, row: Int, value: Float): Matrix4x3f {
+        when (column * 3 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m02 = value
+            3 -> m10 = value
+            4 -> m11 = value
+            5 -> m12 = value
+            6 -> m20 = value
+            7 -> m21 = value
+            8 -> m22 = value
+            9 -> m30 = value
+            10 -> m31 = value
+            else -> m32 = value
+        }
+        return _properties(0)
     }
 
     @JvmOverloads
@@ -783,17 +827,13 @@ open class Matrix4x3f : Matrix {
 
     @JvmOverloads
     fun transpose3x3(dst: Matrix4x3f = this): Matrix4x3f {
-        dst.set(m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32)
+        dst.set(m00, m10, m20, m01, m11, m21, m02, m12, m22, m30, m31, m32)
         dst.flags = flags
         return dst
     }
 
     fun transpose3x3(dst: Matrix3f): Matrix3f {
-        return dst.set(
-            m00, m10, m20,
-            m01, m11, m21,
-            m02, m12, m22
-        )
+        return dst.set(m00, m10, m20, m01, m11, m21, m02, m12, m22)
     }
 
     fun translation(x: Float, y: Float, z: Float): Matrix4x3f {
@@ -1592,6 +1632,11 @@ open class Matrix4x3f : Matrix {
         dst.m32 = m32
         dst.flags = flags and -29
         return dst
+    }
+
+    @JvmOverloads
+    fun scaleLocal(scale: Vector3f, dst: Matrix4x3f = this): Matrix4x3f {
+        return scaleLocal(scale.x, scale.y, scale.z, dst)
     }
 
     @JvmOverloads
@@ -3203,7 +3248,7 @@ open class Matrix4x3f : Matrix {
         return this.reflection(normalX, normalY, normalZ, point.x, point.y, point.z)
     }
 
-    fun getRow(row: Int, dst: Vector4f): Vector4f {
+    override fun getRow(row: Int, dst: Vector4f): Vector4f {
         when (row) {
             0 -> {
                 dst.x = m00
@@ -3227,7 +3272,7 @@ open class Matrix4x3f : Matrix {
         return dst
     }
 
-    fun setRow(row: Int, src: Vector4f): Matrix4x3f {
+    override fun setRow(row: Int, src: Vector4f): Matrix4x3f {
         when (row) {
             0 -> {
                 m00 = src.x
@@ -3252,7 +3297,7 @@ open class Matrix4x3f : Matrix {
         return this
     }
 
-    fun getColumn(column: Int, dst: Vector3f): Vector3f {
+    override fun getColumn(column: Int, dst: Vector3f): Vector3f {
         when (column) {
             0 -> {
                 dst.x = m00
@@ -3278,7 +3323,7 @@ open class Matrix4x3f : Matrix {
         return dst
     }
 
-    fun setColumn(column: Int, src: Vector3f): Matrix4x3f {
+    override fun setColumn(column: Int, src: Vector3f): Matrix4x3f {
         when (column) {
             0 -> {
                 m00 = src.x
@@ -3736,8 +3781,8 @@ open class Matrix4x3f : Matrix {
                 m30 == other.m30 && m31 == other.m31 && m32 == other.m32
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix4x3f, threshold.toFloat())
+    override fun equals(other: Matrix4x3f?, threshold: Double): Boolean {
+        return equals(other, threshold.toFloat())
     }
 
     fun equals(m: Matrix4x3f?, delta: Float): Boolean {

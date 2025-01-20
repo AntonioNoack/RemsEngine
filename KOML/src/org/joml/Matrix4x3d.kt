@@ -10,7 +10,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix4x3d : Matrix {
+open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
 
     var m00 = 0.0
     var m01 = 0.0
@@ -374,6 +374,41 @@ open class Matrix4x3d : Matrix {
 
     fun set(q: Quaterniond): Matrix4x3d {
         return rotation(q)
+    }
+
+    override fun get(column: Int, row: Int): Double {
+        return when (column * 3 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m02
+            3 -> m10
+            4 -> m11
+            5 -> m12
+            6 -> m20
+            7 -> m21
+            8 -> m22
+            9 -> m30
+            10 -> m31
+            else -> m32
+        }
+    }
+
+    override fun set(column: Int, row: Int, value: Double): Matrix4x3d {
+        when (column * 3 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m02 = value
+            3 -> m10 = value
+            4 -> m11 = value
+            5 -> m12 = value
+            6 -> m20 = value
+            7 -> m21 = value
+            8 -> m22 = value
+            9 -> m30 = value
+            10 -> m31 = value
+            else -> m32 = value
+        }
+        return _properties(0)
     }
 
     @JvmOverloads
@@ -1394,12 +1429,14 @@ open class Matrix4x3d : Matrix {
             )._properties(flags and (12 or if (one) 0 else 16).inv())
     }
 
-    fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double): Matrix4x3d {
-        return scaleAround(factor, factor, factor, ox, oy, oz, this)
+    @JvmOverloads
+    fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double, dst: Matrix4x3d = this): Matrix4x3d {
+        return scaleAround(factor, factor, factor, ox, oy, oz, dst)
     }
 
-    fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double, dst: Matrix4x3d): Matrix4x3d {
-        return scaleAround(factor, factor, factor, ox, oy, oz, dst)
+    @JvmOverloads
+    fun scaleLocal(scale: Vector3d, dst: Matrix4x3d = this): Matrix4x3d {
+        return scaleLocal(scale.x, scale.y, scale.z, dst)
     }
 
     @JvmOverloads
@@ -2805,31 +2842,16 @@ open class Matrix4x3d : Matrix {
         return rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dst)
     }
 
-    fun getRow(row: Int, dst: Vector4d): Vector4d {
+    override fun getRow(row: Int, dst: Vector4d): Vector4d {
         when (row) {
-            0 -> {
-                dst.x = m00
-                dst.y = m10
-                dst.z = m20
-                dst.w = m30
-            }
-            1 -> {
-                dst.x = m01
-                dst.y = m11
-                dst.z = m21
-                dst.w = m31
-            }
-            else -> {
-                dst.x = m02
-                dst.y = m12
-                dst.z = m22
-                dst.w = m32
-            }
+            0 -> dst.set(m00, m10, m20, m30)
+            1 -> dst.set(m01, m11, m21, m31)
+            else -> dst.set(m02, m12, m22, m32)
         }
         return dst
     }
 
-    fun setRow(row: Int, src: Vector4d): Matrix4x3d {
+    override fun setRow(row: Int, src: Vector4d): Matrix4x3d {
         when (row) {
             0 -> {
                 m00 = src.x
@@ -2854,33 +2876,17 @@ open class Matrix4x3d : Matrix {
         return this
     }
 
-    fun getColumn(column: Int, dst: Vector3d): Vector3d {
+    override fun getColumn(column: Int, dst: Vector3d): Vector3d {
         when (column) {
-            0 -> {
-                dst.x = m00
-                dst.y = m01
-                dst.z = m02
-            }
-            1 -> {
-                dst.x = m10
-                dst.y = m11
-                dst.z = m12
-            }
-            2 -> {
-                dst.x = m20
-                dst.y = m21
-                dst.z = m22
-            }
-            else -> {
-                dst.x = m30
-                dst.y = m31
-                dst.z = m32
-            }
+            0 -> dst.set(m00, m01, m02)
+            1 -> dst.set(m10, m11, m12)
+            2 -> dst.set(m20, m21, m22)
+            else -> dst.set(m30, m31, m32)
         }
         return dst
     }
 
-    fun setColumn(column: Int, src: Vector3d): Matrix4x3d {
+    override fun setColumn(column: Int, src: Vector3d): Matrix4x3d {
         when (column) {
             0 -> {
                 m00 = src.x
@@ -4162,27 +4168,21 @@ open class Matrix4x3d : Matrix {
                 m30 == other.m30 && m31 == other.m31 && m32 == other.m32
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix4x3d, threshold)
-    }
-
-    fun equals(m: Matrix4x3d?, delta: Double): Boolean {
-        if (m === this) return true
-        return m is Matrix4x3d &&
-                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
-                Runtime.equals(m02, m.m02, delta) && Runtime.equals(m10, m.m10, delta) &&
-                Runtime.equals(m11, m.m11, delta) && Runtime.equals(m12, m.m12, delta) &&
-                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
-                Runtime.equals(m22, m.m22, delta) && Runtime.equals(m30, m.m30, delta) &&
-                Runtime.equals(m31, m.m31, delta) && Runtime.equals(m32, m.m32, delta)
+    override fun equals(other: Matrix4x3d?, threshold: Double): Boolean {
+        if (other === this) return true
+        return other != null &&
+                Runtime.equals(m00, other.m00, threshold) && Runtime.equals(m01, other.m01, threshold) &&
+                Runtime.equals(m02, other.m02, threshold) && Runtime.equals(m10, other.m10, threshold) &&
+                Runtime.equals(m11, other.m11, threshold) && Runtime.equals(m12, other.m12, threshold) &&
+                Runtime.equals(m20, other.m20, threshold) && Runtime.equals(m21, other.m21, threshold) &&
+                Runtime.equals(m22, other.m22, threshold) && Runtime.equals(m30, other.m30, threshold) &&
+                Runtime.equals(m31, other.m31, threshold) && Runtime.equals(m32, other.m32, threshold)
     }
 
     @JvmOverloads
     fun pick(
-        x: Double,
-        y: Double,
-        width: Double,
-        height: Double,
+        x: Double, y: Double,
+        width: Double, height: Double,
         viewport: IntArray,
         dst: Matrix4x3d = this
     ): Matrix4x3d {

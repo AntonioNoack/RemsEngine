@@ -9,7 +9,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix2f : Matrix {
+open class Matrix2f : Matrix<Matrix2f, Vector2f, Vector2f> {
 
     var m00 = 0f
     var m01 = 0f
@@ -236,21 +236,15 @@ open class Matrix2f : Matrix {
         )
     }
 
-    fun getRow(row: Int, dst: Vector2f): Vector2f {
+    override fun getRow(row: Int, dst: Vector2f): Vector2f {
         when (row) {
-            0 -> {
-                dst.x = m00
-                dst.y = m10
-            }
-            else -> {
-                dst.x = m01
-                dst.y = m11
-            }
+            0 -> dst.set(m00, m10)
+            else -> dst.set(m01, m11)
         }
         return dst
     }
 
-    fun setRow(row: Int, src: Vector2f): Matrix2f {
+    override fun setRow(row: Int, src: Vector2f): Matrix2f {
         return setRow(row, src.x, src.y)
     }
 
@@ -268,21 +262,15 @@ open class Matrix2f : Matrix {
         return this
     }
 
-    fun getColumn(column: Int, dst: Vector2f): Vector2f {
+    override fun getColumn(column: Int, dst: Vector2f): Vector2f {
         when (column) {
-            0 -> {
-                dst.x = m00
-                dst.y = m01
-            }
-            else -> {
-                dst.x = m10
-                dst.y = m11
-            }
+            0 -> dst.set(m00, m01)
+            else -> dst.set(m10, m11)
         }
         return dst
     }
 
-    fun setColumn(column: Int, src: Vector2f): Matrix2f {
+    override fun setColumn(column: Int, src: Vector2f): Matrix2f {
         return setColumn(column, src.x, src.y)
     }
 
@@ -300,29 +288,25 @@ open class Matrix2f : Matrix {
         return this
     }
 
-    operator fun get(column: Int, row: Int): Float {
-        return when (column) {
-            0 -> when (row) {
-                0 -> m00
-                else -> m01
-            }
-            else -> when (row) {
-                0 -> m10
-                else -> m11
-            }
-        }
+    override operator fun get(column: Int, row: Int): Double {
+        return when (column * 2 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m10
+            else -> m11
+        }.toDouble()
+    }
+
+    override operator fun set(column: Int, row: Int, value: Double): Matrix2f {
+        return set(column, row, value.toFloat())
     }
 
     operator fun set(column: Int, row: Int, value: Float): Matrix2f {
-        when (column) {
-            0 -> when (row) {
-                0 -> m00 = value
-                else -> m01 = value
-            }
-            else -> when (row) {
-                0 -> m10 = value
-                else -> m11 = value
-            }
+        when (column * 2 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m10 = value
+            else -> m11 = value
         }
         return this
     }
@@ -401,12 +385,12 @@ open class Matrix2f : Matrix {
         return other is Matrix2f && m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return other is Matrix2f && equals(other, threshold.toFloat())
+    override fun equals(other: Matrix2f?, threshold: Double): Boolean {
+        return equals(other, threshold.toFloat())
     }
 
     fun equals(m: Matrix2f?, delta: Float): Boolean {
-        return m is Matrix2f &&
+        return m != null &&
                 Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
                 Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta)
     }

@@ -9,7 +9,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Matrix3d : Matrix {
+open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
 
     var m00 = 0.0
     var m01 = 0.0
@@ -339,7 +339,7 @@ open class Matrix3d : Matrix {
                 "[${f(m01)} ${f(m11)} ${f(m21)}] " +
                 "[${f(m02)} ${f(m12)} ${f(m22)}]]").addSigns()
 
-    operator fun get(dst: Matrix3d): Matrix3d {
+    fun get(dst: Matrix3d): Matrix3d {
         return dst.set(this)
     }
 
@@ -406,6 +406,11 @@ open class Matrix3d : Matrix {
     @JvmOverloads
     fun scale(xyz: Double, dst: Matrix3d = this): Matrix3d {
         return scale(xyz, xyz, xyz, dst)
+    }
+
+    @JvmOverloads
+    fun scaleLocal(scale: Vector3d, dst: Matrix3d = this): Matrix3d {
+        return scaleLocal(scale.x, scale.y, scale.z, dst)
     }
 
     @JvmOverloads
@@ -999,7 +1004,7 @@ open class Matrix3d : Matrix {
         return rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dst)
     }
 
-    fun getRow(row: Int, dst: Vector3d): Vector3d {
+    override fun getRow(row: Int, dst: Vector3d): Vector3d {
         return when (row) {
             0 -> dst.set(m00, m10, m20)
             1 -> dst.set(m01, m11, m21)
@@ -1007,7 +1012,7 @@ open class Matrix3d : Matrix {
         }
     }
 
-    fun setRow(row: Int, src: Vector3d): Matrix3d {
+    override fun setRow(row: Int, src: Vector3d): Matrix3d {
         return setRow(row, src.x, src.y, src.z)
     }
 
@@ -1032,7 +1037,7 @@ open class Matrix3d : Matrix {
         return this
     }
 
-    fun getColumn(column: Int, dst: Vector3d): Vector3d {
+    override fun getColumn(column: Int, dst: Vector3d): Vector3d {
         return when (column) {
             0 -> dst.set(m00, m01, m02)
             1 -> dst.set(m10, m11, m12)
@@ -1040,7 +1045,7 @@ open class Matrix3d : Matrix {
         }
     }
 
-    fun setColumn(column: Int, src: Vector3d): Matrix3d {
+    override fun setColumn(column: Int, src: Vector3d): Matrix3d {
         return setColumn(column, src.x, src.y, src.z)
     }
 
@@ -1065,7 +1070,7 @@ open class Matrix3d : Matrix {
         return this
     }
 
-    operator fun get(column: Int, row: Int): Double {
+    override operator fun get(column: Int, row: Int): Double {
         return when (column * 3 + row) {
             0 -> m00
             1 -> m01
@@ -1079,7 +1084,7 @@ open class Matrix3d : Matrix {
         }
     }
 
-    operator fun set(column: Int, row: Int, value: Double): Matrix3d {
+    override operator fun set(column: Int, row: Int, value: Double): Matrix3d {
         when (column * 3 + row) {
             0 -> m00 = value
             1 -> m01 = value
@@ -1121,16 +1126,7 @@ open class Matrix3d : Matrix {
         val nm20 = (m01m12 - m02m11) * s
         val nm21 = (m02m10 - m00m12) * s
         val nm22 = (m00m11 - m01m10) * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -1144,16 +1140,7 @@ open class Matrix3d : Matrix {
         val nm20 = m01 * m12 - m11 * m02
         val nm21 = m02 * m10 - m12 * m00
         val nm22 = m00 * m11 - m10 * m01
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -1190,16 +1177,10 @@ open class Matrix3d : Matrix {
         val nm10 = m00 * leftY + m10 * upnY + m20 * dirYi
         val nm11 = m01 * leftY + m11 * upnY + m21 * dirYi
         val nm12 = m02 * leftY + m12 * upnY + m22 * dirYi
-        dst.m20 = m00 * leftZ + m10 * upnZ + m20 * dirZi
-        dst.m21 = m01 * leftZ + m11 * upnZ + m21 * dirZi
-        dst.m22 = m02 * leftZ + m12 * upnZ + m22 * dirZi
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        return dst
+        val nm20 = m00 * leftZ + m10 * upnZ + m20 * dirZi
+        val nm21 = m01 * leftZ + m11 * upnZ + m21 * dirZi
+        val nm22 = m02 * leftZ + m12 * upnZ + m22 * dirZi
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     fun setLookAlong(dir: Vector3d, up: Vector3d): Matrix3d {
@@ -1307,18 +1288,14 @@ open class Matrix3d : Matrix {
                 m20 == other.m20 && m21 == other.m21 && m22 == other.m22
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix3d, threshold)
-    }
-
-    fun equals(m: Matrix3d?, delta: Double): Boolean {
-        if (m === this) return true
-        return m != null &&
-                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
-                Runtime.equals(m02, m.m02, delta) && Runtime.equals(m10, m.m10, delta) &&
-                Runtime.equals(m11, m.m11, delta) && Runtime.equals(m12, m.m12, delta) &&
-                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
-                Runtime.equals(m22, m.m22, delta)
+    override fun equals(other: Matrix3d?, threshold: Double): Boolean {
+        if (other === this) return true
+        return other != null &&
+                Runtime.equals(m00, other.m00, threshold) && Runtime.equals(m01, other.m01, threshold) &&
+                Runtime.equals(m02, other.m02, threshold) && Runtime.equals(m10, other.m10, threshold) &&
+                Runtime.equals(m11, other.m11, threshold) && Runtime.equals(m12, other.m12, threshold) &&
+                Runtime.equals(m20, other.m20, threshold) && Runtime.equals(m21, other.m21, threshold) &&
+                Runtime.equals(m22, other.m22, threshold)
     }
 
     fun swap(other: Matrix3d): Matrix3d {

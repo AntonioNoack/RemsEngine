@@ -19,7 +19,7 @@ class UnknownSaveableTest {
         val correctSerialization = JsonStringWriter.toText(data, InvalidRef)
         val correctClass = "\"class\":\"Material\""
         val incorrectClass = "\"class\":\"$uniqueClassName\""
-        assertContains(correctSerialization, correctClass)
+        assertContains(correctClass, correctSerialization)
         val incorrectSerialization = correctSerialization.replace(correctClass, incorrectClass)
         assertNotEquals(correctSerialization, incorrectSerialization)
         val unknownTypedClone = JsonStringReader.readFirst(incorrectSerialization, InvalidRef, Saveable::class)

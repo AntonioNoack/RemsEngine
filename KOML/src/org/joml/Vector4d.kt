@@ -24,6 +24,7 @@ open class Vector4d(
     constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)
     constructor(v: Vector4i) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
     constructor(v: Vector4f) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), v.w.toDouble())
+    constructor(x: Float, y: Float, z: Float, w: Float) : this(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
     constructor(v: Vector3d, w: Double) : this(v.x, v.y, v.z, w)
     constructor(v: Vector2d, z: Double, w: Double) : this(v.x, v.y, z, w)
     constructor(d: Double) : this(d, d, d, d)

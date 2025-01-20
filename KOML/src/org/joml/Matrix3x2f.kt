@@ -11,7 +11,7 @@ import kotlin.math.min
 import kotlin.math.sin
 
 @Suppress("unused")
-open class Matrix3x2f : Matrix {
+open class Matrix3x2f : Matrix<Matrix3x2f, Vector2f, Vector3f> {
 
     var m00 = 0f
     var m01 = 0f
@@ -96,6 +96,33 @@ open class Matrix3x2f : Matrix {
         return this
     }
 
+    override operator fun get(column: Int, row: Int): Double {
+        return when (column * 2 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m10
+            3 -> m11
+            4 -> m20
+            else -> m21
+        }.toDouble()
+    }
+
+    override operator fun set(column: Int, row: Int, value: Double): Matrix3x2f {
+        return set(column, row, value.toFloat())
+    }
+
+    operator fun set(column: Int, row: Int, value: Float): Matrix3x2f {
+        when (column * 2 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m10 = value
+            3 -> m11 = value
+            4 -> m20 = value
+            else -> m21 = value
+        }
+        return this
+    }
+
     fun putInto(arr: FloatBuffer): FloatBuffer {
         arr.put(m00).put(m01)
         arr.put(m10).put(m11)
@@ -120,13 +147,7 @@ open class Matrix3x2f : Matrix {
         val nm11 = m01 * r10 + m11 * r11
         val nm20 = m00 * r20 + m10 * r21 + m20
         val nm21 = m01 * r20 + m11 * r21 + m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     @JvmOverloads
@@ -137,13 +158,7 @@ open class Matrix3x2f : Matrix {
         val nm11 = left.m01 * m10 + left.m11 * m11
         val nm20 = left.m00 * m20 + left.m10 * m21 + left.m20
         val nm21 = left.m01 * m20 + left.m11 * m21 + left.m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     fun set(m00: Float, m01: Float, m10: Float, m11: Float, m20: Float, m21: Float): Matrix3x2f {
@@ -156,13 +171,13 @@ open class Matrix3x2f : Matrix {
         return this
     }
 
-    fun set(m: FloatArray): Matrix3x2f {
-        m00 = m[0]
-        m01 = m[1]
-        m10 = m[2]
-        m11 = m[3]
-        m20 = m[4]
-        m21 = m[5]
+    fun set(m: FloatArray, offset: Int): Matrix3x2f {
+        m00 = m[offset]
+        m01 = m[offset + 1]
+        m10 = m[offset + 2]
+        m11 = m[offset + 3]
+        m20 = m[offset + 4]
+        m21 = m[offset + 5]
         return this
     }
 
@@ -179,13 +194,7 @@ open class Matrix3x2f : Matrix {
         val nm11 = m00 * s
         val nm20 = (m10 * m21 - m20 * m11) * s
         val nm21 = (m20 * m01 - m00 * m21) * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     fun translation(x: Float, y: Float): Matrix3x2f {
@@ -199,7 +208,7 @@ open class Matrix3x2f : Matrix {
     }
 
     fun translation(offset: Vector2f): Matrix3x2f {
-        return this.translation(offset.x, offset.y)
+        return translation(offset.x, offset.y)
     }
 
     fun setTranslation(x: Float, y: Float): Matrix3x2f {
@@ -209,7 +218,7 @@ open class Matrix3x2f : Matrix {
     }
 
     fun setTranslation(offset: Vector2f): Matrix3x2f {
-        return this.setTranslation(offset.x, offset.y)
+        return setTranslation(offset.x, offset.y)
     }
 
     @JvmOverloads
@@ -224,37 +233,31 @@ open class Matrix3x2f : Matrix {
     }
 
     fun translate(offset: Vector2f, dst: Matrix3x2f): Matrix3x2f {
-        return this.translate(offset.x, offset.y, dst)
+        return translate(offset.x, offset.y, dst)
     }
 
     fun translate(offset: Vector2f): Matrix3x2f {
-        return this.translate(offset.x, offset.y, this)
+        return translate(offset.x, offset.y, this)
     }
 
     fun translateLocal(offset: Vector2f): Matrix3x2f {
-        return this.translateLocal(offset.x, offset.y)
+        return translateLocal(offset.x, offset.y)
     }
 
     fun translateLocal(offset: Vector2f, dst: Matrix3x2f): Matrix3x2f {
-        return this.translateLocal(offset.x, offset.y, dst)
+        return translateLocal(offset.x, offset.y, dst)
     }
 
     @JvmOverloads
     fun translateLocal(x: Float, y: Float, dst: Matrix3x2f = this): Matrix3x2f {
-        dst.m00 = m00
-        dst.m01 = m01
-        dst.m10 = m10
-        dst.m11 = m11
-        dst.m20 = m20 + x
-        dst.m21 = m21 + y
-        return dst
+        return dst.set(m00, m01, m10, m11, m20 + x, m21 + y)
     }
 
     override fun toString() =
         ("[[${f(m00)} ${f(m10)} ${f(m20)}] " +
                 "[${f(m01)} ${f(m11)} ${f(m21)}]]").addSigns()
 
-    operator fun get(dst: Matrix3x2f): Matrix3x2f {
+    fun get(dst: Matrix3x2f): Matrix3x2f {
         return dst.set(this)
     }
 
@@ -269,82 +272,97 @@ open class Matrix3x2f : Matrix {
         return arr
     }
 
-    /*@JvmOverloads
-    fun get3x3(arr: FloatArray, offset: Int = 0): FloatArray {
-        MemUtil.INSTANCE.copy3x3(this, arr, offset)
-        return arr
+    override fun getRow(row: Int, dst: Vector3f): Vector3f {
+        when (row) {
+            0 -> dst.set(m00, m10, m20)
+            else -> dst.set(m01, m11, m21)
+        }
+        return dst
     }
 
-    @JvmOverloads
-    fun get4x4(arr: FloatArray, offset: Int = 0): FloatArray {
-        MemUtil.INSTANCE.copy4x4(this, arr, offset)
-        return arr
-    }*/
+    override fun setRow(row: Int, src: Vector3f): Matrix3x2f {
+        when (row) {
+            0 -> {
+                m00 = src.x
+                m10 = src.y
+                m20 = src.z
+            }
+            else -> {
+                m01 = src.x
+                m11 = src.y
+                m21 = src.z
+            }
+        }
+        return this
+    }
+
+    override fun getColumn(column: Int, dst: Vector2f): Vector2f {
+        when (column) {
+            0 -> dst.set(m00, m01)
+            1 -> dst.set(m10, m11)
+            else -> dst.set(m20, m21)
+        }
+        return dst
+    }
+
+    override fun setColumn(column: Int, src: Vector2f): Matrix3x2f {
+        when (column) {
+            0 -> {
+                m00 = src.x
+                m01 = src.y
+            }
+            1 -> {
+                m10 = src.x
+                m11 = src.y
+            }
+            else -> {
+                m20 = src.x
+                m21 = src.y
+            }
+        }
+        return this
+    }
 
     fun zero(): Matrix3x2f {
-        m00 = 0f
-        m01 = 0f
-        m10 = 0f
-        m11 = 0f
-        m20 = 0f
-        m21 = 0f
-        return this
+        return scaling(0f)
     }
 
     fun identity(): Matrix3x2f {
-        m00 = 1f
-        m01 = 0f
-        m10 = 0f
-        m11 = 1f
-        m20 = 0f
-        m21 = 0f
-        return this
+        return scaling(1f)
     }
 
     @JvmOverloads
     fun scale(x: Float, y: Float, dst: Matrix3x2f = this): Matrix3x2f {
-        dst.m00 = m00 * x
-        dst.m01 = m01 * x
-        dst.m10 = m10 * y
-        dst.m11 = m11 * y
-        dst.m20 = m20
-        dst.m21 = m21
-        return dst
+        return dst.set(m00 * x, m01 * x, m10 * y, m11 * y, m20, m21)
     }
 
     fun scale(xy: Vector2f): Matrix3x2f {
-        return this.scale(xy.x, xy.y, this)
+        return scale(xy.x, xy.y, this)
     }
 
     fun scale(xy: Vector2f, dst: Matrix3x2f): Matrix3x2f {
-        return this.scale(xy.x, xy.y, dst)
+        return scale(xy.x, xy.y, dst)
     }
 
     fun scale(xy: Float, dst: Matrix3x2f): Matrix3x2f {
-        return this.scale(xy, xy, dst)
+        return scale(xy, xy, dst)
     }
 
     fun scale(xy: Float): Matrix3x2f {
-        return this.scale(xy, xy)
+        return scale(xy, xy)
     }
 
     @JvmOverloads
     fun scaleLocal(x: Float, y: Float, dst: Matrix3x2f = this): Matrix3x2f {
-        dst.m00 = x * m00
-        dst.m01 = y * m01
-        dst.m10 = x * m10
-        dst.m11 = y * m11
-        dst.m20 = x * m20
-        dst.m21 = y * m21
-        return dst
+        return dst.set(m00 * x, m01 * y, m10 * x, m11 * y, m20 * x, m21 * y)
     }
 
     fun scaleLocal(xy: Float, dst: Matrix3x2f): Matrix3x2f {
-        return this.scaleLocal(xy, xy, dst)
+        return scaleLocal(xy, xy, dst)
     }
 
     fun scaleLocal(xy: Float): Matrix3x2f {
-        return this.scaleLocal(xy, xy, this)
+        return scaleLocal(xy, xy, this)
     }
 
     @JvmOverloads
@@ -361,7 +379,7 @@ open class Matrix3x2f : Matrix {
     }
 
     fun scaleAround(factor: Float, ox: Float, oy: Float, dst: Matrix3x2f = this): Matrix3x2f {
-        return this.scaleAround(factor, factor, ox, oy, dst)
+        return scaleAround(factor, factor, ox, oy, dst)
     }
 
     fun scaleAroundLocal(sx: Float, sy: Float, ox: Float, oy: Float, dst: Matrix3x2f): Matrix3x2f {
@@ -375,41 +393,29 @@ open class Matrix3x2f : Matrix {
     }
 
     fun scaleAroundLocal(factor: Float, ox: Float, oy: Float, dst: Matrix3x2f): Matrix3x2f {
-        return this.scaleAroundLocal(factor, factor, ox, oy, dst)
+        return scaleAroundLocal(factor, factor, ox, oy, dst)
     }
 
     fun scaleAroundLocal(sx: Float, sy: Float, sz: Float, ox: Float, oy: Float, oz: Float): Matrix3x2f {
-        return this.scaleAroundLocal(sx, sy, ox, oy, this)
+        return scaleAroundLocal(sx, sy, ox, oy, this)
     }
 
     fun scaleAroundLocal(factor: Float, ox: Float, oy: Float): Matrix3x2f {
-        return this.scaleAroundLocal(factor, factor, ox, oy, this)
+        return scaleAroundLocal(factor, factor, ox, oy, this)
     }
 
     fun scaling(factor: Float): Matrix3x2f {
-        return this.scaling(factor, factor)
+        return scaling(factor, factor)
     }
 
     fun scaling(x: Float, y: Float): Matrix3x2f {
-        m00 = x
-        m01 = 0f
-        m10 = 0f
-        m11 = y
-        m20 = 0f
-        m21 = 0f
-        return this
+        return set(x, 0f, 0f, y, 0f, 0f)
     }
 
     fun rotation(angle: Float): Matrix3x2f {
         val cos = cos(angle)
         val sin = sin(angle)
-        m00 = cos
-        m10 = -sin
-        m20 = 0f
-        m01 = sin
-        m11 = cos
-        m21 = 0f
-        return this
+        return set(cos, sin, -sin, cos, 0f, 0f)
     }
 
     fun transform(v: Vector3f): Vector3f {
@@ -425,13 +431,11 @@ open class Matrix3x2f : Matrix {
     }
 
     fun transformPosition(v: Vector2f): Vector2f {
-        v.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
-        return v
+        return v.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
     }
 
     fun transformPosition(v: Vector2f, dst: Vector2f): Vector2f {
-        dst.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
-        return dst
+        return dst.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
     }
 
     fun transformPosition(x: Float, y: Float, dst: Vector2f): Vector2f {
@@ -439,13 +443,11 @@ open class Matrix3x2f : Matrix {
     }
 
     fun transformDirection(v: Vector2f): Vector2f {
-        v.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
-        return v
+        return v.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
     }
 
     fun transformDirection(v: Vector2f, dst: Vector2f): Vector2f {
-        dst.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
-        return dst
+        return dst.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
     }
 
     fun transformDirection(x: Float, y: Float, dst: Vector2f): Vector2f {
@@ -478,13 +480,7 @@ open class Matrix3x2f : Matrix {
         val nm11 = sin * m10 + cos * m11
         val nm20 = cos * m20 - sin * m21
         val nm21 = sin * m20 + cos * m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     @JvmOverloads
@@ -642,26 +638,14 @@ open class Matrix3x2f : Matrix {
     fun shearX(yFactor: Float, dst: Matrix3x2f = this): Matrix3x2f {
         val nm10 = m00 * yFactor + m10
         val nm11 = m01 * yFactor + m11
-        dst.m00 = m00
-        dst.m01 = m01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = m20
-        dst.m21 = m21
-        return dst
+        return dst.set(m00, m01, nm10, nm11, m20, m21)
     }
 
     @JvmOverloads
     fun shearY(xFactor: Float, dst: Matrix3x2f = this): Matrix3x2f {
         val nm00 = m00 + m10 * xFactor
         val nm01 = m01 + m11 * xFactor
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = m10
-        dst.m11 = m11
-        dst.m20 = m20
-        dst.m21 = m21
-        return dst
+        return dst.set(nm00, nm01, m10, m11, m20, m21)
     }
 
     fun span(corner: Vector2f, xDir: Vector2f, yDir: Vector2f): Matrix3x2f {
@@ -762,8 +746,8 @@ open class Matrix3x2f : Matrix {
                 m20 == other.m20 && m21 == other.m21
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix3x2f, threshold.toFloat())
+    override fun equals(other: Matrix3x2f?, threshold: Double): Boolean {
+        return equals(other, threshold.toFloat())
     }
 
     fun equals(m: Matrix3x2f?, delta: Float): Boolean {

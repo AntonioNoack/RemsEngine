@@ -12,6 +12,7 @@ import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
+import kotlin.math.min
 
 object RaycastMeshTest {
 
@@ -123,7 +124,7 @@ object RaycastMeshTest {
         val normal = Vector3f()
         val distance = RaycastMesh.raycastLocalMeshClosestHit(mesh, pos, dir, maxDistance, typeMask, normal)
         if (expectedNormal != null) assertEquals(expectedNormal, normal)
-        assertEquals(expectedDistance, distance, 1e-3f)
+        assertEquals(min(expectedDistance, 1e38f), min(distance, 1e38f), 1e-3f)
 
         val hit = RaycastMesh.raycastLocalMeshAnyHit(mesh, pos, dir, maxDistance, typeMask)
         assertEquals(distance.isFinite(), hit)
@@ -142,7 +143,7 @@ object RaycastMeshTest {
         val distance = if (hit) query.result.distance else Double.POSITIVE_INFINITY
         normal.set(query.result.geometryNormalWS).safeNormalize()
         if (expectedNormal != null) assertEquals(expectedNormal, normal)
-        assertEquals(expectedDistance.toDouble(), distance, 1e-3)
+        assertEquals(min(expectedDistance.toDouble(), 1e38), min(distance, 1e38), 1e-3)
 
         val query1 = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
         query1.typeMask = typeMask

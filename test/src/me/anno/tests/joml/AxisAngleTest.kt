@@ -156,8 +156,6 @@ class AxisAngleTest {
         assertEquals(expected, expected.get(AxisAngle4f()))
         assertEquals(Matrix3f().rotate(rotation), expected.get(Matrix3f()), e)
         assertEquals(Matrix4f().rotate(rotation), expected.get(Matrix4f()), e)
-        assertEquals(Matrix4d().rotate(rotation), expected.get(Matrix4d()), e)
-        // 4x3 doesn't exist at all?
     }
 
     @Test

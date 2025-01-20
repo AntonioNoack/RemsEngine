@@ -8,7 +8,7 @@ import kotlin.math.min
 import kotlin.math.sin
 
 @Suppress("unused")
-open class Matrix3x2d : Matrix {
+open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
 
     var m00 = 0.0
     var m01 = 0.0
@@ -86,6 +86,57 @@ open class Matrix3x2d : Matrix {
         return this
     }
 
+    override fun getRow(row: Int, dst: Vector3d): Vector3d {
+        when (row) {
+            0 -> dst.set(m00, m10, m20)
+            else -> dst.set(m01, m11, m21)
+        }
+        return dst
+    }
+
+    override fun setRow(row: Int, src: Vector3d): Matrix3x2d {
+        when (row) {
+            0 -> {
+                m00 = src.x
+                m10 = src.y
+                m20 = src.z
+            }
+            else -> {
+                m01 = src.x
+                m11 = src.y
+                m21 = src.z
+            }
+        }
+        return this
+    }
+
+    override fun getColumn(column: Int, dst: Vector2d): Vector2d {
+        when (column) {
+            0 -> dst.set(m00, m01)
+            1 -> dst.set(m10, m11)
+            else -> dst.set(m20, m21)
+        }
+        return dst
+    }
+
+    override fun setColumn(column: Int, src: Vector2d): Matrix3x2d {
+        when (column) {
+            0 -> {
+                m00 = src.x
+                m01 = src.y
+            }
+            1 -> {
+                m10 = src.x
+                m11 = src.y
+            }
+            else -> {
+                m20 = src.x
+                m21 = src.y
+            }
+        }
+        return this
+    }
+
     private fun setMatrix3x2d(mat: Matrix3x2d) {
         m00 = mat.m00
         m01 = mat.m01
@@ -112,6 +163,29 @@ open class Matrix3x2d : Matrix {
         m01 = m.m01.toDouble()
         m10 = m.m10.toDouble()
         m11 = m.m11.toDouble()
+        return this
+    }
+
+    override operator fun get(column: Int, row: Int): Double {
+        return when (column * 2 + row) {
+            0 -> m00
+            1 -> m01
+            2 -> m10
+            3 -> m11
+            4 -> m20
+            else -> m21
+        }.toDouble()
+    }
+
+    override operator fun set(column: Int, row: Int, value: Double): Matrix3x2d {
+        when (column * 2 + row) {
+            0 -> m00 = value
+            1 -> m01 = value
+            2 -> m10 = value
+            3 -> m11 = value
+            4 -> m20 = value
+            else -> m21 = value
+        }
         return this
     }
 
@@ -738,16 +812,12 @@ open class Matrix3x2d : Matrix {
                 m20 == other.m20 && m21 == other.m21
     }
 
-    override fun equals1(other: Matrix, threshold: Double): Boolean {
-        return equals(other as? Matrix3x2d, threshold)
-    }
-
-    fun equals(m: Matrix3x2d?, delta: Double): Boolean {
-        if (this === m) return true
-        return m != null &&
-                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
-                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
-                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta)
+    override fun equals(other: Matrix3x2d?, threshold: Double): Boolean {
+        if (this === other) return true
+        return other != null &&
+                Runtime.equals(m00, other.m00, threshold) && Runtime.equals(m01, other.m01, threshold) &&
+                Runtime.equals(m10, other.m10, threshold) && Runtime.equals(m11, other.m11, threshold) &&
+                Runtime.equals(m20, other.m20, threshold) && Runtime.equals(m21, other.m21, threshold)
     }
 
     val isFinite: Boolean

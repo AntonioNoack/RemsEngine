@@ -15,6 +15,7 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.MediaMetadata
 import me.anno.utils.types.Floats.toLongOr
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.openal.AL11.AL_EXPONENT_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
@@ -272,7 +273,8 @@ abstract class AudioComponentBase : Component(), OnUpdate {
             if (deltaTime > 0) {
                 lastTime = time
                 if (stream1 != null && stereoSeparation > 0f) {
-                    val right = transform.globalTransform.transformDirection(Vector3f(stereoSeparation, 0f, 0f))
+                    val rightD = transform.globalTransform.transformDirection(Vector3d(stereoSeparation, 0f, 0f))
+                    val right = Vector3f(rightD)
                     lastVelocity0.set(pos).sub(right).sub(lastPosition0).mul(1e9f / deltaTime)
                     lastPosition0.set(pos)
                     lastVelocity1.set(pos).add(right).sub(lastPosition1).mul(1e9f / deltaTime)

@@ -162,7 +162,8 @@ open class Vector4f(
 
     @JvmOverloads
     fun mulTranspose(mat: Matrix4f, dst: Vector4f = this): Vector4f {
-        return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dst) else mulGenericTranspose(mat, dst)
+        return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dst)
+        else mulGenericTranspose(mat, dst)
     }
 
     @JvmOverloads

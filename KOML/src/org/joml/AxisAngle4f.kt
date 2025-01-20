@@ -187,10 +187,6 @@ class AxisAngle4f(
         return m.set(this)
     }
 
-    fun get(m: Matrix4d): Matrix4d {
-        return m.set(this)
-    }
-
     fun get(m: Matrix3d): Matrix3d {
         return m.set(this)
     }
