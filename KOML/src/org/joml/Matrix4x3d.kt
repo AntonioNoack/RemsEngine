@@ -4591,15 +4591,8 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         return dst
     }
 
-    fun obliqueZ(a: Double, b: Double): Matrix4x3d {
-        m20 += m00 * a + m10 * b
-        m21 += m01 * a + m11 * b
-        m22 += m02 * a + m12 * b
-        flags = 0
-        return this
-    }
-
-    fun obliqueZ(a: Double, b: Double, dst: Matrix4x3d): Matrix4x3d {
+    @JvmOverloads
+    fun obliqueZ(a: Double, b: Double, dst: Matrix4x3d = this): Matrix4x3d {
         dst.m00 = m00
         dst.m01 = m01
         dst.m02 = m02
@@ -4613,6 +4606,38 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         dst.m31 = m31
         dst.m32 = m32
         dst.flags = 0
+        return dst
+    }
+
+
+    @JvmOverloads
+    fun withLookAtUp(up: Vector3d, dst: Matrix4x3d = this): Matrix4x3d {
+        return withLookAtUp(up.x, up.y, up.z, dst)
+    }
+
+    @JvmOverloads
+    fun withLookAtUp(upX: Double, upY: Double, upZ: Double, dst: Matrix4x3d = this): Matrix4x3d {
+        val y = (upY * m21 - upZ * m11) * m02 + (upZ * m01 - upX * m21) * m12 + (upX * m11 - upY * m01) * m22
+        var x = upX * m01 + upY * m11 + upZ * m21
+        if (flags and 16 == 0) {
+            x *= sqrt(m01 * m01 + m11 * m11 + m21 * m21)
+        }
+        val invsqrt = JomlMath.invsqrt(y * y + x * x)
+        val c = x * invsqrt
+        val s = y * invsqrt
+        val nm00 = c * m00 - s * m01
+        val nm10 = c * m10 - s * m11
+        val nm20 = c * m20 - s * m21
+        val nm31 = s * m30 + c * m31
+        val nm01 = s * m00 + c * m01
+        val nm11 = s * m10 + c * m11
+        val nm21 = s * m20 + c * m21
+        val nm30 = c * m30 - s * m31
+        dst._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31)
+        if (dst !== this) {
+            dst._m02(m02)._m12(m12)._m22(m22)._m32(m32)
+        }
+        dst.flags = flags and -13
         return dst
     }
 

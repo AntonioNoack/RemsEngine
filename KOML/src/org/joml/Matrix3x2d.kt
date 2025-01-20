@@ -197,13 +197,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val nm11 = m01 * right.m10 + m11 * right.m11
         val nm20 = m00 * right.m20 + m10 * right.m21 + m20
         val nm21 = m01 * right.m20 + m11 * right.m21 + m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     @JvmOverloads
@@ -214,13 +208,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val nm11 = left.m01 * m10 + left.m11 * m11
         val nm20 = left.m00 * m20 + left.m10 * m21 + left.m20
         val nm21 = left.m01 * m20 + left.m11 * m21 + left.m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     fun set(m00: Double, m01: Double, m10: Double, m11: Double, m20: Double, m21: Double): Matrix3x2d {
@@ -246,13 +234,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val nm11 = m00 * s
         val nm20 = (m10 * m21 - m20 * m11) * s
         val nm21 = (m20 * m01 - m00 * m21) * s
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     fun translation(x: Double, y: Double): Matrix3x2d {
@@ -266,7 +248,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
     }
 
     fun translation(offset: Vector2d): Matrix3x2d {
-        return this.translation(offset.x, offset.y)
+        return translation(offset.x, offset.y)
     }
 
     fun setTranslation(x: Double, y: Double): Matrix3x2d {
@@ -276,34 +258,30 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
     }
 
     fun setTranslation(offset: Vector2d): Matrix3x2d {
-        return this.setTranslation(offset.x, offset.y)
+        return setTranslation(offset.x, offset.y)
     }
 
     @JvmOverloads
     fun translate(x: Double, y: Double, dst: Matrix3x2d = this): Matrix3x2d {
-        dst.m20 = m00 * x + m10 * y + m20
-        dst.m21 = m01 * x + m11 * y + m21
-        dst.m00 = m00
-        dst.m01 = m01
-        dst.m10 = m10
-        dst.m11 = m11
-        return dst
+        val nm20 = m00 * x + m10 * y + m20
+        val nm21 = m01 * x + m11 * y + m21
+        return dst.set(m00, m01, m10, m11, nm20, nm21)
     }
 
     fun translate(offset: Vector2d, dst: Matrix3x2d = this): Matrix3x2d {
-        return this.translate(offset.x, offset.y, dst)
+        return translate(offset.x, offset.y, dst)
     }
 
     fun translate(offset: Vector2d): Matrix3x2d {
-        return this.translate(offset.x, offset.y, this)
+        return translate(offset.x, offset.y, this)
     }
 
     fun translateLocal(offset: Vector2d): Matrix3x2d {
-        return this.translateLocal(offset.x, offset.y)
+        return translateLocal(offset.x, offset.y)
     }
 
     fun translateLocal(offset: Vector2d, dst: Matrix3x2d = this): Matrix3x2d {
-        return this.translateLocal(offset.x, offset.y, dst)
+        return translateLocal(offset.x, offset.y, dst)
     }
 
     @JvmOverloads
@@ -336,36 +314,12 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         return arr
     }
 
-    /*@JvmOverloads
-    fun get3x3(arr: DoubleArray, offset: Int = 0): DoubleArray {
-        MemUtil.INSTANCE.copy3x3(this, arr, offset)
-        return arr
-    }
-
-    @JvmOverloads
-    fun get4x4(arr: DoubleArray, offset: Int = 0): DoubleArray {
-        MemUtil.INSTANCE.copy4x4(this, arr, offset)
-        return arr
-    }*/
-
     fun zero(): Matrix3x2d {
-        m00 = 0.0
-        m01 = 0.0
-        m10 = 0.0
-        m11 = 0.0
-        m20 = 0.0
-        m21 = 0.0
-        return this
+        return scaling(0.0)
     }
 
     fun identity(): Matrix3x2d {
-        m00 = 1.0
-        m01 = 0.0
-        m10 = 0.0
-        m11 = 1.0
-        m20 = 0.0
-        m21 = 0.0
-        return this
+        return scaling(1.0)
     }
 
     @JvmOverloads
@@ -379,43 +333,28 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         return dst
     }
 
-    fun scale(xy: Vector2d): Matrix3x2d {
-        return this.scale(xy.x, xy.y, this)
-    }
-
+    @JvmOverloads
     fun scale(xy: Vector2d, dst: Matrix3x2d = this): Matrix3x2d {
-        return this.scale(xy.x, xy.y, dst)
+        return scale(xy.x, xy.y, dst)
     }
 
-    fun scale(xy: Vector2f): Matrix3x2d {
-        return this.scale(xy.x.toDouble(), xy.y.toDouble(), this)
-    }
-
+    @JvmOverloads
     fun scale(xy: Vector2f, dst: Matrix3x2d = this): Matrix3x2d {
-        return this.scale(xy.x.toDouble(), xy.y.toDouble(), dst)
+        return scale(xy.x.toDouble(), xy.y.toDouble(), dst)
     }
 
+    @JvmOverloads
     fun scale(xy: Double, dst: Matrix3x2d = this): Matrix3x2d {
-        return this.scale(xy, xy, dst)
-    }
-
-    fun scale(xy: Double): Matrix3x2d {
-        return this.scale(xy, xy)
+        return scale(xy, xy, dst)
     }
 
     @JvmOverloads
     fun scaleLocal(x: Double, y: Double, dst: Matrix3x2d = this): Matrix3x2d {
-        dst.m00 = x * m00
-        dst.m01 = y * m01
-        dst.m10 = x * m10
-        dst.m11 = y * m11
-        dst.m20 = x * m20
-        dst.m21 = y * m21
-        return dst
+        return dst.set(m00 * x, m01 * y, m10 * x, m11 * y, m20 * x, m21 * y)
     }
 
     fun scaleLocal(xy: Double, dst: Matrix3x2d = this): Matrix3x2d {
-        return this.scaleLocal(xy, xy, dst)
+        return scaleLocal(xy, xy, dst)
     }
 
     @JvmOverloads
@@ -435,6 +374,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         return scaleAround(factor, factor, ox, oy, dst)
     }
 
+    @JvmOverloads
     fun scaleAroundLocal(sx: Double, sy: Double, ox: Double, oy: Double, dst: Matrix3x2d = this): Matrix3x2d {
         dst.m00 = sx * m00
         dst.m01 = sy * m01
@@ -445,82 +385,50 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         return dst
     }
 
+    @JvmOverloads
     fun scaleAroundLocal(factor: Double, ox: Double, oy: Double, dst: Matrix3x2d = this): Matrix3x2d {
         return scaleAroundLocal(factor, factor, ox, oy, dst)
     }
 
-    fun scaleAroundLocal(sx: Double, sy: Double, sz: Double, ox: Double, oy: Double, oz: Double): Matrix3x2d {
-        return scaleAroundLocal(sx, sy, ox, oy, this)
-    }
-
-    fun scaleAroundLocal(factor: Double, ox: Double, oy: Double): Matrix3x2d {
-        return scaleAroundLocal(factor, factor, ox, oy, this)
-    }
-
     fun scaling(factor: Double): Matrix3x2d {
-        return this.scaling(factor, factor)
+        return scaling(factor, factor)
     }
 
     fun scaling(x: Double, y: Double): Matrix3x2d {
-        m00 = x
-        m01 = 0.0
-        m10 = 0.0
-        m11 = y
-        m20 = 0.0
-        m21 = 0.0
-        return this
+        return set(x, 0.0, 0.0, y, 0.0, 0.0)
     }
 
     fun rotation(angle: Double): Matrix3x2d {
         val cos = cos(angle)
         val sin = sin(angle)
-        m00 = cos
-        m10 = -sin
-        m20 = 0.0
-        m01 = sin
-        m11 = cos
-        m21 = 0.0
-        return this
+        return set(cos, sin, -sin, cos, 0.0, 0.0)
     }
 
-    fun transform(v: Vector3d): Vector3d {
-        return v.mul(this)
-    }
-
-    fun transform(v: Vector3d, dst: Vector3d?): Vector3d {
-        return v.mul(this, dst!!)
+    @JvmOverloads
+    fun transform(v: Vector3d, dst: Vector3d = v): Vector3d {
+        return v.mul(this, dst)
     }
 
     fun transform(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        return dst.set(m00 * x + m10 * y + m20 * z, m01 * x + m11 * y + m21 * z, z)
+        return transform(dst.set(x, y, z))
     }
 
-    fun transformPosition(v: Vector2d): Vector2d {
-        v.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
-        return v
-    }
-
-    fun transformPosition(v: Vector2d, dst: Vector2d): Vector2d {
-        dst.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
-        return dst
+    @JvmOverloads
+    fun transformPosition(v: Vector2d, dst: Vector2d = v): Vector2d {
+        return dst.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
     }
 
     fun transformPosition(x: Double, y: Double, dst: Vector2d): Vector2d {
-        return dst.set(m00 * x + m10 * y + m20, m01 * x + m11 * y + m21)
+        return transformPosition(dst.set(x, y))
     }
 
-    fun transformDirection(v: Vector2d): Vector2d {
-        v.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
-        return v
-    }
-
-    fun transformDirection(v: Vector2d, dst: Vector2d): Vector2d {
-        dst.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
-        return dst
+    @JvmOverloads
+    fun transformDirection(v: Vector2d, dst: Vector2d = v): Vector2d {
+        return dst.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
     }
 
     fun transformDirection(x: Double, y: Double, dst: Vector2d): Vector2d {
-        return dst.set(m00 * x + m10 * y, m01 * x + m11 * y)
+        return transformDirection(dst.set(x, y))
     }
 
     @JvmOverloads
@@ -530,13 +438,9 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val rm10 = -sin
         val nm00 = m00 * cos + m10 * sin
         val nm01 = m01 * cos + m11 * sin
-        dst.m10 = m00 * rm10 + m10 * cos
-        dst.m11 = m01 * rm10 + m11 * cos
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m20 = m20
-        dst.m21 = m21
-        return dst
+        val nm10 = m00 * rm10 + m10 * cos
+        val nm11 = m01 * rm10 + m11 * cos
+        return dst.set(nm00, nm01, nm10, nm11, m20, m21)
     }
 
     @JvmOverloads
@@ -549,13 +453,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val nm11 = sin * m10 + cos * m11
         val nm20 = cos * m20 - sin * m21
         val nm21 = sin * m20 + cos * m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m20 = nm20
-        dst.m21 = nm21
-        return dst
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     @JvmOverloads
@@ -566,13 +464,11 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val sin = sin(ang)
         val nm00 = m00 * cos + m10 * sin
         val nm01 = m01 * cos + m11 * sin
-        dst.m10 = m00 * -sin + m10 * cos
-        dst.m11 = m01 * -sin + m11 * cos
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m20 = dst.m00 * -x + dst.m10 * -y + tm20
-        dst.m21 = dst.m01 * -x + dst.m11 * -y + tm21
-        return dst
+        val nm10 = m00 * -sin + m10 * cos
+        val nm11 = m01 * -sin + m11 * cos
+        val nm20 = dst.m00 * -x + dst.m10 * -y + tm20
+        val nm21 = dst.m01 * -x + dst.m11 * -y + tm21
+        return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
     @JvmOverloads
@@ -582,13 +478,9 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val rm10 = -det
         val nm00 = m00 * dot + m10 * det
         val nm01 = m01 * dot + m11 * det
-        dst.m10 = m00 * rm10 + m10 * dot
-        dst.m11 = m01 * rm10 + m11 * dot
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m20 = m20
-        dst.m21 = m21
-        return dst
+        val nm10 = m00 * rm10 + m10 * dot
+        val nm11 = m01 * rm10 + m11 * dot
+        return dst.set(nm00, nm01, nm10, nm11, m20, m21)
     }
 
     @JvmOverloads

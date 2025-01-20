@@ -81,11 +81,8 @@ open class Vector3d(
     fun sub(x: Float, y: Float, z: Float, dst: Vector3d = this): Vector3d =
         sub(x.toDouble(), y.toDouble(), z.toDouble(), dst)
 
-    fun sub(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
-        dst.x = this.x - x
-        dst.y = this.y - y
-        dst.z = this.z - z
-        return dst
+    fun sub(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(x - vx, y - vy, z - vz)
     }
 
     fun add(v: Double, dst: Vector3d = this): Vector3d = add(v, v, v, dst)
@@ -94,11 +91,8 @@ open class Vector3d(
     fun add(x: Float, y: Float, z: Float, dst: Vector3d = this): Vector3d =
         add(x.toDouble(), y.toDouble(), z.toDouble(), dst)
 
-    fun add(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
-        dst.x = this.x + x
-        dst.y = this.y + y
-        dst.z = this.z + z
-        return dst
+    fun add(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(x + vx, y + vy, z + vz)
     }
 
     fun fma(a: Vector3f, b: Vector3f, dst: Vector3d = this): Vector3d {
@@ -158,31 +152,19 @@ open class Vector3d(
     }
 
     fun mul(v: Vector3f, dst: Vector3d = this): Vector3d {
-        dst.x = x * v.x
-        dst.y = y * v.y
-        dst.z = z * v.z
-        return dst
+        return mul(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
     }
 
     fun mul(v: Vector3d, dst: Vector3d = this): Vector3d {
-        dst.x = x * v.x
-        dst.y = y * v.y
-        dst.z = z * v.z
-        return dst
+        return mul(v.x, v.y, v.z, dst)
     }
 
     fun div(v: Vector3f, dst: Vector3d = this): Vector3d {
-        dst.x = x / v.x
-        dst.y = y / v.y
-        dst.z = z / v.z
-        return dst
+        return div(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
     }
 
     fun div(v: Vector3d, dst: Vector3d = this): Vector3d {
-        dst.x = x / v.x
-        dst.y = y / v.y
-        dst.z = z / v.z
-        return dst
+        return div(v.x, v.y, v.z, dst)
     }
 
     fun mulProject(mat: Matrix4d, w: Double, dst: Vector3d = this): Vector3d {
@@ -190,10 +172,7 @@ open class Vector3d(
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30 * w))) * invW
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31 * w))) * invW
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32 * w))) * invW
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulProject(mat: Matrix4d, dst: Vector3d = this): Vector3d {
@@ -201,10 +180,7 @@ open class Vector3d(
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))) * invW
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))) * invW
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))) * invW
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulProject(mat: Matrix4f, dst: Vector3d = this): Vector3d {
@@ -212,138 +188,96 @@ open class Vector3d(
         val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30) * invW
         val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31) * invW
         val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32) * invW
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mul(mat: Matrix3d, dst: Vector3d = this): Vector3d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mul(mat: Matrix3d, dst: Vector3f): Vector3f {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z
-        dst.x = rx.toFloat()
-        dst.y = ry.toFloat()
-        dst.z = rz.toFloat()
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mul(mat: Matrix3f, dst: Vector3d = this): Vector3d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mul(mat: Matrix3x2d, dst: Vector3d = this): Vector3d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
-        dst.x = rx
-        dst.y = ry
-        dst.z = z
-        return dst
+        return dst.set(rx, ry, z)
     }
 
     fun mul(mat: Matrix3x2f, dst: Vector3d = this): Vector3d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z
-        dst.x = rx
-        dst.y = ry
-        dst.z = z
-        return dst
+        return dst.set(rx, ry, z)
     }
 
     fun mulTranspose(mat: Matrix3d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + mat.m02 * z))
         val ry = (mat.m10 * x + (mat.m11 * y + mat.m12 * z))
         val rz = (mat.m20 * x + (mat.m21 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulTranspose(mat: Matrix3f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + mat.m02 * z))
         val ry = (mat.m10 * x + (mat.m11 * y + mat.m12 * z))
         val rz = (mat.m20 * x + (mat.m21 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4x3d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4x3f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulTransposePosition(mat: Matrix4d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + (mat.m02 * z + mat.m03)))
         val ry = (mat.m10 * x + (mat.m11 * y + (mat.m12 * z + mat.m13)))
         val rz = (mat.m20 * x + (mat.m21 * y + (mat.m22 * z + mat.m23)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulTransposePosition(mat: Matrix4f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + (mat.m02 * z + mat.m03)))
         val ry = (mat.m10 * x + (mat.m11 * y + (mat.m12 * z + mat.m13)))
         val rz = (mat.m20 * x + (mat.m21 * y + (mat.m22 * z + mat.m23)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulPositionW(mat: Matrix4f, dst: Vector3d = this): Double {
@@ -351,9 +285,7 @@ open class Vector3d(
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
+        dst.set(rx, ry, rz)
         return w
     }
 
@@ -362,9 +294,7 @@ open class Vector3d(
         val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
         val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
         val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
+        dst.set(rx, ry, rz)
         return w
     }
 
@@ -372,74 +302,50 @@ open class Vector3d(
         val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
         val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
         val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulDirection(mat: Matrix4f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
         val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
         val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulDirection(mat: Matrix4x3d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
         val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
         val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulDirection(mat: Matrix4x3f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
         val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
         val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulTransposeDirection(mat: Matrix4d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + mat.m02 * z))
         val ry = (mat.m10 * x + (mat.m11 * y + mat.m12 * z))
         val rz = (mat.m20 * x + (mat.m21 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mulTransposeDirection(mat: Matrix4f, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + mat.m02 * z))
         val ry = (mat.m10 * x + (mat.m11 * y + mat.m12 * z))
         val rz = (mat.m20 * x + (mat.m21 * y + mat.m22 * z))
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
+        return dst.set(rx, ry, rz)
     }
 
     fun mul(scalar: Double, dst: Vector3d = this): Vector3d {
-        dst.x = x * scalar
-        dst.y = y * scalar
-        dst.z = z * scalar
-        return dst
+        return dst.set(x * scalar, y * scalar, z * scalar)
     }
 
-    fun mul(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
-        dst.x = this.x * x
-        dst.y = this.y * y
-        dst.z = this.z * z
-        return dst
+    fun mul(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(x * vx, y * vy, z * vz)
     }
 
     fun rotate(quat: Quaternionf, dst: Vector3d = this): Vector3d {
@@ -479,43 +385,31 @@ open class Vector3d(
     fun rotateX(angle: Double, dst: Vector3d = this): Vector3d {
         val sin = sin(angle)
         val cos = cos(angle)
-        val y = y * cos - z * sin
-        val z = this.y * sin + z * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        return dst
+        val ry = y * cos - z * sin
+        val rz = y * sin + z * cos
+        return dst.set(x, ry, rz)
     }
 
     fun rotateY(angle: Double, dst: Vector3d = this): Vector3d {
         val sin = sin(angle)
         val cos = cos(angle)
-        val x = x * cos + z * sin
-        val z = -this.x * sin + z * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        return dst
+        val rx = x * cos + z * sin
+        val rz = -x * sin + z * cos
+        return dst.set(rx, y, rz)
     }
 
     fun rotateZ(angle: Double, dst: Vector3d = this): Vector3d {
         val sin = sin(angle)
         val cos = cos(angle)
-        val x = x * cos - y * sin
-        val y = this.x * sin + y * cos
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        return dst
+        val rx = x * cos - y * sin
+        val ry = x * sin + y * cos
+        return dst.set(rx, ry, z)
     }
 
     fun div(scalar: Double, dst: Vector3d = this) = mul(1.0 / scalar, dst)
 
-    fun div(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
-        dst.x = this.x / x
-        dst.y = this.y / y
-        dst.z = this.z / z
-        return dst
+    fun div(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(x / vx, y / vy, z / vz)
     }
 
     fun lengthSquared() = x * x + y * y + z * z
@@ -575,34 +469,22 @@ open class Vector3d(
     }
 
     fun angleSigned(v: Vector3d, n: Vector3d): Double {
-        val x = v.x
-        val y = v.y
-        val z = v.z
-        return atan2(
-            (this.y * z - this.z * y) * n.x + (this.z * x - this.x * z) * n.y + (this.x * y - this.y * x) * n.z,
-            this.x * x + this.y * y + this.z * z
-        )
+        return angleSigned(v.x, v.y, v.z, n.x, n.y, n.z)
     }
 
-    fun angleSigned(x: Double, y: Double, z: Double, nx: Double, ny: Double, nz: Double): Double {
+    fun angleSigned(vx: Double, vy: Double, vz: Double, nx: Double, ny: Double, nz: Double): Double {
         return atan2(
-            (this.y * z - this.z * y) * nx + (this.z * x - this.x * z) * ny + (this.x * y - this.y * x) * nz,
-            this.x * x + this.y * y + this.z * z
+            (y * vz - z * vy) * nx + (z * vx - x * vz) * ny + (x * vy - y * vx) * nz,
+            x * vx + y * vy + z * vz
         )
     }
 
     fun min(v: Vector3d, dst: Vector3d = this): Vector3d {
-        dst.x = min(x, v.x)
-        dst.y = min(y, v.y)
-        dst.z = min(z, v.z)
-        return dst
+        return dst.set(min(x, v.x), min(y, v.y), min(z, v.z))
     }
 
     fun max(v: Vector3d, dst: Vector3d = this): Vector3d {
-        dst.x = max(x, v.x)
-        dst.y = max(y, v.y)
-        dst.z = max(z, v.z)
-        return dst
+        return dst.set(max(x, v.x), max(y, v.y), max(z, v.z))
     }
 
     fun zero(): Vector3d = set(0.0, 0.0, 0.0)
@@ -612,10 +494,7 @@ open class Vector3d(
     }
 
     fun negate(dst: Vector3d = this): Vector3d {
-        dst.x = -x
-        dst.y = -y
-        dst.z = -z
-        return dst
+        return dst.set(-x, -y, -z)
     }
 
     // add this to all vector classes?
@@ -623,10 +502,7 @@ open class Vector3d(
     operator fun unaryPlus() = this
 
     fun absolute(dst: Vector3d = this): Vector3d {
-        dst.x = abs(x)
-        dst.y = abs(y)
-        dst.z = abs(z)
-        return dst
+        return dst.set(abs(x), abs(y), abs(z))
     }
 
     override fun hashCode(): Int {
@@ -654,53 +530,25 @@ open class Vector3d(
         return x == this.x && y == this.y && z == this.z
     }
 
-    fun reflect(normal: Vector3d): Vector3d {
-        val dot = dot(normal) * 2.0
-        sub(dot * normal.x, dot * normal.y, dot * normal.z)
-        return this
-    }
-
-    fun reflect(x: Double, y: Double, z: Double): Vector3d {
-        val dot = dot(x, y, z) * 2.0
-        this.x -= dot * x
-        this.y -= dot * y
-        this.z -= dot * z
-        return this
-    }
-
+    @JvmOverloads
     fun reflect(normal: Vector3d, dst: Vector3d = this): Vector3d {
-        val x = normal.x
-        val y = normal.y
-        val z = normal.z
-        val dot = dot(normal)
-        dst.x = this.x - (dot + dot) * x
-        dst.y = this.y - (dot + dot) * y
-        dst.z = this.z - (dot + dot) * z
-        return dst
+        return reflect(normal.x, normal.y, normal.z, dst)
     }
 
-    fun reflect(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
-        val dot = (this.x * x + (this.y * y + this.z * z))
-        dst.x = this.x - (dot + dot) * x
-        dst.y = this.y - (dot + dot) * y
-        dst.z = this.z - (dot + dot) * z
-        return dst
+    @JvmOverloads
+    fun reflect(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        val dot = 2.0 * dot(vx, vy, vz)
+        return sub(dot * vx, dot * vy, dot * vz, dst)
     }
 
-    fun half(other: Vector3d): Vector3d {
-        return this.set(this).add(other.x, other.y, other.z).normalize()
-    }
-
-    fun half(x: Double, y: Double, z: Double): Vector3d {
-        return this.set(this).add(x, y, z).normalize()
-    }
-
+    @JvmOverloads
     fun half(other: Vector3d, dst: Vector3d = this): Vector3d {
-        return dst.set(this).add(other.x, other.y, other.z).normalize()
+        return half(other.x, other.y, other.z, dst)
     }
 
+    @JvmOverloads
     fun half(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
-        return dst.set(this).add(x, y, z).normalize()
+        return add(x, y, z, dst).normalize()
     }
 
     fun smoothStep(v: Vector3d, t: Double, dst: Vector3d = this): Vector3d {
@@ -745,17 +593,11 @@ open class Vector3d(
     }
 
     fun get(dst: Vector3f): Vector3f {
-        dst.x = x.toFloat()
-        dst.y = y.toFloat()
-        dst.z = z.toFloat()
-        return dst
+        return dst.set(x, y, z)
     }
 
     fun get(dst: Vector3d): Vector3d {
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        return dst
+        return dst.set(x, y, z)
     }
 
     fun get(dst: FloatArray, i: Int) {
@@ -822,26 +664,17 @@ open class Vector3d(
 
     @JvmOverloads
     fun floor(dst: Vector3d = this): Vector3d {
-        dst.x = floor(x)
-        dst.y = floor(y)
-        dst.z = floor(z)
-        return dst
+        return dst.set(floor(x), floor(y), floor(z))
     }
 
     @JvmOverloads
     fun ceil(dst: Vector3d = this): Vector3d {
-        dst.x = ceil(x)
-        dst.y = ceil(y)
-        dst.z = ceil(z)
-        return dst
+        return dst.set(ceil(x), ceil(y), ceil(z))
     }
 
     @JvmOverloads
     fun round(dst: Vector3d = this): Vector3d {
-        dst.x = round(x)
-        dst.y = round(y)
-        dst.z = round(z)
-        return dst
+        return dst.set(round(x), round(y), round(z))
     }
 
     val isFinite: Boolean

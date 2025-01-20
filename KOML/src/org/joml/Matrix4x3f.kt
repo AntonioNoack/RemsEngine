@@ -4195,7 +4195,7 @@ open class Matrix4x3f : Matrix<Matrix4x3f, Vector3f, Vector4f> {
 
     @JvmOverloads
     fun withLookAtUp(up: Vector3f, dst: Matrix4x3f = this): Matrix4x3f {
-        return this.withLookAtUp(up.x, up.y, up.z, dst)
+        return withLookAtUp(up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads

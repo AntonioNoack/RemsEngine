@@ -16,8 +16,11 @@ import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector
+import org.joml.Vector2d
+import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector4d
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.random.Random
@@ -203,8 +206,23 @@ class MatrixEquivalenceTests {
     fun testRotateAroundLocal() {
         assertEquals1(
             Matrix4f().fill(1234).rotateAroundLocal(Quaternionf().fill(4567), 1f, 2f, 3f),
-            Matrix4d().fill(1234).rotateAroundLocal(Quaterniond().fill(4567), 1.0, 2.0, 3.0),
-            1e-6
+            Matrix4d().fill(1234).rotateAroundLocal(Quaterniond().fill(4567), 1.0, 2.0, 3.0), 1e-6
+        )
+    }
+
+    @Test
+    fun testScaleAround() {
+        assertEquals1(
+            Matrix3x2f().fill(1234).scaleAround(4f, 5f, 6f, 1f),
+            Matrix3x2d().fill(1234).scaleAround(4.0, 5.0, 6.0, 1.0), 1e-5
+        )
+        assertEquals1(
+            Matrix4x3f().fill(1234).scaleAround(4f, 5f, 6f, 1f),
+            Matrix4x3d().fill(1234).scaleAround(4.0, 5.0, 6.0, 1.0), 1e-5
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).scaleAround(4f, 5f, 6f, 1f, 2f, 3f),
+            Matrix4d().fill(1234).scaleAround(4.0, 5.0, 6.0, 1.0, 2.0, 3.0), 1e-5
         )
     }
 
@@ -212,8 +230,7 @@ class MatrixEquivalenceTests {
     fun testScaleAroundLocal() {
         assertEquals1(
             Matrix4f().fill(1234).scaleAroundLocal(4f, 5f, 6f, 1f, 2f, 3f),
-            Matrix4d().fill(1234).scaleAroundLocal(4.0, 5.0, 6.0, 1.0, 2.0, 3.0),
-            1e-6
+            Matrix4d().fill(1234).scaleAroundLocal(4.0, 5.0, 6.0, 1.0, 2.0, 3.0), 1e-6
         )
     }
 
@@ -287,10 +304,49 @@ class MatrixEquivalenceTests {
     }
 
     @Test
-    fun testReflect() {
+    fun testReflect3() {
+        val normal = Vector3f().fill().normalize()
+        val dir = Quaternionf().fill()
+        assertEquals1(
+            Matrix3f().fill().reflect(normal),
+            Matrix3d().fill().reflect(Vector3d(normal)), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().fill().reflect(dir),
+            Matrix3d().fill().reflect(Quaterniond(dir)), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().reflection(normal),
+            Matrix3d().reflection(Vector3d(normal)), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().reflection(dir),
+            Matrix3d().reflection(Quaterniond(dir)), 1e-6
+        )
+    }
+
+    @Test
+    fun testReflect4() {
         val normal = Vector3f().fill().normalize()
         val pos = Vector3f().fill()
         val dir = Quaternionf().fill()
+        assertEquals1(
+            Matrix4x3f().fill().reflect(normal, pos),
+            Matrix4x3d().fill().reflect(Vector3d(normal), Vector3d(pos)), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill().reflect(dir, pos),
+            Matrix4x3d().fill().reflect(Quaterniond(dir), Vector3d(pos)), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().reflection(normal, pos),
+            Matrix4x3d().reflection(Vector3d(normal), Vector3d(pos)), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().reflection(dir, pos),
+            Matrix4x3d().reflection(Quaterniond(dir), Vector3d(pos)), 1e-6
+        )
+
         assertEquals1(
             Matrix4f().fill().reflect(normal, pos),
             Matrix4d().fill().reflect(Vector3d(normal), Vector3d(pos)), 1e-6
@@ -318,6 +374,30 @@ class MatrixEquivalenceTests {
         val d = rnd.nextDouble()
         val e = rnd.nextDouble()
         val f = rnd.nextDouble()
+        assertEquals1(
+            Matrix4x3f().ortho(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), e.toFloat(), f.toFloat()),
+            Matrix4x3d().ortho(a, b, c, d, e, f), 2e-5
+        )
+        assertEquals1(
+            Matrix4x3f().orthoLH(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), e.toFloat(), f.toFloat()),
+            Matrix4x3d().orthoLH(a, b, c, d, e, f), 2e-5
+        )
+        assertEquals1(
+            Matrix4x3f().ortho2D(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat()),
+            Matrix4x3d().ortho2D(a, b, c, d), 2e-5
+        )
+        assertEquals1(
+            Matrix4x3f().ortho2DLH(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat()),
+            Matrix4x3d().ortho2DLH(a, b, c, d), 2e-5
+        )
+        assertEquals1(
+            Matrix4x3f().orthoSymmetric(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat()),
+            Matrix4x3d().orthoSymmetric(a, b, c, d), 2e-5
+        )
+        assertEquals1(
+            Matrix4x3f().orthoSymmetricLH(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat()),
+            Matrix4x3d().orthoSymmetricLH(a, b, c, d), 2e-5
+        )
         assertEquals1(
             Matrix4f().ortho(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), e.toFloat(), f.toFloat()),
             Matrix4d().ortho(a, b, c, d, e, f), 2e-5
@@ -353,6 +433,14 @@ class MatrixEquivalenceTests {
         val dir = Vector3f().fill(213).normalize()
         val up = Vector3f().fill(456).normalize()
         assertEquals1(
+            Matrix4x3f().lookAlong(dir, up),
+            Matrix4x3d().lookAlong(Vector3d(dir), Vector3d(up))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().lookAlong(dir, up),
+            Matrix4x3d().fill().lookAlong(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
             Matrix4f().lookAlong(dir, up),
             Matrix4d().lookAlong(Vector3d(dir), Vector3d(up))
         )
@@ -367,6 +455,22 @@ class MatrixEquivalenceTests {
         val eye = Vector3f().fill(213)
         val center = Vector3f().fill(561)
         val up = Vector3f().fill(456).normalize()
+        assertEquals1(
+            Matrix4x3f().lookAt(eye, center, up),
+            Matrix4x3d().lookAt(Vector3d(eye), Vector3d(center), Vector3d(up))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().lookAt(eye, center, up),
+            Matrix4x3d().fill().lookAt(Vector3d(eye), Vector3d(center), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().lookAtLH(eye, center, up),
+            Matrix4x3d().lookAtLH(Vector3d(eye), Vector3d(center), Vector3d(up))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().lookAtLH(eye, center, up),
+            Matrix4x3d().fill().lookAtLH(Vector3d(eye), Vector3d(center), Vector3d(up)), 1e-6
+        )
         assertEquals1(
             Matrix4f().lookAt(eye, center, up),
             Matrix4d().lookAt(Vector3d(eye), Vector3d(center), Vector3d(up))
@@ -457,6 +561,13 @@ class MatrixEquivalenceTests {
         val g = rnd.nextDouble()
         val h = rnd.nextDouble()
         assertEquals1(
+            Matrix4x3f().shadow(
+                a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(),
+                e.toFloat(), f.toFloat(), g.toFloat(), h.toFloat()
+            ),
+            Matrix4x3d().shadow(a, b, c, d, e, f, g, h), 1e-6
+        )
+        assertEquals1(
             Matrix4f().shadow(
                 a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(),
                 e.toFloat(), f.toFloat(), g.toFloat(), h.toFloat()
@@ -470,6 +581,18 @@ class MatrixEquivalenceTests {
         val pos1 = Vector3f().fill(123)
         val pos2 = Vector3f().fill(456)
         val up = Vector3f().fill(987).normalize()
+        assertEquals1(
+            Matrix4x3f().billboardCylindrical(pos1, pos2, up),
+            Matrix4x3d().billboardCylindrical(Vector3d(pos1), Vector3d(pos2), Vector3d(up))
+        )
+        assertEquals1(
+            Matrix4x3f().billboardSpherical(pos1, pos2),
+            Matrix4x3d().billboardSpherical(Vector3d(pos1), Vector3d(pos2))
+        )
+        assertEquals1(
+            Matrix4x3f().billboardSpherical(pos1, pos2, up),
+            Matrix4x3d().billboardSpherical(Vector3d(pos1), Vector3d(pos2), Vector3d(up))
+        )
         assertEquals1(
             Matrix4f().billboardCylindrical(pos1, pos2, up),
             Matrix4d().billboardCylindrical(Vector3d(pos1), Vector3d(pos2), Vector3d(up))
@@ -549,6 +672,10 @@ class MatrixEquivalenceTests {
         val h = rnd.nextInt(100)
         val vp = intArrayOf(x, y, x + w, y + h)
         assertEquals1(
+            Matrix4x3f().pick(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), vp),
+            Matrix4x3d().pick(a, b, c, d, vp), 1e-3
+        )
+        assertEquals1(
             Matrix4f().pick(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), vp),
             Matrix4d().pick(a, b, c, d, vp), 1e-3
         )
@@ -565,6 +692,10 @@ class MatrixEquivalenceTests {
         val e = rnd.nextDouble()
         val f = rnd.nextDouble()
         assertEquals1(
+            Matrix4x3f().arcball(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), e.toFloat(), f.toFloat()),
+            Matrix4x3d().arcball(a, b, c, d, e, f)
+        )
+        assertEquals1(
             Matrix4f().arcball(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat(), e.toFloat(), f.toFloat()),
             Matrix4d().arcball(a, b, c, d, e, f)
         )
@@ -574,6 +705,10 @@ class MatrixEquivalenceTests {
     fun testWithLookAtUp() {
         val up = Vector3f().fill().normalize()
         assertEquals1(
+            Matrix4x3f().withLookAtUp(up),
+            Matrix4x3d().withLookAtUp(Vector3d(up))
+        )
+        assertEquals1(
             Matrix4f().withLookAtUp(up),
             Matrix4d().withLookAtUp(Vector3d(up))
         )
@@ -582,8 +717,28 @@ class MatrixEquivalenceTests {
     @Test
     fun testObliqueZ() {
         assertEquals1(
+            Matrix3f().obliqueZ(1.2f, 2f),
+            Matrix3d().obliqueZ(1.2, 2.0)
+        )
+        assertEquals1(
+            Matrix4x3f().obliqueZ(1.2f, 2f),
+            Matrix4x3d().obliqueZ(1.2, 2.0)
+        )
+        assertEquals1(
             Matrix4f().obliqueZ(1.2f, 2f),
             Matrix4d().obliqueZ(1.2, 2.0)
+        )
+    }
+
+    @Test
+    fun testSpan() {
+        val corner = Vector2f().fill(123)
+        val directions = Matrix2f().fill(156)
+        val xDir = directions.positiveX(Vector2f())
+        val yDir = directions.positiveY(Vector2f())
+        assertEquals1(
+            Matrix3x2f().span(corner, xDir, yDir),
+            Matrix3x2d().span(Vector2d(corner), Vector2d(xDir), Vector2d(yDir))
         )
     }
 
@@ -603,14 +758,146 @@ class MatrixEquivalenceTests {
     @Test
     fun testGetEulerAngles() {
         val euler = Vector3d().fill(5113)
+        assertEquals(euler, Matrix3f().rotateXYZ(Vector3f(euler)).getEulerAnglesXYZ(Vector3f()), 1e-7)
+        assertEquals(euler, Matrix3d().rotateXYZ(euler).getEulerAnglesXYZ(Vector3d()), 1e-16)
+        assertEquals(euler, Matrix4x3f().rotateXYZ(Vector3f(euler)).getEulerAnglesXYZ(Vector3f()), 1e-7)
+        assertEquals(euler, Matrix4x3d().rotateXYZ(euler).getEulerAnglesXYZ(Vector3d()), 1e-16)
         assertEquals(euler, Matrix4f().rotateXYZ(Vector3f(euler)).getEulerAnglesXYZ(Vector3f()), 1e-7)
         assertEquals(euler, Matrix4d().rotateXYZ(euler).getEulerAnglesXYZ(Vector3d()), 1e-16)
+    }
+
+    @Test
+    fun testGetAxis2() {
+        assertEquals(
+            Vector2f(1f, 0f).rotate(1f),
+            Matrix2f().scale(2f).rotate(-1f).positiveX(Vector2f()),1e-6
+        )
+        assertEquals(
+            Vector2d(1f, 0f).rotate(1.0),
+            Matrix2d().scale(2.0).rotate(-1.0).positiveX(Vector2d())
+        )
+        assertEquals(
+            Vector2f(0f, 1f).rotate(1f),
+            Matrix2f().scale(2f).rotate(-1f).positiveY(Vector2f()),1e-6
+        )
+        assertEquals(
+            Vector2d(0f, 1f).rotate(1.0),
+            Matrix2d().scale(2.0).rotate(-1.0).positiveY(Vector2d())
+        )
+        assertEquals(
+            Vector2f(2f, 0f).rotate(1f),
+            Matrix2f().scale(2f).rotate(-1f).normalizedPositiveX(Vector2f()),1e-6
+        )
+        assertEquals(
+            Vector2d(2f, 0f).rotate(1.0),
+            Matrix2d().scale(2.0).rotate(-1.0).normalizedPositiveX(Vector2d())
+        )
+        assertEquals(
+            Vector2f(0f, 2f).rotate(1f),
+            Matrix2f().scale(2f).rotate(-1f).normalizedPositiveY(Vector2f()),1e-6
+        )
+        assertEquals(
+            Vector2d(0f, 2f).rotate(1.0),
+            Matrix2d().scale(2.0).rotate(-1.0).normalizedPositiveY(Vector2d())
+        )
+    }
+
+    @Test
+    fun testGetAxis3x2() {
+        assertEquals(
+            Vector2f(1f, 0f).rotate(1f),
+            Matrix3x2f().scale(2f).rotate(-1f).positiveX(Vector2f())
+        )
+        assertEquals(
+            Vector2d(1f, 0f).rotate(1.0),
+            Matrix3x2d().scale(2.0).rotate(-1.0).positiveX(Vector2d())
+        )
+        assertEquals(
+            Vector2f(0f, 1f).rotate(1f),
+            Matrix3x2f().scale(2f).rotate(-1f).positiveY(Vector2f())
+        )
+        assertEquals(
+            Vector2d(0f, 1f).rotate(1.0),
+            Matrix3x2d().scale(2.0).rotate(-1.0).positiveY(Vector2d())
+        )
+        assertEquals(
+            Vector2f(2f, 0f).rotate(1f),
+            Matrix3x2f().scale(2f).rotate(-1f).normalizedPositiveX(Vector2f())
+        )
+        assertEquals(
+            Vector2d(2f, 0f).rotate(1.0),
+            Matrix3x2d().scale(2.0).rotate(-1.0).normalizedPositiveX(Vector2d())
+        )
+        assertEquals(
+            Vector2f(0f, 2f).rotate(1f),
+            Matrix3x2f().scale(2f).rotate(-1f).normalizedPositiveY(Vector2f())
+        )
+        assertEquals(
+            Vector2d(0f, 2f).rotate(1.0),
+            Matrix3x2d().scale(2.0).rotate(-1.0).normalizedPositiveY(Vector2d())
+        )
+    }
+
+    @Test
+    fun testOrigin() {
+        assertEquals(
+            Matrix3x2f().fill().origin(Vector2f()),
+            Matrix3x2d().fill().origin(Vector2d()),
+            1e-6
+        )
+    }
+
+    @Test
+    fun testViewArea() {
+        assertEquals(
+            Vector4d(Matrix3x2f().fill().viewArea(FloatArray(4)).map { it.toDouble() }.toDoubleArray()),
+            Vector4d(Matrix3x2d().fill().viewArea(DoubleArray(4))), 1e-6
+        )
+    }
+
+    @Test
+    fun testView() {
+        val rnd = Random(12344)
+        val a = rnd.nextDouble()
+        val b = rnd.nextDouble()
+        val c = rnd.nextDouble()
+        val d = rnd.nextDouble()
+        assertEquals1(
+            Matrix3x2f().setView(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat()),
+            Matrix3x2d().setView(a, b, c, d)
+        )
+        assertEquals1(
+            Matrix3x2f().fill().view(a.toFloat(), b.toFloat(), c.toFloat(), d.toFloat()),
+            Matrix3x2d().fill().view(a, b, c, d), 1e-6
+        )
+    }
+
+    @Test
+    fun testRotationTo() {
+        val from = Vector2f().fill(56).normalize()
+        val to = Vector2f().fill(156).normalize()
+        assertEquals1(
+            Matrix3x2f().rotateTo(from, to),
+            Matrix3x2d().rotateTo(Vector2d(from), Vector2d(to))
+        )
     }
 
     @Test
     fun testRotationTowards() {
         val dir = Vector3f().fill(56).normalize()
         val up = Vector3f().fill(156).normalize()
+        assertEquals1(
+            Matrix4x3f().rotateTowards(dir, up),
+            Matrix4x3d().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill().rotateTowards(dir, up),
+            Matrix4x3d().fill().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill().rotationTowards(dir, up),
+            Matrix4x3d().fill().rotationTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
         assertEquals1(
             Matrix4f().rotateTowards(dir, up),
             Matrix4d().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
@@ -631,6 +918,10 @@ class MatrixEquivalenceTests {
         val dir = Vector3f().fill(56).normalize()
         val up = Vector3f().fill(156).normalize()
         assertEquals1(
+            Matrix4x3f().translationRotateTowards(pos, dir, up),
+            Matrix4x3d().translationRotateTowards(Vector3d(pos), Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
             Matrix4f().translationRotateTowards(pos, dir, up),
             Matrix4d().translationRotateTowards(Vector3d(pos), Vector3d(dir), Vector3d(up)), 1e-6
         )
@@ -645,7 +936,30 @@ class MatrixEquivalenceTests {
     }
 
     @Test
-    fun testTransformAab() {
+    fun testTransformAab4x3() {
+        val vec0 = Vector3d().fill(123)
+        val vec1 = Vector3d().fill(456)
+        val min0 = vec0.min(vec1, Vector3d())
+        val max0 = vec0.max(vec1, Vector3d())
+
+        val aabb0 = AABBd().setMin(min0).setMax(max0)
+        aabb0.transform(Matrix4x3d().fill(123))
+
+        val min1f = Vector3f()
+        val max1f = Vector3f()
+        Matrix4x3f().fill(123).transformAab(Vector3f(min0), Vector3f(max0), min1f, max1f)
+        assertEquals(aabb0.getMin(Vector3f()), min1f, 2e-7)
+        assertEquals(aabb0.getMax(Vector3f()), max1f, 2e-7)
+
+        val min1d = Vector3d()
+        val max1d = Vector3d()
+        Matrix4x3d().fill(123).transformAab(min0, max0, min1d, max1d)
+        assertEquals(aabb0.getMin(Vector3d()), min1d)
+        assertEquals(aabb0.getMax(Vector3d()), max1d)
+    }
+
+    @Test
+    fun testTransformAab4() {
         val vec0 = Vector3d().fill(123)
         val vec1 = Vector3d().fill(456)
         val min0 = vec0.min(vec1, Vector3d())

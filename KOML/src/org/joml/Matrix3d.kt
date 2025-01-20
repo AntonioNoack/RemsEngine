@@ -694,6 +694,11 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
     }
 
     @JvmOverloads
+    fun rotateXYZ(euler: Vector3d, dst: Matrix3d = this): Matrix3d {
+        return rotateXYZ(euler.x, euler.y, euler.z, dst)
+    }
+
+    @JvmOverloads
     fun rotateXYZ(angleX: Double, angleY: Double, angleZ: Double, dst: Matrix3d = this): Matrix3d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)

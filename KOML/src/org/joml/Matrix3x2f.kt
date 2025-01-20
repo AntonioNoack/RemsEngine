@@ -543,9 +543,10 @@ open class Matrix3x2f : Matrix<Matrix3x2f, Vector2f, Vector3f> {
 
     fun origin(origin: Vector2f): Vector2f {
         val s = 1f / (m00 * m11 - m01 * m10)
-        origin.x = (m10 * m21 - m20 * m11) * s
-        origin.y = (m20 * m01 - m00 * m21) * s
-        return origin
+        return origin.set(
+            (m10 * m21 - m20 * m11) * s,
+            (m20 * m01 - m00 * m21) * s
+        )
     }
 
     fun viewArea(area: FloatArray): FloatArray {
