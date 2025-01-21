@@ -225,44 +225,44 @@ open class Vector3d(
     }
 
     fun mulTranspose(mat: Matrix3d, dst: Vector3d = this): Vector3d {
-        val rx = (mat.m00 * x + (mat.m01 * y + mat.m02 * z))
-        val ry = (mat.m10 * x + (mat.m11 * y + mat.m12 * z))
-        val rz = (mat.m20 * x + (mat.m21 * y + mat.m22 * z))
+        val rx = mat.m00 * x + (mat.m01 * y + mat.m02 * z)
+        val ry = mat.m10 * x + (mat.m11 * y + mat.m12 * z)
+        val rz = mat.m20 * x + (mat.m21 * y + mat.m22 * z)
         return dst.set(rx, ry, rz)
     }
 
     fun mulTranspose(mat: Matrix3f, dst: Vector3d = this): Vector3d {
-        val rx = (mat.m00 * x + (mat.m01 * y + mat.m02 * z))
-        val ry = (mat.m10 * x + (mat.m11 * y + mat.m12 * z))
-        val rz = (mat.m20 * x + (mat.m21 * y + mat.m22 * z))
+        val rx = mat.m00 * x + (mat.m01 * y + mat.m02 * z)
+        val ry = mat.m10 * x + (mat.m11 * y + mat.m12 * z)
+        val rz = mat.m20 * x + (mat.m21 * y + mat.m22 * z)
         return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4d, dst: Vector3d = this): Vector3d {
-        val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
-        val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
-        val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
+        val rx = mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))
+        val ry = mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))
+        val rz = mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))
         return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4f, dst: Vector3d = this): Vector3d {
-        val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
-        val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
-        val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
+        val rx = mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))
+        val ry = mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))
+        val rz = mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))
         return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4x3d, dst: Vector3d = this): Vector3d {
-        val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
-        val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
-        val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
+        val rx = mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))
+        val ry = mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))
+        val rz = mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))
         return dst.set(rx, ry, rz)
     }
 
     fun mulPosition(mat: Matrix4x3f, dst: Vector3d = this): Vector3d {
-        val rx = (mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30)))
-        val ry = (mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31)))
-        val rz = (mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32)))
+        val rx = mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))
+        val ry = mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))
+        val rz = mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))
         return dst.set(rx, ry, rz)
     }
 
@@ -566,8 +566,8 @@ open class Vector3d(
         val t3 = t2 * t
         return dst.set(
             JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
-            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
-            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+            JomlMath.hermite(y, t0.y, v1.y, t1.y, t, t2, t3),
+            JomlMath.hermite(z, t0.z, v1.z, t1.z, t, t2, t3),
         )
     }
 

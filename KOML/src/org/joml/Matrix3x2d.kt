@@ -211,6 +211,55 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
+    @JvmOverloads
+    fun add(other: Matrix3x2d, dst: Matrix3x2d = this): Matrix3x2d {
+        dst.m00 = m00 + other.m00
+        dst.m01 = m01 + other.m01
+        dst.m10 = m10 + other.m10
+        dst.m11 = m11 + other.m11
+        dst.m20 = m20 + other.m20
+        dst.m21 = m21 + other.m21
+        return dst
+    }
+
+    @JvmOverloads
+    fun sub(subtrahend: Matrix3x2d, dst: Matrix3x2d = this): Matrix3x2d {
+        dst.m00 = m00 - subtrahend.m00
+        dst.m01 = m01 - subtrahend.m01
+        dst.m10 = m10 - subtrahend.m10
+        dst.m11 = m11 - subtrahend.m11
+        dst.m20 = m20 - subtrahend.m20
+        dst.m21 = m21 - subtrahend.m21
+        return dst
+    }
+
+    @JvmOverloads
+    fun mix(other: Matrix3x2d, t: Double, dst: Matrix3x2d = this): Matrix3x2d {
+        dst.m00 = (other.m00 - m00) * t + m00
+        dst.m01 = (other.m01 - m01) * t + m01
+        dst.m10 = (other.m10 - m10) * t + m10
+        dst.m11 = (other.m11 - m11) * t + m11
+        dst.m20 = (other.m20 - m20) * t + m20
+        dst.m21 = (other.m21 - m21) * t + m21
+        return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Matrix3x2d, t: Double, dst: Matrix3x2d = this): Matrix3x2d {
+        return mix(other, t, dst)
+    }
+
+    @JvmOverloads
+    fun mulComponentWise(other: Matrix3x2d, dst: Matrix3x2d = this): Matrix3x2d {
+        dst.m00 = m00 * other.m00
+        dst.m01 = m01 * other.m01
+        dst.m10 = m10 * other.m10
+        dst.m11 = m11 * other.m11
+        dst.m20 = m20 * other.m20
+        dst.m21 = m21 * other.m21
+        return dst
+    }
+
     fun set(m00: Double, m01: Double, m10: Double, m11: Double, m20: Double, m21: Double): Matrix3x2d {
         this.m00 = m00
         this.m01 = m01
@@ -415,7 +464,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
 
     @JvmOverloads
     fun transformPosition(v: Vector2d, dst: Vector2d = v): Vector2d {
-        return dst.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
+        return v.mulPosition(this, dst)
     }
 
     fun transformPosition(x: Double, y: Double, dst: Vector2d): Vector2d {
@@ -424,7 +473,7 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
 
     @JvmOverloads
     fun transformDirection(v: Vector2d, dst: Vector2d = v): Vector2d {
-        return dst.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
+        return v.mulDirection(this, dst)
     }
 
     fun transformDirection(x: Double, y: Double, dst: Vector2d): Vector2d {
@@ -466,8 +515,8 @@ open class Matrix3x2d : Matrix<Matrix3x2d, Vector2d, Vector3d> {
         val nm01 = m01 * cos + m11 * sin
         val nm10 = m00 * -sin + m10 * cos
         val nm11 = m01 * -sin + m11 * cos
-        val nm20 = dst.m00 * -x + dst.m10 * -y + tm20
-        val nm21 = dst.m01 * -x + dst.m11 * -y + tm21
+        val nm20 = nm00 * -x + nm10 * -y + tm20
+        val nm21 = nm01 * -x + nm11 * -y + tm21
         return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 

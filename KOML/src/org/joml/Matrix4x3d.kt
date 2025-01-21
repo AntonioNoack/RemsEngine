@@ -1288,47 +1288,19 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
     }
 
     fun transformPosition(v: Vector3d, dst: Vector3d = v): Vector3d {
-        val vx = v.x
-        val vy = v.y
-        val vz = v.z
-        return dst.set(
-            m00 * vx + m10 * vy + m20 * vz + m30,
-            m01 * vx + m11 * vy + m21 * vz + m31,
-            m02 * vx + m12 * vy + m22 * vz + m32
-        )
+        return v.mulPosition(this, dst)
     }
 
     fun transformPosition(v: Vector3f, dst: Vector3f = v): Vector3f {
-        val vx = v.x.toDouble()
-        val vy = v.y.toDouble()
-        val vz = v.z.toDouble()
-        return dst.set(
-            m00 * vx + m10 * vy + m20 * vz + m30,
-            m01 * vx + m11 * vy + m21 * vz + m31,
-            m02 * vx + m12 * vy + m22 * vz + m32
-        )
+        return v.mulPosition(this, dst)
     }
 
     fun transformDirection(v: Vector3d, dst: Vector3d = v): Vector3d {
-        val vx = v.x
-        val vy = v.y
-        val vz = v.z
-        return dst.set(
-            m00 * vx + m10 * vy + m20 * vz,
-            m01 * vx + m11 * vy + m21 * vz,
-            m02 * vx + m12 * vy + m22 * vz
-        )
+        return v.mulDirection(this, dst)
     }
 
     fun transformDirection(v: Vector3f, dst: Vector3f = v): Vector3f {
-        val vx = v.x.toDouble()
-        val vy = v.y.toDouble()
-        val vz = v.z.toDouble()
-        return dst.set(
-            m00 * vx + m10 * vy + m20 * vz,
-            m01 * vx + m11 * vy + m21 * vz,
-            m02 * vx + m12 * vy + m22 * vz
-        )
+        return v.mulDirection(this, dst)
     }
 
     fun set3x3(mat: Matrix3d): Matrix4x3d {
@@ -1542,7 +1514,8 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         return dst
     }
 
-    fun rotateTranslation(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4x3d): Matrix4x3d {
+    @JvmOverloads
+    fun rotateTranslation(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4x3d = this): Matrix4x3d {
         val tx = m30
         val ty = m31
         val tz = m32
@@ -2611,7 +2584,8 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         return dst
     }
 
-    fun rotateTranslation(quat: Quaterniond, dst: Matrix4x3d): Matrix4x3d {
+    @JvmOverloads
+    fun rotateTranslation(quat: Quaterniond, dst: Matrix4x3d = this): Matrix4x3d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -4421,6 +4395,7 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         return transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
+    @JvmOverloads
     fun mix(other: Matrix4x3d, t: Double, dst: Matrix4x3d = this): Matrix4x3d {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01

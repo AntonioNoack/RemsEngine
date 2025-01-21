@@ -2,6 +2,8 @@ package me.anno.tests.joml
 
 import me.anno.utils.assertions.assertEquals
 import org.joml.AABBd
+import org.joml.AxisAngle4d
+import org.joml.AxisAngle4f
 import org.joml.Matrix
 import org.joml.Matrix2d
 import org.joml.Matrix2f
@@ -60,6 +62,62 @@ class MatrixEquivalenceTests {
     }
 
     @Test
+    fun testTranslate() {
+        assertEquals1(
+            Matrix3x2f().translate(Vector2f().fill(17)),
+            Matrix3x2d().translate(Vector2d().fill(17))
+        )
+        assertEquals1(
+            Matrix3x2f().fill().translate(Vector2f().fill(17)),
+            Matrix3x2d().fill().translate(Vector2d().fill(17)), 2e-7
+        )
+        assertEquals1(
+            Matrix4x3f().translate(Vector3f().fill(17)),
+            Matrix4x3d().translate(Vector3d().fill(17))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().translate(Vector3f().fill(17)),
+            Matrix4x3d().fill().translate(Vector3d().fill(17))
+        )
+        assertEquals1(
+            Matrix4f().translate(Vector3f().fill(17)),
+            Matrix4d().translate(Vector3d().fill(17))
+        )
+        assertEquals1(
+            Matrix4f().fill().translate(Vector3f().fill(17)),
+            Matrix4d().fill().translate(Vector3d().fill(17))
+        )
+    }
+
+    @Test
+    fun testTranslateLocal() {
+        assertEquals1(
+            Matrix3x2f().translateLocal(Vector2f().fill(17)),
+            Matrix3x2d().translateLocal(Vector2d().fill(17))
+        )
+        assertEquals1(
+            Matrix3x2f().fill().translateLocal(Vector2f().fill(17)),
+            Matrix3x2d().fill().translateLocal(Vector2d().fill(17))
+        )
+        assertEquals1(
+            Matrix4x3f().translateLocal(Vector3f().fill(17)),
+            Matrix4x3d().translateLocal(Vector3d().fill(17))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().translateLocal(Vector3f().fill(17)),
+            Matrix4x3d().fill().translateLocal(Vector3d().fill(17))
+        )
+        assertEquals1(
+            Matrix4f().translateLocal(Vector3f().fill(17)),
+            Matrix4d().translateLocal(Vector3d().fill(17))
+        )
+        assertEquals1(
+            Matrix4f().fill().translateLocal(Vector3f().fill(17)),
+            Matrix4d().fill().translateLocal(Vector3d().fill(17))
+        )
+    }
+
+    @Test
     fun testRotate() {
         assertEquals1(
             Matrix2f().fill(1234).rotate(1f),
@@ -84,10 +142,34 @@ class MatrixEquivalenceTests {
     }
 
     @Test
+    fun testRotateTranslation() {
+        assertEquals1(
+            Matrix4x3f().fill(1234).rotateTranslation(Quaternionf().fill(4567)),
+            Matrix4x3d().fill(1234).rotateTranslation(Quaterniond().fill(4567))
+        )
+        assertEquals1(
+            Matrix4x3f().fill(1234).rotateTranslation(1f, 2f, 3f, 4f),
+            Matrix4x3d().fill(1234).rotateTranslation(1.0, 2.0, 3.0, 4.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateTranslation(Quaternionf().fill(4567)),
+            Matrix4d().fill(1234).rotateTranslation(Quaterniond().fill(4567)), 2e-7
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateTranslation(1f, 2f, 3f, 4f),
+            Matrix4d().fill(1234).rotateTranslation(1.0, 2.0, 3.0, 4.0), 1e-6
+        )
+    }
+
+    @Test
     fun testRotateAffine() {
         assertEquals1(
             Matrix4f().fill(1234).rotateAffine(Quaternionf().fill(4567)),
             Matrix4d().fill(1234).rotateAffine(Quaterniond().fill(4567))
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateAffine(1f, 2f, 3f, 4f),
+            Matrix4d().fill(1234).rotateAffine(1.0, 2.0, 3.0, 4.0), 1e-5
         )
         assertEquals1(
             Matrix4f().fill(1234).rotateAffineXYZ(1f, 2f, 3f),
@@ -141,7 +223,7 @@ class MatrixEquivalenceTests {
     }
 
     @Test
-    fun testRotateLocal() {
+    fun testRotateLocalQuat() {
         assertEquals1(
             Matrix2f().fill(1234).rotateLocal(1f),
             Matrix2d().fill(1234).rotateLocal(1.0)
@@ -161,6 +243,62 @@ class MatrixEquivalenceTests {
         assertEquals1(
             Matrix4f().fill(1234).rotateLocal(Quaternionf().fill(4567)),
             Matrix4d().fill(1234).rotateLocal(Quaterniond().fill(4567)), 1e-6
+        )
+    }
+
+    @Test
+    fun testRotateLocalAxisAngle() {
+        assertEquals1(
+            Matrix3f().fill(1234).rotateLocal(1f, 2f, 3f, 4f),
+            Matrix3d().fill(1234).rotateLocal(1.0, 2.0, 3.0, 4.0), 2e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill(1234).rotateLocal(1f, 2f, 3f, 4f),
+            Matrix4x3d().fill(1234).rotateLocal(1.0, 2.0, 3.0, 4.0), 2e-6
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateLocal(1f, 2f, 3f, 4f),
+            Matrix4d().fill(1234).rotateLocal(1.0, 2.0, 3.0, 4.0), 2e-6
+        )
+    }
+
+    @Test
+    fun testRotateLocalXYZ() {
+        assertEquals1(
+            Matrix3f().fill(1234).rotateLocalX(1f),
+            Matrix3d().fill(1234).rotateLocalX(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().fill(1234).rotateLocalY(1f),
+            Matrix3d().fill(1234).rotateLocalY(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().fill(1234).rotateLocalZ(1f),
+            Matrix3d().fill(1234).rotateLocalZ(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill(1234).rotateLocalX(1f),
+            Matrix4x3d().fill(1234).rotateLocalX(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill(1234).rotateLocalY(1f),
+            Matrix4x3d().fill(1234).rotateLocalY(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill(1234).rotateLocalZ(1f),
+            Matrix4x3d().fill(1234).rotateLocalZ(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateLocalX(1f),
+            Matrix4d().fill(1234).rotateLocalX(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateLocalY(1f),
+            Matrix4d().fill(1234).rotateLocalY(1.0), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill(1234).rotateLocalZ(1f),
+            Matrix4d().fill(1234).rotateLocalZ(1.0), 1e-6
         )
     }
 
@@ -198,6 +336,15 @@ class MatrixEquivalenceTests {
         assertEquals1(
             Matrix4f().fill(1234).rotateAround(Quaternionf().fill(4567), 1f, 2f, 3f),
             Matrix4d().fill(1234).rotateAround(Quaterniond().fill(4567), 1.0, 2.0, 3.0),
+            1e-6
+        )
+    }
+
+    @Test
+    fun testRotateAroundAffine() {
+        assertEquals1(
+            Matrix4f().fill(1234).rotateAroundAffine(Quaternionf().fill(4567), 1f, 2f, 3f),
+            Matrix4d().fill(1234).rotateAroundAffine(Quaterniond().fill(4567), 1.0, 2.0, 3.0),
             1e-6
         )
     }
@@ -767,10 +914,68 @@ class MatrixEquivalenceTests {
     }
 
     @Test
+    fun testRotatePosOptimization() {
+        assertEquals1(
+            Matrix4x3f().translate(1f, 2f, 3f).rotateX(1f),
+            Matrix4x3d().translate(1.0, 2.0, 3.0).rotateX(1.0)
+        )
+        assertEquals1(
+            Matrix4x3f().translate(1f, 2f, 3f).rotateY(1f),
+            Matrix4x3d().translate(1.0, 2.0, 3.0).rotateY(1.0)
+        )
+        assertEquals1(
+            Matrix4x3f().translate(1f, 2f, 3f).rotateZ(1f),
+            Matrix4x3d().translate(1.0, 2.0, 3.0).rotateZ(1.0)
+        )
+
+        assertEquals1(
+            Matrix4f().translate(1f, 2f, 3f).rotateX(1f),
+            Matrix4d().translate(1.0, 2.0, 3.0).rotateX(1.0)
+        )
+        assertEquals1(
+            Matrix4f().translate(1f, 2f, 3f).rotateY(1f),
+            Matrix4d().translate(1.0, 2.0, 3.0).rotateY(1.0)
+        )
+        assertEquals1(
+            Matrix4f().translate(1f, 2f, 3f).rotateZ(1f),
+            Matrix4d().translate(1.0, 2.0, 3.0).rotateZ(1.0)
+        )
+    }
+
+    @Test
+    fun testSetRotation() {
+        assertEquals1(
+            Matrix4x3f().setRotationXYZ(1f, 2f, 3f),
+            Matrix4x3d().setRotationXYZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4x3f().setRotationYXZ(1f, 2f, 3f),
+            Matrix4x3d().setRotationYXZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4x3f().setRotationZYX(1f, 2f, 3f),
+            Matrix4x3d().setRotationZYX(1.0, 2.0, 3.0)
+        )
+
+        assertEquals1(
+            Matrix4f().setRotationXYZ(1f, 2f, 3f),
+            Matrix4d().setRotationXYZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4f().setRotationYXZ(1f, 2f, 3f),
+            Matrix4d().setRotationYXZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4f().setRotationZYX(1f, 2f, 3f),
+            Matrix4d().setRotationZYX(1.0, 2.0, 3.0)
+        )
+    }
+
+    @Test
     fun testGetAxis2() {
         assertEquals(
             Vector2f(1f, 0f).rotate(1f),
-            Matrix2f().scale(2f).rotate(-1f).positiveX(Vector2f()),1e-6
+            Matrix2f().scale(2f).rotate(-1f).positiveX(Vector2f()), 1e-6
         )
         assertEquals(
             Vector2d(1f, 0f).rotate(1.0),
@@ -778,7 +983,7 @@ class MatrixEquivalenceTests {
         )
         assertEquals(
             Vector2f(0f, 1f).rotate(1f),
-            Matrix2f().scale(2f).rotate(-1f).positiveY(Vector2f()),1e-6
+            Matrix2f().scale(2f).rotate(-1f).positiveY(Vector2f()), 1e-6
         )
         assertEquals(
             Vector2d(0f, 1f).rotate(1.0),
@@ -786,7 +991,7 @@ class MatrixEquivalenceTests {
         )
         assertEquals(
             Vector2f(2f, 0f).rotate(1f),
-            Matrix2f().scale(2f).rotate(-1f).normalizedPositiveX(Vector2f()),1e-6
+            Matrix2f().scale(2f).rotate(-1f).normalizedPositiveX(Vector2f()), 1e-6
         )
         assertEquals(
             Vector2d(2f, 0f).rotate(1.0),
@@ -794,7 +999,7 @@ class MatrixEquivalenceTests {
         )
         assertEquals(
             Vector2f(0f, 2f).rotate(1f),
-            Matrix2f().scale(2f).rotate(-1f).normalizedPositiveY(Vector2f()),1e-6
+            Matrix2f().scale(2f).rotate(-1f).normalizedPositiveY(Vector2f()), 1e-6
         )
         assertEquals(
             Vector2d(0f, 2f).rotate(1.0),
@@ -873,6 +1078,81 @@ class MatrixEquivalenceTests {
     }
 
     @Test
+    fun testRotation() {
+        assertEquals1(
+            Matrix2f().fill().rotation(1f),
+            Matrix2d().fill().rotation(1.0)
+        )
+        assertEquals1(
+            Matrix3x2f().fill().rotation(1f),
+            Matrix3x2d().fill().rotation(1.0)
+        )
+
+        assertEquals1(
+            Matrix3f().fill().rotation(AxisAngle4f().fill(123)),
+            Matrix3d().fill().rotation(AxisAngle4d().fill(123))
+        )
+        assertEquals1(
+            Matrix3f().fill().rotation(Quaternionf().fill(123)),
+            Matrix3d().fill().rotation(Quaterniond().fill(123))
+        )
+        assertEquals1(
+            Matrix3f().fill().rotationXYZ(1f, 2f, 3f),
+            Matrix3d().fill().rotationXYZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix3f().fill().rotationYXZ(1f, 2f, 3f),
+            Matrix3d().fill().rotationYXZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix3f().fill().rotationZYX(1f, 2f, 3f),
+            Matrix3d().fill().rotationZYX(1.0, 2.0, 3.0)
+        )
+
+        assertEquals1(
+            Matrix4x3f().fill().rotation(AxisAngle4f().fill(123)),
+            Matrix4x3d().fill().rotation(AxisAngle4d().fill(123))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().rotation(Quaternionf().fill(123)),
+            Matrix4x3d().fill().rotation(Quaterniond().fill(123))
+        )
+        assertEquals1(
+            Matrix4x3f().fill().rotationXYZ(1f, 2f, 3f),
+            Matrix4x3d().fill().rotationXYZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4x3f().fill().rotationYXZ(1f, 2f, 3f),
+            Matrix4x3d().fill().rotationYXZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4x3f().fill().rotationZYX(1f, 2f, 3f),
+            Matrix4x3d().fill().rotationZYX(1.0, 2.0, 3.0)
+        )
+
+        assertEquals1(
+            Matrix4f().fill().rotation(AxisAngle4f().fill(123)),
+            Matrix4d().fill().rotation(AxisAngle4d().fill(123))
+        )
+        assertEquals1(
+            Matrix4f().fill().rotation(Quaternionf().fill(123)),
+            Matrix4d().fill().rotation(Quaterniond().fill(123))
+        )
+        assertEquals1(
+            Matrix4f().fill().rotationXYZ(1f, 2f, 3f),
+            Matrix4d().fill().rotationXYZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4f().fill().rotationYXZ(1f, 2f, 3f),
+            Matrix4d().fill().rotationYXZ(1.0, 2.0, 3.0)
+        )
+        assertEquals1(
+            Matrix4f().fill().rotationZYX(1f, 2f, 3f),
+            Matrix4d().fill().rotationZYX(1.0, 2.0, 3.0)
+        )
+    }
+
+    @Test
     fun testRotationTo() {
         val from = Vector2f().fill(56).normalize()
         val to = Vector2f().fill(156).normalize()
@@ -887,6 +1167,19 @@ class MatrixEquivalenceTests {
         val dir = Vector3f().fill(56).normalize()
         val up = Vector3f().fill(156).normalize()
         assertEquals1(
+            Matrix3f().rotateTowards(dir, up),
+            Matrix3d().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().fill().rotateTowards(dir, up),
+            Matrix3d().fill().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
+            Matrix3f().fill().rotationTowards(dir, up),
+            Matrix3d().fill().rotationTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+
+        assertEquals1(
             Matrix4x3f().rotateTowards(dir, up),
             Matrix4x3d().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
         )
@@ -898,6 +1191,7 @@ class MatrixEquivalenceTests {
             Matrix4x3f().fill().rotationTowards(dir, up),
             Matrix4x3d().fill().rotationTowards(Vector3d(dir), Vector3d(up)), 1e-6
         )
+
         assertEquals1(
             Matrix4f().rotateTowards(dir, up),
             Matrix4d().rotateTowards(Vector3d(dir), Vector3d(up)), 1e-6
@@ -909,6 +1203,114 @@ class MatrixEquivalenceTests {
         assertEquals1(
             Matrix4f().fill().rotationTowards(dir, up),
             Matrix4d().fill().rotationTowards(Vector3d(dir), Vector3d(up)), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill().rotationTowardsXY(1f, 2f),
+            Matrix4d().fill().rotationTowardsXY(1.0, 2.0),
+        )
+    }
+
+    @Test
+    fun testInvert() {
+        assertEquals1(
+            Matrix2f().fill().invert(),
+            Matrix2d().fill().invert(), 5e-7
+        )
+        assertEquals1(
+            Matrix3x2f().fill().invert(),
+            Matrix3x2d().fill().invert(), 5e-7
+        )
+        assertEquals1(
+            Matrix3f().fill().invert(),
+            Matrix3d().fill().invert(), 3e-6
+        )
+        assertEquals1(
+            Matrix4x3f().fill().invert(),
+            Matrix4x3d().fill().invert(), 3e-6
+        )
+        assertEquals1(
+            Matrix4f().fill().invert(),
+            Matrix4d().fill().invert(), 5e-4
+        )
+    }
+
+    @Test
+    fun testInvertOrtho() {
+        assertEquals1(
+            Matrix4x3f().fill().invertOrtho(),
+            Matrix4x3d().fill().invertOrtho(), 5e-7
+        )
+        assertEquals1(
+            Matrix4f().fill().invertOrtho(),
+            Matrix4d().fill().invertOrtho(), 5e-7
+        )
+    }
+
+    @Test
+    fun testInvertAffine() {
+        assertEquals1(
+            Matrix4f().fill().invertAffine(),
+            Matrix4d().fill().invertAffine(), 5e-7
+        )
+    }
+
+    @Test
+    fun testInvertPerspective() {
+        assertEquals1(
+            Matrix4f().fill().invertPerspective(),
+            Matrix4d().fill().invertPerspective(), 1e-6
+        )
+    }
+
+    @Test
+    fun testInvertPerspectiveView() {
+        assertEquals1(
+            Matrix4f().fill().invertPerspectiveView(Matrix4f().fill(546)),
+            Matrix4d().fill().invertPerspectiveView(Matrix4d().fill(546)), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill().invertPerspectiveView(Matrix4x3f().fill(546)),
+            Matrix4d().fill().invertPerspectiveView(Matrix4x3d().fill(546)), 1e-6
+        )
+    }
+
+    @Test
+    fun testInvertFrustum() {
+        assertEquals1(
+            Matrix4f().fill().invertFrustum(),
+            Matrix4d().fill().invertFrustum(), 1e-6
+        )
+    }
+
+    @Test
+    fun testSet3x3() {
+        assertEquals1(
+            Matrix4f().fill().set3x3(Matrix3f().fill(123)),
+            Matrix4d().fill().set3x3(Matrix3d().fill(123))
+        )
+    }
+
+    @Test
+    fun testSet4x3() {
+        assertEquals1(
+            Matrix4f().fill().set4x3(Matrix4x3f().fill(123)),
+            Matrix4d().fill().set4x3(Matrix4x3f().fill(123))
+        )
+        assertEquals1(
+            Matrix4f().fill().set4x3(Matrix4x3f().fill(123)),
+            Matrix4d().fill().set4x3(Matrix4x3d().fill(123))
+        )
+    }
+
+    @Test
+    fun testSetTransposed() {
+        assertEquals1(
+            Matrix3f().fill().setTransposed(Matrix3f().fill(123)),
+            Matrix3d().fill().setTransposed(Matrix3d().fill(123))
+        )
+        assertEquals1(
+            Matrix4f().fill().setTransposed(Matrix4f().fill(123)),
+            Matrix4d().fill().setTransposed(Matrix4d().fill(123))
         )
     }
 
@@ -1026,6 +1428,85 @@ class MatrixEquivalenceTests {
         Matrix4d().fill().frustumAabb(min1, max1)
         assertEquals(Vector3d(min0), min1, 1e-3)
         assertEquals(Vector3d(max0), max1, 1e-3)
+    }
+
+    @Test
+    fun testSetSkewSymmetric() {
+        val rnd = Random(1324)
+        val a = rnd.nextDouble()
+        val b = rnd.nextDouble()
+        val c = rnd.nextDouble()
+        assertEquals1(
+            Matrix3f().fill().setSkewSymmetric(a.toFloat(), b.toFloat(), c.toFloat()),
+            Matrix3d().fill().setSkewSymmetric(a, b, c)
+        )
+    }
+
+    @Test
+    fun testSkew() {
+        val rnd = Random(1324)
+        val a = rnd.nextDouble()
+        val b = rnd.nextDouble()
+        assertEquals1(
+            Matrix4f().fill().skew(a.toFloat(), b.toFloat()),
+            Matrix4d().fill().skew(a, b)
+        )
+    }
+
+    @Test
+    fun testMul() {
+        assertEquals1(
+            Matrix4f().fill().mul(Matrix4x3f().fill(123)),
+            Matrix4d().fill().mul(Matrix4x3d().fill(123)), 1e-6
+        )
+        assertEquals1(
+            Matrix4f().fill().mul(Matrix4x3d().fill(123)),
+            Matrix4d().fill().mul(Matrix4x3d().fill(123)), 1e-6
+        )
+    }
+
+    @Test
+    fun testMulLocal() {
+        assertEquals1(
+            Matrix2f().fill().mulLocal(Matrix2f().fill(123)),
+            Matrix2d().fill().mulLocal(Matrix2d().fill(123))
+        )
+        assertEquals1(
+            Matrix3x2f().fill().mulLocal(Matrix3x2f().fill(123)),
+            Matrix3x2d().fill().mulLocal(Matrix3x2d().fill(123))
+        )
+        assertEquals1(
+            Matrix3f().fill().mulLocal(Matrix3f().fill(123)),
+            Matrix3d().fill().mulLocal(Matrix3d().fill(123))
+        )
+        assertEquals1(
+            Matrix4f().fill().mulLocal(Matrix4f().fill(123)),
+            Matrix4d().fill().mulLocal(Matrix4d().fill(123)), 1e-6
+        )
+    }
+
+    @Test
+    fun testMulLocalAffine() {
+        assertEquals1(
+            Matrix4f().fill().mulLocalAffine(Matrix4f().fill(123)),
+            Matrix4d().fill().mulLocalAffine(Matrix4d().fill(123))
+        )
+    }
+
+    @Test
+    fun testMulOrthoAffine() {
+        assertEquals1(
+            Matrix4f().fill().mulOrthoAffine(Matrix4f().fill(123)),
+            Matrix4d().fill().mulOrthoAffine(Matrix4d().fill(123))
+        )
+    }
+
+    @Test
+    fun testMulTranslationAffine() {
+        assertEquals1(
+            Matrix4f().fill().mulTranslationAffine(Matrix4f().fill(123)),
+            Matrix4d().fill().mulTranslationAffine(Matrix4d().fill(123))
+        )
     }
 
     fun assertEquals1(a: Matrix<*, *, *>, b: Matrix<*, *, *>, threshold: Double = 1e-7) {

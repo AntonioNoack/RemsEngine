@@ -419,6 +419,7 @@ open class Matrix2f : Matrix<Matrix2f, Vector2f, Vector2f> {
         )
     }
 
+    @JvmOverloads
     fun mix(other: Matrix2f, t: Float, dst: Matrix2f = this): Matrix2f {
         return dst.set(
             (other.m00 - m00) * t + m00, (other.m01 - m01) * t + m01,

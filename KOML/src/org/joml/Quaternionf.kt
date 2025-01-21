@@ -22,12 +22,7 @@ open class Quaternionf(
     constructor(source: Quaterniond) : this(source.x, source.y, source.z, source.w)
 
     constructor(axisAngle: AxisAngle4f) : this() {
-        val sin = sin(axisAngle.angle * 0.5f)
-        val cos = cos(axisAngle.angle * 0.5f)
-        x = axisAngle.x * sin
-        y = axisAngle.y * sin
-        z = axisAngle.z * sin
-        w = cos
+        set(axisAngle)
     }
 
     override val numComponents: Int get() = 4
@@ -155,24 +150,22 @@ open class Quaternionf(
     }
 
     fun set(axisAngle: AxisAngle4f): Quaternionf {
-        return this.setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
+        return setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
     fun setAngleAxis(angle: Float, x: Float, y: Float, z: Float): Quaternionf {
-        val s = sin(angle * 0.5f)
-        this.x = x * s
-        this.y = y * s
-        this.z = z * s
-        w = cos(angle * 0.5f)
-        return this
+        val halfAngle = angle * 0.5f
+        val s = sin(halfAngle)
+        val c = cos(halfAngle)
+        return set(x * s, y * s, z * s, c)
     }
 
     fun rotationAxis(axisAngle: AxisAngle4f): Quaternionf {
-        return this.rotationAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
+        return rotationAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
     fun rotationAxis(angle: Float, axisX: Float, axisY: Float, axisZ: Float): Quaternionf {
-        val halfAngle = angle / 2f
+        val halfAngle = angle * 0.5f
         val sinAngle = sin(halfAngle)
         val invVLength = JomlMath.invsqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
         val factor = invVLength * sinAngle
@@ -185,25 +178,28 @@ open class Quaternionf(
     }
 
     fun rotationAxis(angle: Float, axis: Vector3f): Quaternionf {
-        return this.rotationAxis(angle, axis.x, axis.y, axis.z)
+        return rotationAxis(angle, axis.x, axis.y, axis.z)
     }
 
     fun rotationX(angle: Float): Quaternionf {
-        val sin = sin(angle * 0.5f)
-        val cos = cos(angle * 0.5f)
+        val halfAngle = angle * 0.5f
+        val sin = sin(halfAngle)
+        val cos = cos(halfAngle)
         return set(sin, 0f, 0f, cos)
     }
 
     fun rotationY(angle: Float): Quaternionf {
-        val sin = sin(angle * 0.5f)
-        val cos = cos(angle * 0.5f)
-        return this.set(0f, sin, 0f, cos)
+        val halfAngle = angle * 0.5f
+        val sin = sin(halfAngle)
+        val cos = cos(halfAngle)
+        return set(0f, sin, 0f, cos)
     }
 
     fun rotationZ(angle: Float): Quaternionf {
-        val sin = sin(angle * 0.5f)
-        val cos = cos(angle * 0.5f)
-        return this.set(0f, 0f, sin, cos)
+        val halfAngle = angle * 0.5f
+        val sin = sin(halfAngle)
+        val cos = cos(halfAngle)
+        return set(0f, 0f, sin, cos)
     }
 
     private fun setFromUnnormalized(
@@ -297,11 +293,8 @@ open class Quaternionf(
         val halfAngle = angle / 2f
         val sinAngle = sin(halfAngle)
         val vLength = sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
-        x = axisX / vLength * sinAngle
-        y = axisY / vLength * sinAngle
-        z = axisZ / vLength * sinAngle
-        w = cos(halfAngle)
-        return this
+        val invLen = sinAngle / vLength
+        return set(axisX * invLen, axisY * invLen, axisZ * invLen, cos(halfAngle))
     }
 
     @JvmOverloads
@@ -335,11 +328,11 @@ open class Quaternionf(
     }
 
     fun transform(vec: Vector3f): Vector3f {
-        return this.transform(vec.x, vec.y, vec.z, vec)
+        return transform(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformInverse(vec: Vector3f): Vector3f {
-        return this.transformInverse(vec.x, vec.y, vec.z, vec)
+        return transformInverse(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformPositiveX(dst: Vector3f): Vector3f {
@@ -996,7 +989,7 @@ open class Quaternionf(
     }
 
     fun rotationTo(fromDir: Vector3f, toDir: Vector3f): Quaternionf {
-        return this.rotationTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z)
+        return rotationTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z)
     }
 
     @JvmOverloads
@@ -1058,11 +1051,11 @@ open class Quaternionf(
     }
 
     fun rotateTo(fromDir: Vector3f, toDir: Vector3f, dst: Quaternionf): Quaternionf {
-        return this.rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dst)
+        return rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dst)
     }
 
     fun rotateTo(fromDir: Vector3f, toDir: Vector3f): Quaternionf {
-        return this.rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, this)
+        return rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, this)
     }
 
     @JvmOverloads

@@ -64,11 +64,8 @@ open class Vector2f(
 
     operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector2f {
-        if (component == 0) {
-            x = value
-        } else {
-            y = value
-        }
+        if (component == 0) x = value
+        else y = value
         return this
     }
 
@@ -290,6 +287,12 @@ open class Vector2f(
         return dst.set(x * f + b.x, y * f + b.y)
     }
 
+    fun mulAdd(a: Vector2f, b: Vector2f, dst: Vector2f = this): Vector2f {
+        dst.x = x * a.x + b.x
+        dst.y = y * a.y + b.y
+        return dst
+    }
+
     operator fun plus(s: Vector2f) = add(s, Vector2f())
     operator fun minus(s: Vector2f) = sub(s, Vector2f())
     operator fun times(f: Float) = mul(f, Vector2f())
@@ -300,6 +303,24 @@ open class Vector2f(
         x -= other.x * f
         y -= other.y * f
         return this
+    }
+
+    fun smoothStep(v: Vector2f, t: Float, dst: Vector2f = this): Vector2f {
+        val t2 = t * t
+        val t3 = t2 * t
+        return dst.set(
+            JomlMath.smoothStep(x, v.x, t, t2, t3),
+            JomlMath.smoothStep(y, v.y, t, t2, t3),
+        )
+    }
+
+    fun hermite(t0: Vector2f, v1: Vector2f, t1: Vector2f, t: Float, dst: Vector2f = this): Vector2f {
+        val t2 = t * t
+        val t3 = t2 * t
+        return dst.set(
+            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+            JomlMath.hermite(y, t0.y, v1.y, t1.y, t, t2, t3),
+        )
     }
 
     companion object {

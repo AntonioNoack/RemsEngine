@@ -286,29 +286,7 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
     }
 
     fun set(axisAngle: AxisAngle4d): Matrix4f {
-        var x = axisAngle.x
-        var y = axisAngle.y
-        var z = axisAngle.z
-        val angle = axisAngle.angle
-        var n = sqrt(x * x + y * y + z * z)
-        n = 1.0 / n
-        x *= n
-        y *= n
-        z *= n
-        val s = sin(angle)
-        val c = cos(angle)
-        val omc = 1.0 - c
-        _m00((c + x * x * omc).toFloat())._m11((c + y * y * omc).toFloat())._m22((c + z * z * omc).toFloat())
-        var tmp1 = x * y * omc
-        var tmp2 = z * s
-        _m10((tmp1 - tmp2).toFloat())._m01((tmp1 + tmp2).toFloat())
-        tmp1 = x * z * omc
-        tmp2 = y * s
-        _m20((tmp1 + tmp2).toFloat())._m02((tmp1 - tmp2).toFloat())
-        tmp1 = y * z * omc
-        tmp2 = x * s
-        return _m21((tmp1 - tmp2).toFloat())._m12((tmp1 + tmp2).toFloat())._m03(0f)._m13(0f)._m23(0f)._m30(0f)._m31(0f)
-            ._m32(0f)._m33(1f)._properties(18)
+        return set(AxisAngle4f(axisAngle))
     }
 
     fun set(q: Quaternionf): Matrix4f {
@@ -779,7 +757,8 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
             ._m33(m33)._properties(2 or (flags and right.properties() and 16))
     }
 
-    fun mulTranslationAffine(right: Matrix4f, dst: Matrix4f): Matrix4f {
+    @JvmOverloads
+    fun mulTranslationAffine(right: Matrix4f, dst: Matrix4f = this): Matrix4f {
         return dst
             ._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)
             ._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(m13)
@@ -917,7 +896,8 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         } else if (flags and 2 != 0) {
             invertAffine(dst)
         } else {
-            if (flags and 1 != 0) invertPerspective(dst) else invertGeneric(dst)
+            if (flags and 1 != 0) invertPerspective(dst)
+            else invertGeneric(dst)
         }
     }
 
@@ -1055,7 +1035,8 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         )._properties(2 or (flags and 16))
     }
 
-    fun invertPerspectiveView(view: Matrix4f, dst: Matrix4f): Matrix4f {
+    @JvmOverloads
+    fun invertPerspectiveView(view: Matrix4f, dst: Matrix4f = this): Matrix4f {
         val a = 1f / (m00 * m11)
         val l = -1f / (m23 * m32)
         val pm00 = m11 * a
@@ -1075,7 +1056,8 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
             ._m23(pm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(pm33)._properties(0)
     }
 
-    fun invertPerspectiveView(view: Matrix4x3f, dst: Matrix4f): Matrix4f {
+    @JvmOverloads
+    fun invertPerspectiveView(view: Matrix4x3f, dst: Matrix4f = this): Matrix4f {
         val a = 1f / (m00 * m11)
         val l = -1f / (m23 * m32)
         val pm00 = m11 * a
@@ -1620,10 +1602,8 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
     }
 
     fun translationRotateScaleMulAffine(
-        translation: Vector3f,
-        quat: Quaternionf,
-        scale: Vector3f,
-        m: Matrix4f
+        translation: Vector3f, quat: Quaternionf,
+        scale: Vector3f, m: Matrix4f
     ): Matrix4f {
         return translationRotateScaleMulAffine(
             translation.x, translation.y, translation.z,
@@ -1643,10 +1623,10 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         val yw = qy * qw
         val yz = qy * qz
         val xw = qx * qw
-        return _m00(w2 + x2 - z2 - y2)._m01(xy + zw + zw + xy)._m02(xz - yw + xz - yw)._m10(-zw + xy - zw + xy)
-            ._m11(y2 - z2 + w2 - x2)._m12(yz + yz + xw + xw)._m20(yw + xz + xz + yw)._m21(
-                yz + yz - xw - xw
-            )._m22(z2 - y2 - x2 + w2)._m30(tx)._m31(ty)._m32(tz)._m33(1f)._properties(18)
+        return _m00(w2 + x2 - z2 - y2)._m01(xy + zw + zw + xy)._m02(xz - yw + xz - yw)
+            ._m10(-zw + xy - zw + xy)._m11(y2 - z2 + w2 - x2)._m12(yz + yz + xw + xw)
+            ._m20(yw + xz + xz + yw)._m21(yz + yz - xw - xw)._m22(z2 - y2 - x2 + w2)
+            ._m30(tx)._m31(ty)._m32(tz)._m33(1f)._properties(18)
     }
 
     fun translationRotate(tx: Float, ty: Float, tz: Float, quat: Quaternionf): Matrix4f {
@@ -1673,10 +1653,13 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         val q12 = dqy * nqz
         val q13 = dqy * qw
         val q23 = dqz * qw
-        return _m00(1f - q11 - q22)._m01(q01 + q23)._m02(q02 - q13)._m03(0f)._m10(q01 - q23)._m11(1f - q22 - q00)
-            ._m12(q12 + q03)._m13(0f)._m20(q02 + q13)._m21(q12 - q03)._m22(1f - q11 - q00)._m23(0f)._m30(
-                -m00 * tx - m10 * ty - m20 * tz
-            )._m31(-m01 * tx - m11 * ty - m21 * tz)._m32(-m02 * tx - m12 * ty - m22 * tz)._m33(1f)._properties(18)
+        return _m00(1f - q11 - q22)._m01(q01 + q23)._m02(q02 - q13)._m03(0f)
+            ._m10(q01 - q23)._m11(1f - q22 - q00)._m12(q12 + q03)._m13(0f)
+            ._m20(q02 + q13)._m21(q12 - q03)._m22(1f - q11 - q00)._m23(0f)
+            ._m30(-m00 * tx - m10 * ty - m20 * tz)
+            ._m31(-m01 * tx - m11 * ty - m21 * tz)
+            ._m32(-m02 * tx - m12 * ty - m22 * tz)._m33(1f)
+            ._properties(18)
     }
 
     fun translationRotateInvert(translation: Vector3f, quat: Quaternionf): Matrix4f {
@@ -2319,7 +2302,8 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
             )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
     }
 
-    fun rotateTranslation(ang: Float, x: Float, y: Float, z: Float, dst: Matrix4f): Matrix4f {
+    @JvmOverloads
+    fun rotateTranslation(ang: Float, x: Float, y: Float, z: Float, dst: Matrix4f = this): Matrix4f {
         val tx = m30
         val ty = m31
         val tz = m32
@@ -2395,11 +2379,13 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        return dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
-            m02 * rm20 + m12 * rm21 + m22 * rm22
-        )._m23(0f)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)._m30(m30)._m31(
-            m31
-        )._m32(m32)._m33(1f)._properties(flags and -14)
+        return dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)
+            ._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
+            ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(0f)
+            ._m00(nm00)._m01(nm01)._m02(nm02)._m03(0f)
+            ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0f)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and -14)
     }
 
     @JvmOverloads
@@ -4073,8 +4059,9 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         )._m32(m32)._m33(m33)._properties(flags and -14)
     }
 
-    fun rotateTranslation(quat: Quaternionf, dst: Matrix4f): Matrix4f {
-        return rotateTranslation(quat.x, quat.y, quat.z, quat.w, dst)
+    @JvmOverloads
+    fun rotateTranslation(quat: Quaternionf, dst: Matrix4f = this): Matrix4f {
+        return rotateTranslationQ(quat.x, quat.y, quat.z, quat.w, dst)
     }
 
     fun rotateTranslationQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4f): Matrix4f {
@@ -4103,13 +4090,15 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         val rm20 = dyw + dxz
         val rm21 = dyz - dxw
         val rm22 = z2 - y2 - x2 + w2
-        return dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0f)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0f)._m10(rm10)
-            ._m11(rm11)._m12(rm12)._m13(0f)._m30(
-                m30
-            )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
+        return dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0f)
+            ._m00(rm00)._m01(rm01)._m02(rm02)._m03(0f)
+            ._m10(rm10)._m11(rm11)._m12(rm12)._m13(0f)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(flags and -14)
     }
 
-    fun rotateAroundAffine(quat: Quaternionf, ox: Float, oy: Float, oz: Float, dst: Matrix4f): Matrix4f {
+    @JvmOverloads
+    fun rotateAroundAffine(quat: Quaternionf, ox: Float, oy: Float, oz: Float, dst: Matrix4f = this): Matrix4f {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -5818,6 +5807,7 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         return transformAab(min.x, min.y, min.z, max.x, max.y, max.z, outMin, outMax)
     }
 
+    @JvmOverloads
     fun mix(other: Matrix4f, t: Float, dst: Matrix4f = this): Matrix4f {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01
@@ -6170,16 +6160,12 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
                 JomlMath.isFinite(m20) && JomlMath.isFinite(m21) && JomlMath.isFinite(m22) && JomlMath.isFinite(m23) &&
                 JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32) && JomlMath.isFinite(m33)
 
-    fun skew(v: Vector2f) {
-        mul3x3(// works
-            1f, v.y, 0f,
-            v.x, 1f, 0f,
-            0f, 0f, 1f
-        )
+    fun skew(v: Vector2f): Matrix4f {
+        return skew(v.x, v.y)
     }
 
-    fun skew(x: Float, y: Float) {
-        mul3x3(// works
+    fun skew(x: Float, y: Float): Matrix4f {
+        return mul3x3(// works
             1f, y, 0f,
             x, 1f, 0f,
             0f, 0f, 1f

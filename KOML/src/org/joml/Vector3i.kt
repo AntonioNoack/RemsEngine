@@ -122,27 +122,14 @@ open class Vector3i(
         return dst.set(x / other.x, y / other.y, z / other.z)
     }
 
-    fun lengthSquared(): Long {
-        return x.toLong() * x + y.toLong() * y + z.toLong() * z
-    }
+    fun lengthSquared(): Long = lengthSquared(x, y, z)
+    fun length(): Double = length(x, y, z)
 
-    fun length(): Double {
-        return sqrt(lengthSquared().toDouble())
-    }
-
-    fun distance(v: Vector3i): Double {
-        return distance(v.x, v.y, v.z)
-    }
-
-    fun distance(x: Int, y: Int, z: Int): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        return length(dx, dy, dz)
-    }
+    fun distance(v: Vector3i): Double = distance(v.x, v.y, v.z)
+    fun distance(vx: Int, vy: Int, vz: Int): Double = distance(x, y, z, vx, vy, vz)
 
     fun gridDistance(v: Vector3i): Long {
-        return (abs(v.x - x) + abs(v.y - y) + abs(v.z - z)).toLong()
+        return gridDistance(v.x, v.y, v.z)
     }
 
     fun gridDistance(x: Int, y: Int, z: Int): Long {
@@ -152,16 +139,8 @@ open class Vector3i(
     fun dot(ox: Int, oy: Int, oz: Int): Long = x * ox.toLong() + y * oy.toLong() + z * oz.toLong()
     fun dot(other: Vector3i): Long = dot(other.x, other.y, other.z)
 
-    fun distanceSquared(v: Vector3i): Long {
-        return distanceSquared(v.x, v.y, v.z)
-    }
-
-    fun distanceSquared(x: Int, y: Int, z: Int): Long {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        return lengthSquared(dx, dy, dz)
-    }
+    fun distanceSquared(v: Vector3i): Long = distanceSquared(v.x, v.y, v.z)
+    fun distanceSquared(vx: Int, vy: Int, vz: Int): Long = distanceSquared(x, y, z, vx, vy, vz)
 
     fun zero(): Vector3i = set(0)
 

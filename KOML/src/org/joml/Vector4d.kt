@@ -198,7 +198,8 @@ open class Vector4d(
         return if (mat.properties() and 2 != 0) mulAffineTranspose(mat, dst) else mulGenericTranspose(mat, dst)
     }
 
-    fun mulAffine(mat: Matrix4d, dst: Vector4d): Vector4d {
+    @JvmOverloads
+    fun mulAffine(mat: Matrix4d, dst: Vector4d = this): Vector4d {
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
         val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
@@ -502,19 +503,11 @@ open class Vector4d(
     }
 
     fun get(dst: Vector4f): Vector4f {
-        dst.x = x.toFloat()
-        dst.y = y.toFloat()
-        dst.z = z.toFloat()
-        dst.w = w.toFloat()
-        return dst
+        return dst.set(this)
     }
 
     fun get(dst: Vector4d): Vector4d {
-        dst.x = x
-        dst.y = y
-        dst.z = z
-        dst.w = w
-        return dst
+        return dst.set(this)
     }
 
     fun max(): Double {

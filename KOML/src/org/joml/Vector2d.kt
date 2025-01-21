@@ -56,15 +56,16 @@ open class Vector2d(
     }
 
     fun get(dst: Vector2f): Vector2f {
-        dst.x = x.toFloat()
-        dst.y = y.toFloat()
-        return dst
+        return dst.set(this)
     }
 
-    fun get(dst: Vector2d = this): Vector2d {
-        dst.x = x
-        dst.y = y
-        return dst
+    fun get(dst: Vector2d): Vector2d {
+        return dst.set(this)
+    }
+
+    fun get(dst: DoubleArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
     }
 
     operator fun set(component: Int, value: Double) = setComponent(component, value)
@@ -191,17 +192,15 @@ open class Vector2d(
     }
 
     @JvmOverloads
-    fun add(x: Double, y: Double, dst: Vector2d = this): Vector2d {
-        dst.x = this.x + x
-        dst.y = this.y + y
-        return dst
+    fun add(vx: Double, vy: Double, dst: Vector2d = this): Vector2d {
+        return dst.set(x + vx, y + vy)
     }
 
     @JvmOverloads
-    fun add(v: Vector2d, dst: Vector2d = this) = add(v.x, v.y, dst)
+    fun add(v: Vector2d, dst: Vector2d = this): Vector2d = add(v.x, v.y, dst)
 
     @JvmOverloads
-    fun add(v: Vector2f, dst: Vector2d = this) = add(v.x.toDouble(), v.y.toDouble(), dst)
+    fun add(v: Vector2f, dst: Vector2d = this): Vector2d = add(v.x.toDouble(), v.y.toDouble(), dst)
 
     fun zero(): Vector2d = set(0.0, 0.0)
 
@@ -328,6 +327,12 @@ open class Vector2d(
         return dst.set(x * f + b.x, y * f + b.y)
     }
 
+    fun mulAdd(a: Vector2d, b: Vector2d, dst: Vector2d = this): Vector2d {
+        dst.x = x * a.x + b.x
+        dst.y = y * a.y + b.y
+        return dst
+    }
+
     operator fun plus(s: Vector2d) = add(s, Vector2d())
     operator fun minus(s: Vector2d) = sub(s, Vector2d())
     operator fun times(f: Double) = mul(f, Vector2d())
@@ -339,6 +344,24 @@ open class Vector2d(
         x -= other.x * f
         y -= other.y * f
         return this
+    }
+
+    fun smoothStep(v: Vector2d, t: Double, dst: Vector2d = this): Vector2d {
+        val t2 = t * t
+        val t3 = t2 * t
+        return dst.set(
+            JomlMath.smoothStep(x, v.x, t, t2, t3),
+            JomlMath.smoothStep(y, v.y, t, t2, t3),
+        )
+    }
+
+    fun hermite(t0: Vector2d, v1: Vector2d, t1: Vector2d, t: Double, dst: Vector2d = this): Vector2d {
+        val t2 = t * t
+        val t3 = t2 * t
+        return dst.set(
+            JomlMath.hermite(x, t0.x, v1.x, t1.x, t, t2, t3),
+            JomlMath.hermite(y, t0.y, v1.y, t1.y, t, t2, t3),
+        )
     }
 
     companion object {

@@ -162,6 +162,14 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
         )
     }
 
+    fun setTransposed(m: Matrix3d): Matrix3d {
+        val nm10 = m.m01
+        val nm12 = m.m21
+        val nm20 = m.m02
+        val nm21 = m.m12
+        return _m00(m.m00)._m01(m.m10)._m02(m.m20)._m10(nm10)._m11(m.m11)._m12(nm12)._m20(nm20)._m21(nm21)._m22(m.m22)
+    }
+
     fun set(axisAngle: AxisAngle4f): Matrix3d {
         var x = axisAngle.x.toDouble()
         var y = axisAngle.y.toDouble()
@@ -1389,6 +1397,7 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
         return this
     }
 
+    @JvmOverloads
     fun mix(other: Matrix3d, t: Double, dst: Matrix3d = this): Matrix3d {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01
@@ -1417,13 +1426,8 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
 
     @JvmOverloads
     fun rotateTowards(
-        dirX: Double,
-        dirY: Double,
-        dirZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
-        dst: Matrix3d = this
+        dirX: Double, dirY: Double, dirZ: Double,
+        upX: Double, upY: Double, upZ: Double, dst: Matrix3d = this
     ): Matrix3d {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val ndirX = dirX * invDirLength
@@ -1502,14 +1506,8 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
         return dst
     }
 
-    fun obliqueZ(a: Double, b: Double): Matrix3d {
-        m20 += m00 * a + m10 * b
-        m21 += m01 * a + m11 * b
-        m22 += m02 * a + m12 * b
-        return this
-    }
-
-    fun obliqueZ(a: Double, b: Double, dst: Matrix3d): Matrix3d {
+    @JvmOverloads
+    fun obliqueZ(a: Double, b: Double, dst: Matrix3d = this): Matrix3d {
         dst.m00 = m00
         dst.m01 = m01
         dst.m02 = m02

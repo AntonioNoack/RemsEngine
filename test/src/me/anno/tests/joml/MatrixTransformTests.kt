@@ -2,9 +2,9 @@ package me.anno.tests.joml
 
 import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertEquals
-import org.joml.AABBd
 import org.joml.AxisAngle4d
 import org.joml.AxisAngle4f
+import org.joml.Matrix
 import org.joml.Matrix2d
 import org.joml.Matrix2f
 import org.joml.Matrix3d
@@ -102,6 +102,11 @@ class MatrixTransformTests {
                 it.add(1f, 2f)
             })
         testMatrixTransform(
+            Matrix3x2f().translate(1f, 2f), ::Vector2f,
+            { m, v -> m.transformPosition(v.x, v.y, v) }, {
+                it.add(1f, 2f)
+            })
+        testMatrixTransform(
             Matrix4x3f().translate(1f, 2f, 3f), ::Vector3f,
             { m, v -> m.transformPosition(v) }, {
                 it.add(1f, 2f, 3f)
@@ -114,6 +119,11 @@ class MatrixTransformTests {
         testMatrixTransform(
             Matrix3x2d().translate(1.0, 2.0), ::Vector2d,
             { m, v -> m.transformPosition(v) }, {
+                it.add(1.0, 2.0)
+            })
+        testMatrixTransform(
+            Matrix3x2d().translate(1.0, 2.0), ::Vector2d,
+            { m, v -> m.transformPosition(v.x, v.y, v) }, {
                 it.add(1.0, 2.0)
             })
         testMatrixTransform(
@@ -130,9 +140,13 @@ class MatrixTransformTests {
 
     @Test
     fun testTranslatingDirections() {
+        // todo check mulTranspose...
         testMatrixTransform(
             Matrix3x2f().translate(1f, 2f), ::Vector2f,
             { m, v -> m.transformDirection(v) }, { it })
+        testMatrixTransform(
+            Matrix3x2f().translate(1f, 2f), ::Vector2f,
+            { m, v -> m.transformDirection(v.x, v.y, v) }, { it })
         testMatrixTransform(
             Matrix4x3f().translate(1f, 2f, 3f), ::Vector3f,
             { m, v -> m.transformDirection(v) }, { it })
@@ -141,6 +155,12 @@ class MatrixTransformTests {
             { m, v -> m.transformDirection(v) }, { it })
         testMatrixTransform(
             Matrix3x2d().translate(1.0, 2.0), ::Vector2d,
+            { m, v -> m.transformDirection(v) }, { it })
+        testMatrixTransform(
+            Matrix3x2d().translate(1.0, 2.0), ::Vector2d,
+            { m, v -> m.transformDirection(v.x, v.y, v) }, { it })
+        testMatrixTransform(
+            Matrix4x3d().translate(1.0, 2.0, 3.0), ::Vector3f,
             { m, v -> m.transformDirection(v) }, { it })
         testMatrixTransform(
             Matrix4x3d().translate(1.0, 2.0, 3.0), ::Vector3d,

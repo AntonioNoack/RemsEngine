@@ -15,6 +15,7 @@ class AxisAngle4f(
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(a: AxisAngle4f) : this(a.angle, a.x, a.y, a.z)
+    constructor(a: AxisAngle4d) : this(a.angle.toFloat(), a.x.toFloat(), a.y.toFloat(), a.z.toFloat())
     constructor(angle: Float, v: Vector3f) : this(angle, v.x, v.y, v.z)
 
     constructor(q: Quaternionf) : this() {

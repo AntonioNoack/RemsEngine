@@ -28,19 +28,11 @@ open class Quaterniond(
     )
 
     constructor(axisAngle: AxisAngle4f) : this() {
-        val s = sin(axisAngle.angle.toDouble() * 0.5)
-        x = axisAngle.x.toDouble() * s
-        y = axisAngle.y.toDouble() * s
-        z = axisAngle.z.toDouble() * s
-        w = cos(axisAngle.angle.toDouble() * 0.5)
+        set(axisAngle)
     }
 
     constructor(axisAngle: AxisAngle4d) : this() {
-        val s = sin(axisAngle.angle * 0.5)
-        x = axisAngle.x * s
-        y = axisAngle.y * s
-        z = axisAngle.z * s
-        w = cos(axisAngle.angle * 0.5)
+        set(axisAngle)
     }
 
     override val numComponents: Int get() = 4
@@ -169,7 +161,7 @@ open class Quaterniond(
     }
 
     fun set(axisAngle: AxisAngle4f): Quaterniond {
-        return this.setAngleAxis(
+        return setAngleAxis(
             axisAngle.angle.toDouble(),
             axisAngle.x.toDouble(),
             axisAngle.y.toDouble(),
@@ -178,20 +170,18 @@ open class Quaterniond(
     }
 
     fun set(axisAngle: AxisAngle4d): Quaterniond {
-        return this.setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
+        return setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
     fun setAngleAxis(angle: Double, x: Double, y: Double, z: Double): Quaterniond {
-        val s = sin(angle * 0.5)
-        this.x = x * s
-        this.y = y * s
-        this.z = z * s
-        w = cos(angle * 0.5)
-        return this
+        val halfAngle = angle * 0.5
+        val sin = sin(halfAngle)
+        val cos = cos(halfAngle)
+        return set(x * sin, y * sin, z * sin, cos)
     }
 
     fun setAngleAxis(angle: Double, axis: Vector3d): Quaterniond {
-        return this.setAngleAxis(angle, axis.x, axis.y, axis.z)
+        return setAngleAxis(angle, axis.x, axis.y, axis.z)
     }
 
     private fun setFromUnnormalized(
@@ -297,23 +287,20 @@ open class Quaterniond(
     }
 
     fun fromAxisAngleRad(axis: Vector3d, angle: Double): Quaterniond {
-        return this.fromAxisAngleRad(axis.x, axis.y, axis.z, angle)
+        return fromAxisAngleRad(axis.x, axis.y, axis.z, angle)
     }
 
     fun fromAxisAngleRad(axisX: Double, axisY: Double, axisZ: Double, angle: Double): Quaterniond {
         val halfAngle = angle / 2.0
         val sinAngle = sin(halfAngle)
         val vLength = sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
-        x = axisX / vLength * sinAngle
-        y = axisY / vLength * sinAngle
-        z = axisZ / vLength * sinAngle
-        w = cos(halfAngle)
-        return this
+        val invLen = sinAngle / vLength
+        return set(axisX * invLen, axisY * invLen, axisZ * invLen, cos(halfAngle))
     }
 
     @JvmOverloads
     fun mul(q: Quaterniond, dst: Quaterniond = this): Quaterniond {
-        return this.mul(q.x, q.y, q.z, q.w, dst)
+        return mul(q.x, q.y, q.z, q.w, dst)
     }
 
     @JvmOverloads
@@ -328,7 +315,7 @@ open class Quaterniond(
 
     @JvmOverloads
     fun premul(q: Quaterniond, dst: Quaterniond = this): Quaterniond {
-        return this.premul(q.x, q.y, q.z, q.w, dst)
+        return premul(q.x, q.y, q.z, q.w, dst)
     }
 
     @JvmOverloads
@@ -342,19 +329,19 @@ open class Quaterniond(
     }
 
     fun transform(vec: Vector3d): Vector3d {
-        return this.transform(vec.x, vec.y, vec.z, vec)
+        return transform(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformInverse(vec: Vector3d): Vector3d {
-        return this.transformInverse(vec.x, vec.y, vec.z, vec)
+        return transformInverse(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformUnit(vec: Vector3d): Vector3d {
-        return this.transformUnit(vec.x, vec.y, vec.z, vec)
+        return transformUnit(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformInverseUnit(vec: Vector3d): Vector3d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, vec)
+        return transformInverseUnit(vec.x, vec.y, vec.z, vec)
     }
 
     fun transformPositiveX(dst: Vector3d): Vector3d {
@@ -366,10 +353,11 @@ open class Quaterniond(
         val xy = x * y
         val xz = x * z
         val yw = y * w
-        dst.x = ww + xx - zz - yy
-        dst.y = xy + zw + zw + xy
-        dst.z = xz - yw + xz - yw
-        return dst
+        return dst.set(
+            ww + xx - zz - yy,
+            xy + zw + zw + xy,
+            xz - yw + xz - yw
+        )
     }
 
     fun transformUnitPositiveX(dst: Vector3d): Vector3d {
@@ -379,10 +367,11 @@ open class Quaterniond(
         val xz = x * z
         val yw = y * w
         val zw = z * w
-        dst.x = 1.0 - yy - yy - zz - zz
-        dst.y = xy + zw + xy + zw
-        dst.z = xz - yw + xz - yw
-        return dst
+        return dst.set(
+            1.0 - yy - yy - zz - zz,
+            xy + zw + xy + zw,
+            xz - yw + xz - yw
+        )
     }
 
     fun transformPositiveY(dst: Vector3d): Vector3d {
@@ -394,10 +383,11 @@ open class Quaterniond(
         val xy = x * y
         val yz = y * z
         val xw = x * w
-        dst.x = -zw + xy - zw + xy
-        dst.y = yy - zz + ww - xx
-        dst.z = yz + yz + xw + xw
-        return dst
+        return dst.set(
+            -zw + xy - zw + xy,
+            yy - zz + ww - xx,
+            yz + yz + xw + xw
+        )
     }
 
     fun transformUnitPositiveY(dst: Vector3d): Vector3d {
@@ -407,10 +397,11 @@ open class Quaterniond(
         val yz = y * z
         val xw = x * w
         val zw = z * w
-        dst.x = xy - zw + xy - zw
-        dst.y = 1.0 - xx - xx - zz - zz
-        dst.z = yz + yz + xw + xw
-        return dst
+        return dst.set(
+            xy - zw + xy - zw,
+            1.0 - xx - xx - zz - zz,
+            yz + yz + xw + xw
+        )
     }
 
     fun transformPositiveZ(dst: Vector3d): Vector3d {
@@ -422,10 +413,11 @@ open class Quaterniond(
         val yw = y * w
         val yz = y * z
         val xw = x * w
-        dst.x = yw + xz + xz + yw
-        dst.y = yz + yz - xw - xw
-        dst.z = zz - yy - xx + ww
-        return dst
+        return dst.set(
+            yw + xz + xz + yw,
+            yz + yz - xw - xw,
+            zz - yy - xx + ww
+        )
     }
 
     fun transformUnitPositiveZ(dst: Vector3d): Vector3d {
@@ -435,18 +427,19 @@ open class Quaterniond(
         val yz = y * z
         val xw = x * w
         val yw = y * w
-        dst.x = xz + yw + xz + yw
-        dst.y = yz + yz - xw - xw
-        dst.z = 1.0 - xx - xx - yy - yy
-        return dst
+        return dst.set(
+            xz + yw + xz + yw,
+            yz + yz - xw - xw,
+            1.0 - xx - xx - yy - yy
+        )
     }
 
     fun transform(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transform(vec.x, vec.y, vec.z, dst)
+        return transform(vec.x, vec.y, vec.z, dst)
     }
 
     fun transformInverse(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transformInverse(vec.x, vec.y, vec.z, dst)
+        return transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
     fun transform(vx: Double, vy: Double, vz: Double, dst: Vector3d): Vector3d {
@@ -478,11 +471,11 @@ open class Quaterniond(
     }
 
     fun transformUnit(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transformUnit(vec.x, vec.y, vec.z, dst)
+        return transformUnit(vec.x, vec.y, vec.z, dst)
     }
 
     fun transformInverseUnit(vec: Vector3d, dst: Vector3d): Vector3d {
-        return this.transformInverseUnit(vec.x, vec.y, vec.z, dst)
+        return transformInverseUnit(vec.x, vec.y, vec.z, dst)
     }
 
     fun transformUnit(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
@@ -544,27 +537,13 @@ open class Quaterniond(
         )
     }
 
-    fun conjugate(): Quaterniond {
-        x = -x
-        y = -y
-        z = -z
-        return this
-    }
-
-    fun conjugate(dst: Quaterniond): Quaterniond {
-        dst.x = -x
-        dst.y = -y
-        dst.z = -z
-        dst.w = w
-        return dst
+    @JvmOverloads
+    fun conjugate(dst: Quaterniond = this): Quaterniond {
+        return dst.set(-x, -y, -z, w)
     }
 
     fun identity(): Quaterniond {
-        x = 0.0
-        y = 0.0
-        z = 0.0
-        w = 1.0
-        return this
+        return set(0.0, 0.0, 0.0, 1.0)
     }
 
     fun lengthSquared(): Double {
@@ -764,11 +743,11 @@ open class Quaterniond(
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d): Quaterniond {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d, dst: Quaterniond): Quaterniond {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
+        return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
@@ -918,7 +897,7 @@ open class Quaterniond(
     }
 
     fun rotationTo(fromDir: Vector3d, toDir: Vector3d): Quaterniond {
-        return this.rotationTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z)
+        return rotationTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z)
     }
 
     @JvmOverloads
@@ -979,7 +958,7 @@ open class Quaterniond(
         val halfAngle = angle / 2.0
         val sinAngle = sin(halfAngle)
         val invVLength = JomlMath.invsqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
-        return this.set(
+        return set(
             axisX * invVLength * sinAngle,
             axisY * invVLength * sinAngle,
             axisZ * invVLength * sinAngle,
@@ -996,21 +975,21 @@ open class Quaterniond(
     fun rotationY(angle: Double): Quaterniond {
         val sin = sin(angle * 0.5)
         val cos = cos(angle * 0.5)
-        return this.set(0.0, sin, 0.0, cos)
+        return set(0.0, sin, 0.0, cos)
     }
 
     fun rotationZ(angle: Double): Quaterniond {
         val sin = sin(angle * 0.5)
         val cos = cos(angle * 0.5)
-        return this.set(0.0, 0.0, sin, cos)
+        return set(0.0, 0.0, sin, cos)
     }
 
     fun rotateTo(fromDir: Vector3d, toDir: Vector3d, dst: Quaterniond): Quaterniond {
-        return this.rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dst)
+        return rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dst)
     }
 
     fun rotateTo(fromDir: Vector3d, toDir: Vector3d): Quaterniond {
-        return this.rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, this)
+        return rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, this)
     }
 
     @JvmOverloads

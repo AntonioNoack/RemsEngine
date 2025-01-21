@@ -1,5 +1,6 @@
 package me.anno.tests.joml
 
+import me.anno.utils.assertions.assertContentEquals
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
@@ -23,6 +24,16 @@ class Vector2dTests {
         assertEquals(Vector2d(1.0, 2.0), Vector2d(floatArrayOf(1f, 2f)))
         assertEquals(Vector2d(1.0, 2.0), Vector2d(doubleArrayOf(1.0, 2.0)))
         assertEquals(Vector2d(1.0, 2.0), Vector2d(doubleArrayOf(3.0, 1.0, 2.0), 1))
+    }
+
+    @Test
+    fun testGetters() {
+        assertEquals(Vector2f(1f, 2f), Vector2d(1f, 2f).get(Vector2f()))
+        assertEquals(Vector2d(1f, 2f), Vector2d(1f, 2f).get(Vector2d()))
+
+        val floats = DoubleArray(3)
+        Vector2d(1f, 2f).get(floats, 1)
+        assertContentEquals(doubleArrayOf(0.0, 1.0, 2.0), floats)
     }
 
     @Test

@@ -51,44 +51,28 @@ open class Vector2i(
 
     @JvmOverloads
     fun sub(v: Vector2i, dst: Vector2i = this): Vector2i {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        return dst
+        return sub(v.x, v.y, dst)
     }
 
     @JvmOverloads
-    fun sub(x: Int, y: Int, dst: Vector2i = this): Vector2i {
-        dst.x = this.x - x
-        dst.y = this.y - y
-        return dst
+    fun sub(vx: Int, vy: Int, dst: Vector2i = this): Vector2i {
+        return dst.set(x - vx, y - vy)
     }
 
-    fun lengthSquared(): Long {
-        return x.toLong() * x + y.toLong() * y
+    fun lengthSquared(): Long = lengthSquared(x, y)
+    fun length(): Double = length(x, y)
+
+    fun distance(v: Vector2i): Double = distance(v.x, v.y)
+    fun distance(vx: Int, vy: Int): Double {
+        return distance(x, y, vx, vy)
     }
 
-    fun length(): Double {
-        return sqrt(lengthSquared().toDouble())
+    fun distanceSquared(v: Vector2i): Long = distanceSquared(v.x, v.y)
+    fun distanceSquared(vx: Int, vy: Int): Long {
+        return distanceSquared(x, y, vx, vy)
     }
 
-    fun distance(v: Vector2i) = distance(v.x, v.y)
-
-    fun distance(x: Int, y: Int): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        return sqrt((dx.toLong() * dx + dy.toLong() * dy).toDouble())
-    }
-
-    fun distanceSquared(v: Vector2i) = distanceSquared(v.x, v.y)
-
-    fun distanceSquared(x: Int, y: Int): Long {
-        val dx = this.x - x
-        val dy = this.y - y
-        return dx.toLong() * dx + dy.toLong() * dy
-    }
-
-    fun gridDistance(v: Vector2i) = gridDistance(v.x, v.y)
-
+    fun gridDistance(v: Vector2i): Long = gridDistance(v.x, v.y)
     fun gridDistance(x: Int, y: Int): Long {
         return (abs(x - this.x) + abs(y - this.y)).toLong()
     }

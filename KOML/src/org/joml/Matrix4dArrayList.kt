@@ -59,33 +59,8 @@ class Matrix4dArrayList : Matrix4d() {
      * @return this
      */
     fun popMatrix(): Matrix4dArrayList {
-        check(currentIndex != 0) {
-            "already at the buttom of the stack" //$NON-NLS-1$
-        }
+        assert(currentIndex > 0) { "already at the bottom of the stack" }
         set(matrices[--currentIndex])
         return this
     }
-
-    override fun hashCode(): Int {
-        val prime = 31
-        var result = super.hashCode()
-        result = prime * result + currentIndex
-        for (i in 0 until currentIndex) {
-            result = prime * result + matrices[i].hashCode()
-        }
-        return result
-    }
-
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj) return true
-        if (!super.equals(obj)) return false
-        if (obj is Matrix4dArrayList) {
-            if (currentIndex != obj.currentIndex) return false
-            for (i in 0 until currentIndex) {
-                if (matrices[i] != obj.matrices[i]) return false
-            }
-        }
-        return true
-    }
-
 }

@@ -747,16 +747,10 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm10 = m10 * cos + m20 * sin
         val nm11 = m11 * cos + m21 * sin
         val nm12 = m12 * cos + m22 * sin
-        dst.m20 = m10 * rm21 + m20 * cos
-        dst.m21 = m11 * rm21 + m21 * cos
-        dst.m22 = m12 * rm21 + m22 * cos
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m00 = m00
-        dst.m01 = m01
-        dst.m02 = m02
-        return dst
+        val nm20 = m10 * rm21 + m20 * cos
+        val nm21 = m11 * rm21 + m21 * cos
+        val nm22 = m12 * rm21 + m22 * cos
+        return dst.set(m00, m01, m02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -767,16 +761,10 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm00 = m00 * cos + m20 * rm02
         val nm01 = m01 * cos + m21 * rm02
         val nm02 = m02 * cos + m22 * rm02
-        dst.m20 = m00 * sin + m20 * cos
-        dst.m21 = m01 * sin + m21 * cos
-        dst.m22 = m02 * sin + m22 * cos
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = m10
-        dst.m11 = m11
-        dst.m12 = m12
-        return dst
+        val nm20 = m00 * sin + m20 * cos
+        val nm21 = m01 * sin + m21 * cos
+        val nm22 = m02 * sin + m22 * cos
+        return dst.set(nm00, nm01, nm02, m10, m11, m12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -787,16 +775,10 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm00 = m00 * cos + m10 * sin
         val nm01 = m01 * cos + m11 * sin
         val nm02 = m02 * cos + m12 * sin
-        dst.m10 = m00 * rm10 + m10 * cos
-        dst.m11 = m01 * rm10 + m11 * cos
-        dst.m12 = m02 * rm10 + m12 * cos
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m20 = m20
-        dst.m21 = m21
-        dst.m22 = m22
-        return dst
+        val nm10 = m00 * rm10 + m10 * cos
+        val nm11 = m01 * rm10 + m11 * cos
+        val nm12 = m02 * rm10 + m12 * cos
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, m20, m21, m22)
     }
 
     fun rotateXYZ(angles: Vector3f): Matrix3f {
@@ -933,16 +915,10 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dst.m20 = m00 * rm20 + m10 * rm21 + m20 * rm22
-        dst.m21 = m01 * rm20 + m11 * rm21 + m21 * rm22
-        dst.m22 = m02 * rm20 + m12 * rm21 + m22 * rm22
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        return dst
+        val nm20 = m00 * rm20 + m10 * rm21 + m20 * rm22
+        val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22
+        val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -974,16 +950,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm20 = lm00 * m20 + lm10 * m21 + lm20 * m22
         val nm21 = lm01 * m20 + lm11 * m21 + lm21 * m22
         val nm22 = lm02 * m20 + lm12 * m21 + lm22 * m22
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -996,16 +963,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm12 = sin * m11 + cos * m12
         val nm21 = cos * m21 - sin * m22
         val nm22 = sin * m21 + cos * m22
-        dst.m00 = m00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = m10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = m20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(m00, nm01, nm02, m10, nm11, nm12, m20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -1018,16 +976,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm12 = -sin * m10 + cos * m12
         val nm20 = cos * m20 + sin * m22
         val nm22 = -sin * m20 + cos * m22
-        dst.m00 = nm00
-        dst.m01 = m01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = m11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = m21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, m01, nm02, nm10, m11, nm12, nm20, m21, nm22)
     }
 
     @JvmOverloads
@@ -1040,16 +989,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm11 = sin * m10 + cos * m11
         val nm20 = cos * m20 - sin * m21
         val nm21 = sin * m20 + cos * m21
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = m02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = m12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = m22
-        return dst
+        return dst.set(nm00, nm01, m02, nm10, nm11, m12, nm20, nm21, m22)
     }
 
     @JvmOverloads
@@ -1089,16 +1029,10 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dst.m20 = m00 * rm20 + m10 * rm21 + m20 * rm22
-        dst.m21 = m01 * rm20 + m11 * rm21 + m21 * rm22
-        dst.m22 = m02 * rm20 + m12 * rm21 + m22 * rm22
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        return dst
+        val nm20 = m00 * rm20 + m10 * rm21 + m20 * rm22
+        val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22
+        val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     @JvmOverloads
@@ -1141,16 +1075,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         val nm20 = lm00 * m20 + lm10 * m21 + lm20 * m22
         val nm21 = lm01 * m20 + lm11 * m21 + lm21 * m22
         val nm22 = lm02 * m20 + lm12 * m21 + lm22 * m22
-        dst.m00 = nm00
-        dst.m01 = nm01
-        dst.m02 = nm02
-        dst.m10 = nm10
-        dst.m11 = nm11
-        dst.m12 = nm12
-        dst.m20 = nm20
-        dst.m21 = nm21
-        dst.m22 = nm22
-        return dst
+        return dst.set(nm00, nm01, nm02, nm10, nm11, nm12, nm20, nm21, nm22)
     }
 
     fun rotate(axisAngle: AxisAngle4f): Matrix3f {
@@ -1477,6 +1402,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         return this
     }
 
+    @JvmOverloads
     fun mix(other: Matrix3f, t: Float, dst: Matrix3f = this): Matrix3f {
         dst.m00 = (other.m00 - m00) * t + m00
         dst.m01 = (other.m01 - m01) * t + m01
@@ -1586,14 +1512,8 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         return dst
     }
 
-    fun obliqueZ(a: Float, b: Float): Matrix3f {
-        m20 += m00 * a + m10 * b
-        m21 += m01 * a + m11 * b
-        m22 += m02 * a + m12 * b
-        return this
-    }
-
-    fun obliqueZ(a: Float, b: Float, dst: Matrix3f): Matrix3f {
+    @JvmOverloads
+    fun obliqueZ(a: Float, b: Float, dst: Matrix3f = this): Matrix3f {
         dst.m00 = m00
         dst.m01 = m01
         dst.m02 = m02

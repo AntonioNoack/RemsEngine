@@ -161,6 +161,55 @@ open class Matrix3x2f : Matrix<Matrix3x2f, Vector2f, Vector3f> {
         return dst.set(nm00, nm01, nm10, nm11, nm20, nm21)
     }
 
+    @JvmOverloads
+    fun add(other: Matrix3x2f, dst: Matrix3x2f = this): Matrix3x2f {
+        dst.m00 = m00 + other.m00
+        dst.m01 = m01 + other.m01
+        dst.m10 = m10 + other.m10
+        dst.m11 = m11 + other.m11
+        dst.m20 = m20 + other.m20
+        dst.m21 = m21 + other.m21
+        return dst
+    }
+
+    @JvmOverloads
+    fun sub(subtrahend: Matrix3x2f, dst: Matrix3x2f = this): Matrix3x2f {
+        dst.m00 = m00 - subtrahend.m00
+        dst.m01 = m01 - subtrahend.m01
+        dst.m10 = m10 - subtrahend.m10
+        dst.m11 = m11 - subtrahend.m11
+        dst.m20 = m20 - subtrahend.m20
+        dst.m21 = m21 - subtrahend.m21
+        return dst
+    }
+
+    @JvmOverloads
+    fun mix(other: Matrix3x2f, t: Float, dst: Matrix3x2f = this): Matrix3x2f {
+        dst.m00 = (other.m00 - m00) * t + m00
+        dst.m01 = (other.m01 - m01) * t + m01
+        dst.m10 = (other.m10 - m10) * t + m10
+        dst.m11 = (other.m11 - m11) * t + m11
+        dst.m20 = (other.m20 - m20) * t + m20
+        dst.m21 = (other.m21 - m21) * t + m21
+        return dst
+    }
+
+    @JvmOverloads
+    fun lerp(other: Matrix3x2f, t: Float, dst: Matrix3x2f = this): Matrix3x2f {
+        return mix(other, t, dst)
+    }
+
+    @JvmOverloads
+    fun mulComponentWise(other: Matrix3x2f, dst: Matrix3x2f = this): Matrix3x2f {
+        dst.m00 = m00 * other.m00
+        dst.m01 = m01 * other.m01
+        dst.m10 = m10 * other.m10
+        dst.m11 = m11 * other.m11
+        dst.m20 = m20 * other.m20
+        dst.m21 = m21 * other.m21
+        return dst
+    }
+
     fun set(m00: Float, m01: Float, m10: Float, m11: Float, m20: Float, m21: Float): Matrix3x2f {
         this.m00 = m00
         this.m01 = m01
@@ -223,13 +272,9 @@ open class Matrix3x2f : Matrix<Matrix3x2f, Vector2f, Vector3f> {
 
     @JvmOverloads
     fun translate(x: Float, y: Float, dst: Matrix3x2f = this): Matrix3x2f {
-        dst.m20 = m00 * x + m10 * y + m20
-        dst.m21 = m01 * x + m11 * y + m21
-        dst.m00 = m00
-        dst.m01 = m01
-        dst.m10 = m10
-        dst.m11 = m11
-        return dst
+        val nm20 = m00 * x + m10 * y + m20
+        val nm21 = m01 * x + m11 * y + m21
+        return dst.set(m00, m01, m10, m11, nm20, nm21)
     }
 
     fun translate(offset: Vector2f, dst: Matrix3x2f): Matrix3x2f {
@@ -418,40 +463,31 @@ open class Matrix3x2f : Matrix<Matrix3x2f, Vector2f, Vector3f> {
         return set(cos, sin, -sin, cos, 0f, 0f)
     }
 
-    fun transform(v: Vector3f): Vector3f {
-        return v.mul(this)
-    }
-
-    fun transform(v: Vector3f, dst: Vector3f?): Vector3f {
-        return v.mul(this, dst!!)
+    @JvmOverloads
+    fun transform(v: Vector3f, dst: Vector3f = v): Vector3f {
+        return v.mul(this, dst)
     }
 
     fun transform(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
-        return dst.set(m00 * x + m10 * y + m20 * z, m01 * x + m11 * y + m21 * z, z)
+        return dst.set(x, y, z).mul(this)
     }
 
-    fun transformPosition(v: Vector2f): Vector2f {
-        return v.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
-    }
-
-    fun transformPosition(v: Vector2f, dst: Vector2f): Vector2f {
-        return dst.set(m00 * v.x + m10 * v.y + m20, m01 * v.x + m11 * v.y + m21)
+    @JvmOverloads
+    fun transformPosition(v: Vector2f, dst: Vector2f = v): Vector2f {
+        return v.mulPosition(this, dst)
     }
 
     fun transformPosition(x: Float, y: Float, dst: Vector2f): Vector2f {
-        return dst.set(m00 * x + m10 * y + m20, m01 * x + m11 * y + m21)
+        return dst.set(x, y).mulPosition(this)
     }
 
-    fun transformDirection(v: Vector2f): Vector2f {
-        return v.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
-    }
-
-    fun transformDirection(v: Vector2f, dst: Vector2f): Vector2f {
-        return dst.set(m00 * v.x + m10 * v.y, m01 * v.x + m11 * v.y)
+    @JvmOverloads
+    fun transformDirection(v: Vector2f, dst: Vector2f = v): Vector2f {
+        return v.mulDirection(this, dst)
     }
 
     fun transformDirection(x: Float, y: Float, dst: Vector2f): Vector2f {
-        return dst.set(m00 * x + m10 * y, m01 * x + m11 * y)
+        return dst.set(x, y).mulDirection(this)
     }
 
     @JvmOverloads

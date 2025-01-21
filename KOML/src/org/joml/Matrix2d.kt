@@ -447,6 +447,7 @@ open class Matrix2d : Matrix<Matrix2d, Vector2d, Vector2d> {
         )
     }
 
+    @JvmOverloads
     fun mix(other: Matrix2d, t: Double, dst: Matrix2d = this): Matrix2d {
         return dst.set(
             (other.m00 - m00) * t + m00, (other.m01 - m01) * t + m01,

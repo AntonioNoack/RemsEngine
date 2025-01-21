@@ -196,7 +196,7 @@ fun <M : Matrix<*, *, *>> assertEquals(a: M, b: M, threshold: Double) {
         for (col in 0 until a.numCols) {
             val fa = a[col, row]
             val fb = b[col, row]
-            assertEquals(fa, fb, threshold) { "\n$a !=\n$b\n[|$fa-$fb| > $threshold, m$col$row]" }
+            assertEquals(fa, fb, threshold) { "\n$a !=\n$b\n[|$fa-$fb|=${abs(fa - fb)} > $threshold, m$col$row]" }
         }
     }
 }
