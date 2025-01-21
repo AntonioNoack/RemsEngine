@@ -1,9 +1,11 @@
 package me.anno.tests.joml
 
+import me.anno.maths.Maths.PIf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBf
+import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
@@ -145,6 +147,44 @@ class AABBfTests {
         assertEquals(
             AABBf(-1f, 0f, 1f, 6f, 7f, 8f),
             AABBf(1f, 2f, 3f, 4f, 5f, 6f).addMargin(2f)
+        )
+    }
+
+    @Test
+    fun testTransform180deg() {
+        assertEquals(
+            AABBf(-1f, -4f, -5f, 3f, 2f, 3f),
+            AABBf(-1f, -2f, -3f, 3f, 4f, 5f)
+                .transform(Matrix4f().rotateX(PIf)), 1e-6
+        )
+        assertEquals(
+            AABBf(-3f, -2f, -5f, 1f, 4f, 3f),
+            AABBf(-1f, -2f, -3f, 3f, 4f, 5f)
+                .transform(Matrix4f().rotateY(PIf)), 1e-6
+        )
+        assertEquals(
+            AABBf(-3f, -4f, -3f, 1f, 2f, 5f),
+            AABBf(-1f, -2f, -3f, 3f, 4f, 5f)
+                .transform(Matrix4f().rotateZ(PIf)), 1e-6
+        )
+    }
+
+    @Test
+    fun testTransform90deg() {
+        assertEquals(
+            AABBf(-1f, -6f, -2f, 4f, 3f, 5f),
+            AABBf(-1f, -2f, -3f, 4f, 5f, 6f)
+                .transform(Matrix4f().rotateX(PIf / 2)), 1e-6
+        )
+        assertEquals(
+            AABBf(-3f, -2f, -4f, 6f, 5f, 1f),
+            AABBf(-1f, -2f, -3f, 4f, 5f, 6f)
+                .transform(Matrix4f().rotateY(PIf / 2)), 1e-6
+        )
+        assertEquals(
+            AABBf(-5f, -1f, -3f, 2f, 4f, 6f),
+            AABBf(-1f, -2f, -3f, 4f, 5f, 6f)
+                .transform(Matrix4f().rotateZ(PIf / 2)), 1e-6
         )
     }
 }

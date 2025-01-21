@@ -5,9 +5,11 @@ import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBd
 import org.joml.AABBf
+import org.joml.Matrix4d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
+import kotlin.math.PI
 
 class AABBdTests {
 
@@ -146,6 +148,44 @@ class AABBdTests {
         assertEquals(
             AABBd(-1.0, 0.0, 1.0, 6.0, 7.0, 8.0),
             AABBd(1.0, 2.0, 3.0, 4.0, 5.0, 6.0).addMargin(2.0)
+        )
+    }
+
+    @Test
+    fun testTransform180deg() {
+        assertEquals(
+            AABBd(-1.0, -4.0, -5.0, 3.0, 2.0, 3.0),
+            AABBd(-1.0, -2.0, -3.0, 3.0, 4.0, 5.0)
+                .transform(Matrix4d().rotateX(PI)), 1e-15
+        )
+        assertEquals(
+            AABBd(-3.0, -2.0, -5.0, 1.0, 4.0, 3.0),
+            AABBd(-1.0, -2.0, -3.0, 3.0, 4.0, 5.0)
+                .transform(Matrix4d().rotateY(PI)), 1e-15
+        )
+        assertEquals(
+            AABBd(-3.0, -4.0, -3.0, 1.0, 2.0, 5.0),
+            AABBd(-1.0, -2.0, -3.0, 3.0, 4.0, 5.0)
+                .transform(Matrix4d().rotateZ(PI)), 1e-15
+        )
+    }
+
+    @Test
+    fun testTransform90deg() {
+        assertEquals(
+            AABBd(-1.0, -6.0, -2.0, 4.0, 3.0, 5.0),
+            AABBd(-1.0, -2.0, -3.0, 4.0, 5.0, 6.0)
+                .transform(Matrix4d().rotateX(PI / 2)), 1e-15
+        )
+        assertEquals(
+            AABBd(-3.0, -2.0, -4.0, 6.0, 5.0, 1.0),
+            AABBd(-1.0, -2.0, -3.0, 4.0, 5.0, 6.0)
+                .transform(Matrix4d().rotateY(PI / 2)), 1e-15
+        )
+        assertEquals(
+            AABBd(-5.0, -1.0, -3.0, 2.0, 4.0, 6.0),
+            AABBd(-1.0, -2.0, -3.0, 4.0, 5.0, 6.0)
+                .transform(Matrix4d().rotateZ(PI / 2)), 1e-15
         )
     }
 }

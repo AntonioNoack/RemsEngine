@@ -231,9 +231,6 @@ class AABBf(
 
     fun transform(m: Matrix4f, dst: AABBf = this): AABBf {
         if (isEmpty()) return dst.clear()
-        val dx = maxX - minX
-        val dy = maxY - minY
-        val dz = maxZ - minZ
         var minX = Float.POSITIVE_INFINITY
         var minY = Float.POSITIVE_INFINITY
         var minZ = Float.POSITIVE_INFINITY
@@ -241,9 +238,9 @@ class AABBf(
         var maxY = Float.NEGATIVE_INFINITY
         var maxZ = Float.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x = minX + (i and 1).toFloat() * dx
-            val y = minY + (i shr 1 and 1).toFloat() * dy
-            val z = minZ + (i shr 2 and 1).toFloat() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -268,12 +265,6 @@ class AABBf(
      * */
     fun transform(m: Matrix4x3d, dst: AABBd): AABBd {
         if (isEmpty()) return dst.clear()
-        val mx = minX.toDouble()
-        val my = minY.toDouble()
-        val mz = minZ.toDouble()
-        val dx = this.maxX - mx
-        val dy = this.maxY - my
-        val dz = this.maxZ - mz
         var minX = Double.POSITIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
         var minZ = Double.POSITIVE_INFINITY
@@ -281,9 +272,9 @@ class AABBf(
         var maxY = Double.NEGATIVE_INFINITY
         var maxZ = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x = mx + (i and 1).toDouble() * dx
-            val y = my + ((i shr 1) and 1).toDouble() * dy
-            val z = mz + ((i shr 2) and 1).toDouble() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -308,12 +299,6 @@ class AABBf(
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd = base): AABBd {
         if (isEmpty()) return dst.set(base)
-        val mx = minX.toDouble()
-        val my = minY.toDouble()
-        val mz = minZ.toDouble()
-        val dx = this.maxX - mx
-        val dy = this.maxY - my
-        val dz = this.maxZ - mz
         var minX = base.minX
         var minY = base.minY
         var minZ = base.minZ
@@ -321,9 +306,9 @@ class AABBf(
         var maxY = base.maxY
         var maxZ = base.maxZ
         for (i in 0..7) {
-            val x = mx + (i and 1).toDouble() * dx
-            val y = my + ((i shr 1) and 1).toDouble() * dy
-            val z = mz + ((i shr 2) and 1).toDouble() * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -348,12 +333,6 @@ class AABBf(
      * */
     fun transformUnion(m: Matrix4x3f, base: AABBf, dst: AABBf = base): AABBf {
         if (isEmpty()) return dst.set(base)
-        val mx = minX
-        val my = minY
-        val mz = minZ
-        val dx = this.maxX - mx
-        val dy = this.maxY - my
-        val dz = this.maxZ - mz
         var minX = base.minX
         var minY = base.minY
         var minZ = base.minZ
@@ -361,9 +340,9 @@ class AABBf(
         var maxY = base.maxY
         var maxZ = base.maxZ
         for (i in 0..7) {
-            val x = mx + (i and 1) * dx
-            val y = my + ((i shr 1) and 1) * dy
-            val z = mz + ((i shr 2) and 1) * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -388,12 +367,6 @@ class AABBf(
      * */
     fun transform(m: Matrix4x3f, dst: AABBf = this): AABBf {
         if (isEmpty()) return dst.clear()
-        val mx = minX
-        val my = minY
-        val mz = minZ
-        val dx = this.maxX - mx
-        val dy = this.maxY - my
-        val dz = this.maxZ - mz
         var minX = Float.POSITIVE_INFINITY
         var minY = Float.POSITIVE_INFINITY
         var minZ = Float.POSITIVE_INFINITY
@@ -401,9 +374,9 @@ class AABBf(
         var maxY = Float.NEGATIVE_INFINITY
         var maxZ = Float.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x = mx + (i and 1) * dx
-            val y = my + ((i shr 1) and 1) * dy
-            val z = mz + ((i shr 2) and 1) * dz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
             val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
             val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
@@ -425,12 +398,6 @@ class AABBf(
 
     fun transformProject(m: Matrix4f, dst: AABBf = this): AABBf {
         if (isEmpty()) return dst.clear()
-        val mx = minX
-        val my = minY
-        val mz = minZ
-        val xx = maxX
-        val xy = maxY
-        val xz = maxZ
         var minX = Float.POSITIVE_INFINITY
         var minY = Float.POSITIVE_INFINITY
         var minZ = Float.POSITIVE_INFINITY
@@ -438,53 +405,13 @@ class AABBf(
         var maxY = Float.NEGATIVE_INFINITY
         var maxZ = Float.NEGATIVE_INFINITY
         for (i in 0..7) {
-            val x = if ((i.and(1) != 0)) xx else mx
-            val y = if ((i.and(2) != 0)) xy else my
-            val z = if ((i.and(4) != 0)) xz else mz
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
             val tw = m.m03 * x + m.m13 * y + m.m23 * z + m.m33
             val tx = (m.m00 * x + m.m10 * y + m.m20 * z + m.m30) / tw
             val ty = (m.m01 * x + m.m11 * y + m.m21 * z + m.m31) / tw
             val tz = (m.m02 * x + m.m12 * y + m.m22 * z + m.m32) / tw
-            minX = min(tx, minX)
-            minY = min(ty, minY)
-            minZ = min(tz, minZ)
-            maxX = max(tx, maxX)
-            maxY = max(ty, maxY)
-            maxZ = max(tz, maxZ)
-        }
-        dst.minX = minX
-        dst.minY = minY
-        dst.minZ = minZ
-        dst.maxX = maxX
-        dst.maxY = maxY
-        dst.maxZ = maxZ
-        return dst
-    }
-
-    /**
-     * transforms this aabb, then unions it with base, and places the result in dst
-     * */
-    fun transformUnion(transform: Matrix4x3d, base: AABBd, scale: Double, dst: AABBd = base): AABBd {
-        if (isEmpty()) return dst.set(base)
-        val mx = minX.toDouble() * scale
-        val my = minY.toDouble() * scale
-        val mz = minZ.toDouble() * scale
-        val xx = maxX * scale
-        val xy = maxY * scale
-        val xz = maxZ * scale
-        var minX = base.minX
-        var minY = base.minY
-        var minZ = base.minZ
-        var maxX = base.maxX
-        var maxY = base.maxY
-        var maxZ = base.maxZ
-        for (i in 0..7) {
-            val x = if ((i.and(1) != 0)) xx else mx
-            val y = if ((i.and(2) != 0)) xy else my
-            val z = if ((i.and(4) != 0)) xz else mz
-            val tx = transform.m00 * x + transform.m10 * y + transform.m20 * z + transform.m30
-            val ty = transform.m01 * x + transform.m11 * y + transform.m21 * z + transform.m31
-            val tz = transform.m02 * x + transform.m12 * y + transform.m22 * z + transform.m32
             minX = min(tx, minX)
             minY = min(ty, minY)
             minZ = min(tz, minZ)
