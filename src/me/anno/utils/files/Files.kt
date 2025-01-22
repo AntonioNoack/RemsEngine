@@ -24,7 +24,6 @@ object Files {
         parent: FileReference,
         nameWithoutExtension: String,
         extension: String,
-        @Suppress("unused_parameter")
         digitsLength: Int,
         colonSymbol: Char,
         startingNumber: Long = 1
@@ -32,24 +31,16 @@ object Files {
         // format: name-1.json
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
-        val default = if (extension.isEmpty()) nameWithoutExtension else "$nameWithoutExtension.$extension"
         val siblings = parent.listChildren()
-        if (default !in siblings.map { it.name }) return default
         val prefix = if (colonSymbol.code == 0) nameWithoutExtension else "$nameWithoutExtension$colonSymbol"
-        // val nameLength = prefix.length + digitsLength
         val relatedFiles = siblings.filter {
             it.extension == extension && it.nameWithoutExtension.startsWith(prefix)
-            // it.nameWithoutExtension.length == nameLength
         }.mapNotNull {
             val name2 = it.nameWithoutExtension
-            var i = prefix.length
-            while (i + 1 < name2.length && name2[i] == '0') {
-                i++
-            }
-            name2.substring(i).toLongOrNull() // ^^, long for large names
+            name2.substring(prefix.length).toLongOrNull() // ^^, long for large names
         }
         val maxNumber = relatedFiles.maxOrNull() ?: startingNumber
-        val nextNumber = maxNumber + 1
+        val nextNumber = (maxNumber + 1).toString().padStart(digitsLength, '0')
         return if (extension.isEmpty()) "$prefix$nextNumber" else "$prefix$nextNumber.$extension"
     }
 
@@ -98,7 +89,7 @@ object Files {
     }
 
     fun findNextFile(
-        reference: FileReference,
+        sibling: FileReference,
         digitsLength: Int,
         colonSymbol: Char,
         startingNumber: Long = 1
@@ -106,11 +97,12 @@ object Files {
         // format: name-1.json
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
-        if (!reference.exists) return reference
-        val parent = reference.getParent()
-        val name = reference.nameWithoutExtension
-        val extension = reference.extension
-        val newName = findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)
+        if (!sibling.exists) return sibling
+        val parent = sibling.getParent()
+        val newName = findNextFileName(
+            parent, sibling.nameWithoutExtension, sibling.extension,
+            digitsLength, colonSymbol, startingNumber
+        )
         return parent.getChild(newName)
     }
 
@@ -130,7 +122,7 @@ object Files {
         return findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)
     }
 
-    fun findNextName(name: String, separator: Char, startingNumber: Long = 1): String {
+    fun findNextName(name: String, separator: Char, startingNumber: Long = 1, digitsLength: Int = 1): String {
         // find how long the number is
         var numLength = 0
         for (i in name.lastIndex downTo 0) {
@@ -151,8 +143,9 @@ object Files {
         }
         if (nameEndIndex > 0 && name[nameEndIndex - 1] == separator) nameEndIndex--
         val partString = name.substring(0, nameEndIndex)
-        return if (separator.code == 0) "$partString$newNumber"
-        else "$partString$separator$newNumber"
+        val newNumberStr = "$newNumber".padStart(digitsLength, '0')
+        return if (separator.code == 0) "$partString$newNumberStr"
+        else "$partString$separator$newNumberStr"
     }
 
     fun Long.formatFileSize(): String =
@@ -162,26 +155,34 @@ object Files {
         toLong().formatFileSize()
 
     fun Long.formatFileSize(divider: Int): String {
+        if (this == 1L) return "1 Byte"
         if (this < 0) return "-" + (-this).formatFileSize()
+        val halfDivider = divider.ushr(1)
+        if (this < halfDivider) return "$this Bytes"
+
         val endings = "kMGTPEZY"
         val suffix = if (divider == 1024) "i" else ""
-        val halfDivider = divider / 2
-        var v = this
-        if (v < halfDivider) return "$v Bytes"
+        var power = divider.toLong()
         for (prefix in endings) {
-            val vSaved = v
-            v = (v + halfDivider) / divider
-            if (v < divider) {
+            val nextPower = power * divider
+            val halfPower = power.ushr(1)
+            val v = limited(this + halfPower) / power
+            if (v < divider || nextPower < power) {
                 return "${
                     when (v) {
-                        in 0..9 -> (vSaved.toFloat() / divider).f2()
-                        in 10..99 -> (vSaved.toFloat() / divider).f1()
+                        in 0..9 -> (this.toDouble() / power).f2()
+                        in 10..99 -> (this.toDouble() / power).f1()
                         else -> v.toString()
                     }
                 } ${prefix}${suffix}B"
             }
+            power = nextPower
         }
-        return "$v ${endings.last()}${suffix}B"
+        return "${toLong()} Bytes" // shouldn't happen
+    }
+
+    private fun limited(sum: Long): Long {
+        return if (sum < 0) Long.MAX_VALUE else sum
     }
 
     fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren().filter {

@@ -3,6 +3,8 @@ package me.anno.utils.types
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f2x
+import me.anno.utils.types.Triangles.getParallelogramArea
+import me.anno.utils.types.Triangles.getTriangleArea
 import org.hsluv.HSLuvColorSpace
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
@@ -12,7 +14,6 @@ import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -28,6 +29,9 @@ object Vectors {
 
     @JvmStatic
     fun avg(a: Vector3f, b: Vector3f): Vector3f = (a + b).mul(0.5f)
+
+    @JvmStatic
+    fun avg(a: Vector3d, b: Vector3d): Vector3d = (a + b).mul(0.5)
 
     @JvmStatic
     fun avg(a: Vector2f, b: Vector2f, c: Vector2f) = (a + b).add(c).div(3f)
@@ -74,40 +78,6 @@ object Vectors {
     @JvmStatic
     fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
         return normal.findSecondAxis(dst)
-    }
-
-    /**
-     * approximate line intersection
-     * http://paulbourke.net/geometry/pointlineplane/calclineline.cs
-     * */
-    @JvmStatic
-    fun intersect(
-        pos0: Vector3d, dir0: Vector3d,
-        pos1: Vector3d, dir1: Vector3d,
-        factor0: Double,
-        factor1: Double,
-        dst0: Vector3d, dst1: Vector3d
-    ): Boolean {
-
-        val p13x = pos0.x - pos1.x
-        val p13y = pos0.y - pos1.y
-        val p13z = pos0.z - pos1.z
-
-        val d1321 = dir0.dot(p13x, p13y, p13z)
-        val d1343 = dir1.dot(p13x, p13y, p13z)
-        val d4321 = dir0.dot(dir1)
-        val d2121 = dir0.lengthSquared()
-        val d4343 = dir1.lengthSquared()
-        val denominator = d2121 * d4343 - d4321 * d4321
-        if (abs(denominator) < 1e-7) return false
-
-        val numerator = d1343 * d4321 - d1321 * d4343
-        val mua = numerator / denominator
-        val mub = (d1343 + d4321 * mua) / d4343
-
-        dir0.mulAdd(mua * factor0, pos0, dst0)
-        dir1.mulAdd(mub * factor1, pos1, dst1)
-        return true
     }
 
     @JvmStatic
@@ -197,10 +167,7 @@ object Vectors {
 
     @JvmStatic
     fun crossLength(a: Vector3f, b: Vector3f, c: Vector3f): Float {
-        return crossLength(
-            b.x - a.x, b.y - a.y, b.z - a.z,
-            c.x - a.x, c.y - a.y, c.z - a.z
-        )
+        return getParallelogramArea(a, b, c)
     }
 
     @JvmStatic
@@ -218,6 +185,11 @@ object Vectors {
 
     @JvmStatic
     fun cross(ax: Float, ay: Float, bx: Float, by: Float): Float {
+        return ax * by - ay * bx
+    }
+
+    @JvmStatic
+    fun cross(ax: Double, ay: Double, bx: Double, by: Double): Double {
         return ax * by - ay * bx
     }
 

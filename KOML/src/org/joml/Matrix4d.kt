@@ -997,7 +997,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
     }
 
     fun determinantAffine(): Double {
-        return (m00 * m11 - m01 * m10) * m22 + (m02 * m10 - m00 * m12) * m21 + (m01 * m12 - m02 * m11) * m20
+        return determinant3x3()
     }
 
     @JvmOverloads
@@ -1030,9 +1030,11 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val m01 = m01
         val m02 = m02
         val m12 = m12
-        dst._m00(m00)._m01(m10)._m02(m20)._m03(0.0)._m10(m01)._m11(m11)._m12(m21)._m13(0.0)._m20(m02)._m21(m12)._m22(
-            m22
-        )._m23(0.0)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1.0)._properties(18)
+        dst._m00(m00)._m01(m10)._m02(m20)._m03(0.0)
+            ._m10(m01)._m11(m11)._m12(m21)._m13(0.0)
+            ._m20(m02)._m21(m12)._m22(m22)._m23(0.0)
+            ._m30(nm30)._m31(nm31)._m32(nm32)._m33(1.0)
+            ._properties(18)
         return dst
     }
 
@@ -1055,22 +1057,14 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val l = m22 * m33 - m23 * m32
         var det = a * l - b * k + c * j + d * i - e * h + f * g
         det = 1.0 / det
-        return dst._m00((m11 * l - m12 * k + m13 * j) * det)
-            ._m01((-m01 * l + m02 * k + -m03 * j) * det)
-            ._m02((m31 * f - m32 * e + m33 * d) * det)
-            ._m03((-m21 * f + m22 * e + -m23 * d) * det)
-            ._m10((-m10 * l + m12 * i + -m13 * h) * det)
-            ._m11((m00 * l - m02 * i + m03 * h) * det)
-            ._m12((-m30 * f + m32 * c + -m33 * b) * det)
-            ._m13((m20 * f - m22 * c + m23 * b) * det)
-            ._m20((m10 * k - m11 * i + m13 * g) * det)
-            ._m21((-m00 * k + m01 * i + -m03 * g) * det)
-            ._m22((m30 * e - m31 * c + m33 * a) * det)
-            ._m23((-m20 * e + m21 * c + -m23 * a) * det)
-            ._m30((-m10 * j + m11 * h + -m12 * g) * det)
-            ._m31((m00 * j - m01 * h + m02 * g) * det)
-            ._m32((-m30 * d + m31 * b + -m32 * a) * det)
-            ._m33((m20 * d - m21 * b + m22 * a) * det)
+        return dst._m00((m11 * l - m12 * k + m13 * j) * det)._m01((-m01 * l + m02 * k + -m03 * j) * det)
+            ._m02((m31 * f - m32 * e + m33 * d) * det)._m03((-m21 * f + m22 * e + -m23 * d) * det)
+            ._m10((-m10 * l + m12 * i + -m13 * h) * det)._m11((m00 * l - m02 * i + m03 * h) * det)
+            ._m12((-m30 * f + m32 * c + -m33 * b) * det)._m13((m20 * f - m22 * c + m23 * b) * det)
+            ._m20((m10 * k - m11 * i + m13 * g) * det)._m21((-m00 * k + m01 * i + -m03 * g) * det)
+            ._m22((m30 * e - m31 * c + m33 * a) * det)._m23((-m20 * e + m21 * c + -m23 * a) * det)
+            ._m30((-m10 * j + m11 * h + -m12 * g) * det)._m31((m00 * j - m01 * h + m02 * g) * det)
+            ._m32((-m30 * d + m31 * b + -m32 * a) * det)._m33((m20 * d - m21 * b + m22 * a) * det)
             ._properties(0)
     }
 
@@ -1142,22 +1136,10 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val invM11 = 1.0 / m11
         val invM22 = 1.0 / m22
         dst.set(
-            invM00,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            invM11,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            invM22,
-            0.0,
-            -m30 * invM00,
-            -m31 * invM11,
-            -m32 * invM22,
-            1.0
+            invM00, 0.0, 0.0, 0.0,
+            0.0, invM11, 0.0, 0.0,
+            0.0, 0.0, invM22, 0.0,
+            -m30 * invM00, -m31 * invM11, -m32 * invM22, 1.0
         )._properties(2 or (flags and 16))
         return dst
     }
@@ -1468,9 +1450,11 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         }
         val nm01 = m_sinX * m_sinY
         val nm02 = cosX * m_sinY
-        _m20(sinY)._m21(m_sinX * cosY)._m22(cosX * cosY)._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)
-            ._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * m_sinZ)._m11(nm01 * m_sinZ + cosX * cosZ)
-            ._m12(nm02 * m_sinZ + sinX * cosZ).flags = 18
+        _m20(sinY)._m21(m_sinX * cosY)._m22(cosX * cosY)
+            ._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)
+            ._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * m_sinZ)
+            ._m11(nm01 * m_sinZ + cosX * cosZ)._m12(nm02 * m_sinZ + sinX * cosZ)
+            .flags = 18
         return this
     }
 
@@ -1489,9 +1473,13 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         }
         val nm20 = cosZ * sinY
         val nm21 = sinZ * sinY
-        _m00(cosZ * cosY)._m01(sinZ * cosY)._m02(m_sinY)._m10(m_sinZ * cosX + nm20 * sinX)
-            ._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)._m20(m_sinZ * m_sinX + nm20 * cosX)
-            ._m21(cosZ * m_sinX + nm21 * cosX)._m22(cosY * cosX).flags = 18
+        _m00(cosZ * cosY)._m01(sinZ * cosY)._m02(m_sinY)
+            ._m10(m_sinZ * cosX + nm20 * sinX)
+            ._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)
+            ._m20(m_sinZ * m_sinX + nm20 * cosX)
+            ._m21(cosZ * m_sinX + nm21 * cosX)
+            ._m22(cosY * cosX)
+            .flags = 18
         return this
     }
 
@@ -1507,9 +1495,13 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val m_sinZ = -sinZ
         val nm10 = sinY * sinX
         val nm12 = cosY * sinX
-        _m20(sinY * cosX)._m21(m_sinX)._m22(cosY * cosX)._m23(0.0)._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)
-            ._m02(m_sinY * cosZ + nm12 * sinZ)._m03(0.0)._m10(cosY * m_sinZ + nm10 * cosZ)._m11(cosX * cosZ)
-            ._m12(m_sinY * m_sinZ + nm12 * cosZ)._m13(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0).flags = 18
+        _m20(sinY * cosX)._m21(m_sinX)._m22(cosY * cosX)._m23(0.0)
+            ._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)
+            ._m02(m_sinY * cosZ + nm12 * sinZ)._m03(0.0)
+            ._m10(cosY * m_sinZ + nm10 * cosZ)._m11(cosX * cosZ)
+            ._m12(m_sinY * m_sinZ + nm12 * cosZ)._m13(0.0)
+            ._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)
+            .flags = 18
         return this
     }
 
@@ -1526,9 +1518,10 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val nm01 = m_sinX * m_sinY
         val nm02 = cosX * m_sinY
         val var10000 =
-            _m20(sinY)._m21(m_sinX * cosY)._m22(cosX * cosY)._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)
-                ._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * m_sinZ)._m11(nm01 * m_sinZ + cosX * cosZ)
-                ._m12(nm02 * m_sinZ + sinX * cosZ)
+            _m20(sinY)._m21(m_sinX * cosY)._m22(cosX * cosY)
+                ._m00(cosY * cosZ)._m01(nm01 * cosZ + cosX * sinZ)
+                ._m02(nm02 * cosZ + sinX * sinZ)._m10(cosY * m_sinZ)
+                ._m11(nm01 * m_sinZ + cosX * cosZ)._m12(nm02 * m_sinZ + sinX * cosZ)
         var10000.flags = var10000.flags and -14
         return this
     }
@@ -1545,8 +1538,9 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val m_sinX = -sinX
         val nm20 = cosZ * sinY
         val nm21 = sinZ * sinY
-        val var10000 = _m00(cosZ * cosY)._m01(sinZ * cosY)._m02(m_sinY)._m10(m_sinZ * cosX + nm20 * sinX)
-            ._m11(cosZ * cosX + nm21 * sinX)._m12(cosY * sinX)._m20(m_sinZ * m_sinX + nm20 * cosX)
+        val var10000 = _m00(cosZ * cosY)._m01(sinZ * cosY)._m02(m_sinY)
+            ._m10(m_sinZ * cosX + nm20 * sinX)._m11(cosZ * cosX + nm21 * sinX)
+            ._m12(cosY * sinX)._m20(m_sinZ * m_sinX + nm20 * cosX)
             ._m21(cosZ * m_sinX + nm21 * cosX)._m22(cosY * cosX)
         var10000.flags = var10000.flags and -14
         return this
@@ -1565,9 +1559,10 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         val nm10 = sinY * sinX
         val nm12 = cosY * sinX
         val var10000 =
-            _m20(sinY * cosX)._m21(m_sinX)._m22(cosY * cosX)._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)
-                ._m02(m_sinY * cosZ + nm12 * sinZ)._m10(cosY * m_sinZ + nm10 * cosZ)._m11(cosX * cosZ)
-                ._m12(m_sinY * m_sinZ + nm12 * cosZ)
+            _m20(sinY * cosX)._m21(m_sinX)._m22(cosY * cosX)
+                ._m00(cosY * cosZ + nm10 * sinZ)._m01(cosX * sinZ)
+                ._m02(m_sinY * cosZ + nm12 * sinZ)._m10(cosY * m_sinZ + nm10 * cosZ)
+                ._m11(cosX * cosZ)._m12(m_sinY * m_sinZ + nm12 * cosZ)
         var10000.flags = var10000.flags and -14
         return this
     }

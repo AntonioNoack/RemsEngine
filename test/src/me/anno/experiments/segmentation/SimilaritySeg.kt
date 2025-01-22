@@ -66,7 +66,7 @@ class Formula(val idx: Int) {
             params[0] = vector[0].toFloat()
         } else {
             params.fill(0f)
-            val answer = LinearRegression.solve(matrix.toArray(), vector.toArray(), 1e-6)
+            val answer = LinearRegression.solve(matrix.toDoubleArray(), vector.toDoubleArray(), 1e-6)
             if (answer != null) {
                 for (i in 0 until 6) {
                     params[i] = answer[i].toFloat()

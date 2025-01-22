@@ -56,7 +56,7 @@ object EarCut {
 
             // minX, minY and invSize are later used to transform coords into integers for z-order calculation
             invSize = max(maxX - minX, maxY - minY)
-            invSize = if (invSize != 0.0) 1f / invSize else 0.0
+            invSize = if (invSize != 0.0) 1.0 / invSize else 0.0
         }
         earcutLinked(outerNode, triangles, dim, minX, minY, invSize, 0)
         return triangles

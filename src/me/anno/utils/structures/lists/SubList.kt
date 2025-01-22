@@ -9,43 +9,15 @@ class SubList<V>(
     val backend: MutableList<V>,
     private val fromIndex: Int,
     private val toIndex: Int
-) : MutableList<V> {
+) : MutableList<V>, SimpleList<V>() {
 
     override val size = toIndex - fromIndex
-
-    override fun contains(element: V): Boolean {
-        return indexOf(element) >= 0
-    }
-
-    override fun containsAll(elements: Collection<V>): Boolean {
-        return elements.all { e -> contains(e) }
-    }
 
     override fun get(index: Int): V {
         return backend[index - fromIndex]
     }
 
-    override fun indexOf(element: V): Int {
-        for (i in fromIndex until toIndex) {
-            if (backend[i] == element) {
-                return i - fromIndex
-            }
-        }
-        return -1
-    }
-
-    override fun isEmpty(): Boolean = size == 0
-
     override fun iterator(): MutableIterator<V> = listIterator()
-
-    override fun lastIndexOf(element: V): Int {
-        for (i in toIndex - 1 downTo fromIndex) {
-            if (backend[i] == element) {
-                return i - fromIndex
-            }
-        }
-        return -1
-    }
 
     override fun add(element: V): Boolean {
         add(size, element)

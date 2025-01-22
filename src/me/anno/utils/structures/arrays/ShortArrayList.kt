@@ -9,11 +9,22 @@ open class ShortArrayList(initCapacity: Int) : NativeArrayList {
     override val capacity: Int get() = values.size
 
     fun add(value: Short) = plusAssign(value)
+
+    fun add(src: ShortArray?, startIndex: Int, length: Int) {
+        ensureExtra(length)
+        addUnsafe(src, startIndex, length)
+    }
+
+    fun addUnsafe(src: ShortArray?, startIndex: Int, length: Int) {
+        src?.copyInto(values, size, startIndex, startIndex + length)
+        size += length
+    }
+
     operator fun set(index: Int, value: Short) {
         values[index] = value
     }
 
-    fun toArray(): ShortArray = values.copyOf(size)
+    fun toShortArray(): ShortArray = values.copyOf(size)
 
     override fun resize(newSize: Int) {
         values = values.copyOf(newSize)

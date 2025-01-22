@@ -90,6 +90,10 @@ fun assertEquals(expected: ByteArray?, actual: ByteArray?, message: String = "ex
     assertEquals(expected?.toList(), actual?.toList(), message)
 }
 
+fun assertEquals(expected: ShortArray?, actual: ShortArray?, message: String = "expected equal values") {
+    assertEquals(expected?.toList(), actual?.toList(), message)
+}
+
 fun assertEquals(expected: IntArray?, actual: IntArray?, message: String = "expected equal values") {
     assertEquals(expected?.toList(), actual?.toList(), message)
 }
@@ -107,6 +111,10 @@ fun assertEquals(expected: DoubleArray?, actual: DoubleArray?, message: String =
 }
 
 fun assertContentEquals(expected: ByteArray?, actual: ByteArray?, message: String = "expected equal values") {
+    assertEquals(expected, actual, message)
+}
+
+fun assertContentEquals(expected: ShortArray?, actual: ShortArray?, message: String = "expected equal values") {
     assertEquals(expected, actual, message)
 }
 

@@ -515,8 +515,18 @@ object Triangles {
     }
 
     @JvmStatic
+    fun getParallelogramArea(a: Vector2d, b: Vector2d, c: Vector2d): Double {
+        return cross(b.x - a.x, b.y - a.y, c.x - a.x, c.y - a.y)
+    }
+
+    @JvmStatic
     fun getTriangleArea(a: Vector2f, b: Vector2f, c: Vector2f): Float {
         return getParallelogramArea(a, b, c) * 0.5f
+    }
+
+    @JvmStatic
+    fun getTriangleArea(a: Vector2d, b: Vector2d, c: Vector2d): Double {
+        return getParallelogramArea(a, b, c) * 0.5
     }
 
     const val ONE_THIRD_D = 1.0 / 3.0

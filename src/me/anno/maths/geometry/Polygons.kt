@@ -1,6 +1,7 @@
 package me.anno.maths.geometry
 
 import me.anno.utils.pooling.JomlPools
+import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
 
@@ -21,6 +22,20 @@ object Polygons {
             sum += ni.cross(nj)
         }
         return 0.5f * sum
+    }
+
+    // surely, we have this implemented already somewhere, find it
+    // -> only an ugly version in EarCut operating on FloatArray
+    @JvmStatic
+    fun getPolygonArea2d(points: List<Vector2d>): Double {
+        var sum = 0.0
+        for (j in points.indices) {
+            val i = if (j == 0) points.lastIndex else j - 1
+            val ni = points[i]
+            val nj = points[j]
+            sum += ni.cross(nj)
+        }
+        return 0.5 * sum
     }
 
     @JvmStatic
