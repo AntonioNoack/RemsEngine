@@ -7,8 +7,8 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Updatable
-import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
@@ -16,6 +16,7 @@ import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertNotNull
 import org.joml.Vector3d
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
@@ -43,7 +44,8 @@ class AgentController1b(
 
     override fun findNextTarget() {
         super.findNextTarget()
-        flag.teleportToGlobal(Vector3d(crowdAgent.targetPos))
+        val crowdAgent = crowdAgent ?: return
+        flag.teleportToGlobal(Vector3d(crowdAgent.targetPosOrVel))
     }
 
     private var upDownAngle = 0.0
@@ -51,11 +53,15 @@ class AgentController1b(
     val np = Vector3d()
 
     override fun onUpdate() {
+
+        if (crowdAgent == null) init()
+
+        val crowdAgent = crowdAgent ?: return
         // move agent from src to dst
         val entity = entity!!
         val nextPos = crowdAgent.currentPosition
         val distSq = crowdAgent.actualVelocity.lengthSquared()
-        if (!(distSq > 0f && crowdAgent.targetPos.distanceSquared(nextPos) >= 1f)) {
+        if (distSq == 0f || crowdAgent.targetPosOrVel.distanceSquared(nextPos) < 1f) {
             findNextTarget()
         }
         // project agent onto surface
@@ -74,18 +80,20 @@ class AgentController1b(
 
 /**
  * test recast navmesh generation and usage
+ *
+ * todo bug: everything is at 0, why??
  * */
 fun main() {
+    OfficialExtensions.initForTests()
     testUI("NavMeshMany") {
 
         EngineBase.enableVSync = false
-        ECSRegistry.init()
 
         val mask = 1 shl 16
         val world = Entity("World")
 
         val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
-        val agentMesh = MeshCache[agentMeshRef, false]!!
+        val agentMesh = assertNotNull(MeshCache[agentMeshRef])
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
         val agentScale = 1f
@@ -97,8 +105,10 @@ fun main() {
         navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
         navMesh1.collisionMask = mask
         world.add(navMesh1)
+        val navMeshSrc = res.getChild("meshes/NavMesh.fbx")
+        assertNotNull(MeshCache[navMeshSrc])
         world.add(Entity().apply {
-            add(MeshComponent(res.getChild("meshes/NavMesh.fbx")).apply {
+            add(MeshComponent(navMeshSrc).apply {
                 collisionMask = mask
             })
             setScale(2.5)
@@ -117,6 +127,8 @@ fun main() {
         val crowd = Crowd(config, navMesh)
 
         val flagMesh = res.getChild("meshes/Flag.fbx")
+        assertNotNull(MeshCache[flagMesh])
+
         for (i in 0 until 2500) {
             val flag = Entity("Flag", world)
             flag.setScale(flagScale.toDouble())
@@ -126,7 +138,12 @@ fun main() {
                 setScale(agentScale.toDouble())
                 add(MeshComponent(agentMeshRef).apply { isInstanced = true })
             })
-            agent.add(AgentController1b(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
+            agent.add(
+                AgentController1b(
+                    meshData, navMesh, query, filter,
+                    random, navMesh1, crowd, flag, mask
+                )
+            )
         }
 
         world.addComponent(object : Component(), Updatable {

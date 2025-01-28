@@ -121,6 +121,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         .add(editorCamera)
 
     var renderMode = RenderMode.DEFAULT
+    var superMaterial = SuperMaterial.NONE
+        set(value) {
+            field = value
+            pipeline.superMaterial = value.material
+        }
 
     var radius = 10.0
         set(value) {
@@ -824,8 +829,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun setRenderState() {
-
-        RenderState.aspectRatio = width.toFloat() / height
+        RenderState.aspectRatio = width.toFloat() / height.toFloat()
         RenderState.worldScale = worldScale
         RenderState.prevWorldScale = prevWorldScale
 
@@ -845,7 +849,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.near = scaledNear.toFloat()
         RenderState.far = scaledFar.toFloat()
 
-        pipeline.superMaterial = renderMode.superMaterial
+        pipeline.superMaterial = superMaterial.material
     }
 
     companion object {

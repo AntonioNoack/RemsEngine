@@ -160,7 +160,7 @@ class ExportPlugin : Plugin() {
                 })
             // inputs
             preset.createInspector(body, style, { nameDesc, parent ->
-                val group = SettingCategory(nameDesc, style).showContent()
+                val group = SettingCategory(nameDesc, style).showByDefault()
                 parent.add(group)
                 group.content
             }, { createPresetUI(preset) })

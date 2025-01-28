@@ -97,13 +97,8 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
     }
 
-    @Suppress("unchecked_cast")
     fun anyInHierarchy(lambda: (V) -> Boolean): Boolean {
-        var v = this as V
-        while (true) {
-            if (lambda(v)) return true
-            v = v.parent ?: return false
-        }
+        return firstInHierarchy(lambda) != null
     }
 
     @Suppress("unchecked_cast")

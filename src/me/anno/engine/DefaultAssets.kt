@@ -3,6 +3,7 @@ package me.anno.engine
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.material.Material.Companion.noVertexColors
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
@@ -41,15 +42,18 @@ object DefaultAssets {
     val iconTexture = res.getChild("icon.png")
 
     // materials
-    val mirrorMaterial = Material.metallic(-1, 0f)
-    val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f)
-    val glassMaterial = Material.metallic(white, 0f).apply {
+    val whiteMaterial = Material().noVertexColors()
+    val mirrorMaterial = Material.metallic(-1, 0f).noVertexColors()
+    val silverMaterial =  Material.metallic(0xe5e5e5, 0f).noVertexColors()
+    val steelMaterial =  Material.metallic(0x4c4c4c, 0.2f).noVertexColors()
+    val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f).noVertexColors()
+    val glassMaterial = Material.metallic(white, 0f).noVertexColors().apply {
         diffuseBase.w = 0.5f
         pipelineStage = PipelineStage.TRANSPARENT
     }
     val blackMaterial = Material.diffuse(0)
-    val emissiveMaterial = Material().apply { emissiveBase.set(10f) }
-    val uvDebugMaterial = Material().apply { diffuseMap = uvCheckerTexture }
+    val emissiveMaterial = Material().noVertexColors().apply { emissiveBase.set(10f) }
+    val uvDebugMaterial = Material().noVertexColors().apply { diffuseMap = uvCheckerTexture }
 
     fun init() {}
 
@@ -70,8 +74,11 @@ object DefaultAssets {
 
     private fun registerMaterials() {
         register("materials/Default.json", "Material", defaultMaterial.ref)
+        register("materials/White.json", "Material", whiteMaterial.ref)
         register("materials/Mirror.json", "Material", mirrorMaterial.ref)
         register("materials/Golden.json", "Material", goldenMaterial.ref)
+        register("materials/Silver.json", "Material", silverMaterial.ref)
+        register("materials/Steel.json", "Material", steelMaterial.ref)
         register("materials/Glass.json", "Material", glassMaterial.ref)
         register("materials/Black.json", "Material", blackMaterial.ref)
         register("materials/Emissive.json", "Material", emissiveMaterial.ref)

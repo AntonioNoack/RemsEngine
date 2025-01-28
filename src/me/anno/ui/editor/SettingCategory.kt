@@ -42,8 +42,8 @@ open class SettingCategory private constructor(
         child.parent = this
     }
 
-    fun showContent(): SettingCategory {
-        InputVisibility.show(visibilityKey, child)
+    fun showByDefault(): SettingCategory {
+        InputVisibility.showByDefault(visibilityKey, child)
         return this
     }
 

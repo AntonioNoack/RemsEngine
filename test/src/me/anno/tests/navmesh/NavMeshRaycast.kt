@@ -52,29 +52,30 @@ class AgentController1a(
 
     override fun findNextTarget() {
         super.findNextTarget()
-        val tr = flag.transform
-        tr.globalPosition = tr.globalPosition.set(crowdAgent.targetPos)
-        tr.teleportUpdate()
+        val flagTransform = flag.transform
+        val crowdAgent = crowdAgent ?: return
+        flagTransform.globalPosition = flagTransform.globalPosition.set(crowdAgent.targetPosOrVel)
+        flagTransform.teleportUpdate()
     }
 
     private var upDownAngle = 0.0
     private val raycastDir = Vector3d(0.0, -1.0, 0.0)
 
-    private var ctr = (Maths.random() * 16).toInt()
-
     override fun onUpdate() {
 
-        if (ctr++ < 16) return
-        else ctr = 0
+        if (crowdAgent == null) init()
+        val crowdAgent = crowdAgent ?: return
 
         // move agent from src to dst
         val entity = entity!!
         val transform = entity.transform
         val nextPos = crowdAgent.currentPosition
+        // todo bug in recast: velocity reaches zero for no apparent reason
         val distSq = crowdAgent.actualVelocity.lengthSquared()
-        if (distSq == 0f || crowdAgent.targetPos.distanceSquared(nextPos) < 1f) {
+        if (distSq == 0f || crowdAgent.targetPosOrVel.distanceSquared(nextPos) < 0.1f) {
             findNextTarget()
         }
+
         // project agent onto surface
         val lp = transform.localPosition
         val start = Vector3d(nextPos)
@@ -100,6 +101,8 @@ class AgentController1a(
 
 /**
  * test recast navmesh generation and usage
+ *
+ * todo why is it running soo badly??? -> too many raycasts
  * */
 fun main() {
     testUI("NavMeshRaycast") {
@@ -124,6 +127,7 @@ fun main() {
         navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
         navMesh1.collisionMask = mask
         world.add(navMesh1)
+
         val meshEntity = Entity(world)
             .setScale(1.5)
             .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")).apply {

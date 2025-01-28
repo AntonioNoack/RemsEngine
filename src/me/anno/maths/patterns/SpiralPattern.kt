@@ -1,9 +1,9 @@
 package me.anno.maths.patterns
 
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import org.joml.Vector3i
-import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.round
 
@@ -30,7 +30,7 @@ object SpiralPattern {
             // compute spiral index
             // compute spiral angle
             val distance = it.distance(0, y, 0)
-            val angle01 = atan2(it.z.toFloat(), it.x.toFloat()) / (PI * 2.0).toFloat()
+            val angle01 = atan2(it.z.toFloat(), it.x.toFloat()) / TAUf
             val turnIndex = round((distance + angle01) / increment)
             turnIndex - angle01
         }

@@ -197,7 +197,7 @@ class OpenXRRendering(
         FBStack.reset()
 
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
-        rv.pipeline.superMaterial = rv.renderMode.superMaterial
+        rv.pipeline.superMaterial = rv.superMaterial.material
 
         val prevData = prevData[viewIndex]
         prevData.loadPrevMatrix(rv)

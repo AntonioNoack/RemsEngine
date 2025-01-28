@@ -105,7 +105,7 @@ fun main() {
     }
 
     ImageWriter.writeImageCurve(
-        512, 512, true,
+        512, 512, true, false,
         0, -1, 5, points, "papa/scale.png"
     )
 

@@ -48,7 +48,7 @@ object InspectorUtils {
         instances: List<Inspectable>, style: Style
     ) {
         if (reflections.debugActions.isEmpty()) return
-        val group = SettingCategory(NameDesc("DebugActions"), style).showContent()
+        val group = SettingCategory(NameDesc("DebugActions"), style).showByDefault()
         val debugActionWrapper = group.content
         for (action in reflections.debugActions) {
             val clazz = action.javaMethod?.declaringClass ?: continue
@@ -82,7 +82,7 @@ object InspectorUtils {
         instances: List<Inspectable>, style: Style
     ) {
         if (reflections.debugProperties.isEmpty()) return
-        val groupPanel = SettingCategory(NameDesc("Debug Properties"), style).showContent()
+        val groupPanel = SettingCategory(NameDesc("Debug Properties"), style).showByDefault()
         val listI = groupPanel.content
         // group them by their @Group-value
         for ((group, properties) in reflections.debugProperties
@@ -153,7 +153,7 @@ object InspectorUtils {
         isWritable: Boolean, createProperty: (CachedProperty, List<PrefabSaveable>) -> IProperty<Any?>,
     ) {
         if (reflections.editorFields.isEmpty()) return
-        val group = SettingCategory(NameDesc("Editor Fields"), style).showContent()
+        val group = SettingCategory(NameDesc("Editor Fields"), style).showByDefault()
         for (field in reflections.editorFields) {
             val property = reflections.allProperties[field.name]
             if (property != null) {
@@ -181,6 +181,7 @@ object InspectorUtils {
         isWritable: Boolean, createProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
     ) {
         val properties = reflections.propertiesByClass
+        val panelByGroup = HashMap<String, PanelListY>()
         for (i in properties.indices) {
             val (clazz, propertiesI) = properties[i]
             if (propertiesI.isEmpty()) continue
@@ -193,10 +194,9 @@ object InspectorUtils {
             if (propertiesJ.isEmpty()) continue
 
             val defaultGroup = ""
-            var lastGroup = ""
 
             val className = clazz.simpleName ?: "Anonymous"
-            val groupPanel = SettingCategory(NameDesc(className), style).showContent()
+            val groupPanel = SettingCategory(NameDesc(className), style).showByDefault()
             list.add(groupPanel)
 
             for (property in propertiesJ
@@ -208,25 +208,22 @@ object InspectorUtils {
 
                 // LOGGER.info("Showing property ${property.name} for class ${clazz.simpleName}")
 
-                val group = property.group ?: ""
-                if (group != lastGroup) {
-                    lastGroup = group
-                    // add title for group
-                    groupPanel.content.add(applyGroupStyle(TextPanel(group.camelCaseToTitle(), style)))
+                val group = property.group ?: defaultGroup
+                val panelList = panelByGroup.getOrPut(group) {
+                    if (group == defaultGroup) groupPanel.content
+                    else {
+                        val category = SettingCategory(NameDesc(group), style)
+                        category.showByDefault()
+                        groupPanel.content.add(category)
+                        category.content
+                    }
                 }
 
                 showProperty(
-                    groupPanel.content, reflections, property, relevantInstances, style,
+                    panelList, reflections, property, relevantInstances, style,
                     isWritable, createProperty
                 )
             }
         }
-    }
-
-    fun applyGroupStyle(tp: TextPanel): TextPanel {
-        tp.textColor = tp.textColor and 0x7fffffff
-        tp.focusTextColor = tp.textColor
-        tp.isItalic = true
-        return tp
     }
 }

@@ -285,7 +285,7 @@ object ImageWriter {
     @JvmStatic
     fun writeImageCurve(
         wr: Int, hr: Int,
-        autoScale: Boolean,
+        autoScale: Boolean, scaleIndependently: Boolean,
         backgroundColor: Int, lineColor: Int,
         thickness: Int, points: List<Vector2f>, name: String
     ) {
@@ -299,9 +299,18 @@ object ImageWriter {
         val transform = Matrix3x2f()
         if (autoScale) {
             val bounds = AABBf()
-            for (p in points) bounds.union(p)
+            for (p in points) {
+                if (p.isFinite) bounds.union(p)
+            }
             transform.translate(w / 2f, h / 2f)
-            transform.scale(0.95f * min(w / bounds.deltaX, h / bounds.deltaY))
+            val sx = w / bounds.deltaX
+            val sy = h / bounds.deltaY
+            if (scaleIndependently) {
+                transform.scale(sx, sy)
+            } else {
+                transform.scale(min(sx, sy))
+            }
+            transform.scale(0.95f)
             transform.translate(-bounds.centerX, -bounds.centerY)
             for (p in points) transform.transformPosition(p)
         }

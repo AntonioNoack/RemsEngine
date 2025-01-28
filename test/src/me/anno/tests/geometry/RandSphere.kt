@@ -84,7 +84,7 @@ fun main() {
     println("$total/$total, 100%, ${(Time.nanoTime - lastTime) / (total - lastI)}ns/e")
 
     ImageWriter.writeImageCurve(
-        512, 512, true, 0, -1,
+        512, 512, true, false, 0, -1,
         3, analytic.mapIndexed { index, i -> Vector2f(i.toFloat(), perfect[index].toFloat()) },
         "spherical.png"
     )

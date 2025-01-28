@@ -498,7 +498,7 @@ object LineShapes {
             val segments = 8
             val di = 5
             for (i in 0 until segments) {
-                val angle = i * PI * 2.0 / segments
+                val angle = i * TAU / segments
                 val position = positions[di + i]
                 position.set(tmp)
                 sysX.mulAdd(cos(angle) * radius, position, position)

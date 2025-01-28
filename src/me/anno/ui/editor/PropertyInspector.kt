@@ -205,7 +205,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
             return groups.getOrPut(nameDesc.key) {
                 val group = SettingCategory(nameDesc, style)
                 list += group
-                group.showContent()
+                group.showByDefault()
             }
         }
 

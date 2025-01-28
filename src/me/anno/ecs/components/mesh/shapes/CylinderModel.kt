@@ -2,12 +2,11 @@ package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
-import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -49,7 +48,7 @@ object CylinderModel {
         val cu = FloatArray(us + 1)
         val su = FloatArray(us + 1)
         for (i in 0..us) {
-            val angle = (2.0 * PI * i / us).toFloat()
+            val angle = i * TAUf / us
             cu[i] = cos(angle)
             su[i] = sin(angle)
         }

@@ -364,6 +364,9 @@ fun main() {
 
         override fun update(instances: Collection<Component>) {
 
+            if (crowdAgent == null) init()
+            val crowdAgent = crowdAgent ?: return
+
             crowd.update(Time.deltaTime.toFloat(), null)
 
             // move spider along path to target
@@ -421,7 +424,7 @@ fun main() {
                         val poly = query.findNearestPoly(pt0, Vector3f(1e3f), filter).result
                         val pos = poly?.nearestPos
                         if (poly != null && pos != null) {
-                            agent.crowdAgent.setTarget(poly.nearestRef, pos)
+                            agent.crowdAgent!!.setTarget(poly.nearestRef, pos)
                         }
                     }
                 }

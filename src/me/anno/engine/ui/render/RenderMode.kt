@@ -77,8 +77,7 @@ import org.joml.Vector4f
 class RenderMode private constructor(
     override val nameDesc: NameDesc,
     val renderer: Renderer? = null,
-    val renderGraph: FlowGraph? = null,
-    val superMaterial: Material? = null
+    val renderGraph: FlowGraph? = null
 ) : ExtendableEnum {
 
     constructor(renderer: Renderer) : this(renderer.nameDesc, renderer, null)
@@ -86,21 +85,18 @@ class RenderMode private constructor(
     constructor(name: NameDesc, renderGraph: FlowGraph?) : this(name, null, renderGraph)
     constructor(name: NameDesc, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt])
     constructor(name: NameDesc, base: RenderMode) : this(name, base.renderer, base.renderGraph)
-    constructor(name: NameDesc, material: Material) : this(name, null, DEFAULT.renderGraph, material)
-    constructor(name: String, renderer: Renderer) : this(name, renderer, null, null)
-    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph, null)
-    constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt], null, null)
-    constructor(name: String, base: RenderMode) : this(name, base.renderer, base.renderGraph, null)
-    constructor(name: String, material: Material) : this(name, null, DEFAULT.renderGraph, material)
+    constructor(name: String, renderer: Renderer) : this(name, renderer, null)
+    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph)
+    constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt], null)
+    constructor(name: String, base: RenderMode) : this(name, base.renderer, base.renderGraph)
     constructor(name: String) : this(NameDesc(name))
 
-    private constructor(name: String, renderer: Renderer?, renderGraph: FlowGraph?, superMaterial: Material?) :
-            this(NameDesc(name), renderer, renderGraph, superMaterial)
+    private constructor(name: String, renderer: Renderer?, renderGraph: FlowGraph?) :
+            this(NameDesc(name), renderer, renderGraph)
 
     init {
         Companion.values.add(this)
         renderGraph?.name = nameDesc.name
-        superMaterial?.name = nameDesc.name
     }
 
     override val id: Int = values.indexOf(this)
@@ -584,29 +580,6 @@ class RenderMode private constructor(
 
         val VIGNETTE = RenderMode("Vignette", postProcessGraph(VignetteNode()))
         val PIXELATION = RenderMode("Pixelation", postProcessGraph(PixelationNode()))
-
-        val ALL_GLASS = RenderMode("All Glass", Material().apply {
-            pipelineStage = PipelineStage.TRANSPARENT
-            metallicMinMax.set(1f)
-            roughnessMinMax.set(0f)
-            enableVertexColors = false
-        })
-
-        val ALL_SILVER = RenderMode("All Silver", Material.metallic(0xe5e5e5, 0f).apply {
-            enableVertexColors = false
-        })
-
-        val ALL_STEEL = RenderMode("All Steel", Material.metallic(0x4c4c4c, 0.2f).apply {
-            enableVertexColors = false
-        })
-
-        val ALL_GOLDEN = RenderMode("All Golden", Material.metallic(0xf5ba6c, 0.2f).apply {
-            enableVertexColors = false
-        })
-
-        val ALL_WHITE = RenderMode("All White", Material().apply {
-            enableVertexColors = false
-        })
 
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
         val IS_INDEXED = RenderMode("Is Indexed", isIndexedRenderer)

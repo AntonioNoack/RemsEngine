@@ -13,30 +13,26 @@ import org.recast4j.detour.crowd.CrowdAgentParams
 import java.util.Random
 
 open class NavMeshAgent(
-    meshData: MeshData,
-    navMesh: org.recast4j.detour.NavMesh,
+    val meshData: MeshData,
+    val navMesh: org.recast4j.detour.NavMesh,
     val query: NavMeshQuery,
     val filter: DefaultQueryFilter,
     val random: Random,
-    navMesh1: NavMesh,
-    crowd: Crowd,
+    val navMesh1: NavMesh,
+    val crowd: Crowd,
     val mask: Int,
-    maxSpeed: Float,
-    maxAcceleration: Float,
+    val maxSpeed: Float,
+    val maxAcceleration: Float,
 ) : Component() {
 
     @NotSerializedProperty
-    var currRef: FindRandomPointResult
-
     val params = CrowdAgentParams()
-    val crowdAgent: CrowdAgent
 
-    init {
+    @NotSerializedProperty
+    var crowdAgent: CrowdAgent? = null
 
-        val header = meshData.header!!
-        val tileRef = navMesh.getTileRefAt(header.x, header.y, header.layer)
-        currRef = query.findRandomPointWithinCircle(tileRef, Vector3f(), 200f, filter, random)!!
-
+    fun init(): Boolean {
+        val position = entity?.position ?: return false
         params.radius = navMesh1.agentRadius
         params.height = navMesh1.agentHeight
         params.maxSpeed = maxSpeed
@@ -44,13 +40,34 @@ open class NavMeshAgent(
         params.collisionQueryRange = navMesh1.agentRadius * 2f
         params.pathOptimizationRange = params.collisionQueryRange * 1.5f
         // other params?
-        crowdAgent = crowd.addAgent(currRef.randomPt, params)
+        crowdAgent = crowd.addAgent(Vector3f(position), params)
+        return true
+    }
+
+    fun teleportTo(position: Vector3f) {
+        val crowdAgent = crowdAgent ?: return
+        crowd.resetMoveTarget(crowdAgent)
+        crowdAgent.currentPosition.set(position)
+        // todo where else is the position stored???
+        // todo update the reference...
+        // todo update the corridor
+    }
+
+    fun moveTo(position: Vector3f) {
+        // todo half-extends need to be reasonable until we have a better algorithm implemented there in Recast4j, which doesn't iterate all valid tiles
+        val crowdAgent = crowdAgent ?: return
+        val nextPoly = query.findNearestPoly(position, Vector3f(100f), filter)
+        if (nextPoly.succeeded()) {
+            val result = nextPoly.result!!
+            crowdAgent.setTarget(result.nearestRef, position)
+        }
     }
 
     var maxRadius = 200f
     open fun findNextTarget() {
+        val crowdAgent = crowdAgent ?: return
         val nextRef = query.findRandomPointWithinCircle(
-            currRef.randomRef, crowdAgent.targetPos,
+            crowdAgent.corridor.lastPoly, crowdAgent.currentPosition,
             maxRadius, filter, random
         )
         if (nextRef != null) crowdAgent.setTarget(nextRef.randomRef, nextRef.randomPt)

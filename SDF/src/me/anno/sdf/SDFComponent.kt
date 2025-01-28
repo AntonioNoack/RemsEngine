@@ -383,7 +383,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             // we could use different parameters for higher accuracy...
             val seeds = IntArrayList(8)
             val localDistance = raycast(localSrt, localDir, near, far, maxSteps, seeds)
-            val localDistance0 = localDistance + startOffset
+            val localDistance0 = localDistance + if (startOffset.isFinite()) startOffset else 0.0
             if (sq(localDistance0) < maxLocalDistanceSq0) {
                 val localHit = vec3f[3].set(localDir).mul(localDistance).add(localSrt)
                 val localNormal = calcNormal(localHit, vec3f[4], seeds, normalEpsilon)

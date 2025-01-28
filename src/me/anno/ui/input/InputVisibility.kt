@@ -2,39 +2,46 @@ package me.anno.ui.input
 
 import me.anno.ui.Panel
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 
 object InputVisibility {
 
     private val LOGGER = LogManager.getLogger(InputVisibility::class)
-    private val visible = HashSet<String>()
+    private val visible = HashMap<String, Boolean>()
 
-    operator fun get(title: String) =
-        if (title.isBlank2()) true
-        else title in visible
+    operator fun get(visibilityKey: String) =
+        if (visibilityKey.isBlank2()) true
+        else visible[visibilityKey] ?: false
 
-    operator fun set(title: String, value: Boolean) {
-        if (!title.isBlank2() && this[title] != value) {
-            toggle(title, null)
+    operator fun set(visibilityKey: String, value: Boolean) {
+        setValue(visibilityKey, value, null)
+    }
+
+    fun showByDefault(visibilityKey: String, panel: Panel?) {
+        if (visibilityKey.isNotBlank2() && visibilityKey !in visible) {
+            setValue(visibilityKey, true, panel)
         }
     }
 
     fun toggle(visibilityKey: String, panel: Panel?) {
-        if (visibilityKey in visible) hide(visibilityKey, panel)
-        else show(visibilityKey, panel)
+        setValue(visibilityKey, !this[visibilityKey], panel)
     }
 
     fun show(visibilityKey: String, panel: Panel?) {
-        if (visible.add(visibilityKey)) {
-            panel?.invalidateLayout()
-            LOGGER.info("Showing {}", visibilityKey)
-        }
+        setValue(visibilityKey, true, panel)
     }
 
     fun hide(visibilityKey: String, panel: Panel?) {
-        if (visible.remove(visibilityKey)) {
+        setValue(visibilityKey, false, panel)
+    }
+
+    private fun setValue(visibilityKey: String, isVisible: Boolean, panel: Panel?) {
+        if (visibilityKey.isBlank2()) return
+        val wasVisible = visible.put(visibilityKey, isVisible)
+        if (wasVisible != isVisible) {
             panel?.invalidateLayout()
-            LOGGER.info("Hiding {}", visibilityKey)
+            LOGGER.info(if (isVisible) "Showing {}" else "Hiding {}", visibilityKey)
         }
     }
 }

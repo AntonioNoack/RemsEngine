@@ -19,7 +19,6 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
@@ -37,10 +36,10 @@ import me.anno.maths.Maths.pow
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.Gizmos
-import me.anno.ui.input.EnumInput
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.castToList
@@ -91,29 +90,27 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     // todo apply snapping to <when moving things around> as well
     // todo we could snap rotations, and maybe scale, as well
 
-    val drawModeInput = EnumInput(
-        NameDesc("Draw Mode"), renderView.renderMode.nameDesc,
-        RenderMode.values.map { it.nameDesc }, style
-    ).setChangeListener { _, index, _ ->
-        renderView.renderMode = RenderMode.values[index]
-    }
-
     override val settings = DraggingControlSettings()
     val snappingSettings get() = settings.snapSettings
 
     init {
         val topLeft = PanelListX(style)
-        drawModeInput.alignmentY = AxisAlignment.CENTER
-        topLeft.add(drawModeInput)
+        val topLeftSett = PanelListY(style)
+        topLeft.add(topLeftSett)
         topLeft.add(
             TextButton(NameDesc("Play", "Start the game", ""), false, style)
-            .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
-            .apply { alignmentY = AxisAlignment.MIN })
+                .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
+                .apply {
+                    alignmentX = AxisAlignment.CENTER
+                    alignmentY = AxisAlignment.CENTER
+                })
         topLeft.add(
-            TextButton(NameDesc("⚙"), 1f, style)
-            .setTooltip("Settings")
-            .addLeftClickListener { EditorState.select(settings) }
-            .apply { alignmentY = AxisAlignment.MIN })
+            TextButton(NameDesc("⚙", "Settings", ""), 1f, style)
+                .addLeftClickListener { EditorState.select(settings) }
+                .apply {
+                    alignmentX = AxisAlignment.CENTER
+                    alignmentY = AxisAlignment.CENTER
+                })
         topLeft.alignmentX = AxisAlignment.MIN
         topLeft.alignmentY = AxisAlignment.MIN
         add(topLeft)
@@ -122,8 +119,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     override fun onUpdate() {
         super.onUpdate()
         if (dragged != null) invalidateDrawing() // might be displayable
-        drawModeInput.setValue(renderView.renderMode.nameDesc, false)
-        val gs = settings.gridSettings
+        val renderSettings = settings
+        renderView.renderMode = renderSettings.renderMode
+        renderView.superMaterial = renderSettings.superMaterial
+        val gs = settings
         renderView.drawGridWhenEditing = gs.showGridXY.toInt(1) +
                 gs.showGridXZ.toInt(2) +
                 gs.showGridYZ.toInt(4)

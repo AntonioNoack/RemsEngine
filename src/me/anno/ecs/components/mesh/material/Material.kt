@@ -404,5 +404,10 @@ open class Material : PrefabSaveable(), Renderable {
             base.metallicMinMax.set(1f)
             return base
         }
+
+        fun Material.noVertexColors(): Material {
+            enableVertexColors = false
+            return this
+        }
     }
 }

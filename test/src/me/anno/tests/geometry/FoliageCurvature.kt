@@ -61,7 +61,7 @@ fun main() {
     // draw x and y as a relation to angle, as well as y in relation to x
     val size = 512
     val th = 5
-    ImageWriter.writeImageCurve(size, size, true, 0, -1, th, xy, "foliage/xy.png")
-    ImageWriter.writeImageCurve(size, size, true, 0, -1, th, tx, "foliage/tx.png")
-    ImageWriter.writeImageCurve(size, size, true, 0, -1, th, ty, "foliage/ty.png")
+    ImageWriter.writeImageCurve(size, size, true, false, 0, -1, th, xy, "foliage/xy.png")
+    ImageWriter.writeImageCurve(size, size, true, false, 0, -1, th, tx, "foliage/tx.png")
+    ImageWriter.writeImageCurve(size, size, true, false, 0, -1, th, ty, "foliage/ty.png")
 }

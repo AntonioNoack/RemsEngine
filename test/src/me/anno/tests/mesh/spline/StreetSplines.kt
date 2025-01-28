@@ -15,6 +15,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.TAU
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Color.a
 import me.anno.utils.Color.argb
@@ -175,7 +176,7 @@ fun main() {
         val l = 7
         val r0 = 15.0
         for (i in 0 until l) {
-            val angle = i * PI * 2.0 / l
+            val angle = i * TAU / l
             val rx = cos(angle)
             val rz = sin(angle)
             val ry = -angle + PI * 0.5
