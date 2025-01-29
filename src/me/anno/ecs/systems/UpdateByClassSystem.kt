@@ -19,8 +19,9 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
 
     private val lock: Any get() = this
 
-    private val components = HashMap<KClass<*>, HashSet<Component>>()
-    private val changeList = HashSet<Component>()
+    private val components = HashMap<KClass<*>, HashSet<Component>>() // what is registered
+    private val changeSet = HashSet<Component>() // what changes from frame to frame
+    private val sortedComponents = ArrayList<Map.Entry<KClass<*>, Set<Component>>>() // sorted entries
 
     override fun setContains(component: Component, contains: Boolean) {
         if (isInstance(component)) {
@@ -28,7 +29,7 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
                 val existing = components[component::class]?.contains(component) == true
                 // else don't change that instance
                 val currentStateNeedsChange = existing != contains
-                if (changeList.setContains(component, currentStateNeedsChange)) {
+                if (changeSet.setContains(component, currentStateNeedsChange)) {
                     numRegisteredInstances += if (contains) 1 else -1
                 }
             }
@@ -37,12 +38,14 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
 
     override fun clear() {
         components.clear()
-        changeList.clear()
+        changeSet.clear()
+        sortedComponents.clear()
         numRegisteredInstances = 0
     }
 
     abstract fun isInstance(component: Component): Boolean
     abstract fun update(sample: Component, instances: Collection<Component>)
+    abstract fun getPriority(sample: Component): Int
 
     override fun onUpdate() {
         if (isOnUpdate) execute()
@@ -52,20 +55,31 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
         if (!isOnUpdate) execute()
     }
 
-    private fun updateInstances() {
+    private fun updateInstances(): Boolean {
         synchronized(lock) {
-            for (component in changeList) {
+            val hasEntries = changeSet.isNotEmpty()
+            for (component in changeSet) {
                 components
                     .getOrPut(component::class, ::HashSet)
                     .toggleContains(component)
             }
-            changeList.clear()
+            changeSet.clear()
+            return hasEntries
         }
     }
 
+    private fun sortComponentsByPriority() {
+        sortedComponents.clear()
+        sortedComponents.addAll(components.entries)
+        sortedComponents.removeIf { it.value.isEmpty() }
+        sortedComponents.sortBy { getPriority(it.value.first()) }
+    }
+
     private fun execute() {
-        updateInstances() // "components" is only changed during this, so we're free to iterate over it after that
-        for ((_, instances) in components) {
+        // "components" is only changed during this, so we're free to iterate over it after that
+        val changed = updateInstances()
+        if (changed) sortComponentsByPriority()
+        for ((_, instances) in sortedComponents) {
             val sample = instances.firstOrNull() ?: continue
             update(sample, instances)
         }

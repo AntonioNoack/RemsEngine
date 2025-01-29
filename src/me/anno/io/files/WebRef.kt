@@ -13,6 +13,7 @@ import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -92,18 +93,14 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        thread(name = "WebRef") {
-            callback.ok(inputStreamSync())
-        }
-    }
-
-    override fun inputStreamSync(): InputStream {
-        val connection = toURL().openConnection() as HttpURLConnection
-        if (connection.responseCode == 200) {
-            return connection.inputStream
-        } else {
-            LOGGER.warn(connection.errorStream.readText())
-            throw IOException("$absolutePath failed")
+        thread(name = "WebRef:${absolutePath.shorten(100)}") {
+            val connection = toURL().openConnection() as HttpURLConnection
+            if (connection.responseCode in 200 until 300) {
+                callback.ok(connection.inputStream)
+            } else {
+                LOGGER.warn(connection.errorStream.readText())
+                callback.err(IOException("$absolutePath failed with code ${connection.responseCode}"))
+            }
         }
     }
 

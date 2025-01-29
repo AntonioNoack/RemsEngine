@@ -344,7 +344,8 @@ object Strings {
      * allocation free isBlank()
      * */
     @JvmStatic
-    fun CharSequence.isBlank2(): Boolean {
+    fun CharSequence?.isBlank2(): Boolean {
+        if (this == null) return true
         for (index in 0 until length + 0) {
             if (!this[index].isBlank()) {
                 return false
@@ -368,7 +369,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun CharSequence.isNotBlank2(): Boolean {
+    fun CharSequence?.isNotBlank2(): Boolean {
         return !isBlank2()
     }
 

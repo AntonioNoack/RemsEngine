@@ -1,6 +1,5 @@
 package me.anno.io.xml
 
-import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertTrue
 import kotlin.math.max
 
@@ -26,9 +25,10 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
         return value.concatToString(0, length)
     }
 
-    fun clear() {
+    fun clear(): ComparableStringBuilder {
         length = 0
         hash = 0
+        return this
     }
 
     fun append(c: Char): ComparableStringBuilder {

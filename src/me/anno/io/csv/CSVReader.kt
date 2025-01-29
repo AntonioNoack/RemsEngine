@@ -42,17 +42,21 @@ object CSVReader {
     }
 
     fun read(textData: String, comma: Char, lineSplit: Char): Map<String, List<String?>> {
-        val dataRows = textData.split(lineSplit)
-            .filter { it.isNotBlank2() }
-            .map { it.stringSplit(comma).map(String::trim) }
+        val dataRows = readRows(textData, comma, lineSplit)
         val dataColumns = dataRows.transposed()
         return dataColumns
-            .filter { it.first().isNotBlank2() } // skip columns without title
+            .filter { it.isNotEmpty() && it.first().isNotBlank2() } // skip columns without title
             .associate {
                 val columnName = it.first().removeQuotes()
                 val values = it.subList(1, it.size)
                 columnName to values
             }
+    }
+
+    fun readRows(textData: String, comma: Char, lineSplit: Char): List<List<String>> {
+        return textData.split(lineSplit)
+            .filter { it.isNotBlank2() }
+            .map { it.stringSplit(comma).map(String::trim) }
     }
 
     private fun String.removeQuotes(): String {

@@ -20,8 +20,20 @@ object Systems : PrefabSaveable() {
     private val systems = ArrayList<System>() // sorted by priority
     val readonlySystems: List<System> = systems
 
+    /**
+     * registers a system by its class name;
+     * returns whether the system was changed
+     * */
     fun registerSystem(instance: System) {
         registerSystem(instance.className, instance)
+    }
+
+    /**
+     * unregisters a system by its class name;
+     * returns which system was removed
+     * */
+    fun unregisterSystem(instance: System): System? { // todo test this method
+        return unregisterSystem(instance.className)
     }
 
     private val systemSorter = Comparator<System> { o1, o2 ->
@@ -47,6 +59,20 @@ object Systems : PrefabSaveable() {
         val world = world
         if (world != null) addOrRemoveRecursively(world, true, system)
         return true
+    }
+
+    /**
+     * unregisters a system by its class name;
+     * returns which system was removed
+     * */
+    fun unregisterSystem(id: String): System? {
+        val prevSystem: System
+        synchronized(systemByName) {
+            prevSystem = systemByName.remove(id) ?: return null
+            systems.remove(prevSystem)
+        }
+        prevSystem.clear()
+        return prevSystem
     }
 
     init {

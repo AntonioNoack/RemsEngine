@@ -22,4 +22,8 @@ open class CountMap<V>(capacity: Int = 16) {
         count.value += delta
         return count.value
     }
+
+    fun clear() {
+        values.clear()
+    }
 }
