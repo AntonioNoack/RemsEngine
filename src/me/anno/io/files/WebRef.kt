@@ -98,8 +98,8 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             if (connection.responseCode in 200 until 300) {
                 callback.ok(connection.inputStream)
             } else {
-                LOGGER.warn(connection.errorStream.readText())
-                callback.err(IOException("$absolutePath failed with code ${connection.responseCode}"))
+                val pageContent = connection.errorStream.readText()
+                callback.err(WebException(absolutePath, connection.responseCode, pageContent))
             }
         }
     }

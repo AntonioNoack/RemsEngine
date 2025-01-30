@@ -28,6 +28,19 @@ open class UITests {
         }
     }
 
+    fun click(button: Key) {
+        Input.onMousePress(osWindow, button)
+        Input.onMouseRelease(osWindow, button)
+    }
+
+    fun moveMouseTo(panel: Panel) {
+        moveMouseTo(panel.x + panel.width / 2, panel.y + panel.height / 2)
+    }
+
+    fun moveMouseTo(x: Int, y: Int) {
+        Input.onMouseMove(osWindow, x.toFloat(), y.toFloat())
+    }
+
     fun updateUI() {
         for (window in GFX.windows) {
             for (windowI in window.windowStack) {
