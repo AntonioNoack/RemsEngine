@@ -309,7 +309,7 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, List<Comp
 
     val triangles = createTriangleBuffer(meshes, PIXELS_PER_VERTEX)
     val blasNodes = createBLASBuffer(meshes)
-    val tlasNodes = tlas.createTLASBuffer() // needs to be created after blas nodes
+    val tlasNodes = createTLASBuffer(tlas) // needs to be created after blas nodes
 
     val maxTLASDepth = tlas.maxDepth()
     val maxBLASDepth = meshes.maxOf { it.maxDepth() }

@@ -15,15 +15,16 @@ object TLASTexture {
 
     // we can create one wasteful texture, or two efficient ones...
     // since we have a binding limit, I'd go with a single one for now
-    fun TLASNode.createTLASTexture(
+    fun createTLASTexture(
+        root: TLASNode,
         pixelsPerNode: Int = PIXELS_PER_TLAS_NODE,
         addExtraData: ((TLASNode, FloatBuffer) -> Unit)? = null
     ): Texture2D {
 
         GFX.checkIsGFXThread()
         var nodeId = 0
-        forEach {
-            it.nodeId = nodeId++
+        root.forEach { node ->
+            node.nodeId = nodeId++
         }
         val numNodes = nodeId
         // branch:
@@ -34,7 +35,7 @@ object TLASTexture {
         val buffer = Pools.byteBufferPool[texture.width * texture.height * 16, false, false]
         val data = buffer.asFloatBuffer()
 
-        forEach { node ->
+        root.forEach { node ->
 
             val v0: Int
             val v1: Int

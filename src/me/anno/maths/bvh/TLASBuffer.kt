@@ -19,24 +19,24 @@ object TLASBuffer {
         Attribute("localToWorld", 12),
     )
 
-    fun TLASNode.createTLASBuffer(): Pair<ComputeBuffer, ComputeBuffer> {
+    fun createTLASBuffer(root: TLASNode): Pair<ComputeBuffer, ComputeBuffer> {
 
         GFX.checkIsGFXThread()
         var nodeId = 0
-        forEach { node ->
+        root.forEach { node ->
             node.nodeId = nodeId++
         }
 
         val numNodes = nodeId
         val baseBuffer = ComputeBuffer("TLAS-base", tlasAttr0, numNodes)
-        val transformBuffer = ComputeBuffer("TLAS-trans", tlasAttr1, countTLASLeaves())
+        val transformBuffer = ComputeBuffer("TLAS-trans", tlasAttr1, root.countTLASLeaves())
         val baseData = baseBuffer.nioBuffer!!
         val transformData = transformBuffer.nioBuffer!!
         val f0 = baseData.asFloatBuffer()
         val f1 = transformData.asFloatBuffer()
 
         var leafId = 3
-        forEach { node ->
+        root.forEach { node ->
 
             val v0: Int
             val v1: Int
