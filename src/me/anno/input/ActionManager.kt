@@ -3,18 +3,15 @@ package me.anno.input
 import me.anno.Time
 import me.anno.config.ConfigRef
 import me.anno.gpu.OSWindow
-import me.anno.input.Input.maxClickDistance
 import me.anno.input.Input.minDragDistance
 import me.anno.io.config.ConfigBasics.loadConfig
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
-import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.Reflections.getParentClass
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
-import kotlin.reflect.full.superclasses
 
 object ActionManager : StringMap() {
 
@@ -122,29 +119,29 @@ object ActionManager : StringMap() {
     }
 
     @JvmStatic
-    private fun onKeyXXX(window: OSWindow, key: Key, type: KeyCombination.Type) {
+    private fun onAnyKeyEvent(window: OSWindow, key: Key, type: KeyCombination.Type) {
         if (key == Key.KEY_UNKNOWN) return
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, type), false)
     }
 
     @JvmStatic
     fun onKeyTyped(window: OSWindow, key: Key) {
-        onKeyXXX(window, key, KeyCombination.Type.TYPED)
+        onAnyKeyEvent(window, key, KeyCombination.Type.TYPED)
     }
 
     @JvmStatic
     fun onKeyUp(window: OSWindow, key: Key) {
-        onKeyXXX(window, key, KeyCombination.Type.UP)
+        onAnyKeyEvent(window, key, KeyCombination.Type.UP)
     }
 
     @JvmStatic
     fun onKeyDown(window: OSWindow, key: Key) {
-        onKeyXXX(window, key, KeyCombination.Type.DOWN)
+        onAnyKeyEvent(window, key, KeyCombination.Type.DOWN)
     }
 
     @JvmStatic
     fun onKeyDoubleClick(window: OSWindow, key: Key) {
-        onKeyXXX(window, key, KeyCombination.Type.DOUBLE)
+        onAnyKeyEvent(window, key, KeyCombination.Type.DOUBLE)
     }
 
     @JvmStatic
@@ -185,7 +182,7 @@ object ActionManager : StringMap() {
         if (stack.isEmpty() || stack.peek() != panel?.window) panel = null
         // filter action keys, if they are typing keys, and a typing field is in focus
         val isWriting = panel != null && panel.isKeyInput() && when {
-            combination.isControl || combination.isAlt || combination.isSuper -> false
+            combination.isControl || combination.isAlt || combination.isSuper || combination.key.isButton() -> false
             combination.key == Key.KEY_SPACE -> !Input.isShiftDown && panel.acceptsChar('\t'.code)
             else -> true
         }

@@ -326,6 +326,15 @@ enum class Key(val id: Int) {
     // this list may be extended in the future...
     ;
 
+    fun isButton(): Boolean {
+        return when (this) {
+            BUTTON_LEFT, BUTTON_MIDDLE, BUTTON_RIGHT,
+            BUTTON_FORWARD, BUTTON_BACK,
+            BUTTON_6, BUTTON_7, BUTTON_8 -> true
+            else -> false
+        }
+    }
+
     fun isClickKey(buttonsToo: Boolean) = when (this) {
         BUTTON_LEFT, BUTTON_MIDDLE, BUTTON_RIGHT -> buttonsToo
         KEY_ENTER, KEY_KP_ENTER -> true

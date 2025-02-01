@@ -167,6 +167,10 @@ open class FileInput(
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        /**
+         * the mouse-movement check separates text-selecting from dragging the value:
+         * dragging is only possible if enough time has passed
+         * */
         return if (action == "DragStart" && !Input.mouseHasMoved) {
             val value = value
             val title = value.nameWithoutExtension

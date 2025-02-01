@@ -10,7 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Engine" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="Other" level="project" />
+    <orderEntry type="library" name="FABRIK" level="project" />
     <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />
@@ -42,6 +42,6 @@
     <orderEntry type="module" module-name="OpenXR" />
     <orderEntry type="module" module-name="Network" />
     <orderEntry type="library" name="KotlinReflect" level="project" />
-    <orderEntry type="library" name="KotlinTest" level="project" />
+    <orderEntry type="library" name="JTransforms" level="project" />
   </component>
 </module>

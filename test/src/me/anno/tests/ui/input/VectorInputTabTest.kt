@@ -31,7 +31,7 @@ class VectorInputTabTest : UITests() {
             updateUI()
             assertEquals(listOf(i % ui.type.numComponents), inputPanels.indices
                 .filter { inputPanels[it].isInFocus })
-            press(Key.KEY_TAB, '\t')
+            type(Key.KEY_TAB, '\t')
         }
     }
 }

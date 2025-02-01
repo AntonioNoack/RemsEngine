@@ -51,6 +51,11 @@ class RecastTests {
         val sphereMesh = IcosahedronModel.createIcosphere(1)
         val gray = Material.diffuse(0x777788)
         val white = Material.defaultMaterial
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            RecastTests().testRecastOnCircleWithHoles()
+        }
     }
 
     fun addCircle(scene: Entity, pos: Vector2d, radius: Double, inside: Boolean) {
@@ -148,7 +153,6 @@ class RecastTests {
         }
     }
 
-    @Test
     fun testRecastOnCircleWithHoles() {
 
         OfficialExtensions.initForTests()

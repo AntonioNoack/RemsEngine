@@ -10,19 +10,19 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     constructor(style: Style) : this(null, style)
 
     override fun calculateSize(w: Int, h: Int) {
-        var minW = 0
-        var minH = 0
+        var neededW = 0
+        var neededH = 0
         val wi = w - padding.width
         val hi = h - padding.height
         val children = children
         for (index in children.indices) {
             val child = children[index]
             child.calculateSize(wi, hi)
-            minW = max(minW, child.minW)
-            minH = max(minH, child.minH)
+            neededW = max(neededW, child.minW)
+            neededH = max(neededH, child.minH)
         }
-        this.minW = minW + padding.width
-        this.minH = minH + padding.height
+        minW = neededW + padding.width
+        minH = neededH + padding.height
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {

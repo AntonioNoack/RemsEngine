@@ -1,18 +1,15 @@
 package me.anno.ui.base.buttons
 
 import me.anno.Time
-import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.input.Input
-import me.anno.input.Input.mouseDownX
-import me.anno.input.Input.mouseDownY
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.input.Input
+import me.anno.maths.Maths.dtTo10
 import me.anno.maths.Maths.mix
-import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import kotlin.math.abs
-import kotlin.math.min
+import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 
 open class Button(
     var isSquare: Boolean = true,
@@ -25,25 +22,18 @@ open class Button(
     @NotSerializedProperty
     var tintColor = -1
 
-    @NotSerializedProperty
-    private var lastTime = 0L
-
     override fun onUpdate() {
         super.onUpdate()
-        val time = Time.nanoTime
         val targetTint = when {
-            Input.isLeftDown && contains(mouseDownX, mouseDownY) -> 0f
+            Input.isLeftDown && isHovered -> 0f
             isHovered -> 0.5f
             else -> 1f
         }
-        if (abs(targetTint - tint) > 0.001f) {
-            val dt = (time - lastTime) * 1e-9f * 10f
-            lastTime = time
-            tint = mix(tint, targetTint, min(dt, 0.2f))
-            tintColor = mixARGB(0x777777 or black, -1, tint)
-            invalidateDrawing()
-        }
-        lastTime = time
+        val dt = Time.uiDeltaTime.toFloat()
+        tint = mix(tint, targetTint, dtTo10(dt * 10f))
+        val prevColor = tintColor
+        tintColor = mixARGB(0x777777 or black, -1, tint)
+        if (tintColor != prevColor) invalidateDrawing()
     }
 
     override fun clone(): Button {

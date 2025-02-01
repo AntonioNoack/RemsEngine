@@ -33,13 +33,11 @@ object GLFWListeners {
         }
         addEvent {
             window.framesSinceLastInteraction = 0
-            val dws = window.windowStack
+            val ws = window.windowStack
             val mouseX = window.mouseX
             val mouseY = window.mouseY
-            dws.requestFocus(dws.getPanelAt(mouseX, mouseY), true)
-            dws.inFocus0?.apply {
-                onPasteFiles(mouseX, mouseY, files)
-            }
+            ws.requestFocus(ws.getPanelAt(mouseX, mouseY), true)
+            ws.inFocus0?.onPasteFiles(mouseX, mouseY, files)
         }
     }
 

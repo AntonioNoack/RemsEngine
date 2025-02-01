@@ -31,14 +31,14 @@ class IntInputTests : UITests() {
         assertEquals("20", test.inputPanel.value)
         test.inputPanel.requestFocus()
 
-        press(Key.KEY_KP_ADD, '+')
+        type(Key.KEY_KP_ADD, '+')
         assertEquals("20+", test.inputPanel.value)
 
-        press(Key.KEY_5, '5')
+        type(Key.KEY_5, '5')
         assertEquals("20+5", test.inputPanel.value)
         assertEquals(25L, test.value)
 
-        press(Key.KEY_ENTER)
+        type(Key.KEY_ENTER)
         assertEquals("25", test.inputPanel.value)
         assertEquals(25L, test.value)
     }

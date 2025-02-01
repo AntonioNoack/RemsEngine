@@ -11,13 +11,9 @@ import me.anno.gpu.OSWindow
 import me.anno.input.Clipboard.copyFiles
 import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Clipboard.setClipboardContent
-import me.anno.input.Touch.Companion.onTouchDown
-import me.anno.input.Touch.Companion.onTouchMove
-import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.input.controller.Controller
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
@@ -35,7 +31,6 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFWDropCallback
 import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.max
@@ -520,9 +515,9 @@ object Input {
         if (!event.isCancelled && isClick) {
 
             if (maySelectByClick && mouseLockPanel == null) {
-                val dws = window.windowStack
-                val panel = dws.getPanelAt(mouseX, mouseY)
-                dws.requestFocus(panel, true)
+                val ws = window.windowStack
+                val panel = ws.getPanelAt(mouseX, mouseY)
+                ws.requestFocus(panel, true)
             }
 
             val longClickNanos = 1_000_000 * longClickMillis
@@ -566,9 +561,9 @@ object Input {
     fun copy(window: OSWindow) {
         val mouseX = window.mouseX
         val mouseY = window.mouseY
-        val dws = window.windowStack
-        val inFocus = dws.inFocus
-        val inFocus0 = dws.inFocus0 ?: return
+        val ws = window.windowStack
+        val inFocus = ws.inFocus
+        val inFocus0 = ws.inFocus0 ?: return
         when (inFocus.size) {
             0 -> return // should not happen
             1 -> {

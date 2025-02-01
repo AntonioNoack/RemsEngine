@@ -148,7 +148,7 @@ class CompileTest {
             }
         }
         ui.prepareUI(rv)
-        rv.setPosSize(0, 0, ui.osWindow.width, ui.osWindow.height)
+        rv.setPosSize(0, 0, UITests.osWindow.width, UITests.osWindow.height)
         val tmp = Framebuffer("tmp", rv.width, rv.height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
         for (mode in RenderMode.values) {
             try {

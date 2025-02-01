@@ -7,8 +7,10 @@ import me.anno.ui.base.groups.ListAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ListAlignmentTest {
@@ -31,8 +33,8 @@ class ListAlignmentTest {
 
     @Test
     fun testPanelListX() {
-        // todo test padding
         val list = PanelListX(style)
+        list.padding.set(1, 2, 3, 4)
         for (i in 0 until 5) {
             val child = ExactSizePanel(100, 60)
             list.add(child)
@@ -43,26 +45,26 @@ class ListAlignmentTest {
         weighted1.alignmentY = AxisAlignment.MIN
         list.add(weighted1)
         list.add(weighted2)
-        val w = 5 * 100 + 50 + 150
-        val h = 120
+        val w = 5 * 100 + 50 + 150 + list.padding.width
+        val h = 120 + list.padding.height
         list.calculateSize(w, h)
-        assertEquals(list.minW, 5 * 100)
-        assertEquals(list.minH, 100)
+        assertEquals(list.minW, 5 * 100 + 4)
+        assertEquals(list.minH, 106)
         list.setPosSize(10, 10, w, h)
         checkPosSize(list, 10, 10, w, h)
-        checkPosSize(list.children[0], 10, 10, 100, 60) // min-y
-        checkPosSize(list.children[1], 110, 40, 100, 60) // center-y
-        checkPosSize(list.children[2], 210, 70, 100, 60) // max-y
-        checkPosSize(list.children[3], 310, 10, 100, 120) // fill-y
-        checkPosSize(list.children[4], 410, 10, 100, 120) // fill-y
-        checkPosSize(list.children[5], 510, 10, 50, 100) // weight 1.0
-        checkPosSize(list.children[6], 560, 10, 150, 120) // weight 3.0
+        checkPosSize(list.children[0], 11, 12, 100, 60) // min-y
+        checkPosSize(list.children[1], 111, 42, 100, 60) // center-y
+        checkPosSize(list.children[2], 211, 72, 100, 60) // max-y
+        checkPosSize(list.children[3], 311, 12, 100, 120) // fill-y
+        checkPosSize(list.children[4], 411, 12, 100, 120) // fill-y
+        checkPosSize(list.children[5], 511, 12, 50, 100) // weight 1.0
+        checkPosSize(list.children[6], 561, 12, 150, 120) // weight 3.0
     }
 
     @Test
     fun testPanelListY() {
-        // todo test padding
         val list = PanelListY(style)
+        list.padding.set(1, 2, 3, 4)
         for (i in 0 until 5) {
             val child = ExactSizePanel(60, 100)
             list.add(child)
@@ -73,20 +75,50 @@ class ListAlignmentTest {
         weighted1.alignmentX = AxisAlignment.MIN
         list.add(weighted1)
         list.add(weighted2)
-        val w = 120
-        val h = 5 * 100 + 50 + 150
+        val w = 120 + list.padding.width
+        val h = 5 * 100 + 50 + 150 + list.padding.height
         list.calculateSize(w, h)
-        assertEquals(list.minW, 100)
-        assertEquals(list.minH, 5 * 100)
+        assertEquals(list.minW, 104)
+        assertEquals(list.minH, 5 * 100 + 6)
         list.setPosSize(10, 10, w, h)
         checkPosSize(list, 10, 10, w, h)
-        checkPosSize(list.children[0], 10, 10, 60, 100) // min-y
-        checkPosSize(list.children[1], 40, 110, 60, 100) // center-y
-        checkPosSize(list.children[2], 70, 210, 60, 100) // max-y
-        checkPosSize(list.children[3], 10, 310, 120, 100) // fill-y
-        checkPosSize(list.children[4], 10, 410, 120, 100) // fill-y
-        checkPosSize(list.children[5], 10, 510, 100, 50) // weight 1.0
-        checkPosSize(list.children[6], 10, 560, 120, 150) // weight 3.0
+        checkPosSize(list.children[0], 11, 12, 60, 100) // min-y
+        checkPosSize(list.children[1], 41, 112, 60, 100) // center-y
+        checkPosSize(list.children[2], 71, 212, 60, 100) // max-y
+        checkPosSize(list.children[3], 11, 312, 120, 100) // fill-y
+        checkPosSize(list.children[4], 11, 412, 120, 100) // fill-y
+        checkPosSize(list.children[5], 11, 512, 100, 50) // weight 1.0
+        checkPosSize(list.children[6], 11, 562, 120, 150) // weight 3.0
+    }
+
+    @Test
+    fun testPanelStack() {
+        val list = PanelStack(style)
+        list.padding.set(1, 2, 3, 4)
+        for (i in 0 until 5) {
+            val child = ExactSizePanel(60, 100)
+            list.add(child)
+            child.alignmentX = getTestAlignment(i)
+        }
+        val weighted1 = ExactSizePanel(100, 0).fill(1f) // ->  50
+        val weighted2 = ExactSizePanel(100, 0).fill(3f) // -> 150
+        weighted1.alignmentX = AxisAlignment.MIN
+        list.add(weighted1)
+        list.add(weighted2)
+        val w = 100
+        val h = 100
+        list.calculateSize(w, h)
+        assertEquals(list.minW, 104) // 4 = left + right
+        assertEquals(list.minH, 106) // 6 = top + bottom
+        list.setPosSize(10, 10, w, h)
+        checkPosSize(list, 10, 10, w, h)
+        checkPosSize(list.children[0], 11, 12, 60, 94) // min-y
+        checkPosSize(list.children[1], 29, 12, 60, 94) // center-y
+        checkPosSize(list.children[2], 47, 12, 60, 94) // max-y
+        checkPosSize(list.children[3], 11, 12, 96, 94) // fill-y
+        checkPosSize(list.children[4], 11, 12, 96, 94) // fill-y
+        checkPosSize(list.children[5], 11, 12, 96, 94) // weight 1.0
+        checkPosSize(list.children[6], 11, 12, 96, 94) // weight 3.0
     }
 
     private fun setupPanelList2D(isY: Boolean, listAlignment: ListAlignment): PanelList2D {
@@ -194,9 +226,8 @@ class ListAlignmentTest {
     }
 
     fun checkPosSize(child: Panel, x: Int, y: Int, w: Int, h: Int) {
-        assertEquals(x, child.x)
-        assertEquals(y, child.y)
-        assertEquals(w, child.width)
-        assertEquals(h, child.height)
+        assertTrue(child.x == x && child.y == y && child.width == w && child.height == h) {
+            "expected [$x,$y,$w,$h], got [${child.x},${child.y},${child.width},${child.height}]"
+        }
     }
 }

@@ -318,6 +318,7 @@ object ImageWriter {
             val p0 = points[i - 1]
             val p1 = points[i]
             val distance = p0.distance(p1)
+            if (!distance.isFinite()) continue
             val steps = ceil(distance)
             val invSteps = 1f / steps
             val stepSize = distance * invSteps

@@ -2,7 +2,6 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -12,8 +11,8 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
     PanelContainer(child, Padding.Zero, style) {
 
     override fun calculateSize(w: Int, h: Int) {
-        val limitedW = if (sizeX < 0) w else Maths.min(w, sizeX)
-        val limitedH = if (sizeY < 0) h else Maths.min(h, sizeY)
+        val limitedW = if (sizeX < 0) w else min(w, sizeX)
+        val limitedH = if (sizeY < 0) h else min(h, sizeY)
         super.calculateSize(limitedW, limitedH)
         if (sizeX >= 0) minW = min(minW, padding.width + sizeX)
         if (sizeY >= 0) minH = min(minH, padding.height + sizeY)

@@ -31,39 +31,7 @@ object EngineActions {
             "ToggleFullscreen" to { GFX.focusedWindow?.toggleFullscreen(); true },
             "PrintLayout" to { printLayout();true },
             "PrintDictDefaults" to { Dict.printDefaults();true },
-            "DragEnd" to {
-
-                val dragged = EngineBase.dragged
-
-                // LOGGER.debug("Executing DragEnd, $dragged")
-
-                if (dragged != null) {
-
-                    val type = dragged.getContentType()
-                    val data = dragged.getContent()
-
-                    val window = GFX.focusedWindow
-                    if (window != null) when (type) {
-                        "File" -> {
-                            val hp = EngineBase.instance?.hoveredPanel
-                            if (hp != null) hp.onPasteFiles(
-                                window.mouseX, window.mouseY,
-                                data.split("\n").map { getReference(it) }
-                            )
-                            else warnNoPanelHovered()
-                        }
-                        else -> {
-                            val hp = EngineBase.instance?.hoveredPanel
-                            if (hp != null) hp.onPaste(window.mouseX, window.mouseY, data, type)
-                            else warnNoPanelHovered()
-                        }
-                    } else LOGGER.warn("Could not drop, because no window was focussed")
-
-                    EngineBase.dragged = null
-
-                    true
-                } else false
-            },
+            "DragEnd" to ::dragEnd,
             "ClearCache" to {
                 EngineBase.instance?.clearAll()
                 true
@@ -130,6 +98,33 @@ object EngineActions {
         registerCodeEditorActions()
 
         ActionManager.createDefaultKeymap = EngineActions::createKeymap
+    }
+
+    private fun dragEnd(): Boolean {
+        val dragged = EngineBase.dragged ?: return false
+        val window = GFX.focusedWindow ?: return false
+
+        val type = dragged.getContentType()
+        val data = dragged.getContent()
+
+        when (type) {
+            "File" -> {
+                val hp = EngineBase.instance?.hoveredPanel
+                if (hp != null) hp.onPasteFiles(
+                    window.mouseX, window.mouseY,
+                    data.split("\n").map { getReference(it) }
+                )
+                else warnNoPanelHovered()
+            }
+            else -> {
+                val hp = EngineBase.instance?.hoveredPanel
+                if (hp != null) hp.onPaste(window.mouseX, window.mouseY, data, type)
+                else warnNoPanelHovered()
+            }
+        }
+
+        EngineBase.dragged = null
+        return true
     }
 
     private fun registerCodeEditorActions() {
