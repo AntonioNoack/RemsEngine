@@ -1,13 +1,12 @@
 package me.anno.maths.bvh
 
-import me.anno.Time
+import me.anno.maths.Maths
 import me.anno.utils.search.Median
 import me.anno.utils.search.Median.median
 import me.anno.utils.search.Partition
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.lists.Lists.swap
 import org.joml.AABBf
-import kotlin.random.Random
 
 enum class SplitMethod {
     MIDDLE {
@@ -71,7 +70,7 @@ enum class SplitMethod {
                 val bi = indices[idx + 1] * 3 + dim
                 val ci = indices[idx + 2] * 3 + dim
                 (positions[ai] + positions[bi] + positions[ci]).toDouble()
-            }, TriangleSwapper(indices), Random(Time.nanoTime))
+            }, TriangleSwapper(indices), Maths.getRandom())
         }
 
         override fun partitionTLASLeaves(
@@ -83,7 +82,7 @@ enum class SplitMethod {
                 inst.centroid[dim].toDouble()
             }, { i, j ->
                 objects.swap(i, j)
-            }, Random(Time.nanoTime))
+            }, Maths.getRandom())
         }
     },
 

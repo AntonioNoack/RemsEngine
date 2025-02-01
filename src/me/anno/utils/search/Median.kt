@@ -43,9 +43,8 @@ object Median {
     @JvmStatic
     fun <V> kthElement(
         start: Int, endExclusive: Int, k: Int,
-        swapper: Swapper,
-        getElement: GetElement<V>,
-        comparator: Comparator<V>
+        swapper: Swapper, getElement: GetElement<V>, comparator: Comparator<V>,
+        random: Random = Maths.getRandom() // if you need determinism, you can set this
     ): V {
         assertContains(k, start until endExclusive, "k !in i0 until i1")
 
@@ -59,7 +58,7 @@ object Median {
         }
 
         while (true) {
-            rnd = getElement[Maths.randomInt(startI, endI)]
+            rnd = getElement[random.nextInt(startI, endI)]
             val split = Partition.partition(startI, endI, compareToPivot, swapper)
             when {
                 split == k -> return rnd

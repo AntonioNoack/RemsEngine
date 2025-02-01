@@ -1,11 +1,11 @@
 package me.anno.maths
 
 import me.anno.utils.assertions.assertFail
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
@@ -16,6 +16,7 @@ import kotlin.math.pow
 import kotlin.math.round
 import kotlin.math.sign
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 @Suppress("unused", "ConstPropertyName")
 object Maths {
@@ -101,20 +102,25 @@ object Maths {
     @JvmStatic
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
 
-    @JvmStatic
-    fun random(): Double = ThreadLocalRandom.current().nextDouble()
+    private val randomImpl = threadLocal { Random(System.nanoTime() xor Thread.currentThread().id) }
 
     @JvmStatic
-    fun randomInt(start: Int, endExclusive: Int): Int = ThreadLocalRandom.current().nextInt(start, endExclusive)
+    fun getRandom(): Random = randomImpl.get()
 
     @JvmStatic
-    fun randomInt(): Int = ThreadLocalRandom.current().nextInt()
+    fun random(): Double = getRandom().nextDouble()
 
     @JvmStatic
-    fun randomLong(start: Long, endExclusive: Long): Long = ThreadLocalRandom.current().nextLong(start, endExclusive)
+    fun randomInt(start: Int, endExclusive: Int): Int = getRandom().nextInt(start, endExclusive)
 
     @JvmStatic
-    fun randomLong(): Long = ThreadLocalRandom.current().nextLong()
+    fun randomInt(): Int = getRandom().nextInt()
+
+    @JvmStatic
+    fun randomLong(start: Long, endExclusive: Long): Long = getRandom().nextLong(start, endExclusive)
+
+    @JvmStatic
+    fun randomLong(): Long = getRandom().nextLong()
 
     /**
      * if you want good smoothing depending on timeStep/dt, use this function
