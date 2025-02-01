@@ -12,11 +12,11 @@ object BLASBuffer {
         Attribute("v1", 1)
     )
 
-    fun createBLASBuffer(nodes: List<BLASNode>): ComputeBuffer {
-        val numNodes = nodes.sumOf { it.countNodes() }
+    fun createBLASBuffer(blasRoots: List<BLASNode>): ComputeBuffer {
+        val numNodes = blasRoots.sumOf { blasRoot -> blasRoot.countNodes() }
         val data = ComputeBuffer("BLAS", blasAttr, numNodes)
         val nioBuffer = data.nioBuffer!!.asFloatBuffer()
-        fillBLAS(nodes, 3, nioBuffer)
+        fillBLAS(blasRoots, triangleIndexMultiplier = 3, nioBuffer)
         data.isUpToDate = false
         return data
     }

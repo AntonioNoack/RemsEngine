@@ -262,7 +262,7 @@ fun createTLASTextureComputeShader(bvh: TLASNode): TLASTexShader {
 
     val triangles = createTriangleTexture(meshes, PIXELS_PER_VERTEX)
     val blasNodes = createBLASTexture(meshes, PIXELS_PER_TRIANGLE)
-    val tlasNodes = bvh.createTLASTexture() // needs to be created after blas nodes
+    val tlasNodes = createTLASTexture(bvh) // needs to be created after blas nodes
 
     // triangles.write(desktop.getChild("bvh/sponza-tri.png"), false, withAlpha = false)
     // blasNodes.write(desktop.getChild("bvh/sponza-blas.png"), false, withAlpha = false)

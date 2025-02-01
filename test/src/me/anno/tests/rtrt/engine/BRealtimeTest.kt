@@ -187,7 +187,6 @@ fun createCPUPanel(
     fovZFactor: Float,
     bvh: BVHNode,
     controls: OrbitControls,
-    useGroups: Boolean,
 ): Panel {
 
     var cpuSpeed = -1L
@@ -315,7 +314,7 @@ fun createCPUPanel(
         DrawTexts.drawSimpleTextCharByChar(
             it.x + 4,
             it.y + it.height - fontSize, 1,
-            if (useGroups) "CPU+G" else "CPU"
+            "CPU"
         )
     }
 }
@@ -509,7 +508,7 @@ fun createGPUPanel(
                 shader = shader1
                 triangles = createTriangleTexture(meshes, PIXELS_PER_VERTEX)
                 blasNodes = createBLASTexture(meshes, PIXELS_PER_TRIANGLE)
-                tlasNodes = bvh.createTLASTexture()
+                tlasNodes = createTLASTexture(bvh)
             }
             is BLASNode -> {
                 triangles = createTriangleTexture(listOf(bvh), PIXELS_PER_VERTEX)
@@ -555,7 +554,7 @@ fun main2(
         val list = CustomList(false, style)
 
         val scale = 1
-        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, false))
+        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls))
 
         val ucs = true
         // with monkey and two spheres: 340 fps, 570 fps, 540 fps on RTX 3070

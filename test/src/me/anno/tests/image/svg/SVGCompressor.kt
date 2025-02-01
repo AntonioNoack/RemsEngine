@@ -1,6 +1,6 @@
 package me.anno.tests.image.svg
 
-import me.anno.image.svg.applyTransform
+import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.readSVGPath
 import me.anno.io.files.FileReference
 import me.anno.io.xml.ComparableStringBuilder
@@ -15,7 +15,6 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 fun main() {
     // parse everything absolute

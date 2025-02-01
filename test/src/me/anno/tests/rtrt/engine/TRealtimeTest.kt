@@ -120,8 +120,7 @@ fun run(
         val list = CustomList(false, style)
 
         var scale = 4
-        list.add(createCPUPanel(scale, pos, rot, fovZFactor, bvh, controls, true))
-        list.add(createCPUPanel(scale, pos, rot, fovZFactor, bvh, controls, false))
+        list.add(createCPUPanel(scale, pos, rot, fovZFactor, bvh, controls))
 
         // gpu is fast enough :)
         scale = 1

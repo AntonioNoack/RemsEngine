@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient

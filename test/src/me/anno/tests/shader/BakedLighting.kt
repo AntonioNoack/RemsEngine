@@ -56,6 +56,8 @@ import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
@@ -105,6 +107,7 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.round
 import kotlin.random.Random
 
 // bake lighting:
@@ -267,16 +270,20 @@ fun main() {
     val resolution = 1024
     splitArea(weights, resolution)
     val rasterizedScene = RaytracingInput(resolution, resolution)
-    scene.forAllComponentsInChildren(MeshComponent::class) {
-        rasterizeMeshOntoUVs(it, rasterizedScene, resolution)
+    scene.forAllComponentsInChildren(MeshComponent::class) { comp ->
+        rasterizeMeshOntoUVs(comp, rasterizedScene, resolution)
+    }
+
+    for (i in 0 until 3) {
+        spread(rasterizedScene)
     }
 
     if (true) {
         dst.tryMkdirs()
-        rasterizedScene.positions.write(dst.getChild("positions.png"))
-        rasterizedScene.normals.write(dst.getChild("normals.png"))
+        rasterizedScene.positions.clone().normalize01().write(dst.getChild("positions.png"))
+        rasterizedScene.normals.clone().normalize01().write(dst.getChild("normals.png"))
         rasterizedScene.diffuse.write(dst.getChild("diffuse.png"))
-        rasterizedScene.emissive.write(dst.getChild("emissive.png"))
+        rasterizedScene.emissive.clone().normalize01().write(dst.getChild("emissive.png"))
     }
 
     val bvh = buildTLAS(scene, Vector3d(), 1.0, SplitMethod.MEDIAN_APPROX, 16)!!
@@ -317,6 +324,7 @@ class RaytracingInput(w: Int, h: Int) {
     val normals = FloatImage(w, h, 3)
     val diffuse = FloatImage(w, h, 3)
     val emissive = FloatImage(w, h, 3)
+    val tmp = FloatImage(w, h, 3)
 }
 
 data class SimpleMaterial(
@@ -468,6 +476,59 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
             }
         }
         false
+    }
+}
+
+fun spread(rti: RaytracingInput) {
+    // todo why isn't this getting rid of the black edges on the spheres???
+    rti.normals.data.copyInto(rti.tmp.data)
+    spread(rti.diffuse, rti.tmp, false)
+    spread(rti.emissive, rti.tmp, false)
+    spread(rti.normals, rti.tmp, true)
+    spread(rti.positions, rti.tmp, false)
+}
+
+fun FloatImage.hasValue(idx: Int): Boolean {
+    return getValue(idx, 0) != 0f ||
+            getValue(idx, 1) != 0f ||
+            getValue(idx, 2) != 0f
+}
+
+fun spread(image: FloatImage, tmp: FloatImage, normalize: Boolean) {
+    image.forEachPixel { x, y ->
+        spreadPixelIfNeeded(image, tmp, x, y, normalize)
+    }
+}
+
+fun spreadPixelIfNeeded(image: FloatImage, tmp: FloatImage, x: Int, y: Int, normalize: Boolean) {
+    val idx0 = image.getIndex(x, y)
+    if (tmp.hasValue(idx0)) return
+    // check if any neighbor is defined, and if so, copy it
+    var sx = 0f
+    var sy = 0f
+    var sz = 0f
+    var sw = 0f
+    for (dy in -1..1) {
+        val ny = y + dy
+        if (ny !in 0 until image.height) continue
+        for (dx in -1..1) {
+            val nx = x + dx
+            if (nx !in 0 until image.width) continue
+            val idx = image.getIndex(nx, ny)
+            if (tmp.hasValue(idx)) {
+                sx += image.getValue(idx, 0)
+                sy += image.getValue(idx, 1)
+                sz += image.getValue(idx, 2)
+                sw++
+            }
+        }
+    }
+    if (sw > 0f) {
+        // if is normals, actually normalize the value
+        sw = if (normalize) 1f / max(length(sx, sy, sz), 1e-9f) else 1f / sw
+        image.setValue(idx0, 0, sx * sw)
+        image.setValue(idx0, 1, sy * sw)
+        image.setValue(idx0, 2, sz * sw)
     }
 }
 
@@ -681,7 +742,7 @@ fun bakeIllumination(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) 
 
     val triangles = createTriangleTexture(meshes)
     val blasNodes = createBLASTexture(meshes, 2 * 3)
-    val tlasNodes = bvh.createTLASTexture(9) { node, data ->
+    val tlasNodes = createTLASTexture(bvh, 9) { node, data ->
         val bakedRect = if (node is TLASLeaf) {
             val material = MaterialCache[(node.component as? MeshComponent)?.materials?.getOrNull(0)]
             material?.shaderOverrides?.get("bakedRect")?.value as? Vector4f

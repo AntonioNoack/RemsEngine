@@ -12,9 +12,9 @@ fun interface BLASFiller {
 
         fun fillBLAS(
             roots: List<BLASNode>,
-            multiplier: Int,
+            triangleIndexMultiplier: Int,
             data: FloatBuffer
-        ) = fillBLAS(roots, multiplier) { v0, v1, bounds ->
+        ) = fillBLAS(roots, triangleIndexMultiplier) { v0, v1, bounds ->
             // root node
             // aabb = 6x fp32
             // child0 can directly follow
@@ -28,26 +28,26 @@ fun interface BLASFiller {
         }
 
         fun fillBLAS(
-            roots: List<BLASNode>,
-            multiplier: Int,
+            blasRoots: List<BLASNode>,
+            triangleIndexMultiplier: Int,
             callback: BLASFiller
         ) {
 
-            if (multiplier < 3) {
+            if (triangleIndexMultiplier < 3) {
                 throw IllegalArgumentException("Cannot represent x,y,z this way.")
             }
 
             var nextId = 0
-            for (index in roots.indices) {
-                val bvh = roots[index]
-                bvh.forEach {
-                    it.nodeId = nextId++
+            for (index in blasRoots.indices) {
+                val blasRoot = blasRoots[index]
+                blasRoot.forEach { blasNode ->
+                    blasNode.nodeId = nextId++
                 }
             }
 
             // assign indices to all nodes
-            for (index in roots.indices) {
-                val blasRoot = roots[index]
+            for (index in blasRoots.indices) {
+                val blasRoot = blasRoots[index]
                 blasRoot.forEach { node ->
 
                     val v0: Int
@@ -58,9 +58,9 @@ fun interface BLASFiller {
                         v1 = node.axis // not a leaf, 0-2
                     } else {
                         node as BLASLeaf
-                        v0 = (node.start + node.triangleStartIndex) * multiplier
+                        v0 = (node.start + node.triangleStartIndex) * triangleIndexMultiplier
                         // >= 3, < 3 would mean not a single triangle, and that's invalid
-                        v1 = node.length * multiplier
+                        v1 = node.length * triangleIndexMultiplier
                     }
 
                     val bounds = node.bounds
