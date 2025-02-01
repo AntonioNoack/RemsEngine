@@ -130,13 +130,13 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
 
     fun getAnchorAt0(): Vector3d? {
         val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
-        if (!Raycast.raycastClosestHit(world.terrain, query)) return null
+        if (!Raycast.raycast(world.terrain, query)) return null
         return query.result.positionWS
     }
 
     fun getAnchorAt(i: Int): Vector3d? {
         val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
-        if (!Raycast.raycastClosestHit(world.terrain, query)) return null
+        if (!Raycast.raycast(world.terrain, query)) return null
         val position0 = query.result.positionWS
         val position = Vector3d(position0)
         val hitDistance = query.result.distance

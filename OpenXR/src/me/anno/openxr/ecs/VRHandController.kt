@@ -73,7 +73,7 @@ class VRHandController : Component(), OnUpdate {
         val entity = entity
         val root = entity?.getRoot(Entity::class)
         query.ignored = setOfNotNull(entity, teleportCircleMesh, inHandItem?.entity)
-        val hitSth = root != null && Raycast.raycastClosestHit(root, query)
+        val hitSth = root != null && Raycast.raycast(root, query)
 
         query.result.geometryNormalWS.safeNormalize()
         val hitDistance = if (hitSth) query.result.distance else 1.0

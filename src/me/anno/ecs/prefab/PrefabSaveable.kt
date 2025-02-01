@@ -233,7 +233,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         PrefabHelperWriter(prefab!!).run(this)
     }
 
-    open fun getOptionsByType(type: Char): List<Option>? = null
+    open fun getOptionsByType(type: Char): List<Option<PrefabSaveable>>? = null
 
     override fun addChild(child: PrefabSaveable) {
         val someType = getValidTypesForChild(child).getOrNull(0) ?: ' '
@@ -383,7 +383,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             }
         }
 
-        fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>): List<Option> {
+        fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>):
+                List<Option<PrefabSaveable>> {
             // registry over all options... / search the raw files + search all scripts? a bit much... maybe in the local folder?
             val knownComponents = getInstanceOf(clazz)
             return knownComponents.map {

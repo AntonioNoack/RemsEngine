@@ -15,6 +15,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.CountMap
@@ -61,6 +62,7 @@ class Prefab : Saveable {
     val addedPaths: HashSet<Pair<Path, String>>? = if (Build.isShipped) null else HashSet()
 
     val sets = KeyPairMap<Path, String, Any?>(256)
+    val tags = HashSet<String>()
 
     var prefab: FileReference = InvalidRef
     var source: FileReference = InvalidRef
@@ -353,6 +355,7 @@ class Prefab : Saveable {
         writer.writeObjectList(null, "adds", adds.values.flatten())
         writer.writeObjectList(null, "sets", sets.map { k1, k2, v -> CSet(k1, k2, v) })
         writer.writeObject(null, "history", history)
+        writer.writeStringList("tags", tags.toList())
     }
 
     override fun setProperty(name: String, value: Any?) {
@@ -361,22 +364,35 @@ class Prefab : Saveable {
             "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
             "className", "class" -> clazzName = value as? String ?: return
             "history" -> history = value as? ChangeHistory ?: return
-            "adds", "sets", "changes" -> {
+            "adds" -> {
                 val values = value as? List<*> ?: return
-                readAdds(values.filterIsInstance<CAdd>())
-                readSets(values.filterIsInstance<CSet>())
+                readAdds(values.filterIsInstance2(CAdd::class))
+            }
+            "sets" -> {
+                val values = value as? List<*> ?: return
+                readSets(values.filterIsInstance2(CSet::class))
+            }
+            "changes" -> {
+                val values = value as? List<*> ?: return
+                readAdds(values.filterIsInstance2(CAdd::class))
+                readSets(values.filterIsInstance2(CSet::class))
+            }
+            "tags" -> {
+                val values = value as? List<*> ?: return
+                tags.clear()
+                tags.addAll(values.filterIsInstance2(String::class))
             }
             else -> super.setProperty(name, value)
         }
     }
 
-    fun readAdds(values: List<CAdd>) {
+    private fun readAdds(values: List<CAdd>) {
         for (v in values) {
             adds.getOrPut(v.path, ::ArrayList).add(v)
         }
     }
 
-    fun readSets(values: List<CSet>) {
+    private fun readSets(values: List<CSet>) {
         for (v in values) {
             sets[v.path, v.name] = v.value
         }

@@ -1,32 +1,36 @@
 package me.anno.gpu.query
 
-import kotlin.math.max
-
 abstract class QueryBase {
 
-    var lastResult = -1L
+    var result = -1L
+        private set
 
-    var sum = 0L
-    var weight = 0L
+    private var accuResult = 0L
+    private var accuWeight = 0L
 
     val average
         get(): Long {
-            val w = weight
-            return if (w <= 0L) 0L else sum / w
+            val w = accuWeight
+            return if (w <= 0L) 0L else accuResult / w
         }
 
-    val result
-        get(): Long {
-            return lastResult
-        }
-
-    fun scaleWeight(multiplier: Float = 0.1f) {
-        val oldWeight = weight
-        if (oldWeight > 1L || multiplier > 1f) {
-            val newWeight = max(1L, (oldWeight * multiplier).toLong())
-            sum = sum * newWeight / oldWeight
-            weight = newWeight
-        }
+    open fun reset() {
+        result = -1L
+        accuResult = 0L
+        accuWeight = 0L
     }
 
+    fun addSample(result: Long) {
+        this.result = result
+        accuResult += result
+        accuWeight++
+
+        if (accuWeight > 3 &&
+            accuResult > Long.MAX_VALUE.shr(2)
+        ) {
+            // danger of overflow, and change to recover
+            accuResult = accuResult.shr(1)
+            accuWeight = accuWeight.shr(1)
+        }
+    }
 }

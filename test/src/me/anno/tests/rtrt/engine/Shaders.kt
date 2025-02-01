@@ -11,15 +11,21 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.bvh.BLASBuffer.createBLASBuffer
 import me.anno.maths.bvh.BLASNode
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
+import me.anno.maths.bvh.BLASTexture.createBLASTexture
 import me.anno.maths.bvh.RayTracing.coloring
 import me.anno.maths.bvh.RayTracing.glslComputeDefines
 import me.anno.maths.bvh.RayTracing.glslGraphicsDefines
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.glslRandomGen
+import me.anno.maths.bvh.TLASBuffer.createTLASBuffer
 import me.anno.maths.bvh.TLASNode
+import me.anno.maths.bvh.TLASTexture.createTLASTexture
+import me.anno.maths.bvh.TriangleBuffer.createTriangleBuffer
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_TRIANGLE
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_VERTEX
+import me.anno.maths.bvh.TriangleTexture.createTriangleTexture
 import me.anno.maths.bvh.shader.BufferRTShaderLib
 import me.anno.maths.bvh.shader.BufferRayTracing.bufferLayouts
 import me.anno.maths.bvh.shader.BufferRayTracing.bufferStructs
@@ -85,10 +91,12 @@ val shading = "" +
         "      color = coloring(float(blasCtr)*0.1);\n" +
         "   } else if(drawMode==${DrawMode.TRIS_DEPTH.id}){\n" +
         "      color = coloring(float(trisCtr)*${0.1 / 9});\n" +
-        "   } else if(drawMode==${DrawMode.SIMPLE_SHADOW.id}){\n" +
+        "   } else if(drawMode==${DrawMode.HARD_SHADOW.id} || drawMode==${DrawMode.SOFT_SHADOW.id}){\n" +
         "      if(dot(normal,normal)>0.0){\n" +
         "           pos += dir * distance * 0.999;\n" +
-        "           dir = normalize(vec3(5,9,3) + nextRandS3(seed));\n" +
+        "           dir = vec3(2.5,4.5,1.5);\n" +
+        "           if(drawMode==${DrawMode.SOFT_SHADOW.id}) dir += nextRandS3(seed);\n" +
+        "           dir = normalize(dir);\n" +
         "           distance = Infinity;\n" +
         "           color = vec3(dot(normalize(normal),dir)*.4+.6);\n" +
         "#ifndef TLAS_DEPTH\n" +
@@ -252,8 +260,8 @@ fun createTLASTextureComputeShader(bvh: TLASNode): TLASTexShader {
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
         .toList()
 
-    val triangles = BLASNode.createTriangleTexture(meshes, PIXELS_PER_VERTEX)
-    val blasNodes = BLASNode.createBLASTexture(meshes, PIXELS_PER_TRIANGLE)
+    val triangles = createTriangleTexture(meshes, PIXELS_PER_VERTEX)
+    val blasNodes = createBLASTexture(meshes, PIXELS_PER_TRIANGLE)
     val tlasNodes = bvh.createTLASTexture() // needs to be created after blas nodes
 
     // triangles.write(desktop.getChild("bvh/sponza-tri.png"), false, withAlpha = false)
@@ -299,8 +307,8 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, List<Comp
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
         .toList()
 
-    val triangles = BLASNode.createTriangleBuffer(meshes, PIXELS_PER_VERTEX)
-    val blasNodes = BLASNode.createBLASBuffer(meshes)
+    val triangles = createTriangleBuffer(meshes, PIXELS_PER_VERTEX)
+    val blasNodes = createBLASBuffer(meshes)
     val tlasNodes = tlas.createTLASBuffer() // needs to be created after blas nodes
 
     val maxTLASDepth = tlas.maxDepth()

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="FABRIK">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/FABRIK-IK.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

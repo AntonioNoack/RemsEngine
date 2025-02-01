@@ -50,9 +50,8 @@ open class SimpleGPUQuery(
         }
     }
 
-    fun reset() {
-        sum = 0L
-        weight = 0L
+    override fun reset() {
+        super.reset()
         destroy()
         readSlot = 0
         writeSlot = 0
@@ -68,23 +67,23 @@ open class SimpleGPUQuery(
     }
 
     fun update() {
-        val ids = ids ?: return
-        if (writeSlot == 0) return
-
         // check if the next query is available
         if (readSlot < writeSlot) {
-            val id = ids[readSlot.and(capM1)]
-            val available = GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT_AVAILABLE) != 0
-            if (available) {
-                lastResult = if (GFX.glVersion >= 33) GL46C.glGetQueryObjecti64(id, GL46C.GL_QUERY_RESULT)
-                else GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT).toLong()
-                if (lastResult == 0L) frameCounter = -everyNthFrame
-                weight++
-                sum += lastResult
-                readSlot = max(readSlot, writeSlot - cap) + 1 // correct?
-            }
+            updateImpl(ids ?: return)
         }
     }
 
-    override fun toString() = "$lastResult@$readSlot[$frameCounter]"
+    private fun updateImpl(ids: IntArray) {
+        val id = ids[readSlot.and(capM1)]
+        val available = GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT_AVAILABLE) != 0
+        if (available) {
+            val result = if (GFX.glVersion >= 33) GL46C.glGetQueryObjecti64(id, GL46C.GL_QUERY_RESULT)
+            else GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT).toLong()
+            if (result == 0L) frameCounter = -everyNthFrame
+            addSample(result)
+            readSlot = max(readSlot, writeSlot - cap) + 1 // correct?
+        }
+    }
+
+    override fun toString() = "$result@$readSlot[$frameCounter]"
 }

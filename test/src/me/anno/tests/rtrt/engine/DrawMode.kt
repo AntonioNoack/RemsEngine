@@ -6,5 +6,6 @@ enum class DrawMode(val id: Int) {
     BLAS_DEPTH(2),
     TRIS_DEPTH(3),
     GLOBAL_ILLUMINATION(5),
-    SIMPLE_SHADOW(6),
+    HARD_SHADOW(6),
+    SOFT_SHADOW(7),
 }

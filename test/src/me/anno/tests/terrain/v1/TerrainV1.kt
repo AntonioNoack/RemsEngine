@@ -74,7 +74,7 @@ fun main() {
                 if (Input.isLeftDown && (dx != 0f || dy != 0f)) {
                     // draw height / paint
                     val query = RayQuery(it.renderView.cameraPosition, it.renderView.mouseDirection, 1e9)
-                    val hit = Raycast.raycastClosestHit(scene, query)
+                    val hit = Raycast.raycast(scene, query)
                     val comp = query.result.component as? TerrainChunk
                     val mesh = comp?.getMeshOrNull()
                     if (hit && mesh != null) {

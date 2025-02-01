@@ -20,7 +20,7 @@ abstract class StackableGPUQuery(
 
     fun stop() {
         sharedData.stopLastTimer()
-        lastResult = currResult
+        addSample(currResult)
         sharedData.currentlyActive.remove(this)
         if (sharedData.currentlyActive.isNotEmpty()) {
             sharedData.startTimer(timer1)

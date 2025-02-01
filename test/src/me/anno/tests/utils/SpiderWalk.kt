@@ -176,7 +176,7 @@ class SpiderLegLogic(
                 Vector3d(0.0, up, 0.0).add(target), Vector3d(0.0, -1.0, 0.0), len,
                 -1, -1, false, setOf(spider)
             )
-            if (Raycast.raycastClosestHit(scene, query1)) {
+            if (Raycast.raycast(scene, query1)) {
                 val footThickness = legDimensions.last().y
                 target.y += up - query1.result.distance - footThickness
             }
@@ -374,7 +374,7 @@ fun main() {
             val start = Vector3d(crowdAgent.currentPosition).add(0.0, 10.0, 0.0)
             val query0 =
                 RayQuery(start, Vector3d(0.0, -1.0, 0.0), 40.0, Raycast.TRIANGLE_FRONT, -1, false, setOf(spider))
-            val hit = Raycast.raycastClosestHit(
+            val hit = Raycast.raycast(
                 scene, query0
             )
 
@@ -419,7 +419,7 @@ fun main() {
                         ci.cameraPosition, ci.mouseDirection, 1e3,
                         -1, -1, false, setOf(spider)
                     )
-                    if (Raycast.raycastClosestHit(scene, query0)) {
+                    if (Raycast.raycast(scene, query0)) {
                         val pt0 = Vector3f(query0.result.positionWS)
                         val poly = query.findNearestPoly(pt0, Vector3f(1e3f), filter).result
                         val pos = poly?.nearestPos

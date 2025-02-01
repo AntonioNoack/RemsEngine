@@ -35,14 +35,18 @@ object Triangles {
 
     /**
      * only front faces are valid; back faces are skipped;
-     * returns Infinity on miss
+     * returns Infinity on miss;
+     * todo should we make them consistent???
+     * always sets dstNormal;
+     * sometimes sets dstPosition;
+     * only sets dstUVW on hit
      * */
     @JvmStatic
     fun rayTriangleIntersectionFront(
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
         maxDistance: Float,
-        dstNormal: Vector3f,
+        dstNormal: Vector3f, // always set
         dstPosition: Vector3f,
         dstUVW: Vector3f? = null,
     ): Float {

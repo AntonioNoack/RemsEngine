@@ -814,7 +814,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val world = renderView.getWorld()
         if (world is Entity) {
             val query = RayQuery(camPos, camDir, 1e9)
-            val hasHit = Raycast.raycastClosestHit(world, query)
+            val hasHit = Raycast.raycast(world, query)
             if (hasHit) distance = query.result.distance
         }
         // to do camDirection will only be correct, if this was the last drawn instance

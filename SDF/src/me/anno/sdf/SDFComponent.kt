@@ -353,10 +353,10 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         return typeMask.and(Raycast.TRIANGLES) != 0 || typeMask.and(Raycast.SDFS) != 0
     }
 
-    override fun raycastClosestHit(query: RayQuery): Boolean {
+    override fun raycast(query: RayQuery): Boolean {
         return if (!query.typeMask.hasFlag(Raycast.SDFS)) {
             // approximately only
-            super.raycastClosestHit(query)
+            super.raycast(query)
         } else {
             // raycast
             val result = query.result

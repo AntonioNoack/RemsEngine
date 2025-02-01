@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.bvh.BVHBuilder
+import me.anno.maths.bvh.HitType
 import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
 import me.anno.utils.assertions.assertGreaterThan
@@ -49,7 +50,7 @@ class TLASRaycastTests {
         for (i in 0 until 1000) {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
-            val hitsSphere = blas.findClosestHit(gen.pos, gen.dir, hit)
+            val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
             ctr += (shouldHitSphere == hitsSphere).toInt()
         }
         assertGreaterThan(ctr, 990)
@@ -58,41 +59,15 @@ class TLASRaycastTests {
     @Test
     fun testRaycastingSphereAnyHit() {
         var ctr = 0
-        val hit = RayHit()
+        val hit = RayHit().apply { hitType = HitType.ANY }
         val blas = createTLAS()
         val gen = RandomRayGenerator()
         for (i in 0 until 1000) {
             hit.distance = 1e300
             val shouldHitSphere = gen.next()
-            val hitsSphere = blas.findAnyHit(gen.pos, gen.dir, hit)
+            val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
             ctr += (shouldHitSphere == hitsSphere).toInt()
         }
         assertGreaterThan(ctr, 990)
-    }
-
-    @Test
-    fun testRaycastingSphereClosestHitGroup() {
-        var ctr = 0
-        val blas = createTLAS()
-        val gen = RandomRayGroupGenerator()
-        for (i in 0 until 1000) {
-            gen.next()
-            blas.findClosestHit(gen.rayGroup)
-            ctr += gen.check()
-        }
-        assertGreaterThan(ctr, 970 * gen.groupSize)
-    }
-
-    @Test
-    fun testRaycastingSphereAnyHitGroup() {
-        var ctr = 0
-        val blas = createTLAS()
-        val gen = RandomRayGroupGenerator()
-        for (i in 0 until 1000) {
-            gen.next()
-            blas.findAnyHit(gen.rayGroup)
-            ctr += gen.check()
-        }
-        assertGreaterThan(ctr, 970 * gen.groupSize)
     }
 }

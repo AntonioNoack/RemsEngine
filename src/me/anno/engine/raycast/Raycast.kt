@@ -29,32 +29,15 @@ object Raycast {
      * finds the minimum distance hit;
      * returns whether something was hit
      * */
-    fun raycastClosestHit(scene: Entity, query: RayQuery): Boolean {
+    fun raycast(scene: Entity, query: RayQuery): Boolean {
         scene.validateMasks()
         scene.validateTransform()
         val originalDistance = query.result.distance
         Recursion.processRecursive(scene) { entity, remaining ->
-            raycastClosestHit1(entity, query)
+            raycast1(entity, query)
             raycastAddChildren(entity, query, remaining)
         }
         return query.result.distance < originalDistance
-    }
-
-    /**
-     * finds any hit;
-     * returns whether something was hit
-     * */
-    @Suppress("unused")
-    fun raycastAnyHit(scene: Entity, query: RayQuery): Boolean {
-        scene.validateMasks()
-        scene.validateTransform()
-        return Recursion.anyRecursive(scene) { entity, remaining ->
-            if (raycastAnyHit1(entity, query)) true
-            else {
-                raycastAddChildren(entity, query, remaining)
-                false
-            }
-        }
     }
 
     private fun raycastAddChildren(entity: Entity, query: RayQuery, remaining: ArrayList<Entity>) {
@@ -66,24 +49,14 @@ object Raycast {
         }
     }
 
-    private fun raycastClosestHit1(entity: Entity, query: RayQuery) {
+    private fun raycast1(entity: Entity, query: RayQuery) {
         entity.forAllComponents(query.includeDisabled) { component ->
             if (component is CollidingComponent &&
                 mayHit(component, query) &&
-                component.raycastClosestHit(query)
+                component.raycast(query)
             ) {
                 query.result.component = component
             }
-        }
-    }
-
-    private fun raycastAnyHit1(entity: Entity, query: RayQuery): Boolean {
-        return entity.anyComponent(query.includeDisabled) { component ->
-            val hit = component is CollidingComponent &&
-                    mayHit(component, query) &&
-                    component.raycastAnyHit(query)
-            if (hit) query.result.component = component
-            hit
         }
     }
 

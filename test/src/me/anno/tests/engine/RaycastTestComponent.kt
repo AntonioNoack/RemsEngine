@@ -10,6 +10,7 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.SerializedProperty
 import org.joml.Vector3d
+
 class RaycastTestComponent : Component(), OnUpdate {
 
     @Docs("Only colliders with matching flags will be tested")
@@ -42,7 +43,7 @@ class RaycastTestComponent : Component(), OnUpdate {
             start, direction, maxDistance, radiusAtOrigin, radiusPerUnit,
             typeMask, colliderMask, false, emptySet(),
         )
-        if (Raycast.raycastClosestHit(entity, query)) {
+        if (Raycast.raycast(entity, query)) {
             DebugShapes.debugLines.add(DebugLine(start, query.result.positionWS, -1))
         } else {
             DebugShapes.debugLines.add(DebugLine(start, Vector3d(direction).add(start), 0xff0000))

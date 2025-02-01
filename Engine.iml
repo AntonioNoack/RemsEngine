@@ -42,6 +42,5 @@
     <orderEntry type="library" name="LWJGL-323-OpenGL" level="project" />
     <orderEntry type="module" module-name="KOML" />
     <orderEntry type="library" name="KotlinReflect" level="project" />
-    <orderEntry type="library" name="JTransforms" level="project" />
   </component>
 </module>

@@ -2,7 +2,9 @@ package me.anno.engine.raycast
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.maths.bvh.HitType
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector2d
@@ -33,11 +35,13 @@ class RayHit(maxDistance: Double) {
     var component: Component? = null
     var triangleIndex = 0
 
+    var hitType = HitType.CLOSEST
+
     // collision algorithms require a bit of temporary storage for convenience
     // this pre-allocates the maximum, it will require
-    val tmpVector3fs = createArrayList(16) { Vector3f() }
-    val tmpVector3ds = createArrayList(10) { Vector3d() }
-    val tmpVector4fs = createArrayList(3) { Vector4f() }
+    val tmpVector3fs = createList(16) { Vector3f() }
+    val tmpVector3ds = createList(10) { Vector3d() }
+    val tmpVector4fs = createList(3) { Vector4f() }
     val tmpMat4x3d = Matrix4x3d()
     val tmpAABBd = AABBd()
 
@@ -54,18 +58,22 @@ class RayHit(maxDistance: Double) {
     /**
      * Normal from geometry in world space
      * might not be normalized!
+     *
+     * is flat, independent of mesh data
      * */
     val geometryNormalWS = Vector3d()
 
     /**
-     * Normal from shading normals, in world space
+     * Normal from interpolated normals, in world space
      * might not be normalized!
+     *
+     * may be smooth or flat, depending on mesh data
      * */
     val shadingNormalWS = Vector3d()
 
     /**
-     * Barycentric coordinates within the intersected triangle
-     * might not be normalized!
+     * Barycentric coordinates within the intersected triangle;
+     * x+y+z = 1
      * */
     val barycentric = Vector3d()
 

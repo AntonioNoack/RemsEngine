@@ -247,9 +247,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             false, emptySet()
         )
         val hit = when (world) {
-            is Entity -> Raycast.raycastClosestHit(world, query)
-            is CollidingComponent -> world.raycastClosestHit(query)
-            is Mesh -> RaycastMesh.raycastGlobalMeshClosestHit(query, null, world)
+            is Entity -> Raycast.raycast(world, query)
+            is CollidingComponent -> world.raycast(query)
+            is Mesh -> RaycastMesh.raycastGlobalMesh(query, null, world)
             else -> return
         }
         if (hit) {

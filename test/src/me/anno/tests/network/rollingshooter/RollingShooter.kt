@@ -39,6 +39,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.pow
+import me.anno.maths.bvh.HitType
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.network.Instance
 import me.anno.tests.network.Player
@@ -215,7 +216,7 @@ fun main() {
                 mix(random.nextGaussian() * 10.0, pos0.z, f)
             )
             val query = RayQuery(newPosition, down, maxY)
-            val hit = Raycast.raycastClosestHit(staticScene, query)
+            val hit = Raycast.raycast(staticScene, query)
             if (hit) {
                 newPosition.y += radius - query.result.distance
                 entity.position = newPosition
@@ -241,7 +242,7 @@ fun main() {
                 pos, dir, maxDistance, Raycast.COLLIDERS,
                 -1, false, setOf(entity!!)
             )
-            Raycast.raycastClosestHit(scene, query)
+            Raycast.raycast(scene, query)
             return query.result.distance
         }
 
@@ -297,7 +298,8 @@ fun main() {
             if (Input.isKeyDown(Key.KEY_SPACE) && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
                 // only jump if we are on something
                 val query = RayQuery(entity.position, down, radius)
-                if (Raycast.raycastAnyHit(staticScene, query)) {
+                query.result.hitType = HitType.ANY
+                if (Raycast.raycast(staticScene, query)) {
                     lastJumpTime = Time.gameTimeN
                     rigidbody.applyImpulse(0.0, strength, 0.0)
                 }

@@ -85,7 +85,7 @@ class AgentController1a(
             start, raycastDir, start + raycastDir * dist, 0.0, 0.0,
             Raycast.TRIANGLE_FRONT, mask, false, emptySet(), RayHit(dist)
         )
-        val hr = Raycast.raycastClosestHit(meshEntity, query)
+        val hr = Raycast.raycast(meshEntity, query)
         // DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
         val np = if (hr) query.result.positionWS else Vector3d(nextPos)
         val dt = Time.deltaTime

@@ -1,6 +1,6 @@
 package me.anno.maths.bvh.shader
 
-import me.anno.maths.bvh.BLASNode
+import me.anno.maths.bvh.TriangleTexture
 
 object BufferRayTracing {
 
@@ -8,7 +8,7 @@ object BufferRayTracing {
             "struct Vertex {\n" +
             "   vec3 pos;\n" +
             "   uint _pad0;\n" +
-            "#if ${BLASNode.PIXELS_PER_VERTEX} > 1\n" +
+            "#if ${TriangleTexture.PIXELS_PER_VERTEX} > 1\n" +
             "   vec3 nor;\n" +
             "   uint color;\n" +
             "#endif\n" +
@@ -24,7 +24,7 @@ object BufferRayTracing {
             "   uint    v0;\n" +
             "   vec3    max;\n" +
             "   uint    v1;\n" +
-            "};\n"+
+            "};\n" +
             "struct TLASNode1 {\n" +
             // mat4x3 seems to have a different layout -> it must have 4x4 layout instead of 4x3 🤨
             "   vec4 w2l0, w2l1, w2l2;\n" +
@@ -38,5 +38,4 @@ object BufferRayTracing {
             "layout(std140, shared, binding = 2) readonly buffer tlasBuffer0 { TLASNode0 tlasNodes0[]; };\n" +
             "layout(std140, shared, binding = 3) readonly buffer tlasBuffer1 { TLASNode1 tlasNodes1[]; };\n" +
             "layout(rgba32f, binding = 4) uniform image2D dst;\n"
-
 }

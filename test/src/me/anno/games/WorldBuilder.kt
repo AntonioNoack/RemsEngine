@@ -298,7 +298,7 @@ fun main() {
                 val pos = camEntity.transform.globalPosition
                 val dir = renderView.mouseDirection
                 val query = RayQuery(pos, dir, 1e6)
-                val hit = Raycast.raycastClosestHit(world, query)
+                val hit = Raycast.raycast(world, query)
                 if (hit) {
                     val result = query.result
                     definePlacingTransform(result)

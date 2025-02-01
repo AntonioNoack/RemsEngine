@@ -13,7 +13,7 @@ class StackableQueryData(var target: Int) {
         val lastTimer = currentTimer ?: return
         lastTimer.stop(true)
         currentTimer = null
-        val dt = lastTimer.lastResult
+        val dt = lastTimer.result
         if (dt > 0) {
             // add time to all active instances
             for (i in currentlyActive.indices) {

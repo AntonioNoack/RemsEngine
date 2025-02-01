@@ -50,7 +50,7 @@ class SphereCollider : Collider() {
         return deltaPos.length() - radius.toFloat()
     }
 
-    override fun raycastClosestHit(query: RayQuery): Boolean {
+    override fun raycast(query: RayQuery): Boolean {
         val radius = radius.toFloat()
         val a = query.direction.lengthSquared()
         val b = 2f * query.start.dot(query.direction)
@@ -59,7 +59,7 @@ class SphereCollider : Collider() {
         return disc >= 0f
     }
 
-    override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
+    override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         val radius = radius.toFloat()
         val a = query.direction.lengthSquared()
         val b = 2f * query.start.dot(query.direction)
@@ -67,14 +67,6 @@ class SphereCollider : Collider() {
         val disc = b * b - 4 * a * c
         return if (disc < 0f) Float.POSITIVE_INFINITY
         else (-b - sqrt(disc)) / (2f * a)
-    }
-
-    override fun raycastAnyHit(query: RayQuery): Boolean {
-        return raycastClosestHit(query)
-    }
-
-    override fun raycastAnyHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
-        return raycastClosestHit(query, surfaceNormal)
     }
 
     override fun drawShape(pipeline: Pipeline) {

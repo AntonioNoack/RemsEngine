@@ -46,7 +46,7 @@ class BoxCollider : Collider() {
         dst.halfExtends.set(halfExtends)
     }
 
-    override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
+    override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         val halfExtends = halfExtends
         val hx = abs(halfExtends.x.toFloat())
         val hy = abs(halfExtends.y.toFloat())

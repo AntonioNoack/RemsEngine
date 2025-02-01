@@ -52,6 +52,7 @@ class RayQuery(
         Vector3f(),
         0f,
         radiusAtOrigin.toFloat(),
-        radiusPerUnit.toFloat()
+        radiusPerUnit.toFloat(),
+        result.hitType
     )
 }

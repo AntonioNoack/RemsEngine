@@ -63,7 +63,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
     }
 
     override fun hasRaycastType(typeMask: Int) = typeMask.hasFlag(Raycast.SKY)
-    override fun raycastClosestHit(query: RayQuery): Boolean {
+    override fun raycast(query: RayQuery): Boolean {
         return if (query.result.distance >= 1e308) {
             query.result.distance = 1e308
             query.result.positionWS.set(query.direction)

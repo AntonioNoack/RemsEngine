@@ -18,17 +18,9 @@ abstract class CollidingComponent : Component() {
     open fun hasRaycastType(typeMask: Int) = true
 
     /**
-     * returns whether the object was hit; closest hit is reported
+     * returns whether the object was hit
      * */
-    open fun raycastClosestHit(query: RayQuery): Boolean = false
-
-    /**
-     * returns whether the object was hit; any hit is reported
-     * */
-    open fun raycastAnyHit(query: RayQuery): Boolean {
-        // by default just use closestHit
-        return raycastClosestHit(query)
-    }
+    open fun raycast(query: RayQuery): Boolean = false
 
     abstract override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean
 

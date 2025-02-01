@@ -1,10 +1,11 @@
 package me.anno.ui.editor.stacked
 
+import me.anno.engine.EngineBase.Companion.dragged
+import me.anno.engine.inspector.Inspectable
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.engine.inspector.Inspectable
-import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelList
@@ -13,7 +14,6 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
-import me.anno.ui.Style
 import me.anno.utils.Warning.unused
 
 /**
@@ -25,14 +25,13 @@ import me.anno.utils.Warning.unused
  * todo paste fields
  * todo add left-padding to all fields...
  * */
-abstract class StackPanel(
+abstract class StackPanel<V : Inspectable>(
     titleText: String,
     tooltipText: String,
-    val options: List<Option>,
-    val values: List<Inspectable>,
-    val getOptionFromInspectable: (inspectable: Inspectable) -> Option?,
+    val options: List<Option<V>>,
+    val values: List<V>,
     style: Style
-) : PanelListY(style), InputPanel<List<Inspectable>> {
+) : PanelListY(style), InputPanel<List<V>> {
 
     val content = PanelListY(style)
 
@@ -43,7 +42,7 @@ abstract class StackPanel(
         add(this.title)
         add(PanelContainer(content, Padding(10, 0, 0, 0), style))
         for ((index, it) in values.withIndex()) {
-            addComponent(getOptionFromInspectable(it)!!, index, false)
+            addComponent(getOption(it)!!, index, false)
         }
         tooltip = tooltipText
     }
@@ -74,8 +73,8 @@ abstract class StackPanel(
         }
     }
 
-    fun addComponent(option: Option, index: Int, notify: Boolean) {
-        val component = option.value0 ?: option.generator()
+    fun addComponent(option: Option<V>, index: Int, notify: Boolean) {
+        val component = option.generator()
         content.add(index, OptionPanel(this, option.nameDesc, component))
         if (notify) {
             onAddComponent(component, index)
@@ -83,8 +82,8 @@ abstract class StackPanel(
         }
     }
 
-    fun removeComponent(component: Inspectable) {
-        content.children.removeAll { it is OptionPanel && it.value === component }
+    fun removeComponent(component: V) {
+        content.children.removeAll { it is OptionPanel<*> && it.value === component }
         onRemoveComponent(component)
         invalidateLayout()
     }
@@ -120,6 +119,8 @@ abstract class StackPanel(
         } else super.onPaste(x, y, data, type)
     }
 
-    abstract fun onAddComponent(component: Inspectable, index: Int)
-    abstract fun onRemoveComponent(component: Inspectable)
+    abstract fun onAddComponent(component: V, index: Int)
+    abstract fun onRemoveComponent(component: V)
+
+    abstract fun getOption(component: V): Option<V>?
 }

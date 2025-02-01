@@ -311,31 +311,14 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         return true
     }
 
-    override fun raycastClosestHit(query: RayQuery): Boolean {
+    override fun raycast(query: RayQuery): Boolean {
         val mesh = getMeshOrNull() ?: return false
-        if (!mesh.hasBones) return super.raycastClosestHit(query)
+        if (!mesh.hasBones) return super.raycast(query)
         updateAnimState()
         val matrices = getMatrices()
-            ?: return super.raycastClosestHit(query)
+            ?: return super.raycast(query)
         val original = query.result.distance
-        RaycastSkeletal.raycastGlobalBoneMeshClosestHit(
-            query, transform?.globalTransform,
-            mesh, matrices
-        )
-        return if (RaycastMesh.isCloser(query, original)) {
-            query.result.mesh = mesh
-            true
-        } else false
-    }
-
-    override fun raycastAnyHit(query: RayQuery): Boolean {
-        val mesh = getMeshOrNull() ?: return false
-        if (!mesh.hasBones) return super.raycastClosestHit(query)
-        updateAnimState()
-        val matrices = getMatrices()
-            ?: return super.raycastClosestHit(query)
-        val original = query.result.distance
-        RaycastSkeletal.raycastGlobalBoneMeshAnyHit(
+        RaycastSkeletal.raycastGlobalBoneMesh(
             query, transform?.globalTransform,
             mesh, matrices
         )

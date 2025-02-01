@@ -134,9 +134,12 @@ object Gizmos {
         localInv.transformDirection(rayDir)
         rayDir.normalize()
 
-        val hit = RaycastMesh.raycastLocalMeshAnyHit(mesh, rayPos, rayDir, Float.POSITIVE_INFINITY, -1)
+        val hit = RaycastMesh.raycastLocalMesh(
+            mesh, rayPos, rayDir, Float.POSITIVE_INFINITY,
+            -1, null, false
+        )
         drawMesh(pipeline, cameraTransform, localTransform, material, color, mesh)
-        return hit
+        return hit.isFinite()
     }
 
     fun drawMesh(

@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
+import me.anno.maths.bvh.HitType
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector3d
@@ -122,11 +123,11 @@ object RaycastMeshTest {
     ) {
 
         val normal = Vector3f()
-        val distance = RaycastMesh.raycastLocalMeshClosestHit(mesh, pos, dir, maxDistance, typeMask, normal)
+        val distance = RaycastMesh.raycastLocalMesh(mesh, pos, dir, maxDistance, typeMask, normal, true)
         if (expectedNormal != null) assertEquals(expectedNormal, normal)
         assertEquals(min(expectedDistance, 1e38f), min(distance, 1e38f), 1e-3f)
 
-        val hit = RaycastMesh.raycastLocalMeshAnyHit(mesh, pos, dir, maxDistance, typeMask)
+        val hit = RaycastMesh.raycastLocalMesh(mesh, pos, dir, maxDistance, typeMask, null, false)
         assertEquals(distance.isFinite(), hit)
     }
 
@@ -139,15 +140,16 @@ object RaycastMeshTest {
         val query = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
         query.typeMask = typeMask
         val transform = Transform()
-        val hit = RaycastMesh.raycastGlobalMeshClosestHit(query, transform, mesh)
+        val hit = RaycastMesh.raycastGlobalMesh(query, transform, mesh)
         val distance = if (hit) query.result.distance else Double.POSITIVE_INFINITY
         normal.set(query.result.geometryNormalWS).safeNormalize()
         if (expectedNormal != null) assertEquals(expectedNormal, normal)
         assertEquals(min(expectedDistance.toDouble(), 1e38), min(distance, 1e38), 1e-3)
 
         val query1 = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
+        query1.result.hitType = HitType.ANY
         query1.typeMask = typeMask
-        val hit1 = RaycastMesh.raycastGlobalMeshAnyHit(query1, transform, mesh)
+        val hit1 = RaycastMesh.raycastGlobalMesh(query1, transform, mesh)
         assertEquals(distance.isFinite(), hit1)
     }
 }

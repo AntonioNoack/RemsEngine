@@ -22,7 +22,7 @@ fun main() {
         Vector3d(1.0, 0.0, 0.0),
         200.0
     )
-    comp.raycastClosestHit(query)
+    comp.raycast(query)
     clock.stop("Raycast")
     Engine.requestShutdown()
 }

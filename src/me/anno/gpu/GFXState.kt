@@ -452,12 +452,12 @@ object GFXState {
     fun stopTimer(name: String, timer: GPUClockNanos?) {
         timer ?: return
         timer.stop()
-        if (timer.lastResult >= 0L) {
+        if (timer.result >= 0L) {
             val last = timeRecords.lastOrNull()
             if (last?.name != name) {
-                timeRecords.add(TimeRecord(name, timer.lastResult, 1))
+                timeRecords.add(TimeRecord(name, timer.result, 1))
             } else {
-                last.deltaNanos += timer.lastResult
+                last.deltaNanos += timer.result
                 last.divisor++
             }
         }

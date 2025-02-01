@@ -74,21 +74,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return typeMask.and(Raycast.TRIANGLES) != 0
     }
 
-    override fun raycastClosestHit(query: RayQuery): Boolean {
+    override fun raycast(query: RayQuery): Boolean {
         val mesh = getMeshOrNull() as? Mesh
         return if (mesh != null) {
-            val wasHit = RaycastMesh.raycastGlobalMeshClosestHit(query, transform, mesh)
-            if (wasHit) {
-                query.result.mesh = mesh
-                true
-            } else false
-        } else false
-    }
-
-    override fun raycastAnyHit(query: RayQuery): Boolean {
-        val mesh = getMeshOrNull() as? Mesh
-        return if (mesh != null) {
-            val wasHit = RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)
+            val wasHit = RaycastMesh.raycastGlobalMesh(query, transform, mesh)
             if (wasHit) {
                 query.result.mesh = mesh
                 true

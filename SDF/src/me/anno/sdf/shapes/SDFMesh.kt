@@ -11,11 +11,16 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.bvh.BLASBranch
+import me.anno.maths.bvh.BLASFiller.Companion.fillBLAS
 import me.anno.maths.bvh.BLASLeaf
 import me.anno.maths.bvh.BLASNode
+import me.anno.maths.bvh.BLASTexture.PIXELS_PER_BLAS_NODE
+import me.anno.maths.bvh.BLASTexture.createBLASTexture
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.RayTracing.intersectAABB
 import me.anno.maths.bvh.SplitMethod
+import me.anno.maths.bvh.TriangleTexture.createTriangleTexture
+import me.anno.maths.bvh.TrisFiller.Companion.fillTris
 import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFTriangle.Companion.calculateDistSq
@@ -129,8 +134,8 @@ open class SDFMesh : SDFSmoothShape() {
                 SDFMeshTechnique.TEXTURE -> {
                     GFX.checkIsGFXThread()
 
-                    val blasTexture = lastBlas ?: BLASNode.createBLASTexture(blas, pixelsPerTriangle)
-                    val trisTexture = lastTris ?: BLASNode.createTriangleTexture(blas, pixelsPerVertex)
+                    val blasTexture = lastBlas ?: createBLASTexture(blas, pixelsPerTriangle)
+                    val trisTexture = lastTris ?: createTriangleTexture(blas, pixelsPerVertex)
 
                     lastBlas = blasTexture
                     lastTris = trisTexture
@@ -144,7 +149,7 @@ open class SDFMesh : SDFSmoothShape() {
                         )
                         .replace(
                             "#LOAD_NODE", "" +
-                                    "uint pixelIndex = nodeIndex * ${BLASNode.PIXELS_PER_BLAS_NODE}u;\n" +
+                                    "uint pixelIndex = nodeIndex * ${PIXELS_PER_BLAS_NODE}u;\n" +
                                     "uint nodeX = pixelIndex % nodeTexSize.x;\n" +
                                     "uint nodeY = pixelIndex / nodeTexSize.x;\n" +
                                     "vec4 d0 = texelFetch(blas#MESH_ID, ivec2(nodeX,   nodeY), 0);\n" +
@@ -231,7 +236,7 @@ open class SDFMesh : SDFSmoothShape() {
                         .append("] = vec4[")
                         .append(numNodes * 2)
                         .append("](")
-                    BLASNode.fillBLAS(listOf(blas), 3) { v0, v1, bounds ->
+                    fillBLAS(listOf(blas), 3) { v0, v1, bounds ->
                         dataBuilder.append("vec4(")
                             .append(bounds.minX).append(',')
                             .append(bounds.minY).append(',')
@@ -252,7 +257,7 @@ open class SDFMesh : SDFSmoothShape() {
                         .append("] = vec3[")
                         .append(numVertices)
                         .append("](")
-                    BLASNode.fillTris(listOf(blas), listOf(geometry)) { _, vertexIndex ->
+                    fillTris(listOf(blas), listOf(geometry)) { _, vertexIndex ->
                         val positions = geometry.positions
                         val k = vertexIndex * 3
                         dataBuilder.append("vec3(")

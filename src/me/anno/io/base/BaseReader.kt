@@ -55,6 +55,18 @@ abstract class BaseReader : ReaderImpl {
 
     abstract fun readObject(): Saveable
 
+    open fun getNewClassInstance(className: String): Saveable {
+        val type = Saveable.objectTypeRegistry[className]
+        val instance = if (type == null) {
+            LOGGER.warn("Missing class $className, using UnknownSaveable instead")
+            val instance = UnknownSaveable()
+            instance.className = className
+            instance
+        } else type.generate()
+        instance.onReadingStarted()
+        return instance
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(BaseReader::class)
@@ -65,18 +77,6 @@ abstract class BaseReader : ReaderImpl {
 
         fun <V> assertEquals(a: V, b: V) {
             if (a != b) throw IOException("$a != $b")
-        }
-
-        fun getNewClassInstance(className: String): Saveable {
-            val type = Saveable.objectTypeRegistry[className]
-            val instance = if (type == null) {
-                LOGGER.warn("Missing class $className, using UnknownSaveable instead")
-                val instance = UnknownSaveable()
-                instance.className = className
-                instance
-            } else type.generate()
-            instance.onReadingStarted()
-            return instance
         }
     }
 }

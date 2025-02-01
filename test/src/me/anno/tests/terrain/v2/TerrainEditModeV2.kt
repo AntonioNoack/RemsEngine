@@ -52,7 +52,7 @@ class TerrainEditModeV2 : Component(), CustomEditMode {
         // raycast, then apply brush
         val ui = RenderView.currentInstance!!
         val query = RayQuery(ui.cameraPosition, ui.mouseDirection, Double.POSITIVE_INFINITY)
-        if (terrain != null && Raycast.raycastClosestHit(terrain.entity!!, query)) {
+        if (terrain != null && Raycast.raycast(terrain.entity!!, query)) {
             if (Input.isLeftDown) {
                 val transform = Matrix4x3f()
                 transform.translate(Vector3f(query.result.positionWS))

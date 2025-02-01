@@ -95,14 +95,14 @@ object BVHBuilder {
         return recursiveBuildBLAS(srcPos, indices, 0, indices.size / 3, maxNodeSize, splitMethod, geometryData)
     }
 
-    fun <V : TLASLeaf0> buildTLAS(
-        objects: ArrayList<V>,
+    fun buildTLAS(
+        objects: ArrayList<TLASLeaf>,
         splitMethod: SplitMethod,
     ) = buildTLAS(objects, splitMethod, 0, objects.size)
 
     @Suppress("DEPRECATION")
-    fun <V : TLASLeaf0> buildTLAS(
-        objects: ArrayList<V>, splitMethod: SplitMethod,
+    fun buildTLAS(
+        objects: ArrayList<TLASLeaf>, splitMethod: SplitMethod,
         start: Int, end: Int // array indices
     ): TLASNode {
         val count = end - start
@@ -159,8 +159,8 @@ object BVHBuilder {
         }
     }
 
-    private fun <V : TLASLeaf0> medianApprox(
-        objects: ArrayList<V>, start: Int, end: Int, dim: Int,
+    private fun medianApprox(
+        objects: ArrayList<TLASLeaf>, start: Int, end: Int, dim: Int,
         pivot0: Float
     ): Int {
         // don't sort, use statistical median

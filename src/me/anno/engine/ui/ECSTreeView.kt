@@ -543,7 +543,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         } else LOGGER.warn("Prefab is not writable!")
     }
 
-    private fun optionToMenu(parent: Saveable, option: Option, type: Char): ComplexMenuOption {
+    private fun optionToMenu(parent: Saveable, option: Option<PrefabSaveable>, type: Char): ComplexMenuOption {
         return Companion.optionToMenu(option) { sample ->
             val prefab1 = Prefab(sample.className)
             addChild(parent, prefab1, type, -1)
@@ -640,8 +640,8 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
 
-        fun getMenuGroup(option: Option): String {
-            val sample = option.getSample() as PrefabSaveable
+        fun getMenuGroup(option: Option<PrefabSaveable>): String {
+            val sample = option.getSample()
             return getMenuGroup(sample)
         }
 
@@ -664,11 +664,10 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             return dst
         }
 
-        fun optionToMenu(option: Option, onClicked: (PrefabSaveable) -> Unit): ComplexMenuOption {
+        fun optionToMenu(option: Option<PrefabSaveable>, onClicked: (PrefabSaveable) -> Unit): ComplexMenuOption {
             val title = option.nameDesc.name
             return ComplexMenuOption(NameDesc("Add $title", option.nameDesc.desc, "")) {
-                val sample = option.getSample() as PrefabSaveable
-                onClicked(sample)
+                onClicked(option.getSample())
             }
         }
 

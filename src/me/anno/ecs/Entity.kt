@@ -127,7 +127,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         } else children.indexOf(child)
     }
 
-    override fun getOptionsByType(type: Char): List<Option> {
+    override fun getOptionsByType(type: Char): List<Option<PrefabSaveable>> {
         return if (type == 'c') getOptionsByClass(this, Component::class)
         else entityOptionList
     }
@@ -700,7 +700,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Entity::class)
-        private val entityOptionList = listOf(Option(NameDesc("Entity", "Create a child entity", "")) { Entity() })
+        private val entityOptionList = listOf(Option<PrefabSaveable>(NameDesc("Entity", "Create a child entity", "")) { Entity() })
         private const val VALID_COLLISION_MASK_FLAG = 4
         private const val SPACE_FILLING_FLAG = 8
         private const val RENDERABLES_FLAG = 16

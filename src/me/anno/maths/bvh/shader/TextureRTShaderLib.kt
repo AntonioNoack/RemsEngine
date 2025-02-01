@@ -1,8 +1,8 @@
 package me.anno.maths.bvh.shader
 
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_BLAS_NODE
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
-import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
+import me.anno.maths.bvh.BLASTexture.PIXELS_PER_BLAS_NODE
+import me.anno.maths.bvh.TLASTexture.PIXELS_PER_TLAS_NODE
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_VERTEX
 import me.anno.utils.types.Strings.iff
 
 open class TextureRTShaderLib(

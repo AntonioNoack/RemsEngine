@@ -69,7 +69,7 @@ class HSPhysicsControls(
         val start = it.renderView.cameraPosition
         val dir = it.renderView.mouseDirection
         val query = RayQuery(start, dir, 10.0)
-        val hit = Raycast.raycastClosestHit(scene, query)
+        val hit = Raycast.raycast(scene, query)
         if (hit) {
             val result = query.result
             val setBlock = button == Key.BUTTON_RIGHT

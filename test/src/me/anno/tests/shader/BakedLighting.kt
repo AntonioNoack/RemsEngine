@@ -60,10 +60,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.maths.bvh.BLASNode
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
-import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
-import me.anno.maths.bvh.BLASNode.Companion.fillTris
+import me.anno.maths.bvh.BLASTexture.createBLASTexture
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.BVHBuilder.buildBLAS
 import me.anno.maths.bvh.BVHBuilder.createTLASLeaf
@@ -72,7 +69,11 @@ import me.anno.maths.bvh.RayTracing.glslGraphicsDefines
 import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASLeaf
 import me.anno.maths.bvh.TLASNode
-import me.anno.maths.bvh.TLASNode.Companion.PIXELS_PER_TLAS_NODE
+import me.anno.maths.bvh.TLASTexture.PIXELS_PER_TLAS_NODE
+import me.anno.maths.bvh.TLASTexture.createTLASTexture
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_TRIANGLE
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_VERTEX
+import me.anno.maths.bvh.TrisFiller.Companion.fillTris
 import me.anno.maths.bvh.shader.TextureRTShaderLib
 import me.anno.maths.geometry.Rasterizer
 import me.anno.sdf.random.SDFRandom.Companion.randLib

@@ -18,6 +18,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -39,18 +40,18 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
+import me.anno.maths.bvh.BLASBuffer.createBLASBuffer
 import me.anno.maths.bvh.BLASNode
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
-import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
-import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
-import me.anno.maths.bvh.BLASNode.Companion.createTriangleBuffer
-import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
+import me.anno.maths.bvh.BLASTexture.createBLASTexture
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.BVHNode
-import me.anno.maths.bvh.RayGroup
 import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
+import me.anno.maths.bvh.TLASTexture.createTLASTexture
+import me.anno.maths.bvh.TriangleBuffer.createTriangleBuffer
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_TRIANGLE
+import me.anno.maths.bvh.TriangleTexture.PIXELS_PER_VERTEX
+import me.anno.maths.bvh.TriangleTexture.createTriangleTexture
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelGroup
@@ -178,66 +179,6 @@ fun createControls(
     return controls
 }
 
-fun fillTile(
-    x0: Int, x1: Int, y0: Int, y1: Int, group: RayGroup, bvh: BVHNode,
-    cx: Float, cy: Float, fovZ: Float, maxDistanceF: Float,
-    camPos2: Vector3f, camRot2: Quaternionf,
-    ints: IntBuffer, w: Int, alpha: Float,
-) {
-    // todo center primary ray
-    val tileSize = max(2, max(x1 - x0, y1 - y0))
-    val tsm1 = 1f / (tileSize - 1)
-    group.size = (y1 - y0) * (x1 - x0)
-    group.local?.size = group.size
-    val dir = JomlPools.vec3f.create()
-    dir.set(x0 - cx, cy - y0, fovZ).normalize()
-    // define ray position & main ray
-    group.setMain(camPos2, camRot2.transform(dir), maxDistanceF)
-    // define ray gradients by sample at (tileSize-1,0) and (0,tileSize-1)
-    dir.set(x0 + tileSize - 1 - cx, cy - y0, fovZ).normalize()
-    group.setDx(camRot2.transform(dir))
-    dir.set(x0 - cx, cy - (y0 + tileSize - 1), fovZ).normalize()
-    group.setDy(camRot2.transform(dir))
-    var k = 0
-    for (j in 0 until y1 - y0) {
-        val y = y0 + j
-        val dysK = j * tsm1
-        for (i in 0 until x1 - x0) {
-            val x = x0 + i
-            // define ray
-            dir.set(x - cx, cy - y, fovZ).normalize()
-            camRot2.transform(dir)
-            group.setRay(k, dir)
-            group.dxs[k] = i * tsm1
-            group.dys[k] = dysK
-            k++
-        }
-    }
-    group.tlasCtr = 0
-    group.blasCtr = 0
-    group.trisCtr = 0
-    group.hit.tlasCtr = 0
-    group.hit.blasCtr = 0
-    group.hit.trisCtr = 0
-    bvh.findClosestHit(group)
-    val normal = JomlPools.vec3f.create()
-    k = 0
-    val tlas = group.tlasCtr + group.hit.tlasCtr
-    val blas = group.blasCtr + group.hit.blasCtr
-    val tris = group.trisCtr + group.hit.trisCtr
-    for (y in y0 until y1) {
-        var i = x0 + y * w
-        for (x in x0 until x1) {
-            normal.set(group.normalSX[k], group.normalSY[k], group.normalSZ[k])
-            val color = hitToColor(normal, group.dir, tlas, blas, tris)
-            ints.put(i, mixARGB(ints[i], color, alpha))
-            k++
-            i++
-        }
-    }
-    JomlPools.vec3f.sub(2)
-}
-
 val pipeline = ProcessingGroup("brt", 1f)
 fun createCPUPanel(
     scale: Int,
@@ -258,7 +199,6 @@ fun createCPUPanel(
     }
 
     val tileSize = 4
-    val groups = threadLocal { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
     var frameIndex = 0
     var lastDrawMode: DrawMode? = null
     val lastPos = Vector3f()
@@ -320,37 +260,34 @@ fun createCPUPanel(
                 val ints = cpuBuffer!!
                 val t0 = Time.nanoTime
                 val maxDistance = 1e10
-                val maxDistanceF = maxDistance.toFloat()
                 pipeline.processBalanced2d(0, 0, w, h, tileSize, 1) { x0, y0, x1, y1 ->
-                    if (useGroups) {
-                        fillTile(
-                            x0, x1, y0, y1, groups.get(), bvh,
-                            cx, cy, fovZ, maxDistanceF,
-                            lastPos, lastRot, ints, w, alpha
-                        )
-                    } else {
-                        val dir = JomlPools.vec3f.create()
-                        val nor = JomlPools.vec3f.create()
-                        for (y in y0 until y1) {
-                            var i = x0 + y * w
-                            for (x in x0 until x1) {
-                                dir.set(x - cx, cy - y, fovZ).normalize()
-                                lastRot.transform(dir)
-                                val hit = localResult.get()
-                                hit.shadingNormalWS.set(0.0)
-                                hit.distance = maxDistance
-                                hit.tlasCtr = 0
-                                hit.blasCtr = 0
-                                hit.trisCtr = 0
-                                bvh.findClosestHit(lastPos, dir, hit)
-                                val color =
-                                    hitToColor(nor.set(hit.shadingNormalWS), dir, hit.tlasCtr, hit.blasCtr, hit.trisCtr)
-                                ints.put(i, mixARGB(ints[i], color, alpha))
-                                i++
-                            }
+                    val dir = JomlPools.vec3f.create()
+                    val nor = JomlPools.vec3f.create()
+                    for (y in y0 until y1) {
+                        var i = x0 + y * w
+                        for (x in x0 until x1) {
+                            dir.set(x - cx, cy - y, fovZ).normalize()
+                            lastRot.transform(dir)
+
+                            // todo bug: z-order isn't handled properly
+                            //   BLAS test works, TLAS test doesn't
+
+                            val hit = localResult.get()
+                            hit.shadingNormalWS.set(0.0)
+                            hit.distance = maxDistance
+                            hit.tlasCtr = 0
+                            hit.blasCtr = 0
+                            hit.trisCtr = 0
+                            bvh.raycast(lastPos, dir, hit)
+                            val color = hitToColor(
+                                nor.set(hit.shadingNormalWS), dir,
+                                hit.tlasCtr, hit.blasCtr, hit.trisCtr
+                            )
+                            ints.put(i, mixARGB(ints[i], color, alpha))
+                            i++
                         }
-                        JomlPools.vec3f.sub(2)
                     }
+                    JomlPools.vec3f.sub(2)
                 }
                 val t1 = Time.nanoTime
                 dt += t1 - t0
@@ -369,13 +306,17 @@ fun createCPUPanel(
         nextFrame()
 
         DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
+        val fontSize = monospaceFont.sizeInt + 4
         DrawTexts.drawSimpleTextCharByChar(
             it.x + 4,
-            it.y + it.height - 50,
-            2,
+            it.y + it.height - fontSize * 2, 1,
             "$cpuSpeed ns/e, $cpuFPS fps, $frameIndex spp"
         )
-
+        DrawTexts.drawSimpleTextCharByChar(
+            it.x + 4,
+            it.y + it.height - fontSize, 1,
+            if (useGroups) "CPU+G" else "CPU"
+        )
     }
 }
 
@@ -429,7 +370,6 @@ fun createGPUPanel(
             lastRot.set(cameraRotation)
             lastDrawMode = drawMode
             frameIndex = 0
-            clockNanos.scaleWeight()
         }
 
         if (avgBuffer.width != w || avgBuffer.height != h) {
@@ -438,7 +378,6 @@ fun createGPUPanel(
             avgBuffer.destroy()
             avgBuffer.create()
             frameIndex = 0
-            clockNanos.scaleWeight()
         }
 
         val parent = it.uiParent!!
@@ -475,7 +414,9 @@ fun createGPUPanel(
         flat01.draw(drawShader)
 
         val gpuFPS = SECONDS_TO_NANOS / max(1, clockNanos.average)
-        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - 50, 2, "$prefix: $gpuFPS fps, $frameIndex spp")
+        val fontSize = monospaceFont.sizeInt + 4
+        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - fontSize * 2, 2, "$gpuFPS fps, $frameIndex spp")
+        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - fontSize, 2, prefix)
     }
 
     if (useComputeShader) {
@@ -517,7 +458,7 @@ fun createGPUPanel(
                     clockNanos.stop()
                     frameIndex++
                 }
-                drawResult(it, "CB")
+                drawResult(it, "Compute on Buffers")
             }
         } else {
             val triangles: Texture2D
@@ -552,7 +493,7 @@ fun createGPUPanel(
                     clockNanos.stop()
                     frameIndex++
                 }
-                drawResult(it, "CT")
+                drawResult(it, "Compute on Textures")
             }
         }
     } else {
@@ -594,7 +535,7 @@ fun createGPUPanel(
                     }
                 }
             }
-            drawResult(it, "GT")
+            drawResult(it, "Gfx on Textures")
         }
     }
 }
@@ -614,7 +555,6 @@ fun main2(
         val list = CustomList(false, style)
 
         val scale = 1
-        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, true))
         list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, false))
 
         val ucs = true

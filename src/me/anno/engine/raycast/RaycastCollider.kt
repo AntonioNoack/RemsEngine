@@ -8,11 +8,10 @@ import me.anno.utils.types.Triangles
 import kotlin.math.abs
 
 object RaycastCollider {
-    private fun raycastGlobalCollider(
+    fun raycastGlobalCollider(
         query: RayQuery,
         entity: Entity,
-        collider: Collider,
-        closestHit: Boolean
+        collider: Collider
     ): Boolean {
 
         val localToGlobal = entity.transform.globalTransform
@@ -53,10 +52,10 @@ object RaycastCollider {
         local.radiusAtOrigin = testRadiusAtOrigin
         local.radiusPerUnit = testRadiusPerUnit
         local.maxDistance = maxDistance
+        local.hitType = result.hitType
 
         val localNormal = tmp3f[2]
-        val localDistance = if (closestHit) collider.raycastClosestHit(local, localNormal)
-        else collider.raycastAnyHit(local, localNormal)
+        val localDistance = collider.raycast(local, localNormal)
 
         // println("ld: $localDistance, md: $maxDistance, [$start,$direction] -> [$localStart,$localDir]")
         if (localDistance >= 0f && localDistance < maxDistance) {
@@ -66,11 +65,4 @@ object RaycastCollider {
         return false
     }
 
-    fun raycastGlobalColliderClosestHit(query: RayQuery, entity: Entity, collider: Collider): Boolean {
-        return raycastGlobalCollider(query, entity, collider, true)
-    }
-
-    fun raycastGlobalColliderAnyHit(query: RayQuery, entity: Entity, collider: Collider): Boolean {
-        return raycastGlobalCollider(query, entity, collider, false)
-    }
 }

@@ -42,7 +42,7 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         val dir = renderView.mouseDirection
         // find hit distance
         val query = RayQuery(pos, dir, 1e6)
-        val hitDistance = if (Raycast.raycastClosestHit(world.terrain, query)) query.result.distance else 1.0
+        val hitDistance = if (Raycast.raycast(world.terrain, query)) query.result.distance else 1.0
         val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
         for (segment in world.streetSegments) {
             val streetThickness = 4.8 // todo depends on street profile/type

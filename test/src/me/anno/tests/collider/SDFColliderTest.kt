@@ -16,6 +16,7 @@ import me.anno.engine.raycast.RayQueryLocal
 import me.anno.image.ImageWriter
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
+import me.anno.maths.bvh.HitType
 import me.anno.tests.LOGGER
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.documents
@@ -119,8 +120,8 @@ fun renderSDF(collider: Collider, name: String) {
     writeImage(res, res, heavy, name1, false) { x, y ->
         val pos = Vector3f(x, y, 0f).mul(scale).sub(offset)
         val dir = Vector3f(pos).mul(-1f).normalize()
-        val query = RayQueryLocal(pos, dir, size * 2f, 0f, 0f)
-        val distance = collider.raycastClosestHit(query, null)
+        val query = RayQueryLocal(pos, dir, size * 2f, 0f, 0f, HitType.CLOSEST)
+        val distance = collider.raycast(query, null)
         if (distance.isInfinite()) LOGGER.debug("{} {} -> {}, {} -> {}", x, y, pos, dir, distance)
         if (distance < 0f) -255f else distance * (if (heavy) 0.25f else 2f) * 255f / size
     }

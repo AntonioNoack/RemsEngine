@@ -78,7 +78,7 @@ class CreativeControls(
         )
         // todo also implement cheaper raytracing (to show how) going block by block
         //  then we can throw away the meshes and save even more memory :3
-        val hitSomething = Raycast.raycastClosestHit(scene, query)
+        val hitSomething = Raycast.raycast(scene, query)
         if (hitSomething) {
             when (button) {
                 Key.BUTTON_LEFT -> {

@@ -75,7 +75,7 @@ open class MeshCollider() : Collider() {
      *
      * also sets the surface normal
      * */
-    override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
+    override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
 
         val mesh = mesh ?: return Float.POSITIVE_INFINITY
         if (!mesh.getBounds().testLine(query.start, query.direction))
@@ -89,6 +89,7 @@ open class MeshCollider() : Collider() {
         val mid = JomlPools.vec3f.create()
         val scaleUp = -0.001f // against small inaccuracies
         var neg = false
+        val anyHit = query.hitType
         mesh.forEachTriangle { a, b, c ->
             // make the triangle slightly larger than it is
             mid.set(a).add(b).add(c).mul(ONE_THIRD_F)

@@ -16,6 +16,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SQRT1_2
+import me.anno.maths.bvh.HitType
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
@@ -56,12 +57,8 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         return typeMask.and(Raycast.COLLIDERS) != 0
     }
 
-    override fun raycastClosestHit(query: RayQuery): Boolean {
-        return RaycastCollider.raycastGlobalColliderClosestHit(query, entity!!, this)
-    }
-
-    override fun raycastAnyHit(query: RayQuery): Boolean {
-        return RaycastCollider.raycastGlobalColliderAnyHit(query, entity!!, this)
+    override fun raycast(query: RayQuery): Boolean {
+        return RaycastCollider.raycastGlobalCollider(query, entity!!, this)
     }
 
     override fun onChangeStructure(entity: Entity) {
@@ -232,7 +229,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
      *
      * also sets the surface normal
      * */
-    open fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
+    open fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         // todo check if the ray is inside the bounding box:
         // todo I get many false-positives behind the object... why?
         // default implementation is slow, and not perfect:
@@ -241,8 +238,12 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         val pos = Vector3f(query.start)
         var isDone = 0
         var allowedStepDistance = 0f
+        val anyHit = query.hitType == HitType.ANY
         for (i in 0 until 16) { // max steps
             allowedStepDistance = getSignedDistance(pos)
+            if (allowedStepDistance < 0 && anyHit) {
+                return distance // we found a hit :3
+            }
             distance += allowedStepDistance
             // we have gone too far -> the ray does not intersect the collider
             if (distance >= query.maxDistance) {
@@ -260,38 +261,6 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
             }
         }
         if (abs(allowedStepDistance) > 1f) return Float.POSITIVE_INFINITY
-        // the normal calculation can be 4x more expensive than the normal evaluation -> only do it once
-        if (surfaceNormal != null) getSignedDistance(pos, surfaceNormal)
-        return distance
-    }
-
-    open fun raycastAnyHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
-        var distance = 0f
-        val pos = Vector3f(query.start)
-        var isDone = 0
-        var allowedStepDistance = 0f
-        for (i in 0 until 16) { // max steps
-            allowedStepDistance = getSignedDistance(pos)
-            if (allowedStepDistance < 0) {
-                return distance // we found a hit :3
-            }
-            distance += allowedStepDistance
-            // we have gone too far -> the ray does not intersect the collider
-            if (distance >= query.maxDistance) {
-                return Float.POSITIVE_INFINITY
-            } else {
-                // we are still in the sector
-                pos.set(query.direction).mul(distance).add(query.start)
-                if (allowedStepDistance < 1e-3f) {
-                    // we found the surface :)
-                    isDone++ // we want at least one extra iteration
-                    if (isDone > 1) {
-                        break
-                    }
-                }
-            }
-        }
-        if (allowedStepDistance > 1f) return Float.POSITIVE_INFINITY
         // the normal calculation can be 4x more expensive than the normal evaluation -> only do it once
         if (surfaceNormal != null) getSignedDistance(pos, surfaceNormal)
         return distance

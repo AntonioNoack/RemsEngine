@@ -30,7 +30,7 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
 
     fun findHoveredBuildings() {
         val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
-        if (!Raycast.raycastClosestHit(world.scene, query)) {
+        if (!Raycast.raycast(world.scene, query)) {
             return
         }
 

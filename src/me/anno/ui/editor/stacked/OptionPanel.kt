@@ -10,14 +10,13 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.EngineBase
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.SettingCategory
 import me.anno.utils.types.Strings.isBlank2
 
-class OptionPanel(
-    private val stackPanel: StackPanel,
+class OptionPanel<V: Inspectable>(
+    private val stackPanel: StackPanel<V>,
     nameDesc: NameDesc,
-    val value: Inspectable
+    val value: V
 ) : SettingCategory(nameDesc, stackPanel.style) {
 
     init {
@@ -65,8 +64,7 @@ class OptionPanel(
             val index = indexInParent
             val values = JsonStringReader.read(data, EngineBase.workspace, true)
             for (it in values) {
-                it as? Inspectable ?: continue
-                val option = stackPanel.getOptionFromInspectable(it) ?: continue
+                val option = stackPanel.getOption(it as V) ?: continue
                 stackPanel.addComponent(option, index, true)
             }
         } catch (e: Exception) {

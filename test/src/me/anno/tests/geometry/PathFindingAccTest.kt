@@ -297,7 +297,7 @@ fun main() {
         fun raycastPoint(): AccNode? {
             val maxDistance = 1e3
             val query = RayQuery(view.renderView.cameraPosition, view.renderView.mouseDirection, maxDistance)
-            val hit = Raycast.raycastClosestHit(scene, query)
+            val hit = Raycast.raycast(scene, query)
             return if (hit) {
                 val result = query.result
                 // convert ws position to local space

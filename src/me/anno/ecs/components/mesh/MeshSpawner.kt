@@ -19,6 +19,7 @@ import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
 import me.anno.gpu.pipeline.InstancedTRSStack
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.maths.bvh.HitType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -151,28 +152,16 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     override fun hasRaycastType(typeMask: Int) = (typeMask and TRIANGLES) != 0
 
-    override fun raycastClosestHit(query: RayQuery): Boolean {
+    override fun raycast(query: RayQuery): Boolean {
         var hit = false
         forEachMesh { mesh, _, transform ->
-            if (mesh is Mesh && RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
+            if (mesh is Mesh && RaycastMesh.raycastGlobalMesh(query, transform, mesh)) {
                 query.result.mesh = mesh
                 hit = true
-            }
-            false
+                query.result.hitType == HitType.ANY
+            } else false
         }
         return hit
-    }
-
-    override fun raycastAnyHit(query: RayQuery): Boolean {
-        var hitSth = false
-        forEachMesh { mesh, _, transform ->
-            if (mesh is Mesh && RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
-                query.result.mesh = mesh
-                hitSth = true
-            }
-            hitSth
-        }
-        return hitSth
     }
 
     @DebugProperty

@@ -2,6 +2,7 @@ package me.anno.engine.raycast
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
+import me.anno.maths.bvh.HitType
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Triangles
 import org.joml.Matrix4x3d
@@ -52,7 +53,7 @@ object RaycastSkeletal {
         }
     }
 
-    fun raycastGlobalBoneMeshClosestHit(
+    fun raycastGlobalBoneMesh(
         query: RayQuery, globalTransform: Matrix4x3d?, mesh: Mesh,
         matrices: List<Matrix4x3f>
     ) {
@@ -69,6 +70,7 @@ object RaycastSkeletal {
         val tmpD = result.tmpVector3ds
         val tmpPos = tmpD[0]
         val tmpNor = tmpD[1]
+        val anyHit = query.result.hitType == HitType.ANY
         mesh.forEachTriangleIndex { ai, bi, ci ->
             val distance = getDistance(ai, bi, ci, helper, globalTransform, query, result)
             if (isHit(distance, query, result, acceptFront, acceptBack)) {
@@ -76,43 +78,9 @@ object RaycastSkeletal {
                 result.positionWS.set(tmpPos)
                 result.geometryNormalWS.set(tmpNor)
                 result.shadingNormalWS.set(tmpNor)
-            }
-            false
+                anyHit
+            } else false
         }
-    }
-
-    fun raycastGlobalBoneMeshAnyHit(
-        query: RayQuery,
-        globalTransform: Matrix4x3d?, mesh: Mesh,
-        matrices: List<Matrix4x3f>
-    ): Boolean {
-
-        val typeMask = query.typeMask
-        val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
-        val acceptBack = typeMask.hasFlag(Raycast.TRIANGLE_BACK)
-        if (!acceptFront && !acceptBack) return false
-
-        mesh.positions ?: return false
-        mesh.boneIndices ?: return false
-
-        val result = query.result
-        val tmpD = result.tmpVector3ds
-        val helper = RaycastSkeletalHelper(query, mesh, matrices)
-        val tmpPos = tmpD[0]
-        val tmpNor = tmpD[1]
-        var hitSth = false
-        mesh.forEachTriangleIndex { ai, bi, ci ->
-            val distance = getDistance(ai, bi, ci, helper, globalTransform, query, result)
-            if (isHit(distance, query, result, acceptFront, acceptBack)) {
-                result.distance = distance
-                result.positionWS.set(tmpPos)
-                result.geometryNormalWS.set(tmpNor)
-                result.shadingNormalWS.set(tmpNor)
-                hitSth = true
-            }
-            hitSth
-        }
-        return hitSth
     }
 
     private fun isHit(

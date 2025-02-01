@@ -2,6 +2,7 @@ package me.anno.tests.geometry
 
 import me.anno.maths.geometry.Polygons
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.crossDot
 import me.anno.utils.types.Triangles.getBarycentrics
@@ -295,6 +296,7 @@ class TriangleTest {
         val random = Random(1234)
         val dstNormal = Vector3f()
         val dstPosition = Vector3f()
+        var hits = 0
         for (i in 0 until numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -308,6 +310,7 @@ class TriangleTest {
             val dstUVW0 = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val dstUVW = Vector3f(dstUVW0)
             val hit = isValidUVW(uvw) && !testTooFar
+            if (hit) hits++
             val distanceLimit = if (testTooFar) distance * 0.99f else 1e3f
             val expectedDist = if (hit) distance else Float.POSITIVE_INFINITY
             val actualDist = rayTriangleIntersection(start, dir, a, b, c, distanceLimit, dstNormal, dstPosition, dstUVW)
@@ -315,6 +318,7 @@ class TriangleTest {
             if (hit) assertEquals(uvw, dstUVW, 1e-3)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
         }
+        assertTrue(hits in 1 until numTries - 1)
     }
 
     @Test
@@ -322,6 +326,7 @@ class TriangleTest {
         val random = Random(1234)
         val dstNormal = Vector3d()
         val dstPosition = Vector3d()
+        var hits = 0
         for (i in 0 until numTries) {
             val a = Vector3d(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3d(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -335,6 +340,7 @@ class TriangleTest {
             val dstUVW0 = Vector3d(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val dstUVW = Vector3d(dstUVW0)
             val hit = isValidUVW(uvw) && !testTooFar
+            if (hit) hits++
             val distanceLimit = if (testTooFar) distance * 0.99 else 1e3
             val expectedDist = if (hit) distance else Double.POSITIVE_INFINITY
             val actualDist = rayTriangleIntersection(start, dir, a, b, c, distanceLimit, dstNormal, dstPosition, dstUVW)
@@ -342,6 +348,7 @@ class TriangleTest {
             if (hit) assertEquals(uvw, dstUVW, 1e-11)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
         }
+        assertTrue(hits in 1 until numTries - 1)
     }
 
     @Test
@@ -349,6 +356,7 @@ class TriangleTest {
         val random = Random(1234)
         val dstNormal = Vector3f()
         val dstPosition = Vector3f()
+        var hits = 0
         for (i in 0 until numTries) {
             val a = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val b = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
@@ -361,6 +369,7 @@ class TriangleTest {
             val dstUVW0 = Vector3f(random.nextFloat(), random.nextFloat(), random.nextFloat())
             val dstUVW = Vector3f(dstUVW0)
             val hit = subCrossDot(a, b, c, dir) < 0.0
+            if (hit) hits++
             val distanceLimit = 1e3f
             val expectedDist = if (hit) distance else Float.POSITIVE_INFINITY
             val actualDist =
@@ -369,6 +378,7 @@ class TriangleTest {
             if (hit) assertEquals(uvw, dstUVW, 1e-3)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
         }
+        assertTrue(hits in 1 until numTries - 1)
     }
 
     @Test
@@ -376,6 +386,7 @@ class TriangleTest {
         val random = Random(1234)
         val dstNormal = Vector3d()
         val dstPosition = Vector3d()
+        var hits = 0
         for (i in 0 until numTries) {
             val a = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val b = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
@@ -388,6 +399,7 @@ class TriangleTest {
             val dstUVW0 = Vector3d(random.nextDouble(), random.nextDouble(), random.nextDouble())
             val dstUVW = Vector3d(dstUVW0)
             val hit = subCrossDot(a, b, c, dir) < 0.0
+            if (hit) hits++
             val distanceLimit = 1e3
             val expectedDist = if (hit) distance else Double.POSITIVE_INFINITY
             val actualDist =
@@ -396,6 +408,7 @@ class TriangleTest {
             if (hit) assertEquals(uvw, dstUVW, 1e-11)
             else assertEquals(dstUVW0, dstUVW) // must not be changed, if the ray doesn't hit
         }
+        assertTrue(hits in 1 until numTries - 1)
     }
 
     fun <V : Vector> interpolateBarycentric(a: V, b: V, c: V, uvw: Vector, dst: V): V {

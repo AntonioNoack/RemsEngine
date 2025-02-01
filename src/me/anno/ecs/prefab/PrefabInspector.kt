@@ -9,7 +9,6 @@ import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
-import me.anno.engine.inspector.Inspectable
 import me.anno.engine.inspector.InspectorUtils.showDebugActions
 import me.anno.engine.inspector.InspectorUtils.showDebugProperties
 import me.anno.engine.inspector.InspectorUtils.showDebugWarnings
@@ -223,18 +222,21 @@ class PrefabInspector(var reference: FileReference) {
 
         showMissingClasses(list, instances, style, warningPanel)
         if (instances.first() !is Systems) {
-            showTextProperty("Name", "name",
+            showTextProperty(
+                "Name", "name",
                 list, instances, style, isWritable,
                 { it.name }) { it, v -> it.name = v }
-            showTextProperty("Description", "description",
+            showTextProperty(
+                "Description", "description",
                 list, instances, style, isWritable,
                 { it.description }) { it, v -> it.description = v }
         }
 
         val inputListener = instances.firstInstanceOrNull(InputListener::class)
         if (inputListener != null) {
-            list.add(TextButton(NameDesc("Test Controls"), style)
-                .addLeftClickListener { EditorState.control = inputListener })
+            list.add(
+                TextButton(NameDesc("Test Controls"), style)
+                    .addLeftClickListener { EditorState.control = inputListener })
         }
 
         val customEditModes = instances.filterIsInstance2(CustomEditMode::class)
@@ -274,34 +276,33 @@ class PrefabInspector(var reference: FileReference) {
         if (niceName.equals("children", true)) return
 
         val nicerName = niceName.camelCaseToTitle()
-        list.add(object : StackPanel(
+        list.add(object : StackPanel<PrefabSaveable>(
             nicerName, "",
-            options, children, {
-                it as Saveable
-                Option(NameDesc(it.className.camelCaseToTitle())) { it }
-            }, style
+            options, children, style
         ) {
 
-            override val value: List<Inspectable>
+            override fun getOption(component: PrefabSaveable): Option<PrefabSaveable> {
+                return Option(NameDesc(component.className.camelCaseToTitle())) { component }
+            }
+
+            override val value: List<PrefabSaveable>
                 get() = instance.getChildListByType(type)
 
-            override fun setValue(newValue: List<Inspectable>, mask: Int, notify: Boolean): Panel {
+            override fun setValue(newValue: List<PrefabSaveable>, mask: Int, notify: Boolean): Panel {
                 if (newValue != value) {
                     throw IllegalStateException("Cannot directly set the value of components[]!")
                 } // else done
                 return this
             }
 
-            override fun onAddComponent(component: Inspectable, index: Int) {
-                component as PrefabSaveable
+            override fun onAddComponent(component: PrefabSaveable, index: Int) {
                 if (component.prefabPath == Path.ROOT_PATH) {
                     val newPath = instance.prefabPath.added(Path.generateRandomId(), index, type)
                     Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
                 } else LOGGER.warn("Component had prefab path already")
             }
 
-            override fun onRemoveComponent(component: Inspectable) {
-                component as PrefabSaveable
+            override fun onRemoveComponent(component: PrefabSaveable) {
                 EditorState.unselect(component)
                 Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
             }
