@@ -155,17 +155,17 @@ fun assertEquals(
     }
 }
 
-fun assertEquals(
-    expected: Double, actual: Double, absoluteThreshold: Double,
-    message: () -> String
-) {
-    assertTrue(abs(expected - actual) <= absoluteThreshold, message)
+fun assertEquals(expected: Double, actual: Double, absoluteThreshold: Double, message: () -> String) {
+    assertTrue(abs(expected - actual) <= absoluteThreshold) {
+        "${message()}, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
+    }
 }
 
-fun assertEquals(
-    expected: Long, actual: Long, absoluteThreshold: Long,
-    message: String = "expected equal values"
-) {
+fun assertEquals(expected: Float, actual: Float, absoluteThreshold: Float, message: () -> String) {
+    assertEquals(expected.toDouble(), actual.toDouble(), absoluteThreshold.toDouble(), message)
+}
+
+fun assertEquals(expected: Long, actual: Long, absoluteThreshold: Long, message: String = "expected equal values") {
     assertTrue(abs(expected - actual) <= absoluteThreshold) {
         "$message, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
     }

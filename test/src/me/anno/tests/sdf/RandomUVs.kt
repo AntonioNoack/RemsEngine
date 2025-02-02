@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.sdf.TwoDims
+import me.anno.ecs.components.collider.TwoDims
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid
 import me.anno.sdf.arrays.SDFTriangleGrid

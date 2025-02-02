@@ -19,6 +19,7 @@ import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.bullet.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.Entity
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.CapsuleCollider
 import me.anno.ecs.components.collider.Collider
@@ -134,27 +135,27 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 fun CapsuleCollider.createBulletShape(scale: Vector3d): CapsuleShape {
     val self = this
     return when (axis) {
-        0 -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis) // x
-        1 -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis) // y
-        else -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
+        Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis.id) // x
+        Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis.id) // y
+        Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis.id) // z
     }.apply { margin = self.margin }
 }
 
 fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
     val self = this
     return when (axis) {
-        0 -> ConeShapeX(radius * scale.y, height * scale.x)
-        2 -> ConeShapeZ(radius * scale.x, height * scale.z)
-        else -> ConeShape(radius * scale.x, height * scale.y)
+        Axis.X -> ConeShapeX(radius * scale.y, height * scale.x)
+        Axis.Y -> ConeShape(radius * scale.x, height * scale.y)
+        Axis.Z -> ConeShapeZ(radius * scale.x, height * scale.z)
     }.apply { margin = self.margin }
 }
 
 fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
     val self = this
     return when (axis) {
-        0 -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
-        1 -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
-        else -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
+        Axis.X -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
+        Axis.Y -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
+        Axis.Z -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
     }.apply { margin = self.margin }
 }
 

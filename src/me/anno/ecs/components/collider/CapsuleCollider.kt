@@ -1,5 +1,6 @@
 package me.anno.ecs.components.collider
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
@@ -16,10 +17,10 @@ import kotlin.math.max
 
 class CapsuleCollider : Collider() {
 
-    // which axis the height is for, x = 0, y = 1, z = 2
     @Range(0.0, 2.0)
     @SerializedProperty
-    var axis = 1
+    @Docs("which axis the height is for")
+    var axis = Axis.Y
 
     @SerializedProperty
     var halfHeight = 1.0
@@ -37,15 +38,15 @@ class CapsuleCollider : Collider() {
         unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
         val s = h + r
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis, +s)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis, -s)))
+        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, +s)))
+        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, -s)))
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         // roundness is ignored, because a capsule is already perfectly round
         val halfExtends = halfHeight.toFloat()
         deltaPos.absolute()
-        deltaPos.setComponent(axis, max(deltaPos[axis] - halfExtends, 0f))
+        deltaPos.setComponent(axis.id, max(deltaPos[axis.id] - halfExtends, 0f))
         return deltaPos.length() - radius.toFloat()
     }
 
@@ -56,7 +57,7 @@ class CapsuleCollider : Collider() {
         val zi = xi * 3
         val color = getLineColor(hasPhysics)
         when (axis) {
-            0 -> {
+            Axis.X -> {
                 drawLine(entity, -h, -r, 0.0, +h, -r, 0.0, color)
                 drawLine(entity, -h, +r, 0.0, +h, +r, 0.0, color)
                 drawLine(entity, -h, 0.0, -r, +h, 0.0, -r, color)
@@ -64,7 +65,7 @@ class CapsuleCollider : Collider() {
                 drawPartialSphere(entity, r, Vector3d(-h, 0.0, 0.0), 0.0, TAU, PI, PI, xi, PI, color)
                 drawPartialSphere(entity, r, Vector3d(+h, 0.0, 0.0), 0.0, TAU, 0.0, PI, zi, PI, color)
             }
-            1 -> {
+            Axis.Y -> {
                 drawLine(entity, -r, -h, 0.0, -r, +h, 0.0, color)
                 drawLine(entity, +r, -h, 0.0, +r, +h, 0.0, color)
                 drawLine(entity, 0.0, -h, -r, 0.0, +h, -r, color)
@@ -72,7 +73,7 @@ class CapsuleCollider : Collider() {
                 drawPartialSphere(entity, r, Vector3d(0.0, -h, 0.0), xi, PI, 0.0, TAU, PI, PI, color)
                 drawPartialSphere(entity, r, Vector3d(0.0, +h, 0.0), zi, PI, 0.0, TAU, 0.0, PI, color)
             }
-            2 -> {
+            Axis.Z -> {
                 drawLine(entity, -r, 0.0, -h, -r, 0.0, +h, color)
                 drawLine(entity, +r, 0.0, -h, +r, 0.0, +h, color)
                 drawLine(entity, 0.0, -r, -h, 0.0, -r, +h, color)

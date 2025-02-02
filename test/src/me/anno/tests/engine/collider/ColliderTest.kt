@@ -1,5 +1,6 @@
 package me.anno.tests.engine.collider
 
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.Collider
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.assertions.assertEquals
@@ -14,16 +15,15 @@ class ColliderTest : Collider() {
     fun testUnionRingSimple() {
         val m = Matrix4x3d()
         val b = AABBd()
-        for (i in 0 until 2) {
-            val exact = i > 0
+        for (exact in listOf(true, false)) {
             b.clear()
-            unionRing(m, b, Vector3d(), 0, 1.0, 3.0, exact)
+            unionRing(m, b, Vector3d(), Axis.X, 1.0, 3.0, exact)
             assertEquals(AABBd(3.0, -1.0, -1.0, 3.0, 1.0, 1.0), b)
             b.clear()
-            unionRing(m, b, Vector3d(), 1, 1.0, 3.0, exact)
+            unionRing(m, b, Vector3d(), Axis.Y, 1.0, 3.0, exact)
             assertEquals(AABBd(-1.0, 3.0, -1.0, 1.0, 3.0, 1.0), b)
             b.clear()
-            unionRing(m, b, Vector3d(), 2, 1.0, 3.0, exact)
+            unionRing(m, b, Vector3d(), Axis.Z, 1.0, 3.0, exact)
             assertEquals(AABBd(-1.0, -1.0, 3.0, 1.0, 1.0, 3.0), b)
         }
     }

@@ -23,8 +23,10 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.lwjgl.system.CallbackI.Z
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 // todo collision-effect mappings:
 //  - which listener is used
@@ -58,7 +60,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     }
 
     override fun raycast(query: RayQuery): Boolean {
-        return RaycastCollider.raycastGlobalCollider(query, entity!!, this)
+        return RaycastCollider.raycastGlobalCollider(query, entity ?: sampleEntity, this)
     }
 
     override fun onChangeStructure(entity: Entity) {
@@ -83,25 +85,25 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     fun unionRing(
         globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d,
-        axis: Int, r: Double, h: Double, preferExact: Boolean
+        axis: Axis, r: Double, h: Double, preferExact: Boolean
     ) {
         if (preferExact) {
             // approximate the circle as 8 points, and their outer circle
             val r1 = SQRT1_2 * r
             when (axis) {
-                0 -> {
+                Axis.X -> {
                     union(globalTransform, aabb, tmp, h, +r, 0.0)
                     union(globalTransform, aabb, tmp, h, -r, 0.0)
                     union(globalTransform, aabb, tmp, h, 0.0, +r)
                     union(globalTransform, aabb, tmp, h, 0.0, -r)
                 }
-                1 -> {
+                Axis.Y -> {
                     union(globalTransform, aabb, tmp, +r, h, 0.0)
                     union(globalTransform, aabb, tmp, -r, h, 0.0)
                     union(globalTransform, aabb, tmp, 0.0, h, +r)
                     union(globalTransform, aabb, tmp, 0.0, h, -r)
                 }
-                2 -> {
+                Axis.Z -> {
                     union(globalTransform, aabb, tmp, +r, 0.0, h)
                     union(globalTransform, aabb, tmp, -r, 0.0, h)
                     union(globalTransform, aabb, tmp, 0.0, +r, h)
@@ -114,23 +116,23 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     private fun unionRingQuad(
         globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d,
-        axis: Int, r: Double, h: Double
+        axis: Axis, r: Double, h: Double
     ) {
         // approximate the circle as a quad
         when (axis) {
-            0 -> {
+            Axis.X -> {
                 union(globalTransform, aabb, tmp, h, +r, +r)
                 union(globalTransform, aabb, tmp, h, +r, -r)
                 union(globalTransform, aabb, tmp, h, -r, +r)
                 union(globalTransform, aabb, tmp, h, -r, -r)
             }
-            1 -> {
+            Axis.Y -> {
                 union(globalTransform, aabb, tmp, +r, h, +r)
                 union(globalTransform, aabb, tmp, +r, h, -r)
                 union(globalTransform, aabb, tmp, -r, h, +r)
                 union(globalTransform, aabb, tmp, -r, h, -r)
             }
-            2 -> {
+            Axis.Z -> {
                 union(globalTransform, aabb, tmp, +r, +r, h)
                 union(globalTransform, aabb, tmp, +r, -r, h)
                 union(globalTransform, aabb, tmp, -r, +r, h)
@@ -171,7 +173,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         val dx = deltaPos.x + roundness
         val dy = deltaPos.y + roundness
         val outside = Maths.length(max(dx, 0f), max(dy, 0f))
-        val inside = Maths.min(max(dx, dy), 0f)
+        val inside = min(max(dx, dy), 0f)
         return outside + inside - roundness
     }
 
@@ -180,7 +182,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         val dy = deltaPos.y + roundness
         val dz = deltaPos.z + roundness
         val outside = Maths.length(max(dx, 0f), max(dy, 0f), max(dz, 0f))
-        val inside = Maths.min(max(dx, max(dy, dz)), 0f)
+        val inside = min(max(dx, max(dy, dz)), 0f)
         return outside + inside - roundness
     }
 
@@ -192,25 +194,31 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
      * if the distance field is warped, the returned distance should be a little smaller, so we don't overstep
      * */
     open fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {
+        return getSignedDistance(deltaPos, outNormal, 0.002f)
+    }
 
-        outNormal.set(deltaPos) // save the position
+    fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f, e: Float): Float {
 
-        val e = 0.002f
+        // save position
+        val px = deltaPos.x
+        val py = deltaPos.y
+        val pz = deltaPos.z
 
         // from https://github.com/glslify/glsl-sdf-normal/blob/master/index.glsl
         // from https://www.shadertoy.com/view/ldfSWs
-        val d1 = getSignedDistance(deltaPos.set(outNormal).add(+e, -e, -e))
-        val d2 = getSignedDistance(deltaPos.set(outNormal).add(-e, -e, +e))
-        val d3 = getSignedDistance(deltaPos.set(outNormal).add(-e, +e, -e))
-        val d4 = getSignedDistance(deltaPos.set(outNormal).add(+e, +e, +e))
+        val dx = getSignedDistance(deltaPos.set(px + e, py - e, pz - e))
+        val dy = getSignedDistance(deltaPos.set(px - e, py + e, pz - e))
+        val dz = getSignedDistance(deltaPos.set(px - e, py - e, pz + e))
+        val dw = getSignedDistance(deltaPos.set(px + e, py + e, pz + e))
 
-        outNormal.set(0f)
-        outNormal.add(+d1, -d1, -d1)
-        outNormal.add(-d2, -d2, +d2)
-        outNormal.add(-d3, +d3, -d3)
-        outNormal.add(+d4, +d4, +d4)
+        outNormal.set(+dx, -dx, -dx)
+        outNormal.add(-dy, +dy, -dy)
+        outNormal.add(-dz, -dz, +dz)
+        outNormal.add(+dw, +dw, +dw)
 
-        return (d1 + d2 + d3 + d4) * 0.25f
+        deltaPos.set(px, py, pz) // store position
+
+        return (dx + dz + dy + dw) * 0.25f
     }
 
     /**
@@ -279,6 +287,8 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     abstract fun drawShape(pipeline: Pipeline)
 
     companion object {
+
+        private val sampleEntity = Entity()
 
         fun getLineColor(hasPhysics: Boolean): Int {
             return if (hasPhysics) 0x77ffff or black

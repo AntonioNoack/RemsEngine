@@ -2,6 +2,8 @@ package me.anno.tests.engine.collider
 
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.engine.raycast.RayQuery
+import me.anno.engine.raycast.RayQueryLocal
+import me.anno.maths.bvh.HitType
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.IntArrayList
@@ -9,6 +11,8 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.junit.jupiter.api.Test
+import kotlin.math.min
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 class SphereColliderSDFTest {
@@ -51,6 +55,26 @@ class SphereColliderSDFTest {
                     )
                 ), x * x + y * y < 1f
             )
+        }
+    }
+
+    @Test
+    fun testLocalRaycast() {
+        val tested = SphereCollider()
+        val random = Random(1234)
+        for (i in 0 until 100) {
+            val x = (random.nextFloat() - 0.5f) * 5f
+            val y = (random.nextFloat() - 0.5f) * 5f
+            val dist = tested.raycast(
+                RayQueryLocal(
+                    Vector3f(x, y, -2f),
+                    Vector3f(0f, 0f, 1f),
+                    1e3f, HitType.CLOSEST
+                ), null
+            )
+            val expectedDist = 2f - sqrt(1f - (x * x + y * y))
+            val expectedAnswer = if (expectedDist.isFinite()) expectedDist else 1e38f
+            assertEquals(min(dist, 1e38f), expectedAnswer, 1e-6f)
         }
     }
 

@@ -1,6 +1,7 @@
 package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
@@ -8,7 +9,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.max
-import me.anno.sdf.TwoDims
+import me.anno.ecs.components.collider.TwoDims
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
@@ -75,9 +76,9 @@ abstract class SDF2DShape : SDFShape() {
     @DebugAction
     fun bound11(s: Float = 0.1f) {
         when (axes) {
-            TwoDims.YZ, TwoDims.ZY -> bound1(-s, +s, 0)
-            TwoDims.XZ, TwoDims.ZX -> bound1(-s, +s, 1)
-            else -> bound1(-s, +s, 2)
+            TwoDims.YZ, TwoDims.ZY -> bound1(-s, +s, Axis.X)
+            TwoDims.XZ, TwoDims.ZX -> bound1(-s, +s, Axis.Y)
+            else -> bound1(-s, +s, Axis.Z)
         }
     }
 
@@ -103,14 +104,14 @@ abstract class SDF2DShape : SDFShape() {
         }
     }
 
-    fun boundX(min: Float, max: Float): Unit = bound1(min, max, 0)
-    fun boundY(min: Float, max: Float): Unit = bound1(min, max, 1)
-    fun boundZ(min: Float, max: Float): Unit = bound1(min, max, 2)
-    fun bound1(min: Float, max: Float, axis: Int) {
+    fun boundX(min: Float, max: Float): Unit = bound1(min, max, Axis.X)
+    fun boundY(min: Float, max: Float): Unit = bound1(min, max, Axis.Y)
+    fun boundZ(min: Float, max: Float): Unit = bound1(min, max, Axis.Z)
+    fun bound1(min: Float, max: Float, axis: Axis) {
         val mv = JomlPools.vec3f.create().set(0f)
         val xv = JomlPools.vec3f.create().set(0f)
-        mv[axis] = min
-        xv[axis] = max
+        mv[axis.id] = min
+        xv[axis.id] = max
         bound1(mv, xv)
         JomlPools.vec3f.sub(2)
     }

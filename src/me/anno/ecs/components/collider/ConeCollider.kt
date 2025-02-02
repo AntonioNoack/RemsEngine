@@ -20,10 +20,9 @@ import kotlin.math.sqrt
 
 class ConeCollider : Collider() {
 
-    /** which axis the height is for, x = 0, y = 1, z = 2 */
     @Range(0.0, 2.0)
     @SerializedProperty
-    var axis = 1
+    var axis = Axis.Y
 
     @SerializedProperty
     var height = 2.0
@@ -39,7 +38,7 @@ class ConeCollider : Collider() {
         val h = height * 0.5
         val r = radius
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
-        tmp[axis] = +h
+        tmp[axis.id] = +h
         aabb.union(globalTransform.transformPosition(tmp))
     }
 
@@ -47,11 +46,11 @@ class ConeCollider : Collider() {
 
         val roundness = roundness.toFloat()
         val h = -height.toFloat() + roundness * 2f
-        val dist1D = deltaPos[axis] + h * 0.5f // centering
+        val dist1D = deltaPos[axis.id] + h * 0.5f // centering
         val dist2D = when (axis) {
-            0 -> length(deltaPos.y, deltaPos.z)
-            1 -> length(deltaPos.x, deltaPos.z)
-            else -> length(deltaPos.x, deltaPos.y)
+            Axis.X -> length(deltaPos.y, deltaPos.z)
+            Axis.Y -> length(deltaPos.x, deltaPos.z)
+            Axis.Z -> length(deltaPos.x, deltaPos.y)
         }
 
         // todo how can we include roundness here?
@@ -71,9 +70,9 @@ class ConeCollider : Collider() {
     override fun drawShape(pipeline: Pipeline) {
         // todo check whether they are correct (the same as the physics behaviour)
         val matrix = when (axis) {
-            0 -> LineShapes.zToX
-            1 -> LineShapes.zToY
-            else -> null
+            Axis.X -> LineShapes.zToX
+            Axis.Y -> LineShapes.zToY
+            Axis.Z -> null
         }
         val color = getLineColor(hasPhysics)
         drawCone(entity, radius, radius, height, 0.0, matrix, color)

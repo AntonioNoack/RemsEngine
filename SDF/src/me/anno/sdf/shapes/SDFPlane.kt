@@ -1,5 +1,6 @@
 package me.anno.sdf.shapes
 
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable

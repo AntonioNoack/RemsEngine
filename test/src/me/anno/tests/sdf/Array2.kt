@@ -1,6 +1,7 @@
 package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
@@ -37,7 +38,7 @@ fun main() {
                     materialId = 0
                 })
                 addChild(SDFHeart().apply {
-                    bound1(-0.1f, 10f, 2)
+                    bound1(-0.1f, 10f, Axis.Z)
                     rotation = rotation.rotateX((-90f).toRadians())
                     scale = 600f
                     materialId = 1

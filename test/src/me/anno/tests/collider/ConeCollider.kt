@@ -1,23 +1,23 @@
 package me.anno.tests.collider
 
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.ConeCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.posMod
-import me.anno.utils.assertions.assertEquals
 import kotlin.math.cos
 import kotlin.math.sin
 
 fun main() {
     // todo why is it not rotating??
     val collider = ConeCollider()
-    collider.axis = 2
+    collider.axis = Axis.Z
     testCollider(collider, generateConeMesh(collider).ref)
 }
 
 fun generateConeMesh(collider: ConeCollider): Mesh {
     // todo make normals beautiful somehow...
-    val ay = collider.axis
+    val ay = collider.axis.id
     val ax = posMod(ay + 2, 3)
     val az = posMod(ay + 1, 3)
     val mesh = Mesh()

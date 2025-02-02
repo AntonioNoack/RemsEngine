@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
-import me.anno.sdf.TwoDims
+import me.anno.ecs.components.collider.TwoDims
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
 import me.anno.sdf.random.SDFRandom.Companion.twoInputRandom

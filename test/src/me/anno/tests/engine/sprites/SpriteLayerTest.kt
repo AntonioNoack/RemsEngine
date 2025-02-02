@@ -9,10 +9,10 @@ import me.anno.utils.assertions.assertEquals
 
 fun buildSampleWorld(sprites: SpriteLayer) {
     val charToId = mapOf(
-        'D' to 5 * 16 + 2,
-        'G' to 4 * 16 + 2,
-        'L' to 11 * 16 + 13,
-        'B' to 15 * 16 + 0
+        'D' to 5 * 16 + 2, // dirt
+        'G' to 4 * 16 + 2, // grass
+        'L' to 11 * 16 + 13, // log
+        'B' to 15 * 16 + 0, // branches
     )
     val visualMap = """
              B

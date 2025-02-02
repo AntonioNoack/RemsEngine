@@ -7,7 +7,7 @@ import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
-import me.anno.sdf.shapes.Axis
+import me.anno.ecs.components.collider.Axis
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector4f

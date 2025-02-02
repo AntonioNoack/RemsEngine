@@ -19,6 +19,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import me.anno.maths.bvh.HitType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.ONE_THIRD_F
@@ -70,8 +71,7 @@ open class MeshCollider() : Collider() {
         }
 
     /**
-     * returns +Inf, if not
-     * returns the distance, if it hit
+     * returns distance if hit, infinity else
      *
      * also sets the surface normal
      * */
@@ -82,17 +82,16 @@ open class MeshCollider() : Collider() {
             return Float.POSITIVE_INFINITY
 
         // test whether we intersect any triangle of this mesh
-        var bestDistance = query.maxDistance
+        var bestDistance = Float.POSITIVE_INFINITY
         val tmpPos = JomlPools.vec3f.create()
         val tmpNor = JomlPools.vec3f.create()
 
         val mid = JomlPools.vec3f.create()
         val scaleUp = -0.001f // against small inaccuracies
-        var neg = false
-        val anyHit = query.hitType
+        val anyHit = query.hitType == HitType.ANY
         mesh.forEachTriangle { a, b, c ->
             // make the triangle slightly larger than it is
-            mid.set(a).add(b).add(c).mul(ONE_THIRD_F)
+            a.add(b, mid).add(c).mul(ONE_THIRD_F)
             a.mix(mid, scaleUp)
             b.mix(mid, scaleUp)
             c.mix(mid, scaleUp)
@@ -104,15 +103,14 @@ open class MeshCollider() : Collider() {
             )
             if (localDistance < bestDistance) {
                 bestDistance = localDistance
-                neg = tmpNor.dot(query.direction) > 0f
                 surfaceNormal?.set(tmpNor)
-            }
-            false
+                anyHit
+            } else false
         }
 
         JomlPools.vec3f.sub(3)
 
-        return if (neg) -bestDistance else bestDistance
+        return bestDistance
     }
 
     /**

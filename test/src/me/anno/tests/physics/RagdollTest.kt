@@ -13,6 +13,7 @@ import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.SkeletonCache
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.CapsuleCollider
 import me.anno.ecs.components.mesh.MeshComponent
@@ -139,7 +140,7 @@ fun main() {
         }
 
         val collider = CapsuleCollider().apply {
-            axis = 1
+            axis = Axis.Y
             halfHeight = length * 0.32
             radius = halfHeight * 0.3
             margin = 0.01

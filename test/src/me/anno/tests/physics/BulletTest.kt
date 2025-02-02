@@ -7,6 +7,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityUtils.setContains
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.CapsuleCollider
 import me.anno.ecs.components.collider.Collider
@@ -432,16 +433,16 @@ class BulletTest {
             return listOf(
                 BoxCollider(),
                 SphereCollider(),
-                CapsuleCollider().apply { name = "x"; axis = 0 },
-                CapsuleCollider().apply { name = "y"; axis = 1 },
-                CapsuleCollider().apply { name = "z"; axis = 2 },
-                CylinderCollider().apply { name = "x"; axis = 0 },
-                CylinderCollider().apply { name = "y"; axis = 1 },
-                CylinderCollider().apply { name = "z"; axis = 2 },
-                ConeCollider().apply { name = "x"; axis = 0 },
+                CapsuleCollider().apply { name = "x"; axis = Axis.X },
+                CapsuleCollider().apply { name = "y"; axis = Axis.Y },
+                CapsuleCollider().apply { name = "z"; axis = Axis.Z },
+                CylinderCollider().apply { name = "x"; axis = Axis.X },
+                CylinderCollider().apply { name = "y"; axis = Axis.Y },
+                CylinderCollider().apply { name = "z"; axis = Axis.Z },
+                ConeCollider().apply { name = "x"; axis = Axis.X },
                 // todo y and z are incompatible??
-                ConeCollider().apply { name = "y"; axis = 1 },
-                // ConeCollider().apply { name = "z"; axis = 2 },
+                ConeCollider().apply { name = "y"; axis = Axis.Y },
+                // ConeCollider().apply { name = "z"; axis = Axis.Z },
                 ConvexCollider().apply {
                     points = floatArrayOf(
                         -1f, +1f, +1f,

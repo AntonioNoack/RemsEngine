@@ -1,11 +1,11 @@
 package me.anno.tests.physics.shapes
 
 import me.anno.bullet.createBulletShape
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.maths.Maths.TAU
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.physics.ConvexSDFShape
-import me.anno.sdf.shapes.Axis
 import me.anno.sdf.shapes.SDFCylinder
 import me.anno.tests.physics.shapes.SDFSphereTest.Companion.nextPos
 import me.anno.tests.physics.shapes.SDFSphereTest.Companion.toKOML
@@ -20,19 +20,19 @@ class SDFCylinderTest {
 
     @Test
     fun testSDFSupportVectorWithoutMargin() {
-        testSDFSupportVector(0, 0.0)
-        testSDFSupportVector(1, 0.0)
-        testSDFSupportVector(2, 0.0)
+        testSDFSupportVector(Axis.X, 0.0)
+        testSDFSupportVector(Axis.Y, 0.0)
+        testSDFSupportVector(Axis.Z, 0.0)
     }
 
     @Test
     fun testSDFSupportVectorWithMargin() {
-        testSDFSupportVector(0, 1.0)
-        testSDFSupportVector(1, 1.0)
-        testSDFSupportVector(2, 1.0)
+        testSDFSupportVector(Axis.X, 1.0)
+        testSDFSupportVector(Axis.Y, 1.0)
+        testSDFSupportVector(Axis.Z, 1.0)
     }
 
-    fun testSDFSupportVector(axisI: Int, marginI: Double) {
+    fun testSDFSupportVector(axisI: Axis, marginI: Double) {
         val baseline = CylinderCollider().apply {
             axis = axisI
             margin = marginI
@@ -40,7 +40,7 @@ class SDFCylinderTest {
         assertEquals(marginI, baseline.margin)
         val tested = ConvexSDFShape(
             SDFCylinder().apply {
-                axis = Axis.entries[axisI]
+                axis = axisI
                 halfHeight = 1f + marginI.toFloat()
                 radius = 1f + marginI.toFloat()
                 smoothness = marginI.toFloat()
@@ -62,17 +62,17 @@ class SDFCylinderTest {
                 val angle = random.nextDouble() * TAU
                 val y = if (random.nextBoolean()) 1.0 else -1.0
                 when (axisI) {
-                    0 -> {
+                    Axis.X -> {
                         pos.x = y
                         pos.y = cos(angle)
                         pos.z = sin(angle)
                     }
-                    1 -> {
+                    Axis.Y -> {
                         pos.y = y
                         pos.x = cos(angle)
                         pos.z = sin(angle)
                     }
-                    else -> {
+                    Axis.Z -> {
                         pos.z = y
                         pos.x = cos(angle)
                         pos.y = sin(angle)

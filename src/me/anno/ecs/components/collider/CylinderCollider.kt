@@ -1,5 +1,6 @@
 package me.anno.ecs.components.collider
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
@@ -15,10 +16,10 @@ import kotlin.math.abs
 
 class CylinderCollider : Collider() {
 
-    /** which axis the height is for, x = 0, y = 1, z = 2 */
     @Range(0.0, 2.0)
     @SerializedProperty
-    var axis = 1
+    @Docs("which axis the height is for")
+    var axis = Axis.Y
 
     @SerializedProperty
     var halfHeight = 1.0
@@ -41,11 +42,11 @@ class CylinderCollider : Collider() {
         val halfHeight = halfHeight.toFloat()
         val radius = radius.toFloat()
         val circle = when (axis) {
-            0 -> length(deltaPos.y, deltaPos.z)
-            1 -> length(deltaPos.x, deltaPos.z)
-            else -> length(deltaPos.x, deltaPos.y)
+            Axis.X -> length(deltaPos.y, deltaPos.z)
+            Axis.Y -> length(deltaPos.x, deltaPos.z)
+            Axis.Z -> length(deltaPos.x, deltaPos.y)
         } - radius
-        val box = abs(deltaPos[axis]) - halfHeight
+        val box = abs(deltaPos[axis.id]) - halfHeight
         deltaPos.x = circle
         deltaPos.y = box
         return and2SDFs(deltaPos, roundness.toFloat())
@@ -57,7 +58,7 @@ class CylinderCollider : Collider() {
         val e = entity
         val color = getLineColor(hasPhysics)
         when (axis) {
-            0 -> {
+            Axis.X -> {
                 LineShapes.drawLine(e, -h, -r, 0.0, +h, -r, 0.0, color)
                 LineShapes.drawLine(e, -h, +r, 0.0, +h, +r, 0.0, color)
                 LineShapes.drawLine(e, -h, 0.0, -r, +h, 0.0, -r, color)
@@ -65,7 +66,7 @@ class CylinderCollider : Collider() {
                 drawCircle(e, r, 1, 2, +h, null, color)
                 drawCircle(e, r, 1, 2, -h, null, color)
             }
-            1 -> {
+            Axis.Y -> {
                 LineShapes.drawLine(e, -r, -h, 0.0, -r, +h, 0.0, color)
                 LineShapes.drawLine(e, +r, -h, 0.0, +r, +h, 0.0, color)
                 LineShapes.drawLine(e, 0.0, -h, -r, 0.0, +h, -r, color)
@@ -73,7 +74,7 @@ class CylinderCollider : Collider() {
                 drawCircle(e, r, 0, 2, +h, null, color)
                 drawCircle(e, r, 0, 2, -h, null, color)
             }
-            2 -> {
+            Axis.Z -> {
                 LineShapes.drawLine(e, -r, 0.0, -h, -r, 0.0, +h, color)
                 LineShapes.drawLine(e, +r, 0.0, -h, +r, 0.0, +h, color)
                 LineShapes.drawLine(e, 0.0, -r, -h, 0.0, -r, +h, color)

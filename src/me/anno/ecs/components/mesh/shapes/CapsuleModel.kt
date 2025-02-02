@@ -1,10 +1,10 @@
 package me.anno.ecs.components.mesh.shapes
 
+import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.TransformMesh.transformMesh
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.posMod
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
 import org.joml.Matrix4x3d
@@ -18,7 +18,7 @@ object CapsuleModel {
     /**
      * creates a capsule mesh with <us> vertical and <vs> horizontal sections
      * */
-    fun createCapsule(us: Int, vs: Int, axis: Int, r: Float, h: Float, mesh: Mesh = Mesh()): Mesh {
+    fun createCapsule(us: Int, vs: Int, axis: Axis, r: Float, h: Float, mesh: Mesh = Mesh()): Mesh {
         assertEquals(0, vs.and(1))
         UVSphereModel.createUVSphere(us, vs, mesh)
         val positions = FloatArrayList(16)
@@ -53,9 +53,10 @@ object CapsuleModel {
         mesh.positions = positions.toFloatArray()
         mesh.normals = normals.toFloatArray()
         mesh.indices = null
-        when (posMod(axis, 3)) { // could be made more efficient, probably not needed
-            0 -> transformMesh(mesh, Matrix4x3d().rotateZ(PI * 0.5))
-            2 -> transformMesh(mesh, Matrix4x3d().rotateX(PI * 0.5))
+        when (axis) {
+            Axis.X -> transformMesh(mesh, Matrix4x3d().rotateZ(PI * 0.5))
+            Axis.Y -> {}
+            Axis.Z -> transformMesh(mesh, Matrix4x3d().rotateX(PI * 0.5))
         }
         mesh.invalidateGeometry()
         return mesh
