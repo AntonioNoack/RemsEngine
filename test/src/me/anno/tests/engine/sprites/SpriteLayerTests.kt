@@ -139,7 +139,6 @@ class SpriteLayerTests {
             rv.draw(0, 0, size, size)
         }
         val asImage = fb.getTexture0().createImage(flipY = true, withAlpha = false)
-        val expected = IntImage(size, size, false)
         var wrongPixels = 0
         for (yi in 0 until cells) {
             for (xi in 0 until cells) {
@@ -157,7 +156,6 @@ class SpriteLayerTests {
                         if (expectedColor != actualColor) {
                             wrongPixels++
                         }
-                        expected.setRGB(x, y, actualColor)
                     }
                 }
             }
