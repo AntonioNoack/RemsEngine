@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GLNames
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
@@ -443,6 +444,9 @@ open class Texture2DArray(
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
+
+    override fun toString() =
+        "Texture2DArray(\"$name\"@$pointer, $width x $height x $layers x $samples, ${GLNames.getName(internalFormat)})"
 
     companion object {
         val allocated = AtomicLong()

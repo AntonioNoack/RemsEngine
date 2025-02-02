@@ -44,7 +44,7 @@ class SpriteMaterial : Material() {
     ) {
         val texIdx = shader.getTextureIndex(dstName)
         if (texIdx < 0) return
-        val texture = TextureCache.getTextureArray(source, numTiles, true) ?: default
+        val texture = TextureCache.getTextureArray(source, numTiles) ?: default
         texture.bind(texIdx, filtering, clamping)
     }
 }

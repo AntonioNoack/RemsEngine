@@ -38,7 +38,9 @@ open class IntImage(
     }
 
     fun setRGB(index: Int, rgb: Int) {
-        data[index] = rgb
+        data[index] =
+            if (hasAlphaChannel) rgb
+            else (rgb or black)
     }
 
     fun mixRGB(x: Float, y: Float, rgb: Int, alpha: Float = rgb.a01(), clamping: Clamping = Clamping.REPEAT) {

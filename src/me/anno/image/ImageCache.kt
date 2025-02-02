@@ -104,7 +104,9 @@ object ImageCache : CacheSection("Image") {
     }
 
     operator fun get(source: FileReference, timeout: Long, async: Boolean): Image? {
-        if (source is ImageReadable) return source.readCPUImage()
+        if (source is ImageReadable && source.hasInstantCPUImage()) {
+            return source.readCPUImage()
+        }
         val data = getFileEntry(source, false, timeout, async) { file1, _ ->
             ImageAsFolder.readImage(file1, false)
         } ?: return null
@@ -113,7 +115,7 @@ object ImageCache : CacheSection("Image") {
     }
 
     fun getAsync(source: FileReference, timeout: Long, async: Boolean, callback: Callback<Image>) {
-        if (source is ImageReadable) {
+        if (source is ImageReadable && source.hasInstantCPUImage()) {
             callback.ok(source.readCPUImage())
         } else {
             getFileEntryAsync(source, false, timeout, async, { file1, _ ->

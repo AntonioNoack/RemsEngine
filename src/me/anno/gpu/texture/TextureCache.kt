@@ -144,11 +144,10 @@ object TextureCache : CacheSection("Texture") {
 
     fun getTextureArray(
         file: FileReference, numTiles: Vector2i,
-        async: Boolean, timeoutMillis: Long = TextureCache.timeoutMillis
+        timeoutMillis: Long = TextureCache.timeoutMillis
     ): Texture2DArray? {
         val key = FileTriple(file, numTiles)
-        val texture = getEntry(key, timeoutMillis, async, TextureCache::generateTextureArray)
-        if (!async) texture?.waitFor()
+        val texture = getEntry(key, timeoutMillis, true, TextureCache::generateTextureArray)
         return texture?.value?.createdOrNull() as? Texture2DArray
     }
 

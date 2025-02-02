@@ -359,20 +359,22 @@ open class Texture2D(
         upload(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
-    fun create(type: TargetType) {
+    fun create(type: TargetType): Texture2D {
         beforeUpload(0, 0)
         upload(type, null as ByteArray?)
         afterUpload(type.isHDR, type.bytesPerPixel, type.channels)
+        return this
     }
 
-    fun create(type: TargetType, data: Any?) {
-        create(type, type, data)
+    fun create(type: TargetType, data: Any?): Texture2D {
+        return create(type, type, data)
     }
 
-    fun create(creationType: TargetType, uploadType: TargetType, data: Any?) {
+    fun create(creationType: TargetType, uploadType: TargetType, data: Any?): Texture2D {
         beforeUpload(0, 0)
         upload(creationType.internalFormat, uploadType.uploadFormat, uploadType.fillType, data)
         afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.channels)
+        return this
     }
 
     fun create(image: Image, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
@@ -425,7 +427,7 @@ open class Texture2D(
         if (isDestroyed) destroy()
     }
 
-    fun createBGRA(data: IntArray, checkRedundancy: Boolean) {
+    fun createBGRA(data: IntArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         convertARGB2ABGR(data2)
@@ -433,9 +435,10 @@ open class Texture2D(
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4, 4)
         convertARGB2ABGR(data2)
+        return this
     }
 
-    fun createBGR(data: IntArray, checkRedundancy: Boolean) {
+    fun createBGR(data: IntArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         convertARGB2ABGR(data2)
@@ -443,45 +446,50 @@ open class Texture2D(
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4, 3)
         convertARGB2ABGR(data2)
+        return this
     }
 
-    fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
+    fun createRGB(data: FloatArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(3, data.size)
         val floats2 = if (checkRedundancy) checkRedundancyX3(data) else data
         setWriteAlignment(12 * width)
         upload(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12, 3)
+        return this
     }
 
-    fun createRGBA(data: IntBuffer, checkRedundancy: Boolean) {
+    fun createRGBA(data: IntBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX4(data)
         assertEquals(ByteOrder.nativeOrder(), data.order(), "Byte order must be native!")
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4, 4)
+        return this
     }
 
     /**
      * warning: will assume RGBA colors, but the engine works with ARGB internally!
      * */
-    fun createRGBA(data: IntArray, checkRedundancy: Boolean) {
+    fun createRGBA(data: IntArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.size)
         if (checkRedundancy) checkRedundancyX4(data)
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4, 4)
+        return this
     }
 
     /**
      * warning: will assume RGBA colors, but the engine works with ARGB internally!
      * */
-    fun createRGB(data: IntArray, checkRedundancy: Boolean) {
+    fun createRGB(data: IntArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4, 3)
+        return this
     }
 
     fun createTiled(
@@ -535,69 +543,75 @@ open class Texture2D(
         }
     }
 
-    fun createMonochrome(data: ByteBuffer, checkRedundancy: Boolean) {
+    fun createMonochrome(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         upload(TargetType.UInt8x1, data)
         Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 1, 1)
+        return this
     }
 
-    fun createRG(data: ByteBuffer, checkRedundancy: Boolean) {
+    fun createRG(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(2, data.remaining())
         if (checkRedundancy) checkRedundancyX2(data)
         upload(GL_RG, GL_RG, GL_UNSIGNED_BYTE, data)
         Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 2, 2)
+        return this
     }
 
     /**
      * creates a monochrome float32 image on the GPU
      * used by SDF
      * */
-    fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean) {
+    fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(4 * width)
         upload(GL_R32F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4, 1)
+        return this
     }
 
     /**
      * creates a monochrome float32 image on the GPU
      * used by SDF
      * */
-    fun createMonochrome(data: FloatArray, checkRedundancy: Boolean) {
+    fun createMonochrome(data: FloatArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
         setWriteAlignment(4 * width)
         upload(GL_R32F, GL_RED, GL_FLOAT, data2)
         afterUpload(true, 4, 1)
+        return this
     }
 
     /**
      * creates a monochrome float16 image on the GPU
      * */
-    fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean) {
+    fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(4 * width)
         upload(GL_R16F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4, 1)
+        return this
     }
 
     /**
      * creates a monochrome float16 image on the GPU
      * */
-    fun createMonochromeFP16(data: ShortBuffer, checkRedundancy: Boolean) {
+    fun createMonochromeFP16(data: ShortBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(2 * width)
         upload(GL_R16F, GL_RED, GL_HALF_FLOAT, data)
         afterUpload(true, 2, 1)
+        return this
     }
 
-    fun createBGR(data: ByteBuffer, checkRedundancy: Boolean) {
+    fun createBGR(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancyX3(data)
         convertRGB2BGR3(data)
@@ -605,9 +619,10 @@ open class Texture2D(
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
         Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
+        return this
     }
 
-    fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
+    fun createMonochrome(data: ByteArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
         val buffer = Pools.byteBufferPool[data2.size, false, false]
@@ -615,9 +630,10 @@ open class Texture2D(
         upload(TargetType.UInt8x1, buffer)
         Pools.byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 1, 1)
+        return this
     }
 
-    fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
+    fun createRGBA(data: FloatArray, checkRedundancy: Boolean): Texture2D {
         beforeUpload(4, data.size)
         val data2 = if (checkRedundancy && width * height > 1) checkRedundancyX4(data) else data
         val byteBuffer = Pools.byteBufferPool[data2.size * 4, false, false]
@@ -626,34 +642,37 @@ open class Texture2D(
         upload(TargetType.Float32x4, byteBuffer)
         Pools.byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(true, 16, 4)
+        return this
     }
 
-    fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean) {
+    fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(4, data.capacity())
         if (checkRedundancy && width * height > 1) checkRedundancyX4(data)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         upload(TargetType.Float32x4, buffer)
         afterUpload(true, 16, 4)
+        return this
     }
 
-    fun createBGRA(buffer: ByteBuffer, checkRedundancy: Boolean) {
+    fun createBGRA(buffer: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         if (checkRedundancy) checkRedundancyX4(buffer)
         beforeUpload(4, buffer.remaining())
         convertRGB2BGR4(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         Pools.byteBufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 4)
+        return this
     }
 
-    fun createRGBA(data: ByteArray, checkRedundancy: Boolean) {
+    fun createRGBA(data: ByteArray, checkRedundancy: Boolean): Texture2D {
         checkSize(4, data.size)
         val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
         val buffer = Pools.byteBufferPool[data2.size, false, false]
         buffer.put(data2).flip()
-        createRGBA(buffer, false)
+        return createRGBA(buffer, false)
     }
 
-    fun createARGB(data: ByteBuffer, checkRedundancy: Boolean) {
+    fun createARGB(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         checkSize(4, data.remaining())
         if (checkRedundancy) checkRedundancyX4(data)
         for (i in 0 until width * height * 4 step 4) {
@@ -664,25 +683,27 @@ open class Texture2D(
             data.put(tmp) // a
         }
         data.flip()
-        createRGBA(data, false)
+        return createRGBA(data, false)
     }
 
     /** creates the texture, and returns the buffer */
-    fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean) {
+    fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(4, data.remaining())
         if (checkRedundancy) checkRedundancyX4(data, false)
         upload(TargetType.UInt8x4, data)
         Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 4)
+        return this
     }
 
-    fun createRGB(data: ByteBuffer, checkRedundancy: Boolean) {
+    fun createRGB(data: ByteBuffer, checkRedundancy: Boolean): Texture2D {
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancyX3(data)
         setWriteAlignment(3 * width)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
         Pools.byteBufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
+        return this
     }
 
     /**
