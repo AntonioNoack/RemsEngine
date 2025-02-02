@@ -35,7 +35,7 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.joinChars
-import me.anno.video.MissingFrameException
+import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.junit.jupiter.api.Test
@@ -139,16 +139,16 @@ class SignedDistanceFontsTests {
         pipeline.frustum.setToEverything(RenderState.cameraPosition, RenderState.cameraRotation)
         isFinalRendering = true // force exceptions if rendering is incomplete
         while (true) {
-            try {
-                pipeline.clear()
-                pipeline.fill(component)
+            missingFrameException = null
+            pipeline.clear()
+            pipeline.fill(component)
+            if (missingFrameException == null) {
                 break
-            } catch (e: MissingFrameException) {
-                Sleep.work(true)
-                println("Waiting on ${e.message}")
-                Thread.sleep(5)
-                continue
             }
+
+            Sleep.work(true)
+            println("Waiting on $missingFrameException")
+            Thread.sleep(5)
         }
         assertFalse(pipeline.defaultStage.isEmpty())
         useFrame(framebuffer) {

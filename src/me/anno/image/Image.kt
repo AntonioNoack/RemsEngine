@@ -168,14 +168,14 @@ abstract class Image(
         }
     }
 
-    open fun split(numImagesX: Int, numImagesY: Int): List<Image> {
-        return createArrayList(numImagesX * numImagesY) {
-            val ix = it % numImagesX
-            val iy = it / numImagesX
-            val x0 = WorkSplitter.partition(ix, width, numImagesX)
-            val x1 = WorkSplitter.partition(ix + 1, width, numImagesX)
-            val y0 = WorkSplitter.partition(iy, height, numImagesY)
-            val y1 = WorkSplitter.partition(iy + 1, height, numImagesY)
+    open fun split(numTilesX: Int, numTilesY: Int): List<Image> {
+        return createArrayList(numTilesX * numTilesY) {
+            val ix = it % numTilesX
+            val iy = it / numTilesX
+            val x0 = WorkSplitter.partition(ix, width, numTilesX)
+            val x1 = WorkSplitter.partition(ix + 1, width, numTilesX)
+            val y0 = WorkSplitter.partition(iy, height, numTilesY)
+            val y1 = WorkSplitter.partition(iy + 1, height, numTilesY)
             cropped(x0, y0, x1 - x0, y1 - y0)
         }
     }

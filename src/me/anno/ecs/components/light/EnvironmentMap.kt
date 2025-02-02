@@ -35,7 +35,6 @@ import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Quaterniond
 import org.joml.Vector3d
 
 /**
@@ -62,8 +61,8 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
     val timer = GPUClockNanos()
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        Shapes.cube11Smooth.getBounds().transformUnion(globalTransform, aabb)
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        Shapes.cube11Smooth.getBounds().transformUnion(globalTransform, dstUnion)
         return true
     }
 

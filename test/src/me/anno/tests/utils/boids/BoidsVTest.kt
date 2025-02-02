@@ -41,8 +41,8 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
 
     val group = ProcessingGroup("boids", 1f)
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.all() // ^^
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        dstUnion.all() // ^^
         return true
     }
 

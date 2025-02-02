@@ -4,7 +4,7 @@ import me.anno.input.Key
 
 /**
  * the class, that you can use to control your components by mouse/keyboard
- * if you want control in edit mode, use @CustomEditMode
+ * if you want control in edit mode, extend CustomEditMode instead
  *
  * mouseEnter and mouseExit are not yet supported;
  * return true to consume an event

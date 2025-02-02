@@ -23,7 +23,7 @@ abstract class ChunkSystem<Chunk, Element>(
 ) : Component() {
 
     var timeoutMillis = 10_000L
-    private val chunks = CacheSection("Chunks")
+    val chunks = CacheSection("Chunks")
 
     fun getOrPut(key: Vector3i, put: (Vector3i) -> Chunk): Chunk {
         val data = chunks.getEntry(key, timeoutMillis, false) {

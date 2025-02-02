@@ -293,9 +293,9 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         return super.getMeshOrNull()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         ensureValidBounds()
-        return super.fillSpace(globalTransform, aabb)
+        return super.fillSpace(globalTransform, dstUnion)
     }
 
     @DebugAction

@@ -172,7 +172,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     @NotSerializedProperty
     val globalAABB = AABBd()
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         // calculate local aabb
         val local = localAABB
         local.clear()
@@ -190,7 +190,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         local.transform(globalTransform, global)
 
         // add the result to the output
-        aabb.union(global)
+        dstUnion.union(global)
 
         // yes, we calculated stuff
         return true

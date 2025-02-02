@@ -20,7 +20,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
-import me.anno.video.MissingFrameException
+import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.math.sign
@@ -81,7 +81,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         onAlignmentChange()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         init.value
 
         // calculate local aabb
@@ -96,7 +96,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         local.transform(globalTransform, global)
 
         // add the result to the output
-        aabb.union(global)
+        dstUnion.union(global)
 
         // yes, we calculated stuff
         return true
@@ -134,7 +134,8 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
                 i++
                 run(mesh, material, transform)
             } else if (texture is Texture2D && isFinalRendering) {
-                throw MissingFrameException(className)
+                missingFrameException = className
+                true // quit loop
             } else false
         }
     }

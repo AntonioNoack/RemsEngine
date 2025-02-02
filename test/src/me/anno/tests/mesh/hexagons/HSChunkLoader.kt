@@ -67,10 +67,10 @@ class HSChunkLoader(
 
     override val materials: List<FileReference> = listOf(material.ref)
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         globalAABB.all()
         localAABB.all()
-        aabb.all()
+        dstUnion.all()
         return true
     }
 

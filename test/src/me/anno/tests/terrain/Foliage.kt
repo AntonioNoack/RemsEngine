@@ -285,10 +285,10 @@ fun main() {
         }.ref
 
         class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {
-            override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
                 localAABB.all()
                 globalAABB.all()
-                aabb.all()
+                dstUnion.all()
                 return true
             }
         }

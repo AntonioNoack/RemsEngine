@@ -132,7 +132,7 @@ open class Texture3D(
         afterUpload(GL_RGBA32F, 16, true)
     }
 
-    fun create(img: Image, sync: Boolean) {
+    fun create(img: Image, sync: Boolean): Texture3D {
         // todo we could detect monochrome and such :)
         val intData = img.asIntImage().data
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
@@ -144,35 +144,40 @@ open class Texture3D(
         else addGPUTask("Texture3D.create()", img.width, img.height) {
             createRGBA8(intData)
         }
+        return this
     }
 
-    fun createRGBA8(data: IntArray) {
+    fun createRGBA8(data: IntArray): Texture3D {
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
+        return this
     }
 
     @Suppress("unused")
-    fun createRGB8(data: IntArray) {
+    fun createRGB8(data: IntArray): Texture3D {
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 3, false)
+        return this
     }
 
-    fun createBGRA8(data: ByteBuffer) {
+    fun createBGRA8(data: ByteBuffer): Texture3D {
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
+        return this
     }
 
     @Suppress("unused")
-    fun createBGR8(data: ByteBuffer) {
+    fun createBGR8(data: ByteBuffer): Texture3D {
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
+        return this
     }
 
-    fun createMonochrome(data: ByteArray) {
+    fun createMonochrome(data: ByteArray): Texture3D {
         if (width * height * depth != data.size) throw RuntimeException("incorrect size!")
         val byteBuffer = byteBufferPool[data.size, false, false]
         byteBuffer.position(0)
@@ -180,9 +185,10 @@ open class Texture3D(
         byteBuffer.position(0)
         createMonochrome(byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
+        return this
     }
 
-    fun createMonochrome(getValue: I3B) {
+    fun createMonochrome(getValue: I3B): Texture3D {
         val w = width
         val h = height
         val d = depth
@@ -198,9 +204,10 @@ open class Texture3D(
         byteBuffer.flip()
         createMonochrome(byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
+        return this
     }
 
-    fun createRGBA8(getValue: I3I) {
+    fun createRGBA8(getValue: I3I): Texture3D {
         val w = width
         val h = height
         val d = depth
@@ -216,16 +223,18 @@ open class Texture3D(
         byteBuffer.flip()
         createBGRA8(byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
+        return this
     }
 
-    fun createMonochrome(data: ByteBuffer) {
+    fun createMonochrome(data: ByteBuffer): Texture3D {
         assertEquals(width * height * depth, data.remaining(), "incorrect size!")
         beforeUpload(width)
         glTexImage3D(target, 0, GL_R8, width, height, depth, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_R8, 1, false)
+        return this
     }
 
-    fun create(type: TargetType, data: ByteArray? = null) {
+    fun create(type: TargetType, data: ByteArray? = null): Texture3D {
         if (data != null) {
             var bpp = type.bytesPerPixel
             if (bpp == 3) bpp = 4 // todo check correctness
@@ -245,9 +254,10 @@ open class Texture3D(
         )
         byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(type.internalFormat, type.bytesPerPixel, type.isHDR)
+        return this
     }
 
-    fun createRGBA(data: FloatArray) {
+    fun createRGBA(data: FloatArray): Texture3D {
         assertEquals(width * height * depth * 4, data.size, "expected 4 bpp")
         val byteBuffer = byteBufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
@@ -255,19 +265,20 @@ open class Texture3D(
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data)
         floatBuffer.flip()
-        createRGBA(floatBuffer, byteBuffer)
+        return createRGBA(floatBuffer, byteBuffer)
     }
 
-    fun createRGBA(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer) {
+    fun createRGBA(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer): Texture3D {
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         assertEquals(width * height * depth * 4, floatBuffer.remaining(), "incorrect size!")
         beforeUpload(width * 16)
         glTexImage3D(target, 0, GL_RGBA32F, width, height, depth, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA32F, 16, true)
+        return this
     }
 
-    fun createRGBA(data: ByteArray) {
+    fun createRGBA(data: ByteArray): Texture3D {
         assertEquals(width * height * depth * 4, data.size, "incorrect size!, expected 4 bpp")
         val byteBuffer = byteBufferPool[data.size, false, false]
         byteBuffer.position(0)
@@ -277,21 +288,24 @@ open class Texture3D(
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA8, 4, false)
+        return this
     }
 
-    fun createRGBA(data: ByteBuffer) {
+    fun createRGBA(data: ByteBuffer): Texture3D {
         assertEquals(width * height * depth * 4, data.remaining(), "incorrect size!, expected 4 bpp")
         beforeUpload(width * 4)
         glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
+        return this
     }
 
-    fun ensureFiltering(nearest: Filtering, clamping: Clamping) {
+    fun ensureFiltering(nearest: Filtering, clamping: Clamping): Texture3D {
         if (nearest != filtering) filtering(nearest)
         if (clamping != this.clamping) clamping(clamping)
+        return this
     }
 
-    fun filtering(nearest: Filtering) {
+    fun filtering(nearest: Filtering): Texture3D {
         if (nearest != Filtering.LINEAR) {
             glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
@@ -300,11 +314,13 @@ open class Texture3D(
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         }
         filtering = nearest
+        return this
     }
 
-    fun clamping(clamping: Clamping) {
+    fun clamping(clamping: Clamping): Texture3D {
         TextureHelper.clamping(target, clamping.mode, border)
         this.clamping = clamping
+        return this
     }
 
     private fun forceBind() {

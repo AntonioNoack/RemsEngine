@@ -21,6 +21,7 @@ import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -56,7 +57,8 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         for ((key, entry) in entryLookup) {
             val transform = getTransform(i++)
             val material = getTransformAndMaterial(key, transform)
-            if (run(entry.mesh!!, material, transform)) break
+            val mesh = entry.mesh ?: continue
+            if (run(mesh, material, transform)) break
         }
     }
 
@@ -80,13 +82,13 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     private val boundsF = AABBf()
     override fun getBounds(): AABBf = boundsF
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         // calculate local aabb
         val local = boundsF
         local.clear()
         for (i in entries.indices) {
             val entry = entries[i]
-            local.union(entry.bounds)
+            local.union(entry.localBounds)
         }
         localAABB.set(local)
 
@@ -95,7 +97,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         local.transform(globalTransform, global)
 
         // add the result to the output
-        aabb.union(global)
+        dstUnion.union(global)
         return true
     }
 
@@ -183,11 +185,19 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         buffer.drawLength = numPrimitives.toInt()
         buffer.bind(shader)
         val frustum = pipeline?.frustum
+        val transform = transform?.globalTransform
         var currStart = 0
         var currEnd = 0
+        val tmpBounds = JomlPools.aabbd.create()
         for (i in entries.indices) {
             val entry = entries[i]
-            if (frustum == null || frustum.isVisible(entry.bounds)) { // frustum culling
+            val shallRender = if (frustum != null) {
+                val globalBounds = if (transform != null) {
+                    entry.localBounds.transform(transform, tmpBounds)
+                } else entry.localBounds
+                frustum.isVisible(globalBounds)
+            } else true
+            if (shallRender) { // frustum culling
                 val range = entry.range
                 if (range.first != currEnd) {
                     push(buffer, currStart, currEnd)
@@ -199,6 +209,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         push(buffer, currStart, currEnd)
         finish(buffer)
         buffer.unbind()
+        JomlPools.aabbd.sub(1)
     }
 
     override fun drawInstanced(

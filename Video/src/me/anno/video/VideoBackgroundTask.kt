@@ -13,6 +13,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
+import me.anno.utils.assertions.assertTrue
 import me.anno.video.FrameTask.Companion.missingResource
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -116,12 +117,11 @@ abstract class VideoBackgroundTask(
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
             useFrame(0, 0, creator.width, creator.height, averageFrame, renderer) {
-                try {
-                    renderScene(time, true, renderer)
-                    if (!GFX.isFinalRendering) throw RuntimeException()
-                } catch (e: MissingFrameException) {
-                    // e.printStackTrace()
-                    missingResource = e.message ?: ""
+                missingFrameException = null
+                renderScene(time, true, renderer)
+                assertTrue(GFX.isFinalRendering)
+                if (missingFrameException != null) {
+                    missingResource = missingFrameException ?: ""
                     needsMoreSources = true
                 }
             }
@@ -134,15 +134,14 @@ abstract class VideoBackgroundTask(
                 while (i++ < motionBlurSteps && !needsMoreSources) {
                     FBStack.reset(creator.width, creator.height)
                     useFrame(partialFrame, renderer) {
-                        try {
-                            renderScene(
-                                time + (i - motionBlurSteps / 2f) * shutterPercentage / (creator.fps * motionBlurSteps),
-                                true, renderer
-                            )
-                            if (!GFX.isFinalRendering) throw RuntimeException()
-                        } catch (e: MissingFrameException) {
-                            // e.printStackTrace()
-                            missingResource = e.message ?: ""
+                        missingFrameException = null
+                        renderScene(
+                            time + (i - motionBlurSteps / 2f) * shutterPercentage / (creator.fps * motionBlurSteps),
+                            true, renderer
+                        )
+                        assertTrue(GFX.isFinalRendering)
+                        if (missingFrameException != null) {
+                            missingResource = missingFrameException ?: ""
                             needsMoreSources = true
                         }
                     }

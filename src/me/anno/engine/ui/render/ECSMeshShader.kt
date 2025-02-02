@@ -164,27 +164,32 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 reflectionPlaneCalculation +
                 reflectionMapCalculation
 
+        /**
+         * support for bump maps: if grayscale or only red, calculate gradient
+         * */
+        val normalMapBumpMapSupport = "" +
+                "   if((normalColor.x == normalColor.y && normalColor.y == normalColor.z) ||" +
+                "      (normalColor.y == 0.0 && normalColor.z == 0.0)){\n" +
+                "       vec2 suv = uv * vec2(textureSize(normalMap,0));\n" +
+                "       float divisor = (length(dFdx(suv)) + length(dFdy(suv)))*0.25;\n" +
+                "       normalFromTex = normalize(vec3(dFdx(normalColor.x), dFdy(normalColor.x), max(divisor, 1e-6)));\n" +
+                "   } else "
+
+        val normalMapMixing = "" +
+                "   normalFromTex = matMul(tbn, normalFromTex);\n" +
+                "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +  // normalize?
+                "   finalNormal *= 1.0 / (1e-38 + length(finalNormal));\n"
+
         val normalMapCalculation = "" +
                 // bitangent: checked, correct transform
                 // can be checked with a lot of rotated objects in all orientations,
                 // and a shader with light from top/bottom
                 "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                 "if(abs(normalStrength.x) > 0.0){\n" +
-                "   vec3 rawColor = texture(normalMap, uv, lodBias).rgb;\n" +
-                // support for bump maps: if grayscale or only red, calculate gradient
-                "   if((rawColor.x == rawColor.y && rawColor.y == rawColor.z) ||" +
-                "      (rawColor.y == 0.0 && rawColor.z == 0.0)){\n" +
-                "       vec2 suv = uv * vec2(textureSize(normalMap,0));\n" +
-                "       float divisor = (length(dFdx(suv)) + length(dFdy(suv)))*0.25;\n" +
-                "       rawColor = normalize(vec3(dFdx(rawColor.x), dFdy(rawColor.x), max(divisor, 1e-6)));\n" +
-                "   } else rawColor = rawColor * 2.0 - 1.0;\n" +
-                "   vec3 normalFromTex = rawColor;\n" +
-                "        normalFromTex = matMul(tbn, normalFromTex);\n" +
-                // normalize?
-                "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
-                "   finalNormal *= 1.0 / (1e-38 + length(finalNormal));\n" +
-                // for debugging
-                // "   finalColor = rawColor*.5+.5;\n" +
+                "   vec3 normalColor = texture(normalMap, uv, lodBias).rgb;\n" +
+                "   vec3 normalFromTex;\n" +
+                normalMapBumpMapSupport + "normalFromTex = normalColor * 2.0 - 1.0;\n" + // after else
+                normalMapMixing +
                 "}\n"
 
         val baseColorCalculation = "" +
@@ -207,7 +212,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val occlusionCalculation =
             "finalOcclusion = (1.0 - texture(occlusionMap, uv, lodBias).r) * occlusionStrength;\n"
         val metallicCalculation =
-            "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv, lodBias).r), 0.0, 1.0);\n"
+            "finalMetallic  = clamp(mix(metallicMinMax.x, metallicMinMax.y, texture(metallicMap, uv, lodBias).r), 0.0, 1.0);\n"
         val roughnessCalculation =
             "#define HAS_ROUGHNESS\n" +
                     "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv, lodBias).r), 0.0, 1.0);\n"
@@ -521,20 +526,23 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         // step by step define all material properties
                         baseColorCalculation +
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {
-                            "" +
-                                    normalTanBitanCalculation +
-                                    normalMapCalculation +
-                                    emissiveCalculation +
-                                    occlusionCalculation +
-                                    metallicCalculation +
-                                    roughnessCalculation +
-                                    v0 + sheenCalculation +
-                                    clearCoatCalculation +
-                                    reflectionCalculation
+                            createColorFragmentStage()
                         } else "") +
                         finalMotionCalculation
             ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
         )
+    }
+
+    fun createColorFragmentStage(): String {
+        return normalTanBitanCalculation +
+                normalMapCalculation +
+                emissiveCalculation +
+                occlusionCalculation +
+                metallicCalculation +
+                roughnessCalculation +
+                v0 + sheenCalculation +
+                clearCoatCalculation +
+                reflectionCalculation
     }
 
     override fun createForwardShader(key: ShaderKey): Shader {

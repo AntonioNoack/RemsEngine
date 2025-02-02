@@ -56,9 +56,9 @@ abstract class ProceduralMesh : MeshComponentBase() {
         return data
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         getMesh()
-        return super.fillSpace(globalTransform, aabb)
+        return super.fillSpace(globalTransform, dstUnion)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

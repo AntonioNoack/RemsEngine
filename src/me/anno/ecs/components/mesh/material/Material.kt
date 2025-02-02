@@ -201,7 +201,7 @@ open class Material : PrefabSaveable(), Renderable {
         bindTexture(shader, "metallicMap", metallicMap, white, f, c)
         bindTexture(shader, "roughnessMap", roughnessMap, white, f, c)
         bindTexture(shader, "emissiveMap", emissiveMap, white, f, c)
-        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, white, f, c)
+        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, n001, f, c)
         val normalTex = bindTexture(shader, "normalMap", normalMap, n001, f, c)
         bindTexture(shader, "diffuseMap", diffuseMap, white, f, c)
 

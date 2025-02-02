@@ -12,8 +12,8 @@ import org.joml.Matrix4x3f
 
 abstract class LightSpawner : Component(), Renderable {
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.all()
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        dstUnion.all()
         return true
     }
 

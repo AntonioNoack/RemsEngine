@@ -1,14 +1,14 @@
 package me.anno.fonts.signeddistfields
 
 import me.anno.cache.CacheData
+import me.anno.fonts.Font
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.texture.TextureCache
-import me.anno.fonts.Font
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
-import me.anno.video.MissingFrameException
+import me.anno.video.missingFrameException
 
 class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
     TextGroup(font, text, charSpacing) {
@@ -34,7 +34,10 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
             val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) {
                 CacheData(SignedDistanceField.createTexture(font, text, roundCorners))
             } as? CacheData<*>
-            if (isFinalRendering && cacheData == null) throw MissingFrameException("TextSDFGroup")
+            if (isFinalRendering && cacheData == null) {
+                missingFrameException = "TextSDFGroup"
+                return
+            }
             val textSDF = cacheData?.value as? TextSDF
             val texture = textSDF?.texture
             if (texture?.wasCreated == true) {
@@ -59,7 +62,10 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
                 val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
                 CacheData(texture)
             } as? CacheData<*>
-            if (isFinalRendering && cacheData == null) throw MissingFrameException("TextSDFGroup, $codepoint")
+            if (isFinalRendering && cacheData == null) {
+                missingFrameException = "TextSDFGroup, $codepoint"
+                return
+            }
             val textSDF = cacheData?.value as? TextSDF
             drawBuffer.draw(null, textSDF, offset)
         }

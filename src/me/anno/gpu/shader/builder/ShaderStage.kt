@@ -3,7 +3,7 @@ package me.anno.gpu.shader.builder
 class ShaderStage(
     val callName: String,
     variables: List<Variable>,
-    val body: String
+    var body: String
 ) {
 
     constructor(callName: String, variables: List<Variable>, varyings: List<Variable>, vertex: Boolean, body: String) :

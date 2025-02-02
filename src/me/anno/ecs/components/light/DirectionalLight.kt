@@ -30,13 +30,13 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     // todo button to auto-position around scene
     //  (translation, scale)
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         if (cutoff == 0f) {
-            aabb.all()
+            dstUnion.all()
         } else {
             getLightPrimitive()
                 .getBounds()
-                .transformUnion(globalTransform, aabb)
+                .transformUnion(globalTransform, dstUnion)
         }
         return true
     }

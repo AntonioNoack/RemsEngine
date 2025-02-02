@@ -128,7 +128,7 @@ object RaycastMeshTest {
         assertEquals(min(expectedDistance, 1e38f), min(distance, 1e38f), 1e-3f)
 
         val hit = RaycastMesh.raycastLocalMesh(mesh, pos, dir, maxDistance, typeMask, null, false)
-        assertEquals(distance.isFinite(), hit)
+        assertEquals(distance.isFinite(), hit.isFinite())
     }
 
     fun checkGlobalHit(

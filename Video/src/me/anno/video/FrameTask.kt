@@ -17,6 +17,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
@@ -116,12 +117,12 @@ abstract class FrameTask(
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
             GFXState.useFrame(0, 0, width, height, averageFrame) {
-                try {
-                    renderScene(time, true, renderer)
-                    if (!GFX.isFinalRendering) throw IllegalStateException()
-                } catch (e: MissingFrameException) {
+                missingFrameException = null
+                renderScene(time, true, renderer)
+                assertTrue(GFX.isFinalRendering)
+                if (missingFrameException != null) {
                     // e.printStackTrace()
-                    missingResource = e.message ?: ""
+                    missingResource = missingFrameException ?: ""
                     needsMoreSources = true
                 }
             }
@@ -134,16 +135,15 @@ abstract class FrameTask(
                 while (i++ < motionBlurSteps && !needsMoreSources) {
                     FBStack.reset(width, height)
                     GFXState.useFrame(partialFrame, renderer) {
-                        try {
-                            renderScene(
-                                time + (i - motionBlurSteps / 2f) * shutterPercentage / (fps * motionBlurSteps),
-                                true,
-                                renderer
-                            )
-                            if (!GFX.isFinalRendering) throw IllegalStateException()
-                        } catch (e: MissingFrameException) {
+                        renderScene(
+                            time + (i - motionBlurSteps / 2f) * shutterPercentage / (fps * motionBlurSteps),
+                            true,
+                            renderer
+                        )
+                        assertTrue(GFX.isFinalRendering)
+                        if (missingFrameException != null) {
                             // e.printStackTrace()
-                            missingResource = e.message ?: ""
+                            missingResource = missingFrameException ?: ""
                             needsMoreSources = true
                         }
                     }

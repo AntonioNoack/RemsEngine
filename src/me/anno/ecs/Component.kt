@@ -65,7 +65,7 @@ abstract class Component : PrefabSaveable() {
      * returns whether it needs any space in the AABBs for visibility updates / rendering
      * if so, it fills the global transform with its bounds
      * */
-    open fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean = false
+    open fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean = false
 
     open fun invalidateAABB() {
         entity?.invalidateOwnAABB()

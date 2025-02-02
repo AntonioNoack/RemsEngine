@@ -122,7 +122,7 @@ class ProjectionTests {
         for (i in 0 until 100) {
             // test float method
             dir1.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).normalize()
-            pos1.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).mul(3f).sub(dir1)
+            pos1.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f).mul(5f).sub(dir1)
             bounds1.setMin(-rnd.nextFloat(), -rnd.nextFloat(), -rnd.nextFloat())
             bounds1.setMax(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat())
             val hit1 = projectRayToAABBBack(pos1, dir1, bounds1, dst1)

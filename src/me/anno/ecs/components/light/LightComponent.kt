@@ -105,8 +105,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         return super.fill(pipeline, transform, clickId)
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        getLightPrimitive().getBounds().transformUnion(globalTransform, aabb)
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        getLightPrimitive().getBounds().transformUnion(globalTransform, dstUnion)
         return true
     }
 

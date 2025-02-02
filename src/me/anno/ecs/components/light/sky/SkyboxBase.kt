@@ -85,8 +85,8 @@ open class SkyboxBase : CollidingComponent(), Renderable {
 
     open fun getMesh() = mesh
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.all() // skybox is visible everywhere
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        dstUnion.all() // skybox is visible everywhere
         return true
     }
 

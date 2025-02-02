@@ -67,9 +67,9 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         entity.invalidateCollisionMask()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         val tmp = JomlPools.vec3d.create()
-        union(globalTransform, aabb, tmp, false)
+        union(globalTransform, dstUnion, tmp, false)
         JomlPools.vec3d.sub(1)
         return true
     }

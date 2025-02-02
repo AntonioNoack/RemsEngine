@@ -1,12 +1,17 @@
 package me.anno.ecs.components.sprite
 
-import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.EditorField
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
@@ -15,20 +20,37 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.chunks.cartesian.IntArrayChunkSystem
+import me.anno.input.Input
+import me.anno.io.base.BaseWriter
 import org.joml.AABBf
+import org.joml.Matrix4x3d
 import org.joml.Vector2i
+import org.joml.Vector3d
+import kotlin.math.floor
+import kotlin.math.sign
 
-class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
-    listOf(
-        Attribute("coordsI", AttributeType.SINT16, 2, true),
-        Attribute("spriteI", AttributeType.SINT16, 2, true),
-    ),
-    spriteVertexData,
-    DrawMode.TRIANGLES,
-), OnUpdate {
+/**
+ * Renderer for sprites; one z-layer; supports an atlas with upto 256x256 tiles.
+ * The tile layout can be configured inside the material.
+ *
+ * For large worlds, you need a chunk-manager to load/unload them dynamically.
+ * */
+class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(attributes, spriteVertexData, DrawMode.TRIANGLES),
+    OnUpdate, CustomEditMode {
 
     companion object {
+
+        private val attributes = listOf(
+            Attribute("coordsI", AttributeType.SINT16, 2, true),
+            Attribute("spriteI", AttributeType.SINT16, 2, true),
+        )
+
+        private const val SPRITE_BITS_X = 5
+        private const val SPRITE_BITS_Y = 5
+
+        private const val SPRITE_SIZE_X = 1 shl SPRITE_BITS_X
+        private const val SPRITE_SIZE_Y = 1 shl SPRITE_BITS_Y
+
         val spriteVertexData = MeshVertexData(
             listOf(
                 ShaderStage(
@@ -36,10 +58,11 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
                         Variable(GLSLType.V2I, "coordsI", VariableMode.ATTR),
                         Variable(GLSLType.V2I, "spriteI", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
-                        Variable(GLSLType.V2F, "uv", VariableMode.OUT),
-                        Variable(GLSLType.V2I, "textureTileCount")
+                        Variable(GLSLType.V1I, "spriteIndex", VariableMode.OUT),
+                        Variable(GLSLType.V2F, "uv", VariableMode.OUT)
                     ), "localPosition = vec3(vec2(coordsI),0.0);\n" +
-                            "uv = vec2(spriteI) / vec2(textureTileCount);\n"
+                            "spriteIndex = spriteI.x;\n" +
+                            "uv = vec2(spriteI.y & 1, (spriteI.y>>1) & 1);\n"
                 )
             ),
             listOf(
@@ -62,16 +85,40 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
         )
     }
 
+    // todo sprite-frustum-culling is behaving incorrectly!!!
+
     override fun getData(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer? {
-        val k = material.textureTileCount.x
-        if (mesh.positions.isEmpty() || k < 1) return null
-        val buffer = StaticBuffer("sprites", attributes, mesh.positions.size * 6)
-        mesh.fillBuffer(chunks, key, buffer, k)
+        val k = material.numTiles.x
+        if (mesh.entries.isEmpty() || k < 1) return null
+        val buffer = StaticBuffer("sprites", attributes, mesh.numPrimitives.toInt())
+        mesh.fillBuffer(SPRITE_BITS_X, SPRITE_BITS_Y, key, buffer)
         return buffer
     }
 
-    override fun getTransformAndMaterial(key: Vector2i, transform: Transform): Material {
-        return material
+    @EditorField
+    @NotSerializedProperty
+    @Range(0.0, 65535.0)
+    @Docs("Used for edit mode: which tile to place")
+    var drawingId = 0
+
+    /**
+     * Allows/Implements painting in the editor.
+     * */
+    override fun onEditMove(x: Float, y: Float, dx: Float, dy: Float): Boolean {
+        if (!Input.isLeftDown && !Input.isRightDown) return false
+        // project ray onto this
+        val globalTransform = transform?.globalTransform?.invert(Matrix4x3d())
+            ?: Matrix4x3d()
+        val ri = RenderView.currentInstance ?: return false
+        val pos = globalTransform.transformPosition(ri.cameraPosition, Vector3d())
+        val dir = globalTransform.transformDirection(ri.mouseDirection, Vector3d())
+        if (dir.z * sign(pos.z) > 0.0) return false
+        val distance = -pos.z / dir.z
+        val posX = floor(pos.x + dir.x * distance).toInt()
+        val posY = floor(pos.y + dir.y * distance).toInt()
+        // set tile to drawingId
+        setSprite(posX, posY, if (Input.isLeftDown) drawingId else -1)
+        return true
     }
 
     @SerializedProperty
@@ -84,63 +131,114 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
     // todo define collision shapes/polygons for each tile
 
     // stores, which sprites are placed where; 0 = nothing
-    val chunks = IntArrayChunkSystem(5, 5, 0, 0)
+    val chunks = HashMap<Vector2i, SpriteChunk>()
     val invalidChunks = HashSet<Vector2i>()
-
-    // todo (de)serialize stuff
-
-    // todo edit mode, where you can paint it
-
-    // todo two chunk systems; one all, one visible (?)
-    //  -> good for larger worlds when we have a good 2d-camera
 
     fun setSprite(x: Int, y: Int, spriteId: Int) {
         val value = spriteId + 1
-        chunks.setElementAt(x, y, 0, value != 0, value)
-        invalidChunks.add(Vector2i(x shr chunks.bitsX, y shr chunks.bitsY))
+        val key = getKey(x, y)
+        val chunk = getChunkAt(key, value > 0) ?: return
+        chunk.values[getLocalIndex(x, y)] = value
+        invalidChunks.add(key)
     }
 
-    fun getSprite(x: Int, y: Int, generateIfMissing: Boolean = false): Int {
-        val value = chunks.getElementAt(x, y, 0, generateIfMissing) ?: 0
-        return value - 1
+    fun getSprite(x: Int, y: Int): Int {
+        val chunk = getChunkAt(getKey(x, y), false) ?: return -1
+        return chunk.values[getLocalIndex(x, y)] - 1
+    }
+
+    private fun getLocalIndex(x: Int, y: Int): Int {
+        val lx = x and (SPRITE_SIZE_X - 1)
+        val ly = y and (SPRITE_SIZE_Y - 1)
+        return lx + ly.shl(SPRITE_BITS_X)
+    }
+
+    private fun getKey(x: Int, y: Int): Vector2i {
+        return Vector2i(x shr SPRITE_BITS_X, y shr SPRITE_BITS_Y)
+    }
+
+    fun getChunkAt(key: Vector2i, generateIfMissing: Boolean): SpriteChunk? {
+        return if (generateIfMissing) chunks.getOrPut(key) {
+            SpriteChunk(key, IntArray(SPRITE_SIZE_X * SPRITE_SIZE_Y))
+        } else chunks[key]
     }
 
     override fun onUpdate() {
-        for (key in invalidChunks) {
-            val bounds = AABBf()
-            val chunk = chunks.getChunk(key.x, key.y, 0, true)!!
-            val count = chunk.count { it != 0 }
-            if (count > 0) {
-                val positions = ShortArray(count)
-                val sprites = IntArray(count)
-                var i = 0
-                var j = 0
-                for (y in 0 until chunks.sizeY) {
-                    for (x in 0 until chunks.sizeX) {
-                        val id = chunk[i] - 1
-                        if (id >= 0) {
-                            positions[j] = i.toShort()
-                            sprites[j] = id
-                            bounds.union(x.toFloat(), y.toFloat(), 0f)
-                            j++
-                        }
-                        i++
-                    }
+        validateChunks()
+    }
+
+    private fun validateChunks() {
+        if (invalidChunks.isEmpty()) return // skip allocating iterator
+        invalidChunks.forEach(::validateChunk)
+        invalidChunks.clear()
+    }
+
+    private fun validateChunk(key: Vector2i) {
+        val chunk = chunks[key]?.values ?: return
+        val count = chunk.count { it != 0 }
+        if (count > 0) {
+            val entry = createMeshData(key, chunk, count)
+            set(key, entry)
+        } else {
+            remove(key, true)
+        }
+    }
+
+    private fun createMeshData(key: Vector2i, chunk: IntArray, count: Int): MeshEntry<SpriteMeshLike> {
+        val bounds = AABBf()
+        val data = IntArray(count)
+        fillMeshData(chunk, data, bounds)
+        val dx = key.x.shl(SPRITE_BITS_X).toFloat()
+        val dy = key.y.shl(SPRITE_BITS_Y).toFloat()
+        bounds.minX += dx
+        bounds.minY += dy
+        bounds.maxX += dx + 1f // extend bounds for 1x1-sized cells
+        bounds.maxY += dy + 1f
+        val mesh = SpriteMeshLike(data, bounds, materials)
+        val buffer = getData(key, mesh)!!
+        return MeshEntry(mesh, bounds, buffer)
+    }
+
+    private fun fillMeshData(srcChunk: IntArray, dstData: IntArray, dstBounds: AABBf) {
+        var posIndex = 0
+        var j = 0
+        for (y in 0 until SPRITE_SIZE_Y) {
+            for (x in 0 until SPRITE_SIZE_X) {
+                val id = srcChunk[posIndex] - 1
+                if (id >= 0) {
+                    dstData[j] = posIndex.shl(16) or id
+                    dstBounds.union(x.toFloat(), y.toFloat(), 0f)
+                    j++
                 }
-                val dx = key.x.shl(chunks.bitsX).toFloat()
-                val dy = -key.y.shl(chunks.bitsY).toFloat()
-                bounds.minX += dx
-                bounds.minY += dy
-                bounds.maxX += dx + 1f // extend bounds for 1x1-sized cells
-                bounds.maxY += dy + 1f
-                val mesh = SpriteMeshLike(positions, sprites, bounds, materials)
-                val buffer = getData(key, mesh)!!
-                val entry = MeshEntry(mesh, bounds, buffer)
-                set(key, entry)
-            } else {
-                remove(key, true)
+                posIndex++
             }
         }
-        invalidChunks.clear()
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObject(this, "material", material)
+        writer.writeObjectList(this, "chunks", chunks.values.toList())
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "chunks" -> {
+                if (value !is List<*>) return
+                for (vi in value.indices) {
+                    val chunk = value[vi] as? SpriteChunk ?: continue
+                    chunks[chunk.key] = chunk
+                }
+            }
+            "material" -> material = value as? SpriteMaterial ?: return
+            else -> super.setProperty(name, value)
+        }
+    }
+
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        if (dst !is SpriteLayer || dst === this) return
+        dst.chunks.clear()
+        dst.chunks.putAll(chunks.mapValues { it.value.clone() })
     }
 }

@@ -36,7 +36,6 @@ import org.joml.Vector2d.Companion.lengthSquared
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.junit.jupiter.api.Test
 import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMeshQuery
@@ -98,8 +97,8 @@ class RecastTests {
             debugPoints.add(DebugPoint(Vector3d(target), 0xffaa33 or black, 1e3f))
         }
 
-        override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-            aabb.all()
+        override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+            dstUnion.all()
             return true
         }
 

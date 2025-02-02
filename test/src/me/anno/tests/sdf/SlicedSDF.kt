@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -61,8 +60,8 @@ fun main() {
         }
 
         // todo use AABB for calculation
-        override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-            return super.fillSpace(globalTransform, aabb)
+        override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+            return super.fillSpace(globalTransform, dstUnion)
         }
 
         override fun generateMesh(mesh: Mesh) {

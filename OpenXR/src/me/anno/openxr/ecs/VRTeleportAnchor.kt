@@ -5,9 +5,9 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 
 class VRTeleportAnchor : Component() {
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         val s = 0.5
-        AABBd(-s, -s, -s, s, s, s).transformUnion(globalTransform, aabb)
+        AABBd(-s, -s, -s, s, s, s).transformUnion(globalTransform, dstUnion)
         return true
     }
 }

@@ -67,8 +67,8 @@ class Camera : Component(), OnDrawGUI {
         }
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.union(globalTransform.getTranslation(Vector3d()))
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        dstUnion.union(globalTransform.getTranslation(Vector3d()))
         return true
     }
 

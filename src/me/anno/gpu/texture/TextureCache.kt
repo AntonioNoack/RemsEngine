@@ -1,8 +1,9 @@
 package me.anno.gpu.texture
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.ICacheData
 import me.anno.cache.IgnoredException
+import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.raw.GPUImage
@@ -12,7 +13,9 @@ import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.utils.OS
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2i
 import kotlin.math.sqrt
 
 /**
@@ -111,19 +114,58 @@ object TextureCache : CacheSection("Texture") {
         return entry
     }
 
-    @Suppress("unused") // used in Rem's Studio
-    fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
-        val key = Triple("LUT", file, file.lastModified)
-        val texture = getEntry(key, timeout, asyncGenerator, TextureCache::generateLUT) as? Texture3D
-        return if (texture?.wasCreated == true) texture else null
+    data class FileTriple<V>(val file: FileReference, val lastModified: Long, val type: V) {
+        constructor(file: FileReference, type: V) : this(file, file.lastModified, type)
     }
 
-    private fun generateLUT(key: Triple<String, FileReference, Long>): ICacheData {
-        val file = key.second
-        val img = ImageCache[file, false]!!
+    @Suppress("unused") // used in Rem's Studio
+    fun getLUT(file: FileReference, async: Boolean, timeoutMillis: Long = 5000): Texture3D? {
+        // todo specialized function to invalid LUTs if the file changes???
+        val key = FileTriple(file, "LUT")
+        val texture = getEntry(key, timeoutMillis, async, TextureCache::generateLUT)
+        if (!async) texture?.waitFor()
+        return texture?.value?.createdOrNull() as? Texture3D
+    }
+
+    private fun generateLUT(key: FileTriple<*>): AsyncCacheData<Texture3D> {
+        val file = key.file
+        val result = AsyncCacheData<Texture3D>()
+        ImageCache.getAsync(file, timeoutMillis, true, result.map { img ->
+            createLUT(file, img)
+        })
+        return result
+    }
+
+    private fun createLUT(file: FileReference, img: Image): Texture3D {
         val size = sqrt(img.width + 0.5f).toInt()
-        val tex = Texture3D("lut-${file.name}", size, img.height, size)
-        tex.create(img, false)
-        return tex
+        return Texture3D("lut-${file.name}", size, img.height, size)
+            .create(img, false)
+    }
+
+    fun getTextureArray(
+        file: FileReference, numTiles: Vector2i,
+        async: Boolean, timeoutMillis: Long = TextureCache.timeoutMillis
+    ): Texture2DArray? {
+        val key = FileTriple(file, numTiles)
+        val texture = getEntry(key, timeoutMillis, async, TextureCache::generateTextureArray)
+        if (!async) texture?.waitFor()
+        return texture?.value?.createdOrNull() as? Texture2DArray
+    }
+
+    private fun generateTextureArray(key: FileTriple<Vector2i>): AsyncCacheData<Texture2DArray> {
+        val file = key.file
+        val result = AsyncCacheData<Texture2DArray>()
+        ImageCache.getAsync(file, timeoutMillis, true, result.map { img ->
+            createTextureArray(file, img, key.type)
+        })
+        return result
+    }
+
+    private fun createTextureArray(file: FileReference, img: Image, numTiles: Vector2i): Texture2DArray {
+        return Texture2DArray(
+            "spite-${file.name}-$numTiles",
+            img.width / numTiles.x, img.height / numTiles.y,
+            numTiles.x * numTiles.y
+        ).create(img.split(numTiles.x, numTiles.y), false)
     }
 }

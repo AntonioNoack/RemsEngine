@@ -271,8 +271,8 @@ fun main() {
                 return clickId
             }
 
-            override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-                aabb.all()
+            override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+                dstUnion.all()
                 return true
             }
 

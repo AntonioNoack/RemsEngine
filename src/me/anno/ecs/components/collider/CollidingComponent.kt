@@ -22,7 +22,7 @@ abstract class CollidingComponent : Component() {
      * */
     open fun raycast(query: RayQuery): Boolean = false
 
-    abstract override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean
+    abstract override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

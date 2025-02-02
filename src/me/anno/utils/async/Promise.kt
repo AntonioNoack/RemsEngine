@@ -1,6 +1,7 @@
 package me.anno.utils.async
 
 import me.anno.cache.IgnoredException
+import me.anno.utils.assertions.assertNull
 
 
 open class Promise<V : Any> {
@@ -129,7 +130,7 @@ open class Promise<V : Any> {
 
     @Suppress("UNCHECKED_CAST")
     private fun <W : Any> linkToNext(next1: Promise<W>) {
-        if (next1.prevPromise != null) throw IllegalStateException()
+        assertNull(next1.prevPromise, "next1.prevPromise must be null")
         val next0 = nextPromise as? Promise<W>
         if (next0 != null) {
             // this -> [next0...] -> next1

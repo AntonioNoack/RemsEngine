@@ -123,10 +123,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return if (clickId == searchedId) this else null
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         val mesh = getMesh()
         if (mesh != null) {
-            fillSpaceSet(mesh, globalTransform, aabb)
+            fillSpaceSet(mesh, globalTransform, dstUnion)
         }
         return true
     }

@@ -19,6 +19,9 @@ fun interface Callback<V> {
 
     companion object {
 
+        /**
+         * returns a callback, this calls the original callback after mapping the value synchronously
+         * */
         fun <V, W> Callback<V>.map(valueMapping: (W) -> V): Callback<W> {
             return Callback { value, err ->
                 call(if (value != null) valueMapping(value) else null, err)
