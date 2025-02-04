@@ -7,7 +7,6 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -356,8 +355,8 @@ abstract class TreeView<V : Any>(
         return child
     }
 
-    open fun moveChange(run: () -> Unit) {
-        run()
+    open fun moveChange(callback: () -> Unit) {
+        callback()
     }
 
     abstract fun isValidElement(element: Any?): Boolean

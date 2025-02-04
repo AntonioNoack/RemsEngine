@@ -10,13 +10,12 @@ import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
-import java.nio.FloatBuffer
 
-fun toBytes(data: FloatBuffer): ByteArray {
+fun toBytes(data: FloatArray): ByteArray {
     val bos = ByteArrayOutputStream()
     val output = DataOutputStream(bos)
-    for (index in 0 until data.capacity()) {
-        output.writeByte(data[index].toInt())
+    for (element in data) {
+        output.writeByte(element.toInt())
     }
     output.flush()
     return bos.toByteArray()
@@ -48,5 +47,4 @@ fun main() {
     }
 
     Engine.requestShutdown()
-
 }

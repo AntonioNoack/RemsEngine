@@ -58,12 +58,12 @@ open class BinaryWriter(val output: OutputStream, workspace: FileReference) : Ba
     private var currentClass = ""
     private var currentNameTypes = knownNameTypes.getOrPut(currentClass, ::HashMap)
 
-    private fun usingType(type: String, run: () -> Unit) {
+    private inline fun usingType(type: String, callback: () -> Unit) {
         val old1 = currentClass
         val old2 = currentNameTypes
         currentClass = type
         currentNameTypes = knownNameTypes.getOrPut(type) { HashMap() }
-        run()
+        callback()
         currentClass = old1
         currentNameTypes = old2
     }

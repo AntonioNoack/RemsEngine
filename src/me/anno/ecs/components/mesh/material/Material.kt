@@ -358,7 +358,7 @@ open class Material : PrefabSaveable(), Renderable {
 
         val defaultMaterial = Material()
 
-        fun getTex(image: FileReference): ITexture2D? = TextureCache[image, timeout, true]
+        fun getTex(image: FileReference): ITexture2D? = TextureCache[image, timeout, true]?.createdOrNull()
 
         fun bindTexture(shader: Shader, name: String, file: FileReference, default: ITexture2D): ITexture2D? {
             val index = shader.getTextureIndex(name)

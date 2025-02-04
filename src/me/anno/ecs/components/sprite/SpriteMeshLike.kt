@@ -16,10 +16,10 @@ class SpriteMeshLike(
     override val materials: List<FileReference>
 ) : IMesh {
 
+    override val numMaterials: Int get() = 1
     override val numPrimitives: Long get() = entries.size * 6L
     override fun ensureBuffer() {}
     override fun getBounds(): AABBf = localBounds
-    override val numMaterials: Int get() = 1
 
     override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         // not implemented

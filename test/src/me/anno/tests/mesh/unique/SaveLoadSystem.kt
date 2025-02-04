@@ -21,8 +21,8 @@ class SaveLoadSystem(name: String) {
         return listOf("${chunkId.x},${chunkId.y},${chunkId.z}")
     }
 
-    fun get(chunkId: Vector3i, async: Boolean, callback: (HashMap<Vector3i, Byte>) -> Unit) {
-        db.get(getPath(chunkId), hash, async) { slice ->
+    fun get(chunkId: Vector3i, callback: (HashMap<Vector3i, Byte>) -> Unit) {
+        db.get(getPath(chunkId), hash) { slice, _ ->
             if (slice != null) {
                 slice.stream().use { stream ->
                     val answer = HashMap<Vector3i, Byte>()

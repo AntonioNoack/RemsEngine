@@ -52,13 +52,13 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
      * defines what the world looks like for Raycasting,
      * and for AABBs
      * */
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
         var i = 0
         for ((key, entry) in entryLookup) {
             val transform = getTransform(i++)
             val material = getTransformAndMaterial(key, transform)
             val mesh = entry.mesh ?: continue
-            if (run(mesh, material, transform)) break
+            if (callback(mesh, material, transform)) break
         }
     }
 

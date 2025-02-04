@@ -12,6 +12,8 @@ import me.anno.gpu.shader.builder.Variable
  * kills small details and corners, but the edges look better :)
  * */
 object SDFAvgShader : ECSMeshShader("SDF-AVG") {
+    // todo the text is too small with small text sizes:
+    //  before reading a value, we first need to blur the texture...
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
@@ -41,7 +43,8 @@ object SDFAvgShader : ECSMeshShader("SDF-AVG") {
                         clearCoatCalculation +
                         reflectionCalculation +
                         finalMotionCalculation
-            ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping).add(RendererLib.getReflectivity)
+            ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
+                .add(RendererLib.getReflectivity)
         )
     }
 }

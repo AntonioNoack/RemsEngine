@@ -37,12 +37,12 @@ object SimpleExpressionParser {
         j++
         when (this.getOrNull(j)) {
             '+', '-' -> j++
-            in '0'..'9' -> Unit
-            null -> throw RuntimeException("Number without full exponent!")
+            in '0'..'9' -> {}
+            null -> LOGGER.warn("Number without full exponent/1!")
         }
         when (this.getOrNull(j)) {
             in '0'..'9' -> j++
-            null -> throw RuntimeException("Number without full exponent!")
+            null -> LOGGER.warn("Number without full exponent!")
         }
         while (j < length) {
             when (this[j]) {
@@ -91,7 +91,7 @@ object SimpleExpressionParser {
                             in allowedDigits -> {
                             }
                             '.' -> {
-                                if (hadComma) throw NumberFormatException("Cannot have two commas in a number")
+                                if (hadComma) LOGGER.warn("Cannot have two commas in a number")
                                 hadComma = true
                             }
                             // to do binary exponent (?), would be written with p, number before is hex, number after is decimal; power is 2
@@ -107,8 +107,8 @@ object SimpleExpressionParser {
                         10 -> number.toDoubleOrNull()
                         22 -> number.toLongOrNull(16)?.toDouble()
                         2 -> number.toLongOrNull(2)?.toDouble()
-                        else -> throw NotImplementedError()
-                    } ?: throw NumberFormatException("Invalid number: $number")
+                        else -> NumberFormatException("Unknown number format: $number")
+                    } ?: NumberFormatException("Invalid number: $number")
                     i = j - 1
                     i0 = i + 1
                 }
@@ -122,7 +122,7 @@ object SimpleExpressionParser {
                         list += when (char) {
                             '<' -> "<="
                             '>' -> ">="
-                            else -> throw RuntimeException()
+                            else -> RuntimeException("Unknown symbol $char=")
                         }
                         i++
                         i0++
@@ -412,7 +412,10 @@ object SimpleExpressionParser {
             if (indices.isClosed && indices.data.size < 2) {
                 val value = when (val index = indices.data.getOrNull(0) ?: 0.0) {
                     is Double -> vector[index]
-                    else -> throw RuntimeException("Index type $index not (yet) supported!")
+                    else -> {
+                        LOGGER.warn("Index type $index not (yet) supported!")
+                        continue@loop
+                    }
                 } ?: 0.0
                 removeAt(i)
                 this[i - 1] = value

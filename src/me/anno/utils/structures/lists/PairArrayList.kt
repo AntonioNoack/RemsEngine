@@ -30,9 +30,9 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
         removeAt(size - 1, keepOrder)
     }
 
-    inline fun <V> mapFirstNotNull(run: (a: First, b: Second) -> V?): V? {
+    inline fun <V> mapFirstNotNull(mapEntry: (a: First, b: Second) -> V?): V? {
         for (i in 0 until size) {
-            val v = run(getFirst(i), getSecond(i))
+            val v = mapEntry(getFirst(i), getSecond(i))
             if (v != null) return v
         }
         return null

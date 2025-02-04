@@ -11,6 +11,8 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
 import me.anno.io.zip.internal.RarVolume
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
@@ -25,41 +27,44 @@ class InnerRarFile(
     companion object {
 
         @JvmStatic
-        fun fileFromStreamRar(file: FileReference): Archive {
-            return if (file is FileFileRef) {
-                Archive(file.file)
+        fun fileFromStreamRar(file: FileReference, callback: Callback<Archive>) {
+            if (file is FileFileRef) {
+                callback.ok(Archive(file.file))
             } else {
-                // probably for loading a set of files,
-                // which will/would be combined into a single one
-                Archive { archive, volume ->
-                    // see FileArchive as an example
-                    if (volume == null) {
-                        RarVolume(archive, file)
-                    } else TODO("joined rar-s not yet supported")
-                }
+                file.readBytes(callback.map { bytes ->
+                    // probably for loading a set of files,
+                    // which will/would be combined into a single one
+                    Archive { archive, volume ->
+                        // see FileArchive as an example
+                        if (volume == null) {
+                            RarVolume(archive, file, bytes)
+                        } else TODO("joined rar-s not yet supported")
+                    }
+                })
             }
         }
 
         @JvmStatic
         fun createZipRegistryRar(
             zipFileLocation: FileReference,
-            getStream: () -> Archive
-        ): InnerFolder {
+            callback: Callback<InnerFolder>,
+            archive: Archive
+        ) {
             val (file, registry) = createMainFolder(zipFileLocation)
             var hasReadEntry = false
             var e: Exception? = null
             try {
-                val zis = getStream()
-                if (zis.isEncrypted) {
+                if (archive.isEncrypted) {
                     file.isEncrypted = true
-                    throw IOException("RAR is encrypted")
+                    callback.err(IOException("RAR is encrypted"))
+                    return
                 }
                 while (true) {
-                    val entry = zis.nextFileHeader() ?: break
+                    val entry = archive.nextFileHeader() ?: break
                     hasReadEntry = true
-                    createEntryRar(zipFileLocation.absolutePath, zis, entry, registry)
+                    createEntryRar(zipFileLocation.absolutePath, archive, entry, registry)
                 }
-                zis.close()
+                archive.close()
             } catch (e2: IOException) {
                 e = e2
                 // e.printStackTrace()
@@ -67,7 +72,8 @@ class InnerRarFile(
                 e = e2
                 // e.printStackTrace()
             }
-            return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
+            if (hasReadEntry) callback.ok(file)
+            else callback.err(e ?: IOException("Zip was empty"))
         }
 
         @JvmStatic

@@ -52,17 +52,16 @@ open class UITests {
         release(key, cp)
     }
 
+    fun click(button: Key) {
+        type(button)
+    }
+
     fun updateKeyModState() {
         Input.keyModState =
             (isKeyDown(Key.KEY_LEFT_CONTROL) || isKeyDown(Key.KEY_RIGHT_CONTROL)).toInt(GLFW.GLFW_MOD_CONTROL) or
                     (isKeyDown(Key.KEY_LEFT_SHIFT) or isKeyDown(Key.KEY_RIGHT_SHIFT)).toInt(GLFW.GLFW_MOD_SHIFT) or
                     (isKeyDown(Key.KEY_LEFT_ALT) or isKeyDown(Key.KEY_RIGHT_ALT)).toInt(GLFW.GLFW_MOD_ALT) or
                     (isKeyDown(Key.KEY_LEFT_SUPER) or isKeyDown(Key.KEY_RIGHT_SUPER)).toInt(GLFW.GLFW_MOD_SUPER)
-    }
-
-    fun click(button: Key) {
-        Input.onMousePress(osWindow, button)
-        Input.onMouseRelease(osWindow, button)
     }
 
     fun moveMouseTo(panel: Panel) {

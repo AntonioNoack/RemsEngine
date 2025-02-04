@@ -30,15 +30,15 @@ fun main() {
     }
     val mesh = Shapes.flatCube.front
     val spawner = object : MeshSpawner() {
-        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
+        override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
             for (tr in transforms) {
-                if (run(mesh, null, tr)) break
+                if (callback(mesh, null, tr)) break
             }
         }
 
-        override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> FloatArrayList): Boolean {
+        override fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList): Boolean {
             return if (Input.isShiftDown) {
-                val data = run(mesh, null)
+                val data = callback(mesh, null)
                 data.ensureExtra(transforms.size * 8)
                 for (tr in transforms) {
                     data.add(tr.localPosition)

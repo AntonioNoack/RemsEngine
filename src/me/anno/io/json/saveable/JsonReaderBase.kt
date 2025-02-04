@@ -950,9 +950,9 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return instance
     }
 
-    private inline fun <V> readWithBrackets(name: String, run: () -> V): V {
+    private inline fun <V> readWithBrackets(name: String, readingFunction: () -> V): V {
         assertEquals(skipSpace(), '[', name)
-        val value = run()
+        val value = readingFunction()
         assertEquals(skipSpace(), ']', name)
         return value
     }

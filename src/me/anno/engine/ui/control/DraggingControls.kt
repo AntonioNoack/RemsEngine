@@ -325,7 +325,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         renderView.radius = 10.0
         renderView.near = 1e-3
         renderView.far = 1e10
-        camera.fovOrthographic = 5f
+        camera.fovOrthographic = 5.0
         camera.fovY = 90f
         camera.isPerspective = true
         rotationTargetDegrees.set(0.0)
@@ -340,7 +340,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             "Cam5" -> {// switch between orthographic and perspective
                 // switch between ortho and perspective
                 camera.isPerspective = !camera.isPerspective
-                camera.fovOrthographic = renderView.radius.toFloat()
+                camera.fovOrthographic = renderView.radius
             }
             // todo control + numpad does not work
             "Cam1" -> rotateCameraTo(Vector3f(0f, if (Input.isControlDown) 180f else 0f, 0f))// default view

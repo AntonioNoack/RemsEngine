@@ -162,7 +162,10 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
             Attribute("coords", 2)
         )
 
-        const val DEFAULT_LINE_HEIGHT = 0.2f
+        // todo also move defaultLineHeight into TextMeshGroup:
+        //  why would the default text size be 0.2???
+        //  todo add this 0.2-scale back into Rem's Studio
+        const val DEFAULT_LINE_HEIGHT = 1f
 
         private fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
             for (inner in innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }) {

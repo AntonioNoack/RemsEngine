@@ -68,14 +68,12 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         }
     }
 
-    fun bind(run: () -> Unit) {
+    fun bind(callback: () -> Unit) {
         if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
             GFXState.blendMode.use(blendMode) {
                 GFXState.depthMode.use(depthMode) {
                     GFXState.depthMask.use(writeDepth) {
-                        GFXState.cullMode.use(cullMode) {
-                            run()
-                        }
+                        GFXState.cullMode.use(cullMode, callback)
                     }
                 }
             }

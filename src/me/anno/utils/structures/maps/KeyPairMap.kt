@@ -103,11 +103,10 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         }
     }
 
-    @Suppress("unused")
-    fun replaceValues(run: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
+    fun replaceValues(callback: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
         var changed = 0
         for ((k1, k2s) in values) {
-            changed += k2s.replaceSeconds { a, b -> run(k1, a, b) }
+            changed += k2s.replaceSeconds { a, b -> callback(k1, a, b) }
         }
         return changed
     }

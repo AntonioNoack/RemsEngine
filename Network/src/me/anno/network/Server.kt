@@ -301,7 +301,7 @@ open class Server : Closeable {
         return null
     }
 
-    fun forAllClients(run: (TCPClient) -> Unit) {
+    fun forAllClients(callback: (TCPClient) -> Unit) {
         val clients = clients
         var size = clients.size
         var index = 0
@@ -309,7 +309,7 @@ open class Server : Closeable {
             val client = clients.getSafe(index)
             if (client != null) {
                 try {
-                    run(client)
+                    callback(client)
                 } catch (e: IOException) {
                     removeClient(client)
                     client.close()
@@ -322,10 +322,10 @@ open class Server : Closeable {
     }
 
     @Suppress("unused")
-    fun forAllClientsSync(run: (TCPClient) -> Unit) {
+    fun forAllClientsSync(callback: (TCPClient) -> Unit) {
         val clients = clients
         synchronized(clients) {
-            forAllClients(run)
+            forAllClients(callback)
         }
     }
 

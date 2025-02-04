@@ -18,6 +18,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
+import me.anno.utils.Sleep
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
@@ -48,7 +49,8 @@ fun main() {
     val world = object : TestWorld() {
         override fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray) {
             super.generateChunk(chunkX, chunkY, chunkZ, chunk)
-            saveSystem.get(Vector3i(chunkX, chunkY, chunkZ), false) { data ->
+            var hasAnswer = false
+            saveSystem.get(Vector3i(chunkX, chunkY, chunkZ)) { data ->
                 for ((k, type) in data) {
                     if (k.x in 0 until sizeX &&
                         k.y in 0 until sizeY &&
@@ -59,7 +61,9 @@ fun main() {
                         LOGGER.warn("Out of bounds: $k/$type")
                     }
                 }
+                hasAnswer = true
             }
+            Sleep.waitUntil(true) { hasAnswer }
         }
     }
     world.timeoutMillis = 250

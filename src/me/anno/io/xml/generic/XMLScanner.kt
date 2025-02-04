@@ -2,7 +2,6 @@ package me.anno.io.xml.generic
 
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.utils.assertions.assertEquals
-import java.io.EOFException
 import java.io.Reader
 
 /**
@@ -100,7 +99,7 @@ open class XMLScanner : XMLReader() {
                         '<'.code -> depthI++
                         '"'.code -> input.skipString('"'.code)
                         '\''.code -> input.skipString('\''.code)
-                        -1 -> throw EOFException()
+                        -1 -> return RuntimeException("Unexpected end")
                     }
                 }
             }
@@ -153,12 +152,13 @@ open class XMLScanner : XMLReader() {
                                 onAttribute.handle(depth, type, "", child)
                                 next = '<'.code
                             }
-                            null -> throw RuntimeException()
+                            is Exception -> return child
+                            null -> return RuntimeException("Unexpected child type")
                             else -> {} // do nothing
                         }
                     }
                 }
-                else -> throw RuntimeException("Unknown end symbol ${end2.toChar()}")
+                else -> return RuntimeException("Unknown end symbol ${end2.toChar()}")
             }
         } else return readString(first, input)
     }

@@ -186,28 +186,28 @@ object Streams {
     // half precision floats might be added in the future (on request maybe)
 
     @JvmStatic
-    fun InputStream.readBE16(): Int {
+    fun InputStream.readBE16(default: Int = 0): Int {
         val a = read()
         val b = read()
-        if (a or b < 0) throw EOFException()
+        if (a or b < 0) return default
         return a.shl(8) + b
     }
 
     @JvmStatic
-    fun InputStream.readLE16(): Int {
+    fun InputStream.readLE16(default: Int = 0): Int {
         val a = read()
         val b = read()
-        if (a or b < 0) throw EOFException()
+        if (a or b < 0) return default
         return a + b.shl(8)
     }
 
     @JvmStatic
-    fun InputStream.readLE32(): Int {
+    fun InputStream.readLE32(default: Int = 0): Int {
         val a = read()
         val b = read()
         val c = read()
         val d = read()
-        if (a or b or c or d < 0) throw EOFException()
+        if (a or b or c or d < 0) return default
         return d.shl(24) + c.shl(16) + b.shl(8) + a
     }
 
@@ -219,12 +219,12 @@ object Streams {
     }
 
     @JvmStatic
-    fun InputStream.readBE32(): Int {
+    fun InputStream.readBE32(default: Int = 0): Int {
         val a = read()
         val b = read()
         val c = read()
         val d = read()
-        if (a or b or c or d < 0) throw EOFException()
+        if (a or b or c or d < 0) return default
         return a.shl(24) + b.shl(16) + c.shl(8) + d
     }
 

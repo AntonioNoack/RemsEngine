@@ -30,7 +30,6 @@ object FontManagerImpl {
         FontStats.getTextGeneratorImpl = FontManagerImpl::getTextGenerator
         FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
         FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
-        FontStats.getFontHeightImpl = FontManagerImpl::getTextHeight
         FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
         thread(name = "SubpixelLayout") { SubpixelOffsets.calculateSubpixelOffsets() }
     }
@@ -74,12 +73,6 @@ object FontManagerImpl {
         val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
         val ctx = FontRenderContext(null, true, true)
         return TextLayout(text, awtFont, ctx).bounds.maxX
-    }
-
-    private fun getTextHeight(font: me.anno.fonts.Font): Double {
-        val ctx = FontRenderContext(null, true, true)
-        val layout = TextLayout(".", (FontManager.getFont(font) as AWTFont).awtFont, ctx)
-        return (layout.ascent + layout.descent).toDouble()
     }
 
     private fun getDefaultFont(name: String): Font? {

@@ -26,7 +26,7 @@ class FocusTest : UITests() {
             val notHovered = if (i.hasFlag(1)) panel0 else panel1
 
             moveMouseTo(hovered)
-            type(Key.BUTTON_LEFT)
+            click(Key.BUTTON_LEFT)
             callMouseMove()
             updateUI()
 

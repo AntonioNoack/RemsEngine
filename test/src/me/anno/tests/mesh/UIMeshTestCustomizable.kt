@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.RingMeshModel.createRingMesh
-import me.anno.ecs.components.text.TextMeshComponent
+import me.anno.ecs.components.text.MeshTextComponent
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
@@ -72,7 +72,7 @@ class SimpleMeshTest(
             val angle = -i * TAU / 12 + ZERO_ANGLE
             val radius = 0.81
             Entity(rootEntity)
-                .add(TextMeshComponent("$i", defaultFont, AxisAlignment.CENTER))
+                .add(MeshTextComponent("$i", defaultFont, AxisAlignment.CENTER))
                 .setPosition(cos(angle) * radius, sin(angle) * radius, 0.0)
                 .setScale(0.1)
             // add 60 small lines

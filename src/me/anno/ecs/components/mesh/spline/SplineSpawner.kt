@@ -86,7 +86,7 @@ class SplineSpawner : MeshSpawner() {
         return dt / length
     }
 
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
 
         val entity = entity ?: return
         val material = MaterialCache[materialOverride]
@@ -150,7 +150,7 @@ class SplineSpawner : MeshSpawner() {
             }
 
             // DebugShapes.debugPoints.add(DebugPoint(p0, -1, 0f))
-            if (run(mesh, material, transform)) break
+            if (callback(mesh, material, transform)) break
         }
     }
 

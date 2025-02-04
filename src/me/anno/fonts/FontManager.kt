@@ -26,6 +26,7 @@ object FontManager {
 
     val TextCache = CacheSection("Text")
     val TextSizeCache = CacheSection("TextSize")
+    val BaselineCache = CacheSection("Baseline")
 
     private const val textureTimeout = 10_000L
 
@@ -39,10 +40,8 @@ object FontManager {
     fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
     fun limitWidth(
-        font: Font,
-        text: CharSequence,
-        widthLimit: Int,
-        heightLimit: Int
+        font: Font, text: CharSequence,
+        widthLimit: Int, heightLimit: Int
     ): Int {
         return if (widthLimit < 0 || widthLimit >= GFX.maxTextureSize || font.size < 1f) GFX.maxTextureSize
         else {
@@ -81,27 +80,19 @@ object FontManager {
     }
 
     fun getSize(
-        font: Font,
-        text: CharSequence,
-        widthLimit: Int,
-        heightLimit: Int,
-        async: Boolean
+        font: Font, text: CharSequence,
+        widthLimit: Int, heightLimit: Int, async: Boolean
     ): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
         return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false), async)
     }
 
-    fun getBaselineY(
-        font: Font
-    ): Float {
-        // val f = getFont(font)
-        // why ever...
-        // Consolas example:
-        // font size 40
-        // best value: 17/18
-        // ascent: 30
-        // descent: 10
-        return -font.size * 17f / 40f
+    fun getBaselineY(font: Font): Float {
+        return getFont(font).getBaselineY()
+    }
+
+    fun getLineHeight(font: Font): Float {
+        return getFont(font).getLineHeight()
     }
 
     fun getTextCacheKey(

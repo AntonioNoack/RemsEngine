@@ -25,8 +25,8 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.PlanarMaterial
 import me.anno.ecs.components.mesh.material.TriplanarMaterial
 import me.anno.ecs.components.text.SDFTextComponent
-import me.anno.ecs.components.text.TextMeshComponent
-import me.anno.ecs.components.text.TextTextureComponent
+import me.anno.ecs.components.text.MeshTextComponent
+import me.anno.ecs.components.text.TextureTextComponent
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
@@ -83,8 +83,8 @@ class CompileTest {
             isInstanced = true
         })
         val font = Font("Verdana", 16f)
-        scene.add(TextMeshComponent("textMesh", font, AxisAlignment.CENTER))
-        scene.add(TextTextureComponent("textureText", font, AxisAlignment.CENTER))
+        scene.add(MeshTextComponent("textMesh", font, AxisAlignment.CENTER))
+        scene.add(TextureTextComponent("textureText", font, AxisAlignment.CENTER))
         scene.add(SDFTextComponent("sdfText", font, AxisAlignment.CENTER))
         // add an animated mesh, instanced and non-instanced
         val animatedMesh = flatCube.clone() as Mesh

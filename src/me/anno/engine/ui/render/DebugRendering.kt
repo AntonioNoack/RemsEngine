@@ -135,63 +135,66 @@ object DebugRendering {
         GFX.check()
     }
 
-    fun showShadowMapDebug(view: RenderView) {
-        // show the shadow map for debugging purposes
-        val light = EditorState.selection
+    fun findInspectedLight(): LightComponentBase? {
+        return EditorState.selection
             .mapFirstNotNull { e ->
                 if (e is Entity) {
                     e.getComponents(LightComponentBase::class)
                         .firstOrNull2 { if (it is LightComponent) it.hasShadow else true }
                 } else if (e is LightComponent && e.hasShadow) e else null
             }
-        if (light != null) {
-            val x = view.x
-            val y = view.y
-            val w = view.width
-            val h = view.height
-            val s = min(w, h) / 3
-            var texture: ITexture2D? = null
-            var isDepth = false
-            when (light) {
-                is LightComponent -> {
-                    val tex = light.shadowTextures
-                    texture = tex?.depthTexture ?: tex?.getTexture0()
-                    isDepth = true
-                }
-                is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
-                is PlanarReflection -> texture = light.framebuffer?.getTexture0()
+    }
+
+    fun showShadowMapDebug(view: RenderView) {
+        // show the shadow map for debugging purposes
+        val light = findInspectedLight() ?: return
+
+        val x = view.x
+        val y = view.y
+        val w = view.width
+        val h = view.height
+        val s = min(w, h) / 3
+        var texture: ITexture2D? = null
+        var isDepth = false
+        when (light) {
+            is LightComponent -> {
+                val tex = light.shadowTextures
+                texture = tex?.depthTexture ?: tex?.getTexture0()
+                isDepth = true
             }
-            // draw the texture
-            if (texture != null && texture.isCreated()) {
-                when (texture) {
-                    is CubemapTexture -> {
-                        DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
+            is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
+            is PlanarReflection -> texture = light.framebuffer?.getTexture0()
+        }
+        // draw the texture
+        if (texture != null && texture.isCreated()) {
+            when (texture) {
+                is CubemapTexture -> {
+                    DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
+                }
+                is Texture2DArray -> {
+                    val layer = floor(Time.gameTime % texture.layers).toFloat()
+                    if (Input.isShiftDown && light is PlanarReflection) {
+                        DrawTextures.drawTextureArray(
+                            x, y, w, h, texture, layer, true,
+                            white.withAlpha(0.7f), null, true
+                        )
+                    } else if (isDepth) {
+                        DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
+                    } else {
+                        DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                     }
-                    is Texture2DArray -> {
-                        val layer = floor(Time.gameTime % texture.layers).toFloat()
-                        if (Input.isShiftDown && light is PlanarReflection) {
-                            DrawTextures.drawTextureArray(
-                                x, y, w, h, texture, layer, true,
-                                white.withAlpha(0.7f), null, true
-                            )
-                        } else if (isDepth) {
-                            DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
-                        } else {
-                            DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
-                        }
-                        DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
-                    }
-                    else -> {
-                        if (Input.isShiftDown && light is PlanarReflection) {
-                            DrawTextures.drawTexture(
-                                x, y, w, h, texture, true,
-                                white.withAlpha(0.7f), null, true
-                            )
-                        } else if (isDepth) {
-                            DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
-                        } else {
-                            DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
-                        }
+                    DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
+                }
+                else -> {
+                    if (Input.isShiftDown && light is PlanarReflection) {
+                        DrawTextures.drawTexture(
+                            x, y, w, h, texture, true,
+                            white.withAlpha(0.7f), null, true
+                        )
+                    } else if (isDepth) {
+                        DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
+                    } else {
+                        DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
                     }
                 }
             }
@@ -203,22 +206,31 @@ object DebugRendering {
     val drawLightsTimer = GPUClockNanos()
     val drawFinalTimer = GPUClockNanos()
 
-    fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun findInspectedCamera(): Camera? {
         val camera = EditorState.selection
             .firstOrNull { it is Camera } ?: EditorState.selection
             .firstNotNullOfOrNull { e -> if (e is Entity) e.getComponent(Camera::class) else null }
-        if (camera is Camera) {
-            // calculate size of sub camera
-            val w = (x1 - x0 + 1) / 3
-            val h = (y1 - y0 + 1) / 3
-            val buffer = view.buffers.base1Buffer
-            val renderer = Renderers.pbrRenderer
-            timeRendering("DrawScene", drawSceneTimer) {
-                view.prepareDrawScene(w, h, w.toFloat() / h, camera, update = false, fillPipeline = true)
-                view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
-            }
-            DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
+        return camera as? Camera
+    }
+
+    fun showCameraRendering(rv: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
+        val camera = findInspectedCamera() ?: return
+        // save near,far
+        val near = rv.near
+        val far = rv.far
+        // calculate size of sub camera
+        val w = (x1 - x0 + 1) / 3
+        val h = (y1 - y0 + 1) / 3
+        val buffer = rv.buffers.base1Buffer
+        val renderer = Renderers.pbrRenderer
+        timeRendering("DrawScene", drawSceneTimer) {
+            rv.prepareDrawScene(w, h, w.toFloat() / h, camera, update = false, fillPipeline = true)
+            rv.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
         }
+        // restore near,far
+        rv.near = near
+        rv.far = far
+        DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
     }
 
     fun showTimeRecords(rv: RenderView) {

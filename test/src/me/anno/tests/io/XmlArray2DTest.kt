@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
  * */
 class XmlArray2DTest {
 
-    val p = Path.fromString("a15,hi/b7,jo/c9,test")
+    val p = Path.fromString("a15,hi/b7,jo/c9,test")!!
     val instances = listOf(
         'x', '0',
         charArrayOf('a', 'b'),

@@ -1,6 +1,5 @@
 package me.anno.fonts.signeddistfields
 
-import me.anno.cache.CacheData
 import me.anno.fonts.Font
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
@@ -31,16 +30,15 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
         } else {
             val roundCorners = roundCorners
             val key = SDFStringKey(font, text, roundCorners)
-            val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) {
-                CacheData(SignedDistanceField.createTexture(font, text, roundCorners))
-            } as? CacheData<*>
-            if (isFinalRendering && cacheData == null) {
+            val textSDF = TextureCache.getEntry(key, SDF_TIMEOUT_MILLIS, queue) {
+                SignedDistanceField.createTexture(font, text, roundCorners)
+            } as? TextSDF
+            if (isFinalRendering && textSDF == null) {
                 missingFrameException = "TextSDFGroup"
                 return
             }
-            val textSDF = cacheData?.value as? TextSDF
             val texture = textSDF?.texture
-            if (texture?.wasCreated == true) {
+            if (texture != null && texture.isCreated()) {
                 drawBuffer.draw(null, textSDF, 0f)
             } else {
                 drawBuffer.draw(null, null, 0f)
@@ -56,23 +54,25 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
         for (index in startIndex until endIndex) {
             val codepoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
-            val key = SDFCharKey(font, codepoint, roundCorners)
-            val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) { key2 ->
-                val charAsText = key2.codePoint.joinChars()
-                val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
-                CacheData(texture)
-            } as? CacheData<*>
-            if (isFinalRendering && cacheData == null) {
+            val textSDF = getTextSDF(codepoint, font, roundCorners)
+            if (isFinalRendering && textSDF == null) {
                 missingFrameException = "TextSDFGroup, $codepoint"
                 return
             }
-            val textSDF = cacheData?.value as? TextSDF
             drawBuffer.draw(null, textSDF, offset)
         }
     }
 
     companion object {
-        private const val sdfTimeout = 30_000L
+        private const val SDF_TIMEOUT_MILLIS = 30_000L
         val queue = ProcessingQueue("SDFText")
+
+         fun getTextSDF(codepoint: Int, font: Font, roundCorners: Boolean): TextSDF? {
+            val key = SDFCharKey(font, codepoint, roundCorners)
+            return TextureCache.getEntry(key, SDF_TIMEOUT_MILLIS, queue) { key2 ->
+                val charAsText = key2.codePoint.joinChars()
+                SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
+            } as? TextSDF
+        }
     }
 }

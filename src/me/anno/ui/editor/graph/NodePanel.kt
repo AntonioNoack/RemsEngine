@@ -34,6 +34,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -284,9 +285,9 @@ class NodePanel(
         val mouseY = window?.mouseY ?: 0f
 
         // draw sockets, and their names
-        val dxTxt = (baseTextSize * 0.7).toInt()
-        val dyTxt = FontManager.getBaselineY(font).toInt()
         val baseTextSize = baseTextSize.toFloat()
+        val dxTxt = (baseTextSize * 0.7f).toIntOr()
+        val dyTxt = (font.size - FontManager.getBaselineY(font)).toIntOr() // round?, ceil?
 
         // to do generally, weights could be useful on either end (maybe?)
 
@@ -591,7 +592,8 @@ class NodePanel(
         if (yi in titleY0 until titleY1 &&
             abs(xi * 2 - (this.x * 2 + this.width)) < max(titleWidth, titleY1 - titleY0)
         ) {
-            Menu.askName(windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
+            Menu.askName(
+                windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
                 { textColor }, {
                     node.name = it
                     invalidateLayout()

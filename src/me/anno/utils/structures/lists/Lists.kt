@@ -150,9 +150,9 @@ object Lists {
     }
 
     @JvmStatic
-    inline fun <A, B> List<A>.mapFirstNotNull(run: (A) -> B): B? {
+    inline fun <A, B> List<A>.mapFirstNotNull(mapEntry: (A) -> B): B? {
         for (index in indices) {
-            val mapped = run(this[index])
+            val mapped = mapEntry(this[index])
             if (mapped != null) return mapped
         }
         return null

@@ -200,7 +200,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform;
      * will (probably) stop, if you return true
      * */
-    abstract fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean)
+    abstract fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean)
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -208,7 +208,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; reduced overhead
      * */
-    open fun forEachMeshGroup(run: (IMesh, Material?) -> InstancedStack) = false
+    open fun forEachMeshGroup(callback: (IMesh, Material?) -> InstancedStack) = false
 
     /**
      * iterates over each mesh group, which is actively visible;
@@ -218,7 +218,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */
-    open fun forEachMeshGroupTRS(run: (IMesh, Material?) -> FloatArrayList) = false
+    open fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList) = false
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -232,7 +232,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * this is like forEachMeshGroupI32, just generalized
      * */
-    open fun forEachInstancedGroup(run: (IMesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit) = false
+    open fun forEachInstancedGroup(callback: (IMesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit) = false
 
     fun <V : InstancedI32Stack> getOrPutI32Stack(
         pipeline: Pipeline,

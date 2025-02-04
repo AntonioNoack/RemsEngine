@@ -2,15 +2,19 @@ package me.anno.ecs.components.text
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
+import me.anno.ecs.components.text.TextureTextComponent.Companion.getDx
+import me.anno.ecs.components.text.TextureTextComponent.Companion.getSx
+import me.anno.ecs.components.text.TextureTextComponent.Companion.getSy
+import me.anno.ecs.components.text.TextureTextComponent.Companion.getY0
+import me.anno.ecs.components.text.TextureTextComponent.Companion.getY1
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.drawing.GFXx2D.getSizeX
@@ -19,143 +23,151 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.utils.types.Arrays.resize
 import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import kotlin.math.sign
 
-class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : MeshSpawner() {
+class SDFTextComponent(
+    text: String, font: Font,
+    override var alignmentX: AxisAlignment,
+    override var alignmentY: TextAlignmentY
+) : MeshSpawner(), TextComponent {
 
     @Suppress("unused")
     constructor() : this("Text", defaultFont, AxisAlignment.CENTER)
 
+    constructor(text: String, font: Font, alignmentX: AxisAlignment) :
+            this(text, font, alignmentX, TextAlignmentY.CENTER)
+
+    @Suppress("unused", "unused_parameter")
+    constructor(text: String, font: Font, alignmentX: AxisAlignment, alignmentY: TextAlignmentY, widthLimit: Float) :
+            this(text, font, alignmentX, alignmentY)
+
     @SerializedProperty
-    var text = text
+    override var text = text
         set(value) {
             if (field != value) {
                 field = value
-                onTextFontChange()
+                onTextOrFontChange()
             }
         }
 
     @SerializedProperty
-    var font = font
+    override var font = font
         set(value) {
             field = value
-            onTextFontChange()
+            onTextOrFontChange()
         }
 
-    @SerializedProperty
-    var alignmentX = alignmentX
-        set(value) {
-            if (field != value) {
-                field = value
-                onAlignmentChange()
-            }
-        }
+    // todo support this (?)
+    override var widthLimit: Float = -1f
 
-    var meshGroup: TextSDFGroup? = null
-    private var size = 0
-    private var dx = 0.0
-    private var alignmentOffset = 0.0
+    private var meshGroup: TextSDFGroup? = null
 
-    private val materials = ArrayList<Material>()
-
-    fun onTextFontChange() {
+    override fun onTextOrFontChange() {
         meshGroup = null
     }
 
-    fun onAlignmentChange() {
-        size = FontManager.getSize(font, text, -1, -1, false)
-        dx = getSizeX(size).toDouble() / getSizeY(size)
-        alignmentOffset = when (alignmentX) {
-            AxisAlignment.MIN -> -2f
-            AxisAlignment.CENTER -> -1f
-            else -> 0f
-        } * dx
-    }
-
-    val init = lazy {
-        onTextFontChange()
-        onAlignmentChange()
-    }
+    private val materials = ArrayList<Material>()
 
     override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
-        init.value
 
-        // calculate local aabb
+        // effectively just the same code as TextureTextComponent
+        val size = FontManager.getSize(font, text, -1, -1, false)
+        val baselineY = FontManager.getBaselineY(font)
+        val sx = getSx(getSizeX(size), baselineY)
+        val sy = getSy(getSizeY(size), baselineY)
+        val dx = getDx(sx, alignmentX)
+        val y0 = getY0(sy, alignmentY)
+        val y1 = getY1(y0, sy)
+
         val local = localAABB
-        val x0 = alignmentOffset
-        // 2.05, because the real result is a little wider, why ever
-        local.setMin(x0, -1.0, 0.0)
-        local.setMax(x0 + 2.05 * dx, +1.0, 0.0)
+            .setMin((dx - sx).toDouble(), y0.toDouble(), 0.0)
+            .setMax((dx + sx).toDouble(), y1.toDouble(), 0.0)
 
         // calculate global aabb
         val global = globalAABB
         local.transform(globalTransform, global)
-
         // add the result to the output
         dstUnion.union(global)
-
         // yes, we calculated stuff
         return true
     }
 
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
-        init.value
-
-        var i = 0
-        val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
+    private fun getOrCreateMeshGroup(): TextSDFGroup {
         val meshGroup = meshGroup ?: TextSDFGroup(font, text, 0.0)
         this.meshGroup = meshGroup
-        val baseScale = meshGroup.baseScale * extraScale
-        meshGroup.draw { _, sdfTexture, offset ->
+        return meshGroup
+    }
+
+    private fun getOrCreateMaterial(i: Int): Material {
+        while (i >= materials.size) {
+            materials.add(Material().apply {
+                shader = SDFShader
+                shaderOverrides["invertSDF"] = TypeValue(GLSLType.V1B, false)
+            })
+        }
+        return materials[i]
+    }
+
+    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
+
+        var i = 0
+        val group = getOrCreateMeshGroup()
+        val lineHeight = FontManager.getLineHeight(font)
+        val baselineY = FontManager.getBaselineY(font)
+        val mesh = Shapes.flat11.front
+
+        val dx0 = when (alignmentX) {
+            AxisAlignment.MIN -> -1f
+            AxisAlignment.CENTER -> -0.5f
+            else -> 0f
+        } * group.offsets.last().toFloat() / lineHeight
+        val dy0 = baselineY / lineHeight - 1f
+
+        group.draw { _, sdfTexture, offset ->
             val texture = sdfTexture?.texture
             if (texture is Texture2D && texture.wasCreated) {
 
-                val transform = getTransform(i)
-                if (i >= materials.size) materials.add(Material())
-
-                val material = materials[i]
+                val material = getOrCreateMaterial(i)
                 material.diffuseMap = texture.ref
-                material.shader = SDFShader
-                material.shaderOverrides["invertSDF"] = TypeValue(GLSLType.V1B, false)
 
-                val scaleX = 0.5f * texture.width * baseScale
-                val scaleY = 0.5f * texture.height * baseScale
+                val sx = getSx(texture.width, baselineY)
+                val sy = getSy(texture.height, baselineY) * 0.5f
 
-                val offsetX = alignmentOffset + offset * extraScale + sdfTexture.offset.x * scaleX
-                val offsetY = sdfTexture.offset.y * scaleY - 0.6 // 0.0 = perfect baseline
+                // todo why is that extra offset needed???
+                val dx1 = -0.33f
 
-                transform.localPosition = transform.localPosition.set(offsetX, offsetY, 0.0)
-                transform.localScale = transform.localScale.set(scaleX, scaleY, 1.0)
+                // todo this correction is needed, because dy0=baseline-correction isn't correct
+                val dy1 = if (alignmentY == TextAlignmentY.BASELINE) 0f else -0.08f
 
-                i++
-                run(mesh, material, transform)
+                val dx = dx0 + dx1 + offset + sdfTexture.offset.x * sx
+                val dy = sdfTexture.offset.y * sy + when (alignmentY) {
+                    TextAlignmentY.MIN -> dy0 - 0.5f
+                    TextAlignmentY.CENTER -> dy0
+                    TextAlignmentY.MAX -> dy0 + 0.5f
+                    TextAlignmentY.BASELINE -> 0f
+                } + dy1
+
+                val transform = getTransform(i++)
+                    .setLocalPosition(dx.toDouble(), dy.toDouble(), 0.0)
+                    .setLocalScale(sx.toDouble(), sy.toDouble(), 1.0)
+
+                callback(mesh, material, transform)
             } else if (texture is Texture2D && isFinalRendering) {
-                missingFrameException = className
+                missingFrameException = "$className, $offset"
                 true // quit loop
             } else false
         }
     }
 
-    companion object {
-        private val mesh = Mesh().apply {
-            val srcMesh = Shapes.flat11
-            indices = srcMesh.indices
-            val srcPos = srcMesh.positions
-            val dstPos = positions.resize(srcPos.size)
-            val dstUVs = uvs.resize(srcPos.size / 3 * 2)
-            var j = 0
-            for (i in dstPos.indices step 3) {
-                dstPos[i] = sign(srcPos[i])
-                dstPos[i + 1] = sign(srcPos[i + 1])
-                dstUVs[j++] = +sign(srcPos[i]) * .5f + .5f
-                dstUVs[j++] = -sign(srcPos[i + 1]) * .5f + .5f
-            }
-            positions = dstPos
-            uvs = dstUVs
-        }
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        if (dst !is TextComponent) return
+        dst.text = text
+        dst.font = font
+        dst.alignmentX = alignmentX
+        dst.alignmentY = alignmentY
+        dst.widthLimit = widthLimit
     }
 }

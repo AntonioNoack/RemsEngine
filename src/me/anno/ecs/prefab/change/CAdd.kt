@@ -1,6 +1,5 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.Build
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
@@ -9,6 +8,7 @@ import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.UnknownSaveable
+import me.anno.utils.assertions.assertFalse
 import me.anno.utils.files.LocalFile.toGlobalFile
 
 /**
@@ -67,7 +67,7 @@ class CAdd() : Change() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "type" -> type = value as? Char ?: return
             "className", "class" -> clazzName = value as? String ?: return
             "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
@@ -76,10 +76,10 @@ class CAdd() : Change() {
         }
     }
 
-    override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {
+    override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int): Exception? {
 
         // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
-        if (prefab != InvalidRef && depth < 0) throw RuntimeException("Circular reference on $prefab")
+        assertFalse(prefab != InvalidRef && depth < 0) { "Circular reference on $prefab" }
 
         val clazzName = clazzName
         val loadedPrefab = PrefabCache[prefab, depth]
@@ -91,8 +91,8 @@ class CAdd() : Change() {
         } else {
             when (val newInstance1 = create(clazzName)) {
                 is PrefabSaveable -> newInstance1
-                is UnknownSaveable -> throw InvalidClassException("Missing class \"$clazzName\"")
-                else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
+                is UnknownSaveable -> return InvalidClassException("Missing class \"$clazzName\"")
+                else -> return InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
             }
         }
 
@@ -107,14 +107,8 @@ class CAdd() : Change() {
 
         val path = instance.prefabPath.added(nameId, index, type)
         newInstance.setPath(prefab, path)
-
-        if (Build.isDebug) newInstance.forAll {
-            if (it.prefab !== prefab) {
-                throw IllegalStateException("Incorrectly changed paths")
-            }
-        }
-
         instance.addChildByType(index, type, newInstance)
+        return null
     }
 
     fun matches(prefabPath: Path): Boolean {

@@ -12,10 +12,8 @@ import kotlin.math.min
  * custom character-character alignment maps by font for faster calculation
  * */
 class TextMeshGroup(
-    font: Font,
-    text: CharSequence,
-    charSpacing: Float,
-    forceVariableBuffer: Boolean
+    font: Font, text: CharSequence,
+    charSpacing: Float, forceDrawCharByChar: Boolean
 ) : TextGroup(font, text, charSpacing.toDouble()) {
 
     init {
@@ -58,7 +56,7 @@ class TextMeshGroup(
     // are draw-calls always expensive??
     // or buffer creation?
     // very long strings just are displayed char by char (you must be kidding me ;))
-    private val drawCharByChar = forceVariableBuffer || codepoints.size < 5 || codepoints.size > 512
+    private val drawCharByChar = forceDrawCharByChar || codepoints.size < 5 || codepoints.size > 512
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh

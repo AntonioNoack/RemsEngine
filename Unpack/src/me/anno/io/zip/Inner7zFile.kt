@@ -11,6 +11,7 @@ import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.zip.internal.SevenZHeavyIterator
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -34,11 +35,13 @@ class Inner7zFile(
     companion object {
 
         @JvmStatic
-        fun fileFromStream7z(file: FileReference): SevenZFile {
-            return if (file is FileFileRef) {
-                SevenZFile(file.file)
+        fun fileFromStream7z(file: FileReference, cb: Callback<SevenZFile>) {
+            if (file is FileFileRef) {
+                cb.ok(SevenZFile(file.file))
             } else {
-                SevenZFile(SeekableInMemoryByteChannel(file.readBytesSync()))
+                file.readBytes(cb.map { bytes ->
+                    SevenZFile(SeekableInMemoryByteChannel(bytes))
+                })
             }
         }
 

@@ -42,10 +42,10 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
         return value
     }
 
-    inline fun forEach(run: (k1: KManifold, k2: KFewOnly, k3: KFewOnly2, v: Value) -> Unit) {
+    inline fun forEach(callback: (k1: KManifold, k2: KFewOnly, k3: KFewOnly2, v: Value) -> Unit) {
         for ((k1, k2s) in values) {
             for ((k2, k3, v) in k2s) {
-                run(k1, k2, k3, v)
+                callback(k1, k2, k3, v)
             }
         }
     }

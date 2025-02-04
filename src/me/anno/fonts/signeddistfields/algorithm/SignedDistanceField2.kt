@@ -1,15 +1,14 @@
 package me.anno.fonts.signeddistfields.algorithm
 
 import me.anno.fonts.signeddistfields.Contour
+import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField.sdfResolution
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
-import me.anno.utils.pooling.ByteBufferPool
 import org.joml.AABBf
 import org.joml.Vector2f
-import java.nio.FloatBuffer
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -36,14 +35,9 @@ class SignedDistanceField2(contours: List<Contour>, roundEdges: Boolean, sdfReso
         calculateDistances(contours, roundEdges)
     } else null
 
-    private fun calculateDistances(
-        contours: List<Contour>,
-        roundEdges: Boolean
-    ): FloatBuffer {
+    private fun calculateDistances(contours: List<Contour>, roundEdges: Boolean): FloatArray {
 
-        val buffer = ByteBufferPool
-            .allocateDirect(w * h * 4)
-            .asFloatBuffer()
+        val buffer = FloatArray(w * h)
 
         val maxDistance = max(maxX - minX, maxY - minY)
         val pointBounds = AABBf()
@@ -92,19 +86,15 @@ class SignedDistanceField2(contours: List<Contour>, roundEdges: Boolean, sdfReso
                 }
 
                 val trueDistance = if (closestEdge != null) {
-                    if (roundEdges) {
-                        minDistance.distance
-                    } else closestEdge.getTrueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
-                } else 100f
+                    val distance =
+                        if (roundEdges) minDistance.distance
+                        else closestEdge.getTrueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
+                    clamp(distance, -maxDistance, +maxDistance)
+                } else maxDistance
 
-                val dist = clamp(trueDistance, -maxDistance, +maxDistance)
-                buffer.put(index, dist * SignedDistanceField.sdfResolution + offset)
-                index++
+                buffer[index++] = trueDistance * sdfResolution + offset
             }
         }
-
-        buffer.position(0)
-
         return buffer
     }
 }

@@ -1,6 +1,8 @@
 package me.anno.graph.hdb
 
 import me.anno.io.files.FileReference
+import me.anno.utils.async.Callback
+import me.anno.utils.async.UnitCallback
 
 /**
  * non-hierarchical database, where keys are hashes,
@@ -29,20 +31,20 @@ class SimpleDatabase(
         return listOf(hash0.toString(), hash1.toString())
     }
 
-    fun get(hash0: Long, async: Boolean, callback: (ByteSlice?) -> Unit) {
-        return database.get(getPath(hash0), hash0, async, callback)
+    fun get(hash0: Long, callback: Callback<ByteSlice>) {
+        return database.get(getPath(hash0), hash0, callback)
     }
 
-    fun put(hash0: Long, value: ByteSlice) {
-        database.put(getPath(hash0), hash0, value)
+    fun put(hash0: Long, value: ByteSlice, callback: UnitCallback? = null) {
+        database.put(getPath(hash0), hash0, value, callback)
     }
 
-    fun get(hash0: Long, hash1: Long, async: Boolean, callback: (ByteSlice?) -> Unit) {
-        return database.get(getPath(hash0, hash1), hash1, async, callback)
+    fun get(hash0: Long, hash1: Long, callback: Callback<ByteSlice>) {
+        return database.get(getPath(hash0, hash1), hash1, callback)
     }
 
-    fun put(hash0: Long, hash1: Long, value: ByteSlice) {
-        database.put(getPath(hash0, hash1), hash1, value)
+    fun put(hash0: Long, hash1: Long, value: ByteSlice, callback: UnitCallback? = null) {
+        database.put(getPath(hash0, hash1), hash1, value, callback)
     }
 
     fun clear() {

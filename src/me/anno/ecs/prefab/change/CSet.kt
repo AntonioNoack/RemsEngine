@@ -53,9 +53,10 @@ class CSet() : Change() {
         } else super.setProperty(name, value)
     }
 
-    override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {
+    override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int): Exception? {
         applyChange(instance, name, value)
         path = instance.prefabPath
+        return null
     }
 
     override val approxSize get() = 10

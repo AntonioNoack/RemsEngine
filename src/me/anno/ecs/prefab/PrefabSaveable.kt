@@ -160,12 +160,12 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         return defaultValue
     }
 
-    fun forAll(run: (PrefabSaveable) -> Unit) {
-        run(this)
+    fun forAll(callback: (PrefabSaveable) -> Unit) {
+        callback(this)
         for (type in listChildTypes()) {
             val childList = getChildListByType(type)
             for (index in childList.indices) {
-                childList[index].forAll(run)
+                childList[index].forAll(callback)
             }
         }
     }

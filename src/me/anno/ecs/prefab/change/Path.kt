@@ -2,9 +2,9 @@ package me.anno.ecs.prefab.change
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.NumberFormatter.reverse
 import me.anno.utils.types.Strings.toInt
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ThreadLocalRandom
 
 /**
@@ -33,14 +33,14 @@ class Path(
         throw RuntimeException("Recursive Path.calculateDepth()")
     }
 
-    fun fromRootToThis(includeRoot: Boolean, run: (index: Int, path: Path) -> Unit): Int {
+    fun fromRootToThis(includeRoot: Boolean, callback: (index: Int, path: Path) -> Unit): Int {
         val parent = parent
         var index = 0
         if (parent != null && parent != ROOT_PATH) {
-            index = parent.fromRootToThis(includeRoot, run) + 1
+            index = parent.fromRootToThis(includeRoot, callback) + 1
         }
         if (ROOT_PATH !== this || includeRoot) {
-            run(index, this)
+            callback(index, this)
         }
         return index
     }
@@ -203,7 +203,7 @@ class Path(
                 if (value.isEmpty()) {
                     parent = null // we're root now
                 } else {
-                    val path = fromString(value)
+                    val path = fromString(value) ?: return
                     parent = path.parent
                     this.nameId = path.nameId
                     index = path.index
@@ -224,6 +224,7 @@ class Path(
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(Path::class)
         val EXIT = Throwable()
         val ROOT_PATH = Path(null, "", 0, ' ')
 
@@ -265,7 +266,7 @@ class Path(
          * each element is first a type-char, then an index,
          * then a comma ',', and finally its name as a string until the end or next slash '/'
          * */
-        fun fromString(str: String?): Path {
+        fun fromString(str: String?): Path? {
             if (str.isNullOrEmpty()) return ROOT_PATH
             var path = ROOT_PATH
             var startIndex = 0
@@ -275,7 +276,10 @@ class Path(
                 // format: type,id,name
                 val type = str[startIndex]
                 val commaIndex = str.indexOf(',', startIndex + 2)
-                assertTrue(commaIndex >= 0) { "Invalid path: '$str'" }
+                if (commaIndex < 0) {
+                    LOGGER.warn("Invalid path: '$str'")
+                    return null
+                }
                 val index = parseInt(str, startIndex + 1, commaIndex)
                 val name = str.substring(commaIndex + 1, endIndex)
                 path = Path(path, name, index, type)

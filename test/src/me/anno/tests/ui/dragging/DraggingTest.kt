@@ -46,7 +46,7 @@ class DraggingTest : UITests() {
         //  - hold mouse still for a moment
         //  - then move it over to the other panel
         moveMouseTo(input1)
-        type(Key.BUTTON_LEFT)
+        click(Key.BUTTON_LEFT)
         hold(Key.BUTTON_LEFT)
         updateUI()
 

@@ -348,19 +348,32 @@ object LineShapes {
     }
 
     fun drawRect(
-        entity: Entity?,
-        p0: Vector3f,
-        p1: Vector3f,
-        p2: Vector3f,
-        p3: Vector3f,
+        entity: Entity?, p0: Vector3f, p1: Vector3f, p2: Vector3f, p3: Vector3f,
         color: Int = defaultColor
     ) {
-        val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         positions[0].set(p0)
         positions[1].set(p1)
         positions[2].set(p2)
         positions[3].set(p3)
+        drawRect(entity, color)
+    }
+
+    fun drawRect(
+        entity: Entity?, p0: Vector3d, p1: Vector3d, p2: Vector3d, p3: Vector3d,
+        color: Int = defaultColor
+    ) {
+        val positions = tmpVec3d
+        positions[0].set(p0)
+        positions[1].set(p1)
+        positions[2].set(p2)
+        positions[3].set(p3)
+        drawRect(entity, color)
+    }
+
+    private fun drawRect(entity: Entity?, color: Int) {
+        val transform = getDrawMatrix(entity)
+        val positions = tmpVec3d
         if (transform != null) {
             for (i in 0 until 4) {
                 transform.transformPosition(positions[i])

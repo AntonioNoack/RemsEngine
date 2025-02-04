@@ -8,6 +8,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.Logging.hash32
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.maps.Maps.removeIf
@@ -288,7 +289,7 @@ object Hierarchy {
             type, child.className, nameId,
             child.prefab?.source ?: InvalidRef
         )
-        if (dstPath2 != dstPath) throw IllegalStateException("Could not add child at index, $dstPath vs $dstPath2")
+        assertEquals(dstPath2, dstPath) { "Could not add child at index!" }
         val sample = Saveable.getSample(child.className)!!
         for (pName in child.getReflections().serializedProperties.keys) {
             val value = child[pName]
@@ -325,9 +326,10 @@ object Hierarchy {
 
         // remove all properties
         val sets = prefab.sets
-        LOGGER.info("Removing ${sets.count { k1, _, _ -> k1.startsWith(path) }}, " +
-                "sets: ${sets.filterMajor { k1 -> k1.startsWith(path) }.entries.joinToString { it.key.toString() }}, " +
-                "all start with $path"
+        LOGGER.info(
+            "Removing ${sets.count { k1, _, _ -> k1.startsWith(path) }}, " +
+                    "sets: ${sets.filterMajor { k1 -> k1.startsWith(path) }.entries.joinToString { it.key.toString() }}, " +
+                    "all start with $path"
         )
         sets.removeMajorIf { it.startsWith(path) }
         prefab.invalidateInstance()

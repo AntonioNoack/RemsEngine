@@ -8,10 +8,8 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
 import org.joml.Vector2f
-import java.nio.FloatBuffer
 
 object SignedDistanceField {
 
@@ -26,7 +24,7 @@ object SignedDistanceField {
         return SignedDistanceField2(contours, roundEdges, sdfResolution, padding)
     }
 
-    fun createBuffer(font: Font, text: String, roundEdges: Boolean): FloatBuffer? {
+    fun createBuffer(font: Font, text: String, roundEdges: Boolean): FloatArray? {
         return getDistanceComputer(font, text, roundEdges)?.distances
     }
 
@@ -38,7 +36,6 @@ object SignedDistanceField {
         addGPUTask("${tex.name}.createTexture()", stats.w, stats.h) {
             tex.createMonochromeFP16(buffer, true)
             tex.ensureFilterAndClamping(Filtering.TRULY_LINEAR, Clamping.CLAMP)
-            ByteBufferPool.free(buffer)
         }
 
         // the center, because we draw the pieces from the center

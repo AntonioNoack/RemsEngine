@@ -8,20 +8,34 @@ interface TextGenerator {
     fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int
     fun generateTexture(
         text: CharSequence,
-        widthLimit: Int,
-        heightLimit: Int,
+        widthLimit: Int, heightLimit: Int,
         portableImages: Boolean,
         callback: Callback<ITexture2D>,
         textColor: Int = -1,
-        backgroundColor: Int = 255 shl 24,
-        extraPadding: Int = 0
+        backgroundColor: Int = 255 shl 24
     )
 
     fun generateASCIITexture(
         portableImages: Boolean,
         callback: Callback<Texture2DArray>,
         textColor: Int = -1,
-        backgroundColor: Int = 255 shl 24,
-        extraPadding: Int = 0
+        backgroundColor: Int = 255 shl 24
     )
+
+    /**
+     * distance from the top of generated textures to the lowest point of characters like A;
+     * ~ 0.8 * fontSize, = ascent
+     * */
+    fun getBaselineY(): Float
+
+    /**
+     * distance from the top of generated textures to the bottom;
+     * ~ [1.0,1.5] * fontSize, = ascent + descent
+     * */
+    fun getLineHeight(): Float
+
+    companion object {
+        const val TEXTURE_PADDING_W = 2
+        const val TEXTURE_PADDING_H = 1
+    }
 }

@@ -133,19 +133,19 @@ class Clock(
         }
     }
 
-    fun benchmark(warmupRuns: Int, measuredRuns: Int, usedFor: String, run: (Int) -> Unit): Unit =
-        benchmark(warmupRuns, measuredRuns, 1, usedFor, run)
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Unit =
+        benchmark(warmupRuns, measuredRuns, 1, usedFor, benchmarkRun)
 
-    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Int, usedFor: String, run: (Int) -> Unit): Unit =
-        benchmark(warmupRuns, measuredRuns, numElements.toLong(), usedFor, run)
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Unit =
+        benchmark(warmupRuns, measuredRuns, numElements.toLong(), usedFor, benchmarkRun)
 
-    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Long, usedFor: String, run: (Int) -> Unit) {
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Long, usedFor: String, benchmarkRun: (Int) -> Unit) {
         for (i in 0 until warmupRuns) {
-            run(i - warmupRuns)
+            benchmarkRun(i - warmupRuns)
         }
         start()
         for (i in 0 until measuredRuns) {
-            run(i)
+            benchmarkRun(i)
         }
         stop(usedFor, measuredRuns * numElements)
     }

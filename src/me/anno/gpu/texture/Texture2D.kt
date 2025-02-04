@@ -120,6 +120,7 @@ open class Texture2D(
     override val samples = clamp(samples, 1, GFX.maxSamples)
     var owner: Framebuffer? = null
 
+    // if you know a use-case for this, please tell me; otherwise I might remove it one day; must be black on mobile
     var border = 0
 
     override var channels: Int = 0
@@ -566,11 +567,25 @@ open class Texture2D(
      * used by SDF
      * */
     fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean): Texture2D {
+        return createMonochrome(data, checkRedundancy, GL_R32F, 4)
+    }
+
+    /**
+     * creates a monochrome float16 image on the GPU
+     * */
+    fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean): Texture2D {
+        return createMonochrome(data, checkRedundancy, GL_R16F, 2)
+    }
+
+    /**
+     * creates a monochrome image on the GPU
+     * */
+    private fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean, format: Int, bpp: Int): Texture2D {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyX1(data)
         setWriteAlignment(4 * width)
-        upload(GL_R32F, GL_RED, GL_FLOAT, data)
-        afterUpload(true, 4, 1)
+        upload(format, GL_RED, GL_FLOAT, data)
+        afterUpload(true, bpp, 1)
         return this
     }
 
@@ -579,23 +594,25 @@ open class Texture2D(
      * used by SDF
      * */
     fun createMonochrome(data: FloatArray, checkRedundancy: Boolean): Texture2D {
-        beforeUpload(1, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
-        setWriteAlignment(4 * width)
-        upload(GL_R32F, GL_RED, GL_FLOAT, data2)
-        afterUpload(true, 4, 1)
-        return this
+        return createMonochrome(data, checkRedundancy, GL_R32F, 4)
     }
 
     /**
      * creates a monochrome float16 image on the GPU
      * */
-    fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean): Texture2D {
-        beforeUpload(1, data.remaining())
-        if (checkRedundancy) checkRedundancyX1(data)
+    fun createMonochromeFP16(data: FloatArray, checkRedundancy: Boolean): Texture2D {
+        return createMonochrome(data, checkRedundancy, GL_R16F, 2)
+    }
+
+    /**
+     * creates a monochrome image on the GPU
+     * */
+    private fun createMonochrome(data: FloatArray, checkRedundancy: Boolean, format: Int, bpp: Int): Texture2D {
+        beforeUpload(1, data.size)
+        val data2 = if (checkRedundancy) checkRedundancyX1(data) else data
         setWriteAlignment(4 * width)
-        upload(GL_R16F, GL_RED, GL_FLOAT, data)
-        afterUpload(true, 4, 1)
+        upload(format, GL_RED, GL_FLOAT, data2)
+        afterUpload(true, bpp, 1)
         return this
     }
 

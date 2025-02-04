@@ -44,14 +44,6 @@ object FontStats {
         return tmp(font, text)
     }
 
-    @InternalAPI
-    var getFontHeightImpl: ((Font) -> Double)? = null
-    fun getFontHeight(font: Font): Double {
-        val tmp = getFontHeightImpl
-            ?: return font.size.toDouble()
-        return tmp(font)
-    }
-
     val subpixelOffsetR = Vector2f()
     val subpixelOffsetB = Vector2f()
 }

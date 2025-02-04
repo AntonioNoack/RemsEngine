@@ -56,8 +56,8 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
     }
 
     private val sz = getSz(getAvgFontSize(key.sizeIndex).toInt())
-    private val w0 = getWidth(sz)
-    private val h0 = getHeight(sz)
+    private val charWidth = getWidth(sz)
+    private val charHeight = getHeight(sz)
 
     private val textures = arrayListOfNulls<IntImage>(128)
 
@@ -67,6 +67,14 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
 
     private fun h(image: IntImage, y: Int, x0: Int, dx: Int) {
         for (x in x0 until x0 + dx) image.setRGB(x, y, -1)
+    }
+
+    override fun getBaselineY(): Float {
+        return charHeight - 1f
+    }
+
+    override fun getLineHeight(): Float {
+        return charHeight.toFloat()
     }
 
     private fun generateTexture(v: Char): Image {
@@ -79,8 +87,8 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
         if (oldTex != null) {
             return oldTex
         }
-        val width = w0
-        val height = h0
+        val width = charWidth
+        val height = charHeight
         val image = IntImage(width, height, false)
         // draw all lines
         if (bi.hasFlag(1)) v(image, 1, 2, sz)
@@ -95,12 +103,12 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
     }
 
     private fun getWrittenLength(text: CharSequence, widthLimit: Int): Int {
-        return min(text.length, widthLimit / w0)
+        return min(text.length, widthLimit / charWidth)
     }
 
     override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
-        val width = getWrittenLength(text, widthLimit) * w0
-        val height = h0
+        val width = getWrittenLength(text, widthLimit) * charWidth
+        val height = charHeight
         return GFXx2D.getSize(width, height)
     }
 
@@ -111,12 +119,11 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
         portableImages: Boolean,
         callback: Callback<ITexture2D>,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
         val len = getWrittenLength(text, widthLimit)
-        val width = len * w0
-        val height = h0
+        val width = len * charWidth
+        val height = charHeight
         if (text.all { getCharValue(it).toInt() == 0 }) {
             return callback.ok(FakeWhiteTexture(width, height, 1))
         } else {
@@ -127,7 +134,7 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
                 for (i in 0 until len) {
                     val cv = getCharValue(text[i])
                     if (cv.toInt() != 0) {
-                        generateTexture(cv).copyInto(image, i * w0, 0)
+                        generateTexture(cv).copyInto(image, i * charWidth, 0)
                     }
                 }
                 image
@@ -144,10 +151,9 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
         portableImages: Boolean,
         callback: Callback<Texture2DArray>,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
-        Texture2DArray("awtAtlas", w0, h0, simpleChars.size)
+        Texture2DArray("awtAtlas", charWidth, charHeight, simpleChars.size)
             .create(simpleChars.map { generateTexture(it[0]) }, false, callback)
     }
 }

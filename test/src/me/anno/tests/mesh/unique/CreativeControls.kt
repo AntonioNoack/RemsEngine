@@ -47,7 +47,7 @@ class CreativeControls(
             if (localCoords.y == csy - 1) invalidateChunkAt(Vector3i(chunkId).add(0, 1, 0))
             if (localCoords.z == csz - 1) invalidateChunkAt(Vector3i(chunkId).add(0, 0, 1))
         }
-        saveSystem.get(chunkId, true) { changesInChunk ->
+        saveSystem.get(chunkId) { changesInChunk ->
             changesInChunk[localCoords] = block
             saveSystem.put(chunkId, changesInChunk)
         }

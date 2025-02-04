@@ -6,10 +6,10 @@ import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.appendPath
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.lazy.InnerLazyByteFile
 import me.anno.io.files.inner.lazy.InnerLazyImageFile
 import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.UnsafeArrayList
 import java.io.IOException
 import java.io.InputStream
@@ -101,119 +101,84 @@ open class InnerFolder(
         val child = children[name]
         if (child != null) return child as InnerFolder
         val absolutePath = appendPath(absolutePath, name)
+        return createChild2(absolutePath, relativePath)
+    }
+
+    private fun createChild2(absolutePath: String, relativePath: String): InnerFolder {
+        val child = children[name]
+        if (child != null) return child as InnerFolder
         return InnerFolder(absolutePath, relativePath, this)
     }
 
-    fun createChild(name: String, registry: HashMap<String, InnerFile>? = null): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = "$relativePath/$name"
-        return registry?.getOrPut(relativePath) {
-            createChild(name, relativePath)
-        } ?: createChild(name, relativePath)
-    }
+    fun createChild(
+        name: String,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile = createAnyChild(name, { abs, rel -> createChild2(abs, rel) }, registry)
 
-    fun createTextChild(name: String, content: String, registry: HashMap<String, InnerFile>? = null): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createTextChild(name, content, null) }
-            ?: InnerTextFile(appendPath(absolutePath, name), relativePath, this, content)
-    }
+    fun createTextChild(
+        name: String, content: String,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile = createAnyChild(name, { abs, rel -> InnerTextFile(abs, rel, this, content) }, registry)
 
-    fun createPrefabChild(name: String, content: Prefab, registry: HashMap<String, InnerFile>? = null): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createPrefabChild(name, content, null) }
-            ?: InnerPrefabFile(appendPath(absolutePath, name), relativePath, this, content)
-    }
+    fun createPrefabChild(
+        name: String, content: Prefab,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile = createAnyChild(name, { abs, rel -> InnerPrefabFile(abs, rel, this, content) }, registry)
 
     fun createLazyPrefabChild(
-        name: String,
-        content: Lazy<Prefab>,
+        name: String, content: Lazy<Prefab>,
         registry: HashMap<String, InnerFile>? = null
-    ): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createLazyPrefabChild(name, content, null) }
-            ?: InnerLazyPrefabFile(appendPath(absolutePath, name), relativePath, this, content)
-    }
+    ): InnerFile = createAnyChild(name, { abs, rel -> InnerLazyPrefabFile(abs, rel, this, content) }, registry)
 
     fun createLazyImageChild(
-        name: String,
-        content: Lazy<Image>,
+        name: String, content: Lazy<Image>,
         registry: HashMap<String, InnerFile>? = null
-    ): InnerFile {
-        return createLazyImageChild(name, content, { content.value }, registry)
-    }
+    ): InnerFile = createLazyImageChild(name, content, { content.value }, registry)
 
     fun createLazyImageChild(
-        name: String,
-        cpuImage: Lazy<Image>,
-        gpuImage: () -> Image,
+        name: String, cpuImage: Lazy<Image>, gpuImage: () -> Image,
         registry: HashMap<String, InnerFile>? = null
-    ): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createLazyImageChild(name, cpuImage, gpuImage, null) }
-            ?: InnerLazyImageFile(appendPath(absolutePath, name), relativePath, this, cpuImage, gpuImage)
-    }
+    ) = createAnyChild(name, { abs, rel -> InnerLazyImageFile(abs, rel, this, cpuImage, gpuImage) }, registry)
 
-    fun createByteChild(name: String, content: ByteArray, registry: HashMap<String, InnerFile>? = null): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createByteChild(name, content, null) }
-            ?: InnerByteFile(appendPath(absolutePath, name), relativePath, this, content)
-    }
+    fun createByteChild(
+        name: String, content: ByteArray,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile = createAnyChild(name, { abs, rel -> InnerByteFile(abs, rel, this, content) }, registry)
 
     @Suppress("unused")
     fun createByteChild(
-        name: String,
-        content: Lazy<ByteArray>,
+        name: String, content: Lazy<ByteArray>,
         registry: HashMap<String, InnerFile>? = null
-    ): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createByteChild(name, content, null) }
-            ?: InnerLazyByteFile(appendPath(absolutePath, name), relativePath, this, content)
-    }
+    ): InnerFile = createAnyChild(name, { abs, rel -> InnerLazyByteFile(abs, rel, this, content) }, registry)
 
     fun createImageChild(
-        name: String,
-        content: Image,
+        name: String, content: Image,
         registry: HashMap<String, InnerFile>? = null
-    ): InnerFile {
-        val child = children[name]
-        if (child != null) return child
-        val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createImageChild(name, content, null) }
-            ?: InnerImageFile(appendPath(absolutePath, name), relativePath, this, content)
-    }
+    ): InnerFile = createAnyChild(name, { abs, rel -> InnerImageFile(abs, rel, this, content) }, registry)
 
-    fun createStreamChild(
-        name: String,
-        content: () -> InputStream,
+    @Suppress("unused")
+    fun createStreamChild(name: String, content: () -> InputStream, registry: HashMap<String, InnerFile>? = null)
+            : InnerFile = createAnyChild(name, { abs, rel -> InnerStreamFile(abs, rel, this, content) }, registry)
+
+    private inline fun createAnyChild(
+        name: String, createFile: (String, String) -> InnerFile,
         registry: HashMap<String, InnerFile>? = null
     ): InnerFile {
         val child = children[name]
         if (child != null) return child
         val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createStreamChild(name, content, null) }
-            ?: InnerStreamFile(appendPath(absolutePath, name), relativePath, this, content)
+        val childFromRegistry = registry?.get(relativePath)
+        if (childFromRegistry != null) return childFromRegistry
+        val newChild = createFile(appendPath(absolutePath, name), relativePath)
+        registry?.put(relativePath, newChild)
+        return newChild
     }
 
     fun sealPrefabs() {
-        for (child in listChildren()) {
-            if (child is PrefabReadable) {
-                child.readPrefab().sealFromModifications()
-            }
-            if (child is InnerFolder) {
-                child.sealPrefabs()
+        Recursion.processRecursive<FileReference>(this) { file, remaining ->
+            when (file) {
+                is InnerFolder -> remaining.addAll(file.listChildren())
+                is PrefabReadable -> file.readPrefab().sealFromModifications()
             }
         }
     }

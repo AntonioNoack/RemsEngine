@@ -32,6 +32,10 @@ fun assertContains(value: Int, collection: IntRange, message: String = "conditio
     assertTrue(value in collection) { "'$value' !in '$collection', $message" }
 }
 
+fun assertContains(value: Float, collection: ClosedFloatingPointRange<Float>, message: String = "condition failed") {
+    assertTrue(value in collection) { "'$value' !in '$collection', $message" }
+}
+
 fun assertNotContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
     assertTrue(value !in collection) { "'$value' in '$collection', $message" }
 }

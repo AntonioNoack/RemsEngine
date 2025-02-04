@@ -105,11 +105,10 @@ class SpiderLogic(val brain: FullyConnectedNN, val traps: Entity) : Component(),
             fract(position.y - motion * cos(rotation))
         )
 
-        transform.localPosition = transform.localPosition
-            .set(
-                (position.x * 2.0 - 1.0) * spiderWorldScale, 1.0,
-                (position.y * 2.0 - 1.0) * spiderWorldScale
-            )
+        transform.setLocalPosition(
+            (position.x * 2.0 - 1.0) * spiderWorldScale, 1.0,
+            (position.y * 2.0 - 1.0) * spiderWorldScale
+        )
         transform.localRotation = transform.localRotation
             .rotationY(rotation.toDouble())
 

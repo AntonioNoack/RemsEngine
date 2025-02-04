@@ -291,8 +291,9 @@ class Prefab : Saveable {
             // todo check branched prefabs for adds as well
             val sourcePrefab = PrefabCache[prefab]
             if (sourcePrefab != null) {
-                if (sourcePrefab.addedPaths?.contains(key) == true)
-                    throw IllegalArgumentException("Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}")
+                assertNotEquals(true, sourcePrefab.addedPaths?.contains(key)) {
+                    "Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}"
+                }
             }
             addedPaths?.add(key)
         }
@@ -441,7 +442,8 @@ class Prefab : Saveable {
             for (index in addsI.indices) {
                 val add = addsI[index]
                 try {
-                    add.apply(this, instance, depth - 1)
+                    val error = add.apply(this, instance, depth - 1)
+                    if (error != null) LOGGER.warn("Error applying CAdd", error)
                 } catch (e: InvalidClassException) {
                     LOGGER.warn("Invalid class ${add.clazzName}", e)
                 } catch (e: Exception) {

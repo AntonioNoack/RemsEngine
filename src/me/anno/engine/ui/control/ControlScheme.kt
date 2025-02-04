@@ -459,7 +459,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         renderView.radius *= factor
         renderView.near *= factor
         renderView.far *= factor
-        camera.fovOrthographic = renderView.radius.toFloat()
+        camera.fovOrthographic = renderView.radius
     }
 
     companion object {

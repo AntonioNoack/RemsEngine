@@ -450,7 +450,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     private fun findFOV(camera: Camera): Float {
-        return if (camera.isPerspective) camera.fovY else camera.fovOrthographic * 0.5f
+        return if (camera.isPerspective) camera.fovY else camera.fovOrthographic.toFloat() * 0.5f
     }
 
     fun prepareDrawScene(
@@ -896,10 +896,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         defaultSun.shadowMapCascades = 1
                         // calculate good position for sun
                         val transform = defaultSunEntity.transform
-                        transform.localPosition = transform.localPosition
-                            .set(bounds.centerX, bounds.centerY, bounds.centerZ)
-                        transform.localScale = transform.localScale
-                            .set(3.0 / max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ)))
+                        transform.setLocalPosition(bounds.centerX, bounds.centerY, bounds.centerZ)
+                        transform.setLocalScale(3.0 / max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ)))
                         transform.teleportUpdate()
                         transform.validate()
                         defaultSun.onUpdate()

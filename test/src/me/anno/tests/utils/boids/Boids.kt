@@ -110,8 +110,8 @@ class Boid(
         velocity.mul(1f - dtTo01(0.1f * dt))
         val entity = entity!!
         val transform = entity.transform
-        transform.localPosition = transform.localPosition.set(posA)
-        transform.localRotation = transform.localRotation.set(dirA.normalToQuaternionY(tmpQ))
+        transform.setLocalPosition(posA)
+        transform.setLocalRotation(dirA.normalToQuaternionY(tmpQ))
         entity.invalidateOwnAABB()
     }
 }

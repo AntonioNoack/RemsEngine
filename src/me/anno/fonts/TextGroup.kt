@@ -3,16 +3,15 @@ package me.anno.fonts
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.fonts.mesh.CharacterOffsetCache.Companion.getOffsetCache
-import me.anno.fonts.mesh.TextMesh
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
 
 open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double) : TextDrawable() {
 
     private val offsetCache: CharacterOffsetCache = getOffsetCache(font)
 
-    val codepoints: IntArray = text.codepoints()
-    val offsets: DoubleArray = DoubleArray(codepoints.size + 1)
-    val baseScale: Double
+    val codepoints = text.codepoints()
+    val offsets = DoubleArray(codepoints.size + 1)
+    val baseScale = 1.0 / font.size
 
     init {
 
@@ -30,7 +29,6 @@ open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double
         offsets[codepoints.size] = getOffset(codepoints.last(), 32)
         offsets.accumulate()
 
-        baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / FontStats.getFontHeight(font)
         bounds.minX = 0f
         bounds.maxX = 0f
     }
@@ -38,6 +36,7 @@ open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double
     val meshCache get() = offsetCache.charMesh
 
     override fun destroy() {
+        // nothing to do
     }
 
     fun draw(drawBuffer: DrawBufferCallback) {
@@ -45,6 +44,6 @@ open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double
     }
 
     override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
-        throw NotImplementedError()
+        // not implemented
     }
 }

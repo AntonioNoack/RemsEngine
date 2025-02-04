@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.maths.Maths
+import me.anno.utils.types.Arrays.resize
 import org.lwjgl.opengl.GL46C
 import kotlin.math.max
 
@@ -31,7 +32,8 @@ open class SimpleGPUQuery(
         }
         var queryIds = ids
         if (queryIds == null || session != GFXState.session) {
-            queryIds = IntArray(cap)
+            reset()
+            queryIds = ids.resize(cap)
             GL46C.glGenQueries(queryIds)
             frameCounter = -(Maths.random() * everyNthFrame).toInt() // randomness to spread out the load
             session = GFXState.session
@@ -42,7 +44,7 @@ open class SimpleGPUQuery(
     }
 
     fun stop(hasBeenActive: Boolean) {
-        if (hasBeenActive) {
+        if (hasBeenActive && session == GFXState.session) {
             isTimerActive.remove(target)
             GL46C.glEndQuery(target)
             update()
@@ -74,11 +76,13 @@ open class SimpleGPUQuery(
     }
 
     private fun updateImpl(ids: IntArray) {
+        if (session != GFXState.session) return
         val id = ids[readSlot.and(capM1)]
         val available = GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT_AVAILABLE) != 0
         if (available) {
-            val result = if (GFX.glVersion >= 33) GL46C.glGetQueryObjecti64(id, GL46C.GL_QUERY_RESULT)
-            else GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT).toLong()
+            val result =
+                if (GFX.glVersion >= 33) GL46C.glGetQueryObjecti64(id, GL46C.GL_QUERY_RESULT)
+                else GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT).toLong()
             if (result == 0L) frameCounter = -everyNthFrame
             addSample(result)
             readSlot = max(readSlot, writeSlot - cap) + 1 // correct?

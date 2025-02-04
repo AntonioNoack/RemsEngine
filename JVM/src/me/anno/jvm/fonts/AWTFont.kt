@@ -7,6 +7,8 @@ import me.anno.fonts.FontManager.spaceBetweenLines
 import me.anno.fonts.PartResult
 import me.anno.fonts.StringPart
 import me.anno.fonts.TextGenerator
+import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_H
+import me.anno.fonts.TextGenerator.Companion.TEXTURE_PADDING_W
 import me.anno.fonts.TextGroup
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
@@ -26,6 +28,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
@@ -119,8 +122,7 @@ class AWTFont(
         portableImages: Boolean,
         callback: Callback<ITexture2D>,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
 
         if (text.isEmpty()) {
@@ -130,16 +132,16 @@ class AWTFont(
         if (text.containsSpecialChar() || widthLimit < text.length * font.size * 2f) {
             return generateTextureV3(
                 text, font.size, widthLimit, heightLimit, portableImages,
-                textColor, backgroundColor, extraPadding, callback
+                textColor, backgroundColor, callback
             )
         }
 
         val group = createGroup(font, text)
-        val width = min(widthLimit, getStringWidth(group).roundToIntOr() + 1 + 2 * extraPadding)
+        val width = min(widthLimit, ceil(getStringWidth(group)).toIntOr() + TEXTURE_PADDING_W)
 
         val lineCount = 1
         val fontHeight = fontMetrics.height
-        val height = min(heightLimit, fontHeight * lineCount + 2 * extraPadding)
+        val height = min(heightLimit, fontHeight * lineCount + TEXTURE_PADDING_H)
 
         if (width < 1 || height < 1) {
             return callback.ok(TextureLib.blackTexture)
@@ -168,7 +170,7 @@ class AWTFont(
         val image = createImage(
             width,
             height, portableImages, textColor,
-            backgroundColor, extraPadding, text, group
+            backgroundColor, text, group
         )
         if (hasPriority) {
             createTexture(texture, image, callback)
@@ -188,8 +190,7 @@ class AWTFont(
         portableImages: Boolean,
         callback: Callback<Texture2DArray>,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
 
         val widthLimit = GFX.maxTextureSize
@@ -197,24 +198,32 @@ class AWTFont(
 
         val alignment = CharacterOffsetCache.getOffsetCache(font)
         val size = alignment.getOffset('w'.code, 'w'.code)
-        val width = min(widthLimit, size.roundToIntOr() + 1 + 2 * extraPadding)
-        val height = min(heightLimit, fontMetrics.height + 2 * extraPadding)
+        val width = min(widthLimit, ceil(size).toIntOr() + 1)
+        val height = min(heightLimit, fontMetrics.height)
 
         val texture = Texture2DArray("awtAtlas", width, height, simpleChars.size)
         if (GFX.isGFXThread()) {
-            createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
+            createASCIITexture(texture, portableImages, textColor, backgroundColor)
             callback.ok(texture)
         } else {
             addGPUTask("awtAtlas", width, height, false) {
-                createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
+                createASCIITexture(texture, portableImages, textColor, backgroundColor)
                 callback.ok(texture)
             }
         }
     }
 
+    override fun getBaselineY(): Float {
+        return exampleLayout.ascent
+    }
+
+    override fun getLineHeight(): Float {
+        return exampleLayout.ascent + exampleLayout.descent
+    }
+
     private fun createImage(
         width: Int, height: Int, portableImages: Boolean,
-        textColor: Int, backgroundColor: Int, extraPadding: Int,
+        textColor: Int, backgroundColor: Int,
         text: CharSequence, group: TextGroup?,
     ): BufferedImage {
         val image = BufferedImage(width, height, 1)
@@ -225,10 +234,6 @@ class AWTFont(
             // fill background with that color
             gfx.color = Color(backgroundColor)
             gfx.fillRect(0, 0, width, height)
-        }
-
-        if (extraPadding != 0) {
-            gfx.translate(extraPadding, extraPadding)
         }
 
         gfx.color = Color(textColor)
@@ -461,15 +466,14 @@ class AWTFont(
         portableImages: Boolean,
         textColor: Int,
         backgroundColor: Int,
-        extraPadding: Int,
         callback: Callback<ITexture2D>
     ) {
 
         val parts = splitParts(text, fontSize, 4f, 0f, widthLimit.toFloat(), heightLimit.toFloat())
         val result = parts.parts
 
-        val width = min(ceil(parts.width).toInt() + 2 + 2 * extraPadding, widthLimit)
-        val height = min(ceil(parts.height).toInt() + 1 + 2 * extraPadding, heightLimit)
+        val width = min(ceil(parts.width).toIntOr() + TEXTURE_PADDING_W, widthLimit)
+        val height = min(ceil(parts.height).toIntOr() + TEXTURE_PADDING_H, heightLimit)
 
         if (result.isEmpty() || width < 1 || height < 1) {
             return callback.ok(FakeWhiteTexture(width, height, 1))
@@ -478,11 +482,11 @@ class AWTFont(
         val texture = Texture2D("awt-font-v3", width, height, 1)
         val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         if (hasPriority) {
-            createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
+            createImage(texture, portableImages, textColor, backgroundColor, result)
             callback.ok(texture)
         } else {
             addGPUTask("awt-font-v6", width, height, false) {
-                createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
+                createImage(texture, portableImages, textColor, backgroundColor, result)
                 callback.ok(texture)
             }
         }
@@ -490,7 +494,7 @@ class AWTFont(
 
     private fun createImage(
         texture: Texture2D, portableImages: Boolean, textColor: Int, backgroundColor: Int,
-        extraPadding: Int, result: List<StringPart>
+        result: List<StringPart>
     ) {
         val image = BufferedImage(texture.width, texture.height, 1)
         // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
@@ -503,7 +507,6 @@ class AWTFont(
             gfx.color = Color(backgroundColor)
             gfx.fillRect(0, 0, image.width, image.height)
         }
-        gfx.translate(extraPadding, extraPadding)
         gfx.color = Color(textColor)
 
         val y = exampleLayout.ascent
@@ -522,8 +525,7 @@ class AWTFont(
         texture: Texture2DArray,
         portableImages: Boolean,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
         val image = BufferedImage(texture.width, texture.height * texture.layers, 1)
         val gfx = image.graphics as Graphics2D
@@ -532,9 +534,6 @@ class AWTFont(
             // fill background with that color
             gfx.color = Color(backgroundColor)
             gfx.fillRect(0, 0, image.width, image.height)
-        }
-        if (extraPadding != 0) {
-            gfx.translate(extraPadding, extraPadding)
         }
         gfx.color = Color(textColor)
         var y = fontMetrics.ascent.toFloat()

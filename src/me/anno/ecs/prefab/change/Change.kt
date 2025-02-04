@@ -7,7 +7,6 @@ import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertEquals
-import java.text.ParseException
 
 /**
  * denotes a change in a prefab
@@ -16,14 +15,14 @@ abstract class Change : Saveable() {
 
     var path: Path = ROOT_PATH
 
-    fun apply(prefab0: Prefab, instance0: PrefabSaveable, depth: Int) {
+    fun apply(prefab0: Prefab, instance0: PrefabSaveable, depth: Int): Exception? {
         assertEquals(ROOT_PATH, instance0.prefabPath, "Root instance must have root path")
-        val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
+        val instance = Hierarchy.getInstanceAt(instance0, path) ?: return null
         assertEquals(path, instance.prefabPath, "Path does not match!")
-        applyChange(prefab0, instance, depth)
+        return applyChange(prefab0, instance, depth)
     }
 
-    abstract fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int)
+    abstract fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int): Exception?
 
     /**
      * shallow copy
@@ -38,18 +37,10 @@ abstract class Change : Saveable() {
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "path" -> {
-                when (value) {
-                    is Path -> path = value
-                    is String -> {
-                        try {
-                            path = Path.fromString(value)
-                        } catch (e: ParseException) {
-                            super.setProperty(name, value)
-                        }
-                    }
-                    // else ignored
-                }
+            "path" -> when (value) {
+                is Path -> path = value
+                is String -> path = Path.fromString(value) ?: return
+                // else ignored
             }
             else -> super.setProperty(name, value)
         }

@@ -52,11 +52,12 @@ object OSMMapCache : CacheSection("OSMMapData") {
             var result: OSMap? = null
             val path = listOf(key1.xi.toString(), key1.yi.toString(), key1.level.toString())
             val hash = query.hashCode().toLong().and(0xffffffff)
-            hdb.get(path, hash, false) { bytes ->
+            hdb.get(path, hash) { bytes, _ ->
                 if (bytes != null) {
                     result = readOSM2(bytes.stream())
                 }
             }
+            TODO("wait for result")
             if (result == null) {
                 limit.acquire()
                 val con = URL(MAIN_URL).openConnection() as HttpURLConnection

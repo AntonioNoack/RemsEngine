@@ -44,7 +44,7 @@ class SpiderTrap(
 
         val transform = transform!!
         val y = 10.0 - 15.0 * pow(progress / duration, 10f)
-        transform.localPosition = transform.localPosition.set(
+        transform.setLocalPosition(
             (position.x * 2f - 1f) * spiderWorldScale, y,
             (position.y * 2f - 1f) * spiderWorldScale
         )

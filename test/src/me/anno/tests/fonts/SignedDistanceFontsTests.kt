@@ -1,7 +1,6 @@
 package me.anno.tests.fonts
 
 import me.anno.Engine
-import me.anno.cache.CacheData
 import me.anno.ecs.Component
 import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.engine.OfficialExtensions
@@ -64,13 +63,11 @@ class SignedDistanceFontsTests {
         val sdfTimeout = 10_000L
         val key = SDFCharKey(font, codepoint, roundCorners)
         Sleep.waitUntilDefined(true) {
-            val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) { key2 ->
+            val textSDF = TextureCache.getEntry(key, sdfTimeout, queue) { key2 ->
                 val charAsText = key2.codePoint.joinChars()
-                val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
-                CacheData(texture)
-            } as? CacheData<*>
+                SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
+            } as? TextSDF
             Sleep.work(true)
-            val textSDF = (cacheData?.value as? TextSDF)
             textSDF?.texture?.createdOrNull()
         }
     }

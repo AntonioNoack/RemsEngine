@@ -1,6 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.maths.Maths
+import me.anno.utils.assertions.assertFail
 import me.anno.utils.types.Casting
 import org.joml.Planed
 import org.joml.Planef
@@ -32,7 +33,7 @@ class NumberType(
             this(defaultValue, components, 1f, true, true, { it!! }, { it })
 
     val defaultValue = acceptOrNull(clamp(defaultValue))
-        ?: throw IllegalArgumentException("Incompatible default value $defaultValue")
+        ?: assertFail("Incompatible default value $defaultValue")
 
     override fun toString() = "Type[${defaultValue::class.simpleName} x $numComponents]"
 

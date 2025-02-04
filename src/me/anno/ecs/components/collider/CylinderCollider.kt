@@ -3,9 +3,9 @@ package me.anno.ecs.components.collider
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes
-import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes.drawCircle
+import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.length
 import org.joml.AABBd
@@ -59,26 +59,26 @@ class CylinderCollider : Collider() {
         val color = getLineColor(hasPhysics)
         when (axis) {
             Axis.X -> {
-                LineShapes.drawLine(e, -h, -r, 0.0, +h, -r, 0.0, color)
-                LineShapes.drawLine(e, -h, +r, 0.0, +h, +r, 0.0, color)
-                LineShapes.drawLine(e, -h, 0.0, -r, +h, 0.0, -r, color)
-                LineShapes.drawLine(e, -h, 0.0, +r, +h, 0.0, +r, color)
+                drawLine(e, -h, -r, 0.0, +h, -r, 0.0, color)
+                drawLine(e, -h, +r, 0.0, +h, +r, 0.0, color)
+                drawLine(e, -h, 0.0, -r, +h, 0.0, -r, color)
+                drawLine(e, -h, 0.0, +r, +h, 0.0, +r, color)
                 drawCircle(e, r, 1, 2, +h, null, color)
                 drawCircle(e, r, 1, 2, -h, null, color)
             }
             Axis.Y -> {
-                LineShapes.drawLine(e, -r, -h, 0.0, -r, +h, 0.0, color)
-                LineShapes.drawLine(e, +r, -h, 0.0, +r, +h, 0.0, color)
-                LineShapes.drawLine(e, 0.0, -h, -r, 0.0, +h, -r, color)
-                LineShapes.drawLine(e, 0.0, -h, +r, 0.0, +h, +r, color)
+                drawLine(e, -r, -h, 0.0, -r, +h, 0.0, color)
+                drawLine(e, +r, -h, 0.0, +r, +h, 0.0, color)
+                drawLine(e, 0.0, -h, -r, 0.0, +h, -r, color)
+                drawLine(e, 0.0, -h, +r, 0.0, +h, +r, color)
                 drawCircle(e, r, 0, 2, +h, null, color)
                 drawCircle(e, r, 0, 2, -h, null, color)
             }
             Axis.Z -> {
-                LineShapes.drawLine(e, -r, 0.0, -h, -r, 0.0, +h, color)
-                LineShapes.drawLine(e, +r, 0.0, -h, +r, 0.0, +h, color)
-                LineShapes.drawLine(e, 0.0, -r, -h, 0.0, -r, +h, color)
-                LineShapes.drawLine(e, 0.0, +r, -h, 0.0, +r, +h, color)
+                drawLine(e, -r, 0.0, -h, -r, 0.0, +h, color)
+                drawLine(e, +r, 0.0, -h, +r, 0.0, +h, color)
+                drawLine(e, 0.0, -r, -h, 0.0, -r, +h, color)
+                drawLine(e, 0.0, +r, -h, 0.0, +r, +h, color)
                 drawCircle(e, r, 0, 1, +h, null, color)
                 drawCircle(e, r, 0, 1, -h, null, color)
             }

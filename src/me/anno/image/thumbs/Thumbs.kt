@@ -324,8 +324,9 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         callback: Callback<ITexture2D>,
         callback1: (Boolean) -> Unit
     ) {
-        hdb.get(dstFile, true) {
-            shallReturnIfExists(srcFile, it, callback, callback1)
+        hdb.get(dstFile) { it, err ->
+            if (it != null) shallReturnIfExists(srcFile, it, callback, callback1)
+            else callback.err(err)
         }
     }
 
@@ -385,7 +386,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         if (useCacheFolder) {
             srcFile.getFileHash { hash ->
                 val key = getCacheKey(srcFile, hash, size)
-                hdb.get(key, false) { byteSlice ->
+                hdb.get(key) { byteSlice, _ ->
                     // check all higher LODs for data: if they exist, use them instead
                     checkHigherResolutions(srcFile, size, hash, callback) {
                         shallReturnIfExists(srcFile, byteSlice, callback) { foundExists ->
@@ -418,7 +419,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         if (sizeIndex < sizes.size) {
             val sizeI = sizes[sizeIndex]
             val keyI = getCacheKey(srcFile, hash, sizeI)
-            hdb.get(keyI, false) { bytes ->
+            hdb.get(keyI) { bytes, _ ->
                 if (bytes != null) {
                     readImage(bytes).waitFor { image ->
                         if (image != null) {

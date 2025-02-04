@@ -35,6 +35,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
     private val fontSize = FontManager.getAvgFontSize(key.sizeIndex)
     private val charSizeY = fontSize.roundToIntOr()
     private val charSizeX = charSizeY * 7 / 12
+    private val baselineY = charSizeY * 0.73f // measured in Gimp
 
     private fun getWrittenLength(text: CharSequence, widthLimit: Int): Int {
         return min(text.countCodepoints(), widthLimit / charSizeX)
@@ -73,6 +74,14 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
         return generateTexture(char.code, stack)
     }
 
+    override fun getBaselineY(): Float {
+        return baselineY
+    }
+
+    override fun getLineHeight(): Float {
+        return charSizeY.toFloat()
+    }
+
     override fun generateTexture(
         text: CharSequence,
         widthLimit: Int,
@@ -80,21 +89,20 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
         portableImages: Boolean,
         callback: Callback<ITexture2D>,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
         getImageStack { stack, err ->
             if (stack != null) {
                 val image = if (text.length == 1) {
                     generateTexture(text[0], stack)
                 } else {
-                    val len = getWrittenLength(text, widthLimit)
-                    val width = len * charSizeX
+                    val length = getWrittenLength(text, widthLimit)
+                    val width = length * charSizeX
                     val height = charSizeY
                     val image = IntImage(width, height, false)
-                    val cps = text.codepoints(len)
-                    for (i in 0 until len) {
-                        generateTexture(cps[i], stack).copyInto(image, i * charSizeX, 0)
+                    val codepoints = text.codepoints(length)
+                    for (i in 0 until length) {
+                        generateTexture(codepoints[i], stack).copyInto(image, i * charSizeX, 0)
                     }
                     image
                 }
@@ -111,8 +119,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
         portableImages: Boolean,
         callback: Callback<Texture2DArray>,
         textColor: Int,
-        backgroundColor: Int,
-        extraPadding: Int
+        backgroundColor: Int
     ) {
         getImageStack { stack, err ->
             if (stack != null) {

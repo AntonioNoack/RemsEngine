@@ -29,6 +29,14 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
         }
     }
 
+    fun waitFor(callback: Callback<V>) {
+        Sleep.waitUntil(true, { hasValue }) {
+            val value = value
+            if (value != null) callback.ok(value)
+            else callback.err(null)
+        }
+    }
+
     override fun call(value: V?, exception: Exception?) {
         this.value = value
         exception?.printStackTrace()

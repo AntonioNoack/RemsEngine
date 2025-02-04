@@ -1,11 +1,10 @@
 package me.anno.graph.hdb
 
 import me.anno.Time
-import me.anno.cache.CacheData
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.engine.Events.addEvent
 import me.anno.graph.hdb.allocator.FileAllocation
-import me.anno.graph.hdb.allocator.FileAllocation.calculateSortedRanges
 import me.anno.graph.hdb.allocator.ReplaceType
 import me.anno.graph.hdb.index.File
 import me.anno.graph.hdb.index.Folder
@@ -14,8 +13,15 @@ import me.anno.graph.hdb.index.IndexWriter
 import me.anno.graph.hdb.index.StorageFile
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.waitFor
+import me.anno.utils.async.UnitCallback
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
 import java.io.RandomAccessFile
 
 /**
@@ -49,16 +55,25 @@ class HierarchicalDatabase(
         storage.tryMkdirs()
         if (indexFile.exists) {
             indexFile.inputStream { stream, exc ->
-                if (stream != null) {
-                    IndexReader(stream) { sfIndex ->
-                        synchronized(storageFiles) {
-                            storageFiles.getOrPut(sfIndex) {
-                                StorageFile(sfIndex)
-                            }
-                        }
-                    }.readFolder(root)
+                if (stream != null) loadIndex(stream)
+                else exc?.printStackTrace()
+            }
+        }
+    }
+
+    fun loadIndex(stream: InputStream) {
+        synchronized(storageFiles) {
+            IndexReader(stream) { sfIndex ->
+                storageFiles.getOrPut(sfIndex) {
+                    StorageFile(sfIndex)
                 }
-                exc?.printStackTrace()
+            }.readFolder(root)
+            // validate all storage files: files and ranges need to be reconstructed
+            for ((_, sf) in storageFiles) {
+                synchronized(sf) {
+                    sf.rebuildSortedFiles()
+                    sf.rebuildSortedRanges()
+                }
             }
         }
     }
@@ -153,23 +168,26 @@ class HierarchicalDatabase(
     }
 
     private fun optimizeStorage(sf: StorageFile) {
-        val files = sf.folders.flatMap { it.files.values }
-        if (FileAllocation.shouldOptimize(files, sf.size)) {
-            // load and manipulate storage
-            synchronized(sf) {
-                val file = getFile(sf.index)
-                if (files.isEmpty()) {
-                    file.delete()
-                } else {
-                    try {
-                        val bytes = file.readBytesSync()
-                        val newBytes = FileAllocation.pack(files, bytes)
-                        file.writeBytes(newBytes)
-                    } catch (e: Exception) {
-                        LOGGER.warn("Lost $file", e)
-                    }
+        val files = sf.sortedFiles
+        if (!FileAllocation.shouldOptimize(files, sf.size)) return
+        // load and manipulate storage
+        synchronized(sf) {
+            val file = getFile(sf.index)
+            if (files.isEmpty()) {
+                file.delete()
+            } else {
+                file.readBytes { bytes, err ->
+                    if (bytes != null) optimizeStorage(sf, file, bytes)
+                    else err?.printStackTrace()
                 }
             }
+        }
+    }
+
+    private fun optimizeStorage(sf: StorageFile, file: FileReference, bytes: ByteArray) {
+        synchronized(sf) { // we might have switched to a different thread
+            val newBytes = FileAllocation.pack(sf.sortedFiles, bytes)
+            file.writeBytes(newBytes)
         }
     }
 
@@ -184,92 +202,98 @@ class HierarchicalDatabase(
 
     fun clearMemory() {
         cache.clear()
+        synchronized(storageFiles) {
+            for (sf in storageFiles.values) {
+                synchronized(sf) {
+                    sf.clear()
+                }
+            }
+        }
         loadIndex()
     }
 
-    fun get(key: HDBKey, async: Boolean, callback: (ByteSlice?) -> Unit) {
-        return get(key.path, key.hash, async, callback)
+    fun get(key: HDBKey, callback: Callback<ByteSlice>) {
+        return get(key.path, key.hash, callback)
     }
 
-    fun get(path: List<String>, hash: Long, async: Boolean, callback: (ByteSlice?) -> Unit) {
+    fun get(path: List<String>, hash: Long, callback: Callback<ByteSlice>) {
         var folder = root
         for (i in path.indices) {
-            folder = folder.children[path[i]] ?: return callback(null)
+            folder = folder.children[path[i]]
+                ?: return callback.err(FileNotFoundException("Missing path '$path'"))
         }
-        val file = folder.files[hash] ?: return callback(null)
+        val file = folder.files[hash]
+            ?: return callback.err(FileNotFoundException("Missing hash '$hash'"))
         file.lastAccessedMillis = System.currentTimeMillis()
         if (file.range.isEmpty()) {
-            callback(ByteSlice(B0, file.range))
+            callback.ok(ByteSlice(B0, file.range))
         } else {
-            val sf = folder.storageFile ?: return callback(null)
-            if (async) {
-                getDataAsync(sf) { bytes ->
-                    val slice = if (bytes != null) ByteSlice(bytes, file.range) else null
-                    callback(slice)
-                }
-            } else {
-                val bytes = getDataSync(sf) ?: return callback(null)
-                callback(ByteSlice(bytes, file.range))
-            }
+            val sf = folder.storageFile
+                ?: return callback.err(IOException("Storage empty"))
+            getDataAsync(sf, callback.map { bytes -> ByteSlice(bytes, file.range) })
         }
     }
 
-    private fun loadData(sf: Int): CacheData<ByteArray>? {
-        val file = getFile(sf)
-        return if (file.exists) {
-            CacheData(file.readBytesSync())
-        } else null
-    }
-
-    private fun getDataSync(sf: StorageFile): ByteArray? {
+    private fun getDataAsync(sf: StorageFile, callback: Callback<ByteArray>) {
         val key = sf.index
-        val data = cache.getEntry(key, cacheTimeoutMillis, false) {
-            loadData(it)
-        } as? CacheData<*>
-        return data?.value as? ByteArray
+        cache.getEntryAsync(key, cacheTimeoutMillis, true, { keyI ->
+            val file = getFile(keyI)
+            val result = AsyncCacheData<ByteArray>()
+            if (file.exists) file.readBytes(result)
+            else result.value = null
+            result
+        }, callback.waitFor())
     }
 
-    private fun getDataAsync(sf: StorageFile, callback: (ByteArray?) -> Unit) {
-        val key = sf.index
-        cache.getEntryAsync(key, cacheTimeoutMillis, true, {
-            loadData(it)
-        }, { data, exc ->
-            callback((data as? CacheData<*>)?.value as? ByteArray)
-            exc?.printStackTrace()
-        })
+    private fun getDataFromCacheOnly(sf: StorageFile): ByteArray? {
+        val data = cache.getEntryWithoutGenerator(sf.index, cacheTimeoutMillis)
+        return (data as? AsyncCacheData<*>)?.value as? ByteArray?
     }
 
-    fun put(key: HDBKey, value: ByteArray) {
-        put(key, ByteSlice(value))
+    fun put(key: HDBKey, value: ByteArray, callback: UnitCallback? = null) {
+        put(key, ByteSlice(value), callback)
     }
 
-    fun put(key: HDBKey, value: ByteSlice) {
-        put(key.path, key.hash, value)
+    fun put(key: HDBKey, value: ByteSlice, callback: UnitCallback? = null) {
+        put(key.path, key.hash, value, callback)
     }
 
-    fun put(path: List<String>, hash: Long, value: ByteSlice) {
+    private fun findFolder(path: List<String>): Folder {
+        var folder = root
+        for (i in path.indices) {
+            folder = folder.children.getOrPut(path[i]) {
+                Folder(path[i])
+            }
+        }
+        return folder
+    }
+
+    private fun createStorageFile(folder: Folder, value: ByteSlice): StorageFile {
+        val result = findStorageFile(value.size)
+        folder.storageFile = result
+        result.folders.add(folder)
+        return result
+    }
+
+    fun put(path: List<String>, hash: Long, value: ByteSlice, callback: UnitCallback? = null) {
+        val folder: Folder
+        val sf: StorageFile
         synchronized(this) {
-            var folder = root
-            for (i in path.indices) {
-                folder = folder.children.getOrPut(path[i]) {
-                    Folder(path[i])
-                }
-            }
-
-            var sf = folder.storageFile
-            if (sf == null) {
-                sf = findStorageFile(value.size)
-                folder.storageFile = sf
-                sf.folders.add(folder)
-            }
-            addFile(hash, value, sf, folder)
+            folder = findFolder(path)
+            sf = folder.storageFile ?: createStorageFile(folder, value)
         }
-        scheduleStoreIndex()
+        getDataAsync(sf) { bytes, _ ->
+            synchronized(sf) {
+                addFile(hash, value, sf, folder, bytes ?: B0)
+            }
+            scheduleStoreIndex()
+            callback?.call(null)
+        }
     }
 
-    private fun addFile(hash: Long, value: ByteSlice, sf: StorageFile, folder: Folder) {
+    private fun addFile(hash: Long, value: ByteSlice, sf: StorageFile, folder: Folder, oldData0: ByteArray) {
 
-        val oldData = getDataSync(sf) ?: B0
+        val oldData = getDataFromCacheOnly(sf) ?: oldData0
         if (oldData.size < sf.size) {
             LOGGER.warn("Missing data ${oldData.size} < ${sf.size}")
             deleteBecauseCorrupted(sf)
@@ -277,9 +301,9 @@ class HierarchicalDatabase(
 
         folder.files.remove(hash)
         val file = File(System.currentTimeMillis(), value.range)
-        val files = sf.files
+
         val (type, data) = FileAllocation.insert(
-            files, calculateSortedRanges(files, ArrayList()), file,
+            sf.sortedFiles, sf.sortedRanges, file,
             value.bytes, value.range,
             oldData.size, oldData, true
         )
@@ -288,7 +312,9 @@ class HierarchicalDatabase(
         val file1 = getFile(sf.index)
         sf.size = data.size
 
-        cache.override(sf.index, CacheData(data), cacheTimeoutMillis)
+        val forCache = AsyncCacheData<ByteArray>()
+        forCache.value = data
+        cache.override(sf.index, forCache, cacheTimeoutMillis)
 
         if (type == ReplaceType.InsertInto && file1.exists) {
             val writer = RandomAccessFile(file1.absolutePath, "rw")
@@ -302,12 +328,12 @@ class HierarchicalDatabase(
     }
 
     private fun deleteBecauseCorrupted(sf: StorageFile) {
-        synchronized(this) {
+        synchronized(sf) {
             for (folder in sf.folders) {
-                folder.files.removeIf {
-                    !it.value.range.isEmpty()
-                }
+                folder.files.removeIf { (_, file) -> !file.range.isEmpty() }
             }
+            sf.sortedFiles.clear()
+            sf.sortedRanges.clear()
             sf.size = 0
         }
     }

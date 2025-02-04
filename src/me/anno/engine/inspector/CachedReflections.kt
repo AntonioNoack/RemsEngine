@@ -128,7 +128,8 @@ class CachedReflections private constructor(
 
         fun getMemberProperties(clazz: KClass<*>): Map<String, CachedProperty> {
             val jc = clazz.java
-            return findProperties(jc,
+            return findProperties(
+                jc,
                 allFields(jc, ArrayList())
                     .filter { !Modifier.isStatic(it.modifiers) },
                 allMethods(jc, ArrayList())
@@ -169,6 +170,16 @@ class CachedReflections private constructor(
             } else return listOf(clazz to sortProperties(allProperties.values))
         }
 
+        fun getGetterName(fieldName: String, fieldCap: CharSequence): String {
+            return if (fieldCap.startsWith("Is")) fieldName
+            else "get$fieldCap"
+        }
+
+        fun getSetterName(fieldName: String, fieldCap: CharSequence): String {
+            return if (fieldCap.startsWith("Is")) "set${fieldCap.substring(2).titlecase()}"
+            else "set$fieldCap"
+        }
+
         fun findProperties(
             clazz: Class<*>,
             properties: List<Field>,
@@ -176,22 +187,22 @@ class CachedReflections private constructor(
         ): Map<String, CachedProperty> {
             // this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
             val map = HashMap<String, CachedProperty>()
+            val publicMethodNames = methods
+                .filter { Modifier.isPublic(it.modifiers) }
+                .map { it.name }.toHashSet()
             for (index in properties.indices) {
                 val field = properties[index]
                 val annotations = field.annotations.toMutableList()
                 val fieldCap = field.name.titlecase()
-                val kotlinAnnotationName = "get$fieldCap\$annotations"
+                val getterName = getGetterName(field.name, fieldCap)
+                val kotlinAnnotationName = "$getterName\$annotations"
                 val m = methods.firstOrNull { it.name == kotlinAnnotationName }
                 if (m != null) annotations += m.annotations.toList()
                 val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
                 val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
-                val getterName = if (fieldCap.startsWith("Is")) field.name
-                else "get$fieldCap"
-                val setterName = if (fieldCap.startsWith("Is")) "set${fieldCap.substring(2).titlecase()}"
-                else "set$fieldCap"
+                val setterName = getSetterName(field.name, fieldCap)
                 val isPublic = Modifier.isPublic(field.modifiers) ||
-                        (methods.any { Modifier.isPublic(it.modifiers) && it.name == getterName } &&
-                                methods.any { Modifier.isPublic(it.modifiers) && it.name == setterName })
+                        (getterName in publicMethodNames && setterName in publicMethodNames)
                 val serialize = serial != null || (isPublic && notSerial == null)
                 var name = serial?.name
                 if (name.isNullOrBlank()) name = field.name
@@ -269,8 +280,9 @@ class CachedReflections private constructor(
         ): CachedProperty {
             // save the field
             field.isAccessible = true
+            val capName = javaName.titlecase()
             val setterMethod = try {
-                clazz.getMethod("set${javaName.titlecase()}", field.type)
+                clazz.getMethod(getSetterName(javaName, capName), field.type)
             } catch (e: NoSuchMethodException) {
                 null
             }
@@ -278,7 +290,7 @@ class CachedReflections private constructor(
                 LOGGER.warn("Missing setter for $clazz.$javaName")
             }
             val getterMethod = try {
-                clazz.getMethod("get${javaName.titlecase()}")
+                clazz.getMethod(getGetterName(javaName, capName))
             } catch (e: NoSuchMethodException) {
                 null
             }

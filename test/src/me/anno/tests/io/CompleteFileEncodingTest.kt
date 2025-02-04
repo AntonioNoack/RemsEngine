@@ -152,11 +152,11 @@ class CompleteFileEncodingTest {
 
     val instances = instances0// + instances1 + instances2
 
-    fun hasNativeArray(v: Any): Boolean {
+    fun hasNativeArray(v: Any?): Boolean {
         return v is Boolean || v is Char || v is Number
     }
 
-    fun isNativeArray(v: Any): Boolean {
+    fun isNativeArray(v: Any?): Boolean {
         return when (v) {
             is ByteArray,
             is ShortArray,

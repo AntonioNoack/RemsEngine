@@ -47,7 +47,6 @@ class CharacterOffsetCache(val font: Font) {
     }
 
     companion object {
-        private val LOGGER = LogManager.getLogger(CharacterOffsetCache::class)
         private val caches = HashMap<Font, CharacterOffsetCache>()
         fun getOffsetCache(font: Font): CharacterOffsetCache {
             return synchronized(caches) {

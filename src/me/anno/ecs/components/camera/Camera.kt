@@ -4,7 +4,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.collider.Collider.Companion.getLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.components.player.Player
 import me.anno.ecs.prefab.PrefabSaveable
@@ -12,26 +11,27 @@ import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawRect
-import me.anno.engine.ui.render.DrawAABB
-import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector2f
 import org.joml.Vector3d
-import kotlin.math.tan
 
 // like the studio camera,
 // a custom state, which stores all related rendering information
 class Camera : Component(), OnDrawGUI {
 
+    // todo this is missing from EditorUI... why???
     var isPerspective = true
 
+    @Range(1e-308, 1e305)
     var near = 0.01
 
+    @Range(1e-305, 1e308)
     var far = 5000.0
 
     @Range(0.0, 180.0)
@@ -40,7 +40,7 @@ class Camera : Component(), OnDrawGUI {
 
     @Range(0.0, 1e308)
     @Docs("the fov when orthographic, in base units")
-    var fovOrthographic = 5f
+    var fovOrthographic = 5.0
 
     @Docs("offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²")
     var center = Vector2f()
@@ -72,51 +72,61 @@ class Camera : Component(), OnDrawGUI {
         return true
     }
 
+    private fun defineRect(
+        aspect: Float, size: Double, z: Double,
+        n00: Vector3d, n01: Vector3d, n10: Vector3d, n11: Vector3d
+    ) {
+        val sx = aspect * size
+        n00.set(-sx, -size, z)
+        n01.set(-sx, +size, z)
+        n10.set(+sx, -size, z)
+        n11.set(+sx, +size, z)
+    }
+
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        val entity = entity
-        val aspect = RenderView.currentInstance?.run { width.toFloat() / height } ?: 1f
-        LineShapes.drawArrowZ(entity, 0.0, -1.0)
-        val color = getLineColor(false)
+        drawForwardArrows()
+        drawCameraLines()
+    }
+
+    fun drawForwardArrows() {
+        LineShapes.drawArrowZ(entity, 0.0, -near)
+        LineShapes.drawArrowZ(entity, -near, -far)
+    }
+
+    fun drawCameraLines() {
+        val rv = RenderView.currentInstance
+        val aspectRatio = if (rv != null) rv.width.toFloat() / rv.height.toFloat() else 1f
+
+        val color = black or (if (far > near && near > 0.0) 0x77ff77 else 0xff7777)
+
+        val n00 = JomlPools.vec3d.create()
+        val n01 = JomlPools.vec3d.create()
+        val n10 = JomlPools.vec3d.create()
+        val n11 = JomlPools.vec3d.create()
+        val f00 = JomlPools.vec3d.create()
+        val f01 = JomlPools.vec3d.create()
+        val f10 = JomlPools.vec3d.create()
+        val f11 = JomlPools.vec3d.create()
+
         if (isPerspective) {
-            // draw camera symbol with all the properties
-            val dy = tan(fovY.toRadians() * 0.5f)
-            val dx = dy * aspect
-            val n00 = JomlPools.vec3f.create()
-            val n01 = JomlPools.vec3f.create()
-            val n10 = JomlPools.vec3f.create()
-            val n11 = JomlPools.vec3f.create()
-            val f00 = JomlPools.vec3f.create()
-            val f01 = JomlPools.vec3f.create()
-            val f10 = JomlPools.vec3f.create()
-            val f11 = JomlPools.vec3f.create()
-            n00.set(+dx * near, +dy * near, -near)
-            n01.set(+dx * near, -dy * near, -near)
-            n10.set(-dx * near, +dy * near, -near)
-            n11.set(-dx * near, -dy * near, -near)
-            f00.set(+dx * far, +dy * far, -far)
-            f01.set(+dx * far, -dy * far, -far)
-            f10.set(-dx * far, +dy * far, -far)
-            f11.set(-dx * far, -dy * far, -far)
-            drawRect(entity, n00, n01, n11, n10, color)
-            drawRect(entity, f00, f01, f11, f10, color)
-            n00.set(0f) // start lines from camera itself
-            drawLine(entity, n00, f00, color)
-            drawLine(entity, n00, f01, color)
-            drawLine(entity, n00, f10, color)
-            drawLine(entity, n00, f11, color)
-            JomlPools.vec3f.sub(8)
+            val fovYRadians = fovY.toDouble().toRadians()
+            defineRect(aspectRatio, near * fovYRadians, -near, n00, n01, n10, n11)
+            defineRect(aspectRatio, far * fovYRadians, -far, f00, f01, f10, f11)
         } else {
-            val sy = fovOrthographic * 0.5
-            val sx = sy * aspect
-            DrawAABB.drawAABB(
-                transform?.getDrawMatrix(),
-                JomlPools.aabbd.borrow()
-                    .setMin(-sx, -sy, -far)
-                    .setMax(+sx, +sy, -near),
-                RenderState.worldScale,
-                color
-            )
+            val size = fovOrthographic
+            defineRect(aspectRatio, size, -near, n00, n01, n10, n11)
+            defineRect(aspectRatio, size, -far, f00, f01, f10, f11)
         }
+
+        val entity = entity
+        drawRect(entity, n00, n01, n11, n10, color)
+        drawRect(entity, f00, f01, f11, f10, color)
+        drawLine(entity, n00, f00, color)
+        drawLine(entity, n01, f01, color)
+        drawLine(entity, n10, f10, color)
+        drawLine(entity, n11, f11, color)
+
+        JomlPools.vec3d.sub(8)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

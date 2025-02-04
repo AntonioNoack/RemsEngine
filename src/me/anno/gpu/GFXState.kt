@@ -428,9 +428,9 @@ object GFXState {
         }
     }
 
-    inline fun drawCall(name: String, run: () -> Unit) {
+    inline fun drawCall(name: String, renderCall: () -> Unit) {
         pushDrawCallName(name)
-        run()
+        renderCall()
         popDrawCallName()
     }
 

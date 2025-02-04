@@ -67,7 +67,7 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
 
     init {
         // make it better visible by raising it
-        transform.localPosition = transform.localPosition.set(0.0, 0.1, 0.0)
+        transform.setLocalPosition(0.0, 0.1, 0.0)
         transform.teleportUpdate()
     }
 

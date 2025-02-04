@@ -9,7 +9,9 @@ import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * represents position, rotation and scale of an Entity,
@@ -310,9 +312,18 @@ class Transform() : Saveable() {
         if (invalidate) invalidateGlobal()
     }
 
-    @Suppress("unused")
     fun setLocalPosition(x: Double, y: Double, z: Double): Transform {
         localPosition = localPosition.set(x, y, z)
+        return this
+    }
+
+    fun setLocalPosition(v: Vector3f): Transform {
+        localPosition = localPosition.set(v)
+        return this
+    }
+
+    fun setLocalRotation(q: Quaternionf): Transform {
+        localRotation = localRotation.set(q)
         return this
     }
 

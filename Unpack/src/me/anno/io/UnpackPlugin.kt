@@ -41,15 +41,15 @@ class UnpackPlugin : Plugin() {
         InnerFolderCache.registerSignatures("zip,bz2,lz4,xar,oar", InnerZipFile.Companion::createZipRegistryV2)
         InnerFolderCache.registerSignatures("exe", ExeSkipper::readAsFolder)
         InnerFolderCache.registerSignatures("7z") { src, callback ->
-            Inner7zFile.createZipRegistry7z(src, callback) {
-                Inner7zFile.fileFromStream7z(src)
+            Inner7zFile.createZipRegistry7z(src, callback) { cb ->
+                Inner7zFile.fileFromStream7z(src, cb)
             }
         }
         InnerFolderCache.registerSignatures("rar") { src, callback ->
-            val file = InnerRarFile.createZipRegistryRar(src) {
-                InnerRarFile.fileFromStreamRar(src)
+            InnerRarFile.fileFromStreamRar(src) { archive, err ->
+                if (archive != null) InnerRarFile.createZipRegistryRar(src, callback, archive)
+                else callback.err(err)
             }
-            callback.ok(file)
         }
         InnerFolderCache.registerSignatures("gzip", InnerTarFile.Companion::readAsGZip)
         InnerFolderCache.registerSignatures("tar", InnerTarFile.Companion::readAsGZip)

@@ -93,18 +93,18 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
         newDir.add(posB).sub(posA)
     }
 
-    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Boolean) {
+    override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
         val mesh = birdMesh
         for (i in 0 until n) {
             val transform = getTransform(i)
-            transform.localPosition = transform.localPosition.set(positions[i])
-            transform.localRotation = transform.localRotation.set(rotations[i])
-            if (run(mesh, null, transform)) break
+            transform.setLocalPosition(positions[i])
+            transform.setLocalRotation(rotations[i])
+            if (callback(mesh, null, transform)) break
         }
     }
 
-    override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> FloatArrayList): Boolean {
-        val list = run(birdMesh, null)
+    override fun forEachMeshGroupTRS(callback: (IMesh, Material?) -> FloatArrayList): Boolean {
+        val list = callback(birdMesh, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {
             pos2[i].set(positions[i])

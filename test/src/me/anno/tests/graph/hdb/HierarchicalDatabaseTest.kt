@@ -3,16 +3,19 @@ package me.anno.tests.graph.hdb
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.io.config.ConfigBasics
+import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNull
+import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
 class HierarchicalDatabaseTest {
 
-    val samples = ("Ethan,Olivia,Jackson,Sophia,Liam")
+    val samples = ("Ethan,Olivia,Jackson,Sophia,Liam,Nathan,Galileo,Armstrong")
         .split(',')
 
     val sampleKeys = samples.map { sample ->
@@ -53,57 +56,72 @@ class HierarchicalDatabaseTest {
             100_000, timeout, timeout, "txt"
         )
 
+        val split = samples.size / 2
+        val firstRange = 0 until split
+        val secondRange = split until samples.size
+
         instance.clear()
         verifyContentsEmpty(instance)
-        testPut(instance)
-        verifyContents(instance)
+        testPut(instance, firstRange)
+        verifyContents(instance, firstRange)
 
         instance.storeIndex()
         instance.clearMemory()
-        verifyContents(instance)
+        verifyContents(instance, firstRange)
+        testPut(instance, secondRange)
+        verifyContents(instance, samples.indices)
 
         instance.clear()
         verifyContentsEmpty(instance)
     }
 
-    private fun testPut(instance: HierarchicalDatabase) {
-        samples.indices.map { i ->
+    private fun testPut(instance: HierarchicalDatabase, indices: IntRange) {
+        val doneCounter = AtomicInteger(indices.size)
+        indices.map { i ->
             thread {
                 val data = sampleData[i]
-                instance.put(sampleKeys[i], data)
+                instance.put(sampleKeys[i], data) { _ ->
+                    doneCounter.decrementAndGet()
+                }
             }
-        }.forEach {
-            it.join()
         }
+        // wait until everything is saved
+        Sleep.waitUntil(true) { doneCounter.get() == 0 }
     }
 
-    private fun verifyContents(instance: HierarchicalDatabase) {
+    private fun verifyContents(instance: HierarchicalDatabase, indices: IntRange) {
         var ctr = 0
-        for (i in samples.indices) {
-            val name = "${sampleKeys[i].path}[$i]"
-            instance.get(sampleKeys[i], false) { bytes ->
+        val doneCtr = AtomicInteger(indices.size)
+        for (i in indices) {
+            instance.get(sampleKeys[i]) { bytes, err ->
+                val name = "${sampleKeys[i].path}[$i]"
+                err?.printStackTrace()
                 if (bytes == null) {
+                    doneCtr.decrementAndGet()
                     fail("Missing $name")
                 } else if (sampleData[i].contentEquals(bytes.getAsArray())) {
                     println("$name is fine")
                     ctr++
+                    doneCtr.decrementAndGet()
                 } else {
+                    doneCtr.decrementAndGet()
                     fail("$name was saved incorrectly: ${bytes.getAsString()}")
                 }
             }
         }
-        assertEquals(samples.size, ctr)
+        Sleep.waitUntil(true) { doneCtr.get() == 0 }
+        assertEquals(indices.size, ctr)
     }
 
     private fun verifyContentsEmpty(instance: HierarchicalDatabase) {
-        var ctr = 0
+        val doneCtr = AtomicInteger(samples.size)
         for (key in sampleKeys) {
-            instance.get(key, false) { bytes ->
-                ctr++
+            instance.get(key) { bytes, _ ->
+                doneCtr.decrementAndGet()
                 assertNull(bytes)
             }
         }
-        assertEquals(samples.size, ctr)
+        Sleep.waitUntil(true) { doneCtr.get() == 0 }
     }
 }
 
