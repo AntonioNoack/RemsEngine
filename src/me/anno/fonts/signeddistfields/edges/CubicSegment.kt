@@ -1,8 +1,8 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absAngleCos
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absAngleCosDiffXYY
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossDiffXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
@@ -143,7 +143,7 @@ class CubicSegment(
         getDirectionAt(1f, epDir)
         val distance = p3.distance(origin) // distance from B
         if (distance < abs(minDistance)) {
-            minDistance = nonZeroSign(crossProductXYY(epDir, p3, origin)) * distance
+            minDistance = nonZeroSign(crossDiffXYY(epDir, p3, origin)) * distance
             val dotProduct = epDir.lengthSquared() - p3.dot(epDir) + origin.dot(epDir)
             outT.value = dotProduct / epDir.lengthSquared()
         }
@@ -172,8 +172,8 @@ class CubicSegment(
 
         val dotDistance = when {
             outT.value in 0f..1f -> 0f
-            outT.value < 0.5f -> absDotNormalized(getDirectionAt(0f, epDir), qa)
-            else -> absDotNormalizedXYY(getDirectionAt(1f, epDir), p3, origin)
+            outT.value < 0.5f -> absAngleCos(getDirectionAt(0f, epDir), qa)
+            else -> absAngleCosDiffXYY(getDirectionAt(1f, epDir), p3, origin)
         }
         dst.set(minDistance, dotDistance)
 

@@ -71,7 +71,7 @@ interface ITexture2D : ICacheData {
         return if (isCreated()) this else ifNull
     }
 
-    fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
+    fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int = 0): IntImage {
         return VRAMToRAM.createImage(width, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
             VRAMToRAM.drawTexturePure(-x2, -y2, width, height, this, !withAlpha)
         }

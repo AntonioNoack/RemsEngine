@@ -26,6 +26,8 @@ class SignedDistance(var distance: Float, var dot: Float) : Comparable<SignedDis
         val absDist0 = abs(distance)
         val absDist1 = abs(other.distance)
         return if (absDist0 == absDist1) {
+            // you would assume this doesn't happen,
+            // but actually, it does happen a lot
             dot.compareTo(other.dot)
         } else {
             absDist0.compareTo(absDist1)

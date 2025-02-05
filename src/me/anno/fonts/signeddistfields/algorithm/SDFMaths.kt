@@ -8,30 +8,28 @@ object SDFMaths {
 
     fun nonZeroSign(f: Float): Float = if (f >= 0f) +1f else -1f
 
-    fun crossProductXYY(x: Vector2f, y0: Vector2f, y1: Vector2f): Float =
-        x.x * (y0.y - y1.y) - x.y * (y0.x - y1.x)
-
-    fun dotProductXXY(x0: Vector2f, x1: Vector2f, y: Vector2f): Float =
-        x0.dot(y) - x1.dot(y)
-
-    fun Vector2f.getOrthonormal(polarity: Boolean, allowZero: Boolean, dst: Vector2f = Vector2f()): Vector2f {
-        val length = length()
-        return when {
-            length == 0f -> dst.set(
-                0f, when {
-                    allowZero -> 0f
-                    polarity -> 1f
-                    else -> -1f
-                }
-            )
-            polarity -> dst.set(-y / length, x / length)
-            else -> dst.set(y / length, -x / length)
-        }
+    fun crossDiffXYY(x: Vector2f, y0: Vector2f, y1: Vector2f): Float {
+        return x.cross(y0.x - y1.x, y0.y - y1.y)
     }
 
-    fun absDotNormalized(a: Vector2f, b: Vector2f): Float =
-        abs(a.dot(b) / sqrt(a.lengthSquared() * b.lengthSquared()))
+    fun dotDiffXXY(x0: Vector2f, x1: Vector2f, y: Vector2f): Float {
+        return y.dot(x0.x - x1.x, x0.y - x1.y)
+    }
 
-    fun absDotNormalizedXYY(a: Vector2f, y0: Vector2f, y1: Vector2f): Float =
-        abs(dotProductXXY(y0, y1, a) / sqrt(a.lengthSquared() * y0.distanceSquared(y1)))
+    fun Vector2f.getOrthonormal(dst: Vector2f): Vector2f {
+        val lengthSq = lengthSquared()
+        return if (lengthSq == 0f) dst.set(0f, -1f)
+        else dst.set(y, -x).div(sqrt(lengthSq))
+    }
+
+    /**
+     * abs(cos(angle(a, b)))
+     * */
+    fun absAngleCos(a: Vector2f, b: Vector2f): Float = abs(a.angleCos(b))
+
+    /**
+     * abs(cos(angle(a, y0-y1)))
+     * */
+    fun absAngleCosDiffXYY(a: Vector2f, y0: Vector2f, y1: Vector2f): Float =
+        abs(a.angleCos(y0.x - y1.x, y0.y - y1.y))
 }

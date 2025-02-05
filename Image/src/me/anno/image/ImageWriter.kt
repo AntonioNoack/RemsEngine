@@ -494,7 +494,6 @@ object ImageWriter {
 
         val bi = BufferedImage(size, size, 1)
         val gfx = bi.graphics as Graphics2D
-        val random = Random(1234L)
         gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         // draw all points
         fun drawPoint(p: Vector2f, color: Int) {

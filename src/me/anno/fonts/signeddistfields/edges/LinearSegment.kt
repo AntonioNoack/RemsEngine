@@ -1,6 +1,6 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absAngleCosDiffXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.getOrthonormal
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
@@ -9,14 +9,11 @@ import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Vector2f
-import kotlin.math.abs
 
 class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
-    override fun getPointAt(t: Float, dst: Vector2f): Vector2f = dst.set(p0).mix(p1, t)
-
-    override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = dst.set(p1).sub(p0)
-
+    override fun getPointAt(t: Float, dst: Vector2f): Vector2f = p0.mix(p1, t, dst)
+    override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = p1.sub(p0,dst)
     override fun length(): Float = p1.distance(p0)
 
     override fun toString() = "[$p0 $p1]"
@@ -35,29 +32,26 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
         val aq = JomlPools.vec2f.create()
         val ab = JomlPools.vec2f.create()
-        val orthoNormal = JomlPools.vec2f.create()
 
         aq.set(origin).sub(p0)
         ab.set(p1).sub(p0)
-        outT.value = aq.dot(ab) / ab.lengthSquared()
-        val eqRef = if (outT.value > 0.5) p1 else p0
-        val endpointDistance = eqRef.distance(origin)
-        if (outT.value > 0 && outT.value < 1) {
-            ab.getOrthonormal(false, allowZero = false, orthoNormal)
+
+        val t = aq.dot(ab) / ab.lengthSquared()
+        outT.value = t
+
+        return if (t in 0f..1f) {
+            val orthoNormal = ab.getOrthonormal(ab)
             val orthoDistance = orthoNormal.dot(aq)
-            if (abs(orthoDistance) < endpointDistance) {
-                JomlPools.vec2f.sub(3)
-                return dst.set(orthoDistance, 0f)
-            }// else should not happen, if I understand this correctly...
+            JomlPools.vec2f.sub(2)
+            dst.set(orthoDistance, 0f)
+        } else {
+            val eqRef = if (outT.value > 0.5) p1 else p0
+            val endpointDistance = eqRef.distance(origin)
+            val distance = nonZeroSign(aq.cross(ab)) * endpointDistance
+            val dotDistance = absAngleCosDiffXYY(ab, eqRef, origin)
+            JomlPools.vec2f.sub(2)
+            dst.set(distance, dotDistance)
         }
-
-        val distance = nonZeroSign(aq.cross(ab)) * endpointDistance
-        val dotDistance = absDotNormalizedXYY(ab, eqRef, origin)
-        dst.set(distance, dotDistance)
-
-        JomlPools.vec2f.sub(3)
-
-        return dst
     }
 
     companion object {

@@ -358,7 +358,7 @@ open class Texture3D(
         isDestroyed = true
     }
 
-    override fun createImage(flipY: Boolean, withAlpha: Boolean) =
+    override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int) =
         VRAMToRAM.createImage(width * depth, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
             drawSlice(x2, y2, w2, !withAlpha)
         }

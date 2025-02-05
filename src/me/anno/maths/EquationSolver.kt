@@ -1,6 +1,7 @@
 package me.anno.maths
 
 import me.anno.maths.Maths.TAUf
+import me.anno.maths.Maths.max
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.cbrt
@@ -36,7 +37,7 @@ object EquationSolver {
                 dst[1] = (-b - div) / (2 * a)
                 2
             }
-            div == 0f -> {
+            abs(div) > 1e-7f -> {
                 dst[0] = -b / (2 * a)
                 1
             }
@@ -63,9 +64,9 @@ object EquationSolver {
             dst[2] = q * cos((t - TAUf) / 3f) - a
             3
         } else {
-            var a3 = -cbrt(abs(r) + sqrt(r2 - q3))
+            var a3 = -cbrt(abs(r) + sqrt(max(r2 - q3, 0f)))
             if (r < 0) a3 = -a3
-            val b3 = if (a3 == 0f) 0f else q / a3
+            val b3 = if (abs(a3) < 1e-7f) 0f else q / a3
             a /= 3f
             dst[0] = a3 + b3 - a
             dst[1] = -0.5f * (a3 + b3) - a
@@ -75,15 +76,14 @@ object EquationSolver {
     }
 
     fun solveCubic(dst: FloatArray, a: Float, b: Float, c: Float, d: Float): Int {
-        if (a != 0f) {
+        if (abs(a) > 1e-7f) {
             val bn = b / a
             val cn = c / a
-            val dn: Float = d / a
+            val dn = d / a
             // Check, that <a> isn't "almost zero"
             if (abs(bn) < TOO_LARGE_RATIO && abs(cn) < TOO_LARGE_RATIO && abs(dn) < TOO_LARGE_RATIO)
                 return solveCubicNormed(dst, bn, cn, dn)
         }
         return solveQuadratic(dst, b, c, d)
     }
-
 }

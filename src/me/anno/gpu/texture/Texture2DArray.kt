@@ -412,7 +412,7 @@ open class Texture2DArray(
         isDestroyed = true
     }
 
-    override fun createImage(flipY: Boolean, withAlpha: Boolean) =
+    override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int) =
         VRAMToRAM.createImage(width * layers, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
             drawSlice(x2, y2, w2, !withAlpha)
         }

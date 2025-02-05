@@ -1,34 +1,41 @@
 package me.anno.fonts.signeddistfields.algorithm
 
 import me.anno.fonts.signeddistfields.Contour
-import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField.sdfResolution
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.hpc.ProcessingGroup
+import me.anno.utils.types.Floats.toIntOr
 import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 
-class SignedDistanceField2(contours: List<Contour>, val roundEdges: Boolean, sdfResolution: Float, padding: Float) {
+class SignedDistanceField2(
+    val contours: List<Contour>, val roundEdges: Boolean,
+    val sdfResolution: Float, padding: Float,
+    val spaceSizeBits: Int = 4
+) {
 
     companion object {
+        val offset = 0.5f // such that the shader can be the same even if the system only supports normal textures
         private val pool = ProcessingGroup("SDF", 16)
     }
 
-    val bounds = calculateBounds(contours)
+    val bounds = calculateBounds()
+    val segments = contours.flatMap { it.segments }
 
     val minX = floor(bounds.minX - padding)
     val maxX = ceil(bounds.maxX + padding)
     val minY = floor(bounds.minY - padding)
     val maxY = ceil(bounds.maxY + padding)
 
-    val w = ((maxX - minX) * sdfResolution).toInt()
-    val h = ((maxY - minY) * sdfResolution).toInt()
+    val w = validateSize(maxX - minX)
+    val h = validateSize(maxY - minY)
 
     val maxDistance = max(maxX - minX, maxY - minY) * 0.5f
 
@@ -44,11 +51,25 @@ class SignedDistanceField2(contours: List<Contour>, val roundEdges: Boolean, sdf
     private val tmpArray = FloatArray(3)
     private val tmpParam = FloatPtr()
 
-    val distances = if (w >= 1 && h >= 1) {
-        calculateDistances(contours)
-    } else null
+    var distancesI: FloatArray? = null
 
-    private fun calculateBounds(contours: List<Contour>): AABBf {
+    fun getDistances(): FloatArray? {
+        if (w <= 0 || h <= 0) return null
+        if (distancesI == null) distancesI = calculateDistances()
+        return distancesI
+    }
+
+    private fun validateSize(bounds: Float): Int {
+        val size = (bounds * sdfResolution).toIntOr()
+        if (size <= 0) return 0
+        val sparseSize = 1 shl spaceSizeBits
+        val rem = size % sparseSize
+        if (rem == 1) return size
+        if (rem == 0) return size + 1
+        return size + sparseSize + 1 - rem
+    }
+
+    private fun calculateBounds(): AABBf {
         val bounds = AABBf()
         val tmp = FloatArray(2)
         for (contour in contours) {
@@ -57,70 +78,161 @@ class SignedDistanceField2(contours: List<Contour>, val roundEdges: Boolean, sdf
         return bounds
     }
 
-    private fun getLx(x: Int): Float {
+    private fun lx(x: Int): Float {
         return mix(minX, maxX, x * invW)
     }
 
-    private fun getLy(y: Int): Float {
+    private fun ly(y: Int): Float {
         return mix(maxY, minY, y * invH) // mirrored y for OpenGL
     }
 
-    private fun calculateDistances(contours: List<Contour>): FloatArray {
-        val buffer = FloatArray(w * h)
-        val offset = 0.5f // such that the shader can be the same even if the system only supports normal textures
+    private fun calculateDistances(): FloatArray {
+        val distances = FloatArray(w * h)
         if (false) {
-            // 4x speedup using 16 threads :/, and not thread-safe yet
-            pool.processBalanced2d(0, 0, w, h, 8, 4) { x0, y0, x1, y1 ->
-                for (y in y0 until y1) {
-                    for (x in x0 until x1) {
-                        val lx = getLx(x)
-                        val ly = getLy(y)
-                        buffer[x + y * w] = calculateDistance(lx, ly, contours) * sdfResolution + offset
-                    }
-                }
-            }
+            calculateDistancesParallel(distances)
+            return distances
+        }
+        val edges = IntArray(w * h).apply { fill(-2) }
+        if (spaceSizeBits <= 0) {
+            calculateDistancesSerial(distances)
         } else {
-            for (y in 0 until h) {
-                val ly = getLy(y)
-                for (x in 0 until w) {
-                    val lx = getLx(x)
-                    buffer[x + y * w] = calculateDistance(lx, ly, contours) * sdfResolution + offset
+            // ~3x speedup
+            calculateDistanceFillSparse(distances, edges, 1 shl spaceSizeBits)
+            for (i in spaceSizeBits - 1 downTo 0) {
+                calculateDistanceSpreadSparse(edges, 1 shl i)
+            }
+            finishDistanceSpread(distances, edges)
+        }
+        return distances
+    }
+
+    private fun calculateDistancesSerial(distances: FloatArray) {
+        for (y in 0 until h) {
+            val ly = ly(y)
+            for (x in 0 until w) {
+                distances[getIndex(x, y)] = mapDistance(calculateDistance(lx(x), ly))
+            }
+        }
+    }
+
+    private fun getIndex(x: Int, y: Int): Int {
+        return x + y * w
+    }
+
+    private fun calculateDistanceFillSparse(distances: FloatArray, edges: IntArray, n: Int) {
+        for (y in 0 until h step n) {
+            for (x in 0 until w step n) {
+                val edge = findClosestEdgeId(lx(x), ly(y))
+                val index = getIndex(x, y)
+                distances[index] = minDistance.distance
+                edges[index] = edge
+            }
+        }
+    }
+
+    private fun calculateDistanceSpreadSparse(edges: IntArray, n: Int) {
+        val n2 = n * 2
+        val maxLowX = w - 1 - n2
+        val maxLowY = h - 1 - n2
+        for (y in 0 until h step n) {
+            for (x in 0 until w step n) {
+                val index = getIndex(x, y)
+                if (edges[index] > -1) continue // done already
+
+                // skip edge, if all four corners are the same
+                val lowX = min(x - (x % n2), maxLowX)
+                val lowY = min(y - (y % n2), maxLowY)
+
+                val edge0 = edges[getIndex(lowX, lowY)]
+                edges[index] = if (
+                    (edges[getIndex(lowX + n2, lowY)] == edge0) and
+                    (edges[getIndex(lowX, lowY + n2)] == edge0) and
+                    (edges[getIndex(lowX + n2, lowY + n2)] == edge0)
+                ) edge0 else findClosestEdgeId(lx(x), ly(y))
+            }
+        }
+    }
+
+    private fun finishDistanceSpread(distances: FloatArray, edges: IntArray) {
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                val index = getIndex(x, y)
+                // load data
+                if (roundEdges) minDistance.distance = distances[index]
+                origin.set(lx(x), ly(y))
+                // calculate and store mapped distance
+                val distance = calculateDistance(edges[index])
+                distances[index] = mapDistance(distance)
+            }
+        }
+    }
+
+    private fun calculateDistancesParallel(distances: FloatArray) {
+        // 4x speedup using 16 threads :/, and not thread-safe yet
+        pool.processBalanced2d(0, 0, w, h, 8, 4) { x0, y0, x1, y1 ->
+            for (y in y0 until y1) {
+                for (x in x0 until x1) {
+                    distances[getIndex(x, y)] = mapDistance(calculateDistance(lx(x), ly(y)))
                 }
             }
         }
-        return buffer
     }
 
-    private fun calculateDistance(lx: Float, ly: Float, contours: List<Contour>): Float {
+    private fun mapDistance(distance: Float): Float {
+        return distance * sdfResolution + offset
+    }
+
+    private fun prepareBounds(lx: Float, ly: Float) {
+        pointBounds
+            .setMin(lx - maxDistance, ly - maxDistance, -1f)
+            .setMax(lx + maxDistance, ly + maxDistance, +1f)
+    }
+
+    private fun setOrigin(lx: Float, ly: Float) {
         origin.set(lx, ly)
+    }
+
+    private fun findClosestEdgeId(lx: Float, ly: Float): Int {
         minDistance.clear()
 
-        var closestEdge: EdgeSegment? = null
+        setOrigin(lx, ly)
+        prepareBounds(lx, ly)
 
-        pointBounds.setMin(lx - maxDistance, ly - maxDistance, -1f)
-        pointBounds.setMax(lx + maxDistance, ly + maxDistance, +1f)
-
+        var edgeId = 0
+        var bestEdgeId = -1
         for (ci in contours.indices) {
             val contour = contours[ci]
             // this test brings down the complexity from O(chars * letters) to O(chars + letters)
             if (contour.bounds.testAABB(pointBounds)) {
-                val edges = contour.segments
-                for (edgeIndex in edges.indices) {
-                    val edge = edges[edgeIndex]
-                    val distance = edge.getSignedDistance(origin, ptr, tmpArray, tmpDistance)
+                val segments = contour.segments
+                for (si in segments.indices) {
+                    val segment = segments[si]
+                    val distance = segment.getSignedDistance(origin, ptr, tmpArray, tmpDistance)
                     if (distance < minDistance) {
                         minDistance.set(distance)
-                        closestEdge = edge
+                        bestEdgeId = edgeId
                     }
+                    edgeId++
                 }
-            }
+            } else edgeId += contour.segments.size
         }
+        return bestEdgeId
+    }
 
-        return if (closestEdge != null) {
-            val distance =
-                if (roundEdges) minDistance.distance
-                else closestEdge.getTrueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
-            clamp(distance, -maxDistance, +maxDistance)
-        } else maxDistance
+    private fun calculateDistance(segment: EdgeSegment): Float {
+        val distance =
+            if (roundEdges) segment.getSignedDistance(origin, ptr, tmpArray, tmpDistance).distance
+            else segment.getTrueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
+        return clamp(distance, -maxDistance, +maxDistance)
+    }
+
+    private fun calculateDistance(lx: Float, ly: Float): Float {
+        return calculateDistance(findClosestEdgeId(lx, ly))
+    }
+
+    private fun calculateDistance(closestEdgeId: Int): Float {
+        if (closestEdgeId < 0) return maxDistance
+        val closestEdge = segments[closestEdgeId]
+        return calculateDistance(closestEdge)
     }
 }

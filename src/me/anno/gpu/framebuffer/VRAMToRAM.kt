@@ -25,6 +25,7 @@ import org.lwjgl.opengl.GL46C.glReadPixels
 import java.nio.ByteBuffer
 import kotlin.math.min
 
+// todo use Texture.readBytePixels instead(?)
 object VRAMToRAM {
 
     fun interface SectionRenderer {

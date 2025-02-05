@@ -25,7 +25,6 @@ import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.ImageTransform
-import me.anno.image.raw.FloatImage
 import me.anno.image.raw.GPUImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -36,10 +35,13 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertGreaterThanEquals
+import me.anno.utils.assertions.assertLessThanEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -54,6 +56,7 @@ import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import org.lwjgl.opengl.GL46C.GL_INT
 import org.lwjgl.opengl.GL46C.GL_NONE
 import org.lwjgl.opengl.GL46C.GL_PACK_ALIGNMENT
+import org.lwjgl.opengl.GL46C.GL_PIXEL_PACK_BUFFER
 import org.lwjgl.opengl.GL46C.GL_PIXEL_UNPACK_BUFFER
 import org.lwjgl.opengl.GL46C.GL_R16F
 import org.lwjgl.opengl.GL46C.GL_R32F
@@ -87,7 +90,7 @@ import org.lwjgl.opengl.GL46C.glBindTexture
 import org.lwjgl.opengl.GL46C.glDeleteTextures
 import org.lwjgl.opengl.GL46C.glGenTextures
 import org.lwjgl.opengl.GL46C.glGenerateMipmap
-import org.lwjgl.opengl.GL46C.glGetTexImage
+import org.lwjgl.opengl.GL46C.glGetTextureSubImage
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glPixelStorei
@@ -190,11 +193,6 @@ open class Texture2D(
 
     override var isHDR = false
 
-    fun setSize(width: Int, height: Int) {
-        this.width = width
-        this.height = height
-    }
-
     fun ensurePointer() {
         checkSession()
         assertFalse(isDestroyed, "Texture was destroyed")
@@ -215,6 +213,10 @@ open class Texture2D(
 
     private fun unbindUnpackBuffer() {
         bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
+    }
+
+    private fun unbindPackBuffer() {
+        bindBuffer(GL_PIXEL_PACK_BUFFER, 0)
     }
 
     fun setAlignmentAndBuffer(w: Int, dataFormat: Int, dataType: Int, unbind: Boolean) {
@@ -835,27 +837,63 @@ open class Texture2D(
         return slot in boundTextures.indices && boundTextures[slot] == pointer
     }
 
-    override fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
+    override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int): IntImage {
         bindBeforeUpload()
         val buffer = IntArray(width * height)
-        glGetTexImage(target, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        readBytePixels(0, 0, width, height, level, buffer)
         convertARGB2ABGR(buffer)
         val image = IntImage(width, height, buffer, withAlpha && channels > 3)
         if (flipY) image.flipY()
         return image
     }
 
-    fun getFloatPixels(dst: FloatImage) {
-        bindBeforeUpload()
-        assertTrue(dst.data.size >= width * height * dst.numChannels)
-        val nc1 = when (dst.numChannels) {
+    fun readBytePixels(x: Int, y: Int, w: Int, h: Int, level: Int, dst: Any) {
+        ensurePointer()
+        unbindPackBuffer()
+        setReadAlignment(w * channels)
+        assertGreaterThanEquals(x, 0)
+        assertGreaterThanEquals(y, 0)
+        assertLessThanEquals(x + w, createdW)
+        assertLessThanEquals(y + h, createdH)
+        callGetTextureSubImage(level, x, y, w, h, GL_UNSIGNED_BYTE, dst)
+    }
+
+    fun readBytePixels(x: Int, y: Int, w: Int, h: Int, level: Int, dst: ByteArray) {
+        val tmp = ByteBufferPool.allocateDirect(dst.size)
+        readBytePixels(x, y, w, h, level, dst)
+        tmp.position(0)
+        tmp.get(dst)
+        ByteBufferPool.free(tmp)
+    }
+
+    fun readFloatPixels(x: Int, y: Int, w: Int, h: Int, level: Int, dst: FloatArray) {
+        ensurePointer()
+        unbindPackBuffer()
+        setReadAlignment(w * channels * 4)
+        assertGreaterThanEquals(x, 0)
+        assertGreaterThanEquals(y, 0)
+        assertLessThanEquals(x + w, createdW)
+        assertLessThanEquals(y + h, createdH)
+        callGetTextureSubImage(level, x, y, w, h, GL_FLOAT, dst)
+    }
+
+    private fun callGetTextureSubImage(level: Int, x: Int, y: Int, w: Int, h: Int, type: Int, dst: Any) {
+        val format = getFormatByChannels(channels)
+        when (dst) {
+            is ByteBuffer -> glGetTextureSubImage(pointer, level, x, y, 0, w, h, 1, format, type, dst)
+            is IntArray -> glGetTextureSubImage(pointer, level, x, y, 0, w, h, 1, format, type, dst)
+            is FloatArray -> glGetTextureSubImage(pointer, level, x, y, 0, w, h, 1, format, type, dst)
+            else -> LOGGER.warn("Unknown type ${dst::class}")
+        }
+    }
+
+    private fun getFormatByChannels(channels: Int): Int {
+        return when (channels) {
             1 -> GL_RED
             2 -> GL_RG
             3 -> GL_RGB
-            4 -> GL_RGBA
-            else -> throw IllegalArgumentException()
+            else -> GL_RGBA
         }
-        glGetTexImage(target, 0, nc1, GL_FLOAT, dst.data)
     }
 
     companion object {
@@ -904,6 +942,7 @@ open class Texture2D(
             val requiredBudget = textureBudgetUsed + requested
             val total = textureBudgetTotal
             val totalHalf = total.shr(1)
+            @Suppress("ConvertTwoComparisonsToRangeCheck")
             if (requiredBudget <= total || (requested > totalHalf && textureBudgetUsed < totalHalf)) {
                 textureBudgetUsed = requiredBudget
                 return true

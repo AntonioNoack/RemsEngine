@@ -1,9 +1,9 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProductXXY
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absAngleCos
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absAngleCosDiffXYY
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossDiffXYY
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotDiffXXY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
@@ -40,7 +40,7 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
         dst.set(p0).mul(-b2)
             .add(p1.x * ba, p1.y * ba)
             .add(p2.x * a2, p2.y * a2)
-        if (dst.length() == 0f) return dst.set(p2).sub(p0)
+        if (abs(dst.length()) < 1e-12f) return dst.set(p2).sub(p0)
         return dst
     }
 
@@ -115,14 +115,14 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
         getDirectionAt(0f, epDir)
         var minDistance = nonZeroSign(epDir.cross(qa)) * qa.length() // distance from A
-        outT.value = -qa.dot(epDir) / epDir.lengthSquared()
+        var t = -qa.dot(epDir) / epDir.lengthSquared()
 
         getDirectionAt(1f, epDir)
         val distance = p2.distance(origin) // distance from B
         if (distance < abs(minDistance)) {
-            val cross = crossProductXYY(epDir, p2, origin)
+            val cross = crossDiffXYY(epDir, p2, origin)
             minDistance = if (cross >= 0f) +distance else -distance
-            outT.value = dotProductXXY(origin, p1, epDir) / epDir.lengthSquared()
+            t = dotDiffXXY(origin, p1, epDir) / epDir.lengthSquared()
         }
 
         val qe = JomlPools.vec2f.create()
@@ -132,7 +132,7 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
             if (tmpI > 0f && tmpI < 1f) {
                 val tmpI2 = tmpI * tmpI
                 // val qe = p0 + ab * (2 * tmpI) + br * (tmpI * tmpI) - origin
-                qe.set(ab).mul(2f * tmpI)
+                ab.mul(2f * tmpI, qe)
                     .add(p0)
                     .add(br.x * tmpI2, br.y * tmpI2)
                     .sub(origin)
@@ -141,19 +141,18 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
                     getDirectionAt(tmpI, dir)
                     val cross = dir.cross(qe)
                     minDistance = if (cross >= 0f) distance2 else -distance2
-                    outT.value = tmpI
+                    t = tmpI
                 }
             }
         }
 
-        dst.set(
-            minDistance, when {
-                outT.value in 0f..1f -> 0f
-                outT.value < 0f -> absDotNormalized(getDirectionAt(0f, epDir), qa)
-                else -> absDotNormalizedXYY(getDirectionAt(1f, epDir), p2, origin)
-            }
-        )
-
+        val dotDistance = when {
+            t in 0f..1f -> 0f
+            t < 0f -> absAngleCos(getDirectionAt(0f, epDir), qa)
+            else -> absAngleCosDiffXYY(getDirectionAt(1f, epDir), p2, origin)
+        }
+        dst.set(minDistance, dotDistance)
+        outT.value = t
         JomlPools.vec2f.sub(6)
 
         return dst

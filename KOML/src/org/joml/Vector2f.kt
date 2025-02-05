@@ -1,5 +1,6 @@
 package org.joml
 
+import org.joml.Vector3f.Companion
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -10,6 +11,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Suppress("unused")
 open class Vector2f(
@@ -95,6 +97,11 @@ open class Vector2f(
         val dot = x * v.x + y * v.y
         val det = x * v.y - y * v.x
         return atan2(det, dot)
+    }
+
+    fun angleCos(v: Vector2f): Float = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(vx: Float, vy: Float): Float {
+        return dot(vx, vy) / sqrt(lengthSquared() * lengthSquared(vx, vy))
     }
 
     fun rotate(radians: Float, dst: Vector2f = this): Vector2f {

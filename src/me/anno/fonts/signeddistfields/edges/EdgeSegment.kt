@@ -25,10 +25,8 @@ abstract class EdgeSegment {
     ): SignedDistance
 
     fun getTrueSignedDistance(
-        origin: Vector2f,
-        outT: FloatPtr,
-        tmp3: FloatArray,
-        tmpD: SignedDistance
+        origin: Vector2f, outT: FloatPtr,
+        tmp3: FloatArray, tmpD: SignedDistance
     ): Float {
         val distance = getSignedDistance(origin, outT, tmp3, tmpD)
         distanceToPseudoDistance(distance, origin, outT.value)
