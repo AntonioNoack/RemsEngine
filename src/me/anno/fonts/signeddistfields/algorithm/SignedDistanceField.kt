@@ -27,7 +27,7 @@ object SignedDistanceField {
 
     fun computeDistances(contours: List<Contour>, roundEdges: Boolean): SignedDistanceField2? {
         if (contours.isEmpty()) return null
-        val field = SignedDistanceField2(contours, roundEdges, sdfResolution, padding)
+        val field = SignedDistanceField2(contours, roundEdges, sdfResolution, padding,true)
         field.getDistances()
         return field
     }

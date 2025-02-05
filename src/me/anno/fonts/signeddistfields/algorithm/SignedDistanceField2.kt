@@ -18,12 +18,23 @@ import kotlin.math.max
 class SignedDistanceField2(
     val contours: List<Contour>, val roundEdges: Boolean,
     val sdfResolution: Float, padding: Float,
-    val spaceSizeBits: Int = 4
+    useSpaceSizeBits: Boolean
 ) {
 
     companion object {
-        val offset = 0.5f // such that the shader can be the same even if the system only supports normal textures
+        /**
+         * such that the shader can be the same even if the system only supports normal textures
+         * */
+        val offset = 0.5f
+
         private val pool = ProcessingGroup("SDF", 16)
+
+        private fun calculateSpreadingBits(wf: Float, hf: Float, sdfResolution: Float): Int {
+            // ~ 63 -> 5 bits -> 3 -> 8x spread
+            val size = (min(wf, hf) * sdfResolution).toIntOr()
+            val numBits = 32 - size.countLeadingZeroBits()
+            return numBits - 2
+        }
     }
 
     val bounds = calculateBounds()
@@ -34,10 +45,17 @@ class SignedDistanceField2(
     val minY = floor(bounds.minY - padding)
     val maxY = ceil(bounds.maxY + padding)
 
-    val w = validateSize(maxX - minX)
-    val h = validateSize(maxY - minY)
+    private val deltaX = maxX - minX
+    private val deltaY = maxY - minY
 
-    val maxDistance = max(maxX - minX, maxY - minY) * 0.5f
+    val spreadingBits =
+        if (useSpaceSizeBits) calculateSpreadingBits(deltaX, deltaY, sdfResolution)
+        else 0
+
+    val w = validateSize(deltaX, spreadingBits)
+    val h = validateSize(deltaY, spreadingBits)
+
+    val maxDistance = max(deltaX, deltaY) * 0.5f
 
     private val invW = 1f / (w - 1f)
     private val invH = 1f / (h - 1f)
@@ -59,7 +77,7 @@ class SignedDistanceField2(
         return distancesI
     }
 
-    private fun validateSize(bounds: Float): Int {
+    private fun validateSize(bounds: Float, spaceSizeBits: Int): Int {
         val size = (bounds * sdfResolution).toIntOr()
         if (size <= 0) return 0
         val sparseSize = 1 shl spaceSizeBits
@@ -93,12 +111,12 @@ class SignedDistanceField2(
             return distances
         }
         val edges = IntArray(w * h).apply { fill(-2) }
-        if (spaceSizeBits <= 0) {
+        if (spreadingBits <= 0) {
             calculateDistancesSerial(distances)
         } else {
             // ~3x speedup
-            calculateDistanceFillSparse(distances, edges, 1 shl spaceSizeBits)
-            for (i in spaceSizeBits - 1 downTo 0) {
+            calculateDistanceFillSparse(distances, edges, 1 shl spreadingBits)
+            for (i in spreadingBits - 1 downTo 0) {
                 calculateDistanceSpreadSparse(edges, 1 shl i)
             }
             finishDistanceSpread(distances, edges)
@@ -168,7 +186,7 @@ class SignedDistanceField2(
     }
 
     private fun calculateDistancesParallel(distances: FloatArray) {
-        // 4x speedup using 16 threads :/, and not thread-safe yet
+        // only a 4x speedup using 16 threads :/, and not thread-safe yet
         pool.processBalanced2d(0, 0, w, h, 8, 4) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 for (x in x0 until x1) {
@@ -207,7 +225,8 @@ class SignedDistanceField2(
                 val segments = contour.segments
                 for (si in segments.indices) {
                     val segment = segments[si]
-                    val distance = segment.getSignedDistance(origin, ptr, tmpArray, tmpDistance)
+                    val distance = segment
+                        .getSignedDistance(origin, ptr, tmpArray, tmpDistance)
                     if (distance < minDistance) {
                         minDistance.set(distance)
                         bestEdgeId = edgeId
