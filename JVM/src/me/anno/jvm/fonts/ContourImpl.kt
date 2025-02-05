@@ -26,7 +26,7 @@ object ContourImpl {
     private fun calculateContours(font: Font, text: CharSequence): List<Contour> {
 
         val contours = ArrayList<Contour>()
-        var segments = ArrayList<EdgeSegment>()
+        val segments = ArrayList<EdgeSegment>()
 
         val ctx = FontRenderContext(null, true, true)
 
@@ -77,9 +77,9 @@ object ContourImpl {
                 }
                 PathIterator.SEG_CLOSE -> {
                     if (segments.isNotEmpty()) {
-                        contours.add(Contour(segments))
+                        contours.add(Contour(ArrayList(segments)))
                     }
-                    segments = ArrayList()
+                    segments.clear()
                 }
             }
 

@@ -170,13 +170,12 @@ class CubicSegment(
             }
         }
 
-        dst.set(
-            minDistance, when {
-                outT.value in 0f..1f -> 0f
-                outT.value < 0.5f -> absDotNormalized(getDirectionAt(0f, epDir), qa)
-                else -> absDotNormalizedXYY(getDirectionAt(1f, epDir), p3, origin)
-            }
-        )
+        val dotDistance = when {
+            outT.value in 0f..1f -> 0f
+            outT.value < 0.5f -> absDotNormalized(getDirectionAt(0f, epDir), qa)
+            else -> absDotNormalizedXYY(getDirectionAt(1f, epDir), p3, origin)
+        }
+        dst.set(minDistance, dotDistance)
 
         JomlPools.vec2f.sub(8)
 

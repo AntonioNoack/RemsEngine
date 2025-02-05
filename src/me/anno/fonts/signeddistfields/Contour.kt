@@ -8,10 +8,11 @@ import org.joml.AABBf
 class Contour(val segments: List<EdgeSegment>) {
 
     val bounds = AABBf()
-    fun calculateBounds(): AABBf {
+    fun calculateBounds(tmp: FloatArray): AABBf {
         bounds.clear()
-        val tmp = FloatArray(2)
-        for (segment in segments) segment.union(bounds, tmp)
+        for (segment in segments) {
+            segment.union(bounds, tmp)
+        }
         return bounds
     }
 

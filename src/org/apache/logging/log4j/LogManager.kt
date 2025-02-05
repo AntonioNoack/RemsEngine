@@ -39,6 +39,13 @@ object LogManager {
     }
 
     @JvmStatic
+    fun disableInfoLogs(loggers: String) {
+        for (logger in loggers.split(',')) {
+            logLevels[logger] = Level.WARN
+        }
+    }
+
+    @JvmStatic
     @Suppress("unused")
     fun enableLogger(logger: String?) {
         define(logger, defaultLevel)

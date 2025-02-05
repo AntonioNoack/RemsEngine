@@ -16,20 +16,21 @@ object SignedDistanceField {
     val padding by ConfigRef("rendering.signedDistanceFields.padding", 10f)
     val sdfResolution by ConfigRef("rendering.signedDistanceFields.resolution", 1f)
 
-    private fun getDistanceComputer(font: Font, text: CharSequence, roundEdges: Boolean): SignedDistanceField2? {
+    fun computeDistances(font: Font, text: CharSequence, roundEdges: Boolean): SignedDistanceField2? {
+        // val t0 = Time.nanoTime
         val contours = calculateContours(font, text)
-        if (contours.all2 { it.segments.isEmpty() }) {
-            return null
-        }
+        // warmup ~11.3ms (20%), then 0.1ms (<1%)
+        // println("Took ${(Time.nanoTime - t0) / 1e6f} ms for contours")
+        if (contours.all2 { it.segments.isEmpty() }) return null
         return SignedDistanceField2(contours, roundEdges, sdfResolution, padding)
     }
 
     fun createBuffer(font: Font, text: String, roundEdges: Boolean): FloatArray? {
-        return getDistanceComputer(font, text, roundEdges)?.distances
+        return computeDistances(font, text, roundEdges)?.distances
     }
 
     fun createTexture(font: Font, text: CharSequence, roundEdges: Boolean): TextSDF {
-        val stats = getDistanceComputer(font, text, roundEdges)
+        val stats = computeDistances(font, text, roundEdges)
         val buffer = stats?.distances ?: return TextSDF.empty
 
         val tex = Texture2D("SDF[$font,'$text',$roundEdges]", stats.w, stats.h, 1)

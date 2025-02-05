@@ -51,10 +51,9 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
             }// else should not happen, if I understand this correctly...
         }
 
-        dst.set(
-            nonZeroSign(aq.cross(ab)) * endpointDistance,
-            absDotNormalizedXYY(ab, eqRef, origin)
-        )
+        val distance = nonZeroSign(aq.cross(ab)) * endpointDistance
+        val dotDistance = absDotNormalizedXYY(ab, eqRef, origin)
+        dst.set(distance, dotDistance)
 
         JomlPools.vec2f.sub(3)
 
@@ -71,5 +70,4 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
             return Vector2f.lengthSquared(pax - bax * h, pay - bay * h)
         }
     }
-
 }
