@@ -110,16 +110,17 @@ class SignedDistanceField2(
             calculateDistancesParallel(distances)
             return distances
         }
-        val edges = IntArray(w * h).apply { fill(-2) }
         if (spreadingBits <= 0) {
             calculateDistancesSerial(distances)
         } else {
             // ~3x speedup
-            calculateDistanceFillSparse(distances, edges, 1 shl spreadingBits)
+            val edges = IntArray(w * h)
+            edges.fill(-2)
+            fillInSparseClosestEdges(distances, edges, 1 shl spreadingBits)
             for (i in spreadingBits - 1 downTo 0) {
-                calculateDistanceSpreadSparse(edges, 1 shl i)
+                spreadSparseClosestEdges(edges, 1 shl i)
             }
-            finishDistanceSpread(distances, edges)
+            calculateDistancesFromClosestEdges(distances, edges)
         }
         return distances
     }
@@ -137,7 +138,7 @@ class SignedDistanceField2(
         return x + y * w
     }
 
-    private fun calculateDistanceFillSparse(distances: FloatArray, edges: IntArray, n: Int) {
+    private fun fillInSparseClosestEdges(distances: FloatArray, edges: IntArray, n: Int) {
         for (y in 0 until h step n) {
             for (x in 0 until w step n) {
                 val edge = findClosestEdgeId(lx(x), ly(y))
@@ -148,7 +149,7 @@ class SignedDistanceField2(
         }
     }
 
-    private fun calculateDistanceSpreadSparse(edges: IntArray, n: Int) {
+    private fun spreadSparseClosestEdges(edges: IntArray, n: Int) {
         val n2 = n * 2
         val maxLowX = w - 1 - n2
         val maxLowY = h - 1 - n2
@@ -171,7 +172,7 @@ class SignedDistanceField2(
         }
     }
 
-    private fun finishDistanceSpread(distances: FloatArray, edges: IntArray) {
+    private fun calculateDistancesFromClosestEdges(distances: FloatArray, edges: IntArray) {
         for (y in 0 until h) {
             for (x in 0 until w) {
                 val index = getIndex(x, y)

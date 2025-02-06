@@ -87,7 +87,7 @@ val quadraticShader by lazy { createSegmentShader(false) }
 
 fun calculateField(contours: List<Contour>, roundEdges: Boolean): SignedDistanceField2? {
     if (contours.isEmpty()) return null
-    val field = SignedDistanceField2(contours, roundEdges, sdfResolution, padding, 0)
+    val field = SignedDistanceField2(contours, roundEdges, sdfResolution, padding, false)
 
     val fb0 = Framebuffer("sdf0", field.w, field.h, 1, TargetType.Float32x1, DepthBufferType.NONE)
     val fb1 = Framebuffer("sdf1", field.w, field.h, 1, TargetType.Float32x1, DepthBufferType.NONE)
