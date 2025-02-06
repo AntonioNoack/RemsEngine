@@ -42,7 +42,7 @@ object MeshSetReader {
         if (header.maxVerticesPerPoly <= 0) {
             throw IOException("Invalid number of vertices per poly " + header.maxVerticesPerPoly)
         }
-        val cCompatibility = header.version == NavMeshSetHeader.NAVMESHSET_VERSION
+        val cCompatibility = header.version == NavMeshSetHeader.NAVMESH_SET_VERSION
         val mesh = NavMesh(header.params, header.maxVerticesPerPoly)
         readTiles(bb, header, cCompatibility, mesh)
         return mesh
@@ -51,22 +51,24 @@ object MeshSetReader {
     private fun readHeader(bb: ByteBuffer, maxVerticesPerPoly: Int): NavMeshSetHeader {
         val header = NavMeshSetHeader()
         header.magic = bb.int
-        if (header.magic != NavMeshSetHeader.NAVMESHSET_MAGIC) {
+        if (header.magic != NavMeshSetHeader.NAVMESH_SET_MAGIC) {
             header.magic = IOUtils.swapEndianness(header.magic)
-            if (header.magic != NavMeshSetHeader.NAVMESHSET_MAGIC) {
+            if (header.magic != NavMeshSetHeader.NAVMESH_SET_MAGIC) {
                 throw IOException("Invalid magic " + header.magic)
             }
             bb.order(if (bb.order() == ByteOrder.BIG_ENDIAN) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
         }
         header.version = bb.int
-        if (header.version != NavMeshSetHeader.NAVMESHSET_VERSION && header.version != NavMeshSetHeader.NAVMESHSET_VERSION_RECAST4J_1 && header.version != NavMeshSetHeader.NAVMESHSET_VERSION_RECAST4J) {
+        if (header.version != NavMeshSetHeader.NAVMESH_SET_VERSION &&
+            header.version != NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J_1 &&
+            header.version != NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J) {
             throw IOException("Invalid version " + header.version)
         }
         header.numTiles = bb.int
         header.params = NavMeshParamReader.read(bb)
         header.maxVerticesPerPoly = maxVerticesPerPoly
-        if (header.version == NavMeshSetHeader.NAVMESHSET_VERSION_RECAST4J) {
-            header.maxVerticesPerPoly = bb.int
+        if (header.version == NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J) {
+            header.maxVerticesPerPoly = bb.getInt()
         }
         return header
     }
@@ -82,9 +84,7 @@ object MeshSetReader {
             val tileHeader = NavMeshTileHeader()
             tileHeader.tileRef = bb.long
             tileHeader.dataSize = bb.int
-            if (tileHeader.tileRef == 0L || tileHeader.dataSize == 0) {
-                break
-            }
+            if (tileHeader.tileRef == 0L || tileHeader.dataSize == 0) break
             if (cCompatibility) {
                 bb.getInt() // C struct padding
             }

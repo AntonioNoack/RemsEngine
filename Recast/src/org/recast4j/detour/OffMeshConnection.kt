@@ -50,10 +50,14 @@ class OffMeshConnection {
     /**
      * End point side.
      */
-    var side = 0
+    var side: Byte = 0
 
     /**
      * The id of the offmesh connection. (User assigned when the navigation mesh is built.)
      */
     var userId = 0
+
+    companion object {
+       const val FROM_THIS_TILE : Byte = -1
+    }
 }

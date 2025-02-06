@@ -160,9 +160,9 @@ object MeshDataReader {
         con.posA.set(buf.getFloat(), buf.getFloat(), buf.getFloat())
         con.posB.set(buf.getFloat(), buf.getFloat(), buf.getFloat())
         con.rad = buf.getFloat()
-        con.poly = buf.getShort().toInt() and 0xffff
+        con.poly = buf.uint16()
         con.flags = buf.uint8()
-        con.side = buf.uint8()
+        con.side = buf.uint8().toByte()
         con.userId = buf.getInt()
     }
 

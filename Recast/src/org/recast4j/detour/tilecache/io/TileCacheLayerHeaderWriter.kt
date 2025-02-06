@@ -18,7 +18,6 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.tilecache.io
 
-import org.joml.Vector3f
 import org.recast4j.detour.io.DetourWriter
 import org.recast4j.detour.tilecache.TileCacheLayerHeader
 import java.io.OutputStream
@@ -26,15 +25,14 @@ import java.nio.ByteOrder
 
 class TileCacheLayerHeaderWriter : DetourWriter() {
     fun write(stream: OutputStream, header: TileCacheLayerHeader, order: ByteOrder, cCompatibility: Boolean) {
-        write(stream, header.magic, order)
-        write(stream, header.version, order)
-        write(stream, header.tx, order)
-        write(stream, header.ty, order)
-        write(stream, header.tlayer, order)
-        write(stream, header.bounds.getMin(Vector3f()), order)
-        write(stream, header.bounds.getMax(Vector3f()), order)
-        write(stream, header.hmin.toShort(), order)
-        write(stream, header.hmax.toShort(), order)
+        writeI32(stream, header.magic, order)
+        writeI32(stream, header.version, order)
+        writeI32(stream, header.tx, order)
+        writeI32(stream, header.ty, order)
+        writeI32(stream, header.tlayer, order)
+        write(stream, header.bounds, order)
+        writeI16(stream, header.hmin.toShort(), order)
+        writeI16(stream, header.hmax.toShort(), order)
         stream.write(header.width)
         stream.write(header.height)
         stream.write(header.minx)
@@ -42,7 +40,7 @@ class TileCacheLayerHeaderWriter : DetourWriter() {
         stream.write(header.miny)
         stream.write(header.maxy)
         if (cCompatibility) {
-            write(stream, 0.toShort(), order) // C struct padding
+            writeI16(stream, 0.toShort(), order) // C struct padding
         }
     }
 }

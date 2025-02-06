@@ -30,14 +30,14 @@ class Link {
     var indexOfNextLink = 0
 
     /** Index of the polygon edge, that owns this link.  */
-    var indexOfPolyEdge = 0
+    var indexOfPolyEdge = 0 // todo why is the magic 0xff, can this be a byte?
 
     /** If a boundary link, defines on which side the link is.  */
-    var side = 0
+    var side = 0 // [0-8,-1/255]
 
     /** If a boundary link, defines the minimum sub-edge area.  */
-    var bmin = 0
+    var bmin = 0 // [0-255]
 
     /** If a boundary link, defines the maximum sub-edge area.  */
-    var bmax = 0
+    var bmax = 0 // [0-255]
 }

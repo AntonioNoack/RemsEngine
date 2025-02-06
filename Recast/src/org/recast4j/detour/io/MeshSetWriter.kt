@@ -30,11 +30,11 @@ object MeshSetWriter : DetourWriter() {
     }
 
     private fun writeHeader(stream: OutputStream, mesh: NavMesh, order: ByteOrder) {
-        write(stream, NavMeshSetHeader.NAVMESHSET_MAGIC, order)
-        write(stream, NavMeshSetHeader.NAVMESHSET_VERSION_RECAST4J, order)
-        write(stream, mesh.numTiles, order)
+        writeI32(stream, NavMeshSetHeader.NAVMESH_SET_MAGIC, order)
+        writeI32(stream, NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J, order)
+        writeI32(stream, mesh.numTiles, order)
         NavMeshParamWriter.write(stream, mesh.params, order)
-        write(stream, mesh.maxVerticesPerPoly, order)
+        writeI32(stream, mesh.maxVerticesPerPoly, order)
     }
 
     private fun writeTiles(stream: OutputStream, mesh: NavMesh, order: ByteOrder) {
@@ -45,8 +45,8 @@ object MeshSetWriter : DetourWriter() {
             MeshDataWriter.write(baos, tile.data, order)
             val ba = baos.toByteArray()
             tileHeader.dataSize = ba.size
-            write(stream, tileHeader.tileRef, order)
-            write(stream, tileHeader.dataSize, order)
+            writeI64(stream, tileHeader.tileRef, order)
+            writeI32(stream, tileHeader.dataSize, order)
             stream.write(ba)
         }
     }

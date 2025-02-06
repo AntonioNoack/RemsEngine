@@ -17,7 +17,6 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.io
 
-import org.joml.Vector3f
 import org.recast4j.detour.BVNode
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.MeshHeader
@@ -28,32 +27,30 @@ import java.nio.ByteOrder
 object MeshDataWriter : DetourWriter() {
 
     fun write(stream: OutputStream, data: MeshData, order: ByteOrder) {
-        val header = data
-        write(stream, header.magic, order)
-        write(stream, MeshHeader.DT_NAVMESH_VERSION_RECAST4J_LAST, order)
-        write(stream, header.x, order)
-        write(stream, header.y, order)
-        write(stream, header.layer, order)
-        write(stream, header.userId, order)
-        write(stream, header.polyCount, order)
-        write(stream, header.vertCount, order)
-        write(stream, header.maxLinkCount, order)
-        write(stream, header.detailMeshCount, order)
-        write(stream, header.detailVertCount, order)
-        write(stream, header.detailTriCount, order)
-        write(stream, header.bvNodeCount, order)
-        write(stream, header.offMeshConCount, order)
-        write(stream, header.offMeshBase, order)
-        write(stream, header.walkableHeight, order)
-        write(stream, header.walkableRadius, order)
-        write(stream, header.walkableClimb, order)
-        write(stream, header.bounds.getMin(Vector3f()), order)
-        write(stream, header.bounds.getMax(Vector3f()), order)
-        write(stream, header.bvQuantizationFactor, order)
-        writeVertices(stream, data.vertices, header.vertCount, order)
+        writeI32(stream, data.magic, order)
+        writeI32(stream, MeshHeader.DT_NAVMESH_VERSION_RECAST4J_LAST, order)
+        writeI32(stream, data.x, order)
+        writeI32(stream, data.y, order)
+        writeI32(stream, data.layer, order)
+        writeI32(stream, data.userId, order)
+        writeI32(stream, data.polyCount, order)
+        writeI32(stream, data.vertCount, order)
+        writeI32(stream, data.maxLinkCount, order)
+        writeI32(stream, data.detailMeshCount, order)
+        writeI32(stream, data.detailVertCount, order)
+        writeI32(stream, data.detailTriCount, order)
+        writeI32(stream, data.bvNodeCount, order)
+        writeI32(stream, data.offMeshConCount, order)
+        writeI32(stream, data.offMeshBase, order)
+        writeF32(stream, data.walkableHeight, order)
+        writeF32(stream, data.walkableRadius, order)
+        writeF32(stream, data.walkableClimb, order)
+        write(stream, data.bounds, order)
+        writeF32(stream, data.bvQuantizationFactor, order)
+        writeVertices(stream, data.vertices, data.vertCount, order)
         writePolys(stream, data, order)
         writePolyDetails(stream, data, order)
-        writeVertices(stream, data.detailVertices, header.detailVertCount, order)
+        writeVertices(stream, data.detailVertices, data.detailVertCount, order)
         writeDTris(stream, data)
         writeBVTree(stream, data, order)
         writeOffMeshCons(stream, data, order)
@@ -61,30 +58,33 @@ object MeshDataWriter : DetourWriter() {
 
     private fun writeVertices(stream: OutputStream, vertices: FloatArray, count: Int, order: ByteOrder) {
         for (i in 0 until count * 3) {
-            write(stream, vertices[i], order)
+            writeF32(stream, vertices[i], order)
         }
     }
 
     private fun writePolys(stream: OutputStream, data: MeshData, order: ByteOrder) {
         for (i in 0 until data.polyCount) {
-            for (j in data.polygons[i].vertices.indices) {
-                write(stream, data.polygons[i].vertices[j].toShort(), order)
+            val polygon = data.polygons[i]
+            for (j in polygon.vertices.indices) {
+                writeI16(stream, polygon.vertices[j].toShort(), order)
             }
-            for (j in data.polygons[i].neighborData.indices) {
-                write(stream, data.polygons[i].neighborData[j].toShort(), order)
+            for (j in polygon.neighborData.indices) {
+                writeI16(stream, polygon.neighborData[j].toShort(), order)
             }
-            write(stream, data.polygons[i].flags.toShort(), order)
-            stream.write(data.polygons[i].vertCount)
-            stream.write(data.polygons[i].areaAndType)
+            writeI16(stream, polygon.flags.toShort(), order)
+            stream.write(polygon.vertCount)
+            stream.write(polygon.areaAndType)
         }
     }
 
     private fun writePolyDetails(stream: OutputStream, data: MeshData, order: ByteOrder) {
+        val detailMeshes = data.detailMeshes ?: return
         for (i in 0 until data.detailMeshCount) {
-            write(stream, data.detailMeshes!![i].vertBase, order)
-            write(stream, data.detailMeshes!![i].triBase, order)
-            stream.write(data.detailMeshes!![i].vertCount)
-            stream.write(data.detailMeshes!![i].triCount)
+            val detailMesh = detailMeshes[i]
+            writeI32(stream, detailMesh.vertBase, order)
+            writeI32(stream, detailMesh.triBase, order)
+            stream.write(detailMesh.vertCount)
+            stream.write(detailMesh.triCount)
         }
     }
 
@@ -101,13 +101,13 @@ object MeshDataWriter : DetourWriter() {
     }
 
     private fun writeBVNode(stream: OutputStream, node: BVNode, order: ByteOrder) {
-        write(stream, node.minX, order)
-        write(stream, node.minY, order)
-        write(stream, node.minZ, order)
-        write(stream, node.maxX, order)
-        write(stream, node.maxY, order)
-        write(stream, node.maxZ, order)
-        write(stream, node.index, order)
+        writeI32(stream, node.minX, order)
+        writeI32(stream, node.minY, order)
+        writeI32(stream, node.minZ, order)
+        writeI32(stream, node.maxX, order)
+        writeI32(stream, node.maxY, order)
+        writeI32(stream, node.maxZ, order)
+        writeI32(stream, node.index, order)
     }
 
     private fun writeOffMeshCons(stream: OutputStream, data: MeshData, order: ByteOrder) {
@@ -119,10 +119,10 @@ object MeshDataWriter : DetourWriter() {
     private fun writeOffMeshCon(stream: OutputStream, con: OffMeshConnection, order: ByteOrder) {
         write(stream, con.posA, order)
         write(stream, con.posB, order)
-        write(stream, con.rad, order)
-        write(stream, con.poly.toShort(), order)
+        writeF32(stream, con.rad, order)
+        writeI16(stream, con.poly.toShort(), order)
         stream.write(con.flags)
-        stream.write(con.side)
-        write(stream, con.userId, order)
+        stream.write(con.side.toInt())
+        writeI32(stream, con.userId, order)
     }
 }

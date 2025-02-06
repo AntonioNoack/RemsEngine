@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
@@ -30,6 +29,7 @@ import me.anno.mesh.FindLines.makeLineMesh
 import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
+import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
@@ -326,9 +326,9 @@ fun main() {
 
     val meshData = navMesh1.build()!!
     navMesh1.data = meshData
-    val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
 
-    if (false) scene.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+    val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
+    if (false) scene.add(MeshComponent(toMesh(meshData)!!.apply {
         makeLineMesh(true)
         material = Material().apply {
             cullMode = CullMode.BOTH

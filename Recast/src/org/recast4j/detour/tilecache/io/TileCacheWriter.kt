@@ -29,41 +29,41 @@ import java.nio.ByteOrder
 object TileCacheWriter : DetourWriter() {
 
     fun write(stream: OutputStream, cache: TileCache, order: ByteOrder, cCompatibility: Boolean) {
-        write(stream, TileCacheSetHeader.TILECACHESET_MAGIC, order)
+        writeI32(stream, TileCacheSetHeader.TILECACHESET_MAGIC, order)
         val version = if (cCompatibility) TileCacheSetHeader.TILECACHESET_VERSION
         else TileCacheSetHeader.TILECACHESET_VERSION_RECAST4J
-        write(stream, version, order)
+        writeI32(stream, version, order)
         var numTiles = 0
         for (i in 0 until cache.tileCount) {
             val tile = cache.getTile(i)
             if (tile?.data == null) continue
             numTiles++
         }
-        write(stream, numTiles, order)
+        writeI32(stream, numTiles, order)
         NavMeshParamWriter.write(stream, cache.navMesh.params, order)
         writeCacheParams(stream, cache.params, order)
         for (i in 0 until cache.tileCount) {
             val tile = cache.getTile(i)
             if (tile?.data == null) continue
-            write(stream, cache.getTileRef(tile).toInt(), order)
+            writeI32(stream, cache.getTileRef(tile).toInt(), order)
             val layer = cache.decompressTile(tile)
             val data = TileCacheBuilder.compressTileCacheLayer(layer, order, cCompatibility)
-            write(stream, data.size, order)
+            writeI32(stream, data.size, order)
             stream.write(data)
         }
     }
 
     private fun writeCacheParams(stream: OutputStream, params: TileCacheParams, order: ByteOrder) {
         write(stream, params.orig, order)
-        write(stream, params.cellSize, order)
-        write(stream, params.cellHeight, order)
-        write(stream, params.width, order)
-        write(stream, params.height, order)
-        write(stream, params.walkableHeight, order)
-        write(stream, params.walkableRadius, order)
-        write(stream, params.walkableClimb, order)
-        write(stream, params.maxSimplificationError, order)
-        write(stream, params.maxTiles, order)
-        write(stream, params.maxObstacles, order)
+        writeF32(stream, params.cellSize, order)
+        writeF32(stream, params.cellHeight, order)
+        writeI32(stream, params.width, order)
+        writeI32(stream, params.height, order)
+        writeF32(stream, params.walkableHeight, order)
+        writeF32(stream, params.walkableRadius, order)
+        writeF32(stream, params.walkableClimb, order)
+        writeF32(stream, params.maxSimplificationError, order)
+        writeI32(stream, params.maxTiles, order)
+        writeI32(stream, params.maxObstacles, order)
     }
 }

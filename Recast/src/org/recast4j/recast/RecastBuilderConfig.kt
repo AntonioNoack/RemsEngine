@@ -18,10 +18,10 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 
-class RecastBuilderConfig
-@JvmOverloads constructor(
+class RecastBuilderConfig(
     val cfg: RecastConfig,
     bounds: AABBf,
     val tileX: Int = 0,
@@ -85,6 +85,10 @@ class RecastBuilderConfig
             height = Recast.calcGridSizeY(this.bounds, cfg.cellSize)
         }
 
-        println("Building $width x $height, $bounds x ${cfg.cellSize}")
+        LOGGER.info("Building $width x $height, for $bounds bounds and ${cfg.cellSize} cell size")
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(RecastBuilderConfig::class)
     }
 }

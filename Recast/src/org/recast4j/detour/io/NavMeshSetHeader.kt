@@ -28,9 +28,9 @@ class NavMeshSetHeader {
     var params = NavMeshParams()
 
     companion object {
-        const val NAVMESHSET_MAGIC = 'M'.code shl 24 or ('S'.code shl 16) or ('E'.code shl 8) or 'T'.code
-        const val NAVMESHSET_VERSION = 1
-        const val NAVMESHSET_VERSION_RECAST4J_1 = 0x8801
-        const val NAVMESHSET_VERSION_RECAST4J = 0x8802
+        const val NAVMESH_SET_MAGIC = 'M'.code shl 24 or ('S'.code shl 16) or ('E'.code shl 8) or 'T'.code
+        const val NAVMESH_SET_VERSION = 1
+        const val NAVMESH_SET_VERSION_RECAST4J_1 = 0x8801
+        const val NAVMESH_SET_VERSION_RECAST4J = 0x8802
     }
 }

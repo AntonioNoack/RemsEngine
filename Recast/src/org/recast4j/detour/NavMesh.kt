@@ -84,9 +84,9 @@ class NavMesh(
     }
 
     private fun allocLink(tile: MeshTile?): Int {
-        if (tile!!.linksFreeList == DT_NULL_LINK) {
+        if (tile!!.linksFreeList == HAS_NO_LINKS) {
             val link = Link()
-            link.indexOfNextLink = DT_NULL_LINK
+            link.indexOfNextLink = HAS_NO_LINKS
             tile.links.add(link)
             return tile.links.size - 1
         }
@@ -155,10 +155,8 @@ class NavMesh(
         else ip < tile.data.polyCount
     }
 
-    constructor(data: MeshData, maxVerticesPerPoly: Int, flags: Int) : this(
-        getNavMeshParams(data),
-        maxVerticesPerPoly
-    ) {
+    constructor(data: MeshData, maxVerticesPerPoly: Int, flags: Int) :
+            this(getNavMeshParams(data), maxVerticesPerPoly) {
         addTile(data, flags, 0)
     }
 
@@ -167,17 +165,17 @@ class NavMesh(
         if (tile.data.bvTree != null) {
             var nodeIndex = 0
             val header = tile.data
-            val tb = header.bounds
+            val tileBounds = header.bounds
             val qfac = header.bvQuantizationFactor
             // Calculate quantized box
             val qbox = AABBi()
             // dtClamp query box to world box.
-            val minx = Vectors.clamp(queryBounds.minX, tb.minX, tb.maxX) - tb.minX
-            val miny = Vectors.clamp(queryBounds.minY, tb.minY, tb.maxY) - tb.minY
-            val minz = Vectors.clamp(queryBounds.minZ, tb.minZ, tb.maxZ) - tb.minZ
-            val maxx = Vectors.clamp(queryBounds.maxX, tb.minX, tb.maxX) - tb.minX
-            val maxy = Vectors.clamp(queryBounds.maxY, tb.minY, tb.maxY) - tb.minY
-            val maxz = Vectors.clamp(queryBounds.maxZ, tb.minZ, tb.maxZ) - tb.minZ
+            val minx = Vectors.clamp(queryBounds.minX, tileBounds.minX, tileBounds.maxX) - tileBounds.minX
+            val miny = Vectors.clamp(queryBounds.minY, tileBounds.minY, tileBounds.maxY) - tileBounds.minY
+            val minz = Vectors.clamp(queryBounds.minZ, tileBounds.minZ, tileBounds.maxZ) - tileBounds.minZ
+            val maxx = Vectors.clamp(queryBounds.maxX, tileBounds.minX, tileBounds.maxX) - tileBounds.minX
+            val maxy = Vectors.clamp(queryBounds.maxY, tileBounds.minY, tileBounds.maxY) - tileBounds.minY
+            val maxz = Vectors.clamp(queryBounds.maxZ, tileBounds.minZ, tileBounds.maxZ) - tileBounds.minZ
             // Quantize
             qbox.minX = (qfac * minx).toInt() and 0x7ffffffe
             qbox.minY = (qfac * miny).toInt() and 0x7ffffffe
@@ -293,7 +291,7 @@ class NavMesh(
         tile.flags = flags
         tile.links.clear()
         tile.polyLinks = IntArray(data.polygons.size)
-        tile.polyLinks.fill(DT_NULL_LINK)
+        tile.polyLinks.fill(HAS_NO_LINKS)
 
         // Insert tile into the position lut.
         val hash = computeTileHash(header.x, header.y)
@@ -403,7 +401,7 @@ class NavMesh(
         tile.data = MeshData.empty
         tile.flags = 0
         tile.links.clear()
-        tile.linksFreeList = DT_NULL_LINK
+        tile.linksFreeList = HAS_NO_LINKS
 
         // Update salt, salt should never be zero.
         tile.salt = tile.salt + 1 and (1 shl SALT_BITS) - 1
@@ -426,7 +424,7 @@ class NavMesh(
         val base = getPolyRefBase(tile)
         for (i in 0 until data.polyCount) {
             val poly = data.polygons[i]
-            tile.polyLinks[poly.index] = DT_NULL_LINK
+            tile.polyLinks[poly.index] = HAS_NO_LINKS
             if (poly.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) {
                 continue
             }
@@ -461,12 +459,12 @@ class NavMesh(
         for (i in 0 until data.polyCount) {
             val poly = data.polygons[i]
             var j = tile.polyLinks[poly.index]
-            var pj = DT_NULL_LINK
-            while (j != DT_NULL_LINK) {
+            var pj = HAS_NO_LINKS
+            while (j != HAS_NO_LINKS) {
                 if (decodePolyIdTile(tile.links[j].neighborRef) == targetNum) {
                     // Remove link.
                     val nj = tile.links[j].indexOfNextLink
-                    if (pj == DT_NULL_LINK) {
+                    if (pj == HAS_NO_LINKS) {
                         tile.polyLinks[poly.index] = nj
                     } else {
                         tile.links[pj].indexOfNextLink = nj
@@ -554,13 +552,13 @@ class NavMesh(
     }
 
     fun connectExtOffMeshLinks(tile: MeshTile?, target: MeshTile?, side: Int) {
-        if (tile == null || target == null) {
-            return
-        }
+        if (tile == null || target == null) return
 
         // Connect off-mesh links.
         // We are interested on links which land from target tile to this tile.
-        val oppositeSide = if (side == -1) 0xff else Vectors.oppositeTile(side)
+        val oppositeSide =
+            if (side == -1) OffMeshConnection.FROM_THIS_TILE
+            else Vectors.oppositeTile(side).toByte()
         val data2 = target.data
         for (i in 0 until data2.offMeshConCount) {
             val targetCon = data2.offMeshCons[i]
@@ -570,7 +568,7 @@ class NavMesh(
             val targetPoly = data2.polygons[targetCon.poly]
             // Skip off-mesh connections which start location could not be
             // connected at all.
-            if (target.polyLinks[targetPoly.index] == DT_NULL_LINK) {
+            if (target.polyLinks[targetPoly.index] == HAS_NO_LINKS) {
                 continue
             }
             val ext = Vector3f(targetCon.rad, data2.walkableClimb, targetCon.rad)
@@ -596,7 +594,7 @@ class NavMesh(
             var link = target.links[idx]
             link.neighborRef = ref
             link.indexOfPolyEdge = 1
-            link.side = oppositeSide
+            link.side = oppositeSide.toInt()
             link.bmax = 0
             link.bmin = 0
             // Add to linked list.
@@ -604,7 +602,7 @@ class NavMesh(
             target.polyLinks[targetPoly.index] = idx
 
             // Link target poly to off-mesh connection.
-            if (targetCon.flags and DT_OFFMESH_CON_BIDIR != 0) {
+            if (targetCon.flags and OFFMESH_IS_BIDIRECTIONAL != 0) {
                 val tidx = allocLink(tile)
                 val landPolyIdx = decodePolyIdPoly(ref)
                 val landPoly = tile.data.polygons[landPolyIdx]
@@ -738,7 +736,7 @@ class NavMesh(
             var link = tile.links[idx]
             link.neighborRef = ref
             link.indexOfPolyEdge = 0
-            link.side = 0xff
+            link.side = OffMeshConnection.FROM_THIS_TILE.toInt()
             link.bmax = 0
             link.bmin = 0
             // Add to linked list.
@@ -752,7 +750,7 @@ class NavMesh(
             link = tile.links[tidx]
             link.neighborRef = base or con.poly.toLong()
             link.indexOfPolyEdge = 0xff
-            link.side = 0xff
+            link.side = OffMeshConnection.FROM_THIS_TILE.toInt()
             link.bmax = 0
             link.bmin = 0
             // Add to linked list.
@@ -1088,7 +1086,7 @@ class NavMesh(
 
         // Find link that points to first vertex.
         var i = tile.polyLinks[poly.index]
-        while (i != DT_NULL_LINK) {
+        while (i != HAS_NO_LINKS) {
             if (tile.links[i].indexOfPolyEdge == 0) {
                 if (tile.links[i].neighborRef != prevRef) {
                     idx0 = 1
@@ -1215,17 +1213,17 @@ class NavMesh(
         /**
          * A value that indicates the entity does not link to anything.
          */
-        const val DT_NULL_LINK = -0x1
+        const val HAS_NO_LINKS = -0x1
 
         /**
          * A flag that indicates that an off-mesh connection can be traversed in both directions. (Is bidirectional.)
          */
-        const val DT_OFFMESH_CON_BIDIR = 1
+        const val OFFMESH_IS_BIDIRECTIONAL = 1
 
         /**
          * The maximum number of user defined area ids.
          */
-        const val DT_MAX_AREAS = 64
+        const val MAX_NUM_AREAS = 64
 
         /**
          * Limit raycasting during any angle pathfinding.

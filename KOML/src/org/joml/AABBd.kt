@@ -368,14 +368,14 @@ class AABBd(
         return dx * dx + dy * dy + dz * dz
     }
 
-    fun addMargin(r: Double): AABBd {
-        minX -= r
-        minY -= r
-        minZ -= r
-        maxX += r
-        maxY += r
-        maxZ += r
-        return this
+    fun addMargin(r: Double, dst: AABBd = this): AABBd {
+        return addMargin(r, r, r, dst)
+    }
+
+    fun addMargin(rx: Double, ry: Double, rz: Double, dst: AABBd = this): AABBd {
+        return dst
+            .setMin(minX - rx, minY - ry, minZ - rz)
+            .setMax(maxX + rx, maxY + ry, maxZ + rz)
     }
 
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {

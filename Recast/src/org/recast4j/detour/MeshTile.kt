@@ -33,7 +33,7 @@ class MeshTile(val id: Int) {
     val links = ArrayList<Link>()
 
     /** Index to the next free link.  */
-    var linksFreeList = NavMesh.DT_NULL_LINK
+    var linksFreeList = NavMesh.HAS_NO_LINKS
 
     /** Tile flags. (See: #dtTileFlags)  */
     var flags = 0

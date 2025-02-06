@@ -18,12 +18,16 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.apache.logging.log4j.LogManager
 import org.recast4j.IntArrayList
 import org.recast4j.detour.NavMeshDataCreateParams.Companion.i0
 import java.util.*
 import kotlin.math.max
 
 object RecastContour {
+
+    private val LOGGER = LogManager.getLogger(RecastContour::class)
+
     private fun getCornerHeight(
         x: Int, y: Int, i: Int, dir: Int,
         chf: CompactHeightfield, isBorderVertex: BooleanArray
@@ -705,7 +709,7 @@ object RecastContour {
 
         // Store region->contour remap info.
         // Create contour.
-        println("simplified: ${simplified.size} from ${vertices.size} vertices")
+        LOGGER.info("Simplified: ${simplified.size} from ${vertices.size} vertices")
         if (simplified.size.shr(2) >= 3) {
             cset.contours.add(createContour(simplified, vertices, borderSize, reg, area))
         }

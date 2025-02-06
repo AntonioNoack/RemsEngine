@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.TransformMesh.transformPositions
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBf
@@ -36,18 +37,14 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
         // apply transform onto mesh
         val gt = it.transform?.globalTransform
         if (gt != null && !gt.isIdentity()) {
-            val dst = FloatArray(src.size)
+            val dst = transformPositions(gt, src, 3)
             val vec = JomlPools.vec3f.borrow()
-            val mat = JomlPools.mat4x3f.borrow().set(gt)
-            for (i in dst.indices step 3) {
-                vec.set(src[i], src[i + 1], src[i + 2])
-                mat.transformPosition(vec)
-                dst[i] = vec.x
-                dst[i + 1] = vec.y
-                dst[i + 2] = vec.z
-                bounds.union(vec)
+            for (i in 0 until (dst.size - 2) / 3) {
+                bounds.union(vec.set(dst, i * 3))
             }
             src = dst
+        } else {
+            bounds.union(mesh.getBounds())
         }
         meshes1.add(TriMesh(src, faces))
     }

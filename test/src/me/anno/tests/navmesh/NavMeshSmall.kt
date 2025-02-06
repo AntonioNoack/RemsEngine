@@ -15,6 +15,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
 import me.anno.recast.NavMesh
+import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.res
 import org.recast4j.detour.*
@@ -61,7 +62,7 @@ fun main() {
         navMesh1.data = meshData
 
         // visualize navmesh
-        world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+        world.add(MeshComponent(toMesh(meshData)!!.apply {
             material = Material().apply {
                 cullMode = CullMode.BOTH
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)

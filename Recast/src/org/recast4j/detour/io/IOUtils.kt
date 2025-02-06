@@ -17,7 +17,6 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.io
 
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer

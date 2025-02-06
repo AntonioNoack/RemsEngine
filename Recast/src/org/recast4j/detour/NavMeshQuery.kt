@@ -73,7 +73,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         val base = nav1.getPolyRefBase(tile)
         var areaSum = 0f
         val tileData = tile.data
-        for (i in 0 until tileData.header.polyCount) {
+        for (i in 0 until tileData.polyCount) {
             val p = tileData.polygons[i]
             // Do not return off-mesh connection polygons.
             if (p.type != Poly.DT_POLYTYPE_GROUND) {
@@ -247,7 +247,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 parentRef = nodePool.getNodeAtIdx(bestNode.parentIndex)!!.polygonRef
             }
             var i = bestTile.polyLinks[bestPoly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val link = bestTile.links[i]
                 val neighbourRef = link.neighborRef
                 // Skip invalid neighbours and do not follow back to parent.
@@ -475,7 +475,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             )
             // Traverse tree
             val base = nav1.getPolyRefBase(tile)
-            val end = data.header.bvNodeCount
+            val end = data.bvNodeCount
             while (nodeIndex < end) {
                 val node = data.bvTree!![nodeIndex]
                 val overlap = Vectors.overlapQuantBounds(bmin, node)
@@ -690,7 +690,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 }
             }
             var i = bestTile.polyLinks[bestPoly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val neighbourRef = bestTile.links[i].neighborRef
 
                 // Skip invalid ids and do not expand back to where we came from.
@@ -978,7 +978,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 }
             }
             var i = bestTile!!.polyLinks[bestPoly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val neighbourRef = bestTile.links[i].neighborRef
 
                 // Skip invalid ids and do not expand back to where we came
@@ -1550,7 +1550,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 if (curPoly.neighborData[j] and NavMesh.DT_EXT_LINK != 0) {
                     // Tile border.
                     var k = curTile.polyLinks[curPoly.index]
-                    while (k != NavMesh.DT_NULL_LINK) {
+                    while (k != NavMesh.HAS_NO_LINKS) {
                         val link = curTile.links[k]
                         if (link.indexOfPolyEdge == j) {
                             if (link.neighborRef != 0L) {
@@ -1660,7 +1660,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         // Find the link that points to the 'to' polygon.
         var link: Link? = null
         var j = fromTile!!.polyLinks[fromPoly.index]
-        while (j != NavMesh.DT_NULL_LINK) {
+        while (j != NavMesh.HAS_NO_LINKS) {
             if (fromTile.links[j].neighborRef == to) {
                 link = fromTile.links[j]
                 break
@@ -1677,7 +1677,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             var i = fromTile.polyLinks[fromPoly.index]
             val fromTileVertices = fromTile.data.vertices
             val fromPolyVertices = fromPoly.vertices
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 if (fromTile.links[i].neighborRef == to) {
                     val v = fromTile.links[i].indexOfPolyEdge
                     left.set(fromTileVertices, fromPolyVertices[v] * 3)
@@ -1692,7 +1692,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             var i = toTile.polyLinks[toPoly.index]
             val toTileVertices = toTile.data.vertices
             val toPolyVertices = toPoly.vertices
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 if (toTile.links[i].neighborRef == from) {
                     val v = toTile.links[i].indexOfPolyEdge
                     left.set(toTileVertices, toPolyVertices[v] * 3)
@@ -1878,7 +1878,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             // Follow neighbours.
             var nextRef = 0L
             var i = tile!!.polyLinks[poly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val link = tile.links[i]
 
                 // Find link, which contains this edge.
@@ -2104,7 +2104,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             resultParent.add(parentRef)
             resultCost.add(bestNode.totalCost)
             var i = bestTile.polyLinks[bestPoly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val link = bestTile.links[i]
                 val neighbourRef = link.neighborRef
                 // Skip invalid neighbours and do not follow back to parent.
@@ -2267,7 +2267,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             resultParent.add(parentRef)
             resultCost.add(bestNode.totalCost)
             var i = bestTile.polyLinks[bestPoly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val link = bestTile.links[i]
                 val neighbourRef = link.neighborRef
                 // Skip invalid neighbours and do not follow back to parent.
@@ -2405,7 +2405,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             val curTile = nav1.getTileByRefUnsafe(curRef)
             val curPoly = nav1.getPolyByRefUnsafe(curRef, curTile)
             var i = curTile.polyLinks[curPoly.index]
-            while (i != NavMesh.DT_NULL_LINK) {
+            while (i != NavMesh.HAS_NO_LINKS) {
                 val link = curTile.links[i]
                 val neighbourRef = link.neighborRef
                 // Skip invalid neighbours.
@@ -2476,7 +2476,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     var connected = false
 
                     var k = curTile.polyLinks[curPoly.index]
-                    while (k != NavMesh.DT_NULL_LINK) {
+                    while (k != NavMesh.HAS_NO_LINKS) {
                         if (curTile.links[k].neighborRef == pastRef) {
                             connected = true
                             break
@@ -2576,7 +2576,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             if (poly.neighborData[j] and NavMesh.DT_EXT_LINK != 0) {
                 // Tile border.
                 var k = tile.polyLinks[poly.index]
-                while (k != NavMesh.DT_NULL_LINK) {
+                while (k != NavMesh.HAS_NO_LINKS) {
                     val link = tile.links[k]
                     if (link.indexOfPolyEdge == j) {
                         if (link.neighborRef != 0L) {
@@ -2724,7 +2724,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     // Tile border.
                     var solid = true
                     var k = bestTile.polyLinks[bestPoly.index]
-                    while (k != NavMesh.DT_NULL_LINK) {
+                    while (k != NavMesh.HAS_NO_LINKS) {
                         val link = bestTile.links[k]
                         if (link.indexOfPolyEdge == j) {
                             if (link.neighborRef != 0L) {
@@ -2778,7 +2778,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             }
 
             var k = bestTile.polyLinks[bestPoly.index]
-            while (k != NavMesh.DT_NULL_LINK) {
+            while (k != NavMesh.HAS_NO_LINKS) {
                 val link = bestTile.links[k]
                 val neighbourRef = link.neighborRef
                 // Skip invalid neighbours and do not follow back to parent.

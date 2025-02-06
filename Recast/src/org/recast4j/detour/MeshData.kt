@@ -25,8 +25,6 @@ import org.recast4j.detour.NavMeshBuilder.subdivide
 
 class MeshData : MeshHeader() {
 
-    val header get() = this
-
     /**
      * The tile vertices. [Size: MeshHeader::vertCount]
      */
@@ -68,11 +66,9 @@ class MeshData : MeshHeader() {
         val empty = MeshData()
 
         fun build(params: NavMeshDataCreateParams, tileX: Int, tileY: Int): MeshData? {
-            val data = createNavMeshData(params)
-            if (data != null) {
-                data.x = tileX
-                data.y = tileY
-            }
+            val data = createNavMeshData(params) ?: return null
+            data.x = tileX
+            data.y = tileY
             return data
         }
 
@@ -90,14 +86,12 @@ class MeshData : MeshHeader() {
             }
             val dataVertices = data.vertices
             val bounds = AABBf()
-            val tmp = Vector3f()
             for (i in 0 until data.polyCount) {
                 val polygon = data.polygons[i]
                 val polygonVertices = polygon.vertices
                 bounds.clear()
                 for (j in 0 until polygon.vertCount) {
-                    tmp.set(dataVertices, polygonVertices[j] * 3)
-                    bounds.union(tmp)
+                    bounds.union(dataVertices, polygonVertices[j] * 3)
                 }
                 srcNodes[i].setQuantized(bounds, data.bounds, quantFactor)
             }

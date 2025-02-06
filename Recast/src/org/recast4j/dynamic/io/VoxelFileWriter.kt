@@ -17,58 +17,55 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.io
 
-import org.joml.Vector3f
 import org.recast4j.detour.io.DetourWriter
-import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteOrder
 
 object VoxelFileWriter : DetourWriter() {
 
     fun write(stream: OutputStream, f: VoxelFile, byteOrder: ByteOrder = VoxelFile.PREFERRED_BYTE_ORDER) {
-        write(stream, VoxelFile.MAGIC, byteOrder)
-        write(stream, VoxelFile.VERSION_EXPORTER_RECAST4J, byteOrder)
-        write(stream, f.walkableRadius, byteOrder)
-        write(stream, f.walkableHeight, byteOrder)
-        write(stream, f.walkableClimb, byteOrder)
-        write(stream, f.walkableSlopeAngle, byteOrder)
-        write(stream, f.cellSize, byteOrder)
-        write(stream, f.maxSimplificationError, byteOrder)
-        write(stream, f.maxEdgeLen, byteOrder)
-        write(stream, f.minRegionArea, byteOrder)
-        write(stream, f.regionMergeArea, byteOrder)
-        write(stream, f.verticesPerPoly, byteOrder)
+        writeI32(stream, VoxelFile.MAGIC, byteOrder)
+        writeI32(stream, VoxelFile.VERSION_EXPORTER_RECAST4J, byteOrder)
+        writeF32(stream, f.walkableRadius, byteOrder)
+        writeF32(stream, f.walkableHeight, byteOrder)
+        writeF32(stream, f.walkableClimb, byteOrder)
+        writeF32(stream, f.walkableSlopeAngle, byteOrder)
+        writeF32(stream, f.cellSize, byteOrder)
+        writeF32(stream, f.maxSimplificationError, byteOrder)
+        writeF32(stream, f.maxEdgeLen, byteOrder)
+        writeF32(stream, f.minRegionArea, byteOrder)
+        writeF32(stream, f.regionMergeArea, byteOrder)
+        writeI32(stream, f.verticesPerPoly, byteOrder)
         write(stream, f.buildMeshDetail)
-        write(stream, f.detailSampleDistance, byteOrder)
-        write(stream, f.detailSampleMaxError, byteOrder)
+        writeF32(stream, f.detailSampleDistance, byteOrder)
+        writeF32(stream, f.detailSampleMaxError, byteOrder)
         write(stream, f.useTiles)
-        write(stream, f.tileSizeX, byteOrder)
-        write(stream, f.tileSizeZ, byteOrder)
+        writeI32(stream, f.tileSizeX, byteOrder)
+        writeI32(stream, f.tileSizeZ, byteOrder)
         write(stream, f.rotation, byteOrder)
-        write(stream, f.bounds.minX, byteOrder)
-        write(stream, f.bounds.minY, byteOrder)
-        write(stream, f.bounds.minZ, byteOrder)
-        write(stream, f.bounds.maxX, byteOrder)
-        write(stream, f.bounds.maxY, byteOrder)
-        write(stream, f.bounds.maxZ, byteOrder)
-        write(stream, f.tiles.size, byteOrder)
+        writeF32(stream, f.bounds.minX, byteOrder)
+        writeF32(stream, f.bounds.minY, byteOrder)
+        writeF32(stream, f.bounds.minZ, byteOrder)
+        writeF32(stream, f.bounds.maxX, byteOrder)
+        writeF32(stream, f.bounds.maxY, byteOrder)
+        writeF32(stream, f.bounds.maxZ, byteOrder)
+        writeI32(stream, f.tiles.size, byteOrder)
         for (t in f.tiles) {
             writeTile(stream, t, byteOrder)
         }
     }
 
     fun writeTile(stream: OutputStream, tile: VoxelTile, byteOrder: ByteOrder) {
-        write(stream, tile.tileX, byteOrder)
-        write(stream, tile.tileZ, byteOrder)
-        write(stream, tile.width, byteOrder)
-        write(stream, tile.depth, byteOrder)
-        write(stream, tile.borderSize, byteOrder)
-        write(stream, tile.bounds.getMin(Vector3f()), byteOrder)
-        write(stream, tile.bounds.getMax(Vector3f()), byteOrder)
-        write(stream, tile.cellSize, byteOrder)
-        write(stream, tile.cellHeight, byteOrder)
+        writeI32(stream, tile.tileX, byteOrder)
+        writeI32(stream, tile.tileZ, byteOrder)
+        writeI32(stream, tile.width, byteOrder)
+        writeI32(stream, tile.depth, byteOrder)
+        writeI32(stream, tile.borderSize, byteOrder)
+        write(stream, tile.bounds, byteOrder)
+        writeF32(stream, tile.cellSize, byteOrder)
+        writeF32(stream, tile.cellHeight, byteOrder)
         val bytes = tile.spanData
-        write(stream, bytes.size, byteOrder)
+        writeI32(stream, bytes.size, byteOrder)
         stream.write(bytes)
     }
 }

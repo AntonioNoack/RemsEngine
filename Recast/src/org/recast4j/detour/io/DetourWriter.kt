@@ -17,23 +17,33 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.io
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import java.io.OutputStream
 import java.nio.ByteOrder
 
 abstract class DetourWriter {
 
-    protected fun write(stream: OutputStream, value: Float, order: ByteOrder) {
-        write(stream, java.lang.Float.floatToIntBits(value), order)
+    protected fun writeF32(stream: OutputStream, value: Float, order: ByteOrder) {
+        writeI32(stream, value.toRawBits(), order)
     }
 
     protected fun write(stream: OutputStream, value: Vector3f, order: ByteOrder) {
-        write(stream, java.lang.Float.floatToIntBits(value.x), order)
-        write(stream, java.lang.Float.floatToIntBits(value.y), order)
-        write(stream, java.lang.Float.floatToIntBits(value.z), order)
+        writeF32(stream, value.x, order)
+        writeF32(stream, value.y, order)
+        writeF32(stream, value.z, order)
     }
 
-    protected fun write(stream: OutputStream, value: Short, order: ByteOrder) {
+    protected fun write(stream: OutputStream, value: AABBf, order: ByteOrder) {
+        writeF32(stream, value.minX, order)
+        writeF32(stream, value.minY, order)
+        writeF32(stream, value.minZ, order)
+        writeF32(stream, value.maxX, order)
+        writeF32(stream, value.maxY, order)
+        writeF32(stream, value.maxZ, order)
+    }
+
+    protected fun writeI16(stream: OutputStream, value: Short, order: ByteOrder) {
         if (order == ByteOrder.BIG_ENDIAN) {
             stream.write(value.toInt() shr 8 and 0xFF)
             stream.write(value.toInt() and 0xFF)
@@ -43,17 +53,17 @@ abstract class DetourWriter {
         }
     }
 
-    protected fun write(stream: OutputStream, value: Long, order: ByteOrder) {
+    protected fun writeI64(stream: OutputStream, value: Long, order: ByteOrder) {
         if (order == ByteOrder.BIG_ENDIAN) {
-            write(stream, (value ushr 32).toInt(), order)
-            write(stream, value.toInt(), order)
+            writeI32(stream, (value ushr 32).toInt(), order)
+            writeI32(stream, value.toInt(), order)
         } else {
-            write(stream, value.toInt(), order)
-            write(stream, (value ushr 32).toInt(), order)
+            writeI32(stream, value.toInt(), order)
+            writeI32(stream, (value ushr 32).toInt(), order)
         }
     }
 
-    protected fun write(stream: OutputStream, value: Int, order: ByteOrder) {
+    protected fun writeI32(stream: OutputStream, value: Int, order: ByteOrder) {
         if (order == ByteOrder.BIG_ENDIAN) {
             stream.write(value shr 24 and 0xFF)
             stream.write(value shr 16 and 0xFF)

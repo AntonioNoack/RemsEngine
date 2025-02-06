@@ -31,9 +31,9 @@ object NavMeshBuilder {
 
     const val MESH_NULL_IDX = 0xffff
 
-    private fun calcExtends(nodes: Array<BVNode>, imin: Int, imax: Int, dst: BVNode) {
-        nodes[imin].copyBoundsInto(dst)
-        for (i in imin + 1 until imax) {
+    private fun calcExtends(nodes: Array<BVNode>, startIndex: Int, endIndex: Int, dst: BVNode) {
+        nodes[startIndex].copyBoundsInto(dst)
+        for (i in startIndex + 1 until endIndex) {
             dst.union(nodes[i])
         }
     }
@@ -142,7 +142,7 @@ object NavMeshBuilder {
     const val XM = 4
     const val ZM = 8
 
-    fun classifyOffMeshPoint(pt: VectorPtr, bounds: AABBf): Int {
+    fun classifyOffMeshPoint(pt: VectorPtr, bounds: AABBf): Byte {
         var resultMap = 0
         resultMap = resultMap or if (pt[0] >= bounds.maxX) XP else 0
         resultMap = resultMap or if (pt[2] >= bounds.maxZ) ZP else 0
@@ -157,7 +157,7 @@ object NavMeshBuilder {
             XM or ZM -> 5
             ZM -> 6
             XP or ZM -> 7
-            else -> 0xff
+            else -> OffMeshConnection.FROM_THIS_TILE
         }
     }
 
@@ -175,11 +175,11 @@ object NavMeshBuilder {
 
         // Classify off-mesh connection points. We store only the connections
         // whose start point is inside the tile.
-        var offMeshConClass: IntArray? = null
+        var offMeshConClass: ByteArray? = null
         var storedOffMeshConCount = 0
         var offMeshConLinkCount = 0
         if (params.offMeshConCount > 0) {
-            offMeshConClass = IntArray(params.offMeshConCount * 2)
+            offMeshConClass = ByteArray(params.offMeshConCount * 2)
             val counts = findTightHeightBounds(params, offMeshConClass, offMeshConLinkCount, storedOffMeshConCount)
             offMeshConLinkCount = counts.first
             storedOffMeshConCount = counts.second
@@ -323,10 +323,7 @@ object NavMeshBuilder {
         return detailTriCount
     }
 
-    private fun findTightHeightBounds(
-        params: NavMeshDataCreateParams, offMeshConClass: IntArray,
-        offMeshConLinkCount0: Int, storedOffMeshConCount0: Int
-    ): IntPair {
+    private fun getTightBounds(params: NavMeshDataCreateParams): AABBf {
         var hmin = Float.MAX_VALUE
         var hmax = -Float.MAX_VALUE
         val dv = params.detailVertices
@@ -351,7 +348,14 @@ object NavMeshBuilder {
         val bounds = AABBf(params.bounds)
         bounds.minY = hmin
         bounds.maxY = hmax
+        return bounds
+    }
 
+    private fun findTightHeightBounds(
+        params: NavMeshDataCreateParams, offMeshConClass: ByteArray,
+        offMeshConLinkCount0: Int, storedOffMeshConCount0: Int
+    ): IntPair {
+        val bounds = getTightBounds(params)
         var offMeshConLinkCount = offMeshConLinkCount0
         var storedOffMeshConCount = storedOffMeshConCount0
         for (i in 0 until params.offMeshConCount) {
@@ -362,18 +366,21 @@ object NavMeshBuilder {
 
             // Zero out off-mesh start positions which are not even
             // potentially touching the mesh.
-            if (offMeshConClass[i * 2] == 0xff) {
+            if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
                 if (p0[1] < bounds.minY || p0[1] > bounds.maxY) {
                     offMeshConClass[i * 2] = 0
                 }
             }
 
             // Count how many links should be allocated for off-mesh connections.
-            if (offMeshConClass[i * 2] == 0xff) offMeshConLinkCount++
-            if (offMeshConClass[i * 2 + 1] == 0xff) offMeshConLinkCount++
-            if (offMeshConClass[i * 2] == 0xff) storedOffMeshConCount++
+            if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
+                offMeshConLinkCount++
+                storedOffMeshConCount++
+            }
+            if (offMeshConClass[i * 2 + 1] == OffMeshConnection.FROM_THIS_TILE) {
+                offMeshConLinkCount++
+            }
         }
-
         return IntPair(offMeshConLinkCount, storedOffMeshConCount)
     }
 
@@ -410,13 +417,14 @@ object NavMeshBuilder {
 
     private fun createOffMeshLinkVertices(
         params: NavMeshDataCreateParams,
-        offMeshConClass: IntArray?, offMeshVerticesBase: Int,
+        offMeshConClass: ByteArray?, offMeshVerticesBase: Int,
         navVertices: FloatArray
     ) {
+        if (offMeshConClass == null) return
         var n = 0
         for (i in 0 until params.offMeshConCount) {
             // Only store connections which start from this tile.
-            if (offMeshConClass!![i * 2] == 0xff) {
+            if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
                 val linkv = i * 2 * 3
                 val v = (offMeshVerticesBase + n * 2) * 3
                 System.arraycopy(params.offMeshConVertices, linkv, navVertices, v, 6)
@@ -460,14 +468,14 @@ object NavMeshBuilder {
 
     private fun createOffMeshConnectionVertices(
         params: NavMeshDataCreateParams, nvp: Int,
-        offMeshConClass: IntArray?, offMeshPolyBase: Int,
+        offMeshConClass: ByteArray?, offMeshPolyBase: Int,
         navPolys: Array<Poly>, offMeshVerticesBase: Int
     ) {
         var n = 0
         offMeshConClass ?: return
         for (i in 0 until params.offMeshConCount) {
             // Only store connections which start from this tile.
-            if (offMeshConClass[i * 2] == 0xff) {
+            if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
                 val p = Poly(offMeshPolyBase + n, nvp)
                 navPolys[offMeshPolyBase + n] = p
                 p.vertCount = 2
@@ -544,15 +552,13 @@ object NavMeshBuilder {
 
     private fun storeOffMeshConnections(
         params: NavMeshDataCreateParams,
-        offMeshConClass: IntArray?,
-        offMeshCons: Array<OffMeshConnection>,
-        offMeshPolyBase: Int
+        offMeshConClass: ByteArray?, offMeshCons: Array<OffMeshConnection>, offMeshPolyBase: Int
     ) {
         offMeshConClass ?: return
         var n = 0
         for (i in 0 until params.offMeshConCount) {
             // Only store connections, which start from this tile.
-            if (offMeshConClass[i * 2] == 0xff) {
+            if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
                 val con = offMeshCons[n]
                 con.poly = offMeshPolyBase + n
                 // Copy connection end-points.
@@ -560,7 +566,7 @@ object NavMeshBuilder {
                 con.posA.set(params.offMeshConVertices, endPts)
                 con.posB.set(params.offMeshConVertices, endPts + 3)
                 con.rad = params.offMeshConRad[i]
-                con.flags = if (params.offMeshConDir[i] != 0) NavMesh.DT_OFFMESH_CON_BIDIR else 0
+                con.flags = if (params.offMeshConDir[i] != 0) NavMesh.OFFMESH_IS_BIDIRECTIONAL else 0
                 con.side = offMeshConClass[i * 2 + 1]
                 if (params.offMeshConUserID.isNotEmpty()) con.userId = params.offMeshConUserID[i]
                 n++

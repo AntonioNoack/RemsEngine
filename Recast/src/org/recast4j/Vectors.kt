@@ -19,10 +19,8 @@ freely, subject to the following restrictions:
 package org.recast4j
 
 import me.anno.utils.structures.tuples.FloatPair
-import org.joml.AABBf
 import org.joml.AABBi
 import org.joml.Vector3f
-import org.joml.Vector3i
 import org.recast4j.detour.BVNode
 import kotlin.math.abs
 import kotlin.math.sqrt

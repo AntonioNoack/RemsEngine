@@ -2,22 +2,16 @@ package me.anno.recast
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.maths.Maths.max
+import me.anno.recast.NavMeshDebug.drawNavMesh
 import me.anno.utils.Color.black
-import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.types.Arrays.resize
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMeshBuilder
 import org.recast4j.detour.NavMeshDataCreateParams
-import org.recast4j.detour.Poly
 import org.recast4j.recast.AreaModification
 import org.recast4j.recast.PartitionType
 import org.recast4j.recast.RecastBuilder
@@ -89,8 +83,6 @@ class NavMesh : Component(), OnDrawGUI {
 
     fun build(): MeshData? {
 
-        // todo for the geometry, collect all colliders from the scene
-
         val world = entity ?: return null
         val geometry = GeoProvider(world, collisionMask)
 
@@ -122,6 +114,7 @@ class NavMesh : Component(), OnDrawGUI {
             p.detailTris = md.triangles
             p.detailTriCount = md.numTriangles
         }
+        // todo properly set these values, these are just bogus values
         p.offMeshConVertices = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
         p.offMeshConRad = floatArrayOf(0.1f)
         p.offMeshConFlags = intArrayOf(12)
@@ -139,84 +132,8 @@ class NavMesh : Component(), OnDrawGUI {
         return NavMeshBuilder.createNavMeshData(p)
     }
 
-    /**
-     * create a mesh from the nav mesh data
-     * */
-    fun toMesh(mesh: Mesh = Mesh()): Mesh? {
-        val data = data ?: return null
-        val dv = data.vertices
-        val ddv = data.detailVertices
-        val header = data
-        var triCount = 0
-        for (i in 0 until header.polyCount) {
-            val p = data.polygons[i]
-            if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-            val detailMesh = data.detailMeshes?.get(i)
-            triCount += detailMesh?.triCount ?: max(0, p.vertCount - 2) // correct?
-        }
-        val fal = FloatArrayList(triCount * 3)
-        for (i in 0 until header.polyCount) {
-            val p = data.polygons[i]
-            if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-            val pv = p.vertices
-            val detailMesh = data.detailMeshes?.get(i) ?: continue
-            for (j in 0 until detailMesh.triCount) {
-                val t = (detailMesh.triBase + j) * 4
-                for (k in 0 until 3) {
-                    val v = data.detailTriangles[t + k].toInt().and(0xff)
-                    if (v < p.vertCount) {
-                        fal.addAll(dv, pv[v] * 3, 3)
-                    } else {
-                        fal.addAll(ddv, (detailMesh.vertBase + v - p.vertCount) * 3, 3)
-                    }
-                }
-            }
-        }
-        mesh.positions = fal.toFloatArray()
-        mesh.normals = mesh.normals.resize(fal.size)
-        return mesh
-    }
-
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
-        if (all) drawNavMesh()
-    }
-
-    private fun drawNavMesh() {
-        val data = data ?: return
-        val dv = data.vertices
-        val ddv = data.detailVertices
-        val a = JomlPools.vec3f.create()
-        val b = JomlPools.vec3f.create()
-        val c = JomlPools.vec3f.create()
-        val color = debugColor
-        val entity = entity
-        for (i in 0 until data.polyCount) {
-            val p = data.polygons[i]
-            if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-            val pv = p.vertices
-            val detailMesh = data.detailMeshes?.get(i) ?: continue
-            val detailTriangles = data.detailTriangles
-            for (j in 0 until detailMesh.triCount) {
-                val t = (detailMesh.triBase + j) * 4
-
-                val v0 = detailTriangles[t].toInt().and(0xff)
-                if (v0 < p.vertCount) a.set(dv, pv[v0] * 3)
-                else a.set(ddv, (detailMesh.vertBase + v0 - p.vertCount) * 3)
-
-                val v1 = detailTriangles[t + 1].toInt().and(0xff)
-                if (v1 < p.vertCount) b.set(dv, pv[v1] * 3)
-                else b.set(ddv, (detailMesh.vertBase + v1 - p.vertCount) * 3)
-
-                val v2 = detailTriangles[t + 2].toInt().and(0xff)
-                if (v2 < p.vertCount) c.set(dv, pv[v2] * 3)
-                else c.set(ddv, (detailMesh.vertBase + v2 - p.vertCount) * 3)
-
-                LineShapes.drawLine(entity, a, b, color)
-                LineShapes.drawLine(entity, b, c, color)
-                LineShapes.drawLine(entity, c, a, color)
-            }
-        }
-        JomlPools.vec3f.sub(3)
+        if (all) drawNavMesh(entity, data)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

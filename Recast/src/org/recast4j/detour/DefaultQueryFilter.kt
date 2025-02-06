@@ -50,12 +50,12 @@ class DefaultQueryFilter : QueryFilter {
 
     var excludeFlags: Int
     var includeFlags: Int
-    private val areaCosts = FloatArray(NavMesh.DT_MAX_AREAS)
+    private val areaCosts = FloatArray(NavMesh.MAX_NUM_AREAS)
 
     constructor() {
         includeFlags = 0xffff
         excludeFlags = 0
-        for (i in 0 until NavMesh.DT_MAX_AREAS) {
+        for (i in 0 until NavMesh.MAX_NUM_AREAS) {
             areaCosts[i] = 1f
         }
     }
@@ -63,8 +63,8 @@ class DefaultQueryFilter : QueryFilter {
     constructor(includeFlags: Int, excludeFlags: Int, areaCost: FloatArray) {
         this.includeFlags = includeFlags
         this.excludeFlags = excludeFlags
-        System.arraycopy(areaCost, 0, areaCosts, 0, min(NavMesh.DT_MAX_AREAS, areaCost.size))
-        for (i in areaCost.size until NavMesh.DT_MAX_AREAS) {
+        System.arraycopy(areaCost, 0, areaCosts, 0, min(NavMesh.MAX_NUM_AREAS, areaCost.size))
+        for (i in areaCost.size until NavMesh.MAX_NUM_AREAS) {
             areaCosts[i] = 1f
         }
     }

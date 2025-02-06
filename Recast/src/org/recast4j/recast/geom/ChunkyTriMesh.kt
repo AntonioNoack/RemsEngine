@@ -23,7 +23,7 @@ import org.recast4j.detour.NavMeshDataCreateParams.Companion.i0
 import java.util.Arrays
 import kotlin.math.min
 
-class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerChunk: Int) {
+class ChunkyTriMesh(vertices: FloatArray, indices: IntArray, numTris: Int, trisPerChunk: Int) {
 
     class Node {
         var minX = 0f
@@ -123,8 +123,8 @@ class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerC
     var maxTrisPerChunk: Int
 
     init {
-        val items = buildTree(numTris, vertices, tris)
-        subdivide(items, 0, numTris, trisPerChunk, nodes, tris)
+        val items = buildTree(numTris, vertices, indices)
+        subdivide(items, 0, numTris, trisPerChunk, nodes, indices)
         maxTrisPerChunk = calculateMaxTrisPerChunk()
     }
 

@@ -22,6 +22,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
+import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.res
 import org.joml.Vector3d
@@ -137,7 +138,7 @@ fun main() {
         navMesh1.data = meshData
 
         // visualize navmesh
-        if (false) world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+        if (false) world.add(MeshComponent(toMesh(meshData, Mesh())!!.apply {
             material = Material().apply {
                 cullMode = CullMode.BOTH
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)

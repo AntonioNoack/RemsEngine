@@ -44,7 +44,7 @@ class Poly(val index: Int, maxVerticesPerPoly: Int) {
         neighborData = IntArray(maxVerticesPerPoly)
     }
     /** Gets the user defined area id.  */
-    /** Sets the user defined area id. [Limit: &lt; [org.recast4j.detour.NavMesh.DT_MAX_AREAS]]  */
+    /** Sets the user defined area id. [Limit: &lt; [org.recast4j.detour.NavMesh.MAX_NUM_AREAS]]  */
     var area: Int
         get() = areaAndType and 0x3f
         set(a) {
