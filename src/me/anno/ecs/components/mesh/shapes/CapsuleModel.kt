@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.TransformMesh.transformMesh
 import me.anno.maths.Maths.TAUf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
 import org.joml.Matrix4x3d
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -21,11 +22,13 @@ object CapsuleModel {
     fun createCapsule(us: Int, vs: Int, axis: Axis, r: Float, h: Float, mesh: Mesh = Mesh()): Mesh {
         assertEquals(0, vs.and(1))
         UVSphereModel.createUVSphere(us, vs, mesh)
-        val positions = FloatArrayList(16)
-        val normals = FloatArrayList(16)
+        val numSrcTriangles = mesh.numPrimitives.toInt()
+        val numDstTriangles = numSrcTriangles + 6 * us
+        val positions = FloatArrayList(numDstTriangles * 9)
+        val normals = FloatArrayList(numDstTriangles * 9)
         fun addPoint(a: Vector3f, dy: Float) {
-            positions.add(a.x * r, a.y * r + dy, a.z * r)
-            normals.add(a)
+            positions.addUnsafe(a.x * r, a.y * r + dy, a.z * r)
+            normals.addUnsafe(a)
         }
         mesh.forEachTriangle { a, b, c ->
             val dy = sign(a.y + b.y + c.y) * h
@@ -38,8 +41,8 @@ object CapsuleModel {
             val angle = xi * TAUf / us
             val x = cos(angle)
             val z = sin(angle)
-            positions.add(x * r, y, z * r)
-            normals.add(x, 0f, z)
+            positions.addUnsafe(x * r, y, z * r)
+            normals.addUnsafe(x, 0f, z)
         }
         // add center ring
         for (x in 0 until us) {
@@ -50,6 +53,8 @@ object CapsuleModel {
             addPoint(x, +h)
             addPoint(x + 1, +h)
         }
+        assertEquals(numDstTriangles * 3, positions.size)
+        assertEquals(numDstTriangles * 3, normals.size)
         mesh.positions = positions.toFloatArray()
         mesh.normals = normals.toFloatArray()
         mesh.indices = null

@@ -5,6 +5,7 @@ import me.anno.maths.Maths.mix
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -168,18 +169,19 @@ object MarchingCubes {
         if (code in 0 until 254) {
 
             val edgeMask = getEdge(code)
-            if (edgeMask.and(1) != 0) edges.add(0f, 0f, findZero(v000, v001))
-            if (edgeMask.and(2) != 0) edges.add(findZero(v001, v101), 0f, 1f)
-            if (edgeMask.and(4) != 0) edges.add(1f, 0f, findZero(v100, v101))
-            if (edgeMask.and(8) != 0) edges.add(findZero(v000, v100), 0f, 0f)
-            if (edgeMask.and(16) != 0) edges.add(0f, 1f, findZero(v010, v011))
-            if (edgeMask.and(32) != 0) edges.add(findZero(v011, v111), 1f, 1f)
-            if (edgeMask.and(64) != 0) edges.add(1f, 1f, findZero(v110, v111))
-            if (edgeMask.and(128) != 0) edges.add(findZero(v010, v110), 1f, 0f)
-            if (edgeMask.and(256) != 0) edges.add(0f, findZero(v000, v010), 0f)
-            if (edgeMask.and(512) != 0) edges.add(0f, findZero(v001, v011), 1f)
-            if (edgeMask.and(1024) != 0) edges.add(1f, findZero(v101, v111), 1f)
-            if (edgeMask.and(2048) != 0) edges.add(1f, findZero(v100, v110), 0f)
+            edges.ensureExtra(edgeMask.countOneBits() * 3)
+            if (edgeMask.and(1) != 0) edges.addUnsafe(0f, 0f, findZero(v000, v001))
+            if (edgeMask.and(2) != 0) edges.addUnsafe(findZero(v001, v101), 0f, 1f)
+            if (edgeMask.and(4) != 0) edges.addUnsafe(1f, 0f, findZero(v100, v101))
+            if (edgeMask.and(8) != 0) edges.addUnsafe(findZero(v000, v100), 0f, 0f)
+            if (edgeMask.and(16) != 0) edges.addUnsafe(0f, 1f, findZero(v010, v011))
+            if (edgeMask.and(32) != 0) edges.addUnsafe(findZero(v011, v111), 1f, 1f)
+            if (edgeMask.and(64) != 0) edges.addUnsafe(1f, 1f, findZero(v110, v111))
+            if (edgeMask.and(128) != 0) edges.addUnsafe(findZero(v010, v110), 1f, 0f)
+            if (edgeMask.and(256) != 0) edges.addUnsafe(0f, findZero(v000, v010), 0f)
+            if (edgeMask.and(512) != 0) edges.addUnsafe(0f, findZero(v001, v011), 1f)
+            if (edgeMask.and(1024) != 0) edges.addUnsafe(1f, findZero(v101, v111), 1f)
+            if (edgeMask.and(2048) != 0) edges.addUnsafe(1f, findZero(v100, v110), 0f)
 
             val data = edges.values
             for (i in 0 until edges.size step 3) {

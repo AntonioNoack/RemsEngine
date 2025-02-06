@@ -9,6 +9,7 @@ import me.anno.maths.Maths.posMod
 import me.anno.mesh.Triangulation
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f

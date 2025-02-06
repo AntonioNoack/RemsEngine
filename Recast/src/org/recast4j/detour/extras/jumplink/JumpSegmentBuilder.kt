@@ -1,35 +1,31 @@
 package org.recast4j.detour.extras.jumplink
 
-import org.recast4j.IntArray2D
-import org.recast4j.IntPair
+import me.anno.image.raw.IntImage
+import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.abs
 
 internal object JumpSegmentBuilder {
 
     fun build(cfg: JumpLinkBuilderConfig, es: EdgeSampler): Array<JumpSegment> {
         val n = es.end[0].samples!!.size
-        val sampleGrid = IntArray2D(n, es.end.size)
-        for (j in es.end.indices) {
-            for (i in 0 until n) {
-                sampleGrid[i, j] = -1
-            }
-        }
+        val sampleGrid = IntImage(n, es.end.size, false)
+        sampleGrid.data.fill(-1)
         val region = fillConnectedRegions(es, sampleGrid, n, cfg)
         return findLongestSegmentsPerRegion(es, sampleGrid, n, region)
     }
 
     private fun fillConnectedRegions(
-        es: EdgeSampler, sampleGrid: IntArray2D,
+        es: EdgeSampler, sampleGrid: IntImage,
         n: Int, cfg: JumpLinkBuilderConfig
     ): Int {
         var region = 0
         val queue = ArrayList<IntPair>()
         for (j in es.end.indices) {
             for (i in 0 until n) {
-                if (sampleGrid[i, j] == -1) {
+                if (sampleGrid.getRGB(i, j) == -1) {
                     val p = es.end[j].samples!![i]
                     if (!p.validTrajectory) {
-                        sampleGrid[i, j] = -2
+                        sampleGrid.setRGB(i, j, -2)
                     } else {
                         queue.clear() // not really necessary
                         queue.add(IntPair(i, j))
@@ -43,7 +39,7 @@ internal object JumpSegmentBuilder {
     }
 
     private fun findLongestSegmentsPerRegion(
-        es: EdgeSampler, sampleGrid: IntArray2D,
+        es: EdgeSampler, sampleGrid: IntImage,
         n: Int, region: Int,
     ): Array<JumpSegment> {
         val jumpSegments = Array(region) { JumpSegment() }
@@ -51,16 +47,17 @@ internal object JumpSegmentBuilder {
             var l = 0
             var r = -2
             for (i in 0 until n + 1) {
-                if (i == n || sampleGrid[i, j] != r) {
+                if (i == n || sampleGrid.getRGB(i, j) != r) {
                     if (r >= 0) {
-                        if (jumpSegments[r].samples < l) {
-                            jumpSegments[r].samples = l
-                            jumpSegments[r].startSample = i - l
-                            jumpSegments[r].groundSegment = j
+                        val segment = jumpSegments[r]
+                        if (segment.samples < l) {
+                            segment.samples = l
+                            segment.startSample = i - l
+                            segment.groundSegment = j
                         }
                     }
                     if (i < n) {
-                        r = sampleGrid[i, j]
+                        r = sampleGrid.getRGB(i, j)
                     }
                     l = 1
                 } else {
@@ -73,24 +70,24 @@ internal object JumpSegmentBuilder {
 
     private fun fill(
         es: EdgeSampler,
-        sampleGrid: IntArray2D,
+        sampleGrid: IntImage,
         queue: ArrayList<IntPair>,
         agentClimb: Float,
         region: Int
     ) {
         while (true) {
             val (i, j) = queue.removeLastOrNull() ?: break
-            if (sampleGrid[i, j] == -1) {
+            if (sampleGrid.getRGB(i, j) == -1) {
                 val p = es.end[j].samples!![i]
-                sampleGrid[i, j] = region
+                sampleGrid.setRGB(i, j, region)
                 val h = p.position.y
-                if (i < sampleGrid.sizeX - 1) {
+                if (i < sampleGrid.width - 1) {
                     addNeighbour(es, queue, agentClimb, h, i + 1, j)
                 }
                 if (i > 0) {
                     addNeighbour(es, queue, agentClimb, h, i - 1, j)
                 }
-                if (j < sampleGrid.sizeY - 1) {
+                if (j < sampleGrid.height - 1) {
                     addNeighbour(es, queue, agentClimb, h, i, j + 1)
                 }
                 if (j > 0) {

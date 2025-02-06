@@ -8,14 +8,16 @@ import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.Lists.pop
-import me.anno.io.Streams.readNBytes2
 import me.anno.utils.structures.lists.Lists.castToList
+import me.anno.utils.structures.lists.Lists.pop
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException
@@ -163,12 +165,12 @@ object FBX6000 {
                                     var i3 = indices[i]
                                     if (i3 < 0) i3 = -1 - i3
                                     val j3 = i * 3
-                                    positions2.add(positions1, i3 * 3, 3)
-                                    normals2.add(normals1, j3, 3)
+                                    positions2.addAll(positions1, i3 * 3, 3)
+                                    normals2.addAll(normals1, j3, 3)
                                     if (uvs1 != null) {
                                         uvs2!!
                                         val k2 = uvIndices!![i] * 2
-                                        uvs2.add(uvs1, k2, 2)
+                                        uvs2.addAll(uvs1, k2, 2)
                                     }
                                 }
                                 for (j in i0 + 1 until i) {
@@ -225,9 +227,9 @@ object FBX6000 {
         return meshes
     }
 
-    fun readBinaryFBX6000AsFolder(file: FileReference): Pair<InnerFolder, Prefab>? {
-        val meshes = readBinaryFBX6000AsMeshes(file.inputStreamSync())
-        if (meshes.isNotEmpty()) {
+    fun readBinaryFBX6000AsFolder(file: FileReference, callback: Callback<InnerFolder>) {
+        file.inputStream(callback.map { stream ->
+            val meshes = readBinaryFBX6000AsMeshes(stream)
             val root = InnerFolder(file)
             val all = Prefab("Entity")
             for (i in meshes.indices) {
@@ -245,8 +247,7 @@ object FBX6000 {
                 all[meshComp, "meshFile"] = meshFile
             }
             root.createPrefabChild("Scene.json", all)
-            return root to all
-        } else LOGGER.warn("Meshes from $file is empty")
-        return null
+            root
+        })
     }
 }

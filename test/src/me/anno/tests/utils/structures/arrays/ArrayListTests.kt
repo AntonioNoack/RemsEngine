@@ -61,7 +61,7 @@ class ArrayListTests {
         sample.add(2f)
         sample.add(3f)
         assertContentEquals(floatArrayOf(1f, 2f, 3f), sample.toFloatArray())
-        sample.add(floatArrayOf(4f, 5f, 6f), 1, 1)
+        sample.addAll(floatArrayOf(4f, 5f, 6f), 1, 1)
         assertContentEquals(floatArrayOf(1f, 2f, 3f, 5f), sample.toFloatArray())
         sample[0] = -17f
         assertContentEquals(floatArrayOf(-17f, 2f, 3f, 5f), sample.toFloatArray())

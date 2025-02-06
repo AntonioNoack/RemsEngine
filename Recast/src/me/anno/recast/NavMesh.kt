@@ -167,9 +167,9 @@ class NavMesh : Component(), OnDrawGUI {
                 for (k in 0 until 3) {
                     val v = data.detailTriangles[t + k].toInt().and(0xff)
                     if (v < p.vertCount) {
-                        fal.add(dv, pv[v] * 3, 3)
+                        fal.addAll(dv, pv[v] * 3, 3)
                     } else {
-                        fal.add(ddv, (detailMesh.vertBase + v - p.vertCount) * 3, 3)
+                        fal.addAll(ddv, (detailMesh.vertBase + v - p.vertCount) * 3, 3)
                     }
                 }
             }

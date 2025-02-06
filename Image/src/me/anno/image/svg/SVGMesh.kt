@@ -21,6 +21,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.unmix
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toRadians
@@ -523,7 +524,8 @@ class SVGMesh {
         init(style, fill)
         val data = xml["d"] ?: return
 
-        readSVGPath(data,
+        readSVGPath(
+            data,
             ::close,
             { s, v ->
                 when (s) {

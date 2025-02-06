@@ -3,6 +3,7 @@ package me.anno.tests.gfx.nanite
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 
 fun Mesh.createUniqueIndices() {
     val vertices = HashMap<Vertex, Int>()

@@ -13,8 +13,6 @@ open class LongArrayList(initCapacity: Int) : NativeArrayList {
         values[index] = value
     }
 
-    fun toArray(): LongArray = values.copyOf(size)
-
     override fun resize(newSize: Int) {
         values = values.copyOf(newSize)
     }

@@ -80,16 +80,6 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Nat
         add(values.values, srcStartIndex, length)
     }
 
-    fun joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
-        val builder = StringBuilder(endIndex - startIndex)
-        // could be optimized
-        for (index in startIndex until endIndex) {
-            val char = get(index)
-            builder.append(char.joinChars0())
-        }
-        return builder
-    }
-
     fun removeAt(index: Int): Int {
         val array = values
         val value = array[index]

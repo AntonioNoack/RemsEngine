@@ -52,6 +52,11 @@ object Strings {
     }
 
     @JvmStatic
+    fun IntArrayList.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
+        return values.joinChars(startIndex, endIndex)
+    }
+
+    @JvmStatic
     fun IntArray.joinChars(startIndex: Int = 0, endIndex: Int = size, filter: (Int) -> Boolean): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {

@@ -3,6 +3,7 @@ package me.anno.maths.geometry
 import me.anno.maths.Maths.mix
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
@@ -176,34 +177,26 @@ object MarchingSquares {
                 val code = b00.toInt(1) + b01.toInt(2) + b10.toInt(4) + b11.toInt(8)
                 if (code in 1 until 15) {
                     edges.clear()
-                    if (b00 != b01) edges.add(0f, findZero(v00, v01) * sy)
-                    if (b00 != b10) edges.add(findZero(v00, v10) * sx, 0f)
-                    if (b10 != b11) edges.add(sx, findZero(v10, v11) * sy)
-                    if (b01 != b11) edges.add(findZero(v01, v11) * sx, sy)
+                    edges.ensureExtra(4 * 3)
+                    if (b00 != b01) edges.addUnsafe(0f, findZero(v00, v01) * sy)
+                    if (b00 != b10) edges.addUnsafe(findZero(v00, v10) * sx, 0f)
+                    if (b10 != b11) edges.addUnsafe(sx, findZero(v10, v11) * sy)
+                    if (b01 != b11) edges.addUnsafe(findZero(v01, v11) * sx, sy)
                     val dx = mix(bounds.minX, bounds.maxX, x / (w - 1f))
                     if (edges.size == 4) {
-                        dst.add(edges[0] + dx)
-                        dst.add(edges[1] + dy)
-                        dst.add(edges[2] + dx)
-                        dst.add(edges[3] + dy)
+                        dst.ensureExtra(4)
+                        dst.addUnsafe(edges[0] + dx, edges[1] + dy, edges[2] + dx, edges[3] + dy)
                     } else {
                         // test point in center to decide direction
+                        dst.ensureExtra(8)
                         val center = v00 + v01 + v10 + v11 >= 0f
-                        dst.add(edges[0] + dx)
-                        dst.add(edges[1] + dy)
+                        dst.addUnsafe(edges[0] + dx, edges[1] + dy)
                         if (center == b00) {
-                            dst.add(edges[6] + dx)
-                            dst.add(edges[7] + dy)
-                            dst.add(edges[2] + dx)
-                            dst.add(edges[3] + dy)
+                            dst.addUnsafe(edges[6] + dx, edges[7] + dy, edges[2] + dx, edges[3] + dy)
                         } else {
-                            dst.add(edges[2] + dx)
-                            dst.add(edges[3] + dy)
-                            dst.add(edges[6] + dx)
-                            dst.add(edges[7] + dy)
+                            dst.addUnsafe(edges[2] + dx, edges[3] + dy, edges[6] + dx, edges[7] + dy)
                         }
-                        dst.add(edges[4] + dx)
-                        dst.add(edges[5] + dy)
+                        dst.addUnsafe(edges[4] + dx, edges[5] + dy)
                     }
                 }
                 v00 = v10

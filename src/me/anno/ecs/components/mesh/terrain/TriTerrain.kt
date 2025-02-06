@@ -7,8 +7,8 @@ import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
 import org.joml.AABBf
-import org.joml.Matrix2d
 import org.joml.Matrix3f
 import org.joml.Vector3f
 import kotlin.math.max
@@ -112,7 +112,6 @@ class TriTerrain : Component(), CustomEditMode {
         }
 
         // todo find crumbled/broken triangle sections (?)
-
     }
 
     fun remesh(
@@ -131,7 +130,6 @@ class TriTerrain : Component(), CustomEditMode {
         // split too large triangles
         // remove too small triangles
         //
-
     }
 
     fun addPoint(x: Float, y: Float, z: Float): Int {
@@ -283,7 +281,6 @@ class TriTerrain : Component(), CustomEditMode {
         OnEdgeCalculator.calculateIsOnEdge(mesh, chunk.isOnEdge)
 
         data.add(chunk)
-
     }
 
     /**
@@ -294,12 +291,13 @@ class TriTerrain : Component(), CustomEditMode {
      * for testing, or the start of a new terrain
      * */
     fun addSingleTriangle(a: Vector3f, b: Vector3f, c: Vector3f) {
-        val dstPos = positions
-        val index0 = dstPos.size / 3
+        val positions = positions
+        val index0 = positions.size / 3
         val chunk = TriangleOctTree(this, Vector3f(), Vector3f(), 1)
-        positions.add(a)
-        positions.add(b)
-        positions.add(c)
+        positions.ensureExtra(9)
+        positions.addUnsafe(a)
+        positions.addUnsafe(b)
+        positions.addUnsafe(c)
         val dstIdx = chunk.indices
         dstIdx[0] = index0
         dstIdx[1] = index0 + 1

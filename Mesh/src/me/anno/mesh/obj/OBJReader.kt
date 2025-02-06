@@ -15,6 +15,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
@@ -64,9 +65,11 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     private val points = IntArrayList(256)
 
     private fun putPoint(p: Point) {
-        facePositions += p.position
-        faceNormals += p.normal
-        faceUVs += p.uv!!
+        facePositions.add(p.position)
+        faceNormals.add(p.normal)
+        val puv = p.uv
+        if (puv != null) faceUVs.add(puv)
+        else faceUVs.add(0f, 0f)
     }
 
     private fun putPoint(index: Int) {

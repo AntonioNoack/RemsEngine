@@ -2,6 +2,7 @@ package me.anno.utils.structures.arrays
 
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.types.Strings.joinChars
 import kotlin.math.max
 import kotlin.math.min
 
@@ -232,6 +233,7 @@ class LineSequence : IntSequence {
     }
 
     override fun toString(): String {
+        // could be allocation-optimized
         return lines.joinToString("\n") { it.joinChars() }
     }
 

@@ -17,14 +17,14 @@ open class MeshBuilder(vc: Mesh) {
     val boneIndices = if (vc.boneIndices != null) ByteArrayList(64) else null
 
     fun add(mesh: Mesh, i: Int) {
-        positions.add(mesh.positions!!, i * 3, 3)
-        normals?.add(mesh.normals!!, i * 3, 3)
-        tangents?.add(mesh.tangents!!, i * 4, 4)
+        positions.addAll(mesh.positions!!, i * 3, 3)
+        normals?.addAll(mesh.normals!!, i * 3, 3)
+        tangents?.addAll(mesh.tangents!!, i * 4, 4)
         colors?.add(mesh.color0!![i])
-        uvs?.add(mesh.uvs!!, i * 2, 2)
+        uvs?.addAll(mesh.uvs!!, i * 2, 2)
 
         boneIndices?.add(mesh.boneIndices!!, i * 4, 4)
-        boneWeights?.add(mesh.boneWeights!!, i * 4, 4)
+        boneWeights?.addAll(mesh.boneWeights!!, i * 4, 4)
     }
 
     fun build(mesh: Mesh = Mesh()): Mesh {

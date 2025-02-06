@@ -5,12 +5,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.pooling.FloatArrayPool
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaterniond
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3d
-import org.joml.Vector3f
-import org.joml.Vector4f
 import kotlin.math.min
 
 open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
@@ -21,7 +15,11 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
     }
 
     constructor(data: FloatArray) : this(data.size) {
-        add(data, 0, data.size)
+        addAll(data, 0, data.size)
+    }
+
+    constructor(data: FloatArrayList) : this(data.size) {
+        addAll(data, 0, data.size)
     }
 
     override var size = 0
@@ -30,10 +28,10 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
             ensureCapacity(value)
         }
 
-    var values = alloc(initCapacity)
+    var values = allocate(initCapacity)
     override val capacity: Int get() = values.size
 
-    fun alloc(size: Int): FloatArray {
+    fun allocate(size: Int): FloatArray {
         return if (pool != null) pool[size, true, false] else FloatArray(size)
     }
 
@@ -59,7 +57,7 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
     override fun resize(newSize: Int) {
         val array = values
         val newArray = try {
-            alloc(newSize)
+            allocate(newSize)
         } catch (e: OutOfMemoryError) {
             LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingFloatArray")
             throw e
@@ -78,84 +76,8 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         values[size++] = x
     }
 
-    fun addUnsafe(x: Float, y: Float) {
-        val values = values
-        var size = size
-        values[size++] = x
-        values[size++] = y
-        this.size = size
-    }
-
-    fun addUnsafe(x: Float, y: Float, z: Float) {
-        val values = values
-        var size = size
-        values[size++] = x
-        values[size++] = y
-        values[size++] = z
-        this.size = size
-    }
-
     operator fun set(index: Int, value: Float) {
         values[index] = value
-    }
-
-    fun add(v: Vector2f) {
-        add(v.x, v.y)
-    }
-
-    fun add(v: Vector3f) {
-        add(v.x, v.y, v.z)
-    }
-
-    fun add(v: Vector3d) {
-        add(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-    }
-
-    fun add(v: Vector4f) {
-        add(v.x, v.y, v.z, v.w)
-    }
-
-    fun add(v: Quaternionf) {
-        add(v.x, v.y, v.z, v.w)
-    }
-
-    fun add(v: Quaterniond) {
-        add(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
-    }
-
-    fun add(x: Float, y: Float) {
-        ensureExtra(2)
-        val array = values
-        var size = size
-        array[size++] = x
-        array[size++] = y
-        this.size = size
-    }
-
-    fun add(x: Float, y: Float, z: Float) {
-        ensureExtra(3)
-        val array = values
-        var size = size
-        array[size++] = x
-        array[size++] = y
-        array[size++] = z
-        this.size = size
-    }
-
-    fun add(x: Float, y: Float, z: Float, w: Float) {
-        ensureExtra(4)
-        val array = values
-        var size = size
-        array[size++] = x
-        array[size++] = y
-        array[size++] = z
-        array[size++] = w
-        this.size = size
-    }
-
-    fun add(src: FloatArray, srcStartIndex: Int, srcLength: Int) {
-        ensureExtra(srcLength)
-        addUnsafe(src, srcStartIndex, srcLength)
     }
 
     fun addAll(v: FloatArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
@@ -163,9 +85,9 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         addUnsafe(v, srcStartIndex, length)
     }
 
-    fun addAll(v: FloatArrayList, startIndex: Int, length: Int) {
+    fun addAll(v: FloatArrayList, srcStartIndex: Int, length: Int) {
         ensureExtra(length)
-        addUnsafe(v, startIndex, length)
+        addUnsafe(v, srcStartIndex, length)
     }
 
     fun addUnsafe(src: FloatArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
@@ -188,7 +110,7 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         val array = values
         if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
             return array
-        val value = alloc(size1)
+        val value = allocate(size1)
         array.copyInto(value, 0, 0, min(size, size1))
         return value
     }
@@ -198,26 +120,13 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         size = 0
     }
 
-    operator fun plusAssign(v: Vector2f) {
-        ensureExtra(2)
-        val array = values
-        var size = size
-        array[size++] = v.x
-        array[size++] = v.y
-        this.size = size
-    }
-
-    operator fun plusAssign(v: Vector3f) {
-        add(v)
-    }
-
     fun sum(): Float {
         val values = values
-        var sum = 0.0
+        var sum = 0f
         for (i in 0 until size) {
             sum += values[i]
         }
-        return sum.toFloat()
+        return sum
     }
 
     fun scale(s: Float) {

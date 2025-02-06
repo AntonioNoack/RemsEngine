@@ -1,6 +1,7 @@
 package me.anno.mesh.vox.meshing
 
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
 import me.anno.utils.structures.arrays.IntArrayList
 
 class VoxelMeshBuilder(

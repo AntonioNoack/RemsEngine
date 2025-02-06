@@ -109,8 +109,7 @@ object AnimatedMeshesLoader {
                 val (aiScene1, isFBX1) = result
                 callback.ok(readAsFolder2(file, aiScene1, isFBX1, name))
             } else if (e?.message?.contains("FBX-DOM unsupported") == true) {
-                val pair = FBX6000.readBinaryFBX6000AsFolder(file)
-                callback.call(pair?.first, e)
+                FBX6000.readBinaryFBX6000AsFolder(file, callback)
             } else callback.err(e)
         }
     }
