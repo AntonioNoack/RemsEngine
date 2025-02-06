@@ -18,10 +18,11 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.tuples.IntPair
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.recast4j.LongArrayList
-import org.recast4j.ReStack
 import org.recast4j.Vectors
 import java.util.*
 import kotlin.math.*
@@ -56,6 +57,7 @@ class NavMesh(
     /**
      * Returns tile in the tile array.
      */
+    @Suppress("unused")
     fun getTile(i: Int): MeshTile? {
         return tileById[i]
     }
@@ -100,10 +102,11 @@ class NavMesh(
      * @param pos The world position for the query. [(x, y, z)]
      * @return 2-element int array with (tx,ty) tile location
      */
-    fun calcTileLoc(pos: Vector3f): IntArray {
+    @Suppress("unused")
+    fun calcTileLoc(pos: Vector3f): IntPair {
         val tx = floor(((pos.x - origin.x) / tileWidth)).toInt()
         val ty = floor(((pos.z - origin.z) / tileHeight)).toInt()
-        return intArrayOf(tx, ty)
+        return IntPair(tx, ty)
     }
 
     fun calcTileLocX(pos: Vector3f): Int {
@@ -199,8 +202,8 @@ class NavMesh(
                 }
             }
         } else {
-            val bmin = ReStack.vec3fs.create()
-            val bmax = ReStack.vec3fs.create()
+            val bmin = JomlPools.vec3f.create()
+            val bmax = JomlPools.vec3f.create()
             val base = getPolyRefBase(tile)
             val data = tile.data
             val vertices = data.vertices
@@ -223,14 +226,14 @@ class NavMesh(
                     polys.add(base or i.toLong())
                 }
             }
-            ReStack.vec3fs.sub(2)
+            JomlPools.vec3f.sub(2)
         }
         return polys
     }
 
+    @Suppress("unused")
     fun updateTile(data: MeshData, flags: Int): Long {
-        val header = data
-        var ref = getTileRefAt(header.x, header.y, header.layer)
+        var ref = getTileRefAt(data.x, data.y, data.layer)
         ref = removeTile(ref)
         return addTile(data, flags, ref)
     }
@@ -251,10 +254,10 @@ class NavMesh(
      *
      * @param data Data for the new tile mesh. (See: #dtCreateNavMeshData)
      * @param flags Tile flags. (See: #dtTileFlags)
-     * @param lastRef The desired reference for the tile. (When reloading a tile.) [opt] [Default: 0]
-     * @return The tile reference. (If the tile was successfully added.) [opt]
+     * @param lastRef The desired reference for the tile. (When reloading a tile.) [Default: 0]
+     * @return The tile reference. (If the tile was successfully added.)
      */
-    fun addTile(data: MeshData, flags: Int, lastRef: Long): Long {
+    fun addTile(data: MeshData, flags: Int, lastRef: Long = 0): Long {
         // Make sure the data is in right format.
         val header = data
 
@@ -406,7 +409,7 @@ class NavMesh(
         tile.linksFreeList = DT_NULL_LINK
 
         // Update salt, salt should never be zero.
-        tile.salt = tile.salt + 1 and (1 shl DT_SALT_BITS) - 1
+        tile.salt = tile.salt + 1 and (1 shl SALT_BITS) - 1
         if (tile.salt == 0) {
             tile.salt++
         }
@@ -728,11 +731,10 @@ class NavMesh(
 
         // Base off-mesh connection start points.
         val data = tile.data
-        val header = data
-        for (i in 0 until header.offMeshConCount) {
+        for (i in 0 until data.offMeshConCount) {
             val con = data.offMeshCons[i]
             val poly = data.polygons[con.poly]
-            val ext = Vector3f(con.rad, header.walkableClimb, con.rad)
+            val ext = Vector3f(con.rad, data.walkableClimb, con.rad)
 
             // Find polygon to connect to.
             val nearestPoly = findNearestPolyInTile(tile, con.posA, ext)
@@ -986,12 +988,12 @@ class NavMesh(
 
     fun findNearestPolyInTile(tile: MeshTile, center: Vector3f, extents: Vector3f): FindNearestPolyResult {
 
-        val bmin = center.sub(extents, ReStack.vec3fs.create())
-        val bmax = center.add(extents, ReStack.vec3fs.create())
+        val bmin = center.sub(extents, JomlPools.vec3f.create())
+        val bmax = center.add(extents, JomlPools.vec3f.create())
 
         // Get nearby polygons from proximity grid.
         val polys = queryPolygonsInTile(tile, bmin, bmax)
-        ReStack.vec3fs.sub(2)
+        JomlPools.vec3f.sub(2)
 
         // Find the nearest polygon amongst the nearby polygons.
         var nearest = 0L
@@ -1122,6 +1124,7 @@ class NavMesh(
         return Pair(startPos, endPos)
     }
 
+    @Suppress("unused")
     fun setPolyFlags(ref: Long, flags: Int): Status {
         if (ref == 0L) {
             return Status.FAILURE
@@ -1144,6 +1147,7 @@ class NavMesh(
         return Status.SUCCESS
     }
 
+    @Suppress("unused")
     fun getPolyFlags(ref: Long): Result<Int> {
         if (ref == 0L) {
             return Result.failure()
@@ -1163,6 +1167,7 @@ class NavMesh(
         return Result.success(poly.flags)
     }
 
+    @Suppress("unused")
     fun setPolyArea(ref: Long, area: Char): Status {
         if (ref == 0L) {
             return Status.FAILURE
@@ -1183,6 +1188,7 @@ class NavMesh(
         return Status.SUCCESS
     }
 
+    @Suppress("unused")
     fun getPolyArea(ref: Long): Result<Int> {
         if (ref == 0L) {
             return Result.failure()
@@ -1208,13 +1214,13 @@ class NavMesh(
 
     companion object {
 
-        const val DT_SALT_BITS = 16
-        const val DT_TILE_BITS = 28
-        const val DT_POLY_BITS = 20
+        const val SALT_BITS = 16
+        const val TILE_BITS = 28
+        const val POLY_BITS = 20
 
-        const val saltMask = (1L shl DT_SALT_BITS) - 1
-        const val tileMask = (1L shl DT_TILE_BITS) - 1
-        const val polyMask = (1L shl DT_POLY_BITS) - 1
+        const val SALT_MASK = (1L shl SALT_BITS) - 1
+        const val TILE_MASK = (1L shl TILE_BITS) - 1
+        const val POLY_MASK = (1L shl POLY_BITS) - 1
 
         const val DT_DETAIL_EDGE_BOUNDARY = 0x01
 
@@ -1263,8 +1269,8 @@ class NavMesh(
          * @note This function is generally meant for internal use only.
          */
         fun encodePolyId(salt: Int, tileId: Int, polygonId: Int): Long {
-            return salt.toLong().shl(DT_POLY_BITS + DT_TILE_BITS) or
-                    (tileId.toLong().shl(DT_POLY_BITS)) or
+            return salt.toLong().shl(POLY_BITS + TILE_BITS) or
+                    (tileId.toLong().shl(POLY_BITS)) or
                     polygonId.toLong()
         }
 
@@ -1274,7 +1280,7 @@ class NavMesh(
          * @see #encodePolyId
          * */
         fun decodePolyIdSalt(ref: Long): Int {
-            return ref.shr(DT_POLY_BITS + DT_TILE_BITS).and(saltMask).toInt()
+            return ref.shr(POLY_BITS + TILE_BITS).and(SALT_MASK).toInt()
         }
 
         /**
@@ -1283,7 +1289,7 @@ class NavMesh(
          * @see #encodePolyId
          * */
         fun decodePolyIdTile(ref: Long): Int {
-            return ref.shr(DT_POLY_BITS).and(tileMask).toInt()
+            return ref.shr(POLY_BITS).and(TILE_MASK).toInt()
         }
 
         /**
@@ -1292,16 +1298,15 @@ class NavMesh(
          * @see #encodePolyId
          * */
         fun decodePolyIdPoly(ref: Long): Int {
-            return ref.and(polyMask).toInt()
+            return ref.and(POLY_MASK).toInt()
         }
 
         private fun getNavMeshParams(data: MeshData): NavMeshParams {
             val params = NavMeshParams()
-            val header = data
-            params.origin.set(header.bmin)
-            params.tileWidth = header.bmax.x - header.bmin.x
-            params.tileHeight = header.bmax.z - header.bmin.z
-            params.maxPolys = header.polyCount
+            params.origin.set(data.bmin)
+            params.tileWidth = data.bmax.x - data.bmin.x
+            params.tileHeight = data.bmax.z - data.bmin.z
+            params.maxPolys = data.polyCount
             return params
         }
 

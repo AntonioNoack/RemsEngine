@@ -46,6 +46,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param random Function returning a random number [0..1).
      * @return Random location
      */
+    @Suppress("unused")
     fun findRandomPoint(filter: QueryFilter, random: Random): FindRandomPointResult? {
 
         // Randomly pick one tile. Assume that all tiles cover roughly the same area.
@@ -53,7 +54,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         var tile: MeshTile? = null
         var tsum = 0f
         for (t in nav1.allTiles) {
-            // Choose random tile using reservoi sampling.
+            // Choose random tile using reservoir sampling.
             val area = 1f // Could be tile area too.
             tsum += area
             val u = random.nextFloat()
@@ -129,6 +130,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param random    Function returning a random number [0..1).
      * @return Random location
      */
+    @Suppress("unused")
     fun findRandomPointAroundCircle(
         startRef: Long,
         centerPos: Vector3f,
@@ -599,11 +601,13 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param filter   The polygon filter to apply to the query.
      * @return Found path
      */
+    @Suppress("unused")
     open fun findPath(
         startRef: Long, endRef: Long, startPos: Vector3f, endPos: Vector3f,
         filter: QueryFilter
     ) = findPath(startRef, endRef, startPos, endPos, filter, DefaultQueryHeuristic(), 0, 0f)
 
+    @Suppress("unused")
     open fun findPath(
         startRef: Long, endRef: Long, startPos: Vector3f, endPos: Vector3f, filter: QueryFilter,
         options: Int, raycastLimit: Float
@@ -822,6 +826,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         return Result.of(status, path)
     }
 
+    @Suppress("unused")
     fun initSlicedFindPath(
         startRef: Long, endRef: Long,
         startPos: Vector3f, endPos: Vector3f,
@@ -1808,10 +1813,10 @@ open class NavMeshQuery(val nav1: NavMesh) {
      */
     fun raycast(
         startRef: Long, startPos: Vector3f, endPos: Vector3f, filter: QueryFilter, options: Int,
-        prevRef: Long
+        prevRef0: Long
     ): Result<RaycastHit> {
         // Validate input
-        var prevRef = prevRef
+        var prevRef = prevRef0
         if ((!nav1.isValidPolyRef(startRef) || !startPos.isFinite || !endPos.isFinite) || prevRef != 0L &&
             !nav1.isValidPolyRef(prevRef)
         ) return Result.invalidParam()
@@ -2054,6 +2059,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param maxResult The maximum number of polygons the result arrays can hold.
      * @returns The status flags for the query.
      */
+    @Suppress("unused")
     fun findPolysAroundCircle(
         startRef: Long, centerPos: Vector3f, radius: Float,
         filter: QueryFilter
@@ -2214,6 +2220,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param maxResult The maximum number of polygons the result arrays can hold.
      * @returns The status flags for the query.
      */
+    @Suppress("unused")
     fun findPolysAroundShape(startRef: Long, vertices: FloatArray, filter: QueryFilter): Result<FindPolysAroundResult> {
         // Validate input
         val nvertices = vertices.size / 3
@@ -2878,6 +2885,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @remarks The result of this function depends on the state of the query object. For that reason it should only be
      * used immediately after one of the two Dijkstra searches, findPolysAroundCircle or findPolysAroundShape.
      */
+    @Suppress("unused")
     fun getPathFromDijkstraSearch(endRef: Long): Result<LongArrayList?> {
         if (!nav1.isValidPolyRef(endRef)) {
             return Result.invalidParam("Invalid end ref")
@@ -2923,6 +2931,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * The closed list is the list of polygons that were fully evaluated during the last navigation graph search. (A* or
      * Dijkstra)
      */
+    @Suppress("unused")
     fun isInClosedList(ref: Long): Boolean {
         for (n in nodePool.findNodes(ref)) {
             if (n.flags and Node.CLOSED != 0) {

@@ -17,9 +17,9 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import org.recast4j.FloatSubArray
-import org.recast4j.ReStack
 import org.recast4j.Vectors
 import kotlin.math.abs
 
@@ -38,20 +38,20 @@ object ConvexConvexIntersection {
         val m = q.size / 3
         var ii = 0
         /* Initialize variables. */
-        val a = ReStack.vec3fs.create()
-        val b = ReStack.vec3fs.create()
-        val a1 = ReStack.vec3fs.create()
-        val b1 = ReStack.vec3fs.create()
+        val a = JomlPools.vec3f.create()
+        val b = JomlPools.vec3f.create()
+        val a1 = JomlPools.vec3f.create()
+        val b1 = JomlPools.vec3f.create()
         var aa = 0
         var ba = 0
         var ai = 0
         var bi = 0
         var f = InFlag.Unknown
         var isFirstPoint = true
-        val ip = ReStack.vec3fs.create()
-        val iq = ReStack.vec3fs.create()
-        val A = ReStack.vec3fs.create()
-        val B = ReStack.vec3fs.create()
+        val ip = JomlPools.vec3f.create()
+        val iq = JomlPools.vec3f.create()
+        val A = JomlPools.vec3f.create()
+        val B = JomlPools.vec3f.create()
         do {
             a.set(p.data, 3 * (ai % n))
             b.set(q.data, 3 * (bi % m))
@@ -90,7 +90,7 @@ object ConvexConvexIntersection {
 
             /* Special case: A & B parallel and separated. */
             if (parallel && aHB < 0f && bHA < 0f) {
-                ReStack.vec3fs.sub(8)
+                JomlPools.vec3f.sub(8)
                 return null
             } else if (parallel && abs(aHB) < EPSILON && abs(bHA) < EPSILON) {
                 /* Advance but do not output point. */
@@ -133,7 +133,7 @@ object ConvexConvexIntersection {
             /* Quit when both adv. indices have cycled, or one has cycled twice. */
         } while ((aa < n || ba < m) && aa < 2 * n && ba < 2 * m)
 
-        ReStack.vec3fs.sub(8)
+        JomlPools.vec3f.sub(8)
         /* Deal with special cases: not implemented. */
         return if (f == InFlag.Unknown) null
         else {

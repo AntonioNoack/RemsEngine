@@ -18,8 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.utils.structures.tuples.IntPair
 import org.recast4j.Edge
-import org.recast4j.IntPair
 import org.recast4j.recast.RecastConstants.RC_BORDER_VERTEX
 import org.recast4j.recast.RecastConstants.RC_MESH_NULL_IDX
 import org.recast4j.recast.RecastConstants.RC_MULTIPLE_REGS
@@ -900,7 +900,20 @@ object RecastMesh {
         val tris = IntArray(maxVerticesPerCont * 3)
         val polys = IntArray((maxVerticesPerCont + 1) * nvp)
         val tmpPoly = maxVerticesPerCont * nvp
-        triangulateContours(ctx, cset, indices, tris, mesh, firstVert, nextVert, toBeRemovedVertices, nvp, polys, tmpPoly, maxTris)
+        triangulateContours(
+            ctx,
+            cset,
+            indices,
+            tris,
+            mesh,
+            firstVert,
+            nextVert,
+            toBeRemovedVertices,
+            nvp,
+            polys,
+            tmpPoly,
+            maxTris
+        )
 
         // Remove edge vertices.
         removeEdgeVertices(mesh, toBeRemovedVertices, ctx, maxTris)

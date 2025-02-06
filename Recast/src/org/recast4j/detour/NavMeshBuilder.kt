@@ -18,10 +18,10 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.utils.structures.tuples.IntPair
 import org.joml.Vector3f
-import org.recast4j.IntPair
 import org.recast4j.Vectors
-import java.util.*
+import java.util.Arrays
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -194,8 +194,8 @@ object NavMeshBuilder {
         val maxLinkCount = findPortalEdgesAtTileBorders(params, pp, nvp, offMeshConLinkCount)
 
         // Find unique detail vertices.
-        var uniqueDetailVertCount = 0
-        var detailTriCount = 0
+        val uniqueDetailVertCount: Int
+        val detailTriCount: Int
         val pm = params.detailMeshes
         if (pm != null) {
             // Has detail mesh, count unique detail vertex count and use input detail tri count.
@@ -205,6 +205,7 @@ object NavMeshBuilder {
             // No input detail mesh, build detail mesh from nav polys.
             // No extra detail vertices.
             detailTriCount = countDetailTriCount(params, nvp, pp)
+            uniqueDetailVertCount = 0
         }
 
         val bvTreeSize = if (params.buildBvTree) params.polyCount * 2 else 0
@@ -376,10 +377,8 @@ object NavMeshBuilder {
     }
 
     private fun findPortalEdgesAtTileBorders(
-        params: NavMeshDataCreateParams,
-        pp: IntArray,
-        nvp: Int,
-        offMeshConLinkCount: Int
+        params: NavMeshDataCreateParams, pp: IntArray,
+        nvp: Int, offMeshConLinkCount: Int
     ): Int {
         var edgeCount = 0
         var portalCount = 0
@@ -394,8 +393,7 @@ object NavMeshBuilder {
                 }
             }
         }
-        val maxLinkCount = edgeCount + portalCount * 2 + offMeshConLinkCount * 2
-        return maxLinkCount
+        return edgeCount + portalCount * 2 + offMeshConLinkCount * 2
     }
 
     private fun storeMeshVertices(params: NavMeshDataCreateParams, navVertices: FloatArray) {
@@ -514,15 +512,15 @@ object NavMeshBuilder {
         navDMeshes: Array<PolyDetail>, navPolys: Array<Poly>,
         navDTris: ByteArray
     ) {
-        var tbase = 0
+        var triBase = 0
         for (i in 0 until params.polyCount) {
             val dtl = navDMeshes[i]
             val nv = navPolys[i].vertCount
             dtl.vertBase = 0
             dtl.vertCount = 0
-            dtl.triBase = tbase
+            dtl.triBase = triBase
             dtl.triCount = nv - 2
-            tbase = triangulatePolygonWithLocalIndices(nv, tbase, navDTris)
+            triBase = triangulatePolygonWithLocalIndices(nv, triBase, navDTris)
         }
     }
 
