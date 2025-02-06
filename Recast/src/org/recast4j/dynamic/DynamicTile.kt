@@ -25,9 +25,12 @@ import org.recast4j.detour.NavMeshDataCreateParams.Companion.f0
 import org.recast4j.detour.NavMeshDataCreateParams.Companion.i0
 import org.recast4j.dynamic.collider.Collider
 import org.recast4j.dynamic.io.VoxelTile
-import org.recast4j.recast.*
+import org.recast4j.recast.AreaModification
+import org.recast4j.recast.Heightfield
+import org.recast4j.recast.RecastBuilder
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult
-import java.util.concurrent.ConcurrentHashMap
+import org.recast4j.recast.RecastConfig
+import org.recast4j.recast.Telemetry
 import kotlin.math.max
 import kotlin.math.min
 
@@ -37,7 +40,7 @@ class DynamicTile(val voxelTile: VoxelTile) {
     var recastResult: RecastBuilderResult? = null
     var meshData: MeshData? = null
 
-    private val colliders = ConcurrentHashMap<Long, Collider?>()
+    private val colliders = HashMap<Long, Collider>()
     private var dirty = true
     private var id = 0L
 
@@ -65,7 +68,7 @@ class DynamicTile(val voxelTile: VoxelTile) {
         val heightfield = if (checkpoint != null) checkpoint!!.heightfield else voxelTile.heightfield()
         colliders.forEach { (id, c) ->
             if (!rasterizedColliders.contains(id)) {
-                heightfield.bmax.y = max(heightfield.bmax.y, c!!.bounds()[4] + heightfield.cellHeight * 2)
+                heightfield.bounds.maxY = max(heightfield.bounds.maxY, c.bounds.maxY + heightfield.cellHeight * 2)
                 c.rasterize(heightfield, telemetry)
             }
         }
@@ -111,7 +114,7 @@ class DynamicTile(val voxelTile: VoxelTile) {
         return r
     }
 
-    fun addCollider(cid: Long, collider: Collider?) {
+    fun addCollider(cid: Long, collider: Collider) {
         colliders[cid] = collider
         dirty = true
     }
@@ -156,8 +159,7 @@ class DynamicTile(val voxelTile: VoxelTile) {
         params.walkableHeight = config.walkableHeight
         params.walkableRadius = config.walkableRadius
         params.walkableClimb = config.walkableClimb
-        params.bmin = mesh.bmin
-        params.bmax = mesh.bmax
+        params.bounds = mesh.bounds
         params.cellSize = cellSize
         params.cellHeight = cellHeight
         params.buildBvTree = true

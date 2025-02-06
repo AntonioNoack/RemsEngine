@@ -17,14 +17,12 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
 import org.joml.Vector3f
-import org.recast4j.dynamic.collider.CompositeCollider.Companion.emptyBounds
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastFilledVolumeRasterization.rasterizeBox
 import org.recast4j.recast.Telemetry
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 
 class BoxCollider(
     private val center: Vector3f,
@@ -44,8 +42,8 @@ class BoxCollider(
     }
 
     companion object {
-        private fun bounds(center: Vector3f, halfEdges: Array<FloatArray>): FloatArray {
-            val bounds = emptyBounds()
+        private fun bounds(center: Vector3f, halfEdges: Array<FloatArray>): AABBf {
+            val bounds = AABBf()
             for (i in 0..7) {
                 val s0 = if (i and 1 != 0) 1f else -1f
                 val s1 = if (i and 2 != 0) 1f else -1f
@@ -53,12 +51,7 @@ class BoxCollider(
                 val vx = center.x + s0 * halfEdges[0][0] + s1 * halfEdges[1][0] + s2 * halfEdges[2][0]
                 val vy = center.y + s0 * halfEdges[0][1] + s1 * halfEdges[1][1] + s2 * halfEdges[2][1]
                 val vz = center.z + s0 * halfEdges[0][2] + s1 * halfEdges[1][2] + s2 * halfEdges[2][2]
-                bounds[0] = min(bounds[0], vx)
-                bounds[1] = min(bounds[1], vy)
-                bounds[2] = min(bounds[2], vz)
-                bounds[3] = max(bounds[3], vx)
-                bounds[4] = max(bounds[4], vy)
-                bounds[5] = max(bounds[5], vz)
+                bounds.union(vx, vy, vz)
             }
             return bounds
         }

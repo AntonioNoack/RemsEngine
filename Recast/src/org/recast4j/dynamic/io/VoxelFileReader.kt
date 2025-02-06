@@ -17,7 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.io
 
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.recast4j.detour.io.IOUtils
 import java.io.IOException
 import java.io.InputStream
@@ -64,20 +64,20 @@ object VoxelFileReader {
         file.tileSizeX = buf.getInt()
         file.tileSizeZ = buf.getInt()
         file.rotation.set(buf.getFloat(), buf.getFloat(), buf.getFloat())
-        file.bounds[0] = buf.getFloat()
-        file.bounds[1] = buf.getFloat()
-        file.bounds[2] = buf.getFloat()
-        file.bounds[3] = buf.getFloat()
-        file.bounds[4] = buf.getFloat()
-        file.bounds[5] = buf.getFloat()
+        file.bounds.minX = buf.getFloat()
+        file.bounds.minY = buf.getFloat()
+        file.bounds.minZ = buf.getFloat()
+        file.bounds.maxX = buf.getFloat()
+        file.bounds.maxY = buf.getFloat()
+        file.bounds.maxZ = buf.getFloat()
         if (isExportedFromAstar) {
             // bounds are saved as center + size
-            file.bounds[0] -= 0.5f * file.bounds[3]
-            file.bounds[1] -= 0.5f * file.bounds[4]
-            file.bounds[2] -= 0.5f * file.bounds[5]
-            file.bounds[3] += file.bounds[0]
-            file.bounds[4] += file.bounds[1]
-            file.bounds[5] += file.bounds[2]
+            file.bounds.minX -= 0.5f * file.bounds.maxX
+            file.bounds.minY -= 0.5f * file.bounds.maxY
+            file.bounds.minZ -= 0.5f * file.bounds.maxZ
+            file.bounds.maxX += file.bounds.minX
+            file.bounds.maxY += file.bounds.minY
+            file.bounds.maxZ += file.bounds.minZ
         }
         val tileCount = buf.getInt()
         for (tile in 0 until tileCount) {
@@ -86,16 +86,18 @@ object VoxelFileReader {
             val width = buf.getInt()
             val depth = buf.getInt()
             val borderSize = buf.getInt()
-            val boundsMin = Vector3f(buf.getFloat(), buf.getFloat(), buf.getFloat())
-            val boundsMax = Vector3f(buf.getFloat(), buf.getFloat(), buf.getFloat())
+            val bounds = AABBf(
+                buf.getFloat(), buf.getFloat(), buf.getFloat(),
+                buf.getFloat(), buf.getFloat(), buf.getFloat()
+            )
             if (isExportedFromAstar) {
                 // bounds are local
-                boundsMin.x += file.bounds[0]
-                boundsMin.y += file.bounds[1]
-                boundsMin.z += file.bounds[2]
-                boundsMax.x += file.bounds[0]
-                boundsMax.y += file.bounds[1]
-                boundsMax.z += file.bounds[2]
+                bounds.minX += file.bounds.minX
+                bounds.minY += file.bounds.minY
+                bounds.minZ += file.bounds.minZ
+                bounds.maxX += file.bounds.minX
+                bounds.maxY += file.bounds.minY
+                bounds.maxZ += file.bounds.minZ
             }
             val cellSize = buf.getFloat()
             val cellHeight = buf.getFloat()
@@ -108,7 +110,7 @@ object VoxelFileReader {
             file.addTile(
                 VoxelTile(
                     tileX, tileZ, width, depth,
-                    boundsMin, boundsMax, cellSize, cellHeight,
+                    bounds, cellSize, cellHeight,
                     borderSize, data
                 )
             )

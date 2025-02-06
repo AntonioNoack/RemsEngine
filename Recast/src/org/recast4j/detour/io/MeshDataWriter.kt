@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.io
 
+import org.joml.Vector3f
 import org.recast4j.detour.BVNode
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.MeshHeader
@@ -46,8 +47,8 @@ object MeshDataWriter : DetourWriter() {
         write(stream, header.walkableHeight, order)
         write(stream, header.walkableRadius, order)
         write(stream, header.walkableClimb, order)
-        write(stream, header.bmin, order)
-        write(stream, header.bmax, order)
+        write(stream, header.bounds.getMin(Vector3f()), order)
+        write(stream, header.bounds.getMax(Vector3f()), order)
         write(stream, header.bvQuantizationFactor, order)
         writeVertices(stream, data.vertices, header.vertCount, order)
         writePolys(stream, data, order)

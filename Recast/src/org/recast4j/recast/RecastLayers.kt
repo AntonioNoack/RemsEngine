@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.recast4j.IntArrayList
 import org.recast4j.Vectors.overlapRange
 import org.recast4j.recast.RecastCommon.getCon
@@ -318,10 +318,9 @@ object RecastLayers {
         val lh = h - borderSize * 2
 
         // Build contracted bbox for layers.
-        val bmin = Vector3f(chf.bmin)
-        val bmax = Vector3f(chf.bmax)
-        bmin.add(borderSize * chf.cellSize, 0f, borderSize * chf.cellSize, bmin)
-        bmax.sub(borderSize * chf.cellSize, 0f, borderSize * chf.cellSize, bmin)
+        val bounds = AABBf(chf.bounds)
+            .addMargin(borderSize * chf.cellSize, 0f, borderSize * chf.cellSize)
+
         val lset = Array(layerId) { HeightfieldLayer() }
 
         // Store layers.
@@ -349,10 +348,9 @@ object RecastLayers {
             layer.cellHeight = chf.cellHeight
 
             // Adjust the bbox to fit the heightfield.
-            layer.bmin.set(bmin)
-            layer.bmax.set(bmax)
-            layer.bmin.y = bmin.y + hmin * chf.cellHeight
-            layer.bmax.y = bmin.y + hmax * chf.cellHeight
+            layer.bounds.set(bounds)
+            layer.bounds.minY = bounds.minY + hmin * chf.cellHeight
+            layer.bounds.maxY = bounds.minY + hmax * chf.cellHeight
             layer.minH = hmin
             layer.maxH = hmax
 
@@ -443,6 +441,5 @@ object RecastLayers {
         var yMax = 0
         val layers = IntArrayList()
         val neis = IntArrayList()
-
     }
 }

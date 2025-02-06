@@ -16,54 +16,30 @@ freely, subject to the following restrictions:
  misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-package org.recast4j.detour.tilecache
+package org.recast4j.detour.tilecache.builder
 
+import org.joml.AABBf
 import org.joml.Vector3f
+import org.joml.Vector3i
 import org.recast4j.Edge
 import org.recast4j.IntArrayList
 import org.recast4j.Vectors.sq
+import org.recast4j.detour.tilecache.TileCacheContour
+import org.recast4j.detour.tilecache.TileCacheContourSet
+import org.recast4j.detour.tilecache.TileCacheLayer
+import org.recast4j.detour.tilecache.TileCacheLayerHeader
+import org.recast4j.detour.tilecache.TileCachePolyMesh
 import org.recast4j.detour.tilecache.io.TileCacheLayerHeaderReader
 import org.recast4j.detour.tilecache.io.TileCacheLayerHeaderWriter
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
-class TileCacheBuilder {
-    private class LayerSweepSpan {
-        var numSamples = 0
-        var regionId = 0
-        var neighborId = 0
-    }
-
-    class LayerMonotoneRegion {
-        var area = 0
-        var regId = 0
-        var areaId = 0
-        var neighbors = IntArrayList()
-    }
-
-    private class TempContour() {
-
-        var vertices = IntArrayList()
-        var numVertices = 0
-        var poly = IntArrayList()
-
-        fun npoly(): Int {
-            return poly.size
-        }
-
-        fun clear() {
-            numVertices = 0
-            vertices.clear()
-        }
-    }
-
+object TileCacheBuilder {
     fun buildTileCacheRegions(layer: TileCacheLayer, walkableClimb: Int) {
 
         val w = layer.width
@@ -106,8 +82,7 @@ class TileCacheBuilder {
                 if (y > 0 && isConnected(layer, idx, yidx, walkableClimb)) {
                     val nr = layer.getReg(yidx)
                     if (nr != 0xff) {
-                        // Set neighbour when first valid neighbour is
-                        // encoutered.
+                        // Set neighbour when first valid neighbour is encountered.
                         val sweep = sweeps[sid]
                         if (sweep.numSamples == 0) sweep.neighborId = nr
                         if (sweep.neighborId == nr) {
@@ -126,10 +101,8 @@ class TileCacheBuilder {
 
             // Create unique ID.
             for (i in 0 until sweepId) {
-                // If the neighbour is set and there is only one continuous
-                // connection to it,
-                // the sweep will be merged with the previous one, else new
-                // region is created.
+                // If the neighbour is set and there is only one continuous connection to it,
+                // the sweep will be merged with the previous one, else new region is created.
                 val sweepI = sweeps[i]
                 if (sweepI.neighborId != 0xff && prevCount[sweepI.neighborId] == sweepI.numSamples) {
                     sweepI.regionId = sweepI.neighborId
@@ -152,12 +125,9 @@ class TileCacheBuilder {
         }
 
         // Allocate and init layer regions.
-        val nregs = regId
-        val regs = Array<LayerMonotoneRegion>(nregs) {
-            LayerMonotoneRegion()
-        }
-        for (i in 0 until nregs) {
-            regs[i].regId = 0xff
+        val numRegions = regId
+        val regs = Array(numRegions) {
+            LayerMonotoneRegion().apply { regId = 0xff }
         }
 
         // Find region neighbours.
@@ -175,7 +145,7 @@ class TileCacheBuilder {
                 // Update neighbours
                 val ymi = x + (y - 1) * w
                 if (y > 0 && isConnected(layer, idx, ymi, walkableClimb)) {
-                    val rai = layer.getReg(ymi).toInt()
+                    val rai = layer.getReg(ymi)
                     if (rai != 0xff && rai != ri) {
                         addUniqueLast(regRi.neighbors, rai)
                         addUniqueLast(regs[rai].neighbors, ri)
@@ -183,8 +153,8 @@ class TileCacheBuilder {
                 }
             }
         }
-        for (i in 0 until nregs) regs[i].regId = i
-        for (i in 0 until nregs) {
+        for (i in 0 until numRegions) regs[i].regId = i
+        for (i in 0 until numRegions) {
             val reg = regs[i]
             var merge = -1
             var mergea = 0
@@ -195,7 +165,7 @@ class TileCacheBuilder {
                 if (reg.regId == regn.regId) continue
                 if (reg.areaId != regn.areaId) continue
                 if (regn.area > mergea) {
-                    if (canMerge(reg.regId, regn.regId, regs, nregs)) {
+                    if (canMerge(reg.regId, regn.regId, regs, numRegions)) {
                         mergea = regn.area
                         merge = nei
                     }
@@ -204,7 +174,7 @@ class TileCacheBuilder {
             if (merge != -1) {
                 val oldId = reg.regId
                 val newId = regs[merge].regId
-                for (j in 0 until nregs) if (regs[j].regId == oldId) regs[j].regId = newId
+                for (j in 0 until numRegions) if (regs[j].regId == oldId) regs[j].regId = newId
             }
         }
 
@@ -212,10 +182,10 @@ class TileCacheBuilder {
         val remap = IntArray(256)
         // Find number of unique regions.
         regId = 0
-        for (i in 0 until nregs) remap[regs[i].regId] = 1
+        for (i in 0 until numRegions) remap[regs[i].regId] = 1
         for (i in 0..255) if (remap[i] != 0) remap[i] = regId++
         // Remap ids.
-        for (i in 0 until nregs) regs[i].regId = remap[regs[i].regId]
+        for (i in 0 until numRegions) regs[i].regId = remap[regs[i].regId]
         layer.regCount = regId
         for (i in 0 until w * h) {
             if (layer.getReg(i) != 0xff) {
@@ -224,18 +194,18 @@ class TileCacheBuilder {
         }
     }
 
-    fun addUniqueLast(a: IntArrayList, v: Int) {
+    private fun addUniqueLast(a: IntArrayList, v: Int) {
         val n = a.size
         if (n > 0 && a[n - 1] == v) return
         a.add(v)
     }
 
-    fun isConnected(layer: TileCacheLayer, ia: Int, ib: Int, walkableClimb: Int): Boolean {
+    private fun isConnected(layer: TileCacheLayer, ia: Int, ib: Int, walkableClimb: Int): Boolean {
         if (layer.getArea(ia) != layer.getArea(ib)) return false
         return abs(layer.getHeight(ia) - layer.getHeight(ib)) <= walkableClimb
     }
 
-    fun canMerge(oldRegId: Int, newRegId: Int, regs: Array<LayerMonotoneRegion>, nregs: Int): Boolean {
+    private fun canMerge(oldRegId: Int, newRegId: Int, regs: Array<LayerMonotoneRegion>, nregs: Int): Boolean {
         var count = 0
         for (i in 0 until nregs) {
             val reg = regs[i]
@@ -303,9 +273,9 @@ class TileCacheBuilder {
         return offset[dir and 0x03]
     }
 
-    private fun walkContour(layer: TileCacheLayer, x: Int, y: Int, cont: TempContour) {
-        var x = x
-        var y = y
+    private fun walkContour(layer: TileCacheLayer, xi: Int, yi: Int, cont: TempContour) {
+        var x = xi
+        var y = yi
         val w = layer.width
         val h = layer.height
         cont.clear()
@@ -465,9 +435,7 @@ class TileCacheBuilder {
                 // add new point, else continue to next segment.
                 if (maxi != -1 && maxd > maxError * maxError) {
                     cont.poly.add(i + 1, maxi)
-                } else {
-                    ++i
-                }
+                } else i++
             }
         }
 
@@ -546,22 +514,18 @@ class TileCacheBuilder {
         return lcset
     }
 
-    private fun computeVertexHash2(x: Int, y: Int, z: Int): Int {
+    private fun computeVertexHash2(x: Int, z: Int): Int {
         val h1 = -0x72594cbd // Large multiplicative constants;
-        val h2 = -0x27e9c7bf // here arbitrarily chosen primes
-        val h3 = -0x34e54ce1
-        val n = h1 * x + h2 * y + h3 * z
+        val h3 = -0x34e54ce1 // here arbitrarily chosen primes
+        val n = h1 * x + h3 * z
         return n and VERTEX_BUCKET_COUNT2 - 1
     }
 
     private fun addVertex(
-        x: Int, y: Int, z: Int,
-        vertices: IntArray,
-        firstVert: IntArray,
-        nextVert: IntArray,
-        nv: Int
+        x: Int, y: Int, z: Int, vertices: IntArray,
+        firstVert: IntArray, nextVert: IntArray, nv: Int
     ): Int {
-        val bucket = computeVertexHash2(x, 0, z)
+        val bucket = computeVertexHash2(x, z)
         var i = firstVert[bucket]
         while (i != TILECACHE_NULL_IDX) {
             val v = i * 3
@@ -776,9 +740,10 @@ class TileCacheBuilder {
         return area2(vertices, a, b, c) == 0
     }
 
-    // Returns true iff ab properly intersects cd: they share
-    // a point interior to both segments. The properness of the
-    // intersection is ensured by using strict leftness.
+    /**
+     * Returns true iff ab properly intersects cd: they share a point interior to both segments.
+     * The properness of the intersection is ensured by using strict leftness.
+     * */
     private fun intersectProp(vertices: IntArray, a: Int, b: Int, c: Int, d: Int): Boolean {
         // Eliminate improper cases.
         return if (
@@ -791,7 +756,7 @@ class TileCacheBuilder {
     }
 
     // Returns T iff (a,b,c) are collinear and point c lies
-    // on the closed segement ab.
+    // on the closed segment ab.
     private fun between(vertices: IntArray, a: Int, b: Int, c: Int): Boolean {
         if (!collinear(vertices, a, b, c)) return false
         // If ab not vertical, check betweenness on x; else on y.
@@ -844,12 +809,9 @@ class TileCacheBuilder {
         val pin1 = (indices[prev(i, n)] and 0x7fff) * 4
 
         // If P[i] is a convex vertex [ i+1 left or on (i-1,i) ].
-        return if (leftOn(vertices, pin1, pi, pi1)) left(vertices, pi, pj, pin1) && left(
-            vertices,
-            pj,
-            pi,
-            pi1
-        ) else !(leftOn(vertices, pi, pj, pi1) && leftOn(vertices, pj, pi, pin1))
+        return if (leftOn(vertices, pin1, pi, pi1)) left(vertices, pi, pj, pin1) &&
+                left(vertices, pj, pi, pi1)
+        else !(leftOn(vertices, pi, pj, pi1) && leftOn(vertices, pj, pi, pin1))
         // Assume (i-1,i,i+1) not collinear.
         // else P[i] is reflex.
     }
@@ -862,10 +824,9 @@ class TileCacheBuilder {
 
     private fun triangulate(n: Int, vertices: IntArray, indices: IntArray, tris: IntArray): Int {
         var ni = n
-        var ntris = 0
-        var dst = 0 // tris;
-        // The last bit of the index is used to indicate if the vertex can be
-        // removed.
+        var numTriangles = 0
+        var vertexId = 0 // = numTriangles / 3
+        // The last bit of the index is used to indicate if the vertex can be removed.
         for (i in 0 until ni) {
             val i1 = next(i, ni)
             val i2 = next(i1, ni)
@@ -894,15 +855,15 @@ class TileCacheBuilder {
                  * printf("mini == -1 ntris=%d n=%d\n", ntris, n); for (int i = 0; i < n; i++) { printf("%d ",
                  * indices[i] & 0x0fffffff); } printf("\n");
                  */
-                return -ntris
+                return -numTriangles
             }
             var i = mini
             var i1 = next(i, ni)
             val i2 = next(i1, ni)
-            tris[dst++] = indices[i] and 0x7fff
-            tris[dst++] = indices[i1] and 0x7fff
-            tris[dst++] = indices[i2] and 0x7fff
-            ntris++
+            tris[vertexId++] = indices[i] and 0x7fff
+            tris[vertexId++] = indices[i1] and 0x7fff
+            tris[vertexId++] = indices[i2] and 0x7fff
+            numTriangles++
 
             // Removes P[i1] by copying P[i+1]...P[n-1] left one index.
             ni--
@@ -910,18 +871,20 @@ class TileCacheBuilder {
             if (i1 >= ni) i1 = 0
             i = prev(i1, ni)
             // Update diagonal flags.
-            if (diagonal(prev(i, ni), i1, ni, vertices, indices)) indices[i] = indices[i] or 0x8000 else indices[i] =
-                indices[i] and 0x7fff
-            if (diagonal(i, next(i1, ni), ni, vertices, indices)) indices[i1] = indices[i1] or 0x8000 else indices[i1] =
-                indices[i1] and 0x7fff
+            indices[i] =
+                if (diagonal(prev(i, ni), i1, ni, vertices, indices)) indices[i] or 0x8000
+                else indices[i] and 0x7fff
+            indices[i1] =
+                if (diagonal(i, next(i1, ni), ni, vertices, indices)) indices[i1] or 0x8000
+                else indices[i1] and 0x7fff
         }
 
         // Append the remaining triangle.
-        tris[dst++] = indices[0] and 0x7fff
-        tris[dst++] = indices[1] and 0x7fff
-        tris[dst] = indices[2] and 0x7fff
-        ntris++
-        return ntris
+        tris[vertexId++] = indices[0] and 0x7fff
+        tris[vertexId++] = indices[1] and 0x7fff
+        tris[vertexId] = indices[2] and 0x7fff
+        numTriangles++
+        return numTriangles
     }
 
     private fun countPolyVertices(polys: IntArray, p: Int, maxVerticesPerPoly: Int): Int {
@@ -929,8 +892,9 @@ class TileCacheBuilder {
         return maxVerticesPerPoly
     }
 
-    private fun uleft(vertices: IntArray, a: Int, b: Int, c: Int): Boolean {
-        return (vertices[b] - vertices[a]) * (vertices[c + 2] - vertices[a + 2]) - (vertices[c] - vertices[a]) * (vertices[b + 2] - vertices[a + 2]) < 0
+    private fun isLeft(vertices: IntArray, a: Int, b: Int, c: Int): Boolean {
+        return (vertices[b] - vertices[a]) * (vertices[c + 2] - vertices[a + 2]).toLong() -
+                (vertices[c] - vertices[a]) * (vertices[b + 2] - vertices[a + 2]).toLong() < 0
     }
 
     private fun getPolyMergeValue(
@@ -939,12 +903,12 @@ class TileCacheBuilder {
         pb: Int,
         vertices: IntArray,
         maxVerticesPerPoly: Int
-    ): IntArray {
+    ): Vector3i {
         val na = countPolyVertices(polys, pa, maxVerticesPerPoly)
         val nb = countPolyVertices(polys, pb, maxVerticesPerPoly)
 
         // If the merged polygon would be too big, do not merge.
-        if (na + nb - 2 > maxVerticesPerPoly) return intArrayOf(-1, 0, 0)
+        if (na + nb - 2 > maxVerticesPerPoly) return Vector3i(-1, 0, 0)
 
         // Check if the polygons share an edge.
         var ea = -1
@@ -974,25 +938,28 @@ class TileCacheBuilder {
         }
 
         // No common edge, cannot merge.
-        if (ea == -1 || eb == -1) return intArrayOf(-1, ea, eb)
+        if (ea == -1 || eb == -1) {
+            return Vector3i(-1, ea, eb)
+        }
 
         // Check to see if the merged polygon would be convex.
-        var va: Int
-        var vb: Int
-        var vc: Int
-        va = polys[pa + (ea + na - 1) % na]
-        vb = polys[pa + ea]
-        vc = polys[pb + (eb + 2) % nb]
-        if (!uleft(vertices, va * 3, vb * 3, vc * 3)) return intArrayOf(-1, ea, eb)
+        var va = polys[pa + (ea + na - 1) % na]
+        var vb = polys[pa + ea]
+        var vc = polys[pb + (eb + 2) % nb]
+        if (!isLeft(vertices, va * 3, vb * 3, vc * 3)) {
+            return Vector3i(-1, ea, eb)
+        }
         va = polys[pb + (eb + nb - 1) % nb]
         vb = polys[pb + eb]
         vc = polys[pa + (ea + 2) % na]
-        if (!uleft(vertices, va * 3, vb * 3, vc * 3)) return intArrayOf(-1, ea, eb)
+        if (!isLeft(vertices, va * 3, vb * 3, vc * 3)) {
+            return Vector3i(-1, ea, eb)
+        }
         va = polys[pa + ea]
         vb = polys[pa + (ea + 1) % na]
         val dx = vertices[va * 3] - vertices[vb * 3]
         val dy = vertices[va * 3 + 2] - vertices[vb * 3 + 2]
-        return intArrayOf(dx * dx + dy * dy, ea, eb)
+        return Vector3i(dx * dx + dy * dy, ea, eb)
     }
 
     private fun mergePolys(polys: IntArray, pa: Int, pb: Int, ea: Int, eb: Int, maxVerticesPerPoly: Int) {
@@ -1240,7 +1207,7 @@ class TileCacheBuilder {
         if (maxVerticesPerPoly > 3) {
             while (true) {
 
-                // Find best polygons to merge.
+                // Find the best polygons to merge.
                 var bestMergeVal = 0
                 var bestPa = 0
                 var bestPb = 0
@@ -1250,10 +1217,7 @@ class TileCacheBuilder {
                     val pj = j * maxVerticesPerPoly
                     for (k in j + 1 until npolys) {
                         val pk = k * maxVerticesPerPoly
-                        val pm = getPolyMergeValue(polys, pj, pk, mesh.vertices, maxVerticesPerPoly)
-                        val v = pm[0]
-                        val ea = pm[1]
-                        val eb = pm[2]
+                        val (v, ea, eb) = getPolyMergeValue(polys, pj, pk, mesh.vertices, maxVerticesPerPoly)
                         if (v > bestMergeVal) {
                             bestMergeVal = v
                             bestPa = j
@@ -1308,12 +1272,11 @@ class TileCacheBuilder {
 
         // TODO: warn about too many vertices?
         val mesh = TileCachePolyMesh(maxVerticesPerPoly)
-        val vflags = IntArray(maxVertices)
+        val vertexFlags = IntArray(maxVertices)
         mesh.vertices = IntArray(maxVertices * 3)
         mesh.polys = IntArray(maxTris * maxVerticesPerPoly * 2)
         mesh.areas = IntArray(maxTris)
-        // Just allocate and clean the mesh flags array. The user is resposible
-        // for filling it.
+        // Just allocate and clean the mesh flags array. The user is responsible for filling it.
         mesh.flags = IntArray(maxTris)
         mesh.numVertices = 0
         mesh.numPolygons = 0
@@ -1332,10 +1295,10 @@ class TileCacheBuilder {
 
             // Triangulate contour
             for (j in 0 until cont.nvertices) indices[j] = j
-            var ntris = triangulate(cont.nvertices, cont.vertices, indices, tris)
-            if (ntris <= 0) {
+            var numTriangles = triangulate(cont.nvertices, cont.vertices, indices, tris)
+            if (numTriangles <= 0) {
                 // TODO: issue warning!
-                ntris = -ntris
+                numTriangles = -numTriangles
             }
 
             // Add and merge vertices.
@@ -1348,42 +1311,39 @@ class TileCacheBuilder {
                 mesh.numVertices = max(mesh.numVertices, indices[j] + 1)
                 if (cont.vertices[v + 3] and 0x80 != 0) {
                     // This vertex should be removed.
-                    vflags[indices[j]] = 1
+                    vertexFlags[indices[j]] = 1
                 }
             }
 
             // Build initial polygons.
-            var npolys = 0
+            var numPolygons = 0
             polys.fill(TILECACHE_NULL_IDX)
-            for (j in 0 until ntris) {
+            for (j in 0 until numTriangles) {
                 val t = j * 3
                 if (tris[t] != tris[t + 1] && tris[t] != tris[t + 2] && tris[t + 1] != tris[t + 2]) {
-                    polys[npolys * maxVerticesPerPoly] = indices[tris[t]]
-                    polys[npolys * maxVerticesPerPoly + 1] = indices[tris[t + 1]]
-                    polys[npolys * maxVerticesPerPoly + 2] = indices[tris[t + 2]]
-                    npolys++
+                    polys[numPolygons * maxVerticesPerPoly] = indices[tris[t]]
+                    polys[numPolygons * maxVerticesPerPoly + 1] = indices[tris[t + 1]]
+                    polys[numPolygons * maxVerticesPerPoly + 2] = indices[tris[t + 2]]
+                    numPolygons++
                 }
             }
-            if (npolys == 0) continue
+            if (numPolygons == 0) continue
 
             // Merge polygons.
             if (maxVerticesPerPoly > 3) {
                 while (true) {
 
-                    // Find best polygons to merge.
+                    // Find the best polygons to merge.
                     var bestMergeVal = 0
                     var bestPa = 0
                     var bestPb = 0
                     var bestEa = 0
                     var bestEb = 0
-                    for (j in 0 until npolys - 1) {
+                    for (j in 0 until numPolygons - 1) {
                         val pj = j * maxVerticesPerPoly
-                        for (k in j + 1 until npolys) {
+                        for (k in j + 1 until numPolygons) {
                             val pk = k * maxVerticesPerPoly
-                            val pm = getPolyMergeValue(polys, pj, pk, mesh.vertices, maxVerticesPerPoly)
-                            val v = pm[0]
-                            val ea = pm[1]
-                            val eb = pm[2]
+                            val (v, ea, eb) = getPolyMergeValue(polys, pj, pk, mesh.vertices, maxVerticesPerPoly)
                             if (v > bestMergeVal) {
                                 bestMergeVal = v
                                 bestPa = j
@@ -1398,8 +1358,8 @@ class TileCacheBuilder {
                         val pa = bestPa * maxVerticesPerPoly
                         val pb = bestPb * maxVerticesPerPoly
                         mergePolys(polys, pa, pb, bestEa, bestEb, maxVerticesPerPoly)
-                        System.arraycopy(polys, (npolys - 1) * maxVerticesPerPoly, polys, pb, maxVerticesPerPoly)
-                        npolys--
+                        System.arraycopy(polys, (numPolygons - 1) * maxVerticesPerPoly, polys, pb, maxVerticesPerPoly)
+                        numPolygons--
                     } else {
                         // Could not merge any polygons, stop.
                         break
@@ -1408,7 +1368,7 @@ class TileCacheBuilder {
             }
 
             // Store polygons.
-            for (j in 0 until npolys) {
+            for (j in 0 until numPolygons) {
                 val p = mesh.numPolygons * maxVerticesPerPoly * 2
                 val q = j * maxVerticesPerPoly
                 if (maxVerticesPerPoly >= 0) System.arraycopy(polys, q, mesh.polys, p, maxVerticesPerPoly)
@@ -1421,7 +1381,7 @@ class TileCacheBuilder {
         // Remove edge vertices.
         var i = 0
         while (i < mesh.numVertices) {
-            if (vflags[i] != 0) {
+            if (vertexFlags[i] != 0) {
                 if (!canRemoveVertex(mesh, i)) {
                     ++i
                     continue
@@ -1430,7 +1390,13 @@ class TileCacheBuilder {
                 // Remove vertex
                 // Note: mesh.nvertices is already decremented inside
                 // removeVertex()!
-                if (mesh.numVertices - i >= 0) System.arraycopy(vflags, i + 1, vflags, i, mesh.numVertices - i)
+                if (mesh.numVertices - i >= 0) System.arraycopy(
+                    vertexFlags,
+                    i + 1,
+                    vertexFlags,
+                    i,
+                    mesh.numVertices - i
+                )
                 --i
             }
             ++i
@@ -1442,7 +1408,7 @@ class TileCacheBuilder {
     }
 
     fun markCylinderArea(
-        layer: TileCacheLayer, orig: Vector3f, cs: Float, ch: Float, pos: Vector3f, radius: Float,
+        layer: TileCacheLayer, orig: AABBf, cs: Float, ch: Float, pos: Vector3f, radius: Float,
         height: Float, areaId: Int
     ) {
         val r2 = sq(radius / cs + 0.5f)
@@ -1450,14 +1416,14 @@ class TileCacheBuilder {
         val h = layer.height
         val ics = 1f / cs
         val ich = 1f / ch
-        val px = (pos.x - orig.x) * ics
-        val pz = (pos.z - orig.z) * ics
-        var minx = floor(((pos.x - radius - orig.x) * ics)).toInt()
-        val miny = floor(((pos.y - orig.y) * ich)).toInt()
-        var minz = floor(((pos.z - radius - orig.z) * ics)).toInt()
-        var maxx = floor(((pos.x + radius - orig.x) * ics)).toInt()
-        val maxy = floor(((pos.y + height - orig.y) * ich)).toInt()
-        var maxz = floor(((pos.z + radius - orig.z) * ics)).toInt()
+        val px = (pos.x - orig.minX) * ics
+        val pz = (pos.z - orig.minZ) * ics
+        var minx = floor(((pos.x - radius - orig.minX) * ics)).toInt()
+        val miny = floor(((pos.y - orig.minY) * ich)).toInt()
+        var minz = floor(((pos.z - radius - orig.minZ) * ics)).toInt()
+        var maxx = floor(((pos.x + radius - orig.minX) * ics)).toInt()
+        val maxy = floor(((pos.y + height - orig.minY) * ich)).toInt()
+        var maxz = floor(((pos.z + radius - orig.minZ) * ics)).toInt()
         minx = max(minx, 0)
         maxx = min(maxx, w - 1)
         minz = max(minz, 0)
@@ -1475,19 +1441,19 @@ class TileCacheBuilder {
     }
 
     fun markBoxArea(
-        layer: TileCacheLayer, orig: Vector3f, cs: Float, ch: Float, bmin: Vector3f, bmax: Vector3f,
-        areaId: Int
+        layer: TileCacheLayer, orig: AABBf, cs: Float, ch: Float,
+        bounds: AABBf, areaId: Int
     ) {
         val w = layer.width
         val h = layer.height
         val ics = 1f / cs
         val ich = 1f / ch
-        var minx = floor(((bmin.x - orig.x) * ics)).toInt()
-        val miny = floor(((bmin.y - orig.y) * ich)).toInt()
-        var minz = floor(((bmin.z - orig.z) * ics)).toInt()
-        var maxx = floor(((bmax.x - orig.x) * ics)).toInt()
-        val maxy = floor(((bmax.y - orig.y) * ich)).toInt()
-        var maxz = floor(((bmax.z - orig.z) * ics)).toInt()
+        var minx = floor(((bounds.minX - orig.minX) * ics)).toInt()
+        val miny = floor(((bounds.minY - orig.minY) * ich)).toInt()
+        var minz = floor(((bounds.minZ - orig.minZ) * ics)).toInt()
+        var maxx = floor(((bounds.maxX - orig.minX) * ics)).toInt()
+        val maxy = floor(((bounds.maxY - orig.minY) * ich)).toInt()
+        var maxz = floor(((bounds.maxZ - orig.minZ) * ics)).toInt()
         minx = max(minx, 0)
         maxx = min(maxx, w - 1)
         minz = max(minz, 0)
@@ -1520,25 +1486,20 @@ class TileCacheBuilder {
         header: TileCacheLayerHeader, heights: IntArray, areas: IntArray, cons: IntArray,
         order: ByteOrder, cCompatibility: Boolean
     ): ByteArray {
-        val baos = ByteArrayOutputStream()
+        val bos = ByteArrayOutputStream()
         val hw = TileCacheLayerHeaderWriter()
-        return try {
-            hw.write(baos, header, order, cCompatibility)
-            val gridSize = header.width * header.height
-            val buffer = ByteArray(gridSize * 3)
-            for (i in 0 until gridSize) {
-                buffer[i] = heights[i].toByte()
-                buffer[gridSize + i] = areas[i].toByte()
-                buffer[gridSize * 2 + i] = cons[i].toByte()
-            }
-            baos.write(buffer)
-            baos.toByteArray()
-        } catch (e: IOException) {
-            throw RuntimeException(e.message, e)
+        hw.write(bos, header, order, cCompatibility)
+        val gridSize = header.width * header.height
+        val buffer = ByteArray(gridSize * 3)
+        for (i in 0 until gridSize) {
+            buffer[i] = heights[i].toByte()
+            buffer[gridSize + i] = areas[i].toByte()
+            buffer[gridSize * 2 + i] = cons[i].toByte()
         }
+        bos.write(buffer)
+        return bos.toByteArray()
     }
 
-    @Throws(IOException::class)
     fun decompressTileCacheLayer(
         compressed: ByteArray, order: ByteOrder,
         cCompatibility: Boolean
@@ -1556,28 +1517,23 @@ class TileCacheBuilder {
     }
 
     fun markBoxArea(
-        layer: TileCacheLayer,
-        orig: Vector3f,
-        cs: Float,
-        ch: Float,
-        center: Vector3f,
-        extents: Vector3f,
-        rotAux: FloatArray,
-        areaId: Int
+        layer: TileCacheLayer, orig: AABBf, cs: Float, ch: Float,
+        center: Vector3f, extents: Vector3f,
+        rotAux: FloatArray, areaId: Int
     ) {
         val w = layer.width
         val h = layer.height
         val ics = 1f / cs
         val ich = 1f / ch
-        val cx = (center.x - orig.x) * ics
-        val cz = (center.z - orig.z) * ics
+        val cx = (center.x - orig.minX) * ics
+        val cz = (center.z - orig.minZ) * ics
         val maxr = 1.41f * max(extents.x, extents.z)
         var minx = floor((cx - maxr * ics)).toInt()
         var maxx = floor((cx + maxr * ics)).toInt()
         var minz = floor((cz - maxr * ics)).toInt()
         var maxz = floor((cz + maxr * ics)).toInt()
-        val miny = floor(((center.y - extents.y - orig.y) * ich)).toInt()
-        val maxy = floor(((center.y + extents.y - orig.y) * ich)).toInt()
+        val miny = floor(((center.y - extents.y - orig.minY) * ich)).toInt()
+        val maxy = floor(((center.y + extents.y - orig.minY) * ich)).toInt()
         minx = max(minx, 0)
         maxx = min(maxx, w - 1)
         minz = max(minz, 0)
@@ -1599,44 +1555,47 @@ class TileCacheBuilder {
         }
     }
 
-    companion object {
-        const val TILECACHE_NULL_AREA = 0
-        const val TILECACHE_WALKABLE_AREA = 63
-        const val TILECACHE_NULL_IDX = 0xffff
-        fun getCornerHeight(layer: TileCacheLayer, x: Int, y: Int, z: Int, walkableClimb: Int): Pair<Int, Boolean> {
-            val w = layer.width
-            val h = layer.height
-            var n = 0
-            var portal = 0xf
-            var height = 0
-            var preg = 0xff
-            var allSameReg = true
-            for (dz in -1..0) {
-                for (dx in -1..0) {
-                    val px = x + dx
-                    val pz = z + dz
-                    if (px >= 0 && pz >= 0 && px < w && pz < h) {
-                        val idx = px + pz * w
-                        val lh = layer.getHeight(idx)
-                        if (abs(lh - y) <= walkableClimb && layer.getArea(idx) != TILECACHE_NULL_AREA) {
-                            height = max(height, lh.toChar().code)
-                            portal = portal and (layer.getCon(idx) shr 4)
-                            if (preg != 0xff && preg != layer.getReg(idx)) allSameReg = false
-                            preg = layer.getReg(idx)
-                            n++
-                        }
+    const val TILECACHE_NULL_AREA = 0
+    const val TILECACHE_WALKABLE_AREA = 63
+    const val TILECACHE_NULL_IDX = 0xffff
+
+    private fun getCornerHeight(
+        layer: TileCacheLayer,
+        x: Int, y: Int, z: Int,
+        walkableClimb: Int
+    ): Pair<Int, Boolean> {
+        val w = layer.width
+        val h = layer.height
+        var n = 0
+        var portal = 0xf
+        var height = 0
+        var preg = 0xff
+        var allSameReg = true
+        for (dz in -1..0) {
+            for (dx in -1..0) {
+                val px = x + dx
+                val pz = z + dz
+                if (px >= 0 && pz >= 0 && px < w && pz < h) {
+                    val idx = px + pz * w
+                    val lh = layer.getHeight(idx)
+                    if (abs(lh - y) <= walkableClimb && layer.getArea(idx) != TILECACHE_NULL_AREA) {
+                        height = max(height, lh.toChar().code)
+                        portal = portal and (layer.getCon(idx) shr 4)
+                        if (preg != 0xff && preg != layer.getReg(idx)) allSameReg = false
+                        preg = layer.getReg(idx)
+                        n++
                     }
                 }
             }
-            var portalCount = 0
-            for (dir in 0..3) if (portal and (1 shl dir) != 0) portalCount++
-            var shouldRemove = false
-            if (n > 1 && portalCount == 1 && allSameReg) {
-                shouldRemove = true
-            }
-            return Pair(height, shouldRemove)
         }
-
-        const val VERTEX_BUCKET_COUNT2 = 1 shl 8
+        var portalCount = 0
+        for (dir in 0..3) if (portal and (1 shl dir) != 0) portalCount++
+        var shouldRemove = false
+        if (n > 1 && portalCount == 1 && allSameReg) {
+            shouldRemove = true
+        }
+        return Pair(height, shouldRemove)
     }
+
+    const val VERTEX_BUCKET_COUNT2 = 1 shl 8
 }

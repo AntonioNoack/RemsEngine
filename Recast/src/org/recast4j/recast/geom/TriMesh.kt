@@ -18,17 +18,18 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast.geom
 
-import org.recast4j.recast.geom.ChunkyTriMesh.Node1
+import org.joml.AABBf
+import org.recast4j.recast.geom.ChunkyTriMesh.Node
 
 class TriMesh(val vertices: FloatArray, val triangles: IntArray) {
 
     private val chunkyTriMesh = ChunkyTriMesh(vertices, triangles, triangles.size / 3, 32)
 
-    fun getChunksOverlappingRect(bmin: FloatArray, bmax: FloatArray): List<Node1> {
-        return chunkyTriMesh.getChunksOverlappingRect(bmin, bmax)
+    fun getChunksOverlappingRect(bounds: AABBf): List<Node> {
+        return chunkyTriMesh.getChunksOverlappingRect(bounds)
     }
 
-    fun foreachChunkOverlappingRect(bmin: FloatArray, bmax: FloatArray, callback: (Node1) -> Unit) {
-        chunkyTriMesh.foreachChunkOverlappingRect(bmin, bmax, callback)
+    fun foreachChunkOverlappingRect(bounds: AABBf, callback: (Node) -> Unit) {
+        chunkyTriMesh.foreachChunkOverlappingRect(bounds, callback)
     }
 }

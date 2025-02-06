@@ -30,7 +30,7 @@ object RecastVoxelization {
 
         // Allocate voxel heightfield where we rasterize our input data to.
         val solid = Heightfield(
-            builderCfg.width, builderCfg.height, builderCfg.bmin, builderCfg.bmax, cfg.cellSize,
+            builderCfg.width, builderCfg.height, builderCfg.bounds, cfg.cellSize,
             cfg.cellHeight, cfg.borderSize
         )
 
@@ -41,13 +41,11 @@ object RecastVoxelization {
 
         // Find triangles which are walkable based on their slope and rasterize them.
         // If your input data is multiple meshes, you can transform them here,
-        // calculate the are type for each of the meshes and rasterize them.
+        // calculate the area type for each of the meshes and rasterize them.
         for (geom in geomProvider.meshes()) {
             val vertices = geom.vertices
             if (cfg.useTiles) {
-                val bmin = floatArrayOf(builderCfg.bmin.x, builderCfg.bmin.z)
-                val bmax = floatArrayOf(builderCfg.bmax.x, builderCfg.bmax.z)
-                geom.foreachChunkOverlappingRect(bmin, bmax) { node ->
+                geom.foreachChunkOverlappingRect(builderCfg.bounds) { node ->
                     val tris = node.triangles
                     val numTris = tris.size / 3
                     val triAreas =

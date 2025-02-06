@@ -21,14 +21,12 @@ package org.recast4j.detour.tilecache.io
 import org.recast4j.detour.io.DetourWriter
 import org.recast4j.detour.io.NavMeshParamWriter
 import org.recast4j.detour.tilecache.TileCache
-import org.recast4j.detour.tilecache.TileCacheBuilder
+import org.recast4j.detour.tilecache.builder.TileCacheBuilder
 import org.recast4j.detour.tilecache.TileCacheParams
 import java.io.OutputStream
 import java.nio.ByteOrder
 
-class TileCacheWriter : DetourWriter() {
-
-    private val builder = TileCacheBuilder()
+object TileCacheWriter : DetourWriter() {
 
     fun write(stream: OutputStream, cache: TileCache, order: ByteOrder, cCompatibility: Boolean) {
         write(stream, TileCacheSetHeader.TILECACHESET_MAGIC, order)
@@ -49,7 +47,7 @@ class TileCacheWriter : DetourWriter() {
             if (tile?.data == null) continue
             write(stream, cache.getTileRef(tile).toInt(), order)
             val layer = cache.decompressTile(tile)
-            val data = builder.compressTileCacheLayer(layer, order, cCompatibility)
+            val data = TileCacheBuilder.compressTileCacheLayer(layer, order, cCompatibility)
             write(stream, data.size, order)
             stream.write(data)
         }

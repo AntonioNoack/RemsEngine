@@ -17,10 +17,11 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.Telemetry
 
 interface Collider {
-    fun bounds(): FloatArray
+    val bounds: AABBf
     fun rasterize(hf: Heightfield, telemetry: Telemetry?)
 }

@@ -19,8 +19,8 @@ freely, subject to the following restrictions:
 package org.recast4j.detour
 
 import me.anno.utils.structures.tuples.IntPair
+import org.joml.AABBf
 import org.joml.Vector3f
-import org.recast4j.Vectors
 import java.util.Arrays
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -100,18 +100,18 @@ object NavMeshBuilder {
         params: NavMeshDataCreateParams, pm: IntArray, i: Int,
         quantFactor: Float, dst: BVNode
     ) {
-        val dvs = params.detailVertices!!
+        val vertices = params.detailVertices!!
         val vb = pm[i * 4]
         val ndv = pm[i * 4 + 1]
-        val dv = vb * 3
-        val bmin = Vector3f(dvs, dv)
-        val bmax = Vector3f(bmin)
-        for (j in 1 until ndv) {
-            Vectors.min(bmin, dvs, dv + j * 3)
-            Vectors.max(bmax, dvs, dv + j * 3)
+        val offset = vb * 3
+        val bounds = AABBf()
+        val tmp = Vector3f()
+        for (j in 0 until ndv) {
+            tmp.set(vertices, offset + j * 3)
+            bounds.union(tmp)
         }
         // BV-tree uses cs for all dimensions
-        dst.setQuantitized(bmin, bmax, params.bmin, quantFactor)
+        dst.setQuantized(bounds, params.bounds, quantFactor)
     }
 
     private fun calculatePolygonBounds(params: NavMeshDataCreateParams, i: Int, quantFactor: Float, node: BVNode) {
@@ -142,23 +142,23 @@ object NavMeshBuilder {
     const val XM = 4
     const val ZM = 8
 
-    fun classifyOffMeshPoint(pt: VectorPtr, bmin: Vector3f, bmax: Vector3f): Int {
-        var outcode = 0
-        outcode = outcode or if (pt[0] >= bmax.x) XP else 0
-        outcode = outcode or if (pt[2] >= bmax.z) ZP else 0
-        outcode = outcode or if (pt[0] < bmin.x) XM else 0
-        outcode = outcode or if (pt[2] < bmin.z) ZM else 0
-        when (outcode) {
-            XP -> return 0
-            XP or ZP -> return 1
-            ZP -> return 2
-            XM or ZP -> return 3
-            XM -> return 4
-            XM or ZM -> return 5
-            ZM -> return 6
-            XP or ZM -> return 7
+    fun classifyOffMeshPoint(pt: VectorPtr, bounds: AABBf): Int {
+        var resultMap = 0
+        resultMap = resultMap or if (pt[0] >= bounds.maxX) XP else 0
+        resultMap = resultMap or if (pt[2] >= bounds.maxZ) ZP else 0
+        resultMap = resultMap or if (pt[0] < bounds.minX) XM else 0
+        resultMap = resultMap or if (pt[2] < bounds.minZ) ZM else 0
+        return when (resultMap) {
+            XP -> 0
+            XP or ZP -> 1
+            ZP -> 2
+            XM or ZP -> 3
+            XM -> 4
+            XM or ZM -> 5
+            ZM -> 6
+            XP or ZM -> 7
+            else -> 0xff
         }
-        return 0xff
     }
 
     /**
@@ -277,8 +277,7 @@ object NavMeshBuilder {
         header.polyCount = totPolyCount
         header.vertCount = totVertCount
         header.maxLinkCount = maxLinkCount
-        header.bmin.set(params.bmin)
-        header.bmax.set(params.bmax)
+        header.bounds.set(params.bounds)
         header.detailMeshCount = params.polyCount
         header.detailVertCount = uniqueDetailVertCount
         header.detailTriCount = detailTriCount
@@ -338,33 +337,35 @@ object NavMeshBuilder {
                 hmax = max(hmax, h)
             }
         } else {
+            val minY = params.bounds.minY
             val pv = params.vertices!!
             for (i in 0 until params.vertCount) {
                 val iv = i * 3
-                val h = params.bmin.y + pv[iv + 1] * params.cellHeight
+                val h = minY + pv[iv + 1] * params.cellHeight
                 hmin = min(hmin, h)
                 hmax = max(hmax, h)
             }
         }
         hmin -= params.walkableClimb
         hmax += params.walkableClimb
-        val bmin = Vector3f(params.bmin)
-        val bmax = Vector3f(params.bmax)
-        bmin.y = hmin
-        bmax.y = hmax
+        val bounds = AABBf(params.bounds)
+        bounds.minY = hmin
+        bounds.maxY = hmax
 
         var offMeshConLinkCount = offMeshConLinkCount0
         var storedOffMeshConCount = storedOffMeshConCount0
         for (i in 0 until params.offMeshConCount) {
             val p0 = VectorPtr(params.offMeshConVertices, i * 2 * 3)
             val p1 = VectorPtr(params.offMeshConVertices, (i * 2 + 1) * 3)
-            offMeshConClass[i * 2] = classifyOffMeshPoint(p0, bmin, bmax)
-            offMeshConClass[i * 2 + 1] = classifyOffMeshPoint(p1, bmin, bmax)
+            offMeshConClass[i * 2] = classifyOffMeshPoint(p0, bounds)
+            offMeshConClass[i * 2 + 1] = classifyOffMeshPoint(p1, bounds)
 
             // Zero out off-mesh start positions which are not even
             // potentially touching the mesh.
             if (offMeshConClass[i * 2] == 0xff) {
-                if (p0[1] < bmin.y || p0[1] > bmax.y) offMeshConClass[i * 2] = 0
+                if (p0[1] < bounds.minY || p0[1] > bounds.maxY) {
+                    offMeshConClass[i * 2] = 0
+                }
             }
 
             // Count how many links should be allocated for off-mesh connections.
@@ -401,9 +402,9 @@ object NavMeshBuilder {
         for (i in 0 until params.vertCount) {
             val iv = i * 3
             val v = i * 3
-            navVertices[v] = params.bmin.x + pv[iv] * params.cellSize
-            navVertices[v + 1] = params.bmin.y + pv[iv + 1] * params.cellHeight
-            navVertices[v + 2] = params.bmin.z + pv[iv + 2] * params.cellSize
+            navVertices[v] = params.bounds.minX + pv[iv] * params.cellSize
+            navVertices[v + 1] = params.bounds.minY + pv[iv + 1] * params.cellHeight
+            navVertices[v + 2] = params.bounds.minZ + pv[iv + 2] * params.cellSize
         }
     }
 

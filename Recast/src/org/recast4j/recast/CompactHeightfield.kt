@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 /** A compact, static heightfield representing unobstructed space.  */
 class CompactHeightfield(val width: Int, val height: Int, val spanCount: Int) {
@@ -38,11 +38,8 @@ class CompactHeightfield(val width: Int, val height: Int, val spanCount: Int) {
     /** The maximum region id of any span within the field.  */
     var maxRegions = 0
 
-    /** The minimum bounds in world space. [(x, y, z)]  */
-    val bmin = Vector3f()
-
-    /** The maximum bounds in world space. [(x, y, z)]  */
-    val bmax = Vector3f()
+    /** The bounds in world space. [(x, y, z)]  */
+    val bounds = AABBf()
 
     /** The size of each cell. (On the xz-plane.)  */
     var cellSize = 0f

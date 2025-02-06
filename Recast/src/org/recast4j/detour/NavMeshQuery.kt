@@ -18,13 +18,15 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
-import org.joml.Vector3f
-import org.joml.Vector3i
-import org.recast4j.FloatArrayList
-import org.recast4j.FloatSubArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import org.recast4j.LongArrayList
+import org.joml.AABBf
+import org.joml.AABBi
+import org.joml.Vector3f
+import org.recast4j.FloatSubArray
 import org.recast4j.Vectors
 import org.recast4j.detour.PolygonByCircleConstraint.StrictPolygonByCircleConstraint.CIRCLE_SEGMENTS
+import org.recast4j.detour.crowd.PathQueryResult
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -445,32 +447,28 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
     fun queryPolygonsInTile(
         tile: MeshTile,
-        qmin: Vector3f,
-        qmax: Vector3f,
+        bounds: AABBf,
         filter: QueryFilter,
         query: PolyQuery
     ) {
         val data = tile.data
         if (data.bvTree != null) {
             var nodeIndex = 0
-            val tbmin = data.header.bmin
-            val tbmax = data.header.bmax
-            val qfac = data.header.bvQuantizationFactor
+            val tb = data.bounds
+            val qfac = data.bvQuantizationFactor
             // Calculate quantized box
             // dtClamp query box to world box.
-            val minx = Vectors.clamp(qmin.x, tbmin.x, tbmax.x) - tbmin.x
-            val miny = Vectors.clamp(qmin.y, tbmin.y, tbmax.y) - tbmin.y
-            val minz = Vectors.clamp(qmin.z, tbmin.z, tbmax.z) - tbmin.z
-            val maxx = Vectors.clamp(qmax.x, tbmin.x, tbmax.x) - tbmin.x
-            val maxy = Vectors.clamp(qmax.y, tbmin.y, tbmax.y) - tbmin.y
-            val maxz = Vectors.clamp(qmax.z, tbmin.z, tbmax.z) - tbmin.z
+            val minx = Vectors.clamp(bounds.minX, tb.minX, tb.maxX) - tb.minX
+            val miny = Vectors.clamp(bounds.minY, tb.minY, tb.maxY) - tb.minY
+            val minz = Vectors.clamp(bounds.minZ, tb.minZ, tb.maxZ) - tb.minZ
+            val maxx = Vectors.clamp(bounds.maxX, tb.minX, tb.maxX) - tb.minX
+            val maxy = Vectors.clamp(bounds.maxY, tb.minY, tb.maxY) - tb.minY
+            val maxz = Vectors.clamp(bounds.maxZ, tb.minZ, tb.maxZ) - tb.minZ
             // Quantize
-            val bmin = Vector3i(
+            val bmin = AABBi(
                 (qfac * minx).toInt() and 0x7ffffffe,
                 (qfac * miny).toInt() and 0x7ffffffe,
-                (qfac * minz).toInt() and 0x7ffffffe
-            )
-            val bmax = Vector3i(
+                (qfac * minz).toInt() and 0x7ffffffe,
                 (qfac * maxx + 1).toInt() or 1,
                 (qfac * maxy + 1).toInt() or 1,
                 (qfac * maxz + 1).toInt() or 1
@@ -480,7 +478,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             val end = data.header.bvNodeCount
             while (nodeIndex < end) {
                 val node = data.bvTree!![nodeIndex]
-                val overlap: Boolean = Vectors.overlapQuantBounds(bmin, bmax, node)
+                val overlap = Vectors.overlapQuantBounds(bmin, node)
                 val isLeafNode = node.index >= 0
                 if (isLeafNode && overlap) {
                     val ref = base or node.index.toLong()
@@ -496,8 +494,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 }
             }
         } else {
-            val bmin = Vector3f()
-            val bmax = Vector3f()
+            val meshBounds = AABBf()
             val base = nav1.getPolyRefBase(tile)
             for (i in 0 until data.polyCount) {
                 val p = data.polygons[i]
@@ -510,15 +507,11 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     continue
                 }
                 // Calc polygon bounds.
-                var v = p.vertices[0] * 3
-                bmin.set(data.vertices, v)
-                bmax.set(data.vertices, v)
-                for (j in 1 until p.vertCount) {
-                    v = p.vertices[j] * 3
-                    Vectors.min(bmin, data.vertices, v)
-                    Vectors.max(bmax, data.vertices, v)
+                meshBounds.clear()
+                for (j in 0 until p.vertCount) {
+                    meshBounds.union(data.vertices, p.vertices[j] * 3)
                 }
-                if (Vectors.overlapBounds(qmin, qmax, bmin, bmax)) {
+                if (bounds.testAABB(meshBounds)) {
                     query.process(tile, p, ref)
                 }
             }
@@ -539,10 +532,10 @@ open class NavMeshQuery(val nav1: NavMesh) {
     fun queryPolygons(center: Vector3f, halfExtents: Vector3f, filter: QueryFilter, query: PolyQuery): Status {
         if (!center.isFinite || !halfExtents.isFinite) return Status.FAILURE_INVALID_PARAM
         // Find tiles the query touches.
-        val bmin = Vector3f(center).sub(halfExtents)
-        val bmax = Vector3f(center).add(halfExtents)
+        val bounds = AABBf(center)
+            .addMargin(halfExtents.x, halfExtents.y, halfExtents.z)
         for (t in queryTiles(center, halfExtents)) {
-            queryPolygonsInTile(t, bmin, bmax, filter, query)
+            queryPolygonsInTile(t, bounds, filter, query)
         }
         return Status.SUCCESS
     }
@@ -1127,7 +1120,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         if (queryData.status.isFailed) {
             // Reset query.
             queryData = QueryData()
-            return Result.failure(LongArrayList.empty)
+            return Result.failure(PathQueryResult.empty)
         }
         val path = if (queryData.startRef == queryData.endRef) {
             // Special case: the search starts and ends at same poly.
@@ -1154,19 +1147,18 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * Finalizes and returns the results of an incomplete sliced path query, returning the path to the furthest
      * polygon on the existing path that was visited during the search.
      * @param existing An array of polygon references for the existing path.
-     * @param existingSize The number of polygon in the @p existing array.
      * @param path An ordered list of polygon references representing the path. (Start to end.)
      * [(polyRef) * @p pathCount]
      * @returns The status flags for the query.
      */
     open fun finalizeSlicedFindPathPartial(existing: LongArrayList): Result<LongArrayList> {
         if (existing.isEmpty()) {
-            return Result.failure(LongArrayList.empty)
+            return Result.failure(PathQueryResult.empty)
         }
         if (queryData.status.isFailed) {
             // Reset query.
             queryData = QueryData()
-            return Result.failure(LongArrayList.empty)
+            return Result.failure(PathQueryResult.empty)
         }
         val path = if (queryData.startRef == queryData.endRef) {
             // Special case: the search starts and ends at same poly.
@@ -2997,6 +2989,5 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 segmentCache.removeLastOrNull() ?: FloatArray(6)
             }
         }
-
     }
 }

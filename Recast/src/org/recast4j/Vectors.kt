@@ -19,6 +19,8 @@ freely, subject to the following restrictions:
 package org.recast4j
 
 import me.anno.utils.structures.tuples.FloatPair
+import org.joml.AABBf
+import org.joml.AABBi
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.recast4j.detour.BVNode
@@ -185,17 +187,10 @@ object Vectors {
     /**
      * Determines if two axis-aligned bounding boxes overlap.
      */
-    fun overlapQuantBounds(amin: Vector3i, amax: Vector3i, n: BVNode): Boolean {
-        return amin.x <= n.maxX && amax.x >= n.minX && amin.y <= n.maxY && amax.y >= n.minY && amin.z <= n.maxZ && amax.z >= n.minZ
-    }
-
-    /**
-     * Determines if two axis-aligned bounding boxes overlap.
-     */
-    fun overlapBounds(amin: Vector3f, amax: Vector3f, bmin: Vector3f, bmax: Vector3f): Boolean {
-        return amin.x <= bmax.x && amax.x >= bmin.x &&
-                amin.y <= bmax.y && amax.y >= bmin.y &&
-                amin.z <= bmax.z && amax.z >= bmin.z
+    fun overlapQuantBounds(a: AABBi, n: BVNode): Boolean {
+        return a.minX <= n.maxX && a.maxX >= n.minX &&
+                a.minY <= n.maxY && a.maxY >= n.minY &&
+                a.minZ <= n.maxZ && a.maxZ >= n.minZ
     }
 
     fun distancePtSegSqr2D(pt: Vector3f, p: Vector3f, q: Vector3f): FloatPair {

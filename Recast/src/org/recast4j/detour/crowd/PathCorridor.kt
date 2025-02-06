@@ -18,8 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
-import org.joml.Vector3f
 import org.recast4j.LongArrayList
+import org.joml.Vector3f
 import org.recast4j.Vectors.dist2D
 import org.recast4j.Vectors.dist2DSqr
 import org.recast4j.detour.NavMeshQuery
@@ -176,7 +176,7 @@ class PathCorridor {
         // Concatenate paths.
 
         // Adjust beginning of the buffer to include the visited.
-        visited.shrink(furthestVisited)
+        visited.size = furthestVisited
         visited.addAll(path, furthestPath, path.size)
         return visited
     }
@@ -481,8 +481,8 @@ class PathCorridor {
             pos.set(safePos)
             path.clear()
             path.add(safeRef)
-        } else if (n < path.size) {
-            path.shrink(n)
+        } else {
+            path.size = min(path.size, n)
             // The path is partially usable.
         }
         // Clamp target pos to last poly

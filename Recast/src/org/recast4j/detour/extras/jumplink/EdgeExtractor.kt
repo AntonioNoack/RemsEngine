@@ -1,5 +1,6 @@
 package org.recast4j.detour.extras.jumplink
 
+import org.joml.Vector3f
 import org.recast4j.Vectors
 import org.recast4j.recast.PolyMesh
 import org.recast4j.recast.RecastConstants
@@ -8,7 +9,7 @@ object EdgeExtractor {
     fun extractEdges(mesh: PolyMesh?): List<Edge> {
         mesh ?: return emptyList()
         val edges = ArrayList<Edge>()
-        val orig = mesh.bmin
+        val orig = mesh.bounds.getMin(Vector3f())
         val cs = mesh.cellSize
         val ch = mesh.cellHeight
         for (i in 0 until mesh.numPolygons) {

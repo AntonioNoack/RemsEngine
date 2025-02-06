@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
-import org.recast4j.FloatArrayList
+import me.anno.utils.structures.arrays.FloatArrayList
 import org.recast4j.LongArrayList
 
 class FindPolysAroundResult(val refs: LongArrayList, val parentRefs: LongArrayList, val costs: FloatArrayList)

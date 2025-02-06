@@ -17,12 +17,10 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
+
 abstract class AbstractCollider(
     protected val area: Int,
     protected val flagMergeThreshold: Float,
-    protected val bounds: FloatArray
-) : Collider {
-    override fun bounds(): FloatArray {
-        return bounds
-    }
-}
+    override val bounds: AABBf
+) : Collider

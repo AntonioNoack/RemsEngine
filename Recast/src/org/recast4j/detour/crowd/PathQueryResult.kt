@@ -17,10 +17,14 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
-import org.recast4j.LongArrayList.Companion.empty
+import org.recast4j.LongArrayList
 import org.recast4j.detour.Status
 
 class PathQueryResult {
     var status: Status = Status.NULL
     var path = empty
+
+    companion object {
+        val empty = LongArrayList(0)
+    }
 }

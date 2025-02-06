@@ -4,10 +4,9 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBf
-import org.joml.Vector3f
 import org.recast4j.recast.ConvexVolume
 import org.recast4j.recast.geom.InputGeomProvider
 import org.recast4j.recast.geom.TriMesh
@@ -20,7 +19,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
     }
 
     val meshes1 = ArrayList<TriMesh>()
-    val bounds = AABBf()
+    override val bounds = AABBf()
 
     init {
         world.forAllComponentsInChildren(MeshComponentBase::class) {
@@ -57,7 +56,4 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
 
     // those are extra
     override fun convexVolumes() = emptyList<ConvexVolume>()
-
-    override val meshBoundsMin = Vector3f(bounds.minX, bounds.minY, bounds.minZ)
-    override val meshBoundsMax = Vector3f(bounds.maxX, bounds.maxY, bounds.maxZ)
 }

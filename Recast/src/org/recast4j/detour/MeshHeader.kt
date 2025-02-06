@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import org.joml.AABBf
 import org.joml.Vector3f
 
 /** Provides high level information related to a dtMeshTile object.  */
@@ -77,11 +78,7 @@ open class MeshHeader {
     /** The maximum climb height of the agents using the tile.  */
     var walkableClimb = 0f
 
-    /** The minimum bounds of the tile's AABB.  */
-    val bmin = Vector3f()
-
-    /** The maximum bounds of the tile's AABB. [(x, y, z)]  */
-    val bmax = Vector3f()
+    val bounds = AABBf()
 
     /** The bounding volume quantization factor.  */
     var bvQuantizationFactor = 0f

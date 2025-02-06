@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 /**
  * Represents a group of related contours.
@@ -29,11 +29,7 @@ class ContourSet {
      */
     val contours = ArrayList<Contour>()
 
-    /**
-     * The bounds in world space.
-     */
-    val bmin = Vector3f()
-    val bmax = Vector3f()
+    val bounds = AABBf()
     var cellSize = 0f
     var cellHeight = 0f
 

@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.joml.AABBf
 import org.joml.Vector3f
 
 /**
@@ -54,11 +55,7 @@ class PolyMesh {
      */
     lateinit var flags: IntArray
 
-    /**
-     * The bounds.
-     */
-    val bmin = Vector3f()
-    val bmax = Vector3f()
+    val bounds = AABBf()
     var cellSize = 0f
     var cellHeight = 0f
 

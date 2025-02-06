@@ -18,35 +18,37 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast.geom
 
-import java.util.*
+import org.joml.AABBf
+import org.recast4j.detour.NavMeshDataCreateParams.Companion.i0
+import java.util.Arrays
 import kotlin.math.min
 
 class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerChunk: Int) {
-    open class Node0 {
+
+    class Node {
         var minX = 0f
         var minY = 0f
         var maxX = 0f
         var maxY = 0f
         var i = 0
+
+        // empty for branches
+        var triangles: IntArray = i0
     }
 
-    class Node1 : Node0() {
-        lateinit var triangles: IntArray
-    }
-
-    private object CompareItemX : Comparator<Node0> {
-        override fun compare(a: Node0, b: Node0): Int {
+    private object CompareItemX : Comparator<Node> {
+        override fun compare(a: Node, b: Node): Int {
             return a.minX.compareTo(b.minX)
         }
     }
 
-    private object CompareItemY : Comparator<Node0> {
-        override fun compare(a: Node0, b: Node0): Int {
+    private object CompareItemY : Comparator<Node> {
+        override fun compare(a: Node, b: Node): Int {
             return a.minY.compareTo(b.minY)
         }
     }
 
-    private fun calcExtends(items: Array<Node0>, startIndex: Int, endIndex: Int, dst: Node1) {
+    private fun calcExtends(items: Array<Node>, startIndex: Int, endIndex: Int, dst: Node) {
         var n = items[startIndex]
         dst.minX = n.minX
         dst.minY = n.minY
@@ -66,15 +68,15 @@ class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerC
     }
 
     private fun subdivide(
-        items: Array<Node0>,
+        items: Array<Node>,
         startIndex: Int,
         endIndex: Int,
         trisPerChunk: Int,
-        nodes: MutableList<Node1>,
+        nodes: MutableList<Node>,
         inTris: IntArray
     ) {
         val length = endIndex - startIndex
-        val node = Node1()
+        val node = Node()
         nodes.add(node)
         if (length <= trisPerChunk) {
 
@@ -116,7 +118,7 @@ class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerC
     }
 
     val numChunks = (numTris + trisPerChunk - 1) / trisPerChunk
-    var nodes: ArrayList<Node1> = ArrayList(numChunks)
+    val nodes = ArrayList<Node>(numChunks)
     var numTriangles = numTris
     var maxTrisPerChunk: Int
 
@@ -126,13 +128,13 @@ class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerC
         maxTrisPerChunk = calculateMaxTrisPerChunk()
     }
 
-    private fun buildTree(numTris: Int, vertices: FloatArray, tris: IntArray): Array<Node0> {
+    private fun buildTree(numTris: Int, vertices: FloatArray, tris: IntArray): Array<Node> {
         return Array(numTris) { i -> buildTreeNode(i, vertices, tris) }
     }
 
-    private fun buildTreeNode(i: Int, vertices: FloatArray, tris: IntArray): Node0 {
+    private fun buildTreeNode(i: Int, vertices: FloatArray, tris: IntArray): Node {
         val t = i * 3
-        val it = Node0()
+        val it = Node()
         it.i = i
         // Calc triangle XZ bounds.
         it.maxX = vertices[tris[t] * 3]
@@ -171,17 +173,18 @@ class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerC
         return maxTrisPerChunk
     }
 
-    private fun checkOverlapRect(aMin: FloatArray, aMax: FloatArray, b: Node1): Boolean {
-        return aMin[0] <= b.maxX && aMax[0] >= b.minX && aMin[1] <= b.maxY && aMax[1] >= b.minY
+    private fun checkOverlapRect(a: AABBf, b: Node): Boolean {
+        return a.minX <= b.maxX && a.maxX >= b.minX &&
+                a.minZ <= b.maxY && a.maxZ >= b.minY
     }
 
-    fun getChunksOverlappingRect(bmin: FloatArray, bmax: FloatArray): List<Node1> {
+    fun getChunksOverlappingRect(bounds: AABBf): List<Node> {
         // Traverse tree
-        val ids = ArrayList<Node1>()
+        val ids = ArrayList<Node>()
         var i = 0
         while (i < nodes.size) {
             val node = nodes[i]
-            val overlap = checkOverlapRect(bmin, bmax, node)
+            val overlap = checkOverlapRect(bounds, node)
             val isLeafNode = node.i >= 0
             if (isLeafNode && overlap) {
                 ids.add(node)
@@ -195,12 +198,12 @@ class ChunkyTriMesh(vertices: FloatArray, tris: IntArray, numTris: Int, trisPerC
         return ids
     }
 
-    fun foreachChunkOverlappingRect(bmin: FloatArray, bmax: FloatArray, callback: (Node1) -> Unit) {
+    fun foreachChunkOverlappingRect(bounds: AABBf, callback: (Node) -> Unit) {
         // Traverse tree
         var i = 0
         while (i < nodes.size) {
             val node = nodes[i]
-            val overlap = checkOverlapRect(bmin, bmax, node)
+            val overlap = checkOverlapRect(bounds, node)
             val isLeafNode = node.i >= 0
             val x = isLeafNode && overlap
             if (x) callback(node)

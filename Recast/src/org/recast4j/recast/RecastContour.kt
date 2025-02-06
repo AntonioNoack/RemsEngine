@@ -174,8 +174,7 @@ object RecastContour {
         points: IntArrayList, simplified: IntArrayList, maxError: Float, maxEdgeLen: Int,
         buildFlags: Int
     ) {
-        var hasConnections = addInitialPoints(points)
-        if (hasConnections) {
+        if (addInitialPoints(points)) {
             // The contour has some portals to other regions.
             // Add a new point to every location where the region changes.
             addPointsForPortals(simplified, points)
@@ -621,7 +620,7 @@ object RecastContour {
      * Simplified contours are generated such that the vertices for portals between areas match up.
      * (They are considered mandatory vertices.)
      *
-     * Setting @p maxEdgeLength to zero will disabled the edge length feature.
+     * Setting @p maxEdgeLength to zero will disable the edge length feature.
      *
      * See the #rcConfig documentation for more information on the configuration parameters.
      *
@@ -639,13 +638,10 @@ object RecastContour {
         val borderSize = chf.borderSize
         val cset = ContourSet()
         ctx?.startTimer(TelemetryType.CONTOURS)
-        cset.bmin.set(chf.bmin)
-        cset.bmax.set(chf.bmax)
+        cset.bounds.set(chf.bounds)
         if (borderSize > 0) {
-            // If the heightfield was build with bordersize, remove the offset.
-            val pad = borderSize * chf.cellSize
-            cset.bmin.add(pad, 0f, pad, cset.bmin)
-            cset.bmax.sub(pad, 0f, pad, cset.bmin)
+            // If the heightfield was build with borderSize, remove the offset.
+            cset.bounds.addMargin(borderSize * chf.cellSize)
         }
         cset.cellSize = chf.cellSize
         cset.cellHeight = chf.cellHeight
@@ -727,7 +723,7 @@ object RecastContour {
             vs[l] = simplified[l]
         }
         if (borderSize > 0) {
-            // If the heightfield was build with bordersize, remove the offset.
+            // If the heightfield was build with borderSize, remove the offset.
             for (j in 0 until cont.numVertices) {
                 vs[j * 4] -= borderSize
                 vs[j * 4 + 2] -= borderSize
@@ -736,7 +732,7 @@ object RecastContour {
         cont.numRawVertices = vertices.size / 4
         cont.rawVertices = vertices.toIntArray()
         if (borderSize > 0) {
-            // If the heightfield was build with bordersize, remove the offset.
+            // If the heightfield was build with borderSize, remove the offset.
             for (j in 0 until cont.numRawVertices) {
                 cont.rawVertices[j * 4] -= borderSize
                 cont.rawVertices[j * 4 + 2] -= borderSize

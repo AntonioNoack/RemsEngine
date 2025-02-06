@@ -54,8 +54,7 @@ class AgentController1a(
         super.findNextTarget()
         val flagTransform = flag.transform
         val crowdAgent = crowdAgent ?: return
-        flagTransform.globalPosition = flagTransform.globalPosition.set(crowdAgent.targetPosOrVel)
-        flagTransform.teleportUpdate()
+        flagTransform.setLocalPosition(crowdAgent.targetPosOrVel)
     }
 
     private var upDownAngle = 0.0

@@ -18,38 +18,51 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.tilecache
 
-import org.joml.Vector3f
+import me.anno.utils.assertions.assertTrue
 import org.recast4j.LongArrayList
+import org.joml.AABBf
+import org.joml.Vector3f
 import org.recast4j.Vectors.ilog2
 import org.recast4j.Vectors.nextPow2
-import org.recast4j.Vectors.overlapBounds
 import org.recast4j.detour.NavMesh
 import org.recast4j.detour.NavMesh.Companion.computeTileHash
 import org.recast4j.detour.NavMeshBuilder.createNavMeshData
 import org.recast4j.detour.NavMeshDataCreateParams
 import org.recast4j.detour.tilecache.TileCacheObstacle.TileCacheObstacleType
+import org.recast4j.detour.tilecache.builder.TileCacheBuilder
 import org.recast4j.detour.tilecache.io.TileCacheLayerHeaderReader
-import java.io.IOException
 import java.nio.ByteBuffer
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
 
 class TileCache(
     val params: TileCacheParams, private val storageParams: TileCacheStorageParams, val navMesh: NavMesh,
-    private val tmProcess: TileCacheMeshProcess?
+    private val meshProcess: TileCacheMeshProcess?
 ) {
 
     /** Tile hash lookup.  */
     private val posLookup = HashMap<Long, CompressedTile>()
 
-    private val tiles: Array<CompressedTile?>
+    private val tiles = arrayOfNulls<CompressedTile?>(params.maxTiles)
 
-    private val numSaltBitsInTileID: Int
-    private val numTileBitsInTileID: Int
-    private val obstacles: MutableList<TileCacheObstacle> = ArrayList()
-    private var nextFreeObstacle: TileCacheObstacle? = null
-    private val requests: MutableList<ObstacleRequest> = ArrayList()
+    private val numTileBitsInTileID = ilog2(nextPow2(params.maxTiles))
+    private val numSaltBitsInTileID = min(31, 32 - numTileBitsInTileID)
+
+    init {
+        assertTrue(numSaltBitsInTileID >= 10) {
+            throw RuntimeException("Too few salt bits: $numSaltBitsInTileID")
+        }
+    }
+
+    private val obstacles = ArrayList<TileCacheObstacle>()
+    private val requests = ArrayList<ObstacleRequest>()
     private val update = LongArrayList()
-    private val builder = TileCacheBuilder()
+
+    private var nextFreeObstacle: TileCacheObstacle? = null
+
     private fun contains(a: LongArrayList, v: Long): Boolean {
         return a.contains(v)
     }
@@ -82,15 +95,7 @@ class TileCache(
         return (ref and tileMask).toInt()
     }
 
-    init {
-        tiles = arrayOfNulls(params.maxTiles)
-        numTileBitsInTileID = ilog2(nextPow2(params.maxTiles))
-        numSaltBitsInTileID = min(31, 32 - numTileBitsInTileID)
-        if (numSaltBitsInTileID < 10) {
-            throw RuntimeException("Too few salt bits: $numSaltBitsInTileID")
-        }
-    }
-
+    @Suppress("unused")
     fun getTileByRef(ref: Long): CompressedTile? {
         if (ref == 0L) return null
         val tileIndex = decodeTileIdTile(ref)
@@ -141,6 +146,7 @@ class TileCache(
         return encodeObstacleId(ob.salt, idx)
     }
 
+    @Suppress("unused")
     fun getObstacleByRef(ref: Long): TileCacheObstacle? {
         if (ref == 0L) return null
         val idx = decodeObstacleIdObstacle(ref)
@@ -150,7 +156,6 @@ class TileCache(
         return if (ob.salt != salt) null else ob
     }
 
-    @Throws(IOException::class)
     fun addTile(data: ByteArray, flags: Int): Long {
         // Make sure the data is in right format.
         val buf = ByteBuffer.wrap(data)
@@ -176,10 +181,9 @@ class TileCache(
         return i + 3 and 3.inv()
     }
 
+    @Suppress("unused")
     fun removeTile(ref: Long) {
-        if (ref == 0L) {
-            throw RuntimeException("Invalid tile ref")
-        }
+        assertTrue(ref != 0L, "Invalid tile ref")
         val tileIndex = decodeTileIdTile(ref)
         val tileSalt = decodeTileIdSalt(ref)
         if (tileIndex >= params.maxTiles) {
@@ -206,6 +210,7 @@ class TileCache(
     /**
      * Cylinder obstacle
      */
+    @Suppress("unused")
     fun addObstacle(pos: Vector3f, radius: Float, height: Float): Long {
         val ob = allocObstacle()
         ob.type = TileCacheObstacleType.CYLINDER
@@ -218,24 +223,25 @@ class TileCache(
     /**
      * Aabb obstacle
      */
-    fun addBoxObstacle(bmin: FloatArray, bmax: FloatArray): Long {
+    @Suppress("unused")
+    fun addBoxObstacle(bounds: AABBf): Long {
         val ob = allocObstacle()
         ob.type = TileCacheObstacleType.BOX
-        ob.bmin.set(bmin)
-        ob.bmax.set(bmax)
+        ob.bounds.set(bounds)
         return addObstacleRequest(ob).ref
     }
 
     /**
      * Box obstacle: can be rotated in Y
      */
+    @Suppress("unused")
     fun addBoxObstacle(center: Vector3f, extents: FloatArray, yRadians: Float): Long {
         val ob = allocObstacle()
         ob.type = TileCacheObstacleType.ORIENTED_BOX
         ob.center.set(center)
         ob.extents.set(extents)
-        val coshalf = cos((0.5f * yRadians))
-        val sinhalf = sin((-0.5f * yRadians))
+        val coshalf = cos(0.5f * yRadians)
+        val sinhalf = sin(-0.5f * yRadians)
         ob.rotAux[0] = coshalf * sinhalf
         ob.rotAux[1] = coshalf * coshalf - 0.5f
         return addObstacleRequest(ob).ref
@@ -249,10 +255,9 @@ class TileCache(
         return req
     }
 
+    @Suppress("unused")
     fun removeObstacle(ref: Long) {
-        if (ref == 0L) {
-            return
-        }
+        if (ref == 0L) return
         val req = ObstacleRequest()
         req.action = ObstacleRequestAction.REQUEST_REMOVE
         req.ref = ref
@@ -274,29 +279,24 @@ class TileCache(
         return o
     }
 
-    fun queryTiles(bmin: Vector3f, bmax: Vector3f): LongArrayList {
+    fun queryTiles(bounds: AABBf): LongArrayList {
         val results = LongArrayList()
         val tw = params.width * params.cellSize
         val th = params.height * params.cellSize
-        val tx0 = floor(((bmin.x - params.orig.x) / tw)).toInt()
-        val tx1 = floor(((bmax.x - params.orig.x) / tw)).toInt()
-        val ty0 = floor(((bmin.z - params.orig.z) / th)).toInt()
-        val ty1 = floor(((bmax.z - params.orig.z) / th)).toInt()
-        val tbmin = Vector3f()
-        val tbmax = Vector3f()
+        val tx0 = floor(((bounds.minX - params.orig.x) / tw)).toInt()
+        val tx1 = floor(((bounds.maxX - params.orig.x) / tw)).toInt()
+        val ty0 = floor(((bounds.minZ - params.orig.z) / th)).toInt()
+        val ty1 = floor(((bounds.maxZ - params.orig.z) / th)).toInt()
+        val tb = AABBf()
         for (ty in ty0..ty1) {
             for (tx in tx0..tx1) {
-                val tiles = getTilesAt(tx, ty)
-                var i = 0
-                val l = tiles.size
-                while (i < l) {
-                    val t = tiles[i]
-                    val tile = this.tiles[decodeTileIdTile(t)]
-                    calcTightTileBounds(tile!!, tbmin, tbmax)
-                    if (overlapBounds(bmin, bmax, tbmin, tbmax)) {
+                val tilesAt = getTilesAt(tx, ty)
+                for (i in 0 until tilesAt.size) {
+                    val t = tilesAt[i]
+                    val tile = this.tiles[decodeTileIdTile(t)] ?: continue
+                    if (bounds.testAABB(calcTightTileBounds(tile, tb))) {
                         results.add(t)
                     }
-                    i++
                 }
             }
         }
@@ -325,10 +325,9 @@ class TileCache(
                 }
                 if (req.action == ObstacleRequestAction.REQUEST_ADD) {
                     // Find touched tiles.
-                    val bmin = Vector3f()
-                    val bmax = Vector3f()
-                    getObstacleBounds(ob, bmin, bmax)
-                    ob.touched = queryTiles(bmin, bmax)
+                    val bounds = AABBf()
+                    getObstacleBounds(ob, bounds)
+                    ob.touched = queryTiles(bounds)
                     // Add tiles to update list.
                     ob.pending.clear()
                     var i = 0
@@ -363,7 +362,7 @@ class TileCache(
 
         // Process updates
         if (!update.isEmpty()) {
-            val ref = update.remove(0)
+            val ref = update.removeAt(0)
             // Build mesh
             buildNavMeshTile(ref)
 
@@ -420,26 +419,21 @@ class TileCache(
             if (contains(ob.touched, ref)) {
                 when (ob.type) {
                     TileCacheObstacleType.CYLINDER -> {
-                        builder.markCylinderArea(
-                            layer, tile.bmin, params.cellSize, params.cellHeight, ob.pos, ob.radius,
-                            ob.height, 0
+                        TileCacheBuilder.markCylinderArea(
+                            layer, tile.bounds, params.cellSize,
+                            params.cellHeight, ob.pos, ob.radius, ob.height, 0
                         )
                     }
                     TileCacheObstacleType.BOX -> {
-                        builder.markBoxArea(
-                            layer,
-                            tile.bmin,
-                            params.cellSize,
-                            params.cellHeight,
-                            ob.bmin,
-                            ob.bmax,
-                            0
+                        TileCacheBuilder.markBoxArea(
+                            layer, tile.bounds, params.cellSize,
+                            params.cellHeight, ob.bounds, 0
                         )
                     }
                     TileCacheObstacleType.ORIENTED_BOX -> {
-                        builder.markBoxArea(
-                            layer, tile.bmin, params.cellSize, params.cellHeight, ob.center, ob.extents,
-                            ob.rotAux, 0
+                        TileCacheBuilder.markBoxArea(
+                            layer, tile.bounds, params.cellSize, params.cellHeight,
+                            ob.center, ob.extents, ob.rotAux, 0
                         )
                     }
                     else -> {}
@@ -447,12 +441,12 @@ class TileCache(
             }
         }
         // Build navmesh
-        builder.buildTileCacheRegions(layer, walkableClimbVx)
-        val contours = builder.buildTileCacheContours(
+        TileCacheBuilder.buildTileCacheRegions(layer, walkableClimbVx)
+        val contours = TileCacheBuilder.buildTileCacheContours(
             layer, walkableClimbVx,
             params.maxSimplificationError
         )
-        val polyMesh = builder.buildTileCachePolyMesh(contours, navMesh.maxVerticesPerPoly)
+        val polyMesh = TileCacheBuilder.buildTileCachePolyMesh(contours, navMesh.maxVerticesPerPoly)
         // Early out if the mesh tile is empty.
         if (polyMesh.numPolygons == 0) {
             navMesh.removeTile(navMesh.getTileRefAt(tile.tx, tile.ty, tile.tlayer))
@@ -475,9 +469,8 @@ class TileCache(
         params.cellSize = this.params.cellSize
         params.cellHeight = this.params.cellHeight
         params.buildBvTree = false
-        params.bmin = tile.bmin
-        params.bmax = tile.bmax
-        tmProcess?.process(params)
+        params.bounds = tile.bounds
+        meshProcess?.process(params)
         val meshData = createNavMeshData(params)
         // Remove existing tile.
         navMesh.removeTile(navMesh.getTileRefAt(tile.tx, tile.ty, tile.tlayer))
@@ -488,49 +481,38 @@ class TileCache(
     }
 
     fun decompressTile(tile: CompressedTile): TileCacheLayer {
-        return builder.decompressTileCacheLayer(
+        return TileCacheBuilder.decompressTileCacheLayer(
             tile.data!!, storageParams.byteOrder,
             storageParams.cCompatibility
         )
     }
 
-    fun calcTightTileBounds(header: TileCacheLayerHeader, bmin: Vector3f, bmax: Vector3f) {
+    fun calcTightTileBounds(header: TileCacheLayerHeader, dst: AABBf): AABBf {
         val cs = params.cellSize
-        bmin.x = header.bmin.x + header.minx * cs
-        bmin.y = header.bmin.y
-        bmin.z = header.bmin.z + header.miny * cs
-        bmax.x = header.bmin.x + (header.maxx + 1) * cs
-        bmax.y = header.bmax.y
-        bmax.z = header.bmin.z + (header.maxy + 1) * cs
+        dst.set(header.bounds)
+        dst.minX += header.minx * cs
+        dst.minZ += header.miny * cs
+        dst.maxX += (header.maxx + 1) * cs
+        dst.maxZ += (header.maxy + 1) * cs
+        return dst
     }
 
-    fun getObstacleBounds(ob: TileCacheObstacle, bmin: Vector3f, bmax: Vector3f) {
+    fun getObstacleBounds(ob: TileCacheObstacle, dst: AABBf) {
         when (ob.type) {
-            TileCacheObstacleType.CYLINDER -> {
-                val pos = ob.pos
-                bmin.x = pos.x - ob.radius
-                bmin.y = pos.y
-                bmin.z = pos.z - ob.radius
-                bmax.x = pos.x + ob.radius
-                bmax.y = pos.y + ob.height
-                bmax.z = pos.z + ob.radius
-            }
-            TileCacheObstacleType.BOX -> {
-                bmin.set(ob.bmin)
-                bmax.set(ob.bmax)
-            }
+            TileCacheObstacleType.CYLINDER -> setAABB(dst, ob.pos, ob.radius, 0f, ob.height)
+            TileCacheObstacleType.BOX -> dst.set(ob.bounds)
             TileCacheObstacleType.ORIENTED_BOX -> {
                 val maxRadius = 1.41f * max(ob.extents.x, ob.extents.z)
-                val center = ob.center
-                bmin.x = center.x - maxRadius
-                bmax.x = center.x + maxRadius
-                bmin.y = center.y - ob.extents.y
-                bmax.y = center.y + ob.extents.y
-                bmin.z = center.z - maxRadius
-                bmax.z = center.z + maxRadius
+                setAABB(dst, ob.center, maxRadius, -ob.extents.y, ob.extents.y)
             }
             else -> {}
         }
+    }
+
+    private fun setAABB(dst: AABBf, pos: Vector3f, radius: Float, y0: Float, y1: Float) {
+        dst
+            .setMin(pos.x - radius, pos.y + y0, pos.z - radius)
+            .setMax(pos.x + radius, pos.y + y1, pos.z + radius)
     }
 
     val tileCount: Int

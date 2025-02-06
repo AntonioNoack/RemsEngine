@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic
 
+import org.joml.AABBf
 import org.recast4j.LongHashMap
 import org.recast4j.detour.NavMesh
 import org.recast4j.detour.NavMeshParams
@@ -33,7 +34,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Consumer
 import java.util.stream.Collectors
 import kotlin.math.floor
 
@@ -64,7 +64,7 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
         config.buildDetailMesh = voxelFile.buildMeshDetail
         config.detailSampleDistance = voxelFile.detailSampleDistance
         config.detailSampleMaxError = voxelFile.detailSampleMaxError
-        navMeshParams.origin.set(voxelFile.bounds)
+        voxelFile.bounds.getMin(navMeshParams.origin)
         navMeshParams.tileWidth = voxelFile.cellSize * voxelFile.tileSizeX
         navMeshParams.tileHeight = voxelFile.cellSize * voxelFile.tileSizeZ
         navMeshParams.maxPolys = 0x8000
@@ -72,6 +72,7 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
             tiles[lookupKey(t.tileX.toLong(), t.tileZ.toLong())] = DynamicTile(t)
         }
     }
+
     /**
      * Voxel queries require checkpoints to be enabled in [DynamicNavMeshConfig]
      */
@@ -87,12 +88,14 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
         return getTileAt(x, z)?.checkpoint?.heightfield
     }
 
+    @Suppress("unused")
     fun addCollider(collider: Collider): Long {
         val cid = currentColliderId.incrementAndGet()
-        updateQueue.add(AddColliderQueueItem(cid, collider, getTiles(collider.bounds())))
+        updateQueue.add(AddColliderQueueItem(cid, collider, getTiles(collider.bounds)))
         return cid
     }
 
+    @Suppress("unused")
     fun removeCollider(colliderId: Long) {
         updateQueue.add(RemoveColliderQueueItem(colliderId, getTilesByCollider(colliderId)))
     }
@@ -113,7 +116,7 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
     }
 
     private fun rebuild(stream: Collection<DynamicTile>, walkableAreaModification: AreaModification): Boolean {
-        stream.forEach(Consumer { tile: DynamicTile -> this.rebuild(tile, walkableAreaModification) })
+        stream.forEach { tile: DynamicTile -> this.rebuild(tile, walkableAreaModification) }
         return updateNavMesh()
     }
 
@@ -169,14 +172,11 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
         ).thenApply { updateNavMesh() }
     }
 
-    private fun getTiles(bounds: FloatArray?): Collection<DynamicTile> {
-        if (bounds == null) {
-            return tiles.values
-        }
-        val minx = floor(((bounds[0] - navMeshParams.origin.x) / navMeshParams.tileWidth)).toInt()
-        val minz = floor(((bounds[2] - navMeshParams.origin.z) / navMeshParams.tileHeight)).toInt()
-        val maxx = floor(((bounds[3] - navMeshParams.origin.x) / navMeshParams.tileWidth)).toInt()
-        val maxz = floor(((bounds[5] - navMeshParams.origin.z) / navMeshParams.tileHeight)).toInt()
+    private fun getTiles(bounds: AABBf): Collection<DynamicTile> {
+        val minx = floor(((bounds.minX - navMeshParams.origin.x) / navMeshParams.tileWidth)).toInt()
+        val minz = floor(((bounds.minZ - navMeshParams.origin.z) / navMeshParams.tileHeight)).toInt()
+        val maxx = floor(((bounds.maxX - navMeshParams.origin.x) / navMeshParams.tileWidth)).toInt()
+        val maxz = floor(((bounds.maxZ - navMeshParams.origin.z) / navMeshParams.tileHeight)).toInt()
         val tiles: MutableList<DynamicTile> = ArrayList()
         for (z in minz..maxz) {
             for (x in minx..maxx) {
@@ -222,6 +222,7 @@ class DynamicNavMesh(voxelFile: VoxelFile) {
         return tiles.values.map { it.voxelTile }
     }
 
+    @Suppress("unused")
     fun recastResults(): List<RecastBuilderResult?> {
         return tiles.values.map { it.recastResult }
     }

@@ -7,7 +7,7 @@ import me.anno.utils.pooling.FloatArrayPool
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
-open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
+open class FloatArrayList(initCapacity: Int = 16, val pool: FloatArrayPool? = null) :
     Saveable(), NativeArrayList, ICacheData {
 
     companion object {
@@ -38,12 +38,7 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("size", size)
-        val array = values
-        // clear the end, so we can save it with less space wasted
-        for (i in size until array.size) {
-            array[i] = 0f
-        }
-        writer.writeFloatArray("values", array)
+        writer.writeFloatArray("values", toFloatArray())
     }
 
     override fun setProperty(name: String, value: Any?) {

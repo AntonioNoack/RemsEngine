@@ -141,8 +141,6 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Nat
         values[size++] = value
     }
 
-    fun isEmpty(): Boolean = size <= 0
-
     fun contains(element: Int): Boolean {
         return indexOf(element) >= 0
     }
@@ -184,10 +182,6 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Nat
         }
         return dst
     }
-
-    val indices: IntRange get() = 0 until size
-    val lastIndex: Int get() = size - 1
-    fun isNotEmpty(): Boolean = !isEmpty()
 
     fun toIntArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): IntArray {
         val values = values

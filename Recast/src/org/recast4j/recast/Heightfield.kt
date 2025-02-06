@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 /** Represents a heightfield layer within a layer set.  */
 class Heightfield(
@@ -26,10 +26,8 @@ class Heightfield(
     val width: Int,
     /** The height of the heightfield. (Along the z-axis in cell units.)  */
     val height: Int,
-    /** The minimum bounds in world space. [(x, y, z)]  */
-    val bmin: Vector3f,
-    /** The maximum bounds in world space. [(x, y, z)]  */
-    val bmax: Vector3f,
+    /** The bounds in world space. [(x, y, z)]  */
+    val bounds: AABBf,
     val cellSize: Float,
     /** The minimum increment along the y-axis.  */
     val cellHeight: Float,
@@ -38,5 +36,4 @@ class Heightfield(
 ) {
     /** Heightfield of spans (width*height).  */
     val spans: Array<Span?> = arrayOfNulls(Math.multiplyExact(width, height))
-
 }

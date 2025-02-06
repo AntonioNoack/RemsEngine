@@ -17,18 +17,17 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.io
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.dynamic.DynamicNavMesh
-import org.recast4j.dynamic.collider.CompositeCollider.Companion.emptyBounds
 import org.recast4j.recast.AreaModification
 import org.recast4j.recast.PartitionType
 import org.recast4j.recast.RecastBuilder.RecastBuilderResult
 import org.recast4j.recast.RecastConfig
 import java.nio.ByteOrder
-import kotlin.math.max
-import kotlin.math.min
 
 class VoxelFile {
+
     var version = 0
     var partitionType: PartitionType = PartitionType.WATERSHED
     var filterLowHangingObstacles = true
@@ -51,7 +50,8 @@ class VoxelFile {
     var tileSizeX = 0
     var tileSizeZ = 0
     var rotation = Vector3f()
-    var bounds = FloatArray(6)
+    val bounds = AABBf()
+
     val tiles: MutableList<VoxelTile> = ArrayList()
     fun addTile(tile: VoxelTile) {
         tiles.add(tile)
@@ -124,17 +124,10 @@ class VoxelFile {
             f.useTiles = config.useTiles
             f.tileSizeX = config.tileSizeX
             f.tileSizeZ = config.tileSizeZ
-            f.bounds = emptyBounds()
+            f.bounds.clear()
             for (r in results) {
                 f.tiles.add(VoxelTile(r.tileX, r.tileZ, r.solidHeightField))
-                val bmin = r.solidHeightField.bmin
-                val bmax = r.solidHeightField.bmax
-                f.bounds[0] = min(f.bounds[0], bmin.x)
-                f.bounds[1] = min(f.bounds[1], bmin.y)
-                f.bounds[2] = min(f.bounds[2], bmin.z)
-                f.bounds[3] = max(f.bounds[3], bmax.x)
-                f.bounds[4] = max(f.bounds[4], bmax.y)
-                f.bounds[5] = max(f.bounds[5], bmax.z)
+                f.bounds.union(r.solidHeightField.bounds)
             }
             return f
         }
@@ -163,16 +156,11 @@ class VoxelFile {
             f.useTiles = config.useTiles
             f.tileSizeX = config.tileSizeX
             f.tileSizeZ = config.tileSizeZ
-            f.bounds = emptyBounds()
+            f.bounds.clear()
             for (vt in mesh.voxelTiles()) {
                 val heightfield = vt.heightfield()
                 f.tiles.add(VoxelTile(vt.tileX, vt.tileZ, heightfield))
-                f.bounds[0] = min(f.bounds[0], vt.boundsMin.x)
-                f.bounds[1] = min(f.bounds[1], vt.boundsMin.y)
-                f.bounds[2] = min(f.bounds[2], vt.boundsMin.z)
-                f.bounds[3] = max(f.bounds[3], vt.boundsMax.x)
-                f.bounds[4] = max(f.bounds[4], vt.boundsMax.y)
-                f.bounds[5] = max(f.bounds[5], vt.boundsMax.z)
+                f.bounds.union(vt.bounds)
             }
             return f
         }

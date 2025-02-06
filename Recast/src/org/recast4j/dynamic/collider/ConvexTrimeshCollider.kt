@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastFilledVolumeRasterization.rasterizeConvex
 import org.recast4j.recast.Telemetry
@@ -26,34 +27,24 @@ class ConvexTrimeshCollider : AbstractCollider {
     private val vertices: FloatArray
     private val triangles: IntArray
 
-    constructor(vertices: FloatArray, triangles: IntArray, area: Int, flagMergeThreshold: Float) : super(
-        area,
-        flagMergeThreshold,
-        TrimeshCollider.computeBounds(vertices)
-    ) {
+    constructor(vertices: FloatArray, triangles: IntArray, area: Int, flagMergeThreshold: Float) :
+            super(area, flagMergeThreshold, TrimeshCollider.computeBounds(vertices)) {
         this.vertices = vertices
         this.triangles = triangles
     }
 
     constructor(
-        vertices: FloatArray,
-        triangles: IntArray,
-        bounds: FloatArray?,
-        area: Int,
-        flagMergeThreshold: Float
-    ) : super(area, flagMergeThreshold, bounds!!) {
+        vertices: FloatArray, triangles: IntArray, bounds: AABBf,
+        area: Int, flagMergeThreshold: Float
+    ) : super(area, flagMergeThreshold, bounds) {
         this.vertices = vertices
         this.triangles = triangles
     }
 
     override fun rasterize(hf: Heightfield, telemetry: Telemetry?) {
         rasterizeConvex(
-            hf,
-            vertices,
-            triangles,
-            area,
-            floor((flagMergeThreshold / hf.cellHeight)).toInt(),
-            telemetry
+            hf, vertices, triangles, area,
+            floor((flagMergeThreshold / hf.cellHeight)).toInt(), telemetry
         )
     }
 }

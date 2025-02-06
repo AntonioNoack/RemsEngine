@@ -17,13 +17,12 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastFilledVolumeRasterization.rasterizeCapsule
 import org.recast4j.recast.Telemetry
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 
 class CapsuleCollider(
     private val start: Vector3f,
@@ -40,11 +39,8 @@ class CapsuleCollider(
     }
 
     companion object {
-        private fun bounds(start: Vector3f, end: Vector3f, radius: Float): FloatArray {
-            return floatArrayOf(
-                min(start.x, end.x) - radius, min(start.y, end.y) - radius, min(start.z, end.z) - radius,
-                max(start.x, end.x) + radius, max(start.y, end.y) + radius, max(start.z, end.z) + radius
-            )
+        private fun bounds(start: Vector3f, end: Vector3f, radius: Float): AABBf {
+            return AABBf(start).union(end).addMargin(radius)
         }
     }
 }

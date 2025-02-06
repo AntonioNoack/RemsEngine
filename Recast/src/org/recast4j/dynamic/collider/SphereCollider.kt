@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastFilledVolumeRasterization.rasterizeSphere
@@ -33,11 +34,8 @@ class SphereCollider(private val center: Vector3f, private val radius: Float, ar
     }
 
     companion object {
-        private fun bounds(center: Vector3f, radius: Float): FloatArray {
-            return floatArrayOf(
-                center.x - radius, center.y - radius, center.z - radius,
-                center.x + radius, center.y + radius, center.z + radius
-            )
+        private fun bounds(center: Vector3f, radius: Float): AABBf {
+            return AABBf(center).addMargin(radius)
         }
     }
 }

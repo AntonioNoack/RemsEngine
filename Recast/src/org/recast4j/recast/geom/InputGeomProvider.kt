@@ -18,10 +18,9 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast.geom
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 interface InputGeomProvider : ConvexVolumeProvider {
-    val meshBoundsMin: Vector3f
-    val meshBoundsMax: Vector3f
+    val bounds: AABBf
     fun meshes(): Iterable<TriMesh>
 }

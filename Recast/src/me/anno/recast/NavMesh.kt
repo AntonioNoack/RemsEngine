@@ -100,7 +100,7 @@ class NavMesh : Component(), OnDrawGUI {
             maxVerticesPerPoly, detailSampleDist, detailSampleMaxError, DefaultAreaModifications.GROUND
         )
 
-        val builderConfig = RecastBuilderConfig(config, geometry.meshBoundsMin, geometry.meshBoundsMax)
+        val builderConfig = RecastBuilderConfig(config, geometry.bounds)
         val built = RecastBuilder().build(geometry, builderConfig)
 
         val mesh = built.mesh
@@ -129,15 +129,13 @@ class NavMesh : Component(), OnDrawGUI {
         p.offMeshConDir = intArrayOf(1)
         p.offMeshConUserID = intArrayOf(0x4567)
         p.offMeshConCount = 1
-        p.bmin = mesh.bmin
-        p.bmax = mesh.bmax
+        p.bounds = mesh.bounds
         p.walkableHeight = agentHeight
         p.walkableRadius = agentRadius
         p.walkableClimb = agentMaxClimb
         p.cellSize = cellSize
         p.cellHeight = cellHeight
         p.buildBvTree = true
-
         return NavMeshBuilder.createNavMeshData(p)
     }
 
@@ -148,7 +146,7 @@ class NavMesh : Component(), OnDrawGUI {
         val data = data ?: return null
         val dv = data.vertices
         val ddv = data.detailVertices
-        val header = data.header!!
+        val header = data
         var triCount = 0
         for (i in 0 until header.polyCount) {
             val p = data.polygons[i]

@@ -89,12 +89,12 @@ class RecastArea {
     ) {
         // The value of spacial parameters are in world units.
         ctx?.startTimer(TelemetryType.MARK_BOX_AREA)
-        var minx = ((bmin.x - chf.bmin.x) / chf.cellSize).toInt()
-        val miny = ((bmin.y - chf.bmin.y) / chf.cellHeight).toInt()
-        var minz = ((bmin.z - chf.bmin.z) / chf.cellSize).toInt()
-        var maxx = ((bmax.x - chf.bmin.x) / chf.cellSize).toInt()
-        val maxy = ((bmax.y - chf.bmin.y) / chf.cellHeight).toInt()
-        var maxz = ((bmax.z - chf.bmin.z) / chf.cellSize).toInt()
+        var minx = ((bmin.x - chf.bounds.minX) / chf.cellSize).toInt()
+        val miny = ((bmin.y - chf.bounds.minY) / chf.cellHeight).toInt()
+        var minz = ((bmin.z - chf.bounds.minZ) / chf.cellSize).toInt()
+        var maxx = ((bmax.x - chf.bounds.minX) / chf.cellSize).toInt()
+        val maxy = ((bmax.y - chf.bounds.minY) / chf.cellHeight).toInt()
+        var maxz = ((bmax.z - chf.bounds.minZ) / chf.cellSize).toInt()
         minx = max(minx, 0)
         maxx = min(maxx, chf.width - 1)
         minz = max(minz, 0)
@@ -126,12 +126,12 @@ class RecastArea {
     ) {
         ctx?.startTimer(TelemetryType.MARK_CYLINDER_AREA)
         val r2 = r * r
-        var minx = ((pos.x - r - chf.bmin.x) / chf.cellSize).toInt()
-        val miny = ((pos.y - chf.bmin.y) / chf.cellHeight).toInt()
-        var minz = ((pos.z - r - chf.bmin.z) / chf.cellSize).toInt()
-        var maxx = ((pos.x + r - chf.bmin.x) / chf.cellSize).toInt()
-        var maxy = ((pos.y + h - chf.bmin.y) / chf.cellHeight).toInt()
-        val maxz = ((pos.z + r - chf.bmin.z) / chf.cellSize).toInt()
+        var minx = ((pos.x - r - chf.bounds.minX) / chf.cellSize).toInt()
+        val miny = ((pos.y - chf.bounds.minY) / chf.cellHeight).toInt()
+        var minz = ((pos.z - r - chf.bounds.minZ) / chf.cellSize).toInt()
+        var maxx = ((pos.x + r - chf.bounds.minX) / chf.cellSize).toInt()
+        var maxy = ((pos.y + h - chf.bounds.minY) / chf.cellHeight).toInt()
+        val maxz = ((pos.z + r - chf.bounds.minZ) / chf.cellSize).toInt()
         minx = max(minx, 0)
         minz = max(minz, 0)
         maxx = min(maxx, chf.width - 1)
@@ -145,8 +145,8 @@ class RecastArea {
                     }
                     val s = chf.spans[i]
                     if (s.y in miny..maxy) {
-                        val sx = chf.bmin.x + (x + 0.5f) * chf.cellSize
-                        val sz = chf.bmin.z + (z + 0.5f) * chf.cellSize
+                        val sx = chf.bounds.minX + (x + 0.5f) * chf.cellSize
+                        val sz = chf.bounds.minZ + (z + 0.5f) * chf.cellSize
                         val dx = sx - pos.x
                         val dz = sz - pos.z
                         if (dx * dx + dz * dz < r2) {
@@ -298,12 +298,12 @@ class RecastArea {
             }
             bmin.y = hmin
             bmax.y = hmax
-            var minx = ((bmin.x - chf.bmin.x) / chf.cellSize).toInt()
-            val miny = ((bmin.y - chf.bmin.y) / chf.cellHeight).toInt()
-            var minz = ((bmin.z - chf.bmin.z) / chf.cellSize).toInt()
-            var maxx = ((bmax.x - chf.bmin.x) / chf.cellSize).toInt()
-            val maxy = ((bmax.y - chf.bmin.y) / chf.cellHeight).toInt()
-            var maxz = ((bmax.z - chf.bmin.z) / chf.cellSize).toInt()
+            var minx = ((bmin.x - chf.bounds.minX) / chf.cellSize).toInt()
+            val miny = ((bmin.y - chf.bounds.minY) / chf.cellHeight).toInt()
+            var minz = ((bmin.z - chf.bounds.minZ) / chf.cellSize).toInt()
+            var maxx = ((bmax.x - chf.bounds.minX) / chf.cellSize).toInt()
+            val maxy = ((bmax.y - chf.bounds.minY) / chf.cellHeight).toInt()
+            var maxz = ((bmax.z - chf.bounds.minZ) / chf.cellSize).toInt()
             minx = max(minx, 0)
             maxx = min(maxx, chf.width - 1)
             minz = max(minz, 0)
@@ -318,9 +318,9 @@ class RecastArea {
                         }
                         if (s.y in miny..maxy) {
                             val p = Vector3f()
-                            p.x = chf.bmin.x + (x + 0.5f) * chf.cellSize
+                            p.x = chf.bounds.minX + (x + 0.5f) * chf.cellSize
                             p.y = 0f
-                            p.z = chf.bmin.z + (z + 0.5f) * chf.cellSize
+                            p.z = chf.bounds.minZ + (z + 0.5f) * chf.cellSize
                             if (pointInPoly(vertices, p)) {
                                 chf.areas[j] = areaMod.apply(chf.areas[j])
                             }

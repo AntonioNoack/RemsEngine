@@ -18,18 +18,21 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.tilecache
 
-import org.joml.Vector3f
 import org.recast4j.LongArrayList
+import org.joml.AABBf
+import org.joml.Vector3f
 
 class TileCacheObstacle(val index: Int) {
+
     enum class TileCacheObstacleType {
-        CYLINDER, BOX, ORIENTED_BOX
+        CYLINDER,
+        BOX,
+        ORIENTED_BOX
     }
 
     var type: TileCacheObstacleType? = null
     val pos = Vector3f()
-    val bmin = Vector3f()
-    val bmax = Vector3f()
+    val bounds = AABBf()
     var radius = 0f
     var height = 0f
     val center = Vector3f()

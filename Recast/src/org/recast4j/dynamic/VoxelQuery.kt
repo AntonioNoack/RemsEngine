@@ -89,29 +89,29 @@ class VoxelQuery(
     ): Float {
         val ohf = heightfieldProvider(x, z)
         if (ohf != null) {
-            var tx = end.x - start.x
+            val tx = end.x - start.x
             val ty = end.y - start.y
-            var tz = end.z - start.z
+            val tz = end.z - start.z
             val entry = Vector3f(start.x + tMin * tx, start.y + tMin * ty, start.z + tMin * tz)
             val exit = Vector3f(start.x + tMax * tx, start.y + tMax * ty, start.z + tMax * tz)
-            val relStartX = entry.x - ohf.bmin.x
-            val relStartZ = entry.z - ohf.bmin.z
+            val relStartX = entry.x - ohf.bounds.minX
+            val relStartZ = entry.z - ohf.bounds.minZ
             var sx = floor((relStartX / ohf.cellSize)).toInt()
             var sz = floor((relStartZ / ohf.cellSize)).toInt()
-            val ex = floor(((exit.x - ohf.bmin.x) / ohf.cellSize)).toInt()
-            val ez = floor(((exit.z - ohf.bmin.z) / ohf.cellSize)).toInt()
+            val ex = floor(((exit.x - ohf.bounds.minX) / ohf.cellSize)).toInt()
+            val ez = floor(((exit.z - ohf.bounds.minZ) / ohf.cellSize)).toInt()
             val dx = ex - sx
             val dz = ez - sz
             val stepX = if (dx < 0) -1 else 1
             val stepZ = if (dz < 0) -1 else 1
             val xRem = ohf.cellSize + relStartX % ohf.cellSize % ohf.cellSize
             val zRem = ohf.cellSize + relStartZ % ohf.cellSize % ohf.cellSize
-            val xOffest = abs(if (tx < 0) xRem else ohf.cellSize - xRem)
-            val zOffest = abs(if (tz < 0) zRem else ohf.cellSize - zRem)
+            val xOffset = abs(if (tx < 0) xRem else ohf.cellSize - xRem)
+            val zOffset = abs(if (tz < 0) zRem else ohf.cellSize - zRem)
             val atx = 1f / abs(tx)
             val atz = 1f / abs(tz)
-            var tMaxX = xOffest * atx
-            var tMaxZ = zOffest * atz
+            var tMaxX = xOffset * atx
+            var tMaxZ = zOffset * atz
             val tDeltaX = ohf.cellSize * atx
             val tDeltaZ = ohf.cellSize * atz
             var t = 0f
@@ -144,8 +144,8 @@ class VoxelQuery(
         sx: Int, sz: Int,
         t: Float, ty: Float, tMin: Float, tMaxX: Float, tMaxZ: Float
     ): Float {
-        val y1 = start.y + ty * (tMin + t) - ohf.bmin.y
-        val y2 = start.y + ty * (tMin + min(tMaxX, tMaxZ)) - ohf.bmin.y
+        val y1 = start.y + ty * (tMin + t) - ohf.bounds.minY
+        val y2 = start.y + ty * (tMin + min(tMaxX, tMaxZ)) - ohf.bounds.minY
         val minY = min(y1, y2) / ohf.cellHeight
         val maxY = max(y1, y2) / ohf.cellHeight
         var span = ohf.spans[sx + sz * ohf.width]

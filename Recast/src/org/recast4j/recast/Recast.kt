@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.Vectors
 import kotlin.math.cos
@@ -25,21 +26,21 @@ import kotlin.math.max
 
 object Recast {
 
-    fun calcGridSizeX(bmin: Vector3f, bmax: Vector3f, cellSize: Float): Int {
-        return max(1, ((bmax.x - bmin.x) / cellSize + 0.5f).toInt())
+    fun calcGridSizeX(bounds: AABBf, cellSize: Float): Int {
+        return max(1, (bounds.deltaX / cellSize + 0.5f).toInt())
     }
 
-    fun calcGridSizeY(bmin: Vector3f, bmax: Vector3f, cellSize: Float): Int {
-        return max(1, ((bmax.z - bmin.z) / cellSize + 0.5f).toInt())
+    fun calcGridSizeY(bounds: AABBf, cellSize: Float): Int {
+        return max(1, (bounds.deltaZ / cellSize + 0.5f).toInt())
     }
 
-    fun calcTileCountX(bmin: Vector3f, bmax: Vector3f, cellSize: Float, tileSizeX: Int): Int {
-        val gwd = calcGridSizeX(bmin, bmax, cellSize)
+    fun calcTileCountX(bounds: AABBf, cellSize: Float, tileSizeX: Int): Int {
+        val gwd = calcGridSizeX(bounds, cellSize)
         return max(1, (gwd + tileSizeX - 1) / tileSizeX)
     }
 
-    fun calcTileCountY(bmin: Vector3f, bmax: Vector3f, cellSize: Float, tileSizeZ: Int): Int {
-        val gwd = calcGridSizeY(bmin, bmax, cellSize)
+    fun calcTileCountY(bounds: AABBf, cellSize: Float, tileSizeZ: Int): Int {
+        val gwd = calcGridSizeY(bounds, cellSize)
         return max(1, (gwd + tileSizeZ - 1) / tileSizeZ)
     }
 

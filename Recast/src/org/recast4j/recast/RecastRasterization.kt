@@ -18,18 +18,16 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.recast4j.Vectors
 import org.recast4j.Vectors.clamp
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
 
 object RecastRasterization {
-    private fun overlapBounds(amin: Vector3f, amax: Vector3f, bmin: Vector3f, bmax: Vector3f): Boolean {
-        return amin.x <= bmax.x && amax.x >= bmin.x &&
-                amin.y <= bmax.y && amax.y >= bmin.y &&
-                amin.z <= bmax.z && amax.z >= bmin.z
-    }
-
     /**
      * The span addition can be set to favor flags. If the span is merged to another span and the new 'smax' is within
      * 'flagMergeThr' units from the existing span, the span flags are merged.
@@ -135,30 +133,26 @@ object RecastRasterization {
         return intArrayOf(m, n)
     }
 
-    private fun rasterizeTri(
-        vertices: FloatArray, v0: Int, v1: Int, v2: Int, area: Int, hf: Heightfield, bmin: Vector3f, bmax: Vector3f,
+    private fun rasterizeTriangle(
+        vertices: FloatArray, v0: Int, v1: Int, v2: Int, area: Int, hf: Heightfield, bounds: AABBf,
         cs: Float, ics: Float, ich: Float, flagMergeThr: Int
     ) {
         val w = hf.width
         val h = hf.height
-        val tmin = Vector3f()
-        val tmax = Vector3f()
-        val by = bmax.y - bmin.y
+        val triBounds = AABBf()
+        val deltaY = bounds.deltaY
 
         // Calculate the bounding box of the triangle.
-        tmin.set(vertices, v0 * 3)
-        tmax.set(vertices, v0 * 3)
-        Vectors.min(tmin, vertices, v1 * 3)
-        Vectors.min(tmin, vertices, v2 * 3)
-        Vectors.max(tmax, vertices, v1 * 3)
-        Vectors.max(tmax, vertices, v2 * 3)
+        triBounds.union(vertices, v0 * 3)
+        triBounds.union(vertices, v1 * 3)
+        triBounds.union(vertices, v2 * 3)
 
-        // If the triangle does not touch the bbox of the heightfield, skip the triagle.
-        if (!overlapBounds(bmin, bmax, tmin, tmax)) return
+        // If the triangle does not touch the bbox of the heightfield, skip the triangle.
+        if (!bounds.testAABB(triBounds)) return
 
         // Calculate the footprint of the triangle on the grid's y-axis
-        var y0 = ((tmin.z - bmin.z) * ics).toInt()
-        var y1 = ((tmax.z - bmin.z) * ics).toInt()
+        var y0 = ((triBounds.minZ - bounds.minZ) * ics).toInt()
+        var y1 = ((triBounds.maxZ - bounds.minZ) * ics).toInt()
         // use -1 rather than 0 to cut the polygon properly at the start of the tile
         y0 = clamp(y0, -1, h - 1)
         y1 = clamp(y1, 0, h - 1)
@@ -176,7 +170,7 @@ object RecastRasterization {
         var nvIn = 3
         for (y in y0..y1) {
             // Clip polygon to row. Store the remaining polygon as well
-            val cz = bmin.z + y * cs
+            val cz = bounds.minZ + y * cs
             val nvrowin = dividePoly(buf, `in`, nvIn, inrow, p1, cz + cs, 2)
             nvrow = nvrowin[0]
             nvIn = nvrowin[1]
@@ -196,8 +190,8 @@ object RecastRasterization {
                 minX = min(minX, v)
                 maxX = max(maxX, v)
             }
-            var x0 = ((minX - bmin.x) * ics).toInt()
-            var x1 = ((maxX - bmin.x) * ics).toInt()
+            var x0 = ((minX - bounds.minX) * ics).toInt()
+            var x1 = ((maxX - bounds.minX) * ics).toInt()
             if (x1 < 0 || x0 >= w) {
                 continue
             }
@@ -207,7 +201,7 @@ object RecastRasterization {
             var nv2 = nvrow
             for (x in x0..x1) {
                 // Clip polygon to column. store the remaining polygon as well
-                val cx = bmin.x + x * cs
+                val cx = bounds.minX + x * cs
                 val nvnv2 = dividePoly(buf, inrow, nv2, p1, p2, cx + cs, 0)
                 nv = nvnv2[0]
                 nv2 = nvnv2[1]
@@ -227,12 +221,12 @@ object RecastRasterization {
                     smin = min(smin, buf[p1 + i * 3 + 1])
                     smax = max(smax, buf[p1 + i * 3 + 1])
                 }
-                smin -= bmin.y
-                smax -= bmin.y
+                smin -= bounds.minY
+                smax -= bounds.minY
                 // Skip the span if it is outside the heightfield bbox
-                if (smax < 0f || smin > by) continue
+                if (smax < 0f || smin > deltaY) continue
                 // Clamp the span to the heightfield bbox.
-                if (smin < 0f || smax > by) smax = by
+                if (smin < 0f || smax > deltaY) smax = deltaY
 
                 // Snap the span to the heightfield height grid.
                 val ismin = clamp(floor((smin * ich)).toInt(), 0, RecastConstants.SPAN_MAX_HEIGHT)
@@ -255,7 +249,7 @@ object RecastRasterization {
         ctx?.startTimer(TelemetryType.RASTERIZE_TRIANGLES)
         val ics = 1f / solid.cellSize
         val ich = 1f / solid.cellHeight
-        rasterizeTri(vertices, v0, v1, v2, area, solid, solid.bmin, solid.bmax, solid.cellSize, ics, ich, flagMergeThr)
+        rasterizeTriangle(vertices, v0, v1, v2, area, solid, solid.bounds, solid.cellSize, ics, ich, flagMergeThr)
         ctx?.stopTimer(TelemetryType.RASTERIZE_TRIANGLES)
     }
 
@@ -277,19 +271,10 @@ object RecastRasterization {
             val v1 = tris[i * 3 + 1]
             val v2 = tris[i * 3 + 2]
             // Rasterize.
-            rasterizeTri(
-                vertices,
-                v0,
-                v1,
-                v2,
-                areas[i],
-                solid,
-                solid.bmin,
-                solid.bmax,
-                solid.cellSize,
-                ics,
-                ich,
-                flagMergeThr
+            rasterizeTriangle(
+                vertices, v0, v1, v2,
+                areas[i], solid, solid.bounds, solid.cellSize,
+                ics, ich, flagMergeThr
             )
         }
         ctx?.stopTimer(TelemetryType.RASTERIZE_TRIANGLES)
@@ -313,17 +298,10 @@ object RecastRasterization {
             val v1 = i * 3 + 1
             val v2 = i * 3 + 2
             // Rasterize.
-            rasterizeTri(
-                vertices,
-                v0, v1, v2,
-                areas[i],
-                solid,
-                solid.bmin,
-                solid.bmax,
-                solid.cellSize,
-                ics,
-                ich,
-                flagMergeThr
+            rasterizeTriangle(
+                vertices, v0, v1, v2,
+                areas[i], solid, solid.bounds, solid.cellSize,
+                ics, ich, flagMergeThr
             )
         }
         ctx?.stopTimer(TelemetryType.RASTERIZE_TRIANGLES)

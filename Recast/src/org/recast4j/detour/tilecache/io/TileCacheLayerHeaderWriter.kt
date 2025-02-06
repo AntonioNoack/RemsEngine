@@ -18,9 +18,9 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.tilecache.io
 
+import org.joml.Vector3f
 import org.recast4j.detour.io.DetourWriter
 import org.recast4j.detour.tilecache.TileCacheLayerHeader
-import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteOrder
 
@@ -31,8 +31,8 @@ class TileCacheLayerHeaderWriter : DetourWriter() {
         write(stream, header.tx, order)
         write(stream, header.ty, order)
         write(stream, header.tlayer, order)
-        write(stream, header.bmin, order)
-        write(stream, header.bmax, order)
+        write(stream, header.bounds.getMin(Vector3f()), order)
+        write(stream, header.bounds.getMax(Vector3f()), order)
         write(stream, header.hmin.toShort(), order)
         write(stream, header.hmax.toShort(), order)
         stream.write(header.width)

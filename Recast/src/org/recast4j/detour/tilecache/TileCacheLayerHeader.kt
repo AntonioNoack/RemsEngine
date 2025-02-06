@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.tilecache
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 open class TileCacheLayerHeader {
 
@@ -28,8 +28,8 @@ open class TileCacheLayerHeader {
     var tx = 0
     var ty = 0
     var tlayer = 0
-    var bmin = Vector3f()
-    var bmax = Vector3f()
+
+    val bounds = AABBf()
 
     // < Height min/max range
     var hmin = 0

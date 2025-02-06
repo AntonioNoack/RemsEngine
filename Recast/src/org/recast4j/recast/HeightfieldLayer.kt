@@ -1,11 +1,10 @@
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 class HeightfieldLayer {
 
-    val bmin = Vector3f()
-    val bmax = Vector3f()
+    val bounds = AABBf()
     var cellSize = 0f
     var cellHeight = 0f
 

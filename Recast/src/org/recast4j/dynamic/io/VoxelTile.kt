@@ -17,7 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.io
 
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.recast4j.dynamic.io.ByteUtils.getIntBE
 import org.recast4j.dynamic.io.ByteUtils.getIntLE
 import org.recast4j.dynamic.io.ByteUtils.getShortBE
@@ -36,22 +36,20 @@ class VoxelTile {
     val borderSize: Int
     var width: Int
     var depth: Int
-    val boundsMin: Vector3f
-    var boundsMax: Vector3f
+    val bounds: AABBf
     var cellSize: Float
     var cellHeight: Float
     val spanData: ByteArray
 
     constructor(
-        tileX: Int, tileZ: Int, width: Int, depth: Int, boundsMin: Vector3f, boundsMax: Vector3f, cellSize: Float,
+        tileX: Int, tileZ: Int, width: Int, depth: Int, bounds: AABBf, cellSize: Float,
         cellHeight: Float, borderSize: Int, buffer: ByteBuffer
     ) {
         this.tileX = tileX
         this.tileZ = tileZ
         this.width = width
         this.depth = depth
-        this.boundsMin = boundsMin
-        this.boundsMax = boundsMax
+        this.bounds = bounds
         this.cellSize = cellSize
         this.cellHeight = cellHeight
         this.borderSize = borderSize
@@ -63,8 +61,7 @@ class VoxelTile {
         this.tileZ = tileZ
         width = heightfield.width
         depth = heightfield.height
-        boundsMin = heightfield.bmin
-        boundsMax = heightfield.bmax
+        bounds = heightfield.bounds
         cellSize = heightfield.cellSize
         cellHeight = heightfield.cellHeight
         borderSize = heightfield.borderSize
@@ -76,7 +73,7 @@ class VoxelTile {
     }
 
     private fun heightfieldBE(): Heightfield {
-        val hf = Heightfield(width, depth, boundsMin, boundsMax, cellSize, cellHeight, borderSize)
+        val hf = Heightfield(width, depth, bounds, cellSize, cellHeight, borderSize)
         var position = 0
         var z = 0
         var pz = 0
@@ -108,7 +105,7 @@ class VoxelTile {
     }
 
     private fun heightfieldLE(): Heightfield {
-        val hf = Heightfield(width, depth, boundsMin, boundsMax, cellSize, cellHeight, borderSize)
+        val hf = Heightfield(width, depth, bounds, cellSize, cellHeight, borderSize)
         var position = 0
         var z = 0
         var pz = 0

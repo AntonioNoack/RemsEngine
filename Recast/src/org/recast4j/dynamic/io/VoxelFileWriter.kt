@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.io
 
+import org.joml.Vector3f
 import org.recast4j.detour.io.DetourWriter
 import java.io.IOException
 import java.io.OutputStream
@@ -44,12 +45,12 @@ object VoxelFileWriter : DetourWriter() {
         write(stream, f.tileSizeX, byteOrder)
         write(stream, f.tileSizeZ, byteOrder)
         write(stream, f.rotation, byteOrder)
-        write(stream, f.bounds[0], byteOrder)
-        write(stream, f.bounds[1], byteOrder)
-        write(stream, f.bounds[2], byteOrder)
-        write(stream, f.bounds[3], byteOrder)
-        write(stream, f.bounds[4], byteOrder)
-        write(stream, f.bounds[5], byteOrder)
+        write(stream, f.bounds.minX, byteOrder)
+        write(stream, f.bounds.minY, byteOrder)
+        write(stream, f.bounds.minZ, byteOrder)
+        write(stream, f.bounds.maxX, byteOrder)
+        write(stream, f.bounds.maxY, byteOrder)
+        write(stream, f.bounds.maxZ, byteOrder)
         write(stream, f.tiles.size, byteOrder)
         for (t in f.tiles) {
             writeTile(stream, t, byteOrder)
@@ -62,8 +63,8 @@ object VoxelFileWriter : DetourWriter() {
         write(stream, tile.width, byteOrder)
         write(stream, tile.depth, byteOrder)
         write(stream, tile.borderSize, byteOrder)
-        write(stream, tile.boundsMin, byteOrder)
-        write(stream, tile.boundsMax, byteOrder)
+        write(stream, tile.bounds.getMin(Vector3f()), byteOrder)
+        write(stream, tile.bounds.getMax(Vector3f()), byteOrder)
         write(stream, tile.cellSize, byteOrder)
         write(stream, tile.cellHeight, byteOrder)
         val bytes = tile.spanData

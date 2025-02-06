@@ -32,6 +32,8 @@ class LongArrayList(var values: LongArray) {
         values[size++] = v
     }
 
+    operator fun get(index: Int) = values[index]
+
     fun shiftRight(step: Int) {
         if (step > 0) {
             // move everything right
@@ -44,11 +46,11 @@ class LongArrayList(var values: LongArray) {
         size += step
     }
 
-    operator fun get(index: Int) = values[index]
-
-    fun removeAt(index: Int) {
+    fun removeAt(index: Int): Long {
+        val value = values[index]
         System.arraycopy(values, index + 1, values, index, size - index - 1)
         size--
+        return value
     }
 
     fun reverse() {

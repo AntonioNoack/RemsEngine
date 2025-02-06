@@ -18,7 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.recast4j.Vectors
 import kotlin.math.max
 import kotlin.math.min
@@ -43,13 +43,13 @@ class BVNode {
      */
     var index = 0
 
-    fun setQuantitized(bmin: Vector3f, bmax: Vector3f, hmin: Vector3f, quantFactor: Float) {
-        minX = quantitize(bmin.x, hmin.x, quantFactor)
-        minY = quantitize(bmin.y, hmin.y, quantFactor)
-        minZ = quantitize(bmin.z, hmin.z, quantFactor)
-        maxX = quantitize(bmax.x, hmin.x, quantFactor)
-        maxY = quantitize(bmax.y, hmin.y, quantFactor)
-        maxZ = quantitize(bmax.z, hmin.z, quantFactor)
+    fun setQuantized(bounds: AABBf, origin: AABBf, quantFactor: Float) {
+        minX = quantitize(bounds.minX, origin.minX, quantFactor)
+        minY = quantitize(bounds.minY, origin.minY, quantFactor)
+        minZ = quantitize(bounds.minZ, origin.minZ, quantFactor)
+        maxX = quantitize(bounds.maxX, origin.minX, quantFactor)
+        maxY = quantitize(bounds.maxY, origin.minY, quantFactor)
+        maxZ = quantitize(bounds.maxZ, origin.minZ, quantFactor)
     }
 
     fun union(x: Int, y: Int, z: Int) {

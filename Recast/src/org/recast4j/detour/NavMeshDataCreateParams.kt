@@ -20,6 +20,7 @@ package org.recast4j.detour
 
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
+import org.joml.AABBf
 import org.joml.Vector3f
 
 /**
@@ -175,8 +176,7 @@ class NavMeshDataCreateParams {
     /**
      * The bounds of the tile. [(x, y, z)]
      * */
-    lateinit var bmin: Vector3f
-    lateinit var bmax: Vector3f
+    lateinit var bounds: AABBf
 
     /** General Configuration Attributes */
 

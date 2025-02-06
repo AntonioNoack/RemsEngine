@@ -18,13 +18,12 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.joml.Vector3f
+import org.joml.AABBf
 
 class RecastBuilderConfig
 @JvmOverloads constructor(
     val cfg: RecastConfig,
-    bmin: Vector3f,
-    bmax: Vector3f,
+    bounds: AABBf,
     val tileX: Int = 0,
     val tileZ: Int = 0
 ) {
@@ -39,23 +38,18 @@ class RecastBuilderConfig
     var height = 0
 
     /**
-     * The minimum bounds of the field's AABB. [(x, y, z)] [Units: wu]
+     * The bounds of the field's AABB. [(x, y, z)] [Units: wu]
      */
-    val bmin = Vector3f(bmin)
-
-    /**
-     * The maximum bounds of the field's AABB. [(x, y, z)] [Units: wu]
-     */
-    val bmax = Vector3f(bmax)
+    val bounds = AABBf(bounds)
 
     init {
         if (cfg.useTiles) {
             val tsx = cfg.tileSizeX * cfg.cellSize
             val tsz = cfg.tileSizeZ * cfg.cellSize
-            this.bmin.x += tileX * tsx
-            this.bmin.z += tileZ * tsz
-            this.bmax.x = this.bmin.x + tsx
-            this.bmax.z = this.bmin.z + tsz
+            this.bounds.minX += tileX * tsx
+            this.bounds.minZ += tileZ * tsz
+            this.bounds.maxX = this.bounds.minX + tsx
+            this.bounds.maxZ = this.bounds.minZ + tsz
             // Expand the heightfield bounding box by border size to find the extents of geometry we need to build this
             // tile.
             //
@@ -80,17 +74,17 @@ class RecastBuilderConfig
             // neighbours,
             // or use the bounding box below to only pass in a sliver of each of the 8 neighbours.
             val ds = cfg.borderSize * cfg.cellSize
-            this.bmin.x -= ds
-            this.bmin.z -= ds
-            this.bmax.x += ds
-            this.bmax.z += ds
+            this.bounds.minX -= ds
+            this.bounds.minZ -= ds
+            this.bounds.maxX += ds
+            this.bounds.maxZ += ds
             width = cfg.tileSizeX + cfg.borderSize * 2
             height = cfg.tileSizeZ + cfg.borderSize * 2
         } else {
-            width = Recast.calcGridSizeX(this.bmin, this.bmax, cfg.cellSize)
-            height = Recast.calcGridSizeY(this.bmin, this.bmax, cfg.cellSize)
+            width = Recast.calcGridSizeX(this.bounds, cfg.cellSize)
+            height = Recast.calcGridSizeY(this.bounds, cfg.cellSize)
         }
 
-        println("Building $width x $height, $bmin-$bmax x ${cfg.cellSize}")
+        println("Building $width x $height, $bounds x ${cfg.cellSize}")
     }
 }

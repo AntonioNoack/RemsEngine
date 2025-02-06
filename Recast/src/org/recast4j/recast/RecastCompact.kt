@@ -57,9 +57,8 @@ object RecastCompact {
         chf.walkableHeight = walkableHeight
         chf.walkableClimb = walkableClimb
         chf.maxRegions = 0
-        chf.bmin.set(hf.bmin)
-        chf.bmax.set(hf.bmax)
-        chf.bmax.y = chf.bmax.y + walkableHeight * hf.cellHeight
+        chf.bounds.set(hf.bounds)
+        chf.bounds.maxY += walkableHeight * hf.cellHeight
         chf.cellSize = hf.cellSize
         chf.cellHeight = hf.cellHeight
     }

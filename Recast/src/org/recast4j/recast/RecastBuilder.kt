@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.recast.geom.ConvexVolumeProvider
 import org.recast4j.recast.geom.InputGeomProvider
@@ -53,30 +54,29 @@ class RecastBuilder {
     )
 
     fun buildTiles(geom: InputGeomProvider, cfg: RecastConfig, executor: Executor?): List<RecastBuilderResult> {
-        val bmin = geom.meshBoundsMin
-        val bmax = geom.meshBoundsMax
-        val tw = Recast.calcTileCountX(bmin, bmax, cfg.cellSize, cfg.tileSizeX)
-        val th = Recast.calcTileCountY(bmin, bmax, cfg.cellSize, cfg.tileSizeZ)
-        return executor?.let { buildMultiThread(geom, cfg, bmin, bmax, tw, th, it) }
-            ?: buildSingleThread(geom, cfg, bmin, bmax, tw, th)
+        val bmin = geom.bounds
+        val tw = Recast.calcTileCountX(bmin, cfg.cellSize, cfg.tileSizeX)
+        val th = Recast.calcTileCountY(bmin, cfg.cellSize, cfg.tileSizeZ)
+        return executor?.let { buildMultiThread(geom, cfg, bmin, tw, th, it) }
+            ?: buildSingleThread(geom, cfg, bmin, tw, th)
     }
 
     private fun buildSingleThread(
-        geom: InputGeomProvider, cfg: RecastConfig, bmin: Vector3f, bmax: Vector3f,
+        geom: InputGeomProvider, cfg: RecastConfig, bounds: AABBf,
         tw: Int, th: Int
     ): List<RecastBuilderResult> {
         val result: MutableList<RecastBuilderResult> = ArrayList(tw * th)
         val counter = AtomicInteger()
         for (y in 0 until th) {
             for (x in 0 until tw) {
-                result.add(buildTile(geom, cfg, bmin, bmax, x, y, counter, tw * th))
+                result.add(buildTile(geom, cfg, bounds, x, y, counter, tw * th))
             }
         }
         return result
     }
 
     private fun buildMultiThread(
-        geom: InputGeomProvider, cfg: RecastConfig, bmin: Vector3f, bmax: Vector3f,
+        geom: InputGeomProvider, cfg: RecastConfig, bounds: AABBf,
         tw: Int, th: Int, executor: Executor
     ): List<RecastBuilderResult> {
         val result: MutableList<RecastBuilderResult> = ArrayList(tw * th)
@@ -86,7 +86,7 @@ class RecastBuilder {
             for (y in 0 until th) {
                 executor.execute {
                     try {
-                        val tile = buildTile(geom, cfg, bmin, bmax, x, y, counter, tw * th)
+                        val tile = buildTile(geom, cfg, bounds, x, y, counter, tw * th)
                         synchronized(result) { result.add(tile) }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -103,10 +103,10 @@ class RecastBuilder {
     }
 
     private fun buildTile(
-        geom: InputGeomProvider, cfg: RecastConfig, bmin: Vector3f, bmax: Vector3f, tx: Int,
+        geom: InputGeomProvider, cfg: RecastConfig, bounds: AABBf, tx: Int,
         ty: Int, counter: AtomicInteger, total: Int
     ): RecastBuilderResult {
-        val result = build(geom, RecastBuilderConfig(cfg, bmin, bmax, tx, ty))
+        val result = build(geom, RecastBuilderConfig(cfg, bounds, tx, ty))
         progressListener?.onProgress(counter.incrementAndGet(), total)
         return result
     }

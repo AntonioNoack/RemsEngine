@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.Vectors
 import org.recast4j.Vectors.clamp
@@ -37,10 +38,7 @@ object RecastFilledVolumeRasterization {
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_SPHERE)
-        val bounds = floatArrayOf(
-            center.x - radius, center.y - radius, center.z - radius,
-            center.x + radius, center.y + radius, center.z + radius
-        )
+        val bounds = AABBf(center, center).addMargin(radius)
         rasterizationFilledShape(
             hf, bounds, area, flagMergeThr
         ) { rectangle: FloatArray -> intersectSphere(rectangle, center, radius * radius) }
@@ -52,11 +50,7 @@ object RecastFilledVolumeRasterization {
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_CAPSULE)
-        val bounds = floatArrayOf(
-            min(start.x, end.x) - radius, min(start.y, end.y) - radius,
-            min(start.z, end.z) - radius, max(start.x, end.x) + radius, max(start.y, end.y) + radius,
-            max(start.z, end.z) + radius
-        )
+        val bounds = AABBf(start).union(end).addMargin(radius)
         val axis = Vector3f(end).sub(start)
         rasterizationFilledShape(
             hf, bounds, area, flagMergeThr
@@ -69,10 +63,7 @@ object RecastFilledVolumeRasterization {
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_CYLINDER)
-        val bounds = floatArrayOf(
-            min(start.x, end.x) - radius, min(start.y, end.y) - radius, min(start.z, end.z) - radius,
-            max(start.x, end.x) + radius, max(start.y, end.y) + radius, max(start.z, end.z) + radius
-        )
+        val bounds = AABBf(start).union(end).addMargin(radius)
         val axis = Vector3f(end).sub(start)
         rasterizationFilledShape(
             hf, bounds, area, flagMergeThr
@@ -98,14 +89,7 @@ object RecastFilledVolumeRasterization {
         normals[1].normalize()
         normals[2].normalize()
         val vertices = FloatArray(8 * 3)
-        val bounds = floatArrayOf(
-            Float.POSITIVE_INFINITY,
-            Float.POSITIVE_INFINITY,
-            Float.POSITIVE_INFINITY,
-            Float.NEGATIVE_INFINITY,
-            Float.NEGATIVE_INFINITY,
-            Float.NEGATIVE_INFINITY
-        )
+        val bounds = AABBf()
         for (i in 0..7) {
             val s0 = if (i and 1 != 0) 1f else -1f
             val s1 = if (i and 2 != 0) 1f else -1f
@@ -117,12 +101,12 @@ object RecastFilledVolumeRasterization {
             vertices[i3] = center.x + s0 * he0[0] + s1 * he1[0] + s2 * he2[0]
             vertices[i3 + 1] = center.y + s0 * he0[1] + s1 * he1[1] + s2 * he2[1]
             vertices[i3 + 2] = center.z + s0 * he0[2] + s1 * he1[2] + s2 * he2[2]
-            bounds[0] = min(bounds[0], vertices[i3])
-            bounds[1] = min(bounds[1], vertices[i3 + 1])
-            bounds[2] = min(bounds[2], vertices[i3 + 2])
-            bounds[3] = max(bounds[3], vertices[i3])
-            bounds[4] = max(bounds[4], vertices[i3 + 1])
-            bounds[5] = max(bounds[5], vertices[i3 + 2])
+            bounds.minX = min(bounds.minX, vertices[i3])
+            bounds.minY = min(bounds.minY, vertices[i3 + 1])
+            bounds.minZ = min(bounds.minZ, vertices[i3 + 2])
+            bounds.maxX = max(bounds.maxX, vertices[i3])
+            bounds.maxY = max(bounds.maxY, vertices[i3 + 1])
+            bounds.maxZ = max(bounds.maxZ, vertices[i3 + 2])
         }
         val planes = Array(6) { FloatArray(4) }
         for (i in 0..5) {
@@ -137,12 +121,8 @@ object RecastFilledVolumeRasterization {
             val vi3 = vi * 3
             plane[3] = vertices[vi3] * plane[0] + vertices[vi3 + 1] * plane[1] + vertices[vi3 + 2] * plane[2]
         }
-        rasterizationFilledShape(hf, bounds, area, flagMergeThr) { rectangle: FloatArray ->
-            intersectBox(
-                rectangle,
-                vertices,
-                planes
-            )
+        rasterizationFilledShape(hf, bounds, area, flagMergeThr) { rectangle ->
+            intersectBox(rectangle, vertices, planes)
         }
         ctx?.stopTimer(TelemetryType.RASTERIZE_BOX)
     }
@@ -156,18 +136,9 @@ object RecastFilledVolumeRasterization {
         ctx: Telemetry?
     ) {
         ctx?.startTimer(TelemetryType.RASTERIZE_CONVEX)
-        val bounds = floatArrayOf(vertices[0], vertices[1], vertices[2], vertices[0], vertices[1], vertices[2])
-        run {
-            var i = 0
-            while (i < vertices.size) {
-                bounds[0] = min(bounds[0], vertices[i])
-                bounds[1] = min(bounds[1], vertices[i + 1])
-                bounds[2] = min(bounds[2], vertices[i + 2])
-                bounds[3] = max(bounds[3], vertices[i])
-                bounds[4] = max(bounds[4], vertices[i + 1])
-                bounds[5] = max(bounds[5], vertices[i + 2])
-                i += 3
-            }
+        val bounds = AABBf()
+        for (i in 0 until vertices.size / 3) {
+            bounds.union(vertices, i * 3)
         }
         val planes = Array(triangles.size) { FloatArray(4) }
         val triBounds = Array(triangles.size / 3) { FloatArray(4) }
@@ -236,39 +207,35 @@ object RecastFilledVolumeRasterization {
 
     private fun rasterizationFilledShape(
         hf: Heightfield,
-        bounds: FloatArray,
+        bounds: AABBf,
         area: Int,
         flagMergeThr: Int,
         intersection: Function<FloatArray, FloatArray?>
     ) {
-        if (!overlapBounds(hf.bmin, hf.bmax, bounds)) {
-            return
-        }
-        bounds[3] = min(bounds[3], hf.bmax.x)
-        bounds[5] = min(bounds[5], hf.bmax.z)
-        bounds[0] = max(bounds[0], hf.bmin.x)
-        bounds[2] = max(bounds[2], hf.bmin.z)
-        if (bounds[3] <= bounds[0] || bounds[4] <= bounds[1] || bounds[5] <= bounds[2]) {
-            return
-        }
+        if (!hf.bounds.testAABB(bounds)) return
+        bounds.minX = max(bounds.minX, hf.bounds.minX)
+        bounds.minZ = max(bounds.minZ, hf.bounds.minZ)
+        bounds.maxX = min(bounds.maxX, hf.bounds.maxX)
+        bounds.maxZ = min(bounds.maxZ, hf.bounds.maxZ)
+        if (bounds.isEmpty()) return
         val ics = 1f / hf.cellSize
         val ich = 1f / hf.cellHeight
-        val xMin = ((bounds[0] - hf.bmin.x) * ics).toInt()
-        val zMin = ((bounds[2] - hf.bmin.z) * ics).toInt()
-        val xMax = min(hf.width - 1, ((bounds[3] - hf.bmin.x) * ics).toInt())
-        val zMax = min(hf.height - 1, ((bounds[5] - hf.bmin.z) * ics).toInt())
+        val xMin = ((bounds.minX - hf.bounds.minX) * ics).toInt()
+        val zMin = ((bounds.minZ - hf.bounds.minZ) * ics).toInt()
+        val xMax = min(hf.width - 1, ((bounds.maxX - hf.bounds.minX) * ics).toInt())
+        val zMax = min(hf.height - 1, ((bounds.maxZ - hf.bounds.minZ) * ics).toInt())
         val rectangle = FloatArray(5)
-        rectangle[4] = hf.bmin.y
+        rectangle[4] = hf.bounds.minY
         for (x in xMin..xMax) {
             for (z in zMin..zMax) {
-                rectangle[0] = x * hf.cellSize + hf.bmin.x
-                rectangle[1] = z * hf.cellSize + hf.bmin.z
+                rectangle[0] = x * hf.cellSize + hf.bounds.minX
+                rectangle[1] = z * hf.cellSize + hf.bounds.minZ
                 rectangle[2] = rectangle[0] + hf.cellSize
                 rectangle[3] = rectangle[1] + hf.cellSize
                 val h = intersection.apply(rectangle)
                 if (h != null) {
-                    val smin = floor(((h[0] - hf.bmin.y) * ich)).toInt()
-                    val smax = ceil(((h[1] - hf.bmin.y) * ich)).toInt()
+                    val smin = floor(((h[0] - hf.bounds.minY) * ich)).toInt()
+                    val smax = ceil(((h[1] - hf.bounds.minY) * ich)).toInt()
                     if (smin != smax) {
                         val ismin: Int = clamp(smin, 0, RecastConstants.SPAN_MAX_HEIGHT)
                         val ismax: Int = clamp(smax, ismin + 1, RecastConstants.SPAN_MAX_HEIGHT)
@@ -287,13 +254,9 @@ object RecastFilledVolumeRasterization {
         val my = y - center.y
         val mz = z - center.z
         val c = lenSqr(mx, my, mz) - radiusSqr
-        if (c > 0f && my > 0f) {
-            return null
-        }
+        if (c > 0f && my > 0f) return null
         val discr = my * my - c
-        if (discr < 0f) {
-            return null
-        }
+        if (discr < 0f) return null
         val discrSqrt = sqrt(discr)
         var tmin = -my - discrSqrt
         val tmax = -my + discrSqrt
@@ -382,7 +345,7 @@ object RecastFilledVolumeRasterization {
         val c = (m.lengthSquared() - radiusSqr) / dl
         val discr = b * b - c
         if (discr > EPSILON) {
-            val discrSqrt = sqrt(discr).toFloat()
+            val discrSqrt = sqrt(discr)
             var t1 = -b - discrSqrt
             var t2 = -b + discrSqrt
             if (t1 <= 1 && t2 >= 0) {
@@ -488,7 +451,7 @@ object RecastFilledVolumeRasterization {
         if (discr < 0f) {
             return null // No real roots; no intersection
         }
-        val discSqrt = sqrt(discr).toFloat()
+        val discSqrt = sqrt(discr)
         var t1 = (-b - discSqrt) / a
         var t2 = (-b + discSqrt) / a
         if (md + t1 * nd < 0f) {
@@ -734,11 +697,5 @@ object RecastFilledVolumeRasterization {
 
     private fun lenSqr(dx: Float, dy: Float, dz: Float): Float {
         return dx * dx + dy * dy + dz * dz
-    }
-
-    private fun overlapBounds(amin: Vector3f, amax: Vector3f, bounds: FloatArray): Boolean {
-        return amin.x in bounds[0]..bounds[3] &&
-                amin.y <= bounds[4] &&
-                amax.z in bounds[2]..bounds[5]
     }
 }

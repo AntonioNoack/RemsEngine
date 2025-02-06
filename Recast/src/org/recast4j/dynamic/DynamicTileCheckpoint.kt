@@ -17,7 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic
 
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.Span
 
@@ -27,11 +27,8 @@ class DynamicTileCheckpoint(heightfield: Heightfield, val colliders: Set<Long>) 
 
     private fun clone(source: Heightfield): Heightfield {
         val clone = Heightfield(
-            source.width, source.height,
-            Vector3f(source.bmin),
-            Vector3f(source.bmax),
-            source.cellSize,
-            source.cellHeight, source.borderSize
+            source.width, source.height, AABBf(source.bounds),
+            source.cellSize, source.cellHeight, source.borderSize
         )
         var pz = 0
         for (z in 0 until source.height) {

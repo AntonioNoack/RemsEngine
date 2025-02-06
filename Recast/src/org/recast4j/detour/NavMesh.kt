@@ -20,12 +20,16 @@ package org.recast4j.detour
 
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.IntPair
+import org.joml.AABBf
+import org.joml.AABBi
 import org.joml.Vector3f
-import org.joml.Vector3i
 import org.recast4j.LongArrayList
 import org.recast4j.Vectors
-import java.util.*
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
 
 class NavMesh(
     /**
@@ -158,38 +162,36 @@ class NavMesh(
         addTile(data, flags, 0)
     }
 
-    fun queryPolygonsInTile(tile: MeshTile, qmin: Vector3f, qmax: Vector3f): LongArrayList {
+    fun queryPolygonsInTile(tile: MeshTile, queryBounds: AABBf): LongArrayList {
         val polys = LongArrayList()
         if (tile.data.bvTree != null) {
             var nodeIndex = 0
             val header = tile.data
-            val tbmin = header.bmin
-            val tbmax = header.bmax
+            val tb = header.bounds
             val qfac = header.bvQuantizationFactor
             // Calculate quantized box
-            val bmin = Vector3i()
-            val bmax = Vector3i()
+            val qbox = AABBi()
             // dtClamp query box to world box.
-            val minx = Vectors.clamp(qmin.x, tbmin.x, tbmax.x) - tbmin.x
-            val miny = Vectors.clamp(qmin.y, tbmin.y, tbmax.y) - tbmin.y
-            val minz = Vectors.clamp(qmin.z, tbmin.z, tbmax.z) - tbmin.z
-            val maxx = Vectors.clamp(qmax.x, tbmin.x, tbmax.x) - tbmin.x
-            val maxy = Vectors.clamp(qmax.y, tbmin.y, tbmax.y) - tbmin.y
-            val maxz = Vectors.clamp(qmax.z, tbmin.z, tbmax.z) - tbmin.z
+            val minx = Vectors.clamp(queryBounds.minX, tb.minX, tb.maxX) - tb.minX
+            val miny = Vectors.clamp(queryBounds.minY, tb.minY, tb.maxY) - tb.minY
+            val minz = Vectors.clamp(queryBounds.minZ, tb.minZ, tb.maxZ) - tb.minZ
+            val maxx = Vectors.clamp(queryBounds.maxX, tb.minX, tb.maxX) - tb.minX
+            val maxy = Vectors.clamp(queryBounds.maxY, tb.minY, tb.maxY) - tb.minY
+            val maxz = Vectors.clamp(queryBounds.maxZ, tb.minZ, tb.maxZ) - tb.minZ
             // Quantize
-            bmin.x = (qfac * minx).toInt() and 0x7ffffffe
-            bmin.y = (qfac * miny).toInt() and 0x7ffffffe
-            bmin.z = (qfac * minz).toInt() and 0x7ffffffe
-            bmax.x = (qfac * maxx + 1).toInt() or 1
-            bmax.y = (qfac * maxy + 1).toInt() or 1
-            bmax.z = (qfac * maxz + 1).toInt() or 1
+            qbox.minX = (qfac * minx).toInt() and 0x7ffffffe
+            qbox.minY = (qfac * miny).toInt() and 0x7ffffffe
+            qbox.minZ = (qfac * minz).toInt() and 0x7ffffffe
+            qbox.maxX = (qfac * maxx + 1).toInt() or 1
+            qbox.maxY = (qfac * maxy + 1).toInt() or 1
+            qbox.maxZ = (qfac * maxz + 1).toInt() or 1
 
             // Traverse tree
             val base = getPolyRefBase(tile)
             val end = header.bvNodeCount
             while (nodeIndex < end) {
                 val node = tile.data.bvTree!![nodeIndex]
-                val overlap: Boolean = Vectors.overlapQuantBounds(bmin, bmax, node)
+                val overlap = Vectors.overlapQuantBounds(qbox, node)
                 val isLeafNode = node.index >= 0
                 if (isLeafNode && overlap) {
                     polys.add(base or node.index.toLong())
@@ -202,8 +204,7 @@ class NavMesh(
                 }
             }
         } else {
-            val bmin = JomlPools.vec3f.create()
-            val bmax = JomlPools.vec3f.create()
+            val meshBounds = AABBf()
             val base = getPolyRefBase(tile)
             val data = tile.data
             val vertices = data.vertices
@@ -214,15 +215,11 @@ class NavMesh(
                     continue
                 }
                 // Calc polygon bounds.
-                var v = p.vertices[0] * 3
-                bmin.set(vertices, v)
-                bmax.set(bmin)
-                for (j in 1 until p.vertCount) {
-                    v = p.vertices[j] * 3
-                    Vectors.min(bmin, vertices, v)
-                    Vectors.max(bmax, vertices, v)
+                meshBounds.clear()
+                for (j in 0 until p.vertCount) {
+                    meshBounds.union(vertices, p.vertices[j] * 3)
                 }
-                if (Vectors.overlapBounds(qmin, qmax, bmin, bmax)) {
+                if (queryBounds.testAABB(meshBounds)) {
                     polys.add(base or i.toLong())
                 }
             }
@@ -511,14 +508,15 @@ class NavMesh(
                 // Create new links
                 val va = poly.vertices[j] * 3
                 val vb = poly.vertices[(j + 1) % nv] * 3
-                val (nei, neia, nnei) = findConnectingPolys(
+                val triple = findConnectingPolys(
                     data.vertices, va, vb, target,
                     Vectors.oppositeTile(dir), 4
-                )
+                ) ?: continue
+                val (nei, neia, nnei) = triple
                 for (k in 0 until nnei) {
                     val idx = allocLink(tile)
                     val link = tile.links[idx]
-                    link.neighborRef = nei!![k]
+                    link.neighborRef = nei[k]
                     link.indexOfPolyEdge = j
                     link.side = dir
                     link.indexOfNextLink = tile.polyLinks[poly.index]
@@ -526,29 +524,29 @@ class NavMesh(
 
                     // Compress portal limits to a byte value.
                     if (dir == 0 || dir == 4) {
-                        var tmin = ((neia!![k * 2] - data.vertices[va + 2])
+                        var tMin = ((neia[k * 2] - data.vertices[va + 2])
                                 / (data.vertices[vb + 2] - data.vertices[va + 2]))
-                        var tmax = ((neia[k * 2 + 1] - data.vertices[va + 2])
+                        var tMax = ((neia[k * 2 + 1] - data.vertices[va + 2])
                                 / (data.vertices[vb + 2] - data.vertices[va + 2]))
-                        if (tmin > tmax) {
-                            val temp = tmin
-                            tmin = tmax
-                            tmax = temp
+                        if (tMin > tMax) {
+                            val temp = tMin
+                            tMin = tMax
+                            tMax = temp
                         }
-                        link.bmin = round(Vectors.clamp(tmin, 0f, 1f) * 255f).toInt()
-                        link.bmax = round(Vectors.clamp(tmax, 0f, 1f) * 255f).toInt()
+                        link.bmin = round(Vectors.clamp(tMin, 0f, 1f) * 255f).toInt()
+                        link.bmax = round(Vectors.clamp(tMax, 0f, 1f) * 255f).toInt()
                     } else if (dir == 2 || dir == 6) {
-                        var tmin = ((neia!![k * 2] - data.vertices[va])
+                        var tMin = ((neia[k * 2] - data.vertices[va])
                                 / (data.vertices[vb] - data.vertices[va]))
-                        var tmax = ((neia[k * 2 + 1] - data.vertices[va])
+                        var tMax = ((neia[k * 2 + 1] - data.vertices[va])
                                 / (data.vertices[vb] - data.vertices[va]))
-                        if (tmin > tmax) {
-                            val temp = tmin
-                            tmin = tmax
-                            tmax = temp
+                        if (tMin > tMax) {
+                            val temp = tMin
+                            tMin = tMax
+                            tMax = temp
                         }
-                        link.bmin = round(Vectors.clamp(tmin, 0f, 1f) * 255f).toInt()
-                        link.bmax = round(Vectors.clamp(tmax, 0f, 1f) * 255f).toInt()
+                        link.bmin = round(Vectors.clamp(tMin, 0f, 1f) * 255f).toInt()
+                        link.bmax = round(Vectors.clamp(tMax, 0f, 1f) * 255f).toInt()
                     }
                 }
             }
@@ -624,26 +622,18 @@ class NavMesh(
     }
 
     fun findConnectingPolys(
-        vertices: FloatArray,
-        va: Int,
-        vb: Int,
-        tile: MeshTile?,
-        side: Int,
-        maxcon: Int
-    ): Triple<LongArray?, FloatArray?, Int> {
-        if (tile == null) {
-            return Triple<LongArray?, FloatArray?, Int>(null, null, 0)
-        }
+        vertices: FloatArray, va: Int, vb: Int,
+        tile: MeshTile?, side: Int, maxcon: Int
+    ): Triple<LongArray, FloatArray, Int>? {
+        if (tile == null) return null
         val con = LongArray(maxcon)
         val conarea = FloatArray(maxcon * 2)
-        val amin = FloatArray(2)
-        val amax = FloatArray(2)
-        calcSlabEndPoints(vertices, va, vb, amin, amax, side)
+        val amin = AABBf()
+        calcSlabEndPoints(vertices, va, vb, amin, side)
         val apos = getSlabCoord(vertices, va, side)
 
         // Remove links pointing to 'side' and compact the links array.
-        val bmin = FloatArray(2)
-        val bmax = FloatArray(2)
+        val bmin = AABBf()
         val m = DT_EXT_LINK or side
         var n = 0
         val base = getPolyRefBase(tile)
@@ -665,15 +655,15 @@ class NavMesh(
                 }
 
                 // Check if the segments touch.
-                calcSlabEndPoints(data.vertices, vc, vd, bmin, bmax, side)
-                if (!overlapSlabs(amin, amax, bmin, bmax, 0.01f, data.walkableClimb)) {
+                calcSlabEndPoints(data.vertices, vc, vd, bmin, side)
+                if (!overlapSlabs(amin, bmin, 0.01f, data.walkableClimb)) {
                     continue
                 }
 
                 // Add return value.
                 if (n < maxcon) {
-                    conarea[n * 2] = max(amin[0], bmin[0])
-                    conarea[n * 2 + 1] = min(amax[0], bmax[0])
+                    conarea[n * 2] = max(amin.minX, bmin.minX)
+                    conarea[n * 2 + 1] = min(amin.maxX, bmin.maxX)
                     con[n] = base or i.toLong()
                     n++
                 }
@@ -683,28 +673,21 @@ class NavMesh(
         return Triple(con, conarea, n)
     }
 
-    fun overlapSlabs(
-        amin: FloatArray,
-        amax: FloatArray,
-        bmin: FloatArray,
-        bmax: FloatArray,
-        px: Float,
-        py: Float
-    ): Boolean {
+    fun overlapSlabs(amin: AABBf, bmin: AABBf, px: Float, py: Float): Boolean {
         // Check for horizontal overlap.
         // The segment is shrunken a little so that slabs, which touch
         // at end points are not connected.
-        val minX = max(amin[0] + px, bmin[0] + px)
-        val maxX = min(amax[0] - px, bmax[0] - px)
+        val minX = max(amin.minX + px, bmin.minY + px)
+        val maxX = min(amin.maxX - px, bmin.maxY - px)
         if (minX > maxX) {
             return false
         }
 
         // Check vertical overlap.
-        val ad = (amax[1] - amin[1]) / (amax[0] - amin[0])
-        val ak = amin[1] - ad * amin[0]
-        val bd = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0])
-        val bk = bmin[1] - bd * bmin[0]
+        val ad = (amin.maxY - amin.minY) / amin.deltaX
+        val ak = amin.minY - ad * amin.minX
+        val bd = (bmin.maxY - bmin.minY) / bmin.deltaX
+        val bk = bmin.minY - bd * bmin.minX
         val aminy = ad * minX + ak
         val amaxy = ad * maxX + ak
         val bminy = bd * minX + bk
@@ -988,12 +971,11 @@ class NavMesh(
 
     fun findNearestPolyInTile(tile: MeshTile, center: Vector3f, extents: Vector3f): FindNearestPolyResult {
 
-        val bmin = center.sub(extents, JomlPools.vec3f.create())
-        val bmax = center.add(extents, JomlPools.vec3f.create())
+        val bounds = AABBf(center)
+            .addMargin(extents.x, extents.y, extents.z)
 
         // Get nearby polygons from proximity grid.
-        val polys = queryPolygonsInTile(tile, bmin, bmax)
-        JomlPools.vec3f.sub(2)
+        val polys = queryPolygonsInTile(tile, bounds)
 
         // Find the nearest polygon amongst the nearby polygons.
         var nearest = 0L
@@ -1303,9 +1285,9 @@ class NavMesh(
 
         private fun getNavMeshParams(data: MeshData): NavMeshParams {
             val params = NavMeshParams()
-            params.origin.set(data.bmin)
-            params.tileWidth = data.bmax.x - data.bmin.x
-            params.tileHeight = data.bmax.z - data.bmin.z
+            data.bounds.getMin(params.origin)
+            params.tileWidth = data.bounds.maxX - data.bounds.minX
+            params.tileHeight = data.bounds.maxZ - data.bounds.minZ
             params.maxPolys = data.polyCount
             return params
         }
@@ -1318,12 +1300,12 @@ class NavMesh(
             }
         }
 
-        fun calcSlabEndPoints(vertices: FloatArray, va: Int, vb: Int, bmin: FloatArray, bmax: FloatArray, side: Int) {
-            var d0 = 0
+        fun calcSlabEndPoints(vertices: FloatArray, va: Int, vb: Int, bounds: AABBf, side: Int) {
+            var xOrZ = 0
             var v0 = vb
             var v1 = va
             if (side == 0 || side == 4) {
-                d0 = 2
+                xOrZ = 2
                 if (vertices[va + 2] < vertices[vb + 2]) {
                     v0 = va
                     v1 = vb
@@ -1334,10 +1316,10 @@ class NavMesh(
                     v1 = vb
                 }
             } else return
-            bmin[0] = vertices[v0 + d0]
-            bmin[1] = vertices[v0 + 1]
-            bmax[0] = vertices[v1 + d0]
-            bmax[1] = vertices[v1 + 1]
+            bounds.minX = vertices[v0 + xOrZ]
+            bounds.minY = vertices[v0 + 1]
+            bounds.maxX = vertices[v1 + xOrZ]
+            bounds.maxY = vertices[v1 + 1]
         }
 
         fun computeTileHash(x: Int, y: Int): Long {

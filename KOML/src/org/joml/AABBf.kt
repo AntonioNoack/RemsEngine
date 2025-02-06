@@ -12,6 +12,8 @@ class AABBf(
 
     constructor(base: AABBf) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Float, max: Float) : this(min, min, min, max, max, max)
+    constructor(min: Vector3f, max: Vector3f) : this(min.x, min.y, min.z, max.x, max.y, max.z)
+    constructor(center: Vector3f) : this(center, center)
     constructor() : this(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)
     constructor(base: AABBd) : this() {
         set(base)
@@ -98,6 +100,9 @@ class AABBf(
     fun union(point: Vector3d, dst: AABBf = this) =
         union(point.x.toFloat(), point.y.toFloat(), point.z.toFloat(), dst)
 
+    fun union(point: FloatArray, offset: Int, dst: AABBf = this) =
+        union(point[offset], point[offset + 1], point[offset + 2], dst)
+
     fun union(x: Float, y: Float, z: Float, dst: AABBf = this): AABBf {
         return dst
             .setMin(min(minX, x), min(minY, y), min(minZ, z))
@@ -128,7 +133,7 @@ class AABBf(
     fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float, margin: Float): Boolean =
         isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, margin, Float.POSITIVE_INFINITY)
 
-    fun isEmpty(): Boolean = minX > maxX
+    fun isEmpty(): Boolean = (minX > maxX) || (minY > maxY) || (minZ > maxZ)
 
     val centerX: Float get() = (minX + maxX) * 0.5f
     val centerY: Float get() = (minY + maxY) * 0.5f
@@ -636,14 +641,14 @@ class AABBf(
             .setMax(maxX.toDouble(), maxY.toDouble(), maxZ.toDouble())
     }
 
-    fun addMargin(r: Float): AABBf {
-        minX -= r
-        minY -= r
-        minZ -= r
-        maxX += r
-        maxY += r
-        maxZ += r
-        return this
+    fun addMargin(r: Float, dst: AABBf = this): AABBf {
+        return addMargin(r, r, r, dst)
+    }
+
+    fun addMargin(rx: Float, ry: Float, rz: Float, dst: AABBf = this): AABBf {
+        return dst
+            .setMin(minX - rx, minY - ry, minZ - rz)
+            .setMax(maxX + rx, maxY + ry, maxZ + rz)
     }
 
     fun isRayIntersecting(

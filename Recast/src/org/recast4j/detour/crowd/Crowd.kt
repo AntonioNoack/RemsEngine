@@ -563,7 +563,7 @@ class Crowd @JvmOverloads constructor(
             if (valid) {
                 // Put the old path infront of the old path.
                 if (path.size > 1) {
-                    path.remove(path.size - 1)
+                    path.removeAt(path.size - 1)
                     path.addAll(res)
                     res = path
                     // Remove trackbacks
@@ -571,8 +571,8 @@ class Crowd @JvmOverloads constructor(
                     while (j < res.size - 1) {
                         if (j - 1 >= 0 && j + 1 < res.size) {
                             if (res[j - 1] == res[j + 1]) {
-                                res.remove(j + 1)
-                                res.remove(j)
+                                res.removeAt(j + 1)
+                                res.removeAt(j)
                                 j -= 2
                             }
                         }

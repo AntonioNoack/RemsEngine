@@ -17,14 +17,13 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
+import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.Telemetry
-import java.util.*
-import java.util.function.Consumer
 
 class CompositeCollider : Collider {
     private val colliders: List<Collider>
-    private val bounds: FloatArray
+    override val bounds: AABBf
 
     constructor(colliders: List<Collider>) {
         this.colliders = colliders
@@ -36,35 +35,19 @@ class CompositeCollider : Collider {
         bounds = bounds(this.colliders)
     }
 
-    override fun bounds(): FloatArray {
-        return bounds
-    }
-
     override fun rasterize(hf: Heightfield, telemetry: Telemetry?) {
-        colliders.forEach(Consumer { c: Collider -> c.rasterize(hf, telemetry) })
+        colliders.forEach { c: Collider -> c.rasterize(hf, telemetry) }
     }
 
     companion object {
-        fun emptyBounds(): FloatArray {
-            return floatArrayOf(
-                Float.POSITIVE_INFINITY,
-                Float.POSITIVE_INFINITY,
-                Float.POSITIVE_INFINITY,
-                Float.NEGATIVE_INFINITY,
-                Float.NEGATIVE_INFINITY,
-                Float.NEGATIVE_INFINITY
-            )
+        fun emptyBounds(): AABBf {
+            return AABBf()
         }
-        private fun bounds(colliders: List<Collider>): FloatArray {
-            val bounds = emptyBounds()
+
+        private fun bounds(colliders: List<Collider>): AABBf {
+            val bounds = AABBf()
             for (collider in colliders) {
-                val b = collider.bounds()
-                bounds[0] = Math.min(bounds[0], b[0])
-                bounds[1] = Math.min(bounds[1], b[1])
-                bounds[2] = Math.min(bounds[2], b[2])
-                bounds[3] = Math.max(bounds[3], b[3])
-                bounds[4] = Math.max(bounds[4], b[4])
-                bounds[5] = Math.max(bounds[5], b[5])
+                bounds.union(collider.bounds)
             }
             return bounds
         }

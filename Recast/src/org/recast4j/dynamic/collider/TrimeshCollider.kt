@@ -17,13 +17,11 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.collider
 
-import org.recast4j.dynamic.collider.CompositeCollider.Companion.emptyBounds
+import org.joml.AABBf
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastRasterization.rasterizeTriangle
 import org.recast4j.recast.Telemetry
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 
 class TrimeshCollider : AbstractCollider {
     private val vertices: FloatArray
@@ -36,11 +34,8 @@ class TrimeshCollider : AbstractCollider {
     }
 
     constructor(
-        vertices: FloatArray,
-        triangles: IntArray,
-        bounds: FloatArray,
-        area: Int,
-        flagMergeThreshold: Float
+        vertices: FloatArray, triangles: IntArray, bounds: AABBf,
+        area: Int, flagMergeThreshold: Float
     ) : super(area, flagMergeThreshold, bounds) {
         this.vertices = vertices
         this.triangles = triangles
@@ -60,20 +55,10 @@ class TrimeshCollider : AbstractCollider {
     }
 
     companion object {
-        fun computeBounds(vertices: FloatArray): FloatArray {
-            var i = 2
-            val bounds = emptyBounds()
-            while (i < vertices.size) {
-                val x = vertices[i - 2]
-                val y = vertices[i - 1]
-                val z = vertices[i]
-                bounds[0] = min(bounds[0], x)
-                bounds[1] = min(bounds[1], y)
-                bounds[2] = min(bounds[2], z)
-                bounds[3] = max(bounds[3], x)
-                bounds[4] = max(bounds[4], y)
-                bounds[5] = max(bounds[5], z)
-                i += 3
+        fun computeBounds(vertices: FloatArray): AABBf {
+            val bounds = AABBf()
+            for (i in 0 until (vertices.size - 2) / 3) {
+                bounds.union(vertices, i * 3)
             }
             return bounds
         }

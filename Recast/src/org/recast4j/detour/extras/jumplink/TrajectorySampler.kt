@@ -3,7 +3,11 @@ package org.recast4j.detour.extras.jumplink
 import org.joml.Vector3f
 import org.recast4j.Vectors
 import org.recast4j.recast.Heightfield
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
 
 internal object TrajectorySampler {
     fun sample(jlc: JumpLinkBuilderConfig, heightfield: Heightfield, es: EdgeSampler) {
@@ -47,17 +51,17 @@ internal object TrajectorySampler {
 
     private fun checkHeightfieldCollision(solid: Heightfield, x: Float, ymin: Float, ymax: Float, z: Float): Boolean {
         val cellSize = solid.cellSize
-        val origin = solid.bmin
-        val ix = floor(((x - origin.x) / cellSize)).toInt()
-        val iz = floor(((z - origin.z) / cellSize)).toInt()
+        val origin = solid.bounds
+        val ix = floor(((x - origin.minX) / cellSize)).toInt()
+        val iz = floor(((z - origin.minZ) / cellSize)).toInt()
         val w = solid.width
         val h = solid.height
         if (ix < 0 || iz < 0 || ix > w || iz > h) return false
         var s = solid.spans[ix + iz * w]
         while (s != null) {
             val cellHeight = solid.cellHeight
-            val syMin = origin.y + s.min * cellHeight
-            val syMax = origin.y + s.max * cellHeight
+            val syMin = origin.minY + s.min * cellHeight
+            val syMax = origin.minY + s.max * cellHeight
             if (Vectors.overlapRange(ymin, ymax, syMin, syMax)) {
                 return true
             }

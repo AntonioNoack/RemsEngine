@@ -55,8 +55,7 @@ internal object NavMeshGroundSampler : AbstractGroundSampler() {
         params.walkableRadius = agentRadius
         params.walkableHeight = agentHeight
         params.walkableClimb = agentClimb
-        params.bmin = rMesh.bmin
-        params.bmax = rMesh.bmax
+        params.bounds = rMesh.bounds
         params.cellSize = rMesh.cellSize
         params.cellHeight = rMesh.cellHeight
         params.buildBvTree = true

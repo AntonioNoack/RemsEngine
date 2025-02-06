@@ -77,9 +77,9 @@ class SphereTriangle(
     }
 
     fun updateChildren() {
-        val ab = JomlPools.vec3d.create().set(globalA).add(globalB).mul(0.5)
-        val bc = JomlPools.vec3d.create().set(globalB).add(globalC).mul(0.5)
-        val ca = JomlPools.vec3d.create().set(globalC).add(globalA).mul(0.5)
+        val ab = globalA.add(globalB, JomlPools.vec3d.create()).mul(0.5)
+        val bc = globalB.add(globalC, JomlPools.vec3d.create()).mul(0.5)
+        val ca = globalC.add(globalA, JomlPools.vec3d.create()).mul(0.5)
         childXX?.set(this, ab, bc, ca, radius)
         childAB?.set(this, globalA, ab, ca, radius)
         childBC?.set(this, globalB, bc, ab, radius)

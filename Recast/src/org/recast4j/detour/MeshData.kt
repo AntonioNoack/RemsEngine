@@ -18,8 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import org.joml.AABBf
 import org.joml.Vector3f
-import org.recast4j.Vectors
 import org.recast4j.detour.NavMeshBuilder.createNavMeshData
 import org.recast4j.detour.NavMeshBuilder.subdivide
 
@@ -89,17 +89,17 @@ class MeshData : MeshHeader() {
                 srcNodes[i].index = i
             }
             val dataVertices = data.vertices
+            val bounds = AABBf()
+            val tmp = Vector3f()
             for (i in 0 until data.polyCount) {
                 val polygon = data.polygons[i]
                 val polygonVertices = polygon.vertices
-                val bmin = Vector3f(data.vertices, polygonVertices[0] * 3)
-                val bmax = Vector3f(bmin)
-                for (j in 1 until polygon.vertCount) {
-                    val idx = polygonVertices[j] * 3
-                    Vectors.min(bmin, dataVertices, idx)
-                    Vectors.max(bmax, dataVertices, idx)
+                bounds.clear()
+                for (j in 0 until polygon.vertCount) {
+                    tmp.set(dataVertices, polygonVertices[j] * 3)
+                    bounds.union(tmp)
                 }
-                srcNodes[i].setQuantitized(bmin, bmax, data.bmin, quantFactor)
+                srcNodes[i].setQuantized(bounds, data.bounds, quantFactor)
             }
             return subdivide(srcNodes, 0, data.polyCount, 0, dstNodes)
         }

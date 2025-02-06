@@ -561,7 +561,7 @@ object RecastMeshDetail {
         val nvp = mesh.maxVerticesPerPolygon
         val cs = mesh.cellSize
         val ch = mesh.cellHeight
-        val orig = mesh.bmin
+        val orig = mesh.bounds
         val borderSize = mesh.borderSize
         val heightSearchRadius = max(1f, ceil(mesh.maxEdgeError)).toInt()
         val tris = IntArrayList(512)
@@ -645,17 +645,17 @@ object RecastMeshDetail {
 
             // Move detail vertices to world space.
             for (j in 0 until nverts) {
-                vertices[j * 3] += orig.x
-                vertices[j * 3 + 1] += orig.y + chf.cellHeight // Is this offset necessary? See
+                vertices[j * 3] += orig.minX
+                vertices[j * 3 + 1] += orig.minY + chf.cellHeight // Is this offset necessary? See
                 // https://groups.google.com/d/msg/recastnavigation/UQFN6BGCcV0/-1Ny4koOBpkJ
-                vertices[j * 3 + 2] += orig.z
+                vertices[j * 3 + 2] += orig.minZ
             }
 
             // Offset poly too, will be used to flag checking.
             for (j in 0 until npoly) {
-                poly[j * 3] += orig.x
-                poly[j * 3 + 1] += orig.y
-                poly[j * 3 + 2] += orig.z
+                poly[j * 3] += orig.minX
+                poly[j * 3 + 1] += orig.minY
+                poly[j * 3 + 2] += orig.minZ
             }
 
             // Store detail submesh.

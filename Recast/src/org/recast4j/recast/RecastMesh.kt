@@ -861,8 +861,7 @@ object RecastMesh {
     fun buildPolyMesh(ctx: Telemetry?, cset: ContourSet, nvp: Int): PolyMesh {
         ctx?.startTimer(TelemetryType.POLYMESH)
         val mesh = PolyMesh()
-        mesh.bmin.set(cset.bmin)
-        mesh.bmax.set(cset.bmax)
+        mesh.bounds.set(cset.bounds)
         mesh.cellSize = cset.cellSize
         mesh.cellHeight = cset.cellHeight
         mesh.borderSize = cset.borderSize
@@ -1129,14 +1128,11 @@ object RecastMesh {
         mesh.maxVerticesPerPolygon = meshes[0].maxVerticesPerPolygon
         mesh.cellSize = meshes[0].cellSize
         mesh.cellHeight = meshes[0].cellHeight
-        mesh.bmin.set(meshes[0].bmin)
-        mesh.bmax.set(meshes[0].bmax)
         var maxVertices = 0
         var maxPolys = 0
         var maxVerticesPerMesh = 0
         for (i in 0 until numMeshes) {
-            mesh.bmin.min(meshes[i].bmin, mesh.bmin)
-            mesh.bmax.max(meshes[i].bmax, mesh.bmax)
+            mesh.bounds.union(meshes[i].bounds)
             maxVerticesPerMesh = max(maxVerticesPerMesh, meshes[i].numVertices)
             maxVertices += meshes[i].numVertices
             maxPolys += meshes[i].numPolygons
@@ -1156,12 +1152,12 @@ object RecastMesh {
         val vremap = IntArray(maxVerticesPerMesh)
         for (i in 0 until numMeshes) {
             val pmesh = meshes[i]
-            val ox = floor(((pmesh.bmin.x - mesh.bmin.x) / mesh.cellSize + 0.5f)).toInt()
-            val oz = floor(((pmesh.bmin.z - mesh.bmin.z) / mesh.cellSize + 0.5f)).toInt()
+            val ox = floor(((pmesh.bounds.minX - mesh.bounds.minX) / mesh.cellSize + 0.5f)).toInt()
+            val oz = floor(((pmesh.bounds.minZ - mesh.bounds.minZ) / mesh.cellSize + 0.5f)).toInt()
             val isMinX = ox == 0
             val isMinZ = oz == 0
-            val isMaxX = floor(((mesh.bmax.x - pmesh.bmax.x) / mesh.cellSize + 0.5f)) == 0f
-            val isMaxZ = floor(((mesh.bmax.z - pmesh.bmax.z) / mesh.cellSize + 0.5f)) == 0f
+            val isMaxX = floor(((mesh.bounds.maxX - pmesh.bounds.maxX) / mesh.cellSize + 0.5f)) == 0f
+            val isMaxZ = floor(((mesh.bounds.maxZ - pmesh.bounds.maxZ) / mesh.cellSize + 0.5f)) == 0f
             val isOnBorder = isMinX || isMinZ || isMaxX || isMaxZ
             val pVertices = pmesh.vertices
             for (j in 0 until pmesh.numVertices) {
@@ -1225,8 +1221,7 @@ object RecastMesh {
         dst.numPolygons = src.numPolygons
         dst.numAllocatedPolygons = src.numPolygons
         dst.maxVerticesPerPolygon = src.maxVerticesPerPolygon
-        dst.bmin.set(src.bmin)
-        dst.bmax.set(src.bmax)
+        dst.bounds.set(src.bounds)
         dst.cellSize = src.cellSize
         dst.cellHeight = src.cellHeight
         dst.borderSize = src.borderSize

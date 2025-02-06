@@ -31,4 +31,9 @@ interface NativeArrayList {
     }
 
     fun resize(newSize: Int)
+    fun isEmpty() = size <= 0
+    fun isNotEmpty() = size > 0
+
+    val indices: IntRange get() = 0 until size
+    val lastIndex: Int get() = size - 1
 }
