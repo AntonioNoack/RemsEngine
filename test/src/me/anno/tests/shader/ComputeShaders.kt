@@ -1,9 +1,9 @@
 package me.anno.tests.shader
 
 import me.anno.jvm.HiddenOpenGLContext
-import me.anno.gpu.shader.ComputeShader
+import me.anno.gpu.shader.ComputeShaderStats
 
 fun main() {
     HiddenOpenGLContext.createOpenGL()
-    println(ComputeShader.stats.joinToString())
+    println(ComputeShaderStats.stats)
 }

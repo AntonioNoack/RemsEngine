@@ -12,32 +12,42 @@ import kotlin.math.max
  * */
 class ClickIdBoundsArray {
 
-    var size = 16
-    var values = FloatArray(size * 6)
+    var capacity = 16
+        private set
+
+    var values = FloatArray(capacity * 6)
+    val size get() = nextId.get()
 
     fun clear() {
-        size = 0
+        capacity = 0
         nextId.set(0)
     }
 
+    val nextId = AtomicInteger()
+    fun getNextId(bounds: AABBd?): Int {
+        val clickId = nextId.getAndIncrement()
+        add(bounds, clickId)
+        return clickId
+    }
+
     fun ensureCapacity(capacity: Int) {
-        if (capacity <= size) return // good enough
+        if (capacity <= this.capacity) return // good enough
         synchronized(this) { // needs resize, must be synchronous
-            if (capacity > size) {
-                val newSize = max(capacity, max(size * 2, 16))
+            if (capacity > this.capacity) {
+                val newSize = max(capacity, max(this.capacity * 2, 16))
                 values = values.copyOf(newSize * 6)
             }
         }
     }
 
-    fun add(bounds: AABBd?, clickId: Int) {
+    private fun add(bounds: AABBd?, clickId: Int) {
         ensureCapacity(clickId + 1)
         set(bounds, clickId)
     }
 
     private fun set(bounds: AABBd?, clickId: Int) {
-        val pos = RenderState.cameraPosition
-        val sca = RenderState.worldScale
+        val pos = RenderState.prevCameraPosition
+        val sca = RenderState.prevWorldScale
         val idx = clickId * 6
         val dst = values
         assertTrue(idx >= 0 && idx + 6 <= dst.size)
@@ -56,12 +66,5 @@ class ClickIdBoundsArray {
             dst[idx + 4] = Float.POSITIVE_INFINITY
             dst[idx + 5] = Float.POSITIVE_INFINITY
         }
-    }
-
-    val nextId = AtomicInteger()
-    fun getNextId(bounds: AABBd?): Int {
-        val clickId = nextId.getAndIncrement()
-        add(bounds, clickId)
-        return clickId
     }
 }

@@ -208,8 +208,18 @@ object GFXState {
     }
 
     val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
+
+    /**
+     * mode used for depth-testing, e.g. CLOSER
+     * */
     val depthMode = SecureStack(alwaysDepthMode)
+
+    /**
+     * whether depth is written
+     * */
     val depthMask = SecureStack(true)
+
+
     val drawLines = SecureStack(false)
 
     /**

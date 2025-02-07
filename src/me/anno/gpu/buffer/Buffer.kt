@@ -7,12 +7,12 @@ import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Booleans.withoutFlag
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
@@ -31,39 +31,44 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             elementCount = value
         }
 
+    private fun bind(force: Boolean) {
+        ensureBuffer()
+        bindBuffer(type, pointer, force)
+        GFX.check()
+    }
+
     private var hasWarned = false
     open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
+        bindAttributes(shader, false)
+        instanceData?.bindAttributes(shader, true)
+        unbindAttributes(shader, attributes, instanceData?.attributes ?: emptyList())
+    }
 
-        ensureBuffer()
-        bindBuffer(type, pointer, true)
-        GFX.check()
-
-        val nonInstancedAttributes = attributes
-        for (i in nonInstancedAttributes.indices) {
-            bindAttribute(shader, nonInstancedAttributes[i], false)
-        }
-
-        val instancedAttributes = instanceData?.attributes
-        if (instanceData != null && instancedAttributes != null) {
-            instanceData.ensureBuffer()
-            bindBuffer(type, instanceData.pointer, true)
-            for (i in instancedAttributes.indices) {
-                bindAttribute(shader, instancedAttributes[i], true)
-            }
-        }
-
+    @InternalAPI
+    private fun unbindAttributes(
+        shader: Shader, instancedAttributes: List<Attribute>,
+        nonInstancedAttributes: List<Attribute>
+    ) {
         val declaredAttributes = shader.attributes
         for (i in declaredAttributes.indices) {
             val attr = declaredAttributes[i]
             // check if name is bound in attr1/attr2
             val attrName = attr.name
-            if (nonInstancedAttributes.none2 { it.name == attrName } && (instancedAttributes == null || instancedAttributes.none2 { it.name == attrName })) {
+            if (nonInstancedAttributes.none2 { it.name == attrName } && instancedAttributes.none2 { it.name == attrName }) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
             }
         }
-
         GFX.check()
+    }
+
+    @InternalAPI
+    fun bindAttributes(shader: Shader, instanced: Boolean) {
+        bind(true)
+        val attrs = attributes
+        for (i in attrs.indices) {
+            bindAttribute(shader, attrs[i], instanced)
+        }
     }
 
     private fun bindBufferAttributes(shader: Shader) {

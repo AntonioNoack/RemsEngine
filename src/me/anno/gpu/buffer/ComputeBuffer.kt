@@ -5,8 +5,8 @@ import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL46C.glGetBufferSubData
 import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BUFFER
 
-class ComputeBuffer(name: String, attr: List<Attribute>, elementCount: Int) :
-    OpenGLBuffer(name, GL_SHADER_STORAGE_BUFFER, attr) {
+class ComputeBuffer(name: String, attr: List<Attribute>, elementCount: Int, type: Int = GL_SHADER_STORAGE_BUFFER) :
+    OpenGLBuffer(name, type, attr) {
 
     init {
         this.elementCount = elementCount

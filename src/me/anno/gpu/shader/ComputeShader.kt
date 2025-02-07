@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
+import me.anno.gpu.shader.ComputeShaderStats.Companion.stats
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -26,7 +27,8 @@ class ComputeShader(
             this(shaderName, 430, localSize, variables, source)
 
     constructor(shaderName: String, version: Int, localSize: Vector3i, variables: List<Variable>, source: String) :
-            this(shaderName, version, localSize,
+            this(
+                shaderName, version, localSize,
                 variables.joinToString("") {
                     when (it.inOutMode) {
                         VariableMode.IN -> {
@@ -73,7 +75,7 @@ class ComputeShader(
         if (groupSize.y < 1) groupSize.y = 1
         if (groupSize.z < 1) groupSize.z = 1
         val groupSizeI = groupSize.x * groupSize.y * groupSize.z
-        val maxGroupSize = stats[3]
+        val maxGroupSize = stats.maxUnitsPerGroup
         assertTrue(groupSizeI <= maxGroupSize) {
             "Group size too large: ${groupSize.x} x ${groupSize.y} x ${groupSize.z} > $maxGroupSize"
         }
@@ -107,23 +109,6 @@ class ComputeShader(
         @JvmStatic
         private val LOGGER = LogManager.getLogger(ComputeShader::class)
 
-        private fun getComputeWorkGroupCount(index: Int, ptr: IntArray): Int {
-            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, index, ptr)
-            return ptr[0]
-        }
-
-        @JvmStatic
-        val stats by lazy {
-            val ptr = IntArray(1)
-            val sx = getComputeWorkGroupCount(0, ptr)
-            val sy = getComputeWorkGroupCount(1, ptr)
-            val sz = getComputeWorkGroupCount(2, ptr)
-            val maxUnitsPerGroup = GL46C.glGetInteger(GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS)
-            LOGGER.info("Max compute group count: $sx x $sy x $sz") // 65k³
-            LOGGER.info("Max units per group: $maxUnitsPerGroup") // 1024
-            intArrayOf(sx, sy, sz, maxUnitsPerGroup)
-        }
-
         @JvmStatic
         fun findFormat(format: Int) = when (format) {
             GL46C.GL_RGBA32F, GL46C.GL_RGBA16F, GL46C.GL_RG32F, GL46C.GL_RG16F,
@@ -149,11 +134,11 @@ class ComputeShader(
 
     fun runByGroups(widthGroups: Int, heightGroups: Int = 1, depthGroups: Int = 1) {
         use()
-        val maxGroupSize = stats
-        if (widthGroups > maxGroupSize[0] || heightGroups > maxGroupSize[1] || depthGroups > maxGroupSize[2]) {
+        val stats = stats
+        if (widthGroups > stats.sx || heightGroups > stats.sy || depthGroups > stats.sz) {
             throw IllegalArgumentException(
                 "Group count out of bounds: ($widthGroups x $heightGroups x $depthGroups x GroupSize) > " +
-                        "(${maxGroupSize.joinToString(" x ")})"
+                        "(${stats.sx} x ${stats.sy} x ${stats.sz})"
             )
         }
         GL46C.glDispatchCompute(widthGroups, heightGroups, depthGroups)
