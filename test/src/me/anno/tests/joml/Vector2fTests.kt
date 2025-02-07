@@ -8,6 +8,7 @@ import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector2i
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.math.PI
 import kotlin.math.sqrt
@@ -86,6 +87,18 @@ class Vector2fTests {
         assertEquals(sqrt(2f * 2f + 1f * 1f), Vector2f(3f, 2f).distance(Vector2f(5f, 3f)))
         assertEquals(2f * 2f + 1f * 1f, Vector2f(3f, 2f).distanceSquared(5f, 3f))
         assertEquals(2f * 2f + 1f * 1f, Vector2f(3f, 2f).distanceSquared(Vector2f(5f, 3f)))
+    }
+
+    @Test
+    fun testExtremeLengths() {
+        assertEquals(5e-38f, Vector2f(3e-38f, 4e-38f).length())
+        assertEquals(5e37f, Vector2f(3e37f, 4e37f).length())
+    }
+
+    @Test
+    fun testExtremeDistances() {
+        assertEquals(5e-38f, Vector2f(1e-38f, 7e-38f).distance(Vector2f(-2e-38f, 3e-38f)))
+        assertEquals(5e37f, Vector2f(1e37f, 7e37f).distance(Vector2f(-2e37f, 3e37f)))
     }
 
     @Test

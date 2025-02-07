@@ -7,6 +7,7 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 object JomlMath {
+    const val MIN_DOUBLE = 1.0 / Double.MAX_VALUE
 
     @JvmStatic
     fun String.addSigns(): String {

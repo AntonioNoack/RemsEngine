@@ -70,6 +70,22 @@ class Vector4fTests {
     }
 
     @Test
+    fun testExtremeLengths() {
+        assertEquals(5e-38f, Vector4f(3e-38f, 4e-38f, 0f, 0f).length())
+        assertEquals(5e-38f, Vector4f(0f, 0f, 3e-38f, 4e-38f).length())
+        assertEquals(5e37f, Vector4f(3e37f, 4e37f, 0f, 0f).length())
+        assertEquals(5e37f, Vector4f(0f, 0f, 3e37f, 4e37f).length())
+    }
+
+    @Test
+    fun testExtremeDistances() {
+        assertEquals(5e-38f, Vector4f(1e-38f, 7e-38f, 0f, 0f).distance(Vector4f(-2e-38f, 3e-38f, 0f, 0f)))
+        assertEquals(5e37f, Vector4f(1e37f, 7e37f, 0f, 0f).distance(Vector4f(-2e37f, 3e37f, 0f, 0f)))
+        assertEquals(5e-38f, Vector4f(0f, 0f, 1e-38f, 7e-38f).distance(Vector4f(0f, 0f, -2e-38f, 3e-38f)))
+        assertEquals(5e37f, Vector4f(0f, 0f, 1e37f, 7e37f).distance(Vector4f(0f, 0f, -2e37f, 3e37f)))
+    }
+
+    @Test
     fun testNormalize() {
         val a = Vector4f(3f, 5f, 4f, 1f)
         val b = a.normalize(Vector4f())

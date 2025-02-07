@@ -57,15 +57,15 @@ class BoxOcclusionCulling : AttachedDepthPass() {
                     Variable(GLSLType.V3F, "cameraDirection"),
                     Variable(GLSLType.M4x4, "transform"),
                 ), "" +
-                        // todo limit max depth to reasonable levels. We don't want depth-culling.
-                        // todo we want the geometry of either front or back,
-                        //  we want the culling of the backside,
-                        //  and the depth values of the front-side :/
+                        // todo when we don't have reverse depth, limit depth to back plane somehow...
                         "void main() {\n" +
-                        // back-side point
-                        "   vec3 back = mix(minBox, maxBox, coords);\n" +
-                        // find the point on the front-side
-                        "   vec3 dist = (maxBox-minBox)/abs(cameraDirection);\n" +
+                        // back-side point for culling and geometry;
+                        // must be clamped to avoid numeric issues for huge meshes
+                        "   vec3 minBox1 = max(minBox, vec3(-1e15));\n" +
+                        "   vec3 maxBox1 = min(maxBox, vec3(+1e15));\n" +
+                        "   vec3 back = mix(minBox1, maxBox1, coords);\n" +
+                        // find the point on the front-side for depth-comparison values
+                        "   vec3 dist = (maxBox1-minBox1)/abs(cameraDirection);\n" +
                         "   float n = min(dist.x,min(dist.y,dist.z));\n" +
                         "   n = min(n,1e30);\n" +
                         "   vec3 front = back - n * cameraDirection;\n" +
@@ -84,7 +84,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
                         "  int values[];\n" +
                         "};\n" +
                         "void main() {\n" +
-                        "   float epsilon = 1.001;\n" +
+                        "   float epsilon = 1.0001;\n" +
                         "   float boxDepth = texelFetch(depthTex,ivec2(gl_FragCoord.xy),0).x;\n" +
                         "   float prevFrameDepth = frontPosition.z / frontPosition.w;\n" +
                         // todo correct check depends on reverseDepth

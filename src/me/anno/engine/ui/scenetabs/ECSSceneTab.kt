@@ -155,10 +155,7 @@ class ECSSceneTab(
     }
 
     private fun resetCamera(aabb: AABBf, translate: Boolean) {
-        if (aabb.centerX.isFinite() && aabb.centerY.isFinite() && aabb.centerZ.isFinite()) {
-            if (translate) position.set(aabb.centerX.toDouble(), aabb.centerY.toDouble(), aabb.centerZ.toDouble())
-            radius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ).toDouble()
-        }
+        resetCamera(AABBd(aabb), translate)
     }
 
     private fun resetCamera(aabb: AABBd, translate: Boolean) {
@@ -191,7 +188,7 @@ class ECSSceneTab(
 
     fun applyRadius(panel: RenderView) {
         val fov = panel.controlScheme?.settings?.fovY ?: 90f
-        val radius = radius * 90f / fov
+        val radius = radius * 90.0 / fov
         panel.radius = radius
         panel.near = 1e-3 * radius
         panel.far = 1e10 * radius
@@ -297,7 +294,6 @@ class ECSSceneTab(
         }
         if (ECSSceneTabs.currentTab == this && needsStart) {
             needsStart = false
-            println("starting $file-tab")
             onStart()
         }
         if (ECSSceneTabs.currentTab == this) {

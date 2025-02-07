@@ -90,6 +90,19 @@ class Vector2dTests {
         assertEquals(2f * 2f + 1f * 1.0, Vector2d(3.0, 2.0).distanceSquared(Vector2d(5.0, 3.0)))
     }
 
+
+    @Test
+    fun testExtremeLengths() {
+        assertEquals(5e-308, Vector2d(3e-308, 4e-308).length(), 1e-320)
+        assertEquals(5e307, Vector2d(3e307, 4e307).length(), 1e292)
+    }
+
+    @Test
+    fun testExtremeDistances() {
+        assertEquals(5e-308, Vector2d(1e-308, 7e-308).distance(Vector2d(-2e-308, 3e-308)))
+        assertEquals(5e307, Vector2d(1e307, 7e307).distance(Vector2d(-2e307, 3e307)))
+    }
+
     @Test
     fun testNormalize() {
         val a = Vector2d(3.0, 5.0)

@@ -3,14 +3,16 @@ package me.anno.maths
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Floats.roundToIntOr
+import org.joml.Vector2d
 import org.joml.Vector2f
+import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector4d
 import org.joml.Vector4f
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.floor
-import kotlin.math.hypot
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.round
@@ -257,22 +259,22 @@ object Maths {
     }
 
     @JvmStatic
-    fun length(dx: Float, dy: Float) = hypot(dx, dy)
+    fun length(dx: Float, dy: Float): Float = Vector2f.length(dx, dy)
 
     @JvmStatic
-    fun length(dx: Double, dy: Double) = hypot(dx, dy)
+    fun length(dx: Double, dy: Double): Double = Vector2d.length(dx, dy)
 
     @JvmStatic
-    fun length(dx: Float, dy: Float, dz: Float) = sqrt(dx * dx + dy * dy + dz * dz)
+    fun length(dx: Float, dy: Float, dz: Float): Float = Vector3f.length(dx, dy, dz)
 
     @JvmStatic
-    fun length(dx: Double, dy: Double, dz: Double) = sqrt(dx * dx + dy * dy + dz * dz)
+    fun length(dx: Double, dy: Double, dz: Double): Double = Vector3d.length(dx, dy, dz)
 
     @JvmStatic
-    fun length(dx: Float, dy: Float, dz: Float, dw: Float) = sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
+    fun length(dx: Float, dy: Float, dz: Float, dw: Float): Float = Vector4f.length(dx, dy, dz, dw)
 
     @JvmStatic
-    fun length(dx: Double, dy: Double, dz: Double, dw: Double) = sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
+    fun length(dx: Double, dy: Double, dz: Double, dw: Double): Double = Vector4d.length(dx, dy, dz, dw)
 
     @JvmStatic
     fun distance(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1 - x0, y1 - y0)

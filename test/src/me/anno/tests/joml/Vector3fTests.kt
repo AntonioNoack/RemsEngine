@@ -4,12 +4,10 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
-import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.junit.jupiter.api.Test
-import kotlin.math.round
 import kotlin.math.sqrt
 
 class Vector3fTests {
@@ -58,6 +56,22 @@ class Vector3fTests {
         assertEquals(sqrt(2f * 2f + 1f * 1f + 4f * 4f), Vector3f(3f, 2f, 4f).distance(Vector3f(5f, 3f, 0f)))
         assertEquals(2f * 2f + 1f * 1f + 4f * 4f, Vector3f(3f, 2f, 4f).distanceSquared(5f, 3f, 0f))
         assertEquals(2f * 2f + 1f * 1f + 4f * 4f, Vector3f(3f, 2f, 4f).distanceSquared(Vector3f(5f, 3f, 0f)))
+    }
+
+    @Test
+    fun testExtremeLengths() {
+        assertEquals(5e-38f, Vector3f(3e-38f, 4e-38f, 0f).length())
+        assertEquals(5e-38f, Vector3f(0f, 3e-38f, 4e-38f).length())
+        assertEquals(5e37f, Vector3f(3e37f, 4e37f, 0f).length())
+        assertEquals(5e37f, Vector3f(0f, 3e37f, 4e37f).length())
+    }
+
+    @Test
+    fun testExtremeDistances() {
+        assertEquals(5e-38f, Vector3f(1e-38f, 7e-38f, 0f).distance(Vector3f(-2e-38f, 3e-38f, 0f)))
+        assertEquals(5e37f, Vector3f(1e37f, 7e37f, 0f).distance(Vector3f(-2e37f, 3e37f, 0f)))
+        assertEquals(5e-38f, Vector3f(1e-38f, 0f, 7e-38f).distance(Vector3f(-2e-38f, 0f, 3e-38f)))
+        assertEquals(5e37f, Vector3f(1e37f, 0f, 7e37f).distance(Vector3f(-2e37f, 0f, 3e37f)))
     }
 
     @Test

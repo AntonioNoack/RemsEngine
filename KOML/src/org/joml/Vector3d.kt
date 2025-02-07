@@ -1,6 +1,7 @@
 package org.joml
 
 import org.joml.JomlMath.hash
+import org.joml.Vector4d.Companion
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.acos
@@ -412,17 +413,8 @@ open class Vector3d(
         return dst.set(x / vx, y / vy, z / vz)
     }
 
-    fun lengthSquared() = x * x + y * y + z * z
-    fun length(): Double {
-        val ls = lengthSquared()
-        return if (ls.isInfinite()) {
-            val f1 = 2.225e-307
-            val lx = x * f1
-            val ly = y * f1
-            val lz = z * f1
-            sqrt(lx * lx + ly * ly + lz * lz) / f1
-        } else sqrt(ls)
-    }
+    fun lengthSquared(): Double = lengthSquared(x, y, z)
+    fun length(): Double = length(x, y, z)
 
     @JvmOverloads
     fun normalize(dst: Vector3d = this) = mul(1.0 / length(), dst)
@@ -439,12 +431,7 @@ open class Vector3d(
     }
 
     fun distance(v: Vector3d) = distance(v.x, v.y, v.z)
-    fun distance(x: Double, y: Double, z: Double): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        return sqrt(dx * dx + dy * dy + dz * dz)
-    }
+    fun distance(vx: Double, vy: Double, vz: Double): Double = distance(x, y, z, vx, vy, vz)
 
     fun distanceSquared(v: Vector3d): Double = distanceSquared(v.x, v.y, v.z)
     fun distanceSquared(vx: Double, vy: Double, vz: Double): Double = lengthSquared(x - vx, y - vy, z - vz)
@@ -747,14 +734,28 @@ open class Vector3d(
 
     companion object {
         @JvmStatic
-        fun lengthSquared(x: Double, y: Double, z: Double) = x * x + y * y + z * z
+        fun lengthSquared(x: Double, y: Double, z: Double): Double {
+            return x * x + y * y + z * z
+        }
 
         @JvmStatic
-        fun length(x: Double, y: Double, z: Double): Double = sqrt(lengthSquared(x, y, z))
+        fun length(x: Double, y: Double, z: Double): Double {
+            val sq = lengthSquared(x, y, z)
+            return when {
+                sq < JomlMath.MIN_DOUBLE -> lengthScaled(x, y, z, Double.MAX_VALUE, JomlMath.MIN_DOUBLE)
+                sq.isFinite() -> sqrt(sq)
+                else -> lengthScaled(x, y, z, JomlMath.MIN_DOUBLE, Double.MAX_VALUE)
+            }
+        }
+
+        @JvmStatic
+        private fun lengthScaled(x: Double, y: Double, z: Double, s: Double, invS: Double): Double {
+            return sqrt(lengthSquared(x * s, y * s, z * s)) * invS
+        }
 
         @JvmStatic
         fun distance(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Double {
-            return sqrt(distanceSquared(x1, y1, z1, x2, y2, z2))
+            return length(x2 - x1, y2 - y1, z2 - z1)
         }
 
         @JvmStatic
@@ -762,7 +763,7 @@ open class Vector3d(
             val dx = x1 - x2
             val dy = y1 - y2
             val dz = z1 - z2
-            return dx * dx + dy * dy + dz * dz
+            return lengthSquared(dx, dy, dz)
         }
     }
 }

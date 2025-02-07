@@ -358,16 +358,7 @@ open class Vector3f(
     }
 
     fun lengthSquared() = x * x + y * y + z * z
-    fun length(): Float {
-        val ls = lengthSquared()
-        return if (ls.isInfinite()) {
-            val f1 = 1.175494e-38f
-            val lx = x * f1
-            val ly = y * f1
-            val lz = z * f1
-            sqrt(lx * lx + ly * ly + lz * lz) / f1
-        } else sqrt(ls)
-    }
+    fun length(): Float = length(x, y, z)
 
     @JvmOverloads
     fun normalize(dst: Vector3f = this) = mul(1f / length(), dst)
@@ -387,16 +378,13 @@ open class Vector3f(
     }
 
     fun distance(v: Vector3f) = distance(v.x, v.y, v.z)
-    fun distance(x: Float, y: Float, z: Float): Float {
-        return sqrt(distanceSquared(x, y, z))
+    fun distance(vx: Float, vy: Float, vz: Float): Float {
+        return distance(x, y, z, vx, vy, vz)
     }
 
     fun distanceSquared(v: Vector3f) = distanceSquared(v.x, v.y, v.z)
-    fun distanceSquared(x: Float, y: Float, z: Float): Float {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        return dx * dx + dy * dy + dz * dz
+    fun distanceSquared(vx: Float, vy: Float, vz: Float): Float {
+        return distanceSquared(x, y, z, vx, vy, vz)
     }
 
     fun dot(v: Vector3f): Float = dot(v.x, v.y, v.z)
@@ -729,12 +717,12 @@ open class Vector3f(
 
         @JvmStatic
         fun length(x: Float, y: Float, z: Float): Float {
-            return sqrt(lengthSquared(x, y, z))
+            return Vector3d.length(x.toDouble(), y.toDouble(), z.toDouble()).toFloat()
         }
 
         @JvmStatic
         fun distance(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float): Float {
-            return sqrt(distanceSquared(x1, y1, z1, x2, y2, z2))
+            return length(x1 - x2, y1 - y2, z1 - z2)
         }
 
         @JvmStatic

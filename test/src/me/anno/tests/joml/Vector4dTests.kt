@@ -67,6 +67,22 @@ class Vector4dTests {
     }
 
     @Test
+    fun testExtremeLengths() {
+        assertEquals(5e-308, Vector4d(3e-308, 4e-308, 0.0, 0.0).length())
+        assertEquals(5e-308, Vector4d(0.0, 0.0, 3e-308, 4e-308).length())
+        assertEquals(5e307, Vector4d(3e307, 4e307, 0.0, 0.0).length(), 1e292)
+        assertEquals(5e307, Vector4d(0.0, 0.0, 3e307, 4e307).length(), 1e292)
+    }
+
+    @Test
+    fun testExtremeDistances() {
+        assertEquals(5e-308, Vector4d(1e-308, 7e-308, 0.0, 0.0).distance(Vector4d(-2e-308, 3e-308, 0.0, 0.0)))
+        assertEquals(5e307, Vector4d(1e307, 7e307, 0.0, 0.0).distance(Vector4d(-2e307, 3e307, 0.0, 0.0)), 1e292)
+        assertEquals(5e-308, Vector4d(0.0, 0.0, 1e-308, 7e-308).distance(Vector4d(0.0, 0.0, -2e-308, 3e-308)))
+        assertEquals(5e307, Vector4d(0.0, 0.0, 1e307, 7e307).distance(Vector4d(0.0, 0.0, -2e307, 3e307)), 1e292)
+    }
+
+    @Test
     fun testNormalize() {
         val a = Vector4d(3.0, 5.0, 4.0, 1.0)
         val b = a.normalize(Vector4d())

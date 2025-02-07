@@ -337,8 +337,8 @@ open class Vector4f(
         return dst.set(x, y, z, w)
     }
 
-    fun lengthSquared() = x * x + y * y + z * z + w * w
-    fun length() = sqrt(lengthSquared())
+    fun lengthSquared(): Float = lengthSquared(x, y, z, w)
+    fun length(): Float = length(x, y, z, w)
 
     @JvmOverloads
     fun normalize(dst: Vector4f = this) = mul(1f / length(), dst)
@@ -540,12 +540,12 @@ open class Vector4f(
 
         @JvmStatic
         fun length(x: Float, y: Float, z: Float, w: Float): Float {
-            return sqrt(lengthSquared(x, y, z, w))
+            return Vector4d.length(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble()).toFloat()
         }
 
         @JvmStatic
         fun distance(x1: Float, y1: Float, z1: Float, w1: Float, x2: Float, y2: Float, z2: Float, w2: Float): Float {
-            return sqrt(distanceSquared(x1, y1, z1, w1, x2, y2, z2, w2))
+            return length(x1 - x2, y1 - y2, z1 - z2, w1 - w2)
         }
 
         @JvmStatic
