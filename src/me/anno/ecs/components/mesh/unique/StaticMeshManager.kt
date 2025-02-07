@@ -31,13 +31,10 @@ class StaticMeshManager : System(), Renderable {
     val managers = HashMap<Material, UniqueMeshRenderer<Mesh, SMMKey>>()
     val meshes = HashSet<MeshComponent>(1024)
 
-    var clickId = 0
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        this.clickId = clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         for ((_, manager) in managers) {
-            manager.fill(pipeline, transform, clickId)
+            manager.fill(pipeline, transform)
         }
-        return clickId + 1
     }
 
     var numIdleFrames = 3

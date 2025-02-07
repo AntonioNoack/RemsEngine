@@ -70,8 +70,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         CullMode.BOTH, pbrModelShader
     )
 
-    var lastClickId = 0
-
     val frustum = Frustum()
 
     var skybox: SkyboxBase = Skybox.defaultSky
@@ -115,6 +113,22 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             )
         }
         return stages[stage0]
+    }
+
+    fun getBounds(component: Component): AABBd? {
+        return when (component) {
+            is MeshSpawner -> component.globalAABB
+            is MeshComponentBase -> component.globalAABB
+            else -> component.entity?.getBounds()
+        }
+    }
+
+    fun getClickId(component: Component): Int {
+        return getClickId(getBounds(component))
+    }
+
+    fun getClickId(bounds: AABBd?): Int {
+        return clickIdToBounds.getNextId(bounds)
     }
 
     fun addMesh(mesh: IMesh, renderer: Component, transform: Transform) {
@@ -228,44 +242,45 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         defaultStage.clear()
         planarReflections.clear()
         lights.fill(null)
+        clickIdToBounds.clear()
         for (stageIndex in stages.indices) {
             stages[stageIndex].clear()
         }
     }
 
-    fun resetClickId() {
-        lastClickId = 1
-    }
+    val clickIdToBounds = ClickIdBoundsArray()
 
-    fun fill(rootElement: Entity): Int {
+    fun fill(rootElement: Entity) {
         // todo reuse the pipeline state for multiple frames
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
-        val lastClickId = subFill(rootElement, lastClickId)
-        this.lastClickId = lastClickId
-        return lastClickId
+        subFill(rootElement)
     }
 
     fun fill(root: PrefabSaveable) {
-        val clickId = lastClickId
-        if (root is Renderable) {
-            root.fill(this, sampleEntity.transform, clickId)
-            if (root is LightComponent) {
-                // make lights visible by giving them sth to shine on
-                samplePlaneTransform.teleportUpdate()
-                addMesh(samplePlane.getMesh()!!, samplePlane, samplePlaneTransform)
-            }
-            if (root == Systems.world) {
-                Systems.forAllSystems(Renderable::class) { system ->
-                    system.fill(this, sampleEntity.transform, clickId)
-                }
-            }
-        } else {
-            LOGGER.warn(
-                "Don't know how to render ${root.className}, " +
-                        "please implement me.anno.ecs.interfaces.Renderable, if it is supposed to be renderable"
-            )
+        if (root !is Renderable) {
+            warnUnknownRenderable(root)
+            return
         }
+
+        root.fill(this, sampleEntity.transform)
+        if (root is LightComponent) {
+            // make lights visible by giving them sth to shine on
+            samplePlaneTransform.teleportUpdate()
+            addMesh(samplePlane.getMesh()!!, samplePlane, samplePlaneTransform)
+        }
+        if (root == Systems.world) {
+            Systems.forAllSystems(Renderable::class) { system ->
+                system.fill(this, sampleEntity.transform)
+            }
+        }
+    }
+
+    private fun warnUnknownRenderable(root: PrefabSaveable) {
+        LOGGER.warn(
+            "Don't know how to render ${root.className}, " +
+                    "please implement me.anno.ecs.interfaces.Renderable, if it is supposed to be renderable"
+        )
     }
 
     val lights = ArrayList<LightRequest?>(RenderView.MAX_FORWARD_LIGHTS)
@@ -330,14 +345,13 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         }
     }
 
-    private fun subFill(entity0: Entity, clickId0: Int): Int {
+    private fun subFill(entity0: Entity) {
         // use a list instead of the stack to beautify stack traces a little
-        var clickId = clickId0
         Recursion.processRecursive(entity0) { entity, remaining ->
             entity.forAllComponents(Renderable::class, false) { component ->
                 if (component !== ignoredComponent) {
                     if (isVisible(component)) {
-                        clickId = component.fill(this, entity.transform, clickId)
+                        component.fill(this, entity.transform)
                     }
                 }
             }
@@ -347,7 +361,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                 }
             }
         }
-        return clickId
     }
 
     fun traverse(world: PrefabSaveable, callback: (Entity) -> Unit) {
@@ -386,7 +399,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(Pipeline::class)
 
-        private val samplePlane = MeshComponent(DefaultAssets.plane,
+        private val samplePlane = MeshComponent(
+            DefaultAssets.plane,
             Material().apply {
                 metallicMinMax.set(1f, 0f)
                 roughnessMinMax.set(0.1f, 1f)

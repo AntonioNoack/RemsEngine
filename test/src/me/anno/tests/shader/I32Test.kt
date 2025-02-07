@@ -78,14 +78,13 @@ fun main() {
             }
         }
 
-        override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-            this.clickId = clickId
+        override fun fill(pipeline: Pipeline, transform: Transform) {
+            clickId = pipeline.getClickId(this)
             val stack = getOrPutI32Stack(pipeline, mesh, material, TestI32Stack::class) {
                 TestI32Stack(space.toFloat())
             }
             val buffer = stack.start(gfxId, transform.globalTransform)
             for (i in 0 until count) buffer.add(i)
-            return clickId + 1
         }
     }
 

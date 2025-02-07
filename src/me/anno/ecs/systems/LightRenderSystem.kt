@@ -25,14 +25,13 @@ class LightRenderSystem() : System(), Renderable {
         }
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         for (c in lights) {
             val e = c.entity ?: continue
             if (pipeline.frustum.isVisible(e.getBounds())) {
                 pipeline.addLight(c, e)
             }
         }
-        return clickId
     }
 
     override fun clear() {

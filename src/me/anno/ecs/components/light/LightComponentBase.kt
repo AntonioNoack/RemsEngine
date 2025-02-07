@@ -25,9 +25,8 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
     @NotSerializedProperty
     var lastDrawn = 0L
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         lastDrawn = Time.gameTimeN
-        return clickId // not itself clickable
     }
 
     fun needsAutoUpdate(): Boolean {

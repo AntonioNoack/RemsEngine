@@ -104,9 +104,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @NotSerializedProperty
     var occlusionQuery: OcclusionQuery? = null
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        if (manager != null) return clickId
-        val mesh = getMeshOrNull() ?: return clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        if (manager != null) return
+        val mesh = getMeshOrNull() ?: return
+        clickId = pipeline.getClickId(this)
         if (isInstanced && mesh.proceduralLength <= 0) {
             pipeline.addMeshInstanced(mesh, this, transform)
         } else {
@@ -115,8 +116,6 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
                 pipeline.addMesh(mesh, this, transform)
             }
         }
-        this.clickId = clickId
-        return clickId + 1
     }
 
     override fun findDrawnSubject(searchedId: Int): Any? {

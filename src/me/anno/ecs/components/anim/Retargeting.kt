@@ -89,7 +89,7 @@ class Retargeting : PrefabSaveable(), Renderable {
     var showSampleMesh = false
     var showSampleAnimation = true
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         // different colors
         // todo show mapping clearer, maybe connecting lines
         // todo apply transform onto one of them, so we can check their matches better
@@ -102,39 +102,38 @@ class Retargeting : PrefabSaveable(), Renderable {
             if (showSampleMesh) {
                 // show retargeted mesh
                 // todo why is this one not animated???
-                sm.fill(pipeline, transform, clickId)
+                sm.fill(pipeline, transform)
             }
             val srcPreviewData = srcPreviewData ?: Animation.PreviewData(srcSkeleton1, sa)
             this.srcPreviewData = srcPreviewData
-            fillSkeletonAnimated(pipeline, transform, clickId, srcPreviewData)
+            fillSkeletonAnimated(pipeline, transform, srcPreviewData)
             val mappedAnimation = mappedAnimations.firstOrNull { it.first == sa }?.second
                 ?: getMappedAnimation(sa, dstSkeleton1)
             if (mappedAnimation != null) {
                 if (dstPreviewData == null) dstPreviewData = Animation.PreviewData(
                     dstSkeleton1, mappedAnimation
                 )
-                fillSkeletonAnimated(pipeline, transform, clickId, dstPreviewData!!)
+                fillSkeletonAnimated(pipeline, transform, dstPreviewData!!)
             } else println("Missing mapped animation!!")
             val loop = LoopingState.PLAY_LOOP
             val frame = loop[Time.gameTime.toFloat(), sa.duration] * sa.numFrames / sa.duration
             drawBoneNames(srcSkeleton1, sa.getMappedMatrices(frame, tmpMapping0, srcSkeleton), transformI, srcColor)
             drawBoneNames(dstSkeleton1, sa.getMappedMatrices(frame, tmpMapping1, dstSkeleton), transformI, dstColor)
         } else {
-            srcSkeleton1?.fill(pipeline, clickId, srcMat)
-            dstSkeleton1?.fill(pipeline, clickId, dstMat)
+            srcSkeleton1?.fill(pipeline, srcMat)
+            dstSkeleton1?.fill(pipeline, dstMat)
         }
-        return clickId + 1
     }
 
     private var srcPreviewData: Animation.PreviewData? = null
     private var dstPreviewData: Animation.PreviewData? = null
     private fun fillSkeletonAnimated(
-        pipeline: Pipeline, transform: Transform, clickId: Int,
+        pipeline: Pipeline, transform: Transform,
         previewData: Animation.PreviewData,
     ) {
         previewData.state.set(Time.gameTime.toFloat(), false)
         previewData.renderer.updateAnimState()
-        previewData.renderer.fill(pipeline, transform, clickId)
+        previewData.renderer.fill(pipeline, transform)
     }
 
     private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3d, color: Int) {

@@ -168,15 +168,15 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     @DebugProperty
     private var previewData: PreviewData? = null
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        val skeleton = SkeletonCache[skeleton] ?: return clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        val skeleton = SkeletonCache[skeleton] ?: return
         if (previewData == null) previewData = PreviewData(skeleton, this)
         return previewData!!.run {
             if (renderer.prevTime != Time.gameTimeN) {
                 state.update(renderer, Time.deltaTime.toFloat(), false)
                 renderer.updateAnimState()
             }
-            renderer.fill(pipeline, transform, clickId)
+            renderer.fill(pipeline, transform)
         }
     }
 

@@ -66,11 +66,10 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         return true
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         lastDrawn = Time.gameTimeN
         pipeline.lightStage.add(this)
-        this.clickId = clickId
-        return clickId + 1
+        clickId = pipeline.getClickId(this)
     }
 
     override fun onVisibleUpdate(): Boolean {

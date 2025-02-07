@@ -241,13 +241,12 @@ open class Material : PrefabSaveable(), Renderable {
         GFX.check()
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         val mesh = Pipeline.sampleMesh
         val stage = pipeline.findStage(this)
         val materialSource = root.ref
         mesh.material = materialSource
         stage.add(Pipeline.sampleMeshComponent, mesh, transform, this, 0)
-        return clickId + 1
     }
 
     override fun save(writer: BaseWriter) {

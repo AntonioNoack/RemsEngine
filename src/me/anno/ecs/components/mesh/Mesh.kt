@@ -434,9 +434,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         return aabb
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         pipeline.addMesh(this, Pipeline.sampleMeshComponent, transform)
-        return clickId
     }
 
     @DebugAction

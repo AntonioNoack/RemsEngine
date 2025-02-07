@@ -41,13 +41,12 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * until the first one of them returns true;
      * if you need different behaviour, just override this method :)
      * */
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        this.clickId = clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        clickId = pipeline.getClickId(this)
         instancedGroupFill(pipeline) ||
                 instancedTRSFill(pipeline) ||
                 instancedMeshGroupFill(pipeline) ||
                 instancedFill(pipeline)
-        return clickId + 1
     }
 
     fun instancedFill(pipeline: Pipeline): Boolean {
@@ -127,7 +126,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         val ls = lastStack
         if (ls != null) {
             for (j in lastStackIndex until ls.size) {
-                val transform = ls.transforms[j] as Transform
+                val transform = ls.transforms[j] as? Transform ?: continue
                 transform.validate()
             }
         }

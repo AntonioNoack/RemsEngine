@@ -265,10 +265,9 @@ fun main() {
 
             val placingCenter = Vector3d()
             val placingTransform = Transform()
-            override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+            override fun fill(pipeline: Pipeline, transform: Transform) {
                 val mesh = MeshCache[file]
                 if (mesh != null) pipeline.addMesh(mesh, this, placingTransform)
-                return clickId
             }
 
             override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {

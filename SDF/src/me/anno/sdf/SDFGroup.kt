@@ -10,6 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.sdf.SDFCombiningFunctions.hgFunctions
 import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.first2
@@ -75,26 +76,18 @@ open class SDFGroup : SDFComponent() {
         super.removeChild(child)
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        val clickId1 = super.fill(pipeline, transform, clickId)
-        return assignClickIds(this, clickId1)
-    }
-
-    private fun assignClickIds(sdf: SDFGroup, clickId0: Int): Int {
-        var clickId = clickId0
-        val children = sdf.children
-        for (i in children.indices) {
-            val child = children[i]
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        super.fill(pipeline, transform)
+        val bounds = globalAABB
+        Recursion.processRecursive2(children) { child, remaining ->
             if (child.isEnabled) {
-                child.clickId = clickId++
+                child.clickId = pipeline.getClickId(bounds)
                 if (child is SDFGroup) {
-                    clickId = assignClickIds(child, clickId)
+                    remaining.addAll(child.children)
                 }
             }
         }
-        return clickId
     }
-
 
     var dynamicSmoothness = false
         set(value) {

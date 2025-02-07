@@ -21,7 +21,6 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
     constructor() : this(InvalidRef)
     constructor(mesh: Mesh) : this(mesh.ref)
 
-    var clickId = 0
     var materialOverrides: List<FileReference>? = null
 
     val mesh get() = MeshCache[meshFile] ?: DefaultAssets.flatCube
@@ -52,10 +51,8 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
         }
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        this.clickId = clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         pipeline.addMesh(this, Pipeline.sampleMeshComponent, materialOverrides, transform)
-        return clickId + 1
     }
 
     override fun copyInto(dst: PrefabSaveable) {

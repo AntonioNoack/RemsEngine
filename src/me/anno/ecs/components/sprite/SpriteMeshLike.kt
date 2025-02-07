@@ -32,9 +32,8 @@ class SpriteMeshLike(
         // not implemented
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         // not implemented
-        return clickId
     }
 
     private fun StaticBuffer.addVertex(px: Int, py: Int, spriteId: Short, uvId: Short) {

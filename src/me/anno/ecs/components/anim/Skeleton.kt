@@ -91,12 +91,13 @@ class Skeleton : PrefabSaveable(), Renderable {
     }
 
     var previewData: Mesh? = null
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int =
-        fill(pipeline, clickId, defaultMaterial)
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        fill(pipeline, defaultMaterial)
+    }
 
-    fun fill(pipeline: Pipeline, clickId: Int, material: Material): Int {
+    fun fill(pipeline: Pipeline, material: Material) {
         val bones = bones
-        if (bones.isEmpty()) return clickId
+        if (bones.isEmpty()) return
         if (previewData == null) {
             val mesh = Mesh()
             // in a tree with N nodes, there is N-1 lines
@@ -110,7 +111,6 @@ class Skeleton : PrefabSaveable(), Renderable {
         val mesh = previewData!!
         mesh.material = material.ref
         pipeline.fill(mesh)
-        return clickId
     }
 
     override fun destroy() {

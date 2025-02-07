@@ -17,9 +17,8 @@ abstract class LightSpawner : Component(), Renderable {
         return true
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         fill(pipeline, pipeline.lightStage.instanced, transform)
-        return clickId
     }
 
     abstract fun fill(pipeline: Pipeline, instancedLights: LightData, transform: Transform)

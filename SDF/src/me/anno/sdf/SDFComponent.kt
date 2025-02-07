@@ -280,12 +280,11 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         Menu.msg(NameDesc("Pasted code to clipboard"))
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        this.clickId = clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        clickId = pipeline.getClickId(this)
         ensureValidShader()
         ensureValidBounds()
         pipeline.addMesh(getMeshOrNull(), this, transform)
-        return clickId + 1
     }
 
     override fun getMeshOrNull(): Mesh {

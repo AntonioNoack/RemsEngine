@@ -73,14 +73,9 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         } else false
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        transform: Transform,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         pipeline.skybox = this
-        this.clickId = clickId
-        return clickId + 1
+        clickId = pipeline.getClickId(this)
     }
 
     open fun getMesh() = mesh

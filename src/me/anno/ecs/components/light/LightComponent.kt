@@ -96,13 +96,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     @NotSerializedProperty
     var rootOverride: PrefabSaveable? = null
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         // add shape for testing, so the light is visible
         if (entity == Pipeline.sampleEntity) {
             pipeline.addMesh(shapeForTesting, this, transform)
         }
         pipeline.addLight(this, transform)
-        return super.fill(pipeline, transform, clickId)
+        return super.fill(pipeline, transform)
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {

@@ -149,10 +149,9 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         isValid = false
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        this.clickId = clickId
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        clickId = pipeline.getClickId(this)
         pipeline.addMesh(this, this, transform)
-        return clickId + 1
     }
 
     private fun push(buffer: StaticBuffer, start: Int, end: Int) {

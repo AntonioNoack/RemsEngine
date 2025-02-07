@@ -398,7 +398,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             // refill is necessary when shadows are calculated,
             // because that overrides clickIds
             pipeline.clear()
-            pipeline.resetClickId()
             pipeline.fill(world)
 
 
@@ -586,13 +585,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
-        pipeline.resetClickId()
         setRenderState() // needed for light matrix calculation (camSpaceToLightSpace)
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
         addDefaultLightsIfRequired(pipeline, world, this)
-        entityBaseClickId = pipeline.lastClickId
     }
 
     private val inverseDepth
@@ -905,7 +902,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         rv.setRenderState() // camera position needs to be reset
                     }
                 }
-                defaultSun.fill(pipeline, defaultSunEntity.transform, 0)
+                defaultSun.fill(pipeline, defaultSunEntity.transform)
             }
         }
     }

@@ -236,11 +236,10 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
     val framebuffer: Framebuffer?
         get() = if (RenderState.viewIndex == 1) framebuffer1 else framebuffer0
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         if (framebuffer?.isCreated() == true) {
             pipeline.planarReflections.add(this)
         }
-        return clickId // not itself clickable
     }
 
     private fun destroyFramebuffers() {

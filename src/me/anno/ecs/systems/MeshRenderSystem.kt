@@ -29,23 +29,22 @@ class MeshRenderSystem : System(), Renderable {
         }
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        var clickIdI = 0
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+
         for (c in meshes) {
             val e = c.entity ?: continue
             if (pipeline.frustum.isVisible(e.getBounds())) {
                 val mesh = c.getMesh() ?: continue
-                c.clickId = clickIdI++
+                c.clickId = pipeline.getClickId(e.getBounds())
                 pipeline.addMesh(mesh, c, e.transform)
             }
         }
         for (c in others) {
             val e = c.entity ?: continue
             if (pipeline.frustum.isVisible(e.getBounds())) {
-                clickIdI = c.fill(pipeline, transform, clickIdI)
+                 c.fill(pipeline, transform)
             }
         }
-        return clickIdI
     }
 
     override fun clear() {

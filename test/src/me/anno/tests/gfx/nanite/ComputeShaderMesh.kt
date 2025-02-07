@@ -181,10 +181,9 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
         }
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform) {
         val material = Material.defaultMaterial
         pipeline.findStage(material)
             .add(component, this, transform, material, 0)
-        return clickId + 1
     }
 }
