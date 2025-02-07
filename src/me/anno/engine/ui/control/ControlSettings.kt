@@ -24,7 +24,7 @@ open class ControlSettings : Inspectable {
     var turnSpeed by ConfigRef("ui.moveSettings.turnSpeed", 1f)
 
     @Group("Rendering")
-    @Range(0.01, 179.9)
+    @Range(0.01, 179.9) // todo range isn't properly checked/clamped!!
     var fovY by ConfigRef("ui.camera.fovY", 90f)
 
     @Group("Rendering")

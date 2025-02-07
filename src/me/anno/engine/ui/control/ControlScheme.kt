@@ -133,10 +133,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     fun rotateCamera(dx: Float, dy: Float) {
         // right mouse key down -> move the camera
-        var speed = -settings.turnSpeed * 500f / Maths.max(windowStack.height, height)
-        if (camera.isPerspective) {
-            speed *= tan(0.5f * camera.fovY.toRadians())
-        }
+        val speed = -settings.turnSpeed * 500f / Maths.max(windowStack.height, height)
         rotateCamera(dy * speed, dx * speed, 0f)
     }
 

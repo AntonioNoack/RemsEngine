@@ -23,10 +23,10 @@ class ClickIdBoundsArray {
     val size get() = nextId.get()
 
     fun clear() {
-        nextId.set(0)
+        nextId.set(1)
     }
 
-    val nextId = AtomicInteger()
+    val nextId = AtomicInteger(1)
     fun getNextId(bounds: AABBd?): Int {
         val clickId = nextId.getAndIncrement()
         // we could add an option to re-enable the boxes, because we don't need them without ComputeShaders

@@ -94,8 +94,8 @@ object RenderGraph {
         } else {
             LOGGER.warn("Missing end")
         }
-        // reset lod bias
-        Material.lodBias = 0f
+        Material.lodBias = 0f // reset lod bias
+        Pipeline.currentInstance = null // reset pipeline
     }
 
     private fun findStartNode(graph: FlowGraph): StartNode? {
