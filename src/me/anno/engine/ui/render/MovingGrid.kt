@@ -164,7 +164,7 @@ object MovingGrid {
         val mesh = cachedMeshes.getOrPut(size) { "$factor${getSuffix(baseSize)}" }
         val tmpPos = JomlPools.vec3d.create()
             .set(size, size * 0.02, 0.0).rotate(rotation)
-        TextShapes.drawTextMesh(pipeline, mesh, tmpPos, rotation, size, null)
+        TextShapes.drawTextMesh(pipeline, mesh, tmpPos, rotation, size * 0.2, null)
         JomlPools.vec3d.sub(1)
     }
 
