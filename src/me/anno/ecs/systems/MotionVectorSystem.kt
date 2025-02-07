@@ -2,24 +2,24 @@ package me.anno.ecs.systems
 
 import me.anno.ecs.Entity
 import me.anno.ecs.System
-import me.anno.utils.structures.Collections.setContains
+import me.anno.ecs.Transform
+import me.anno.utils.structures.sets.FastIteratorSet
 
 object MotionVectorSystem : System() {
 
     override val priority: Int
         get() = -10_000_000 // should be really, really early
 
-    private val entities = HashSet<Entity>(4096)
+    private val transforms = FastIteratorSet<Transform>()
 
     override fun setContains(entity: Entity, contains: Boolean) {
-        entities.setContains(entity, contains)
+        transforms.setContains(entity.transform, contains)
     }
 
     override fun onUpdate() {
-        for (entity in entities) {
-            // looks weird, but since smooth and teleport go away anyway,
-            // this should be correct
-            entity.transform.teleportUpdate()
+        val entities = transforms.getList()
+        for (i in entities.indices) {
+            entities[i].teleportUpdate()
         }
     }
 }
