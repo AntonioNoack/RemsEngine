@@ -47,6 +47,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -74,17 +75,15 @@ class ECSSceneTab(
 
     // different tabs have different "cameras"
     var radius = 10.0
-    var position = Vector3d()
-    var rotation = Quaterniond()
-        .rotateX(20.0.toRadians())
+    val position = Vector3d()
+    val rotation = Quaterniond(defaultRotation)
 
     var isFirstTime = true
 
     override fun getCursor() = Cursor.hand
 
     private fun resetCamera(root: PrefabSaveable) {
-        rotation.identity()
-            .rotateX(20.0.toRadians())
+        rotation.set(defaultRotation)
         when (root) {
             is MeshComponentBase -> {
                 resetCamera2(root.getMesh() ?: return)
@@ -184,14 +183,25 @@ class ECSSceneTab(
         for (window in windowStack) {
             window.panel.forAll { panel ->
                 if (panel is RenderView) {
-                    val radius = radius
-                    panel.radius = radius
-                    panel.near = 1e-3 * radius
-                    panel.far = 1e10 * radius
-                    panel.orbitCenter.set(position)
-                    panel.orbitRotation.set(rotation)
+                    applyRadius(panel)
                 }
             }
+        }
+    }
+
+    fun applyRadius(panel: RenderView) {
+        val fov = panel.controlScheme?.settings?.fovY ?: 90f
+        val radius = radius * 90f / fov
+        panel.radius = radius
+        panel.near = 1e-3 * radius
+        panel.far = 1e10 * radius
+        panel.orbitCenter.set(position)
+        panel.orbitRotation.set(rotation)
+        val cs = panel.controlScheme
+        if (cs != null) {
+            rotation
+                .getEulerAnglesYXZ(cs.rotationTargetDegrees)
+                .mul(1.0.toDegrees())
         }
     }
 
@@ -287,6 +297,7 @@ class ECSSceneTab(
         }
         if (ECSSceneTabs.currentTab == this && needsStart) {
             needsStart = false
+            println("starting $file-tab")
             onStart()
         }
         if (ECSSceneTabs.currentTab == this) {
@@ -329,6 +340,8 @@ class ECSSceneTab(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ECSSceneTab::class)
+        private val defaultRotation = Quaterniond()
+            .rotationYXZ((30.0).toRadians(), (-10.0).toRadians(), 0.0)
 
         fun tryStartVR(window: OSWindow?, rv: RenderView?) {
             if (GFX.shallRenderVR) {

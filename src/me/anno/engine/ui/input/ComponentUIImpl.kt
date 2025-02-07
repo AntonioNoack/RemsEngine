@@ -62,7 +62,8 @@ object ComponentUIImpl {
         nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
-        val type = NumberType(AnyToInt.getInt(default, 0).toByte(),
+        val type = NumberType(
+            AnyToInt.getInt(default, 0).toByte(),
             { clamp(AnyToLong.getLong(it, 0), range.minByte().toLong(), range.maxByte().toLong()).toByte() },
             { it })
         return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toByte() }
@@ -72,7 +73,8 @@ object ComponentUIImpl {
         nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
-        val type = NumberType(AnyToInt.getInt(default, 0).toShort(),
+        val type = NumberType(
+            AnyToInt.getInt(default, 0).toShort(),
             { clamp(AnyToLong.getLong(it, 0), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
             { it })
         return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toShort() }
@@ -82,7 +84,8 @@ object ComponentUIImpl {
         nameDesc: NameDesc, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
     ): Panel {
-        val type = NumberType(AnyToInt.getInt(default, 0),
+        val type = NumberType(
+            AnyToInt.getInt(default, 0),
             { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()).toInt() },
             { it })
         return createAnyIntInput(nameDesc, visibilityKey, value, property, style, type) { it.toInt() }
@@ -111,7 +114,8 @@ object ComponentUIImpl {
     ): Panel {
         val type = NumberType(
             AnyToFloat.getFloat(default, 0f),
-            { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
+            { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() },
+            { it })
         return FloatInput(nameDesc, visibilityKey, type, style).apply {
             alignmentX = AxisAlignment.FILL
             property.init(this)

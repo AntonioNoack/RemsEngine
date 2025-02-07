@@ -35,10 +35,8 @@ open class FloatInput(
         setText(value.toString(), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
-            if (newValue != null) {
-                value = newValue
-                changeListener(newValue)
-            }
+            value = newValue
+            changeListener(newValue)
         }
     }
 
@@ -57,12 +55,12 @@ open class FloatInput(
         setValue(value0, -1, false)
     }
 
-    fun parseValue(text: String): Double? {
+    fun parseValue(text: String): Double {
         if (text.isBlank2()) return 0.0
         val trimmed = text.trim().replace(',', '.')
         val newValue = trimmed.toDoubleOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)
-        if (newValue == null || !((allowInfinity && !newValue.isNaN()) || newValue.isFinite())) return null
-        return newValue
+        if (newValue == null || !((allowInfinity && !newValue.isNaN()) || newValue.isFinite())) return this.value
+        return clamp(newValue)
     }
 
     fun setValue(v: Int, notify: Boolean): FloatInput {
@@ -108,21 +106,20 @@ open class FloatInput(
     }
 
     fun setValueClamped(value: Double, notify: Boolean) {
-        val clampFunc = type.clampFunc
-        if (clampFunc == null) {
-            setValue(value, -1, notify)
-        } else {
-            val input: Any = when (type.defaultValue) {
-                is Boolean -> value >= 0.5
-                is Int -> value.roundToIntOr()
-                is Long -> value.roundToLongOr()
-                is Vector -> value.toFloat()
-                else -> AnyToDouble.getDouble(value)
-            }
-            val clamped = clampFunc(input)
-            val asDouble = AnyToDouble.getDouble(clamped)
-            setValue(asDouble, -1, notify)
+        setValue(clamp(value), -1, notify)
+    }
+
+    private fun clamp(value: Double): Double {
+        val clampFunc = type.clampFunc ?: return value
+        val input: Any = when (type.defaultValue) {
+            is Boolean -> value >= 0.5
+            is Int -> value.roundToIntOr()
+            is Long -> value.roundToLongOr()
+            is Vector -> value.toFloat()
+            else -> AnyToDouble.getDouble(value)
         }
+        val clamped = clampFunc(input)
+        return AnyToDouble.getDouble(clamped)
     }
 
     // must be open for Rem's Studio
@@ -158,8 +155,7 @@ open class FloatInput(
             wasInFocus = true
         } else if (wasInFocus) {
             // apply the value, or reset if invalid
-            val value = parseValue(inputPanel.value) ?: value
-            setValue(value, -1, true)
+            setValueClamped(parseValue(inputPanel.value), true)
             wasInFocus = false
         }
     }
@@ -167,7 +163,7 @@ open class FloatInput(
     override fun onEnterKey(x: Float, y: Float) {
         // evaluate the value, and write it back into the text field, e.g., for calculations
         hasValue = false
-        setValue(value, -1, true)
+        setValueClamped(value, true)
     }
 
     override fun clone(): FloatInput {

@@ -155,6 +155,8 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         bottom.add(CustomContainer(ECSFileExplorer(OS.documents, style), library, style))
         customUI.add(bottom)
 
+        ECSSceneTabs.currentTab?.applyRadius(sceneView.renderView)
+
         // todo if RenderView is deleted/disabled, make other RenderView VR-renderer
         val osWindow = GFX.someWindow
         tryStartVR(osWindow, sceneView.renderView)

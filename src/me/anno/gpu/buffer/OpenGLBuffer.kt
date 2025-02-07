@@ -256,16 +256,15 @@ abstract class OpenGLBuffer(
     }
 
     fun put(v: FloatArray): OpenGLBuffer {
-        for (vi in v) {
-            put(vi)
-        }
-        return this
+        return put(v, 0, v.size)
     }
 
     fun put(v: FloatArray, index: Int, length: Int): OpenGLBuffer {
-        for (i in index until index + length) {
-            put(v[i])
-        }
+        val nio = nioBuffer!!
+        isUpToDate = false
+        val pos = nio.position()
+        nio.asFloatBuffer().put(v, index, length)
+        nio.position(pos + length * 4)
         return this
     }
 

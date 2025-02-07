@@ -45,7 +45,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
 
         private val boxShader = LazyMap { reverseDepth: Boolean ->
             val condition =
-                if (reverseDepth) "boxDepth < prevFrameDepth*epsilon"
+                if (reverseDepth) "prevFrameDepth < 0.0 || boxDepth < prevFrameDepth*epsilon"
                 else "boxDepth*epsilon > prevFrameDepth"
             Shader(
                 "gpuBoxCulling", listOf(

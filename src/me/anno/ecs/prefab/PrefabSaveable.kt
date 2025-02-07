@@ -23,6 +23,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.utils.InternalAPI
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.Hierarchical
+import me.anno.utils.structures.Recursion
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Strings.camelCaseToTitle
@@ -161,11 +162,10 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     fun forAll(callback: (PrefabSaveable) -> Unit) {
-        callback(this)
-        for (type in listChildTypes()) {
-            val childList = getChildListByType(type)
-            for (index in childList.indices) {
-                childList[index].forAll(callback)
+        Recursion.processRecursive(this) { child, remaining ->
+            callback(child)
+            for (type in child.listChildTypes()) {
+                remaining.addAll(child.getChildListByType(type))
             }
         }
     }
@@ -173,14 +173,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     override val listOfAll: List<PrefabSaveable>
         get() {
             val result = ArrayList<PrefabSaveable>()
-            result.add(this)
-            var workerIndex = 0
-            while (workerIndex < result.size) {
-                val item = result[workerIndex++]
-                for (type in item.listChildTypes()) {
-                    result.addAll(item.getChildListByType(type))
-                }
-            }
+            forAll(result::add)
             return result
         }
 

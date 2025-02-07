@@ -236,11 +236,8 @@ object ComponentUI {
     }
 
     fun createUI2(
-        name: String?,
-        visibilityKey: String,
-        property: IProperty<Any?>,
-        range: Range?,
-        style: Style
+        name: String?, visibilityKey: String,
+        property: IProperty<Any?>, range: Range?, style: Style
     ): Panel? {
 
         val title = if (name != null) NameDesc(name.camelCaseToTitle()) else NameDesc.EMPTY
@@ -415,12 +412,8 @@ object ComponentUI {
     }
 
     fun createUIByTypeName(
-        name: String?,
-        visibilityKey: String,
-        property: IProperty<Any?>,
-        type0: String,
-        range: Range?,
-        style: Style
+        name: String?, visibilityKey: String, property: IProperty<Any?>,
+        type0: String, range: Range?, style: Style
     ): Panel {
 
         // nullable types
@@ -474,7 +467,7 @@ object ComponentUI {
                     }
                 }
             }
-            // todo slider type, which returns a float in 01 range
+            // todo slider-style? maybe in background for everything with a reasonable range?
             "Float" -> return createFloatInput(title, visibilityKey, value, default, property, range, style)
             "Double" -> return createDoubleInput(title, visibilityKey, value, default, property, range, style)
             "Char" -> {
