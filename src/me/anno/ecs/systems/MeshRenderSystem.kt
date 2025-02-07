@@ -3,52 +3,49 @@ package me.anno.ecs.systems
 import me.anno.ecs.Component
 import me.anno.ecs.System
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.utils.structures.Collections.setContains
+import me.anno.input.Input
+import me.anno.utils.structures.sets.FastIteratorSet
 
 /**
  * todo like for lights: spatial acceleration structure
- * todo instanced/non-instanced meshes
  * todo static meshes -> static mesh manager, by area for LODs/skipping small things (?)
  * todo dynamic LODs for the static mesh manager???
  *
- * todo use this system for testing on the school scene with 20kE+8kC
+ * use this system for testing on the school scene with 20kE+8kC ->
+ * I tested it with an easier scene (disable world.fill() in Pipeline!), and it is slightly faster with many meshes on screen,
+ * but also slower when lots is in the scene, but little is visible (a typical scenario for open world)
  * */
-class MeshRenderSystem : System(), Renderable {
+object MeshRenderSystem : System(), Renderable {
 
-    val meshes = HashSet<MeshComponent>(2048)
-    val others = HashSet<MeshComponentBase>(64)
+    val renderables = FastIteratorSet<Renderable>()
 
     override fun setContains(component: Component, contains: Boolean) {
-        when (component) {
-            is MeshComponent -> meshes.setContains(component, contains)
-            is MeshComponentBase -> others.setContains(component, contains)
-        }
+        if (component !is Renderable) return
+        renderables.setContains(component, contains)
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
 
-        for (c in meshes) {
-            val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.getGlobalBounds())) {
-                val mesh = c.getMesh() ?: continue
-                c.clickId = pipeline.getClickId(e.getGlobalBounds())
-                pipeline.addMesh(mesh, c, e.transform)
-            }
+        if (Input.isShiftDown) {
+            (Systems.world as? Renderable)?.fill(pipeline, transform)
+            return
         }
-        for (c in others) {
-            val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.getGlobalBounds())) {
-                 c.fill(pipeline, transform)
+
+        // sort renderables by class?
+        val renderables = renderables.asList()
+        for (i in renderables.indices) {
+            val renderable = renderables[i]
+            val transform1 = (renderable as? Component)?.transform ?: continue
+            val bounds = renderable.getGlobalBounds()
+            if (bounds == null || pipeline.frustum.isVisible(bounds)) {
+                renderable.fill(pipeline, transform1)
             }
         }
     }
 
     override fun clear() {
-        meshes.clear()
-        others.clear()
+        renderables.clear()
     }
 }

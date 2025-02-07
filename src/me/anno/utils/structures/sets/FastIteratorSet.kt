@@ -12,7 +12,7 @@ class FastIteratorSet<V>(initialCapacity: Int = 16) {
     private val values = ArrayList<V>(initialCapacity)
 
     fun setContains(instance: V, shallContain: Boolean) {
-        if (shallContain) {
+        if (!shallContain) {
             val id = idLookup[instance] ?: return
             values[id] = values.last()
             values.removeLast()
@@ -31,6 +31,11 @@ class FastIteratorSet<V>(initialCapacity: Int = 16) {
             idLookup[instance] = values.size
             values.add(instance)
         }
+    }
+
+    fun clear() {
+        idLookup.clear()
+        values.clear()
     }
 
     fun asList(): List<V> = values

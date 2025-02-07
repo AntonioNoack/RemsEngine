@@ -79,13 +79,10 @@ abstract class OpenGLBuffer(
     }
 
     private fun finishUpload() {
-        GFX.check()
         isUpToDate = true
-
         if (Build.isDebug) {
             DebugGPUStorage.buffers.add(this)
             GL46C.glObjectLabel(GL46C.GL_BUFFER, pointer, name)
-            GFX.check()
         }
     }
 

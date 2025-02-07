@@ -36,7 +36,6 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     private fun forceBind() {
         ensureBuffer()
         bindBuffer(type, pointer, true)
-        GFX.check()
     }
 
     private var hasWarned = false

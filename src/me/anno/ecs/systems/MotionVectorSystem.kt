@@ -22,4 +22,8 @@ object MotionVectorSystem : System() {
             entities[i].teleportUpdate()
         }
     }
+
+    override fun clear() {
+        transforms.clear()
+    }
 }
