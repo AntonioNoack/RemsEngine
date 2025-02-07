@@ -227,7 +227,7 @@ abstract class OpenGLBuffer(
         } else LOGGER.warn("Freezing is not supported on Android, because the context might reset")
     }
 
-    fun simpleBind() {
+    fun bind() {
         ensureBuffer()
         bindBuffer(type, pointer)
     }

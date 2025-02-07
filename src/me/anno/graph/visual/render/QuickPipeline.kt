@@ -123,7 +123,7 @@ class QuickPipeline {
         } else values[output.name] = output
     }
 
-    fun finish(end: ExprReturnNode = ExprReturnNode()) = then(end).graph
-    fun finish(extraInputs: Map<String, Any?>, end: ExprReturnNode = ExprReturnNode()) =
+    fun finish(end: RenderReturnNode = RenderReturnNode()) = then(end).graph
+    fun finish(extraInputs: Map<String, Any?>, end: RenderReturnNode = RenderReturnNode()) =
         then(end, extraInputs, emptyMap()).graph
 }

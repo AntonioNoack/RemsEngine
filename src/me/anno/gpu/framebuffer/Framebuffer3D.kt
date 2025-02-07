@@ -26,7 +26,7 @@ class Framebuffer3D(
     override var height: Int,
     val depth: Int,
     val targets: List<TargetType>,
-    val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     override var pointer = 0

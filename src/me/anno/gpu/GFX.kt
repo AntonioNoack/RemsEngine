@@ -4,6 +4,7 @@ import me.anno.Build.isDebug
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.pipeline.ClickIdBoundsArray
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.GPUShader
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -166,6 +167,7 @@ object GFX {
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
         // if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
+        ClickIdBoundsArray.needsBoxes = supportsComputeShaders
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxBoundTextures = GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_IMAGE_UNITS)

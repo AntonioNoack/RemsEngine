@@ -5,8 +5,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.input.Input
 import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
@@ -31,9 +33,9 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             elementCount = value
         }
 
-    private fun bind(force: Boolean) {
+    private fun forceBind() {
         ensureBuffer()
-        bindBuffer(type, pointer, force)
+        bindBuffer(type, pointer, true)
         GFX.check()
     }
 
@@ -64,7 +66,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     @InternalAPI
     fun bindAttributes(shader: Shader, instanced: Boolean) {
-        bind(true)
+        forceBind()
         val attrs = attributes
         for (i in attrs.indices) {
             bindAttribute(shader, attrs[i], instanced)
@@ -91,7 +93,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     }
 
     open fun unbind(shader: Shader) {
-        bindBuffer(GL46C.GL_ARRAY_BUFFER, 0)
+        bindBuffer(GL_ARRAY_BUFFER, 0)
         for (index in attributes.indices) {
             val attr = attributes[index]
             unbindAttribute(shader, attr.name)
@@ -107,7 +109,13 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GFXState.bind()
-        GL46C.glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
+        val culling = Pipeline.currentInstance?.getOcclusionCulling()
+        val clickIdAttr = if (culling != null) findClickIdAttr(instanceData) else null
+        if (culling != null && clickIdAttr != null) {
+            culling.drawArraysInstanced(shader, instanceData, clickIdAttr, 0, drawLength, drawMode)
+        } else {
+            GL46C.glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
+        }
         unbind(shader)
     }
 
@@ -168,6 +176,11 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     companion object {
 
         private var enabledAttributes = 0
+
+        // todo this doesn't really belong here, move it somewhere else
+        fun findClickIdAttr(instanceData: Buffer): Attribute? {
+            return instanceData.attributes.firstOrNull { it.name == "instanceFinalId" }
+        }
 
         @JvmStatic
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {

@@ -10,6 +10,7 @@ import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader.Companion.getKey
@@ -195,6 +196,9 @@ open class RenderDeferredNode : RenderViewNode(
     }
 
     fun setOutputs(framebuffer: IFramebuffer) {
+        if (framebuffer.depthBufferType != DepthBufferType.NONE) {
+            pipeline.prevDepthBuffer = framebuffer
+        }
         val layers = settings!!.semanticLayers
         for (j in layers.indices) {
             val layer = layers[j]

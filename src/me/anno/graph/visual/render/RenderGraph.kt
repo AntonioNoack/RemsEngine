@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
@@ -28,6 +29,7 @@ import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.ShapedBlurNode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.scene.BakeSkyboxNode
+import me.anno.graph.visual.render.scene.BoxCullingNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderViewNode
@@ -36,7 +38,6 @@ import me.anno.graph.visual.render.scene.UViNode
 import me.anno.ui.Panel
 import me.anno.utils.Color.white4
 import me.anno.utils.OS
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
 
@@ -50,8 +51,9 @@ object RenderGraph {
 
     val library = NodeLibrary(
         listOf(
+            { BoxCullingNode() },
             { RenderDeferredNode() },
-            { ExprReturnNode() },
+            { RenderReturnNode() },
             { ShaderExprNode() },
             { ShaderGraphNode() },
             { UVNode() },
@@ -122,17 +124,18 @@ object RenderGraph {
         start.setOutput(1, renderSize.renderWidth)
         start.setOutput(2, renderSize.renderHeight)
         Material.lodBias = 0f // reset just in case
+        Pipeline.currentInstance = rv.pipeline
     }
 
-    private fun executeGraph(graph: FlowGraph, start: StartNode): ExprReturnNode? {
+    private fun executeGraph(graph: FlowGraph, start: StartNode): RenderReturnNode? {
         return try {
             // set default blend mode to null
             renderPurely {
                 // then render
-                graph.execute(start) as? ExprReturnNode
+                graph.execute(start) as? RenderReturnNode
             }
         } catch (e: ReturnNode.ReturnThrowable) {
-            e.node as? ExprReturnNode
+            e.node as? RenderReturnNode
         } catch (e: Exception) {
             if (!OS.isWeb) Thread.sleep(100)
             if (throwExceptions) {
@@ -144,7 +147,7 @@ object RenderGraph {
         }
     }
 
-    private fun drawResult(endNode: ExprReturnNode, rv: RenderView, dst: Panel) {
+    private fun drawResult(endNode: RenderReturnNode, rv: RenderView, dst: Panel) {
         val tex = endNode.render(true)
         val texture = tex.texOrNull ?: return
         val h = dst.height

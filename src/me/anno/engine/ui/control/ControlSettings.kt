@@ -2,11 +2,8 @@ package me.anno.engine.ui.control
 
 import me.anno.config.ConfigRef
 import me.anno.ecs.annotations.Group
-import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
 import me.anno.engine.inspector.Inspectable
-import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.SuperMaterial
 
 open class ControlSettings : Inspectable {
 
@@ -29,6 +26,9 @@ open class ControlSettings : Inspectable {
     @Group("Rendering")
     @Range(0.01, 179.9)
     var fovY by ConfigRef("ui.camera.fovY", 90f)
+
+    @Group("Rendering")
+    var useBoxCulling by ConfigRef("gfx.fx.enableBoxCulling", true)
 
     @Group("Debug")
     var showRenderTimes by ConfigRef("debug.ui.showRenderTimes", false)

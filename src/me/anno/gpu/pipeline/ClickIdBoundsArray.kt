@@ -12,6 +12,10 @@ import kotlin.math.max
  * */
 class ClickIdBoundsArray {
 
+    companion object {
+        var needsBoxes = true
+    }
+
     var capacity = 16
         private set
 
@@ -19,23 +23,24 @@ class ClickIdBoundsArray {
     val size get() = nextId.get()
 
     fun clear() {
-        capacity = 0
         nextId.set(0)
     }
 
     val nextId = AtomicInteger()
     fun getNextId(bounds: AABBd?): Int {
         val clickId = nextId.getAndIncrement()
-        add(bounds, clickId)
+        // we could add an option to re-enable the boxes, because we don't need them without ComputeShaders
+        if (needsBoxes) add(bounds, clickId)
         return clickId
     }
 
-    fun ensureCapacity(capacity: Int) {
-        if (capacity <= this.capacity) return // good enough
+    fun ensureCapacity(newCapacity: Int) {
+        if (newCapacity <= capacity) return // good enough
         synchronized(this) { // needs resize, must be synchronous
-            if (capacity > this.capacity) {
-                val newSize = max(capacity, max(this.capacity * 2, 16))
-                values = values.copyOf(newSize * 6)
+            if (newCapacity > capacity) {
+                val newCapacity2 = max(newCapacity, max(capacity * 2, 16))
+                values = values.copyOf(newCapacity2 * 6)
+                capacity = newCapacity2
             }
         }
     }

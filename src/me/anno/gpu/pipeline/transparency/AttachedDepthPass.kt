@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Texture2D
 
 abstract class AttachedDepthPass : ICacheData {
 

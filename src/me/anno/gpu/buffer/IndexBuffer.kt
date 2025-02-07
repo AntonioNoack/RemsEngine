@@ -4,7 +4,9 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.buffer.Buffer.Companion.findClickIdAttr
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.utils.assertions.assertEquals
 import org.lwjgl.opengl.GL46C.GL_BUFFER
@@ -159,7 +161,13 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GFXState.bind()
-        glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceData.drawLength)
+        val culling = Pipeline.currentInstance?.getOcclusionCulling()
+        val clickIdAttr = if (culling != null) findClickIdAttr(instanceData) else null
+        if (culling != null && clickIdAttr != null) {
+            culling.drawElementsInstanced(shader, instanceData, clickIdAttr, 0, indices.size, drawMode, elementsType)
+        } else {
+            glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceData.drawLength)
+        }
         GFX.check()
         unbind()
     }

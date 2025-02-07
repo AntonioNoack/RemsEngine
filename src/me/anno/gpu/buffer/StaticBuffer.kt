@@ -56,7 +56,7 @@ open class StaticBuffer(
     }
 
     final override fun createNioBuffer() {
-        val byteSize = vertexCount * attributes.sumOf { it.byteSize }
+        val byteSize = vertexCount * stride
         nioBuffer = ByteBufferPool.allocateDirect(byteSize)
             .order(ByteOrder.nativeOrder())
     }

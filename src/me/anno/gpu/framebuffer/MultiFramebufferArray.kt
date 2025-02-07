@@ -26,7 +26,7 @@ class MultiFramebufferArray(
     name: String,
     w: Int, h: Int, layers: Int,
     samples: Int, val targets: List<TargetType>,
-    val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     val targetsI: List<FramebufferArray>

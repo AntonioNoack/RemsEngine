@@ -27,7 +27,7 @@ class CubemapFramebuffer(
     override var name: String, var size: Int,
     override val samples: Int, // todo when we support multi-sampled cubemaps, also support them here
     val targets: List<TargetType>,
-    val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     constructor(

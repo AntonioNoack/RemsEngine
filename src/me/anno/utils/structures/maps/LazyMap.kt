@@ -18,7 +18,7 @@ open class LazyMap<K, V>(
     constructor(generator: (K) -> V, initialCapacity: Int) :
             this(generator, false, initialCapacity)
 
-    val cache = HashMap<K, V>(initialCapacity)
+    private val cache = HashMap<K, V>(initialCapacity)
 
     override fun containsKey(key: K) = true
     override fun containsValue(value: V) = false // not really supported
@@ -60,5 +60,9 @@ open class LazyMap<K, V>(
             cache.putAll(values)
         }
         return this
+    }
+
+    fun clear() {
+        cache.clear()
     }
 }

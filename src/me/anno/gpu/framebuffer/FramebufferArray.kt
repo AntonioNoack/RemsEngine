@@ -30,7 +30,7 @@ class FramebufferArray(
     var layers: Int,
     override val samples: Int, // todo when we support multi-sampled 2d-arrays, also support them here
     val targets: List<TargetType>,
-    val depthBufferType: DepthBufferType
+    override val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     constructor(

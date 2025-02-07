@@ -6,7 +6,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.ExpressionRenderer
 
-class ExprReturnNode : ReturnNode(
+class RenderReturnNode : ReturnNode(
     listOf(
         "Vector4f", "Illuminated",
         "Int", "Width",

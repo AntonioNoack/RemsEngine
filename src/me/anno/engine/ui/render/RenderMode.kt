@@ -1,7 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.annotations.ExtendableEnum
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
@@ -33,11 +32,6 @@ import me.anno.graph.visual.render.effects.FSR1HelperNode
 import me.anno.graph.visual.render.effects.FSR1Node
 import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.FXAANode
-import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
-import me.anno.graph.visual.render.effects.framegen.FrameGenMixingNode
-import me.anno.graph.visual.render.effects.framegen.FrameGenPredictiveNode
-import me.anno.graph.visual.render.effects.framegen.FrameGenProjective1Node
-import me.anno.graph.visual.render.effects.framegen.FrameGenProjectiveXNode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.HeightExpFogNode
 import me.anno.graph.visual.render.effects.MSAAHelperNode
@@ -55,6 +49,12 @@ import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.effects.VignetteNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenMixingNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenPredictiveNode
+import me.anno.graph.visual.render.effects.framegen.FrameGenProjective1Node
+import me.anno.graph.visual.render.effects.framegen.FrameGenProjectiveXNode
+import me.anno.graph.visual.render.scene.BoxCullingNode
 import me.anno.graph.visual.render.scene.CellShadingNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DepthPrepassNode
@@ -117,6 +117,7 @@ class RenderMode private constructor(
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -136,6 +137,7 @@ class RenderMode private constructor(
         val WITHOUT_POST_PROCESSING = RenderMode(
             "Without Post-Processing",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -149,6 +151,7 @@ class RenderMode private constructor(
         val MSAA_DEFERRED = RenderMode(
             "MSAA Deferred",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(MSAAHelperNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
@@ -173,7 +176,9 @@ class RenderMode private constructor(
         val NO_DEPTH = RenderMode("No Depth", Renderers.pbrRenderer)
 
         private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
-            return pipeline.then1(RenderForwardNode(), opaqueNodeSettings)
+            return pipeline
+                .then(BoxCullingNode())
+                .then1(RenderForwardNode(), opaqueNodeSettings)
                 .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderGlassNode(), mapOf("Illuminated" to listOf("A")))
                 .then(DepthToNormalNode())
@@ -225,6 +230,7 @@ class RenderMode private constructor(
         val LIGHT_SUM = RenderMode(
             "Light Sum",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(RenderDeferredNode())
                 .then(RenderLightsNode(), mapOf("Light" to listOf("Illuminated")))
                 .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
@@ -235,6 +241,7 @@ class RenderMode private constructor(
         val LIGHT_SUM_MSAA = RenderMode(
             "Light Sum MSAAx8",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(MSAAHelperNode())
                 .then1(RenderDeferredNode(), mapOf("Samples" to 8))
                 .then(RenderLightsNode(), mapOf("Samples" to 8), mapOf("Light" to listOf("Illuminated")))
@@ -248,6 +255,7 @@ class RenderMode private constructor(
         val SSAO = RenderMode(
             "SSAO",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(RenderDeferredNode())
                 .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
                 .then(GizmoNode())
@@ -257,6 +265,7 @@ class RenderMode private constructor(
         val SSAO_MS = RenderMode(
             "SSAO MSAAx8",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), mapOf("Samples" to 8))
                 .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
                 .then(GizmoNode())
@@ -266,6 +275,7 @@ class RenderMode private constructor(
         val SS_REFLECTIONS = RenderMode(
             "SS-Reflections",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(RenderDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -280,6 +290,7 @@ class RenderMode private constructor(
         val SSGI = RenderMode(
             "SSGI",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(
                     RenderDeferredNode(), mapOf(
                         "Stage" to PipelineStage.OPAQUE,
@@ -309,6 +320,7 @@ class RenderMode private constructor(
         val WITH_DEPTH_PREPASS = RenderMode(
             "With Depth-Prepass",
             QuickPipeline()
+                .then(BoxCullingNode())
                 /**
                  * prepass for depth only: depth is the only value for RenderSceneNode,
                  * which is accepted as an input too, and such, it will render first only the depth
@@ -342,6 +354,7 @@ class RenderMode private constructor(
 
         val FSR_MSAA_X4 = RenderMode(
             "FSR+MSAAx4", QuickPipeline()
+                .then(BoxCullingNode())
                 .then(MSAAHelperNode())
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
@@ -381,6 +394,7 @@ class RenderMode private constructor(
         val NEAREST_X4 = RenderMode(
             "Nearest 4x",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
@@ -398,6 +412,7 @@ class RenderMode private constructor(
         val LINES = RenderMode(
             "Lines",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderForwardNode(), opaqueNodeSettings)
                 .then(RenderGlassNode())
                 .then(ToneMappingNode())
@@ -407,6 +422,7 @@ class RenderMode private constructor(
         val LINES_MSAA = RenderMode(
             "Lines MSAA",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(MSAAHelperNode())
                 .then1(RenderForwardNode(), opaqueNodeSettings)
                 .then(RenderGlassNode())
@@ -422,6 +438,7 @@ class RenderMode private constructor(
         val SHOW_AABB = RenderMode(
             "Show AABBs",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -442,6 +459,7 @@ class RenderMode private constructor(
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -468,6 +486,7 @@ class RenderMode private constructor(
         val TAA = RenderMode(
             "TAA",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then(TAAHelperNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
@@ -485,6 +504,7 @@ class RenderMode private constructor(
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -501,6 +521,7 @@ class RenderMode private constructor(
         val MOTION_BLUR = RenderMode(
             "Motion Blur",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -517,6 +538,7 @@ class RenderMode private constructor(
         val SMOOTH_NORMALS = RenderMode(
             "Smooth Normals",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(SmoothNormalsNode())
@@ -533,6 +555,7 @@ class RenderMode private constructor(
         val DEPTH_TEST = RenderMode(
             "Depth Test",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(DepthTestNode())
@@ -542,6 +565,7 @@ class RenderMode private constructor(
 
         fun postProcessGraph(node: ActionNode): FlowGraph {
             return QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
@@ -562,6 +586,7 @@ class RenderMode private constructor(
         val CELL_SHADING = RenderMode(
             "Cell Shading",
             QuickPipeline()
+                .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())

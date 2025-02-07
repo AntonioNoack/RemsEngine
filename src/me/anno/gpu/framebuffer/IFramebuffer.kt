@@ -35,10 +35,11 @@ interface IFramebuffer {
     val height: Int
 
     val samples: Int
-
     val numTextures: Int
 
     var isSRGBMask: Int // 32 layers should be enough for any buffer...
+
+    val depthBufferType: DepthBufferType
 
     fun ensure()
     fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int)
@@ -53,6 +54,11 @@ interface IFramebuffer {
         return attachFramebufferToDepth(name, createTargets(targetCount, fpTargets))
     }
 
+    /**
+     * attach another framebuffer, which shares the depth buffer
+     * this can be used to draw 3D ui without deferred-rendering,
+     * but using the same depth values
+     * */
     fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer
 
     fun checkSession()

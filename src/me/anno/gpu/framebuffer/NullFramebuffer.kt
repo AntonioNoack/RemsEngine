@@ -25,6 +25,8 @@ object NullFramebuffer : IFramebuffer {
     override val samples = 1
     override val numTextures = 1
     override var isSRGBMask = 1
+    override val depthBufferType: DepthBufferType
+        get() = DepthBufferType.NONE // not really readable
 
     override fun ensure() {}
 

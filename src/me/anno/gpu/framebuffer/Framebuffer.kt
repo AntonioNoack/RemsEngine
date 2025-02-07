@@ -10,6 +10,7 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.framebuffer.AttachToDepth.attachFramebufferToDepthImpl
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
@@ -50,7 +51,7 @@ class Framebuffer(
     override var name: String,
     override var width: Int, override var height: Int,
     samples: Int, val targets: List<TargetType>,
-    var depthBufferType: DepthBufferType
+    override var depthBufferType: DepthBufferType
 ) : IFramebuffer, ICacheData {
 
     constructor(
@@ -68,27 +69,8 @@ class Framebuffer(
 
     override fun getTargetType(slot: Int) = targets[slot]
 
-    /**
-     * attach another framebuffer, which shares the depth buffer
-     * this can be used to draw 3D ui without deferred-rendering,
-     * but using the same depth values
-     * */
     override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
-        if (depthBufferType == DepthBufferType.NONE)
-            throw IllegalStateException("Cannot attach depth to framebuffer without depth buffer")
-        return if (targets.size <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer(name, width, height, samples, targets, DepthBufferType.ATTACHMENT)
-            buffer.depthAttachment = this
-            buffer.ssBuffer?.depthAttachment = ssBuffer
-            buffer
-        } else {
-            val buffer = MultiFramebuffer(name, width, height, samples, targets, DepthBufferType.ATTACHMENT)
-            for (it in buffer.targetsI) {
-                it.depthAttachment = this
-                it.ssBuffer?.depthAttachment = ssBuffer
-            }
-            buffer
-        }
+        return attachFramebufferToDepthImpl(name, targets)
     }
 
     var offsetX = 0

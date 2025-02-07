@@ -150,8 +150,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val buffers = RenderBuffers()
     val renderSize = RenderSize()
 
-    private var entityBaseClickId = 0
-
     val pipeline = buffers.pipeline
 
     override val canDrawOverBorders get() = true

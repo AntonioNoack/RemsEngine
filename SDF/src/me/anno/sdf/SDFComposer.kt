@@ -359,7 +359,7 @@ object SDFComposer {
         return builder2.toString()
     }
 
-    val calculateFinalId = "" +
+    val calculateFinalId = "" + // todo this seems incorrect... does it support groupId???
             "int intId = int(ray.y);\n" +
             "finalId = vec4(vec3(float((intId>>16)&255), float((intId>>8)&255), float((intId>>0)&255))/255.0, 1.0);\n"
 

@@ -29,6 +29,7 @@ import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.CubemapFramebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
@@ -86,13 +87,22 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     val skyTimer = GPUClockNanos()
     val skyboxTimer = GPUClockNanos()
 
+    private val clickIdToBounds = ClickIdBoundsArray()
     private val boxOcclusionCulling = BoxOcclusionCulling()
     private var hasOcclusionCulling = false
+    var prevDepthBuffer: IFramebuffer? = null
 
     fun getOcclusionCulling(): BoxOcclusionCulling? {
         return if (GFX.supportsComputeShaders && hasOcclusionCulling) {
             boxOcclusionCulling
         } else null
+    }
+
+    fun bakeBoxCulling(previousFBWithDepth: IFramebuffer) {
+        if (hasOcclusionCulling) return
+        if (previousFBWithDepth.depthTexture?.createdOrNull() == null) return
+        boxOcclusionCulling.renderBoxes(this, previousFBWithDepth, defaultStage.depthMode, clickIdToBounds)
+        hasOcclusionCulling = true
     }
 
     fun disableReflectionCullingPlane() {
@@ -251,8 +261,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             stages[stageIndex].clear()
         }
     }
-
-    val clickIdToBounds = ClickIdBoundsArray()
 
     // todo reuse the pipeline state for multiple frames
     //  - add a margin, so entities at the screen border can stay visible

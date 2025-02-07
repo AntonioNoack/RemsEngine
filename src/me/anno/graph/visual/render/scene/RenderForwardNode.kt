@@ -105,6 +105,9 @@ class RenderForwardNode : RenderViewNode(
                 GFX.check()
             }
 
+            if (framebuffer.depthBufferType != DepthBufferType.NONE) {
+                pipeline.prevDepthBuffer = framebuffer
+            }
             setOutput(1, Texture.texture(framebuffer, 0))
             setOutput(2, Texture.depth(framebuffer))
         }
