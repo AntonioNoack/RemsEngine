@@ -44,7 +44,7 @@ object Outlines {
 
     fun drawOutline(pipeline: Pipeline, entity: Entity) {
         whiteTexture.bind(0) // for the albedo
-        DrawAABB.drawAABB(entity.getBounds(), RenderView.aabbColorHovered)
+        DrawAABB.drawAABB(entity.getGlobalBounds(), RenderView.aabbColorHovered)
         LineBuffer.finish(RenderState.cameraMatrix)
         drawOutlineForEntity(pipeline, entity)
     }

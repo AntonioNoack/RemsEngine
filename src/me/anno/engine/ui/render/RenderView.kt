@@ -6,8 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.camera.Camera
-import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
@@ -699,22 +697,15 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // much faster than depthTraversal, because we only need visible elements anyway
         if (world != null && drawAABBs) {
             pipeline.traverse(world) { entity ->
-                val aabb1 = entity.getBounds()
+                val aabb1 = entity.getGlobalBounds()
                 val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
                 drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
                 if (entity.hasRenderables) {
-                    entity.forAllComponents(false) { component ->
-                        when (component) {
-                            is MeshComponentBase -> {
-                                val aabb2 = component.globalAABB
-                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                            }
-                            is MeshSpawner -> {
-                                val aabb2 = component.globalAABB
-                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                            }
+                    entity.forAllComponents(Renderable::class, false) { component ->
+                        val aabb2 = component.getGlobalBounds()
+                        if (aabb2 != null) {
+                            val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                            drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
                         }
                     }
                 }
@@ -726,7 +717,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         for (component in EditorState.selection) {
             if (component is Component && component.isEnabled && component is OnDrawGUI) {
                 val entity = component.entity
-                if (entity == null || pipeline.frustum.contains(entity.getBounds())) {
+                if (entity == null || pipeline.frustum.contains(entity.getGlobalBounds())) {
 
                     val stack = stack
                     if (entity != null) {
@@ -875,7 +866,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             if (pipeline.lightStage.size <= 0) {
                 // also somehow calculate the required bounds, and calculate shadows for the default sun
                 val bounds = when (world) {
-                    is Entity -> world.getBounds()
+                    is Entity -> world.getGlobalBounds()
                     is Component -> {
                         val bounds = AABBd()
                         world.fillSpace(Matrix4x3d(), bounds)

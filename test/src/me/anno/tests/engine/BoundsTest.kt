@@ -20,32 +20,32 @@ class BoundsTest {
     @Test
     fun testEmpty() {
         assertTrue(AABBd().isEmpty())
-        assertEquals(AABBd(), Entity().getBounds())
+        assertEquals(AABBd(), Entity().getGlobalBounds())
     }
 
     @Test
     fun testSimple() {
         val entity = Entity().add(MeshComponent(mesh))
         assertFalse(cubeBounds1.isEmpty())
-        assertEquals(cubeBounds1, entity.getBounds())
+        assertEquals(cubeBounds1, entity.getGlobalBounds())
     }
 
     @Test
     fun testSimpleAddLater() {
         val entity = Entity()
         entity.add(MeshComponent(mesh))
-        assertEquals(cubeBounds1, entity.getBounds())
+        assertEquals(cubeBounds1, entity.getGlobalBounds())
         entity.add(MeshComponent(mesh2))
-        assertEquals(cubeBounds2, entity.getBounds())
+        assertEquals(cubeBounds2, entity.getGlobalBounds())
     }
 
     @Test
     fun testSimpleAddLaterReverse() {
         val entity = Entity()
         entity.add(MeshComponent(mesh2))
-        assertEquals(cubeBounds2, entity.getBounds())
+        assertEquals(cubeBounds2, entity.getGlobalBounds())
         entity.add(MeshComponent(mesh))
-        assertEquals(cubeBounds2, entity.getBounds())
+        assertEquals(cubeBounds2, entity.getGlobalBounds())
     }
 
     @Test
@@ -54,12 +54,12 @@ class BoundsTest {
         val parent = Entity("Parent")
         val child1 = Entity("Child1", parent)
         child1.add(MeshComponent(mesh))
-        assertEquals(cubeBounds1, child1.getBounds())
-        assertEquals(cubeBounds1, parent.getBounds())
+        assertEquals(cubeBounds1, child1.getGlobalBounds())
+        assertEquals(cubeBounds1, parent.getGlobalBounds())
         val child2 = Entity("Child2", parent)
         child2.add(MeshComponent(mesh2))
-        assertEquals(cubeBounds2, child2.getBounds())
-        assertEquals(cubeBounds2, parent.getBounds())
+        assertEquals(cubeBounds2, child2.getGlobalBounds())
+        assertEquals(cubeBounds2, parent.getGlobalBounds())
     }
 
     @Test
@@ -68,15 +68,15 @@ class BoundsTest {
         val parent = Entity("Parent")
         val child1 = Entity("Child1")
             .add(MeshComponent(mesh))
-        assertEquals(cubeBounds1, child1.getBounds())
+        assertEquals(cubeBounds1, child1.getGlobalBounds())
         parent.add(child1)
-        assertEquals(cubeBounds1, child1.getBounds())
-        assertEquals(cubeBounds1, parent.getBounds())
+        assertEquals(cubeBounds1, child1.getGlobalBounds())
+        assertEquals(cubeBounds1, parent.getGlobalBounds())
         val child2 = Entity("Child2")
             .add(MeshComponent(mesh2))
         parent.add(child2)
-        assertEquals(cubeBounds2, child2.getBounds())
-        assertEquals(cubeBounds2, parent.getBounds())
+        assertEquals(cubeBounds2, child2.getGlobalBounds())
+        assertEquals(cubeBounds2, parent.getGlobalBounds())
     }
 
     @Test
@@ -87,12 +87,12 @@ class BoundsTest {
             .add(MeshComponent(mesh))
         val child2 = Entity("Child2", parent)
             .add(MeshComponent(mesh2))
-        assertEquals(cubeBounds1, child1.getBounds())
-        assertEquals(cubeBounds2, child2.getBounds())
-        assertEquals(cubeBounds2, parent.getBounds())
+        assertEquals(cubeBounds1, child1.getGlobalBounds())
+        assertEquals(cubeBounds2, child2.getGlobalBounds())
+        assertEquals(cubeBounds2, parent.getGlobalBounds())
         assertTrue(child2.remove(child2.getComponent(MeshComponent::class)!!))
-        assertEquals(cubeBounds1, parent.getBounds())
-        assertTrue(child2.getBounds().isEmpty())
+        assertEquals(cubeBounds1, parent.getGlobalBounds())
+        assertTrue(child2.getGlobalBounds().isEmpty())
     }
 
     @Test
@@ -103,13 +103,13 @@ class BoundsTest {
             .add(MeshComponent(mesh))
         val child2 = Entity("Child2", parent)
             .add(MeshComponent(mesh2))
-        assertEquals(cubeBounds1, child1.getBounds())
-        assertEquals(cubeBounds2, child2.getBounds())
-        assertEquals(cubeBounds2, parent.getBounds())
+        assertEquals(cubeBounds1, child1.getGlobalBounds())
+        assertEquals(cubeBounds2, child2.getGlobalBounds())
+        assertEquals(cubeBounds2, parent.getGlobalBounds())
         assertTrue(parent.remove(child2))
-        assertEquals(cubeBounds1, parent.getBounds())
+        assertEquals(cubeBounds1, parent.getGlobalBounds())
         assertTrue(parent.remove(child1))
-        assertTrue(parent.getBounds().isEmpty())
+        assertTrue(parent.getGlobalBounds().isEmpty())
         assertFalse(parent.remove(child1)) // already removed -> should return false
         assertFalse(parent.remove(child2)) // same
     }

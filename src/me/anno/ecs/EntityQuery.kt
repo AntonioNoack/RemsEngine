@@ -237,7 +237,7 @@ object EntityQuery {
         clazz: KClass<V>, bounds: AABBd?, includingDisabled: Boolean = false, predicate: (V) -> Boolean
     ): Boolean {
         return anyComponentInChildrenFiltered(clazz, includingDisabled, predicate) {
-            bounds == null || bounds.testAABB(it.getBounds())
+            bounds == null || bounds.testAABB(it.getGlobalBounds())
         }
     }
 

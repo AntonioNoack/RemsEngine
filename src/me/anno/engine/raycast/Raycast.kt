@@ -44,7 +44,7 @@ object Raycast {
         entity.forAllChildren(query.includeDisabled) { child ->
             if (child.canCollide(query.collisionMask) &&
                 child !in query.ignored &&
-                child.getBounds().testLine(query.start, query.direction, query.result.distance)
+                child.getGlobalBounds().testLine(query.start, query.direction, query.result.distance)
             ) remaining.add(child)
         }
     }

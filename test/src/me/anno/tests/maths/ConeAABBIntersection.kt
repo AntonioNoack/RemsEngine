@@ -67,10 +67,10 @@ fun main() {
         }
 
         fun updateConeColor() {
-            scene.getBounds()
+            scene.getGlobalBounds()
             val tmp = AABBf()
             boxes.forAllChildren(false) { box ->
-                val hit = tmp.set(box.getBounds()).testLine(start, end, radiusAtOrigin, radiusPerUnit)
+                val hit = tmp.set(box.getGlobalBounds()).testLine(start, end, radiusAtOrigin, radiusPerUnit)
                 val matList = if (hit) greenMatList else redMatList
                 box.getComponent(MeshComponent::class)?.materials = matList
             }

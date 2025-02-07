@@ -28,7 +28,7 @@ class LightRenderSystem() : System(), Renderable {
     override fun fill(pipeline: Pipeline, transform: Transform) {
         for (c in lights) {
             val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.getBounds())) {
+            if (pipeline.frustum.isVisible(e.getGlobalBounds())) {
                 pipeline.addLight(c, e)
             }
         }

@@ -555,7 +555,7 @@ open class FileExplorerEntry(
         // if is entity, or mesh, get sample bounds
         if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
             when (val sample = prefab.getSampleInstance()) {
-                is Entity -> ttt.append(AABBf(sample.getBounds())).append('\n')
+                is Entity -> ttt.append(AABBf(sample.getGlobalBounds())).append('\n')
                 is Mesh -> ttt.append(sample.getBounds()).append('\n')
             }
         }

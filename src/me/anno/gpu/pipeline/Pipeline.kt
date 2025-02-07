@@ -3,8 +3,6 @@ package me.anno.gpu.pipeline
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.forAllChildren
-import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
@@ -13,7 +11,6 @@ import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
@@ -36,6 +33,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
+import me.anno.gpu.pipeline.occlusion.BoxOcclusionCulling
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
@@ -88,6 +86,15 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     val skyTimer = GPUClockNanos()
     val skyboxTimer = GPUClockNanos()
 
+    private val boxOcclusionCulling = BoxOcclusionCulling()
+    private var hasOcclusionCulling = false
+
+    fun getOcclusionCulling(): BoxOcclusionCulling? {
+        return if (GFX.supportsComputeShaders && hasOcclusionCulling) {
+            boxOcclusionCulling
+        } else null
+    }
+
     fun disableReflectionCullingPlane() {
         reflectionCullingPlane.set(0.0, 0.0, 0.0, 0.0)
     }
@@ -115,12 +122,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         return stages[stage0]
     }
 
-    fun getBounds(component: Component): AABBd? {
-        return when (component) {
-            is MeshSpawner -> component.globalAABB
-            is MeshComponentBase -> component.globalAABB
-            else -> component.entity?.getBounds()
-        }
+    fun getBounds(instance: Any?): AABBd? {
+        return (instance as? Renderable)?.getGlobalBounds()
     }
 
     fun getClickId(component: Component): Int {
@@ -243,6 +246,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         planarReflections.clear()
         lights.fill(null)
         clickIdToBounds.clear()
+        hasOcclusionCulling = false
         for (stageIndex in stages.indices) {
             stages[stageIndex].clear()
         }
@@ -250,12 +254,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     val clickIdToBounds = ClickIdBoundsArray()
 
-    fun fill(rootElement: Entity) {
-        // todo reuse the pipeline state for multiple frames
-        //  - add a margin, so entities at the screen border can stay visible
-        //  - partially populate the pipeline?
-        subFill(rootElement)
-    }
+    // todo reuse the pipeline state for multiple frames
+    //  - add a margin, so entities at the screen border can stay visible
+    //  - partially populate the pipeline?
 
     fun fill(root: PrefabSaveable) {
         if (root !is Renderable) {
@@ -345,27 +346,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         }
     }
 
-    private fun subFill(entity0: Entity) {
-        // use a list instead of the stack to beautify stack traces a little
-        Recursion.processRecursive(entity0) { entity, remaining ->
-            entity.forAllComponents(Renderable::class, false) { component ->
-                if (component !== ignoredComponent) {
-                    if (isVisible(component)) {
-                        component.fill(this, entity.transform)
-                    }
-                }
-            }
-            entity.forAllChildren(false) { child ->
-                if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.getBounds())) {
-                    remaining.add(child)
-                }
-            }
-        }
-    }
-
     fun traverse(world: PrefabSaveable, callback: (Entity) -> Unit) {
         if (world is Entity) Recursion.processRecursive(world) { entity, remaining ->
-            if (entity !== ignoredEntity && entity.isEnabled && frustum.isVisible(entity.getBounds())) {
+            if (entity !== ignoredEntity && entity.isEnabled && frustum.isVisible(entity.getGlobalBounds())) {
                 callback(entity)
                 remaining.addAll(entity.children)
             }
@@ -386,12 +369,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun isVisible(instance: Any?): Boolean {
-        val bounds = when (instance) {
-            is MeshComponentBase -> instance.globalAABB
-            is MeshSpawner -> instance.globalAABB
-            is Entity -> instance.getBounds()
-            else -> return true
-        }
+        val bounds = getBounds(instance) ?: return true
         return frustum.isVisible(bounds)
     }
 
@@ -412,6 +390,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         private val samplePlaneTransform = Transform()
             .setLocalPosition(0.0, 0.0, -0.5)
             .setLocalEulerAngle(PI * 0.5, 0.0, 0.0)
+
+        var currentInstance: Pipeline? = null
 
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()

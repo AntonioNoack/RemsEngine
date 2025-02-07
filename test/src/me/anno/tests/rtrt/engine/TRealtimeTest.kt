@@ -68,7 +68,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
 
     scene.validateTransform()
 
-    val aabb = scene.getBounds()
+    val aabb = scene.getGlobalBounds()
 
     val cameraPosition = Vector3d(aabb.centerX, aabb.centerY, aabb.maxZ * 1.5f)
     val cameraRotation = Quaterniond()
@@ -91,7 +91,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
                         .rotateLocalY(0.2 * i)
                         .rotateLocalX(0.2 * j)
                     scene2.validateTransform()
-                    scene2.getBounds()
+                    scene2.getGlobalBounds()
                     pipeline.fill(scene2)
                 }
             }

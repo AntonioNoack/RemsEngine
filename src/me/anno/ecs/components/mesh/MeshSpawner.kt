@@ -171,6 +171,8 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     @NotSerializedProperty
     val globalAABB = AABBd()
 
+    override fun getGlobalBounds(): AABBd? = globalAABB
+
     override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
         // calculate local aabb
         val local = localAABB

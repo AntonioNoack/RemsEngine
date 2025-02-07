@@ -30,10 +30,10 @@ object MeshUtils {
     }
 
     fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
-        mesh.getBounds()
+        mesh.getGlobalBounds()
         val aabb = AABBf()
-        centerMesh(cameraMatrix, modelMatrix, AABBd(mesh.getBounds()), {
-            aabb.set(mesh.getBounds())
+        centerMesh(cameraMatrix, modelMatrix, AABBd(mesh.getGlobalBounds()), {
+            aabb.set(mesh.getGlobalBounds())
             aabb.transform(it)
         }, targetFrameUsage)
     }

@@ -25,6 +25,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Recursion
 import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
@@ -300,7 +301,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         hasValidCollisionMask = true
     }
 
-    fun getBounds(): AABBd {
+    override fun getGlobalBounds(): AABBd {
         if (hasValidAABB) {
             // to check if all invalidations were applied correctly
             /*val oldAABB = AABBd(aabb)
@@ -316,7 +317,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     private fun fillBounds() {
         aabb.clear()
         forAllChildren(false) { child ->
-            aabb.union(child.getBounds())
+            aabb.union(child.getGlobalBounds())
         }
         if (hasSpaceFillingComponents) {
             val globalTransform = transform.globalTransform
@@ -623,7 +624,23 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
-    override fun fill(pipeline: Pipeline, transform: Transform) = pipeline.fill(this)
+    override fun fill(pipeline: Pipeline, transform: Transform) {
+        Recursion.processRecursive(this) { entity, remaining ->
+            entity.forAllComponents(Renderable::class, false) { component ->
+                if (component !== pipeline.ignoredComponent) {
+                    val bounds = component.getGlobalBounds()
+                    if (bounds == null || pipeline.frustum.isVisible(bounds)) {
+                        component.fill(pipeline, entity.transform)
+                    }
+                }
+            }
+            entity.forAllChildren(false) { child ->
+                if (child !== pipeline.ignoredEntity && pipeline.frustum.isVisible(child.getGlobalBounds())) {
+                    remaining.add(child)
+                }
+            }
+        }
+    }
 
     /**
      * O(|E|+|C|) clone of properties and components
@@ -700,7 +717,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Entity::class)
-        private val entityOptionList = listOf(Option<PrefabSaveable>(NameDesc("Entity", "Create a child entity", "")) { Entity() })
+        private val entityOptionList =
+            listOf(Option<PrefabSaveable>(NameDesc("Entity", "Create a child entity", "")) { Entity() })
         private const val VALID_COLLISION_MASK_FLAG = 4
         private const val SPACE_FILLING_FLAG = 8
         private const val RENDERABLES_FLAG = 16

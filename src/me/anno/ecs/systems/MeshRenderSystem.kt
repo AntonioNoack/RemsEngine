@@ -33,15 +33,15 @@ class MeshRenderSystem : System(), Renderable {
 
         for (c in meshes) {
             val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.getBounds())) {
+            if (pipeline.frustum.isVisible(e.getGlobalBounds())) {
                 val mesh = c.getMesh() ?: continue
-                c.clickId = pipeline.getClickId(e.getBounds())
+                c.clickId = pipeline.getClickId(e.getGlobalBounds())
                 pipeline.addMesh(mesh, c, e.transform)
             }
         }
         for (c in others) {
             val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.getBounds())) {
+            if (pipeline.frustum.isVisible(e.getGlobalBounds())) {
                  c.fill(pipeline, transform)
             }
         }

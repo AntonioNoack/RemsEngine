@@ -67,6 +67,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
                     "  int values[];\n" +
                     "};" +
                     "void main() {\n" +
+                    // todo explicit depth test
                     "   values[clickId] = frameId;\n" +
                     "   ignoredOutput = vec4(1.0);\n" +
                     "}\n"

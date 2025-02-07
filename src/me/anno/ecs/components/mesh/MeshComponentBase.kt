@@ -66,6 +66,8 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @NotSerializedProperty
     val globalAABB = AABBd()
 
+    override fun getGlobalBounds(): AABBd? = globalAABB
+
     open fun getMesh(): IMesh? {
         return getMeshOrNull()
     }

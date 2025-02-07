@@ -119,7 +119,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
         root.validateTransform()
-        root.getBounds()
+        root.getGlobalBounds()
         timeRendering(className, timer) {
             GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
                 texture.draw(resolution, pbrRenderer) { side ->
