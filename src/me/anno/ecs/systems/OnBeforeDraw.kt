@@ -7,7 +7,7 @@ import me.anno.ecs.Component
  * */
 interface OnBeforeDraw {
     fun onBeforeDraw()
-    fun beforeDraw(instances: Collection<Component>) {
+    fun beforeDraw(instances: List<Component>) {
         for (instance in instances) {
             (instance as? OnBeforeDraw)?.onBeforeDraw()
         }

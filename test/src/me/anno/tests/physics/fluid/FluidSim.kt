@@ -1,13 +1,12 @@
 package me.anno.tests.physics.fluid
 
 import me.anno.Time
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.ecs.systems.Updatable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.control.DraggingControls
@@ -223,9 +222,9 @@ fun main() {
     }
 
     val mesh = createFluidMesh(sim, waveHeight)
-    val comp = object : MeshComponent(mesh), Updatable {
+    val comp = object : MeshComponent(mesh), OnUpdate {
 
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             val ci = RenderView.currentInstance ?: return
             // calculate interaction coordinates
             val rayDir = ci.mouseDirection

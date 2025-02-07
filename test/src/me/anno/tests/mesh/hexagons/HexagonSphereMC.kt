@@ -6,8 +6,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
@@ -49,8 +49,8 @@ fun main() {
     sunEntity.setScale(2.0)
     sunEntity.rotation = Quaterniond(sky.sunRotation)
 
-    sunEntity.add(object : Component(), Updatable {
-        override fun update(instances: Collection<Component>) {
+    sunEntity.add(object : Component(), OnUpdate {
+        override fun onUpdate() {
             sky.applyOntoSun(sunEntity, sun, 5f)
         }
     })

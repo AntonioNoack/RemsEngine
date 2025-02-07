@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.systems.Updatable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Attribute
@@ -47,9 +47,9 @@ fun rotatingCube() {
                 "   }\n" +
                 "}\n"
     )
-    val comp = object : Component(), Updatable {
+    val comp = object : Component(), OnUpdate {
         val rotation = Matrix3f().rotateY((5f).toRadians())
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             val buffer = mesh.buffer ?: return
             shader.use()
             shader.m3x3("rotation", rotation)

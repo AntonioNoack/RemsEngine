@@ -17,8 +17,8 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc
@@ -120,8 +120,8 @@ fun createTerrain(player: LocalPlayer): Entity {
     }
 
     // dynamic chunk loading based on plane/camera position
-    terrain.add(object : Component(), Updatable {
-        override fun update(instances: Collection<Component>) {
+    terrain.add(object : Component(), OnUpdate {
+        override fun onUpdate() {
             val pos = player.cameraState.currentCamera!!.transform!!.globalPosition
             terrainSystem.updateVisibility(
                 5.0, 10.0, listOf(
@@ -153,11 +153,11 @@ fun createPlane(player: LocalPlayer): List<Entity> {
 
     val body = Rigidbody()
     val rotor = plane.children.first { it.name.startsWith("SM_Veh_Plane_American_01_Prop") }
-    rotor.add(object : Component(), Updatable {
+    rotor.add(object : Component(), OnUpdate {
         var position = 0.0
         var speed = 0.0
         val tmp = Vector3d()
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             val dt = Time.deltaTime
             val transform = transform!!
             val lv = body.localLinearVelocity
@@ -242,8 +242,8 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     controller.camera = camera
     val base0 = Entity()
     val base1 = Entity()
-    base1.add(object : Component(), Updatable {
-        override fun update(instances: Collection<Component>) {
+    base1.add(object : Component(), OnUpdate {
+        override fun onUpdate() {
             val dst = base0.transform
             val src = plane.transform
             dst.localPosition = dst.localPosition

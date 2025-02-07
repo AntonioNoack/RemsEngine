@@ -1,10 +1,9 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.utils.MeshJoiner
-import me.anno.ecs.systems.Updatable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -102,8 +101,8 @@ fun main() {
         val relativeDetail = 0.1
         val detailFactor = sq(relativeDetail)
         val oldPosition = Vector3d()
-        val proceduralMesh = object : ProceduralMesh(), Updatable {
-            override fun update(instances: Collection<Component>) {
+        val proceduralMesh = object : ProceduralMesh(), OnUpdate {
+            override fun onUpdate() {
                 if (RenderState.cameraPosition.distanceSquared(RenderState.prevCameraPosition) > 0.0) {
                     generateMesh(getMesh())
                     oldPosition.set(RenderState.cameraPosition)

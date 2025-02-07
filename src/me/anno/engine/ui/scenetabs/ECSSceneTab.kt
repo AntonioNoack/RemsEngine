@@ -241,7 +241,7 @@ class ECSSceneTab(
                         MenuOption(NameDesc("Close")) {
                             ECSSceneTabs.close(this, true)
                         },
-                        MenuOption(NameDesc("Close All Others")) {
+                        MenuOption(NameDesc("Close Other Tabs")) {
                             ECSSceneTabs.ecsTabsRaw.clear()
                             ECSSceneTabs.project?.openTabs?.clear()
                             ECSSceneTabs.currentTab = null

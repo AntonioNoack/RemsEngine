@@ -5,7 +5,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.OctTreeF
@@ -109,8 +108,8 @@ fun main() {
     val accelerator = Accelerator()
     val s = 1000f
     val boids = ArrayList<BoidV2>()
-    scene.add(object : Component(), Updatable {
-        override fun update(instances: Collection<Component>) {
+    scene.add(object : Component(), OnUpdate {
+        override fun onUpdate() {
             accelerator.clear()
             for (bird in boids) {
                 accelerator.add(bird)

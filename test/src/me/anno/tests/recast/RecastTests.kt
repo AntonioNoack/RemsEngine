@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
@@ -218,8 +217,8 @@ class RecastTests {
                 .add(TestAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, -1, start, end))
         }
 
-        scene.addComponent(object : Component(), Updatable {
-            override fun update(instances: Collection<Component>) {
+        scene.addComponent(object : Component(), OnUpdate {
+            override fun onUpdate() {
                 crowd.update(Time.deltaTime.toFloat(), null)
             }
         })

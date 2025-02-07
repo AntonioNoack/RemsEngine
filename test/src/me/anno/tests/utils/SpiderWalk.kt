@@ -9,7 +9,6 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -356,13 +355,13 @@ fun main() {
     val agent = object : NavMeshAgent(
         meshData, navMesh, query, filter, Random(1234),
         navMesh1, crowd, 1, 10f, 300f
-    ), Updatable {
+    ), OnUpdate {
 
         val velocity = Vector3d(1.0, 0.0, 0.0)
         val lastPos = Vector3d()
         val angleDictator = Vector3d(0.0, 1.0, 0.0)
 
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
 
             if (crowdAgent == null) init()
             val crowdAgent = crowdAgent ?: return

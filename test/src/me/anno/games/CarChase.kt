@@ -14,6 +14,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
@@ -133,10 +134,10 @@ fun createUI(): Panel {
     val steeringWheelMesh = MeshComponent(carModelSteer)
     steeringWheelMesh.materials = materialList
     steeringWheel.add(steeringWheelMesh)
-    steeringWheel.add(object : Component(), Updatable {
+    steeringWheel.add(object : Component(), OnUpdate {
         val q = Quaterniond()
         val c = Vector3d()
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             val tr = steeringWheel.transform
             val mesh = steeringWheelMesh.getMeshOrNull()?.getBounds() ?: return
             q.rotationZ(-5.0 * controller.lastSteering)
@@ -191,8 +192,8 @@ fun createUI(): Panel {
 
     // orbit controls for the camera around the car :)
     camEntity.add(camera)
-    val orbitControls = object : OrbitControls(), Updatable {
-        override fun update(instances: Collection<Component>) {
+    val orbitControls = object : OrbitControls(), OnUpdate {
+        override fun onUpdate() {
             if (Input.isKeyDown('R')) {
                 // reset car
                 // todo not working: can we rotate the car towards upwards? :)

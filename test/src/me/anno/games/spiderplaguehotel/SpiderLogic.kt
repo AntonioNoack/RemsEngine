@@ -46,7 +46,7 @@ class SpiderLogic(val brain: FullyConnectedNN, val traps: Entity) : Component(),
     val position = Vector2f()
     var rotation = 0f
 
-    override fun update(instances: Collection<Component>) {
+    override fun update(instances: List<Component>) {
         // get game speed somehow
         savedDt += (defaultStepsPerSeconds * simulationMultiplier) * Time.deltaTime.toFloat()
         if (savedDt < 1f) return
@@ -57,7 +57,7 @@ class SpiderLogic(val brain: FullyConnectedNN, val traps: Entity) : Component(),
         }
     }
 
-    fun step(instances: Collection<Component>) {
+    fun step(instances: List<Component>) {
         val state = states.get()
         for (instance in instances) {
             if (instance is SpiderLogic) {

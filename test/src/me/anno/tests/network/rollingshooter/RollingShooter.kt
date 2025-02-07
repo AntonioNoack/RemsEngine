@@ -21,8 +21,8 @@ import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.systems.OnPhysicsUpdate
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -153,9 +153,9 @@ fun main() {
         bullet.setRotation(0.0, atan2(p.dir.z, p.dir.x).toDouble(), 0.0)
         bullet.setScale(0.1)
         val flash = PointLight()
-        bullet.add(object : Component(), Updatable {
+        bullet.add(object : Component(), OnUpdate {
             var distance = 0f
-            override fun update(instances: Collection<Component>) {
+            override fun onUpdate() {
                 val step = (90 * Time.deltaTime).toFloat()
                 if (step != 0f) {
                     distance += step
@@ -316,7 +316,7 @@ fun main() {
     val cameraArm = Entity(cameraBase1)
     cameraArm.setPosition(1.5, 1.0, 4.0)
     cameraArm.setRotation(0.0, 0.0, 0.0)
-    cameraBase.add(object : Component(), InputListener, Updatable {
+    cameraBase.add(object : Component(), InputListener, OnUpdate {
 
         override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
             cameraArm.position = cameraArm.position.mul(pow(0.98, dy.toDouble()))
@@ -333,7 +333,7 @@ fun main() {
             } else super.onMouseMoved(x, y, dx, dy)
         }
 
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             // update transforms
             val pos = selfPlayerEntity.position
             cameraBase.position = cameraBase.position.mix(pos, dtTo01(5.0 * Time.deltaTime))

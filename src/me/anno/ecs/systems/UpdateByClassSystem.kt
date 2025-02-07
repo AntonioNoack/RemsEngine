@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.System
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.utils.structures.Collections.setContains
-import me.anno.utils.structures.Collections.toggleContains
+import me.anno.utils.structures.sets.FastIteratorSet
 import kotlin.reflect.KClass
 
 abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
@@ -19,9 +19,9 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
 
     private val lock: Any get() = this
 
-    private val components = HashMap<KClass<*>, HashSet<Component>>() // what is registered
+    private val components = HashMap<KClass<*>, FastIteratorSet<Component>>() // what is registered
     private val changeSet = HashSet<Component>() // what changes from frame to frame
-    private val sortedComponents = ArrayList<Map.Entry<KClass<*>, Set<Component>>>() // sorted entries
+    private val sortedComponents = ArrayList<Map.Entry<KClass<*>, FastIteratorSet<Component>>>() // sorted entries
 
     override fun setContains(component: Component, contains: Boolean) {
         if (isInstance(component)) {
@@ -44,7 +44,7 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
     }
 
     abstract fun isInstance(component: Component): Boolean
-    abstract fun update(sample: Component, instances: Collection<Component>)
+    abstract fun update(sample: Component, instances: List<Component>)
     abstract fun getPriority(sample: Component): Int
 
     override fun onUpdate() {
@@ -60,7 +60,7 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
             val hasEntries = changeSet.isNotEmpty()
             for (component in changeSet) {
                 components
-                    .getOrPut(component::class, ::HashSet)
+                    .getOrPut(component::class, ::FastIteratorSet)
                     .toggleContains(component)
             }
             changeSet.clear()
@@ -81,7 +81,7 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
         if (changed) sortComponentsByPriority()
         for ((_, instances) in sortedComponents) {
             val sample = instances.firstOrNull() ?: continue
-            update(sample, instances)
+            update(sample, instances.asList())
         }
     }
 }

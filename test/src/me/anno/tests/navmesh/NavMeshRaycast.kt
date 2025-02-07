@@ -175,8 +175,8 @@ fun main() {
                 .add(MeshComponent(agentMeshRef).apply { isInstanced = true })
         }
 
-        world.addComponent(object : Component(), Updatable {
-            override fun update(instances: Collection<Component>) {
+        world.addComponent(object : Component(), OnUpdate {
+            override fun onUpdate() {
                 crowd.update(Time.deltaTime.toFloat(), null)
             }
         })

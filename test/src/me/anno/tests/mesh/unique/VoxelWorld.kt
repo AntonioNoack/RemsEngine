@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.systems.Updatable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.maths.Maths.posMod
@@ -80,10 +80,10 @@ fun main() {
     sun.autoUpdate = 0
     val sunEntity = Entity("Sun")
         .setScale(100.0)
-    sunEntity.add(object : Component(), Updatable {
+    sunEntity.add(object : Component(), OnUpdate {
         // move shadows with player
         var ctr = 0
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             val rv = RenderView.currentInstance
             if (rv != null && posMod(ctr++, 64) == 0) {
                 val scale = max(100.0, 3.0 * rv.radius)

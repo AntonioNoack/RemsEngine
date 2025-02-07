@@ -10,7 +10,7 @@ import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.ecs.systems.Updatable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
 import me.anno.maths.Maths
@@ -59,9 +59,9 @@ fun main() {
     }
 
     // create script, which modifies the animation at runtime
-    scene.add(object : Component(), Updatable {
+    scene.add(object : Component(), OnUpdate {
         val r = Quaternionf()
-        override fun update(instances: Collection<Component>) {
+        override fun onUpdate() {
             // rotations should be relative to their parent, probably
             //  but also in global space... is this contradicting?
             // yes, it is 😅, but we could define sth like a common up;

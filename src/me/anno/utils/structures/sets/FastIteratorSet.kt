@@ -22,5 +22,21 @@ class FastIteratorSet<V>(initialCapacity: Int = 16) {
         }
     }
 
-    fun getList(): List<V> = values
+    fun toggleContains(instance: V) {
+        val id = idLookup[instance]
+        if (id != null) {
+            values[id] = values.last()
+            values.removeLast()
+        } else {
+            idLookup[instance] = values.size
+            values.add(instance)
+        }
+    }
+
+    fun asList(): List<V> = values
+    fun contains(instance: V): Boolean = instance in idLookup
+    fun isEmpty(): Boolean = values.isEmpty()
+    fun isNotEmpty(): Boolean = values.isNotEmpty()
+    fun first(): V = values.first()
+    fun firstOrNull(): V? = values.firstOrNull()
 }

@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -146,8 +145,8 @@ fun main() {
             )
         }
 
-        world.addComponent(object : Component(), Updatable {
-            override fun update(instances: Collection<Component>) {
+        world.addComponent(object : Component(), OnUpdate {
+            override fun onUpdate() {
                 crowd.update(Time.deltaTime.toFloat(), null)
             }
         })

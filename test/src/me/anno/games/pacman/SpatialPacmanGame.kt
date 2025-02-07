@@ -10,19 +10,19 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.systems.Updatable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView1
 import me.anno.engine.ui.render.SceneView
+import me.anno.games.pacman.logic.Moveable
+import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.dtTo01
 import me.anno.mesh.Shapes.flatCube
-import me.anno.games.pacman.logic.Moveable
-import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.debug.PureTestEngine.Companion.testPureUI
@@ -36,7 +36,7 @@ import kotlin.math.min
 class PacmanControls(
     val game: PacmanLogic, val camEntity: Entity,
     val enemies: Entity, val player: Entity
-) : Component(), Updatable {
+) : Component(), OnUpdate {
 
     fun setPos(moveable: Moveable, entity: Entity, mixDt: Float) {
         val transform = entity.transform
@@ -60,7 +60,7 @@ class PacmanControls(
     }
 
     val baseCameraHeight = camEntity.position.y
-    override fun update(instances: Collection<Component>) {
+    override fun onUpdate() {
         // controls
         game.updateControls()
         // update visuals

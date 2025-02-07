@@ -17,7 +17,7 @@ object MotionVectorSystem : System() {
     }
 
     override fun onUpdate() {
-        val entities = transforms.getList()
+        val entities = transforms.asList()
         for (i in entities.indices) {
             entities[i].teleportUpdate()
         }
