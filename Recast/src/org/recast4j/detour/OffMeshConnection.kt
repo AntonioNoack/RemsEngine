@@ -26,10 +26,10 @@ import org.joml.Vector3f
  */
 class OffMeshConnection {
     /**
-     * The endpoints of the connection. [(ax, ay, az, bx, by, bz)]
+     * The endpoints of the connection.
      */
-    var posA = Vector3f()
-    var posB = Vector3f()
+    val posA = Vector3f()
+    val posB = Vector3f()
 
     /**
      * The radius of the endpoints. [Limit: >= 0]
