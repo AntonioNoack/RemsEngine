@@ -16,7 +16,7 @@ class FastIteratorSet<V>(initialCapacity: Int = 16) {
         else add(instance)
     }
 
-    private fun add(instance: V): Boolean {
+    fun add(instance: V): Boolean {
         val prevId = idLookup.putIfAbsent(instance, values.size)
         return if (prevId == null) {
             values.add(instance)
@@ -24,7 +24,7 @@ class FastIteratorSet<V>(initialCapacity: Int = 16) {
         } else false
     }
 
-    private fun remove(instance: V): Boolean {
+    fun remove(instance: V): Boolean {
         val id = idLookup.remove(instance) ?: return false
         if (id < values.lastIndex) {
             val moved = values.last()
