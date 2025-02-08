@@ -36,8 +36,10 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
     }
 
     override var isEnabled: Boolean
-        get() = InputVisibility[visibilityKey]
-        set(_) {}
+        get() = super.isEnabled && InputVisibility[visibilityKey]
+        set(value) {
+            super.isEnabled = value
+        }
 
     fun setCursorToEnd() = base.setCursorToEnd()
 

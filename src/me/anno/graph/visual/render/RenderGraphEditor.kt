@@ -47,7 +47,7 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
         invalidateDrawing() // for smooth rendering
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (drawResultInBackground) {
             // these two calls could be joined
             drawBackground(x0, y0, x1, y1)
@@ -59,7 +59,7 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
             drawNodePanels(x0, y0, x1, y1)
             drawSelection(x0, y0, x1, y1)
             drawScrollbars(x0, y0, x1, y1)
-        } else super.onDraw(x0, y0, x1, y1)
+        } else super.draw(x0, y0, x1, y1)
     }
 
     override fun canDeleteNode(node: Node): Boolean {

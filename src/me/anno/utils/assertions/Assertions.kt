@@ -8,7 +8,7 @@ import kotlin.math.abs
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
-fun assertTrue(condition: Boolean, message: String = "condition failed") {
+fun assertTrue(condition: Boolean, message: String = "expected true, got false") {
     if (!condition) assertFail(message)
 }
 
@@ -56,7 +56,7 @@ fun <V> assertNotContains(value: V, collection: Collection<V>, message: String =
     assertTrue(value !in collection) { "${str(value)} in '$collection', $message" }
 }
 
-fun assertFalse(condition: Boolean, message: String = "condition failed") {
+fun assertFalse(condition: Boolean, message: String = "expected false, got true") {
     assertTrue(!condition, message)
 }
 
@@ -64,7 +64,7 @@ fun assertFalse(condition: Boolean, message: () -> String) {
     assertTrue(!condition, message)
 }
 
-fun assertFail(message: String = "condition failed"): Nothing {
+fun assertFail(message: String = "fail"): Nothing {
     throw IllegalStateException(message)
 }
 

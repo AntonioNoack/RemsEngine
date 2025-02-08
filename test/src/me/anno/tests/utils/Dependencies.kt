@@ -221,13 +221,13 @@ fun main() {
                 calculateDependencies(root)
             }
 
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
                 // enable compute-shader-based rendering, which looks better
                 // only possible on separate framebuffer
                 GFX.someWindow.windowStack.first().drawDirectly = false
 
-                super.onDraw(x0, y0, x1, y1)
+                super.draw(x0, y0, x1, y1)
                 var x = x
                 var y = y
                 val size = scale.y.toFloat() * 100f

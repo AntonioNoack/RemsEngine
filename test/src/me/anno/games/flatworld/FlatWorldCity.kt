@@ -175,8 +175,8 @@ class EditTypeButton(val sceneView: SceneView, val text: String, val controls: C
         backgroundColor = if (sceneView.editControls == controls) bg1 else bg0
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         drawButtonBorder(
             leftColor, topColor, rightColor, bottomColor,
             true, borderSize, isPressed

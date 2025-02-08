@@ -84,8 +84,8 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         else Cursor.hand
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         // draw buttons for add/remove/drag
         val children = children
         val buttonX = buttonX

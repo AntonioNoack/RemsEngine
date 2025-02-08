@@ -1,19 +1,20 @@
-package me.anno.ui.editor.files
+package me.anno.ui.base
 
 import me.anno.maths.Maths.min
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.lists.Lists.none2
 import kotlin.math.max
 
-class Search(val terms: String) {
+class Search(val userInput: String) {
 
     override fun equals(other: Any?): Boolean {
-        return other is Search && other.terms == terms
+        return other is Search && other.userInput == userInput
     }
 
     override fun hashCode(): Int {
-        return terms.hashCode()
+        return userInput.hashCode()
     }
 
     override fun toString(): String {
@@ -27,7 +28,7 @@ class Search(val terms: String) {
     }
 
     fun containsAllResultsOf(other: Search): Boolean {
-        if (terms == other.terms) return true
+        if (userInput == other.userInput) return true
         if (expression == other.expression) return true
         if ('!' in expression || '!' in other.expression) {
             // idk how to handle this case; negations would be valued negative or in reverse
@@ -62,18 +63,18 @@ class Search(val terms: String) {
          * parse expression
          * */
         var i = 0
-        while (i < terms.length) {
-            when (val char = terms[i]) {
+        while (i < userInput.length) {
+            when (val char = userInput[i]) {
                 '"', '\'' -> {
                     i++
                     var str = ""
-                    string@ while (i < terms.length) {
-                        when (val char2 = terms[i]) {
+                    string@ while (i < userInput.length) {
+                        when (val char2 = userInput[i]) {
                             char -> break@string
                             '\\' -> {
                                 i++
-                                if (i < terms.length) {
-                                    str += when (val char3 = terms[i]) {
+                                if (i < userInput.length) {
+                                    str += when (val char3 = userInput[i]) {
                                         '\\' -> '\\'
                                         else -> char3
                                     }
@@ -87,7 +88,8 @@ class Search(val terms: String) {
                     }
                     expression += str
                 }
-                '|', '&', '!' -> {
+                '&' -> i++ // ands are implicit
+                '|', '!' -> {
                     expression += char
                     i++
                 }
@@ -105,8 +107,8 @@ class Search(val terms: String) {
                 else -> {
                     // read string without escapes
                     var str = ""
-                    string@ while (i < terms.length) {
-                        when (val char2 = terms[i]) {
+                    string@ while (i < userInput.length) {
+                        when (val char2 = userInput[i]) {
                             '|', '&', '(', ')', ' ', '\t' -> {
                                 break@string
                             }
@@ -141,69 +143,98 @@ class Search(val terms: String) {
 
     fun matchesEverything(): Boolean = expression.isEmpty()
 
-    private fun CharSequence.containsPieces(part: CharSequence, ignoreCase: Boolean): Boolean {
-        @Suppress("SpellCheckingInspection")
-        // search: sdfelioid, target: sdf ellipsoid, -> return true
-        var index = 0
-        for (partIndex in part.indices) {
-            val letter = part[partIndex]
-            val nextIndex = indexOf(letter, index, ignoreCase)
-            if (nextIndex < 0) return false
-            index = max(index + 1, nextIndex)
-        }
-        return true
-    }
-
     fun matches(name: CharSequence?): Boolean {
         if (name == null) return false
+        if (expression.isEmpty()) return true
+        return matches(listOf(name))
+    }
+
+    fun matches(names: List<CharSequence>): Boolean {
+        if (names.isEmpty()) return false
         if (expression.isEmpty()) return true
         val expr = ArrayList(expression)
         // replace all things
         for (i in expr.indices) {
             val term = expr[i] as? String ?: continue
-            val value = name.containsPieces(term, true)
+            val value = names.any2 { name -> containsPieces(name, term) }
             expr[i] = value
         }
-        return matches(expr)
+        return eval(expr)
     }
 
-    fun matches(expr: ArrayList<Any>): Boolean {
+    private fun eval(expr: ArrayList<Any>): Boolean {
         assertTrue(expr.none2 { it is String })
-        for (i in 0 until expr.size - 2) {
-            if (expr[i] == '(' && expr[i + 2] == ')') {
-                expr.removeAt(i + 2)
-                expr.remove(i)
-                return matches(expr)
+        replace@ while (true) {
+            val originalLength = expr.size
+            // brackets
+            var i = 2
+            while (i < expr.size) {
+                if (expr[i - 2] == '(' && expr[i] == ')') {
+                    expr.removeAt(i)
+                    expr.removeAt(i - 2)
+                    i = max(i - 1, 2)
+                } else i++
             }
-        }
-        for (i in 0 until expr.size - 1) {
-            val b = expr[i + 1]
-            if (expr[i] == '!' && b is Boolean) {
-                expr[i] = !b
-                expr.removeAt(i + 1)
-                return matches(expr)
+            // negations
+            i = 1
+            while (i < expr.size) {
+                val b = expr[i]
+                if (expr[i - 1] == '!' && b is Boolean) {
+                    expr[i - 1] = !b
+                    expr.removeAt(i)
+                } else i++
             }
-        }
-        for (i in 0 until expr.size - 1) {
-            val a = expr[i]
-            val b = expr[i + 1]
-            if (a is Boolean && b is Boolean) {
-                expr[i] = a && b
-                expr.removeAt(i + 1)
-                return matches(expr)
+            // implicit ands
+            val andStartLength = expr.size
+            i = 1
+            while (i < expr.size) {
+                val a = expr[i - 1]
+                val b = expr[i]
+                if (a is Boolean && b is Boolean) {
+                    expr[i - 1] = a and b
+                    expr.removeAt(i)
+                } else i++
             }
-        }
-        for (i in 0 until expr.size - 2) {
-            if (expr[i + 1] == '|') {
-                val a = expr[i] as? Boolean ?: continue
-                val b = expr[i + 2] as? Boolean ?: continue
-                expr[i] = a || b
-                expr.removeAt(i + 2)
-                expr.removeAt(i + 1)
-                return matches(expr)
+            // ands need a restart, all of them need to be handled before or
+            if (expr.size < andStartLength) continue@replace
+            // explicit or
+            i = 2
+            while (i < expr.size) {
+                val a = expr[i - 2]
+                val b = expr[i]
+                if (a is Boolean && b is Boolean && expr[i - 1] == '|') {
+                    expr[i - 2] = a or b
+                    expr.removeAt(i)
+                    expr.removeAt(i - 1)
+                    i = max(i - 1, 2)
+                } else i++
             }
+            // check result
+            if (expr.size == 1) return expr[0] as? Boolean ?: true
+            if (expr.size < originalLength) continue@replace
+            return expr.firstInstanceOrNull2(Boolean::class) ?: true
         }
-        if (expr.size >= 1) return expr[0] as? Boolean ?: true
-        return true
+    }
+
+    companion object {
+        fun containsPieces(name: CharSequence, userInput: CharSequence): Boolean {
+            @Suppress("SpellCheckingInspection")
+            // search: sdfoid, target: sdf ellipsoid, -> return true
+            var index = 0
+            for (partIndex in userInput.indices) {
+                val letter = userInput[partIndex]
+                var nextIndex = name.indexOf(letter, index, true)
+                if (nextIndex < 0) return false
+                // only allowed to skip, if the distance is 0/1, or the next letter is upper-case
+                val allowSkip = index == 0 || nextIndex < index + 2 || name[nextIndex].isUpperCase()
+                if (!allowSkip) {
+                    val nextIndex2 = name.indexOf(letter.uppercase(), nextIndex + 1, false)
+                    if (nextIndex2 < 0) return false
+                    nextIndex = nextIndex2
+                }
+                index = max(index + 1, nextIndex)
+            }
+            return true
+        }
     }
 }

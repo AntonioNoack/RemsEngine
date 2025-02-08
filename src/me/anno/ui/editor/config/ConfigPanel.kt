@@ -5,6 +5,7 @@ import me.anno.io.utils.StringMap
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.Search
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelContainer.Companion.withPadding
 import me.anno.ui.base.groups.PanelListX
@@ -15,169 +16,178 @@ import me.anno.ui.base.menu.Menu.openMenuByPanels
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
+import me.anno.ui.debug.FPSPanelSpacer
 import me.anno.ui.input.TextInput
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.isNotBlank2
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * UI for editing the base configuration and style
  * */
-class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : PanelListY(style) {
+class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : PanelListY(style) {
 
     val deep = style.getChild("deep")
-    val bottomPanel = PanelListX(deep)
+    val bottomBar = PanelListX(deep)
 
-    val mainBox = CustomList(false, style)
-    val topicTree = PanelListY(style)
-    val contentListUI = PanelListY(style)
-    val contentList = ArrayList<Pair<String, Panel>>()
+    val body = CustomList(false, style)
+    val left = PanelListY(style)
 
-    val searchInput = TextInput(NameDesc("Search", "", "ui.general.search"), "", false, deep)
+    val rootNode = TopicNode("", "")
+    val leftContent = TopicTree(this, style)
 
-    fun create() {
-        createTopics()
-        if (topicTree.children.isNotEmpty()) {
-            val tp = topicTree.children.first() as TopicPanel
-            createContent(tp.topic)
-        }
-        fun add(panel: Panel, weight: Float) {
-            mainBox.add(ScrollPanelXY(panel.withPadding(5, 5, 5, 5), style), weight)
-        }
-        add(topicTree, 1f)
-        add(contentListUI, 3f)
-        bottomPanel += TextButton(NameDesc("Close", "", "ui.general.close"), deep)
-            .addLeftClickListener { windowStack.pop().destroy() }
-        bottomPanel += TextButton(NameDesc("Add Field", "", "ui.general.addField"), deep)
-            .addLeftClickListener {
-                val keyPanel = TextInput(NameDesc("Key"), "", lastTopic, style)
-                val valuePanel = TextInput(NameDesc("Value"), "", "", style)
-                val submit = TextButton(NameDesc("Set"), style)
-                submit.addLeftClickListener {
-                    if (keyPanel.value.isNotBlank2()) {
-                        config[keyPanel.value.trim()] = valuePanel.value
-                        createContent(lastNotEmptyTopic)
-                    }
-                    Menu.close(keyPanel)
-                }
-                val cancel = TextButton(NameDesc("Cancel"), false, style)
-                cancel.addLeftClickListener { Menu.close(keyPanel) }
-                val buttons = PanelListX(style)
-                buttons += cancel
-                buttons += submit
-                openMenuByPanels(
-                    windowStack, NameDesc("New Value"),
-                    listOf(keyPanel, valuePanel, buttons)
-                )
+    val right = PanelListY(style)
+
+    val contentList = ArrayList<Pair<List<String>, Panel>>()
+
+    val largeHeaderStyle = style.getChild("header")
+    val smallHeaderStyle = style.getChild("header.small")
+
+    private val searchInput = TextInput(NameDesc("Search Term", "", "ui.general.search"), "", false, deep)
+        .addChangeListener { query -> applySearch(query) }
+    private val closeButton = TextButton(NameDesc("Close", "", "ui.general.close"), deep)
+        .addLeftClickListener(Menu::close)
+    private val addFieldButton = TextButton(NameDesc("Add Field", "", "ui.general.addField"), deep)
+        .addLeftClickListener { openNewPropertyMenu() }
+    private val applyButton = TextButton(NameDesc("Apply", "", "ui.general.apply"), deep)
+        .addLeftClickListener { showChanges() }
+    private val clearAllButton = TextButton(NameDesc("Reset All"), deep)
+        .addLeftClickListener {
+            ask(it.windowStack, NameDesc("This will reset all custom settings. Are you sure?")) {
+                resetAll()
             }
-        fun apply() {
-            createTopics()
-            lastTopic = "-"
-            applySearch(searchInput.value)
         }
-        if (isStyle) {
-            bottomPanel += TextButton(NameDesc("Apply", "", "ui.general.apply"), deep)
-                .addLeftClickListener {
-                    apply()
-                }
-        }
-        bottomPanel += TextButton(NameDesc("Clear All"), deep)
-            .addLeftClickListener {
-                ask(it.windowStack, NameDesc("This will reset all custom settings. Are you sure?")) {
-                    config.clear()
-                    if (isStyle) {
-                        DefaultStyle.initDefaults()
-                        apply()
-                    }
-                }
+
+    private fun openNewPropertyMenu() {
+        val keyPanel = TextInput(NameDesc("Key"), "", lastTopic?.title, style)
+        val valuePanel = TextInput(NameDesc("Value"), "", "", style)
+        val submit = TextButton(NameDesc("Set"), style)
+        submit.addLeftClickListener {
+            if (keyPanel.value.isNotBlank2()) {
+                config[keyPanel.value.trim()] = valuePanel.value
+                buildSettingsForTopic(lastNotEmptyTopic)
             }
-        bottomPanel += searchInput.apply {
-            addChangeListener { query -> applySearch(query) }
-            weight = 1f
+            Menu.close(keyPanel)
         }
-        this += mainBox
-        this += bottomPanel
+        val cancel = TextButton(NameDesc("Cancel"), false, style)
+        cancel.addLeftClickListener { Menu.close(keyPanel) }
+        val buttons = PanelListX(style)
+        buttons += cancel
+        buttons += submit
+        openMenuByPanels(
+            windowStack, NameDesc("New Value"),
+            listOf(keyPanel, valuePanel, buttons)
+        )
     }
 
-    private fun applySearch(query: String) {
+    private fun resetAll() {
+        config.clear()
+        if (type == ConfigType.STYLE) DefaultStyle.initDefaults()
+        showChanges()
+    }
 
-        if (query.isBlank2()) {
-            createContent(lastNotEmptyTopic)
+    private fun addToBody(panel: Panel, weight: Float) {
+        body.add(panel.withPadding(5, 5, 5, 5), weight)
+    }
+
+    private fun createRightSideDefault() {
+        buildSettingsForTopic(rootNode.children.firstOrNull())
+    }
+
+    private fun showChanges() {
+        createLeftSide()
+        lastTopic = null // idk what we need this line for
+        applySearch(searchInput.value)
+    }
+
+    init {
+        addToBody(left, 1f)
+        addToBody(ScrollPanelXY(right, style), 3f)
+        left.add(searchInput)
+        left.add(leftContent.fill(1f))
+
+        createLeftSide()
+        createRightSideDefault()
+
+        fillBottomBar()
+
+        add(body)
+        add(bottomBar)
+    }
+
+    private fun fillBottomBar() {
+        bottomBar.add(closeButton.fill(1f))
+        bottomBar.add(addFieldButton.fill(1f))
+        if (type == ConfigType.STYLE) bottomBar.add(applyButton.fill(1f))
+        bottomBar.add(clearAllButton.fill(1f))
+        bottomBar.add(FPSPanelSpacer(style)) // todo better: draw fps transparently
+    }
+
+    private fun applySearch(userQuery: String) {
+        if (userQuery.isBlank2()) {
+            buildSettingsForTopic(lastNotEmptyTopic)
         } else {
-
-            val queryTerms = query
-                .replace('\t', ',')
-                .replace(' ', ',')
-                .split(',')
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .map { it.lowercase() }
-
-            if (lastTopic.isNotEmpty()) createContent("")
+            val search = Search(userQuery)
+            if (lastTopic != null) buildSettingsForTopic(null)
             for ((name, ui) in contentList) {
-                ui.isVisible = queryTerms.all { it in name }
+                ui.isVisible = search.matches(name)
             }
         }
     }
 
-    var lastTopic = ""
-    var lastNotEmptyTopic = ""
-    private fun createTopics() {
-        topicTree.clear()
-        // concat stuff, that has only one entry?
-        // descriptions???...
-        val topics = config.keys.map {
-            val lastIndex = it.lastIndexOf('.')
-            it.substring(0, max(0, lastIndex))
-        }.toHashSet()
-        for (i in 0 until 5) {
-            topics.addAll(
-                topics.map {
-                    val lastIndex = it.lastIndexOf('.')
-                    it.substring(0, max(0, lastIndex))
+    var lastTopic: TopicNode? = null
+    var lastNotEmptyTopic: TopicNode? = null
+    private fun createLeftSide() {
+        buildTopicTree()
+        leftContent.invalidateLayout()
+    }
+
+    fun buildTopicTree() {
+        val knownNodes = HashMap<String, TopicNode>()
+        knownNodes[rootNode.key] = rootNode
+        rootNode.children.clear()
+
+        for ((key, value) in config) {
+            if (value is StringMap) continue
+            val list = key.split('.')
+            var parent: TopicNode = rootNode
+            val maxLevels =
+                if (type == ConfigType.KEYMAP) min(2, list.lastIndex)
+                else list.lastIndex
+            for (len in 1 until maxLevels) {
+                val topic = list.subList(0, len).joinToString(".")
+                parent = knownNodes.getOrPut(topic) {
+                    val topicName = list[len - 1].camelCaseToTitle()
+                    val newNode = TopicNode(topic, topicName)
+                    parent.children.add(newNode)
+                    newNode.parent = parent
+                    newNode
                 }
-            )
-        }
-        for (topic in topics.sortedBy { it.lowercase() }) {
-            if (topic.isNotEmpty()) {
-                val lastIndex = topic.lastIndexOf('.')
-                val topicName = topic.substring(lastIndex + 1)
-                val panel = TopicPanel(topic, topicName, this, style)
-                if (panel.topicDepth > 0) panel.hide()
-                topicTree += panel
-                /*panel.setSimpleClickListener {// show that there is more? change the name?
-                    val start = "$topic."
-                    val special = Input.isShiftDown || Input.isControlDown
-                    val visible = if(special) Visibility.GONE else Visibility.VISIBLE
-                    if(!special) createContent(topic, topicName)
-                    topicTree.children
-                        .filterIsInstance<TopicPanel>()
-                        .forEach {
-                            if(it.topic.startsWith(start)){
-                                it.visibility = visible
-                            }
-                        }
-                }*/
             }
         }
-        invalidateLayout()
+
+        for (node in knownNodes.values) {
+            node.children.sortBy { it.sortKey }
+            node.isCollapsed = node.children.size > 1 && node.key.count { it == '.' } > 1
+        }
     }
 
-    fun createContent(topic: String) {
+    fun buildSettingsForTopic(topic: TopicNode?) {
+
+        // todo if type is KeyMap, create an appropriate different layout!
 
         lastTopic = topic
-        if (topic.isNotEmpty()) lastNotEmptyTopic = topic
+        if (topic != null) lastNotEmptyTopic = topic
 
-        contentListUI.clear()
+        right.clear()
         contentList.clear()
 
-        val pattern = if (topic.isEmpty()) "" else "$topic."
+        val pattern = if (topic == null) "" else "${topic.key}."
         val entries = config.entries
-            .filter { it.value !is StringMap }
-            .filter { it.key.startsWith(pattern) }
-            .map {
-                val fullName = it.key
+            .filter { (key, value) -> value !is StringMap && key.startsWith(pattern) }
+            .map { (fullName, _) ->
                 val relevantName = fullName.substring(pattern.length)
                 val depth = relevantName.count { char -> char == '.' }
                 val li = relevantName.lastIndexOf('.') + 1
@@ -187,28 +197,12 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             }
             .sortedBy { it.relevantName }
 
-        val largeHeaderText = style.getChild("header")
-        val smallHeaderStyle = style.getChild("header.small")
-
         val topList = entries.filter { it.depth == 0 }
 
         // add header
-        val headerTitle = topic.camelCaseToTitle()
-        val largeHeader2 = TextPanel(headerTitle, largeHeaderText).apply { font = font.withItalic(true) }
-        contentListUI += largeHeader2
-        val subChain = StringBuilder(topList.size * 2)
-        for (entry in topList) {
-            val subList = PanelListY(style)
-            subList.tooltip = entry.fullName
-            entry.createPanels(subList)
-            val searchKey = entry.fullName.lowercase()
-            contentList += searchKey to subList
-            contentListUI += subList
-            subChain.append(searchKey)
-            subChain.append(' ')
-        }
-        contentList += subChain.toString() to largeHeader2
-
+        val headerTitle = topic?.title ?: "..."
+        val largeHeader2 = TextPanel(headerTitle, largeHeaderStyle)
+        processEntries(topList, largeHeader2)
 
         // add sub headers for all topics...
         val groups = entries
@@ -216,24 +210,42 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             .groupBy { it.groupName }
 
         for (group in groups.entries.sortedBy { it.key }) {
-            val groupName = group.key
-            val title = groupName.camelCaseToTitle()
-            val smallHeader = TextPanel(title, smallHeaderStyle)
-            contentListUI += smallHeader
-            val subChain2 = StringBuilder(group.value.size * 2)
-            for (entry in group.value) {
-                val subList = PanelListY(style)
-                subList.tooltip = entry.fullName
-                entry.createPanels(subList)
-                val searchKey = entry.fullName.lowercase()
-                contentList += searchKey to subList
-                contentListUI += subList
-                subChain2.append(searchKey)
-                subChain2.append(' ')
-            }
-            contentList += subChain2.toString() to smallHeader
+            processEntries(group.key, group.value)
         }
 
         invalidateLayout()
+    }
+
+    private fun processEntries(groupName: String, entries: List<ContentCreator>) {
+        val title = groupName.camelCaseToTitle()
+        val smallHeader = TextPanel(title, smallHeaderStyle)
+        processEntries(entries, smallHeader)
+    }
+
+    private fun processEntries(entries: List<ContentCreator>, smallHeader: TextPanel) {
+        right.add(smallHeader)
+        val subChain = ArrayList<String>()
+        for (entry in entries) {
+            processEntry(entry, subChain)
+        }
+        contentList.add(subChain to smallHeader)
+    }
+
+    private fun processEntry(entry: ContentCreator, subChain2: ArrayList<String>) {
+        val subList = PanelListY(style)
+        subList.tooltip = entry.fullName
+        entry.createPanels(subList)
+        val searchKey = entry.fullName.lowercase()
+        contentList.add(listOf(searchKey) to subList)
+        right.add(subList)
+        subChain2.add(searchKey)
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        when (action) {
+            "BeginSearch" -> searchInput.requestFocus()
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+        return true
     }
 }

@@ -265,7 +265,7 @@ object VisualNovel {
                 )
             }
 
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
                 if (textTime == 0L) textTime = Time.nanoTime
 

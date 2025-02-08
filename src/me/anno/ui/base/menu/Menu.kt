@@ -22,7 +22,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
-import me.anno.ui.editor.files.Search
+import me.anno.ui.base.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
@@ -336,8 +336,8 @@ object Menu {
     }
 
     class UnderlinedTextPanel(optionI: NameDesc, val magicIndex: Int, style: Style) : TextPanel(optionI, style) {
-        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.onDraw(x0, y0, x1, y1)
+        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            super.draw(x0, y0, x1, y1)
             if (magicIndex in text.indices) {
                 underline(magicIndex, magicIndex + 1)
             }
@@ -451,7 +451,7 @@ object Menu {
                         val child = children[i]
                         // check all text elements inside this panel for matches
                         child.isVisible = child.any {
-                            it is TextPanel && (search.matches(it.text) || search.matches(it.tooltip))
+                            it is TextPanel && search.matches(listOf(it.text, it.tooltip))
                         }
                     }
                     // sort results by relevance

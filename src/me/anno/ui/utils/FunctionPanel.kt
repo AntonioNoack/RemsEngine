@@ -20,7 +20,6 @@ import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
-import kotlin.math.roundToInt
 
 // where should we move this class?
 /**
@@ -105,8 +104,8 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         drawNumbered2DLineGrid(x0, y0, x1, y1)
         for (funcIndex in 0 until getNumFunctions()) {
             val lineColor = getColor(funcIndex)

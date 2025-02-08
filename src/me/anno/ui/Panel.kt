@@ -103,6 +103,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
         }
 
+    /**
+     * Spreads this panel with the given weight
+     * */
     fun fill(weight: Float): Panel {
         this.weight = weight
         this.weight2 = weight2
@@ -341,14 +344,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * more does not need to be drawn;
      * the area is already clipped with useFrame(x0,y0,x1-x0,y1-y0)
      * */
-    fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        GFX.check()
-        onDraw(x0, y0, x1, y1)
-        GFX.check()
-        wasInFocus = isInFocus
-    }
-
-    open fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    open fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
     }
 

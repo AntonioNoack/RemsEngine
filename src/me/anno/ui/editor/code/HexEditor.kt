@@ -150,7 +150,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     val addressDx get() = spacing2 + charWidth * addressDigits
 
     private val buffers = ArrayList<ByteArray?>()
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // calculate line number
         val rectBatch = DrawRectangles.startBatch()
         drawBackground(x0, y0, x1, y1)

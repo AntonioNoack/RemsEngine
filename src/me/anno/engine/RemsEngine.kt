@@ -45,6 +45,7 @@ import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
+import me.anno.ui.editor.config.ConfigType
 import me.anno.utils.OS
 import org.joml.Matrix4f
 
@@ -175,7 +176,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             override val canDrawOverBorders get() = true
             private val modelMatrix = AssetThumbHelper.createModelMatrix().scale(0.62f)
             private val pipeline = Pipeline(null)
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 useFrame(previewRenderer) {
                     sky.nadirSharpness = 10f
                     val shader = sky.shader!!.value
@@ -216,7 +217,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             openStylingWindow(windowStack)
         }
         options.addAction(configTitle, Dict["Keymap", "ui.top.config.keymap"]) {
-            openConfigWindow(windowStack, ActionManager, false)
+            openKeymapWindow(windowStack)
         }
 
         list.add(options)
@@ -266,19 +267,23 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
 
     companion object {
 
-        fun openConfigWindow(windowStack: WindowStack, config: StringMap, isStyle: Boolean) {
-            val panel = ConfigPanel(config, isStyle, style)
+        fun openConfigWindow(windowStack: WindowStack, config: StringMap, type: ConfigType) {
+            val panel = ConfigPanel(config, type, style)
             val window = createReloadWindow(panel, transparent = false, fullscreen = true) { instance?.createUI() }
-            panel.create()
             windowStack.push(window)
         }
 
         fun openConfigWindow(windowStack: WindowStack) {
-            openConfigWindow(windowStack, DefaultConfig, false)
+            openConfigWindow(windowStack, DefaultConfig, ConfigType.SETTINGS)
         }
 
         fun openStylingWindow(windowStack: WindowStack) {
-            openConfigWindow(windowStack, style.values, true)
+            openConfigWindow(windowStack, style.values, ConfigType.STYLE)
+        }
+
+        // todo test this
+        fun openKeymapWindow(windowStack: WindowStack) {
+            openConfigWindow(windowStack, ActionManager, ConfigType.KEYMAP)
         }
 
         fun collectSelected(): Any {

@@ -95,10 +95,10 @@ open class EnumInput(
 
     var changeListener = { _: NameDesc, _: Int, _: List<NameDesc> -> }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titleView?.isInFocus == true || inputPanel.isInFocus
         if (focused) isSelectedListener?.invoke()
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
     }
 
     init {

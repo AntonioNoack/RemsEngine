@@ -134,8 +134,8 @@ class Snake : Panel(style) {
         minH = wi * sy / sx
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
 
         // draw field
         for (y in 0 until sy) {

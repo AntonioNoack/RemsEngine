@@ -30,7 +30,7 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
     }
 
     override fun getVisualState() = chooser.opacity
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToIntOr(), x0, x1 - 1)
         // drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))
         // colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)

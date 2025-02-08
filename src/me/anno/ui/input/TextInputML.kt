@@ -1,6 +1,5 @@
 package me.anno.ui.input
 
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -87,8 +86,8 @@ open class TextInputML(nameDesc: NameDesc, style: Style) : PanelContainer(
         return this
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         if (isAnyChildInFocus) {
             isSelectedListener?.invoke()
         }

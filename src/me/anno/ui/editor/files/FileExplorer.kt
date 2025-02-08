@@ -24,6 +24,7 @@ import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
+import me.anno.ui.base.Search
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.ListAlignment
@@ -457,8 +458,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         if (loading != 0L) {
             drawLoadingCircle((Time.nanoTime - loading) / 1e9f, x0, y0, x1, y1)
         }

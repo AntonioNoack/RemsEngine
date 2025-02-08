@@ -25,8 +25,8 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
     }
 
@@ -34,7 +34,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         val children = children
         for (index in children.indices) {
             val child = children[index]
-            if (child.isVisible) {
+            if (child.canBeSeen) {
                 drawChild(child, x0, y0, x1, y1)
             }
         }

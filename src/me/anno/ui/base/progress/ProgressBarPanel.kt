@@ -23,9 +23,9 @@ class ProgressBarPanel(name: String, unit: String, total: Double, val height1: I
     }
 
     val progressBar = ProgressBar(name, unit, total)
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (min(progressBar.textColor.a(), progressBar.backgroundColor.a()) < 255)
-            super.onDraw(x0, y0, x1, y1) // else no background needed
+            super.draw(x0, y0, x1, y1) // else no background needed
         progressBar.draw(x, y, width, height1, x0, y0, x1, y1, Time.nanoTime)
     }
 

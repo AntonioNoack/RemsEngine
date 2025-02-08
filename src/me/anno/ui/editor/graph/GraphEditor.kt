@@ -219,7 +219,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         drawGrid(x0, y0, x1, y1)
         drawNodeGroups(x0, y0, x1, y1)

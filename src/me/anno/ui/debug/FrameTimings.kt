@@ -105,14 +105,9 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         container.putValue(value)
     }
 
-    fun draw() {
-        canBeSeen = true
-        draw(x, y, x + width, y + height)
-    }
-
     val withoutInterpolation get() = OS.isAndroid
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val containers = containers
         if (containers.isEmpty()) {
@@ -200,12 +195,16 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     }
 
     fun showFPS(window: OSWindow) {
-
         val x0 = max(0, window.width - width1)
         val y0 = max(0, window.height - height1)
+        showFPS(x0, y0)
+    }
 
+    private fun showFPS(x0: Int, y0: Int) {
         setPosSize(x0, y0, width1, height1)
-        draw()
+
+        canBeSeen = true
+        draw(x, y, x + width, y + height)
 
         formatNumber(text.value, 0, 6, Time.currentFPS.toFloat())
         formatNumber(text.value, 13, 6, Time.currentMinFPS.toFloat())

@@ -9,8 +9,8 @@ import kotlin.math.max
 
 open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(scrollable as Panel, style) {
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
 
         val relativePosition = scrollable.scrollPositionX / scrollable.maxScrollPositionX
         val barW = max(minSize.toDouble(), scrollable.relativeSizeX * width)

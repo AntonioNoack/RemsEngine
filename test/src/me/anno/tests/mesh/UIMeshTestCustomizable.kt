@@ -106,7 +106,7 @@ class SimpleMeshTest(
     }
 
     private val size = RenderSize()
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // super call is not needed, as we draw over the background
         // define camera
         val wf = width.toFloat()

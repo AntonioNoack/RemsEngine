@@ -59,8 +59,8 @@ class ColorPicker(
     var pixelSpacing = 1
     var generalPadding = 2
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         // only show the lens, when it makes sense
         val red = 0xffff shl 16
         if (pixelScale > abs(lih) / max(1, gpuTexture.height)) {

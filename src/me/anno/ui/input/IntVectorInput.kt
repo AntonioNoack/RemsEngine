@@ -167,7 +167,7 @@ open class IntVectorInput(
         } else null
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var focused1 = titleView?.isInFocus == true
         if (!focused1) {// removing the need for an iterator
             val children = valueList.children
@@ -179,7 +179,7 @@ open class IntVectorInput(
             }
         }
         if (focused1) isSelectedListener?.invoke()
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
         compX.updateValueMaybe()
         compY?.updateValueMaybe()
         compZ?.updateValueMaybe()

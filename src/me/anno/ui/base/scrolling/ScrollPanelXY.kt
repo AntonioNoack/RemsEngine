@@ -186,9 +186,9 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
         val batch = DrawRectangles.startBatch()
         if (alwaysShowShadowX) {
             drawShadowX(x0, y0, x1, y1, shadowRadius)

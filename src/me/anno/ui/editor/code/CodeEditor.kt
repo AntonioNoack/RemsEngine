@@ -310,7 +310,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         var x = getCharX(0)
         val y = getCharY(0)

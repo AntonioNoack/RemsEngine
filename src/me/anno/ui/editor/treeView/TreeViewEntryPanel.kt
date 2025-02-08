@@ -132,8 +132,8 @@ class TreeViewEntryPanel<V : Any>(
         uiSymbol?.backgroundColor = backgroundColor
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         // draw the paste-preview
         val showAddIndex = showAddIndex
         if (showAddIndex != null) {
@@ -222,8 +222,8 @@ class TreeViewEntryPanel<V : Any>(
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
+        val importer = treeView.fileContentImporter ?: return super.onPasteFiles(x, y, files)
         val transform = getElement()
-        val importer = treeView.fileContentImporter
         for (file in files) {
             importer.addChildFromFile(transform, file, FileContentImporter.SoftLinkMode.ASK, true) {}
         }

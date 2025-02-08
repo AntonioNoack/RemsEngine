@@ -41,7 +41,7 @@ import me.anno.ui.base.menu.ComplexMenuOption
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openComplexMenu
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.editor.files.Search
+import me.anno.ui.base.Search
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.Color.black

@@ -405,10 +405,10 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     // to do call events before we draw the scene? that way we would not get the 1-frame delay
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // no background
         makeBackgroundTransparent()
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
         if (settings.showRenderTimes) {
             DebugRendering.showTimeRecords(renderView)
         }

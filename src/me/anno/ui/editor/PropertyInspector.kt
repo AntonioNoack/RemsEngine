@@ -17,7 +17,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.FrameTimings
-import me.anno.ui.editor.files.Search
+import me.anno.ui.base.Search
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
@@ -47,13 +47,12 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
 
             LOGGER.info("Applying search '$searchTerms', $search, all? ${search.matchesEverything()}")
 
-            val joined = StringBuilder()
-            fun join(child: Panel): CharSequence {
+            val joined = ArrayList<String>()
+            fun join(child: Panel): List<String> {
                 joined.clear()
                 child.forAllPanels { panel ->
                     if (panel is TextPanel) {
-                        joined.append(panel.text)
-                        joined.append(' ')
+                        joined.add(panel.text)
                     }
                 }
                 return joined

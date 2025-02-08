@@ -223,10 +223,10 @@ open class ColorInput(
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView.isInFocus || base.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
     }
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float, mask: Int) -> Unit): ColorInput {

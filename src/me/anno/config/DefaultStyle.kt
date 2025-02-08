@@ -33,53 +33,54 @@ object DefaultStyle {
     fun initDefaults() {
 
         val fontSize = FontStats.getDefaultFontSize()
-        set("fontName", "Verdana")
-        set("fontSize", fontSize)
+        default("fontName", "Verdana")
+        default("fontSize", fontSize)
 
         // light / dark
-        set("small.textColor", fontGray, black)
-        set("textColor", fontGray, black)
-        set("options.textColor", fontGray, black)
-        set("italic.propertyInspector.textColor", fontGray, black)
-        set("link.textColor", shinyBlue, brightYellow)
+        default("small.textColor", fontGray, black)
+        default("header.text.fontItalic", true)
+        default("textColor", fontGray, black)
+        default("options.textColor", fontGray, black)
+        default("italic.propertyInspector.textColor", fontGray, black)
+        default("link.textColor", shinyBlue, brightYellow)
 
-        set("textColorFocused", white, shinyBlue)
+        default("textColorFocused", white, shinyBlue)
 
         // dark / light
-        set("background", flatDark, white)
-        set("menu.background", black, white)
-        set("tooltip.background", black, white)
-        set("treeView.background", flatDark, midGray)
-        set("propertyInspector.background", flatDark, midGray)
-        set("sceneView.background", deepDark, lightGray)
-        set("menu.background", reallyDark, nearWhite)
-        set("spacer.background", deepDark, lightGray)
-        set("spacer.menu.background", fontGray, lightGray)
-        set("options.spacer.background", flatDark, midGray)
-        set("deep.background", deepDark, lightGray)
-        set("deep.edit.background", deepDark, lightGray)
-        set("deep.propertyInspector.background", deepDark, lightGray)
-        set("spacer.background", scrollGray, white)
+        default("background", flatDark, white)
+        default("menu.background", black, white)
+        default("tooltip.background", black, white)
+        default("treeView.background", flatDark, midGray)
+        default("propertyInspector.background", flatDark, midGray)
+        default("sceneView.background", deepDark, lightGray)
+        default("menu.background", reallyDark, nearWhite)
+        default("spacer.background", deepDark, lightGray)
+        default("spacer.menu.background", fontGray, lightGray)
+        default("options.spacer.background", flatDark, midGray)
+        default("deep.background", deepDark, lightGray)
+        default("deep.edit.background", deepDark, lightGray)
+        default("deep.propertyInspector.background", deepDark, lightGray)
+        default("spacer.background", scrollGray, white)
 
         // special color
-        set("accentColor", brightYellow, shinyBlue)
+        default("accentColor", brightYellow, shinyBlue)
 
-        set("spacer.width", 0)
-        set("spacer.menu.width", 1)
-        set("treeView.inset", fontSize / 2)
+        default("spacer.width", 0)
+        default("spacer.menu.width", 1)
+        default("treeView.inset", fontSize / 2)
 
-        set("textPadding", 2)
+        default("textPadding", 2)
 
         for ((key, value) in loadStyle("style.config")) {
             baseTheme.values[key, value]
         }
     }
 
-    operator fun set(key: String, both: Any) {
-        set(key, both, both)
+    private fun default(key: String, both: Any) {
+        default(key, both, both)
     }
 
-    operator fun set(key: String, dark: Any, light: Any) {
+    private fun default(key: String, dark: Any, light: Any) {
         baseTheme.values["$key.dark", dark]
         baseTheme.values["$key.light", light]
     }

@@ -136,11 +136,11 @@ open class ColorChooser(
         palette.onColorSelected = { setARGB(it, -1, true) }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val needsHueChooser = visualisation.needsHueChooser
         hueChooser.isVisible = needsHueChooser
         hueChooserSpace.isVisible = needsHueChooser
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
     }
 
     fun setARGB(argb: Int, mask: Int, notify: Boolean) {

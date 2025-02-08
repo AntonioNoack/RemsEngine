@@ -56,7 +56,7 @@ class ColorField(
 
     override fun getVisualState() = color
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // draw border/background depending on hover/focus
         val backgroundColor = if (isHovered) if (isInFocus) focusHoverColor else hoverColor
         else if (isInFocus) focusColor else backgroundColor

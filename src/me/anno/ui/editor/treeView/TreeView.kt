@@ -10,18 +10,18 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.Search
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.white
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 abstract class TreeView<V : Any>(
-    val fileContentImporter: FileContentImporter<V>,
+    val fileContentImporter: FileContentImporter<V>?,
     val showSymbols: Boolean,
     style: Style
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
@@ -80,7 +80,11 @@ abstract class TreeView<V : Any>(
     abstract fun removeChild(parent: V, child: V)
     abstract fun removeRoot(root: V)
 
-    open fun getSymbol(element: V): String = if (isCollapsed(element)) "▶" else "▼"
+    open fun getSymbol(element: V): String {
+        return if (getChildren(element).isEmpty()) "-"
+        else if (isCollapsed(element)) "▶" else "▼"
+    }
+
     open fun getTooltipText(element: V): String? = null
 
     abstract fun getParent(element: V): V?
@@ -247,7 +251,7 @@ abstract class TreeView<V : Any>(
 
     open fun fulfillsSearch(element: V, name: String, ttt: String?, search: Search): Boolean {
         return if (ttt == null) search.matches(name)
-        else search.matches("$name $ttt")
+        else search.matches(listOf(name, ttt))
     }
 
     var search: Search? = null
@@ -325,9 +329,9 @@ abstract class TreeView<V : Any>(
         if (needsTreeUpdate) updateTree()
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (needsTreeUpdate) updateTree()
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -393,6 +397,7 @@ abstract class TreeView<V : Any>(
     // todo we'd need a selection mode with the arrow keys, too...
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
+        fileContentImporter ?: return super.onPasteFiles(x, y, files)
         for (i in files.indices) {
             fileContentImporter.addChildFromFile(
                 listRoots().lastOrNull(), files[i],

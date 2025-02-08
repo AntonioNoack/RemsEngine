@@ -281,7 +281,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         calculateSize(w, text)
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         val bg = backgroundColor

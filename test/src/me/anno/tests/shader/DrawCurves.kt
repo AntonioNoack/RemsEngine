@@ -86,8 +86,8 @@ fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -
                 maxScale.set(100.0)
             }
 
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                super.onDraw(x0, y0, x1, y1)
+            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                super.draw(x0, y0, x1, y1)
                 for (i in 0 until np) {
                     val g = global[i]
                     local[i].set(coordsToWindowX(g.x.toDouble()), coordsToWindowY(g.y.toDouble()))

@@ -265,5 +265,7 @@ object EngineActions {
         register["DraggingControls.t.typed", "SetMode(ROTATE)"]
         register["DraggingControls.y.typed", "SetMode(SCALE)"]
         register["DraggingControls.z.typed", "SetMode(SCALE)"]
+
+        register["ConfigPanel.f.typed.c", "BeginSearch"]
     }
 }

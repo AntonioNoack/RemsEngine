@@ -23,8 +23,8 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
             this.name = name
         }
 
-        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.onDraw(x0, y0, x1, y1)
+        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            super.draw(x0, y0, x1, y1)
             if (magicIndex in text.indices) {
                 underline(magicIndex, magicIndex + 1)
             }

@@ -3,7 +3,6 @@ package me.anno.ui.debug
 import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
-import me.anno.input.ActionManager
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -109,23 +108,6 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             return console
         }
 
-        class RuntimeInfoPlaceholder(style: Style) : Panel(style) {
-            override fun calculateSize(w: Int, h: Int) {
-                val window = window
-                val showFPS = EngineBase.showFPS
-                val ws = window?.windowStack
-                minW = if (ws != null && showFPS) {
-                    // todo respect height for this calculation, too: we don't need to move out the way,
-                    //  if we're above (e.g. on welcome screen)
-                    val gap = ws.width - (window.panel.x + window.panel.width)
-                    max(FrameTimings.width - gap, 0)
-                } else {
-                    if (EngineBase.showFPS) FrameTimings.width else 0
-                }
-                minH = 1
-            }
-        }
-
         @JvmStatic
         fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
 
@@ -165,7 +147,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                             RemsEngine.openStylingWindow(it.windowStack)
                         },
                         MenuOption(NameDesc("Edit Keymap")) {
-                            RemsEngine.openConfigWindow(it.windowStack, ActionManager, false)
+                            RemsEngine.openKeymapWindow(it.windowStack)
                         },
                         MenuOption(NameDesc("Toggle VSync")) {
                             EngineBase.enableVSync = !EngineBase.enableVSync
@@ -185,7 +167,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 }
                 right.add(info)
                 right.alignmentX = AxisAlignment.MAX
-                right.add(RuntimeInfoPlaceholder(style))
+                right.add(FPSPanelSpacer(style))
                 group.add(right)
             } else {
                 group.add(info)

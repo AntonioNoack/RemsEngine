@@ -190,7 +190,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         updateWorldScale()
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val vrr = GFX.vrRenderingRoutine
         val fb0 = vrr?.fb

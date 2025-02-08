@@ -64,7 +64,7 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
     var titleY0 = 0
     var titleY1 = 0
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // if gp is zooming, take a screenshot of this panel, and redraw it as such (because that's cheaper)
         // it allows us to render really smooth zooming :)
 

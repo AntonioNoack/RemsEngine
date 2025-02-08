@@ -160,10 +160,10 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         // todo ok so?
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         updatePosition()
         setPosition(x, y)
-        super.onDraw(x0, y0, x1, y1)
+        super.draw(x0, y0, x1, y1)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

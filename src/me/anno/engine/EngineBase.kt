@@ -16,9 +16,9 @@ import me.anno.extensions.events.GameLoopStartEvent
 import me.anno.gpu.Clipping
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.gpu.WindowManagement
 import me.anno.gpu.GFXState
 import me.anno.gpu.OSWindow
+import me.anno.gpu.WindowManagement
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.renderer.Renderer
@@ -315,8 +315,10 @@ abstract class EngineBase(
             var y = lastMouseY.roundToIntOr() - rh / 2
             x = Maths.clamp(x, 0, w - rw)
             y = Maths.clamp(y, 0, h - rh)
-            Clipping.clip(x, y, min(rw, w), min(rh, h)) {
-                dragged.draw(x, y)
+            val xw = min(rw, w)
+            val xh = min(rh, h)
+            Clipping.clip(x, y, xw, xh) {
+                dragged.draw(x, y, xw, xh)
                 didSomething = true
             }
         }

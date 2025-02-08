@@ -16,7 +16,6 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView1
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.fonts.Font
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXState.useFrame

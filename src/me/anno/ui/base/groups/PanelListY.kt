@@ -78,7 +78,9 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         val i0 = max(0, idx - 1)
         for (i in i1 downTo i0) {
             val panelAt = children[i].getPanelAt(x, y)
-            if (panelAt != null) return panelAt
+            if (panelAt != null && panelAt.isVisible) {
+                return panelAt
+            }
         }
         return null
     }
@@ -104,7 +106,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                     if (child.isVisible) {
                         child.setPosSize(childX, currentY, availableW, childH)
                         currentY += childH + spacing
-                    } else child.setPosSize(childX, currentY, 1, 1)
+                    } else child.setPosSize(childX, currentY, 0, 0)
                 }
             } else {
                 var perWeight = 0f

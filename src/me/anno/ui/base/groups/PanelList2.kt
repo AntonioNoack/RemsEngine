@@ -3,8 +3,6 @@ package me.anno.ui.base.groups
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import kotlin.math.max
-import kotlin.math.min
 
 abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
 
@@ -15,7 +13,7 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
         val children = children
         for (index in visibleIndex0 until visibleIndex1) {
             val child = children[index]
-            if (child.isVisible) {
+            if (child.canBeSeen) {
                 drawChild(child, x0, y0, x1, y1)
             }
         }
@@ -25,7 +23,7 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
         val children = children
         for (i in visibleIndex1 - 1 downTo visibleIndex0) {
             val panelAt = children[i].getPanelAt(x, y)
-            if (panelAt != null) return panelAt
+            if (panelAt != null && panelAt.isVisible) return panelAt
         }
         return null
     }

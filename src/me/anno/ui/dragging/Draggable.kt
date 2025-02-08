@@ -2,8 +2,8 @@ package me.anno.ui.dragging
 
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.Style
+import me.anno.ui.base.text.TextPanel
 import me.anno.utils.structures.tuples.IntPair
 
 /**
@@ -34,17 +34,16 @@ open class Draggable(
         loadTexturesSync.pop()
     }
 
-    override fun draw(x: Int, y: Int) {
-        ui.setPosition(x, y)
-        ui.draw(x, y, x + ui.width, y + ui.height)
-    }
-
     override fun getSize(w: Int, h: Int): IntPair {
         return IntPair(ui.width, ui.height)
+    }
+
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        ui.setPosSize(x0, y0, x1 - x0, y1 - y0)
+        ui.draw(x0, y0, x1, y1)
     }
 
     override fun getContent(): String = content
     override fun getContentType(): String = contentType
     override fun getOriginal(): Any? = original
-
 }

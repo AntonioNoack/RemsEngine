@@ -103,8 +103,8 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         val texture = stream.getFrame() ?: return
         calculateSizes(texture.width, texture.height)
         DrawTextures.drawTexture(
@@ -144,8 +144,8 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
                         (it as TextButton).text = if (movie.stream.isPlaying) "||" else ">"
                     })
             controls.add(object : Panel(DefaultConfig.style) {
-                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                    super.onDraw(x0, y0, x1, y1)
+                override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                    super.draw(x0, y0, x1, y1)
                     val xi = (x + width * movie.stream.getTime() / movie.meta.videoDuration).toInt()
                     DrawRectangles.drawRect(x + 2, y + height / 2 - 1, width - 4, 2, Color.white.withAlpha(127))
                     DrawRectangles.drawRect(xi - 1, y + 3, 3, height - 3, Color.white)

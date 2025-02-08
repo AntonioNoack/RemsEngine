@@ -32,8 +32,8 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
     }
 
     val font = style.getFont("text")
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
         // todo draw controls into the background
         // todo show image statistics in a corner?
         // todo switch sources on the parent, so folders with images and videos can be (dis)played properly?
