@@ -5,6 +5,9 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import kotlin.math.max
 
+/**
+ * Add this to a list (of buttons with weights) as the last element to avoid the rest being covered by the FrameTimes.
+ * */
 class FPSPanelSpacer(style: Style) : Panel(style) {
     override fun calculateSize(w: Int, h: Int) {
         val window = window
