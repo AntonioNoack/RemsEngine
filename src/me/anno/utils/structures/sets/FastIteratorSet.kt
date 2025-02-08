@@ -12,24 +12,32 @@ class FastIteratorSet<V>(initialCapacity: Int = 16) {
     private val values = ArrayList<V>(initialCapacity)
 
     fun setContains(instance: V, shallContain: Boolean) {
-        if (!shallContain) {
-            val id = idLookup[instance] ?: return
-            values[id] = values.last()
-            values.removeLast()
-        } else {
-            idLookup[instance] = values.size
+        if (!shallContain) remove(instance)
+        else add(instance)
+    }
+
+    private fun add(instance: V): Boolean {
+        val prevId = idLookup.putIfAbsent(instance, values.size)
+        return if (prevId == null) {
             values.add(instance)
+            true
+        } else false
+    }
+
+    private fun remove(instance: V): Boolean {
+        val id = idLookup.remove(instance) ?: return false
+        if (id < values.lastIndex) {
+            val moved = values.last()
+            idLookup[moved] = id
+            values[id] = moved
         }
+        values.removeLast()
+        return true
     }
 
     fun toggleContains(instance: V) {
-        val id = idLookup[instance]
-        if (id != null) {
-            values[id] = values.last()
-            values.removeLast()
-        } else {
-            idLookup[instance] = values.size
-            values.add(instance)
+        if (!remove(instance)) {
+            add(instance)
         }
     }
 
