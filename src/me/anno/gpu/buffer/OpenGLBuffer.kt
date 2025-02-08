@@ -261,6 +261,7 @@ abstract class OpenGLBuffer(
 
     fun put(v: FloatArray, index: Int, length: Int): OpenGLBuffer {
         val nio = nioBuffer!!
+        assertTrue(nio.remaining().shr(2) >= length)
         isUpToDate = false
         val pos = nio.position()
         nio.asFloatBuffer().put(v, index, length)
@@ -338,7 +339,7 @@ abstract class OpenGLBuffer(
         if (buffer > -1) {
             addGPUTask("OpenGLBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
-                GL46C.glDeleteBuffers(buffer)
+                glDeleteBuffers(buffer)
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }

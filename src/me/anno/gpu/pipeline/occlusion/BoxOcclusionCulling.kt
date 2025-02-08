@@ -230,8 +230,10 @@ class BoxOcclusionCulling : AttachedDepthPass() {
         if (boxes.size > buffer.vertexCount) {
             buffer.destroy()
             buffer.vertexCount = boxes.capacity
+            buffer.elementCount = boxes.capacity
         }
         if (buffer.nioBuffer == null) buffer.createNioBuffer()
+        buffer.clear()
         buffer.put(boxes.values, 0, boxes.size * 6)
         buffer.ensureBuffer()
     }
