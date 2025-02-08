@@ -564,12 +564,7 @@ open class Vector4d(
 
         @JvmStatic
         fun length(x: Double, y: Double, z: Double, w: Double): Double {
-            val sq = lengthSquared(x, y, z, w)
-            return when {
-                sq < JomlMath.MIN_DOUBLE -> lengthScaled(x, y, z, w, Double.MAX_VALUE, JomlMath.MIN_DOUBLE)
-                sq.isFinite() -> sqrt(sq)
-                else -> lengthScaled(x, y, z, w, JomlMath.MIN_DOUBLE, Double.MAX_VALUE)
-            }
+            return sqrt(lengthSquared(x, y, z, w))
         }
 
         @JvmStatic

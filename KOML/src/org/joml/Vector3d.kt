@@ -740,12 +740,7 @@ open class Vector3d(
 
         @JvmStatic
         fun length(x: Double, y: Double, z: Double): Double {
-            val sq = lengthSquared(x, y, z)
-            return when {
-                sq < JomlMath.MIN_DOUBLE -> lengthScaled(x, y, z, Double.MAX_VALUE, JomlMath.MIN_DOUBLE)
-                sq.isFinite() -> sqrt(sq)
-                else -> lengthScaled(x, y, z, JomlMath.MIN_DOUBLE, Double.MAX_VALUE)
-            }
+            return sqrt(lengthSquared(x, y, z))
         }
 
         @JvmStatic
