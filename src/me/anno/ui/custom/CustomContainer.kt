@@ -15,7 +15,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.utils.Color.white
+import me.anno.utils.Color.black
 import me.anno.utils.OS.res
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
@@ -58,7 +58,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
                 min(y2 + crossSize, y1)
             )
         } // wait for texture to load
-        drawTexture(x2, y2, crossSize, crossSize, icon, white, null)
+        val tint = 0x8f8f8f or black
+        drawTexture(x2, y2, crossSize, crossSize, icon, tint, null)
     }
 
     private fun addBefore(index: Int, parent: CustomList) {

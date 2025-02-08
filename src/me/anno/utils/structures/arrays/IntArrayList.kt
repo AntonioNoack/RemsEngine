@@ -3,9 +3,8 @@ package me.anno.utils.structures.arrays
 import me.anno.cache.ICacheData
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
-import me.anno.utils.types.Strings.joinChars0
 
-open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : NativeArrayList, ICacheData {
+open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) : NativeArrayList, ICacheData {
 
     constructor(values: IntArray) : this(values.size) {
         add(values)
@@ -97,10 +96,17 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Nat
         values[index] = value
     }
 
-    fun last() = values[size - 1]
+    fun last(): Int = values[size - 1]
 
-    operator fun get(index: Int) = values[index]
-    fun getOrNull(index: Int) = values.getOrNull(index)
+    operator fun get(index: Int): Int = values[index]
+
+    fun getOrNull(index: Int): Int? {
+        return if (index in indices) this[index] else null
+    }
+
+    fun getOrDefault(index: Int, default: Int): Int {
+        return if (index in indices) this[index] else default
+    }
 
     @Suppress("unused")
     fun addUnsafe(x: Int) {

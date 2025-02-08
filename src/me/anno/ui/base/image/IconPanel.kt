@@ -8,6 +8,7 @@ import me.anno.ui.Style
 
 open class IconPanel(var source: FileReference, style: Style) : ImagePanel(style) {
 
+    @Suppress("unused")
     constructor(style: Style) : this(InvalidRef, style)
 
     override fun getTexture() = TextureCache[source, true]

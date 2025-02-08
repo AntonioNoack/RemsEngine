@@ -62,7 +62,13 @@ class Prefab : Saveable {
     val addedPaths: HashSet<Pair<Path, String>>? = if (Build.isShipped) null else HashSet()
 
     val sets = KeyPairMap<Path, String, Any?>(256)
-    val tags = HashSet<String>()
+    var tags: List<String> = emptyList()
+        set(value) {
+            if (isWritable) {
+                field = value
+                wasModified = true
+            } else LOGGER.warn("Cannot modify prefab.tags")
+        }
 
     var prefab: FileReference = InvalidRef
     var source: FileReference = InvalidRef
@@ -356,7 +362,7 @@ class Prefab : Saveable {
         writer.writeObjectList(null, "adds", adds.values.flatten())
         writer.writeObjectList(null, "sets", sets.map { k1, k2, v -> CSet(k1, k2, v) })
         writer.writeObject(null, "history", history)
-        writer.writeStringList("tags", tags.toList())
+        writer.writeStringList("tags", tags)
     }
 
     override fun setProperty(name: String, value: Any?) {
@@ -380,8 +386,7 @@ class Prefab : Saveable {
             }
             "tags" -> {
                 val values = value as? List<*> ?: return
-                tags.clear()
-                tags.addAll(values.filterIsInstance2(String::class))
+                tags = values.filterIsInstance2(String::class)
             }
             else -> super.setProperty(name, value)
         }

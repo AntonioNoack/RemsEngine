@@ -16,6 +16,7 @@ import me.anno.engine.inspector.InspectorUtils.showEditorFields
 import me.anno.engine.inspector.InspectorUtils.showProperties
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.input.TagsPanel
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
@@ -151,6 +152,16 @@ class PrefabInspector(var reference: FileReference) {
         return path
     }
 
+    private fun generatePathInfo(it: PrefabSaveable, prefabSrc: FileReference?): String {
+        val base = "" +
+                "${it.className}@${hash32(it)}\n" +
+                "Path: ${it.prefabPath.toString(", ")}\n" +
+                "PathHash: ${hex32(it.prefabPath.hashCode())}"
+        return if (prefabSrc != null && prefabSrc != InvalidRef) {
+            "$base\nPrefab: ${prefabSrc.toLocalPath()}"
+        } else base
+    }
+
     fun inspect(instances: List<PrefabSaveable>, list: PanelListY, style: Style) {
 
         if (instances.isEmpty()) {
@@ -158,6 +169,7 @@ class PrefabInspector(var reference: FileReference) {
             return
         }
 
+        val prefab = prefab
         for (instance in instances) {
             if (instance.prefab !== prefab && instance.prefab != null)
                 LOGGER.warn(
@@ -180,15 +192,9 @@ class PrefabInspector(var reference: FileReference) {
         }
         val pathInformation = instances.indices
             .joinToString("\n\n") { idx ->
-                val it = instances[idx]
+                val instance = instances[idx]
                 val prefabSrc = prefabSources[idx]
-                val base = "" +
-                        "${it.className}@${hash32(it)}\n" +
-                        "Path: ${it.prefabPath.toString(", ")}\n" +
-                        "PathHash: ${hex32(it.prefabPath.hashCode())}"
-                if (prefabSrc != null && prefabSrc != InvalidRef) {
-                    "$base\nPrefab: ${prefabSrc.toLocalPath()}"
-                } else base
+                generatePathInfo(instance, prefabSrc)
             }
         list += TextPanel(pathInformation, style)
 
@@ -231,6 +237,16 @@ class PrefabInspector(var reference: FileReference) {
                 list, instances, style, isWritable,
                 { it.description }) { it, v -> it.description = v }
         }
+
+        // todo edit tags for all instances
+        list.add(
+            TagsPanel(prefab.tags, style).apply {
+                isInputAllowed = prefab.isWritable
+                addChangeListener { tags ->
+                    prefab.tags = tags
+                }
+            }
+        )
 
         val inputListener = instances.firstInstanceOrNull(InputListener::class)
         if (inputListener != null) {
