@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import kotlin.math.sqrt
 
@@ -25,7 +25,7 @@ fun main() {
 }
 
 fun topOfSphere(size: Float, steps: Int, radius: Float): Mesh {
-    val mesh = TerrainUtils.generateRegularQuadHeightMesh(
+    val mesh = RectangleTerrainModel.generateRegularQuadHeightMesh(
         steps, steps, false, size / steps, Mesh(),
         true
     )

@@ -14,7 +14,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.AutoTileableMaterial
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.systems.OnUpdate
@@ -94,7 +94,7 @@ fun createTerrain(player: LocalPlayer): Entity {
             val mesh = Mesh()
             val dx = chunkX * cellsPerChunk
             val dz = chunkZ * cellsPerChunk
-            TerrainUtils.generateRegularQuadHeightMesh(
+            RectangleTerrainModel.generateRegularQuadHeightMesh(
                 cellsPerChunkP1, cellsPerChunkP1, false, cellSize, mesh,
                 { xi, zi ->
                     val x = (xi + dx - 32).toFloat()

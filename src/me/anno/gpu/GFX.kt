@@ -259,6 +259,7 @@ object GFX {
     @JvmStatic
     fun checkIfGFX(name: String) {
         if (isDebug && isGFXThread()) {
+            // todo only if current session hasn't been destroyed yet
             check(name)
         }
     }

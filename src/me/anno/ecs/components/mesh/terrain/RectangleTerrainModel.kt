@@ -6,7 +6,7 @@ import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import kotlin.math.max
 
-object TerrainUtils {
+object RectangleTerrainModel {
 
     fun interface ColorMap {
         operator fun get(xi: Int, zi: Int): Int
@@ -21,54 +21,58 @@ object TerrainUtils {
     }
 
     fun generateRegularQuadHeightMesh(
-        width: Int,
-        height: Int,
-        flipY: Boolean,
-        cellSizeMeters: Float,
-        mesh: Mesh,
-        heightMap: HeightMap,
-        normalMap: NormalMap,
-        colorMap: ColorMap? = null
+        width: Int, height: Int, flipY: Boolean,
+        cellSizeMeters: Float, mesh: Mesh,
+        heightMap: HeightMap, normalMap: NormalMap, colorMap: ColorMap? = null
     ): Mesh {
-
         generateRegularQuadHeightMesh(width, height, flipY, cellSizeMeters, mesh, true)
         generateQuadIndices(width, height, flipY, mesh)
+        fillInYAndNormals(width, height, heightMap, normalMap, mesh)
+        if (colorMap != null) fillInColor(width, height, colorMap, mesh)
+        mesh.invalidateGeometry()
+        return mesh
+    }
 
-        val vertexCount = width * height
+    fun fillInYAndNormals(width: Int, height: Int, heightMap: HeightMap, normalMap: NormalMap, mesh: Mesh) {
         val positions = mesh.positions!!
         val normals = mesh.normals!!
-        val colors = if (colorMap != null) mesh.color0.resize(vertexCount)
-        else null
-
+        fillInYAndNormals(width, height, positions, heightMap, normals, normalMap)
         mesh.positions = positions
         mesh.normals = normals
-        mesh.color0 = colors
+    }
 
-        // define mesh normals and heights
+    fun fillInColor(width: Int, height: Int, colorMap: ColorMap, mesh: Mesh) {
+        val colors = mesh.color0.resize(width * height)
+        fillInColor(width, height, colors, colorMap)
+        mesh.color0 = colors
+    }
+
+    fun fillInYAndNormals(
+        width: Int, height: Int,
+        positions: FloatArray, heightMap: HeightMap,
+        normals: FloatArray, normalMap: NormalMap
+    ) {
         var j = 0
-        val normal = JomlPools.vec3f.borrow()
+        val normal = JomlPools.vec3f.create()
         for (y in 0 until height) {
             for (x in 0 until width) {
                 normalMap.get(x, y, normal)
-                positions[j + 1] = heightMap[x, y]
+                positions[j + 1] += heightMap[x, y]
                 normals[j++] = normal.x
                 normals[j++] = normal.y
                 normals[j++] = normal.z
             }
         }
+        JomlPools.vec3f.sub(1)
+    }
 
-        // define mesh colors
-        if (colorMap != null && colors != null) {
-            var l = 0
-            for (y in 0 until height) {
-                for (x in 0 until width) {
-                    colors[l++] = colorMap[x, y]
-                }
+    fun fillInColor(width: Int, height: Int, colors: IntArray, colorMap: ColorMap) {
+        var l = 0
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                colors[l++] = colorMap[x, y]
             }
         }
-
-        mesh.invalidateGeometry()
-        return mesh
     }
 
     fun generateQuadIndices(width: Int, height: Int, flipY: Boolean, mesh: Mesh) {

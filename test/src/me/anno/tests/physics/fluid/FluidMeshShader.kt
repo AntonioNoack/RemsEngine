@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.utils.TypeValueV2
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.GLSLType
@@ -51,7 +51,7 @@ object FluidMeshShader : ECSMeshShader("fluid") {
         val w = sim.width
         val h = sim.height
         val mesh = Mesh()
-        TerrainUtils.generateRegularQuadHeightMesh(w, h, false, cellSize, mesh, true)
+        RectangleTerrainModel.generateRegularQuadHeightMesh(w, h, false, cellSize, mesh, true)
         // generate UVs
         val pos = mesh.positions!!
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)

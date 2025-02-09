@@ -2,8 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.AutoTileableMaterial
-import me.anno.ecs.components.mesh.material.PlanarMaterial
-import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeightMesh
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel.generateRegularQuadHeightMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS.pictures

@@ -8,7 +8,7 @@ import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeightMesh
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel.generateRegularQuadHeightMesh
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab

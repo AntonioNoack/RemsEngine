@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.terrain.v2
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.terrain.TerrainBrush
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
@@ -71,7 +71,7 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
 
     fun createTile(bounds: AABBf, resolution: Vector2i, getHeight: F2F): Mesh {
         val mesh = Mesh()
-        TerrainUtils.generateRegularQuadHeightMesh(
+        RectangleTerrainModel.generateRegularQuadHeightMesh(
             resolution.x, resolution.y, false,
             1f, mesh, false
         )

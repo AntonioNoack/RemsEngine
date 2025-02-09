@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
@@ -243,11 +243,11 @@ fun main() {
     }.ref
 
     val cellSize = size * invMaxDensity / (terrainSize - 1)
-    TerrainUtils.generateRegularQuadHeightMesh(
+    RectangleTerrainModel.generateRegularQuadHeightMesh(
         terrainSize, terrainSize, false, cellSize, terrainMesh,
         { xi, zi -> heightMap.getSmooth(xi.toFloat(), zi.toFloat()) }
     )
-    TerrainUtils.fillUVs(terrainMesh)
+    RectangleTerrainModel.fillUVs(terrainMesh)
 
     val scene = Entity()
     scene.add(Entity().apply {

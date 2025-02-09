@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.ECSMeshShader
@@ -189,7 +189,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
             val (w, h) = it
             val mesh = Mesh()
 
-            TerrainUtils.generateQuadIndices(w, h, false, mesh)
+            RectangleTerrainModel.generateQuadIndices(w, h, false, mesh)
 
             val aspect = 1f / (w - 1)
             val pos = mesh.positions.resize(w * h * 3)

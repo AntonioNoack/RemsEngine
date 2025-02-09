@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.DrawMode
@@ -62,7 +62,7 @@ fun createColorsMesh(s: Int): Mesh {
         }
     }
     val mesh = Mesh()
-    TerrainUtils.generateQuadIndices(s, s, false, mesh)
+    RectangleTerrainModel.generateQuadIndices(s, s, false, mesh)
     val srcIndices = mesh.indices!!
     val dstIndices = IntArray(srcIndices.size * 6)
     for (k in 0 until 6) {

@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -79,7 +79,7 @@ object PlaneModel {
         mesh.positions = positions
         mesh.normals = normals
         mesh.uvs = uvs
-        TerrainUtils.generateQuadIndices(su, sv, false, mesh)
+        RectangleTerrainModel.generateQuadIndices(su, sv, false, mesh)
         return mesh
     }
 }

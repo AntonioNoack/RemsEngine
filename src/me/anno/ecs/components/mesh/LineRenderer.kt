@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.gpu.CullMode
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -58,7 +58,7 @@ class LineRenderer : ProceduralMesh() {
             points[i].add(dir, tmp).get(positions, i * 6)
             points[i].sub(dir, tmp).get(positions, i * 6 + 3)
         }
-        TerrainUtils.generateQuadIndices(2, points.size, false, mesh)
+        RectangleTerrainModel.generateQuadIndices(2, points.size, false, mesh)
         mesh.positions = positions
         mesh.cullMode = cullMode
         mesh.calculateNormals(true)

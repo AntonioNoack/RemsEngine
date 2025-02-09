@@ -2,7 +2,7 @@ package me.anno.tests.terrain.v1
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sx
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sz
 import me.anno.utils.Color.white
@@ -19,7 +19,7 @@ class TerrainChunk(
 
     override fun generateMesh(mesh: Mesh) {
         val s = 0.1f
-        TerrainUtils.generateRegularQuadHeightMesh(
+        RectangleTerrainModel.generateRegularQuadHeightMesh(
             sz + 1, sx + 1, false, 1f,
             mesh, { xi, zi ->
                 val x = xi + dx

@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.maths.Maths.TAUf
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.cos
@@ -36,7 +36,7 @@ object RingMeshModel {
             }
         }
         mesh.positions = positions
-        TerrainUtils.generateQuadIndices(2, u + 1, false, mesh)
+        RectangleTerrainModel.generateQuadIndices(2, u + 1, false, mesh)
         return mesh
     }
 }
