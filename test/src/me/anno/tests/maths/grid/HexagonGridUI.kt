@@ -1,14 +1,14 @@
 package me.anno.tests.maths.grid
 
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.coordsToIndex
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestLine
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestVertex
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.getVertex
-import me.anno.maths.chunks.hexagon.HexagonGridMaths.indexToCoords
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.maths.Maths.mix
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestHexagon
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestCorner
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestLine
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getCorner
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getCenter
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
@@ -33,9 +33,9 @@ fun main() {
 
         val window = it.window!!
         val mouseCoords = Vector2d((window.mouseX - cx) / scale, (window.mouseY - cy) / scale)
-        val hovCell = coordsToIndex(mouseCoords, Vector2i())
+        val hovCell = getClosestHexagon(mouseCoords, Vector2i())
         val hovLine = getClosestLine(mouseCoords, Vector2d(), Vector2d(), Vector2i())
-        val hovVert = getClosestVertex(mouseCoords, Input.isShiftDown, Vector2d(), Vector2d(), Vector2i())
+        val hovVert = getClosestCorner(mouseCoords, Input.isShiftDown, Vector2d(), Vector2d(), Vector2i())
 
         // cannot be mixed yet
         /*val lineBatch = DrawCurves.lineBatch.start()
@@ -47,19 +47,19 @@ fun main() {
         for (j in -dy..dy) {
             for (i in -dx..dx) {
                 val isHovered = hovCell.x == i && hovCell.y == j
-                val color = if(isHovered && hovVert == 6) {
+                val color = if (isHovered && hovVert == 6) {
                     0x00ff00.withAlpha(255)
                 } else {
                     white.withAlpha(if (isHovered) 255 else 100)
                 }
-                val c = indexToCoords(i, j, tmp).mul(scale)
+                val c = getCenter(i, j, tmp).mul(scale)
                 val x = c.x
                 val y = c.y
                 DrawRectangles.drawRect(x.toInt() + cx - 1, y.toInt() + cy - 1, 3, 3, color)
-                val a = getVertex(i, j, 0, tmp1).mul(scale)
+                val a = getCorner(i, j, 0, tmp1).mul(scale)
                 for (k in 0 until 6) {
 
-                    val b = getVertex(i, j, (k + 1) % 6, tmp2).mul(scale)
+                    val b = getCorner(i, j, (k + 1) % 6, tmp2).mul(scale)
                     val f = 0.05
                     val color1 = white.withAlpha(if (isHovered && k == hovLine) 255 else 100)
                     DrawCurves.drawLine(

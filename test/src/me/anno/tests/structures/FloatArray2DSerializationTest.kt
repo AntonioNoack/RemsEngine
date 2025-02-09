@@ -9,9 +9,9 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
 
-class FloatArray2D {
+class FloatArray2DSerializationTest {
     @Test
-    fun testFloatArray2D() {
+    fun testSerialization() {
         val writer = JsonStringWriter(InvalidRef)
         writer.writeFloatArray2D("x", createList(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
         assertEquals("\"f[][]:x\":[5,[5,0,1,2],[5,0,1,2],[5,0,1,2],[5,0,1,2],[5,0,1,2]]", writer.toString())

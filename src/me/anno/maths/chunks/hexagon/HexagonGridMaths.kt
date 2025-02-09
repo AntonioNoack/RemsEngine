@@ -8,6 +8,7 @@ import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Vector2d
 import org.joml.Vector2i
+import org.joml.Vector3i
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -20,8 +21,11 @@ import kotlin.math.round
  * In this implementation, the distance from the center to each point is 1.0 long, and each side is, too.
  * If you need another scale, just scale the coordinates by a constant.
  *
- * Normal hexagons are so simple (compared to HexagonSphere 😆), that you shouldn't necessarily use Objects to save their vertices/what you need.
+ * Normal hexagons are so simple (compared to HexagonSphere 😆), that you shouldn't necessarily use Objects to save their corners/what you need.
  * Instead, you can save their index (i, j), maybe in a 2d-like array.
+ *
+ * Hexagons have a center, and six corners around them.
+ * Each corner has three neighbor corners, and three neighbor hexagons (one of which is the original hexagon).
  * */
 object HexagonGridMaths {
 
@@ -31,7 +35,9 @@ object HexagonGridMaths {
     val dx = Vector2d(2.0 / 3.0, 0.0)
     val dy = Vector2d(-1.0 / 3.0, 1.0 / SQRT3)
 
-    // neighbors are sorted by angle, starting at 0°
+    /**
+     * neighbors are sorted by angle, starting at 0°
+     * */
     val neighbors = listOf(
         Vector2i(+1, 0),
         Vector2i(0, +1),
@@ -41,8 +47,10 @@ object HexagonGridMaths {
         Vector2i(+1, -1),
     )
 
-    // vertices are sorted by angle, starting at 0°
-    val vertices = listOf(
+    /**
+     * corners are sorted by angle, starting at 0°
+     * */
+    val corners = listOf(
         Vector2d(1.0, 0.0),
         Vector2d(0.5, SQRT3 * 0.5),
         Vector2d(-0.5, SQRT3 * 0.5),
@@ -53,7 +61,7 @@ object HexagonGridMaths {
 
     // todo test this function
     @Suppress("unused")
-    fun getVertexBounds(i0: Int, j0: Int, i1: Int, j1: Int, tmp: Vector2d, dst: AABBd): AABBd {
+    fun getCornerBounds(i0: Int, j0: Int, i1: Int, j1: Int, tmp: Vector2d, dst: AABBd): AABBd {
         getCenterBounds(i0, j0, i1, j1, tmp, dst)
         dst.minX -= 1.0
         dst.minY -= SQRT3 * 0.5
@@ -64,40 +72,40 @@ object HexagonGridMaths {
 
     // todo test this function
     fun getCenterBounds(i0: Int, j0: Int, i1: Int, j1: Int, tmp: Vector2d, dst: AABBd): AABBd {
-        indexToCoords(i0, j0, tmp)
+        getCenter(i0, j0, tmp)
         val minX = tmp.x
         val minY = tmp.y
-        indexToCoords(i1, j1, tmp)
+        getCenter(i1, j1, tmp)
         return dst
             .setMin(minX, minY, 0.0)
             .setMax(tmp.x, tmp.y, 0.0)
     }
 
     @Suppress("unused")
-    fun coordsToIndexFast(coords: Vector2d, dstIndex: Vector2i): Vector2i {
+    fun getCloseHexagon(center: Vector2d, dstIndex: Vector2i): Vector2i {
         val tmp = JomlPools.vec2d.borrow()
-        return coordsToIndexFast(coords, dstIndex, tmp)
+        return getCloseHexagon(center, dstIndex, tmp)
     }
 
-    fun coordsToIndexFast(coords: Vector2d, index: Vector2i, remainder: Vector2d): Vector2i {
-        val i = round(coords.dot(dx))
-        val j = round(coords.dot(dy))
+    fun getCloseHexagon(center: Vector2d, index: Vector2i, remainder: Vector2d): Vector2i {
+        val i = round(center.dot(dx))
+        val j = round(center.dot(dy))
 
         index.set(i.toInt(), j.toInt())
-        val center = indexToCoords(index, remainder)
-        coords.sub(center, remainder)
+        val center1 = getCenter(index, remainder)
+        center.sub(center1, remainder)
 
         return index
     }
 
     @Suppress("unused")
-    fun coordsToIndex(coords: Vector2d, dstIndex: Vector2i): Vector2i {
+    fun getClosestHexagon(center: Vector2d, dstIndex: Vector2i): Vector2i {
         val tmp = JomlPools.vec2d.borrow()
-        return coordsToIndex(coords, dstIndex, tmp)
+        return getClosestHexagon(center, dstIndex, tmp)
     }
 
-    fun coordsToIndex(coords: Vector2d, index: Vector2i, remainder: Vector2d): Vector2i {
-        coordsToIndexFast(coords, index, remainder)
+    fun getClosestHexagon(center: Vector2d, index: Vector2i, remainder: Vector2d): Vector2i {
+        getCloseHexagon(center, index, remainder)
         val lenSq = remainder.lengthSquared()
         if (lenSq < 0.75) {
             // ideal, because there cannot be any closer hexagon
@@ -115,17 +123,103 @@ object HexagonGridMaths {
         return index
     }
 
-    fun indexToCoords(i: Int, j: Int, dst: Vector2d): Vector2d {
+    fun getCenter(i: Int, j: Int, dst: Vector2d): Vector2d {
         return dst.set(di.x * i + dj.x * j, di.y * i + dj.y * j)
     }
 
-    fun indexToCoords(index: Vector2i, dst: Vector2d): Vector2d {
-        return indexToCoords(index.x, index.y, dst)
+    fun getCenter(index: Vector2i, dst: Vector2d): Vector2d {
+        return getCenter(index.x, index.y, dst)
     }
 
-    @Suppress("unused")
-    fun getVertex(i: Int, j: Int, vertexIndex: Int, dst: Vector2d): Vector2d {
-        return indexToCoords(i, j, dst).add(vertices[vertexIndex])
+    /**
+     * get coordinates of that corner;
+     * cornerIndex: [0,5]
+     * */
+    fun getCorner(i: Int, j: Int, cornerIndex: Int, dst: Vector2d): Vector2d {
+        return getCenter(i, j, dst).add(corners[cornerIndex])
+    }
+
+    fun getCorner(index: Vector3i, dst: Vector2d): Vector2d {
+        return getCorner(index.x, index.y, index.z, dst)
+    }
+
+    // calculated in HexagonGridMathsTest
+    val oppositeCorners = listOf(
+        Vector3i(1, -1, 1),
+        Vector3i(0, 1, 0),
+        Vector3i(-1, 1, 1),
+        Vector3i(-1, 0, 2),
+        Vector3i(0, -1, 3),
+        Vector3i(0, -1, 0),
+    )
+
+    fun getNeighborCorner0(i: Int, j: Int, cornerIndex: Int, dst: Vector3i): Vector3i {
+        return dst.set(i, j, if (cornerIndex == 0) 5 else cornerIndex - 1)
+    }
+
+    fun getNeighborCorner1(i: Int, j: Int, cornerIndex: Int, dst: Vector3i): Vector3i {
+        return dst.set(i, j, if (cornerIndex == 5) 0 else cornerIndex + 1)
+    }
+
+    fun getNeighborCorner2(i: Int, j: Int, cornerIndex: Int, dst: Vector3i): Vector3i {
+        val oppo = oppositeCorners[cornerIndex]
+        return dst.set(oppo.x + i, oppo.y + j, oppo.z)
+    }
+
+    /**
+     * Get coordinate-indices of that corner's neighbor corners.
+     * Each corner has exactly three neighbor corners.
+     * The first and second neighbors are trivial: just walk along the outside of the current hexagon.
+     * The last neighbor however is tricky, and has to be hardcoded.
+     * cornerIndex: [0,5], neighborIndex: [0,2]
+     *
+     * Result: Vector3i(i,j,cornerIndex)
+     * */
+    fun getNeighborCorner(i: Int, j: Int, cornerIndex: Int, neighborIndex: Int, dst: Vector3i): Vector3i {
+        return when (neighborIndex) {
+            0 -> getNeighborCorner0(i, j, cornerIndex, dst)
+            1 -> getNeighborCorner1(i, j, cornerIndex, dst)
+            else -> getNeighborCorner2(i, j, cornerIndex, dst)
+        }
+    }
+
+    fun getNeighborCorner(corner: Vector3i, neighborIndex: Int, dst: Vector3i): Vector3i {
+        return getNeighborCorner(corner.x, corner.y, corner.z, neighborIndex, dst)
+    }
+
+    val neighborHexagons = listOf(
+        Vector2i(1, 0), // 0a
+        Vector2i(1, -1), // 0b
+        Vector2i(1, 0), // 1a
+        Vector2i(0, 1), // 1b
+        Vector2i(0, 1), // 2a
+        Vector2i(-1, 1), // 2b
+        Vector2i(-1, 1), // 3a
+        Vector2i(-1, 0), // 3b
+        Vector2i(-1, 0), // 4a
+        Vector2i(0, -1), // 4b
+        Vector2i(0, -1), // 5a
+        Vector2i(1, -1), // 5b
+    )
+
+    fun getNeighborHexagon0(i: Int, j: Int, cornerIndex: Int, dst: Vector2i): Vector2i {
+        return neighborHexagons[cornerIndex * 2].add(i, j, dst)
+    }
+
+    fun getNeighborHexagon1(i: Int, j: Int, cornerIndex: Int, dst: Vector2i): Vector2i {
+        return neighborHexagons[cornerIndex * 2 + 1].add(i, j, dst)
+    }
+
+    fun getNeighborHexagon(i: Int, j: Int, cornerIndex: Int, neighborIndex: Int, dst: Vector2i): Vector2i {
+        return when (neighborIndex) {
+            0 -> getNeighborHexagon0(i, j, cornerIndex, dst)
+            1 -> getNeighborHexagon1(i, j, cornerIndex, dst)
+            else -> dst.set(i, j)
+        }
+    }
+
+    fun getNeighborHexagon(corner: Vector3i, neighborIndex: Int, dst: Vector2i): Vector2i {
+        return getNeighborHexagon(corner.x, corner.y, corner.z, neighborIndex, dst)
     }
 
     fun getGridDistance(delta: Vector2i): Int {
@@ -136,41 +230,41 @@ object HexagonGridMaths {
         val distI = when {
             dj > 0 && di < 0 -> max(-dj, di) - di // = -(min(dj, -di) + di)
             dj < 0 && di > 0 -> max(dj, -di) + di // = +(max(dj, -di) + di)
-            else -> abs(di) // not shortcut possible
+            else -> abs(di) // no shortcut possible
         }
         return distI + abs(dj)
     }
 
     /**
-     * return value: i,j,vertexIndex
+     * return value: i,j,cornerIndex
      * */
-    fun getClosestVertex(
-        coords: Vector2d, allowCenter: Boolean,
-        tmpCoords: Vector2d, tmpRemainder: Vector2d,
+    fun getClosestCorner(
+        center: Vector2d, allowCenter: Boolean,
+        tmpCenter: Vector2d, tmpRemainder: Vector2d,
         dstIndex: Vector2i,
     ): Int {
-        if (coords === tmpCoords) throw IllegalArgumentException()
-        coordsToIndex(coords, dstIndex, tmpRemainder)
-        indexToCoords(dstIndex, tmpCoords)
+        if (center === tmpCenter) throw IllegalArgumentException()
+        getClosestHexagon(center, dstIndex, tmpRemainder)
+        getCenter(dstIndex, tmpCenter)
         var idx = round(atan2(tmpRemainder.y, tmpRemainder.x) * 6 / TAU + 6).toInt()
         if (idx >= 6) idx -= 6
         // if allow center, also check its distance vs towards the center
-        val vertex = vertices[idx]
-        val useCenter = allowCenter && tmpRemainder.lengthSquared() < vertex.distanceSquared(tmpRemainder)
+        val corner = corners[idx]
+        val useCenter = allowCenter && tmpRemainder.lengthSquared() < corner.distanceSquared(tmpRemainder)
         return if (useCenter) 6 else idx
     }
 
     /**
-     * return value: i,j,lineIndex (index of first vertex of line, the second one is the next one)
+     * return value: i,j,lineIndex (index of first corner of line, the second one is the next one)
      * */
     fun getClosestLine(
-        coords: Vector2d,
-        tmpCoords: Vector2d, tmpRemainder: Vector2d,
+        center: Vector2d,
+        tmpCenter: Vector2d, tmpRemainder: Vector2d,
         dstIndex: Vector2i,
     ): Int {
-        if (coords === tmpCoords) throw IllegalArgumentException()
-        coordsToIndex(coords, dstIndex, tmpRemainder)
-        indexToCoords(dstIndex, tmpCoords)
+        if (center === tmpCenter) throw IllegalArgumentException()
+        getClosestHexagon(center, dstIndex, tmpRemainder)
+        getCenter(dstIndex, tmpCenter)
         var idx = floor(atan2(tmpRemainder.y, tmpRemainder.x) * 6 / TAU + 6).toInt()
         if (idx >= 6) idx -= 6
         return idx

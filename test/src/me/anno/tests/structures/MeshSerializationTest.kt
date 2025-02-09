@@ -8,7 +8,7 @@ import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.utils.assertions.assertContentEquals
 import org.junit.jupiter.api.Test
 
-class SavingMesh {
+class MeshSerializationTest {
     @Test
     fun testMesh() {
         registerCustomClass(Mesh())
