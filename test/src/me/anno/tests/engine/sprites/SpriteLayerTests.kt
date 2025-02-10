@@ -29,6 +29,8 @@ import me.anno.utils.assertions.assertTrue
 import org.joml.Vector2i
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.max
 
 class SpriteLayerTests {
@@ -100,6 +102,7 @@ class SpriteLayerTests {
      * and verify everything is rendered as expected
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testRendering() {
         HiddenOpenGLContext.createOpenGL()
         OfficialExtensions.initForTests()

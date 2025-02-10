@@ -10,6 +10,8 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class GimpImageReaderTest {
 
@@ -19,6 +21,7 @@ class GimpImageReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
         val meta = getMeta(res.getChild("files/gimp-3x3.xcf"), false)!!
         assertEquals(3, meta.videoWidth)
@@ -27,6 +30,7 @@ class GimpImageReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
         val image = ImageCache[res.getChild("files/gimp-3x3.xcf"), false]!!
         val baseline = IntImage(

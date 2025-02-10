@@ -10,11 +10,14 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertSame
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.random.Random
 
 class OnUpdateTest {
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testOnlyAddedInstancesAreUpdated() {
         val entity = Entity()
         Systems.world = entity
@@ -51,6 +54,7 @@ class OnUpdateTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testOnUpdateIsExecutedAndSorted() {
 
         val entity = Entity()
@@ -94,6 +98,7 @@ class OnUpdateTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testRegisterAndUnregisterSystem() {
 
         val entity = Entity()

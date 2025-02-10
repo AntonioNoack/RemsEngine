@@ -9,9 +9,12 @@ import me.anno.ui.input.FileInput
 import me.anno.utils.OS.home
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class ClearTextInputTest : UITests() {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testClearText() {
 
         // register everything we need

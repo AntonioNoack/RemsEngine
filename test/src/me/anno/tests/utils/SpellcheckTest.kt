@@ -7,9 +7,12 @@ import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class SpellcheckTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSimpleSample() {
         OfficialExtensions.initForTests()
         Sleep.waitUntilDefined(canBeKilled = false, {

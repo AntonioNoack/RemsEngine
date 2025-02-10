@@ -5,6 +5,8 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -13,31 +15,37 @@ class TimeTest {
     val delayMs = 16L
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testProgress() {
         testTimeSpeed(1.0)
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testProgressFast() {
         testTimeSpeed(5.0)
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testProgressSlow() {
         testTimeSpeed(0.2)
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testProgressStopped() {
         testTimeSpeed(0.0)
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testProgressBackwards() {
         testTimeSpeed(0.0)
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testDtClamping() {
         testTimeSpeed(1.0, 200)
     }

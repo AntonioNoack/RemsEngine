@@ -6,6 +6,8 @@ import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.utils.assertions.assertContentEquals
 import me.anno.utils.assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -20,6 +22,7 @@ class HeavyAccessTest {
     // ensure it gets opened a single time only
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testAccess() {
         OfficialExtensions.initForTests() // register Unpack module
         InnerFolderCache.sizeLimit = 10_000

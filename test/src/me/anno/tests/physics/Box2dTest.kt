@@ -19,6 +19,8 @@ import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -27,6 +29,7 @@ class Box2dTest {
     val physics get() = Box2dPhysics
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testGravity() {
 
         val gravity = 1f
@@ -58,6 +61,7 @@ class Box2dTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testApplyForceAtCenter() {
 
         val gravity = 0f
@@ -95,6 +99,7 @@ class Box2dTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testApplyForceNonCenter() {
 
         val gravity = 0f
@@ -143,6 +148,7 @@ class Box2dTest {
     // todo test apply impulse
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testDisabledStates() {
 
         Systems.registerSystem(physics)
@@ -212,6 +218,7 @@ class Box2dTest {
      * fly using upwards force (thrusters) against gravity
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testExternalForces() {
         val gravity = -1f
         setupGravityTest(gravity)
@@ -254,6 +261,7 @@ class Box2dTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSlidingToRollingConversion() {
         testRotatingToRolling(1f, 1f)
         testRotatingToRolling(1f, 0f)
@@ -324,6 +332,7 @@ class Box2dTest {
      * why is any angle sufficient to start rolling?? because starting rolling takes very little effort
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testStartRollingOnDecline() {
 
         val angle = 0.1
@@ -367,6 +376,7 @@ class Box2dTest {
      * test that bodies start sliding on declines with friction starting at a certain angle
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testStartSlidingOnDecline() {
 
         // todo it looks like this test moves with all given angles... how???
@@ -410,6 +420,7 @@ class Box2dTest {
     // todo test interaction between all shapes
     //  - no sliding gravity; same mass, crash on one shall stop it and give the other equal velocity
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testTransferringImpulse() {
 
         setupGravityTest(0f)

@@ -8,6 +8,8 @@ import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class TgaImageReaderTest {
 
@@ -26,6 +28,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
         val meta = getMeta(res.getChild("files/gimp-3x3.tga"), false)!!
         assertEquals(3, meta.videoWidth)
@@ -34,6 +37,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSize2() {
         val meta = getMeta(res.getChild("files/gimp-3x3-fy.tga"), false)!!
         assertEquals(3, meta.videoWidth)
@@ -42,6 +46,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
         val image = ImageCache[res.getChild("files/gimp-3x3.tga"), false]!!
         baseline.forEachPixel { x, y ->
@@ -50,6 +55,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent2() {
         val image = ImageCache[res.getChild("files/gimp-3x3-fy.tga"), false]!!
         baseline.forEachPixel { x, y ->

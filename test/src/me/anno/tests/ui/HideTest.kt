@@ -5,9 +5,12 @@ import me.anno.ui.input.TextInput
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class HideTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testHide() {
         val panel = TextInput(style)
         assertTrue(panel.isVisible)

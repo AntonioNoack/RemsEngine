@@ -48,6 +48,8 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 /**
  * This tests all built-in render modes for their basic functionality, plus a little text rendering;
@@ -130,6 +132,7 @@ class CompileTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun runTest() {
         OfficialExtensions.register()
         ExtensionLoader.load()

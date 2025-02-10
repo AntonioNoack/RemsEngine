@@ -12,12 +12,15 @@ import me.anno.ui.input.NumberType
 import me.anno.ui.input.components.PureTextInputML
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 /**
  * automated test, whether pressing tab switches to the next input field
  * */
 class VectorInputTabTest : UITests() {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testTabPresses() {
         OfficialExtensions.initForTests() // for text generator, which is needed for layout
         val ui = FloatVectorInput(NameDesc.EMPTY, "", NumberType.VEC4, DefaultConfig.style)

@@ -38,6 +38,8 @@ import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 /**
  * tests whether text rendered using SDFs matches that of the raw text textures
@@ -53,6 +55,7 @@ class SignedDistanceFontsTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testGetSDFTexture() {
         Engine.cancelShutdown()
         OfficialExtensions.initForTests()
@@ -75,6 +78,7 @@ class SignedDistanceFontsTests {
     // todo bug: when running this together with the others,
     //  bySDFTexture is completely black... why?
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSignedDistanceFonts() {
         Engine.cancelShutdown()
         OfficialExtensions.initForTests()

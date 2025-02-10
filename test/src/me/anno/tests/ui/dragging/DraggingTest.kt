@@ -16,10 +16,13 @@ import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.ceil
 
 class DraggingTest : UITests() {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testCopyValueByDragging() {
 
         // register everything we need

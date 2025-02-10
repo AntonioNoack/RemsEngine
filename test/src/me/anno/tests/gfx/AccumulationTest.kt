@@ -8,9 +8,12 @@ import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.Accumulation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class AccumulationTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testAccumulate() {
         val src = IntArray(100) { it + 1 }
         val dst = IntArray(src.size)

@@ -6,10 +6,13 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class HoverTest : UITests() {
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testIsHovered() {
 
         val panel0 = SpacerPanel(10, 10, style)

@@ -17,6 +17,8 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertIs
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.reflect.KClass
 
 class ImageAsFolderTest {
@@ -37,6 +39,7 @@ class ImageAsFolderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImages() {
         HiddenOpenGLContext.createOpenGL()
         val ref = base.ref

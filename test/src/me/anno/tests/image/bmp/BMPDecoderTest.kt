@@ -11,6 +11,8 @@ import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class BMPDecoderTest {
 
@@ -34,6 +36,7 @@ class BMPDecoderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSignature() {
         val src = createBmpFile()
         val signature = Signature.findName(src.readBytesSync())
@@ -41,6 +44,7 @@ class BMPDecoderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
         val src = createBmpFile()
         val meta = getMeta(src, false)!!
@@ -50,6 +54,7 @@ class BMPDecoderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
         // todo this isn't using the standard BMP decoder, but the built-in one from ImageIO
         //  -> replace BMPDecoderClass?

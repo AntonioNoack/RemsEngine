@@ -34,6 +34,8 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.f3s
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.cos
 import kotlin.math.cosh
 import kotlin.math.sin
@@ -42,6 +44,7 @@ import kotlin.math.sqrt
 class BulletTest {
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testGravity() {
 
         val gravity = 1f
@@ -77,6 +80,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testDisabledStates() {
 
         val gravity = 1f
@@ -148,6 +152,7 @@ class BulletTest {
      * fly using upwards force (thrusters) against gravity
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testExternalForces() {
 
         val gravity = -1f
@@ -194,6 +199,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSlidingToRollingConversion() {
         testRotatingToRolling(1f, 1f)
         testRotatingToRolling(1f, 0f)
@@ -269,6 +275,7 @@ class BulletTest {
      * why is any angle sufficient to start rolling?? because starting rolling takes very little effort
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testStartRollingOnDecline() {
 
         val angle = 0.1
@@ -316,6 +323,7 @@ class BulletTest {
      * test that bodies start sliding on declines with friction starting at a certain angle
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testStartSlidingOnDecline() {
 
         val angle = 0.5
@@ -363,6 +371,7 @@ class BulletTest {
     //  - no sliding gravity; same mass, crash on one shall stop it and give the other equal velocity
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testTransferringImpulse() {
 
         val physics = BulletPhysics()
@@ -427,6 +436,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testInteraction() {
 
         fun createShapes(): List<Collider> {
@@ -519,6 +529,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testPointConstraintByBuildingAHangingBridge() {
 
         val physics = BulletPhysics()
@@ -611,6 +622,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testPointConstraintByBuildingABowBridge() {
 
         val physics = BulletPhysics()
@@ -709,6 +721,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testBowBridgeFromMeshColliders() {
         val meshes = createBridgeMeshes(8, 0.2f, 1f, 0f)
         val scene = Entity()
@@ -737,6 +750,7 @@ class BulletTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testPhysicsCleanup() {
         val scene = Entity()
         Entity("Floor", scene)

@@ -9,9 +9,12 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.assertions.assertSame
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class CloneTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testClone() {
         OfficialExtensions.initForTests()
         var failedClasses = 0

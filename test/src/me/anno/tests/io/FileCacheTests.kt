@@ -6,6 +6,8 @@ import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class FileCacheTests {
 
@@ -53,6 +55,7 @@ class FileCacheTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheFirstAsyncNull() {
         val fileCache = init()
         // first access should fail when async
@@ -61,6 +64,7 @@ class FileCacheTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheAsyncIsLoading() {
         val fileCache = init()
         assertEquals("abc", Sleep.waitUntilDefined(true) {
@@ -70,6 +74,7 @@ class FileCacheTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheFirstSync() {
         val fileCache = init()
         // first sync access should
@@ -80,6 +85,7 @@ class FileCacheTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheUpdateAndReloading() {
         val fileCache = init()
         // load the value

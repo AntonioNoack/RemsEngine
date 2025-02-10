@@ -5,9 +5,12 @@ import me.anno.io.MediaMetadata
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class ImageMetadataTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImageSize() {
         OfficialExtensions.initForTests()
         val meta = MediaMetadata.getMeta(res.getChild("textures/RGBMask.png"), false)!!

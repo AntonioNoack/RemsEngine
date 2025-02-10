@@ -6,11 +6,14 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.utils.assertions.assertContentEquals
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 // todo why do sometimes buttons need two clicks??
 //  - probably first for focus, then for click, but why is the focus elsewhere???
 class TestTextButtonClicks : UITests() {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun needsOnlySingleClick() {
         val ui = PanelListY(style)
         val clickCounter = IntArray(3)

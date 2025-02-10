@@ -8,11 +8,14 @@ import me.anno.network.http.HttpProtocol
 import me.anno.utils.assertions.assertEquals
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 object WebRefRedirect {
     private val LOGGER = LogManager.getLogger(WebRefRedirect::class)
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testAutomaticRedirect() {
         Engine.cancelShutdown()
         val port = 8081

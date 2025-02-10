@@ -10,6 +10,8 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.assertions.assertEquals
 import org.joml.Vector4f
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class PDFTests {
 
@@ -51,6 +53,7 @@ class PDFTests {
     """.trimIndent()
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testPDFReadingAsImage() {
 
         OfficialExtensions.initForTests()
@@ -63,6 +66,7 @@ class PDFTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testPDFThumbnail() {
         OfficialExtensions.initForTests()
         HiddenOpenGLContext.createOpenGL()

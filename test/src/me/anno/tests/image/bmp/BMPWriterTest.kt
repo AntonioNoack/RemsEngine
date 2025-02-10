@@ -7,10 +7,13 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.random.Random
 
 class BMPWriterTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testWriter() {
         OfficialExtensions.initForTests()
         testWriter(true)

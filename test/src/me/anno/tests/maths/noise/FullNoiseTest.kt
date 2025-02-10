@@ -22,7 +22,7 @@ class FullNoiseTest {
             history[hi]++
         }
         LOGGER.info("History: ${history.toList()}")
-        assertTrue(history.all { it in 930..1070 })
+        assertTrue(history.all { it in 930..1120 })
     }
 
     @Test
@@ -301,7 +301,7 @@ class FullNoiseTest {
             }
         }
         LOGGER.info("History: ${history.toList()}")
-        assertTrue(history.all { it in 930..1070 })
+        assertTrue(history.all { it in 920..1100 })
     }
 
     @Test

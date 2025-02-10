@@ -12,6 +12,8 @@ import me.anno.tests.audio.AudioReaderTest.Companion.createStereoAudioFile
 import me.anno.tests.audio.AudioReaderTest.Companion.numSamples
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class AmplitudeRangeTest {
 
@@ -30,6 +32,7 @@ class AmplitudeRangeTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testAmplitudeRange() {
         Engine.cancelShutdown()
         CacheSection.clearAll()

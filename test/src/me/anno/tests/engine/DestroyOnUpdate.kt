@@ -9,10 +9,13 @@ import me.anno.ecs.systems.UpdateSystem
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class DestroyOnUpdateTest : Component(), OnUpdate {
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testRemoval() {
         val components = (0 until 4).map {
             DestroyOnUpdateTest()

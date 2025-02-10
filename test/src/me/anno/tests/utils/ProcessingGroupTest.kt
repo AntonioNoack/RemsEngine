@@ -6,6 +6,8 @@ import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 @Suppress("DEPRECATION")
 class ProcessingGroupTest {
@@ -35,6 +37,7 @@ class ProcessingGroupTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testParallelExecutionBalanced() {
         Engine.cancelShutdown()
         val threads = BooleanArray(16)
@@ -48,6 +51,7 @@ class ProcessingGroupTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testParallelExecutionUnbalanced() {
         Engine.cancelShutdown()
         val threads = BooleanArray(16)
@@ -61,6 +65,7 @@ class ProcessingGroupTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testSingleThreaded() {
         Engine.cancelShutdown()
         val threads = BooleanArray(1)

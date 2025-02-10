@@ -24,6 +24,8 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.PI
 
 class BulletVehicleTest {
@@ -92,6 +94,7 @@ class BulletVehicleTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testVehicleStationary() {
         val physics = initPhysics()
         val world = Entity("World")
@@ -115,6 +118,7 @@ class BulletVehicleTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testVehicleMoving() {
         val physics = initPhysics()
         val world = Entity("World")
@@ -143,6 +147,7 @@ class BulletVehicleTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testVehicleSteering() {
         val physics = initPhysics()
         val world = Entity("World")
@@ -192,6 +197,7 @@ class BulletVehicleTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testVehicleRolling() {
         val physics = initPhysics()
         val world = Entity("World")
@@ -228,6 +234,7 @@ class BulletVehicleTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testVehicleBrakesPreventRolling() {
         val physics = initPhysics()
         val world = Entity("World")

@@ -23,6 +23,8 @@ import org.joml.Planef
 import org.joml.Vector3d
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.PI
 import kotlin.random.Random
 
@@ -92,6 +94,7 @@ class HierarchyTests {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testRemoval2() {
         val prefab = Prefab("Entity")
         val clazz = "PointLight"

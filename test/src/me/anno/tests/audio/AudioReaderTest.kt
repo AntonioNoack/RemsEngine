@@ -9,6 +9,8 @@ import me.anno.io.files.FileReference
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
@@ -29,6 +31,7 @@ class AudioReaderTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun writeReadSineWavFile() {
         // init engine
         OfficialExtensions.initForTests()

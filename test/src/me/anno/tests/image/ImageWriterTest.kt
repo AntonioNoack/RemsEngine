@@ -7,10 +7,13 @@ import me.anno.io.files.FileFileRef
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class ImageWriterTest {
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImageWriter() {
         OfficialExtensions.initForTests()
         val src = res.getChild("textures/Pacman.png")
@@ -27,6 +30,7 @@ class ImageWriterTest {
     }
 
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testHDRImageWriter() {
         OfficialExtensions.initForTests()
         val srcImage = FloatImage(

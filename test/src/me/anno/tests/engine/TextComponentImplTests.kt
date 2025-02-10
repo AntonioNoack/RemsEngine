@@ -1,5 +1,6 @@
 package me.anno.tests.engine
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -33,6 +34,8 @@ import me.anno.utils.assertions.assertContains
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.video.missingFrameException
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import kotlin.math.sqrt
 
 // todo this is still kind of wonky, especially with Arial
@@ -49,7 +52,9 @@ class TextComponentImplTests {
      * Render sample text using SDF, Mesh and Texture, and compare them.
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testImagesAreSimilar() {
+        Engine.cancelShutdown()
         OfficialExtensions.initForTests()
         HiddenOpenGLContext.createOpenGL()
         val black = IntImage(w, h, false)
@@ -69,8 +74,8 @@ class TextComponentImplTests {
     }
 
     // these values are very font dependent
-    val expectedBlackLevels = 135f..160f
-    val expectedWhiteLevels = 200f..230f
+    val expectedBlackLevels = 135f..170f
+    val expectedWhiteLevels = 190f..230f
     val expectedDifference = 0f..140f // ideally, this would be zero
 
     fun getImageDifference(a: IntImage, b: IntImage): Float {

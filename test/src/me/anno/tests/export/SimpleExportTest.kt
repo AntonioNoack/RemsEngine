@@ -16,6 +16,8 @@ import me.anno.utils.OS.res
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.io.InputStream
 import kotlin.concurrent.thread
 
@@ -64,6 +66,7 @@ class SimpleExportTest {
      * the first frame can be rendered successfully
      * */
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testEngineBuildIsRunning() {
         Engine.cancelShutdown()
         val clock = Clock("SimpleExportTest")

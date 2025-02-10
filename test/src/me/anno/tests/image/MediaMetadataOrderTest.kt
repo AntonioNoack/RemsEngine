@@ -4,9 +4,12 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.InvalidRef
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
 class MediaMetadataOrderTest {
     @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     fun testOrder() {
         // low order values must be executed first, and when they return true, nothing else must be executed
         var reached = false
