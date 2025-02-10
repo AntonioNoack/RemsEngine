@@ -12,9 +12,9 @@ fun main() {
     val height = 256
     val s = 4f / width
     val cellSize = 1f
-    val heightMap = PerlinNoise(1234L, 8, 0.5f, 0f, cellSize / s)
+    val heightMap = PerlinNoise(1234L, 8, 0.4f, 0f, cellSize / s)
     val mesh = generateRegularQuadHeightMesh(width, height, false, cellSize, Mesh(), { xi, zi ->
-        heightMap[xi * s, zi * s]
+        heightMap.getSmooth(xi * s, zi * s)
     })
     val material = AutoTileableMaterial()
     material.diffuseMap = pictures.getChild("textures/grass.jpg")

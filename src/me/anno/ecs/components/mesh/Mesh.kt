@@ -10,6 +10,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.ecs.components.mesh.TransformMesh.scale
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
@@ -290,9 +291,11 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     fun calculateNormals(smooth: Boolean) {
         if (smooth && indices == null) generateIndices()
-        val positions = positions!!
-        normals = normals.resize(positions.size)
-        NormalCalculator.checkNormals(this, positions, normals!!, indices, drawMode)
+        val positions = positions ?: return
+        val normals = normals.resize(positions.size)
+        normals.fill(0f)
+        NormalCalculator.checkNormals(this, positions, normals, indices, drawMode)
+        this.normals = normals
     }
 
     @NotSerializedProperty
@@ -479,16 +482,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction
     fun scaleDown100x() {
         scale(Vector3f(0.01f))
-    }
-
-    fun scale(factor: Vector3f) {
-        val positions = positions ?: return
-        forLoop(0, positions.size - 2, 3) { i ->
-            positions[i] *= factor.x
-            positions[i + 1] *= factor.y
-            positions[i + 2] *= factor.z
-        }
-        invalidateGeometry()
     }
 
     @DebugAction

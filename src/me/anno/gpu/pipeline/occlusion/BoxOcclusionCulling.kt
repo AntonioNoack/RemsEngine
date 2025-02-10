@@ -36,6 +36,10 @@ import kotlin.math.max
  * draws globalAABBs onto depth buffer of previous frame to confirm whether a mesh is visible;
  * then compacts instanceId-data on GPU (CPU-latency-free),
  * and draws that data using modern OpenGL API (4.2, so 2011 aka 14 years old)
+ *
+ * todo potential optimization
+ *  - generate hierarchical Z pyramid,
+ *  - check against in a compute shader instead of rasterizing at original quality
  * */
 class BoxOcclusionCulling : AttachedDepthPass() {
 

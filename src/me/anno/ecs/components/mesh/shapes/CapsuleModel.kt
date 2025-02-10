@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh.shapes
 import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
-import me.anno.ecs.components.mesh.TransformMesh.transformMesh
+import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.maths.Maths.TAUf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -59,9 +59,9 @@ object CapsuleModel {
         mesh.normals = normals.toFloatArray()
         mesh.indices = null
         when (axis) {
-            Axis.X -> transformMesh(mesh, Matrix4x3d().rotateZ(PI * 0.5))
+            Axis.X -> mesh.transform(Matrix4x3d().rotateZ(PI * 0.5))
             Axis.Y -> {}
-            Axis.Z -> transformMesh(mesh, Matrix4x3d().rotateX(PI * 0.5))
+            Axis.Z -> mesh.transform(Matrix4x3d().rotateX(PI * 0.5))
         }
         mesh.invalidateGeometry()
         return mesh

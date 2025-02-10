@@ -7,7 +7,7 @@ import me.anno.ecs.components.camera.control.CameraController.Companion.setup
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.TransformMesh.transformMesh
+import me.anno.ecs.components.mesh.TransformMesh.scale
 import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
@@ -42,6 +42,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.documents
+import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
@@ -169,7 +170,7 @@ fun main() {
                     val color0 = IntArray(mesh.positions!!.size / 3)
                     color0.fill(color)
                     mesh.color0 = color0
-                    transformMesh(mesh, Matrix4x3d().scale(scale))
+                    mesh.scale(Vector3f(scale.toFloat()))
                     meshes.add(mesh)
                     // bySide.add(MeshComponent(mesh))
 

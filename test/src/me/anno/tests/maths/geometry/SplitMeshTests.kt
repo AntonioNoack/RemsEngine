@@ -2,7 +2,7 @@ package me.anno.tests.maths.geometry
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachPointIndex
-import me.anno.ecs.components.mesh.TransformMesh.transformMesh
+import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.maths.geometry.MeshSplitter
 import me.anno.utils.assertions.assertEquals
@@ -31,7 +31,7 @@ class SplitMeshTests {
 
     fun testSplitSphereI(subDivisions: Int, v0: Long, v1: Long, en: Float, transform: Matrix4x3d?) {
         val base = IcosahedronModel.createIcosphere(subDivisions)
-        if (transform != null) transformMesh(base, transform)
+        if (transform != null) base.transform(transform)
         val meshes = MeshSplitter.split(base) { it.y }
         val (top, topPlane, bottom, bottomPlane) = meshes
         println(meshes.map { it.numPrimitives })

@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.TransformMesh.transformMesh
+import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.ecs.components.mesh.material.Materials.getMaterialRef
 import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabByFileCache
@@ -117,7 +117,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class, "Mesh") {
             clone.positions = mesh.positions?.copyOf()
             clone.normals = mesh.normals?.copyOf()
             clone.tangents = mesh.tangents?.copyOf()
-            transformMesh(clone, matrix)
+            clone.transform(matrix)
         }
         return clone
     }

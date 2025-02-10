@@ -2,18 +2,15 @@ package me.anno.tests.maths.geometry
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.TransformMesh.transformMesh
+import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.geometry.MeshSplitter
-import me.anno.sdf.shapes.SDFPlane
 import me.anno.ui.UIColors
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.white
-import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Matrix4x3d
-import org.joml.Vector4f
 
 /**
  * split a sphere mesh by y=0;
@@ -23,7 +20,7 @@ import org.joml.Vector4f
 fun main() {
 
     val mesh = UVSphereModel.createUVSphere(20, 10)
-    transformMesh(mesh, Matrix4x3d().rotateX(1.0))
+    mesh.transform(Matrix4x3d().rotateX(1.0))
     val split = MeshSplitter.split(mesh) { v -> v.y }
 
     val scene = Entity("Scene")

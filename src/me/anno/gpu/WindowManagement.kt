@@ -144,6 +144,7 @@ object WindowManagement {
                 close(windows.getOrNull(index) ?: break)
             }
             windows.clear()
+            GFX.glThread = null // no longer valid after closing all windows
             clock.stop("Closing $size window(s)")
         }
     }

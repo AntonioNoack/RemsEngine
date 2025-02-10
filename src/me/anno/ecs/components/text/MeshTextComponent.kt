@@ -1,7 +1,7 @@
 package me.anno.ecs.components.text
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.TransformMesh.transformMesh
+import me.anno.ecs.components.mesh.TransformMesh.translate
 import me.anno.ecs.components.text.TextureTextComponent.Companion.getDx
 import me.anno.ecs.components.text.TextureTextComponent.Companion.getSx
 import me.anno.ecs.components.text.TextureTextComponent.Companion.getSy
@@ -13,7 +13,7 @@ import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.ui.base.components.AxisAlignment
-import org.joml.Matrix4x3d
+import org.joml.Vector3d
 
 // todo TextMeshSpawner component for long texts?
 class MeshTextComponent : TextComponentImpl {
@@ -41,6 +41,6 @@ class MeshTextComponent : TextComponentImpl {
         // this formula is pretty weird...
         val dy = (y0 + y1) - baselineY / FontManager.getLineHeight(font)
 
-        transformMesh(mesh, Matrix4x3d().translation(dx, 0.5 * dy, 0.0))
+        mesh.translate(Vector3d(dx, 0.5 * dy, 0.0))
     }
 }

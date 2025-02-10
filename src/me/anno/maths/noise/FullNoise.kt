@@ -25,6 +25,7 @@ class FullNoise(val seed: Long) {
     private val sy: Int
     private val sz: Int
     private val sw: Int
+    private val s0: Int
 
     init {
         val random = Random(seed)
@@ -32,13 +33,14 @@ class FullNoise(val seed: Long) {
         sy = random.nextInt()
         sz = random.nextInt()
         sw = random.nextInt()
+        s0 = random.nextInt()
     }
 
     /**
      * returns a random value in [0,1]
      * */
     operator fun get(x: Int): Float {
-        var a = x * sx
+        var a = x * sx + s0
         var b = (a shl 16) or (a ushr 16)
         b *= 1911520717
         a = a.xor((b shl 16) or (b ushr 16))
@@ -47,7 +49,7 @@ class FullNoise(val seed: Long) {
     }
 
     operator fun get(x: Int, y: Int): Float {
-        var a = x * sx
+        var a = x * sx + s0
         var b = y * sy xor ((a shl 16) or (a ushr 16))
         b *= 1911520717
         a = a.xor((b shl 16) or (b ushr 16))
@@ -56,7 +58,7 @@ class FullNoise(val seed: Long) {
     }
 
     operator fun get(x: Int, y: Int, z: Int): Float {
-        var a = x * sx
+        var a = x * sx + s0
         var b = y * sy
         val c = z * sz
         b = b.xor((c shl 16) or (c ushr 16))
@@ -69,7 +71,7 @@ class FullNoise(val seed: Long) {
     }
 
     operator fun get(x: Int, y: Int, z: Int, w: Int): Float {
-        var a = x * sx
+        var a = x * sx + s0
         var b = y * sy
         val c = z * sz
         val d = w * sw
