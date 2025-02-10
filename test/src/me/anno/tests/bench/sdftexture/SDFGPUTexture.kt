@@ -284,7 +284,7 @@ val quadratic = listOf(
             "       dst[0] = (-b + div) / (2.0 * a);\n" +
             "       dst[1] = (-b - div) / (2.0 * a);\n" +
             "       return 2;\n" +
-            "   } else if (abs(div) < 1e-7) {\n" +
+            "   } else if (div == 0.0) {\n" +
             "       dst[0] = -b / (2.0 * a);\n" +
             "       return 1;\n" +
             "   } else return 0;\n" +

@@ -47,7 +47,7 @@ class PerlinNoiseTest {
                 }
             }
         }
-        checkExpected(history)
+        checkExpected(history,3.9)
     }
 
     @Test

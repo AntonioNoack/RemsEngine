@@ -29,16 +29,16 @@ object EquationSolver {
             dst[0] = -c / b
             return 1
         }
-        var div = b * b - 4 * a * c
+        val div = b * b - 4f * a * c
         return when {
             div > 0f -> {
-                div = sqrt(div)
-                dst[0] = (-b + div) / (2 * a)
-                dst[1] = (-b - div) / (2 * a)
+                val sqrtDiv = sqrt(div)
+                dst[0] = (-b + sqrtDiv) / (2f * a)
+                dst[1] = (-b - sqrtDiv) / (2f * a)
                 2
             }
-            abs(div) > 1e-7f -> {
-                dst[0] = -b / (2 * a)
+            div == 0f -> {
+                dst[0] = -b / (2f * a)
                 1
             }
             else -> 0
