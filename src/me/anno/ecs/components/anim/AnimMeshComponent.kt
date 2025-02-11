@@ -18,6 +18,7 @@ import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.raycast.RaycastSkeletal
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.TextShapes.drawTextMesh
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.engine.ui.render.RenderState
@@ -32,10 +33,10 @@ import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.sumOfLong
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
-import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
@@ -366,20 +367,29 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             transform: Matrix4x3d?,
             withNames: Boolean,
         ) {
-            // draw animated skeleton as debug mesh
             val matrices = animMeshComponent.getMatrices() ?: return
-
             if (withNames) {
                 // draw bone names where they are
-                for (i in 0 until min(skeleton.bones.size, matrices.size)) {
-                    val bone = skeleton.bones[i]
-                    val pos = Vector3f(bone.bindPosition)
-                    matrices[i].transformPosition(pos)
-                    MovingGrid.alpha = 1f
-                    drawTextMesh(pipeline, bone.name, Vector3d(pos), null, 0.1, transform)
+                val pos1 = Vector3d()
+                val pos2 = Vector3d()
+                MovingGrid.alpha = 1f
+                val bones = skeleton.bones
+                val offset = bones.sumOf { it.length(bones).toDouble() } / bones.size
+                for (i in 0 until min(bones.size, matrices.size)) {
+                    val bone = bones[i]
+                    pos1.set(bone.bindPosition)
+
+                    matrices[i].transformPosition(pos1)
+                    pos1.add(offset, 0.0, 0.0, pos2)
+
+                    drawLine(transform, pos1, pos2, -1)
+                    pos2.x += 0.005
+                    pos2.y -= 0.006
+                    drawTextMesh(pipeline, bone.name, pos2, null, 0.02, transform)
                 }
             }
 
+            // draw animated skeleton as debug mesh
             AssetThumbnails.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
                 useFrame(simpleRenderer) {
                     Gizmos.drawMesh(

@@ -312,12 +312,14 @@ object LineShapes {
     }
 
     fun drawLine(
-        entity: Entity?,
-        p0: Vector3f,
-        p1: Vector3f,
+        entity: Entity?, p0: Vector3f, p1: Vector3f,
+        color: Int = defaultColor
+    ) = drawLine(getDrawMatrix(entity), p0, p1, color)
+
+    fun drawLine(
+        transform: Matrix4x3d?, p0: Vector3f, p1: Vector3f,
         color: Int = defaultColor
     ) {
-        val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         positions[0].set(p0)
         positions[1].set(p1)
@@ -331,11 +333,14 @@ object LineShapes {
 
     fun drawLine(
         entity: Entity?,
-        p0: Vector3d,
-        p1: Vector3d,
+        p0: Vector3d, p1: Vector3d,
+        color: Int = defaultColor
+    ) = drawLine(getDrawMatrix(entity), p0, p1, color)
+
+    fun drawLine(
+        transform: Matrix4x3d?, p0: Vector3d, p1: Vector3d,
         color: Int = defaultColor
     ) {
-        val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
         positions[0].set(p0)
         positions[1].set(p1)
