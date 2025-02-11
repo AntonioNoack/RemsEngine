@@ -1,6 +1,5 @@
 package me.anno.mesh.assimp
 
-import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
@@ -23,15 +22,19 @@ import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.ForLoop.forLoop
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace.toSRGB
+import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Vector2f
@@ -96,6 +99,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.math.tan
 
+// done build a flattened-json -> FlatScene.json
+// done discard any nodes without meshes
 object StaticMeshesLoader {
 
     private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
@@ -106,6 +111,8 @@ object StaticMeshesLoader {
                 aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
                 // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
                 aiProcess_GlobalScale
+
+    val aiPropertyStore = aiCreatePropertyStore()!!
 
     @JvmStatic
     fun shininessToRoughness(shininessExponent: Float): Float {
@@ -140,7 +147,7 @@ object StaticMeshesLoader {
 
                     val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
                     val tmp = InnerTmpTextFile(better)
-                    loadFile2(file, tmp, flags, signature, callback)
+                    loadAIScene(file, tmp, flags, signature, callback)
                 } else callback.err(err)
             }
         }
@@ -150,146 +157,222 @@ object StaticMeshesLoader {
             val tmp = FileFileRef.createTempFile(file.nameWithoutExtension, file.extension)
             tmp.deleteOnExit()
             file.copyTo(tmp) {
-                loadFile2(file, tmp, flags, signature, callback)
+                loadAIScene(file, tmp, flags, signature, callback)
             }
             return
         }
 
-        loadFile2(file, file, flags, signature, callback)
+        loadAIScene(file, file, flags, signature, callback)
     }
 
-    fun loadFile2(
-        file0: FileReference,
-        file: FileReference, flags: Int, signature: String?,
+    private fun loadAIScene(
+        srcFile: FileReference,
+        dataFile: FileReference, flags: Int, signature: String?,
         callback: Callback<Pair<AIScene, Boolean>>
     ) {
         // we could load in parallel,
         // but we'd need to keep track of the scale factor;
         // it only is allowed to be set, if the file is a fbx file
         val isFBXFile = signature == "fbx"
-        var error: String? = null
-        val obj = synchronized(StaticMeshesLoader) {
-            val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
-            val obj = if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
-                val store = aiCreatePropertyStore()!!
-                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
-                aiImportFileExWithProperties(file.absolutePath, flags, null, store)
-            } else {
-                val store = aiCreatePropertyStore()!!
-                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
-                aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
-                    file.readByteBufferSync(true), flags, null as ByteBuffer?, store
-                )
+        val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
+        if (dataFile !is FileFileRef) {
+            val aiScene = synchronized(StaticMeshesLoader) {
+                aiSetImportPropertyFloat(aiPropertyStore, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
+                aiImportFileExWithProperties(dataFile.absolutePath, flags, null, aiPropertyStore)
             }
-            if (obj == null) {
-                error = aiGetErrorString()
+            onGotAIScene(srcFile, aiScene, isFBXFile, callback)
+        } else {
+            dataFile.readByteBuffer(true) { byteBuffer, err ->
+                if (byteBuffer != null) loadAIScene(srcFile, isFBXFile, byteBuffer, scale, flags, callback)
+                else callback.err(err)
             }
-            obj
         }
-        // should be sync as well
-        if (obj != null) callback.ok(Pair(obj, isFBXFile))
-        else callback.err(IOException("Error loading model $file0, $error"))
     }
 
-    private fun buildScene(
-        aiScene: AIScene,
-        sceneMeshes: List<FileReference>,
-        hasSkeleton: Boolean,
-        aiNode: AINode
-    ): Prefab {
-        val prefab = Prefab("Entity")
-        val name = aiNode.mName().dataString()
-        if (!name.isBlank2())
-            prefab.setUnsafe(ROOT_PATH, "name", name)
-        buildScene(aiScene, sceneMeshes, hasSkeleton, aiNode, prefab, ROOT_PATH)
-        loadLights(aiScene, prefab) // todo test loading lights
-        loadCameras(aiScene, prefab) // todo test loading cameras
-        return prefab
-    }
-
-    private fun buildScene(
-        aiScene: AIScene,
-        sceneMeshes: List<FileReference>,
-        hasSkeleton: Boolean,
-        aiNode: AINode,
-        prefab: Prefab,
-        path: Path
+    private fun loadAIScene(
+        file0: FileReference, isFBXFile: Boolean, byteBuffer: ByteBuffer, scale: Float, flags: Int,
+        callback: Callback<Pair<AIScene, Boolean>>
     ) {
+        val aiScene = synchronized(StaticMeshesLoader) {
+            aiSetImportPropertyFloat(aiPropertyStore, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
+            // the first method threw "bad allocation" somehow 🤷‍♂️
+            aiImportFileFromMemoryWithProperties(byteBuffer, flags, null as ByteBuffer?, aiPropertyStore)
+        }
+        onGotAIScene(file0, aiScene, isFBXFile, callback)
+    }
 
-        val transform = Transform()
-        transform.setLocal(convert(aiNode.mTransformation()))
+    private fun onGotAIScene(
+        srcFile: FileReference, aiScene: AIScene?,
+        isFBXFile: Boolean, callback: Callback<Pair<AIScene, Boolean>>
+    ) {
+        var error: String? = null
+        if (aiScene == null) {
+            error = aiGetErrorString()
+        }
 
-        val localPosition = transform.localPosition
-        if (localPosition.length() != 0.0)
+        // should be sync as well
+        if (aiScene != null) callback.ok(Pair(aiScene, isFBXFile))
+        else callback.err(IOException("Error loading model $srcFile, $error"))
+    }
+
+    fun createScene(aiScene: AIScene, sceneMeshes: List<FileReference>, hasSkeleton: Boolean): Pair<Prefab, Prefab> {
+
+        val aiRoot = aiScene.mRootNode()!!
+        val deepPrefab = Prefab("Entity")
+        val flatPrefab = Prefab("Entity")
+
+        val name = aiRoot.mName().dataString()
+        if (!name.isBlank2()) {
+            deepPrefab.setUnsafe(ROOT_PATH, "name", name)
+        }
+
+        val root = createSceneTree(aiRoot, name)
+        root.countMeshes()
+
+        val meshesByTransform = HashMap<Matrix4x3d, ArrayList<CreateSceneNode>>()
+        Recursion.processRecursive(root) { node, remaining ->
+            val aiNode = node.aiNode
+            val path = node.path
+
+            val transform = Matrix4x3d()
+            createSceneSetTransform(aiNode, deepPrefab, path, transform)
+            createSceneAddMeshes(sceneMeshes, hasSkeleton, aiNode, deepPrefab, path)
+            node.parent?.transform?.mul(transform)
+            node.transform = transform
+
+            if (aiNode.mNumMeshes() > 0) {
+                meshesByTransform.getOrPut(transform, ::ArrayList).add(node)
+            }
+
+            val childCount = aiNode.mNumChildren()
+            if (childCount <= 0) return@processRecursive
+            for (i in 0 until childCount) {
+                val childNode = node.children[i]
+                if (childNode.totalMeshes == 0) continue // skipped
+
+                val originalName = childNode.originalName
+                val pathName = childNode.pathName
+                val childPath = deepPrefab.add(path, 'e', "Entity", pathName)
+                if (originalName != pathName && originalName.isNotBlank2()) {
+                    deepPrefab[childPath, "name"] = originalName
+                }
+                childNode.path = childPath
+                remaining.add(childNode)
+            }
+        }
+
+        createFlatPrefab(flatPrefab, root, meshesByTransform, hasSkeleton, sceneMeshes)
+
+        loadLights(aiScene, deepPrefab) // todo test loading lights
+        loadCameras(aiScene, deepPrefab) // todo test loading cameras
+        return deepPrefab to flatPrefab
+    }
+
+    private fun createFlatPrefab(
+        prefab: Prefab, root: CreateSceneNode,
+        meshesByTransform: Map<Matrix4x3d, List<CreateSceneNode>>,
+        hasSkeleton: Boolean, sceneMeshes: List<FileReference>
+    ) {
+        val rootTransform = root.transform
+        val rootTransformInv = rootTransform.invert(Matrix4x3d())
+        var i = 0
+        val usedNames0 = HashSet<String>()
+        for ((transform, nodes) in meshesByTransform) {
+            val isRoot = transform == rootTransform
+            var name = nodes.map { it.originalName }
+                .firstOrNull { it.isNotBlank2() && it !in usedNames0 }
+                ?: "Node${i++}"
+            name = CreateSceneNode.nextName(name, usedNames0)
+
+            val path = if (isRoot) ROOT_PATH
+            else prefab.add(ROOT_PATH, 'e', "Entity", name)
+            prefab[path, "name"] = name
+
+            val relativeTransform = if (isRoot) transform
+            else rootTransformInv.mul(transform, Matrix4x3d())
+
+            setTransform(prefab, path, relativeTransform)
+
+            val usedNames = HashSet<String>()
+            for (j in nodes.indices) {
+                val node = nodes[j]
+                val aiNode = node.aiNode
+                val meshCount = aiNode.mNumMeshes()
+                val rendererClass = if (hasSkeleton) "AnimMeshComponent" else "MeshComponent"
+                val meshIndices = assertNotNull(aiNode.mMeshes())
+                for (k in 0 until meshCount) {
+                    val mesh = sceneMeshes[meshIndices[k]]
+                    val name = CreateSceneNode.nextName(mesh.name, usedNames)
+                    val meshComponent = prefab.add(path, 'c', rendererClass, name)
+                    prefab.setUnsafe(meshComponent, "meshFile", mesh)
+                }
+            }
+        }
+    }
+
+    private fun createSceneTree(aiRoot: AINode, name: String): CreateSceneNode {
+        val root = CreateSceneNode(null, aiRoot, "", name)
+        Recursion.processRecursive(aiRoot to root) { (aiNode, node), remaining ->
+            val childCount = aiNode.mNumChildren()
+            if (childCount <= 0) return@processRecursive
+            val children = assertNotNull(aiNode.mChildren())
+            val usedNames = HashSet<String>(max(childCount, 16))
+
+            if (aiRoot === aiNode) {
+                usedNames.add("Cameras")
+                usedNames.add("Lights")
+            }
+
+            for (i in 0 until childCount) {
+                val aiChildNode = AINode.createSafe(children[i]) ?: continue
+                val childNode = node.add(aiChildNode, usedNames)
+                remaining.add(aiChildNode to childNode)
+            }
+        }
+        return root
+    }
+
+    private fun createSceneSetTransform(aiNode: AINode, prefab: Prefab, path: Path, tmpMatrix: Matrix4x3d) {
+        val transform = convert2(aiNode.mTransformation(), tmpMatrix)
+        setTransform(prefab, path, transform)
+    }
+
+    private fun setTransform(prefab: Prefab, path: Path, transform: Matrix4x3d) {
+        val localPosition = transform.getTranslation(Vector3d())
+        if (localPosition.length() != 0.0) {
             prefab.setUnsafe(path, "position", localPosition)
+        }
 
-        val localRotation = transform.localRotation
-        if (localRotation.w != 1.0)
+        val localRotation = transform.getUnnormalizedRotation(Quaterniond())
+        if (localRotation.w != 1.0) {
             prefab.setUnsafe(path, "rotation", localRotation)
+        }
 
-        val localScale = transform.localScale
-        if (localScale.x != 1.0 || localScale.y != 1.0 || localScale.z != 1.0)
+        val localScale = transform.getScale(Vector3d())
+        if (localScale.x != 1.0 || localScale.y != 1.0 || localScale.z != 1.0) {
             prefab.setUnsafe(path, "scale", localScale)
+        }
+    }
 
+    private fun createSceneAddMeshes(
+        sceneMeshes: List<FileReference>, hasSkeleton: Boolean,
+        aiNode: AINode, prefab: Prefab, path: Path
+    ) {
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
             val rendererClass = if (hasSkeleton) "AnimMeshComponent" else "MeshComponent"
-            val meshIndices = aiNode.mMeshes()!!
+            val meshIndices = assertNotNull(aiNode.mMeshes())
+            val usedNames = HashSet<String>(max(meshCount, 16))
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
-                val meshComponent = prefab.add(path, 'c', rendererClass, mesh.name)
+                val name = CreateSceneNode.nextName(mesh.name, usedNames)
+                val meshComponent = prefab.add(path, 'c', rendererClass, name)
                 prefab.setUnsafe(meshComponent, "meshFile", mesh)
             }
         }
-
-        val childCount = aiNode.mNumChildren()
-        if (childCount > 0) {
-            val children = aiNode.mChildren()!!
-            if (childCount > 16) {
-                val usedNames = HashMap<String, Int>(childCount)
-                for (i in 0 until childCount) {
-                    val childNode = AINode.createSafe(children[i]) ?: continue
-                    var childName = childNode.mName().dataString()
-                    while (true) {
-                        val oldIdx = usedNames[childName] ?: 0
-                        usedNames[childName] = oldIdx + 1
-                        if (oldIdx > 0) childName += "-$oldIdx"
-                        else break
-                    }
-                    val childPath = prefab.add(path, 'e', "Entity", childName)
-                    buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
-                }
-            } else if (childCount > 1) {
-                val usedNames = ArrayList<String>(childCount)
-                for (i in 0 until childCount) {
-                    val childNode = AINode.createSafe(children[i]) ?: continue
-                    var childName = childNode.mName().dataString()
-                    while (childName in usedNames) {
-                        childName += "-"
-                    }
-                    usedNames.add(childName)
-                    val childPath = prefab.add(path, 'e', "Entity", childName)
-                    buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
-                }
-            } else {
-                val childNode = AINode.createSafe(children[0])
-                if (childNode != null) {
-                    val childName = childNode.mName().dataString()
-                    val childPath = prefab.add(path, 'e', "Entity", childName)
-                    buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
-                }
-            }
-        }
     }
 
-    fun buildScene(aiScene: AIScene, sceneMeshes: List<FileReference>, hasSkeleton: Boolean): Prefab {
-        return buildScene(aiScene, sceneMeshes, hasSkeleton, aiScene.mRootNode()!!)
-    }
-
-    fun loadTextures(
-        aiScene: AIScene,
-        parentFolder: InnerFolder
-    ): List<FileReference> {
+    fun loadTextures(aiScene: AIScene, parentFolder: InnerFolder): List<FileReference> {
         val numTextures = aiScene.mNumTextures()
         return if (numTextures > 0) {
             val textures = aiScene.mTextures()!!
@@ -817,8 +900,18 @@ object StaticMeshesLoader {
         )
     }
 
+    fun convert2(m: AIMatrix4x4, dst: Matrix4x3d = Matrix4x3d()): Matrix4x3d {
+        return dst.set(
+            m.a1().toDouble(), m.b1().toDouble(), m.c1().toDouble(),
+            m.a2().toDouble(), m.b2().toDouble(), m.c2().toDouble(),
+            m.a3().toDouble(), m.b3().toDouble(), m.c3().toDouble(),
+            m.a4().toDouble(), m.b4().toDouble(), m.c4().toDouble(),
+        )
+    }
+
     private fun loadCameras(aiScene: AIScene, prefab: Prefab) {
         if (aiScene.mNumCameras() <= 0) return
+        // todo cameras might already exist!!!
         val cameras = prefab.add(ROOT_PATH, 'e', "Entity", "Cameras")
         val aiCameras = aiScene.mCameras()!!
         for (i in 0 until aiScene.mNumCameras()) {
@@ -849,6 +942,7 @@ object StaticMeshesLoader {
 
     private fun loadLights(aiScene: AIScene, prefab: Prefab) {
         if (aiScene.mNumLights() <= 0) return
+        // todo lights node might already exist!
         val lights = prefab.add(ROOT_PATH, 'e', "Entity", "Lights")
         val aiLights = aiScene.mLights()!!
         for (i in 0 until aiScene.mNumLights()) {

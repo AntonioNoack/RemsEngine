@@ -24,8 +24,8 @@ import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
 import me.anno.mesh.assimp.StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS
-import me.anno.mesh.assimp.StaticMeshesLoader.buildScene
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
+import me.anno.mesh.assimp.StaticMeshesLoader.createScene
 import me.anno.mesh.assimp.StaticMeshesLoader.loadFile
 import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
 import me.anno.mesh.assimp.StaticMeshesLoader.loadTextures
@@ -153,21 +153,22 @@ object AnimatedMeshesLoader {
         }
 
         val hasSkeleton = boneList.isNotEmpty()
-        val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
+        val (deepPrefab, flatPrefab) = createScene(aiScene, meshes, hasSkeleton)
 
         LOGGER.debug("{}, #anims: {}, #bones: {}", file, aiScene.mNumAnimations(), boneList.size)
 
         val metadata = loadMetadata(aiScene)
         val matrixFix = matrixFix(metadata, isFBX) // fbx is already 100x
         if (matrixFix != null) {
-            applyMatrixFix(hierarchy, matrixFix)
+            applyMatrixFix(deepPrefab, matrixFix)
         }
 
         LOGGER.debug("[ScaleDebug] {} -> {} -> {}", file, metadata, matrixFix)
 
         // for (change in hierarchy.changes!!) LOGGER.info(change)
 
-        val animationReferences = if (hasSkeleton || hasAnimations) {
+        var animationReferences = emptyList<FileReference>()
+        if (hasSkeleton || hasAnimations) {
 
             val skeleton = Prefab("Skeleton")
             skeleton["bones"] = boneList
@@ -203,19 +204,26 @@ object AnimatedMeshesLoader {
                     )
                 )
             } else null // must be ArrayList
-            addSkeleton(hierarchy, skeleton, skeletonPath, sampleAnimations)
+
+            addSkeleton(deepPrefab, skeleton, skeletonPath, sampleAnimations)
+            addSkeleton(flatPrefab, skeleton, skeletonPath, sampleAnimations)
 
             // create an animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimMeshComponent", "AnimMeshComponent")
-                hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
-                if (sampleAnimations != null) hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
+                val deepAnimPath = deepPrefab.add(ROOT_PATH, 'c', "AnimMeshComponent", "AnimMeshComponent")
+                val flatAnimPath = flatPrefab.add(ROOT_PATH, 'c', "AnimMeshComponent", "AnimMeshComponent")
+                deepPrefab.setUnsafe(deepAnimPath, "skeleton", skeletonPath)
+                flatPrefab.setUnsafe(flatAnimPath, "skeleton", skeletonPath)
+                if (sampleAnimations != null) {
+                    deepPrefab.setUnsafe(deepAnimPath, "animations", sampleAnimations)
+                    flatPrefab.setUnsafe(flatAnimPath, "animations", sampleAnimations)
+                }
             }
 
             val animRefs = animMap.values.map { it.source }
             skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.getParent().name })
-            animRefs
-        } else emptyList()
+            animationReferences = animRefs
+        }
 
         // override the empty scene with an animation
         // LOGGER.debug("Loaded $file, ${meshes.size} meshes + ${animationReferences.size} animations")
@@ -224,7 +232,10 @@ object AnimatedMeshesLoader {
                 ((it as InnerPrefabFile).prefab.getSampleInstance() as Animation).numFrames
             }!!
             root.createPrefabChild("Scene.json", Prefab("Animation", sample))
-        } else root.createPrefabChild("Scene.json", hierarchy)
+        } else {
+            root.createPrefabChild("Scene.json", deepPrefab)
+            root.createPrefabChild("FlatScene.json", flatPrefab)
+        }
 
         root.sealPrefabs()
 
