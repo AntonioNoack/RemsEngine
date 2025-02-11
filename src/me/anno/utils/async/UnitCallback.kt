@@ -5,4 +5,8 @@ package me.anno.utils.async
  * */
 fun interface UnitCallback {
     fun call(exception: Exception?)
+
+    companion object {
+        val default = UnitCallback { it?.printStackTrace() }
+    }
 }

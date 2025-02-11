@@ -34,6 +34,13 @@ import me.anno.io.json.generic.JsonWriter
 import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
+import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
+import me.anno.mesh.gltf.GLTFConstants.GL_ARRAY_BUFFER
+import me.anno.mesh.gltf.GLTFConstants.GL_ELEMENT_ARRAY_BUFFER
+import me.anno.mesh.gltf.GLTFConstants.GL_FLOAT
+import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_BYTE
+import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_INT
+import me.anno.mesh.gltf.GLTFConstants.JSON_CHUNK_MAGIC
 import me.anno.mesh.gltf.writer.Accessor
 import me.anno.mesh.gltf.writer.AnimationData
 import me.anno.mesh.gltf.writer.BufferView
@@ -47,6 +54,8 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.async.Callback
+import me.anno.utils.async.UnitCallback
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.maps.Maps.nextId
@@ -78,11 +87,6 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
-        private const val GL_FLOAT = 0x1406
-        private const val GL_UNSIGNED_BYTE = 0x1401
-        private const val GL_UNSIGNED_INT = 0x1405
-        private const val GL_ARRAY_BUFFER = 34962
-        private const val GL_ELEMENT_ARRAY_BUFFER = 34963
     }
 
     var allDepsToFolder = false
@@ -987,11 +991,22 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         return IllegalArgumentException("Unsupported type ${scene.className}")
     }
 
-    fun write(scene: Saveable, dst: FileReference) {
+    fun write(scene: Saveable, dst: FileReference, callback: UnitCallback = UnitCallback.default) {
         defineSceneHierarchy(scene) { err ->
             if (err == null) {
                 writeAll(dst)
-            } else err.printStackTrace()
+                callback.call(null)
+            } else callback.call(err)
+        }
+    }
+
+    fun write(scene: Saveable, callback: Callback<ByteArray>) {
+        defineSceneHierarchy(scene) { err ->
+            if (err == null) {
+                val bos = ByteArrayOutputStream()
+                writeAll(bos)
+                callback.ok(bos.toByteArray())
+            } else callback.err(err)
         }
     }
 
@@ -1146,6 +1161,12 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     private var dstParent: FileReference = InvalidRef
     private fun writeAll(dst: FileReference) {
         dstParent = dst.getParent()
+        dst.outputStream().use { out ->
+            writeAll(out)
+        }
+    }
+
+    private fun writeAll(dst: OutputStream) {
         writeObject {
             writeHeader()
             writeSceneIndex()
@@ -1175,7 +1196,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         }
     }
 
-    private fun writeChunks(dst: FileReference) {
+    private fun writeChunks(dst: OutputStream) {
 
         output.close() // finish writing into json
         ensureAlignment(json, ' '.code)
@@ -1184,20 +1205,18 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         val version = 2
         val totalFileSize = 12 + 8 + 8 + json.size() + binary.size()
 
-        val out = dst.outputStream()
         // header
-        out.writeString("glTF")
-        out.writeLE32(version)
-        out.writeLE32(totalFileSize)
+        dst.writeString("glTF")
+        dst.writeLE32(version)
+        dst.writeLE32(totalFileSize)
         // chunks
-        out.writeChunk(json, "JSON")
-        out.writeChunk(binary, "BIN${0.toChar()}")
-        out.close()
+        dst.writeChunk(json, JSON_CHUNK_MAGIC)
+        dst.writeChunk(binary, BINARY_CHUNK_MAGIC)
     }
 
-    private fun OutputStream.writeChunk(data: ByteArrayOutputStream, type: String) {
+    private fun OutputStream.writeChunk(data: ByteArrayOutputStream, type: Int) {
         writeLE32(data.size())
-        writeString(type)
+        writeLE32(type)
         data.writeTo(this)
     }
 }
