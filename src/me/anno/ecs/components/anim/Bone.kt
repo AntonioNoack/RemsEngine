@@ -61,9 +61,16 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     fun setBindPose(m: Matrix4x3f) {
         bindPose.set(m)
-        bindPosition.set(m.m30, m.m31, m.m32)
         m.invert(inverseBindPose)
-        offsetVector.set(inverseBindPose.m30, inverseBindPose.m31, inverseBindPose.m32)
+        bindPose.getTranslation(bindPosition)
+        inverseBindPose.getTranslation(offsetVector)
+    }
+
+    fun setInverseBindPose(m: Matrix4x3f) {
+        inverseBindPose.set(m)
+        m.invert(bindPose)
+        bindPose.getTranslation(bindPosition)
+        inverseBindPose.getTranslation(offsetVector)
     }
 
     fun hasBoneInHierarchy(name: String, bones: List<Bone>): Boolean {
