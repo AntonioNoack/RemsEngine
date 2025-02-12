@@ -9,6 +9,8 @@ class Node(val id: Int) {
     var parent: Node? = null
     var children: List<Int> = emptyList()
 
+    var boneId = -1
+
     var translation: Vector3d? = null
     var rotation: Quaterniond? = null
     var scale: Vector3d? = null

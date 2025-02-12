@@ -35,7 +35,7 @@ class BoneAttachmentComponent() : Component(), OnUpdate {
 
     @DebugAction
     fun findBone() {
-        bone = SkeletonCache[animMeshComponent?.skeleton]
+        bone = SkeletonCache[animMeshComponent?.getMesh()?.skeleton]
             ?.bones?.firstOrNull { it.name == boneName }
     }
 

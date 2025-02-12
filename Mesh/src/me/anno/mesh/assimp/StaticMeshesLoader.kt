@@ -175,7 +175,7 @@ object StaticMeshesLoader {
         // it only is allowed to be set, if the file is a fbx file
         val isFBXFile = signature == "fbx"
         val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
-        if (dataFile !is FileFileRef) {
+        if (dataFile is FileFileRef) {
             val aiScene = synchronized(StaticMeshesLoader) {
                 aiSetImportPropertyFloat(aiPropertyStore, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
                 aiImportFileExWithProperties(dataFile.absolutePath, flags, null, aiPropertyStore)
@@ -302,8 +302,8 @@ object StaticMeshesLoader {
                 val meshIndices = assertNotNull(aiNode.mMeshes())
                 for (k in 0 until meshCount) {
                     val mesh = sceneMeshes[meshIndices[k]]
-                    val name = CreateSceneNode.nextName(mesh.name, usedNames)
-                    val meshComponent = prefab.add(path, 'c', rendererClass, name)
+                    val compName = CreateSceneNode.nextName(mesh.name, usedNames)
+                    val meshComponent = prefab.add(path, 'c', rendererClass, compName)
                     prefab.setUnsafe(meshComponent, "meshFile", mesh)
                 }
             }

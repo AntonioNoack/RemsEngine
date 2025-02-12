@@ -8,6 +8,7 @@ import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import org.joml.AABBf
 
 /**
@@ -18,6 +19,7 @@ interface IMesh : Renderable, ICacheData {
     val numMaterials: Int get() = 1
     val materials: List<FileReference> get() = emptyList()
     val vertexData: MeshVertexData get() = MeshVertexData.DEFAULT
+    val skeleton: FileReference get() = InvalidRef
 
     val hasBonesInBuffer get() = false
     val hasVertexColors get() = 0

@@ -28,7 +28,7 @@ fun main() {
         mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
         testedComponent = mesh
     }
-    val retargeting = Retargetings.getRetargeting(AnimationCache[animation]!!.skeleton, testedComponent.skeleton)!!
+    val retargeting = Retargetings.getRetargeting(AnimationCache[animation]!!.skeleton, testedComponent.getMesh()!!.skeleton)!!
     Retargetings.sampleModel = testedComponent
     Retargetings.sampleAnimation = animation
     SceneView.testSceneWithUI("Retargeting", retargeting)

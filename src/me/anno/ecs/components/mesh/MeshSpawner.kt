@@ -63,7 +63,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                     val stage = pipeline.findStage(material)
                     if (mesh.proceduralLength <= 0) {
                         val stack = stage.instanced.data.getStack(mesh, material, matIndex)
-                        stage.addToStack(stack, this, transform)
+                        stage.addToStack(stack, this, transform, mesh)
                     } else {
                         if (Build.isDebug && mesh.numMaterials > 1) {
                             LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")

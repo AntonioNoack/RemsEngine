@@ -144,12 +144,12 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
             mesh.positions = Pools.floatArrayPool[size, false, true]
             mesh.normals = Pools.floatArrayPool[size, true, true]
             mesh.boneIndices = Pools.byteArrayPool[size * 4 / 3, true, true]
+            mesh.skeleton = skeleton.ref
             Skeleton.generateSkeleton(
                 bones, bones.map { it.bindPosition },
                 mesh.positions!!, mesh.boneIndices!!
             )
             renderer.meshFile = mesh.ref
-            renderer.skeleton = skeleton.ref
             renderer.animations = listOf(state)
         }
 

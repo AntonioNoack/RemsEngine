@@ -99,6 +99,7 @@ class CompileTest {
         animation.frameCount = 1
         animation.boneCount = skeleton.bones.size
         animation.skeleton = skeleton.ref
+        animatedMesh.skeleton = skeleton.ref
         animation.rotations =
             FloatArray(4 * animation.boneCount * animation.frameCount) { if (it.and(3) == 3) 1f else 0f }
         animation.translations = FloatArray(4 * animation.boneCount * animation.frameCount) { it.toFloat() }
@@ -107,12 +108,10 @@ class CompileTest {
         offset.setPosition(3.0, 0.0, 0.0)
         offset.add(AnimMeshComponent().apply {
             this.meshFile = animatedMesh.ref
-            this.skeleton = skeleton.ref
             this.animations = listOf(animState)
         })
         offset.add(AnimMeshComponent().apply {
             this.meshFile = animatedMesh.ref
-            this.skeleton = skeleton.ref
             this.animations = listOf(animState)
             this.isInstanced = true
         })

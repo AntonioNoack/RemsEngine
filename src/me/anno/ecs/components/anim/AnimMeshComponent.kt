@@ -49,11 +49,6 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     // todo in debug mode, we could render the skeleton as well/instead :)
 
-    @Docs("Maps bone indices to names & hierarchy")
-    @Type("Skeleton/Reference")
-    @SerializedProperty
-    var skeleton: FileReference = InvalidRef
-
     // maybe not the most efficient way, but it should work :)
     @Docs("Maps time & bone index onto local transform")
     @Type("List<AnimationState>")
@@ -102,8 +97,8 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         updateAnimState()
     }
 
-    override fun hasAnimation(async: Boolean): Boolean {
-        val skeleton = SkeletonCache[skeleton, async]
+    override fun hasAnimation(async: Boolean, mesh: IMesh): Boolean {
+        val skeleton = SkeletonCache[mesh.skeleton, async]
         return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
     }
 
@@ -123,7 +118,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     override fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
 
-        val skeleton = SkeletonCache[skeleton]
+        val skeleton = SkeletonCache[mesh.skeleton]
         if (skeleton == null) {
             lastWarning = "Skeleton missing"
             return false
@@ -187,11 +182,12 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
      * */
     fun updateAnimState(): Boolean {
         val time = Time.gameTimeN
-        return if (time != prevTime) {
+        val mesh = getMeshOrNull()
+        return if (time != prevTime && mesh != null) {
             prevTime = time
             prevWeights.set(currWeights)
             prevIndices.set(currIndices)
-            getAnimState(currWeights, currIndices)
+            getAnimState(currWeights, currIndices, mesh)
         } else true // mmh...
     }
 
@@ -202,7 +198,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         var matrices: List<Matrix4x3f>? = null
         var sumWeight = 0f
         val animations = animations
-        val skeleton = skeleton
+        val skeleton = getMesh()?.skeleton ?: InvalidRef
         for (index in animations.indices) {
             val animSource = animations[index]
             val weight = animSource.weight
@@ -222,7 +218,6 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         return matrices
     }
 
-
     /**
      * gets the animation matrices; thread-unsafe, can only be executed on gfx thread
      * */
@@ -230,7 +225,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         var matrices: Matrix4x3f? = null
         var sumWeight = 0f
         val animations = animations
-        val skeleton = skeleton
+        val skeleton = getMesh()?.skeleton ?: InvalidRef
         for (index in animations.indices) {
             val animSource = animations[index]
             val weight = animSource.weight
@@ -248,18 +243,19 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         return matrices
     }
 
-    open fun getAnimTexture(): ITexture2D? {
-        val skeleton = SkeletonCache[skeleton] ?: return null
+    open fun getAnimTexture(mesh: IMesh): ITexture2D? {
+        val skeleton = SkeletonCache[mesh.skeleton] ?: return null
         if (skeleton.bones.isEmpty()) return null
         return AnimationCache[skeleton].texture
     }
 
     open fun getAnimState(
         dstWeights: Vector4f,
-        dstIndices: Vector4f
+        dstIndices: Vector4f,
+        mesh: IMesh
     ): Boolean {
 
-        val skeleton = SkeletonCache[skeleton]
+        val skeleton = SkeletonCache[mesh.skeleton]
         if (skeleton == null) {
             lastWarning = "Skeleton missing"
             return false
@@ -332,7 +328,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             // draw animated skeleton as debug mesh
-            val skeleton = SkeletonCache[skeleton] ?: return
+            val skeleton = SkeletonCache[getMesh()?.skeleton ?: InvalidRef] ?: return
             drawAnimatedSkeleton(pipeline, this, skeleton, transform?.getDrawMatrix(), true)
         }
     }
@@ -345,7 +341,6 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is AnimMeshComponent) return
-        dst.skeleton = skeleton
         dst.animations = animations.map { it.clone() }
         dst.useDefaultAnimation = useDefaultAnimation
         dst.prevIndices.set(prevIndices)

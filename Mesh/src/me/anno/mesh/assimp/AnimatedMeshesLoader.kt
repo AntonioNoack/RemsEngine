@@ -174,6 +174,11 @@ object AnimatedMeshesLoader {
             skeleton["bones"] = boneList
             val skeletonsFolder = root.createChild("skeletons", null) as InnerFolder
             val skeletonPath = skeletonsFolder.createPrefabChild("Skeleton.json", skeleton)
+            for (mesh in meshList) {
+                if (mesh["boneWeights"] is FloatArray) {
+                    mesh["skeleton"] = skeletonPath
+                }
+            }
 
             val nodeCache = createNodeCache(rootNode)
             val (globalTransform, globalInverseTransform, animMap) =
@@ -488,7 +493,9 @@ object AnimatedMeshesLoader {
     }
 
     private fun loadAnimations(
-        name: String, aiScene: AIScene, nodeCache: Map<String, AINode>, boneMap: HashMap<String, Bone>,
+        name: String, aiScene: AIScene,
+        nodeCache: Map<String, AINode>,
+        boneMap: HashMap<String, Bone>,
         skeletonPath: FileReference
     ): Triple<Matrix4x3f?, Matrix4x3f?, Map<String, Prefab>> {
 
@@ -520,8 +527,7 @@ object AnimatedMeshesLoader {
                 animations[animName] = createSkinning(
                     aiScene, rootNode, boneMap, animName, duration,
                     maxFramesV2, timeScale, animNodeCache,
-                    globalTransform, globalInverseTransform,
-                    skeletonPath
+                    globalTransform, globalInverseTransform, skeletonPath
                 )
             }
         }
@@ -539,13 +545,13 @@ object AnimatedMeshesLoader {
         animNodeCache: Map<String, NodeAnim>,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?,
-        skeletonPath: FileReference,
+        skeletonPath: FileReference
     ): Prefab {
         val prefab = Prefab("ImportedAnimation")
-        prefab[ROOT_PATH, "name"] = animName
-        prefab[ROOT_PATH, "skeleton"] = skeletonPath
-        prefab[ROOT_PATH, "duration"] = duration.toFloat()
-        prefab[ROOT_PATH, "frames"] = createSkinningFrames(
+        prefab["name"] = animName
+        prefab["skeleton"] = skeletonPath
+        prefab["duration"] = duration.toFloat()
+        prefab["frames"] = createSkinningFrames(
             aiScene, rootNode, boneMap, numFrames, timeScale,
             animNodeCache, globalTransform, globalInverseTransform
         )

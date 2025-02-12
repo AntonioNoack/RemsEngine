@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.gltf
+package me.anno.tests.mesh.gltf.reader
 
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.inner.InnerFolder
@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager
 fun main() {
     lateinit var folder: InnerFolder
     val src = OS.downloads.getChild("3d/azeria/scene.gltf")
-    GLTFReader(src).readAnyGLTF(src.inputStreamSync()) { folder1, err2 ->
+    GLTFReader(src).readAnyGLTF(src.readBytesSync()) { folder1, err2 ->
         err2?.printStackTrace()
         folder = folder1!!
     }

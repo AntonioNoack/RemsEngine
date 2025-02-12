@@ -55,7 +55,7 @@ fun main() {
     @Suppress("MoveVariableDeclarationIntoWhen", "RedundantSuppression")
     val baseAnimation = AnimationCache[sampleComponent.animations[0].source]!!
 
-    val skeleton = SkeletonCache[sampleComponent.skeleton]!!
+    val skeleton = SkeletonCache[sampleComponent.getMesh()?.skeleton]!!
     val bones = skeleton.bones
 
     val scene = Entity("Scene").add(meshScene)

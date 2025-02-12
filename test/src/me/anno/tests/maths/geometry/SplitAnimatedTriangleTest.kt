@@ -38,7 +38,6 @@ fun main() {
         dst.meshFile = mesh.ref
         dst.materials = listOf(material.ref)
         dst.animations = srcAnimMesh.animations
-        dst.skeleton = srcAnimMesh.skeleton
         return dst
     }
 

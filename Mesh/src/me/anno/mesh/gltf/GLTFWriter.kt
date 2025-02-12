@@ -15,6 +15,7 @@ import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.HelperMesh
 import me.anno.ecs.components.mesh.HelperMesh.Companion.createHelperMeshes
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -156,7 +157,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                     if (mesh != null) {
                         addChild(comp, childIndices)
                         if (comp is AnimMeshComponent && comp.animations.isNotEmpty()) {
-                            defineSkin(comp, childIndices)
+                            defineSkin(comp, mesh, childIndices)
                         }
                     }
                 }
@@ -171,8 +172,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         return idx
     }
 
-    private fun defineSkin(comp: AnimMeshComponent, childIndices: IntArrayList) {
-        val skeleton = SkeletonCache[comp.skeleton]
+    private fun defineSkin(comp: AnimMeshComponent, mesh: IMesh, childIndices: IntArrayList) {
+        val skeleton = SkeletonCache[mesh.skeleton]
         if (skeleton != null) {
             // add bone/skeleton hierarchy
             val baseId = nodes.size
@@ -940,7 +941,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun getMeshData(scene: MeshComponentBase, mesh: Mesh): MeshData {
-        val animations = if (scene is AnimMeshComponent && SkeletonCache[scene.skeleton] != null) {
+        val animations = if (scene is AnimMeshComponent && SkeletonCache[mesh.skeleton] != null) {
             scene.animations.map { it.source }.filter { it.exists }
         } else emptyList()
         return MeshData(mesh, scene.materials, animations)

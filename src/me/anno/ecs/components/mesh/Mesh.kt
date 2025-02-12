@@ -90,6 +90,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @Type("List<MorphTarget>")
     var morphTargets: List<MorphTarget> = emptyList()
 
+    @Docs("Maps bone indices to names & hierarchy")
+    @Type("Skeleton/Reference")
+    override var skeleton: FileReference = InvalidRef
+
     @Docs("Normals in local space, will be generated automatically if missing")
     @Type("FloatArray?")
     @HideInInspector

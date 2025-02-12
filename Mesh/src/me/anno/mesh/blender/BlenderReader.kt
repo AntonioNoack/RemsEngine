@@ -427,7 +427,7 @@ object BlenderReader {
                         val c = prefab.add(path, 'c', "AnimMeshComponent", obj.id.realName)
 
                         prefab[c, "meshFile"] = meshFile2
-                        prefab[c, "skeleton"] = skeletonRef
+                        meshPrefab[c, "skeleton"] = skeletonRef
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Armature Pose: {}", armatureObject.pose)
                             LOGGER.debug("Armature Action: {}", armatureObject.action)

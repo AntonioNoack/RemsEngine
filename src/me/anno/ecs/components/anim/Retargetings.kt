@@ -49,7 +49,7 @@ object Retargetings {
         // find all animation states, where the skeleton needs mapping, and ask the user, which to edit
         val window = GFX.someWindow
         val states = anim.animations
-        val dstSkeleton = anim.skeleton
+        val dstSkeleton = anim.getMesh()?.skeleton ?: InvalidRef
         val baseSkeletonCheck = SkeletonCache[dstSkeleton]
         if (baseSkeletonCheck == null) {
             LOGGER.warn("Base skeleton is null")

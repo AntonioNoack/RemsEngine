@@ -44,13 +44,12 @@ fun main() {
     // create test scene
     val scene = Entity("Scene")
     val mesh = AnimMeshComponent()
-    mesh.skeleton = animation.skeleton
     val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
     mesh.animations = listOf(animState)
     mesh.meshFile = meshFile
     scene.add(mesh)
 
-    for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
+    for (bone in SkeletonCache[mesh.getMesh()?.skeleton]!!.bones) {
         LOGGER.info(
             "Bone ${bone.id}: ${bone.name}${" ".repeat(Maths.max(0, 80 - bone.name.length))}" +
                     "f0: ${animation.getTranslation(0, bone.id, Vector3f())}, " +

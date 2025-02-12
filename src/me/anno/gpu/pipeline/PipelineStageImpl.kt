@@ -623,7 +623,7 @@ class PipelineStageImpl(
         val oc = (renderer as? MeshComponentBase)?.occlusionQuery
         if (oc != null && oqp && !oc.wasVisible) return
 
-        val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation(true) ?: false
+        val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation(true, mesh) ?: false
         GFXState.animated.use(hasAnimation) {
             GFXState.vertexData.use(mesh.vertexData) {
 
@@ -716,15 +716,15 @@ class PipelineStageImpl(
         material: Material, materialIndex: Int
     ) {
         val stack = instanced.data.getStack(mesh, material, materialIndex)
-        addToStack(stack, component, transform)
+        addToStack(stack, component, transform, mesh)
     }
 
-    fun addToStack(stack: InstancedStack, component: Component, transform: Transform) {
+    fun addToStack(stack: InstancedStack, component: Component, transform: Transform, mesh: IMesh) {
         if (stack is InstancedAnimStack &&
             component is AnimMeshComponent &&
             component.updateAnimState()
         ) {
-            val texture = component.getAnimTexture()
+            val texture = component.getAnimTexture(mesh)
             stack.add(
                 transform, component.gfxId, texture,
                 component.prevWeights, component.prevIndices,

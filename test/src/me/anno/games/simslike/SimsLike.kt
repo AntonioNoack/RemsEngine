@@ -83,9 +83,6 @@ fun main() {
             .add(Sim().apply { name = nameI; household.sims.add(this) })
             .add(AnimMeshComponent().apply {
                 meshFile = animatedMeshSrc.getChild("X Bot.fbx")
-                skeleton = animatedMeshSrc.getChild("X Bot.fbx/skeletons/Skeleton.json").apply {
-                    assertTrue(exists)
-                }
                 animations = listOf(
                     AnimationState(
                         animatedMeshSrc.getChild("idle.fbx").apply {

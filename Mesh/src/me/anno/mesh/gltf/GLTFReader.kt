@@ -1,6 +1,7 @@
 package me.anno.mesh.gltf
 
 import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.debug.DebugPoint
@@ -8,20 +9,24 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.graph.hdb.ByteSlice
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE32F
-import me.anno.io.Streams.readNBytes2
-import me.anno.io.Streams.skipN
 import me.anno.io.base64.Base64
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.io.json.generic.JsonReader
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
 import me.anno.mesh.assimp.CreateSceneNode.Companion.nextName
 import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
+import me.anno.mesh.gltf.GLTFConstants.FILE_MAGIC
+import me.anno.mesh.gltf.GLTFConstants.GL_BYTE
 import me.anno.mesh.gltf.GLTFConstants.GL_FLOAT
+import me.anno.mesh.gltf.GLTFConstants.GL_SHORT
+import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_BYTE
 import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_INT
 import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_SHORT
 import me.anno.mesh.gltf.GLTFConstants.JSON_CHUNK_MAGIC
@@ -33,6 +38,7 @@ import me.anno.mesh.gltf.reader.Channel
 import me.anno.mesh.gltf.reader.Node
 import me.anno.mesh.gltf.reader.Texture
 import me.anno.mesh.gltf.writer.Sampler
+import me.anno.utils.Color.rgba
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
@@ -41,16 +47,16 @@ import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
+import me.anno.utils.types.Arrays.readLE32
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Vector2f
+import org.joml.Vector2i
 import org.joml.Vector3d
-import org.joml.Vector3f
 import java.io.IOException
-import java.io.InputStream
 
 /**
  * todo implement a GLTF-reader,
@@ -69,7 +75,7 @@ class GLTFReader(val src: FileReference) {
     private val materialFolder = InnerFolder(innerFolder, "materials")
     private val meshFolder = InnerFolder(innerFolder, "meshes")
 
-    private val buffers = ArrayList<ByteArray>()
+    private val buffers = ArrayList<ByteSlice>()
     private val embeddedFiles = ArrayList<Pair<String, ByteArray>>()
 
     private val bufferViews = ArrayList<BufferView>()
@@ -105,12 +111,8 @@ class GLTFReader(val src: FileReference) {
         }
     }
 
-    fun readTextGLTF(
-        input: InputStream, first: Char,
-        callback: Callback<InnerFolder>
-    ) {
-        val reader = JsonReader(input)
-        reader.putBack(first)
+    fun readTextGLTF(bytes: ByteArray, callback: Callback<InnerFolder>) {
+        val reader = JsonReader(bytes)
         json = reader.readObject()
 
         val bufferFiles =
@@ -122,51 +124,53 @@ class GLTFReader(val src: FileReference) {
         bufferFiles.mapCallback({ _, file, cb ->
             file.readBytes(cb)
         }, callback.map { buffers1 ->
-            buffers.addAll(buffers1)
+            buffers.addAll(buffers1.map { ByteSlice(it) })
             readCommon()
             innerFolder
         })
     }
 
-    fun readBinaryGLTF(input: InputStream, callback: Callback<InnerFolder>) {
+    fun readBinaryGLTF(input: ByteArray, callback: Callback<InnerFolder>) {
         // confirm magic
-        val charL = input.read().toChar()
-        val charT = input.read().toChar()
-        val charF = input.read().toChar()
-        if (charL != 'l' || charT != 'T' || charF != 'F') {
+        if (input.readLE32(0) != FILE_MAGIC) {
             callback.err(IOException("Invalid Magic"))
             return
         }
 
-        val version = input.readLE32()
-        val fileSize = input.readLE32()
+        val version = input.readLE32(4)
+        val fileSize = input.readLE32(8)
         if (version != 2) {
             LOGGER.warn("Unknown glTF version $version, trying to read it like version 2")
         }
 
-        var remaining = fileSize - 12
-        while (remaining >= 8) {
-            val chunkSize = input.readLE32()
-            val chunkType = input.readLE32()
-            remaining -= chunkSize + 4
-            if (remaining >= 0) {
-                if (chunkType == JSON_CHUNK_MAGIC || chunkType == BINARY_CHUNK_MAGIC) {
-                    val bytes = input.readNBytes2(chunkSize, false)
-                    if (bytes.size < chunkSize) break // error
-                    if (chunkType == JSON_CHUNK_MAGIC) json = JsonReader(bytes).readObject()
-                    else buffers.add(bytes)
-                } else input.skipN(chunkSize.toLong())
-            } else break
-        }
-
+        readChunks(input, fileSize)
         readCommon()
         callback.ok(innerFolder)
     }
 
-    fun readAnyGLTF(input: InputStream, callback: Callback<InnerFolder>) {
-        val firstChar = input.read()
-        if (firstChar == 'g'.code) readBinaryGLTF(input, callback)
-        else readTextGLTF(input, firstChar.toChar(), callback)
+    private fun readChunks(input: ByteArray, fileSize: Int) {
+        var position = 12
+        var remaining = min(fileSize - position, input.size)
+        while (remaining >= 8) {
+            val chunkSize = input.readLE32(position)
+            val chunkType = input.readLE32(position + 4)
+            position += 8
+            remaining -= chunkSize + 4
+            if (remaining >= 0) {
+                if (chunkType == JSON_CHUNK_MAGIC || chunkType == BINARY_CHUNK_MAGIC) {
+                    val slice = ByteSlice(input, position until position + chunkSize)
+                    if (chunkType == JSON_CHUNK_MAGIC) json = JsonReader(slice.stream()).readObject()
+                    else buffers.add(slice)
+                }
+                position += chunkSize
+            } else break
+        }
+    }
+
+    fun readAnyGLTF(input: ByteArray, callback: Callback<InnerFolder>) {
+        val firstChar = input.getOrNull(0) ?: 0
+        if (firstChar == 'g'.code.toByte()) readBinaryGLTF(input, callback)
+        else readTextGLTF(input, callback)
     }
 
     private fun readCommon() {
@@ -182,6 +186,9 @@ class GLTFReader(val src: FileReference) {
         readAnimations()
         readScenes()
         writeEmbeddedFiles()
+
+        // prevent further modifications
+        innerFolder.sealPrefabs()
     }
 
     private fun getExtensionFromMimeType(mimeType: String?): String {
@@ -260,24 +267,39 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readAnimations() {
+        val usedNames = HashSet<String>()
+        val animationFolder = InnerFolder(innerFolder, "animations")
         forEachMap("animations", animations) { anim ->
             val animation = Animation()
-            forEachMap(anim["channels"], animation.channels) { chan ->
+            val samplers = ArrayList<AnimSampler>()
+            forEachMap(anim["samplers"], samplers) { node ->
+                val sampler = AnimSampler()
+                sampler.input = loadFloatArray(getInt(node["input"], -1), 1)
+                sampler.output = loadFloatArray(getInt(node["output"], -1), -1)
+                sampler.interpolation = node["interpolation"].toString()
+                sampler
+            }
+            forEachMap(anim["channels"], animation.channels) { node ->
                 val channel = Channel()
-                channel.sampler = getInt(chan["sampler"])
-                val target = getMap(chan["target"])
+                channel.sampler = samplers[getInt(node["sampler"])]
+                val target = getMap(node["target"])
                 channel.targetNode = getInt(target["node"])
                 channel.targetPath = target["path"].toString()
                 channel
             }
-            forEachMap(anim["samplers"], animation.samplers) { samp ->
-                val sampler = AnimSampler()
-                sampler.input = getInt(samp["input"])
-                sampler.output = getInt(samp["output"])
-                sampler.interpolation = samp["interpolation"].toString()
-                sampler
-            }
             animation.name = anim["name"].toString()
+            println("${animation.name}, ${animation.channels.map { "'${nodes[it.targetNode].name}'.${it.targetPath}" }}")
+
+            // create a list of all bone nodes...
+            val skeleton = skins[0].getSampleInstance() as Skeleton
+            skeleton.bones
+
+            val prefab = Prefab("ImportedAnimation")
+            // todo create the skinning matrices
+
+            val animFolder = InnerFolder(animationFolder, nextName(animation.name, usedNames))
+            animFolder.createPrefabChild("Imported.json", prefab)
+
             animation
         }
     }
@@ -286,8 +308,15 @@ class GLTFReader(val src: FileReference) {
         val tmp = Matrix4f()
         val skeletons1 = InnerFolder(innerFolder, "skeletons")
         forEachMap("skins", skins) { src ->
+
             val prefab = Prefab("Skeleton")
+
             val joints = getList(src["joints"]).map { nodes[getInt(it)] }
+            for (j in joints.indices) {
+                joints[j].boneId = j
+            }
+
+            // todo we probably have to map boneIndices using this map
             val inverseBindMatrixId = getInt(src["inverseBindMatrices"], -1)
             val inverseBindMatrixData = loadFloatArray(inverseBindMatrixId, 16)!!
             val inverseBindMatrices = createList(joints.size) { boneId ->
@@ -295,22 +324,16 @@ class GLTFReader(val src: FileReference) {
                 Matrix4x3f().set(tmp)
             }
             val bones = joints.mapIndexed { boneId, node ->
-                val bone = Bone(boneId, node.parent?.id ?: -1, node.name ?: "Bone$boneId")
+                val bone = Bone(boneId, node.parent?.boneId ?: -1, node.name ?: "Bone$boneId")
                 bone.setInverseBindPose(inverseBindMatrices[boneId])
                 bone
             }
             // show bind-matrices for debugging
-            inverseBindMatrices.forEach { m ->
-                DebugShapes.debugPoints.add(DebugPoint(Vector3d(m.getTranslation(Vector3f())), -1, 1e3f))
-            }
+            bones.forEach { DebugShapes.debugPoints.add(DebugPoint(Vector3d(it.bindPosition), -1, 1e3f)) }
             prefab["bones"] = bones
             // todo link all animations
-            if (skins.isEmpty()) {
-                // todo put all of them in a folder, link to the first one
-                innerFolder.createPrefabChild("Skeleton.json", prefab)
-            } else {
-                skeletons1.createPrefabChild("Skeleton${skins.size}.json", prefab)
-            }
+            val name = if (skins.isEmpty()) "Skeleton.json" else "Skeleton${skins.size}.json"
+            skeletons1.createPrefabChild(name, prefab)
             prefab
         }
     }
@@ -324,7 +347,6 @@ class GLTFReader(val src: FileReference) {
             val prefab = Prefab("Entity")
             if (scene["name"] is String) prefab["name"] = scene["name"]
             val nodes = getList(scene["nodes"]).map { nodes[getInt(it)] }
-            println("nodes for scene: $nodes")
             if (nodes.size != 1) {
                 // multiple roots -> append to single root
                 val usedNames1 = HashSet<String>()
@@ -393,7 +415,7 @@ class GLTFReader(val src: FileReference) {
             val length = getInt(view["byteLength"])
             val offset = getInt(view["byteOffset"])
             assertTrue(offset >= 0 && length >= 0 && offset + length <= buffer.size)
-            BufferView(buffer, offset, length)
+            BufferView(buffer.bytes, offset + buffer.range.first, length)
         }
     }
 
@@ -406,7 +428,15 @@ class GLTFReader(val src: FileReference) {
             val compType = getInt(accessor["componentType"])
             val count = getInt(accessor["count"])
             val type = accessor["type"].toString()
-            Accessor(view, compType, count, type)
+            val numComp = when (type) {
+                "SCALAR" -> 1
+                "VEC2" -> 2
+                "VEC3" -> 3
+                "VEC4" -> 4
+                "MAT4" -> 16
+                else -> -1
+            }
+            Accessor(view, compType, count, numComp)
             // todo implement sparse accessors, which are apparently used for morph targets
         }
     }
@@ -451,27 +481,56 @@ class GLTFReader(val src: FileReference) {
         }
     }
 
+    private val floatArrayCache = HashMap<Vector2i, FloatArray?>()
+
     private fun loadFloatArray(accessorId: Int, numComponents: Int): FloatArray? {
         val accessor = accessors.getOrNull(accessorId) ?: return null
         val stream = accessor.view.stream()
-        return when (accessor.componentType) {
-            GL_FLOAT -> FloatArray(accessor.count * numComponents) { stream.readLE32F() }
-            else -> {
-                LOGGER.warn("Unknown type for float array: ${accessor.componentType}")
-                null
+        val numComponents1 = if (numComponents < 0) accessor.numComponents else numComponents
+        return floatArrayCache.getOrPut(Vector2i(accessorId, numComponents1)) {
+            val size = accessor.count * numComponents1
+            when (accessor.componentType) {
+                GL_FLOAT -> FloatArray(size) { stream.readLE32F() }
+                else -> {
+                    LOGGER.warn("Unknown type for float array: ${accessor.componentType}")
+                    null
+                }
             }
         }
     }
+
+    private val intArrayCache = HashMap<Vector2i, IntArray?>()
 
     @Suppress("SameParameterValue")
     private fun loadIntArray(accessorId: Int, numComponents: Int): IntArray? {
         val accessor = accessors.getOrNull(accessorId) ?: return null
         val stream = accessor.view.stream()
+        return intArrayCache.getOrPut(Vector2i(accessorId, numComponents)) {
+            val size = accessor.count * numComponents
+            when (accessor.componentType) {
+                GL_UNSIGNED_INT -> IntArray(size) { stream.readLE32() }
+                GL_SHORT -> IntArray(size) { stream.readLE16().shl(16).shr(16) }
+                GL_UNSIGNED_SHORT -> IntArray(size) { stream.readLE16() }
+                GL_BYTE -> IntArray(size) { stream.read().shl(24).shr(24) }
+                GL_UNSIGNED_BYTE -> IntArray(size) { stream.read() }
+                else -> {
+                    LOGGER.warn("Unknown type for int array: ${accessor.componentType}")
+                    null
+                }
+            }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun loadColorArray(accessorId: Int): IntArray? {
+        val accessor = accessors.getOrNull(accessorId) ?: return null
+        val stream = accessor.view.stream()
         return when (accessor.componentType) {
-            GL_UNSIGNED_INT -> IntArray(accessor.count * numComponents) { stream.readLE32() }
-            GL_UNSIGNED_SHORT -> IntArray(accessor.count * numComponents) { stream.readLE16() }
+            GL_UNSIGNED_BYTE -> IntArray(accessor.count) {
+                rgba(stream.read(), stream.read(), stream.read(), stream.read())
+            }
             else -> {
-                LOGGER.warn("Unknown type for int array: ${accessor.componentType}")
+                LOGGER.warn("Unknown type for color array: ${accessor.componentType}")
                 null
             }
         }
@@ -498,16 +557,15 @@ class GLTFReader(val src: FileReference) {
                                 prefab["uvs"] = uvs
                             }
                         }
-                        // todo these colors are probably the incorrect type...
-                        "COLOR_0" -> prefab["color0"] = loadIntArray(id, 1)
-                        "COLOR_1" -> prefab["color1"] = loadIntArray(id, 1)
-                        "COLOR_2" -> prefab["color2"] = loadIntArray(id, 1)
-                        "COLOR_3" -> prefab["color3"] = loadIntArray(id, 1)
+                        "COLOR_0" -> prefab["color0"] = loadColorArray(id)
+                        "COLOR_1" -> prefab["color1"] = loadColorArray(id)
+                        "COLOR_2" -> prefab["color2"] = loadColorArray(id)
+                        "COLOR_3" -> prefab["color3"] = loadColorArray(id)
                         "JOINTS_0" -> {
                             val indices = loadIntArray(id, 4)
                             if (indices != null) {
                                 prefab["boneIndices"] = ByteArray(indices.size) { boneId ->
-                                    clamp(boneId, 0, 255).toByte()
+                                    clamp(boneId, 0, 255).toByte() // already is mapped properly
                                 }
                             }
                         }
