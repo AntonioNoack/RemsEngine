@@ -552,10 +552,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 write(true)
             }
             writeTextureProperty(material.emissiveMap, "emissiveTexture", sampler)
-            if (material.emissiveBase != black3) {
-                attr("emissiveFactor")
-                write(material.emissiveBase)
-            }
+            attr("emissiveFactor")
+            write(Vector3f(material.emissiveBase).mul(1f / GLTFReader.BRIGHTNESS_FACTOR))
             writeTextureProperty(material.normalMap, "normalTexture", sampler)
             writeTextureProperty(material.occlusionMap, "occlusionTexture", sampler)
         }

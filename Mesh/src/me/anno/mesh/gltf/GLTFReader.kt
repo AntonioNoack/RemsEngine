@@ -7,9 +7,9 @@ import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
+import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.graph.hdb.ByteSlice
@@ -64,6 +64,7 @@ import org.joml.Vector2f
 import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector4f
 import java.io.IOException
 
 /**
@@ -73,8 +74,20 @@ import java.io.IOException
  * */
 class GLTFReader(val src: FileReference) {
 
+    // todo read double-sided
+
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
+
+        const val BRIGHTNESS_FACTOR = 5f // looks good
+
+        fun readAsFolder(src: FileReference, callback: Callback<InnerFolder>) {
+            src.readBytes { bytes, err ->
+                if (bytes != null) {
+                    GLTFReader(src).readAnyGLTF(bytes, callback)
+                } else callback.err(err)
+            }
+        }
     }
 
     lateinit var json: Map<String, Any?>
@@ -245,6 +258,8 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readNodes() {
+        val tmp4x4 = Matrix4d()
+        val tmp16 = DoubleArray(16)
         forEachMap("nodes", nodes) { node ->
             val node1 = Node(nodes.size)
             node1.name = node["name"] as? String
@@ -263,12 +278,11 @@ class GLTFReader(val src: FileReference) {
                 getDouble(sca[0]), getDouble(sca[1]), getDouble(sca[2])
             )
             if (matrix.size == 16) {
-                val m = Matrix4d()
-                m.set(DoubleArray(16) { getDouble(matrix[it]) })
-                m.transpose() // is transposed compared to JOML
-                node1.translation = m.getTranslation(Vector3d())
-                node1.rotation = m.getUnnormalizedRotation(Quaterniond())
-                node1.scale = m.getScale(Vector3d())
+                for (i in tmp16.indices) tmp16[i] = getDouble(matrix[i])
+                tmp4x4.set(tmp16)
+                node1.translation = tmp4x4.getTranslation(Vector3d())
+                node1.rotation = tmp4x4.getUnnormalizedRotation(Quaterniond())
+                node1.scale = tmp4x4.getScale(Vector3d())
             }
             node1.mesh = getInt(node["mesh"], -1)
             node1.skin = getInt(node["skin"], -1)
@@ -418,6 +432,11 @@ class GLTFReader(val src: FileReference) {
             animFolder.createPrefabChild("BoneByBone.json", bbbPrefab)
             animFolder.createPrefabChild("Imported.json", prefab)
         }
+
+        for (skin in skins) {
+            val prefab = (skin as PrefabReadable).readPrefab()
+            prefab["animations"] = animations.associateBy { it.getParent().name }
+        }
     }
 
     private val jointNodes = ArrayList<List<Node>>()
@@ -446,10 +465,7 @@ class GLTFReader(val src: FileReference) {
                 bone.setInverseBindPose(inverseBindMatrices[boneId])
                 bone
             }
-            // show bind-matrices for debugging
-            bones.forEach { DebugShapes.debugPoints.add(DebugPoint(Vector3d(it.bindPosition), -1, 1e3f)) }
             prefab["bones"] = bones
-            // todo link all animations
             val name = if (skins.isEmpty()) "Skeleton.json" else "Skeleton${skins.size}.json"
             skeletons1.createPrefabChild(name, prefab)
         }
@@ -568,15 +584,61 @@ class GLTFReader(val src: FileReference) {
             val name = (material["name"] as? String ?: "").ifBlank { "${materials.size}" }
             prefab["name"] = name
             val pbr = getMap(material["pbrMetallicRoughness"])
+            val baseColor = getList(pbr["baseColorFactor"])
+            if (baseColor.size == 4) {
+                prefab["diffuseBase"] = Vector4f(
+                    getFloat(baseColor[0]),
+                    getFloat(baseColor[1]),
+                    getFloat(baseColor[2]),
+                    getFloat(baseColor[3])
+                )
+            }
             val color = getMap(pbr["baseColorTexture"])
-            val colorTex = textures[getInt(color["index"], -1)]
-            prefab["diffuseMap"] = colorTex.source
-            prefab["clamping"] = colorTex.sampler.clamping
-            prefab["linearFiltering"] = colorTex.sampler.filtering == Filtering.LINEAR
+            val colorTex = textures.getOrNull(getInt(color["index"], -1))
+            if (colorTex != null) {
+                prefab["diffuseMap"] = colorTex.source
+                prefab["clamping"] = colorTex.sampler.clamping
+                prefab["linearFiltering"] = colorTex.sampler.filtering == Filtering.LINEAR
+            }
             prefab["metallicMinMax"] = Vector2f(0f, getFloat(pbr["metallicFactor"], 1f))
             prefab["roughnessMinMax"] = Vector2f(0f, getFloat(pbr["roughnessFactor"], 1f))
-            // todo baseColorFactor, normalTexture, occlusionTexture, emissiveTexture, emissiveFactor
-            // todo metallicRoughnessTexture
+            val metallicRoughnessMap = getInt(getMap(pbr["metallicRoughnessTexture"])["index"], -1)
+            if (metallicRoughnessMap in textures.indices) {
+                val tex = textures[metallicRoughnessMap]
+                prefab["metallicMap"] = tex.source.getChild("b.png")
+                prefab["roughnessMap"] = tex.source.getChild("r.png")
+            }
+            val occlusion = getMap(material["occlusionTexture"])
+            val occlusionTex = textures.getOrNull(getInt(occlusion["index"], -1))
+            if (occlusionTex != null) {
+                prefab["occlusionMap"] = occlusionTex.source
+                prefab["occlusionStrength"] = getFloat(occlusion["strength"], 1f)
+            }
+            val emissive = getMap(material["emissiveTexture"])
+            val emissiveTex = textures.getOrNull(getInt(emissive["index"], -1))
+            if (emissiveTex != null) {
+                prefab["emissiveMap"] = emissiveTex.source
+                val emissiveFactor = getList(material["emissiveFactor"])
+                if (emissiveFactor.size == 3) {
+                    prefab["emissiveBase"] = Vector3f(
+                        getFloat(emissiveFactor[0]),
+                        getFloat(emissiveFactor[1]),
+                        getFloat(emissiveFactor[2]),
+                    ).mul(BRIGHTNESS_FACTOR)
+                }
+            }
+            val normal = getMap(material["normalTexture"])
+            val normalTex = textures.getOrNull(getInt(normal["index"], -1))
+            if (normalTex != null) {
+                prefab["normalMap"] = normalTex.source
+                prefab["normalStrength"] = getFloat(normal["scale"], 1f)
+            }
+            if (material["alphaMode"] == "BLEND") {
+                prefab["pipelineStage"] = PipelineStage.TRANSPARENT
+            }
+            if (material["doubleSided"] == true) {
+                prefab["cullMode"] = CullMode.BOTH
+            }
             materialFolder.createPrefabChild("$name.json", prefab)
         }
     }
@@ -695,7 +757,7 @@ class GLTFReader(val src: FileReference) {
                 }
                 prefab["indices"] = loadIntArray(getInt(prim["indices"], -1), 1)
                 prefab["drawMode"] = getInt(prim["mode"], DrawMode.TRIANGLES.id)
-                prefab["material"] = materials[getInt(prim["material"])]
+                prefab["materials"] = materials.getOrNull(getInt(prim["material"], -1)).wrap()
                 // todo how do we decide the skeleton??
                 if (skins.isNotEmpty()) {
                     prefab["skeleton"] = skins.first()

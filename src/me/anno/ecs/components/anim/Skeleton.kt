@@ -34,7 +34,7 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     @Type("Map<String, Animation/Reference>")
     @SerializedProperty
-    var animations: Map<String, FileReference> = HashMap()
+    var animations: Map<String, FileReference> = emptyMap()
 
     @NotSerializedProperty
     private var previewMesh: Mesh? = null

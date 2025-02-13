@@ -238,6 +238,7 @@ object AnimatedMeshesLoader {
             }!!
             root.createPrefabChild("Scene.json", Prefab("Animation", sample))
         } else {
+            // todo flatScene is incorrect for azeria
             root.createPrefabChild("Scene.json", deepPrefab)
             root.createPrefabChild("FlatScene.json", flatPrefab)
         }

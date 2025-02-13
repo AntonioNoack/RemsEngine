@@ -11,6 +11,7 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.readAsFolder
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
+import me.anno.mesh.gltf.GLTFReader
 import me.anno.mesh.maya.MayaASCII2015
 import me.anno.mesh.mitsuba.MitsubaReader
 import me.anno.mesh.obj.MTLReader
@@ -21,15 +22,14 @@ class MeshLoaderPlugin : Plugin() {
     override fun onEnable() {
 
         // read as folder
-        InnerFolderCache.registerSignatures(
-            "fbx,gltf,dae,draco,md2,md5mesh,ply,json",
-            AnimatedMeshesLoader::readAsFolder
-        )
+        InnerFolderCache.registerSignatures("gltf,json", GLTFReader::readAsFolder)
+        InnerFolderCache.registerSignatures("fbx,dae,draco,md2,md5mesh,ply", AnimatedMeshesLoader::readAsFolder)
         InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
-        InnerFolderCache.registerSignatures("obj", OBJReader.Companion::readAsFolder)
+        InnerFolderCache.registerSignatures("obj", OBJReader::readAsFolder)
 
         // their signatures are xml and json
-        InnerFolderCache.registerFileExtensions("dae,gltf", AnimatedMeshesLoader::readAsFolder)
+        InnerFolderCache.registerFileExtensions("gltf", GLTFReader::readAsFolder)
+        InnerFolderCache.registerFileExtensions("dae", AnimatedMeshesLoader::readAsFolder)
         InnerFolderCache.registerFileExtensions("obj", OBJReader::readAsFolder)
         InnerFolderCache.registerSignatures("mtl", MTLReader::readAsFolder)
         InnerFolderCache.registerSignatures("maya", MayaASCII2015::readAsFolder)
@@ -42,7 +42,7 @@ class MeshLoaderPlugin : Plugin() {
             AssetThumbnails::generateAssetFrame
         )
         Thumbs.registerFileExtensions("mtl", ::generateMTLThumbnail)
-        Thumbs.registerFileExtensions("obj",  AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("obj", AssetThumbnails::generateAssetFrame)
     }
 
     private fun generateMTLThumbnail(
