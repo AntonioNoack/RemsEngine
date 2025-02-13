@@ -41,7 +41,6 @@ fun main() {
         (folder.getChild("skeletons/Skeleton.json") as PrefabReadable).readPrefab().createInstance() as Skeleton
     val byReaderBones = JsonStringWriter.toText(byReader.bones, InvalidRef)
 
-    // todo assimp isn't executed :/
     clock.start()
     AnimatedMeshesLoader.readAsFolder(src) { folder1, err2 ->
         err2?.printStackTrace()

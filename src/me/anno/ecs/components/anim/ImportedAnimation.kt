@@ -14,7 +14,7 @@ import org.joml.Matrix4x3f
 class ImportedAnimation : Animation() {
 
     // manually serialized
-    @NotSerializedProperty
+    @NotSerializedProperty // [frameIndex][boneIndex]
     var frames: List<List<Matrix4x3f>> = emptyList()
 
     override val numFrames: Int

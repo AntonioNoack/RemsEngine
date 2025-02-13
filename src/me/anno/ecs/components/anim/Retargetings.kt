@@ -184,11 +184,13 @@ object Retargetings {
     }
 
     private fun getConfigName(skeleton: FileReference): String {
+        println("getting skeleton '$skeleton'")
         return SkeletonCache[skeleton]!!.bones.joinToString("/") { it.name }
             .hashCode().toUInt().toString(36)
     }
 
     fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {
+        println("getting config file '$srcSkeleton' -> '$dstSkeleton'")
         // todo since we hide the names, we could also use our hierarchical database...
         val hash1 = getConfigName(srcSkeleton)
         val hash2 = getConfigName(dstSkeleton)

@@ -1269,21 +1269,25 @@ open class Matrix4x3f : Matrix<Matrix4x3f, Vector3f, Vector4f> {
     }
 
     fun rotation(quat: Quaternionf): Matrix4x3f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotationQ(quat.x, quat.y, quat.z, quat.w)
+    }
+
+    fun rotationQ(qx: Float, qy: Float, qz: Float, qw: Float): Matrix4x3f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         _m00(w2 + x2 - z2 - y2)
         _m01(dxy + dzw)
@@ -2956,29 +2960,34 @@ open class Matrix4x3f : Matrix<Matrix4x3f, Vector3f, Vector4f> {
 
     @JvmOverloads
     fun rotate(quat: Quaternionf, dst: Matrix4x3f = this): Matrix4x3f {
+        return rotateQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    fun rotateQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4x3f = this): Matrix4x3f {
         return if (flags and 4 != 0) {
-            dst.rotation(quat)
+            dst.rotationQ(qx, qy, qz, qw)
         } else {
-            if (flags and 8 != 0) this.rotateTranslation(quat, dst) else this.rotateGeneric(quat, dst)
+            if (flags and 8 != 0) rotateTranslationQ(qx, qy, qz, qw, dst)
+            else rotateGenericQ(qx, qy, qz, qw, dst)
         }
     }
 
-    private fun rotateGeneric(quat: Quaternionf, dst: Matrix4x3f): Matrix4x3f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+    private fun rotateGenericQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4x3f): Matrix4x3f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val rm00 = w2 + x2 - z2 - y2
         val rm01 = dxy + dzw
@@ -3013,21 +3022,26 @@ open class Matrix4x3f : Matrix<Matrix4x3f, Vector3f, Vector4f> {
 
     @JvmOverloads
     fun rotateTranslation(quat: Quaternionf, dst: Matrix4x3f = this): Matrix4x3f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotateTranslationQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    @JvmOverloads
+    fun rotateTranslationQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4x3f = this): Matrix4x3f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val rm00 = w2 + x2 - z2 - y2
         val rm01 = dxy + dzw

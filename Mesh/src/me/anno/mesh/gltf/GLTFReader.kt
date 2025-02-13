@@ -1,8 +1,11 @@
 package me.anno.mesh.gltf
 
+import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
@@ -19,7 +22,9 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.io.json.generic.JsonReader
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.mesh.assimp.AnimatedMeshesLoader.createBoneByBone
 import me.anno.mesh.assimp.CreateSceneNode.Companion.nextName
 import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.FILE_MAGIC
@@ -32,9 +37,7 @@ import me.anno.mesh.gltf.GLTFConstants.GL_UNSIGNED_SHORT
 import me.anno.mesh.gltf.GLTFConstants.JSON_CHUNK_MAGIC
 import me.anno.mesh.gltf.reader.Accessor
 import me.anno.mesh.gltf.reader.AnimSampler
-import me.anno.mesh.gltf.reader.Animation
 import me.anno.mesh.gltf.reader.BufferView
-import me.anno.mesh.gltf.reader.Channel
 import me.anno.mesh.gltf.reader.Node
 import me.anno.mesh.gltf.reader.Texture
 import me.anno.mesh.gltf.writer.Sampler
@@ -43,7 +46,10 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapCallback
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
+import me.anno.utils.structures.lists.Lists.sortedByTopology
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
@@ -53,9 +59,11 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector2i
 import org.joml.Vector3d
+import org.joml.Vector3f
 import java.io.IOException
 
 /**
@@ -85,8 +93,8 @@ class GLTFReader(val src: FileReference) {
     private val images = ArrayList<FileReference>()
     private val samplers = ArrayList<Sampler>()
     private val textures = ArrayList<Texture>()
-    private val animations = ArrayList<Animation>()
-    private val skins = ArrayList<Prefab>()
+    private val animations = ArrayList<FileReference>()
+    private val skins = ArrayList<FileReference>()
     private val nodes = ArrayList<Node>()
     private val scenes = ArrayList<Prefab>()
 
@@ -180,9 +188,9 @@ class GLTFReader(val src: FileReference) {
         readImages()
         readTextures()
         readMaterials()
-        readMeshes()
         readNodes()
         readSkins()
+        readMeshes()
         readAnimations()
         readScenes()
         writeEmbeddedFiles()
@@ -229,6 +237,13 @@ class GLTFReader(val src: FileReference) {
         return dst
     }
 
+    private inline fun forEachMap(instance: Any?, map: (Map<*, *>) -> Unit) {
+        val list = getList(instance)
+        for (i in list.indices) {
+            map(getMap(list[i]))
+        }
+    }
+
     private fun readNodes() {
         forEachMap("nodes", nodes) { node ->
             val node1 = Node(nodes.size)
@@ -269,40 +284,143 @@ class GLTFReader(val src: FileReference) {
     private fun readAnimations() {
         val usedNames = HashSet<String>()
         val animationFolder = InnerFolder(innerFolder, "animations")
+
+        val sortedNodes = nodes.sortedByTopology { it.parent.wrap() }!!
+
+        val numNodes = nodes.size
+        val rotateByNode = createArrayList<AnimSampler?>(numNodes, null)
+        val translateByNode = createArrayList<AnimSampler?>(numNodes, null)
+        val scaleByNode = createArrayList<AnimSampler?>(numNodes, null)
+        val samplers = ArrayList<AnimSampler>()
+
+        val pos = Vector3f()
+        val rot = Quaternionf()
+        val sca = Vector3f()
+
+        val tmp3 = Vector3f()
+        val tmp4 = Quaternionf()
+
         forEachMap("animations", animations) { anim ->
-            val animation = Animation()
-            val samplers = ArrayList<AnimSampler>()
+
+            samplers.clear()
             forEachMap(anim["samplers"], samplers) { node ->
                 val sampler = AnimSampler()
-                sampler.input = loadFloatArray(getInt(node["input"], -1), 1)
-                sampler.output = loadFloatArray(getInt(node["output"], -1), -1)
+                sampler.times = loadFloatArray(getInt(node["input"], -1), 1)
+                sampler.values = loadFloatArray(getInt(node["output"], -1), -1)
                 sampler.interpolation = node["interpolation"].toString()
                 sampler
             }
-            forEachMap(anim["channels"], animation.channels) { node ->
-                val channel = Channel()
-                channel.sampler = samplers[getInt(node["sampler"])]
+
+            translateByNode.fill(null)
+            rotateByNode.fill(null)
+            scaleByNode.fill(null)
+
+            forEachMap(anim["channels"]) { node ->
+                val sampler = samplers[getInt(node["sampler"])]
                 val target = getMap(node["target"])
-                channel.targetNode = getInt(target["node"])
-                channel.targetPath = target["path"].toString()
-                channel
+                val targetNode = getInt(target["node"])
+                val targetPath = target["path"]
+                when (targetPath as? String) {
+                    "rotation" -> rotateByNode[targetNode] = sampler
+                    "translation" -> translateByNode[targetNode] = sampler
+                    "scale" -> scaleByNode[targetNode] = sampler
+                }
             }
-            animation.name = anim["name"].toString()
-            println("${animation.name}, ${animation.channels.map { "'${nodes[it.targetNode].name}'.${it.targetPath}" }}")
 
             // create a list of all bone nodes...
-            val skeleton = skins[0].getSampleInstance() as Skeleton
-            skeleton.bones
+            // todo how do we find out, which skeleton is the correct one???
+            val skeletonId = 0
+            val skeletonRef = skins[skeletonId]
+            val skeleton = (skeletonRef as PrefabReadable)
+                .readPrefab().getSampleInstance() as Skeleton
+            val bones = skeleton.bones
+
+            var time = 0f
+            var idx0 = 0
+            var idx1 = 0
+            var idxF = 0f
+
+            fun getTime(times: FloatArray) {
+                idx0 = times.binarySearch(time)
+                if (idx0 < 0) idx0 = -1 - idx0
+                idx0 = min(max(idx0 - 1, 0), times.size - 2)
+                idx1 = idx0 + 1
+                idxF = (time - times[idx0]) / (times[idx1] - times[idx0])
+            }
+
+            fun getVector3f(sampler: AnimSampler?, byNode: Vector3d?, default: Float, dst: Vector3f) {
+                if (sampler != null) {
+                    getTime(sampler.times!!)
+                    val values = sampler.values!!
+                    dst.set(values, idx0 * 3)
+                        .lerp(tmp3.set(values, idx1 * 3), idxF)
+                } else if (byNode != null) {
+                    dst.set(byNode)
+                } else dst.set(default)
+            }
+
+            fun getQuaternionf(sampler: AnimSampler?, byNode: Quaterniond?, dst: Quaternionf) {
+                if (sampler != null) {
+                    getTime(sampler.times!!)
+                    val values = sampler.values!!
+                    dst.set(values, idx0 * 4)
+                        .slerp(tmp4.set(values, idx1 * 4), idxF)
+                } else if (byNode != null) {
+                    dst.set(byNode)
+                } else dst.identity()
+            }
+
+            // calculate how many frames we need
+            val duration = samplers.maxOfOrNull { it.times?.last() ?: 0f } ?: 0f
+            val numFrames = max(samplers.maxOfOrNull { it.times?.size ?: 0 } ?: 0, 1)
+            val dt = if (duration > 0f) duration / numFrames else 0f
+
+            val jointNodes = jointNodes[skeletonId]
+            val skinningMatrices = (0 until numFrames).map { frameIndex ->
+                time = frameIndex * dt
+                for (i in sortedNodes.indices) {
+                    val node = sortedNodes[i]
+                    if (i == 0) assertTrue(node.parent == null)
+
+                    getVector3f(translateByNode[node.id], node.translation, 0f, pos)
+                    getVector3f(scaleByNode[node.id], node.scale, 1f, sca)
+                    getQuaternionf(rotateByNode[node.id], node.rotation, rot)
+
+                    val parent = node.parent
+                    if (parent != null) {
+                        node.globalJointTransform.set(parent.globalJointTransform)
+                    } else {
+                        node.globalJointTransform.identity()
+                    }
+
+                    node.globalJointTransform.translate(pos).rotate(rot).scale(sca)
+                }
+
+                jointNodes.map { node ->
+                    node.globalJointTransform
+                        .mul(bones[node.boneId].inverseBindPose, Matrix4x3f())
+                }
+            }
 
             val prefab = Prefab("ImportedAnimation")
-            // todo create the skinning matrices
+            prefab["skeleton"] = skeletonRef
+            prefab["duration"] = duration
+            prefab["frames"] = skinningMatrices
 
-            val animFolder = InnerFolder(animationFolder, nextName(animation.name, usedNames))
+            val imported = ImportedAnimation()
+            imported.skeleton = skeletonRef
+            imported.duration = duration
+            imported.frames = skinningMatrices
+            val bbbPrefab = createBoneByBone(imported, jointNodes.size, null, null)
+
+            val name = anim["name"] as? String ?: "Animation"
+            val animFolder = InnerFolder(animationFolder, nextName(name, usedNames))
+            animFolder.createPrefabChild("BoneByBone.json", bbbPrefab)
             animFolder.createPrefabChild("Imported.json", prefab)
-
-            animation
         }
     }
+
+    private val jointNodes = ArrayList<List<Node>>()
 
     private fun readSkins() {
         val tmp = Matrix4f()
@@ -312,11 +430,11 @@ class GLTFReader(val src: FileReference) {
             val prefab = Prefab("Skeleton")
 
             val joints = getList(src["joints"]).map { nodes[getInt(it)] }
+            jointNodes.add(joints)
             for (j in joints.indices) {
                 joints[j].boneId = j
             }
 
-            // todo we probably have to map boneIndices using this map
             val inverseBindMatrixId = getInt(src["inverseBindMatrices"], -1)
             val inverseBindMatrixData = loadFloatArray(inverseBindMatrixId, 16)!!
             val inverseBindMatrices = createList(joints.size) { boneId ->
@@ -334,7 +452,6 @@ class GLTFReader(val src: FileReference) {
             // todo link all animations
             val name = if (skins.isEmpty()) "Skeleton.json" else "Skeleton${skins.size}.json"
             skeletons1.createPrefabChild(name, prefab)
-            prefab
         }
     }
 
@@ -385,11 +502,15 @@ class GLTFReader(val src: FileReference) {
             }
         }
         if (node.mesh in meshes.indices) {
-            val clazz = if (node.skin in skins.indices) "AnimMeshComponent" else "MeshComponent"
+            val hasSkin = node.skin in skins.indices
+            val clazz = if (hasSkin) "AnimMeshComponent" else "MeshComponent"
             val meshes = meshes[node.mesh]
             for (i in meshes.indices) {
                 val meshPath = prefab.add(path, 'c', clazz, "Mesh$i")
                 prefab[meshPath, "meshFile"] = meshes[i]
+                if (hasSkin && animations.isNotEmpty()) {
+                    prefab[meshPath, "animations"] = listOf(AnimationState(animations.first(), 1f))
+                }
             }
         }
     }
@@ -564,8 +685,8 @@ class GLTFReader(val src: FileReference) {
                         "JOINTS_0" -> {
                             val indices = loadIntArray(id, 4)
                             if (indices != null) {
-                                prefab["boneIndices"] = ByteArray(indices.size) { boneId ->
-                                    clamp(boneId, 0, 255).toByte() // already is mapped properly
+                                prefab["boneIndices"] = ByteArray(indices.size) { boneIdX4 ->
+                                    clamp(indices[boneIdX4], 0, 255).toByte() // already is mapped properly
                                 }
                             }
                         }
@@ -575,8 +696,11 @@ class GLTFReader(val src: FileReference) {
                 prefab["indices"] = loadIntArray(getInt(prim["indices"], -1), 1)
                 prefab["drawMode"] = getInt(prim["mode"], DrawMode.TRIANGLES.id)
                 prefab["material"] = materials[getInt(prim["material"])]
+                // todo how do we decide the skeleton??
+                if (skins.isNotEmpty()) {
+                    prefab["skeleton"] = skins.first()
+                }
                 // todo read targets for morph targets
-                // todo read skins for skeletal animations
                 val name = nextName(prim["name"] as? String ?: "Node", usedNames)
                 meshFolder.createPrefabChild("$name.json", prefab)
             }
