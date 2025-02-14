@@ -1,7 +1,7 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.components.anim.Bone
-import me.anno.mesh.assimp.StaticMeshesLoader.convert
+import me.anno.mesh.assimp.StaticMeshesLoader.assimpToJoml4x3f
 import me.anno.utils.structures.Recursion
 import me.anno.utils.types.Matrices.sampleDistanceSquared
 import org.apache.logging.log4j.LogManager
@@ -65,7 +65,7 @@ object MissingBones {
                 LOGGER.warn("Mapping ${bonesWithIssue.size} bones:")
                 val nodeMatrices = sceneNodeList.map { (_, value) ->
                     // from parent bone to this bone
-                    convert(value.mTransformation())
+                    assimpToJoml4x3f(value.mTransformation())
                 }
                 for (boneNameWithIssue in bonesWithIssue) {
                     val bone = bones[boneNameWithIssue]!!

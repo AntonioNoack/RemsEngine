@@ -24,7 +24,7 @@ import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
 import me.anno.mesh.assimp.StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS
-import me.anno.mesh.assimp.StaticMeshesLoader.convert
+import me.anno.mesh.assimp.StaticMeshesLoader.assimpToJoml4x3f
 import me.anno.mesh.assimp.StaticMeshesLoader.createScene
 import me.anno.mesh.assimp.StaticMeshesLoader.loadFile
 import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
@@ -99,12 +99,10 @@ object AnimatedMeshesLoader {
 
     fun readAsFolder(file: FileReference, callback: InnerFolderCallback) {
 
-        val flags = DEFAULT_ASSIMP_FLAGS
-
         var name = file.nameWithoutExtension
         if (name.equals("scene", true)) name = file.getParent().name
 
-        loadFile(file, flags) { result, e ->
+        loadFile(file, DEFAULT_ASSIMP_FLAGS) { result, e ->
             if (result != null) {
                 val (aiScene1, isFBX1) = result
                 callback.ok(readAsFolder2(file, aiScene1, isFBX1, name))
@@ -115,6 +113,7 @@ object AnimatedMeshesLoader {
     }
 
     private fun readAsFolder2(file: FileReference, aiScene: AIScene, isFBX: Boolean, name: String): InnerFolder {
+
         val resources = file.getParent()
         val root = InnerFolder(file)
         val rootNode = aiScene.mRootNode()!!
@@ -330,10 +329,8 @@ object AnimatedMeshesLoader {
     }
 
     private fun correctBonePositions(
-        name: String,
-        rootNode: AINode,
-        boneList: List<Bone>,
-        boneMap: HashMap<String, Bone>
+        name: String, rootNode: AINode,
+        boneList: List<Bone>, boneMap: HashMap<String, Bone>
     ) {
         val (_, globalInvTransform) = findRootTransform(name, rootNode, boneMap)
         if (globalInvTransform != null) {
@@ -473,7 +470,7 @@ object AnimatedMeshesLoader {
     ): Matrix4x3f {
         val name = aiNode.mName().dataString()
         if (name in boneMap) return transform
-        val localTransform = convert(aiNode.mTransformation())
+        val localTransform = assimpToJoml4x3f(aiNode.mTransformation())
         // LOGGER.debug("$name0/$name:\n$localTransform")
         transform.mul(localTransform)
         if (aiNode.mNumChildren() == 1) {
@@ -673,7 +670,7 @@ object AnimatedMeshesLoader {
 
                 val aiBone = AIBone.create(aiBones[i])
                 val boneName = aiBone.mName().dataString()
-                val boneTransform = convert(aiBone.mOffsetMatrix())
+                val boneTransform = assimpToJoml4x3f(aiBone.mOffsetMatrix())
 
                 var bone = boneMap[boneName]
                 if (bone == null) {

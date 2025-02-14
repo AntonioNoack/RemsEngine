@@ -25,7 +25,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.mesh.assimp.AnimatedMeshesLoader.createBoneByBone
-import me.anno.mesh.assimp.CreateSceneNode.Companion.nextName
 import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.FILE_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.GL_BYTE
@@ -46,6 +45,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapCallback
+import me.anno.utils.files.Files.nextName
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortedByTopology

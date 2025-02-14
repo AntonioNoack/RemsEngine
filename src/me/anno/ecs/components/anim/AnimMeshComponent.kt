@@ -28,12 +28,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ITexture2D
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.structures.lists.Lists.sumOfLong
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
@@ -46,8 +44,6 @@ import kotlin.math.min
  * Renders a skeletal animation / applies animation to a mesh with bones
  * */
 open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
-
-    // todo in debug mode, we could render the skeleton as well/instead :)
 
     // maybe not the most efficient way, but it should work :)
     @Docs("Maps time & bone index onto local transform")

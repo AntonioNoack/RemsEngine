@@ -3,7 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.components.anim.Bone
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.mesh.assimp.StaticMeshesLoader.convert
+import me.anno.mesh.assimp.StaticMeshesLoader.assimpToJoml4x3f
 import me.anno.utils.search.BinarySearch
 import me.anno.utils.search.BinarySearch.binarySearch
 import org.joml.Matrix4x3f
@@ -151,7 +151,7 @@ object AnimationLoader {
     ) {
 
         val name = aiNode.mName().dataString()
-        val localTransform = convert(aiNode.mTransformation())
+        val localTransform = assimpToJoml4x3f(aiNode.mTransformation())
         val nodeAnim = animNodeCache[name]
 
         val nextIsRootAnim = if (nodeAnim != null) {

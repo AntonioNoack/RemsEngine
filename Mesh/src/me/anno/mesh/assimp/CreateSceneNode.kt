@@ -1,7 +1,7 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.prefab.change.Path
-import me.anno.utils.files.Files.findNextName
+import me.anno.utils.files.Files.nextName
 import me.anno.utils.types.Strings.ifBlank2
 import org.joml.Matrix4x3d
 import org.lwjgl.assimp.AINode
@@ -35,16 +35,5 @@ class CreateSceneNode(
         }
         totalMeshes = sum
         return sum
-    }
-
-    companion object {
-        fun nextName(pathName0: String, usedNames: HashSet<String>): String {
-            var pathName = pathName0.ifBlank2("Node")
-            while (pathName in usedNames) {
-                pathName = findNextName(pathName, '-')
-            }
-            usedNames.add(pathName)
-            return pathName
-        }
     }
 }

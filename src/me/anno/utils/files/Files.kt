@@ -5,6 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
+import me.anno.utils.types.Strings.ifBlank2
 
 object Files {
 
@@ -146,6 +147,15 @@ object Files {
         val newNumberStr = "$newNumber".padStart(digitsLength, '0')
         return if (separator.code == 0) "$partString$newNumberStr"
         else "$partString$separator$newNumberStr"
+    }
+
+    fun nextName(pathName0: String, usedNames: HashSet<String>): String {
+        var pathName = pathName0.ifBlank2("Node")
+        while (pathName in usedNames) {
+            pathName = findNextName(pathName, '-')
+        }
+        usedNames.add(pathName)
+        return pathName
     }
 
     fun Long.formatFileSize(): String =

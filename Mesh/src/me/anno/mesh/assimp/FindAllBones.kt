@@ -1,7 +1,7 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.components.anim.Bone
-import me.anno.mesh.assimp.StaticMeshesLoader.convert
+import me.anno.mesh.assimp.StaticMeshesLoader.assimpToJoml4x3f
 import org.joml.Matrix4x3f
 import org.lwjgl.assimp.AIAnimation
 import org.lwjgl.assimp.AIBone
@@ -75,7 +75,7 @@ private fun findAllBones1(
 ) {
 
     val name = aiNode.mName().dataString()
-    val localTransform = convert(aiNode.mTransformation())
+    val localTransform = assimpToJoml4x3f(aiNode.mTransformation())
 
     // multiply with the parent transform, if it exists
     nodeTransformParent?.mul(localTransform, localTransform)
@@ -87,7 +87,7 @@ private fun findAllBones1(
             bone
         }
         bone.setBindPose(localTransform)
-        convert(aiNode.mTransformation(), bone.relativeTransform)
+        assimpToJoml4x3f(aiNode.mTransformation(), bone.relativeTransform)
         bone.parentId = lastBoneId
         bone.id
     } else {

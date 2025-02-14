@@ -25,6 +25,7 @@ import me.anno.utils.ForLoop.forLoop
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.files.Files.nextName
 import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
@@ -223,13 +224,27 @@ object StaticMeshesLoader {
 
         val name = aiRoot.mName().dataString()
         if (!name.isBlank2()) {
-            deepPrefab.setUnsafe(ROOT_PATH, "name", name)
+            deepPrefab["name"] = name
+            flatPrefab["name"] = name
         }
 
         val root = createSceneTree(aiRoot, name)
         root.countMeshes()
 
         val meshesByTransform = HashMap<Matrix4x3d, ArrayList<CreateSceneNode>>()
+        createDeepPrefab(deepPrefab, root, meshesByTransform, hasSkeleton, sceneMeshes)
+        createFlatPrefab(flatPrefab, meshesByTransform, hasSkeleton, sceneMeshes)
+
+        loadLights(aiScene, deepPrefab) // todo test loading lights
+        loadCameras(aiScene, deepPrefab) // todo test loading cameras
+        return deepPrefab to flatPrefab
+    }
+
+    private fun createDeepPrefab(
+        deepPrefab: Prefab, root: CreateSceneNode,
+        meshesByTransform: HashMap<Matrix4x3d, ArrayList<CreateSceneNode>>,
+        hasSkeleton: Boolean, sceneMeshes: List<FileReference>,
+    ) {
         Recursion.processRecursive(root) { node, remaining ->
             val aiNode = node.aiNode
             val path = node.path
@@ -237,7 +252,7 @@ object StaticMeshesLoader {
             val transform = Matrix4x3d()
             createSceneSetTransform(aiNode, deepPrefab, path, transform)
             createSceneAddMeshes(sceneMeshes, hasSkeleton, aiNode, deepPrefab, path)
-            node.parent?.transform?.mul(transform)
+            node.parent?.transform?.mul(transform,transform)
             node.transform = transform
 
             if (aiNode.mNumMeshes() > 0) {
@@ -260,38 +275,26 @@ object StaticMeshesLoader {
                 remaining.add(childNode)
             }
         }
-
-        createFlatPrefab(flatPrefab, root, meshesByTransform, hasSkeleton, sceneMeshes)
-
-        loadLights(aiScene, deepPrefab) // todo test loading lights
-        loadCameras(aiScene, deepPrefab) // todo test loading cameras
-        return deepPrefab to flatPrefab
     }
 
     private fun createFlatPrefab(
-        prefab: Prefab, root: CreateSceneNode,
-        meshesByTransform: Map<Matrix4x3d, List<CreateSceneNode>>,
+        prefab: Prefab, meshesByTransform: Map<Matrix4x3d, List<CreateSceneNode>>,
         hasSkeleton: Boolean, sceneMeshes: List<FileReference>
     ) {
-        val rootTransform = root.transform
-        val rootTransformInv = rootTransform.invert(Matrix4x3d())
         var i = 0
         val usedNames0 = HashSet<String>()
+        val isRoot = meshesByTransform.size == 1
         for ((transform, nodes) in meshesByTransform) {
-            val isRoot = transform == rootTransform
             var name = nodes.map { it.originalName }
                 .firstOrNull { it.isNotBlank2() && it !in usedNames0 }
                 ?: "Node${i++}"
-            name = CreateSceneNode.nextName(name, usedNames0)
+            name = nextName(name, usedNames0)
 
             val path = if (isRoot) ROOT_PATH
             else prefab.add(ROOT_PATH, 'e', "Entity", name)
             prefab[path, "name"] = name
 
-            val relativeTransform = if (isRoot) transform
-            else rootTransformInv.mul(transform, Matrix4x3d())
-
-            setTransform(prefab, path, relativeTransform)
+            setTransform(prefab, path, transform)
 
             val usedNames = HashSet<String>()
             for (j in nodes.indices) {
@@ -302,7 +305,7 @@ object StaticMeshesLoader {
                 val meshIndices = assertNotNull(aiNode.mMeshes())
                 for (k in 0 until meshCount) {
                     val mesh = sceneMeshes[meshIndices[k]]
-                    val compName = CreateSceneNode.nextName(mesh.name, usedNames)
+                    val compName = nextName(mesh.name, usedNames)
                     val meshComponent = prefab.add(path, 'c', rendererClass, compName)
                     prefab.setUnsafe(meshComponent, "meshFile", mesh)
                 }
@@ -332,9 +335,9 @@ object StaticMeshesLoader {
         return root
     }
 
-    private fun createSceneSetTransform(aiNode: AINode, prefab: Prefab, path: Path, tmpMatrix: Matrix4x3d) {
-        val transform = convert2(aiNode.mTransformation(), tmpMatrix)
-        setTransform(prefab, path, transform)
+    private fun createSceneSetTransform(aiNode: AINode, prefab: Prefab, path: Path, dst: Matrix4x3d) {
+        assimpToJoml4x3d(aiNode.mTransformation(), dst)
+        setTransform(prefab, path, dst)
     }
 
     private fun setTransform(prefab: Prefab, path: Path, transform: Matrix4x3d) {
@@ -365,7 +368,7 @@ object StaticMeshesLoader {
             val usedNames = HashSet<String>(max(meshCount, 16))
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
-                val name = CreateSceneNode.nextName(mesh.name, usedNames)
+                val name = nextName(mesh.name, usedNames)
                 val meshComponent = prefab.add(path, 'c', rendererClass, name)
                 prefab.setUnsafe(meshComponent, "meshFile", mesh)
             }
@@ -891,7 +894,7 @@ object StaticMeshesLoader {
         } else null
     }
 
-    fun convert(m: AIMatrix4x4, dst: Matrix4x3f = Matrix4x3f()): Matrix4x3f {
+    fun assimpToJoml4x3f(m: AIMatrix4x4, dst: Matrix4x3f = Matrix4x3f()): Matrix4x3f {
         return dst.set(
             m.a1(), m.b1(), m.c1(),
             m.a2(), m.b2(), m.c2(),
@@ -900,7 +903,7 @@ object StaticMeshesLoader {
         )
     }
 
-    fun convert2(m: AIMatrix4x4, dst: Matrix4x3d = Matrix4x3d()): Matrix4x3d {
+    fun assimpToJoml4x3d(m: AIMatrix4x4, dst: Matrix4x3d = Matrix4x3d()): Matrix4x3d {
         return dst.set(
             m.a1().toDouble(), m.b1().toDouble(), m.c1().toDouble(),
             m.a2().toDouble(), m.b2().toDouble(), m.c2().toDouble(),

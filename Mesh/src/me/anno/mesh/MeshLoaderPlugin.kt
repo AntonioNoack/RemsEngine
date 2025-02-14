@@ -68,7 +68,7 @@ class MeshLoaderPlugin : Plugin() {
     override fun onDisable() {
         InnerFolderCache.unregisterSignatures(
             "fbx,gltf,dae,draco,md2,md5mesh,blend,ply," +
-                    "obj,mtl,maya,mitsuba-meshes,mitsuba-scene"
+                    "obj,mtl,maya,mitsuba-meshes,mitsuba-scene,json"
         )
     }
 }
