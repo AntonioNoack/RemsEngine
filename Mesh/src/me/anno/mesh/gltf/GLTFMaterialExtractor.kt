@@ -6,6 +6,7 @@ import me.anno.io.json.generic.JsonReader
 import me.anno.utils.types.AnyToFloat.getFloat
 import java.io.InputStream
 
+// todo this can be removed once our GLTF reader has been thoroughly tested
 object GLTFMaterialExtractor {
 
     data class PBRMaterialData(val metallic: Float, val roughness: Float)

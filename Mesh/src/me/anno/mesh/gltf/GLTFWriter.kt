@@ -355,22 +355,25 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         )
     }
 
-    private fun createInverseBindMatrixView(data: List<Bone>): Int {
-        alignBinary(64)
+    private val tmp16 = FloatArray(16)
+    private val ibmOrder = intArrayOf(
+        0, 1, 2, 12,
+        3, 4, 5, 13,
+        6, 7, 8, 14,
+        9, 10, 11, 15
+    )
+
+    private fun createInverseBindMatrixView(bones: List<Bone>): Int {
+        alignBinary(16 * 4)
         val pos = binary.size()
-        val tmp = FloatArray(16)
-        tmp[15] = 1f // last row must be 0,0,0,1
-        for (v in data) {
-            v.inverseBindPose.get(tmp)
-            for (i in tmp.indices) {
-                val j = i.and(3).shl(2) or i.shr(2) // transpose the matrix
-                binary.writeLE32(tmp[j])
+        tmp16[15] = 1f // last row must be 0,0,0,1
+        for (i in bones.indices) {
+            bones[i].inverseBindPose.get(tmp16)
+            for (j in ibmOrder.indices) {
+                binary.writeLE32(tmp16[ibmOrder[j]])
             }
         }
-        return addBuffer(
-            "MAT4", GL_FLOAT, data.size, false, null, null,
-            pos, 0, 0
-        )
+        return addBuffer("MAT4", GL_FLOAT, bones.size, false, null, null, pos, 0, 0)
     }
 
     private fun createUVView(data: FloatArray): Int {
@@ -430,23 +433,6 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun writeEntityAttributes(node: Entity) {
-        if (countMeshes(node) == 1) {
-            val mesh = node.components
-                .filterIsInstance<MeshComponentBase>()
-                .firstNotNullOfOrNull {
-                    val mesh = it.getMesh() as? Mesh
-                    if (mesh != null) Pair(it, mesh) else null
-                }
-            if (mesh != null) {
-                attr("mesh")
-                write(meshes.nextId(getMeshData(mesh.first, mesh.second)))
-                val skin = meshCompToSkin[mesh.first]
-                if (skin != null) {
-                    attr("skin")
-                    write(skin)
-                }
-            }
-        }
 
         val camera = node.components
             .filterIsInstance<Camera>()
@@ -663,7 +649,6 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         writeObject {
             attr("mode", mode.id) // triangles / triangle-strip, ...
             attr("material", materials.nextId(MaterialData(material, cullMode)))
-
             if (indices != null) attr("indices", createIndicesView(indices, mode, cullMode))
             writeMeshAttributes()
         }
@@ -756,19 +741,13 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun writeMeshCompAttributes(node: MeshComponent) {
         val name = node.name
-        if (name.isNotEmpty()) {
-            attr("name")
-            write(name)
-        }
+        if (name.isNotEmpty()) attr("name", name)
         val mesh = node.getMesh()
         if (mesh != null) {
             attr("mesh")
             write(meshes.nextId(getMeshData(node, mesh)))
             val skin = meshCompToSkin[node]
-            if (skin != null) {
-                attr("skin")
-                write(skin)
-            }
+            if (skin != null) attr("skin", skin)
         }
     }
 
@@ -799,7 +778,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         attr("rotation")
         write(m.getUnnormalizedRotation(Quaternionf()))
         val sc = m.getScale(Vector3f())
-        if (sc.distanceSquared(1f, 1f, 1f) > 1e-3f) {
+        if (sc.distanceSquared(1f, 1f, 1f) > 1e-12f) {
             attr("scale")
             write(sc)
         }
@@ -879,14 +858,21 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 nodes.add(MeshComponent(scene))
                 children.add(IntArrayList(0))
                 meshes[MeshData(scene, emptyList(), emptyList())] = 0
+
                 callback(null)
             }
             is MeshComponentBase -> {
                 val mesh = scene.getMesh()
                 if (mesh is Mesh) {
                     nodes.add(scene)
-                    children.add(IntArrayList(0))
+                    val childIndices = IntArrayList(0)
+                    children.add(childIndices)
                     meshes[getMeshData(scene, mesh)] = 0
+
+                    if (scene is AnimMeshComponent && scene.animations.isNotEmpty()) {
+                        defineSkin(scene, scene.getMesh()!!, childIndices)
+                    }
+
                     callback(null)
                 } else callback(IllegalArgumentException("Missing mesh"))
             }
@@ -1009,25 +995,24 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             for (i in frameTimes.indices) {
                 frameTimes[i] = dt * i
             }
-            val inputAccessor = createVectorView(frameTimes, "SCALAR", 1, 0)
+            val timeAccessor = createVectorView(frameTimes, "SCALAR", 1, 0)
             val accessor0 = accessors.size
-            var ci = 0
+            var numChannels = 0
             attr("channels")
+            val resultInv = createArrayList(bones.size) { Matrix4x3f() }
             writeArray {
-                val tmp = Matrix4x3f()
                 val matrices = frameTimes.indices.map { frameIndex ->
                     val result = createArrayList(bones.size) { Matrix4x3f() }
-                    // todo this matrix or the inverse-bind-matrices are incorrect
-                    //  -> we need the local position, rotation and scale, not the global offset
-                    //  -> inverse of AnimationLoader.readAnimationFrame
-                    // skinning = (parent * local) * binePose^-1 | we want local
+                    // skinning = (parent * local) * bindPose^-1 | we want local
                     // -> skinning * bindPose = (parent * local)
+                    // -> parent^-1 * skinning * bonePose = local
                     val skinning = animation.getMappedMatrices(frameIndex, result, skeleton.ref)!!
                     for (boneId in bones.indices) {
                         val bone = bones[boneId]
-                        val dst = skinning[boneId].mul(bone.bindPose, result[boneId])
+                        val global = skinning[boneId].mul(bone.bindPose, result[boneId])
+                        global.invert(resultInv[boneId])
                         if (bone.parentId in bones.indices) {
-                            result[bone.parentId].invert(tmp).mul(dst, dst)
+                            resultInv[bone.parentId].mul(global, global) // -> local
                         }
                     }
                     result
@@ -1048,21 +1033,18 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                     createVectorView(rot, "VEC4", 4, 0)
                     createVectorView(sca, "VEC3", 3, 0)
                     val node = boneId + baseId
-                    writeAnimationChannel(node, "translation", ci++)
-                    writeAnimationChannel(node, "rotation", ci++)
-                    writeAnimationChannel(node, "scale", ci++)
+                    writeAnimationChannel(node, "translation", numChannels++)
+                    writeAnimationChannel(node, "rotation", numChannels++)
+                    writeAnimationChannel(node, "scale", numChannels++)
                 }
             }
             attr("samplers")
             writeArray { // lots of repetitive data :/
-                for (i in 0 until ci) {
+                for (channelId in 0 until numChannels) {
                     writeObject {
-                        attr("input")
-                        write(inputAccessor)
-                        attr("interpolation")
-                        write("LINEAR") // ok?, or should be use cubic?
-                        attr("output")
-                        write(accessor0 + i)
+                        attr("input", timeAccessor)
+                        attr("interpolation", "LINEAR")
+                        attr("output", accessor0 + channelId)
                     }
                 }
             }

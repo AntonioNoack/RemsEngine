@@ -1,4 +1,4 @@
-package me.anno.tests.mesh.gltf
+package me.anno.tests.mesh.gltf.writer
 
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabCache
