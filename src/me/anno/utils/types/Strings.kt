@@ -382,8 +382,8 @@ object Strings {
      * allocation free ifBlank()
      * */
     @JvmStatic
-    fun <V : CharSequence> V.ifBlank2(other: V): V {
-        return if (isBlank2()) other else this
+    fun <V : CharSequence> V?.ifBlank2(other: V): V {
+        return if (this == null || isBlank2()) other else this
     }
 
     @JvmStatic

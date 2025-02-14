@@ -19,6 +19,7 @@ import me.anno.io.Streams.readLE32F
 import me.anno.io.base64.Base64
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.temporary.InnerTmpByteFile
 import me.anno.io.json.generic.JsonReader
 import me.anno.maths.Maths.clamp
@@ -46,6 +47,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.files.Files.nextName
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortedByTopology
@@ -54,9 +56,12 @@ import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.Arrays.readLE32
+import me.anno.utils.types.Strings.ifBlank2
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 import org.joml.Matrix4f
+import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -68,13 +73,13 @@ import org.joml.Vector4f
 import java.io.IOException
 
 /**
- * todo implement a GLTF-reader,
+ * implement a GLTF-reader,
  *  so we can get rid of that aspect of Assimp, and have the proper materials;
  *  we also could support some of their extensions in the future
+ *
+ * todo sample-read complex GLB, like the Japanese Town Square thingy
  * */
 class GLTFReader(val src: FileReference) {
-
-    // todo read double-sided
 
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
@@ -109,7 +114,6 @@ class GLTFReader(val src: FileReference) {
     private val animations = ArrayList<FileReference>()
     private val skins = ArrayList<FileReference>()
     private val nodes = ArrayList<Node>()
-    private val scenes = ArrayList<Prefab>()
 
     private fun decodeDataURI(uri: String): ByteArray {
         // data:application/gltf-buffer;base64,
@@ -250,7 +254,12 @@ class GLTFReader(val src: FileReference) {
         return dst
     }
 
-    private inline fun forEachMap(instance: Any?, map: (Map<*, *>) -> Unit) {
+    @Suppress("SameParameterValue")
+    private inline fun forEachEntry(attrName: String, map: (Map<*, *>) -> Unit) {
+        forEachEntry(json[attrName], map)
+    }
+
+    private inline fun forEachEntry(instance: Any?, map: (Map<*, *>) -> Unit) {
         val list = getList(instance)
         for (i in list.indices) {
             map(getMap(list[i]))
@@ -288,10 +297,54 @@ class GLTFReader(val src: FileReference) {
             node1.skin = getInt(node["skin"], -1)
             node1
         }
-        for (node in nodes) {
+        setParentNodes()
+        markHasMeshes()
+        calculateGlobalTransform()
+    }
+
+    private fun setParentNodes() {
+        for (i in nodes.indices) {
+            val node = nodes[i]
             for (child in node.children) {
                 nodes[child].parent = node
             }
+        }
+    }
+
+    private fun markHasMeshes() {
+        for (i in nodes.indices) {
+            val node = nodes[i]
+            if (node.mesh >= 0) {
+                markHasMeshesUntilRoot(node)
+            }
+        }
+    }
+
+    private fun calculateGlobalTransform() {
+        for (i in nodes.indices) {
+            val node = nodes[i]
+            if (node.globalTransform != null) continue
+            calculateGlobalTransform(node)
+        }
+    }
+
+    private fun calculateGlobalTransform(node: Node) {
+        val parent = node.parent
+        if (parent != null && parent.globalTransform == null) calculateGlobalTransform(parent)
+        val transform = if (parent != null) Matrix4x3d(parent.globalTransform!!) else Matrix4x3d()
+        val translation = node.translation
+        val rotation = node.rotation
+        val scale = node.scale
+        if (translation != null) transform.translate(translation)
+        if (rotation != null) transform.rotate(rotation)
+        if (scale != null) transform.scale(scale)
+        node.globalTransform = transform
+    }
+
+    private fun markHasMeshesUntilRoot(node: Node) {
+        if (!node.hasMeshes) {
+            node.hasMeshes = true
+            markHasMeshesUntilRoot(node.parent ?: return)
         }
     }
 
@@ -329,7 +382,7 @@ class GLTFReader(val src: FileReference) {
             rotateByNode.fill(null)
             scaleByNode.fill(null)
 
-            forEachMap(anim["channels"]) { node ->
+            forEachEntry(anim["channels"]) { node ->
                 val sampler = samplers[getInt(node["sampler"])]
                 val target = getMap(node["target"])
                 val targetNode = getInt(target["node"])
@@ -401,13 +454,14 @@ class GLTFReader(val src: FileReference) {
                     getQuaternionf(rotateByNode[node.id], node.rotation, rot)
 
                     val parent = node.parent
+                    val jointTransform = node.globalJointTransform
                     if (parent != null) {
-                        node.globalJointTransform.set(parent.globalJointTransform)
+                        jointTransform.set(parent.globalJointTransform)
+                            .translate(pos).rotate(rot).scale(sca)
                     } else {
-                        node.globalJointTransform.identity()
+                        jointTransform
+                            .translationRotateScale(pos, rot, sca)
                     }
-
-                    node.globalJointTransform.translate(pos).rotate(rot).scale(sca)
                 }
 
                 jointNodes.map { node ->
@@ -461,7 +515,7 @@ class GLTFReader(val src: FileReference) {
                 Matrix4x3f().set(tmp)
             }
             val bones = joints.mapIndexed { boneId, node ->
-                val bone = Bone(boneId, node.parent?.boneId ?: -1, node.name ?: "Bone$boneId")
+                val bone = Bone(boneId, node.parent?.boneId ?: -1, node.name.ifBlank2("Bone$boneId"))
                 bone.setInverseBindPose(inverseBindMatrices[boneId])
                 bone
             }
@@ -476,28 +530,71 @@ class GLTFReader(val src: FileReference) {
         val scenesFolder = InnerFolder(innerFolder, "scenes")
         val usedNames = HashSet<String>()
         var nextSceneId = 0
-        forEachMap("scenes", scenes) { scene ->
-            val prefab = Prefab("Entity")
-            if (scene["name"] is String) prefab["name"] = scene["name"]
-            val nodes = getList(scene["nodes"]).map { nodes[getInt(it)] }
-            if (nodes.size != 1) {
+        forEachEntry("scenes") { scene ->
+
+            val deepPrefab = Prefab("Entity")
+            val flatPrefab = Prefab("Entity")
+            val sceneName = scene["name"]
+            if (sceneName is String && !sceneName.isBlank2()) {
+                deepPrefab["name"] = sceneName
+                flatPrefab["name"] = sceneName
+            }
+
+            val rootNodes = getList(scene["nodes"]).map { nodes[getInt(it)] }
+            if (rootNodes.size != 1) {
                 // multiple roots -> append to single root
                 val usedNames1 = HashSet<String>()
-                for (node in nodes) {
-                    addNode(prefab, Path.ROOT_PATH, node, usedNames1)
+                for (i in rootNodes.indices) {
+                    val node = rootNodes[i]
+                    if (node.hasMeshes) {
+                        addNode(deepPrefab, Path.ROOT_PATH, node, usedNames1)
+                    }
                 }
             } else {
                 // single root
-                writeNode(prefab, Path.ROOT_PATH, nodes.first())
+                writeNode(deepPrefab, Path.ROOT_PATH, rootNodes.first())
             }
+
+            createFlatPrefab(rootNodes, flatPrefab)
+
             val sceneId = nextSceneId++
-            val fileName = nextName(prefab.instanceName ?: "Scene", usedNames)
+            val fileName = nextName(deepPrefab.instanceName ?: "Scene", usedNames)
+
+            val file = scenesFolder.createPrefabChild("$fileName.json", deepPrefab)
             if (sceneId == mainScene) {
-                innerFolder.createPrefabChild("Scene.json", prefab)
-            } else {
-                scenesFolder.createPrefabChild("$fileName.json", prefab)
+                InnerLinkFile(innerFolder, "Scene.json", file)
+                innerFolder.createPrefabChild("FlatScene.json", flatPrefab)
             }
-            prefab
+        }
+    }
+
+    private fun createFlatPrefab(rootNodes: List<Node>, prefab: Prefab) {
+        val meshesByTransform = HashMap<Matrix4x3d, ArrayList<Node>>()
+        Recursion.processRecursive2(rootNodes) { node, remaining ->
+            if (node.hasMeshes) {
+                if (node.mesh >= 0) {
+                    meshesByTransform.getOrPut(node.globalTransform!!, ::ArrayList)
+                        .add(node)
+                }
+                for (child in node.children) {
+                    remaining.add(nodes[child])
+                }
+            }
+        }
+
+        val isRoot = meshesByTransform.size == 1
+        val usedNames = HashSet<String>()
+        for ((transform, meshes) in meshesByTransform) {
+
+            val name0 = meshes.firstNotNullOfOrNull { it.name } ?: "Node"
+            val path = if (isRoot) Path.ROOT_PATH
+            else prefab.add(Path.ROOT_PATH, 'e', "Entity", nextName(name0, usedNames))
+
+            writeNodeTransform(prefab, path, transform)
+            val usedNames1 = HashSet<String>()
+            for (i in meshes.indices) {
+                writeNodeMesh(prefab, path, meshes[i], usedNames1)
+            }
         }
     }
 
@@ -507,26 +604,54 @@ class GLTFReader(val src: FileReference) {
         writeNode(prefab, path, node)
     }
 
-    private fun writeNode(prefab: Prefab, path: Path, node: Node) {
+    private fun writeNode(prefab: Prefab, path0: Path, node0: Node) {
+        node0.path = path0
+        Recursion.processRecursive(node0) { node, remaining ->
+            writeNodeTransform(prefab, node.path, node)
+            writeNodeMesh(prefab, node.path, node, HashSet())
+            findNodeChildren(node, prefab, remaining)
+        }
+    }
+
+    private fun writeNodeMesh(prefab: Prefab, path: Path, node: Node, usedNames: HashSet<String>) {
+        val meshes = meshes.getOrNull(node.mesh) ?: return
+        val hasSkin = node.skin in skins.indices
+        val clazz = if (hasSkin) "AnimMeshComponent" else "MeshComponent"
+        for (i in meshes.indices) {
+            val meshFile = meshes[i]
+            val name = nextName(meshFile.nameWithoutExtension, usedNames)
+            val meshPath = prefab.add(path, 'c', clazz, name)
+            prefab[meshPath, "meshFile"] = meshFile
+            if (hasSkin && animations.isNotEmpty()) {
+                prefab[meshPath, "animations"] = listOf(AnimationState(animations.first(), 1f))
+            }
+        }
+    }
+
+    private fun writeNodeTransform(prefab: Prefab, path: Path, node: Node) {
         if (node.translation != null) prefab[path, "position"] = node.translation
         if (node.rotation != null) prefab[path, "rotation"] = node.rotation
         if (node.scale != null) prefab[path, "scale"] = node.scale
-        if (node.children.isNotEmpty()) {
-            val usedNames = HashSet<String>()
-            for (child in node.children) {
-                addNode(prefab, path, nodes[child], usedNames)
-            }
-        }
-        if (node.mesh in meshes.indices) {
-            val hasSkin = node.skin in skins.indices
-            val clazz = if (hasSkin) "AnimMeshComponent" else "MeshComponent"
-            val meshes = meshes[node.mesh]
-            for (i in meshes.indices) {
-                val meshPath = prefab.add(path, 'c', clazz, "Mesh$i")
-                prefab[meshPath, "meshFile"] = meshes[i]
-                if (hasSkin && animations.isNotEmpty()) {
-                    prefab[meshPath, "animations"] = listOf(AnimationState(animations.first(), 1f))
-                }
+    }
+
+    private fun writeNodeTransform(prefab: Prefab, path: Path, transform: Matrix4x3d) {
+        val translation = transform.getTranslation(Vector3d())
+        val rotation = transform.getUnnormalizedRotation(Quaterniond())
+        val scale = transform.getScale(Vector3d())
+        if (translation.lengthSquared() > 0.0) prefab[path, "position"] = translation
+        if (rotation.w != 1.0) prefab[path, "rotation"] = rotation
+        if (scale.distanceSquared(1.0, 1.0, 1.0) > 1e-16) prefab[path, "scale"] = scale
+    }
+
+    private fun findNodeChildren(parent: Node, prefab: Prefab, remaining: ArrayList<Node>) {
+        if (parent.children.isEmpty()) return
+        val usedNames = HashSet<String>()
+        for (childIdx in parent.children) {
+            val child = nodes[childIdx]
+            if (child.hasMeshes) {
+                val name = nextName(child.name ?: "Node", usedNames)
+                child.path = prefab.add(parent.path, 'e', "Entity", name)
+                remaining.add(child)
             }
         }
     }
@@ -722,11 +847,12 @@ class GLTFReader(val src: FileReference) {
     private fun readMeshes() {
         val usedNames = HashSet<String>()
         forEachMap("meshes", meshes) { mesh ->
+            val name = mesh["name"] as? String
             forEachMap(mesh["primitives"], ArrayList()) { prim ->
                 val prefab = Prefab("Mesh")
-                for ((name, value) in getMap(prim["attributes"])) {
+                for ((attrName, value) in getMap(prim["attributes"])) {
                     val id = getInt(value)
-                    when (name) {
+                    when (attrName) {
                         "POSITION" -> prefab["positions"] = loadFloatArray(id, 3)
                         "NORMAL" -> prefab["normals"] = loadFloatArray(id, 3)
                         "TANGENT" -> prefab["tangents"] = loadFloatArray(id, 4)
@@ -763,8 +889,9 @@ class GLTFReader(val src: FileReference) {
                     prefab["skeleton"] = skins.first()
                 }
                 // todo read targets for morph targets
-                val name = nextName(prim["name"] as? String ?: "Node", usedNames)
-                meshFolder.createPrefabChild("$name.json", prefab)
+                val name0 = prim["name"] as? String ?: name ?: "Mesh"
+                val name1 = nextName(name0, usedNames)
+                meshFolder.createPrefabChild("$name1.json", prefab)
             }
         }
     }

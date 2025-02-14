@@ -1,5 +1,7 @@
 package me.anno.mesh.gltf.reader
 
+import me.anno.ecs.prefab.change.Path
+import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -12,42 +14,19 @@ class Node(val id: Int) {
 
     var boneId = -1
 
+    var globalTransform: Matrix4x3d? = null // used for FlatScene.json
     var translation: Vector3d? = null
     var rotation: Quaterniond? = null
     var scale: Vector3d? = null
 
-    val globalJointTransform = Matrix4x3f()
+    val globalJointTransform = Matrix4x3f() // used for animation-calculations
 
     var skin = -1
     var mesh = -1
 
-    fun calculateGlobalTransform() {
-        val parent = parent
-        parent?.calculateGlobalTransform()
+    var hasMeshes = false // used to remove nodes without meshes
 
-        if (parent != null) globalJointTransform.set(parent.globalJointTransform)
-        else globalJointTransform.identity()
-
-        val translation = translation
-        val rotation = rotation
-        val scale = scale
-        if (translation != null) globalJointTransform.translate(
-            translation.x.toFloat(),
-            translation.y.toFloat(),
-            translation.z.toFloat()
-        )
-        if (rotation != null) globalJointTransform.rotate(
-            rotation.x.toFloat(),
-            rotation.y.toFloat(),
-            rotation.z.toFloat(),
-            rotation.w.toFloat()
-        )
-        if (scale != null) globalJointTransform.scale(
-            scale.x.toFloat(),
-            scale.y.toFloat(),
-            scale.z.toFloat()
-        )
-    }
+    lateinit var path: Path // used when writing Scene.json
 
     override fun toString(): String {
         return "Node[$mesh,'$name',$children]"

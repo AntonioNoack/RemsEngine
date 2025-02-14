@@ -365,18 +365,18 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
                 val pos2 = Vector3d()
                 MovingGrid.alpha = 1f
                 val bones = skeleton.bones
-                val offset = bones.sumOf { it.length(bones).toDouble() } / bones.size
+                val scale = bones.sumOf { it.length(bones).toDouble() } / bones.size
                 for (i in 0 until min(bones.size, matrices.size)) {
                     val bone = bones[i]
                     pos1.set(bone.bindPosition)
 
                     matrices[i].transformPosition(pos1)
-                    pos1.add(offset, 0.0, 0.0, pos2)
+                    pos1.add(scale, 0.0, 0.0, pos2)
 
                     drawLine(transform, pos1, pos2, -1)
-                    pos2.x += 0.005
-                    pos2.y -= 0.006
-                    drawTextMesh(pipeline, bone.name, pos2, null, 0.02, transform)
+                    pos2.x += 0.025 * scale
+                    pos2.y -= 0.030 * scale
+                    drawTextMesh(pipeline, bone.name, pos2, null, 0.1 * scale, transform)
                 }
             }
 
