@@ -108,8 +108,6 @@ class GLTFReader(val src: FileReference) {
     private val accessors = ArrayList<Accessor>()
     private val materials = ArrayList<FileReference>()
     private val meshes = ArrayList<List<FileReference>>()
-    private val images = ArrayList<FileReference>()
-    private val samplers = ArrayList<Sampler>()
     private val textures = ArrayList<Texture>()
     private val animations = ArrayList<FileReference>()
     private val skins = ArrayList<FileReference>()
@@ -140,6 +138,12 @@ class GLTFReader(val src: FileReference) {
         val reader = JsonReader(bytes)
         json = reader.readObject()
 
+        val error0 = getMissingExtension()
+        if (error0 != null) {
+            callback.err(error0)
+            return
+        }
+
         val bufferFiles =
             getList(json["buffers"]).map { buffer0 ->
                 val buffer = buffer0 as? Map<*, *> ?: emptyMap<Any?, Any?>()
@@ -169,8 +173,12 @@ class GLTFReader(val src: FileReference) {
         }
 
         readChunks(input, fileSize)
-        readCommon()
-        callback.ok(innerFolder)
+
+        val error0 = getMissingExtension()
+        if (error0 == null) {
+            readCommon()
+            callback.ok(innerFolder)
+        } else callback.err(error0)
     }
 
     private fun readChunks(input: ByteArray, fileSize: Int) {
@@ -198,12 +206,19 @@ class GLTFReader(val src: FileReference) {
         else readTextGLTF(input, callback)
     }
 
+    private fun getMissingExtension(): Exception? {
+        val requiredExtensions = getList(json["extensionsRequired"])
+        if ("KHR_draco_mesh_compression" in requiredExtensions)
+            return IOException("Missing KHR_draco_mesh_compression")
+        return null
+    }
+
     private fun readCommon() {
         readBufferViews()
         readAccessors()
-        readSamplers()
-        readImages()
-        readTextures()
+        val samplers = readSamplers()
+        val images = readImages()
+        readTextures(images, samplers)
         readMaterials()
         readNodes()
         readSkins()
@@ -408,11 +423,21 @@ class GLTFReader(val src: FileReference) {
             var idxF = 0f
 
             fun getTime(times: FloatArray) {
-                idx0 = times.binarySearch(time)
-                if (idx0 < 0) idx0 = -1 - idx0
-                idx0 = min(max(idx0 - 1, 0), times.size - 2)
-                idx1 = idx0 + 1
-                idxF = (time - times[idx0]) / (times[idx1] - times[idx0])
+                when (times.size) {
+                    0 -> {} // meh
+                    1 -> {
+                        idx0 = 0
+                        idx1 = 0
+                        idxF = 0f
+                    }
+                    else -> {
+                        idx0 = times.binarySearch(time)
+                        if (idx0 < 0) idx0 = -1 - idx0
+                        idx0 = min(max(idx0 - 1, 0), times.size - 2)
+                        idx1 = idx0 + 1
+                        idxF = (time - times[idx0]) / (times[idx1] - times[idx0])
+                    }
+                }
             }
 
             fun getVector3f(sampler: AnimSampler?, byNode: Vector3d?, default: Float, dst: Vector3f) {
@@ -656,8 +681,8 @@ class GLTFReader(val src: FileReference) {
         }
     }
 
-    private fun readImages() {
-        forEachMap("images", images) { image ->
+    private fun readImages(): List<FileReference> {
+       return forEachMap("images", ArrayList()) { image ->
             if ("uri" in image) resolveUri(image["uri"].toString())
             else {
                 // instead of URI, there could also be bufferView: 8, mimeType: image/png
@@ -771,8 +796,8 @@ class GLTFReader(val src: FileReference) {
     // todo cameras
     // todo lights
 
-    private fun readSamplers() {
-        forEachMap("samplers", samplers) { sampler ->
+    private fun readSamplers(): List<Sampler> {
+        return forEachMap("samplers", ArrayList()) { sampler ->
             val mag = getInt(sampler["magFilter"])
             val wrap = getInt(sampler["wrapS"])
             val filter = if (mag == Filtering.LINEAR.mag) Filtering.LINEAR else Filtering.NEAREST
@@ -781,7 +806,7 @@ class GLTFReader(val src: FileReference) {
         }
     }
 
-    private fun readTextures() {
+    private fun readTextures(images: List<FileReference>, samplers: List<Sampler>) {
         forEachMap("textures", textures) { texture ->
             val source = images[getInt(texture["source"])]
             val sampler = samplers[getInt(texture["sampler"])]

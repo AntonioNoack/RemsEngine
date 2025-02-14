@@ -75,9 +75,9 @@ object NormalCalculator {
             }
         }
         mesh.forEachTriangleIndex { i0, i1, i2 ->
-            if ((i0 < weights.size && weights[i0] >= 0) ||
-                (i1 < weights.size && weights[i1] >= 0) ||
-                (i2 < weights.size && weights[i2] >= 0)
+            if ((i0 in weights.indices && weights[i0] >= 0) ||
+                (i1 in weights.indices && weights[i1] >= 0) ||
+                (i2 in weights.indices && weights[i2] >= 0)
             ) {
                 // we need this point
                 val normal = calculateFlatNormal(positions, i0 * 3, i1 * 3, i2 * 3, a, b, c)

@@ -50,7 +50,6 @@ import me.anno.mesh.gltf.writer.MeshData
 import me.anno.mesh.gltf.writer.Sampler
 import me.anno.mesh.gltf.writer.SkinData
 import me.anno.utils.Color.b
-import me.anno.utils.Color.black3
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
@@ -402,22 +401,17 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     private fun writeSampler(sampler: Sampler) {
         val (filtering, clamping) = sampler
         writeObject {
-            attr("magFilter")
-            write(filtering.mag)
-            attr("minFilter")
-            write(filtering.min)
-            attr("wrapS")
-            write(clamping.mode)
-            attr("wrapT")
-            write(clamping.mode)
+            attr("magFilter", filtering.mag)
+            attr("minFilter", filtering.min)
+            attr("wrapS", clamping.mode)
+            attr("wrapT", clamping.mode)
         }
     }
 
     private fun writeSkin(skinData: SkinData) {
         val (skeleton, nodes) = skinData
         writeObject {
-            attr("inverseBindMatrices")
-            write(createInverseBindMatrixView(skeleton.bones))
+            attr("inverseBindMatrices", createInverseBindMatrixView(skeleton.bones))
             attr("joints")
             writeArrayByIndices(0, nodes.size) {
                 write(nodes.first + it)
@@ -427,20 +421,11 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun writeBufferView(bufferView: BufferView) {
         writeObject {
-            attr("buffer")
-            write(0)
-            attr("byteOffset")
-            write(bufferView.offset)
-            attr("byteLength")
-            write(bufferView.length)
-            if (bufferView.byteStride != 0) {
-                attr("byteStride")
-                write(bufferView.byteStride)
-            }
-            if (bufferView.target != 0) {
-                attr("target")
-                write(bufferView.target)
-            }
+            attr("buffer", 0)
+            attr("byteOffset", bufferView.offset)
+            attr("byteLength", bufferView.length)
+            if (bufferView.byteStride != 0) attr("byteStride", bufferView.byteStride)
+            if (bufferView.target != 0) attr("target", bufferView.target)
         }
     }
 
@@ -467,16 +452,10 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             .filterIsInstance<Camera>()
             .firstNotNullOfOrNull { cameras[it] }
 
-        if (camera != null) {
-            attr("camera")
-            write(camera)
-        }
+        if (camera != null) attr("camera", camera)
 
         val name = node.name
-        if (name.isNotEmpty()) {
-            attr("name")
-            write(name)
-        }
+        if (name.isNotEmpty()) attr("name", name)
 
         val translation = node.transform.localPosition
         if (translation != Vector3d()) {
@@ -502,8 +481,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             if (material.diffuseMap.exists) {
                 attr("baseColorTexture")
                 writeObject {
-                    attr("index")
-                    write(getTextureIndex(material.diffuseMap, sampler))
+                    attr("index", getTextureIndex(material.diffuseMap, sampler))
                 }
             }
             val color = material.diffuseBase
@@ -516,10 +494,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 }
                 write(color1)
             }
-            attr("metallicFactor")
-            write(material.metallicMinMax.y)
-            attr("roughnessFactor")
-            write(material.roughnessMinMax.y)
+            attr("metallicFactor", material.metallicMinMax.y.toDouble())
+            attr("roughnessFactor", material.roughnessMinMax.y.toDouble())
         }
     }
 
@@ -572,32 +548,38 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     @Suppress("SpellCheckingInspection")
     private fun writeCamera(camera: Camera) {
         writeObject {
-            attr("type")
             val type = if (camera.isPerspective) "perspective" else "orthographic"
-            write(type)
+            attr("type", type)
             attr(type)
             writeObject {
                 if (camera.isPerspective) {
-                    attr("aspectRatio")
-                    write(1f) // mmmh...
-                    attr("yfov")
-                    write(camera.fovY.toRadians())
-                    attr("zfar")
-                    write(camera.far)
-                    attr("znear")
-                    write(camera.near)
+                    attr("aspectRatio", 1.0) // mmmh...
+                    attr("yfov", camera.fovY.toDouble().toRadians())
+                    attr("zfar", camera.far)
+                    attr("znear", camera.near)
                 } else {
-                    attr("xmag")
-                    write(camera.fovOrthographic)
-                    attr("ymag")
-                    write(camera.fovOrthographic)
-                    attr("zfar")
-                    write(camera.far)
-                    attr("znear")
-                    write(camera.near)
+                    attr("xmag", camera.fovOrthographic)
+                    attr("ymag", camera.fovOrthographic)
+                    attr("zfar", camera.far)
+                    attr("znear", camera.near)
                 }
             }
         }
+    }
+
+    private fun attr(key: String, value: Double) {
+        attr(key)
+        write(value)
+    }
+
+    private fun attr(key: String, value: Int) {
+        attr(key)
+        write(value)
+    }
+
+    private fun attr(key: String, value: String) {
+        attr(key)
+        write(value)
     }
 
     private fun writeMesh(data: MeshData) {
@@ -631,35 +613,12 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 fun writeMeshAttributes() {
                     attr("attributes")
                     writeObject {
-
-                        attr("POSITION")
-                        write(posI)
-
-                        if (norI != null) {
-                            attr("NORMAL")
-                            write(norI)
-                        }
-
-                        if (uvI != null) {
-                            attr("TEXCOORD_0")
-                            write(uvI)
-                        }
-
-                        if (colorI != null) {
-                            attr("COLOR_0")
-                            write(colorI)
-                        }
-
-                        if (weightsI != null) {
-                            attr("WEIGHTS_0")
-                            write(weightsI)
-                        }
-
-                        if (jointsI != null) {
-                            attr("JOINTS_0")
-                            write(jointsI)
-                        }
-
+                        attr("POSITION", posI)
+                        if (norI != null) attr("NORMAL", norI)
+                        if (uvI != null) attr("TEXCOORD_0", uvI)
+                        if (colorI != null) attr("COLOR_0", colorI)
+                        if (weightsI != null) attr("WEIGHTS_0", weightsI)
+                        if (jointsI != null) attr("JOINTS_0", jointsI)
                     }
                 }
 
@@ -702,17 +661,10 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         writeMeshAttributes: () -> Unit
     ) {
         writeObject {
-            attr("mode")
-            write(mode.id) // triangles / triangle-strip, ...
+            attr("mode", mode.id) // triangles / triangle-strip, ...
+            attr("material", materials.nextId(MaterialData(material, cullMode)))
 
-            attr("material")
-            write(materials.nextId(MaterialData(material, cullMode)))
-
-            if (indices != null) {
-                attr("indices")
-                write(createIndicesView(indices, mode, cullMode))
-            }
-
+            if (indices != null) attr("indices", createIndicesView(indices, mode, cullMode))
             writeMeshAttributes()
         }
     }
@@ -725,17 +677,9 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         writeMeshAttributes: () -> Unit
     ) {
         writeObject {
-            attr("mode")
-            write(mode.id) // triangles, triangle-strip, ...
-
-            if (material != null) {
-                attr("material")
-                write(materials.nextId(MaterialData(material, cullMode)))
-            }
-
-            attr("indices")
-            write(createIndicesView(helper.indices, mode, cullMode))
-
+            attr("mode", mode.id) // triangles, triangle-strip, ...
+            if (material != null) attr("material", materials.nextId(MaterialData(material, cullMode)))
+            attr("indices", createIndicesView(helper.indices, mode, cullMode))
             writeMeshAttributes()
         }
     }
@@ -743,23 +687,17 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     private fun writeTexture(texture: IntPair) {
         val (source, sampler) = texture
         writeObject {
-            attr("source")
-            write(source)
-            attr("sampler")
-            write(sampler)
+            attr("source", source)
+            attr("sampler", sampler)
         }
     }
 
     private fun writeAccessor(acc: Accessor) {
         writeObject {
-            attr("bufferView")
-            write(acc.view)
-            attr("type")
-            write(acc.type)
-            attr("componentType")
-            write(acc.componentType)
-            attr("count")
-            write(acc.count)
+            attr("bufferView", acc.view)
+            attr("type", acc.type)
+            attr("componentType", acc.componentType)
+            attr("count", acc.count)
             if (acc.normalized) {
                 attr("normalized")
                 write(true)
@@ -796,8 +734,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun writeURI(uri: String) {
-        attr("uri")
-        write(uri)
+        attr("uri", uri)
     }
 
     private fun appendFile(src: FileReference) {
@@ -814,10 +751,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             "jpg" -> "image/jpeg"
             else -> null
         }
-        if (ext != null) {
-            attr("mimeType")
-            write(ext)
-        }
+        if (ext != null) attr("mimeType", ext)
     }
 
     private fun writeMeshCompAttributes(node: MeshComponent) {
@@ -840,35 +774,26 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
 
     private fun writeCameraAttributes(node: Camera) {
         val name = node.name
-        if (name.isNotEmpty()) {
-            attr("name")
-            write(name)
-        }
-        attr("camera")
-        write(cameras.nextId(node))
+        if (name.isNotEmpty()) attr("name", name)
+        attr("camera", cameras.nextId(node))
     }
 
     private fun writeLightAttributes(node: LightComponent) {
         val name = node.name
-        if (name.isNotEmpty()) {
-            attr("name")
-            write(name)
-        }
+        if (name.isNotEmpty()) attr("name", name)
         val id = lights.nextId(node)
         attr("extensions")
         writeObject {
             attr("KHR_lights_punctual")
             writeObject {
-                attr("light")
-                write(id)
+                attr("light", id)
             }
         }
     }
 
     private fun writeBoneAttributes(bone: Bone) {
         val m = bone.relativeTransform // correct??
-        attr("name")
-        write(bone.name)
+        attr("name", bone.name)
         attr("translation")
         write(m.getTranslation(Vector3f()))
         attr("rotation")
@@ -916,10 +841,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     private fun writeHeader() {
         attr("asset")
         writeObject {
-            attr("generator")
-            write("Rem's Engine")
-            attr("version")
-            write("2.0")
+            attr("generator", "Rem's Engine")
+            attr("version", "2.0")
         }
     }
 
@@ -927,8 +850,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         attr("buffers")
         writeArray {
             writeObject {
-                attr("byteLength")
-                write(binary.size())
+                attr("byteLength", binary.size())
             }
         }
     }
@@ -1067,13 +989,10 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         writeObject {
             attr("target")
             writeObject {
-                attr("node")
-                write(node)
-                attr("path")
-                write(name)
+                attr("node", node)
+                attr("path", name)
             }
-            attr("sampler")
-            write(sampler)
+            attr("sampler", sampler)
         }
     }
 
