@@ -102,7 +102,6 @@ class RecastBuilder(val progressListener: RecastBuilderProgressListener? = null)
         val chf = buildCompactHeightfield(geom, cfg, ctx, solid)
         // Partition the heightfield so that we can use simple algorithm later
         // to triangulate the walkable areas.
-        println("partitionType: ${cfg.partitionType}")
         when (cfg.partitionType) {
             PartitionType.WATERSHED -> {
                 // Prepare for region partitioning, by calculating distance field

@@ -463,8 +463,6 @@ class TileCache(
             return
         }
 
-        LOGGER.info("PolyMesh: $polyMesh")
-
         val params = NavMeshDataCreateParams()
         params.vertices = polyMesh.vertices
         params.vertCount = polyMesh.numVertices

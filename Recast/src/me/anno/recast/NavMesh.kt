@@ -115,8 +115,6 @@ class NavMesh : Component(), OnDrawGUI {
         p.polyAreas = mesh.areaIds
         p.polyCount = mesh.numPolygons
         p.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
-        println("mesh: ${mesh.numVertices}x + ${mesh.numPolygons}x")
-        println("md: $md")
         if (md != null) {
             p.detailVertices = md.vertices
             p.detailVerticesCount = md.numVertices

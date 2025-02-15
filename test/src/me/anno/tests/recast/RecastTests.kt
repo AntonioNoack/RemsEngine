@@ -3,6 +3,8 @@ package me.anno.tests.recast
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
@@ -10,13 +12,9 @@ import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes.debugArrows
-import me.anno.engine.debug.DebugShapes.debugPoints
-import me.anno.engine.ui.LineShapes
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.image.ImageWriter
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.TAUf
@@ -25,16 +23,17 @@ import me.anno.maths.Maths.sq
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.recast.NavMeshUtils
-import me.anno.utils.Color
 import me.anno.utils.Color.black
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.structures.lists.Lists.sumOfDouble
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector2d
 import org.joml.Vector2d.Companion.lengthSquared
-import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.junit.jupiter.api.Test
 import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMeshQuery
@@ -50,8 +49,11 @@ class RecastTests {
         val gray = Material.diffuse(0x777788)
         val white = Material.defaultMaterial
 
+        var enableDrawing = false
+
         @JvmStatic
         fun main(args: Array<String>) {
+            enableDrawing = true
             RecastTests().testRecastOnCircleWithHoles()
         }
     }
@@ -90,71 +92,26 @@ class RecastTests {
             moveTo(target)
         }
 
-        init {
-            debugArrows.add(DebugLine(Vector3d(start), Vector3d(target), 0xff7733 or black, 1e3f))
-            debugPoints.add(DebugPoint(Vector3d(start), 0xffaa33 or black, 1e3f))
-            debugPoints.add(DebugPoint(Vector3d(target), 0xffaa33 or black, 1e3f))
-        }
-
         override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
             dstUnion.all()
             return true
         }
 
-        private val prevPosition = Vector3f(Float.NaN)
-        private val points = ArrayList<Vector2f>()
-        private var ptsIndex = 0
-
         override fun onUpdate() {
             init.value
 
-            // todo when drawing inside this method, everything lags behind
-            //  -> can we update the to-be-rendered data???
-            val pos = crowdAgent!!.currentPosition
-            val stepDist: Float = pos.distance(prevPosition)
-            val speed = stepDist / Time.deltaTime.toFloat()
-            if (speed.isFinite()) {
-                points.add(Vector2f(Time.gameTime.toFloat(), -speed)) // y is flipped
+            if (enableDrawing) {
+                // draw current position
+                val pos = crowdAgent!!.currentPosition
+                DebugShapes.debugPoints.add(DebugPoint(Vector3d(pos), 0x2277ff or black, 0f))
+                // draw current path
+                val c = crowdAgent!!.corridor
+                NavMeshUtils.drawPath(navMesh, meshData, c.path, 0x555555 or black)
             }
-            prevPosition.set(pos)
-
-            if (points.size > 2048) {
-
-                val xs = points.map { it.x }
-                val ys = points.map { it.y }
-                println("Writing ${xs.min()}-${xs.max()} x ${ys.min()}-${ys.max()}")
-                ImageWriter.writeImageCurve(
-                    512, 256, true, true,
-                    black, Color.white, 2, points,
-                    "speed-${ptsIndex}.png"
-                )
-
-                points.clear()
-                ptsIndex++
-            }
-
-            // draw current position
-            LineShapes.drawSphere(
-                navMesh1.entity, 0.1, Vector3d(pos),
-                0x2277ff or black
-            )
-
-            // draw path
-            if (false) NavMeshUtils.drawPath(
-                navMesh, meshData,
-                crowdAgent!!.targetPathQueryResult,
-                0xff0000 or black
-            )
-
-            val c = crowdAgent!!.corridor
-            NavMeshUtils.drawPath(navMesh, meshData, c.path, 0x555555 or black)
         }
     }
 
-    fun testRecastOnCircleWithHoles() {
-
-        OfficialExtensions.initForTests()
-
+    private fun createScene(): Entity {
         // create a circle with "holes"
         val scene = Entity()
         val circles = Entity("Circles", scene)
@@ -188,22 +145,33 @@ class RecastTests {
         navMesh1.collisionMask = -1
         navMesh1.edgeMaxError = 1f
         scene.add(navMesh1)
+        return scene
+    }
 
-        val meshData = navMesh1.build()!!
+
+    // create a circle with "holes"
+    val scene = createScene()
+
+    val navMesh1 = scene.getComponent(NavMesh::class)!!
+    val meshData = navMesh1.build()!!
+
+    init {
         navMesh1.data = meshData
+    }
 
-        val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
+    val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
 
-        val query = NavMeshQuery(navMesh)
-        val filter = DefaultQueryFilter()
-        val random = java.util.Random(1234L)
+    val query = NavMeshQuery(navMesh)
+    val filter = DefaultQueryFilter()
+    val random = java.util.Random(1234L)
 
-        val config = CrowdConfig(navMesh1.agentRadius)
-        val crowd = Crowd(config, navMesh)
+    val config = CrowdConfig(navMesh1.agentRadius)
+    val crowd = Crowd(config, navMesh)
 
-        val agents = Entity("Agents", scene)
+    val agents = Entity("Agents", scene)
+    val na = 12
 
-        val na = 1
+    init {
         for (i in 0 until na) {
             val angle = i * TAUf / na
             val start = Vector3f(+9.5f, 0.5f, 0f).rotateY(angle)
@@ -216,14 +184,35 @@ class RecastTests {
                 .add(MeshComponent(sphereMesh, gray))
                 .add(TestAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, -1, start, end))
         }
+    }
 
+    @Test
+    fun testRecastOnCircleWithHoles2() {
+        val agents = scene.getComponentsInChildren(TestAgent::class)
+        val startDistance = agents.sumOfDouble { it.start.distance(it.target).toDouble() }
+        for (agent in agents) {
+            agent.onUpdate()
+        }
+        val dt = 0.1f
+        val numSteps = 209
+        val inaccuracy = 3.2
+        // println(startDistance)
+        for (i in 0 until numSteps) {
+            crowd.update(dt, null)
+            val actualDistance = agents.sumOfDouble { it.target.distance(it.crowdAgent!!.currentPosition).toDouble() }
+            val expectedDistance = mix(startDistance, inaccuracy, (i + 1.0) / numSteps)
+            // println("$i: $actualDistance vs $expectedDistance")
+            assertEquals(expectedDistance, actualDistance, inaccuracy * 3.0)
+        }
+    }
+
+    fun testRecastOnCircleWithHoles() {
+        OfficialExtensions.initForTests()
         scene.addComponent(object : Component(), OnUpdate {
             override fun onUpdate() {
                 crowd.update(Time.deltaTime.toFloat(), null)
             }
         })
-
-        // scene.add(MeshComponent(navMesh1.toMesh()!!, Material.diffuse(0x65ff7a)))
         testSceneWithUI("Recast", scene)
     }
 }
