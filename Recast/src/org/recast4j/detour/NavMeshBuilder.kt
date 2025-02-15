@@ -172,6 +172,7 @@ object NavMeshBuilder {
     fun createNavMeshData(params: NavMeshDataCreateParams): MeshData? {
 
         if (params.vertCount >= 0xffff) {// todo why does this limit exist???
+            // maybe for flags like DT_EXT_LINK
             LOGGER.warn("Too many vertices: ${params.vertCount} > 0xffff")
             return null
         }

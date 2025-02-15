@@ -288,22 +288,22 @@ object DebugRendering {
     }
 
     private fun drawDebugArrows(view: RenderView) {
-        val lines = DebugShapes.debugArrows
+        val arrows = DebugShapes.debugArrows
         val dirX = JomlPools.vec3d.create()
         val dirY = JomlPools.vec3d.create()
         val dirZ = JomlPools.vec3d.create()
-        for (i in lines.indices) {
-            val line = lines[i]
-            LineBuffer.putRelativeLine(line.from, line.to, view.cameraPosition, view.worldScale, line.color)
-            line.to.sub(line.from, dirY)
+        for (i in arrows.indices) {
+            val arrow = arrows[i]
+            LineBuffer.putRelativeLine(arrow.from, arrow.to, view.cameraPosition, view.worldScale, arrow.color)
+            arrow.to.sub(arrow.from, dirY)
             val len = dirY.length()
             dirY.findSystem(dirX, dirZ)
             val s = len * 0.2
             fun addPt(dxi: Double, dzi: Double) {
-                val anchor = line.from.mix(line.to, 0.6, dirY)
+                val anchor = arrow.from.mix(arrow.to, 0.6, dirY)
                 dirX.mulAdd(dxi, anchor, anchor)
                 dirZ.mulAdd(dzi, anchor, anchor)
-                LineBuffer.putRelativeLine(anchor, line.to, view.cameraPosition, view.worldScale, line.color)
+                LineBuffer.putRelativeLine(anchor, arrow.to, view.cameraPosition, view.worldScale, arrow.color)
             }
             addPt(+s, 0.0)
             addPt(-s, 0.0)

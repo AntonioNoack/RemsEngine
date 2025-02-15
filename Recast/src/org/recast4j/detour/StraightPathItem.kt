@@ -2,6 +2,9 @@ package org.recast4j.detour
 
 import org.joml.Vector3f
 
+/**
+ * Represents a straight piece of path, sometimes skipping many polygons.
+ * */
 class StraightPathItem private constructor(val pos: Vector3f, var flags: Int, var ref: Long) {
     private constructor() : this(Vector3f(), 0, 0L)
 
@@ -21,10 +24,6 @@ class StraightPathItem private constructor(val pos: Vector3f, var flags: Int, va
         fun clear(list: MutableList<StraightPathItem>) {
             synchronized(cache) { cache.addAll(list) }
             list.clear()
-        }
-
-        fun clear(item: StraightPathItem) {
-            synchronized(cache) { cache.add(item) }
         }
     }
 

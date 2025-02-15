@@ -147,7 +147,7 @@ class RecastTests {
             )
 
             val c = crowdAgent!!.corridor
-            NavMeshUtils.drawPath(navMesh, meshData, c.path, 0xff00ff or black)
+            NavMeshUtils.drawPath(navMesh, meshData, c.path, 0x555555 or black)
         }
     }
 

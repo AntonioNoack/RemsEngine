@@ -19,11 +19,12 @@ freely, subject to the following restrictions:
 package org.recast4j.detour
 
 import me.anno.utils.structures.arrays.FloatArrayList
-import org.recast4j.LongArrayList
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBf
 import org.joml.AABBi
 import org.joml.Vector3f
 import org.recast4j.FloatSubArray
+import org.recast4j.LongArrayList
 import org.recast4j.Vectors
 import org.recast4j.detour.PolygonByCircleConstraint.StrictPolygonByCircleConstraint.CIRCLE_SEGMENTS
 import org.recast4j.detour.crowd.PathQueryResult
@@ -279,7 +280,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 val vb = portalPoints.right
 
                 // If the circle is not touching the next polygon, skip it.
-                val (distSqr) = Vectors.distancePtSegSqr2D(centerPos, va, vb)
+                val distSqr = Vectors.distancePtSegSqr2DFirst(centerPos, va, vb)
                 if (distSqr > radiusSqr) {
                     i = bestTile.links[i].indexOfNextLink
                     continue
@@ -1193,10 +1194,11 @@ open class NavMeshQuery(val nav1: NavMesh) {
         straightPath: MutableList<StraightPathItem>,
         maxStraightPath: Int
     ): Status {
-        if (straightPath.size > 0 && Vectors.vEqual(straightPath[straightPath.size - 1].pos, pos)) {
+        val lastPath = straightPath.lastOrNull()
+        if (lastPath != null && Vectors.vEqual(lastPath.pos, pos)) {
             // The vertices are equal, update flags and poly.
-            straightPath[straightPath.size - 1].flags = flags
-            straightPath[straightPath.size - 1].ref = ref
+            lastPath.flags = flags
+            lastPath.ref = ref
         } else {
             if (straightPath.size < maxStraightPath) {
                 // Append new vertex.
@@ -1210,9 +1212,15 @@ open class NavMeshQuery(val nav1: NavMesh) {
         return Status.IN_PROGRESS
     }
 
+    fun appendVertexNIP(
+        pos: Vector3f, flags: Int, ref: Long,
+        straightPath: MutableList<StraightPathItem>,
+        maxStraightPath: Int
+    ): Boolean = !appendVertex(pos, flags, ref, straightPath, maxStraightPath).isInProgress
+
     fun appendPortals(
         startIdx: Int, endIdx: Int, endPos: Vector3f, path: LongArrayList,
-        straightPath: MutableList<StraightPathItem>, maxStraightPath: Int, options: Int
+        straightPath: ArrayList<StraightPathItem>, maxStraightPath: Int, options: Int
     ): Status {
         val startPos = straightPath[straightPath.size - 1].pos
         // Append or update last vertex
@@ -1250,23 +1258,25 @@ open class NavMeshQuery(val nav1: NavMesh) {
         return Status.IN_PROGRESS
     }
 
+    fun appendPortalsNIP(
+        startIdx: Int, endIdx: Int, endPos: Vector3f, path: LongArrayList,
+        straightPath: ArrayList<StraightPathItem>, maxStraightPath: Int, options: Int
+    ): Boolean = !appendPortals(startIdx, endIdx, endPos, path, straightPath, maxStraightPath, options).isInProgress
+
     /**
      * Finds the straight path from the start to the end position within the polygon corridor.
-     *
-     * This method peforms what is often called 'string pulling'.
+     * "string pulling"
      *
      * The start position is clamped to the first polygon in the path, and the
      * end position is clamped to the last. So the start and end positions should
      * normally be within or very near the first and last polygons respectively.
      *
-     * The returned polygon references represent the reference id of the polygon
-     * that is entered at the associated path position. The reference id associated
-     * with the end point will always be zero. This allows, for example, matching
+     * The returned polygon-references represent the polygon that is entered at the associated path position.
+     * The reference id associated with the end point will always be zero. This allows, for example, matching
      * off-mesh link points to their representative polygons.
      *
      * If the provided result buffers are too small for the entire result set,
-     * they will be filled as far as possible from the start toward the end
-     * position.
+     * they will be filled as far as possible from the start toward the end position.
      *
      * @param startPos Path start position. [(x, y, z)]
      * @param endPos Path end position. [(x, y, z)]
@@ -1279,181 +1289,200 @@ open class NavMeshQuery(val nav1: NavMesh) {
     fun findStraightPath(
         startPos: Vector3f, endPos: Vector3f, path: LongArrayList,
         maxStraightPath: Int, options: Int, tmp: PortalResult,
-        tmpVertices: FloatArray, tmpEdges0: FloatArray, tmpEdges1: FloatArray
+        tmpVertices: FloatArray, tmpEdges0: FloatArray, tmpEdges1: FloatArray,
+        straightPath: ArrayList<StraightPathItem>
     ): ArrayList<StraightPathItem>? {
-        val straightPath = ArrayList<StraightPathItem>()
         if ((!startPos.isFinite || !endPos.isFinite
                     || path.isEmpty()) || path[0] == 0L || maxStraightPath <= 0
         ) return null
 
-        // TODO: Should this be callers responsibility?
         val closestStartPosRes = closestPointOnPolyBoundary(
             path[0], startPos, tmpVertices, tmpEdges0, tmpEdges1
         ) ?: return null
-        var closestEndPosRes = closestPointOnPolyBoundary(
+
+        val closestEndPos = closestPointOnPolyBoundary(
             path[path.size - 1], endPos, tmpVertices, tmpEdges0, tmpEdges1
         ) ?: return null
-        var closestEndPos = closestEndPosRes
+
         // Add start point.
-        var stat = appendVertex(closestStartPosRes, DT_STRAIGHTPATH_START, path[0], straightPath, maxStraightPath)
-        if (!stat.isInProgress) {
+        if (appendVertexNIP(closestStartPosRes, DT_STRAIGHTPATH_START, path[0], straightPath, maxStraightPath)) {
             return straightPath
         }
-        if (path.size > 1) {
-            var portalApex = closestStartPosRes
-            var portalLeft = portalApex
-            var portalRight = portalApex
-            var apexIndex = 0
-            var leftIndex = 0
-            var rightIndex = 0
-            var leftPolyType = 0
-            var rightPolyType = 0
-            var leftPolyRef: Long = path[0]
-            var rightPolyRef: Long = path[0]
-            var i = 0
-            while (i < path.size) {
-                var left: Vector3f
-                var right: Vector3f
-                var toType: Int
-                if (i + 1 < path.size) {
-                    // Next portal.
-                    val portalPoints = getPortalPoints(path[i], path[i + 1], tmp)
-                    if (portalPoints == null) {
-                        closestEndPosRes = closestPointOnPolyBoundary(
-                            path[i], endPos,
-                            tmpVertices, tmpEdges0, tmpEdges1
-                        ) ?: return null
-                        closestEndPos = closestEndPosRes
-                        // Append portals along the current straight path segment.
-                        if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
-                            // Ignore status return value as we're just about to return anyway.
-                            appendPortals(apexIndex, i, closestEndPos, path, straightPath, maxStraightPath, options)
-                        }
-                        // Ignore status return value as we're just about to return anyway.
-                        appendVertex(closestEndPos, 0, path[i], straightPath, maxStraightPath)
-                        return straightPath
-                    }
-                    left = portalPoints.left
-                    right = portalPoints.right
-                    toType = portalPoints.toType
 
-                    // If starting really close the portal, advance.
-                    if (i == 0) {
-                        val (first) = Vectors.distancePtSegSqr2D(portalApex, left, right)
-                        if (first < 1e-6f) {
-                            ++i
-                            continue
-                        }
-                    }
-                } else {
-                    // End of the path.
-                    left = closestEndPos
-                    right = closestEndPos
-                    toType = Poly.DT_POLYTYPE_GROUND
-                }
+        if (path.size <= 1) {
+            // Ignore status return value as we're just about to return anyway.
+            appendVertex(closestEndPos, DT_STRAIGHTPATH_END, 0, straightPath, maxStraightPath)
+            return straightPath
+        }
 
-                // Right vertex.
-                if (Vectors.triArea2D(portalApex, portalRight, right) <= 0f) {
-                    if (Vectors.vEqual(portalApex, portalRight) ||
-                        Vectors.triArea2D(portalApex, portalLeft, right) > 0f
-                    ) {
-                        portalRight = (right)
-                        rightPolyRef = if (i + 1 < path.size) path[i + 1] else 0
-                        rightPolyType = toType
-                        rightIndex = i
-                    } else {
-                        // Append portals along the current straight path segment.
-                        if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
-                            stat = appendPortals(
-                                apexIndex, leftIndex, portalLeft, path, straightPath, maxStraightPath,
-                                options
-                            )
-                            if (!stat.isInProgress) {
-                                return straightPath
-                            }
-                        }
-                        portalApex = (portalLeft)
-                        apexIndex = leftIndex
-                        var flags = 0
-                        if (leftPolyRef == 0L) {
-                            flags = DT_STRAIGHTPATH_END
-                        } else if (leftPolyType == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) {
-                            flags = DT_STRAIGHTPATH_OFFMESH_CONNECTION
-                        }
+        var portalApex = closestStartPosRes
+        var portalLeft = portalApex
+        var portalRight = portalApex
+        var apexIndex = 0
+        var leftIndex = 0
+        var rightIndex = 0
+        var leftPolyType = 0
+        var rightPolyType = 0
+        var leftPolyRef = path[0]
+        var rightPolyRef = path[0]
 
-                        // Append or update vertex
-                        stat = appendVertex(portalApex, flags, leftPolyRef, straightPath, maxStraightPath)
-                        if (!stat.isInProgress) {
-                            return straightPath
-                        }
-                        portalLeft = (portalApex)
-                        portalRight = (portalApex)
-                        rightIndex = apexIndex
+        var i = 0
+        while (i < path.size) {
 
-                        // Restart
-                        i = apexIndex
-                        ++i
+            var left: Vector3f
+            var right: Vector3f
+            var toType: Int
+            if (i + 1 < path.size) {
+                // Next portal.
+                val portalPoints = getPortalPoints(path[i], path[i + 1], tmp)
+                    ?: return straightPathNoPortal(
+                        path, i, endPos, tmpVertices, tmpEdges0, tmpEdges1,
+                        options, apexIndex, straightPath, maxStraightPath
+                    )
+
+                // todo here is copying; these copies have their use/effect!!!
+                //  -> remove as many copies as viable... who is setting them anyway???
+                left = Vector3f(portalPoints.left)
+                right = Vector3f(portalPoints.right)
+                toType = portalPoints.toType
+
+                // If starting really close the portal, advance.
+                if (i == 0) {
+                    val first = Vectors.distancePtSegSqr2DFirst(portalApex, left, right)
+                    if (first < 1e-6f) {
+                        i++
                         continue
                     }
                 }
+            } else {
+                // End of the path.
+                left = closestEndPos
+                right = closestEndPos
+                toType = Poly.DT_POLYTYPE_GROUND
+            }
 
-                // Left vertex.
-                if (Vectors.triArea2D(portalApex, portalLeft, left) >= 0f) {
-                    if (Vectors.vEqual(portalApex, portalLeft) ||
-                        Vectors.triArea2D(portalApex, portalRight, left) < 0f
-                    ) {
-                        portalLeft = (left)
-                        leftPolyRef = if (i + 1 < path.size) path[i + 1] else 0
-                        leftPolyType = toType
-                        leftIndex = i
-                    } else {
-                        // Append portals along the current straight path segment.
-                        if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
-                            stat = appendPortals(
+            // Right vertex.
+            if (Vectors.triArea2D(portalApex, portalRight, right) <= 0f) {
+                if (Vectors.vEqual(portalApex, portalRight) ||
+                    Vectors.triArea2D(portalApex, portalLeft, right) > 0f
+                ) {
+                    portalRight = right
+                    rightPolyRef = if (i + 1 < path.size) path[i + 1] else 0
+                    rightPolyType = toType
+                    rightIndex = i
+                } else {
+                    // Append portals along the current straight path segment.
+                    if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
+                        if (appendPortalsNIP(
+                                apexIndex, leftIndex, portalLeft, path,
+                                straightPath, maxStraightPath, options
+                            )
+                        ) return straightPath
+                    }
+                    portalApex = portalLeft
+                    apexIndex = leftIndex
+
+                    val flags =
+                        if (leftPolyRef == 0L) {
+                            DT_STRAIGHTPATH_END
+                        } else if (leftPolyType == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) {
+                            DT_STRAIGHTPATH_OFFMESH_CONNECTION
+                        } else 0
+
+                    // Append or update vertex
+                    if (appendVertexNIP(portalApex, flags, leftPolyRef, straightPath, maxStraightPath)) {
+                        return straightPath
+                    }
+
+                    portalLeft = portalApex
+                    portalRight = portalApex
+                    leftIndex = apexIndex
+                    rightIndex = apexIndex
+
+                    // Restart
+                    i = apexIndex + 1
+                    continue
+                }
+            }
+
+            // Left vertex.
+            if (Vectors.triArea2D(portalApex, portalLeft, left) >= 0f) {
+                if (Vectors.vEqual(portalApex, portalLeft) ||
+                    Vectors.triArea2D(portalApex, portalRight, left) < 0f
+                ) {
+                    portalLeft = left
+                    leftPolyRef = if (i + 1 < path.size) path[i + 1] else 0
+                    leftPolyType = toType
+                    leftIndex = i
+                } else {
+                    // Append portals along the current straight path segment.
+                    if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
+                        if (appendPortalsNIP(
                                 apexIndex, rightIndex, portalRight, path, straightPath,
                                 maxStraightPath, options
                             )
-                            if (!stat.isInProgress) {
-                                return straightPath
-                            }
-                        }
-                        portalApex = (portalRight)
-                        apexIndex = rightIndex
-                        var flags = 0
-                        if (rightPolyRef == 0L) {
-                            flags = DT_STRAIGHTPATH_END
-                        } else if (rightPolyType == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) {
-                            flags = DT_STRAIGHTPATH_OFFMESH_CONNECTION
-                        }
-
-                        // Append or update vertex
-                        stat = appendVertex(portalApex, flags, rightPolyRef, straightPath, maxStraightPath)
-                        if (!stat.isInProgress) {
-                            return straightPath
-                        }
-                        portalLeft = portalApex
-                        portalRight = portalApex
-                        leftIndex = apexIndex
-
-                        // Restart
-                        i = apexIndex
+                        ) return straightPath
                     }
+                    portalApex = portalRight
+                    apexIndex = rightIndex
+                    var flags = 0
+                    if (rightPolyRef == 0L) {
+                        flags = DT_STRAIGHTPATH_END
+                    } else if (rightPolyType == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) {
+                        flags = DT_STRAIGHTPATH_OFFMESH_CONNECTION
+                    }
+
+                    // Append or update vertex
+                    if (appendVertexNIP(portalApex, flags, rightPolyRef, straightPath, maxStraightPath)) {
+                        return straightPath
+                    }
+                    portalLeft = portalApex
+                    portalRight = portalApex
+                    leftIndex = apexIndex
+                    rightIndex = apexIndex
+
+                    // Restart
+                    i = apexIndex + 1
+                    continue
                 }
-                ++i
             }
 
-            // Append portals along the current straight path segment.
-            if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
-                stat =
-                    appendPortals(apexIndex, path.size - 1, closestEndPos, path, straightPath, maxStraightPath, options)
-                if (!stat.isInProgress) {
-                    return straightPath
-                }
-            }
+            i++
+        }
+
+        // Append portals along the current straight path segment.
+        if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
+            if (appendPortalsNIP(
+                    apexIndex, path.size - 1, closestEndPos,
+                    path, straightPath, maxStraightPath, options
+                )
+            ) return straightPath
         }
 
         // Ignore status return value as we're just about to return anyway.
         appendVertex(closestEndPos, DT_STRAIGHTPATH_END, 0, straightPath, maxStraightPath)
+        return straightPath
+    }
+
+    private fun straightPathNoPortal(
+        path: LongArrayList, i: Int,
+        endPos: Vector3f, tmpVertices: FloatArray,
+        tmpEdges0: FloatArray, tmpEdges1: FloatArray,
+        options: Int, apexIndex: Int, straightPath: ArrayList<StraightPathItem>,
+        maxStraightPath: Int
+    ): ArrayList<StraightPathItem>? {
+        val closestEndPosRes = closestPointOnPolyBoundary(
+            path[i], endPos,
+            tmpVertices, tmpEdges0, tmpEdges1
+        ) ?: return null
+        // Append portals along the current straight path segment.
+        if (options and (DT_STRAIGHTPATH_AREA_CROSSINGS or DT_STRAIGHTPATH_ALL_CROSSINGS) != 0) {
+            // Ignore status return value as we're just about to return anyway.
+            appendPortals(apexIndex, i, closestEndPosRes, path, straightPath, maxStraightPath, options)
+        }
+
+        // Ignore status return value as we're just about to return anyway.
+        appendVertex(closestEndPosRes, 0, path[i], straightPath, maxStraightPath)
         return straightPath
     }
 
@@ -1463,7 +1492,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * incomplete path.
      *
      * @p resultPos will equal the @p endPos if the end is reached.
-     * Otherwise the closest reachable position will be returned.
+     * Otherwise, the closest reachable position will be returned.
      *
      * @p resultPos is not projected onto the surface of the navigation
      * mesh. Use #getPolyHeight if this is needed.
@@ -1634,10 +1663,6 @@ open class NavMeshQuery(val nav1: NavMesh) {
         }
     }
 
-    class PortalResult(val left: Vector3f, val right: Vector3f, var fromType: Int, var toType: Int) {
-        constructor() : this(Vector3f(), Vector3f(), 0, 0)
-    }
-
     fun getPortalPoints(from: Long, to: Long, dst: PortalResult): PortalResult? {
         val fromTile = nav1.getTileByRef(from) ?: return null
         val fromPoly = nav1.getPolyByRef(from, fromTile) ?: return null
@@ -1648,7 +1673,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
     // Returns portal points between two polygons.
     fun getPortalPoints(
-        from: Long, fromPoly: Poly, fromTile: MeshTile?, to: Long, toPoly: Poly,
+        from: Long, fromPoly: Poly, fromTile: MeshTile, to: Long, toPoly: Poly,
         toTile: MeshTile?, fromType: Int, toType: Int, dst: PortalResult
     ): PortalResult? {
 
@@ -1659,7 +1684,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
         // Find the link that points to the 'to' polygon.
         var link: Link? = null
-        var j = fromTile!!.polyLinks[fromPoly.index]
+        var j = fromTile.polyLinks[fromPoly.index]
         while (j != NavMesh.HAS_NO_LINKS) {
             if (fromTile.links[j].neighborRef == to) {
                 link = fromTile.links[j]
@@ -1681,7 +1706,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 if (fromTile.links[i].neighborRef == to) {
                     val v = fromTile.links[i].indexOfPolyEdge
                     left.set(fromTileVertices, fromPolyVertices[v] * 3)
-                    right.set(fromTileVertices, fromPolyVertices[v] * 3)
+                    right.set(left)
                     return dst
                 }
                 i = fromTile.links[i].indexOfNextLink
@@ -1696,7 +1721,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 if (toTile.links[i].neighborRef == from) {
                     val v = toTile.links[i].indexOfPolyEdge
                     left.set(toTileVertices, toPolyVertices[v] * 3)
-                    right.set(toTileVertices, toPolyVertices[v] * 3)
+                    right.set(left)
                     return dst
                 }
                 i = toTile.links[i].indexOfNextLink
@@ -1716,17 +1741,17 @@ open class NavMeshQuery(val nav1: NavMesh) {
             // Unpack portal limits.
             if (link.bmin != 0 || link.bmax != 255) {
                 val s = 1f / 255f
-                val tmin = link.bmin * s
-                val tmax = link.bmax * s
-                Vectors.lerp(fromTile.data.vertices, v0 * 3, v1 * 3, tmin, left)
-                Vectors.lerp(fromTile.data.vertices, v0 * 3, v1 * 3, tmax, right)
+                val tMin = link.bmin * s
+                val tMax = link.bmax * s
+                Vectors.lerp(fromTile.data.vertices, v0 * 3, v1 * 3, tMin, left)
+                Vectors.lerp(fromTile.data.vertices, v0 * 3, v1 * 3, tMax, right)
             }
         }
         return dst
     }
 
     fun getEdgeMidPoint(
-        from: Long, fromPoly: Poly, fromTile: MeshTile?,
+        from: Long, fromPoly: Poly, fromTile: MeshTile,
         to: Long, toPoly: Poly, toTile: MeshTile?,
         tmp: PortalResult
     ): Vector3f? {
@@ -1737,7 +1762,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
     }
 
     fun getEdgeIntersectionPoint(
-        fromPos: Vector3f, from: Long, fromPoly: Poly, fromTile: MeshTile?,
+        fromPos: Vector3f, from: Long, fromPoly: Poly, fromTile: MeshTile,
         toPos: Vector3f, to: Long, toPoly: Poly, toTile: MeshTile?, tmp: PortalResult
     ): Vector3f? {
         val portal = getPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, 0, 0, tmp) ?: return null
@@ -2136,13 +2161,13 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 val vb = pp.right
 
                 // If the circle is not touching the next polygon, skip it.
-                val (distSqr) = Vectors.distancePtSegSqr2D(centerPos, va, vb)
+                val distSqr = Vectors.distancePtSegSqr2DFirst(centerPos, va, vb)
                 if (distSqr > radiusSqr) {
                     i = bestTile.links[i].indexOfNextLink
                     continue
                 }
                 val neighbourNode = nodePool.getOrCreateNode(neighbourRef)
-                if (neighbourNode.flags and Node.CLOSED != 0) {
+                if (neighbourNode.flags.hasFlag(Node.CLOSED)) {
                     i = bestTile.links[i].indexOfNextLink
                     continue
                 }
@@ -2157,14 +2182,14 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 )
                 val total = bestNode.totalCost + cost
                 // The node is already in open list and the new result is worse, skip.
-                if (neighbourNode.flags and Node.OPEN != 0 && total >= neighbourNode.totalCost) {
+                if (neighbourNode.flags.hasFlag(Node.OPEN) && total >= neighbourNode.totalCost) {
                     i = bestTile.links[i].indexOfNextLink
                     continue
                 }
                 neighbourNode.polygonRef = neighbourRef
                 neighbourNode.parentIndex = nodePool.getNodeIdx(bestNode)
                 neighbourNode.totalCost = total
-                if (neighbourNode.flags and Node.OPEN != 0) {
+                if (neighbourNode.flags.hasFlag(Node.OPEN)) {
                     openList.remove(neighbourNode)
                     openList.offer(neighbourNode)
                 } else {
@@ -2449,7 +2474,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 val vb = pp.right
 
                 // If the circle is not touching the next polygon, skip it.
-                val (distSqr) = Vectors.distancePtSegSqr2D(centerPos, va, vb)
+                val distSqr = Vectors.distancePtSegSqr2DFirst(centerPos, va, vb)
                 if (distSqr > radiusSqr) {
                     i = curTile.links[i].indexOfNextLink
                     continue

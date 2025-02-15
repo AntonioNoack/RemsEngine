@@ -23,7 +23,7 @@ import kotlin.math.max
 class CrowdTelemetry {
     companion object {
         private const val TIMING_SAMPLES = 10
-        private val size = CrowdTelemetryType.values().size
+        private val size = CrowdTelemetryType.entries.size
     }
 
     var maxTimeToEnqueueRequest = 0f

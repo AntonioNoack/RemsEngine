@@ -253,11 +253,8 @@ class NavMesh(
      * @return The tile reference. (If the tile was successfully added.)
      */
     fun addTile(data: MeshData, flags: Int, lastRef: Long = 0): Long {
-        // Make sure the data is in right format.
-        val header = data
-
         // Make sure the location is free.
-        if (getTileAt(header.x, header.y, header.layer) != null) {
+        if (getTileAt(data.x, data.y, data.layer) != null) {
             throw RuntimeException("Tile already exists")
         }
 
@@ -294,7 +291,7 @@ class NavMesh(
         tile.polyLinks.fill(HAS_NO_LINKS)
 
         // Insert tile into the position lut.
-        val hash = computeTileHash(header.x, header.y)
+        val hash = computeTileHash(data.x, data.y)
         tile.next = tileByXY.put(hash, tile)
 
         // Patch header pointers.
@@ -311,7 +308,7 @@ class NavMesh(
         connectExtOffMeshLinks(tile, tile, -1)
 
         // Connect with layers in current tile.
-        var neis = getTilesAt(header.x, header.y)
+        var neis = getTilesAt(data.x, data.y)
         while (neis != null) {
             if (neis !== tile) {
                 connectExtLinks(tile, neis, -1)
@@ -324,7 +321,7 @@ class NavMesh(
 
         // Connect with neighbour tiles.
         for (i in 0..7) {
-            neis = getNeighbourTilesAt(header.x, header.y, i)
+            neis = getNeighbourTilesAt(data.x, data.y, i)
             while (neis != null) {
                 connectExtLinks(tile, neis, i)
                 connectExtLinks(neis, tile, Vectors.oppositeTile(i))
@@ -430,7 +427,7 @@ class NavMesh(
             }
 
             // Build edge links backwards so that the links will be
-            // in the linked list from lowest index to highest.
+            // in the linked list from the lowest index to the highest.
             for (j in poly.vertCount - 1 downTo 0) {
                 // Skip hard and non-internal edges.
                 if (poly.neighborData[j] == 0 || poly.neighborData[j] and DT_EXT_LINK != 0) {

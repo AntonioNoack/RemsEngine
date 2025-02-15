@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3f
 import org.recast4j.Vectors
 import org.recast4j.detour.NavMeshQuery
@@ -107,27 +108,25 @@ class CrowdAgent(val idx: Int) {
     }
 
     fun overOffMeshConnection(radius: Float): Boolean {
-        if (corners.isEmpty()) return false
-        val offMeshConnection = corners[corners.size - 1].flags and NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION != 0
-        if (offMeshConnection) {
-            val distSq = Vectors.dist2DSqr(currentPosition, corners[corners.size - 1].pos)
+        val lastCorner = corners.lastOrNull() ?: return false
+        if (lastCorner.flags.hasFlag(NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION)) {
+            val distSq = Vectors.dist2DSqr(currentPosition, lastCorner.pos)
             return distSq < radius * radius
         }
         return false
     }
 
     fun getDistanceToGoal(range: Float): Float {
-        if (corners.isEmpty()) return range
-        val endOfPath = corners[corners.size - 1].flags and NavMeshQuery.DT_STRAIGHTPATH_END != 0
-        return if (endOfPath) min(Vectors.dist2D(currentPosition, corners[corners.size - 1].pos), range) else range
+        val lastCorner = corners.lastOrNull() ?: return range
+        val endOfPath = lastCorner.flags and NavMeshQuery.DT_STRAIGHTPATH_END != 0
+        return if (endOfPath) min(Vectors.dist2D(currentPosition, lastCorner.pos), range) else range
     }
 
     fun calcSmoothSteerDirection(dst: Vector3f): Vector3f {
         if (corners.isNotEmpty()) {
-            val ip0 = 0
-            val ip1 = min(1, corners.size - 1)
-            val p0 = corners[ip0].pos
-            val p1 = corners[ip1].pos
+            val nextCornerIdx = min(1, corners.size - 1)
+            val p0 = corners[0].pos
+            val p1 = corners[nextCornerIdx].pos
             val dir0x = p0.x - currentPosition.x
             val dir0z = p0.z - currentPosition.z
             var dir1x = p1.x - currentPosition.x
@@ -139,16 +138,17 @@ class CrowdAgent(val idx: Int) {
                 dir1x *= sca
                 dir1z *= sca
             }
-            dst.set(dir0x - dir1x * len0 * 0.5f, 0f, dir0z - dir1z * len0 * 0.5f).normalize()
+            dst.set(dir0x - dir1x * len0 * 0.5f, 0f, dir0z - dir1z * len0 * 0.5f)
+                .safeNormalize()
         }
         return dst
     }
 
     fun calcStraightSteerDirection(dst: Vector3f): Vector3f {
         if (corners.isNotEmpty()) {
-            dst.set(corners[0].pos).sub(currentPosition)
+            corners[0].pos.sub(currentPosition, dst)
             dst.y = 0f
-            dst.normalize()
+            dst.safeNormalize()
         }
         return dst
     }

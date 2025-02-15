@@ -23,11 +23,15 @@ import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.QueryFilter
 
 class PathQuery {
+
     var startPos = Vector3f()
-    var endPos = Vector3f()
     var startRef = 0L
+
+    var endPos = Vector3f()
     var endRef = 0L
-    lateinit var filter: QueryFilter
+
     val result = PathQueryResult()
     var navQuery: NavMeshQuery? = null
+
+    lateinit var filter: QueryFilter
 }

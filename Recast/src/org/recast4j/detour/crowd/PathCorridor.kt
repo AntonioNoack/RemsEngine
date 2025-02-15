@@ -18,12 +18,14 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
-import org.recast4j.LongArrayList
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3f
+import org.recast4j.LongArrayList
 import org.recast4j.Vectors.dist2D
 import org.recast4j.Vectors.dist2DSqr
 import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.NodePool
+import org.recast4j.detour.PortalResult
 import org.recast4j.detour.QueryFilter
 import org.recast4j.detour.StraightPathItem
 import kotlin.math.min
@@ -31,14 +33,11 @@ import kotlin.math.min
 /**
  * Represents a dynamic polygon corridor used to plan agent movement.
  *
- *
  * The corridor is loaded with a path, usually obtained from a #NavMeshQuery::findPath() query. The corridor is then
  * used to plan local movement, with the corridor automatically updating as needed to deal with inaccurate agent
  * locomotion.
  *
- *
  * Example of a common use case:
- *
  *
  * -# Construct the corridor object and call -# Obtain a path from a #dtNavMeshQuery object. -# Use #reset() to set the
  * agent's current position. (At the beginning of the path.) -# Use #setCorridor() to load the path and target. -# Use
@@ -47,28 +46,23 @@ import kotlin.math.min
  * #moveTargetPosition() to update the end of the corridor. (The corridor will automatically adjust as needed.) -#
  * Repeat the previous 3 steps to continue to move the agent.
  *
- *
  * The corridor position and target are always constrained to the navigation mesh.
- *
  *
  * One of the difficulties in maintaining a path is that floating point errors, locomotion inaccuracies, and/or local
  * steering can result in the agent crossing the boundary of the path corridor, temporarily invalidating the path. This
  * class uses local mesh queries to detect and update the corridor as needed to handle these types of issues.
  *
- *
  * The fact that local mesh queries are used to move the position and target locations results in two beahviors that
  * need to be considered:
- *
  *
  * Every time a move function is used there is a chance that the path will become non-optimial. Basically, the further
  * the target is moved from its original location, and the further the position is moved outside the original corridor,
  * the more likely the path will become non-optimal. This issue can be addressed by periodically running the
  * #optimizePathTopology() and #optimizePathVisibility() methods.
  *
- *
  * All local mesh queries have distance limitations. (Review the #dtNavMeshQuery methods for details.) So the most
  * accurate use case is to move the position and target in small increments. If a large increment is used, then the
- * corridor may not be able to accurately find the new location. Because of this limiation, if a position is moved in a
+ * corridor may not be able to accurately find the new location. Because of this limitation, if a position is moved in a
  * large increment, then compare the desired and resulting polygon references. If the two do not match, then path
  * replanning may be needed. E.g. If you move the target, check #getLastPoly() to see if it is the expected polygon.
  */
@@ -197,15 +191,12 @@ class PathCorridor {
     /**
      * Finds the corners in the corridor from the position toward the target. (The straightened path.)
      *
-     *
      * This is the function used to plan local movement within the corridor. One or more corners can be detected in
      * order to plan movement. It performs essentially the same function as #dtNavMeshQuery::findStraightPath.
-     *
      *
      * Due to internal optimizations, the maximum number of corners returned will be (@p maxCorners - 1) For example: If
      * the buffers are sized to hold 10 corners, the function will never return more than 9 corners. So if 10 corners
      * are needed, the buffers should be sized for 11 corners.
-     *
      *
      * If the target is within range, it will be the last corner and have a polygon reference id of zero.
      *
@@ -213,35 +204,54 @@ class PathCorridor {
      * @param navquery The query object used to build the corridor.
      */
     fun findCorners(
-        maxCorners: Int, navquery: NavMeshQuery, tmp: NavMeshQuery.PortalResult,
-        tmpVertices: FloatArray, tmpEdges0: FloatArray, tmpEdges1: FloatArray
-    ): List<StraightPathItem> {
+        maxCorners: Int, navquery: NavMeshQuery, tmp: PortalResult,
+        tmpVertices: FloatArray, tmpEdges0: FloatArray, tmpEdges1: FloatArray,
+        dst: ArrayList<StraightPathItem>
+    ) {
         val path = navquery.findStraightPath(
-            pos, target, this.path, maxCorners, 0,
-            tmp, tmpVertices, tmpEdges0, tmpEdges1
+            pos, target, path, maxCorners, options = 0,
+            tmp, tmpVertices, tmpEdges0, tmpEdges1, dst
         )
-        if (path != null) {
-            // Prune points in the beginning of the path which are too close.
-            var start = 0
-            for (spi in path) {
-                if (spi.flags and NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION != 0
-                    || dist2DSqr(spi.pos, pos) > MIN_TARGET_DIST
-                ) break
-                start++
+
+        if (path == null) { // fail
+            dst.clear()
+            return
+        }
+
+        val start = findStartIndex(path)
+        val end = findEndIndex(path, start)
+        if (end < path.size) StraightPathItem.clear(path.subList(end, path.size))
+        if (start > 0) StraightPathItem.clear(path.subList(0, start))
+    }
+
+    /**
+     * Prune points in the beginning of the path which are too close.
+     * */
+    private fun findStartIndex(path: List<StraightPathItem>): Int {
+        var start = 0
+        for (i in path.indices) {
+            val spi = path[i]
+            if (spi.flags.hasFlag(NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION) ||
+                dist2DSqr(spi.pos, pos) > MIN_TARGET_DIST
+            ) break
+            start++
+        }
+        return start
+    }
+
+    /**
+     * Prune points after an off-mesh connection.
+     * */
+    private fun findEndIndex(path: List<StraightPathItem>, start: Int): Int {
+        var end = path.size
+        for (i in start until path.size) {
+            val spi = path[i]
+            if (spi.flags.hasFlag(NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION)) {
+                end = i + 1
+                break
             }
-            var end = path.size
-            // Prune points after an off-mesh connection.
-            for (i in start until path.size) {
-                val spi = path[i]
-                if (spi.flags and NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION != 0) {
-                    end = i + 1
-                    break
-                }
-            }
-            if (end < path.size) StraightPathItem.clear(path.subList(end, path.size))
-            if (start > 0) StraightPathItem.clear(path.subList(0, start))
-            return path
-        } else return emptyList()
+        }
+        return end
     }
 
     /**
@@ -529,6 +539,6 @@ class PathCorridor {
         get() = if (path.isEmpty()) 0 else path[path.size - 1]
 
     companion object {
-        private val MIN_TARGET_DIST = 1e-4f
+        private const val MIN_TARGET_DIST = 1e-4f
     }
 }

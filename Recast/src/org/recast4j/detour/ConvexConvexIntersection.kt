@@ -74,7 +74,10 @@ object ConvexConvexIntersection {
                     aa = 0
                 }
                 ii = addVertex(tmp, ii, ip)
-                f = inOut(f, aHB, bHA)
+                when {
+                    aHB > 0f -> f = InFlag.Pin
+                    bHA > 0f -> f = InFlag.Qin
+                }
             }
 
             /*-----Advance rules-----*/
@@ -152,15 +155,6 @@ object ConvexConvexIntersection {
         inters[ii + 1] = p.y
         inters[ii + 2] = p.z
         return ii + 3
-    }
-
-    private fun inOut(inflag: InFlag, aHB: Float, bHA: Float): InFlag {
-        if (aHB > 0) {
-            return InFlag.Pin
-        } else if (bHA > 0) {
-            return InFlag.Qin
-        }
-        return inflag
     }
 
     private fun segSegInt(a: Vector3f, b: Vector3f, c: Vector3f, d: Vector3f, p: Vector3f): Intersection {

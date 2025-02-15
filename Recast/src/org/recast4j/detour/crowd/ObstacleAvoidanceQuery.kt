@@ -25,90 +25,6 @@ import kotlin.math.*
 
 class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
 
-    class ObstacleCircle {
-        /**
-         * Position of the obstacle
-         */
-        val p = Vector3f()
-
-        /**
-         * Velocity of the obstacle
-         */
-        val vel = Vector3f()
-
-        /**
-         * Velocity of the obstacle
-         */
-        val dvel = Vector3f()
-
-        /**
-         * Radius of the obstacle
-         */
-        var rad = 0f
-
-        /**
-         * Use for side selection during sampling.
-         */
-        val dp = Vector3f()
-
-        /**
-         * Use for side selection during sampling.
-         */
-        val np = Vector3f()
-    }
-
-    class ObstacleSegment {
-        /**
-         * End points of the obstacle segment
-         */
-        val p = Vector3f()
-
-        /**
-         * End points of the obstacle segment
-         */
-        val q = Vector3f()
-        var touch = false
-    }
-
-    class ObstacleAvoidanceParams {
-        var velBias: Float
-        var weightDesVel: Float
-        var weightCurVel: Float
-        var weightSide: Float
-        var weightToi: Float
-        var horizTime: Float
-        var gridSize: Int
-        var adaptiveDivs: Int
-        var adaptiveRings: Int
-        var adaptiveDepth: Int
-
-        constructor() {
-            velBias = 0.4f
-            weightDesVel = 2f
-            weightCurVel = 0.75f
-            weightSide = 0.75f
-            weightToi = 2.5f
-            horizTime = 2.5f
-            gridSize = 33
-            adaptiveDivs = 7
-            adaptiveRings = 2
-            adaptiveDepth = 5
-        }
-
-        constructor(params: ObstacleAvoidanceParams) {
-            velBias = params.velBias
-            weightDesVel = params.weightDesVel
-            weightCurVel = params.weightCurVel
-            weightSide = params.weightSide
-            weightToi = params.weightToi
-            horizTime = params.horizTime
-            gridSize = params.gridSize
-            adaptiveDivs = params.adaptiveDivs
-            adaptiveRings = params.adaptiveRings
-            adaptiveDepth = params.adaptiveDepth
-        }
-    }
-
     private lateinit var params: ObstacleAvoidanceParams
     private var invHorizTime = 0f
     private var invVmax = 0f
@@ -169,7 +85,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
 
             // Precalc if the agent is really close to the segment.
             val r = 0.01f
-            val (first) = Vectors.distancePtSegSqr2D(pos, seg.p, seg.q)
+            val first = Vectors.distancePtSegSqr2DFirst(pos, seg.p, seg.q)
             seg.touch = first < r * r
         }
     }

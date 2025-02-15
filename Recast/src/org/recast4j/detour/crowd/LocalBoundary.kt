@@ -24,6 +24,7 @@ import org.recast4j.Vectors
 import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.Node
 import org.recast4j.detour.NodePool
+import org.recast4j.detour.PortalResult
 import org.recast4j.detour.QueryFilter
 import java.util.*
 
@@ -88,7 +89,7 @@ class LocalBoundary {
         pa: FloatArray, pb: FloatArray,
         tmpSegments: ArrayList<FloatArray>,
         tmpInts: ArrayList<NavMeshQuery.SegInterval>,
-        tmp: NavMeshQuery.PortalResult, tmpN: Vector3f,
+        tmp: PortalResult, tmpN: Vector3f,
         stack: LinkedList<Node>
     ) {
         if (ref == 0L) {

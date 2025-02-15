@@ -23,10 +23,10 @@ import org.recast4j.LongArrayList
 import org.recast4j.Vectors
 import org.recast4j.detour.*
 import org.recast4j.detour.NavMeshQuery.Companion.MAX_NEIS
-import org.recast4j.detour.crowd.ObstacleAvoidanceQuery.ObstacleAvoidanceParams
 import org.recast4j.detour.crowd.debug.CrowdAgentDebugInfo
 import org.recast4j.detour.crowd.debug.ObstacleAvoidanceDebugData
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -125,6 +125,7 @@ class Crowd @JvmOverloads constructor(
     private var agentId = 0
 
     val activeAgents = HashSet<CrowdAgent>()
+    private val agentsList = ArrayList<CrowdAgent>()
 
     private val obstacleAvoidanceQuery: ObstacleAvoidanceQuery =
         ObstacleAvoidanceQuery(config.maxObstacleAvoidanceCircles, config.maxObstacleAvoidanceSegments)
@@ -280,7 +281,10 @@ class Crowd @JvmOverloads constructor(
         velocitySampleCount = 0
         telemetry.start()
 
-        val agents = activeAgents
+        agentsList.clear()
+        agentsList.addAll(activeAgents)
+        val agents = agentsList
+
         // Check that all agents still have valid paths.
         checkPathValidity(agents, dt)
 
@@ -320,11 +324,11 @@ class Crowd @JvmOverloads constructor(
         return telemetry
     }
 
-    private fun checkPathValidity(agents: Collection<CrowdAgent>, dt: Float) {
+    private fun checkPathValidity(agents: List<CrowdAgent>, dt: Float) {
         telemetry.start(CrowdTelemetryType.CHECK_PATH_VALIDITY)
         val agentPos = Vector3f()
-        for (ag in agents) {
-            checkPathValidity(ag, dt, agentPos)
+        for (i in agents.indices) {
+            checkPathValidity(agents[i], dt, agentPos)
         }
         telemetry.stop(CrowdTelemetryType.CHECK_PATH_VALIDITY)
     }
@@ -419,14 +423,15 @@ class Crowd @JvmOverloads constructor(
         }
     }
 
-    private fun updateMoveRequest(agents: Collection<CrowdAgent>, dt: Float) {
+    private fun updateMoveRequest(agents: List<CrowdAgent>, dt: Float) {
         telemetry.start(CrowdTelemetryType.UPDATE_MOVE_REQUEST)
         val queue = PriorityQueue<CrowdAgent> { a1, a2 ->
             a2.targetReplanTime.compareTo(a1.targetReplanTime)
         }
 
         // Fire off new requests.
-        for (ag in agents) {
+        for (i in agents.indices) {
+            val ag = agents[i]
             if (ag.state == CrowdAgentState.INVALID ||
                 ag.targetState == MoveRequestState.NONE ||
                 ag.targetState == MoveRequestState.VELOCITY
@@ -459,7 +464,8 @@ class Crowd @JvmOverloads constructor(
         telemetry.stop(CrowdTelemetryType.PATH_QUEUE_UPDATE)
 
         // Process path results.
-        for (ag in agents) {
+        for (i in agents.indices) {
+            val ag = agents[i]
             if (ag.targetState == MoveRequestState.NONE ||
                 ag.targetState == MoveRequestState.VELOCITY
             ) continue
@@ -619,12 +625,13 @@ class Crowd @JvmOverloads constructor(
         ag.targetReplanTime = 0f
     }
 
-    private fun updateTopologyOptimization(agents: Collection<CrowdAgent>, dt: Float) {
+    private fun updateTopologyOptimization(agents: List<CrowdAgent>, dt: Float) {
         telemetry.start(CrowdTelemetryType.UPDATE_TOPOLOGY_OPTIMIZATION)
         val queue = PriorityQueue { a1: CrowdAgent, a2: CrowdAgent ->
             a2.topologyOptTime.compareTo(a1.topologyOptTime)
         }
-        for (ag in agents) {
+        for (i in agents.indices) {
+            val ag = agents[i]
             if (ag.state != CrowdAgentState.WALKING ||
                 ag.targetState == MoveRequestState.NONE ||
                 ag.targetState == MoveRequestState.VELOCITY ||
@@ -647,10 +654,11 @@ class Crowd @JvmOverloads constructor(
         telemetry.stop(CrowdTelemetryType.UPDATE_TOPOLOGY_OPTIMIZATION)
     }
 
-    private fun buildProximityGrid(agents: Collection<CrowdAgent>) {
+    private fun buildProximityGrid(agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.BUILD_PROXIMITY_GRID)
         grid.clear()
-        for (ag in agents) {
+        for (i in agents.indices) {
+            val ag = agents[i]
             val p = ag.currentPosition
             val r = ag.params.radius
             grid.addAgentToBuckets(ag, p.x - r, p.z - r, p.x + r, p.z + r)
@@ -661,13 +669,13 @@ class Crowd @JvmOverloads constructor(
     private val tinyNodePool = NodePool()
     private val tmpSegments = ArrayList<FloatArray>()
     private val tmpInts = ArrayList<NavMeshQuery.SegInterval>()
-    private val tmpPortal = NavMeshQuery.PortalResult()
+    private val tmpPortal = PortalResult()
     private val tmpN = Vector3f()
     private val tmpStack = LinkedList<Node>()
-    private fun buildNeighbours(agents: Collection<CrowdAgent>) {
+    private fun buildNeighbours(agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.BUILD_NEIGHBORS)
-        for (agent in agents) {
-            buildNeighbours(agent)
+        for (i in agents.indices) {
+            buildNeighbours(agents[i])
         }
         telemetry.stop(CrowdTelemetryType.BUILD_NEIGHBORS)
     }
@@ -723,15 +731,18 @@ class Crowd @JvmOverloads constructor(
         }
     }
 
-    private val tmp = NavMeshQuery.PortalResult()
-    private fun findCorners(agents: Collection<CrowdAgent>, debug: CrowdAgentDebugInfo?) {
+    private val tmp = PortalResult()
+    private fun findCorners(agents: List<CrowdAgent>, debug: CrowdAgentDebugInfo?) {
         telemetry.start(CrowdTelemetryType.FIND_CORNERS)
-        for (ag in agents) {
-            findCorners(ag, debug)
+        for (i in agents.indices) {
+            findCorners(agents[i], debug)
         }
         telemetry.stop(CrowdTelemetryType.FIND_CORNERS)
     }
 
+    /**
+     * find next corner to steer to
+     * */
     private fun findCorners(ag: CrowdAgent, debug: CrowdAgentDebugInfo?) {
 
         if (ag.state != CrowdAgentState.WALKING ||
@@ -742,11 +753,10 @@ class Crowd @JvmOverloads constructor(
         val debugAgent = debug?.agent
         // Find corners for steering
         StraightPathItem.clear(ag.corners)
-        ag.corners.addAll(
-            ag.corridor.findCorners(
-                CROWDAGENT_MAX_CORNERS, navQuery, tmp,
-                tmpVertices, tmpVertices2, tmpVertices3
-            )
+        ag.corridor.findCorners(
+            CROWDAGENT_MAX_CORNERS, navQuery, tmp,
+            tmpVertices, tmpVertices2, tmpVertices3,
+            ag.corners
         )
 
         // Check to see if the corner after the next corner is directly visible,
@@ -772,10 +782,10 @@ class Crowd @JvmOverloads constructor(
         }
     }
 
-    private fun triggerOffMeshConnections(agents: Collection<CrowdAgent>) {
+    private fun triggerOffMeshConnections(agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.TRIGGER_OFF_MESH_CONNECTIONS)
-        for (agent in agents) {
-            triggerOffMeshConnections(agent)
+        for (i in agents.indices) {
+            triggerOffMeshConnections(agents[i])
         }
         telemetry.stop(CrowdTelemetryType.TRIGGER_OFF_MESH_CONNECTIONS)
     }
@@ -816,10 +826,10 @@ class Crowd @JvmOverloads constructor(
         // else Path validity check will ensure that bad/blocked connections will be replanned.
     }
 
-    private fun calculateSteering(agents: Collection<CrowdAgent>) {
+    private fun calculateSteering(agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.CALCULATE_STEERING)
-        for (agent in agents) {
-            calculateSteering(agent)
+        for (i in agents.indices) {
+            calculateSteering(agents[i])
         }
         telemetry.stop(CrowdTelemetryType.CALCULATE_STEERING)
     }
@@ -884,10 +894,11 @@ class Crowd @JvmOverloads constructor(
         }
     }
 
-    private fun planVelocity(debug: CrowdAgentDebugInfo?, agents: Collection<CrowdAgent>) {
+    private fun planVelocity(debug: CrowdAgentDebugInfo?, agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.PLAN_VELOCITY)
         val debugAgent = debug?.agent
-        for (ag in agents) {
+        for (i in agents.indices) {
+            val ag = agents[i]
             if (ag.state != CrowdAgentState.WALKING) {
                 continue
             }
@@ -912,7 +923,7 @@ class Crowd @JvmOverloads constructor(
                     obstacleAvoidanceQuery.addSegment(s.start, s.end)
                 }
 
-                var debugData: ObstacleAvoidanceDebugData? =
+                val debugData: ObstacleAvoidanceDebugData? =
                     if (debugAgent === ag) debug.debugData else null
 
                 // Sample new safe velocity.
@@ -931,22 +942,24 @@ class Crowd @JvmOverloads constructor(
         telemetry.stop(CrowdTelemetryType.PLAN_VELOCITY)
     }
 
-    private fun integrate(dt: Float, agents: Collection<CrowdAgent>) {
+    private fun integrate(dt: Float, agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.INTEGRATE)
-        for (ag in agents) {
+        for (i in agents.indices) {
+            val ag = agents[i]
             if (ag.state != CrowdAgentState.WALKING) continue
             ag.integrate(dt)
         }
         telemetry.stop(CrowdTelemetryType.INTEGRATE)
     }
 
-    private fun handleCollisions(agents: Collection<CrowdAgent>) {
+    private fun handleCollisions(agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.HANDLE_COLLISIONS)
         for (iter in 0..3) {
-            for (ag in agents) {
-                handleCollisions(ag)
+            for (i in agents.indices) {
+                handleCollisions(agents[i])
             }
-            for (ag in agents) {
+            for (i in agents.indices) {
+                val ag = agents[i]
                 if (ag.state != CrowdAgentState.WALKING) continue
                 ag.currentPosition.add(ag.disp)
             }
@@ -1003,10 +1016,10 @@ class Crowd @JvmOverloads constructor(
     private val tmpNeis = LongArray(MAX_NEIS)
     private val tmpVisited = LongArrayList()
 
-    private fun moveAgents(agents: Collection<CrowdAgent>) {
+    private fun moveAgents(agents: List<CrowdAgent>) {
         telemetry.start(CrowdTelemetryType.MOVE_AGENTS)
-        for (agent in agents) {
-            moveAgent(agent)
+        for (i in agents.indices) {
+            moveAgent(agents[i])
         }
         telemetry.stop(CrowdTelemetryType.MOVE_AGENTS)
     }
@@ -1031,10 +1044,10 @@ class Crowd @JvmOverloads constructor(
         }
     }
 
-    private fun updateOffMeshConnections(agents: Collection<CrowdAgent>, dt: Float) {
+    private fun updateOffMeshConnections(agents: List<CrowdAgent>, dt: Float) {
         telemetry.start(CrowdTelemetryType.UPDATE_OFF_MESH_CONNECTIONS)
-        for (agent in agents) {
-            updateOffMeshConnections(agent, dt)
+        for (i in agents.indices) {
+            updateOffMeshConnections(agents[i], dt)
         }
         telemetry.stop(CrowdTelemetryType.UPDATE_OFF_MESH_CONNECTIONS)
     }

@@ -40,10 +40,10 @@ class ProximityGrid(val cellSize: Float) {
     }
 
     fun addAgentToBuckets(agent: CrowdAgent, minXf: Float, minYf: Float, maxXf: Float, maxYf: Float) {
-        val minX = floor((minXf * invCellSize)).toInt()
-        val minY = floor((minYf * invCellSize)).toInt()
-        val maxX = floor((maxXf * invCellSize)).toInt()
-        val maxY = floor((maxYf * invCellSize)).toInt()
+        val minX = floor(minXf * invCellSize).toInt()
+        val minY = floor(minYf * invCellSize).toInt()
+        val maxX = floor(maxXf * invCellSize).toInt()
+        val maxY = floor(maxYf * invCellSize).toInt()
         for (y in minY..maxY) {
             for (x in minX..maxX) {
                 val key = createItemKey(x, y)
@@ -63,10 +63,10 @@ class ProximityGrid(val cellSize: Float) {
         self: CrowdAgent, range: Float,
         dst: ArrayList<CrowdAgent>
     ) {
-        val minX = floor((minXf * invCellSize)).toInt()
-        val minY = floor((minYf * invCellSize)).toInt()
-        val maxX = floor((maxXf * invCellSize)).toInt()
-        val maxY = floor((maxYf * invCellSize)).toInt()
+        val minX = floor(minXf * invCellSize).toInt()
+        val minY = floor(minYf * invCellSize).toInt()
+        val maxX = floor(maxXf * invCellSize).toInt()
+        val maxY = floor(maxYf * invCellSize).toInt()
         dst.clear()
         val pos = self.currentPosition
         val height = self.params.height

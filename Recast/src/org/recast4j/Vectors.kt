@@ -174,6 +174,9 @@ object Vectors {
         return acx * abz - abx * acz
     }
 
+    /**
+     * Derives the signed xz-plane area of the triangle ABC, or the relationship of line AB to point C.
+     * */
     fun triArea2D(a: Vector3f, b: Vector3f, c: Vector3f): Float {
         val abx = b.x - a.x
         val abz = b.z - a.z
@@ -191,13 +194,8 @@ object Vectors {
                 a.minZ <= n.maxZ && a.maxZ >= n.minZ
     }
 
-    fun distancePtSegSqr2D(pt: Vector3f, p: Vector3f, q: Vector3f): FloatPair {
-        val pqx = q.x - p.x
-        val pqz = q.z - p.z
-        var dx = pt.x - p.x
-        var dz = pt.z - p.z
-        val d = pqx * pqx + pqz * pqz
-        var t = pqx * dx + pqz * dz
+    private fun getPtSegT(d: Float, t0: Float): Float {
+        var t = t0
         if (d > 0) {
             t /= d
         }
@@ -206,6 +204,15 @@ object Vectors {
         } else if (t > 1) {
             t = 1f
         }
+        return t
+    }
+
+    fun distancePtSegSqr2D(pt: Vector3f, p: Vector3f, q: Vector3f): FloatPair {
+        val pqx = q.x - p.x
+        val pqz = q.z - p.z
+        var dx = pt.x - p.x
+        var dz = pt.z - p.z
+        val t = getPtSegT(pqx * pqx + pqz * pqz, pqx * dx + pqz * dz)
         dx = p.x + t * pqx - pt.x
         dz = p.z + t * pqz - pt.z
         return FloatPair(dx * dx + dz * dz, t)
@@ -216,16 +223,7 @@ object Vectors {
         val pqz = q.z - p.z
         var dx = pt.x - p.x
         var dz = pt.z - p.z
-        val d = pqx * pqx + pqz * pqz
-        var t = pqx * dx + pqz * dz
-        if (d > 0) {
-            t /= d
-        }
-        if (t < 0) {
-            t = 0f
-        } else if (t > 1) {
-            t = 1f
-        }
+        val t = getPtSegT(pqx * pqx + pqz * pqz, pqx * dx + pqz * dz)
         dx = p.x + t * pqx - pt.x
         dz = p.z + t * pqz - pt.z
         return dx * dx + dz * dz

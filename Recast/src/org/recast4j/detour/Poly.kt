@@ -20,11 +20,12 @@ package org.recast4j.detour
 
 /** Defines a polygon within a MeshTile object.  */
 class Poly(val index: Int, maxVerticesPerPoly: Int) {
+
     /** The indices of the polygon's vertices. The actual vertices are located in MeshTile::vertices.  */
-    val vertices: IntArray
+    val vertices = IntArray(maxVerticesPerPoly)
 
     /** Packed data representing neighbor polygons references and flags for each edge.  */
-    val neighborData: IntArray
+    val neighborData = IntArray(maxVerticesPerPoly)
 
     /** The user defined polygon flags.  */
     var flags = 0
@@ -39,19 +40,14 @@ class Poly(val index: Int, maxVerticesPerPoly: Int) {
      */
     var areaAndType = 0
 
-    init {
-        vertices = IntArray(maxVerticesPerPoly)
-        neighborData = IntArray(maxVerticesPerPoly)
-    }
-    /** Gets the user defined area id.  */
-    /** Sets the user defined area id. [Limit: &lt; [org.recast4j.detour.NavMesh.MAX_NUM_AREAS]]  */
+    /** [Limit: &lt; [org.recast4j.detour.NavMesh.MAX_NUM_AREAS]]  */
     var area: Int
         get() = areaAndType and 0x3f
         set(a) {
             areaAndType = areaAndType and 0xc0 or (a and 0x3f)
         }
-    /** Gets the polygon type. (See: #dtPolyTypes)  */
-    /** Sets the polygon type. (See: #dtPolyTypes.)  */
+
+    /** (See: #dtPolyTypes.)  */
     var type: Int
         get() = areaAndType shr 6
         set(t) {
