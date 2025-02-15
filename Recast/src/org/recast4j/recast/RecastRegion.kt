@@ -1377,14 +1377,10 @@ object RecastRegion {
             val bw = min(w, borderSize)
             val bh = min(h, borderSize)
             // Paint regions
-            paintRectRegion(0, bw, 0, h, id or RecastConstants.RC_BORDER_REG, chf, srcReg)
-            id++
-            paintRectRegion(w - bw, w, 0, h, id or RecastConstants.RC_BORDER_REG, chf, srcReg)
-            id++
-            paintRectRegion(0, w, 0, bh, id or RecastConstants.RC_BORDER_REG, chf, srcReg)
-            id++
-            paintRectRegion(0, w, h - bh, h, id or RecastConstants.RC_BORDER_REG, chf, srcReg)
-            id++
+            paintRectRegion(0, bw, 0, h, (id++) or RecastConstants.RC_BORDER_REG, chf, srcReg)
+            paintRectRegion(w - bw, w, 0, h, (id++) or RecastConstants.RC_BORDER_REG, chf, srcReg)
+            paintRectRegion(0, w, 0, bh, (id++) or RecastConstants.RC_BORDER_REG, chf, srcReg)
+            paintRectRegion(0, w, h - bh, h, (id++) or RecastConstants.RC_BORDER_REG, chf, srcReg)
         }
 
         var prev = IntArray(1024)
@@ -1467,9 +1463,9 @@ object RecastRegion {
                 }
             }
         }
-        ctx?.startTimer(TelemetryType.REGIONS_FILTER)
 
         // Merge monotone regions to layers and remove small regions.
+        ctx?.startTimer(TelemetryType.REGIONS_FILTER)
         chf.maxRegions = mergeAndFilterLayerRegions(minRegionArea, id, chf, srcReg)
         ctx?.stopTimer(TelemetryType.REGIONS_FILTER)
 

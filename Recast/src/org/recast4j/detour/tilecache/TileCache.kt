@@ -19,9 +19,10 @@ freely, subject to the following restrictions:
 package org.recast4j.detour.tilecache
 
 import me.anno.utils.assertions.assertTrue
-import org.recast4j.LongArrayList
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector3f
+import org.recast4j.LongArrayList
 import org.recast4j.Vectors.ilog2
 import org.recast4j.Vectors.nextPow2
 import org.recast4j.detour.NavMesh
@@ -39,9 +40,15 @@ import kotlin.math.min
 import kotlin.math.sin
 
 class TileCache(
-    val params: TileCacheParams, private val storageParams: TileCacheStorageParams, val navMesh: NavMesh,
+    val params: TileCacheParams,
+    private val storageParams: TileCacheStorageParams,
+    val navMesh: NavMesh,
     private val meshProcess: TileCacheMeshProcess?
 ) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(TileCache::class)
+    }
 
     /** Tile hash lookup.  */
     private val posLookup = HashMap<Long, CompressedTile>()
@@ -440,18 +447,24 @@ class TileCache(
                 }
             }
         }
+
         // Build navmesh
         TileCacheBuilder.buildTileCacheRegions(layer, walkableClimbVx)
         val contours = TileCacheBuilder.buildTileCacheContours(
             layer, walkableClimbVx,
             params.maxSimplificationError
         )
+
         val polyMesh = TileCacheBuilder.buildTileCachePolyMesh(contours, navMesh.maxVerticesPerPoly)
         // Early out if the mesh tile is empty.
         if (polyMesh.numPolygons == 0) {
+            LOGGER.warn("Mesh tile is empty")
             navMesh.removeTile(navMesh.getTileRefAt(tile.tx, tile.ty, tile.tlayer))
             return
         }
+
+        LOGGER.info("PolyMesh: $polyMesh")
+
         val params = NavMeshDataCreateParams()
         params.vertices = polyMesh.vertices
         params.vertCount = polyMesh.numVertices

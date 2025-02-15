@@ -27,7 +27,7 @@ import org.recast4j.dynamic.io.VoxelTile
 import org.recast4j.recast.AreaModification
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.RecastBuilder
-import org.recast4j.recast.RecastBuilder.RecastBuilderResult
+import org.recast4j.recast.RecastBuilderResult
 import org.recast4j.recast.Telemetry
 import java.util.*
 import java.util.concurrent.CompletableFuture

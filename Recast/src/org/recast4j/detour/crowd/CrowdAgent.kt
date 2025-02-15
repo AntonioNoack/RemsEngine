@@ -30,23 +30,6 @@ import kotlin.math.min
  * Represents an agent managed by a #dtCrowd object.
  */
 class CrowdAgent(val idx: Int) {
-    /**
-     * The type of navigation mesh polygon the agent is currently traversing.
-     */
-    enum class CrowdAgentState {
-        /** The agent is not in a valid state.  */
-        INVALID,
-
-        /** The agent is traversing a normal navigation mesh polygon.  */
-        WALKING,
-
-        /** The agent is traversing an off-mesh connection.  */
-        OFFMESH
-    }
-
-    enum class MoveRequestState {
-        NONE, FAILED, VALID, REQUESTING, WAITING_FOR_QUEUE, WAITING_FOR_PATH, VELOCITY
-    }
 
     /** The type of mesh polygon the agent is traversing. (See: #CrowdAgentState)  */
     var state: CrowdAgentState? = null
@@ -123,7 +106,7 @@ class CrowdAgent(val idx: Int) {
         } else actualVelocity.set(0f)
     }
 
-    fun overOffmeshConnection(radius: Float): Boolean {
+    fun overOffMeshConnection(radius: Float): Boolean {
         if (corners.isEmpty()) return false
         val offMeshConnection = corners[corners.size - 1].flags and NavMeshQuery.DT_STRAIGHTPATH_OFFMESH_CONNECTION != 0
         if (offMeshConnection) {

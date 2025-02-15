@@ -19,6 +19,7 @@ freely, subject to the following restrictions:
 package org.recast4j.detour
 
 import me.anno.utils.structures.tuples.IntPair
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector3f
 import java.util.Arrays
@@ -29,6 +30,7 @@ import kotlin.math.min
 
 object NavMeshBuilder {
 
+    private val LOGGER = LogManager.getLogger(NavMeshBuilder::class)
     const val MESH_NULL_IDX = 0xffff
 
     private fun calcExtends(nodes: Array<BVNode>, startIndex: Int, endIndex: Int, dst: BVNode) {
@@ -168,9 +170,22 @@ object NavMeshBuilder {
      * @return created tile data
      */
     fun createNavMeshData(params: NavMeshDataCreateParams): MeshData? {
-        if (params.vertCount >= 0xffff) return null
-        if (params.vertCount == 0 || params.vertices == null) return null
-        if (params.polyCount == 0 || params.polys == null) return null
+
+        if (params.vertCount >= 0xffff) {// todo why does this limit exist???
+            LOGGER.warn("Too many vertices: ${params.vertCount} > 0xffff")
+            return null
+        }
+
+        if (params.vertCount == 0 || params.vertices == null) {
+            LOGGER.warn("Missing vertices: min(${params.vertCount},${params.vertices?.size})")
+            return null
+        }
+
+        if (params.polyCount == 0 || params.polys == null) {
+            LOGGER.warn("Missing polygons: min(${params.polyCount},${params.polys?.size})")
+            return null
+        }
+
         val nvp = params.maxVerticesPerPolygon
 
         // Classify off-mesh connection points. We store only the connections

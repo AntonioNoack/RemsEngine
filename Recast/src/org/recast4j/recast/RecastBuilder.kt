@@ -19,57 +19,31 @@ freely, subject to the following restrictions:
 package org.recast4j.recast
 
 import org.joml.AABBf
-import org.joml.Vector3f
 import org.recast4j.recast.geom.ConvexVolumeProvider
 import org.recast4j.recast.geom.InputGeomProvider
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
 
-class RecastBuilder {
-    interface RecastBuilderProgressListener {
-        fun onProgress(completed: Int, total: Int)
-    }
-
-    private val progressListener: RecastBuilderProgressListener?
-
-    constructor() {
-        progressListener = null
-    }
-
-    constructor(progressListener: RecastBuilderProgressListener?) {
-        this.progressListener = progressListener
-    }
-
-    @Suppress("unused")
-    class RecastBuilderResult(
-        val tileX: Int,
-        val tileZ: Int,
-        val solidHeightField: Heightfield,
-        val compactHeightField: CompactHeightfield,
-        val contourSet: ContourSet,
-        val mesh: PolyMesh,
-        val meshDetail: PolyMeshDetail?,
-        val telemetry: Telemetry?
-    )
+class RecastBuilder(val progressListener: RecastBuilderProgressListener? = null) {
 
     fun buildTiles(geom: InputGeomProvider, cfg: RecastConfig, executor: Executor?): List<RecastBuilderResult> {
-        val bmin = geom.bounds
-        val tw = Recast.calcTileCountX(bmin, cfg.cellSize, cfg.tileSizeX)
-        val th = Recast.calcTileCountY(bmin, cfg.cellSize, cfg.tileSizeZ)
-        return executor?.let { buildMultiThread(geom, cfg, bmin, tw, th, it) }
-            ?: buildSingleThread(geom, cfg, bmin, tw, th)
+        val bounds = geom.bounds
+        val tw = Recast.calcTileCountX(bounds, cfg.cellSize, cfg.tileSizeX)
+        val th = Recast.calcTileCountY(bounds, cfg.cellSize, cfg.tileSizeZ)
+        return if (executor != null) buildMultiThread(geom, cfg, bounds, tw, th, executor)
+        else buildSingleThread(geom, cfg, bounds, tw, th)
     }
 
     private fun buildSingleThread(
         geom: InputGeomProvider, cfg: RecastConfig, bounds: AABBf,
         tw: Int, th: Int
     ): List<RecastBuilderResult> {
-        val result: MutableList<RecastBuilderResult> = ArrayList(tw * th)
-        val counter = AtomicInteger()
+        val result = ArrayList<RecastBuilderResult>(tw * th)
+        val progressCtr = AtomicInteger()
         for (y in 0 until th) {
             for (x in 0 until tw) {
-                result.add(buildTile(geom, cfg, bounds, x, y, counter, tw * th))
+                result.add(buildTile(geom, cfg, bounds, x, y, progressCtr, tw * th))
             }
         }
         return result
@@ -79,14 +53,14 @@ class RecastBuilder {
         geom: InputGeomProvider, cfg: RecastConfig, bounds: AABBf,
         tw: Int, th: Int, executor: Executor
     ): List<RecastBuilderResult> {
-        val result: MutableList<RecastBuilderResult> = ArrayList(tw * th)
-        val counter = AtomicInteger()
+        val result = ArrayList<RecastBuilderResult>(tw * th)
+        val progressCtr = AtomicInteger()
         val latch = CountDownLatch(tw * th)
-        for (x in 0 until tw) {
-            for (y in 0 until th) {
+        for (y in 0 until th) {
+            for (x in 0 until tw) {
                 executor.execute {
                     try {
-                        val tile = buildTile(geom, cfg, bounds, x, y, counter, tw * th)
+                        val tile = buildTile(geom, cfg, bounds, x, y, progressCtr, tw * th)
                         synchronized(result) { result.add(tile) }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -95,10 +69,7 @@ class RecastBuilder {
                 }
             }
         }
-        try {
-            latch.await()
-        } catch (ignored: InterruptedException) {
-        }
+        latch.await()
         return result
     }
 
@@ -125,11 +96,13 @@ class RecastBuilder {
         tileX: Int, tileZ: Int, geom: ConvexVolumeProvider?, cfg: RecastConfig, solid: Heightfield,
         ctx: Telemetry?
     ): RecastBuilderResult {
-        filterHeightfield(solid, cfg, ctx)
-        val chf = buildCompactHeightfield(geom, cfg, ctx, solid)
 
+        filterHeightfield(solid, cfg, ctx)
+
+        val chf = buildCompactHeightfield(geom, cfg, ctx, solid)
         // Partition the heightfield so that we can use simple algorithm later
         // to triangulate the walkable areas.
+        println("partitionType: ${cfg.partitionType}")
         when (cfg.partitionType) {
             PartitionType.WATERSHED -> {
                 // Prepare for region partitioning, by calculating distance field
@@ -165,13 +138,12 @@ class RecastBuilder {
         val pmesh = RecastMesh.buildPolyMesh(ctx, cset, cfg.maxVerticesPerPoly)
 
         //
-        // Step 7. Create detail mesh, which allows to access approximate height
-        // on each polygon.
+        // Step 7. Create detail mesh, which allows to access approximate height on each polygon.
         //
-        val dmesh = if (cfg.buildMeshDetail)
+        val meshDetail = if (cfg.buildMeshDetail) {
             RecastMeshDetail.buildPolyMeshDetail(ctx, pmesh, chf, cfg.detailSampleDist, cfg.detailSampleMaxError)
-        else null
-        return RecastBuilderResult(tileX, tileZ, solid, chf, cset, pmesh, dmesh, ctx)
+        } else null
+        return RecastBuilderResult(tileX, tileZ, solid, chf, cset, pmesh, meshDetail, ctx)
     }
 
     /**

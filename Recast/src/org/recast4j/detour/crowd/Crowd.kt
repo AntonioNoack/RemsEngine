@@ -23,8 +23,6 @@ import org.recast4j.LongArrayList
 import org.recast4j.Vectors
 import org.recast4j.detour.*
 import org.recast4j.detour.NavMeshQuery.Companion.MAX_NEIS
-import org.recast4j.detour.crowd.CrowdAgent.CrowdAgentState
-import org.recast4j.detour.crowd.CrowdAgent.MoveRequestState
 import org.recast4j.detour.crowd.ObstacleAvoidanceQuery.ObstacleAvoidanceParams
 import org.recast4j.detour.crowd.debug.CrowdAgentDebugInfo
 import org.recast4j.detour.crowd.debug.ObstacleAvoidanceDebugData
@@ -791,7 +789,7 @@ class Crowd @JvmOverloads constructor(
 
         // Check
         val triggerRadius = ag.params.radius * 2.25f
-        if (!ag.overOffmeshConnection(triggerRadius)) return
+        if (!ag.overOffMeshConnection(triggerRadius)) return
 
         // Prepare to off-mesh connection.
         val anim = ag.animation
@@ -808,7 +806,7 @@ class Crowd @JvmOverloads constructor(
             anim.active = true
             anim.t = 0f
             anim.tMax = Vectors.dist2D(anim.startPos, anim.endPos) / ag.params.maxSpeed * 0.5f
-            ag.state = CrowdAgentState.OFFMESH
+            ag.state = CrowdAgentState.OFF_MESH
             StraightPathItem.clear(ag.corners)
             synchronized(neighbourCache) {
                 neighbourCache.addAll(ag.neis)

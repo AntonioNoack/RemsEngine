@@ -22,7 +22,7 @@ import org.joml.Vector3f
 import org.recast4j.dynamic.DynamicNavMesh
 import org.recast4j.recast.AreaModification
 import org.recast4j.recast.PartitionType
-import org.recast4j.recast.RecastBuilder.RecastBuilderResult
+import org.recast4j.recast.RecastBuilderResult
 import org.recast4j.recast.RecastConfig
 import java.nio.ByteOrder
 

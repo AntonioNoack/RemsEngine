@@ -9,6 +9,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.recast.NavMeshDebug.drawNavMesh
 import me.anno.utils.Color.black
+import org.apache.logging.log4j.LogManager
 import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMeshBuilder
 import org.recast4j.detour.NavMeshDataCreateParams
@@ -21,6 +22,7 @@ import org.recast4j.recast.RecastConfig
 class NavMesh : Component(), OnDrawGUI {
 
     companion object {
+        private val LOGGER = LogManager.getLogger(NavMesh::class)
         var debugColor = 0xfff973 or black
     }
 
@@ -83,7 +85,12 @@ class NavMesh : Component(), OnDrawGUI {
 
     fun build(): MeshData? {
 
-        val world = entity ?: return null
+        val world = entity
+        if (world == null) {
+            LOGGER.warn("World missing")
+            return null
+        }
+
         val geometry = GeoProvider(world, collisionMask)
 
         val config = RecastConfig(
@@ -108,6 +115,8 @@ class NavMesh : Component(), OnDrawGUI {
         p.polyAreas = mesh.areaIds
         p.polyCount = mesh.numPolygons
         p.maxVerticesPerPolygon = mesh.maxVerticesPerPolygon
+        println("mesh: ${mesh.numVertices}x + ${mesh.numPolygons}x")
+        println("md: $md")
         if (md != null) {
             p.detailVertices = md.vertices
             p.detailVerticesCount = md.numVertices

@@ -1,7 +1,7 @@
 package org.recast4j.detour.extras.jumplink
 
 import org.recast4j.Vectors
-import org.recast4j.recast.RecastBuilder.RecastBuilderResult
+import org.recast4j.recast.RecastBuilderResult
 import kotlin.math.max
 import kotlin.math.min
 

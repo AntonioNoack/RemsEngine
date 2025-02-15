@@ -117,7 +117,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var isVisible: Boolean
         get() = isEnabled
         set(value) {
+            val wasEnabled = isEnabled
             isEnabled = value
+            if (wasEnabled != value) {
+                invalidateLayout()
+            }
         }
 
     @NotSerializedProperty
@@ -131,7 +135,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun toggleVisibility(): Panel {
         isVisible = !isVisible
-        invalidateLayout()
         return this
     }
 

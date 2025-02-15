@@ -81,17 +81,16 @@ class MeshData : MeshHeader() {
 
         private fun createBVTree(data: MeshData, dstNodes: Array<BVNode>, quantFactor: Float): Int {
             val srcNodes = Array(data.polyCount) { BVNode() }
-            for (i in 0 until data.polyCount) {
+            for (i in srcNodes.indices) {
                 srcNodes[i].index = i
             }
-            val dataVertices = data.vertices
             val bounds = AABBf()
             for (i in 0 until data.polyCount) {
                 val polygon = data.polygons[i]
                 val polygonVertices = polygon.vertices
                 bounds.clear()
                 for (j in 0 until polygon.vertCount) {
-                    bounds.union(dataVertices, polygonVertices[j] * 3)
+                    bounds.union(data.vertices, polygonVertices[j] * 3)
                 }
                 srcNodes[i].setQuantized(bounds, data.bounds, quantFactor)
             }

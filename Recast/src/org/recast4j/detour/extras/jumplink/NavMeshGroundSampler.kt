@@ -2,7 +2,7 @@ package org.recast4j.detour.extras.jumplink
 
 import org.joml.Vector3f
 import org.recast4j.detour.*
-import org.recast4j.recast.RecastBuilder.RecastBuilderResult
+import org.recast4j.recast.RecastBuilderResult
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
