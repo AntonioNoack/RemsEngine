@@ -17,7 +17,7 @@ fun main() {
     val logger = LogManager.getLogger("HttpServerTest")
     val server = Server()
     val folder = getReference("C:/XAMPP/htdocs")
-    val publicExtensions = setOf("html", "htm", "js", "json", "png", "webp", "jpg", "jpeg", "ico")
+    val publicExtensions = "html,htm,js,json,png,webp,jpg,jpeg,ico".split(',')
     fun extractPathFromURL(url: String): String {
         return url.substring(url.indexOf('/', "https://".length))
     }

@@ -19,6 +19,10 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
     var ditherMode = DitherMode.DITHER2X2
 
     var needsUpdate1 = true
+
+    /**
+     * update shadows every N frames, or never if <= 0
+     * */
     var autoUpdate = 30
 
     // @DebugProperty
@@ -48,5 +52,5 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
         dst.needsUpdate1 = needsUpdate1
     }
 
-    open fun onVisibleUpdate(): Boolean = false
+    open fun onVisibleUpdate() {}
 }

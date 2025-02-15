@@ -72,7 +72,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         clickId = pipeline.getClickId(this)
     }
 
-    override fun onVisibleUpdate(): Boolean {
+    override fun onVisibleUpdate() {
         if (texture == null || texture?.samples != samples) {
             texture?.destroy()
             texture = CubemapFramebuffer(
@@ -87,7 +87,6 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
             needsUpdate1 = false
             drawBuffer(texture)
         }
-        return true
     }
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {

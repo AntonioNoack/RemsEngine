@@ -1,0 +1,63 @@
+package me.anno.tests.network.rollingshooter
+
+import me.anno.Time
+import me.anno.bullet.Rigidbody
+import me.anno.ecs.Component
+import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.interfaces.InputListener
+import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.ui.render.RenderView
+import me.anno.input.Input
+import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.pow
+import me.anno.tests.network.Instance
+import me.anno.tests.network.udpProtocol
+import kotlin.math.PI
+
+class BallCamera(
+    val cameraArm: Entity,
+    val selfPlayerEntity: Entity,
+    val cameraBase: Entity,
+    val cameraBase1: Entity,
+    val instance: Instance,
+    val selfColor: Int
+) : Component(), InputListener, OnUpdate {
+
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
+        cameraArm.position = cameraArm.position.mul(pow(0.98, dy.toDouble()))
+        return true
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
+        return if (Input.isMouseLocked) {
+            // rotate camera
+            val speed = 1.0 / RenderView.currentInstance!!.height
+            rotX = clamp(rotX + dy * speed, -PI / 2, PI / 2)
+            rotY = (rotY + dx * speed) % TAU
+            true
+        } else super.onMouseMoved(x, y, dx, dy)
+    }
+
+    override fun onUpdate() {
+        // update transforms
+        val pos = selfPlayerEntity.position
+        cameraBase.position = cameraBase.position.mix(pos, dtTo01(5.0 * Time.deltaTime))
+        cameraBase1.setRotation(rotX, rotY, 0.0)
+        // send our data to the other players
+        instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
+            val rot = selfPlayerEntity.rotation
+            val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
+            val vel = rb.linearVelocity
+            val ang = rb.angularVelocity
+            position.set(pos)
+            rotation.set(rot)
+            linearVelocity.set(vel)
+            angularVelocity.set(ang)
+            color = selfColor
+            // our name is set by the server, we don't have to set/send it ourselves
+        }, udpProtocol, false)
+    }
+}

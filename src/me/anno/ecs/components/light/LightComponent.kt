@@ -174,8 +174,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         }
     }
 
-    override fun onVisibleUpdate(): Boolean {
-        return if (hasShadow) {
+    override fun onVisibleUpdate() {
+        if (hasShadow) {
             if (needsAutoUpdate() || needsUpdate1) {
                 needsUpdate1 = false
                 ensureShadowBuffers()
@@ -183,8 +183,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                     updateShadowMaps()
                 }
             }
-            true
-        } else false
+        }
     }
 
     abstract fun updateShadowMap(

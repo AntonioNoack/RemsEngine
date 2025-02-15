@@ -22,8 +22,8 @@ object UIEventSystem : System() {
     }
 
     fun onUIEvent(event: UIEvent): Boolean {
-        return components.any {
-            event.call(it)
+        return components.any { component ->
+            event.call(component)
         }
     }
 

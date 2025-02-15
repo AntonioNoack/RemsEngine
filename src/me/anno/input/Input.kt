@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.Time.nanoTime
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
@@ -68,7 +68,7 @@ object Input {
     var lastClickTime = 0L
     var keyModState = 0
         set(value) {// check for shift...
-            if (isShiftTrulyDown) lastShiftDown = nanoTime
+            if (isShiftTrulyDown) lastShiftDown = Time.nanoTime
             field = value
         }
 
@@ -87,7 +87,7 @@ object Input {
 
     // 30ms shift lag for numpad, because shift disables it on Windows
     val isShiftTrulyDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SHIFT)
-    val isShiftDown: Boolean get() = isShiftTrulyDown || (lastShiftDown != 0L && abs(lastShiftDown - nanoTime) < 30_000_000)
+    val isShiftDown: Boolean get() = isShiftTrulyDown || (lastShiftDown != 0L && abs(lastShiftDown - Time.nanoTime) < 30_000_000)
 
     @Suppress("unused")
     val isCapsLockDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_CAPS_LOCK)
@@ -473,9 +473,9 @@ object Input {
             ActionManager.onKeyDown(window, button)
         }
 
-        mouseStart = nanoTime
+        mouseStart = Time.nanoTime
         mouseKeysDown.add(button)
-        keysDown[button] = nanoTime
+        keysDown[button] = Time.nanoTime
     }
 
     fun onMouseRelease(window: OSWindow, button: Key) {
@@ -501,7 +501,7 @@ object Input {
         ActionManager.onKeyTyped(window, button)
 
         val longClickMillis = DefaultConfig["longClick", 300]
-        val currentNanos = nanoTime
+        val currentNanos = Time.nanoTime
         val isClick = !mouseHasMoved && !windowWasClosed
 
         val event = UIEvent(
@@ -708,14 +708,8 @@ object Input {
         return wasKeyReleased(keyCode)
     }
 
-    @Suppress("unused")
     fun getDownTimeNanos(key: Key): Long {
         val downTimeNanos = keysDown[key] ?: return -1L
-        return downTimeNanos - nanoTime
-    }
-
-    @Suppress("unused")
-    fun getDownTimeMillis(key: Key): Long {
-        return getDownTimeNanos(key) / MILLIS_TO_NANOS
+        return Time.nanoTime - downTimeNanos
     }
 }

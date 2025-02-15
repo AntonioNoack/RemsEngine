@@ -1,6 +1,7 @@
 package me.anno.ecs.interfaces
 
 import me.anno.input.Key
+import me.anno.utils.structures.Compare.ifSame
 
 /**
  * the class, that you can use to control your components by mouse/keyboard
@@ -17,7 +18,10 @@ interface InputListener : Comparable<InputListener> {
     val priority: Int get() = 0
 
     override fun compareTo(other: InputListener): Int {
+        if (this === other) return 0
         return priority.compareTo(other.priority)
+            .ifSame(hashCode().compareTo(other.hashCode()))
+            .ifSame(1) // meh
     }
 
     fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String): Boolean = false

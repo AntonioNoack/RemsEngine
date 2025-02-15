@@ -19,33 +19,23 @@ import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.interfaces.InputListener
-import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testScene2
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.input.Input
-import me.anno.input.Key
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
-import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.pow
-import me.anno.maths.bvh.HitType
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.network.Instance
 import me.anno.tests.network.Player
 import me.anno.tests.network.tcpProtocol
 import me.anno.tests.network.udpProtocol
-import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toRGB
@@ -57,15 +47,24 @@ import org.apache.logging.log4j.LoggerImpl
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.Random
-import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.exp
-import kotlin.math.sin
 
 // create an actual world, where we can walk around with other people
 // make the game logic as simple as possible, so it's easy to follow
+
+fun createLighting(scene: Entity) {
+    scene.add(Skybox())
+    val sun = DirectionalLight()
+    sun.color.set(10f)
+    sun.shadowMapCascades = 1
+    sun.shadowMapResolution = 1024
+    sun.autoUpdate = 1
+    val sunE = Entity(scene)
+    sunE.setScale(70.0) // covering the map
+    sunE.setRotation((-45.0).toRadians(), 0.0, 0.0)
+    sunE.add(sun)
+}
 
 fun main() {
 
@@ -85,15 +84,7 @@ fun main() {
 
     val scene = Entity()
     Systems.registerSystem(BulletPhysics())
-    scene.add(Skybox())
-    val sun = DirectionalLight()
-    sun.color.set(10f)
-    sun.shadowMapCascades = 1
-    sun.shadowMapResolution = 1024
-    val sunE = Entity(scene)
-    sunE.setScale(70.0) // covering the map
-    sunE.setRotation((-45.0).toRadians(), 0.0, 0.0)
-    sunE.add(sun)
+    createLighting(scene)
 
     val players = Entity("Players", scene)
     val bullets = Entity("Bullet", scene)
@@ -199,113 +190,7 @@ fun main() {
     // choose random color for player
     val selfColor = HSV.toRGB(Vector3f(Maths.random().toFloat(), 1f, 1f)).toRGB()
     val selfPlayerEntity = createPlayerBase(selfColor)
-
-    val radius = 1.0
-    val down = Vector3d(0.0, -1.0, 0.0)
-    fun respawn(entity: Entity = selfPlayerEntity) {
-        val random = Random()
-        // find save position to land via raycast
-        val newPosition = Vector3d()
-        val pos0 = entity.position
-        val maxY = 1e3
-        var iter = 0
-        do {
-            val f = 1.0 / iter++
-            newPosition.set(
-                mix(random.nextGaussian() * 10.0, pos0.x, f), maxY,
-                mix(random.nextGaussian() * 10.0, pos0.z, f)
-            )
-            val query = RayQuery(newPosition, down, maxY)
-            val hit = Raycast.raycast(staticScene, query)
-            if (hit) {
-                newPosition.y += radius - query.result.distance
-                entity.position = newPosition
-                val rb = entity.getComponent(Rigidbody::class)!!
-                rb.linearVelocity = Vector3d()
-                rb.angularVelocity = Vector3d()
-                break
-            }
-        } while (true)
-    }
-
-    var rotX = -30.0
-    var rotY = 0.0
-
-    selfPlayerEntity.add(object : Component(), InputListener, OnPhysicsUpdate {
-
-        val jumpTimeout = (0.1 * SECONDS_TO_NANOS).toLong()
-        var lastJumpTime = 0L
-
-        private fun findBulletDistance(pos: Vector3d, dir: Vector3d): Double {
-            val maxDistance = 1e3
-            val query = RayQuery(
-                pos, dir, maxDistance, Raycast.COLLIDERS,
-                -1, false, setOf(entity!!)
-            )
-            Raycast.raycast(scene, query)
-            return query.result.distance
-        }
-
-        var shotLeft = false
-        fun shootBullet() {
-            val entity = entity!!
-            val pos = Vector3d().add(if (shotLeft) -1.05 else 1.05, 0.0, -0.15)
-                .rotateX(rotX).rotateY(rotY).add(entity.position)
-            val dir = Vector3d(0.0, 0.0, -1.0)
-                .rotateX(rotX).rotateY(rotY)
-            val distance = findBulletDistance(pos, dir)
-            val packet = BulletPacket(onBulletPacket)
-            packet.pos.set(pos)
-            packet.dir.set(dir)
-            packet.distance = distance.toFloat()
-            instance.client?.sendUDP(packet, udpProtocol, false)
-            onBulletPacket(packet)
-            shotLeft = !shotLeft
-        }
-
-        private fun lockMouse() {
-            RenderView.currentInstance?.uiParent?.lockMouse()
-        }
-
-        override fun onKeyDown(key: Key): Boolean {
-            return when (key) {
-                Key.BUTTON_LEFT -> {
-                    if (Input.isMouseLocked) shootBullet()
-                    else lockMouse()
-                    true
-                }
-                Key.KEY_ESCAPE -> {
-                    Input.unlockMouse()
-                    true
-                }
-                else -> super.onKeyDown(key)
-            }
-        }
-
-        override fun onPhysicsUpdate(dt: Double) {
-            val entity = entity!!
-            val rigidbody = entity.getComponent(Rigidbody::class)!!
-            val strength = 12.0 * rigidbody.mass
-            if (entity.position.y < -10.0 || Input.wasKeyPressed(Key.KEY_R)) {
-                respawn()
-            }
-            val c = cos(rotY) * strength
-            val s = sin(rotY) * strength
-            if (Input.isKeyDown(Key.KEY_W)) rigidbody.applyTorque(-c, 0.0, +s)
-            if (Input.isKeyDown(Key.KEY_S)) rigidbody.applyTorque(+c, 0.0, -s)
-            if (Input.isKeyDown(Key.KEY_A)) rigidbody.applyTorque(+s, 0.0, +c)
-            if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(-s, 0.0, -c)
-            if (Input.isKeyDown(Key.KEY_SPACE) && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
-                // only jump if we are on something
-                val query = RayQuery(entity.position, down, radius)
-                query.result.hitType = HitType.ANY
-                if (Raycast.raycast(staticScene, query)) {
-                    lastJumpTime = Time.gameTimeN
-                    rigidbody.applyImpulse(0.0, strength, 0.0)
-                }
-            }
-        }
-    })
+    selfPlayerEntity.add(BallPhysics(scene, staticScene, selfPlayerEntity, instance, onBulletPacket))
 
     // add camera controller
     val camera = Camera()
@@ -316,43 +201,13 @@ fun main() {
     val cameraArm = Entity(cameraBase1)
     cameraArm.setPosition(1.5, 1.0, 4.0)
     cameraArm.setRotation(0.0, 0.0, 0.0)
-    cameraBase.add(object : Component(), InputListener, OnUpdate {
-
-        override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
-            cameraArm.position = cameraArm.position.mul(pow(0.98, dy.toDouble()))
-            return true
-        }
-
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
-            return if (Input.isMouseLocked) {
-                // rotate camera
-                val speed = 1.0 / RenderView.currentInstance!!.height
-                rotX = clamp(rotX + dy * speed, -PI / 2, PI / 2)
-                rotY = (rotY + dx * speed) % TAU
-                true
-            } else super.onMouseMoved(x, y, dx, dy)
-        }
-
-        override fun onUpdate() {
-            // update transforms
-            val pos = selfPlayerEntity.position
-            cameraBase.position = cameraBase.position.mix(pos, dtTo01(5.0 * Time.deltaTime))
-            cameraBase1.setRotation(rotX, rotY, 0.0)
-            // send our data to the other players
-            instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
-                val rot = selfPlayerEntity.rotation
-                val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
-                val vel = rb.linearVelocity
-                val ang = rb.angularVelocity
-                position.set(pos)
-                rotation.set(rot)
-                linearVelocity.set(vel)
-                angularVelocity.set(ang)
-                color = selfColor
-                // our name is set by the server, we don't have to set/send it ourselves
-            }, udpProtocol, false)
-        }
-    })
+    cameraBase.add(
+        BallCamera(
+            cameraArm, selfPlayerEntity,
+            cameraBase, cameraBase1,
+            instance, selfColor
+        )
+    )
     cameraArm.add(camera)
 
     staticScene.add(Rigidbody().apply {
@@ -360,7 +215,7 @@ fun main() {
         friction = 1.0
     })
 
-    val betterScene = res.getChild("meshes/NavMesh.fbx")
+    val betterScene = InvalidRef // res.getChild("meshes/NavMesh.fbx")
     if (betterScene.exists) {
         staticScene.add(MeshComponent(betterScene))
         staticScene.add(MeshCollider(betterScene).apply {
@@ -374,12 +229,50 @@ fun main() {
         plane.setScale(30.0, 1.0, 30.0)
     }
 
-    respawn()
+    respawn(selfPlayerEntity, staticScene)
 
-    testUI(selfName) {
+    Systems.world = scene
+    testUI3(selfName) {
         testScene2(scene) {
             it.renderView.playMode = PlayMode.PLAYING
             it.renderView.localPlayer = selfPlayer
-        }.apply { weight = 1f }
+        }
     }
 }
+
+
+val radius = 1.0
+val down = Vector3d(0.0, -1.0, 0.0)
+fun respawn(
+    entity: Entity /*= selfPlayerEntity*/,
+    staticScene: Entity
+) {
+    val random = Random()
+    // find save position to land via raycast
+    val newPosition = Vector3d()
+    val pos0 = entity.position
+    val maxY = 1e3
+    var iter = 0
+    do {
+        val f = 1.0 / iter++
+        newPosition.set(
+            mix(random.nextGaussian() * 10.0, pos0.x, f), maxY,
+            mix(random.nextGaussian() * 10.0, pos0.z, f)
+        )
+        val query = RayQuery(newPosition, down, maxY)
+        val hit = Raycast.raycast(staticScene, query)
+        if (hit) {
+            newPosition.y += radius - query.result.distance
+            entity.position = newPosition
+            val rb = entity.getComponent(Rigidbody::class)!!
+            rb.linearVelocity = Vector3d()
+            rb.angularVelocity = Vector3d()
+            break
+        }
+    } while (true)
+}
+
+var rotX = 0.0
+var rotY = 0.0
+
+

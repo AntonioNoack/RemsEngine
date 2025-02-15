@@ -14,7 +14,7 @@ import kotlin.math.floor
 import kotlin.random.Random
 
 /**
- * noise map;
+ * noise map, returns value [0,1];
  * not all functions are implemented; ask for help, if you miss one
  * */
 @Suppress("unused")
