@@ -138,7 +138,7 @@ class HeightExpFogNode : RenderViewNode(
                     "   float distance = rawToDepth(texture(depthTex,uv).x);\n" +
                     "   vec3 end = start + dir * distance;\n" +
                     "   bool isFinite = distance < 1e38;\n" +
-                    "   float startY = start.y / worldScale + cameraPosition.y, endY = end.y / worldScale + cameraPosition.y;\n" +
+                    "   float startY = start.y + cameraPosition.y, endY = end.y + cameraPosition.y;\n" +
                     "   float integralOverHeight = abs((heightFogIntegral(endY) - heightFogIntegral(startY)) / normalize(dir).y);\n" +
                     "   float heightFogAbsorption = exp(-integralOverHeight);\n" +
                     "   vec3 srcColor = texture(colorTex,uv).xyz;\n" +
@@ -146,7 +146,7 @@ class HeightExpFogNode : RenderViewNode(
                     "       mix(fogColor, srcColor, heightFogAbsorption) :\n" +
                     "       mix(fogColor, pow(srcColor,vec3($gamma)), heightFogAbsorption);\n" +
                     "   if(isFinite){\n" + // don't apply distance-based fog onto sky
-                    "       float integralOverDistance = distance * invExpDistance / worldScale;\n" +
+                    "       float integralOverDistance = distance * invExpDistance;\n" +
                     "       float expFogAbsorption = exp(-integralOverDistance);\n" +
                     // todo better filtering... cubic?
                     "       vec3 skyColor = textureLod(skyTex,-$cubemapsAreLeftHanded * dir,10.0).xyz;\n" +

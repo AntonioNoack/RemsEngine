@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.assertions.assertEquals
+import org.joml.Matrix4x3
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
@@ -86,9 +87,9 @@ class TransformTests {
     }
 
     fun checkM(parent: Transform, child: Transform, grandchild: Transform, px: Double, cx: Double, gx: Double) {
-        assertEquals(Matrix4x3d().translate(px, 0.0, 0.0), parent.getDrawMatrix())
-        assertEquals(Matrix4x3d().translate(px + cx, 0.0, 0.0), child.getDrawMatrix())
-        assertEquals(Matrix4x3d().translate(px + cx + gx, 0.0, 0.0), grandchild.getDrawMatrix())
+        assertEquals(Matrix4x3().translate(px, 0.0, 0.0), parent.getDrawMatrix())
+        assertEquals(Matrix4x3().translate(px + cx, 0.0, 0.0), child.getDrawMatrix())
+        assertEquals(Matrix4x3().translate(px + cx + gx, 0.0, 0.0), grandchild.getDrawMatrix())
     }
 
     fun scene(): List<Entity> {

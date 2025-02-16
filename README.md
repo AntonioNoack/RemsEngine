@@ -79,7 +79,7 @@ Some depend on local files, which you might not have, but most should work, and 
 ### Architecture
 
 - Entity-Component based system like Unity, plus Systems similar to Bevy
-- 64-bit fp transformations for universe-scale games
+- 64-bit fp positions for universe-scale games
   - on GPU-side, camera is always close-to/at origin, FP32
 - AABB optimized scene hierarchy
 - mods / plugins from the start: your game is a mod(ule) for the engine

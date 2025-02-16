@@ -38,10 +38,10 @@ class TransformTest {
 
         assertEquals(pos, t.localPosition)
         assertEquals(pos, t.globalPosition)
-        assertTrue(rot.equals(t.localRotation, 1e-15f))
-        assertTrue(rot.equals(t.globalRotation, 1e-15f))
-        assertTrue(sca.equals(t.localScale, 1e-15f))
-        assertTrue(sca.equals(t.globalScale, 1e-15f))
+        assertTrue(rot.equals(t.localRotation, 1e-7f))
+        assertTrue(rot.equals(t.globalRotation, 1e-7f))
+        assertTrue(sca.equals(t.localScale, 1e-7f))
+        assertTrue(sca.equals(t.globalScale, 1e-6f)) { "$sca != ${t.globalScale}" }
     }
 
     // -q = q in 3d
@@ -123,10 +123,18 @@ class TransformTest {
     }
 
     private fun checkIdentityTransform(transform: Transform) {
-        assertTrue(transform.globalTransform.equals(Matrix4x3(), 1e-15))
-        assertTrue(transform.globalPosition.equals(Vector3d(), 1e-15))
-        assertTrue(transform.globalRotation.equals(Quaternionf(), 1e-15f))
-        assertTrue(transform.globalScale.equals(Vector3f(1f), 1e-15f))
+        assertTrue(transform.globalTransform.equals(Matrix4x3(), 1e-4)) {
+            "${transform.globalTransform} isn't identity"
+        }
+        assertTrue(transform.globalPosition.equals(Vector3d(), 1e-6)) {
+            "${transform.globalPosition} isn't identity"
+        }
+        assertTrue(transform.globalRotation.equals(Quaternionf(), 1e-7f)) {
+            "${transform.globalRotation} isn't identity"
+        }
+        assertTrue(transform.globalScale.equals(Vector3f(1f), 1e-6f)) {
+            "${transform.globalScale} isn't identity"
+        }
     }
 
     @Test

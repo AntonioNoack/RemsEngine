@@ -46,7 +46,7 @@ class DepthTestNode : ActionNode(
                     DepthTransforms.rawToDepth +
                     DepthTransforms.depthToPosition +
                     "void main() {\n" +
-                    "   vec3 pos = cameraPosition + rawDepthToPosition(uv,texture(depthTex,uv).r) / worldScale;\n" +
+                    "   vec3 pos = cameraPosition + rawDepthToPosition(uv,texture(depthTex,uv).r);\n" +
                     "   result = vec4(fract(pos - 0.001),1.0);\n" +
                     "}\n"
         )

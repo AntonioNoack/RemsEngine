@@ -39,7 +39,7 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         // todo local position option
 
                         "#define LOAD_TRIPLANAR_TEXTURE(tex,uvx,uvy,uvz) (texture(tex,uvx)*blend.x+texture(tex,uvy)*blend.y+texture(tex,uvz)*blend.z)\n" +
-                        "vec3 worldPos = finalPosition / worldScale + cameraPosition;\n" +
+                        "vec3 worldPos = finalPosition + cameraPosition;\n" +
                         "vec2 uvx = vec2(-sign(finalNormal.x) * worldPos.z, -worldPos.y) * primaryTiling.xy + primaryTiling.zw;\n" +
                         "vec2 uvy = vec2(+worldPos.x, +sign(finalNormal.y) * worldPos.z) * primaryTiling.xy + primaryTiling.zw;\n" +
                         "vec2 uvz = vec2(+sign(finalNormal.z) * worldPos.x, -worldPos.y) * primaryTiling.xy + primaryTiling.zw;\n" +

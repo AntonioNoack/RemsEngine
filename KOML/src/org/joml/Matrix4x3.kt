@@ -1653,7 +1653,7 @@ open class Matrix4x3 : Matrix<Matrix4x3, Vector3d, Vector4d> {
     @JvmOverloads
     fun scaleAround(
         sx: Float, sy: Float, sz: Float,
-        ox: Float, oy: Float, oz: Float,
+        ox: Double, oy: Double, oz: Double,
         dst: Matrix4x3 = this
     ): Matrix4x3 {
         val nm30 = m00 * ox + m10 * oy + m20 * oz + m30
@@ -1670,11 +1670,11 @@ open class Matrix4x3 : Matrix<Matrix4x3, Vector3d, Vector4d> {
             )._properties(flags and (12 or if (one) 0 else 16).inv())
     }
 
-    fun scaleAround(factor: Float, ox: Float, oy: Float, oz: Float): Matrix4x3 {
+    fun scaleAround(factor: Float, ox: Double, oy: Double, oz: Double): Matrix4x3 {
         return scaleAround(factor, factor, factor, ox, oy, oz, this)
     }
 
-    fun scaleAround(factor: Float, ox: Float, oy: Float, oz: Float, dst: Matrix4x3): Matrix4x3 {
+    fun scaleAround(factor: Float, ox: Double, oy: Double, oz: Double, dst: Matrix4x3): Matrix4x3 {
         return scaleAround(factor, factor, factor, ox, oy, oz, dst)
     }
 
@@ -3753,8 +3753,10 @@ open class Matrix4x3 : Matrix<Matrix4x3, Vector3d, Vector4d> {
                 Runtime.equals(m02, m.m02, delta) && Runtime.equals(m10, m.m10, delta) &&
                 Runtime.equals(m11, m.m11, delta) && Runtime.equals(m12, m.m12, delta) &&
                 Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
-                Runtime.equals(m22, m.m22, delta) && Runtime.equals(m30, m.m30, delta.toDouble()) &&
-                Runtime.equals(m31, m.m31, delta.toDouble()) && Runtime.equals(m32, m.m32, delta.toDouble())
+                Runtime.equals(m22, m.m22, delta) &&
+                Runtime.equals(m30, m.m30, delta.toDouble()) &&
+                Runtime.equals(m31, m.m31, delta.toDouble()) &&
+                Runtime.equals(m32, m.m32, delta.toDouble())
     }
 
     @JvmOverloads

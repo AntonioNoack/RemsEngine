@@ -10,6 +10,7 @@ import org.joml.Matrix3x2d
 import org.joml.Matrix3x2f
 import org.joml.Matrix4d
 import org.joml.Matrix4f
+import org.joml.Matrix4x3
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.junit.jupiter.api.Test
@@ -48,6 +49,7 @@ class MatrixElementWiseTests {
         testElementWise(::Matrix3x2d, Matrix3x2d::add, add)
         testElementWise(::Matrix3f, Matrix3f::add, add)
         testElementWise(::Matrix3d, Matrix3d::add, add)
+        testElementWise(::Matrix4x3, Matrix4x3::add, add)
         testElementWise(::Matrix4x3f, Matrix4x3f::add, add)
         testElementWise(::Matrix4x3d, Matrix4x3d::add, add)
         testElementWise(::Matrix4f, Matrix4f::add, add)
@@ -63,6 +65,7 @@ class MatrixElementWiseTests {
         testElementWise(::Matrix3x2d, Matrix3x2d::sub, sub)
         testElementWise(::Matrix3f, Matrix3f::sub, sub)
         testElementWise(::Matrix3d, Matrix3d::sub, sub)
+        testElementWise(::Matrix4x3, Matrix4x3::sub, sub)
         testElementWise(::Matrix4x3f, Matrix4x3f::sub, sub)
         testElementWise(::Matrix4x3d, Matrix4x3d::sub, sub)
         testElementWise(::Matrix4f, Matrix4f::sub, sub)
@@ -82,6 +85,7 @@ class MatrixElementWiseTests {
             testElementWise(::Matrix3x2d, { a, b -> a.lerp(b, d) }, mix, td)
             testElementWise(::Matrix3f, { a, b -> a.lerp(b, f) }, mix, tf)
             testElementWise(::Matrix3d, { a, b -> a.lerp(b, d) }, mix, td)
+            testElementWise(::Matrix4x3, { a, b -> a.lerp(b, f) }, mix, tf)
             testElementWise(::Matrix4x3f, { a, b -> a.lerp(b, f) }, mix, tf)
             testElementWise(::Matrix4x3d, { a, b -> a.lerp(b, d) }, mix, td)
             testElementWise(::Matrix4f, { a, b -> a.lerp(b, f) }, mix, tf)
@@ -98,6 +102,7 @@ class MatrixElementWiseTests {
         testElementWise(::Matrix3x2d, Matrix3x2d::mulComponentWise, mul)
         testElementWise(::Matrix3f, Matrix3f::mulComponentWise, mul)
         testElementWise(::Matrix3d, Matrix3d::mulComponentWise, mul)
+        testElementWise(::Matrix4x3, Matrix4x3::mulComponentWise, mul)
         testElementWise(::Matrix4x3f, Matrix4x3f::mulComponentWise, mul)
         testElementWise(::Matrix4x3d, Matrix4x3d::mulComponentWise, mul)
         testElementWise(::Matrix4f, Matrix4f::mulComponentWise, mul)
@@ -107,6 +112,7 @@ class MatrixElementWiseTests {
     @Test
     fun testFma() {
         val fma = { a: Double, b: Double -> a + b * 0.3 }
+        testElementWise(::Matrix4x3, { a, b -> a.fma(b, 0.3f) }, fma, 3e-7)
         testElementWise(::Matrix4x3f, { a, b -> a.fma(b, 0.3f) }, fma, 3e-7)
         testElementWise(::Matrix4x3d, { a, b -> a.fma(b, 0.3) }, fma)
     }

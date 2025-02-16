@@ -197,7 +197,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         if (instanced.isNotEmpty()) {
             this.cameraMatrix = cameraMatrix
             this.cameraPosition = cameraPosition
-            this.worldScale = worldScale
             GFXState.instanceData.use(MeshInstanceData.DEFAULT_INSTANCED) {
                 instanced.forEachType { lights, size, type ->
                     val shader = getShader(type, true)
@@ -213,7 +212,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     private var cameraMatrix: Matrix4f? = null
     private var cameraPosition: Vector3d? = null
-    private var worldScale: Float = 1f
 
     fun drawBatches(
         pipeline: Pipeline, depthTexture: ITexture2D,
@@ -226,7 +224,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!
-        val worldScale = worldScale
 
         initShader(shader, cameraMatrix, type, depthTexture)
 

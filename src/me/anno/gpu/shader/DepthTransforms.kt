@@ -41,7 +41,7 @@ object DepthTransforms {
             "vec3 rawCameraDirection(vec2 uv){\n" +
             "   if(d_near < 0.0) return d_camRot.xyz;\n" + // orthographic
             // else perspective
-            //   the traditional way, which misses a eyeOffset * worldScale/near somewhere though
+            //   the traditional way, which misses a eyeOffset/near somewhere though
             //   d_fovFactor: 2 * tan(fovX/YRadians * 0.5)
             // "   return quatRot(vec3((uv-d_uvCenter)*d_fovFactor, -1.0), d_camRot);\n" +
             //   the easy way, which works for VR, too:

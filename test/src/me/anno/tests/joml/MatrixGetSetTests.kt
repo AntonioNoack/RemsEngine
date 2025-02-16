@@ -10,6 +10,7 @@ import org.joml.Matrix3x2d
 import org.joml.Matrix3x2f
 import org.joml.Matrix4d
 import org.joml.Matrix4f
+import org.joml.Matrix4x3
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector2d
@@ -43,6 +44,7 @@ class MatrixGetSetTests {
         testSetGet(Matrix3x2d(), 0.0)
         testSetGet(Matrix3f(), 1e-7)
         testSetGet(Matrix3d(), 0.0)
+        testSetGet(Matrix4x3(), 1e-7)
         testSetGet(Matrix4x3f(), 1e-7)
         testSetGet(Matrix4x3d(), 0.0)
         testSetGet(Matrix4f(), 1e-7)
@@ -174,6 +176,25 @@ class MatrixGetSetTests {
         m.setColumn(2, Vector3f(7f, 8f, 9f))
         m.setColumn(3, Vector3f(10f, 11f, 12f))
         assertEquals(Matrix4x3f().fill(), m)
+    }
+
+    @Test
+    fun testGetColumn4x3() {
+        val m = Matrix4x3().fill()
+        assertEquals(Vector3d(1f, 2f, 3f), m.getColumn(0, Vector3d()))
+        assertEquals(Vector3d(4f, 5f, 6f), m.getColumn(1, Vector3d()))
+        assertEquals(Vector3d(7f, 8f, 9f), m.getColumn(2, Vector3d()))
+        assertEquals(Vector3d(10f, 11f, 12f), m.getColumn(3, Vector3d()))
+    }
+
+    @Test
+    fun testSetColumn4x3() {
+        val m = Matrix4x3()
+        m.setColumn(0, Vector3d(1f, 2f, 3f))
+        m.setColumn(1, Vector3d(4f, 5f, 6f))
+        m.setColumn(2, Vector3d(7f, 8f, 9f))
+        m.setColumn(3, Vector3d(10f, 11f, 12f))
+        assertEquals(Matrix4x3().fill(), m)
     }
 
     @Test
@@ -350,6 +371,23 @@ class MatrixGetSetTests {
         m.setRow(1, Vector4f(2f, 5f, 8f, 11f))
         m.setRow(2, Vector4f(3f, 6f, 9f, 12f))
         assertEquals(Matrix4x3f().fill(), m)
+    }
+
+    @Test
+    fun testGetRow4x3() {
+        val m = Matrix4x3().fill()
+        assertEquals(Vector4d(1f, 4f, 7f, 10f), m.getRow(0, Vector4d()))
+        assertEquals(Vector4d(2f, 5f, 8f, 11f), m.getRow(1, Vector4d()))
+        assertEquals(Vector4d(3f, 6f, 9f, 12f), m.getRow(2, Vector4d()))
+    }
+
+    @Test
+    fun testSetRow4x3() {
+        val m = Matrix4x3()
+        m.setRow(0, Vector4d(1f, 4f, 7f, 10f))
+        m.setRow(1, Vector4d(2f, 5f, 8f, 11f))
+        m.setRow(2, Vector4d(3f, 6f, 9f, 12f))
+        assertEquals(Matrix4x3().fill(), m)
     }
 
     @Test

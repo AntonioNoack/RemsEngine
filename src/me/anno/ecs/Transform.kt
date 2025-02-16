@@ -4,8 +4,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -254,20 +252,8 @@ class Transform() : Saveable() {
     }
 
     fun setLocal(values: Matrix4x3): Transform {
-        val tmp = JomlPools.mat4x3m.borrow()
-        setPosRotSca(tmp.set(values), true)
+        setPosRotSca(values, true)
         return this
-    }
-
-    fun setLocal(values: Matrix4x3f): Transform {
-        val tmp = JomlPools.mat4x3m.borrow()
-        return setLocal(tmp.set(values))
-    }
-
-    @Suppress("unused")
-    fun setLocal(values: Matrix4f): Transform {
-        val tmp = JomlPools.mat4x3m.borrow()
-        return setLocal(tmp.set(values)) // could be made more efficient
     }
 
     fun distanceSquaredGlobally(v: Vector3d): Double {

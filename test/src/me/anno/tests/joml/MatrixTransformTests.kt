@@ -13,6 +13,7 @@ import org.joml.Matrix3x2d
 import org.joml.Matrix3x2f
 import org.joml.Matrix4d
 import org.joml.Matrix4f
+import org.joml.Matrix4x3
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
@@ -160,6 +161,12 @@ class MatrixTransformTests {
             Matrix3x2d().translate(1.0, 2.0), ::Vector2d,
             { m, v -> m.transformDirection(v.x, v.y, v) }, { it })
         testMatrixTransform(
+            Matrix4x3().translate(1.0, 2.0, 3.0), ::Vector3f,
+            { m, v -> m.transformDirection(v) }, { it })
+        testMatrixTransform(
+            Matrix4x3().translate(1.0, 2.0, 3.0), ::Vector3d,
+            { m, v -> m.transformDirection(v) }, { it })
+        testMatrixTransform(
             Matrix4x3d().translate(1.0, 2.0, 3.0), ::Vector3f,
             { m, v -> m.transformDirection(v) }, { it })
         testMatrixTransform(
@@ -187,6 +194,18 @@ class MatrixTransformTests {
             Matrix3f().scale(2f, -3f, 3f), ::Vector3f,
             { m, v -> m.transform(v) }, {
                 it.mul(2f, -3f, 3f)
+            })
+        testMatrixTransform(
+            Matrix4x3().scale(2f, -3f, 3f), ::Vector3f,
+            { m, v -> m.transformPosition(v) },
+            { m, v -> m.transformDirection(v) }, {
+                it.mul(2f, -3f, 3f)
+            })
+        testMatrixTransform(
+            Matrix4x3().scale(2f, -3f, 3f), ::Vector3d,
+            { m, v -> m.transformPosition(v) },
+            { m, v -> m.transformDirection(v) }, {
+                it.mul(2.0, -3.0, 3.0)
             })
         testMatrixTransform(
             Matrix4x3f().scale(2f, -3f, 3f), ::Vector3f,
@@ -241,6 +260,11 @@ class MatrixTransformTests {
             Matrix3x2d().scaleAroundLocal(2.0, -3.0, 5.0, 6.0), ::Vector2d,
             { m, v -> m.transformPosition(v) }, {
                 it.sub(5.0, 6.0).mul(2.0, -3.0).add(5.0, 6.0)
+            })
+        testMatrixTransform(
+            Matrix4x3().scaleAround(2f, -3f, 3f, 5.0, 6.0, 7.0), ::Vector3d,
+            { m, v -> m.transformPosition(v) }, {
+                it.sub(5.0, 6.0, 7.0).mul(2.0, -3.0, 3.0).add(5.0, 6.0, 7.0)
             })
         testMatrixTransform(
             Matrix4x3d().scaleAround(2.0, -3.0, 3.0, 5.0, 6.0, 7.0), ::Vector3d,
@@ -301,6 +325,12 @@ class MatrixTransformTests {
                 it.rotateZ(3.0).rotateY(2.0).rotateX(1.0)
             })
         testMatrixTransform(
+            Matrix4x3().rotateX(1f).rotateY(2f).rotateZ(3f), ::Vector3f,
+            { m, v -> m.transformPosition(v) },
+            { m, v -> m.transformDirection(v) }, {
+                it.rotateZ(3f).rotateY(2f).rotateX(1f)
+            })
+        testMatrixTransform(
             Matrix4x3d().rotateX(1.0).rotateY(2.0).rotateZ(3.0), ::Vector3d,
             { m, v -> m.transformPosition(v) },
             { m, v -> m.transformDirection(v) }, {
@@ -343,6 +373,13 @@ class MatrixTransformTests {
             Matrix3x2d().rotateAbout(5.0, 6.0, 7.0), ::Vector2d,
             { m, v -> m.transformPosition(v) }, {
                 it.sub(6.0, 7.0).rotate(5.0).add(6.0, 7.0)
+            })
+        testMatrixTransform(
+            Matrix4x3().rotateAround(qf, 5.0, 6.0, 7.0), ::Vector3d,
+            { m, v -> m.transformPosition(v) }, {
+                it.sub(5.0, 6.0, 7.0)
+                    .rotateZ(3.0).rotateY(2.0).rotateX(1.0)
+                    .add(5.0, 6.0, 7.0)
             })
         testMatrixTransform(
             Matrix4x3d().rotateAround(qd, 5.0, 6.0, 7.0), ::Vector3d,
@@ -415,6 +452,10 @@ class MatrixTransformTests {
             ).transpose()
         )
         assertEquals(
+            Matrix4x3(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10.0, 11.0, 12.0),
+            Matrix4x3(1f, 4f, 7f, 2f, 5f, 8f, 3f, 6f, 9f, 10.0, 11.0, 12.0).transpose3x3()
+        )
+        assertEquals(
             Matrix4x3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0),
             Matrix4x3d(1.0, 4.0, 7.0, 2.0, 5.0, 8.0, 3.0, 6.0, 9.0, 10.0, 11.0, 12.0).transpose3x3()
         )
@@ -430,28 +471,34 @@ class MatrixTransformTests {
             testMatrixTransform(Matrix3f().set(aa), ::Vector3f, { m, v -> m.transform(v) }, { aa.transform(it) })
             testMatrixTransform(Matrix4f().set(aa), ::Vector4f, { m, v -> m.transform(v) }, { aa.transform(it) })
             testMatrixTransform(
-                Matrix4x3f().set(aa),
-                ::Vector3f,
+                Matrix4x3f().set(aa), ::Vector3f,
                 { m, v -> m.transformPosition(v) },
                 { aa.transform(it) })
             testMatrixTransform(
-                Matrix4x3f().set(aa),
-                ::Vector3f,
+                Matrix4x3f().set(aa), ::Vector3f,
                 { m, v -> m.transformDirection(v) },
                 { aa.transform(it) })
             testMatrixTransform(Matrix4x3f().set(aa), ::Vector4f, { m, v -> m.transform(v) }, { aa.transform(it) })
+
+            testMatrixTransform(
+                Matrix4x3().set(aa), ::Vector3f,
+                { m, v -> m.transformPosition(v) },
+                { aa.transform(it) })
+            testMatrixTransform(
+                Matrix4x3().set(aa), ::Vector3f,
+                { m, v -> m.transformDirection(v) },
+                { aa.transform(it) })
+            testMatrixTransform(Matrix4x3().set(aa), ::Vector4f, { m, v -> m.transform(v) }, { aa.transform(it) })
         }
         for (aa in getAxisAnglesD()) {
             testMatrixTransform(Matrix3d().set(aa), ::Vector3d, { m, v -> m.transform(v) }, { aa.transform(it) })
             testMatrixTransform(Matrix4d().set(aa), ::Vector4d, { m, v -> m.transform(v) }, { aa.transform(it) })
             testMatrixTransform(
-                Matrix4x3d().set(aa),
-                ::Vector3d,
+                Matrix4x3d().set(aa), ::Vector3d,
                 { m, v -> m.transformPosition(v) },
                 { aa.transform(it) })
             testMatrixTransform(
-                Matrix4x3d().set(aa),
-                ::Vector3d,
+                Matrix4x3d().set(aa), ::Vector3d,
                 { m, v -> m.transformDirection(v) },
                 { aa.transform(it) })
             testMatrixTransform(Matrix4x3d().set(aa), ::Vector4d, { m, v -> m.transform(v) }, { aa.transform(it) })
