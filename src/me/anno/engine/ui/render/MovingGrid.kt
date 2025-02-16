@@ -175,32 +175,29 @@ object MovingGrid {
             .translate(-pos.x, -pos.y, -pos.z)
     }
 
+    private val suffixes = ("" +
+            "pm,0pm,00pm," +
+            "nm,0nm,00nm," +
+            "µm,0µm,00µm," +
+            "mm,cm,0cm," +
+            "m,0m,00m," +
+            "km,0km,00km," +
+            "Mm,0Mm,00Mm," +
+            "Gm,0Gm,00Gm," +
+            "Tm,0Tm,00Tm," +
+            "Pm," +
+            "Ly,0Ly,00Ly," +
+            "kLy,0kLy,00kLy," +
+            "MLy,0MLy,00MLy," +
+            "GLy,0GLy,00GLy," +
+            "TLy,0TLy,00TLy," +
+            "PLy,0PLy,00PLy," +
+            "ELy,0ELy,00ELy").split(',')
+
     fun getSuffix(baseSize: Double): String {
-        return when (val power = round(log10(baseSize)).toInt()) {
-            -12 -> "pm"
-            -11 -> "0pm"
-            -10 -> "00pm"
-            -9 -> "nm"
-            -8 -> "0nm"
-            -7 -> "00nm"
-            -6 -> "µm"
-            -5 -> "0µm"
-            -4 -> "00µm"
-            -3 -> "mm"
-            -2 -> "cm"
-            -1 -> "0cm"
-            0 -> "m"
-            1 -> "0m"
-            2 -> "00m"
-            3 -> "km"
-            4 -> "0km"
-            5 -> "00km"
-            6 -> "Mm"
-            7 -> "0Mm"
-            8 -> "00Mm"
-            100 -> "Googol m"
-            else -> "e${power}m"
-        }
+        val power = round(log10(baseSize)).toInt()
+        val idx = power + 12
+        return suffixes.getOrNull(idx) ?: "e${power}m"
     }
 
     private val cachedMeshes = HashMap<Double, String>()

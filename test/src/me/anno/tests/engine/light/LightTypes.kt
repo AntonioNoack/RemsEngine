@@ -85,6 +85,7 @@ fun main() {
     scene.add(point)
     placeTruck(point)
 
+    // todo bug: spot-light shadows are broken
     val spot = Entity("Spot")
     spot.add(SpotLight().apply { color.set(10f); shadowMapCascades = 1 })
     spot.setPosition(-1.0, 0.5, 0.5)
