@@ -11,7 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import kotlin.math.log2
 
 class LODMeshComponent() : MeshComponentBase() {
@@ -50,7 +50,7 @@ class LODMeshComponent() : MeshComponentBase() {
     @NotSerializedProperty
     private var lodScale = 0.5f / log2(scalePerLOD)
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         if (aabbIndex < 0) {
             fillSpaceStart()
             for (index in meshes.indices) {

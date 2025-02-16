@@ -33,7 +33,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import kotlin.math.max
 
 /**
@@ -126,7 +126,6 @@ object AssetThumbHelper {
             tmp.set(modelMatrix).invert()
             shader.m4x3("invLocalTransform", tmp)
         }
-        shader.v1f("worldScale", 1f)
         GFXx3D.shader3DUniforms(shader, cameraMatrix, -1)
     }
 
@@ -147,7 +146,7 @@ object AssetThumbHelper {
     ): Matrix4x3f {
         if (normalizeScale || centerMesh) {
             val aabb = AABBd()
-            fillSpace(Matrix4x3m(), aabb)
+            fillSpace(Matrix4x3(), aabb)
             if (normalizeScale) modelMatrix.scale(getScaleFromAABB(aabb))
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
         }

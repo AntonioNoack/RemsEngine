@@ -180,14 +180,13 @@ class OpenXRRendering(
             .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
         RenderState.viewIndex = viewIndex
-        createProjectionFov(rv.cameraMatrix, view.fov(), rv.scaledNear, 0f, rv)
+        createProjectionFov(rv.cameraMatrix, view.fov(), rv.near, 0f, rv)
 
-        // offset camera matrix by (pos - centerPos) * worldScale
-        val scale = rv.worldScale
+        // offset camera matrix by (pos - centerPos)
         val dx = pos.x() - position.x
         val dy = pos.y() - position.y
         val dz = pos.z() - position.z
-        rv.cameraMatrix.translate(-dx * scale, -dy * scale, -dz * scale)
+        rv.cameraMatrix.translate(-dx, -dy, -dz)
         rv.cameraMatrix.rotateInv(rv.cameraRotation)
 
         // no scale needed, because we're using 1:1 scale between character and world

@@ -19,7 +19,7 @@ import org.joml.Matrix2f
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Planed
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -84,7 +84,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         private val identity3 = Matrix3f()
         private val identity4 = Matrix4f()
         private val identity4x3 = Matrix4x3f()
-        private val identity4x3m = Matrix4x3m()
+        private val identity4x3m = Matrix4x3()
         const val DefaultGLSLVersion = 150
         var UniformCacheSize = if (OS.isWeb) 0 else 256 // todo remove when everything works
         val UniformCacheSizeX4 get() = UniformCacheSize * 4
@@ -827,8 +827,8 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
-    fun m4x3(name: String, value: Matrix4x3m?) = m4x3(getUniformLocation(name), value)
-    fun m4x3(loc: Int, value: Matrix4x3m? = null) {
+    fun m4x3(name: String, value: Matrix4x3?) = m4x3(getUniformLocation(name), value)
+    fun m4x3(loc: Int, value: Matrix4x3? = null) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.M4x3, false)
             potentiallyUse()

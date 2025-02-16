@@ -23,7 +23,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.input.Input
 import me.anno.io.base.BaseWriter
 import org.joml.AABBf
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -108,8 +108,8 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(attributes, spr
     override fun onEditMove(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         if (!Input.isLeftDown && !Input.isRightDown) return false
         // project ray onto this
-        val globalTransform = transform?.globalTransform?.invert(Matrix4x3m())
-            ?: Matrix4x3m()
+        val globalTransform = transform?.globalTransform?.invert(Matrix4x3())
+            ?: Matrix4x3()
         val ri = RenderView.currentInstance ?: return false
         val pos = globalTransform.transformPosition(ri.cameraPosition, Vector3d())
         val dir = globalTransform.transformDirection(ri.mouseDirection, Vector3f())

@@ -9,7 +9,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sign
@@ -59,9 +59,9 @@ object CapsuleModel {
         mesh.normals = normals.toFloatArray()
         mesh.indices = null
         when (axis) {
-            Axis.X -> mesh.transform(Matrix4x3m().rotateZ(PIf * 0.5f))
+            Axis.X -> mesh.transform(Matrix4x3().rotateZ(PIf * 0.5f))
             Axis.Y -> {}
-            Axis.Z -> mesh.transform(Matrix4x3m().rotateX(PIf * 0.5f))
+            Axis.Z -> mesh.transform(Matrix4x3().rotateX(PIf * 0.5f))
         }
         mesh.invalidateGeometry()
         return mesh

@@ -10,7 +10,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -23,7 +23,7 @@ object LineShapes {
     val tmpVec3d = createArrayList(16) { Vector3d() }
     private val defaultColor = 0x77ffff or black
 
-    fun getDrawMatrix(entity: Entity?): Matrix4x3m? {
+    fun getDrawMatrix(entity: Entity?): Matrix4x3? {
         val entity1 = entity ?: return null
         entity1.validateTransform()
         return entity1.transform.getDrawMatrix()
@@ -318,7 +318,7 @@ object LineShapes {
     ): Unit = drawLine(getDrawMatrix(entity), p0, p1, color)
 
     fun drawLine(
-        transform: Matrix4x3m?, p0: Vector3f, p1: Vector3f,
+        transform: Matrix4x3?, p0: Vector3f, p1: Vector3f,
         color: Int = defaultColor
     ) {
         val positions = tmpVec3d
@@ -339,7 +339,7 @@ object LineShapes {
     ): Unit = drawLine(getDrawMatrix(entity), p0, p1, color)
 
     fun drawLine(
-        transform: Matrix4x3m?, p0: Vector3d, p1: Vector3d,
+        transform: Matrix4x3?, p0: Vector3d, p1: Vector3d,
         color: Int = defaultColor
     ) {
         val positions = tmpVec3d
@@ -489,7 +489,6 @@ object LineShapes {
         val r1 = radiusAtOrigin.toDouble() + radiusPerUnit * p1.distance(p0)
 
         val cp = RenderState.cameraPosition
-        val ws = RenderState.worldScale
 
         // draw borderlines
         val numBorderLines = 8
@@ -504,7 +503,7 @@ object LineShapes {
             putRelativeLine(
                 p0.x + c0 * sysX.x + s0 * sysY.x, p0.y + c0 * sysX.y + s0 * sysY.y, p0.z + c0 * sysX.z + s0 * sysY.z,
                 p1.x + c1 * sysX.x + s1 * sysY.x, p1.y + c1 * sysX.y + s1 * sysY.y, p1.z + c1 * sysX.z + s1 * sysY.z,
-                cp, ws, outerRayColor
+                cp, outerRayColor
             )
         }
 

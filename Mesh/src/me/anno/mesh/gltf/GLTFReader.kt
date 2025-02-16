@@ -55,17 +55,14 @@ import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
-import me.anno.utils.types.AnyToVector.getVector3d
 import me.anno.utils.types.Arrays.readLE32
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
-import org.joml.Quaterniond
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector2i
@@ -345,7 +342,7 @@ class GLTFReader(val src: FileReference) {
     private fun calculateGlobalTransform(node: Node) {
         val parent = node.parent
         if (parent != null && parent.globalTransform == null) calculateGlobalTransform(parent)
-        val transform = if (parent != null) Matrix4x3m(parent.globalTransform!!) else Matrix4x3m()
+        val transform = if (parent != null) Matrix4x3(parent.globalTransform!!) else Matrix4x3()
         val translation = node.translation
         val rotation = node.rotation
         val scale = node.scale
@@ -604,7 +601,7 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun createFlatPrefab(rootNodes: List<Node>, prefab: Prefab) {
-        val meshesByTransform = HashMap<Matrix4x3m, ArrayList<Node>>()
+        val meshesByTransform = HashMap<Matrix4x3, ArrayList<Node>>()
         Recursion.processRecursive2(rootNodes) { node, remaining ->
             if (node.hasMeshes) {
                 if (node.mesh >= 0) {
@@ -669,7 +666,7 @@ class GLTFReader(val src: FileReference) {
         if (node.scale != null) prefab[path, "scale"] = node.scale
     }
 
-    private fun writeNodeTransform(prefab: Prefab, path: Path, transform: Matrix4x3m) {
+    private fun writeNodeTransform(prefab: Prefab, path: Path, transform: Matrix4x3) {
         val translation = transform.getTranslation(Vector3d())
         val rotation = transform.getUnnormalizedRotation(Quaternionf())
         val scale = transform.getScale(Vector3f())

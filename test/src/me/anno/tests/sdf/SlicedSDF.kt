@@ -32,8 +32,7 @@ import me.anno.utils.OS.documents
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import kotlin.math.ceil
 import kotlin.math.log2
 import kotlin.math.max
@@ -61,7 +60,7 @@ fun main() {
         }
 
         // todo use AABB for calculation
-        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
             return super.fillSpace(globalTransform, dstUnion)
         }
 

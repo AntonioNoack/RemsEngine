@@ -16,8 +16,7 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 
 fun main() {
@@ -58,7 +57,7 @@ fun main() {
         @Group("Radius")
         var radiusPerUnit = 0.5f
 
-        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
             dstUnion.all()
             return true
         }

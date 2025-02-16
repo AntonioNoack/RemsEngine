@@ -29,9 +29,7 @@ import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
-import org.joml.Quaterniond
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -74,11 +72,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
         pipeline.ignoredComponent = this
         val frustumLen = pipeline.frustum.length
-        draw(
-            pipeline, w, h, instance.cameraMatrix,
-            instance.cameraPosition,
-            RenderState.worldScale
-        )
+        draw(pipeline, w, h, instance.cameraMatrix, instance.cameraPosition)
         pipeline.ignoredComponent = null
         pipeline.frustum.length = frustumLen
 
@@ -86,7 +80,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         instance.setRenderState()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         (if (bothSided) fullCubeBounds else halfCubeBounds)
             .transformUnion(globalTransform, dstUnion)
         return true
@@ -99,8 +93,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         pipeline: Pipeline,
         w: Int, h: Int,
         cameraMatrix0: Matrix4f,
-        cameraPosition: Vector3d,
-        worldScale: Float
+        cameraPosition: Vector3d
     ) {
         val transform = transform!!.getDrawMatrix()
         val mirrorPosition = transform.getTranslation(tmp0d)
@@ -145,7 +138,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         addDefaultLightsIfRequired(pipeline, root, null)
         // mirrors inside mirrors don't work, because we could look behind things
         pipeline.planarReflections.clear()
-        pipeline.reflectionCullingPlane.set(mirrorPos * worldScale.toDouble(), mirrorNormal) // is correct
+        pipeline.reflectionCullingPlane.set(mirrorPos, mirrorNormal) // is correct
 
         // set render state
         RenderState.cameraMatrix.set(cameraMatrix1)
@@ -205,7 +198,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         }
     }
 
-    fun findRegion(aabb: AABBf, cameraMatrix: Matrix4f, drawTransform: Matrix4x3m, camPosition: Vector3d): AABBf {
+    fun findRegion(aabb: AABBf, cameraMatrix: Matrix4f, drawTransform: Matrix4x3, camPosition: Vector3d): AABBf {
         // cam * world space * position
         aabb.clear()
         val vec3d = tmp2d

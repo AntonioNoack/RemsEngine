@@ -37,7 +37,7 @@ import me.anno.tests.physics.fluid.FluidSimulator.splatShader
 import me.anno.ui.Panel
 import me.anno.utils.OS.downloads
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -141,7 +141,7 @@ class DuckComponent : MeshComponent() {
     lateinit var sim: FluidSimulation
 
     // extend theoretical bounds
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         localAABB.setMin(-sim.width * 0.5 * cellSize, 0.0, -sim.height * 0.5 * cellSize)
         localAABB.setMax(+sim.width * 0.5 * cellSize, waveHeight.toDouble(), +sim.height * 0.5 * cellSize)
         localAABB.transform(globalTransform, globalAABB)
@@ -240,7 +240,7 @@ fun main() {
             step(ci, lx, ly, 0.2f * dist.toFloat() / (max(w, h) * cellSize), sim)
         }
 
-        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
             localAABB.set(mesh.getBounds())
             localAABB.minY = -50.0
             localAABB.maxY = +50.0

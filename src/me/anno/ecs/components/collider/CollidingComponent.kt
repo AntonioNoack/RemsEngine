@@ -5,8 +5,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 
 abstract class CollidingComponent : Component() {
 
@@ -23,7 +22,7 @@ abstract class CollidingComponent : Component() {
      * */
     open fun raycast(query: RayQuery): Boolean = false
 
-    abstract override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean
+    abstract override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

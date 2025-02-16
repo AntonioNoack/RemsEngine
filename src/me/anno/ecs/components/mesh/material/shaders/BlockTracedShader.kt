@@ -45,7 +45,6 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                 Variable(GLSLType.M4x3, "localTransform"),
                 Variable(GLSLType.M4x3, "invLocalTransform"),
                 Variable(GLSLType.V1I, "maxSteps"),
-                Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V3I, "bounds"),
             )
         )

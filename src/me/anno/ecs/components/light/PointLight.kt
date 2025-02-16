@@ -16,12 +16,12 @@ import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
+import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -46,12 +46,11 @@ class PointLight : LightComponent(LightType.POINT) {
 
     override fun updateShadowMap(
         cascadeScale: Float,
-        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
         cameraRotation: Quaternionf,
         cameraDirection: Vector3f,
-        drawTransform: Matrix4x3m,
+        drawTransform: Matrix4x3,
         pipeline: Pipeline,
         resolution: Int
     ) {
@@ -69,8 +68,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val global = transform.globalTransform
         val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
-        val worldScale = (SQRT3 / global.getScaleLength()).toFloat()
-        RenderState.worldScale = worldScale
+        val worldScale = (Maths.SQRT3 / global.getScaleLength()).toFloat()
         // only fill pipeline once?
 
         val result = shadowTextures!! as CubemapFramebuffer

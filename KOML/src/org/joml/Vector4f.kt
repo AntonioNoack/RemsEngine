@@ -230,7 +230,7 @@ open class Vector4f(
     }
 
     @JvmOverloads
-    fun mul(mat: Matrix4x3m, dst: Vector4f = this): Vector4f {
+    fun mul(mat: Matrix4x3, dst: Vector4f = this): Vector4f {
         val x = x
         val y = y
         val z = z

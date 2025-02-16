@@ -5,9 +5,6 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Events.addEvent
 import me.anno.engine.serialization.NotSerializedProperty
-import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
 
 /**
  * class for generating procedural meshes

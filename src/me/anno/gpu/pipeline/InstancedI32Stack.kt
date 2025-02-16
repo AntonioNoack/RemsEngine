@@ -7,8 +7,6 @@ import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.prevCameraPosition
-import me.anno.engine.ui.render.RenderState.prevWorldScale
-import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -20,8 +18,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import kotlin.math.min
 
 /**
@@ -39,7 +36,7 @@ open class InstancedI32Stack(
         val size get() = data.size
         val data = IntArrayList(256)
         val metadata = IntArrayList(16)
-        val matrices = ArrayList<Matrix4x3m>() // transform for a group of meshes
+        val matrices = ArrayList<Matrix4x3>() // transform for a group of meshes
 
         fun clear() {
             data.clear()
@@ -47,7 +44,7 @@ open class InstancedI32Stack(
             matrices.clear()
         }
 
-        fun start(gfxId: Int, matrix: Matrix4x3m): IntArrayList {
+        fun start(gfxId: Int, matrix: Matrix4x3): IntArrayList {
             // we only need to mark a new section, when the matrix or gfx id changes
             if (metadata.isEmpty() || gfxId != metadata.last() || matrices.last() != matrix) {
                 metadata.add(data.size)
@@ -145,8 +142,8 @@ open class InstancedI32Stack(
                 }
 
                 val matrix = instances.matrices[i]
-                shader.m4x3delta("localTransform", matrix, cameraPosition, worldScale)
-                shader.m4x3delta("prevLocalTransform", matrix, prevCameraPosition, prevWorldScale)
+                shader.m4x3delta("localTransform", matrix, cameraPosition)
+                shader.m4x3delta("prevLocalTransform", matrix, prevCameraPosition)
 
                 // draw them in batches of size <= batchSize
                 while (baseIndex < totalEndIndex) {

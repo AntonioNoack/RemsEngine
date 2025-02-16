@@ -1,7 +1,6 @@
 package org.joml
 
 import org.joml.JomlMath.hash
-import org.joml.Vector4d.Companion
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.acos
@@ -272,7 +271,7 @@ open class Vector3d(
         return dst.set(rx, ry, rz)
     }
 
-    fun mulPosition(mat: Matrix4x3m, dst: Vector3d = this): Vector3d {
+    fun mulPosition(mat: Matrix4x3, dst: Vector3d = this): Vector3d {
         val rx = mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))
         val ry = mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))
         val rz = mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))
@@ -325,7 +324,7 @@ open class Vector3d(
         return dst.set(rx, ry, rz)
     }
 
-    fun mulDirection(mat: Matrix4x3m, dst: Vector3d = this): Vector3d {
+    fun mulDirection(mat: Matrix4x3, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
         val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
         val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))

@@ -9,7 +9,6 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
@@ -73,7 +72,6 @@ class Skeleton : PrefabSaveable(), Renderable {
         generateSkeleton(bones, bonePositions, mesh.positions!!, mesh.boneIndices)
         mesh.invalidateGeometry()
         shader.m4x3("localTransform", stack)
-        shader.v1f("worldScale", worldScale.toFloat())
 
         if (skinningMatrices != null) {
             val location = shader["jointTransforms"]

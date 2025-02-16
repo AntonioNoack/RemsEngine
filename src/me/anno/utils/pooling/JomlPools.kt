@@ -10,7 +10,7 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector2d
@@ -43,7 +43,7 @@ object JomlPools {
     val mat4d = Stack(Matrix4d::class)
     val mat4x3f = Stack(Matrix4x3f::class)
     val mat4x3d = Stack(Matrix4x3d::class)
-    val mat4x3m = Stack(Matrix4x3m::class)
+    val mat4x3m = Stack(Matrix4x3::class)
     val aabbf = Stack(AABBf::class)
     val aabbd = Stack(AABBd::class)
 }

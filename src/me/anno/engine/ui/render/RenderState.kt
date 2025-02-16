@@ -12,8 +12,6 @@ import org.joml.Vector3f
  * */
 object RenderState {
 
-    var worldScale = 1f
-    var prevWorldScale = 1f
     var aspectRatio = 1f
 
     val cameraMatrix = Matrix4f()

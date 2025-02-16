@@ -26,7 +26,7 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.maps.KeyTripleMap
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
@@ -173,7 +173,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     override fun getGlobalBounds(): AABBd? = globalAABB
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         // calculate local aabb
         val local = localAABB
         local.clear()

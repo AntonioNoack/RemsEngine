@@ -249,7 +249,6 @@ object LightShaders {
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
                 Variable(GLSLType.V3F, "cameraPosition"),
-                Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V3F, "light", VariableMode.OUT)
             ) + depthVars, "" +
                     // light calculation including shadows if !instanced

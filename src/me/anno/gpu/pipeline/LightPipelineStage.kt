@@ -57,12 +57,12 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     fun bindDraw(
         pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f,
-        cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Float
+        cameraMatrix: Matrix4f, cameraPosition: Vector3d,
     ) {
         bind {
             source.bindTrulyNearestMS(0)
             draw(
-                pipeline, cameraMatrix, cameraPosition, worldScale,
+                pipeline, cameraMatrix, cameraPosition,
                 ::getShader, depthTexture, depthMask
             )
         }
@@ -94,7 +94,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         shader.v1f("countPerPixel", countPerPixel)
         depthTexture.bindTrulyNearest(shader, "depthTex")
         shader.m4x4("transform", cameraMatrix)
-        shader.v1f("worldScale", RenderState.worldScale)
         shader.v3f("cameraPosition", RenderState.cameraPosition)
         shader.v4f("cameraRotation", RenderState.cameraRotation)
         val target = GFXState.currentBuffer
@@ -118,7 +117,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         pipeline: Pipeline,
         cameraMatrix: Matrix4f,
         cameraPosition: Vector3d,
-        worldScale: Float,
         getShader: (LightType, Boolean) -> Shader,
         depthTexture: ITexture2D,
         depthMask: Vector4f,
@@ -249,7 +247,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             for (index in baseIndex until min(size, baseIndex + batchSize)) {
                 nioBuffer.position((index - baseIndex) * stride)
                 val lightI = lights[index]
-                m4x3delta(lightI.drawMatrix, cameraPosition, worldScale, nioBuffer)
+                m4x3delta(lightI.drawMatrix, cameraPosition, nioBuffer)
                 m4x3x(lightI.invCamSpaceMatrix, nioBuffer)
                 // put all light data: lightData0, lightData1
                 // put data0:

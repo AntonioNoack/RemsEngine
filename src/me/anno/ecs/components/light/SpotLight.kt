@@ -12,8 +12,9 @@ import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspectiveSpotLight
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.maths.Maths
 import org.joml.Matrix4f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -54,12 +55,11 @@ class SpotLight : LightComponent(LightType.SPOT) {
 
     override fun updateShadowMap(
         cascadeScale: Float,
-        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
         cameraRotation: Quaternionf,
         cameraDirection: Vector3f,
-        drawTransform: Matrix4x3m,
+        drawTransform: Matrix4x3,
         pipeline: Pipeline,
         resolution: Int
     ) {
@@ -68,6 +68,7 @@ class SpotLight : LightComponent(LightType.SPOT) {
         val fovYRadians = 2f * atan(coneAngle)
         setPerspectiveSpotLight(dstCameraMatrix, coneAngle, near, far, 0f, 0f)
         dstCameraMatrix.rotate(Quaternionf(cameraRotation).invert())
+        val worldScale = (Maths.SQRT3 / drawTransform.getScaleLength()).toFloat()
         pipeline.frustum.definePerspective(
             near / worldScale, far / worldScale, fovYRadians, resolution, 1f,
             dstCameraPosition, cameraRotation

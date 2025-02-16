@@ -5,7 +5,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 
 /**
@@ -17,7 +17,7 @@ class ConvexCollider : Collider() {
     @SerializedProperty
     var points: FloatArray? = null
 
-    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val points = points ?: return
         for (i in 0 until points.size - 2 step 3) {
             tmp.set(

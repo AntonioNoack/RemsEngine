@@ -193,7 +193,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
         light.invCamSpaceMatrix
-            .set4x3delta(transform.getDrawMatrix(), RenderState.cameraPosition, RenderState.worldScale)
+            .set4x3delta(transform.getDrawMatrix(), RenderState.cameraPosition)
             .invert()
         stage.add(light, transform)
     }

@@ -27,10 +27,10 @@ import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 
-// same as .set4x3delta(drawMatrix, RenderState.cameraPosition, RenderState.worldScale).invert()
+// same as .set4x3delta(drawMatrix, RenderState.cameraPosition).invert()
 fun Matrix4x3f.setTranslateScaleInverse(px: Double, py: Double, pz: Double, scale: Double): Matrix4x3f {
-    val isc = 1.0 / scale
-    val iws = (1.0 / (scale * RenderState.worldScale)).toFloat()
+    val isc = 1f / scale
+    val iws = 1f / scale.toFloat()
     val dx = isc * RenderState.cameraPosition.x
     val dy = isc * RenderState.cameraPosition.y
     val dz = isc * RenderState.cameraPosition.z

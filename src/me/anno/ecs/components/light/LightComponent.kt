@@ -33,7 +33,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.SQRT3f
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
@@ -42,7 +41,7 @@ import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -106,7 +105,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         return super.fill(pipeline, transform)
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         getLightPrimitive().getBounds().transformUnion(globalTransform, dstUnion)
         return true
     }
@@ -188,11 +187,11 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     }
 
     abstract fun updateShadowMap(
-        cascadeScale: Float, worldScale: Float,
+        cascadeScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
         cameraRotation: Quaternionf, cameraDirection: Vector3f,
-        drawTransform: Matrix4x3m, pipeline: Pipeline,
+        drawTransform: Matrix4x3, pipeline: Pipeline,
         resolution: Int,
     )
 
@@ -211,10 +210,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         // val originalPosition = Vector3d(RenderState.cameraPosition) // test frustum
         val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
-        val worldScale = SQRT3f / global.getScaleLength()
         val direction = rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
         // val originalWorldScale = RenderState.worldScale // test frustum
-        RenderState.worldScale = worldScale
         val result = shadowTextures as FramebufferArray
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
@@ -228,7 +225,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                         pipeline.clear()
                         val cascadeScale = shadowMapPower.pow(-i)
                         updateShadowMap(
-                            cascadeScale, worldScale,
+                            cascadeScale,
                             RenderState.cameraMatrix,
                             position, rotation, direction,
                             drawTransform, pipeline, resolution
@@ -251,7 +248,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
 
     /**
      * is set by the pipeline,
-     * is equal to invert((transform.globalMatrix - cameraPosition) * worldScale)
+     * is equal to invert((transform.globalMatrix - cameraPosition))
      * */
     @NotSerializedProperty
     val invCamSpaceMatrix = Matrix4x3f()

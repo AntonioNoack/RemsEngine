@@ -66,7 +66,6 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                 "material",
                 createFragmentVariables(key) + listOf(
                     Variable(GLSLType.S2D, "depthTex"),
-                    Variable(GLSLType.V1F, "worldScale"),
                     Variable(GLSLType.V1F, "uvScroll")
                 ) + depthVars,
                 concatDefines(key).toString() +
@@ -82,7 +81,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                         "ivec2 depthUV = ivec2(gl_FragCoord.xy);\n" +
                         "float sampledDepth = rawToDepth(texelFetch(depthTex,depthUV,0).x);\n" +
                         "float zDistance = 1.0 / gl_FragCoord.w;\n" +
-                        "float distanceToSurface = abs(sampledDepth - zDistance)/worldScale;\n" +
+                        "float distanceToSurface = abs(sampledDepth - zDistance);\n" +
                         "float betterFresnel = fresnel + max(1.0-4.0*distanceToSurface, 0.0);\n" +
                         "betterFresnel = min(pow(betterFresnel,3.0), 1.0);\n" +
                         "finalAlpha *= betterFresnel;\n" +

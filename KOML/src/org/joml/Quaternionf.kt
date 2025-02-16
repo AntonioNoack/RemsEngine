@@ -275,7 +275,7 @@ open class Quaternionf(
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
-    fun setFromUnnormalized(mat: Matrix4x3m): Quaternionf {
+    fun setFromUnnormalized(mat: Matrix4x3): Quaternionf {
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
@@ -287,7 +287,7 @@ open class Quaternionf(
         return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
-    fun setFromNormalized(mat: Matrix4x3m): Quaternionf {
+    fun setFromNormalized(mat: Matrix4x3): Quaternionf {
         return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 

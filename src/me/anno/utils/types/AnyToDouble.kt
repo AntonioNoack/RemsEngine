@@ -1,12 +1,6 @@
 package me.anno.utils.types
 
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.AABBf
-import org.joml.Planed
-import org.joml.Planef
-import org.joml.Quaterniond
-import org.joml.Quaternionf
 import org.joml.Vector
 
 object AnyToDouble {

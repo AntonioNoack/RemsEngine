@@ -49,13 +49,10 @@ import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
-import org.joml.Quaterniond
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -309,10 +306,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         JomlPools.vec3d.sub(1)
     }
 
-    private fun getTransformMatrix(selected: Any?): Matrix4x3m? {
+    private fun getTransformMatrix(selected: Any?): Matrix4x3? {
         return when (selected) {
             is Entity -> selected.transform.globalTransform
-            is DCMovable -> selected.getGlobalTransform(Matrix4x3m())
+            is DCMovable -> selected.getGlobalTransform(Matrix4x3())
             else -> null
         }
     }
@@ -511,7 +508,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             }
         }
 
-    fun transformPosition(transform: Transform, camTransform: Matrix4x3m, offset: Vector3f, i: Int, tmp: Vector3d) {
+    fun transformPosition(transform: Transform, camTransform: Matrix4x3, offset: Vector3f, i: Int, tmp: Vector3d) {
         val global = transform.globalTransform
         if (i == 0) {
             val distance = camTransform.distance(global)
@@ -663,7 +660,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             val prefab = PrefabCache[file] ?: continue
             val dropPosition = findDropPosition(Vector3d())
             fun posRotSca(root: Entity, sampleInstance: Entity?): Triple<Vector3d, Quaternionf, Vector3f> {
-                val newTransform = Matrix4x3m()
+                val newTransform = Matrix4x3()
                     .translationRotateScale(
                         dropPosition,
                         dropRotation,
@@ -671,7 +668,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     )
                 // we need to remove parent transform from this one
                 root.transform.globalTransform
-                    .invert(Matrix4x3m()).mul(newTransform, newTransform)
+                    .invert(Matrix4x3()).mul(newTransform, newTransform)
                 if (sampleInstance != null) newTransform.mul(sampleInstance.transform.globalTransform)
                 val position = newTransform.getTranslation(Vector3d())
                 val rotation = newTransform.getUnnormalizedRotation(Quaternionf())

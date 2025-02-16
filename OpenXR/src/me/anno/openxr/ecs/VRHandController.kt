@@ -24,8 +24,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.min
@@ -250,7 +249,7 @@ class VRHandController : Component(), OnUpdate {
                 }
 
                 // invTransform is known to be [controller.position, controller.rotation]^-1, so this could be simplified
-                val invTransform = lineRenderer.transform!!.globalTransform.invert(Matrix4x3m())
+                val invTransform = lineRenderer.transform!!.globalTransform.invert(Matrix4x3())
 
                 val tmp = Vector3d()
                 val extraHeight = if (mayTeleport) 0.05 * distance else 0.0

@@ -31,7 +31,7 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -616,14 +616,14 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    fun fromOtherLocalToLocal(other: Entity): Matrix4x3m {
+    fun fromOtherLocalToLocal(other: Entity): Matrix4x3 {
         // converts the point from the local coordinates of the other one to our local coordinates
         return other.fromLocalToOtherLocal(this)
     }
 
-    fun fromLocalToOtherLocal(other: Entity): Matrix4x3m {
+    fun fromLocalToOtherLocal(other: Entity): Matrix4x3 {
         // converts the point from our local coordinates of the local coordinates of the other one
-        return Matrix4x3m(other.transform.globalTransform).invert().mul(transform.globalTransform)
+        return Matrix4x3(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

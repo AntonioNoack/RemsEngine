@@ -15,7 +15,6 @@ object BulletDebugDraw : IDebugDraw() {
 
     var stack = Matrix4f()
     var cam = org.joml.Vector3d()
-    val worldScale: Float get() = RenderState.worldScale
 
     /**
     public static final int NO_DEBUG              = 0;
@@ -67,7 +66,7 @@ object BulletDebugDraw : IDebugDraw() {
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
         LineBuffer.putRelativeLine(
-            from.x, from.y, from.z, to.x, to.y, to.z, cam, worldScale,
+            from.x, from.y, from.z, to.x, to.y, to.z, cam,
             vToByte(color.x), vToByte(color.y), vToByte(color.z), -1
         )
     }

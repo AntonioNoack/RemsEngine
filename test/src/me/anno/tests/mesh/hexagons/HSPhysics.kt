@@ -90,10 +90,6 @@ fun main() {
         GFX.someWindow.windowStack.firstOrNull()?.drawDirectly = false
         val renderView = object : RenderView(PlayMode.PLAYING, DefaultConfig.style) {
             override fun getWorld() = scene
-            override fun updateWorldScale() {
-                worldScale = 0.01f
-                near = 1e-6f
-            }
         }
         val sv = SceneView(renderView, DefaultConfig.style)
         // override controller

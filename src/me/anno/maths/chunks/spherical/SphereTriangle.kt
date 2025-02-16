@@ -3,7 +3,7 @@ package me.anno.maths.chunks.spherical
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Recursion
 import me.anno.utils.types.Triangles.rayTriangleIntersect
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -32,16 +32,16 @@ class SphereTriangle(
     val globalCenter = Vector3d()
     // localCenter = 0,0,0
 
-    val baseUp = Vector3d()
-    val baseAB = Vector3d()
-    val baseAC = Vector3d()
+    val baseUp = Vector3f()
+    val baseAB = Vector3f()
+    val baseAC = Vector3f()
 
     val localA = Vector3d() // y ~ 0
     val localB = Vector3d() // y ~ 0
     val localC = Vector3d() // y ~ 0
 
-    val localToGlobal = Matrix4x3d()
-    val globalToLocal = Matrix4x3d()
+    val localToGlobal = Matrix4x3()
+    val globalToLocal = Matrix4x3()
 
     var size = 0.0
 
@@ -142,8 +142,8 @@ class SphereTriangle(
     fun computeTransform() {
         globalCenter.set(globalA).add(globalB).add(globalC)
         val globalCenterLength = globalCenter.length()
-        baseUp.set(globalCenter).div(globalCenterLength)
-        baseAB.set(globalB).sub(globalA)
+        baseUp.set(globalCenter).div(globalCenterLength.toFloat())
+        globalB.sub(globalA, baseAB)
         // AB is not necessarily perpendicular to up -> make it so
         baseAB.makePerpendicular(baseUp).normalize()
         baseAB.cross(baseUp, baseAC).normalize()

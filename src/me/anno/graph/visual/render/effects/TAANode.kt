@@ -21,7 +21,6 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.maps.LazyMap
@@ -94,8 +93,7 @@ class TAANode : TimedRenderingNode(
          * */
         fun getCameraSteadiness(): Float {
             val distance = RenderState.cameraPosition.distance(RenderState.prevCameraPosition)
-            val relativeDistance = distance / min(RenderState.worldScale, RenderState.prevWorldScale)
-            return max(0.98f - 20f * relativeDistance.toFloat(), 0f)
+            return max(0.98f - 20f * distance.toFloat(), 0f)
         }
 
         val shader = LazyList(4) {

@@ -179,7 +179,7 @@ class RenderLightsNode : RenderViewNode(
                 Blitting.copyColorAndDepth(blackTexture, depthT, depthM, false)
                 stage.bind {
                     stage.draw(
-                        pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
+                        pipeline, RenderState.cameraMatrix, RenderState.cameraPosition,
                         ::getShader, depthT, depthTexture.mask
                     )
                 }

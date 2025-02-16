@@ -9,7 +9,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 import kotlin.math.abs
 
@@ -34,7 +34,7 @@ open class LookAtComponent : Component(), OnBeforeDraw {
 
     val dir = Vector3f()
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         dstUnion.all()
         return true
     }

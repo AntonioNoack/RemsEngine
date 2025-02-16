@@ -286,7 +286,7 @@ fun main() {
         rasterizedScene.emissive.clone().normalize01().write(dst.getChild("emissive.png"))
     }
 
-    val bvh = buildTLAS(scene, Vector3d(), 1f, SplitMethod.MEDIAN_APPROX, 16)!!
+    val bvh = buildTLAS(scene, Vector3d(), SplitMethod.MEDIAN_APPROX, 16)!!
     val skybox = scene.getComponentInChildren(SkyboxBase::class) ?: Skybox.defaultSky
     addGPUTask("illum", 1000) {
         bakeIllumination(bvh, rasterizedScene, skybox)
@@ -296,7 +296,7 @@ fun main() {
 
 fun buildTLAS(
     scene: Entity,
-    cameraPosition: Vector3d, worldScale: Float,
+    cameraPosition: Vector3d,
     splitMethod: SplitMethod, maxNodeSize: Int
 ): TLASNode? {
     val clock = Clock(LOGGER)
@@ -307,7 +307,7 @@ fun buildTLAS(
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
             if (blas != null) {
                 mesh.raycaster = blas
-                objects.add(createTLASLeaf(mesh, blas, comp.transform!!, comp, cameraPosition, worldScale))
+                objects.add(createTLASLeaf(mesh, blas, comp.transform!!, comp, cameraPosition))
             }
         }
     }

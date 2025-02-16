@@ -239,7 +239,6 @@ open class InstancedStack {
             val anim = (instances as? InstancedAnimStack)?.animData
             val cameraPosition = RenderState.cameraPosition
             val prevCameraPosition = RenderState.prevCameraPosition
-            val worldScale = RenderState.worldScale
 
             // val t1 = Time.nanoTime
             var st23 = 0L
@@ -248,10 +247,6 @@ open class InstancedStack {
             var st56 = 0L
             // var st78 = 0L
             // var st89 = 0L
-
-            val prevWorldScale = RenderState.prevWorldScale
-            // worth ~15%; to use it, ensure that RenderView.worldScale is 1.0
-            val noWorldScale = worldScale == 1f && (prevWorldScale == 1f || !motionVectors)
 
             val batchSize = buffer.vertexCount
             val overrideGfxId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
@@ -273,15 +268,11 @@ open class InstancedStack {
                     val cx = cameraPosition.x
                     val cy = cameraPosition.y
                     val cz = cameraPosition.z
-                    if (noWorldScale) {
-                        putNoWorldScale(nioBuffer, transforms, baseIndex, endIndex, cx, cy, cz)
-                    } else {
-                        putWorldScale(nioBuffer, transforms, baseIndex, endIndex, cx, cy, cz, worldScale)
-                    }
+                    put(nioBuffer, transforms, baseIndex, endIndex, cx, cy, cz)
                 } else {
                     putAdvanced(
-                        nioBuffer, buffer, transforms, baseIndex, endIndex, noWorldScale, time,
-                        prevCameraPosition, cameraPosition, prevWorldScale, worldScale, motionVectors,
+                        nioBuffer, buffer, transforms, baseIndex, endIndex, time,
+                        prevCameraPosition, cameraPosition, motionVectors,
                         useAnimations, anim, overrideGfxId, gfxIds, drawCallId
                     )
                 }
@@ -344,7 +335,7 @@ open class InstancedStack {
             shader.checkIsUsed()
         }
 
-        private fun putNoWorldScale(
+        private fun put(
             nioBuffer: ByteBuffer, transforms: Array<Any?>,
             baseIndex: Int, endIndex: Int,
             cx: Double, cy: Double, cz: Double
@@ -356,34 +347,12 @@ open class InstancedStack {
                 nioBuffer.putFloat((tri.y - cy).toFloat())
                 nioBuffer.putFloat((tri.z - cz).toFloat())
                 val sc = tr.localScale
-                nioBuffer.putFloat(sc.x.toFloat() * 0.33333334f)
+                nioBuffer.putFloat(sc.x * 0.33333334f)
                 val rt = tr.localRotation
-                nioBuffer.putFloat(rt.x.toFloat())
-                nioBuffer.putFloat(rt.y.toFloat())
-                nioBuffer.putFloat(rt.z.toFloat())
-                nioBuffer.putFloat(rt.w.toFloat())
-            }
-        }
-
-        private fun putWorldScale(
-            nioBuffer: ByteBuffer, transforms: Array<Any?>,
-            baseIndex: Int, endIndex: Int,
-            cx: Double, cy: Double, cz: Double,
-            worldScale: Float
-        ) {
-            for (index in baseIndex until endIndex) {
-                val tr = transforms[index] as Transform
-                val tri = tr.localPosition
-                nioBuffer.putFloat(((tri.x - cx) * worldScale).toFloat())
-                nioBuffer.putFloat(((tri.y - cy) * worldScale).toFloat())
-                nioBuffer.putFloat(((tri.z - cz) * worldScale).toFloat())
-                val sc = tr.localScale
-                nioBuffer.putFloat((sc.x * worldScale).toFloat() * 0.33333334f)
-                val rt = tr.localRotation
-                nioBuffer.putFloat(rt.x.toFloat())
-                nioBuffer.putFloat(rt.y.toFloat())
-                nioBuffer.putFloat(rt.z.toFloat())
-                nioBuffer.putFloat(rt.w.toFloat())
+                nioBuffer.putFloat(rt.x)
+                nioBuffer.putFloat(rt.y)
+                nioBuffer.putFloat(rt.z)
+                nioBuffer.putFloat(rt.w)
             }
         }
 
@@ -391,9 +360,8 @@ open class InstancedStack {
             nioBuffer: ByteBuffer, buffer: StaticBuffer,
             transforms: Array<Any?>,
             baseIndex: Int, endIndex: Int,
-            noWorldScale: Boolean, time: Long,
+            time: Long,
             prevCameraPosition: Vector3d, cameraPosition: Vector3d,
-            prevWorldScale: Float, worldScale: Float,
             motionVectors: Boolean, useAnimations: Boolean,
             anim: FloatArray?, overrideGfxId: Boolean,
             gfxIds: IntArray, drawCallId: Int,
@@ -401,13 +369,11 @@ open class InstancedStack {
             for (index in baseIndex until endIndex) {
                 val transform = transforms[index] as Transform
                 val tri = transform.getDrawMatrix()
-                if (noWorldScale) M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
-                else M4x3Delta.m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
+                M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
                 if (motionVectors) {
                     // put previous matrix
                     val tri2 = transform.getDrawnMatrix()
-                    if (noWorldScale) M4x3Delta.m4x3delta(tri2, prevCameraPosition, nioBuffer)
-                    else M4x3Delta.m4x3delta(tri2, prevCameraPosition, prevWorldScale, nioBuffer)
+                    M4x3Delta.m4x3delta(tri2, prevCameraPosition, nioBuffer)
                     // put animation data
                     if (useAnimations) {
                         // anim and previous anim data

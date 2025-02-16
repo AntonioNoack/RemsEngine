@@ -17,7 +17,6 @@ fun main() {
             ShaderStage(
                 "AABBHit", listOf(
                     Variable(GLSLType.V3F, "cameraPosition"),
-                    Variable(GLSLType.V1F, "worldScale"),
                     Variable(GLSLType.V3F, "finalPosition"),
                     Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                 ), "" +

@@ -82,9 +82,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
-import org.joml.Quaterniond
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -132,10 +130,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         set(value) {
             field = clamp(value, 1e-35f, 1e35f)
         }
-
-    open fun updateWorldScale() {
-        worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1f else 1f / radius
-    }
 
     fun usesFrameGen(): Boolean {
         return renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
@@ -190,7 +184,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         super.onUpdate()
         // we could optimize that: if not has updated in some time, don't redraw
         invalidateDrawing()
-        updateWorldScale()
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -532,20 +525,18 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         fovYCenter = 0.5f + centerY // correct???
         Perspective.setPerspective(
             cameraMatrix, fovYRadians, aspectRatio,
-            scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
+            near, far, centerX, centerY
         )
     }
 
     fun setOrthographicCamera(fov: Float, aspectRatio: Float) {
-        val scaledNear = max(scaledNear, worldScale * 0.001f)
-        val scaledFar = min(scaledFar, worldScale * 1000f)
+        val n = near
+        val f = far
         fovXRadians = fov * aspectRatio
         fovYRadians = fov // not really defined
         fovXCenter = 0.5f
         fovYCenter = 0.5f
-        val sceneScaleXY = 1f / (worldScale * fov).toFloat()
-        val n = scaledNear.toFloat()
-        val f = scaledFar.toFloat()
+        val sceneScaleXY = 1f /  fov
         val sceneScaleZ = 1f / (f - n)
         val inverseDepth = inverseDepth
         val m22 = 2f * if (inverseDepth) +sceneScaleZ else -sceneScaleZ
@@ -648,7 +639,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             dst.clearColor(0)
             pipeline.lightStage.bindDraw(
                 pipeline, deferred, deferredDepth, depthMask,
-                cameraMatrix, cameraPosition, worldScale
+                cameraMatrix, cameraPosition
             )
         }
     }
@@ -725,7 +716,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         val transform = entity.transform
                         val globalTransform = transform.globalTransform
                         stack.pushMatrix()
-                        stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
+                        stack.mul4x3delta(globalTransform, cameraPosition)
                     }
 
                     component.onDrawGUI(pipeline, true)
@@ -783,19 +774,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         super.onMouseMoved(x, y, dx, dy)
     }
 
-    var worldScale = 1f
-
     var fovXRadians = 1f
     var fovYRadians = 1f
     var fovXCenter = 0.5f
     var fovYCenter = 0.5f
 
     var near = 1e-3f
-    val scaledNear get() = near * worldScale
-
-    // infinity
     var far = 1e10f
-    val scaledFar get() = far * worldScale
+
     val isPerspective: Boolean
         get() = abs(cameraMatrix.m33 - 1f) > 1e-5f
 
@@ -808,19 +794,15 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val prevCamMatrix = Matrix4f()
     val prevCamPosition = Vector3d()
     val prevCamRotation = Quaternionf()
-    var prevWorldScale = worldScale
 
     fun updatePrevState() {
         prevCamMatrix.set(cameraMatrix)
         prevCamPosition.set(cameraPosition)
         prevCamRotation.set(cameraRotation)
-        prevWorldScale = worldScale
     }
 
     fun setRenderState() {
         RenderState.aspectRatio = width.toFloat() / height.toFloat()
-        RenderState.worldScale = worldScale
-        RenderState.prevWorldScale = prevWorldScale
 
         RenderState.cameraMatrix.set(cameraMatrix)
         RenderState.cameraPosition.set(cameraPosition)
@@ -835,8 +817,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.fovYRadians = fovYRadians
         RenderState.fovXCenter = fovXCenter
         RenderState.fovYCenter = fovYCenter
-        RenderState.near = scaledNear.toFloat()
-        RenderState.far = scaledFar.toFloat()
+        RenderState.near = near
+        RenderState.far = far
 
         pipeline.superMaterial = superMaterial.material
     }
@@ -870,7 +852,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                     is Entity -> world.getGlobalBounds()
                     is Component -> {
                         val bounds = AABBd()
-                        world.fillSpace(Matrix4x3m(), bounds)
+                        world.fillSpace(Matrix4x3(), bounds)
                         bounds
                     }
                     else -> null

@@ -18,7 +18,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 import kotlin.math.sin
 
@@ -62,7 +62,7 @@ fun main() {
         val maxCount = 30
         val count get() = ((sin(Time.gameTime) * 0.5 + 0.5) * maxCount).roundToIntOr()
 
-        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
             // the size is changing constantly, so it would be best to calculate the maximum size
             // if you're too lazy, use aabb.all()
             dstUnion.setMin(-width.toDouble(), -height.toDouble(), -thickness.toDouble())

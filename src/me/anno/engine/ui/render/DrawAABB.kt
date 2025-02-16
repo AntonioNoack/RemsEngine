@@ -5,28 +5,27 @@ import me.anno.gpu.buffer.LineBuffer.bytesPerLine
 import me.anno.gpu.buffer.LineBuffer.ensureSize
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 
 object DrawAABB {
 
     fun drawAABB(aabb: AABBd, color: Int) {
         val pos = RenderState.cameraPosition
-        val worldScale = RenderState.worldScale
-        drawAABB(aabb, color, pos, worldScale)
+        drawAABB(aabb, color, pos)
     }
 
-    fun drawAABB(aabb: AABBd, color: Int, pos: Vector3d, worldScale: Float) {
+    fun drawAABB(aabb: AABBd, color: Int, pos: Vector3d) {
 
         if (aabb.isEmpty()) return
 
-        val x0 = (aabb.minX - pos.x) * worldScale
-        val y0 = (aabb.minY - pos.y) * worldScale
-        val z0 = (aabb.minZ - pos.z) * worldScale
+        val x0 = aabb.minX - pos.x
+        val y0 = aabb.minY - pos.y
+        val z0 = aabb.minZ - pos.z
 
-        val x1 = (aabb.maxX - pos.x) * worldScale
-        val y1 = (aabb.maxY - pos.y) * worldScale
-        val z1 = (aabb.maxZ - pos.z) * worldScale
+        val x1 = aabb.maxX - pos.x
+        val y1 = aabb.maxY - pos.y
+        val z1 = aabb.maxZ - pos.z
 
         drawAABB(x0, y0, z0, x1, y1, z1, color)
     }
@@ -68,7 +67,7 @@ object DrawAABB {
         addLine(x1, y1, z0, x1, y1, z1, color)
     }
 
-    fun drawAABB(transform: Matrix4x3m?, aabb: AABBd, worldScale: Float, color: Int) {
+    fun drawAABB(transform: Matrix4x3?, aabb: AABBd, color: Int) {
 
         if (aabb.isEmpty()) return
         if (transform == null) return drawAABB(aabb, color)
@@ -77,8 +76,8 @@ object DrawAABB {
         val max = transform.transformPosition(aabb.getMax(JomlPools.vec3d.create()))
 
         val pos = RenderState.cameraPosition
-        min.sub(pos).mul(worldScale.toDouble())
-        max.sub(pos).mul(worldScale.toDouble())
+        min.sub(pos)
+        max.sub(pos)
 
         drawAABB(min.x, min.y, min.z, max.x, max.y, max.z, color)
 

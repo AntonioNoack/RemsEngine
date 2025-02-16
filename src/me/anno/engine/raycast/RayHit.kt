@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.bvh.HitType
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -41,7 +41,7 @@ class RayHit(maxDistance: Double) {
     val tmpVector3fs = createList(16) { Vector3f() }
     val tmpVector3ds = createList(10) { Vector3d() }
     val tmpVector4fs = createList(3) { Vector4f() }
-    val tmpMat4x3m = Matrix4x3m()
+    val tmpMat4x3m = Matrix4x3()
     val tmpAABBd = AABBd()
 
     // mesh data, that we could calculate
@@ -91,7 +91,7 @@ class RayHit(maxDistance: Double) {
     }
 
     fun setFromLocal(
-        globalTransform: Matrix4x3m,
+        globalTransform: Matrix4x3,
         localStart: Vector3f, localDirection: Vector3f, localDistance: Float, localNormal: Vector3f,
         query: RayQuery
     ) {
@@ -110,7 +110,7 @@ class RayHit(maxDistance: Double) {
     }
 
     fun setFromLocal(
-        globalTransform: Matrix4x3m?,
+        globalTransform: Matrix4x3?,
         localHit: Vector3f, localNormal: Vector3f,
         query: RayQuery
     ) {

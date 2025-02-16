@@ -32,12 +32,9 @@ import me.anno.ui.UIColors
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Vectors.normalToQuaternionY
-import org.joml.Matrix3d
 import org.joml.Matrix3f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
-import org.joml.Quaterniond
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -95,7 +92,7 @@ fun main() {
     // todo add bone visually
     val entities = ArrayList<Entity?>()
     val rigidbodies = ArrayList<Rigidbody?>()
-    val baseTransformInvs = ArrayList<Matrix4x3m?>()
+    val baseTransformInvs = ArrayList<Matrix4x3?>()
     val roots = ArrayList<Pair<Double, Rigidbody>>()
     var isRootBone = true
     for (bone in bones) {
@@ -173,7 +170,7 @@ fun main() {
         entity.rotation = baseRotation
         entity.validateTransform()
         entities.add(entity)
-        baseTransformInvs.add(Matrix4x3m(entity.transform.globalTransform).invert())
+        baseTransformInvs.add(Matrix4x3(entity.transform.globalTransform).invert())
     }
 
     val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
@@ -200,7 +197,7 @@ fun main() {
     var firstFrame = true
     val animationUpdateComponent = object : Component(), OnUpdate {
         override fun onUpdate() {
-            val invTransformD = sampleComponent.transform!!.globalTransform.invert(Matrix4x3m())
+            val invTransformD = sampleComponent.transform!!.globalTransform.invert(Matrix4x3())
             val invTransform = Matrix4x3f().set(invTransformD)
             for (boneId in bones.indices) {
                 val ragdoll = entities[boneId] ?: continue

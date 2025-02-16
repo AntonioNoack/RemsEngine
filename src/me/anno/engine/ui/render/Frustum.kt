@@ -7,8 +7,8 @@ import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
 import org.joml.Matrix3f
 import org.joml.Matrix4f
-import org.joml.Matrix4x3m
-import org.joml.Planed
+import org.joml.Matrix4x3
+import org.joml.Plane
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -27,7 +27,7 @@ class Frustum {
     // if we replace those floats with doubles
 
     // -x,+x,-y,+y,-z,+z
-    val planes = createList(13) { Planed() }
+    val planes = createList(13) { Plane() }
     var length = 6
 
     private val normals = createList(13) { Vector3f() }
@@ -158,7 +158,7 @@ class Frustum {
     }
 
     fun defineOrthographic(
-        transform: Matrix4x3m,
+        transform: Matrix4x3,
         resolution: Int,
         cameraPosition: Vector3d,
         cameraRotation: Quaternionf
@@ -264,7 +264,7 @@ class Frustum {
         val tmp = Vector4f()
         for (i in 0 until 6) {
             cameraMatrix.frustumPlane(i, tmp)
-            planes[i].set(tmp.x.toDouble(), tmp.y.toDouble(), tmp.z.toDouble(), tmp.w.toDouble())
+            planes[i].set(tmp.x, tmp.y, tmp.z, tmp.w.toDouble())
         }
 
         length = 6

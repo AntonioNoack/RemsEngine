@@ -95,7 +95,6 @@ class HeightExpFogNode : RenderViewNode(
             )
             shader.v1f("invExpDistance", 1f / relativeDistance)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
-            shader.v1f("worldScale", RenderState.worldScale)
             shader.v1b("cheapMixing", cheapMixing)
             color.bindTrulyNearest(shader, "colorTex")
             depth.bindTrulyNearest(shader, "depthTex")
@@ -116,7 +115,6 @@ class HeightExpFogNode : RenderViewNode(
                 Variable(GLSLType.V1F, "fogOffset"),
                 Variable(GLSLType.V1F, "invExpDistance"),
                 Variable(GLSLType.V3F, "cameraPosition"),
-                Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V3F, "fogColor"),
                 Variable(GLSLType.V1B, "cheapMixing"),
                 Variable(GLSLType.S2D, "colorTex"),

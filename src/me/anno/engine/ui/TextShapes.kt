@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.pipeline.Pipeline
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
@@ -19,7 +19,7 @@ object TextShapes : CacheSection("TextShapes") {
         position: Vector3d,
         rotation: Quaterniond?,
         scale: Double,
-        transform: Matrix4x3m?
+        transform: Matrix4x3?
     ) {
         val mesh = getEntry(text, 10000, false) {
             TextMeshGroup(font, text, 0f, false)

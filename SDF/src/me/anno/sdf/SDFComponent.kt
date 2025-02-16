@@ -64,11 +64,9 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Planef
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector2i
@@ -293,7 +291,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         return super.getMeshOrNull()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         ensureValidBounds()
         return super.fillSpace(globalTransform, dstUnion)
     }
@@ -360,7 +358,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         } else {
             // raycast
             val result = query.result
-            val globalTransform = transform?.globalTransform ?: Matrix4x3m() // local -> global
+            val globalTransform = transform?.globalTransform ?: Matrix4x3() // local -> global
             val globalInv = result.tmpMat4x3m.set(globalTransform).invert()
             val vec3f = result.tmpVector3fs
             val vec3d = result.tmpVector3ds
@@ -882,7 +880,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     }
 
     override fun move(
-        self: DraggingControls, camTransform: Matrix4x3m,
+        self: DraggingControls, camTransform: Matrix4x3,
         offset: Vector3f, dir: Vector3f, rotationAngle: Float,
         dx: Float, dy: Float
     ) {
@@ -935,7 +933,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         JomlPools.mat4x3f.sub(1)
     }
 
-    override fun getGlobalTransform(dst: Matrix4x3m): Matrix4x3m {
+    override fun getGlobalTransform(dst: Matrix4x3): Matrix4x3 {
         when (val parent = parent) {
             is Entity -> dst.set(parent.transform.globalTransform)
             is DCMovable -> parent.getGlobalTransform(dst)

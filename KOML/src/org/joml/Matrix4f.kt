@@ -222,7 +222,7 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         )
     }
 
-    fun set(other: Matrix4x3m): Matrix4f {
+    fun set(other: Matrix4x3): Matrix4f {
         return set(
             other.m00, other.m01, other.m02, 0f,
             other.m10, other.m11, other.m12, 0f,
@@ -308,7 +308,7 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
             ._properties(flags and mat.properties() and -2)
     }
 
-    fun set4x3(mat: Matrix4x3m): Matrix4f {
+    fun set4x3(mat: Matrix4x3): Matrix4f {
         return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)
             ._m21(mat.m21)._m22(mat.m22)._m30(mat.m30.toFloat())._m31(mat.m31.toFloat())._m32(mat.m32.toFloat())
             ._properties(flags and mat.properties() and -2)
@@ -434,7 +434,7 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         )
     }
 
-    fun mul(other: Matrix4x3m): Matrix4f {
+    fun mul(other: Matrix4x3): Matrix4f {
         return mul(
             other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
             other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,

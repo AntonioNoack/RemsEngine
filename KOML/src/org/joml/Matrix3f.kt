@@ -138,7 +138,7 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         return this
     }
 
-    fun set(m: Matrix4x3m): Matrix3f {
+    fun set(m: Matrix4x3): Matrix3f {
         m00 = m.m00
         m01 = m.m01
         m02 = m.m02

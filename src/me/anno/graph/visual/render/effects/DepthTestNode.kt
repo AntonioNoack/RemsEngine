@@ -26,7 +26,6 @@ class DepthTestNode : ActionNode(
         GFXState.useFrame(result) {
             val shader = shader
             shader.use()
-            shader.v1f("worldScale", RenderState.worldScale)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             DepthTransforms.bindDepthUniforms(shader)
             depth.bindTrulyNearest(shader, "depthTex")
@@ -39,7 +38,6 @@ class DepthTestNode : ActionNode(
         val shader = Shader(
             "depthTest", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
-                Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)

@@ -55,7 +55,6 @@ val snowShader = Shader(
     "Snow", emptyList(), coordsUVVertexShader, uvList, listOf(
         Variable(GLSLType.V3F, "cameraPosition"),
         Variable(GLSLType.V4F, "cameraRotation"),
-        Variable(GLSLType.V1F, "invWorldScale"),
         Variable(GLSLType.S2D, "colorTex"),
         Variable(GLSLType.S2D, "depthTex"),
         Variable(GLSLType.V1F, "density"),
@@ -79,7 +78,7 @@ val snowShader = Shader(
             randomGLSL +
             "void main(){\n" +
             "   vec4 color = texture(colorTex,uv);\n" +
-            "   float depth = density * invWorldScale * rawToDepth(texture(depthTex,uv).r);\n" +
+            "   float depth = density * rawToDepth(texture(depthTex,uv).r);\n" +
             // calculate position and direction in world space
             "   vec3 pos = cameraPosition;\n" +
             "   pos = quatRot(pos, worldRotation);\n" +
@@ -189,7 +188,6 @@ class SnowNode : ActionNode(
             shader.use()
             colorTex.bindTrulyNearest(shader, "colorTex")
             depthTex.bindTrulyNearest(shader, "depthTex")
-            shader.v1f("invWorldScale", 1.0 / RenderState.worldScale)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             shader.v4f("cameraRotation", RenderState.cameraRotation)
             shader.v3f("snowPosition", snowControl.position)

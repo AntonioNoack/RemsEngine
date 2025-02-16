@@ -17,7 +17,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector2f
 import org.joml.Vector3d
 
@@ -67,7 +67,7 @@ class Camera : Component(), OnDrawGUI {
         }
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         dstUnion.union(globalTransform.getTranslation(Vector3d()))
         return true
     }

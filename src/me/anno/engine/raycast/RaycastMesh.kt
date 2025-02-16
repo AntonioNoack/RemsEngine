@@ -11,8 +11,7 @@ import me.anno.maths.bvh.HitType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 
 object RaycastMesh {
@@ -108,7 +107,7 @@ object RaycastMesh {
     }
 
     fun raycastLocalMesh(
-        mesh: Mesh, globalTransform: Matrix4x3m?, inverse: Matrix4x3m?,
+        mesh: Mesh, globalTransform: Matrix4x3?, inverse: Matrix4x3?,
         localSrt: Vector3f, localDir: Vector3f, localEnd: Vector3f,
         extraDistance: Double, tmp0: List<Vector3f>, query: RayQuery,
     ) {
@@ -162,7 +161,7 @@ object RaycastMesh {
         }
     }
 
-    fun raycastGlobal(query: RayQuery, globalTransform: Matrix4x3m?, mesh: Mesh) {
+    fun raycastGlobal(query: RayQuery, globalTransform: Matrix4x3?, mesh: Mesh) {
         if ((query.typeMask and Raycast.TRIANGLES) == 0) return
         // first test whether the aabbs really overlap
         val globalAABB = query.result.tmpAABBd.set(mesh.getBounds())
@@ -172,7 +171,7 @@ object RaycastMesh {
         }
     }
 
-    fun raycastGlobal1(query: RayQuery, globalTransform: Matrix4x3m?, mesh: Mesh) {
+    fun raycastGlobal1(query: RayQuery, globalTransform: Matrix4x3?, mesh: Mesh) {
         val typeMask = query.typeMask
         if (typeMask.and(Raycast.TRIANGLES) == 0) return
         val acceptFront = getCullingFront(typeMask, mesh.cullMode)

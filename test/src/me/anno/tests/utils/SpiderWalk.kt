@@ -32,8 +32,7 @@ import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -50,7 +49,7 @@ import kotlin.math.min
 class SpiderPrediction(val floorY: Double) : Component(), OnUpdate {
 
     // know the spider's transform in the future to plan steps
-    val futureTransform = Matrix4x3m()
+    val futureTransform = Matrix4x3()
     var stepFrequency = 3.0
     val predictionDeltaTime get() = 0.25 / stepFrequency
 
@@ -195,7 +194,7 @@ class SpiderLegLogic(
         val dtMix = dtTo01(5.0 * step)
 
         // convert target into "spiderBody" space
-        val toLocal = spider.transform.globalTransform.invert(Matrix4x3m())
+        val toLocal = spider.transform.globalTransform.invert(Matrix4x3())
         val localTarget = toLocal.transformPosition(target, Vector3d())
         // add stepping up at the start of each step
         if (isWalking) localTarget.y += max(1.0 - 10.0 * timeAccu, 0.0)

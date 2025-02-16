@@ -58,7 +58,6 @@ object WaterShader : ECSMeshShader("Water") {
                     Variable(GLSLType.S2D, "depthTexture"),
                     Variable(GLSLType.V1F, "absorption"),
                     Variable(GLSLType.V2F, "movingUV"),
-                    Variable(GLSLType.V1F, "worldScale"),
                     Variable(GLSLType.V3F, "cameraPosition"),
                     Variable(GLSLType.V2F, "uv", VariableMode.INMOD),
                     Variable(GLSLType.V4F, "tangent", VariableMode.INMOD)
@@ -73,7 +72,7 @@ object WaterShader : ECSMeshShader("Water") {
                                     "float deltaDepth = (backgroundDepth - rawToDepth(gl_FragCoord.z)) / (0.5 + abs(camDir.z));\n" +
                                     "finalColor = diffuseBase.rgb;\n" +
                                     "finalAlpha = diffuseBase.a;\n" +
-                                    "uv = 0.003 * (finalPosition / worldScale + cameraPosition).xz;\n" +
+                                    "uv = 0.003 * (finalPosition + cameraPosition).xz;\n" +
                                     "tangent = vec4(1.0,0.0,0.0,1.0);\n" + // good like that? yes, tangent = u = x
                                     normalTanBitanCalculation +
                                     // normal mapping
@@ -118,9 +117,8 @@ object WaterShader : ECSMeshShader("Water") {
         super.bind(shader, renderer, instanced)
         DepthTransforms.bindDepthUniforms(shader)
         bindDepthTexture(shader)
-        shader.v1f("worldScale", RenderState.worldScale)
         shader.v3f("cameraPosition", RenderState.cameraPosition)
-        shader.v1f("absorption", 0.05f / RenderState.worldScale)
+        shader.v1f("absorption", 0.05f)
         shader.v2f("movingUV", Time.gameTime.toFloat() * 0.005f, 0f)
         shader.v1b("anisotropic", true)
         // could be customizable, but who would use that?

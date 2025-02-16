@@ -268,7 +268,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._properties(m.properties() or 2)
     }
 
-    fun set(m: Matrix4x3m): Matrix4d {
+    fun set(m: Matrix4x3): Matrix4d {
         return _m00(m.m00.toDouble())._m01(m.m01.toDouble())._m02(m.m02.toDouble())._m03(0.0)
             ._m10(m.m10.toDouble())._m11(m.m11.toDouble())._m12(m.m12.toDouble())._m13(0.0)
             ._m20(m.m20.toDouble())._m21(m.m21.toDouble())._m22(m.m22.toDouble())._m23(0.0)
@@ -307,7 +307,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._properties(flags and mat.properties() and -2)
     }
 
-    fun set4x3(mat: Matrix4x3m): Matrix4d {
+    fun set4x3(mat: Matrix4x3): Matrix4d {
         return _m00(mat.m00.toDouble())._m01(mat.m01.toDouble())._m02(mat.m02.toDouble())
             ._m10(mat.m10.toDouble())._m11(mat.m11.toDouble())._m12(mat.m12.toDouble())
             ._m20(mat.m20.toDouble())._m21(mat.m21.toDouble())._m22(mat.m22.toDouble())
@@ -574,7 +574,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
     }
 
     @JvmOverloads
-    fun mul(right: Matrix4x3m, dst: Matrix4d = this): Matrix4d {
+    fun mul(right: Matrix4x3, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
             dst.set(right)
         } else if (right.properties() and 4 != 0) {
@@ -596,7 +596,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._properties(2 or (right.properties() and 16))
     }
 
-    private fun mulTranslation(right: Matrix4x3m, dst: Matrix4d): Matrix4d {
+    private fun mulTranslation(right: Matrix4x3, dst: Matrix4d): Matrix4d {
         return dst._m00(right.m00.toDouble())._m01(right.m01.toDouble())._m02(right.m02.toDouble())._m03(m03)
             ._m10(right.m10.toDouble())._m11(right.m11.toDouble())._m12(right.m12.toDouble())._m13(m13)
             ._m20(right.m20.toDouble())._m21(right.m21.toDouble())._m22(right.m22.toDouble())._m23(m23)
@@ -642,7 +642,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._properties(2 or (flags and right.properties() and 16))
     }
 
-    private fun mulAffine(right: Matrix4x3m, dst: Matrix4d): Matrix4d {
+    private fun mulAffine(right: Matrix4x3, dst: Matrix4d): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
@@ -704,7 +704,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         return dst
     }
 
-    private fun mulGeneric(right: Matrix4x3m, dst: Matrix4d): Matrix4d {
+    private fun mulGeneric(right: Matrix4x3, dst: Matrix4d): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
         val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
         val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
@@ -741,7 +741,7 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         return dst
     }
 
-    fun mulPerspectiveAffine(view: Matrix4x3m, dst: Matrix4d): Matrix4d {
+    fun mulPerspectiveAffine(view: Matrix4x3, dst: Matrix4d): Matrix4d {
         val lm00 = m00
         val lm11 = m11
         val lm22 = m22

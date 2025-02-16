@@ -9,8 +9,7 @@ import me.anno.engine.ui.LineShapes.drawPartialSphere
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.TAU
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -32,7 +31,7 @@ class CapsuleCollider : Collider() {
     @SerializedProperty
     var margin = 0.04
 
-    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the two rings, and the top and bottom peak
         val r = radius
         val h = halfHeight

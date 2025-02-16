@@ -10,7 +10,6 @@ import org.joml.Vector3f
 
 class SavedCameraState {
 
-    private var worldScale = 1f
     private val cameraPosition = Vector3d()
     private val cameraDirection = Vector3f()
     private val cameraRotation = Quaternionf()
@@ -20,20 +19,13 @@ class SavedCameraState {
     fun bind(shader: Shader) {
         val p0 = cameraPosition
         val p1 = RenderState.cameraPosition
-        val scale = RenderState.worldScale
         val cameraMatrixI = RenderState.cameraMatrix
-            .scale(RenderState.worldScale / worldScale, tmp)
-            .translate(
-                ((p0.x - p1.x) * scale).toFloat(),
-                ((p0.y - p1.y) * scale).toFloat(),
-                ((p0.z - p1.z) * scale).toFloat(),
-            )
+            .translate((p0.x - p1.x).toFloat(), (p0.y - p1.y).toFloat(), (p0.z - p1.z).toFloat(), tmp)
         shader.m4x4("cameraMatrixI", cameraMatrixI)
         DepthTransforms.bindDepthUniforms(shader, cameraDirection, cameraRotation, cameraMatrixInv)
     }
 
     fun save() {
-        worldScale = RenderState.worldScale
         cameraPosition.set(RenderState.cameraPosition)
         cameraRotation.set(RenderState.cameraRotation)
         cameraDirection.set(RenderState.cameraDirection)

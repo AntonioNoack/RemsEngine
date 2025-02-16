@@ -32,7 +32,6 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.random
@@ -52,11 +51,10 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors.normalToQuaternionY2
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -276,7 +274,7 @@ fun main() {
                 if (mesh != null) pipeline.addMesh(mesh, this, placingTransform)
             }
 
-            override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
                 dstUnion.all()
                 return true
             }

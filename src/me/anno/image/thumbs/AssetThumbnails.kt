@@ -60,7 +60,7 @@ import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
@@ -102,10 +102,10 @@ object AssetThumbnails {
             // calculate ideal transform like previously
             // for that, calculate bounds on screen, then rescale/recenter
             val visualBounds = AABBf()
-            val tmp = Matrix4x3m()
+            val tmp = Matrix4x3()
             val totalMatrix = Matrix4f()
             val vec0 = Vector3f()
-            val cameraMatrix = Matrix4x3m(rv.editorCamera.transform!!.globalTransform)
+            val cameraMatrix = Matrix4x3(rv.editorCamera.transform!!.globalTransform)
 
             fun addMesh(mesh: IMesh?, transform: Transform) {
                 if (mesh !is Mesh) return

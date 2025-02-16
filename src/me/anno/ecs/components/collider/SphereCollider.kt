@@ -7,8 +7,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.sqrt
@@ -24,7 +23,7 @@ class SphereCollider : Collider() {
         dst.radius = radius
     }
 
-    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // otherwise just use a cube and its 8 sides
         val r = radius
         if (preferExact) {

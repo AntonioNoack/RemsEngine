@@ -2,7 +2,7 @@ package org.joml
 
 import org.joml.JomlMath.hash
 
-open class Planem(
+open class Plane(
     @JvmField var dirX: Float,
     @JvmField var dirY: Float,
     @JvmField var dirZ: Float,
@@ -31,7 +31,7 @@ open class Planem(
         }
     }
 
-    fun set(x: Float, y: Float, z: Float, w: Double): Planem {
+    fun set(x: Float, y: Float, z: Float, w: Double): Plane {
         dirX = x
         dirY = y
         dirZ = z
@@ -40,7 +40,7 @@ open class Planem(
     }
 
     fun set(pos: Vector3d, dir: Vector3f) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
-    fun set(src: Planem): Planem = set(src.dirX, src.dirY, src.dirZ, src.distance)
+    fun set(src: Plane): Plane = set(src.dirX, src.dirY, src.dirZ, src.distance)
 
     fun dot(x: Double, y: Double, z: Double): Double = x * dirX + y * dirY + z * dirZ + distance
     fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)
@@ -61,7 +61,7 @@ open class Planem(
     fun findZ(x: Double, y: Double): Double = -dot(x, y, 0.0) / dirZ
 
     override fun equals(other: Any?): Boolean {
-        return other is Planem &&
+        return other is Plane &&
                 dirX == other.dirX &&
                 dirY == other.dirY &&
                 dirZ == other.dirZ &&

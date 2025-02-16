@@ -25,8 +25,7 @@ import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.video.missingFrameException
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 
 class SDFTextComponent(
     text: String, font: Font,
@@ -71,7 +70,7 @@ class SDFTextComponent(
 
     private val materials = ArrayList<Material>()
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
 
         // effectively just the same code as TextureTextComponent
         val size = FontManager.getSize(font, text, -1, -1, false)

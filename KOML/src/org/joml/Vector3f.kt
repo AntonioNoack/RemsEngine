@@ -204,7 +204,7 @@ open class Vector3f(
     }
 
     @JvmOverloads
-    fun mulPosition(mat: Matrix4x3m, dst: Vector3f = this): Vector3f {
+    fun mulPosition(mat: Matrix4x3, dst: Vector3f = this): Vector3f {
         val x = x
         val y = y
         val z = z
@@ -284,7 +284,7 @@ open class Vector3f(
         )
     }
 
-    fun mulDirection(mat: Matrix4x3m, dst: Vector3f = this): Vector3f {
+    fun mulDirection(mat: Matrix4x3, dst: Vector3f = this): Vector3f {
         val x = x
         val y = y
         val z = z

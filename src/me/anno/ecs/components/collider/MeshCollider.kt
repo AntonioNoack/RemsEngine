@@ -25,7 +25,7 @@ import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.ONE_THIRD_F
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.sqrt
@@ -200,7 +200,7 @@ open class MeshCollider() : Collider() {
         }
     }
 
-    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val mesh = mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
         mesh.forEachPoint(preferExact) { x, y, z ->
             tmp.set(x.toDouble(), y.toDouble(), z.toDouble())

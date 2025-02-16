@@ -9,7 +9,7 @@ import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes.smoothCube
 import org.joml.Matrix4f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -23,12 +23,11 @@ class CircleLight : LightComponent(LightType.CIRCLE) {
 
     override fun updateShadowMap(
         cascadeScale: Float,
-        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
         cameraRotation: Quaternionf,
         cameraDirection: Vector3f,
-        drawTransform: Matrix4x3m,
+        drawTransform: Matrix4x3,
         pipeline: Pipeline,
         resolution: Int
     ) {

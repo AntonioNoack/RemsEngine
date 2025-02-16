@@ -11,7 +11,7 @@ import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
@@ -40,10 +40,10 @@ object MeshUtils {
 
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, collider: Collider, targetFrameUsage: Float = 0.95f) {
         val aabb = AABBd()
-        collider.fillSpace(Matrix4x3m(), aabb)
+        collider.fillSpace(Matrix4x3(), aabb)
         centerMesh(stack, localStack, aabb, { transform ->
             val aabb2 = AABBd()
-            collider.fillSpace(Matrix4x3m(), aabb2)
+            collider.fillSpace(Matrix4x3(), aabb2)
             AABBf(aabb2).transformProject(transform)
         }, targetFrameUsage)
     }

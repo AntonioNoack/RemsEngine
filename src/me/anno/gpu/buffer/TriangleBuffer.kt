@@ -91,25 +91,23 @@ object TriangleBuffer {
         x1: Double, y1: Double, z1: Double,
         x2: Double, y2: Double, z2: Double,
         cam: org.joml.Vector3d,
-        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         ensureSize(triangleSize)
-        putRelativePoint(x0, y0, z0, cam, worldScale, r, g, b, a)
-        putRelativePoint(x1, y1, z1, cam, worldScale, r, g, b, a)
-        putRelativePoint(x2, y2, z2, cam, worldScale, r, g, b, a)
+        putRelativePoint(x0, y0, z0, cam, r, g, b, a)
+        putRelativePoint(x1, y1, z1, cam, r, g, b, a)
+        putRelativePoint(x2, y2, z2, cam, r, g, b, a)
     }
 
     private fun putRelativePoint(
         x0: Double, y0: Double, z0: Double,
         cam: org.joml.Vector3d,
-        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         val bytes = bytes
-        bytes.putFloat(((x0 - cam.x) * worldScale).toFloat())
-        bytes.putFloat(((y0 - cam.y) * worldScale).toFloat())
-        bytes.putFloat(((z0 - cam.z) * worldScale).toFloat())
+        bytes.putFloat((x0 - cam.x).toFloat())
+        bytes.putFloat((y0 - cam.y).toFloat())
+        bytes.putFloat((z0 - cam.z).toFloat())
         bytes.put(r)
         bytes.put(g)
         bytes.put(b)
@@ -121,14 +119,12 @@ object TriangleBuffer {
         x1: Double, y1: Double, z1: Double,
         x2: Double, y2: Double, z2: Double,
         cam: org.joml.Vector3d,
-        worldScale: Float,
         color: Int
     ) {
         putRelativeTriangle(
             x0, y0, z0,
             x1, y1, z1,
-            x2, y2, z2,
-            cam, worldScale,
+            x2, y2, z2, cam,
             color.r().toByte(),
             color.g().toByte(),
             color.b().toByte(),
@@ -138,16 +134,13 @@ object TriangleBuffer {
 
     fun putRelativeTriangle(
         v0: org.joml.Vector3d, v1: org.joml.Vector3d, v2: org.joml.Vector3d,
-        cam: org.joml.Vector3d,
-        worldScale: Float,
-        color: Int
+        cam: org.joml.Vector3d, color: Int
     ) {
         putRelativeTriangle(
             v0.x, v0.y, v0.z,
             v1.x, v1.y, v1.z,
             v2.x, v2.y, v2.z,
-            cam, worldScale,
-            color
+            cam, color
         )
     }
 

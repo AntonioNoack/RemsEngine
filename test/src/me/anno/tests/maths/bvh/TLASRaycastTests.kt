@@ -38,7 +38,7 @@ class TLASRaycastTests {
         pipeline.fill(scene)
         val stage = pipeline.defaultStage
         // build TLAS
-        return BVHBuilder.buildTLAS(stage, Vector3d(), 1f, SplitMethod.MEDIAN_APPROX, 8)!!
+        return BVHBuilder.buildTLAS(stage, Vector3d(), SplitMethod.MEDIAN_APPROX, 8)!!
     }
 
     @Test

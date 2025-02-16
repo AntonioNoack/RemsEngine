@@ -28,8 +28,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.sumOfDouble
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector2d
 import org.joml.Vector2d.Companion.lengthSquared
 import org.joml.Vector3d
@@ -93,7 +92,7 @@ class RecastTests {
             moveTo(target)
         }
 
-        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
             dstUnion.all()
             return true
         }

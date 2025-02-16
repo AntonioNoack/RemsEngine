@@ -22,7 +22,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.white4
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4fArrayList
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 
 fun main() {
 
@@ -63,7 +63,7 @@ fun main() {
                         transform.scale(1f, -1f, 1f)
                         val shader = ECSShaderLib.pbrModelShader.value
                         shader.use()
-                        shader.m4x3("localTransform", null as Matrix4x3m?)
+                        shader.m4x3("localTransform", null as Matrix4x3?)
                         shader.m4x4("transform", transform)
                         val mesh = MeshCache[srcFile, false]!!
                         defaultMaterial.bind(shader)

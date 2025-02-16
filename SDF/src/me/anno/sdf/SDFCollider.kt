@@ -7,14 +7,12 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.DrawAABB
-import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.sq
 import me.anno.sdf.physics.ConcaveSDFShape
 import me.anno.sdf.physics.ConvexSDFShape
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 
 // todo high gravity -> tunneling
@@ -59,7 +57,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
         } else inertia.set(base, base, base)
     }
 
-    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val sdf = sdf ?: return
         sdf.localAABB.apply {
             union(globalTransform, aabb, tmp, minX, minY, minZ)
@@ -79,8 +77,8 @@ class SDFCollider : Collider(), CustomBulletCollider {
         val color = getLineColor(hasPhysics)
         val transform = transform?.getDrawMatrix()
         // draw local aabb
-        // DrawAABB.drawAABB(sdf.globalAABB, RenderView.worldScale, color)
-        DrawAABB.drawAABB(transform, sdf.localAABB, RenderState.worldScale, color)
+        // DrawAABB.drawAABB(sdf.globalAABB, color)
+        DrawAABB.drawAABB(transform, sdf.localAABB, color)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

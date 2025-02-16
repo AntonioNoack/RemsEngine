@@ -14,7 +14,6 @@ object TriplanarShader : ECSMeshShader("triplanar") {
         list.add(Variable(GLSLType.V1F, "sharpness"))
         list.add(Variable(GLSLType.V1F, "blendPreferY"))
         list.add(Variable(GLSLType.V3F, "cameraPosition"))
-        list.add(Variable(GLSLType.V1F, "worldScale"))
         return list
     }
 

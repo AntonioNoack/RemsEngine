@@ -217,7 +217,7 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         return this
     }
 
-    fun set(m: Matrix4x3m): Matrix4x3d {
+    fun set(m: Matrix4x3): Matrix4x3d {
         m00 = m.m00.toDouble()
         m01 = m.m01.toDouble()
         m02 = m.m02.toDouble()

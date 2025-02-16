@@ -172,7 +172,6 @@ object MovingGrid {
         val pos = RenderState.cameraPosition
         return transform
             .set(RenderState.cameraMatrix)
-            .scale(RenderState.worldScale.toDouble())
             .translate(-pos.x, -pos.y, -pos.z)
     }
 

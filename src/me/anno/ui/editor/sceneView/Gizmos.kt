@@ -10,7 +10,6 @@ import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.engine.ui.render.RenderState.cameraPosition
-import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.pipeline.Pipeline
@@ -23,7 +22,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -87,8 +86,8 @@ object Gizmos {
         return x.toInt() + y.toInt(2) + z.toInt(4)
     }
 
-    val local = Matrix4x3m()
-    val localInv = Matrix4x3m()
+    val local = Matrix4x3()
+    val localInv = Matrix4x3()
 
     val rayPos = Vector3f()
     val rayDir = Vector3f()
@@ -138,13 +137,13 @@ object Gizmos {
     }
 
     fun drawMesh(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, localTransform: Matrix4x3m?,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, localTransform: Matrix4x3?,
         material: Material, color: Int, mesh: Mesh
     ) {
         val shader = (material.shader ?: pbrModelShader).value
         shader.use()
         shader.m4x4("transform", cameraTransform)
-        shader.m4x3delta("localTransform", localTransform, cameraPosition, worldScale)
+        shader.m4x3delta("localTransform", localTransform, cameraPosition)
         val invLocalTransformU = shader["invLocalTransform"]
         if (invLocalTransformU >= 0) {
             val tmp = JomlPools.mat4x3m.borrow()
@@ -152,7 +151,6 @@ object Gizmos {
             else tmp.identity()
             shader.m4x3(invLocalTransformU, tmp)
         }
-        shader.v1f("worldScale", worldScale)
         material.bind(shader)
         shader.v4f("diffuseBase", color)
         shader.v4f("tint", color)

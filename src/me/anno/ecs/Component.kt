@@ -10,8 +10,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
 import me.anno.io.base.BaseWriter
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 
 abstract class Component : PrefabSaveable() {
 
@@ -66,7 +65,7 @@ abstract class Component : PrefabSaveable() {
      * returns whether it needs any space in the AABBs for visibility updates / rendering
      * if so, it fills the global transform with its bounds
      * */
-    open fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean = false
+    open fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean = false
 
     open fun invalidateAABB() {
         entity?.invalidateOwnAABB()

@@ -52,17 +52,16 @@ class ClickIdBoundsArray {
 
     private fun set(bounds: AABBd?, clickId: Int) {
         val pos = RenderState.prevCameraPosition
-        val sca = RenderState.prevWorldScale
         val idx = clickId * 6
         val dst = values
         assertTrue(idx >= 0 && idx + 6 <= dst.size)
         if (bounds != null) {
-            dst[idx] = ((bounds.minX - pos.x) * sca).toFloat()
-            dst[idx + 1] = ((bounds.minY - pos.y) * sca).toFloat()
-            dst[idx + 2] = ((bounds.minZ - pos.z) * sca).toFloat()
-            dst[idx + 3] = ((bounds.maxX - pos.x) * sca).toFloat()
-            dst[idx + 4] = ((bounds.maxY - pos.y) * sca).toFloat()
-            dst[idx + 5] = ((bounds.maxZ - pos.z) * sca).toFloat()
+            dst[idx] = (bounds.minX - pos.x).toFloat()
+            dst[idx + 1] = (bounds.minY - pos.y).toFloat()
+            dst[idx + 2] = (bounds.minZ - pos.z).toFloat()
+            dst[idx + 3] = (bounds.maxX - pos.x).toFloat()
+            dst[idx + 4] = (bounds.maxY - pos.y).toFloat()
+            dst[idx + 5] = (bounds.maxZ - pos.z).toFloat()
         } else {
             dst[idx] = Float.NEGATIVE_INFINITY
             dst[idx + 1] = Float.NEGATIVE_INFINITY

@@ -35,7 +35,7 @@ import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 
 /**
@@ -62,7 +62,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
     val timer = GPUClockNanos()
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         Shapes.cube11Smooth.getBounds().transformUnion(globalTransform, dstUnion)
         return true
     }
@@ -125,7 +125,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
                     Perspective.setPerspective(
                         cameraMatrix, deg90, 1f,
-                        near.toFloat(), far.toFloat(), 0f, 0f
+                        near, far, 0f, 0f
                     )
                     rotateForCubemap(camRot.identity(), side)
                     camRot.invert(camRotInv)
@@ -142,7 +142,6 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
                     pipeline.fill(root)
 
                     // define RenderState
-                    RenderState.worldScale = worldScale
                     RenderState.cameraMatrix.set(cameraMatrix)
                     RenderState.cameraPosition.set(position)
                     RenderState.cameraRotation.set(camRotInv)

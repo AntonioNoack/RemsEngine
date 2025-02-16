@@ -140,7 +140,6 @@ object DrawSky {
             }// else already set
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             shader.v4f("cameraRotation", RenderState.cameraRotation)
-            shader.v1f("camScale", RenderState.worldScale.toFloat())
             shader.v1f("meshScale", 1f)
             shader.v1b("isPerspective", false)
             shader.v1b("reversedDepth", false) // depth doesn't matter

@@ -164,7 +164,7 @@ class AxisAngle4f(
         )
     }
 
-    fun set(m: Matrix4x3m): AxisAngle4f {
+    fun set(m: Matrix4x3): AxisAngle4f {
         return set(
             m.m00, m.m01, m.m02,
             m.m10, m.m11, m.m12,

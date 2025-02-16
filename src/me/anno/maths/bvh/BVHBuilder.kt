@@ -27,10 +27,10 @@ object BVHBuilder {
 
     fun createTLASLeaf(
         mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?,
-        cameraPosition: Vector3d, worldScale: Float
+        cameraPosition: Vector3d,
     ): TLASLeaf {
         val drawMatrix = transform.getDrawMatrix()
-        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition, worldScale)
+        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition)
         val worldToLocal = Matrix4x3f()
         localToWorld.invert(worldToLocal)
         val centroid = Vector3f()
@@ -44,7 +44,7 @@ object BVHBuilder {
 
     fun buildTLAS(
         scene: PipelineStageImpl, // filled with meshes
-        cameraPosition: Vector3d, worldScale: Float,
+        cameraPosition: Vector3d,
         splitMethod: SplitMethod, maxNodeSize: Int
     ): TLASNode? {
         val clock = Clock(LOGGER)
@@ -61,7 +61,7 @@ object BVHBuilder {
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize) ?: continue
             mesh.raycaster = blas
             val transform = dri.transform
-            objects += createTLASLeaf(mesh, blas, transform, dri.component, cameraPosition, worldScale)
+            objects += createTLASLeaf(mesh, blas, transform, dri.component, cameraPosition)
         }
         // add all instanced objects
         scene.instanced.data.forEach { mesh, _, _, stack ->
@@ -71,7 +71,7 @@ object BVHBuilder {
                     mesh.raycaster = blas
                     for (i in 0 until stack.size) {
                         val transform = stack.transforms[i] as Transform
-                        objects += createTLASLeaf(mesh, blas, transform, null, cameraPosition, worldScale)
+                        objects += createTLASLeaf(mesh, blas, transform, null, cameraPosition)
                     }
                 }
             }
@@ -145,11 +145,8 @@ object BVHBuilder {
     // -> improved it a bit, it's now taking 42ms for the dragon :) (still slow, but much better)
 
     private fun createBLASLeaf(
-        positions: FloatArray,
-        indices: IntArray,
-        start: Int,
-        end: Int,
-        geometryData: GeometryData
+        positions: FloatArray, indices: IntArray,
+        start: Int, end: Int, geometryData: GeometryData
     ): BLASLeaf {
         val bounds = AABBf()
         for (i in start * 3 until end * 3) {

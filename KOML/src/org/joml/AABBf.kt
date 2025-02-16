@@ -302,7 +302,7 @@ class AABBf(
     /**
      * transforms this matrix, and places the result in dst
      * */
-    fun transform(m: Matrix4x3m, dst: AABBd): AABBd {
+    fun transform(m: Matrix4x3, dst: AABBd): AABBd {
         if (isEmpty()) return dst.clear()
         var minX = Double.POSITIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
@@ -404,7 +404,7 @@ class AABBf(
     /**
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
-    fun transformUnion(m: Matrix4x3m, base: AABBd, dst: AABBd = base): AABBd {
+    fun transformUnion(m: Matrix4x3, base: AABBd, dst: AABBd = base): AABBd {
         if (isEmpty()) return dst.set(base)
         var minX = base.minX
         var minY = base.minY

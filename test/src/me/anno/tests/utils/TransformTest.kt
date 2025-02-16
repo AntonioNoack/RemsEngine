@@ -4,8 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -35,7 +34,7 @@ class TransformTest {
 
         t.validate()
 
-        assertEquals(t.globalTransform, t.getLocalTransform(Matrix4x3m()))
+        assertEquals(t.globalTransform, t.getLocalTransform(Matrix4x3()))
 
         assertEquals(pos, t.localPosition)
         assertEquals(pos, t.globalPosition)
@@ -88,17 +87,17 @@ class TransformTest {
         parent.validateTransform()
 
         // tests
-        val parentMatrix = Matrix4x3m().translationRotateScale(pos, rot, sca)
-        assertTrue(parentMatrix.equals(parent.transform.getLocalTransform(Matrix4x3m()), 1e-15))
+        val parentMatrix = Matrix4x3().translationRotateScale(pos, rot, sca)
+        assertTrue(parentMatrix.equals(parent.transform.getLocalTransform(Matrix4x3()), 1e-15))
         assertTrue(parentMatrix.equals(parent.transform.globalTransform, 1e-15))
 
         assertTrue(
             parentMatrix.transformPosition(pos2)
                 .equals(child.transform.globalPosition, 1e-15)
         )
-        val childLocal = Matrix4x3m().translationRotateScale(pos2, rot2, sca2)
-        val childGlobal = parentMatrix.mul(childLocal, Matrix4x3m())
-        assertTrue(childLocal.equals(child.transform.getLocalTransform(Matrix4x3m()), 1e-15))
+        val childLocal = Matrix4x3().translationRotateScale(pos2, rot2, sca2)
+        val childGlobal = parentMatrix.mul(childLocal, Matrix4x3())
+        assertTrue(childLocal.equals(child.transform.getLocalTransform(Matrix4x3()), 1e-15))
         assertTrue(childGlobal.equals(child.transform.globalTransform, 1e-15))
 
         assertTrue(childGlobal.getTranslation(Vector3d()).equals(child.transform.globalPosition, 1e-15))
@@ -124,7 +123,7 @@ class TransformTest {
     }
 
     private fun checkIdentityTransform(transform: Transform) {
-        assertTrue(transform.globalTransform.equals(Matrix4x3m(), 1e-15))
+        assertTrue(transform.globalTransform.equals(Matrix4x3(), 1e-15))
         assertTrue(transform.globalPosition.equals(Vector3d(), 1e-15))
         assertTrue(transform.globalRotation.equals(Quaternionf(), 1e-15f))
         assertTrue(transform.globalScale.equals(Vector3f(1f), 1e-15f))
@@ -139,7 +138,7 @@ class TransformTest {
         parent.rotation = rot
 
         parent.validateTransform()
-        child.transform.setGlobal(Matrix4x3m())
+        child.transform.setGlobal(Matrix4x3())
         parent.validateTransform()
 
         checkIdentityTransform(child.transform)

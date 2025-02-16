@@ -47,7 +47,7 @@ import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.PI
@@ -285,7 +285,7 @@ fun main() {
         }.ref
 
         class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {
-            override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
                 localAABB.all()
                 globalAABB.all()
                 dstUnion.all()

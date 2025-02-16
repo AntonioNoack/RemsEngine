@@ -1,12 +1,10 @@
 package me.anno.utils.types
 
 import me.anno.engine.ui.render.RenderState.cameraPosition
-import me.anno.engine.ui.render.RenderState.worldScale
 import org.joml.Matrix3d
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -17,18 +15,16 @@ object Matrices {
      * replace missing setter/constructor
      * */
     @JvmStatic
-    fun Matrix4x3f.set4x3Delta(src: Matrix4x3m): Matrix4x3f {
-        val scale = worldScale
+    fun Matrix4x3f.set4x3Delta(src: Matrix4x3): Matrix4x3f {
         val position = cameraPosition
-        set(
-            (src.m00 * scale).toFloat(), (src.m01 * scale).toFloat(), (src.m02 * scale).toFloat(),
-            (src.m10 * scale).toFloat(), (src.m11 * scale).toFloat(), (src.m12 * scale).toFloat(),
-            (src.m20 * scale).toFloat(), (src.m21 * scale).toFloat(), (src.m22 * scale).toFloat(),
-            ((src.m30 - position.x) * scale).toFloat(),
-            ((src.m31 - position.y) * scale).toFloat(),
-            ((src.m32 - position.z) * scale).toFloat(),
+        return set(
+            src.m00, src.m01, src.m02,
+            src.m10, src.m11, src.m12,
+            src.m20, src.m21, src.m22,
+            (src.m30 - position.x).toFloat(),
+            (src.m31 - position.y).toFloat(),
+            (src.m32 - position.z).toFloat(),
         )
-        return this
     }
 
     @JvmStatic
@@ -38,16 +34,6 @@ object Matrices {
         return transform(Vector3d(1.0, 0.0, 0.0)).distanceSquared(other.transform(Vector3d(1.0, 0.0, 0.0))) +
                 transform(Vector3d(0.0, 1.0, 0.0)).distanceSquared(other.transform(Vector3d(0.0, 1.0, 0.0))) +
                 transform(Vector3d(0.0, 0.0, 1.0)).distanceSquared(other.transform(Vector3d(0.0, 0.0, 1.0)))
-    }
-
-    @JvmStatic
-    fun Matrix4x3d.sampleDistanceSquared(other: Matrix4x3d): Double {
-        // compare a few sample points in every direction to also detect rotation issues
-        // in my case, the matrices were identical
-        return transformPosition(Vector3d()).distanceSquared(other.transformPosition(Vector3d())) +
-                transformPosition(Vector3d(1.0, 0.0, 0.0)).distanceSquared(other.transformPosition(Vector3d(1.0, 0.0, 0.0))) +
-                transformPosition(Vector3d(0.0, 1.0, 0.0)).distanceSquared(other.transformPosition(Vector3d(0.0, 1.0, 0.0))) +
-                transformPosition(Vector3d(0.0, 0.0, 1.0)).distanceSquared(other.transformPosition(Vector3d(0.0, 0.0, 1.0)))
     }
 
     @JvmStatic

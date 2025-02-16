@@ -17,13 +17,12 @@ open class PlanarMaterialBase : Material() {
     private fun tiling(shader: GPUShader) {
 
         // world scale correction
-        val worldScale = RenderState.worldScale
         val pos = RenderState.cameraPosition
         shader.v3f(
             "tileOffset",
-            ((worldPosCenter.x - pos.x) * worldScale).toFloat(),
-            ((worldPosCenter.y - pos.y) * worldScale).toFloat(),
-            ((worldPosCenter.z - pos.z) * worldScale).toFloat()
+            (worldPosCenter.x - pos.x).toFloat(),
+            (worldPosCenter.y - pos.y).toFloat(),
+            (worldPosCenter.z - pos.z).toFloat()
         )
 
         val texture = diffuseMap
@@ -32,8 +31,8 @@ open class PlanarMaterialBase : Material() {
 
         // calculate final scale + aspect ratio correction
         val tex3 = getTex(texture)
-        val scaleX = (if (tex3 != null) tex3.height.toDouble() / tex3.width else 1.0) / (scale.x * worldScale)
-        val scaleY = 1.0 / (scale.y * worldScale)
+        val scaleX = (if (tex3 != null) tex3.height.toDouble() / tex3.width else 1.0) / scale.x
+        val scaleY = 1.0 / scale.y
 
         val dirU = JomlPools.vec3f.create()
         val dirV = JomlPools.vec3f.create()

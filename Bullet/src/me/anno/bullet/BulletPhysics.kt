@@ -51,7 +51,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Vector3f
 import javax.vecmath.Quat4d
@@ -338,7 +338,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         bulletInstance.removeRigidBody(rigidbody)
     }
 
-    override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3m) {
+    override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3) {
         val tmpTransform = Stack.borrowTrans()
         rigidbody.getWorldTransform(tmpTransform)
         transformToMat4x3(tmpTransform, scale, dstTransform)
@@ -512,12 +512,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     }
 
     private fun transform(a: Vector3d, dst: Vector3f): Vector3f {
-        val worldScale = RenderState.worldScale
         val pos = cameraPosition
         return dst.set(
-            ((a.x - pos.x) * worldScale).toFloat(),
-            ((a.y - pos.y) * worldScale).toFloat(),
-            ((a.z - pos.z) * worldScale).toFloat()
+            (a.x - pos.x).toFloat(),
+            (a.y - pos.y).toFloat(),
+            (a.z - pos.z).toFloat()
         )
     }
 
@@ -633,7 +632,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             return v
         }
 
-        fun mat4x3ToTransform(ourTransform: Matrix4x3m, scale: org.joml.Vector3d): Transform {
+        fun mat4x3ToTransform(ourTransform: Matrix4x3, scale: org.joml.Vector3d): Transform {
             // bullet does not support scale -> we always need to correct it
             val sx = 1.0 / scale.x
             val sy = 1.0 / scale.y
@@ -654,7 +653,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             return t
         }
 
-        fun transformToMat4x3(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3m) {
+        fun transformToMat4x3(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3) {
 
             val basis = worldTransform.basis
             val origin = worldTransform.origin

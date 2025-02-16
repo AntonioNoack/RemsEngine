@@ -18,7 +18,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.min
 import me.anno.utils.OS.downloads
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector2f
 import kotlin.math.cos
 import kotlin.math.round
@@ -57,8 +57,8 @@ fun optimizeEntity(entity: Entity): Entity {
     entity.validateTransform()
 
     val clone = Entity()
-    val transformToEntity = HashMap<Matrix4x3m, Entity>()
-    fun getTransformedChild(matrix: Matrix4x3m): Entity {
+    val transformToEntity = HashMap<Matrix4x3, Entity>()
+    fun getTransformedChild(matrix: Matrix4x3): Entity {
         return if (matrix.isIdentity()) clone
         else transformToEntity.getOrPut(matrix) {
             val child = Entity(clone)

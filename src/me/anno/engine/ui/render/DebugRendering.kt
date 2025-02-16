@@ -294,7 +294,7 @@ object DebugRendering {
         val dirZ = JomlPools.vec3d.create()
         for (i in arrows.indices) {
             val arrow = arrows[i]
-            LineBuffer.putRelativeLine(arrow.from, arrow.to, view.cameraPosition, view.worldScale, arrow.color)
+            LineBuffer.putRelativeLine(arrow.from, arrow.to, view.cameraPosition, arrow.color)
             arrow.to.sub(arrow.from, dirY)
             val len = dirY.length()
             dirY.findSystem(dirX, dirZ)
@@ -303,7 +303,7 @@ object DebugRendering {
                 val anchor = arrow.from.mix(arrow.to, 0.6, dirY)
                 dirX.mulAdd(dxi, anchor, anchor)
                 dirZ.mulAdd(dzi, anchor, anchor)
-                LineBuffer.putRelativeLine(anchor, arrow.to, view.cameraPosition, view.worldScale, arrow.color)
+                LineBuffer.putRelativeLine(anchor, arrow.to, view.cameraPosition, arrow.color)
             }
             addPt(+s, 0.0)
             addPt(-s, 0.0)
@@ -317,7 +317,7 @@ object DebugRendering {
         val lines = DebugShapes.debugLines
         for (i in lines.indices) {
             val line = lines[i]
-            LineBuffer.putRelativeLine(line.p0, line.p1, view.cameraPosition, view.worldScale, line.color)
+            LineBuffer.putRelativeLine(line.p0, line.p1, view.cameraPosition, line.color)
         }
     }
 
@@ -325,7 +325,7 @@ object DebugRendering {
         val aabbs = DebugShapes.debugAABBs
         for (i in aabbs.indices) {
             val aabb = aabbs[i]
-            DrawAABB.drawAABB(aabb.bounds, aabb.color, view.cameraPosition, view.worldScale)
+            DrawAABB.drawAABB(aabb.bounds, aabb.color, view.cameraPosition)
         }
     }
 
@@ -333,7 +333,7 @@ object DebugRendering {
         val triangles = DebugShapes.debugTriangles
         for (i in triangles.indices) {
             val tri = triangles[i]
-            TriangleBuffer.putRelativeTriangle(tri.p0, tri.p1, tri.p2, view.cameraPosition, view.worldScale, tri.color)
+            TriangleBuffer.putRelativeTriangle(tri.p0, tri.p1, tri.p2, view.cameraPosition, tri.color)
         }
     }
 
@@ -348,14 +348,12 @@ object DebugRendering {
             drawDebugPoint(view, pos, color)
             LineBuffer.putRelativeVector(
                 pos, dir, length,
-                view.cameraPosition, view.worldScale,
-                color
+                view.cameraPosition, color
             )
         }
     }
 
     private fun drawDebugTexts(view: RenderView) {
-        val worldScale = view.worldScale
         val camPosition = view.cameraPosition
         val v = JomlPools.vec4f.borrow()
         // transform is only correct, if we use a temporary framebuffer!
@@ -367,17 +365,17 @@ object DebugRendering {
                 GFXState.currentBuffer.samples == 1 && DrawTexts.canUseComputeShader()
         if (betterBlending) {
             val pbb = DrawTexts.pushBetterBlending(true)
-            drawDebugTexts2(view, camPosition, worldScale, v, x0, y0, sx, sy)
+            drawDebugTexts2(view, camPosition, v, x0, y0, sx, sy)
             DrawTexts.popBetterBlending(pbb)
         } else {
             GFXState.blendMode.use(me.anno.gpu.blending.BlendMode.DEFAULT) {
-                drawDebugTexts2(view, camPosition, worldScale, v, x0, y0, sx, sy)
+                drawDebugTexts2(view, camPosition, v, x0, y0, sx, sy)
             }
         }
     }
 
     private fun drawDebugTexts2(
-        view: RenderView, camPosition: Vector3d, worldScale: Float, v: Vector4f,
+        view: RenderView, camPosition: Vector3d,  v: Vector4f,
         x0: Float, y0: Float, sx: Float, sy: Float
     ) {
         val texts = DebugShapes.debugTexts
@@ -387,9 +385,9 @@ object DebugRendering {
         for (index in texts.indices) {
             val text = texts[index]
             val pos = text.position
-            val px = (pos.x - camPosition.x) * worldScale
-            val py = (pos.y - camPosition.y) * worldScale
-            val pz = (pos.z - camPosition.z) * worldScale
+            val px = pos.x - camPosition.x
+            val py = pos.y - camPosition.y
+            val pz = pos.z - camPosition.z
             cameraMatrix.transform(v.set(px, py, pz, 1.0))
             if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
                 val vx = v.x * sx / v.w + x0
@@ -408,19 +406,18 @@ object DebugRendering {
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {
         val camPosition = view.cameraPosition
-        val worldScale = view.worldScale
         val d = p.distance(view.cameraPosition) * 0.03 * tan(view.fovYRadians * 0.5)
         LineBuffer.putRelativeLine(
             p.x - d, p.y, p.z, p.x + d, p.y, p.z,
-            camPosition, worldScale, color
+            camPosition, color
         )
         LineBuffer.putRelativeLine(
             p.x, p.y - d, p.z, p.x, p.y + d, p.z,
-            camPosition, worldScale, color
+            camPosition, color
         )
         LineBuffer.putRelativeLine(
             p.x, p.y, p.z - d, p.x, p.y, p.z + d,
-            camPosition, worldScale, color
+            camPosition, color
         )
     }
 

@@ -20,7 +20,7 @@ import me.anno.io.files.FileReference
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
@@ -80,7 +80,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
 
     open fun getMesh() = mesh
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         dstUnion.all() // skybox is visible everywhere
         return true
     }

@@ -71,7 +71,6 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
 
     val cameraPosition = Vector3d(aabb.centerX, aabb.centerY, aabb.maxZ * 1.5f)
     val cameraRotation = Quaternionf()
-    val worldScale = 1f // used in Rem's Engine for astronomic scales
 
     pipeline.frustum.setToEverything(cameraPosition, cameraRotation)
     pipeline.fill(scene)
@@ -99,7 +98,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     clock.stop("Building Scene")
 
     val tlas =
-        BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN_APPROX, maxNodeSize)
+        BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, SplitMethod.MEDIAN_APPROX, maxNodeSize)
     clock.stop("Building BLAS")
 
     return SampleTLAS(tlas!!, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)

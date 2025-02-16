@@ -46,9 +46,8 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.ResetArrayList
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -155,15 +154,11 @@ class PipelineStageImpl(
                     shader.m4x3("invLocalTransform", tmp4x3.invert())
                 }
 
-                shader.v1f("worldScale", RenderState.worldScale)
-
                 if (shader.hasUniform("prevLocalTransform")) {
-                    val prevWorldScale = RenderState.prevWorldScale
                     shader.m4x3delta(
                         "prevLocalTransform", transform.getDrawnMatrix(),
-                        RenderState.prevCameraPosition, prevWorldScale
+                        RenderState.prevCameraPosition
                     )
-                    shader.v1f("prevWorldScale", prevWorldScale)
                 }
             } else {
                 val localTransform = JomlPools.mat4x3m.create().identity()
@@ -172,16 +167,10 @@ class PipelineStageImpl(
             }
         }
 
-        fun bindTransformUniforms(shader: GPUShader, transform: Matrix4x3m) {
+        fun bindTransformUniforms(shader: GPUShader, transform: Matrix4x3) {
             shader.m4x3("localTransform", tmp4x3.set4x3Delta(transform))
-            shader.v1f("worldScale", RenderState.worldScale)
             if (shader.hasUniform("prevLocalTransform")) {
-                val prevWorldScale = RenderState.prevWorldScale
-                shader.m4x3delta(
-                    "prevLocalTransform", transform,
-                    RenderState.prevCameraPosition, prevWorldScale
-                )
-                shader.v1f("prevWorldScale", prevWorldScale)
+                shader.m4x3delta("prevLocalTransform", transform, RenderState.prevCameraPosition)
             }
             if (shader.hasUniform("invLocalTransform")) {
                 shader.m4x3("invLocalTransform", tmp4x3.invert())
@@ -195,7 +184,6 @@ class PipelineStageImpl(
             shader.m4x4("transform", RenderState.cameraMatrix)
             shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
             shader.v1b("applyToneMapping", applyToneMapping)
-            shader.v1f("worldScale", RenderState.worldScale)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             shader.v4f("cameraRotation", RenderState.cameraRotation)
             shader.v1b("reverseDepth", GFXState.depthMode.currentValue.reversedDepth)

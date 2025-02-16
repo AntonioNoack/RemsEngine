@@ -7,8 +7,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
 import me.anno.maths.Maths.length
 import me.anno.parser.SimpleExpressionParser
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.atan2
@@ -185,12 +184,12 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    fun applyTransform(transformFunction: (Matrix4x3m, Double) -> Unit) {
+    fun applyTransform(transformFunction: (Matrix4x3, Double) -> Unit) {
         for ((index, entity) in selectedEntities.withIndex()) {
             val base = old.getOrNull(index) ?: break // todo I feel like old is lost...
             val transform = entity.transform
             val parentTransform = entity.parentEntity?.transform
-            val parentGlobal = parentTransform?.globalTransform?.run { Matrix4x3m(this) } ?: Matrix4x3m()
+            val parentGlobal = parentTransform?.globalTransform?.run { Matrix4x3(this) } ?: Matrix4x3()
             transform.checkTransform(parentGlobal)
             val selfGlobal = parentGlobal.mul(base)
             transform.checkTransform(selfGlobal)
@@ -204,7 +203,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
 
     var number = ""
 
-    var old: List<Matrix4x3m> = emptyList()
+    var old: List<Matrix4x3> = emptyList()
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         if (mode != Mode.NOTHING) {
@@ -303,8 +302,8 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    private fun selectedLocalTransforms(): List<Matrix4x3m> {
-        return selectedTransforms.map { it.getLocalTransform(Matrix4x3m()) }
+    private fun selectedLocalTransforms(): List<Matrix4x3> {
+        return selectedTransforms.map { it.getLocalTransform(Matrix4x3()) }
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) {

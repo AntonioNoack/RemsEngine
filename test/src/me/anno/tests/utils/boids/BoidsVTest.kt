@@ -18,7 +18,7 @@ import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -42,7 +42,7 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
 
     val group = ProcessingGroup("boids", 1f)
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         dstUnion.all() // ^^
         return true
     }

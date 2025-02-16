@@ -9,7 +9,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes
 import org.joml.AABBd
 import org.joml.Matrix4f
-import org.joml.Matrix4x3m
+import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -31,7 +31,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     // todo button to auto-position around scene
     //  (translation, scale)
 
-    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         if (cutoff == 0f) {
             dstUnion.all()
         } else {
@@ -44,12 +44,11 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     override fun updateShadowMap(
         cascadeScale: Float,
-        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
         cameraRotation: Quaternionf,
         cameraDirection: Vector3f,
-        drawTransform: Matrix4x3m,
+        drawTransform: Matrix4x3,
         pipeline: Pipeline,
         resolution: Int
     ) {
@@ -60,8 +59,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         // cascade style must only influence xy, not z
         dstCameraMatrix.set(drawTransform).invert()
         dstCameraMatrix.setTranslation(0f, 0f, 0f)
-        val sx = (1.0 / (cascadeScale * worldScale))
-        val sz = (1.0 / (worldScale))
+        val sx = (1.0 / (cascadeScale))
+        val sz = 1.0
 
         // z must be mapped from [-1,1] to [0,1]
         // additionally it must be scaled to match the world size
@@ -77,7 +76,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         )
 
         // offset camera position accordingly
-        val factor = -(2f / cascadeScale - 1f) / (worldScale)
+        val factor = -(2f / cascadeScale - 1f)
         dstCameraPosition.add(cameraDirection.x * factor, cameraDirection.y * factor, cameraDirection.z * factor)
     }
 
