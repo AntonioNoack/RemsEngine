@@ -7,8 +7,8 @@ import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.sumOfLong
 import me.anno.utils.structures.lists.SmallestKList
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 
 class LightData {
 
@@ -19,7 +19,7 @@ class LightData {
 
         fun add(
             light: LightComponent,
-            drawMatrix: Matrix4x3d,
+            drawMatrix: Matrix4x3m,
             invCamSpaceMatrix: Matrix4x3f
         ) {
             val index = index++
@@ -47,7 +47,7 @@ class LightData {
         add(light, transform.getDrawMatrix(), light.invCamSpaceMatrix)
     }
 
-    fun add(light: LightComponent, drawMatrix: Matrix4x3d, invCamSpaceMatrix: Matrix4x3f) {
+    fun add(light: LightComponent, drawMatrix: Matrix4x3m, invCamSpaceMatrix: Matrix4x3f) {
         this[light].add(light, drawMatrix, invCamSpaceMatrix)
     }
 

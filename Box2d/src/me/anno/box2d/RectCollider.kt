@@ -7,7 +7,7 @@ import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.jbox2d.collision.shapes.PolygonShape
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -46,7 +46,7 @@ class RectCollider : Collider2d() {
         v3.sub(4)
     }
 
-    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val halfExtends = halfExtends
         unionCube(globalTransform, aabb, tmp, halfExtends.x.toDouble(), halfExtends.y.toDouble(), 1.0)
     }

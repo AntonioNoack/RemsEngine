@@ -7,6 +7,7 @@ import me.anno.engine.Events.addEvent
 import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 
 /**
  * class for generating procedural meshes
@@ -54,11 +55,6 @@ abstract class ProceduralMesh : MeshComponentBase() {
             invalidateAABB()
         }
         return data
-    }
-
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
-        getMesh()
-        return super.fillSpace(globalTransform, dstUnion)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

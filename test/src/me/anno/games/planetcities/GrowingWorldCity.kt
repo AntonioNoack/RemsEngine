@@ -19,6 +19,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.io.saveable.Saveable
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.random
@@ -218,7 +219,7 @@ fun main() {
     val camBase = Entity(scene)
     val controls = object : OrbitControls() {
         override fun clampRotation() {
-            this.rotation.x = clamp(this.rotation.x, -PI * 0.5, 0.0)
+            rotation.x = clamp(rotation.x, -PIf * 0.5f, 0f)
         }
 
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
@@ -239,7 +240,7 @@ fun main() {
 
         private fun applyRotation() {
             camBase.transform.localPosition = Vector3d(0.0, scale * 1.5, 0.0).rotate(planetRotation)
-            camBase.transform.localRotation = Quaterniond(planetRotation).invert()
+            camBase.transform.localRotation = Quaternionf(planetRotation).invert()
         }
     }
 

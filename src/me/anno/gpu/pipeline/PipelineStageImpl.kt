@@ -48,6 +48,7 @@ import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -165,13 +166,13 @@ class PipelineStageImpl(
                     shader.v1f("prevWorldScale", prevWorldScale)
                 }
             } else {
-                val localTransform = JomlPools.mat4x3d.create().identity()
+                val localTransform = JomlPools.mat4x3m.create().identity()
                 bindTransformUniforms(shader, localTransform)
-                JomlPools.mat4x3d.sub(1)
+                JomlPools.mat4x3m.sub(1)
             }
         }
 
-        fun bindTransformUniforms(shader: GPUShader, transform: Matrix4x3d) {
+        fun bindTransformUniforms(shader: GPUShader, transform: Matrix4x3m) {
             shader.m4x3("localTransform", tmp4x3.set4x3Delta(transform))
             shader.v1f("worldScale", RenderState.worldScale)
             if (shader.hasUniform("prevLocalTransform")) {

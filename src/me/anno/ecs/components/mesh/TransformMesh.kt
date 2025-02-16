@@ -1,8 +1,8 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.utils.pooling.JomlPools
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -11,7 +11,7 @@ import org.joml.Vector3f
  * */
 object TransformMesh {
 
-    fun Mesh.transform(matrix: Matrix4x3d): Mesh {
+    fun Mesh.transform(matrix: Matrix4x3m): Mesh {
         positions = transformPositionsOrNull(matrix, positions, 3)
         normals = transformDirectionsOrNull(matrix, normals, 3)
         tangents = transformDirectionsOrNull(matrix, tangents, 4)
@@ -40,12 +40,12 @@ object TransformMesh {
     }
 
     @Suppress("SameParameterValue")
-    fun transformPositionsOrNull(matrix: Matrix4x3d, src: FloatArray?, stride: Int): FloatArray? {
+    fun transformPositionsOrNull(matrix: Matrix4x3m, src: FloatArray?, stride: Int): FloatArray? {
         return transformPositions(matrix, src ?: return null, stride)
     }
 
     @Suppress("SameParameterValue")
-    fun transformPositions(matrix: Matrix4x3d, src: FloatArray, stride: Int): FloatArray {
+    fun transformPositions(matrix: Matrix4x3m, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3d.borrow()
         for (i in 0 until src.size - 2 step stride) {
             tmp.set(src, i)
@@ -55,11 +55,11 @@ object TransformMesh {
         return src
     }
 
-    fun transformDirectionsOrNull(matrix: Matrix4x3d, src: FloatArray?, stride: Int): FloatArray? {
+    fun transformDirectionsOrNull(matrix: Matrix4x3m, src: FloatArray?, stride: Int): FloatArray? {
         return transformDirections(matrix, src ?: return null, stride)
     }
 
-    fun transformDirections(matrix: Matrix4x3d, src: FloatArray, stride: Int): FloatArray {
+    fun transformDirections(matrix: Matrix4x3m, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3f.borrow()
         val tmpM = JomlPools.mat3f.borrow()
             .set(matrix).normal()

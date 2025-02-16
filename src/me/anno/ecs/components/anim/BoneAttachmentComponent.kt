@@ -47,7 +47,7 @@ class BoneAttachmentComponent() : Component(), OnUpdate {
             val offsetMatrix = animMeshComponent?.getMatrix(bone.id)
             if (target.parent === entity.parent) {
                 // optimization: if they have the same parent, save a matrix-inverse by using setLocal() instead of setGlobal()
-                val tmp = JomlPools.mat4x3d.borrow()
+                val tmp = JomlPools.mat4x3m.borrow()
                 val animGlobal = entity.transform.getLocalTransform(tmp)
                 // apply animation, if is animated
                 val newLocal = if (offsetMatrix != null) animGlobal.mul(offsetMatrix) else animGlobal

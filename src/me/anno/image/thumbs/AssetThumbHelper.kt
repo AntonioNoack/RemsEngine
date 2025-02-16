@@ -32,8 +32,8 @@ import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import kotlin.math.max
 
 /**
@@ -147,7 +147,7 @@ object AssetThumbHelper {
     ): Matrix4x3f {
         if (normalizeScale || centerMesh) {
             val aabb = AABBd()
-            fillSpace(Matrix4x3d(), aabb)
+            fillSpace(Matrix4x3m(), aabb)
             if (normalizeScale) modelMatrix.scale(getScaleFromAABB(aabb))
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
         }

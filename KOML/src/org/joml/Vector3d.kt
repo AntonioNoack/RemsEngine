@@ -78,11 +78,16 @@ open class Vector3d(
 
     fun sub(v: Double, dst: Vector3d = this): Vector3d = sub(v, v, v, dst)
     fun sub(v: Vector3d, dst: Vector3d = this): Vector3d = sub(v.x, v.y, v.z, dst)
+    fun sub(v: Vector3d, dst: Vector3f): Vector3f = sub(v.x, v.y, v.z, dst)
     fun sub(v: Vector3f, dst: Vector3d = this): Vector3d = sub(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
     fun sub(x: Float, y: Float, z: Float, dst: Vector3d = this): Vector3d =
         sub(x.toDouble(), y.toDouble(), z.toDouble(), dst)
 
     fun sub(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(x - vx, y - vy, z - vz)
+    }
+
+    fun sub(vx: Double, vy: Double, vz: Double, dst: Vector3f): Vector3f {
         return dst.set(x - vx, y - vy, z - vz)
     }
 
@@ -267,6 +272,13 @@ open class Vector3d(
         return dst.set(rx, ry, rz)
     }
 
+    fun mulPosition(mat: Matrix4x3m, dst: Vector3d = this): Vector3d {
+        val rx = mat.m00 * x + (mat.m10 * y + (mat.m20 * z + mat.m30))
+        val ry = mat.m01 * x + (mat.m11 * y + (mat.m21 * z + mat.m31))
+        val rz = mat.m02 * x + (mat.m12 * y + (mat.m22 * z + mat.m32))
+        return dst.set(rx, ry, rz)
+    }
+
     fun mulTransposePosition(mat: Matrix4d, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m01 * y + (mat.m02 * z + mat.m03)))
         val ry = (mat.m10 * x + (mat.m11 * y + (mat.m12 * z + mat.m13)))
@@ -307,6 +319,13 @@ open class Vector3d(
     }
 
     fun mulDirection(mat: Matrix4f, dst: Vector3d = this): Vector3d {
+        val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
+        val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
+        val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))
+        return dst.set(rx, ry, rz)
+    }
+
+    fun mulDirection(mat: Matrix4x3m, dst: Vector3d = this): Vector3d {
         val rx = (mat.m00 * x + (mat.m10 * y + mat.m20 * z))
         val ry = (mat.m01 * x + (mat.m11 * y + mat.m21 * z))
         val rz = (mat.m02 * x + (mat.m12 * y + mat.m22 * z))

@@ -34,7 +34,7 @@ fun main() {
     val box1 = Entity("Static Cube", scene)
     box1.add(MeshComponent(flatCube.front))
     box1.add(BoxCollider())
-    box1.setRotation(5.0.toRadians(), 0.0, 0.0)
+    box1.setRotation(5f.toRadians(), 0f, 0f)
     val body1 = Rigidbody()
     box1.add(body1)
 
@@ -56,7 +56,7 @@ fun main() {
             friction = 1.0
         })
         .setPosition(0.0, -22.0, 0.0)
-        .setScale(20.0)
+        .setScale(20f)
 
     testSceneWithUI("Slider Constraint", scene)
 }

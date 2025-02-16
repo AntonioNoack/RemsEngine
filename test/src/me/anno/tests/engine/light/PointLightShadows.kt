@@ -34,7 +34,7 @@ fun main() {
     for (i in 0 until 20) {
         val cube = Entity("Cube $i")
         cube.setPosition(rnd.nextDouble() - 0.5, rnd.nextDouble() - 0.5, rnd.nextDouble() - 0.5)
-        cube.setScale(0.03)
+        cube.setScale(0.03f)
         val comp = MeshComponent(flatCube.front)
         comp.isInstanced = true
         cube.add(comp)

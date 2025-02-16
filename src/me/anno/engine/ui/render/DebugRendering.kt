@@ -377,7 +377,7 @@ object DebugRendering {
     }
 
     private fun drawDebugTexts2(
-        view: RenderView, camPosition: Vector3d, worldScale: Double, v: Vector4f,
+        view: RenderView, camPosition: Vector3d, worldScale: Float, v: Vector4f,
         x0: Float, y0: Float, sx: Float, sy: Float
     ) {
         val texts = DebugShapes.debugTexts

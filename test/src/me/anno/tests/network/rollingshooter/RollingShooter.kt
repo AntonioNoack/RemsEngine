@@ -61,8 +61,8 @@ fun createLighting(scene: Entity) {
     sun.shadowMapResolution = 1024
     sun.autoUpdate = 1
     val sunE = Entity(scene)
-    sunE.setScale(70.0) // covering the map
-    sunE.setRotation((-45.0).toRadians(), 0.0, 0.0)
+    sunE.setScale(70f) // covering the map
+    sunE.setRotation((-45f).toRadians(), 0f, 0f)
     sunE.add(sun)
 }
 
@@ -141,8 +141,8 @@ fun main() {
         bullet.add(MeshComponent(bulletMesh).apply {
             isInstanced = true
         })
-        bullet.setRotation(0.0, atan2(p.dir.z, p.dir.x).toDouble(), 0.0)
-        bullet.setScale(0.1)
+        bullet.setRotation(0f, atan2(p.dir.z, p.dir.x), 0f)
+        bullet.setScale(0.1f)
         val flash = PointLight()
         bullet.add(object : Component(), OnUpdate {
             var distance = 0f
@@ -161,7 +161,7 @@ fun main() {
             }
         })
         val lightE = Entity(bullet)
-        lightE.setScale(1000.0)
+        lightE.setScale(1000f)
         flash.color.set(30f, 10f, 0f)
         lightE.add(flash)
         bullets.add(bullet)
@@ -200,7 +200,7 @@ fun main() {
     val cameraBase1 = Entity(cameraBase)
     val cameraArm = Entity(cameraBase1)
     cameraArm.setPosition(1.5, 1.0, 4.0)
-    cameraArm.setRotation(0.0, 0.0, 0.0)
+    cameraArm.setRotation(0f, 0f, 0f)
     cameraBase.add(
         BallCamera(
             cameraArm, selfPlayerEntity,
@@ -226,7 +226,7 @@ fun main() {
         plane.add(MeshComponent(flatCube.front))
         plane.add(BoxCollider())
         plane.setPosition(0.0, 0.0, 0.0)
-        plane.setScale(30.0, 1.0, 30.0)
+        plane.setScale(30f, 1f, 30f)
     }
 
     respawn(selfPlayerEntity, staticScene)
@@ -272,7 +272,7 @@ fun respawn(
     } while (true)
 }
 
-var rotX = 0.0
-var rotY = 0.0
+var rotX = 0f
+var rotY = 0f
 
 

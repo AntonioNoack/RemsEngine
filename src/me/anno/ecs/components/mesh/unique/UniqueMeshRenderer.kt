@@ -26,7 +26,7 @@ import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.lwjgl.opengl.GL46C.glMultiDrawArrays
 import java.nio.IntBuffer
 
@@ -82,7 +82,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     private val boundsF = AABBf()
     override fun getBounds(): AABBf = boundsF
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         // calculate local aabb
         val local = boundsF
         local.clear()

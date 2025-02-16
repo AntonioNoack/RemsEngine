@@ -14,6 +14,7 @@ import me.anno.sdf.physics.ConcaveSDFShape
 import me.anno.sdf.physics.ConvexSDFShape
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 
 // todo high gravity -> tunneling
@@ -58,7 +59,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
         } else inertia.set(base, base, base)
     }
 
-    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val sdf = sdf ?: return
         sdf.localAABB.apply {
             union(globalTransform, aabb, tmp, minX, minY, minZ)

@@ -9,9 +9,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class RectangleLight : LightComponent(LightType.RECTANGLE) {
 
@@ -25,13 +26,13 @@ class RectangleLight : LightComponent(LightType.RECTANGLE) {
     override fun getShaderV1(): Float = height
 
     override fun updateShadowMap(
-        cascadeScale: Double,
-        worldScale: Double,
+        cascadeScale: Float,
+        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        cameraRotation: Quaterniond,
-        cameraDirection: Vector3d,
-        drawTransform: Matrix4x3d,
+        cameraRotation: Quaternionf,
+        cameraDirection: Vector3f,
+        drawTransform: Matrix4x3m,
         pipeline: Pipeline,
         resolution: Int
     ) {

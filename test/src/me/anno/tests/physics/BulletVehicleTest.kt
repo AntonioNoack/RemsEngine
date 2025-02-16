@@ -15,6 +15,7 @@ import me.anno.ecs.systems.Systems
 import me.anno.engine.DefaultAssets
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.angleDifference
 import me.anno.maths.Maths.sq
@@ -23,10 +24,10 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import kotlin.math.PI
 
 class BulletVehicleTest {
 
@@ -47,7 +48,7 @@ class BulletVehicleTest {
             .add(
                 Entity("VehicleMesh")
                     .add(MeshComponent(flatCube, DefaultAssets.goldenMaterial))
-                    .setScale(1.2, 0.4, 2.2)
+                    .setScale(1.2f, 0.4f, 2.2f)
             )
         val wheelMesh = CylinderModel.createCylinder(
             12, 2, true, true,
@@ -69,8 +70,8 @@ class BulletVehicleTest {
                     })
                     .add(
                         Entity()
-                            .setRotation(0.0, 0.0, PI / 2)
-                            .setScale(0.5, 0.1, 0.5)
+                            .setRotation(0.0f, 0.0f, PIf / 2)
+                            .setScale(0.5f, 0.1f, 0.5f)
                             .add(MeshComponent(wheelMesh, wheelMaterial))
                     )
                 vehicle.add(wheel)
@@ -88,7 +89,7 @@ class BulletVehicleTest {
             .add(
                 Entity("FloorMesh")
                     .add(MeshComponent(flatCube, floorMaterial))
-                    .setScale(scale)
+                    .setScale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
             )
         return floor
     }
@@ -177,19 +178,19 @@ class BulletVehicleTest {
 
         // start accelerating
         for (i in 0 until 100) {
-            val yxzRotation = vehicle.rotation.getEulerAnglesYXZ(Vector3d())
-            assertEquals(Vector3d(0.0, yxzRotation.y, 0.0), yxzRotation, 0.2)
+            val yxzRotation = vehicle.rotation.getEulerAnglesYXZ(Vector3f())
+            assertEquals(Vector3d(0.0, yxzRotation.y.toDouble(), 0.0), yxzRotation, 0.2)
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
-            lastAngle = yxzRotation.y
+            lastAngle = yxzRotation.y.toDouble()
         }
 
         // check that it drives in a circle
         for (i in 0 until 1000) {
-            val yxzRotation = vehicle.rotation.getEulerAnglesYXZ(Vector3d())
-            assertEquals(Vector3d(0.0, yxzRotation.y, 0.0), yxzRotation, 0.2)
+            val yxzRotation = vehicle.rotation.getEulerAnglesYXZ(Vector3f())
+            assertEquals(Vector3d(0.0, yxzRotation.y.toDouble(), 0.0), yxzRotation, 0.2)
             // unfortunately this oscillates :/
             val angleDiff = angleDifference(yxzRotation.y - lastAngle)
-            lastAngle = yxzRotation.y
+            lastAngle = yxzRotation.y.toDouble()
             // println("[$i] $angleDiff")
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
             assertTrue(angleDiff >= 0.03 && angleDiff < 0.06) { "$angleDiff" }
@@ -201,15 +202,15 @@ class BulletVehicleTest {
     fun testVehicleRolling() {
         val physics = initPhysics()
         val world = Entity("World")
-        val angle = (5.0).toRadians()
+        val angle = (5.0f).toRadians()
         val rampHalfExtends = 40.0
         val z0 = -rampHalfExtends + 3.0
         val y0 = 1.06 - angle * z0
         val floor = defineFlatFloor(Vector3d(3.0, 5.0, rampHalfExtends))
-        floor.setRotation(angle, 0.0, 0.0)
+        floor.setRotation(angle, 0f, 0f)
         // define vehicle on a hill
         val vehicle = defineVehicle()
-        vehicle.setRotation(angle, 0.0, 0.0)
+        vehicle.setRotation(angle, 0f, 0f)
         vehicle.setPosition(0.0, y0, z0)
         world.add(vehicle)
         world.add(floor)
@@ -238,15 +239,15 @@ class BulletVehicleTest {
     fun testVehicleBrakesPreventRolling() {
         val physics = initPhysics()
         val world = Entity("World")
-        val angle = (5.0).toRadians()
+        val angle = (5.0f).toRadians()
         val rampHalfExtends = 40.0
         val z0 = -rampHalfExtends + 3.0
         val y0 = 1.06 - angle * z0
         val floor = defineFlatFloor(Vector3d(3.0, 5.0, rampHalfExtends))
-        floor.setRotation(angle, 0.0, 0.0)
+        floor.setRotation(angle, 0.0f, 0.0f)
         // define vehicle on a hill
         val vehicle = defineVehicle()
-        vehicle.setRotation(angle, 0.0, 0.0)
+        vehicle.setRotation(angle, 0.0f, 0.0f)
         vehicle.setPosition(0.0, y0, z0)
         world.add(vehicle)
         world.add(floor)

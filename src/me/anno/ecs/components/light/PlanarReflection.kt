@@ -30,6 +30,7 @@ import org.joml.AABBf
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -51,7 +52,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
     var samples = 1
     var usesFP = true
 
-    val globalNormal = Vector3d()
+    val globalNormal = Vector3f()
 
     var bothSided = true
 
@@ -85,7 +86,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         instance.setRenderState()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         (if (bothSided) fullCubeBounds else halfCubeBounds)
             .transformUnion(globalTransform, dstUnion)
         return true
@@ -99,27 +100,27 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         w: Int, h: Int,
         cameraMatrix0: Matrix4f,
         cameraPosition: Vector3d,
-        worldScale: Double
+        worldScale: Float
     ) {
         val transform = transform!!.getDrawMatrix()
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction
         val mirrorNormal = transform
-            .transformDirection(globalNormal.set(0.0, 0.0, 1.0)) // default direction: z
+            .transformDirection(globalNormal.set(0f, 0f, 1f)) // default direction: z
             .normalize()
 
         isBackSide = cameraPosition.dot(mirrorNormal) - mirrorPosition.dot(mirrorNormal) < 0.0
         if (isBackSide) {
             if (bothSided) {
-                mirrorNormal.mul(-1.0)
+                mirrorNormal.mul(-1f)
             } else {
                 destroyFramebuffers()
                 return
             }
         }
 
-        val mirrorMatrix = tmp1M.identity().mirror(mirrorPosition, mirrorNormal)
+        val mirrorMatrix = tmp1M.identity().mirror(mirrorPosition, Vector3d(mirrorNormal))
 
         val reflectedCameraPosition = mirrorMatrix.transformPosition(tmp1d.set(cameraPosition))
         val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
@@ -134,7 +135,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         val root = getRoot(Entity::class)
         pipeline.clear()
         // todo check that this is correct...
-        pipeline.frustum.defineGenerally(cameraMatrix1, reflectedCameraPosition, Quaterniond(reflectedCameraRotation))
+        pipeline.frustum.defineGenerally(cameraMatrix1, reflectedCameraPosition, reflectedCameraRotation)
         pipeline.frustum.showPlanes()
 
         // define last frustum plane
@@ -144,7 +145,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         addDefaultLightsIfRequired(pipeline, root, null)
         // mirrors inside mirrors don't work, because we could look behind things
         pipeline.planarReflections.clear()
-        pipeline.reflectionCullingPlane.set(mirrorPos * worldScale, mirrorNormal) // is correct
+        pipeline.reflectionCullingPlane.set(mirrorPos * worldScale.toDouble(), mirrorNormal) // is correct
 
         // set render state
         RenderState.cameraMatrix.set(cameraMatrix1)
@@ -204,7 +205,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         }
     }
 
-    fun findRegion(aabb: AABBf, cameraMatrix: Matrix4f, drawTransform: Matrix4x3d, camPosition: Vector3d): AABBf {
+    fun findRegion(aabb: AABBf, cameraMatrix: Matrix4f, drawTransform: Matrix4x3m, camPosition: Vector3d): AABBf {
         // cam * world space * position
         aabb.clear()
         val vec3d = tmp2d

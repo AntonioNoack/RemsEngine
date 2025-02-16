@@ -33,6 +33,7 @@ import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import kotlin.math.ceil
 import kotlin.math.log2
 import kotlin.math.max
@@ -60,7 +61,7 @@ fun main() {
         }
 
         // todo use AABB for calculation
-        override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
             return super.fillSpace(globalTransform, dstUnion)
         }
 
@@ -264,8 +265,8 @@ fun main() {
     })
     scene.add(Entity("Directional").apply {
         rotation = rotation
-            .rotateY((-50.0).toRadians())
-            .rotateX((-45.0).toRadians())
+            .rotateY((-50f).toRadians())
+            .rotateX((-45f).toRadians())
         scale = scale.set(10.0)
         addChild(DirectionalLight().apply {
             shadowMapCascades = 1
@@ -284,12 +285,12 @@ fun main() {
     scene.add(Entity("Spot").apply {
         position = position.set(-5.0, 2.5, 0.6)
         rotation = rotation
-            .rotateY((-68.0).toRadians())
-            .rotateX((-72.0).toRadians())
+            .rotateY((-68f).toRadians())
+            .rotateX((-72f).toRadians())
         scale = scale.set(30.0)
         addChild(SpotLight().apply {
             color.set(10f, 2f, 2f)
-            near = 0.01
+            near = 0.01f
             shadowMapCascades = 1
             shadowMapResolution = 256
             coneAngle = 0.57f

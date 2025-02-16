@@ -13,10 +13,10 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspectiveSpotLight
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.atan
 
 // todo can/do-we-want-to support inner cone angle?
@@ -46,35 +46,35 @@ class SpotLight : LightComponent(LightType.SPOT) {
 
     @SerializedProperty
     @Range(1e-6, 1.0)
-    var near = 0.01
+    var near = 0.01f
 
     override fun getShaderV0(): Float = coneAngle
-    override fun getShaderV1(): Float = shadowMapPower.toFloat()
-    override fun getShaderV2(): Float = near.toFloat()
+    override fun getShaderV1(): Float = shadowMapPower
+    override fun getShaderV2(): Float = near
 
     override fun updateShadowMap(
-        cascadeScale: Double,
-        worldScale: Double,
+        cascadeScale: Float,
+        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        cameraRotation: Quaterniond,
-        cameraDirection: Vector3d,
-        drawTransform: Matrix4x3d,
+        cameraRotation: Quaternionf,
+        cameraDirection: Vector3f,
+        drawTransform: Matrix4x3m,
         pipeline: Pipeline,
         resolution: Int
     ) {
-        val far = 1.0
+        val far = 1f
         val coneAngle = coneAngle * cascadeScale
-        val fovYRadians = 2.0 * atan(coneAngle)
-        setPerspectiveSpotLight(dstCameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
+        val fovYRadians = 2f * atan(coneAngle)
+        setPerspectiveSpotLight(dstCameraMatrix, coneAngle, near, far, 0f, 0f)
         dstCameraMatrix.rotate(Quaternionf(cameraRotation).invert())
         pipeline.frustum.definePerspective(
-            near / worldScale, far / worldScale, fovYRadians, resolution, 1.0,
+            near / worldScale, far / worldScale, fovYRadians, resolution, 1f,
             dstCameraPosition, cameraRotation
         )
         // required for SDF shapes
-        RenderState.fovXRadians = fovYRadians.toFloat()
-        RenderState.fovYRadians = fovYRadians.toFloat()
+        RenderState.fovXRadians = fovYRadians
+        RenderState.fovYRadians = fovYRadians
     }
 
     override fun drawShape(pipeline: Pipeline) {

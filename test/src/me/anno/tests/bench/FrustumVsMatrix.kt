@@ -4,7 +4,7 @@ import me.anno.engine.ui.render.Frustum
 import me.anno.utils.Clock
 import org.joml.AABBd
 import org.joml.Matrix4d
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 
 fun main() {
@@ -29,7 +29,7 @@ fun main() {
     }.shuffled()
 
     val frustum = Frustum()
-    frustum.definePerspective(1e-3, 1e6, 1.0, 1000, 1.0, Vector3d(), Quaterniond())
+    frustum.definePerspective(1e-3f, 1e6f, 1f, 1000, 1f, Vector3d(), Quaternionf())
     clock.benchmark(10, 5000, cubes.size, "Frustum") {
         for (ci in cubes.indices) {
             val cube = cubes[ci]

@@ -222,6 +222,15 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
         )
     }
 
+    fun set(other: Matrix4x3m): Matrix4f {
+        return set(
+            other.m00, other.m01, other.m02, 0f,
+            other.m10, other.m11, other.m12, 0f,
+            other.m20, other.m21, other.m22, 0f,
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
+        )
+    }
+
     fun setTransposed(m: Matrix4f): Matrix4f {
         return if (m.properties() and 4 != 0) identity() else setTransposedInternal(m)
     }
@@ -295,9 +304,14 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
 
     fun set4x3(mat: Matrix4x3f): Matrix4f {
         return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)
-            ._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)._properties(
-                flags and mat.properties() and -2
-            )
+            ._m21(mat.m21)._m22(mat.m22)._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)
+            ._properties(flags and mat.properties() and -2)
+    }
+
+    fun set4x3(mat: Matrix4x3m): Matrix4f {
+        return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m20(mat.m20)
+            ._m21(mat.m21)._m22(mat.m22)._m30(mat.m30.toFloat())._m31(mat.m31.toFloat())._m32(mat.m32.toFloat())
+            ._properties(flags and mat.properties() and -2)
     }
 
     override operator fun set(column: Int, row: Int, value: Double): Matrix4f {
@@ -412,6 +426,15 @@ open class Matrix4f : Matrix<Matrix4f, Vector4f, Vector4f> {
     }
 
     fun mul(other: Matrix4x3d): Matrix4f {
+        return mul(
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), 0f,
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
+        )
+    }
+
+    fun mul(other: Matrix4x3m): Matrix4f {
         return mul(
             other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
             other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,

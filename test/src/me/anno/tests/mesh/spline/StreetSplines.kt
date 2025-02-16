@@ -15,6 +15,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Color.a
@@ -165,7 +166,7 @@ fun main() {
 
         val endEntity = Entity("End Piece", world)
             .setPosition(0.0, 3.0, 30.0)
-            .setRotation(0.0, PI, 0.0)
+            .setRotation(0f, PIf, 0f)
         add(endEntity, Vector3d())
         endEntity.addCrossing()
 
@@ -182,7 +183,7 @@ fun main() {
             val ry = -angle + PI * 0.5
             val cross = Entity("Cross $i", crossEntity)
                 .setPosition(rx * r0, 0.0, rz * r0)
-                .setRotation(0.0, ry, 0.0)
+                .setRotation(0f, ry.toFloat(), 0f)
                 .addControl()
             val street = Entity("Street $i", cross)
                 .addSplineMesh()

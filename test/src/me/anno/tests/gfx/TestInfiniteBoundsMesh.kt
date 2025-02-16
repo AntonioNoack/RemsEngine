@@ -30,7 +30,7 @@ fun main() {
     for (pos in positions) {
         Entity(tmpScene)
             .setPosition(pos)
-            .setScale(1.0 + pos.length() * 0.2)
+            .setScale(1f + pos.length().toFloat() * 0.2f)
             .add(MeshComponent(base))
     }
 

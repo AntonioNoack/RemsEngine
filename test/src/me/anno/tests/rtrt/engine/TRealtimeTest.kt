@@ -23,7 +23,6 @@ import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -71,8 +70,8 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     val aabb = scene.getGlobalBounds()
 
     val cameraPosition = Vector3d(aabb.centerX, aabb.centerY, aabb.maxZ * 1.5f)
-    val cameraRotation = Quaterniond()
-    val worldScale = 1.0 // used in Rem's Engine for astronomic scales
+    val cameraRotation = Quaternionf()
+    val worldScale = 1f // used in Rem's Engine for astronomic scales
 
     pipeline.frustum.setToEverything(cameraPosition, cameraRotation)
     pipeline.fill(scene)
@@ -88,8 +87,8 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
                     // clone object to test mesh duplication
                     scene2.transform
                         .translateLocal(dx * i, dy, dz * j)
-                        .rotateLocalY(0.2 * i)
-                        .rotateLocalX(0.2 * j)
+                        .rotateLocalY(0.2f * i)
+                        .rotateLocalX(0.2f * j)
                     scene2.validateTransform()
                     scene2.getGlobalBounds()
                     pipeline.fill(scene2)

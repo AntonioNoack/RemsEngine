@@ -134,13 +134,9 @@ open class Skybox : SkyboxBase(), OnUpdate {
         val sr = sunRotation
         val wr = worldRotation
         sun.rotation = sun.rotation
-            .set(sr.x.toDouble(), sr.y.toDouble(), sr.z.toDouble(), sr.w.toDouble())
-            .mul(
-                wr.x.toDouble(),
-                wr.y.toDouble(),
-                wr.z.toDouble(),
-                wr.w.toDouble()
-            ) // todo correct order... not working
+            .set(sr.x, sr.y, sr.z, sr.w)
+            .mul(wr.x, wr.y, wr.z, wr.w)
+        // todo correct order... not working
         // todo set color based on angle, including red in the twilight
         val light = brightness * max(sunDir.y, 1e-9f)
         val old = max(sun1.color.x, max(sun1.color.y, sun1.color.z))

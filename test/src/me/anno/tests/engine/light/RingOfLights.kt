@@ -21,6 +21,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -64,8 +65,8 @@ fun main() {
     val sun = Entity("Sun", lights)
         .add(DirectionalLight().apply { shadowMapCascades = 1; color.set(3f) })
         .setPosition(0.0, -10.0, 0.0)
-        .setScale(50.0)
-    sun.transform.localRotation = Quaterniond().rotateY(0.8).rotateX(-0.8)
+        .setScale(50f)
+    sun.transform.localRotation = Quaternionf().rotateY(0.8f).rotateX(-0.8f)
 
     val ringOfLights = Entity("Ring Of Lights", lights)
     ringOfLights.add(object : LightSpawner() {
@@ -103,7 +104,7 @@ fun main() {
                     if (firstTurn) {
                         val angle = TAU * i.toDouble() / ringLightCount
                         drawMatrix.setTranslation(radius * cos(angle), positionY, radius * sin(angle))
-                        drawMatrix.scale(scale)
+                        drawMatrix.scale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
                     }
                     val px = drawMatrix.m30
                     val py = drawMatrix.m31
@@ -125,14 +126,14 @@ fun main() {
     val cube = flatCube.front
     val floor = Entity("Floor", scene)
         .setPosition(0.0, -50.0, 0.0)
-        .setScale(2000.0, 50.0, 2000.0)
+        .setScale(2000f, 50f, 2000f)
     Entity("Metallic", floor)
         .setPosition(0.5, 0.0, 0.0)
-        .setScale(0.5, 1.0, 1.0)
+        .setScale(0.5f, 1f, 1f)
         .add(MeshComponent(cube, Material.metallic(-1, 0.2f)))
     Entity("Rough", floor)
         .setPosition(-0.5, 0.0, 0.0)
-        .setScale(0.5, 1.0, 1.0)
+        .setScale(0.5f, 1f, 1f)
         .add(MeshComponent(cube))
 
     testSceneWithUI("Lights2", scene)

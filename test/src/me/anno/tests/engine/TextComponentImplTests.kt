@@ -130,7 +130,7 @@ class TextComponentImplTests {
         rv.onUpdate()
         rv.calculateSize(w, h)
         rv.setPosSize(0, 0, w, h)
-        rv.radius = 2.3
+        rv.radius = 2.3f
         rv.orbitRotation.identity()
         rv.updateEditorCameraTransform()
         rv.renderMode = RenderMode.COLOR

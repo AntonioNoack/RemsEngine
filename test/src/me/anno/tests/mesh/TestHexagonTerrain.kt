@@ -67,7 +67,7 @@ fun main() {
         Entity("Tile$coords", scene)
             .add(MeshComponent(mesh))
             .setPosition(offset.x, 0.0, offset.y)
-            .setScale(0.9)
+            .setScale(0.9f)
     }
 
     testSceneWithUI("HexagonTerrain", scene)

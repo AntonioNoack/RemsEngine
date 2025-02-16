@@ -13,14 +13,15 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import kotlin.math.min
 
 /**
@@ -38,7 +39,7 @@ open class InstancedI32Stack(
         val size get() = data.size
         val data = IntArrayList(256)
         val metadata = IntArrayList(16)
-        val matrices = ArrayList<Matrix4x3d>() // transform for a group of meshes
+        val matrices = ArrayList<Matrix4x3m>() // transform for a group of meshes
 
         fun clear() {
             data.clear()
@@ -46,7 +47,7 @@ open class InstancedI32Stack(
             matrices.clear()
         }
 
-        fun start(gfxId: Int, matrix: Matrix4x3d): IntArrayList {
+        fun start(gfxId: Int, matrix: Matrix4x3m): IntArrayList {
             // we only need to mark a new section, when the matrix or gfx id changes
             if (metadata.isEmpty() || gfxId != metadata.last() || matrices.last() != matrix) {
                 metadata.add(data.size)

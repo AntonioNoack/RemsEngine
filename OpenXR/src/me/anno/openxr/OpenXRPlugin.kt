@@ -92,7 +92,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
     private fun onInactive(window: OSWindow) {
         // reset roll
-        (instance as? OpenXRRendering)?.rv?.controlScheme?.rotationTargetDegrees?.z = 0.0
+        (instance as? OpenXRRendering)?.rv?.controlScheme?.rotationTargetDegrees?.z = 0f
         // reset vsync
         window.vsyncOverride = null
         // disable controllers

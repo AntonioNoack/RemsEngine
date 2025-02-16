@@ -133,7 +133,7 @@ class SpriteLayerTests {
         rv.onUpdate()
         rv.calculateSize(size, size)
         rv.setPosSize(0, 0, size, size)
-        rv.radius = cells * 0.5
+        rv.radius = cells * 0.5f
         rv.orbitRotation.identity()
         rv.updateEditorCameraTransform()
         rv.renderMode = RenderMode.COLOR

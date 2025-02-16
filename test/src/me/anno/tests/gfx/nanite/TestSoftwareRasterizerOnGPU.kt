@@ -76,7 +76,7 @@ fun testSoftwareRasterizerOnGPU() {
         Entity(scene)
             .add(MeshComponent(flatCube.linear(Vector3f(), Vector3f(1f)).front))
             .setPosition(Vector3d(0.0, 0.0, 2.0).rotateX(db).rotateY(da))
-            .setScale(0.6)
+            .setScale(0.6f)
     }
 
     testSceneWithUI("Compute Rasterizer", scene) {

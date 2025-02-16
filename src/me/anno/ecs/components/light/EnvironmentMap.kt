@@ -29,12 +29,13 @@ import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
+import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 
 /**
@@ -46,11 +47,11 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
     @Range(1.0, 8192.0)
     var resolution = 256
 
-    @Range(0.0, 1.0)
-    var near = 0.01
+    @Range(0.0, 1e35)
+    var near = 0.01f
 
-    @Range(1.0, 1e308)
-    var far = 1e3
+    @Range(1e-35, 1e38)
+    var far = 1e3f
 
     var shader: BaseShader? = null
 
@@ -61,7 +62,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
     val timer = GPUClockNanos()
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         Shapes.cube11Smooth.getBounds().transformUnion(globalTransform, dstUnion)
         return true
     }
@@ -108,12 +109,11 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         val resolution = max(4, resolution)
         val global = transform.globalTransform
         val position = global.getTranslation(JomlPools.vec3d.create())
-        val sqrt3 = 1.7320508075688772
-        val worldScale = sqrt3 / global.getScale(JomlPools.vec3d.borrow()).length()
+        val worldScale = (Maths.SQRT3 / global.getScaleLength()).toFloat()
 
         val deg90 = PIf * 0.5f
-        val camRot = JomlPools.quat4d.create()
-        val camRotInv = JomlPools.quat4d.create()
+        val camRot = JomlPools.quat4f.create()
+        val camRotInv = JomlPools.quat4f.create()
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
@@ -134,8 +134,8 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
                     pipeline.clear()
                     pipeline.frustum.definePerspective(
-                        near / worldScale, far / worldScale, deg90.toDouble(),
-                        resolution, 1.0,
+                        near / worldScale, far / worldScale, deg90,
+                        resolution, 1f,
                         position, camRotInv // needs to be the inverse again
                     )
                     pipeline.applyToneMapping = false
@@ -159,7 +159,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
         JomlPools.mat4f.sub(1)
         JomlPools.vec3d.sub(1)
-        JomlPools.quat4d.sub(2)
+        JomlPools.quat4f.sub(2)
 
         // todo create irradiance mipmaps: blur & size down, just like bloom
     }

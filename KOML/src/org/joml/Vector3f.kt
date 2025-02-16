@@ -116,6 +116,10 @@ open class Vector3f(
         return dst.set(x * v.x, y * v.y, z * v.z)
     }
 
+    fun mul(v: Double, dst: Vector3d ): Vector3d {
+        return dst.set(x * v, y * v, z * v)
+    }
+
     fun div(v: Vector3f, dst: Vector3f = this): Vector3f {
         return dst.set(x / v.x, y / v.y, z / v.z)
     }
@@ -200,6 +204,18 @@ open class Vector3f(
     }
 
     @JvmOverloads
+    fun mulPosition(mat: Matrix4x3m, dst: Vector3f = this): Vector3f {
+        val x = x
+        val y = y
+        val z = z
+        return dst.set(
+            mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30,
+            mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31,
+            mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32
+        )
+    }
+
+    @JvmOverloads
     fun mulPosition(mat: Matrix4x3d, dst: Vector3f = this): Vector3f {
         val x = x.toDouble()
         val y = y.toDouble()
@@ -258,6 +274,17 @@ open class Vector3f(
     }
 
     fun mulDirection(mat: Matrix4x3f, dst: Vector3f = this): Vector3f {
+        val x = x
+        val y = y
+        val z = z
+        return dst.set(
+            mat.m00 * x + mat.m10 * y + mat.m20 * z,
+            mat.m01 * x + mat.m11 * y + mat.m21 * z,
+            mat.m02 * x + mat.m12 * y + mat.m22 * z
+        )
+    }
+
+    fun mulDirection(mat: Matrix4x3m, dst: Vector3f = this): Vector3f {
         val x = x
         val y = y
         val z = z

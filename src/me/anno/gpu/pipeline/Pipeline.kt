@@ -40,6 +40,7 @@ import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.PIf
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.Recursion
@@ -48,7 +49,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Planed
 import org.joml.Vector3d
-import kotlin.math.PI
 
 /**
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
@@ -397,7 +397,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
         private val samplePlaneTransform = Transform()
             .setLocalPosition(0.0, 0.0, -0.5)
-            .setLocalEulerAngle(PI * 0.5, 0.0, 0.0)
+            .setLocalEulerAngle(PIf * 0.5f, 0f, 0f)
 
         var currentInstance: Pipeline? = null
 

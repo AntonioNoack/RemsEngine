@@ -35,7 +35,7 @@ import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -165,7 +165,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             speed = mix(speed, dir * 50.0, dt)
             position += dt * speed
             transform.localRotation = transform.localRotation
-                .rotationZ(position)
+                .rotationZ(position.toFloat())
             // impulse is global, torque probably, too
             val l2g = body.transform!!.globalRotation
             // add lift based on velocity on Z axis
@@ -212,7 +212,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     fun addCollider(name: String, pos: Vector3f, halfExt: Vector3f, rx: Float = 0f) {
         val sub = Entity(name)
         sub.position = sub.position.set(pos)
-        sub.rotation = sub.rotation.rotateX(rx.toDouble().toRadians())
+        sub.rotation = sub.rotation.rotateX(rx.toRadians())
         val box = BoxCollider()
         box.halfExtends.set(halfExt)
         sub.add(box)
@@ -249,8 +249,8 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             dst.localPosition = dst.localPosition
                 .mix(src.localPosition, dtTo01(10f * Time.deltaTime))
             dst.localRotation = dst.localRotation.slerp(
-                Quaterniond().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3d()).y),
-                dtTo01(2f * Time.deltaTime)
+                Quaternionf().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3f()).y),
+                dtTo01(2f * Time.deltaTime).toFloat()
             )
         }
     })

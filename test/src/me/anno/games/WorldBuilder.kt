@@ -31,7 +31,9 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.random
 import me.anno.tests.LOGGER
@@ -50,7 +52,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors.normalToQuaternionY2
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -187,7 +189,8 @@ fun main() {
         }
 
         val categories = listOf(
-            BuildCategory("Load",
+            BuildCategory(
+                "Load",
                 UpdatingList {
                     getSaveFiles().map { file ->
                         TextButton(NameDesc(file.nameWithoutExtension), style)
@@ -208,7 +211,8 @@ fun main() {
                         }
                 } + TextButton(NameDesc("New Save"), style)
                     .addLeftClickListener {
-                        Menu.askName(it.windowStack,
+                        Menu.askName(
+                            it.windowStack,
                             NameDesc("New Save"), "Some Scene",
                             NameDesc("Save"), { name ->
                                 when {
@@ -229,17 +233,19 @@ fun main() {
         fun buildMainMenuItems() {
             buildMenu.clear()
             for (category in categories) {
-                buildMenu.add(TextButton(NameDesc(category.name), style)
-                    .addLeftClickListener {
-                        buildMenu.clear()
-                        // add back button
-                        buildMenu.add(TextButton(NameDesc("Back"), style)
-                            .addLeftClickListener { buildMainMenuItems() })
-                        // show all items
-                        for (child in category.items) {
-                            buildMenu.add(child)
-                        }
-                    })
+                buildMenu.add(
+                    TextButton(NameDesc(category.name), style)
+                        .addLeftClickListener {
+                            buildMenu.clear()
+                            // add back button
+                            buildMenu.add(
+                                TextButton(NameDesc("Back"), style)
+                                    .addLeftClickListener { buildMainMenuItems() })
+                            // show all items
+                            for (child in category.items) {
+                                buildMenu.add(child)
+                            }
+                        })
             }
         }
         buildMainMenuItems()
@@ -256,7 +262,7 @@ fun main() {
             var hitEntity: Entity? = null
 
             var hasValidLocation = false
-            var placingRotation = 0.0
+            var placingRotation = 0f
             var placingScale = 1.0
             val rot = Quaternionf()
             val nor = Vector3f()
@@ -270,7 +276,7 @@ fun main() {
                 if (mesh != null) pipeline.addMesh(mesh, this, placingTransform)
             }
 
-            override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
                 dstUnion.all()
                 return true
             }
@@ -288,14 +294,14 @@ fun main() {
 
             fun randomizeAngle() {
                 // we need finer rotation control, or need to snap this angle to sth
-                placingRotation = TAU * random()
-                placingRotation -= placingRotation % (PI / 32)
+                placingRotation = TAUf * random().toFloat()
+                placingRotation -= placingRotation % (PIf / 32)
             }
 
             fun raycast() {
                 // trace ray onto surface
                 val pos = camEntity.transform.globalPosition
-                val dir = renderView.mouseDirection
+                val dir = Vector3d(renderView.mouseDirection)
                 val query = RayQuery(pos, dir, 1e6)
                 val hit = Raycast.raycast(world, query)
                 if (hit) {
@@ -337,7 +343,7 @@ fun main() {
                 if (dynamicAngle && abs(normal.y) in 0.1f..0.9f) {
                     nor.set(normal).normalToQuaternionY2(rot)
                 } else {
-                    rot.rotationY(atan2(normal.x, normal.z).toFloat())
+                    rot.rotationY(atan2(normal.x, normal.z))
                 }
 
                 sample.localRotation = sample.localRotation
@@ -381,7 +387,7 @@ fun main() {
 
             override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
                 if (Input.isRightDown) super.onMouseWheel(x, y, dx, dy, byMouse)
-                else placingRotation += dy * PI / 32
+                else placingRotation += dy * PIf / 32
                 return true
             }
 

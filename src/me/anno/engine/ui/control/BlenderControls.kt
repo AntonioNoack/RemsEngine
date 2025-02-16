@@ -8,7 +8,9 @@ import me.anno.input.Key
 import me.anno.maths.Maths.length
 import me.anno.parser.SimpleExpressionParser
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.atan2
 import kotlin.math.ln
 import kotlin.math.pow
@@ -39,24 +41,25 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         DrawTexts.drawSimpleTextCharByChar(x, y + 20, 2, mode.name)
     }
 
-    fun getAxis(): Vector3d {
+    fun getAxis(): Vector3f {
         return when (axis) {
             1 -> if (isShiftDown) {
-                Vector3d(0.0, 1.0, 1.0)
+                Vector3f(0f, 1f, 1f)
             } else {
-                Vector3d(1.0, 0.0, 0.0)
+                Vector3f(1f, 0f, 0f)
             }
             2 -> if (isShiftDown) {
-                Vector3d(1.0, 0.0, 1.0)
+                Vector3f(1f, 0f, 1f)
             } else {
-                Vector3d(0.0, 1.0, 0.0)
+                Vector3f(0f, 1f, 0f)
             }
             4 -> if (isShiftDown) {
-                Vector3d(1.0, 1.0, 0.0)
+                Vector3f(1f, 1f, 0f)
             } else {
-                Vector3d(0.0, 0.0, 1.0)
+                Vector3f(0f, 0f, 1f)
             }
-            else -> camera.transform!!.globalTransform.transformDirection(Vector3d(1.0, 0.0, 0.0)).normalize()
+            else -> camera.transform!!.globalTransform
+                .transformDirection(Vector3f(1f, 0f, 0f)).normalize()
         }
     }
 
@@ -90,7 +93,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             val axis = getAxis()
             when (mode) {
                 Mode.SCALING -> {
-                    val v = ln(numberValue) / ln(2.0)
+                    val v = ln(numberValue.toFloat()) / ln(2f)
                     if (this.axis == 0) {
                         // scale uniformly
                         axis.set(v)
@@ -101,22 +104,17 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
                     }
                 }
                 else -> {
-                    axis.mul(numberValue)
+                    axis.mul(numberValue.toFloat())
                 }
             }
             applyTransform(axis)
         } else {
 
-            val direction = camera.transform!!.globalTransform.transformDirection(
-                Vector3d(
-                    deltaX.toDouble(),
-                    deltaY.toDouble(),
-                    0.0
-                )
-            )
+            val direction = camera.transform!!.globalTransform
+                .transformDirection(Vector3f(deltaX, deltaY, 0f))
 
             if (mode == Mode.SCALING) {
-                direction.safeNormalize(length(deltaX, deltaY).toDouble() / height)
+                direction.safeNormalize(length(deltaX, deltaY) / height)
             }
 
             when (axis) {
@@ -127,26 +125,26 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
                 }
                 1 -> {
                     if (isLocking) {
-                        direction.x = 0.0
+                        direction.x = 0f
                     } else {
-                        direction.y = 0.0
-                        direction.z = 0.0
+                        direction.y = 0f
+                        direction.z = 0f
                     }
                 }
                 2 -> {
                     if (isLocking) {
-                        direction.y = 0.0
+                        direction.y = 0f
                     } else {
-                        direction.x = 0.0
-                        direction.z = 0.0
+                        direction.x = 0f
+                        direction.z = 0f
                     }
                 }
                 4 -> {
                     if (isLocking) {
-                        direction.z = 0.0
+                        direction.z = 0f
                     } else {
-                        direction.x = 0.0
-                        direction.y = 0.0
+                        direction.x = 0f
+                        direction.y = 0f
                     }
                 }
             }
@@ -155,7 +153,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    fun applyTransform(direction: Vector3d) {
+    fun applyTransform(direction: Vector3f) {
         if (direction.dot(1.0, 1.0, 1.0).isNaN()) throw RuntimeException("$direction")
         when (mode) {
             Mode.TRANSLATING -> {
@@ -168,7 +166,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
                 }
             }
             Mode.ROTATING -> {
-                val angle = atan2(deltaY, deltaX).toDouble()
+                val angle = atan2(deltaY, deltaX)
                 applyTransform { selfGlobal, _ ->
                     selfGlobal.rotate(angle, direction.normalize())
                 }
@@ -176,9 +174,9 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             Mode.SCALING -> {
                 applyTransform { selfGlobal, _ ->
                     selfGlobal.scale(
-                        2.0.pow(direction.x),
-                        2.0.pow(direction.y),
-                        2.0.pow(direction.z),
+                        2f.pow(direction.x),
+                        2f.pow(direction.y),
+                        2f.pow(direction.z),
                     )
                 }
             }
@@ -187,12 +185,12 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    fun applyTransform(transformFunction: (Matrix4x3d, Double) -> Unit) {
+    fun applyTransform(transformFunction: (Matrix4x3m, Double) -> Unit) {
         for ((index, entity) in selectedEntities.withIndex()) {
             val base = old.getOrNull(index) ?: break // todo I feel like old is lost...
             val transform = entity.transform
             val parentTransform = entity.parentEntity?.transform
-            val parentGlobal = parentTransform?.globalTransform?.run { Matrix4x3d(this) } ?: Matrix4x3d()
+            val parentGlobal = parentTransform?.globalTransform?.run { Matrix4x3m(this) } ?: Matrix4x3m()
             transform.checkTransform(parentGlobal)
             val selfGlobal = parentGlobal.mul(base)
             transform.checkTransform(selfGlobal)
@@ -206,7 +204,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
 
     var number = ""
 
-    var old: List<Matrix4x3d> = emptyList()
+    var old: List<Matrix4x3m> = emptyList()
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         if (mode != Mode.NOTHING) {
@@ -305,8 +303,8 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    private fun selectedLocalTransforms(): List<Matrix4x3d> {
-        return selectedTransforms.map { it.getLocalTransform(Matrix4x3d()) }
+    private fun selectedLocalTransforms(): List<Matrix4x3m> {
+        return selectedTransforms.map { it.getLocalTransform(Matrix4x3m()) }
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) {

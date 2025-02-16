@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 
 object DefaultSun {
 
@@ -13,11 +13,10 @@ object DefaultSun {
         // more is currently not required for light rendering
         defaultSunEntity.add(defaultSun)
         // similar to the thumbnail main light
-        defaultSunEntity.rotation = Quaterniond()
-            .rotateX(-1.0)
-            .rotateY(-0.5)
+        defaultSunEntity.rotation = Quaternionf()
+            .rotateX(-1f)
+            .rotateY(-0.5f)
         defaultSunEntity.validateTransform()
         defaultSun.color.set(20f)
     }
-
 }

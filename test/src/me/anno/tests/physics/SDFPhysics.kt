@@ -36,21 +36,21 @@ fun main() {
             .add(Rigidbody().apply { mass = 0.0 })
             .add(SphereCollider())
             .setPosition(0.0, -20.0, 0.0)
-            .setScale(20.0)
+            .setScale(20f)
             .add(SDFSphere())
 
         Entity("BoxCollider", scene)
             .add(Rigidbody().apply { mass = 1.0 })
             .add(BoxCollider())
             .setPosition(-3.3, 15.0, 0.0)
-            .setScale(3.0)
+            .setScale(3f)
             .add(SDFBox())
 
         Entity("SDFCollider", scene)
             .add(Rigidbody().apply { mass = 1.0 })
             .add(SDFCollider().apply { isConvex = true })
             .setPosition(+3.3, 15.0, 0.0)
-            .setScale(3.0)
+            .setScale(3f)
             .add(SDFBox())
 
         testUI("SDF Physics") {

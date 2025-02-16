@@ -181,7 +181,7 @@ fun createSampleScene(): Entity {
     floorMaterial.diffuseMap = res.getChild("textures/UVChecker.png")
     Entity("Floor", scene)
         .add(MeshComponent(DefaultAssets.plane, floorMaterial))
-        .setScale(50.0)
+        .setScale(50f)
 
     val cubeMesh = CubemapModel.model.front
 
@@ -190,7 +190,7 @@ fun createSampleScene(): Entity {
     Entity("Root", scene)
         .add(MeshComponent(cubeMesh, floorMaterial1))
         .setPosition(0.0, 7.0, 0.0)
-        .setScale(30.0, 0.3, 30.0)
+        .setScale(30f, 0.3f, 30f)
 
     // add a few boxes
     val cubes = Entity("Spheres", scene)
@@ -210,7 +210,7 @@ fun createSampleScene(): Entity {
         }
         Entity(cubes).add(MeshComponent(cubeMesh, material))
             .setPosition(random.nextDouble() * 70 - 35, radius, random.nextDouble() * 70 - 35)
-            .setScale(radius)
+            .setScale(radius.toFloat())
     }
 
     // add a few spheres
@@ -238,13 +238,13 @@ fun createSampleScene(): Entity {
         }
         Entity(spheres).add(MeshComponent(sphereMesh, material))
             .setPosition(random.nextDouble() * 70 - 35, radius, random.nextDouble() * 70 - 35)
-            .setScale(radius)
+            .setScale(radius.toFloat())
     }
 
     val sun = DirectionalLight()
     sun.shadowMapCascades = 1
     val sunEntity = Entity("Sun", scene).add(sun)
-        .setScale(50.0)
+        .setScale(50f)
     val skybox = Skybox()
     scene.add(skybox)
     skybox.applyOntoSun(sunEntity, sun, 20f)
@@ -286,7 +286,7 @@ fun main() {
         rasterizedScene.emissive.clone().normalize01().write(dst.getChild("emissive.png"))
     }
 
-    val bvh = buildTLAS(scene, Vector3d(), 1.0, SplitMethod.MEDIAN_APPROX, 16)!!
+    val bvh = buildTLAS(scene, Vector3d(), 1f, SplitMethod.MEDIAN_APPROX, 16)!!
     val skybox = scene.getComponentInChildren(SkyboxBase::class) ?: Skybox.defaultSky
     addGPUTask("illum", 1000) {
         bakeIllumination(bvh, rasterizedScene, skybox)
@@ -296,7 +296,7 @@ fun main() {
 
 fun buildTLAS(
     scene: Entity,
-    cameraPosition: Vector3d, worldScale: Double,
+    cameraPosition: Vector3d, worldScale: Float,
     splitMethod: SplitMethod, maxNodeSize: Int
 ): TLASNode? {
     val clock = Clock(LOGGER)

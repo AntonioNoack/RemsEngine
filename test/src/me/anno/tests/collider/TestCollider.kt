@@ -22,12 +22,12 @@ fun testCollider(colliderImpl: Collider, mesh: FileReference) {
         .add(MeshComponent(mesh))
         .add(colliderImpl)
         .setPosition(0.0, 3.0, 0.0)
-        .setRotation(0.3, 0.0, 0.1) // rotate a little to avoid symmetry
+        .setRotation(0.3f, 0f, 0.1f) // rotate a little to avoid symmetry
         .add(Rigidbody().apply { mass = 1.0 })
 
-    val s = 10.0
+    val s = 10.0f
     Entity("Floor", scene)
-        .setPosition(0.0, -s, 0.0)
+        .setPosition(0.0, -s.toDouble(), 0.0)
         .setScale(s)
         .add(BoxCollider())
         .add(MeshComponent(flatCube.front))

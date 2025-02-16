@@ -32,9 +32,8 @@ import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
 import org.joml.Vector2f
-import org.joml.Vector3d
+import org.joml.Vector3f
 import java.util.Random
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
@@ -109,7 +108,7 @@ private fun engineTest2d() {
     for (i in 0 until 10) {
         box.validateTransform()
         ground.validateTransform()
-        println(box.position.toString() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3d()).z.toDegrees()) + "°")
+        println(box.position.toString() + ", " + (box.rotation.getEulerAnglesYXZ(Vector3f()).z.toDegrees()) + "°")
         physics.step(Maths.MILLIS_TO_NANOS * 1000, false)
     }
 }
@@ -132,7 +131,7 @@ fun run2dPhysicsWithUI() {
     val strength = 20.0
 
     for (dir in 0 until 4) {
-        val angle = dir * PI / 2
+        val angle = dir * PIf / 2
         val ground = Entity("Ground")
         val groundRB = Rigidbody2d()
         ground.add(groundRB)
@@ -143,7 +142,7 @@ fun run2dPhysicsWithUI() {
             cos(angle) * height * 0.5,
             0.0
         )
-        ground.setRotation(0.0, 0.0, angle)
+        ground.setRotation(0f, 0f, angle)
         ground.add(groundShape)
         world.add(ground)
     }
@@ -157,7 +156,7 @@ fun run2dPhysicsWithUI() {
             (random.nextDouble() - 0.5) * 600.0,
             0.0
         )
-        box.setRotation(0.0, 0.0, random.nextDouble() * PI)
+        box.setRotation(0f, 0f, random.nextFloat() * PIf)
         val shape = RectCollider()
         shape.density = 1f
         shape.halfExtends.set(20f, 7f)
@@ -208,7 +207,7 @@ fun run2dPhysicsWithUI() {
                 maxScale.set(250.0)
             }
 
-            var targetAngle = 0.0
+            var targetAngle = 0f
 
             val dragButton = Key.BUTTON_LEFT
             val moveButton = Key.BUTTON_RIGHT
@@ -239,7 +238,7 @@ fun run2dPhysicsWithUI() {
                         force.set(speed * (mouseX - targetX).toFloat(), speed * (mouseY - targetY).toFloat())
                         anchorWS.set(targetX.toFloat(), targetY.toFloat())
                         body.linearVelocity.set(force.x, force.y)
-                        body.angularVelocity = speed * angleDifference((targetAngle - ang).toFloat())
+                        body.angularVelocity = speed * angleDifference((targetAngle - ang))
                     }
                 }
                 invalidateDrawing()
@@ -268,7 +267,7 @@ fun run2dPhysicsWithUI() {
             val anchorLS = Vec2()
             val anchorWS = Vec2()
 
-            val tmp = Vector3d()
+            val tmp = Vector3f()
 
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.draw(x0, y0, x1, y1)

@@ -250,14 +250,14 @@ object LineBuffer {
         cam: org.joml.Vector3d,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        putRelativeLine(x0, y0, z0, x1, y1, z1, cam, 1.0, r, g, b, a)
+        putRelativeLine(x0, y0, z0, x1, y1, z1, cam, 1f, r, g, b, a)
     }
 
     fun putRelativeLine(
         x0: Double, y0: Double, z0: Double,
         x1: Double, y1: Double, z1: Double,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         ensureSize(bytesPerLine)
@@ -268,7 +268,7 @@ object LineBuffer {
     private fun putRelativePoint(
         x0: Double, y0: Double, z0: Double,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         val bytes = bytes
@@ -285,7 +285,7 @@ object LineBuffer {
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         putRelativeLine(
@@ -299,7 +299,7 @@ object LineBuffer {
     fun putRelativeLine(
         v0: org.joml.Vector3d,
         x1: Double, y1: Double, z1: Double,
-        cam: org.joml.Vector3d, worldScale: Double,
+        cam: org.joml.Vector3d, worldScale: Float,
         color: Int
     ) {
         putRelativeLine(
@@ -318,7 +318,7 @@ object LineBuffer {
         v0: org.joml.Vector3d,
         dir: org.joml.Vector3d,
         length: Double,
-        cam: org.joml.Vector3d, worldScale: Double,
+        cam: org.joml.Vector3d, worldScale: Float,
         color: Int
     ) {
         putRelativeLine(
@@ -339,7 +339,7 @@ object LineBuffer {
         x0: Double, y0: Double, z0: Double,
         x1: Double, y1: Double, z1: Double,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         color: Int
     ) {
         putRelativeLine(
@@ -357,7 +357,7 @@ object LineBuffer {
         x0: Float, y0: Float, z0: Float,
         x1: Float, y1: Float, z1: Float,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         color: Int
     ) {
         putRelativeLine(
@@ -375,7 +375,7 @@ object LineBuffer {
     fun putRelativeLine(
         v0: org.joml.Vector3d, v1: org.joml.Vector3d,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         r: Double, g: Double, b: Double, a: Double = 1.0
     ) {
         putRelativeLine(
@@ -392,7 +392,7 @@ object LineBuffer {
     fun putRelativeLine(
         v0: org.joml.Vector3d, v1: org.joml.Vector3d,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         color: Int
     ) {
         putRelativeLine(

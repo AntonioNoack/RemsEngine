@@ -110,7 +110,7 @@ class SpiderLogic(val brain: FullyConnectedNN, val traps: Entity) : Component(),
             (position.y * 2.0 - 1.0) * spiderWorldScale
         )
         transform.localRotation = transform.localRotation
-            .rotationY(rotation.toDouble())
+            .rotationY(rotation)
 
         val spiderComp = getComponent(SpiderPrediction::class)!!
         // todo calculate position in future

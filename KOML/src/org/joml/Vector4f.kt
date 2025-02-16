@@ -230,6 +230,19 @@ open class Vector4f(
     }
 
     @JvmOverloads
+    fun mul(mat: Matrix4x3m, dst: Vector4f = this): Vector4f {
+        val x = x
+        val y = y
+        val z = z
+        val w = w
+        dst.x = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w).toFloat()
+        dst.y = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w).toFloat()
+        dst.z = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w).toFloat()
+        dst.w = w
+        return dst
+    }
+
+    @JvmOverloads
     fun mulProject(mat: Matrix4f, dst: Vector4f = this): Vector4f {
         val x = x
         val y = y

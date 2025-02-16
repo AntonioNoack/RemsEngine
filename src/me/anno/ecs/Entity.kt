@@ -31,9 +31,11 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Entity() : PrefabSaveable(), Inspectable, Renderable {
@@ -173,7 +175,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @RotationType
     @SerializedProperty
     @Docs("Local rotation, shortcut for transform.localRotation")
-    var rotation: Quaterniond
+    var rotation: Quaternionf
         get() = transform.localRotation
         set(value) {
             transform.localRotation = value
@@ -183,7 +185,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @ScaleType
     @SerializedProperty
     @Docs("Local scale, shortcut for transform.localScale")
-    var scale: Vector3d
+    var scale: Vector3f
         get() = transform.localScale
         set(value) {
             transform.localScale = value
@@ -211,23 +213,23 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return this
     }
 
-    fun setRotation(radiansX: Double, radiansY: Double, radiansZ: Double): Entity {
+    fun setRotation(radiansX: Float, radiansY: Float, radiansZ: Float): Entity {
         rotation = rotation
             .identity()
             .rotateYXZ(radiansY, radiansX, radiansZ)
         return this
     }
 
-    fun setScale(sc: Double): Entity {
+    fun setScale(sc: Float): Entity {
         return setScale(sc, sc, sc)
     }
 
-    fun setScale(v: Vector3d): Entity {
+    fun setScale(v: Vector3f): Entity {
         scale = v
         return this
     }
 
-    fun setScale(scaleX: Double, scaleY: Double, scaleZ: Double): Entity {
+    fun setScale(scaleX: Float, scaleY: Float, scaleZ: Float): Entity {
         return setScale(scale.set(scaleX, scaleY, scaleZ))
     }
 
@@ -614,14 +616,14 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    fun fromOtherLocalToLocal(other: Entity): Matrix4x3d {
+    fun fromOtherLocalToLocal(other: Entity): Matrix4x3m {
         // converts the point from the local coordinates of the other one to our local coordinates
         return other.fromLocalToOtherLocal(this)
     }
 
-    fun fromLocalToOtherLocal(other: Entity): Matrix4x3d {
+    fun fromLocalToOtherLocal(other: Entity): Matrix4x3m {
         // converts the point from our local coordinates of the local coordinates of the other one
-        return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
+        return Matrix4x3m(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
@@ -685,10 +687,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         super.save(writer)
         writer.writeVector3d("position", transform.localPosition)
         val scale = transform.localScale
-        if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0) {
-            writer.writeVector3d("scale", scale, true)
+        if (scale.x != 1f || scale.y != 1f || scale.z != 1f) {
+            writer.writeVector3f("scale", scale, true)
         }
-        writer.writeQuaterniond("rotation", transform.localRotation)
+        writer.writeQuaternionf("rotation", transform.localRotation)
         writer.writeObjectList(this, "children", children)
         writer.writeObjectList(this, "components", components)
     }
@@ -696,8 +698,14 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "position" -> transform.localPosition = value as? Vector3d ?: return
-            "scale" -> transform.localScale = value as? Vector3d ?: return
-            "rotation" -> transform.localRotation = value as? Quaterniond ?: return
+            "scale" -> when (value) {
+                is Vector3f -> transform.localScale = value
+                is Vector3d -> transform.localScale = transform.localScale.set(value)
+            }
+            "rotation" -> when (value) {
+                is Quaternionf -> transform.localRotation = value
+                is Quaterniond -> transform.localRotation = transform.localRotation.set(value)
+            }
             "children" -> addMembers(value, internalChildren) { if (it is Entity) addChild(it) }
             "components" -> addMembers(value, internalComponents) { if (it is Component) addComponent(it) }
             "isCollapsed" -> isCollapsed = AnyToBool.anyToBool(value)

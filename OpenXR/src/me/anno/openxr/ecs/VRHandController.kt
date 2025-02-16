@@ -25,6 +25,7 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.min
@@ -109,7 +110,7 @@ class VRHandController : Component(), OnUpdate {
     }
 
     fun updateVisibility(visible: Boolean) {
-        val scale = if (visible) 1.0 else 1e-16
+        val scale = if (visible) 1.0f else 1e-16f
         entity?.setScale(scale)
         teleportCircleMesh?.setScale(scale)
     }
@@ -124,7 +125,7 @@ class VRHandController : Component(), OnUpdate {
     }
 
     private fun updateTeleportCircleMesh(
-        hitPosition: Vector3d, hitNormal: Vector3d, hitDistance: Double,
+        hitPosition: Vector3d, hitNormal: Vector3f, hitDistance: Double,
         mayTeleport: Boolean
     ) {
         val hitTarget = teleportCircleMesh
@@ -135,7 +136,7 @@ class VRHandController : Component(), OnUpdate {
                     .translate(hitPosition)
                     .translate(0.0, hitDistance * 0.01, 0.0)
                     .rotate(hitNormal.normalToQuaternionY())
-                    .scale(if (mayTeleport) 0.5 else 1e-16)
+                    .scale(if (mayTeleport) 0.5f else 1e-16f)
             )
             hitTarget.transform.teleportUpdate()
             teleportCircleMesh?.invalidateAABBsCompletely()
@@ -249,8 +250,7 @@ class VRHandController : Component(), OnUpdate {
                 }
 
                 // invTransform is known to be [controller.position, controller.rotation]^-1, so this could be simplified
-                val invTransform = lineRenderer.transform!!.globalTransform
-                    .invert(Matrix4x3d())
+                val invTransform = lineRenderer.transform!!.globalTransform.invert(Matrix4x3m())
 
                 val tmp = Vector3d()
                 val extraHeight = if (mayTeleport) 0.05 * distance else 0.0

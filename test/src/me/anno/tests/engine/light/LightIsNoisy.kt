@@ -20,7 +20,7 @@ fun main() {
     Entity("Light", scene)
         .add(PointLight().apply { color.set(1000f) })
         .setPosition(0.0, 0.03, 0.0)
-        .setScale(1.0, 8.0, 1.0)
+        .setScale(1f, 8f, 1f)
     testSceneWithUI("Noisy Light", scene)
 }
 

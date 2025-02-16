@@ -32,6 +32,7 @@ import me.anno.tests.utils.TestWorld
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -247,12 +248,12 @@ fun main() {
 
                 override fun fill(pipeline: Pipeline, instancedLights: LightData, transform: Transform) {
                     val dst = instancedLights[light]
-                    val scale = 10.0
+                    val scale = 10f
                     for (index in count1 until count2) {
                         val (drawMatrix, invMatrix) = getTransform(index - count1)
                         val src = debugCubeSpawner.getTransform(index)
                         drawMatrix.set(src.getDrawMatrix()).scale(scale)
-                        invMatrix.setTranslateScaleInverse(drawMatrix.m30, drawMatrix.m31, drawMatrix.m32, scale)
+                        invMatrix.setTranslateScaleInverse(drawMatrix.m30, drawMatrix.m31, drawMatrix.m32, scale.toDouble())
                         dst.add(light, drawMatrix, invMatrix)
                     }
                 }
@@ -296,7 +297,7 @@ fun main() {
 
         fun raycastPoint(): AccNode? {
             val maxDistance = 1e3
-            val query = RayQuery(view.renderView.cameraPosition, view.renderView.mouseDirection, maxDistance)
+            val query = RayQuery(view.renderView.cameraPosition, Vector3d(view.renderView.mouseDirection), maxDistance)
             val hit = Raycast.raycast(scene, query)
             return if (hit) {
                 val result = query.result

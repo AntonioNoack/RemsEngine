@@ -9,8 +9,8 @@ import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.res
-import kotlin.math.PI
 
 fun main() {
     val scene = Entity()
@@ -18,7 +18,7 @@ fun main() {
     box.add(object : Component(), OnUpdate {
         override fun onUpdate() {
             Thread.sleep(50) // simulate low fps, so the result is better visible
-            box.rotation = box.rotation.rotateY(PI / 6) // rotate quickly
+            box.rotation = box.rotation.rotateY(PIf / 6) // rotate quickly
         }
     })
     val cyl = CylinderModel.createCylinder(50, 2, top = true, bottom = true, null, 3f, Mesh())

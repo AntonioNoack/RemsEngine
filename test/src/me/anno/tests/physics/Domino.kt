@@ -151,7 +151,7 @@ fun main() {
             add(0f, spacing * i)
         }
         add(0f, spacing * di).apply {
-            rotation = rotation.rotateX((-20.0).toRadians())
+            rotation = rotation.rotateX((-20f).toRadians())
         }
     }
 }

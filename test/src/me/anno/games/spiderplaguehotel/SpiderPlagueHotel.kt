@@ -69,7 +69,7 @@ fun main() {
     val scene = Entity("Scene")
     Entity("Floor", scene)
         .add(MeshComponent(plane))
-        .setScale(spiderWorldScale)
+        .setScale(spiderWorldScale.toFloat())
 
     val random = Random(Time.nanoTime)
     val spiders = Entity("Spiders", scene)
@@ -97,7 +97,7 @@ fun main() {
         Entity(traps).add(trap)
             .setPosition((pos.x * 2f - 1f) * spiderWorldScale, 5.0, (pos.y * 2f - 1f) * spiderWorldScale)
             .add(MeshComponent(trapMesh, redMaterial))
-            .setScale(10.0, 0.4, 10.0)
+            .setScale(10f, 0.4f, 10f)
     }
 
     testSceneWithUI("Spider Plague Hotel", scene)

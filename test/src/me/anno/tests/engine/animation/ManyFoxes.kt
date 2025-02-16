@@ -14,12 +14,12 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
-import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.min
 import me.anno.utils.OS.downloads
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2f
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
@@ -57,8 +57,8 @@ fun optimizeEntity(entity: Entity): Entity {
     entity.validateTransform()
 
     val clone = Entity()
-    val transformToEntity = HashMap<Matrix4x3d, Entity>()
-    fun getTransformedChild(matrix: Matrix4x3d): Entity {
+    val transformToEntity = HashMap<Matrix4x3m, Entity>()
+    fun getTransformedChild(matrix: Matrix4x3m): Entity {
         return if (matrix.isIdentity()) clone
         else transformToEntity.getOrPut(matrix) {
             val child = Entity(clone)
@@ -110,16 +110,16 @@ fun main() {
         val ring = Entity("Ring $i", scene)
         ring.add(object : Component(), OnUpdate {
             override fun onUpdate() {
-                val progress = dir * controller.localTime / radius
-                entity!!.setRotation(0.0, progress, 0.0)
+                val progress = (dir * controller.localTime / radius).toFloat()
+                entity!!.setRotation(0f, progress, 0f)
             }
         })
         for (j in 0 until count) {
             val entity = fox.clone() as Entity
-            val angle = j * TAU / count
+            val angle = j * TAUf / count
             entity.setPosition(cos(angle) * radius, 0.08, -sin(angle) * radius)
-            entity.setRotation(0.0, if (dir < 0) angle else angle + PI, 0.0)
-            entity.setScale(0.01)
+            entity.setRotation(0f, if (dir < 0) angle else angle + PIf, 0f)
+            entity.setScale(0.01f)
             val randomProgress = random.nextFloat() * 100f
             entity.forAllComponentsInChildren(AnimMeshComponent::class) {
                 for (state in it.animations) {

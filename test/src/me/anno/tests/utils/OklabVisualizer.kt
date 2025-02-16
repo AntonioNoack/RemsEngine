@@ -7,11 +7,11 @@ import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.DrawMode
+import me.anno.maths.Maths.PIf
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.ui.editor.color.spaces.Oklab
 import me.anno.utils.Color.toRGB
 import org.joml.Vector3f
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.random.Random
@@ -84,7 +84,7 @@ fun main() {
         .add(MeshComponent(createColorsMesh(120)))
     Entity(scene)
         .add(MeshComponent(createColorsPoints(10000)))
-        .setRotation(0.0, PI, 0.0)
+        .setRotation(0f, PIf, 0f)
     SceneView.testSceneWithUI("Oklab", scene) {
         it.renderView.renderMode = RenderMode.COLOR
     }

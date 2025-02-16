@@ -268,6 +268,14 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._properties(m.properties() or 2)
     }
 
+    fun set(m: Matrix4x3m): Matrix4d {
+        return _m00(m.m00.toDouble())._m01(m.m01.toDouble())._m02(m.m02.toDouble())._m03(0.0)
+            ._m10(m.m10.toDouble())._m11(m.m11.toDouble())._m12(m.m12.toDouble())._m13(0.0)
+            ._m20(m.m20.toDouble())._m21(m.m21.toDouble())._m22(m.m22.toDouble())._m23(0.0)
+            ._m30(m.m30)._m31(m.m31)._m32(m.m32)._m33(1.0)
+            ._properties(m.properties() or 2)
+    }
+
     fun set(mat: Matrix3d): Matrix4d {
         return _m00(mat.m00)._m01(mat.m01)._m02(mat.m02)._m03(0.0)
             ._m10(mat.m10)._m11(mat.m11)._m12(mat.m12)._m13(0.0)
@@ -296,6 +304,14 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._m10(mat.m10.toDouble())._m11(mat.m11.toDouble())._m12(mat.m12.toDouble())
             ._m20(mat.m20.toDouble())._m21(mat.m21.toDouble())._m22(mat.m22.toDouble())
             ._m30(mat.m30.toDouble())._m31(mat.m31.toDouble())._m32(mat.m32.toDouble())
+            ._properties(flags and mat.properties() and -2)
+    }
+
+    fun set4x3(mat: Matrix4x3m): Matrix4d {
+        return _m00(mat.m00.toDouble())._m01(mat.m01.toDouble())._m02(mat.m02.toDouble())
+            ._m10(mat.m10.toDouble())._m11(mat.m11.toDouble())._m12(mat.m12.toDouble())
+            ._m20(mat.m20.toDouble())._m21(mat.m21.toDouble())._m22(mat.m22.toDouble())
+            ._m30(mat.m30)._m31(mat.m31)._m32(mat.m32)
             ._properties(flags and mat.properties() and -2)
     }
 
@@ -551,9 +567,24 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         } else if (flags and 8 != 0) {
             mulTranslation(right, dst)
         } else if (flags and 2 != 0) {
-            this.mulAffine(right, dst)
+            mulAffine(right, dst)
         } else {
-            if (flags and 1 != 0) this.mulPerspectiveAffine(right, dst) else this.mulGeneric(right, dst)
+            if (flags and 1 != 0) mulPerspectiveAffine(right, dst) else mulGeneric(right, dst)
+        }
+    }
+
+    @JvmOverloads
+    fun mul(right: Matrix4x3m, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) {
+            dst.set(right)
+        } else if (right.properties() and 4 != 0) {
+            dst.set(this)
+        } else if (flags and 8 != 0) {
+            mulTranslation(right, dst)
+        } else if (flags and 2 != 0) {
+            mulAffine(right, dst)
+        } else {
+            if (flags and 1 != 0) mulPerspectiveAffine(right, dst) else mulGeneric(right, dst)
         }
     }
 
@@ -565,7 +596,53 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
             ._properties(2 or (right.properties() and 16))
     }
 
+    private fun mulTranslation(right: Matrix4x3m, dst: Matrix4d): Matrix4d {
+        return dst._m00(right.m00.toDouble())._m01(right.m01.toDouble())._m02(right.m02.toDouble())._m03(m03)
+            ._m10(right.m10.toDouble())._m11(right.m11.toDouble())._m12(right.m12.toDouble())._m13(m13)
+            ._m20(right.m20.toDouble())._m21(right.m21.toDouble())._m22(right.m22.toDouble())._m23(m23)
+            ._m30(right.m30 + m30)._m31(right.m31 + m31)._m32(right.m32 + m32)._m33(m33)
+            ._properties(2 or (right.properties() and 16))
+    }
+
     private fun mulAffine(right: Matrix4x3d, dst: Matrix4d): Matrix4d {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        val m20 = m20
+        val m21 = m21
+        val m22 = m22
+        val rm00 = right.m00
+        val rm01 = right.m01
+        val rm02 = right.m02
+        val rm10 = right.m10
+        val rm11 = right.m11
+        val rm12 = right.m12
+        val rm20 = right.m20
+        val rm21 = right.m21
+        val rm22 = right.m22
+        val rm30 = right.m30
+        val rm31 = right.m31
+        val rm32 = right.m32
+        return dst
+            ._m00(m00 * rm00 + m10 * rm01 + m20 * rm02)
+            ._m01(m01 * rm00 + m11 * rm01 + m21 * rm02)
+            ._m02(m02 * rm00 + m12 * rm01 + m22 * rm02)._m03(m03)
+            ._m10(m00 * rm10 + m10 * rm11 + m20 * rm12)
+            ._m11(m01 * rm10 + m11 * rm11 + m21 * rm12)
+            ._m12(m02 * rm10 + m12 * rm11 + m22 * rm12)._m13(m13)
+            ._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)
+            ._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
+            ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(m23)
+            ._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
+            ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
+            ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)._m33(m33)
+            ._properties(2 or (flags and right.properties() and 16))
+    }
+
+    private fun mulAffine(right: Matrix4x3m, dst: Matrix4d): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
@@ -627,7 +704,44 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         return dst
     }
 
+    private fun mulGeneric(right: Matrix4x3m, dst: Matrix4d): Matrix4d {
+        val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
+        val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
+        val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
+        val nm03 = m03 * right.m00 + m13 * right.m01 + m23 * right.m02
+        val nm10 = m00 * right.m10 + m10 * right.m11 + m20 * right.m12
+        val nm11 = m01 * right.m10 + m11 * right.m11 + m21 * right.m12
+        val nm12 = m02 * right.m10 + m12 * right.m11 + m22 * right.m12
+        val nm13 = m03 * right.m10 + m13 * right.m11 + m23 * right.m12
+        val nm20 = m00 * right.m20 + m10 * right.m21 + m20 * right.m22
+        val nm21 = m01 * right.m20 + m11 * right.m21 + m21 * right.m22
+        val nm22 = m02 * right.m20 + m12 * right.m21 + m22 * right.m22
+        val nm23 = m03 * right.m20 + m13 * right.m21 + m23 * right.m22
+        val nm30 = m00 * right.m30 + m10 * right.m31 + m20 * right.m32 + m30
+        val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31
+        val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32
+        val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+            ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(
+                flags and -30
+            )
+        return dst
+    }
+
     fun mulPerspectiveAffine(view: Matrix4x3d, dst: Matrix4d): Matrix4d {
+        val lm00 = m00
+        val lm11 = m11
+        val lm22 = m22
+        val lm23 = m23
+        dst._m00(lm00 * view.m00)._m01(lm11 * view.m01)._m02(lm22 * view.m02)._m03(lm23 * view.m02)
+            ._m10(lm00 * view.m10)._m11(lm11 * view.m11)._m12(lm22 * view.m12)._m13(lm23 * view.m12)
+            ._m20(lm00 * view.m20)._m21(lm11 * view.m21)._m22(lm22 * view.m22)._m23(lm23 * view.m22)
+            ._m30(lm00 * view.m30)._m31(lm11 * view.m31)._m32(lm22 * view.m32 + m32)._m33(lm23 * view.m32)
+            ._properties(0)
+        return dst
+    }
+
+    fun mulPerspectiveAffine(view: Matrix4x3m, dst: Matrix4d): Matrix4d {
         val lm00 = m00
         val lm11 = m11
         val lm22 = m22
@@ -1299,6 +1413,13 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
         return dst.set(m30, m31, m32)
     }
 
+    fun getScale(dst: Vector3f): Vector3f {
+        dst.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02).toFloat()
+        dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12).toFloat()
+        dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22).toFloat()
+        return dst
+    }
+
     fun getScale(dst: Vector3d): Vector3d {
         dst.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02)
         dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
@@ -1325,6 +1446,10 @@ open class Matrix4d : Matrix<Matrix4d, Vector4d, Vector4d> {
     }
 
     fun getUnnormalizedRotation(dst: Quaterniond): Quaterniond {
+        return dst.setFromUnnormalized(this)
+    }
+
+    fun getUnnormalizedRotation(dst: Quaternionf): Quaternionf {
         return dst.setFromUnnormalized(this)
     }
 

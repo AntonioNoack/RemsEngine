@@ -37,7 +37,7 @@ fun main() {
         .add(BoxCollider())
         .add(MeshComponent(flatCube, Material.diffuse(0x555555)))
         .setPosition(0.0, -50.0, 0.0)
-        .setScale(50.0)
+        .setScale(50f)
 
     // sample cubes stacked on top of each other
     for (i in 0 until 5) {
@@ -46,8 +46,8 @@ fun main() {
             .add(BoxCollider())
             .add(MeshComponent(flatCube, Material.diffuse(0x555555)))
             .setPosition(0.0, i + 2.0, 0.0)
-            .setRotation(0.0, i * 1.0, 0.0)
-            .setScale(0.5)
+            .setRotation(0f, i.toFloat(), 0f)
+            .setScale(0.5f)
     }
 
     testSceneWithUI("FirstPersonShooter", scene)

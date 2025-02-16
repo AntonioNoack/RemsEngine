@@ -265,7 +265,17 @@ open class Quaternionf(
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
+    fun setFromUnnormalized(mat: Matrix4d): Quaternionf {
+        return setFromUnnormalized(mat.m00.toFloat(), mat.m01.toFloat(), mat.m02.toFloat(),
+            mat.m10.toFloat(), mat.m11.toFloat(), mat.m12.toFloat(),
+            mat.m20.toFloat(), mat.m21.toFloat(), mat.m22.toFloat())
+    }
+
     fun setFromUnnormalized(mat: Matrix4x3f): Quaternionf {
+        return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
+    }
+
+    fun setFromUnnormalized(mat: Matrix4x3m): Quaternionf {
         return setFromUnnormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
@@ -274,6 +284,10 @@ open class Quaternionf(
     }
 
     fun setFromNormalized(mat: Matrix4x3f): Quaternionf {
+        return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
+    }
+
+    fun setFromNormalized(mat: Matrix4x3m): Quaternionf {
         return setFromNormalized(mat.m00, mat.m01, mat.m02, mat.m10, mat.m11, mat.m12, mat.m20, mat.m21, mat.m22)
     }
 
@@ -328,6 +342,10 @@ open class Quaternionf(
     }
 
     fun transform(vec: Vector3f): Vector3f {
+        return transform(vec.x, vec.y, vec.z, vec)
+    }
+
+    fun transform(vec: Vector3d): Vector3d {
         return transform(vec.x, vec.y, vec.z, vec)
     }
 
@@ -419,15 +437,34 @@ open class Quaternionf(
         return dst
     }
 
-    fun transform(vec: Vector3f, dst: Vector3f): Vector3f {
+    fun transform(vec: Vector3f, dst: Vector3f = vec): Vector3f {
         return transform(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transformInverse(vec: Vector3f, dst: Vector3f): Vector3f {
+    fun transformInverse(vec: Vector3f, dst: Vector3f = vec): Vector3f {
         return transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
     fun transform(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
+        val xx = this.x * this.x
+        val yy = this.y * this.y
+        val zz = this.z * this.z
+        val ww = w * w
+        val xy = this.x * this.y
+        val xz = this.x * this.z
+        val yz = this.y * this.z
+        val xw = this.x * w
+        val zw = this.z * w
+        val yw = this.y * w
+        val k = 1f / (xx + yy + zz + ww)
+        return dst.set(
+            (xx - yy - zz + ww) * k * x + 2f * (xy - zw) * k * y + 2f * (xz + yw) * k * z,
+            2f * (xy + zw) * k * x + (yy - xx - zz + ww) * k * y + 2f * (yz - xw) * k * z,
+            2f * (xz - yw) * k * x + 2f * (yz + xw) * k * y + (zz - xx - yy + ww) * k * z
+        )
+    }
+
+    fun transform(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val xx = this.x * this.x
         val yy = this.y * this.y
         val zz = this.z * this.z

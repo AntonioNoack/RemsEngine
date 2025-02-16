@@ -10,10 +10,10 @@ import me.anno.utils.OS.downloads
 fun main() {
     val scene = Entity("Scene")
     Entity("Grass", scene)
-        .setPosition(0.0, -1.5, 0.0).setScale(150.0, 0.5, 150.0)
+        .setPosition(0.0, -1.5, 0.0).setScale(150f, 0.5f, 150f)
         .add(MeshComponent(flatCube.front, Material.diffuse(0x81BB71)))
     Entity("Wet Road", scene)
-        .setPosition(0.0, -0.5, 0.0).setScale(24.0, 0.5, 150.0)
+        .setPosition(0.0, -0.5, 0.0).setScale(24f, 0.5f, 150f)
         .add(MeshComponent(flatCube.front, Material.metallic(0x333333, 0f)))
     Entity("Truck", scene)
         .setPosition(-16.0, 0.0, -50.0)

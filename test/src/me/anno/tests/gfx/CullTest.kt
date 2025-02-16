@@ -5,7 +5,7 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 
@@ -16,8 +16,8 @@ class CullTest {
         val res = 100
 
         frustum.definePerspective(
-            0.001, 100.0, (90.0).toRadians(), res, 1.0, Vector3d(0.0, 0.0, -1.0),
-            Quaterniond()
+            0.001f, 100.0f, (90f).toRadians(), res, 1f, Vector3d(0.0, 0.0, -1.0),
+            Quaternionf()
         )
 
         val aabb1 = AABBd()
@@ -30,8 +30,8 @@ class CullTest {
         assertFalse(aabb2 in frustum)
 
         frustum.definePerspective(
-            0.001, 100.0, (90.0).toRadians(), res, 1.0, Vector3d(0.0, 0.0, 1.0),
-            Quaterniond()
+            0.001f, 100f, (90f).toRadians(), res, 1f, Vector3d(0.0, 0.0, 1.0),
+            Quaternionf()
         )
 
         assertTrue(aabb1 in frustum)

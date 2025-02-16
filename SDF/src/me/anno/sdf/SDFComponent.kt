@@ -66,6 +66,7 @@ import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Planef
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -292,7 +293,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         return super.getMeshOrNull()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         ensureValidBounds()
         return super.fillSpace(globalTransform, dstUnion)
     }
@@ -359,8 +360,8 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         } else {
             // raycast
             val result = query.result
-            val globalTransform = transform?.globalTransform ?: Matrix4x3d() // local -> global
-            val globalInv = result.tmpMat4x3d.set(globalTransform).invert()
+            val globalTransform = transform?.globalTransform ?: Matrix4x3m() // local -> global
+            val globalInv = result.tmpMat4x3m.set(globalTransform).invert()
             val vec3f = result.tmpVector3fs
             val vec3d = result.tmpVector3ds
             val vec4f = result.tmpVector4fs
@@ -881,8 +882,8 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     }
 
     override fun move(
-        self: DraggingControls, camTransform: Matrix4x3d,
-        offset: Vector3d, dir: Vector3d, rotationAngle: Double,
+        self: DraggingControls, camTransform: Matrix4x3m,
+        offset: Vector3f, dir: Vector3f, rotationAngle: Float,
         dx: Float, dy: Float
     ) {
         val sdfTransform = JomlPools.mat4x3f.create()
@@ -934,16 +935,16 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         JomlPools.mat4x3f.sub(1)
     }
 
-    override fun getGlobalTransform(dst: Matrix4x3d): Matrix4x3d {
+    override fun getGlobalTransform(dst: Matrix4x3m): Matrix4x3m {
         when (val parent = parent) {
             is Entity -> dst.set(parent.transform.globalTransform)
             is DCMovable -> parent.getGlobalTransform(dst)
             else -> dst.identity()
         }
         return dst
-            .translate(position)
+            .translate(position.x.toDouble(), position.y.toDouble(), position.z.toDouble())
             .rotate(rotation)
-            .scale(scale.toDouble())
+            .scale(scale)
     }
 
     override fun drop(
@@ -952,8 +953,8 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         hovEntity: Entity?,
         hovComponent: Component?,
         dropPosition: Vector3d,
-        dropRotation: Quaterniond,
-        dropScale: Vector3d,
+        dropRotation: Quaternionf,
+        dropScale: Vector3f,
         results: MutableCollection<PrefabSaveable>
     ) {
         if (hovComponent is SDFGroup) {

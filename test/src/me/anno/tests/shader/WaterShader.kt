@@ -35,6 +35,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.TextureLib
+import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.res
 import me.anno.utils.types.Booleans.hasFlag
@@ -146,10 +147,10 @@ fun main() {
                     .add(PlanarReflection())
                     // todo why is that offset against z-fighting needed?
                     .setPosition(0.0, 1e-6, 0.0)
-                    .setRotation(-PI / 2, 0.0, 0.0)
+                    .setRotation(-PIf / 2, 0f, 0f)
             )
             .setPosition(0.0, 10.0, 0.0)
-            .setScale(15000.0)
+            .setScale(15000f)
     )
     testSceneWithUI("Water", scene)
 }

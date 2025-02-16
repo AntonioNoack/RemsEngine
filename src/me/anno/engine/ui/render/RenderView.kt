@@ -83,8 +83,11 @@ import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -125,13 +128,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             pipeline.superMaterial = value.material
         }
 
-    var radius = 10.0
+    var radius = 10f
         set(value) {
-            field = clamp(value, 1e-130, 1e130)
+            field = clamp(value, 1e-35f, 1e35f)
         }
 
     open fun updateWorldScale() {
-        worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
+        worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1f else 1f / radius
     }
 
     fun usesFrameGen(): Boolean {
@@ -144,8 +147,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     // todo move this to OrbitController?
     val orbitCenter = Vector3d()
-    val orbitRotation = Quaterniond()
-        .rotateX((-30.0).toRadians())
+    val orbitRotation = Quaternionf()
+        .rotateX((-30f).toRadians())
 
     val buffers = RenderBuffers()
     val renderSize = RenderSize()
@@ -176,7 +179,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val tmp3d = JomlPools.vec3d.borrow()
         cameraNode.transform.localPosition =
-            if (enableOrbiting) orbitRotation.transform(tmp3d.set(0.0, 0.0, radius)).add(orbitCenter)
+            if (enableOrbiting) orbitRotation.transform(tmp3d.set(0f, 0f, radius)).add(orbitCenter)
             else orbitCenter
         cameraNode.transform.localRotation = orbitRotation
         cameraNode.transform.teleportUpdate()
@@ -487,14 +490,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val t1 = camera.entity?.transform?.getValidDrawMatrix()
 
-        val camRot = JomlPools.quat4d.create()
+        val camRot = JomlPools.quat4f.create()
         if (t1 != null) {
             t1.getUnnormalizedRotation(camRot)
             if (!camRot.isFinite) camRot.identity()
         } else camRot.identity()
 
         rotateCamMatrix(camRot)
-        JomlPools.quat4d.sub(1)
+        JomlPools.quat4f.sub(1)
 
         if (t1 != null) t1.getTranslation(cameraPosition)
         else cameraPosition.set(0.0)
@@ -515,10 +518,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    private fun rotateCamMatrix(camRot: Quaterniond) {
+    private fun rotateCamMatrix(camRot: Quaternionf) {
         cameraMatrix.rotateInv(camRot)
         cameraRotation.set(camRot)
-        camRot.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
+        camRot.transform(cameraDirection.set(0f, 0f, -1f)).normalize()
     }
 
     fun setPerspectiveCamera(fov: Float, aspectRatio: Float, centerX: Float, centerY: Float) {
@@ -534,8 +537,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun setOrthographicCamera(fov: Float, aspectRatio: Float) {
-        val scaledNear = max(scaledNear, worldScale * 0.001)
-        val scaledFar = min(scaledFar, worldScale * 1000.0)
+        val scaledNear = max(scaledNear, worldScale * 0.001f)
+        val scaledFar = min(scaledFar, worldScale * 1000f)
         fovXRadians = fov * aspectRatio
         fovYRadians = fov // not really defined
         fovXCenter = 0.5f
@@ -568,13 +571,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         pipeline.clear()
         if (isPerspective) {
             pipeline.frustum.definePerspective(
-                near, far, fovYRadians.toDouble(),
-                height, aspectRatio.toDouble(), cameraPosition,
+                near, far, fovYRadians,
+                height, aspectRatio, cameraPosition,
                 cameraRotation,
             )
         } else {
             pipeline.frustum.defineOrthographic(
-                fov.toDouble(), aspectRatio.toDouble(), near, far, width,
+                fov, aspectRatio, near, far, width,
                 cameraPosition, cameraRotation
             )
         }
@@ -758,7 +761,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
      * get the mouse direction from this camera
      * todo for other cameras: can be used for virtual mice
      * */
-    fun getMouseRayDirection(cx: Float, cy: Float, dst: Vector3d): Vector3d {
+    fun getMouseRayDirection(cx: Float, cy: Float, dst: Vector3f): Vector3f {
         val rx = (cx - x) / width * 2.0 - 1.0
         val ry = (cy - y) / height * 2.0 - 1.0
         return getRelativeMouseRayDirection(rx, -ry, dst)
@@ -767,8 +770,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun getRelativeMouseRayDirection(
         rx: Double, // -1 .. 1
         ry: Double, // -1 .. 1
-        dst: Vector3d = Vector3d()
-    ): Vector3d {
+        dst: Vector3f = Vector3f()
+    ): Vector3f {
         val tanHalfFoV = tan(fovYRadians * 0.5)
         val aspectRatio = width.toFloat() / height
         dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
@@ -776,35 +779,35 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        getMouseRayDirection(x, y, JomlPools.vec3d.create())
+        getMouseRayDirection(x, y, mouseDirection)
         super.onMouseMoved(x, y, dx, dy)
     }
 
-    var worldScale = 1.0
+    var worldScale = 1f
 
     var fovXRadians = 1f
     var fovYRadians = 1f
     var fovXCenter = 0.5f
     var fovYCenter = 0.5f
 
-    var near = 1e-3
-    val scaledNear: Double get() = near * worldScale
+    var near = 1e-3f
+    val scaledNear get() = near * worldScale
 
     // infinity
-    var far = 1e10
-    val scaledFar: Double get() = far * worldScale
+    var far = 1e10f
+    val scaledFar get() = far * worldScale
     val isPerspective: Boolean
         get() = abs(cameraMatrix.m33 - 1f) > 1e-5f
 
     val cameraMatrix = Matrix4f()
     val cameraPosition = Vector3d()
-    val cameraDirection = Vector3d()
-    val cameraRotation = Quaterniond()
-    val mouseDirection = Vector3d()
+    val cameraDirection = Vector3f()
+    val cameraRotation = Quaternionf()
+    val mouseDirection = Vector3f()
 
     val prevCamMatrix = Matrix4f()
     val prevCamPosition = Vector3d()
-    val prevCamRotation = Quaterniond()
+    val prevCamRotation = Quaternionf()
     var prevWorldScale = worldScale
 
     fun updatePrevState() {
@@ -867,7 +870,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                     is Entity -> world.getGlobalBounds()
                     is Component -> {
                         val bounds = AABBd()
-                        world.fillSpace(Matrix4x3d(), bounds)
+                        world.fillSpace(Matrix4x3m(), bounds)
                         bounds
                     }
                     else -> null
@@ -883,7 +886,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         // calculate good position for sun
                         val transform = defaultSunEntity.transform
                         transform.setLocalPosition(bounds.centerX, bounds.centerY, bounds.centerZ)
-                        transform.setLocalScale(3.0 / max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ)))
+                        transform.setLocalScale(3f / max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ)).toFloat())
                         transform.teleportUpdate()
                         transform.validate()
                         defaultSun.onUpdate()

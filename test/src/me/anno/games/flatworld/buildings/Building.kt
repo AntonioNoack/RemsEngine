@@ -6,5 +6,5 @@ import org.joml.Vector3d
 
 open class Building(val mesh: Mesh) : Component() {
     val position = Vector3d()
-    var rotationYDegrees = 0.0
+    var rotationYDegrees = 0f
 }

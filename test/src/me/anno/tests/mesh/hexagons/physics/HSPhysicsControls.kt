@@ -19,6 +19,7 @@ import me.anno.tests.mesh.hexagons.air
 import me.anno.tests.mesh.hexagons.createMesh
 import me.anno.tests.mesh.hexagons.grass
 import me.anno.utils.files.Files.formatFileSize
+import org.joml.Vector3d
 import org.joml.Vector3f
 
 class HSPhysicsControls(
@@ -38,7 +39,7 @@ class HSPhysicsControls(
         // super.onUpdate()
         // jumping
         if (triQ.touchesFloor && Input.wasKeyPressed(' ')) {
-            physics.addForce(up.x.toFloat(), up.y.toFloat(), up.z.toFloat(), 3f * len)
+            physics.addForce(up.x, up.y, up.z, 3f * len)
         }
         // friction
         val dtx = Time.deltaTime.toFloat() * (if (triQ.touchesFloor) 5f else 1f)
@@ -67,7 +68,7 @@ class HSPhysicsControls(
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // resolve click
         val start = it.renderView.cameraPosition
-        val dir = it.renderView.mouseDirection
+        val dir = Vector3d(it.renderView.mouseDirection)
         val query = RayQuery(start, dir, 10.0)
         val hit = Raycast.raycast(scene, query)
         if (hit) {
@@ -79,7 +80,9 @@ class HSPhysicsControls(
                 dir.mulAdd(-sphere.len * 0.05, result.positionWS, result.positionWS)
             } else {
                 // move hit more into the block
-                result.geometryNormalWS.mulAdd(-sphere.len * 0.25, result.positionWS, result.positionWS)
+                val d = result.geometryNormalWS
+                val l = -sphere.len * 0.25
+                result.positionWS.add(d.x * l, d.y * l, d.z * l)
             }
             val hexagon = sphere.findClosestHexagon(Vector3f(result.positionWS))
             val h = result.positionWS.length().toFloat()
@@ -109,12 +112,12 @@ class HSPhysicsControls(
         }
     }
 
-    override fun moveCamera(dx: Double, dy: Double, dz: Double) {
+    override fun moveCamera(dx: Float, dy: Float, dz: Float) {
         val dy2 = dy * 5f
         physics.addForce(
-            (dx * right.x + dy2 * up.x - dz * forward.x).toFloat(),
-            (dx * right.y + dy2 * up.y - dz * forward.y).toFloat(),
-            (dx * right.z + dy2 * up.z - dz * forward.z).toFloat(),
+            (dx * right.x + dy2 * up.x - dz * forward.x),
+            (dx * right.y + dy2 * up.y - dz * forward.y),
+            (dx * right.z + dy2 * up.z - dz * forward.z),
             2f * Time.deltaTime.toFloat()
         )
     }

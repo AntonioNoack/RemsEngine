@@ -42,7 +42,7 @@ object MovingGrid {
     private fun drawGrid3(pipeline: Pipeline, mask: Int) {
 
         val pos0 = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
-        val distance0 = (RenderView.currentInstance?.radius ?: 1.0)
+        val distance0 = (RenderView.currentInstance?.radius ?: 1f).toDouble()
 
         val shader = simpleShader.value
         for (axis in 0 until 3) {
@@ -172,7 +172,7 @@ object MovingGrid {
         val pos = RenderState.cameraPosition
         return transform
             .set(RenderState.cameraMatrix)
-            .scale(RenderState.worldScale)
+            .scale(RenderState.worldScale.toDouble())
             .translate(-pos.x, -pos.y, -pos.z)
     }
 

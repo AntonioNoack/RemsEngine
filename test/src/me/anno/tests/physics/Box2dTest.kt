@@ -18,6 +18,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -127,21 +128,21 @@ class Box2dTest {
         Systems.world = world
 
         val dt = 1.0
-        var expectedRotation = 0.0
+        var expectedRotation = 0f
         for (i in 0 until 20) {
 
             val actualPosition = sphere.position
-            val actualRotation = sphere.rotation.getEulerAnglesYXZ(Vector3d()).z
+            val actualRotation = sphere.rotation.getEulerAnglesYXZ(Vector3f()).z
             val actualVelocity = rigidbody.linearVelocity
             // todo why is this 0.0 below a certain threshold force???
             val actualRotationVel = rigidbody.angularVelocity
             assertEquals(Vector3d(), actualPosition, 1e-6)
             assertEquals(Vector2f(), actualVelocity, 1e-6)
-            assertEquals(expectedRotation, actualRotation, 0.002)
+            assertEquals(expectedRotation, actualRotation, 0.002f)
 
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
 
-            expectedRotation += 0.5 * speed
+            expectedRotation += 0.5f * speed
         }
     }
 
@@ -335,14 +336,14 @@ class Box2dTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testStartRollingOnDecline() {
 
-        val angle = 0.1
+        val angle = 0.1f
 
         val gravity = -10f
         setupGravityTest(gravity)
 
         val world = Entity()
         val floor = Entity()
-            .setRotation(0.0, 0.0, angle)
+            .setRotation(0f, 0f, angle)
             .add(Rigidbody2d())
             .add(RectCollider().apply {
                 friction = 0.5f
@@ -351,7 +352,7 @@ class Box2dTest {
         world.add(floor)
 
         val underTest = Rigidbody2d()
-        val dist = 10f + 1f
+        val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
             .add(underTest)
@@ -380,14 +381,14 @@ class Box2dTest {
     fun testStartSlidingOnDecline() {
 
         // todo it looks like this test moves with all given angles... how???
-        val angle = 0.5
+        val angle = 0.5f
 
         val gravity = -10f
         setupGravityTest(gravity)
 
         val world = Entity()
         val floor = Entity()
-            .setRotation(0.0, 0.0, angle)
+            .setRotation(0f, 0f, angle)
             .add(Rigidbody2d())
             .add(RectCollider().apply {
                 friction = 0.9f
@@ -396,10 +397,10 @@ class Box2dTest {
         world.add(floor)
 
         val underTest = Rigidbody2d()
-        val dist = 10f + 1f
+        val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
-            .setRotation(0.0, 0.0, angle)
+            .setRotation(0f, 0f, angle)
             .add(underTest)
             .add(RectCollider().apply {
                 halfExtends.set(1f)

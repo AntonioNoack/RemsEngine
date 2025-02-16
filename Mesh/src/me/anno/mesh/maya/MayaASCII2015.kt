@@ -232,9 +232,9 @@ object MayaASCII2015 {
                             node as Entity
                             node.transform.localRotation = node.transform.localRotation
                                 .identity()
-                                .rotateX(arguments[2].toDouble().toRadians())
-                                .rotateY(arguments[3].toDouble().toRadians())
-                                .rotateZ(arguments[4].toDouble().toRadians())
+                                .rotateX(arguments[2].toFloat().toRadians())
+                                .rotateY(arguments[3].toFloat().toRadians())
+                                .rotateZ(arguments[4].toFloat().toRadians())
                         }
                         ".vt" -> {
                             if (node is Mesh) {

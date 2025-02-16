@@ -7,7 +7,7 @@ import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -24,7 +24,7 @@ class BoxCollider : Collider() {
     @SerializedProperty
     var margin = 0.04
 
-    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val halfExtends = halfExtends
         unionCube(globalTransform, aabb, tmp, halfExtends.x, halfExtends.y, halfExtends.z)
     }

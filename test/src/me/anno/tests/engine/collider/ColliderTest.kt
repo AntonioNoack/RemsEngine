@@ -5,7 +5,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.assertions.assertEquals
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 
@@ -13,7 +13,7 @@ class ColliderTest : Collider() {
 
     @Test
     fun testUnionRingSimple() {
-        val m = Matrix4x3d()
+        val m = Matrix4x3m()
         val b = AABBd()
         for (exact in listOf(true, false)) {
             b.clear()
@@ -30,7 +30,7 @@ class ColliderTest : Collider() {
 
     @Test
     fun testUnionCube() {
-        val m = Matrix4x3d()
+        val m = Matrix4x3m()
         val b = AABBd()
         unionCube(m, b, Vector3d(), 1.0, 2.0, 3.0)
         assertEquals(AABBd(-1.0, -2.0, -3.0, 1.0, 2.0, 3.0), b)
@@ -38,10 +38,10 @@ class ColliderTest : Collider() {
 
     @Test
     fun testUnionTransform() {
-        val m = Matrix4x3d()
-            .rotateYXZ(1.0, 2.0, 3.0)
+        val m = Matrix4x3m()
+            .rotateYXZ(1f, 2f, 3f)
             .translate(1.0, 2.0, 3.0)
-            .scale(1.0, 2.0, 3.0)
+            .scale(1f, 2f, 3f)
         val b = AABBd()
         union(m, b, Vector3d(), 1.0, 2.0, 3.0)
         assertEquals(m.transformPosition(Vector3d(1.0, 2.0, 3.0)), b.getMin(Vector3d()))

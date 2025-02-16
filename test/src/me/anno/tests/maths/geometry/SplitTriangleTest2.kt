@@ -10,7 +10,7 @@ import me.anno.maths.geometry.MeshSplitter
 import me.anno.ui.UIColors
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.white
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 
 /**
  * split a sphere mesh by y=0;
@@ -20,7 +20,7 @@ import org.joml.Matrix4x3d
 fun main() {
 
     val mesh = UVSphereModel.createUVSphere(20, 10)
-    mesh.transform(Matrix4x3d().rotateX(1.0))
+    mesh.transform(Matrix4x3m().rotateX(1f))
     val split = MeshSplitter.split(mesh) { v -> v.y }
 
     val scene = Entity("Scene")

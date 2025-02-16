@@ -273,8 +273,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
             if (deltaTime > 0) {
                 lastTime = time
                 if (stream1 != null && stereoSeparation > 0f) {
-                    val rightD = transform.globalTransform.transformDirection(Vector3d(stereoSeparation, 0f, 0f))
-                    val right = Vector3f(rightD)
+                    val right = transform.globalTransform.transformDirection(Vector3f(stereoSeparation, 0f, 0f))
                     lastVelocity0.set(pos).sub(right).sub(lastPosition0).mul(1e9f / deltaTime)
                     lastPosition0.set(pos)
                     lastVelocity1.set(pos).add(right).sub(lastPosition1).mul(1e9f / deltaTime)

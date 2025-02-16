@@ -29,6 +29,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.sumOfDouble
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2d
 import org.joml.Vector2d.Companion.lengthSquared
 import org.joml.Vector3d
@@ -61,7 +62,7 @@ class RecastTests {
     fun addCircle(scene: Entity, pos: Vector2d, radius: Double, inside: Boolean) {
         Entity(scene)
             .setPosition(pos.x, if (inside) 1.0 else -1.0, pos.y)
-            .setScale(radius, 1.0, radius)
+            .setScale(radius.toFloat(), 1f, radius.toFloat())
             .add(MeshComponent(circleMesh, if (inside) white else gray).apply {
                 collisionMask = -1
             })
@@ -92,7 +93,7 @@ class RecastTests {
             moveTo(target)
         }
 
-        override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+        override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
             dstUnion.all()
             return true
         }
@@ -180,7 +181,7 @@ class RecastTests {
 
             Entity("Agent[$i]", agents)
                 .setPosition(Vector3d(start))
-                .setScale(0.1)
+                .setScale(0.1f)
                 .add(MeshComponent(sphereMesh, gray))
                 .add(TestAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, -1, start, end))
         }

@@ -40,7 +40,7 @@ fun main() {
     Entity("Pillar", scene)
         .add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
         .add(BoxCollider().apply { halfExtends.set(0.1f, 1f, 0.1f) })
-        .setRotation(5.0.toRadians(), 0.0, 0.0)
+        .setRotation(5f.toRadians(), 0f, 0f)
         .add(pillarRB)
 
     fun addHinge(y: Double) {
@@ -60,7 +60,7 @@ fun main() {
             friction = 1.0
         })
         .setPosition(0.0, -1.5, 0.0)
-        .setScale(1.0, 0.3, 1.0)
+        .setScale(1f, 0.3f, 1f)
 
     testSceneWithUI("Point Constraint", scene)
 }

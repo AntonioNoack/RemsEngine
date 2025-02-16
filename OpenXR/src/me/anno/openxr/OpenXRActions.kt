@@ -344,7 +344,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                 .add(additionalOffset)
             controller.rotation
                 .set(additionalRotation)
-                .mul(rot.x().toDouble(), rot.y().toDouble(), rot.z().toDouble(), rot.w().toDouble())
+                .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
             val keyOffset = hand * 2
             updateVector2fState(thumbstickAction, handPath)

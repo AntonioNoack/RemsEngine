@@ -17,10 +17,12 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.PI
 
 abstract class CameraController : Component(), InputListener, OnUpdate {
@@ -53,10 +55,10 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
     /**
      * euler yxz rotation in radians, where x=x,y=y,z=z
      * */
-    var rotation = Vector3d()
+    var rotation = Vector3f()
 
     var movementSpeed = 1.0
-    var rotationSpeed = 0.3
+    var rotationSpeed = 0.3f
 
     @Type("Camera/SameSceneRef")
     var camera: Camera? = null
@@ -91,7 +93,7 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
     }
 
     open fun clampRotation() {
-        rotation.x = clamp(rotation.x, -PI * 0.5, PI * 0.5)
+        rotation.x = clamp(rotation.x, -PIf * 0.5f, PIf * 0.5f)
     }
 
     /**
@@ -120,8 +122,8 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
             if (isKeyDown("numpad1")) dz--
 
             if (dx != 0f || dy != 0f) {
-                val dt = Time.deltaTime * numpadAsMouseSpeed * rotationSpeed
-                rotation.add((dy * dt).toRadians(), (dx * dt).toRadians(), 0.0)
+                val dt = (Time.deltaTime * numpadAsMouseSpeed * rotationSpeed).toFloat()
+                rotation.add((dy * dt).toRadians(), (dx * dt).toRadians(), 0f)
                 clampRotation()
             }
 
@@ -168,9 +170,9 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
 
                 velocity.mulAdd(dt, position, position)
 
-                if (rotateAngleY) position.rotateY(rotation.y)
-                if (rotateAngleX) position.rotateX(rotation.x)
-                if (rotateAngleZ) position.rotateZ(rotation.z)
+                if (rotateAngleY) position.rotateY(rotation.y.toDouble())
+                if (rotateAngleX) position.rotateX(rotation.x.toDouble())
+                if (rotateAngleZ) position.rotateZ(rotation.z.toDouble())
 
                 computeTransform(base.transform, camEntity.transform, camera)
             }
@@ -181,7 +183,7 @@ abstract class CameraController : Component(), InputListener, OnUpdate {
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         return if (!needsClickToRotate || (Input.isLeftDown && rotateLeft) || (Input.isMiddleDown && rotateMiddle) || (Input.isRightDown && rotateRight)) {
-            rotation.add(-dy.toRadians() * rotationSpeed, -dx.toRadians() * rotationSpeed, 0.0)
+            rotation.add(-dy.toRadians() * rotationSpeed, -dx.toRadians() * rotationSpeed, 0f)
             clampRotation()
             // ... apply rotation to transform
             true

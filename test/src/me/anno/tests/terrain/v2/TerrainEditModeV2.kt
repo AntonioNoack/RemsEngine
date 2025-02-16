@@ -18,6 +18,7 @@ import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.joml.Vector3f
 
 class TerrainEditModeV2 : Component(), CustomEditMode {
@@ -51,7 +52,7 @@ class TerrainEditModeV2 : Component(), CustomEditMode {
         val terrain = getComponent(TriTerrainComponent::class)
         // raycast, then apply brush
         val ui = RenderView.currentInstance!!
-        val query = RayQuery(ui.cameraPosition, ui.mouseDirection, Double.POSITIVE_INFINITY)
+        val query = RayQuery(ui.cameraPosition, Vector3d(ui.mouseDirection), Double.POSITIVE_INFINITY)
         if (terrain != null && Raycast.raycast(terrain.entity!!, query)) {
             if (Input.isLeftDown) {
                 val transform = Matrix4x3f()
@@ -65,7 +66,8 @@ class TerrainEditModeV2 : Component(), CustomEditMode {
             val cursor = cursor?.transform
             if (cursor != null) {
                 val normal = query.result.shadingNormalWS
-                cursor.localPosition = query.result.positionWS + ui.mouseDirection * (-0.1 * query.result.distance)
+                cursor.localPosition =
+                    query.result.positionWS + Vector3d(ui.mouseDirection).mul(-0.1 * query.result.distance)
                 cursor.localRotation = normal.normalToQuaternionY()
                 cursor.localScale = cursor.localScale.set(0.1 * query.result.distance)
             }

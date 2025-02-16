@@ -41,7 +41,7 @@ fun main() {
     Entity("NavMesh", scene)
         .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")))
         .setPosition(-2.0, -1.0, -2.0)
-        .setScale(0.25)
+        .setScale(0.25f)
 
     // add 5 objects, which can be picked up
     val ball = IcosahedronModel.createIcosphere(2, 0.05f)
@@ -54,7 +54,7 @@ fun main() {
                     shouldBeLockedInHand = i == 2
                 })
                 .setPosition(1.0 + i, 1.0, 0.0)
-                .setScale(0.1)
+                .setScale(0.1f)
         )
         // add 5 sockets, where objects can be placed
         scene.add(
@@ -83,7 +83,7 @@ fun prepareHand(scene: Entity, isRightHand1: Boolean) {
         material.cullMode = CullMode.BACK
         Entity(hand)
             .add(MeshComponent(documents.getChild("Blender/VRControllerV0.glb"), material))
-            .setScale(-1.0, 1.0, 1.0)
+            .setScale(-1f, 1f, 1f)
     } else {
         hand.add(MeshComponent(documents.getChild("Blender/VRControllerV0.glb")))
     }

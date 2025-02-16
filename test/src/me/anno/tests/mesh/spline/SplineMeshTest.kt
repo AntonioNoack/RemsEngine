@@ -25,7 +25,7 @@ fun create(v: Vector3d, r: Double): SplineControlPoint {
     controlPoint.profile = splineProfile
     Entity()
         .setPosition(v.x, v.y, v.z)
-        .setRotation(0.0, r, 0.0)
+        .setRotation(0f, r.toFloat(), 0f)
         .add(controlPoint)
     return controlPoint
 }

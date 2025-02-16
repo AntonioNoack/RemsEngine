@@ -478,7 +478,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             val nor = mesh.normals.resize(numPoints * 3)
             val col = mesh.color0.resize(numPoints)
             val uvs = mesh.uvs.resize(numPoints * 2)
-            val dirY = Vector3f(point.getLocalUp(Vector3d()))
+            val dirY = point.getLocalUp(Vector3f())
             val angleOffset = useRightForEnd.toInt() * PI
 
             // generate all values

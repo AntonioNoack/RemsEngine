@@ -16,7 +16,7 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import kotlin.math.abs
 
@@ -35,7 +35,7 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
 
     // only set for VR controllers
     val position = Vector3d()
-    val rotation = Quaterniond()
+    val rotation = Quaternionf()
 
     val axisValues = FloatArray(maxNumAxes)
     val axisSpeeds = FloatArray(maxNumAxes)

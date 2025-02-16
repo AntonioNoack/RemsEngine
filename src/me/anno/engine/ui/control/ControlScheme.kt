@@ -37,9 +37,11 @@ import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -70,8 +72,8 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     val isSelected get() = uiParent?.isAnyChildInFocus == true
 
-    private val rotQuad = Quaterniond()
-    private val velocity = Vector3d()
+    private val rotQuad = Quaternionf()
+    private val velocity = Vector3f()
 
     // todo this only works correctly like that in orthographic mode
     val pixelsToWorldFactor get() = 2.0 * tan(renderView.fovYRadians * 0.5) / height
@@ -138,8 +140,8 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     // less than 90, so we always know forward when computing movement
-    val maxAngleDegrees = 90.0 - 0.001
-    val rotationTargetDegrees = Vector3d()
+    val maxAngleDegrees = 90f - 0.001f
+    val rotationTargetDegrees = Vector3f()
 
     override fun onUpdate() {
         super.onUpdate()
@@ -159,13 +161,13 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         if (jump) {
             rotationTargetToQuat(renderView.orbitRotation)
         } else {
-            val tmp = rotationTargetToQuat(Quaterniond())
-            renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0))
+            val tmp = rotationTargetToQuat(Quaternionf())
+            renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0).toFloat())
         }
         invalidateDrawing()
     }
 
-    private fun rotationTargetToQuat(dst: Quaterniond): Quaterniond {
+    private fun rotationTargetToQuat(dst: Quaternionf): Quaternionf {
         return dst.identity()
             .rotateY(rotationTargetDegrees.y.toRadians())
             .rotateX(rotationTargetDegrees.x.toRadians())
@@ -237,7 +239,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     private fun testHits() {
         val world = renderView.getWorld()
         val start = Vector3d(renderView.cameraPosition)
-        val dir = renderView.mouseDirection
+        val dir = Vector3d(renderView.mouseDirection)
         val maxDistance = renderView.radius * 1e9
         val query = RayQuery(
             start, dir, maxDistance, -1, -1,
@@ -253,12 +255,12 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             val result = query.result
             val pos = result.positionWS
             val normal = result.geometryNormalWS.normalize(
-                0.1 * result.positionWS.distance(renderView.cameraPosition) * tan(renderView.fovYRadians * 0.5)
+                0.1f * result.positionWS.distance(renderView.cameraPosition).toFloat() * tan(renderView.fovYRadians * 0.5f)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
             // draw collision normal
-            debugLines.add(DebugLine(pos, normal.add(pos, Vector3d()), black or 0x00ff00))
+            debugLines.add(DebugLine(pos, pos.add(normal, Vector3d()), black or 0x00ff00))
         } else {
             // draw red point in front of the camera
             debugPoints.add(DebugPoint(Vector3d(dir).mul(20.0).add(start), black or 0xff0000))
@@ -269,15 +271,15 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         return isKeyDown(key1) || isKeyDown(key2)
     }
 
-    fun dir(a: Boolean, b: Boolean): Double {
-        return a.toDouble() - b.toDouble()
+    fun dir(a: Boolean, b: Boolean): Float {
+        return a.toFloat() - b.toFloat()
     }
 
     open fun allowKeyboardMovement(): Boolean {
         return isSelected && !Input.isControlDown && (!Input.isShiftDown || shiftSpace) && !Input.isAltDown
     }
 
-    open fun collectKeyboardVelocity(acceleration: Double) {
+    open fun collectKeyboardVelocity(acceleration: Float) {
         if (!allowKeyboardMovement()) return
         val down = isKeyDown(Key.KEY_Q) || (shiftSpace && Input.isShiftDown)
         val up = isKeyDown(Key.KEY_E) || (shiftSpace && isKeyDown(Key.KEY_SPACE))
@@ -295,7 +297,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         return true
     }
 
-    open fun collectControllerVelocity(acceleration: Double) {
+    open fun collectControllerVelocity(acceleration: Float) {
         if (!allowControllerMovement()) return
         for (i in Input.controllers.indices) {
             val controller = Input.controllers[i]
@@ -328,17 +330,17 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         }
     }
 
-    open fun calculateAcceleration(): Double {
+    open fun calculateAcceleration(): Float {
         val baseSpeed = 20.0 * renderView.radius
         val acceleration = baseSpeed * uiDeltaTime * settings.moveSpeed
         val cameraFactor = if (camera.isPerspective) {
             tan(0.5 * camera.fovY.toRadians())
         } else 1.0
-        return acceleration * cameraFactor
+        return (acceleration * cameraFactor).toFloat()
     }
 
     open fun applyFriction() {
-        velocity.mul(dtTo10(uiDeltaTime * 20.0))
+        velocity.mul(dtTo10(uiDeltaTime * 20.0).toFloat())
     }
 
     val shiftSpace get() = settings.enableShiftSpaceControls
@@ -359,7 +361,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     fun moveCameraByVelocity() {
-        val dt = uiDeltaTime
+        val dt = uiDeltaTime.toFloat()
         moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
         applyFriction()
     }
@@ -372,7 +374,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         }
     }
 
-    open fun moveCamera(dx: Double, dy: Double, dz: Double) {
+    open fun moveCamera(dx: Float, dy: Float, dz: Float) {
         val r = rotationTargetDegrees
         val fromDegrees = PI / 180
         val y = r.y * fromDegrees
@@ -446,9 +448,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         val dx = Touch.avgDeltaX() * speed
         val dy = Touch.avgDeltaY() * speed
         if (Input.isShiftDown) {
-            moveCamera(dx, -dy, 0.0)
+            moveCamera(dx, -dy, 0f)
         } else {
-            moveCamera(dx, 0.0, dy)
+            moveCamera(dx, 0f, dy)
         }
     }
 

@@ -21,6 +21,7 @@ import me.anno.games.pacman.logic.PacmanLogic
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.dtTo01
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.UIColors.cornFlowerBlue
@@ -28,7 +29,6 @@ import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.debug.PureTestEngine.Companion.testPureUI
 import me.anno.utils.OS.res
 import org.joml.Vector2f
-import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
@@ -51,7 +51,7 @@ class PacmanControls(
                 currPosition.x - prevPosition.x,
                 currPosition.y - prevPosition.y
             )
-            rot.rotationY(angle.toDouble())
+            rot.rotationY(angle)
         }
         prevPosition.mix(currPosition, mixDt)
         transform.localPosition = pos
@@ -94,22 +94,22 @@ fun spatialPacmanGame(): Entity {
         }
     }
 
-    val wallHeight = 0.50
+    val wallHeight = 0.50f
     val camEntity = Entity("Camera", scene)
         .setPosition(game.size.x * 0.5, max(game.size.x, game.size.y) * 0.55 + wallHeight, game.size.y * 0.5)
-        .setRotation(-PI / 2, 0.0, 0.0)
+        .setRotation(-PIf / 2f, 0f, 0f)
         .add(Camera())
 
     val walls = Entity("Walls", scene)
     for ((start, end) in game.walls) {
-        val wallThickness = 0.03
+        val wallThickness = 0.03f
         val cx = (start.x + end.x) * 0.5
         val cz = (start.y + end.y) * 0.5
         Entity("Wall[$start-$end]", walls)
             .setPosition(cx, wallHeight * 0.5, cz)
             .setScale(
-                wallThickness + (end.x - start.x) * 0.5, wallHeight * 0.5,
-                wallThickness + (end.y - start.y) * 0.5,
+                wallThickness + (end.x - start.x) * 0.5f, wallHeight * 0.5f,
+                wallThickness + (end.y - start.y) * 0.5f,
             )
             .add(MeshComponent(flatCube.front))
     }
@@ -117,13 +117,13 @@ fun spatialPacmanGame(): Entity {
     for (pos in game.voidPositions) {
         Entity("Void[$pos]", walls)
             .setPosition(pos.x + 0.5, 0.0, pos.y + 0.5)
-            .setScale(0.5)
+            .setScale(0.5f)
             .add(MeshComponent(flatCube.front))
     }
 
     Entity("Floor", scene)
         .setPosition(game.size.x * 0.5, -1.0, game.size.y * 0.5)
-        .setScale(game.size.x * 0.5, 1.0, game.size.y * 0.5)
+        .setScale(game.size.x * 0.5f, 1f, game.size.y * 0.5f)
         .add(MeshComponent(flatCube.front))
 
     val collectibles = Entity("Gems", scene)
@@ -132,7 +132,7 @@ fun spatialPacmanGame(): Entity {
     for (pos in game.collectables) {
         collectibleLookup[pos] = Entity(collectibles)
             .setPosition(pos.x + 0.5, 0.15, pos.y + 0.5)
-            .setScale(0.13)
+            .setScale(0.13f)
             .add(MeshComponent(collectibleMesh))
     }
 
@@ -151,13 +151,13 @@ fun spatialPacmanGame(): Entity {
     for (enemy in game.enemies) {
         Entity(enemies)
             .setPosition(enemy.currPosition.x + 0.5, 0.0, enemy.currPosition.y + 0.5)
-            .setScale(0.1)
+            .setScale(0.1f)
             .add(MeshComponent(enemyMesh, ghostMaterial))
     }
 
     val player = Entity("Player", scene)
         .setPosition(0.0, 0.0, 0.0)
-        .setScale(0.1)
+        .setScale(0.1f)
         .add(MeshComponent(enemyMesh, playerMaterial))
 
     scene.add(PacmanControls(game, camEntity, enemies, player))

@@ -278,7 +278,7 @@ class BulletTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testStartRollingOnDecline() {
 
-        val angle = 0.1
+        val angle = 0.1f
 
         val gravity = -10f
         val physics = BulletPhysics()
@@ -286,7 +286,7 @@ class BulletTest {
 
         val world = Entity()
         val floor = Entity()
-            .setRotation(0.0, 0.0, angle)
+            .setRotation(0f, 0f, angle)
             .add(Rigidbody().apply {
                 friction = 0.5
             })
@@ -296,7 +296,7 @@ class BulletTest {
         world.add(floor)
 
         val underTest = Rigidbody()
-        val dist = 10f + 1f
+        val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
             .add(underTest.apply {
@@ -326,7 +326,7 @@ class BulletTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testStartSlidingOnDecline() {
 
-        val angle = 0.5
+        val angle = 0.5f
 
         // todo does it move on all angles??
         val gravity = -10f
@@ -335,7 +335,7 @@ class BulletTest {
 
         val world = Entity()
         val floor = Entity()
-            .setRotation(0.0, 0.0, angle)
+            .setRotation(0f, 0f, angle)
             .add(Rigidbody().apply {
                 friction = 0.9
             })
@@ -345,10 +345,10 @@ class BulletTest {
         world.add(floor)
 
         val underTest = Rigidbody()
-        val dist = 10f + 1f
+        val dist = 10f + 1.0
         val sphere = Entity()
             .setPosition(-sin(angle) * dist, cos(angle) * dist, 0.0)
-            .setRotation(0.0, 0.0, angle)
+            .setRotation(0f, 0f, angle)
             .add(underTest.apply {
                 friction = 0.9
                 mass = 1.0
@@ -483,7 +483,7 @@ class BulletTest {
                     body.linearVelocity = Vector3d(dx, 0.0, 0.0)
                     val entity = Entity()
                         .setPosition(x, 0.0, 0.0)
-                        .setRotation(0.0, 0.0, 0.0)
+                        .setRotation(0f, 0f, 0f)
                         .add(body.apply {
                             mass = 1.0
                             friction = 0.0

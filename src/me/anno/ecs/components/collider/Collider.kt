@@ -21,6 +21,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -68,7 +69,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         entity.invalidateCollisionMask()
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         val tmp = JomlPools.vec3d.create()
         union(globalTransform, dstUnion, tmp, false)
         JomlPools.vec3d.sub(1)
@@ -83,7 +84,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     }
 
     fun unionRing(
-        globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d,
+        globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d,
         axis: Axis, r: Double, h: Double, preferExact: Boolean
     ) {
         if (preferExact) {
@@ -114,7 +115,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     }
 
     private fun unionRingQuad(
-        globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d,
+        globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d,
         axis: Axis, r: Double, h: Double
     ) {
         // approximate the circle as a quad
@@ -140,7 +141,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         }
     }
 
-    fun unionCube(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
+    fun unionCube(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
         // union the most typical layout: a sphere
         // 001,010,100,-001,-010,-100
         union(globalTransform, aabb, tmp, +hx, +hy, +hz)
@@ -153,11 +154,11 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         union(globalTransform, aabb, tmp, -hx, -hy, +hz)
     }
 
-    fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
+    fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
         aabb.union(globalTransform.transformPosition(tmp.set(x, y, z)))
     }
 
-    open fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    open fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union a sample layout
         // 001,010,100,-001,-010,-100
         union(globalTransform, aabb, tmp, +1.0, 0.0, 0.0)

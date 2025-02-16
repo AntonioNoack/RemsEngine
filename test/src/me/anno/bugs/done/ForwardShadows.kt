@@ -21,10 +21,10 @@ fun main() {
         .add(MeshComponent(plane))
     Entity("Sphere", scene)
         .setPosition(0.0, 0.5, 0.0)
-        .setScale(0.5)
+        .setScale(0.5f)
         .add(MeshComponent(IcosahedronModel.createIcosphere(2)))
     Entity("Sun", scene)
-        .setRotation((-30.0).toRadians(), 0.0, 0.0)
+        .setRotation((-30f).toRadians(), 0f, 0f)
         .add(DirectionalLight().apply { shadowMapCascades = 1 })
     testSceneWithUI("Forward Shadows", scene) {
         it.renderView.renderMode = RenderMode.FORWARD

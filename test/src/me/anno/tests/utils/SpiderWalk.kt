@@ -33,6 +33,7 @@ import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -49,7 +50,7 @@ import kotlin.math.min
 class SpiderPrediction(val floorY: Double) : Component(), OnUpdate {
 
     // know the spider's transform in the future to plan steps
-    val futureTransform = Matrix4x3d()
+    val futureTransform = Matrix4x3m()
     var stepFrequency = 3.0
     val predictionDeltaTime get() = 0.25 / stepFrequency
 
@@ -194,7 +195,7 @@ class SpiderLegLogic(
         val dtMix = dtTo01(5.0 * step)
 
         // convert target into "spiderBody" space
-        val toLocal = spider.transform.globalTransform.invert(Matrix4x3d())
+        val toLocal = spider.transform.globalTransform.invert(Matrix4x3m())
         val localTarget = toLocal.transformPosition(target, Vector3d())
         // add stepping up at the start of each step
         if (isWalking) localTarget.y += max(1.0 - 10.0 * timeAccu, 0.0)
@@ -217,7 +218,7 @@ class SpiderLegLogic(
         val rotY1 = clamp(-rotY, -1.2, 1.2) + (if (x > 0) PI else 0.0)
         angles.x = mix(angles.x, alpha, dtMix)
         angles.y = mix(angles.y, rotY1, dtMix)
-        upperLeg.setRotation(0.0, angles.y, angles.x)
+        upperLeg.setRotation(0f, angles.y.toFloat(), angles.x.toFloat())
         upperLeg.validateTransform()
         middleLeg.validateTransform()
         val middleLegPos = toLocal.transformPosition(middleLeg.transform.globalPosition, Vector3d())
@@ -228,9 +229,9 @@ class SpiderLegLogic(
         val gamma1 = max(gamma, 0.0)
         angles.z = mix(angles.z, beta1, dtMix)
         angles.w = mix(angles.w, gamma1, dtMix)
-        middleLeg.setRotation(0.0, 0.0, angles.z)
-        lowerLeg.setRotation(0.0, 0.0, angles.w)
-        foot.setRotation(0.0, 0.0, -(angles.x + angles.z + angles.w))
+        middleLeg.setRotation(0f, 0f, angles.z.toFloat())
+        lowerLeg.setRotation(0f, 0f, angles.w.toFloat())
+        foot.setRotation(0f, 0f, -(angles.x + angles.z + angles.w).toFloat())
     }
 }
 
@@ -300,12 +301,12 @@ fun main() {
     val scene = Entity("Scene")
     val terrain = Entity("Terrain", scene)
     terrain.add(MeshComponent(res.getChild("meshes/NavMesh.fbx")))
-    terrain.setScale(2.5)
+    terrain.setScale(2.5f)
 
     val navMesh1 = NavMesh()
     scene.add(navMesh1)
 
-    val sunE = Entity("Sun", scene).setScale(100.0)
+    val sunE = Entity("Sun", scene).setScale(100f)
     val sun = DirectionalLight()
     sun.shadowMapCascades = 1
     sun.autoUpdate = 2
@@ -382,7 +383,7 @@ fun main() {
 
             if (hit) {
                 val newAngle = query0.result.shadingNormalWS.normalize()
-                angleDictator.mix(newAngle, dtTo01(5.0 * Time.deltaTime))
+                angleDictator.mix(Vector3d(newAngle), dtTo01(5.0 * Time.deltaTime))
             }
             if (velocity.lengthSquared() < 1e-16) velocity.set(1.0, 0.0, 0.0)
             if (angleDictator.lengthSquared() < 1e-16) angleDictator.set(0.0, 1.0, 0.0)
@@ -399,12 +400,12 @@ fun main() {
                 lastPos.set(currPos)
             }
 
-            spider.setRotation(rotX, rotY, rotZ)
+            spider.setRotation(rotX.toFloat(), rotY.toFloat(), rotZ.toFloat())
             futureTransform.identity()
                 .setTranslation(spider.position + velocity * spiderComp.predictionDeltaTime)
-                .rotateZ(rotZ)
-                .rotateX(rotX)
-                .rotateY(rotY)
+                .rotateZ(rotZ.toFloat())
+                .rotateX(rotX.toFloat())
+                .rotateY(rotY.toFloat())
         }
     }
     spider.add(agent)
@@ -415,7 +416,7 @@ fun main() {
                 if (button == Key.BUTTON_LEFT) {
                     val ci = it.renderView
                     val query0 = RayQuery(
-                        ci.cameraPosition, ci.mouseDirection, 1e3,
+                        ci.cameraPosition, Vector3d(ci.mouseDirection), 1e3,
                         -1, -1, false, setOf(spider)
                     )
                     if (Raycast.raycast(scene, query0)) {

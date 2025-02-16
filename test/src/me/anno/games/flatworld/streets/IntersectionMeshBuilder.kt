@@ -36,10 +36,10 @@ object IntersectionMeshBuilder {
             val t0 = getT0(segment.length, intersection, other)
             val posI = segment.interpolate(t0)
             val posII = segment.interpolate(t0 + 0.001)
-            val ry = StreetSegment.getAngle(posI, posII)
+            val ry = StreetSegment.getAngle(posI, posII).toFloat()
             val child = Entity(entity)
                 .setPosition(posI.x - position.x, posI.y - position.y, posI.z - position.z)
-                .setRotation(0.0, ry, 0.0)
+                .setRotation(0f, ry, 0f)
                 .add(pt)
             child.transform.validate()
         }

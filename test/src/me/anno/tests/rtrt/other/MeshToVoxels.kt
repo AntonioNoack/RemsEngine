@@ -38,6 +38,7 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
 import org.joml.AABBf
 import org.joml.Matrix4f
+import org.joml.Matrix4x3m
 import org.joml.Vector3f
 import org.joml.Vector3i
 import kotlin.math.cbrt
@@ -121,8 +122,8 @@ fun meshToSeparatedVoxels(
             shader.use()
             // bind & prepare shader
             shader.m4x4("transform", transform)
-            shader.m4x3("localTransform", null)
-            shader.m4x3("invLocalTransform", null)
+            shader.m4x3("localTransform", null as Matrix4x3m?)
+            shader.m4x3("invLocalTransform", null as Matrix4x3m?)
             material.bind(shader)
             // draw mesh
             mesh.draw(null, shader, i)

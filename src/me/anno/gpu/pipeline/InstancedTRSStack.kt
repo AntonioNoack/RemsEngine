@@ -125,7 +125,7 @@ class InstancedTRSStack(capacity: Int = 64) :
 
                 val endIndex = Maths.min(totalEndIndex, baseIndex + batchSize)
                 val data = instances.posSizeRot
-                if (worldScale == 1.0) {
+                if (worldScale == 1f) {
                     val cx = cameraPosition.x.toFloat()
                     val cy = cameraPosition.y.toFloat()
                     val cz = cameraPosition.z.toFloat()
@@ -149,7 +149,7 @@ class InstancedTRSStack(capacity: Int = 64) :
                         nioBuffer.putFloat(((data[i8] - cx) * worldScale).toFloat())
                         nioBuffer.putFloat(((data[i8 + 1] - cy) * worldScale).toFloat())
                         nioBuffer.putFloat(((data[i8 + 2] - cz) * worldScale).toFloat())
-                        nioBuffer.putFloat((data[i8 + 3] * worldScale).toFloat())
+                        nioBuffer.putFloat((data[i8 + 3] * worldScale))
                         nioBuffer.putFloat(data[i8 + 4])
                         nioBuffer.putFloat(data[i8 + 5])
                         nioBuffer.putFloat(data[i8 + 6])

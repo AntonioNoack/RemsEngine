@@ -6,6 +6,7 @@ import me.anno.maths.Maths
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
@@ -31,7 +32,7 @@ object M4x3Delta {
         location: String,
         a: Matrix4x3d,
         b: Matrix4x3d,
-        worldScale: Double,
+        worldScale: Float,
         f: Double,
         pos: Vector3d
     ) {
@@ -69,9 +70,9 @@ object M4x3Delta {
      * */
     @JvmStatic
     fun GPUShader.m4x3delta(
-        location: String, m: Matrix4x3d?,
+        location: String, m: Matrix4x3m?,
         pos: Vector3d = RenderState.cameraPosition,
-        worldScale: Double = RenderState.worldScale
+        worldScale: Float = RenderState.worldScale
     ) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) m4x3delta(uniformIndex, m, pos, worldScale)
@@ -79,9 +80,9 @@ object M4x3Delta {
 
     @JvmStatic
     fun GPUShader.m4x3delta(
-        uniformIndex: Int, m: Matrix4x3d?,
+        uniformIndex: Int, m: Matrix4x3m?,
         pos: Vector3d = RenderState.cameraPosition,
-        worldScale: Double = RenderState.worldScale
+        worldScale: Float = RenderState.worldScale
     ) {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
@@ -91,27 +92,26 @@ object M4x3Delta {
 
         if (m != null) {
             buffer16
-                .put((m.m00 * worldScale).toFloat())
-                .put((m.m01 * worldScale).toFloat())
-                .put((m.m02 * worldScale).toFloat())
+                .put(m.m00 * worldScale)
+                .put(m.m01 * worldScale)
+                .put(m.m02 * worldScale)
 
-                .put((m.m10 * worldScale).toFloat())
-                .put((m.m11 * worldScale).toFloat())
-                .put((m.m12 * worldScale).toFloat())
+                .put(m.m10 * worldScale)
+                .put(m.m11 * worldScale)
+                .put(m.m12 * worldScale)
 
-                .put((m.m20 * worldScale).toFloat())
-                .put((m.m21 * worldScale).toFloat())
-                .put((m.m22 * worldScale).toFloat())
+                .put(m.m20 * worldScale)
+                .put(m.m21 * worldScale)
+                .put(m.m22 * worldScale)
 
                 .put(((m.m30 - pos.x) * worldScale).toFloat())
                 .put(((m.m31 - pos.y) * worldScale).toFloat())
                 .put(((m.m32 - pos.z) * worldScale).toFloat())
         } else {
-            val ws = worldScale.toFloat()
             buffer16
-                .put(ws).put(0f).put(0f)
-                .put(0f).put(ws).put(0f)
-                .put(0f).put(0f).put(ws)
+                .put(worldScale).put(0f).put(0f)
+                .put(0f).put(worldScale).put(0f)
+                .put(0f).put(0f).put(worldScale)
 
                 .put((-pos.x * worldScale).toFloat())
                 .put((-pos.y * worldScale).toFloat())
@@ -127,19 +127,19 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer) {
+    fun m4x3delta(m: Matrix4x3m, pos: Vector3d, worldScale: Float, buffer16: ByteBuffer) {
         buffer16
-            .putFloat((m.m00 * worldScale).toFloat())
-            .putFloat((m.m01 * worldScale).toFloat())
-            .putFloat((m.m02 * worldScale).toFloat())
+            .putFloat((m.m00 * worldScale))
+            .putFloat((m.m01 * worldScale))
+            .putFloat((m.m02 * worldScale))
 
-            .putFloat((m.m10 * worldScale).toFloat())
-            .putFloat((m.m11 * worldScale).toFloat())
-            .putFloat((m.m12 * worldScale).toFloat())
+            .putFloat((m.m10 * worldScale))
+            .putFloat((m.m11 * worldScale))
+            .putFloat((m.m12 * worldScale))
 
-            .putFloat((m.m20 * worldScale).toFloat())
-            .putFloat((m.m21 * worldScale).toFloat())
-            .putFloat((m.m22 * worldScale).toFloat())
+            .putFloat((m.m20 * worldScale))
+            .putFloat((m.m21 * worldScale))
+            .putFloat((m.m22 * worldScale))
 
             .putFloat(((m.m30 - pos.x) * worldScale).toFloat())
             .putFloat(((m.m31 - pos.y) * worldScale).toFloat())
@@ -151,19 +151,19 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: FloatBuffer) {
+    fun m4x3delta(m: Matrix4x3m, pos: Vector3d, worldScale: Float, buffer16: FloatBuffer) {
         buffer16
-            .put((m.m00 * worldScale).toFloat())
-            .put((m.m01 * worldScale).toFloat())
-            .put((m.m02 * worldScale).toFloat())
+            .put(m.m00 * worldScale)
+            .put(m.m01 * worldScale)
+            .put(m.m02 * worldScale)
 
-            .put((m.m10 * worldScale).toFloat())
-            .put((m.m11 * worldScale).toFloat())
-            .put((m.m12 * worldScale).toFloat())
+            .put(m.m10 * worldScale)
+            .put(m.m11 * worldScale)
+            .put(m.m12 * worldScale)
 
-            .put((m.m20 * worldScale).toFloat())
-            .put((m.m21 * worldScale).toFloat())
-            .put((m.m22 * worldScale).toFloat())
+            .put(m.m20 * worldScale)
+            .put(m.m21 * worldScale)
+            .put(m.m22 * worldScale)
 
             .put(((m.m30 - pos.x) * worldScale).toFloat())
             .put(((m.m31 - pos.y) * worldScale).toFloat())
@@ -175,19 +175,19 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun m4x3delta(m: Matrix4x3d, pos: Vector3d, buffer16: ByteBuffer) {
+    fun m4x3delta(m: Matrix4x3m, pos: Vector3d, buffer16: ByteBuffer) {
         buffer16
-            .putFloat(m.m00.toFloat())
-            .putFloat(m.m01.toFloat())
-            .putFloat(m.m02.toFloat())
+            .putFloat(m.m00)
+            .putFloat(m.m01)
+            .putFloat(m.m02)
 
-            .putFloat(m.m10.toFloat())
-            .putFloat(m.m11.toFloat())
-            .putFloat(m.m12.toFloat())
+            .putFloat(m.m10)
+            .putFloat(m.m11)
+            .putFloat(m.m12)
 
-            .putFloat(m.m20.toFloat())
-            .putFloat(m.m21.toFloat())
-            .putFloat(m.m22.toFloat())
+            .putFloat(m.m20)
+            .putFloat(m.m21)
+            .putFloat(m.m22)
 
             .putFloat(((m.m30 - pos.x)).toFloat())
             .putFloat(((m.m31 - pos.y)).toFloat())
@@ -224,7 +224,7 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun GPUShader.m4x3delta(location: String, m: Matrix4x3d, b: Vector3d, worldScale: Double, localScale: Float) {
+    fun GPUShader.m4x3delta(location: String, m: Matrix4x3m, b: Vector3d, worldScale: Float, localScale: Float) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
 
@@ -232,17 +232,18 @@ object M4x3Delta {
             // A_ji, as far, as I can see
             val buffer16 = buffer16
             buffer16.limit(12).position(0)
-            buffer16.put((m.m00 * worldScale).toFloat() * localScale)
-                .put((m.m01 * worldScale).toFloat() * localScale)
-                .put((m.m02 * worldScale).toFloat() * localScale)
+            buffer16
+                .put((m.m00 * worldScale) * localScale)
+                .put((m.m01 * worldScale) * localScale)
+                .put((m.m02 * worldScale) * localScale)
 
-                .put((m.m10 * worldScale).toFloat() * localScale)
-                .put((m.m11 * worldScale).toFloat() * localScale)
-                .put((m.m12 * worldScale).toFloat() * localScale)
+                .put((m.m10 * worldScale) * localScale)
+                .put((m.m11 * worldScale) * localScale)
+                .put((m.m12 * worldScale) * localScale)
 
-                .put((m.m20 * worldScale).toFloat() * localScale)
-                .put((m.m21 * worldScale).toFloat() * localScale)
-                .put((m.m22 * worldScale).toFloat() * localScale)
+                .put((m.m20 * worldScale) * localScale)
+                .put((m.m21 * worldScale) * localScale)
+                .put((m.m22 * worldScale) * localScale)
 
                 .put(((m.m30 - b.x) * worldScale).toFloat())
                 .put(((m.m31 - b.y) * worldScale).toFloat())
@@ -255,24 +256,24 @@ object M4x3Delta {
     }
 
     @JvmStatic
-    fun Matrix4f.mul4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double): Matrix4f {
+    fun Matrix4f.mul4x3delta(m: Matrix4x3m, pos: Vector3d, worldScale: Float): Matrix4f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
         return mul(
 
-            (m.m00 * worldScale).toFloat(),
-            (m.m01 * worldScale).toFloat(),
-            (m.m02 * worldScale).toFloat(),
+            (m.m00 * worldScale),
+            (m.m01 * worldScale),
+            (m.m02 * worldScale),
             0f,
 
-            (m.m10 * worldScale).toFloat(),
-            (m.m11 * worldScale).toFloat(),
-            (m.m12 * worldScale).toFloat(),
+            (m.m10 * worldScale),
+            (m.m11 * worldScale),
+            (m.m12 * worldScale),
             0f,
 
-            (m.m20 * worldScale).toFloat(),
-            (m.m21 * worldScale).toFloat(),
-            (m.m22 * worldScale).toFloat(),
+            (m.m20 * worldScale),
+            (m.m21 * worldScale),
+            (m.m22 * worldScale),
             0f,
 
             ((m.m30 - pos.x) * worldScale).toFloat(),
@@ -284,22 +285,22 @@ object M4x3Delta {
     }
 
     @JvmStatic
-    fun Matrix4x3f.set4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double): Matrix4x3f {
+    fun Matrix4x3f.set4x3delta(m: Matrix4x3m, pos: Vector3d, worldScale: Float): Matrix4x3f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
         return set(
 
-            (m.m00 * worldScale).toFloat(),
-            (m.m01 * worldScale).toFloat(),
-            (m.m02 * worldScale).toFloat(),
+            (m.m00 * worldScale),
+            (m.m01 * worldScale),
+            (m.m02 * worldScale),
 
-            (m.m10 * worldScale).toFloat(),
-            (m.m11 * worldScale).toFloat(),
-            (m.m12 * worldScale).toFloat(),
+            (m.m10 * worldScale),
+            (m.m11 * worldScale),
+            (m.m12 * worldScale),
 
-            (m.m20 * worldScale).toFloat(),
-            (m.m21 * worldScale).toFloat(),
-            (m.m22 * worldScale).toFloat(),
+            (m.m20 * worldScale),
+            (m.m21 * worldScale),
+            (m.m22 * worldScale),
 
             ((m.m30 - pos.x) * worldScale).toFloat(),
             ((m.m31 - pos.y) * worldScale).toFloat(),

@@ -34,15 +34,16 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.SQRT3
+import me.anno.maths.Maths.SQRT3f
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -74,7 +75,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     // typical: 2..4
     @Range(1.0, 1000.0)
     @SerializedProperty
-    var shadowMapPower = 4.0
+    var shadowMapPower = 4f
     var shadowMapResolution = 1024
         set(value) {
             field = max(1, value)
@@ -105,7 +106,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         return super.fill(pipeline, transform)
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         getLightPrimitive().getBounds().transformUnion(globalTransform, dstUnion)
         return true
     }
@@ -187,11 +188,11 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     }
 
     abstract fun updateShadowMap(
-        cascadeScale: Double, worldScale: Double,
+        cascadeScale: Float, worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        cameraRotation: Quaterniond, cameraDirection: Vector3d,
-        drawTransform: Matrix4x3d, pipeline: Pipeline,
+        cameraRotation: Quaternionf, cameraDirection: Vector3f,
+        drawTransform: Matrix4x3m, pipeline: Pipeline,
         resolution: Int,
     )
 
@@ -210,7 +211,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         // val originalPosition = Vector3d(RenderState.cameraPosition) // test frustum
         val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
-        val worldScale = SQRT3 / global.getScaleLength()
+        val worldScale = SQRT3f / global.getScaleLength()
         val direction = rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
         // val originalWorldScale = RenderState.worldScale // test frustum
         RenderState.worldScale = worldScale
@@ -225,7 +226,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                         // reset position
                         position.set(tmpPos)
                         pipeline.clear()
-                        val cascadeScale = shadowMapPower.pow(-i.toDouble())
+                        val cascadeScale = shadowMapPower.pow(-i)
                         updateShadowMap(
                             cascadeScale, worldScale,
                             RenderState.cameraMatrix,

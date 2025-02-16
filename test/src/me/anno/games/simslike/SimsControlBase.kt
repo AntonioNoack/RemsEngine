@@ -21,10 +21,10 @@ abstract class SimsControlBase(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isLeftDown) {
             // move around by dragging
-            val xSpeed = -pixelsToWorldFactor * renderView.radius / height
+            val xSpeed = (-pixelsToWorldFactor * renderView.radius / height).toFloat()
             val ry = rotationTargetDegrees.y.toRadians()
-            val ySpeed = xSpeed / mix(1.0, abs(sin(ry)), 0.5)
-            moveCamera(dx * xSpeed, 0.0, dy * ySpeed)
+            val ySpeed = xSpeed / mix(1f, abs(sin(ry)), 0.5f)
+            moveCamera(dx * xSpeed, 0f, dy * ySpeed)
         } else super.onMouseMoved(x, y, dx, dy)
     }
 }

@@ -251,7 +251,7 @@ open class InstancedStack {
 
             val prevWorldScale = RenderState.prevWorldScale
             // worth ~15%; to use it, ensure that RenderView.worldScale is 1.0
-            val noWorldScale = worldScale == 1.0 && (prevWorldScale == 1.0 || !motionVectors)
+            val noWorldScale = worldScale == 1f && (prevWorldScale == 1f || !motionVectors)
 
             val batchSize = buffer.vertexCount
             val overrideGfxId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
@@ -369,7 +369,7 @@ open class InstancedStack {
             nioBuffer: ByteBuffer, transforms: Array<Any?>,
             baseIndex: Int, endIndex: Int,
             cx: Double, cy: Double, cz: Double,
-            worldScale: Double
+            worldScale: Float
         ) {
             for (index in baseIndex until endIndex) {
                 val tr = transforms[index] as Transform
@@ -393,7 +393,7 @@ open class InstancedStack {
             baseIndex: Int, endIndex: Int,
             noWorldScale: Boolean, time: Long,
             prevCameraPosition: Vector3d, cameraPosition: Vector3d,
-            prevWorldScale: Double, worldScale: Double,
+            prevWorldScale: Float, worldScale: Float,
             motionVectors: Boolean, useAnimations: Boolean,
             anim: FloatArray?, overrideGfxId: Boolean,
             gfxIds: IntArray, drawCallId: Int,

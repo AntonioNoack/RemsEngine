@@ -91,7 +91,7 @@ object TriangleBuffer {
         x1: Double, y1: Double, z1: Double,
         x2: Double, y2: Double, z2: Double,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         ensureSize(triangleSize)
@@ -103,7 +103,7 @@ object TriangleBuffer {
     private fun putRelativePoint(
         x0: Double, y0: Double, z0: Double,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         val bytes = bytes
@@ -121,7 +121,7 @@ object TriangleBuffer {
         x1: Double, y1: Double, z1: Double,
         x2: Double, y2: Double, z2: Double,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         color: Int
     ) {
         putRelativeTriangle(
@@ -139,7 +139,7 @@ object TriangleBuffer {
     fun putRelativeTriangle(
         v0: org.joml.Vector3d, v1: org.joml.Vector3d, v2: org.joml.Vector3d,
         cam: org.joml.Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         color: Int
     ) {
         putRelativeTriangle(

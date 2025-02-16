@@ -9,7 +9,7 @@ import me.anno.maths.bvh.HitType
 import me.anno.utils.assertions.assertEquals
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
@@ -59,7 +59,7 @@ class MeshColliderTests {
     fun testUnion() {
         val collider = MeshCollider(sphere3)
         val bounds = AABBd()
-        collider.union(Matrix4x3d(), bounds, Vector3d(), false)
+        collider.union(Matrix4x3m(), bounds, Vector3d(), false)
         assertEquals(sphere3.getBounds(), AABBf(bounds))
     }
 

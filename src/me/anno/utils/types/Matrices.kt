@@ -6,6 +6,7 @@ import org.joml.Matrix3d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -16,7 +17,7 @@ object Matrices {
      * replace missing setter/constructor
      * */
     @JvmStatic
-    fun Matrix4x3f.set4x3Delta(src: Matrix4x3d): Matrix4x3f {
+    fun Matrix4x3f.set4x3Delta(src: Matrix4x3m): Matrix4x3f {
         val scale = worldScale
         val position = cameraPosition
         set(

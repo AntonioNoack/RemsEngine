@@ -138,6 +138,19 @@ open class Matrix3f : Matrix<Matrix3f, Vector3f, Vector3f> {
         return this
     }
 
+    fun set(m: Matrix4x3m): Matrix3f {
+        m00 = m.m00
+        m01 = m.m01
+        m02 = m.m02
+        m10 = m.m10
+        m11 = m.m11
+        m12 = m.m12
+        m20 = m.m20
+        m21 = m.m21
+        m22 = m.m22
+        return this
+    }
+
     fun set(m: Matrix4x3d): Matrix3f {
         return set(Matrix4x3f().set(m))
     }

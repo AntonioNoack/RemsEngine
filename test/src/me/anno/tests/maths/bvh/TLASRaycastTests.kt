@@ -13,7 +13,7 @@ import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
 import me.anno.utils.assertions.assertGreaterThan
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 
@@ -34,11 +34,11 @@ class TLASRaycastTests {
         }
         // add them to PipelineStage
         val pipeline = Pipeline(null)
-        pipeline.frustum.setToEverything(Vector3d(), Quaterniond())
+        pipeline.frustum.setToEverything(Vector3d(), Quaternionf())
         pipeline.fill(scene)
         val stage = pipeline.defaultStage
         // build TLAS
-        return BVHBuilder.buildTLAS(stage, Vector3d(), 1.0, SplitMethod.MEDIAN_APPROX, 8)!!
+        return BVHBuilder.buildTLAS(stage, Vector3d(), 1f, SplitMethod.MEDIAN_APPROX, 8)!!
     }
 
     @Test

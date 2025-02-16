@@ -34,6 +34,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -355,7 +356,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             pipeline: Pipeline,
             animMeshComponent: AnimMeshComponent,
             skeleton: Skeleton,
-            transform: Matrix4x3d?,
+            transform: Matrix4x3m?,
             withNames: Boolean,
         ) {
             val matrices = animMeshComponent.getMatrices() ?: return

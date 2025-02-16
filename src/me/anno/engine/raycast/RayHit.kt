@@ -3,10 +3,9 @@ package me.anno.engine.raycast
 import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.bvh.HitType
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -42,7 +41,7 @@ class RayHit(maxDistance: Double) {
     val tmpVector3fs = createList(16) { Vector3f() }
     val tmpVector3ds = createList(10) { Vector3d() }
     val tmpVector4fs = createList(3) { Vector4f() }
-    val tmpMat4x3d = Matrix4x3d()
+    val tmpMat4x3m = Matrix4x3m()
     val tmpAABBd = AABBd()
 
     // mesh data, that we could calculate
@@ -61,7 +60,7 @@ class RayHit(maxDistance: Double) {
      *
      * is flat, independent of mesh data
      * */
-    val geometryNormalWS = Vector3d()
+    val geometryNormalWS = Vector3f()
 
     /**
      * Normal from interpolated normals, in world space
@@ -69,7 +68,7 @@ class RayHit(maxDistance: Double) {
      *
      * may be smooth or flat, depending on mesh data
      * */
-    val shadingNormalWS = Vector3d()
+    val shadingNormalWS = Vector3f()
 
     /**
      * Barycentric coordinates within the intersected triangle;
@@ -92,7 +91,7 @@ class RayHit(maxDistance: Double) {
     }
 
     fun setFromLocal(
-        globalTransform: Matrix4x3d,
+        globalTransform: Matrix4x3m,
         localStart: Vector3f, localDirection: Vector3f, localDistance: Float, localNormal: Vector3f,
         query: RayQuery
     ) {
@@ -111,7 +110,7 @@ class RayHit(maxDistance: Double) {
     }
 
     fun setFromLocal(
-        globalTransform: Matrix4x3d?,
+        globalTransform: Matrix4x3m?,
         localHit: Vector3f, localNormal: Vector3f,
         query: RayQuery
     ) {

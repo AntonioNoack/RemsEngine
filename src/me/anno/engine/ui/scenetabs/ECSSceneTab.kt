@@ -53,6 +53,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 
 class ECSSceneTab(
@@ -74,9 +75,9 @@ class ECSSceneTab(
     val file get() = inspector.reference
 
     // different tabs have different "cameras"
-    var radius = 10.0
+    var radius = 10f
     val position = Vector3d()
-    val rotation = Quaterniond(defaultRotation)
+    val rotation = Quaternionf(defaultRotation)
 
     var isFirstTime = true
 
@@ -90,7 +91,7 @@ class ECSSceneTab(
             }
             is Mesh -> resetCamera2(root)
             is Material, is LightComponentBase -> {
-                radius = 2.0
+                radius = 2f
             }
             is Entity -> {
                 root.validateTransform()
@@ -119,10 +120,10 @@ class ECSSceneTab(
             }
             is CollidingComponent -> {
                 val aabb = JomlPools.aabbd.create().clear()
-                val mat = JomlPools.mat4x3d.create().identity()
+                val mat = JomlPools.mat4x3m.create().identity()
                 root.fillSpace(mat, aabb)
                 resetCamera(aabb, true)
-                JomlPools.mat4x3d.sub(1)
+                JomlPools.mat4x3m.sub(1)
                 JomlPools.aabbd.sub(1)
             }
             is Skeleton -> {
@@ -161,7 +162,7 @@ class ECSSceneTab(
     private fun resetCamera(aabb: AABBd, translate: Boolean) {
         if (aabb.centerX.isFinite() && aabb.centerY.isFinite() && aabb.centerZ.isFinite()) {
             if (translate) position.set(aabb.centerX, aabb.centerY, aabb.centerZ)
-            radius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ)
+            radius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ).toFloat()
         }
     }
 
@@ -188,17 +189,17 @@ class ECSSceneTab(
 
     fun applyRadius(panel: RenderView) {
         val fov = panel.controlScheme?.settings?.fovY ?: 90f
-        val radius = radius * 90.0 / fov
+        val radius = radius * 90f / fov
         panel.radius = radius
-        panel.near = 1e-3 * radius
-        panel.far = 1e10 * radius
+        panel.near = 1e-3f * radius
+        panel.far = 1e10f * radius
         panel.orbitCenter.set(position)
         panel.orbitRotation.set(rotation)
         val cs = panel.controlScheme
         if (cs != null) {
             rotation
                 .getEulerAnglesYXZ(cs.rotationTargetDegrees)
-                .mul(1.0.toDegrees())
+                .mul(1f.toDegrees())
         }
     }
 
@@ -336,8 +337,8 @@ class ECSSceneTab(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ECSSceneTab::class)
-        private val defaultRotation = Quaterniond()
-            .rotationYXZ((30.0).toRadians(), (-10.0).toRadians(), 0.0)
+        private val defaultRotation = Quaternionf()
+            .rotationYXZ((30f).toRadians(), (-10f).toRadians(), 0f)
 
         fun tryStartVR(window: OSWindow?, rv: RenderView?) {
             if (GFX.shallRenderVR) {

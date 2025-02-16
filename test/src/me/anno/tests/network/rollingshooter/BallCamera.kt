@@ -9,7 +9,9 @@ import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.pow
@@ -34,9 +36,9 @@ class BallCamera(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         return if (Input.isMouseLocked) {
             // rotate camera
-            val speed = 1.0 / RenderView.currentInstance!!.height
-            rotX = clamp(rotX + dy * speed, -PI / 2, PI / 2)
-            rotY = (rotY + dx * speed) % TAU
+            val speed = 1f / RenderView.currentInstance!!.height
+            rotX = clamp(rotX + dy * speed, -PIf / 2, PIf / 2)
+            rotY = (rotY + dx * speed) % TAUf
             true
         } else super.onMouseMoved(x, y, dx, dy)
     }
@@ -45,7 +47,7 @@ class BallCamera(
         // update transforms
         val pos = selfPlayerEntity.position
         cameraBase.position = cameraBase.position.mix(pos, dtTo01(5.0 * Time.deltaTime))
-        cameraBase1.setRotation(rotX, rotY, 0.0)
+        cameraBase1.setRotation(rotX, rotY, 0f)
         // send our data to the other players
         instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
             val rot = selfPlayerEntity.rotation

@@ -55,6 +55,7 @@ import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
+import me.anno.utils.types.AnyToVector.getVector3d
 import me.anno.utils.types.Arrays.readLE32
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isBlank2
@@ -63,6 +64,7 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -292,21 +294,18 @@ class GLTFReader(val src: FileReference) {
             val pos = getList(node["translation"])
             val rot = getList(node["rotation"])
             val sca = getList(node["scale"])
-            if (pos.size == 3) node1.translation = Vector3d(
-                getDouble(pos[0]), getDouble(pos[1]), getDouble(pos[2])
-            )
-            if (rot.size == 4) node1.rotation = Quaterniond(
-                getDouble(rot[0]), getDouble(rot[1]), getDouble(rot[2]), getDouble(rot[3])
-            )
-            if (sca.size == 3) node1.scale = Vector3d(
-                getDouble(sca[0]), getDouble(sca[1]), getDouble(sca[2])
-            )
+            if (pos.size == 3) node1.translation =
+                Vector3d(getDouble(pos[0]), getDouble(pos[1]), getDouble(pos[2]))
+            if (rot.size == 4) node1.rotation =
+                Quaternionf(getFloat(rot[0]), getFloat(rot[1]), getFloat(rot[2]), getFloat(rot[3]))
+            if (sca.size == 3) node1.scale =
+                Vector3f(getFloat(sca[0]), getFloat(sca[1]), getFloat(sca[2]))
             if (matrix.size == 16) {
                 for (i in tmp16.indices) tmp16[i] = getDouble(matrix[i])
                 tmp4x4.set(tmp16)
                 node1.translation = tmp4x4.getTranslation(Vector3d())
-                node1.rotation = tmp4x4.getUnnormalizedRotation(Quaterniond())
-                node1.scale = tmp4x4.getScale(Vector3d())
+                node1.rotation = tmp4x4.getUnnormalizedRotation(Quaternionf())
+                node1.scale = tmp4x4.getScale(Vector3f())
             }
             node1.mesh = getInt(node["mesh"], -1)
             node1.skin = getInt(node["skin"], -1)
@@ -346,7 +345,7 @@ class GLTFReader(val src: FileReference) {
     private fun calculateGlobalTransform(node: Node) {
         val parent = node.parent
         if (parent != null && parent.globalTransform == null) calculateGlobalTransform(parent)
-        val transform = if (parent != null) Matrix4x3d(parent.globalTransform!!) else Matrix4x3d()
+        val transform = if (parent != null) Matrix4x3m(parent.globalTransform!!) else Matrix4x3m()
         val translation = node.translation
         val rotation = node.rotation
         val scale = node.scale
@@ -451,7 +450,18 @@ class GLTFReader(val src: FileReference) {
                 } else dst.set(default)
             }
 
-            fun getQuaternionf(sampler: AnimSampler?, byNode: Quaterniond?, dst: Quaternionf) {
+            fun getVector3f(sampler: AnimSampler?, byNode: Vector3f?, default: Float, dst: Vector3f) {
+                if (sampler != null) {
+                    getTime(sampler.times!!)
+                    val values = sampler.values!!
+                    dst.set(values, idx0 * 3)
+                        .lerp(tmp3.set(values, idx1 * 3), idxF)
+                } else if (byNode != null) {
+                    dst.set(byNode)
+                } else dst.set(default)
+            }
+
+            fun getQuaternionf(sampler: AnimSampler?, byNode: Quaternionf?, dst: Quaternionf) {
                 if (sampler != null) {
                     getTime(sampler.times!!)
                     val values = sampler.values!!
@@ -594,7 +604,7 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun createFlatPrefab(rootNodes: List<Node>, prefab: Prefab) {
-        val meshesByTransform = HashMap<Matrix4x3d, ArrayList<Node>>()
+        val meshesByTransform = HashMap<Matrix4x3m, ArrayList<Node>>()
         Recursion.processRecursive2(rootNodes) { node, remaining ->
             if (node.hasMeshes) {
                 if (node.mesh >= 0) {
@@ -659,13 +669,13 @@ class GLTFReader(val src: FileReference) {
         if (node.scale != null) prefab[path, "scale"] = node.scale
     }
 
-    private fun writeNodeTransform(prefab: Prefab, path: Path, transform: Matrix4x3d) {
+    private fun writeNodeTransform(prefab: Prefab, path: Path, transform: Matrix4x3m) {
         val translation = transform.getTranslation(Vector3d())
-        val rotation = transform.getUnnormalizedRotation(Quaterniond())
-        val scale = transform.getScale(Vector3d())
+        val rotation = transform.getUnnormalizedRotation(Quaternionf())
+        val scale = transform.getScale(Vector3f())
         if (translation.lengthSquared() > 0.0) prefab[path, "position"] = translation
-        if (rotation.w != 1.0) prefab[path, "rotation"] = rotation
-        if (scale.distanceSquared(1.0, 1.0, 1.0) > 1e-16) prefab[path, "scale"] = scale
+        if (rotation.w != 1f) prefab[path, "rotation"] = rotation
+        if (scale.distanceSquared(1f, 1f, 1f) > 1e-12f) prefab[path, "scale"] = scale
     }
 
     private fun findNodeChildren(parent: Node, prefab: Prefab, remaining: ArrayList<Node>) {
@@ -682,7 +692,7 @@ class GLTFReader(val src: FileReference) {
     }
 
     private fun readImages(): List<FileReference> {
-       return forEachMap("images", ArrayList()) { image ->
+        return forEachMap("images", ArrayList()) { image ->
             if ("uri" in image) resolveUri(image["uri"].toString())
             else {
                 // instead of URI, there could also be bufferView: 8, mimeType: image/png

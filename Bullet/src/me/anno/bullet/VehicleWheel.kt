@@ -133,11 +133,11 @@ class VehicleWheel : Component(), OnDrawGUI {
         // +w
         val position = Vector3d(transform.m30, transform.m31, transform.m32)
         // raycast direction, e.g. down, so -y
-        val wheelDirection = Vector3d(-transform.m10, -transform.m11, -transform.m12)
+        val wheelDirection = Vector3d(-transform.m10.toDouble(), -transform.m11.toDouble(), -transform.m12.toDouble())
         val scale = abs(transform.getScaleLength() / Maths.SQRT3)
         val actualWheelRadius = radius * scale
         // wheel axis, e.g. x axis, so +x
-        val wheelAxle = Vector3d(-transform.m00, -transform.m01, -transform.m02)
+        val wheelAxle = Vector3d(-transform.m00.toDouble(), -transform.m01.toDouble(), -transform.m02.toDouble())
         val tuning = VehicleTuning()
         tuning.frictionSlip = tuning.frictionSlip
         tuning.suspensionDamping = suspensionDampingRelaxation

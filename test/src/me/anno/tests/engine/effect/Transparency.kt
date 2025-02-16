@@ -26,7 +26,7 @@ fun main() {
     scene.addChild(PrefabCache[downloads.getChild("glass_table.glb")]!!
         .createInstance().apply {
             this as Entity
-            setScale(0.01)
+            setScale(0.01f)
         })
     scene.addChild(PrefabCache[downloads.getChild("sphere-glass-4k-materialtest.glb")]!!
         .createInstance().apply {
@@ -42,7 +42,7 @@ fun main() {
         .createInstance().apply {
             this as Entity
             setPosition(1.6, 0.85, -1.37)
-            setScale(0.1)
+            setScale(0.1f)
         })
     if (false) scene.addChild(PrefabCache[downloads.getChild("free_1975_porsche_911_930_turbo.zip/scene.gltf")]!!
         .createInstance().apply {

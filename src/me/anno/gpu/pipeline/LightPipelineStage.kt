@@ -57,7 +57,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     fun bindDraw(
         pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f,
-        cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double
+        cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Float
     ) {
         bind {
             source.bindTrulyNearestMS(0)
@@ -118,7 +118,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         pipeline: Pipeline,
         cameraMatrix: Matrix4f,
         cameraPosition: Vector3d,
-        worldScale: Double,
+        worldScale: Float,
         getShader: (LightType, Boolean) -> Shader,
         depthTexture: ITexture2D,
         depthMask: Vector4f,
@@ -215,7 +215,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     private var cameraMatrix: Matrix4f? = null
     private var cameraPosition: Vector3d? = null
-    private var worldScale: Double = 1.0
+    private var worldScale: Float = 1f
 
     fun drawBatches(
         pipeline: Pipeline, depthTexture: ITexture2D,

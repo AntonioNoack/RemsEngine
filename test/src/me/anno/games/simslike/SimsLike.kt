@@ -62,7 +62,7 @@ fun main() {
     // todo create UI
     val scene = Entity("Scene")
     val floor = Entity("Floor", scene)
-    floor.setScale(40.0)
+    floor.setScale(40f)
     floor.add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x335533)))
     floor.add(SimAction().apply {
         name = "Walk Here"

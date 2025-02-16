@@ -59,8 +59,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
@@ -95,17 +95,17 @@ object AssetThumbnails {
 
     private fun findFramingRadius(scene: Entity, bounds: AABBd) {
         if (!bounds.isEmpty() && bounds.volume.isFinite()) {
-            rv.radius = 100.0 * bounds.maxDelta
+            rv.radius = 100f * bounds.maxDelta.toFloat()
             bounds.getCenter(rv.orbitCenter)
             rv.updateEditorCameraTransform()
             rv.setRenderState()
             // calculate ideal transform like previously
             // for that, calculate bounds on screen, then rescale/recenter
             val visualBounds = AABBf()
-            val tmp = Matrix4x3d()
+            val tmp = Matrix4x3m()
             val totalMatrix = Matrix4f()
             val vec0 = Vector3f()
-            val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform)
+            val cameraMatrix = Matrix4x3m(rv.editorCamera.transform!!.globalTransform)
 
             fun addMesh(mesh: IMesh?, transform: Transform) {
                 if (mesh !is Mesh) return
@@ -128,9 +128,9 @@ object AssetThumbnails {
                     }
                 }
             }
-            rv.radius = 400.0 * max(visualBounds.deltaX, visualBounds.deltaY).toDouble()
+            rv.radius = 400f * max(visualBounds.deltaX, visualBounds.deltaY)
         } else {
-            rv.radius = 1.0
+            rv.radius = 1f
             rv.orbitCenter.set(0.0)
         }
     }
@@ -208,8 +208,8 @@ object AssetThumbnails {
                 val rv = rv
                 val cam = rv.editorCamera
                 findFramingRadius(scene, bounds)
-                rv.near = rv.radius * 0.01
-                rv.far = rv.radius * 2.0
+                rv.near = rv.radius * 0.01f
+                rv.far = rv.radius * 2.0f
                 rv.updateEditorCameraTransform()
                 rv.setRenderState()
                 rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
@@ -263,8 +263,8 @@ object AssetThumbnails {
         rv.enableOrbiting = true
         rv.editorCamera.fovY = 10f.toRadians()
         rv.orbitRotation.identity()
-            .rotateY(25.0.toRadians())
-            .rotateX((-15.0).toRadians())
+            .rotateY(25f.toRadians())
+            .rotateX((-15f).toRadians())
         rv.pipeline.defaultStage.cullMode = CullMode.BOTH
         val sky = SkyboxBase()
         rv.pipeline.skybox = sky
@@ -408,7 +408,8 @@ object AssetThumbnails {
         val meshVertices = Pools.floatArrayPool[bones.size * Skeleton.boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
-        ThumbsRendering.renderMultiWindowImage(srcFile, dstFile, count, size,
+        ThumbsRendering.renderMultiWindowImage(
+            srcFile, dstFile, count, size,
             true, Renderers.simpleRenderer, { it, e ->
                 callback.call(it, e)
                 Pools.floatArrayPool.returnBuffer(meshVertices)
@@ -525,7 +526,7 @@ object AssetThumbnails {
             is Renderable -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
-                val gt = JomlPools.mat4x3d.borrow()
+                val gt = JomlPools.mat4x3m.borrow()
                 val ab = JomlPools.aabbd.borrow()
                 if (asset.fillSpace(gt, ab)) {
                     // todo render debug ui :)

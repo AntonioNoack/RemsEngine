@@ -1,17 +1,18 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.light.PointLight.Companion.effectiveSpecular
+import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes.smoothCube
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class CircleLight : LightComponent(LightType.CIRCLE) {
 
@@ -21,13 +22,13 @@ class CircleLight : LightComponent(LightType.CIRCLE) {
     override fun getShaderV0(): Float = radius
 
     override fun updateShadowMap(
-        cascadeScale: Double,
-        worldScale: Double,
+        cascadeScale: Float,
+        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        cameraRotation: Quaterniond,
-        cameraDirection: Vector3d,
-        drawTransform: Matrix4x3d,
+        cameraRotation: Quaternionf,
+        cameraDirection: Vector3f,
+        drawTransform: Matrix4x3m,
         pipeline: Pipeline,
         resolution: Int
     ) {

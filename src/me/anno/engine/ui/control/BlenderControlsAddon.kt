@@ -125,27 +125,26 @@ class BlenderControlsAddon {
     }
 
 
-
     fun transform(transform: Transform, vec: Vector3d) {
         when (local) {
             LocalMode.LOCAL -> {
                 when (mode) {
-                    InputMode.MOVE -> transform.localPosition = transform.localPosition.add(vec)
-                    InputMode.ROTATE -> transform.localRotation = transform.localRotation.rotateYXZ(vec.y, vec.x, vec.z)
-                    InputMode.SCALE -> transform.localScale = transform.localScale.mul(vec)
+                    InputMode.MOVE -> transform.localPosition = transform.localPosition
+                        .add(vec)
+                    InputMode.ROTATE -> transform.localRotation = transform.localRotation
+                        .rotateYXZ(vec.y.toFloat(), vec.x.toFloat(), vec.z.toFloat())
+                    InputMode.SCALE -> transform.localScale = transform.localScale
+                        .mul(vec.x.toFloat(), vec.y.toFloat(), vec.z.toFloat())
                     InputMode.NONE -> {}
                 }
             }
             LocalMode.GLOBAL -> {
                 when (mode) {
-                    InputMode.MOVE -> transform.globalPosition =
-                        transform.globalPosition
-                            .add(vec)
-                    InputMode.ROTATE -> transform.globalRotation =
-                        transform.globalRotation
-                            .rotateYXZ(vec.y, vec.x, vec.z)
-                    InputMode.SCALE -> transform.globalScale =
-                        transform.globalScale.mul(vec)
+                    InputMode.MOVE -> transform.globalPosition = transform.globalPosition.add(vec)
+                    InputMode.ROTATE -> transform.globalRotation = transform.globalRotation
+                        .rotateYXZ(vec.y.toFloat(), vec.x.toFloat(), vec.z.toFloat())
+                    InputMode.SCALE -> transform.globalScale = transform.globalScale
+                        .mul(vec.x.toFloat(), vec.y.toFloat(), vec.z.toFloat())
                     InputMode.NONE -> {}
                 }
             }
@@ -191,5 +190,4 @@ class BlenderControlsAddon {
             if (reset) resetBlenderInput()
         }
     }
-
 }

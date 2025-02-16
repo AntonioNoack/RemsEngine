@@ -51,7 +51,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
 import org.joml.Vector3f
 import javax.vecmath.Quat4d
@@ -338,7 +338,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         bulletInstance.removeRigidBody(rigidbody)
     }
 
-    override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
+    override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3m) {
         val tmpTransform = Stack.borrowTrans()
         rigidbody.getWorldTransform(tmpTransform)
         transformToMat4x3(tmpTransform, scale, dstTransform)
@@ -633,7 +633,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             return v
         }
 
-        fun mat4x3ToTransform(ourTransform: Matrix4x3d, scale: org.joml.Vector3d): Transform {
+        fun mat4x3ToTransform(ourTransform: Matrix4x3m, scale: org.joml.Vector3d): Transform {
             // bullet does not support scale -> we always need to correct it
             val sx = 1.0 / scale.x
             val sy = 1.0 / scale.y
@@ -654,7 +654,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             return t
         }
 
-        fun transformToMat4x3(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
+        fun transformToMat4x3(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3m) {
 
             val basis = worldTransform.basis
             val origin = worldTransform.origin
@@ -664,9 +664,9 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
             // bullet/javax uses normal ij indexing, while joml uses ji indexing
             dstTransform.set(
-                basis.m00 * sx, basis.m10 * sy, basis.m20 * sz,
-                basis.m01 * sx, basis.m11 * sy, basis.m21 * sz,
-                basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
+                (basis.m00 * sx).toFloat(), (basis.m10 * sy).toFloat(), (basis.m20 * sz).toFloat(),
+                (basis.m01 * sx).toFloat(), (basis.m11 * sy).toFloat(), (basis.m21 * sz).toFloat(),
+                (basis.m02 * sx).toFloat(), (basis.m12 * sy).toFloat(), (basis.m22 * sz).toFloat(),
                 origin.x, origin.y, origin.z
             )
         }

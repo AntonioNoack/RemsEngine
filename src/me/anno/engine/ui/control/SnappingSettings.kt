@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.engine.inspector.Inspectable
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.floor
 import kotlin.math.round
 
@@ -20,7 +21,7 @@ class SnappingSettings : Inspectable {
     var snapZ by ConfigRef("ui.snapSettings.snapZ", 0.0)
 
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var snapR by ConfigRef("ui.snapSettings.snapR", 0.0)
+    var snapR by ConfigRef("ui.snapSettings.snapR", 0f)
 
     var snapCenter by ConfigRef("ui.snapSettings.snapCenter", false)
 
@@ -30,11 +31,21 @@ class SnappingSettings : Inspectable {
         dst.z = snap(dst.z, snapZ)
     }
 
-    fun snapRotation(dst: Vector3d) {
+    fun snapRotation(dst: Vector3f) {
         val snapR = snapR
         dst.x = snap(dst.x, snapR)
         dst.y = snap(dst.y, snapR)
         dst.z = snap(dst.z, snapR)
+    }
+
+    fun snap(v: Float, s: Float): Float {
+        return if (s > 0f) {
+            if (snapCenter) {
+                floor(v / s) * s
+            } else {
+                round(v / s) * s
+            }
+        } else v
     }
 
     fun snap(v: Double, s: Double): Double {
@@ -51,12 +62,32 @@ class SnappingSettings : Inspectable {
         snapVector(dst, rem, snapX, snapY, snapZ, mask)
     }
 
-    fun snapRotation(dst: Vector3d, rem: Vector3d, mask: Int = -1) {
+    fun snapRotation(dst: Vector3f, rem: Vector3f, mask: Int = -1) {
         val snap = snapR
         snapVector(dst, rem, snap, snap, snap, mask)
     }
 
     fun snapVector(dst: Vector3d, rem: Vector3d, snapX: Double, snapY: Double, snapZ: Double, mask: Int) {
+        if (mask.hasFlag(1)) {
+            val vx = dst.x + rem.x
+            dst.x = snap(vx, snapX)
+            rem.x = vx - dst.x
+        }
+
+        if (mask.hasFlag(2)) {
+            val vy = dst.y + rem.y
+            dst.y = snap(vy, snapY)
+            rem.y = vy - dst.y
+        }
+
+        if (mask.hasFlag(4)) {
+            val vz = dst.z + rem.z
+            dst.z = snap(vz, snapZ)
+            rem.z = vz - dst.z
+        }
+    }
+
+    fun snapVector(dst: Vector3f, rem: Vector3f, snapX: Float, snapY: Float, snapZ: Float, mask: Int) {
         if (mask.hasFlag(1)) {
             val vx = dst.x + rem.x
             dst.x = snap(vx, snapX)

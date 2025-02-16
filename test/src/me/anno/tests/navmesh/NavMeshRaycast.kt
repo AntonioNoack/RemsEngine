@@ -93,8 +93,8 @@ class AgentController1a(
         upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))
         entity.rotation = entity.rotation
             .identity()
-            .rotateY(atan2(np.x - lp.x, np.z - lp.z))
-            .rotateX(upDownAngle)
+            .rotateY(atan2(np.x - lp.x, np.z - lp.z).toFloat())
+            .rotateX(upDownAngle.toFloat())
         entity.position = np
     }
 }
@@ -129,7 +129,7 @@ fun main() {
         world.add(navMesh1)
 
         val meshEntity = Entity(world)
-            .setScale(1.5)
+            .setScale(1.5f)
             .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
@@ -162,7 +162,7 @@ fun main() {
         val flagMesh = res.getChild("meshes/Flag.fbx")
         for (i in 0 until 500) {
             val flag = Entity("Flag", world)
-            flag.scale = Vector3d(flagScale.toDouble())
+            flag.setScale(flagScale)
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
             val agent = Entity("Agent", world).add(
                 AgentController1a(
@@ -171,7 +171,7 @@ fun main() {
                 )
             )
             Entity(agent)
-                .setScale(agentScale.toDouble())
+                .setScale(agentScale)
                 .add(MeshComponent(agentMeshRef).apply { isInstanced = true })
         }
 

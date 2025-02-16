@@ -9,8 +9,8 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
+import org.joml.Matrix4x3m
+import org.joml.Vector3f
 import kotlin.math.abs
 
 @Docs("rotates and scales the entity parallel to the camera; only works well with a single local player")
@@ -32,9 +32,9 @@ open class LookAtComponent : Component(), OnBeforeDraw {
     @Docs("needs to be enabled, if the base entity of this may rotate or scale; disabled is faster")
     var useGlobalTransform = true
 
-    val dir = Vector3d()
+    val dir = Vector3f()
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         dstUnion.all()
         return true
     }
@@ -43,9 +43,9 @@ open class LookAtComponent : Component(), OnBeforeDraw {
         val transform = transform ?: return
         transform.validate()
 
-        dir.set(transform.globalPosition).sub(RenderState.cameraPosition)
+        transform.globalPosition.sub(RenderState.cameraPosition, dir)
 
-        val minDistance = 1e-300
+        val minDistance = 1e-38f
         val distance = max(minDistance, abs(dir.dot(RenderState.cameraDirection)))
         // remove non-forward components, so the billboard is parallel to the camera instead of looking at the camera
         dir.set(RenderState.cameraDirection).normalize(distance)
@@ -59,15 +59,15 @@ open class LookAtComponent : Component(), OnBeforeDraw {
                 RenderState.cameraRotation
             } else {
 
-                if (!tiltX) dir.x = 0.0
-                if (!tiltY) dir.y = 0.0
-                if (!tiltZ) dir.z = 0.0
+                if (!tiltX) dir.x = 0f
+                if (!tiltY) dir.y = 0f
+                if (!tiltZ) dir.z = 0f
 
                 val length = dir.length()
 
                 if (length > 0.0) {
                     dir.div(length)
-                    JomlPools.quat4d.create().identity()
+                    JomlPools.quat4f.create().identity()
                         .lookAlong(dir, RenderState.cameraDirectionUp).conjugate()
                 } else null
             }

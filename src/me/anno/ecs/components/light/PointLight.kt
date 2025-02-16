@@ -21,10 +21,10 @@ import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
-import kotlin.math.PI
+import org.joml.Vector3f
 
 // todo add visual light cone to all lights; somehow must be post-processing, or like glass, I'd guess... (cannot show background brighter)
 
@@ -35,23 +35,23 @@ class PointLight : LightComponent(LightType.POINT) {
 
     @SerializedProperty
     @Range(1e-6, 1.0)
-    var near = 0.01
+    var near = 0.01f
 
     override fun getShaderV0() = lightSize.toFloat()
-    override fun getShaderV2() = near.toFloat()
+    override fun getShaderV2() = near
 
     override fun invalidateShadows() {
         needsUpdate1 = true
     }
 
     override fun updateShadowMap(
-        cascadeScale: Double,
-        worldScale: Double,
+        cascadeScale: Float,
+        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        cameraRotation: Quaterniond,
-        cameraDirection: Vector3d,
-        drawTransform: Matrix4x3d,
+        cameraRotation: Quaternionf,
+        cameraDirection: Vector3f,
+        drawTransform: Matrix4x3m,
         pipeline: Pipeline,
         resolution: Int
     ) {
@@ -69,21 +69,21 @@ class PointLight : LightComponent(LightType.POINT) {
         val global = transform.globalTransform
         val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
-        val worldScale = SQRT3 / global.getScaleLength()
+        val worldScale = (SQRT3 / global.getScaleLength()).toFloat()
         RenderState.worldScale = worldScale
         // only fill pipeline once?
 
         val result = shadowTextures!! as CubemapFramebuffer
 
-        val far = 1.0
+        val far = 1f
 
-        val deg90 = PI * 0.5
-        val rotInvert = rotation.invert(JomlPools.quat4d.create())
-        val rot3 = JomlPools.quat4d.create()
+        val deg90 = PIf * 0.5f
+        val rotInvert = rotation.invert(JomlPools.quat4f.create())
+        val rot3 = JomlPools.quat4f.create()
 
         // important for SDF shapes
-        RenderState.fovXRadians = PIf * 0.5f
-        RenderState.fovYRadians = PIf * 0.5f
+        RenderState.fovXRadians = deg90
+        RenderState.fovYRadians = deg90
 
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
@@ -92,7 +92,7 @@ class PointLight : LightComponent(LightType.POINT) {
                 GFXState.ditherMode.use(ditherMode) {
                     result.draw(resolution, renderer) { side ->
                         result.clearColor(0, depth = true)
-                        setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
+                        setPerspective(cameraMatrix, deg90, 1f, near, far, 0f, 0f)
                         rotateForCubemap(rot3.identity(), side)
                         rot3.mul(rotInvert)
                         cameraMatrix.rotate(rot3)
@@ -103,7 +103,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
                         pipeline.clear()
                         pipeline.frustum.definePerspective(
-                            near / worldScale, far / worldScale, deg90, resolution, 1.0, position,
+                            near / worldScale, far / worldScale, deg90, resolution, 1f, position,
                             cameraRotation
                         )
                         pipeline.fill(root)
@@ -112,7 +112,7 @@ class PointLight : LightComponent(LightType.POINT) {
                 }
             }
         }
-        JomlPools.quat4d.sub(2)
+        JomlPools.quat4f.sub(2)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -123,7 +123,7 @@ class PointLight : LightComponent(LightType.POINT) {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        drawBox(entity, JomlPools.vec3d.borrow().set(near))
+        drawBox(entity, JomlPools.vec3d.borrow().set(near.toDouble()))
         drawSphere(entity, 1.0)
     }
 

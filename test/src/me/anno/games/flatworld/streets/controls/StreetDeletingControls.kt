@@ -14,6 +14,7 @@ import me.anno.games.flatworld.streets.StreetSegment
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.ui.UIColors
+import org.joml.Vector3d
 import kotlin.math.max
 
 class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingControls(rv) {
@@ -41,13 +42,13 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         val pos = renderView.cameraPosition
         val dir = renderView.mouseDirection
         // find hit distance
-        val query = RayQuery(pos, dir, 1e6)
+        val query = RayQuery(pos, Vector3d(dir), 1e6)
         val hitDistance = if (Raycast.raycast(world.terrain, query)) query.result.distance else 1.0
         val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
         for (segment in world.streetSegments) {
             val streetThickness = 4.8 // todo depends on street profile/type
             val segmentLength = segment.length
-            val hit = segment.distanceToRay(pos, dir)
+            val hit = segment.distanceToRay(pos, Vector3d(dir))
             if (hit.distance < max(streetThickness * 0.5, tolerance10px)) {
                 val margin = max(5.0 * tolerance10px, 1.0) / segmentLength
                 val marginMin = 1.25 * margin + 2.0 / segmentLength

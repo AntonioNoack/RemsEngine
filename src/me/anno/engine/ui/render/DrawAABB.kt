@@ -1,11 +1,11 @@
 package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer.addLine
-import me.anno.gpu.buffer.LineBuffer.ensureSize
 import me.anno.gpu.buffer.LineBuffer.bytesPerLine
+import me.anno.gpu.buffer.LineBuffer.ensureSize
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 
 object DrawAABB {
@@ -16,7 +16,7 @@ object DrawAABB {
         drawAABB(aabb, color, pos, worldScale)
     }
 
-    fun drawAABB(aabb: AABBd, color: Int, pos: Vector3d, worldScale: Double) {
+    fun drawAABB(aabb: AABBd, color: Int, pos: Vector3d, worldScale: Float) {
 
         if (aabb.isEmpty()) return
 
@@ -68,7 +68,7 @@ object DrawAABB {
         addLine(x1, y1, z0, x1, y1, z1, color)
     }
 
-    fun drawAABB(transform: Matrix4x3d?, aabb: AABBd, worldScale: Double, color: Int) {
+    fun drawAABB(transform: Matrix4x3m?, aabb: AABBd, worldScale: Float, color: Int) {
 
         if (aabb.isEmpty()) return
         if (transform == null) return drawAABB(aabb, color)
@@ -77,8 +77,8 @@ object DrawAABB {
         val max = transform.transformPosition(aabb.getMax(JomlPools.vec3d.create()))
 
         val pos = RenderState.cameraPosition
-        min.sub(pos).mul(worldScale)
-        max.sub(pos).mul(worldScale)
+        min.sub(pos).mul(worldScale.toDouble())
+        max.sub(pos).mul(worldScale.toDouble())
 
         drawAABB(min.x, min.y, min.z, max.x, max.y, max.z, color)
 

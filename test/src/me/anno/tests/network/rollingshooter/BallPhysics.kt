@@ -47,9 +47,9 @@ class BallPhysics(
     fun shootBullet() {
         val entity = entity!!
         val pos = Vector3d().add(if (shotLeft) -1.05 else 1.05, 0.0, -0.15)
-            .rotateX(rotX).rotateY(rotY).add(entity.position)
+            .rotateX(rotX.toDouble()).rotateY(rotY.toDouble()).add(entity.position)
         val dir = Vector3d(0.0, 0.0, -1.0)
-            .rotateX(rotX).rotateY(rotY)
+            .rotateX(rotX.toDouble()).rotateY(rotY.toDouble())
         val distance = findBulletDistance(pos, dir)
         val packet = BulletPacket(onBulletPacket)
         packet.pos.set(pos)

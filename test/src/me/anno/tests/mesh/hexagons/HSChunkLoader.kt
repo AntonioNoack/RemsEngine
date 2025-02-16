@@ -30,7 +30,7 @@ import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -67,7 +67,7 @@ class HSChunkLoader(
 
     override val materials: List<FileReference> = listOf(material.ref)
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         globalAABB.all()
         localAABB.all()
         dstUnion.all()

@@ -10,6 +10,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -22,7 +23,7 @@ object LineShapes {
     val tmpVec3d = createArrayList(16) { Vector3d() }
     private val defaultColor = 0x77ffff or black
 
-    fun getDrawMatrix(entity: Entity?): Matrix4x3d? {
+    fun getDrawMatrix(entity: Entity?): Matrix4x3m? {
         val entity1 = entity ?: return null
         entity1.validateTransform()
         return entity1.transform.getDrawMatrix()
@@ -314,10 +315,10 @@ object LineShapes {
     fun drawLine(
         entity: Entity?, p0: Vector3f, p1: Vector3f,
         color: Int = defaultColor
-    ) = drawLine(getDrawMatrix(entity), p0, p1, color)
+    ): Unit = drawLine(getDrawMatrix(entity), p0, p1, color)
 
     fun drawLine(
-        transform: Matrix4x3d?, p0: Vector3f, p1: Vector3f,
+        transform: Matrix4x3m?, p0: Vector3f, p1: Vector3f,
         color: Int = defaultColor
     ) {
         val positions = tmpVec3d
@@ -335,10 +336,10 @@ object LineShapes {
         entity: Entity?,
         p0: Vector3d, p1: Vector3d,
         color: Int = defaultColor
-    ) = drawLine(getDrawMatrix(entity), p0, p1, color)
+    ): Unit = drawLine(getDrawMatrix(entity), p0, p1, color)
 
     fun drawLine(
-        transform: Matrix4x3d?, p0: Vector3d, p1: Vector3d,
+        transform: Matrix4x3m?, p0: Vector3d, p1: Vector3d,
         color: Int = defaultColor
     ) {
         val positions = tmpVec3d

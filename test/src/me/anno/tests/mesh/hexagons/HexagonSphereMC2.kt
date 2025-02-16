@@ -27,9 +27,9 @@ fun main() {
     testSceneWithUI("HexSphere MC/2", scene) {
         addEvent(500) {
             it.renderView.orbitCenter.set(0.0, 1.0, 0.0)
-            it.renderView.radius = 10.0 * sphere.len
-            it.renderView.near = it.renderView.radius * 0.01
-            it.renderView.far = it.renderView.radius * 1e5
+            it.renderView.radius = 10f * sphere.len
+            it.renderView.near = it.renderView.radius * 0.01f
+            it.renderView.far = it.renderView.radius * 1e5f
             it.renderView.updateEditorCameraTransform()
         }
     }

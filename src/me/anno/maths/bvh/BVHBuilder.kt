@@ -27,7 +27,7 @@ object BVHBuilder {
 
     fun createTLASLeaf(
         mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?,
-        cameraPosition: Vector3d, worldScale: Double
+        cameraPosition: Vector3d, worldScale: Float
     ): TLASLeaf {
         val drawMatrix = transform.getDrawMatrix()
         val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition, worldScale)
@@ -44,7 +44,7 @@ object BVHBuilder {
 
     fun buildTLAS(
         scene: PipelineStageImpl, // filled with meshes
-        cameraPosition: Vector3d, worldScale: Double,
+        cameraPosition: Vector3d, worldScale: Float,
         splitMethod: SplitMethod, maxNodeSize: Int
     ): TLASNode? {
         val clock = Clock(LOGGER)

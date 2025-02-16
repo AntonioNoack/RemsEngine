@@ -246,7 +246,7 @@ class AABBd(
         return dx * dy * dz
     }
 
-    fun transformAABB(transform: Matrix4x3d, dst: AABBd = this): AABBd {
+    fun transformAABB(transform: Matrix4x3m, dst: AABBd = this): AABBd {
         return transform(transform, dst)
     }
 
@@ -275,10 +275,63 @@ class AABBd(
         return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
     }
 
+    fun transform(trans: Matrix4x3m, dst: AABBd = this): AABBd {
+        if (isEmpty()) return dst.clear()
+        var minX = Double.POSITIVE_INFINITY
+        var minY = Double.POSITIVE_INFINITY
+        var minZ = Double.POSITIVE_INFINITY
+        var maxX = Double.NEGATIVE_INFINITY
+        var maxY = Double.NEGATIVE_INFINITY
+        var maxZ = Double.NEGATIVE_INFINITY
+        for (i in 0..7) {
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
+            val tx = trans.m00 * x + trans.m10 * y + trans.m20 * z + trans.m30
+            val ty = trans.m01 * x + trans.m11 * y + trans.m21 * z + trans.m31
+            val tz = trans.m02 * x + trans.m12 * y + trans.m22 * z + trans.m32
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
+        }
+        return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
+    }
+
     /**
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd = base): AABBd {
+        if (isEmpty()) return dst.set(base)
+        var minX = base.minX
+        var minY = base.minY
+        var minZ = base.minZ
+        var maxX = base.maxX
+        var maxY = base.maxY
+        var maxZ = base.maxZ
+        for (i in 0..7) {
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
+        }
+        return dst.setMin(minX, minY, minZ).setMax(maxX, maxY, maxZ)
+    }
+
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun transformUnion(m: Matrix4x3m, base: AABBd, dst: AABBd = base): AABBd {
         if (isEmpty()) return dst.set(base)
         var minX = base.minX
         var minY = base.minY
@@ -354,6 +407,32 @@ class AABBd(
         val sz = start.z + c * dir.z
         // println("$sx $sy $sz from $start, $dir X $aabb -> ${aabb.testRay(sx,sy,sz,dir.x,dir.y,dir.z)} && ${distanceSquared(aabb, start)} <= ${dir.lengthSquared()} * $length² = ${dir.lengthSquared() * length * length}")
         return testRay(sx, sy, sz, dir.x, dir.y, dir.z) &&
+                distanceSquared(start) <= dir.lengthSquared() * length * length
+    }
+
+    /**
+     * a test whether the line start-end crosses the aabb
+     * end may be far away, and it still works
+     * start should not be far away -> order matters!
+     * can deliver a few false-positives (in favor of not delivering false-negatives)
+     * */
+    fun testLine(start: Vector3d, dir: Vector3f, length: Double): Boolean {
+        if (isEmpty()) return false
+        // bring the line towards the aabb center, so the JOML check actually works correctly for huge numbers
+        // -> no, that's incorrect!!!
+        // to do at maximum, project the point to the front of the bbx
+        /*var ox = (aabb.minX + aabb.maxX) * 0.5
+        var oy = (aabb.minY + aabb.maxY) * 0.5
+        var oz = (aabb.minZ + aabb.maxZ) * 0.5
+        if (ox.isNaN()) ox = start.x // can happen if aabb is -Inf..Inf
+        if (oy.isNaN()) oy = start.y
+        if (oz.isNaN()) oz = start.z*/
+        val c = 0.0 // linePointTFactor(start, dir, ox, oy, oz)
+        val sx = start.x + c * dir.x
+        val sy = start.y + c * dir.y
+        val sz = start.z + c * dir.z
+        // println("$sx $sy $sz from $start, $dir X $aabb -> ${aabb.testRay(sx,sy,sz,dir.x,dir.y,dir.z)} && ${distanceSquared(aabb, start)} <= ${dir.lengthSquared()} * $length² = ${dir.lengthSquared() * length * length}")
+        return testRay(sx, sy, sz, dir.x.toDouble(), dir.y.toDouble(), dir.z.toDouble()) &&
                 distanceSquared(start) <= dir.lengthSquared() * length * length
     }
 

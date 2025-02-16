@@ -19,6 +19,6 @@ fun main() {
     Entity("Cube", scene)
         .add(MeshComponent(DefaultAssets.flatCube, material))
         .setPosition(+2.0, -0.5, 0.0)
-        .setRotation(-1.0, 0.0, 0.0)
+        .setRotation(-1f, 0f, 0f)
     testSceneWithUI("GridDepth", scene)
 }

@@ -23,10 +23,10 @@ fun main() {
         val angle = i * TAU / numCameras
         val child = Entity(scene)
             .setPosition(sin(angle) + dx, 1.0 + dy, cos(angle) + dz)
-            .setRotation(-0.5, angle, 0.0)
+            .setRotation(-0.5f, angle.toFloat(), 0f)
         child.add(Camera().apply {
             name = "Camera[$i]"
-            far = 5.0
+            far = 5f
         })
     }
     // todo ortho camera in the engine is generally broken... :/
@@ -34,7 +34,7 @@ fun main() {
     ortho.add(Camera().apply {
         name = "Ortho"
         isPerspective = false
-        far = 5.0
+        far = 5f
     })
     scene.add(MeshComponent(mesh))
     val dst = desktop.getChild("GLTF-Cameras.glb")

@@ -42,6 +42,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -136,7 +137,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         previewData.renderer.fill(pipeline, transform)
     }
 
-    private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3d, color: Int) {
+    private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3m, color: Int) {
         matrices ?: return
         // draw bone names where they are
         for (i in 0 until min(skeleton.bones.size, matrices.size)) {

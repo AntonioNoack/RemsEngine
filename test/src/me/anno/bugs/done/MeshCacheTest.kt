@@ -19,7 +19,7 @@ fun main() {
     val blueMaterial = Material.diffuse(UIColors.axisZColor)
     val meshEntity = Entity()
         .add(MeshComponent(meshFile, redMaterial))
-        .setScale(2.0)
+        .setScale(2f)
     val scaledFile = meshEntity.ref
     val scaledPrefab = PrefabCache[scaledFile]!!
     val scaledEntity = scaledPrefab.createInstance() as Entity

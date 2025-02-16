@@ -300,6 +300,40 @@ class AABBf(
     }
 
     /**
+     * transforms this matrix, and places the result in dst
+     * */
+    fun transform(m: Matrix4x3m, dst: AABBd): AABBd {
+        if (isEmpty()) return dst.clear()
+        var minX = Double.POSITIVE_INFINITY
+        var minY = Double.POSITIVE_INFINITY
+        var minZ = Double.POSITIVE_INFINITY
+        var maxX = Double.NEGATIVE_INFINITY
+        var maxY = Double.NEGATIVE_INFINITY
+        var maxZ = Double.NEGATIVE_INFINITY
+        for (i in 0..7) {
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
+        }
+        dst.minX = minX
+        dst.minY = minY
+        dst.minZ = minZ
+        dst.maxX = maxX
+        dst.maxY = maxY
+        dst.maxZ = maxZ
+        return dst
+    }
+
+    /**
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd = base): AABBd {
@@ -337,6 +371,40 @@ class AABBf(
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
     fun transformUnion(m: Matrix4x3f, base: AABBf, dst: AABBf = base): AABBf {
+        if (isEmpty()) return dst.set(base)
+        var minX = base.minX
+        var minY = base.minY
+        var minZ = base.minZ
+        var maxX = base.maxX
+        var maxY = base.maxY
+        var maxZ = base.maxZ
+        for (i in 0..7) {
+            val x = if (i.and(1) != 0) this.minX else this.maxX
+            val y = if (i.and(2) != 0) this.minY else this.maxY
+            val z = if (i.and(4) != 0) this.minZ else this.maxZ
+            val tx = m.m00 * x + m.m10 * y + m.m20 * z + m.m30
+            val ty = m.m01 * x + m.m11 * y + m.m21 * z + m.m31
+            val tz = m.m02 * x + m.m12 * y + m.m22 * z + m.m32
+            minX = min(tx, minX)
+            minY = min(ty, minY)
+            minZ = min(tz, minZ)
+            maxX = max(tx, maxX)
+            maxY = max(ty, maxY)
+            maxZ = max(tz, maxZ)
+        }
+        dst.minX = minX
+        dst.minY = minY
+        dst.minZ = minZ
+        dst.maxX = maxX
+        dst.maxY = maxY
+        dst.maxZ = maxZ
+        return dst
+    }
+
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun transformUnion(m: Matrix4x3m, base: AABBd, dst: AABBd = base): AABBd {
         if (isEmpty()) return dst.set(base)
         var minX = base.minX
         var minY = base.minY

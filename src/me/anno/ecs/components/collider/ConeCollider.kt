@@ -11,7 +11,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2f.Companion.lengthSquared
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -33,7 +33,7 @@ class ConeCollider : Collider() {
     @SerializedProperty
     var margin = 0.04
 
-    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the peak and the bottom ring
         val h = height * 0.5
         val r = radius

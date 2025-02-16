@@ -9,6 +9,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.inHandBlock
 import me.anno.tests.utils.TestWorld
+import org.joml.Vector3d
 import org.joml.Vector3i
 import java.lang.Math.floorDiv
 import kotlin.math.floor
@@ -73,7 +74,7 @@ class CreativeControls(
         // expensive way, using raycasting:
         val query = RayQuery(
             renderView.cameraPosition,
-            renderView.mouseDirection,
+            Vector3d(renderView.mouseDirection),
             1e3
         )
         // todo also implement cheaper raytracing (to show how) going block by block

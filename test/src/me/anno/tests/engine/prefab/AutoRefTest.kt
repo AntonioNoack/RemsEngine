@@ -63,8 +63,8 @@ class AutoRefTest {
                 val mesh = Entity("Mesh $i.$j", group)
                 mesh.add(MeshComponent(Shapes.flatCube.front))
                 mesh.setPosition(Maths.random(), Maths.random(), Maths.random())
-                mesh.setRotation(Maths.random(), Maths.random(), Maths.random())
-                mesh.setScale(Maths.random(), Maths.random(), Maths.random())
+                mesh.setRotation(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
+                mesh.setScale(Maths.random().toFloat(), Maths.random().toFloat(), Maths.random().toFloat())
             }
         }
         return scene

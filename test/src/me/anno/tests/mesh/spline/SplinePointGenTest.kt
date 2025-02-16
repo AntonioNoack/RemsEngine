@@ -20,7 +20,7 @@ class SplinePointGenTest {
         fun addPoint(v: Vector3d, a: Double) {
             Entity(root)
                 .setPosition(v)
-                .setRotation(0.0, a.toRadians(), 0.0)
+                .setRotation(0f, a.toRadians().toFloat(), 0f)
                 .add(SplineControlPoint())
         }
         addPoint(Vector3d(-30.0, 0.0, -20.0), 180.0)

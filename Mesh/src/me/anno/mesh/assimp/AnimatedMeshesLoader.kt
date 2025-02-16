@@ -42,6 +42,7 @@ import org.joml.Matrix3f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.assimp.AIAnimMesh
@@ -268,14 +269,14 @@ object AnimatedMeshesLoader {
 
         val transform0 = Transform()
         val localPosition = prefab.sets[ROOT_PATH, "position"] as? Vector3d
-        val localRotation = prefab.sets[ROOT_PATH, "rotation"] as? Quaterniond
-        val localScale = prefab.sets[ROOT_PATH, "scale"] as? Vector3d
+        val localRotation = prefab.sets[ROOT_PATH, "rotation"] as? Quaternionf
+        val localScale = prefab.sets[ROOT_PATH, "scale"] as? Vector3f
 
         if (localPosition != null) transform0.localPosition = localPosition
         if (localRotation != null) transform0.localRotation = localRotation
         if (localScale != null) transform0.localScale = localScale
 
-        val tmp = JomlPools.mat4x3d.create()
+        val tmp = JomlPools.mat4x3m.create()
         val transform = transform0.getLocalTransform(tmp) // root, so global = local
 
         // correct order? at least the rotation is correct;
@@ -283,9 +284,9 @@ object AnimatedMeshesLoader {
         transform.mul(Matrix4x3d(matrix.transpose()))
 
         prefab["position"] = transform.getTranslation(Vector3d())
-        prefab["rotation"] = transform.getUnnormalizedRotation(Quaterniond())
-        prefab["scale"] = transform.getScale(Vector3d())
-        JomlPools.mat4x3d.sub(1)
+        prefab["rotation"] = transform.getUnnormalizedRotation(Quaternionf())
+        prefab["scale"] = transform.getScale(Vector3f())
+        JomlPools.mat4x3m.sub(1)
     }
 
     private fun fixBoneOrder(boneList: ArrayList<Bone>, meshes: List<Prefab>) {

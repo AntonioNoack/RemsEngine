@@ -217,6 +217,23 @@ open class Matrix4x3d : Matrix<Matrix4x3d, Vector3d, Vector4d> {
         return this
     }
 
+    fun set(m: Matrix4x3m): Matrix4x3d {
+        m00 = m.m00.toDouble()
+        m01 = m.m01.toDouble()
+        m02 = m.m02.toDouble()
+        m10 = m.m10.toDouble()
+        m11 = m.m11.toDouble()
+        m12 = m.m12.toDouble()
+        m20 = m.m20.toDouble()
+        m21 = m.m21.toDouble()
+        m22 = m.m22.toDouble()
+        m30 = m.m30
+        m31 = m.m31
+        m32 = m.m32
+        flags = m.properties()
+        return this
+    }
+
     fun set(m: Matrix4d): Matrix4x3d {
         m00 = m.m00
         m01 = m.m01

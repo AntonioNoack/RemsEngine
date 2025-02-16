@@ -25,17 +25,17 @@ fun main() {
     val scene = Entity("Scene")
     Entity("Grass", scene)
         .add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x66BF67)))
-        .setScale(100.0)
+        .setScale(100.0f)
     Entity("Street", scene)
         .add(MeshComponent(flatCube.front, Material.diffuse(0x222222)))
-        .setScale(4.0, 0.1, 100.0)
+        .setScale(4f, 0.1f, 100f)
 
     val markings = Entity("Markings", scene)
     fun addMarking(x: Double, dx: Double) {
         Entity("Edge Marking", markings)
             .add(MeshComponent(flatCube.front, decalMaterial))
             .setPosition(x, 0.1, 0.0)
-            .setScale(dx, 0.1, 100.0)
+            .setScale(dx.toFloat(), 0.1f, 100f)
     }
 
     addMarking(-3.8, 0.1)
@@ -46,7 +46,7 @@ fun main() {
         Entity("Middle Marking $i", middle)
             .add(MeshComponent(flatCube.front, decalMaterial))
             .setPosition(0.0, 0.1, i * 100.0 / 20.5)
-            .setScale(0.1, 0.1, 1.2)
+            .setScale(0.1f, 0.1f, 1.2f)
     }
 
     testSceneWithUI("Decals", scene)

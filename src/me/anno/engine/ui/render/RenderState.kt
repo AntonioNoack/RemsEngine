@@ -2,7 +2,9 @@ package me.anno.engine.ui.render
 
 import org.joml.Matrix4f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * shared render state;
@@ -10,17 +12,17 @@ import org.joml.Vector3d
  * */
 object RenderState {
 
-    var worldScale = 1.0
-    var prevWorldScale = 1.0
+    var worldScale = 1f
+    var prevWorldScale = 1f
     var aspectRatio = 1f
 
     val cameraMatrix = Matrix4f()
     val cameraMatrixInv = Matrix4f()
     val cameraPosition = Vector3d()
-    val cameraRotation = Quaterniond()
-    val cameraDirectionRight = Vector3d() // = cameraRotation.transform([1,0,0])
-    val cameraDirectionUp = Vector3d() // = cameraRotation.transform([0,1,0])
-    val cameraDirection = Vector3d() // = cameraRotation.transform([0,0,-1])
+    val cameraRotation = Quaternionf()
+    val cameraDirectionRight = Vector3f() // = cameraRotation.transform([1,0,0])
+    val cameraDirectionUp = Vector3f() // = cameraRotation.transform([0,1,0])
+    val cameraDirection = Vector3f() // = cameraRotation.transform([0,0,-1])
 
     fun calculateDirections(isPerspective: Boolean) {
         cameraDirection

@@ -9,9 +9,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes
 import org.joml.AABBd
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
@@ -30,7 +31,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     // todo button to auto-position around scene
     //  (translation, scale)
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         if (cutoff == 0f) {
             dstUnion.all()
         } else {
@@ -42,13 +43,13 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     }
 
     override fun updateShadowMap(
-        cascadeScale: Double,
-        worldScale: Double,
+        cascadeScale: Float,
+        worldScale: Float,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        cameraRotation: Quaterniond,
-        cameraDirection: Vector3d,
-        drawTransform: Matrix4x3d,
+        cameraRotation: Quaternionf,
+        cameraDirection: Vector3f,
+        drawTransform: Matrix4x3m,
         pipeline: Pipeline,
         resolution: Int
     ) {
@@ -76,10 +77,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         )
 
         // offset camera position accordingly
-        cameraDirection.mulAdd(
-            -(2.0 / cascadeScale - 1.0) / (worldScale),
-            dstCameraPosition, dstCameraPosition
-        )
+        val factor = -(2f / cascadeScale - 1f) / (worldScale)
+        dstCameraPosition.add(cameraDirection.x * factor, cameraDirection.y * factor, cameraDirection.z * factor)
     }
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth

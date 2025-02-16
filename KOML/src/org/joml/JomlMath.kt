@@ -75,6 +75,11 @@ object JomlMath {
     fun absEqualsOne(x: Double): Boolean = abs(x) == 1.0
 
     @JvmStatic
+    fun hash(f: Float): Int {
+        return f.toRawBits()
+    }
+
+    @JvmStatic
     fun hash(d: Double): Int {
         val tmp = d.toRawBits()
         return tmp.toInt() xor (tmp shr 32).toInt()

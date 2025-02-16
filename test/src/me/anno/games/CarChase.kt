@@ -29,6 +29,7 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Maths.PIf
 import me.anno.tests.physics.TestVehicleController
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
@@ -38,6 +39,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import kotlin.math.PI
 
@@ -91,7 +93,7 @@ fun createUI(): Panel {
     val car0 = Entity()
     val car1 = Entity()
     car1.setPosition(0.0, -0.8, 0.0)
-    car1.setScale(100.0) // the car somehow is in cm size... even in Blender, so not a bug on our side
+    car1.setScale(100f) // the car somehow is in cm size... even in Blender, so not a bug on our side
     val materialList = listOf(carModelMat)
     fun add(entity: Entity, source: FileReference, matList: List<FileReference> = materialList) {
         val comp = MeshComponent(source)
@@ -135,12 +137,12 @@ fun createUI(): Panel {
     steeringWheelMesh.materials = materialList
     steeringWheel.add(steeringWheelMesh)
     steeringWheel.add(object : Component(), OnUpdate {
-        val q = Quaterniond()
+        val q = Quaternionf()
         val c = Vector3d()
         override fun onUpdate() {
             val tr = steeringWheel.transform
             val mesh = steeringWheelMesh.getMeshOrNull()?.getBounds() ?: return
-            q.rotationZ(-5.0 * controller.lastSteering)
+            q.rotationZ(-5f * controller.lastSteering.toFloat())
             c.set(mesh.centerX.toDouble(), mesh.centerY.toDouble(), mesh.centerZ.toDouble())
             tr.setOffsetForLocalRotation(q, c)
         }
@@ -165,7 +167,7 @@ fun createUI(): Panel {
             wheelMesh.add(MeshComponent(carModelFL).apply { materials = materialList })
             if (x > 0) {
                 wheelMesh.setPosition(0.86348, -0.42678, 1.5698)
-                wheelMesh.setRotation(0.0, PI, 0.0)
+                wheelMesh.setRotation(0f, PIf, 0f)
             } else {
                 wheelMesh.setPosition(-0.86348, -0.42678, -1.5698)
             }
@@ -210,7 +212,7 @@ fun createUI(): Panel {
     orbitControls.camera = camera
     orbitControls.useGlobalSpace = true // less nauseating, when car is rotated
     camBase.add(orbitControls)
-    camEntity.setRotation(0.0, PI, 0.0)
+    camEntity.setRotation(0f, PIf, 0f)
     camBase.setPosition(0.4, 0.57, 0.15)
     camBase.add(camEntity)
     car0.add(camBase)

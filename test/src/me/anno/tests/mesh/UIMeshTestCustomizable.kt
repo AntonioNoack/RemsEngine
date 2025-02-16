@@ -23,14 +23,14 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.posMod
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.res
 import java.util.Date
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -48,7 +48,7 @@ class SimpleMeshTest(
 ) : Panel(style) {
 
     companion object {
-        const val ZERO_ANGLE = PI / 2
+        const val ZERO_ANGLE = PIf / 2
     }
 
     val pipeline = Pipeline(null)
@@ -64,28 +64,28 @@ class SimpleMeshTest(
         val setBackMesh = Entity()
             .setPosition(-0.05, 0.0, 0.0)
             .add(MeshComponent(meshRef)).ref
-        hour.add(MeshComponent(setBackMesh)).setScale(0.6, 0.9, 0.9)
-        minutes.add(MeshComponent(setBackMesh)).setScale(0.85, 0.58, 1.0)
-        seconds.add(MeshComponent(setBackMesh)).setScale(0.95, 0.1, 1.0)
+        hour.add(MeshComponent(setBackMesh)).setScale(0.6f, 0.9f, 0.9f)
+        minutes.add(MeshComponent(setBackMesh)).setScale(0.85f, 0.58f, 1.0f)
+        seconds.add(MeshComponent(setBackMesh)).setScale(0.95f, 0.1f, 1.0f)
         // create 12 text-meshes
         for (i in 1..12) {
-            val angle = -i * TAU / 12 + ZERO_ANGLE
+            val angle = -i * TAUf / 12f + ZERO_ANGLE
             val radius = 0.81
             Entity(rootEntity)
                 .add(MeshTextComponent("$i", defaultFont, AxisAlignment.CENTER))
                 .setPosition(cos(angle) * radius, sin(angle) * radius, 0.0)
-                .setScale(0.1)
+                .setScale(0.1f)
             // add 60 small lines
             for (j in 0 until 5) {
-                val angleI = angle + j * TAU / 60.0
-                val scaleX = if (j == 0) 0.015 else 0.01
-                val scaleY = scaleX * 0.7
+                val angleI = angle + j * TAUf / 60f
+                val scaleX = if (j == 0) 0.015f else 0.01f
+                val scaleY = scaleX * 0.7f
                 val radiusI = 0.98 - scaleX
                 Entity(rootEntity)
                     .add(MeshComponent(flatCube))
                     .setPosition(cos(angleI) * radiusI, sin(angleI) * radiusI, 0.0)
-                    .setRotation(0.0, 0.0, angleI)
-                    .setScale(scaleX, scaleY, 0.01)
+                    .setRotation(0f, 0f, angleI)
+                    .setScale(scaleX, scaleY, 0.01f)
             }
         }
         rootEntity.add(MeshComponent(createRingMesh(12 * 12, 0.98f, 0.99f)))
@@ -96,12 +96,12 @@ class SimpleMeshTest(
     override fun onUpdate() {
         val secondsRaw = Date().time / 1000
         val daysRem = posMod(secondsRaw, (3600 * 24))
-        val hours = daysRem / 3600.0 + 1
-        val min = daysRem / 60.0
+        val hours = daysRem / 3600f + 1
+        val min = daysRem / 60f
         val sec = posMod(daysRem, 60)
-        hour.setRotation(0.0, 0.0, -hours * TAU / 12.0 + ZERO_ANGLE)
-        minutes.setRotation(0.0, 0.0, -min * TAU / 60.0 + ZERO_ANGLE)
-        seconds.setRotation(0.0, 0.0, -sec * TAU / 60.0 + ZERO_ANGLE)
+        hour.setRotation(0f, 0f, -hours * TAUf / 12f + ZERO_ANGLE)
+        minutes.setRotation(0f, 0f, -min * TAUf / 60f + ZERO_ANGLE)
+        seconds.setRotation(0f, 0f, -sec * TAUf / 60f + ZERO_ANGLE)
         invalidateDrawing()
     }
 
@@ -119,7 +119,7 @@ class SimpleMeshTest(
         RenderState.cameraMatrix.identity()
             .ortho(-s, +s, +t, -t, -1f, 0f)
         pipeline.frustum.defineOrthographic(
-            2.0 * s, 2.0 * t, 2.0, height,
+            2f * s, 2f * t, 2f, height,
             RenderState.cameraPosition,
             RenderState.cameraRotation
         )

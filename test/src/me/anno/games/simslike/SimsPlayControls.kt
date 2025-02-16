@@ -17,6 +17,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Floats.toRadians
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -78,17 +79,17 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isLeftDown) {
             // move around by dragging
-            val xSpeed = -pixelsToWorldFactor * renderView.radius / height
+            val xSpeed = (-pixelsToWorldFactor * renderView.radius / height).toFloat()
             val ry = rotationTargetDegrees.y.toRadians()
-            val ySpeed = xSpeed / mix(1.0, abs(sin(ry)), 0.5)
-            moveCamera(dx * xSpeed, 0.0, dy * ySpeed)
+            val ySpeed = xSpeed / mix(1f, abs(sin(ry)), 0.5f)
+            moveCamera(dx * xSpeed, 0f, dy * ySpeed)
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // resolve click
         // todo when clicked Sim, select it
-        val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e9)
+        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e9)
         if (Raycast.raycast(scene, query)) {
             val comp = query.result.component
             var entity = comp?.entity

@@ -14,13 +14,14 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.games.flatworld.FlatWorld
 import me.anno.games.flatworld.buildings.LivingBuilding
 import me.anno.utils.types.Floats.toRadians
+import org.joml.Vector3d
 
 class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlScheme(rv) {
 
     // todo registry of types
     // todo UI to choose type
     val type = LivingBuilding(flatCube.scaled(5f).front)
-    var rotationYDegrees = 0.0
+    var rotationYDegrees = 0f
 
     override fun onUpdate() {
         super.onUpdate()
@@ -29,7 +30,7 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
     }
 
     fun findHoveredBuildings() {
-        val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
+        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e6)
         if (!Raycast.raycast(world.scene, query)) {
             return
         }
@@ -72,14 +73,14 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (Input.isShiftDown) {
-            rotationYDegrees += (dx + dy) * 5.0
+            rotationYDegrees += (dx + dy) * 5f
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
         when (key) {
-            Key.KEY_PERIOD -> rotationYDegrees += 5.0
-            Key.KEY_COMMA -> rotationYDegrees -= 5.0
+            Key.KEY_PERIOD -> rotationYDegrees += 5f
+            Key.KEY_COMMA -> rotationYDegrees -= 5f
             else -> super.onKeyTyped(x, y, key)
         }
     }

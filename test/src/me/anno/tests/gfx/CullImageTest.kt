@@ -6,7 +6,7 @@ import me.anno.engine.ui.render.Frustum
 import me.anno.image.ImageWriter.writeImageInt
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 
 fun main() {
@@ -22,8 +22,8 @@ fun imageTest(frustum: Frustum) {
     val h = 256
 
     frustum.definePerspective(
-        0.001, 100.0, (20.0).toRadians(), h, 1.0, Vector3d(0.0, 0.0, 0.0),
-        Quaterniond().rotateX(0.3)
+        0.001f, 100.0f, (20f).toRadians(), h, 1f, Vector3d(0.0, 0.0, 0.0),
+        Quaternionf().rotateX(0.3f)
     )
 
     for (z in -5 until 0) {

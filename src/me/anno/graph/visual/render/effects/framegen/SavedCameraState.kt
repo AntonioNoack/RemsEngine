@@ -4,15 +4,16 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.Shader
 import org.joml.Matrix4f
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class SavedCameraState {
 
-    private var worldScale = 1.0
+    private var worldScale = 1f
     private val cameraPosition = Vector3d()
-    private val cameraDirection = Vector3d()
-    private val cameraRotation = Quaterniond()
+    private val cameraDirection = Vector3f()
+    private val cameraRotation = Quaternionf()
     private val cameraMatrixInv = Matrix4f()
     private val tmp = Matrix4f()
 
@@ -21,7 +22,7 @@ class SavedCameraState {
         val p1 = RenderState.cameraPosition
         val scale = RenderState.worldScale
         val cameraMatrixI = RenderState.cameraMatrix
-            .scale((RenderState.worldScale / worldScale).toFloat(), tmp)
+            .scale(RenderState.worldScale / worldScale, tmp)
             .translate(
                 ((p0.x - p1.x) * scale).toFloat(),
                 ((p0.y - p1.y) * scale).toFloat(),

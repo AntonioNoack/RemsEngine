@@ -145,7 +145,7 @@ fun createControls(
     controls.position.set(cameraPosition)
     controls.radius = bvhBounds.volume.pow(1f / 3f).toDouble()
     controls.movementSpeed = 0.20 * controls.radius * 100
-    controls.rotationSpeed = 0.15
+    controls.rotationSpeed = 0.15f
     controls.friction = 20f
 
     val window = GFX.someWindow

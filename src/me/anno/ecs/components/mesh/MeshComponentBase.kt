@@ -21,6 +21,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 
 abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
@@ -124,7 +125,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return if (clickId == searchedId) this else null
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         val mesh = getMesh()
         if (mesh != null) {
             fillSpaceSet(mesh, globalTransform, dstUnion)
@@ -140,13 +141,13 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         localAABB.union(mesh.getBounds())
     }
 
-    fun fillSpaceEnd(globalTransform: Matrix4x3d?, aabb: AABBd) {
+    fun fillSpaceEnd(globalTransform: Matrix4x3m?, aabb: AABBd) {
         if (globalTransform != null) localAABB.transform(globalTransform, globalAABB)
         else globalAABB.set(localAABB)
         aabb.union(globalAABB)
     }
 
-    fun fillSpaceSet(mesh: IMesh, globalTransform: Matrix4x3d?, aabb: AABBd) {
+    fun fillSpaceSet(mesh: IMesh, globalTransform: Matrix4x3m?, aabb: AABBd) {
         // fillSpaceStart()
         // fillSpaceAdd(mesh)
         localAABB.set(mesh.getBounds()) // optimization

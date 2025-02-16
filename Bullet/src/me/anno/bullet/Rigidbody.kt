@@ -26,6 +26,7 @@ import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.pow
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import kotlin.math.abs
 
@@ -195,7 +196,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             val bi = bulletInstance
             val tr = transform
             if (tr != null && mass > 0.0) { // not yet tested, and inverse might be costly
-                tr.globalTransform.invert(Matrix4x3d())
+                tr.globalTransform.invert(Matrix4x3m())
                     .transformDirection(field)
                 if (bi != null && !isStatic) {
                     val tmp = Stack.borrowVec()

@@ -70,13 +70,13 @@ fun main() {
     scene.add(
         Entity()
             .setPosition(1.2, -0.2, 0.0)
-            .setScale(0.5)
+            .setScale(0.5f)
             .add(PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")]!!.createInstance() as Entity)
     )
     scene.add(
         Entity()
             .setPosition(1.2, 0.0, 0.0)
-            .setScale(0.3)
+            .setScale(0.3f)
             .add(SDFHyperBBox().apply {
                 thickness = 0.2f
                 rotation4d = rotation4d
@@ -89,7 +89,7 @@ fun main() {
     scene.add(
         Entity()
             .setPosition(0.7, -0.2, 1.0)
-            .setScale(0.2)
+            .setScale(0.2f)
             .add(
                 MeshComponent(
                     IcosahedronModel.createIcosphere(2).ref,
@@ -103,7 +103,7 @@ fun main() {
     dst.tryMkdirs()
 
     val fov = 10f
-    sceneView.renderView.radius = 1.0 / tan(fov.toRadians() * 0.5)
+    sceneView.renderView.radius = 1f / tan(fov.toRadians() * 0.5f)
     sceneView.editControls.rotationTargetDegrees.set(-17.9, 58.3, 0.0)
     addEvent {
         (sceneView.editControls as DraggingControls).settings.fovY = fov

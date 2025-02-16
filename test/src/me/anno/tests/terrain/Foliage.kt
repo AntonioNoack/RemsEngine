@@ -3,10 +3,10 @@ package me.anno.tests.terrain
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.EngineBase
@@ -47,7 +47,7 @@ import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.PI
@@ -143,7 +143,7 @@ class FoliageShader(
         val pos = rv.cameraPosition
         val dir = rv.cameraDirection
         val rot = rv.cameraRotation
-        val camRotY = rot.getEulerAnglesYXZ(JomlPools.vec3d.borrow()).y.toFloat()
+        val camRotY = rot.getEulerAnglesYXZ(JomlPools.vec3f.borrow()).y
         shader.v1f("camRotY", camRotY)
 
         val frustum = rv.pipeline.frustum
@@ -155,7 +155,7 @@ class FoliageShader(
 
         // calculate, where the down-vector hits the plane
         // offset needs to be increased massively, when we look down
-        val dirY = max(dir.y, -0.999)
+        val dirY = max(dir.y, -0.999f)
         val fovY = rv.fovYRadians
         val forwardAngle = asin(dir.y)
         // val downAngle = clamp(forwardAngle - fovY * 0.5, -PI / 2, -0.001)
@@ -168,7 +168,7 @@ class FoliageShader(
         val z1h = max(pos.y, 1.0) * tn1
 
         // add extra offset for what the bottom sees compared to the horizon
-        val extra = max(-dirY, 0.0) * tan(RenderState.fovYRadians * 0.5) * height
+        val extra = max(-dirY, 0f) * tan(RenderState.fovYRadians * 0.5) * height
 
         val tanProjFOV = tan(projectedFOV * 0.5)
         shader.v2f(
@@ -285,7 +285,7 @@ fun main() {
         }.ref
 
         class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {
-            override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+            override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
                 localAABB.all()
                 globalAABB.all()
                 dstUnion.all()

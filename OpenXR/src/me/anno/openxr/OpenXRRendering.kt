@@ -59,7 +59,7 @@ class OpenXRRendering(
 
         tmp.set(pos).sub(lastPosition).rotate(additionalRotation)
         rv.orbitCenter.add(tmp) // scene space
-        rv.radius = 3.0 // define the general speed
+        rv.radius = 3f // define the general speed
         lastPosition.set(pos)
 
         additionalOffset
@@ -70,11 +70,11 @@ class OpenXRRendering(
 
         rv.orbitRotation
             .set(additionalRotation)
-            .mul(rot.x.toDouble(), rot.y.toDouble(), rot.z.toDouble(), rot.w.toDouble())
+            .mul(rot.x, rot.y, rot.z, rot.w)
 
         if (rt != null) {
             rv.orbitRotation.toEulerAnglesDegrees(rt)
-            lastAngleY = rt.y
+            lastAngleY = rt.y.toDouble()
         }
 
         // todo define camera fov for frustum based on actually used angles
@@ -177,13 +177,13 @@ class OpenXRRendering(
 
         rv.cameraRotation
             .set(additionalRotation)
-            .mul(rot.x().toDouble(), rot.y().toDouble(), rot.z().toDouble(), rot.w().toDouble())
+            .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
         RenderState.viewIndex = viewIndex
-        createProjectionFov(rv.cameraMatrix, view.fov(), rv.scaledNear.toFloat(), 0f, rv)
+        createProjectionFov(rv.cameraMatrix, view.fov(), rv.scaledNear, 0f, rv)
 
         // offset camera matrix by (pos - centerPos) * worldScale
-        val scale = rv.worldScale.toFloat()
+        val scale = rv.worldScale
         val dx = pos.x() - position.x
         val dy = pos.y() - position.y
         val dz = pos.z() - position.z

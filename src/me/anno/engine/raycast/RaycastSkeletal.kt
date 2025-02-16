@@ -5,8 +5,8 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.maths.bvh.HitType
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Triangles
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 
 object RaycastSkeletal {
@@ -54,7 +54,7 @@ object RaycastSkeletal {
     }
 
     fun raycastGlobalBoneMesh(
-        query: RayQuery, globalTransform: Matrix4x3d?, mesh: Mesh,
+        query: RayQuery, globalTransform: Matrix4x3m?, mesh: Mesh,
         matrices: List<Matrix4x3f>
     ) {
         val typeMask = query.typeMask
@@ -95,7 +95,7 @@ object RaycastSkeletal {
     private fun getDistance(
         ai: Int, bi: Int, ci: Int,
         helper: RaycastSkeletalHelper,
-        globalTransform: Matrix4x3d?,
+        globalTransform: Matrix4x3m?,
         query: RayQuery, result: RayHit,
     ): Double {
 

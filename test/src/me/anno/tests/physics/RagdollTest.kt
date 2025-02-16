@@ -33,9 +33,12 @@ import me.anno.utils.OS
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Matrix3d
+import org.joml.Matrix3f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -92,7 +95,7 @@ fun main() {
     // todo add bone visually
     val entities = ArrayList<Entity?>()
     val rigidbodies = ArrayList<Rigidbody?>()
-    val baseTransformInvs = ArrayList<Matrix4x3d?>()
+    val baseTransformInvs = ArrayList<Matrix4x3m?>()
     val roots = ArrayList<Pair<Double, Rigidbody>>()
     var isRootBone = true
     for (bone in bones) {
@@ -133,7 +136,7 @@ fun main() {
 
         val length = parentPos.distance(bonePos)
         val centerPos = parentPos.add(bonePos, Vector3d()).mul(0.5)
-        val direction = parentPos - bonePos
+        val direction = Vector3f(parentPos - bonePos)
         val rigidbody = Rigidbody().apply {
             mass = length
             rigidbodies.add(this)
@@ -170,7 +173,7 @@ fun main() {
         entity.rotation = baseRotation
         entity.validateTransform()
         entities.add(entity)
-        baseTransformInvs.add(Matrix4x3d(entity.transform.globalTransform).invert())
+        baseTransformInvs.add(Matrix4x3m(entity.transform.globalTransform).invert())
     }
 
     val totalBoneMass = rigidbodies.filterNotNull().sumOf { it.mass }
@@ -197,7 +200,7 @@ fun main() {
     var firstFrame = true
     val animationUpdateComponent = object : Component(), OnUpdate {
         override fun onUpdate() {
-            val invTransformD = sampleComponent.transform!!.globalTransform.invert(Matrix4x3d())
+            val invTransformD = sampleComponent.transform!!.globalTransform.invert(Matrix4x3m())
             val invTransform = Matrix4x3f().set(invTransformD)
             for (boneId in bones.indices) {
                 val ragdoll = entities[boneId] ?: continue
@@ -219,9 +222,9 @@ fun main() {
                         .sub(physicsTransform.transformDirection(Vector3d(0.0, length * 0.5, 0.0)))
                     val bindPos = Vector3d(bone.bindPosition) // baseTransform.getTranslation(Vector3d())
 
-                    val physicsRot = physicsTransform.getUnnormalizedRotation(Quaterniond())
+                    val physicsRot = physicsTransform.getUnnormalizedRotation(Quaternionf())
                     // baseTransform.transformRotation(physicsRot)
-                    val baseRotInv = baseTransformInv.getUnnormalizedRotation(Quaterniond())
+                    val baseRotInv = baseTransformInv.getUnnormalizedRotation(Quaternionf())
 
                     if (firstFrame) {
                         println("Checking '${bone.name}':")
@@ -240,8 +243,8 @@ fun main() {
                         println("  physics: $physicsRot")
                         println("  base:    $baseRotInv")
                         assertEquals(
-                            Matrix3d(), Matrix3d()
-                                .rotation(physicsRot.mul(baseRotInv, Quaterniond())), 0.01
+                            Matrix3f(), Matrix3f()
+                                .rotation(physicsRot.mul(baseRotInv, Quaternionf())), 0.01
                         )
                     }
 
@@ -269,7 +272,7 @@ fun main() {
 
     Entity("Floor", scene)
         .setPosition(0.0, -15.0, 0.0)
-        .setScale(250.0, 15.0, 250.0)
+        .setScale(250f, 15f, 250f)
         .add(Rigidbody().apply { mass = 0.0 })
         .add(BoxCollider())
         .add(MeshComponent(DefaultAssets.flatCube))

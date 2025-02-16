@@ -596,8 +596,8 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                     // not perfect, but good enough probably
                     // to do smooth lerp over .2s for orientation?
                     val aabb = element.getGlobalBounds()
-                    val newRadius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ)
-                    if (newRadius.isFinite() && newRadius > 0.0) it.radius = newRadius
+                    val newRadius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ).toFloat()
+                    if (newRadius.isFinite() && newRadius > 0f) it.radius = newRadius
                     it.orbitCenter.set(element.transform.globalPosition)
                     it.updateEditorCameraTransform()
                 }

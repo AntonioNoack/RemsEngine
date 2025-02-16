@@ -456,7 +456,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         }
 
         val scale = node.transform.localScale
-        if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0) {
+        if (scale.x != 1f || scale.y != 1f || scale.z != 1f) {
             attr("scale")
             write(scale)
         }
@@ -541,13 +541,13 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                 if (camera.isPerspective) {
                     attr("aspectRatio", 1.0) // mmmh...
                     attr("yfov", camera.fovY.toDouble().toRadians())
-                    attr("zfar", camera.far)
-                    attr("znear", camera.near)
+                    attr("zfar", camera.far.toDouble())
+                    attr("znear", camera.near.toDouble())
                 } else {
-                    attr("xmag", camera.fovOrthographic)
-                    attr("ymag", camera.fovOrthographic)
-                    attr("zfar", camera.far)
-                    attr("znear", camera.near)
+                    attr("xmag", camera.fovOrthographic.toDouble())
+                    attr("ymag", camera.fovOrthographic.toDouble())
+                    attr("zfar", camera.far.toDouble())
+                    attr("znear", camera.near.toDouble())
                 }
             }
         }

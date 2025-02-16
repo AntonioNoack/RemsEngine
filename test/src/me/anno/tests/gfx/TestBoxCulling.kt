@@ -27,7 +27,6 @@ fun createMeshBox(mesh: Mesh, s: Int): Entity {
                 Entity(ye)
                     .add(MeshComponent(mesh))
                     .setPosition(x * spacing, y * spacing, z * spacing)
-                    .setScale(1.0, 1.0, 1.0)
             }
         }
     }

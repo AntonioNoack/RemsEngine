@@ -61,6 +61,6 @@ fun main() {
     Entity("Sky", scene)
         .add(skyLayer)
         .setPosition(0.0, 0.0, -8.0)
-        .setScale(8.0)
+        .setScale(8f)
     testSceneWithUI("Sprites", scene)
 }

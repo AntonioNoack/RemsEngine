@@ -34,6 +34,7 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withoutFlag
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2f
 import org.joml.Vector3f
 
@@ -123,7 +124,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
     // doesn't work yet :/
     var useCustomMesh = false
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         val mesh = getMesh()
         if (mesh != null) {
             localAABB.setMin(-1.0, -1.0, -1.0).setMax(1.0, 2.0, 1.0)

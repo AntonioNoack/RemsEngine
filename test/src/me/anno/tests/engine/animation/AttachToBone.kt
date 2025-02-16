@@ -31,7 +31,7 @@ fun main() {
     // a floor for decoration
     Entity("Floor", scene)
         .add(MeshComponent(DefaultAssets.plane))
-        .setScale(2.5)
+        .setScale(2.5f)
 
     // find first AnimMeshComponent, so we can attach the calculation there
     val renderer = character.getComponentInChildren(AnimMeshComponent::class)!!
@@ -41,8 +41,8 @@ fun main() {
 
     Entity("Offset for Phone", prop)
         .setPosition(0.01, 0.09, 0.025)
-        .setRotation((-8.4).toRadians(), (-0.4).toRadians(), (+38.5).toRadians())
-        .setScale(0.146 * 0.5, 0.072 * 0.5, 0.00765 * 0.5)
+        .setRotation((-8.4f).toRadians(), (-0.4f).toRadians(), (+38.5f).toRadians())
+        .setScale(0.146f * 0.5f, 0.072f * 0.5f, 0.00765f * 0.5f)
         .add(MeshComponent(flatCube.front, Material.diffuse(black)))
 
     LogManager.logAll()

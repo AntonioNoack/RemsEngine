@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.createEndPiece
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.generateSplineMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.posMod
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.white
@@ -14,8 +15,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d
-import org.joml.Vector3f
-import kotlin.math.PI
 import kotlin.math.atan2
 
 class SplineCrossing : ProceduralMesh() {
@@ -104,9 +103,10 @@ class SplineCrossing : ProceduralMesh() {
 
     private fun isCorrectOrder(p: SplineControlPoint): Boolean {
         val tmp = JomlPools.vec3d.create()
-        val tmp2 = JomlPools.vec3d.create()
+        val tmp2 = JomlPools.vec3f.create()
         val correct = p.getLocalPosition(tmp, 0.0).dot(p.getLocalForward(tmp2)) > 0.0
-        JomlPools.vec3d.sub(2)
+        JomlPools.vec3f.sub(1)
+        JomlPools.vec3d.sub(1)
         return correct
     }
 
@@ -117,7 +117,7 @@ class SplineCrossing : ProceduralMesh() {
         // rotate 180° * f
         // copy transform
         val correct = isCorrectOrder(p)
-        val angle = (correct.toInt() + flip.toInt() + useRight.toInt()) * PI
+        val angle = (correct.toInt() + flip.toInt() + useRight.toInt()) * PIf
         val pt = p.entity!!.transform
         val ct = cloneEntity.transform
         ct.localPosition = pt.localPosition

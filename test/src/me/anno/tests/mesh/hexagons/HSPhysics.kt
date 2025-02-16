@@ -91,14 +91,14 @@ fun main() {
         val renderView = object : RenderView(PlayMode.PLAYING, DefaultConfig.style) {
             override fun getWorld() = scene
             override fun updateWorldScale() {
-                worldScale = 0.01
-                near = 1e-6
+                worldScale = 0.01f
+                near = 1e-6f
             }
         }
         val sv = SceneView(renderView, DefaultConfig.style)
         // override controller
         sv.renderView.enableOrbiting = false
-        sv.renderView.near = 1e-7
+        sv.renderView.near = 1e-7f
         val hex0 = sphere.findClosestHexagon(Vector3f(0f, 1f, 0f))
         var yi = triQ.getWorld(hex0).indexOfFirst { block -> block == air }
         if (yi < 0) yi = world.sy

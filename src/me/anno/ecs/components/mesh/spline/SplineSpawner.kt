@@ -134,10 +134,10 @@ class SplineSpawner : MeshSpawner() {
             val dx = p1.x - p0.x
             val dy = p1.y - p0.y
             val dz = p1.z - p0.z
-            val baseRotation = atan2(dx, dz)
+            val baseRotation = atan2(dx, dz).toFloat()
             val rotation = transform.localRotation.rotationY(baseRotation)
-            if (!alwaysUp) rotation.rotateX(atan2(-dy, p1.distance(p0)))
-            rotation.rotateY(addedRotation)
+            if (!alwaysUp) rotation.rotateX(atan2(-dy, p1.distance(p0)).toFloat())
+            rotation.rotateY(addedRotation.toFloat())
             transform.localRotation = rotation
 
             p0.y += offsetY
@@ -145,7 +145,7 @@ class SplineSpawner : MeshSpawner() {
             if (scaleIfNeeded) {
                 val sc = transform.localScale.set(1.0)
                 val scaleX = posMod(((baseRotation + addedRotation) * 4.0 / TAU).roundToIntOr(), 2) == 1
-                sc[scaleX.toInt(0, 2)] = scale
+                sc[scaleX.toInt(0, 2)] = scale.toFloat()
                 transform.localScale = sc
             }
 

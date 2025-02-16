@@ -3,7 +3,7 @@ package me.anno.ecs.components.player
 import me.anno.ecs.Component
 import me.anno.ecs.systems.OnUpdate
 import me.anno.input.Input
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 
 @Suppress("unused")
@@ -13,7 +13,7 @@ class ControllerTransform : Component(), OnUpdate {
 
     // these could be done with a sub-entity ofc, too
     var localOffset = Vector3d() // local
-    var extraRotation = Quaterniond()
+    var extraRotation = Quaternionf()
 
     override fun onUpdate() {
         val entity = entity ?: return

@@ -6,7 +6,9 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 /**
  * helps loading and storing depth values in shaders from textures
@@ -73,14 +75,14 @@ object DepthTransforms {
     private val tmpMatrix = Matrix4f()
     fun bindDepthUniforms(
         shader: GPUShader,
-        cameraDirection: Vector3d,
-        cameraRotation: Quaterniond,
+        cameraDirection: Vector3f,
+        cameraRotation: Quaternionf,
         cameraMatrixInv: Matrix4f
     ) {
         if (!RenderState.isPerspective) {
             // orthogonal
             val dir = cameraDirection
-            shader.v4f("d_camRot", dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), 1f)
+            shader.v4f("d_camRot", dir.x, dir.y, dir.z, 1f)
             shader.v1f("d_near", -1f)
             // a matrix that transforms uv[-1,+1] x depth[0,1] into [left,right] x [top,bottom] x [near,far]
             shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(cameraMatrixInv))

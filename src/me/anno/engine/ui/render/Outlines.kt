@@ -94,7 +94,7 @@ object Outlines {
 
         // the mesh may not be centered:
         // center the outline-mesh
-        val offsetCorrectedTransform = JomlPools.mat4x3d.borrow().set(transform)
+        val offsetCorrectedTransform = JomlPools.mat4x3m.borrow().set(transform)
         val fac = -scaleExtra.toDouble()
         // translate local or global?
         offsetCorrectedTransform.translate(aabb.centerX * fac, aabb.centerY * fac, aabb.centerZ * fac)

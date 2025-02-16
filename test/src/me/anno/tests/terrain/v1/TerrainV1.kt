@@ -12,6 +12,7 @@ import me.anno.maths.Maths.sq
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sx
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sz
 import me.anno.utils.Color.toRGB
+import org.joml.Vector3d
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -73,7 +74,7 @@ fun main() {
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown && (dx != 0f || dy != 0f)) {
                     // draw height / paint
-                    val query = RayQuery(it.renderView.cameraPosition, it.renderView.mouseDirection, 1e9)
+                    val query = RayQuery(it.renderView.cameraPosition, Vector3d(it.renderView.mouseDirection), 1e9)
                     val hit = Raycast.raycast(scene, query)
                     val comp = query.result.component as? TerrainChunk
                     val mesh = comp?.getMeshOrNull()

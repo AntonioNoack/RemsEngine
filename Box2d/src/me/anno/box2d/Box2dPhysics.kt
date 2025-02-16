@@ -19,6 +19,7 @@ import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -198,15 +199,15 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     override fun isActive(rigidbody: Body): Boolean = rigidbody.isActive
 
-    override fun convertTransformMatrix(rigidbody: Body, scale: Vector3d, dstTransform: Matrix4x3d) {
+    override fun convertTransformMatrix(rigidbody: Body, scale: Vector3d, dstTransform: Matrix4x3m) {
         val pos = rigidbody.position
         val angle = rigidbody.angle
-        val c = cos(angle).toDouble()
-        val s = sin(angle).toDouble()
+        val c = cos(angle)
+        val s = sin(angle)
         dstTransform.set(
-            +c, +s, 0.0,
-            -s, +c, 0.0,
-            0.0, 0.0, 1.0,
+            +c, +s, 0f,
+            -s, +c, 0f,
+            0f, 0f, 1f,
             pos.x.toDouble(), pos.y.toDouble(), 0.0
         )
     }

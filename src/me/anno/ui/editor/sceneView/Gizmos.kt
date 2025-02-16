@@ -15,6 +15,7 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.PIf
 import me.anno.ui.UIColors
 import me.anno.utils.Color.black
 import me.anno.utils.OS.res
@@ -22,11 +23,10 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.PI
 
 object Gizmos {
 
@@ -36,45 +36,40 @@ object Gizmos {
     val scaleRef = res.getChild("meshes/scaleX.obj")
 
     fun drawScaleGizmos(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, mouseDirection: Vector3d
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
+        clickId: Int, chosenId: Int, mouseDirection: Vector3f
     ): Int {
         val a = drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, scaleRef)
         val b = drawMesh(
-            pipeline,
-            cameraTransform,
-            position,
-            scale * 0.35,
-            clickId + 3,
-            chosenId,
-            mouseDirection,
-            arrowRef1
+            pipeline, cameraTransform, position,
+            scale * 0.35f, clickId + 3,
+            chosenId, mouseDirection, arrowRef1
         )
         return if (b != 0) b.inv().and(7) else a
     }
 
     fun drawRotateGizmos(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, mouseDirection: Vector3d
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
+        clickId: Int, chosenId: Int, mouseDirection: Vector3f
     ): Int {
         return drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, ringRef)
     }
 
     fun drawTranslateGizmos(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, mouseDirection: Vector3d
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
+        clickId: Int, chosenId: Int, mouseDirection: Vector3f
     ): Int {
         val a = drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, arrowRef)
         val b = drawMesh(
-            pipeline, cameraTransform, position, scale * 0.35,
+            pipeline, cameraTransform, position, scale * 0.35f,
             clickId + 3, chosenId, mouseDirection, arrowRef1
         )
         return if (b != 0) b.inv().and(7) else a
     }
 
     fun drawMesh(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, mouseDirection: Vector3d, ref: FileReference
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
+        clickId: Int, chosenId: Int, mouseDirection: Vector3f, ref: FileReference
     ): Int {
         val mesh = MeshCache[ref] ?: return 0
         val x = drawMesh(
@@ -92,22 +87,22 @@ object Gizmos {
         return x.toInt() + y.toInt(2) + z.toInt(4)
     }
 
-    val local = Matrix4x3d()
-    val localInv = Matrix4x3d()
+    val local = Matrix4x3m()
+    val localInv = Matrix4x3m()
 
     val rayPos = Vector3f()
     val rayDir = Vector3f()
 
     val rotations = listOf(
-        Quaterniond(),
-        Quaterniond().rotateX(+PI * 0.5).rotateY(+PI * 0.5),
-        Quaterniond().rotateX(-PI * 0.5).rotateZ(-PI * 0.5)
+        Quaternionf(),
+        Quaternionf().rotateX(+PIf * 0.5f).rotateY(+PIf * 0.5f),
+        Quaternionf().rotateX(-PIf * 0.5f).rotateZ(-PIf * 0.5f)
     )
 
     fun drawMesh(
         pipeline: Pipeline?, cameraTransform: Matrix4f,
-        position: Vector3d, rotation: Quaterniond, scale: Double,
-        color: Int, clickId: Int, chosenId: Int, mesh: Mesh, mouseDirection: Vector3d
+        position: Vector3d, rotation: Quaternionf, scale: Float,
+        color: Int, clickId: Int, chosenId: Int, mesh: Mesh, mouseDirection: Vector3f
     ): Boolean = drawMesh(
         pipeline, cameraTransform, position, rotation, scale, defaultMaterial,
         if (clickId == chosenId) -1 else color, mesh, mouseDirection
@@ -115,8 +110,8 @@ object Gizmos {
 
     fun drawMesh(
         pipeline: Pipeline?, cameraTransform: Matrix4f,
-        position: Vector3d, rotation: Quaterniond, scale: Double,
-        material: Material, color: Int, mesh: Mesh, mouseDirection: Vector3d
+        position: Vector3d, rotation: Quaternionf, scale: Float,
+        material: Material, color: Int, mesh: Mesh, mouseDirection: Vector3f
     ): Boolean {
 
         val localTransform = local
@@ -143,7 +138,7 @@ object Gizmos {
     }
 
     fun drawMesh(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, localTransform: Matrix4x3d?,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, localTransform: Matrix4x3m?,
         material: Material, color: Int, mesh: Mesh
     ) {
         val shader = (material.shader ?: pbrModelShader).value
@@ -152,11 +147,10 @@ object Gizmos {
         shader.m4x3delta("localTransform", localTransform, cameraPosition, worldScale)
         val invLocalTransformU = shader["invLocalTransform"]
         if (invLocalTransformU >= 0) {
-            val tmp = JomlPools.mat4x3d.borrow()
+            val tmp = JomlPools.mat4x3m.borrow()
             if (localTransform != null) localTransform.invert(tmp)
             else tmp.identity()
-            val tmp2 = JomlPools.mat4x3f.borrow().set(tmp)
-            shader.m4x3(invLocalTransformU, tmp2)
+            shader.m4x3(invLocalTransformU, tmp)
         }
         shader.v1f("worldScale", worldScale)
         material.bind(shader)

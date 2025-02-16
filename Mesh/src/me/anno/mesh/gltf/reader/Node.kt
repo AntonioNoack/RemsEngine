@@ -1,10 +1,11 @@
 package me.anno.mesh.gltf.reader
 
 import me.anno.ecs.prefab.change.Path
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Quaterniond
+import org.joml.Matrix4x3m
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class Node(val id: Int) {
 
@@ -14,10 +15,10 @@ class Node(val id: Int) {
 
     var boneId = -1
 
-    var globalTransform: Matrix4x3d? = null // used for FlatScene.json
+    var globalTransform: Matrix4x3m? = null // used for FlatScene.json
     var translation: Vector3d? = null
-    var rotation: Quaterniond? = null
-    var scale: Vector3d? = null
+    var rotation: Quaternionf? = null
+    var scale: Vector3f? = null
 
     val globalJointTransform = Matrix4x3f() // used for animation-calculations
 

@@ -8,6 +8,7 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.maths.Maths.PIf
 import me.anno.utils.OS.documents
 import kotlin.math.PI
 
@@ -24,7 +25,7 @@ fun main() {
             Entity("Mirror Mesh")
                 .add(PlanarReflection())
                 .setPosition(0.0, -0.01, 0.0)
-                .setRotation(-PI / 2, 0.0, 0.0)
+                .setRotation(-PIf / 2, 0f, 0f)
         )
     })
     scene.add(Entity("Monkey").apply {

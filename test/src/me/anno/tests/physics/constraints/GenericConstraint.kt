@@ -41,7 +41,7 @@ fun main() {
     val box1 = Entity("Pillar", scene)
     box1.add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
     box1.add(BoxCollider().apply { halfExtends.set(0.1f, 1f, 0.1f) })
-    box1.setRotation(5.0.toRadians(), 0.0, 0.0)
+    box1.setRotation(5f.toRadians(), 0f, 0f)
     val body1 = Rigidbody()
     box1.add(body1)
 
@@ -61,7 +61,7 @@ fun main() {
         friction = 1.0
     })
     floor.setPosition(0.0, -22.0, 0.0)
-    floor.setScale(20.0)
+    floor.setScale(20f)
 
     testSceneWithUI("Generic Constraint", scene)
 }

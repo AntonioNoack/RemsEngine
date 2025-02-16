@@ -17,7 +17,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector2f
 import org.joml.Vector3d
 
@@ -28,11 +28,11 @@ class Camera : Component(), OnDrawGUI {
     // todo this is missing from EditorUI... why???
     var isPerspective = true
 
-    @Range(1e-308, 1e305)
-    var near = 0.01
+    @Range(1e-38, 1e35)
+    var near = 0.01f
 
-    @Range(1e-305, 1e308)
-    var far = 5000.0
+    @Range(1e-35, 1e38)
+    var far = 5000.0f
 
     @Range(0.0, 180.0)
     @Docs("the fov when perspective, in degrees")
@@ -40,7 +40,7 @@ class Camera : Component(), OnDrawGUI {
 
     @Range(0.0, 1e308)
     @Docs("the fov when orthographic, in base units")
-    var fovOrthographic = 5.0
+    var fovOrthographic = 5f
 
     @Docs("offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²")
     var center = Vector2f()
@@ -67,7 +67,7 @@ class Camera : Component(), OnDrawGUI {
         }
     }
 
-    override fun fillSpace(globalTransform: Matrix4x3d, dstUnion: AABBd): Boolean {
+    override fun fillSpace(globalTransform: Matrix4x3m, dstUnion: AABBd): Boolean {
         dstUnion.union(globalTransform.getTranslation(Vector3d()))
         return true
     }
@@ -89,8 +89,8 @@ class Camera : Component(), OnDrawGUI {
     }
 
     fun drawForwardArrows() {
-        LineShapes.drawArrowZ(entity, 0.0, -near)
-        LineShapes.drawArrowZ(entity, -near, -far)
+        LineShapes.drawArrowZ(entity, 0.0, -near.toDouble())
+        LineShapes.drawArrowZ(entity, -near.toDouble(), -far.toDouble())
     }
 
     fun drawCameraLines() {
@@ -110,12 +110,12 @@ class Camera : Component(), OnDrawGUI {
 
         if (isPerspective) {
             val fovYRadians = fovY.toDouble().toRadians()
-            defineRect(aspectRatio, near * fovYRadians, -near, n00, n01, n10, n11)
-            defineRect(aspectRatio, far * fovYRadians, -far, f00, f01, f10, f11)
+            defineRect(aspectRatio, near * fovYRadians, -near.toDouble(), n00, n01, n10, n11)
+            defineRect(aspectRatio, far * fovYRadians, -far.toDouble(), f00, f01, f10, f11)
         } else {
             val size = fovOrthographic
-            defineRect(aspectRatio, size, -near, n00, n01, n10, n11)
-            defineRect(aspectRatio, size, -far, f00, f01, f10, f11)
+            defineRect(aspectRatio, size.toDouble(), -near.toDouble(), n00, n01, n10, n11)
+            defineRect(aspectRatio, size.toDouble(), -far.toDouble(), f00, f01, f10, f11)
         }
 
         val entity = entity

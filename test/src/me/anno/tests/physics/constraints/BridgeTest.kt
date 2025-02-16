@@ -17,6 +17,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.normalToQuaternionY
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.pow
@@ -124,7 +125,7 @@ fun main() {
                         b.transform.globalTransform.transformPosition(globalB)
 
                         val dir = globalB.sub(globalA, tmp).normalize()
-                        transform.localRotation = dir.normalToQuaternionY(transform.localRotation)
+                        transform.localRotation = Quaternionf(dir.normalToQuaternionY())
                         transform.localPosition = globalA.add(globalB, transform.localPosition).mul(0.5)
                         invalidateAABB()
                         JomlPools.vec3d.sub(3)
@@ -148,7 +149,7 @@ fun spawnFloor(scene: Entity) {
         })
         .add(MeshComponent(flatCube.front))
         .add(Rigidbody().apply { friction = 1.0 })
-        .setScale(10.0)
+        .setScale(10f)
         .setPosition(0.0, -10.0, 0.0)
 }
 
@@ -166,7 +167,7 @@ fun spawnSampleCubes(scene: Entity) {
                 margin = 0.0
             })
             .add(MeshComponent(cubeMesh, cubeMaterial))
-            .setScale(size * 0.5)
+            .setScale(size * 0.5f)
             .add(Rigidbody().apply {
                 friction = 0.5
                 mass = cubeDensity * size.pow(3)

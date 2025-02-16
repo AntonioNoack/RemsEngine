@@ -1,13 +1,11 @@
 package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -37,7 +35,7 @@ fun main() {
     val sun = DirectionalLight()
     sun.shadowMapCascades = 1
     val sunEntity = Entity("Sun")
-        .setScale(5.0)
+        .setScale(5f)
         .addComponent(sun)
     scene.add(sunEntity)
     sky.applyOntoSun(sunEntity, sun, 20f)
@@ -66,17 +64,17 @@ fun main() {
     Entity("Floor", scene)
         .add(SDFBox())
         .setPosition(0.0, -6.0, 0.0)
-        .setScale(5.0)
+        .setScale(5f)
 
     Entity("Lucy", scene)
         .add(MeshComponent(downloads.getChild("3d/lucy0.fbx"), Material.metallic(gold, 0f)))
         .setPosition(0.0, -1.0, -2.5)
-        .setScale(2.5)
+        .setScale(2.5f)
 
     val cubes = Entity("Cubes", scene)
     for (j in 0..5) {
         for (i in 0..10) {
-            val sc = 0.1
+            val sc = 0.1f
             Entity("Cube[$i,$j]", cubes)
                 .setPosition((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
                 .setScale(sc)

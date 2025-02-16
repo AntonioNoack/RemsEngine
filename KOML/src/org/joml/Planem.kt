@@ -2,36 +2,36 @@ package org.joml
 
 import org.joml.JomlMath.hash
 
-open class Planed(
-    @JvmField var dirX: Double,
-    @JvmField var dirY: Double,
-    @JvmField var dirZ: Double,
+open class Planem(
+    @JvmField var dirX: Float,
+    @JvmField var dirY: Float,
+    @JvmField var dirZ: Float,
     @JvmField var distance: Double
 ) : Vector {
 
-    constructor() : this(0.0, 0.0, 0.0, 0.0)
+    constructor() : this(0f, 0f, 0f, 0.0)
 
-    constructor(pos: Vector3d, dir: Vector3d) :
+    constructor(pos: Vector3d, dir: Vector3f) :
             this(dir.x, dir.y, dir.z, -pos.dot(dir))
 
     override val numComponents: Int get() = 4
     override fun getComp(i: Int): Double = when (i) {
-        0 -> dirX
-        1 -> dirY
-        2 -> dirZ
+        0 -> dirX.toDouble()
+        1 -> dirY.toDouble()
+        2 -> dirZ.toDouble()
         else -> distance
     }
 
     override fun setComp(i: Int, v: Double) {
         when (i) {
-            0 -> dirX = v
-            1 -> dirY = v
-            2 -> dirZ = v
+            0 -> dirX = v.toFloat()
+            1 -> dirY = v.toFloat()
+            2 -> dirZ = v.toFloat()
             else -> distance = v
         }
     }
 
-    fun set(x: Double, y: Double, z: Double, w: Double): Planed {
+    fun set(x: Float, y: Float, z: Float, w: Double): Planem {
         dirX = x
         dirY = y
         dirZ = z
@@ -39,9 +39,8 @@ open class Planed(
         return this
     }
 
-    fun set(pos: Vector3d, dir: Vector3d) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
-    fun set(pos: Vector3d, dir: Vector3f) = set(dir.x.toDouble(), dir.y.toDouble(), dir.z.toDouble(), -pos.dot(dir))
-    fun set(src: Planed): Planed = set(src.dirX, src.dirY, src.dirZ, src.distance)
+    fun set(pos: Vector3d, dir: Vector3f) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
+    fun set(src: Planem): Planem = set(src.dirX, src.dirY, src.dirZ, src.distance)
 
     fun dot(x: Double, y: Double, z: Double): Double = x * dirX + y * dirY + z * dirZ + distance
     fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)
@@ -62,7 +61,7 @@ open class Planed(
     fun findZ(x: Double, y: Double): Double = -dot(x, y, 0.0) / dirZ
 
     override fun equals(other: Any?): Boolean {
-        return other is Planed &&
+        return other is Planem &&
                 dirX == other.dirX &&
                 dirY == other.dirY &&
                 dirZ == other.dirZ &&

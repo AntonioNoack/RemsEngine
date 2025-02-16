@@ -114,7 +114,7 @@ fun main() {
 
     // terrain
     val grassMaterial = Material.diffuse(0x88dd88)
-    world.terrain.setScale(100.0)
+    world.terrain.setScale(100f)
         .add(MeshComponent(DefaultAssets.plane, grassMaterial))
 
     testUI3("FlatWorld City") {

@@ -30,7 +30,7 @@ fun main() {
             override fun onUpdate() {
                 if (skippableUpdates-- <= 0) {
                     val transform = transform!!
-                    transform.localRotation = transform.localRotation.rotateY(120.0.toRadians())
+                    transform.localRotation = transform.localRotation.rotateY(120f.toRadians())
                     // transform.smoothUpdate() // no longer exists
                     skippableUpdates = Time.currentFPS.toInt()
                 }

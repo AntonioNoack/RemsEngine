@@ -17,6 +17,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.PIf
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Booleans.hasFlag
@@ -206,7 +207,7 @@ fun main() {
     fun add(pos: Vector3d, mesh: Mesh, y: Int, name: String, parent: Entity): Entity {
         val entity = Entity(name, parent)
         entity.position = pos
-        entity.rotation = entity.rotation.rotateY(y * PI / 2)
+        entity.rotation = entity.rotation.rotateY(y * PIf / 2)
         entity.add(MeshComponent(mesh))
         return entity
     }
@@ -218,7 +219,7 @@ fun main() {
     }
 
     val pillarMaterial = Material.diffuse(0x222222)
-    val sp = 2.0 * (1.0 + pi)
+    val sp = 2f * (1f + pi)
     val bars = Entity("Front", scene)
     for (r in 0 until 4) {
         val side = Entity("Side[$r]", bars)
@@ -230,7 +231,7 @@ fun main() {
                 "Pillar[$x]", side
             )
             add(
-                Vector3d(x * sp, ph.toDouble(), z)
+                Vector3d(x * sp.toDouble(), ph.toDouble(), z)
                     .rotateY(r * PI / 2), window, r,
                 "Window[$x]", side
             )
@@ -240,13 +241,13 @@ fun main() {
     add(
         Vector3d(0.0, ph * 2.0, 0.0),
         DefaultAssets.plane, pillarMaterial, 0, "Roof", scene
-    ).setScale(sp * (xi + 0.5))
+    ).setScale(sp * (xi + 0.5f))
 
     add(
         Vector3d(),
         DefaultAssets.plane, Material.diffuse(0x4c4c4c),
         0, "Street", scene
-    ).setScale(1.5 * sp * (xi + 0.5))
+    ).setScale(1.5f * sp * (xi + 0.5f))
 
     testSceneWithUI("Parallax Room", scene)
 }

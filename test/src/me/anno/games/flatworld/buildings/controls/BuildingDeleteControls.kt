@@ -13,6 +13,7 @@ import me.anno.games.flatworld.FlatWorld
 import me.anno.games.flatworld.buildings.Building
 import me.anno.games.flatworld.streets.controls.StreetDeletingControls
 import me.anno.utils.types.Floats.toRadians
+import org.joml.Vector3d
 
 class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlScheme(rv) {
 
@@ -23,7 +24,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
     }
 
     fun findHoveredBuildings() {
-        val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
+        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e6)
         if (!Raycast.raycast(world.scene, query)) return
         // find which instance is used...
         val instance = query.result.component?.getComponent(Building::class) ?: return
@@ -31,7 +32,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
         transform.localPosition = instance.position
         transform.localRotation = transform.localRotation
             .rotationY(instance.rotationYDegrees.toRadians())
-        transform.setLocalScale(1.01)
+        transform.setLocalScale(1.01f)
         transform.teleportUpdate()
     }
 

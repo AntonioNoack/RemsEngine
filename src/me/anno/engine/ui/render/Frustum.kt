@@ -5,12 +5,13 @@ import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBd
-import org.joml.Matrix3d
+import org.joml.Matrix3f
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Planed
-import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.atan
 import kotlin.math.cos
@@ -29,12 +30,12 @@ class Frustum {
     val planes = createList(13) { Planed() }
     var length = 6
 
-    private val normals = createList(13) { Vector3d() }
+    private val normals = createList(13) { Vector3f() }
     private val positions = createList(13) { Vector3d() }
 
     // frustum information, for the size estimation
     private val cameraPosition = Vector3d()
-    private val cameraRotation = Matrix3d()
+    private val cameraRotation = Matrix3f()
 
     private var sizeThreshold = 0.01
     private var isPerspective = false
@@ -47,7 +48,7 @@ class Frustum {
     // todo for size thresholding, it would be great, if we could fade the objects in and out
 
     // for debugging, when the pipeline seems to be empty for unknown reasons
-    fun setToEverything(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
+    fun setToEverything(cameraPosition: Vector3d, cameraRotation: Quaternionf) {
 
         length = 0
         isPerspective = false
@@ -59,13 +60,13 @@ class Frustum {
     }
 
     fun defineOrthographic(
-        sizeY: Double,
-        aspectRatio: Double,
-        near: Double,
-        far: Double,
+        sizeY: Float,
+        aspectRatio: Float,
+        near: Float,
+        far: Float,
         resolution: Int,
         cameraPosition: Vector3d,
-        cameraRotation: Quaterniond
+        cameraRotation: Quaternionf
     ) {
 
         val sizeX = sizeY * aspectRatio
@@ -75,20 +76,20 @@ class Frustum {
 
         val positions = positions
         val normals = normals
-        positions[0].set(+sizeX, 0.0, 0.0)
-        normals[0].set(+1.0, 0.0, 0.0)
-        positions[1].set(-sizeX, 0.0, 0.0)
-        normals[1].set(-1.0, 0.0, 0.0)
+        positions[0].set(+sizeX, 0f, 0f)
+        normals[0].set(+1f, 0f, 0f)
+        positions[1].set(-sizeX, 0f, 0f)
+        normals[1].set(-1f, 0f, 0f)
 
-        positions[2].set(0.0, +sizeY, 0.0)
-        normals[2].set(0.0, +1.0, 0.0)
-        positions[3].set(0.0, -sizeY, 0.0)
-        normals[3].set(0.0, -1.0, 0.0)
+        positions[2].set(0f, +sizeY, 0f)
+        normals[2].set(0f, +1f, 0f)
+        positions[3].set(0f, -sizeY, 0f)
+        normals[3].set(0f, -1f, 0f)
 
-        positions[4].set(0.0, 0.0, -near)
-        normals[4].set(0.0, 0.0, +1.0)
-        positions[5].set(0.0, 0.0, -far)
-        normals[5].set(0.0, 0.0, -1.0)
+        positions[4].set(0f, 0f, -near)
+        normals[4].set(0f, 0f, +1f)
+        positions[5].set(0f, 0f, -far)
+        normals[5].set(0f, 0f, -1f)
 
         length = 6
         transform2(cameraPosition, cameraRotation)
@@ -96,7 +97,7 @@ class Frustum {
         isPerspective = false
     }
 
-    fun transform(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
+    fun transform(cameraPosition: Vector3d, cameraRotation: Quaternionf) {
         val positions = positions
         val normals = normals
         val planes = planes
@@ -109,7 +110,7 @@ class Frustum {
         this.cameraRotation.set(cameraRotation)
     }
 
-    fun transform2(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
+    fun transform2(cameraPosition: Vector3d, cameraRotation: Quaternionf) {
         val positions = positions
         val normals = normals
         val planes = planes
@@ -123,12 +124,12 @@ class Frustum {
     }
 
     fun defineOrthographic(
-        sizeX: Double,
-        sizeY: Double,
-        sizeZ: Double,
+        sizeX: Float,
+        sizeY: Float,
+        sizeZ: Float,
         resolution: Int,
         cameraPosition: Vector3d,
-        cameraRotation: Quaterniond
+        cameraRotation: Quaternionf
     ) {
 
         val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
@@ -136,20 +137,20 @@ class Frustum {
 
         val positions = positions
         val normals = normals
-        positions[0].set(-sizeX, 0.0, 0.0)
-        normals[0].set(-1.0, 0.0, 0.0)
-        positions[1].set(+sizeX, 0.0, 0.0)
-        normals[1].set(+1.0, 0.0, 0.0)
+        positions[0].set(-sizeX, 0f, 0f)
+        normals[0].set(-1f, 0f, 0f)
+        positions[1].set(+sizeX, 0f, 0f)
+        normals[1].set(+1f, 0f, 0f)
 
-        positions[2].set(0.0, -sizeY, 0.0)
-        normals[2].set(0.0, -1.0, 0.0)
-        positions[3].set(0.0, +sizeY, 0.0)
-        normals[3].set(0.0, +1.0, 0.0)
+        positions[2].set(0f, -sizeY, 0f)
+        normals[2].set(0f, -1f, 0f)
+        positions[3].set(0f, +sizeY, 0f)
+        normals[3].set(0f, +1f, 0f)
 
-        positions[4].set(0.0, 0.0, -sizeZ)
-        normals[4].set(0.0, 0.0, -1.0)
-        positions[5].set(0.0, 0.0, +sizeZ)
-        normals[5].set(0.0, 0.0, +1.0)
+        positions[4].set(0f, 0f, -sizeZ)
+        normals[4].set(0f, 0f, -1f)
+        positions[5].set(0f, 0f, +sizeZ)
+        normals[5].set(0f, 0f, +1f)
 
         transform2(cameraPosition, cameraRotation)
 
@@ -157,10 +158,10 @@ class Frustum {
     }
 
     fun defineOrthographic(
-        transform: Matrix4x3d,
+        transform: Matrix4x3m,
         resolution: Int,
         cameraPosition: Vector3d,
-        cameraRotation: Quaterniond
+        cameraRotation: Quaternionf
     ) {
 
         transform.transformPosition(positions[0].set(+1.0, 0.0, 0.0))
@@ -171,8 +172,8 @@ class Frustum {
         transform.transformPosition(positions[5].set(0.0, 0.0, -1.0))
 
         for (i in 0 until 6 step 2) {
-            normals[i].set(positions[i]).sub(positions[i + 1])
-            normals[i + 1].set(normals[i]).mul(-1.0)
+            positions[i].sub(positions[i + 1], normals[i])
+            normals[i + 1].set(normals[i]).mul(-1f)
         }
 
         for (i in 0 until 6) {
@@ -192,13 +193,13 @@ class Frustum {
     }
 
     fun definePerspective(
-        near: Double,
-        far: Double,
-        fovYRadians: Double,
+        near: Float,
+        far: Float,
+        fovYRadians: Float,
         height: Int,
-        aspectRatio: Double,
+        aspectRatio: Float,
         cameraPosition: Vector3d,
-        cameraRotation: Quaterniond
+        cameraRotation: Quaternionf
     ) {
 
         // pixelSize = max(width, height) * 0.5 * objectSize * projMatFOVFactor
@@ -212,12 +213,12 @@ class Frustum {
         // all positions and normals of the planes
 
         // near
-        positions[4].set(0.0, 0.0, -near)
-        normals[4].set(0.0, 0.0, +1.0)
+        positions[4].set(0f, 0f, -near)
+        normals[4].set(0f, 0f, +1f)
 
         // far
-        positions[5].set(0.0, 0.0, -far)
-        normals[5].set(0.0, 0.0, -1.0)
+        positions[5].set(0f, 0f, -far)
+        normals[5].set(0f, 0f, -1f)
 
         // the other positions need no rotation
         cameraRotation.transform(positions[4])
@@ -254,7 +255,7 @@ class Frustum {
     fun defineGenerally(
         cameraMatrix: Matrix4f,
         cameraPosition: Vector3d,
-        cameraRotation: Quaterniond
+        cameraRotation: Quaternionf
     ) {
 
         // unknown
@@ -368,7 +369,7 @@ class Frustum {
         }
     }
 
-    private fun calculateArea(mat: Matrix3d, x: Double, y: Double, z: Double): Double {
+    private fun calculateArea(mat: Matrix3f, x: Double, y: Double, z: Double): Double {
         if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Double.POSITIVE_INFINITY
         val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z
         val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z

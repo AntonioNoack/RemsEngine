@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.maths.geometry.MeshSplitter
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
@@ -24,12 +24,12 @@ class SplitMeshTests {
 
     @Test
     fun testSplitSphereRotated() {
-        val transform = Matrix4x3d().rotateX(1.0)
+        val transform = Matrix4x3m().rotateX(1f)
         testSplitSphereI(0, 20, 8, 0.15f, transform)
         testSplitSphereI(1, 62, 20, 0.05f, transform)
     }
 
-    fun testSplitSphereI(subDivisions: Int, v0: Long, v1: Long, en: Float, transform: Matrix4x3d?) {
+    fun testSplitSphereI(subDivisions: Int, v0: Long, v1: Long, en: Float, transform: Matrix4x3m?) {
         val base = IcosahedronModel.createIcosphere(subDivisions)
         if (transform != null) base.transform(transform)
         val meshes = MeshSplitter.split(base) { it.y }

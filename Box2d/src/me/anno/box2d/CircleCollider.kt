@@ -8,6 +8,7 @@ import me.anno.maths.Maths
 import org.jbox2d.collision.shapes.CircleShape
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -28,7 +29,7 @@ class CircleCollider : Collider2d() {
         LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0, null, getLineColor(hasPhysics))
     }
 
-    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3m, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val r = radius.toDouble()
         unionCube(globalTransform, aabb, tmp, r, r, 1.0)
     }

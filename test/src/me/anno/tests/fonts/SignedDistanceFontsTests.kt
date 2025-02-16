@@ -37,6 +37,7 @@ import me.anno.utils.types.Strings.joinChars
 import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3m
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -89,7 +90,7 @@ class SignedDistanceFontsTests {
         val baseTexture = FontManager.getTexture(font, text, -1, -1, false)!!
         val baseImage = baseTexture.createImage(flipY = false, withAlpha = false)
         val sdfTextMesh = SDFTextComponent(text, font, AxisAlignment.CENTER)
-        sdfTextMesh.fillSpace(Matrix4x3d(), AABBd())
+        sdfTextMesh.fillSpace(Matrix4x3m(), AABBd())
         // render sdfTextMesh into texture
         val bySDFTexture = compToTexture(baseTexture.width, baseTexture.height, sdfTextMesh)
         val bySDFImage = bySDFTexture.createImage(flipY = true, withAlpha = false)
@@ -135,7 +136,7 @@ class SignedDistanceFontsTests {
         RenderState.near = 0.01f
         RenderState.far = 100f
         RenderState.aspectRatio = width.toFloat() / height.toFloat()
-        RenderState.worldScale = 1.0
+        RenderState.worldScale = 1f
         RenderState.viewIndex = 0
         pipeline.frustum.setToEverything(RenderState.cameraPosition, RenderState.cameraRotation)
         isFinalRendering = true // force exceptions if rendering is incomplete

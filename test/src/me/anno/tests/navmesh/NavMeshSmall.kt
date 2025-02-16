@@ -52,7 +52,7 @@ fun main() {
         world.add(navMesh1)
 
         val meshEntity = Entity("Mesh", world)
-            .setScale(1.5)
+            .setScale(1.5f)
             .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
@@ -87,7 +87,7 @@ fun main() {
         for (i in 0 until 5) {
             val group = Entity("Agent[$i]", agents)
             val flag = Entity("Flag", group)
-                .setScale(flagScale.toDouble())
+                .setScale(flagScale)
                 .add(MeshComponent(flagMesh))
             val agent = Entity("Agent", group).add(
                 AgentController1a(
@@ -96,7 +96,7 @@ fun main() {
                 )
             )
             Entity("AgentMesh", agent)
-                .setScale(agentScale.toDouble())
+                .setScale(agentScale)
                 .add(MeshComponent(agentMeshRef))
         }
 

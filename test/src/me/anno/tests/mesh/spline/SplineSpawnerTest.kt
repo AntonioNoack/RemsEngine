@@ -60,7 +60,7 @@ fun main() {
     fun addPoint(v: Vector3d, a: Double) {
         Entity("Pt[${spline.children.size}]", spline)
             .setPosition(v)
-            .setRotation(0.0, a.toRadians(), 0.0)
+            .setRotation(0f, a.toRadians().toFloat(), 0f)
             .add(SplineControlPoint())
     }
     addPoint(Vector3d(5.0, 0.0, 10.0), 90.0)

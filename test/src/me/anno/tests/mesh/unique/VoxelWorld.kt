@@ -79,7 +79,7 @@ fun main() {
     sun.shadowMapCascades = 3
     sun.autoUpdate = 0
     val sunEntity = Entity("Sun")
-        .setScale(100.0)
+        .setScale(100f)
     sunEntity.add(object : Component(), OnUpdate {
         // move shadows with player
         var ctr = 0

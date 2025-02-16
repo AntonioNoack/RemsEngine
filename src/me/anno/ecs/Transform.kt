@@ -2,12 +2,11 @@ package me.anno.ecs
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
-import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Matrix4x3m
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -53,39 +52,39 @@ class Transform() : Saveable() {
     val parent get() = (entity?.parentEntity ?: parentEntity)?.transform
 
     /** transform relative to center of the world; all transforms combined from root to this node */
-    val globalTransform: Matrix4x3d = Matrix4x3d()
+    val globalTransform: Matrix4x3m = Matrix4x3m()
 
     /** smoothly interpolated transform from the previous frame; global */
-    private val drawnTransform: Matrix4x3d = Matrix4x3d()
+    private val drawnTransform: Matrix4x3m = Matrix4x3m()
 
     private val pos = Vector3d()
-    private val rot = Quaterniond()
-    private val sca = Vector3d(1.0)
+    private val rot = Quaternionf()
+    private val sca = Vector3f(1f)
 
     fun teleportUpdate() {
         validate()
         drawnTransform.set(globalTransform)
     }
 
-    fun getLocalTransform(dst: Matrix4x3d): Matrix4x3d {
+    fun getLocalTransform(dst: Matrix4x3m): Matrix4x3m {
         return dst.translationRotateScale(pos, rot, sca)
     }
 
     @Suppress("unused")
-    fun getDrawnMatrix(): Matrix4x3d {
+    fun getDrawnMatrix(): Matrix4x3m {
         return drawnTransform
     }
 
-    fun getDrawMatrix(): Matrix4x3d {
+    fun getDrawMatrix(): Matrix4x3m {
         return globalTransform
     }
 
-    fun getValidDrawMatrix(): Matrix4x3d {
+    fun getValidDrawMatrix(): Matrix4x3m {
         validate()
         return getDrawMatrix()
     }
 
-    fun checkTransform(transform: Matrix4x3d) {
+    fun checkTransform(transform: Matrix4x3m) {
         if (!transform.isFinite) {
             LOGGER.error("Transform became invalid: $transform")
             transform.identity()
@@ -145,7 +144,7 @@ class Transform() : Saveable() {
             invalidateGlobal()
         }
 
-    var localRotation: Quaterniond
+    var localRotation: Quaternionf
         get() = rot
         set(value) {
             rot.set(value)
@@ -153,12 +152,12 @@ class Transform() : Saveable() {
         }
 
     @Suppress("unused")
-    fun setLocalEulerAngle(x: Double, y: Double, z: Double): Transform {
+    fun setLocalEulerAngle(x: Float, y: Float, z: Float): Transform {
         localRotation = localRotation.rotateY(y).rotateX(x).rotateZ(z)
         return this
     }
 
-    fun setOffsetForLocalRotation(rotation: Quaterniond, center: Vector3d): Transform {
+    fun setOffsetForLocalRotation(rotation: Quaternionf, center: Vector3d): Transform {
         localRotation = localRotation.identity()
             .mul(rotation)
         localPosition = localPosition
@@ -168,7 +167,7 @@ class Transform() : Saveable() {
         return this
     }
 
-    var localScale: Vector3d
+    var localScale: Vector3f
         get() = sca
         set(value) {
             sca.set(value)
@@ -190,8 +189,8 @@ class Transform() : Saveable() {
      * WARNING: setting this does not work together with setGlobalPosition().
      * Call validateTransform() in-between to make them work.
      * */
-    var globalRotation: Quaterniond
-        get() = globalTransform.getUnnormalizedRotation(JomlPools.quat4d.create())
+    var globalRotation: Quaternionf
+        get() = globalTransform.getUnnormalizedRotation(JomlPools.quat4f.create())
         set(value) {
             // we have no correct, direct control over globalRotation,
             // so we use tricks, and compute an ideal local rotation instead
@@ -200,7 +199,7 @@ class Transform() : Saveable() {
                 // now the rotation is like an inversion to the parent
                 val parentInv = parent.globalRotation.invert() // value is on JomlPool-stack
                 localRotation = parentInv.mul(value) // then apply this afterward
-                JomlPools.quat4d.sub(1) // return value on stack
+                JomlPools.quat4f.sub(1) // return value on stack
             } else {
                 // local = global
                 localRotation = value
@@ -213,8 +212,8 @@ class Transform() : Saveable() {
      *
      * Only works well if object isn't rotated, or you set a uniform scale.
      * */
-    var globalScale: Vector3d
-        get() = globalTransform.getScale(JomlPools.vec3d.create())
+    var globalScale: Vector3f
+        get() = globalTransform.getScale(JomlPools.vec3f.create())
         set(value) {
             // we have no correct, direct control over globalScale,
             // so we use tricks, and compute an ideal local scale instead
@@ -254,23 +253,21 @@ class Transform() : Saveable() {
         return this
     }
 
-    fun setLocal(values: Matrix4x3d): Transform {
-        val tmp = JomlPools.mat4x3d.borrow()
+    fun setLocal(values: Matrix4x3m): Transform {
+        val tmp = JomlPools.mat4x3m.borrow()
         setPosRotSca(tmp.set(values), true)
         return this
     }
 
     fun setLocal(values: Matrix4x3f): Transform {
-        val tmp = JomlPools.mat4x3d.borrow()
+        val tmp = JomlPools.mat4x3m.borrow()
         return setLocal(tmp.set(values))
     }
 
     @Suppress("unused")
     fun setLocal(values: Matrix4f): Transform {
-        val tmp = JomlPools.mat4x3d.borrow()
-        val tmp2 = JomlPools.mat4d.borrow()
-        assertNotSame(tmp2, tmp)
-        return setLocal(tmp.set(tmp2.set(values))) // could be made more efficient
+        val tmp = JomlPools.mat4x3m.borrow()
+        return setLocal(tmp.set(values)) // could be made more efficient
     }
 
     fun distanceSquaredGlobally(v: Vector3d): Double {
@@ -295,7 +292,7 @@ class Transform() : Saveable() {
         if (parent == null || parent.globalTransform.isIdentity()) {
             setPosRotSca(globalTransform, false)
         } else {
-            val localTransform = JomlPools.mat4x3d.borrow()
+            val localTransform = JomlPools.mat4x3m.borrow()
             // parent.global * self.local * point = self.global * point
             // parent.global * self.local = self.global
             // self.local = inv(parent.global) * self.global
@@ -305,7 +302,7 @@ class Transform() : Saveable() {
         }
     }
 
-    private fun setPosRotSca(localTransform: Matrix4x3d, invalidate: Boolean) {
+    private fun setPosRotSca(localTransform: Matrix4x3m, invalidate: Boolean) {
         localTransform.getTranslation(pos)
         localTransform.getUnnormalizedRotation(rot)
         localTransform.getScale(sca)
@@ -328,7 +325,7 @@ class Transform() : Saveable() {
     }
 
     @Suppress("unused")
-    fun setLocalScale(scale: Double): Transform {
+    fun setLocalScale(scale: Float): Transform {
         localScale = localScale.set(scale)
         return this
     }
@@ -345,14 +342,14 @@ class Transform() : Saveable() {
         return this
     }
 
-    fun setGlobal(matrix: Matrix4x3d): Transform {
+    fun setGlobal(matrix: Matrix4x3m): Transform {
         val parent = parent
         return if (parent == null || parent.globalTransform.isIdentity()) {
             // easy
             setLocal(matrix)
         } else {
             // a little more complex
-            val inverseParent = JomlPools.mat4x3d.borrow()
+            val inverseParent = JomlPools.mat4x3m.borrow()
             parent.globalTransform.invert(inverseParent).mul(matrix)
             setLocal(inverseParent)
         }
@@ -370,18 +367,18 @@ class Transform() : Saveable() {
         return this
     }
 
-    fun rotateLocalX(angleRadians: Double): Transform {
+    fun rotateLocalX(angleRadians: Float): Transform {
         localRotation = localRotation.rotateX(angleRadians)
         return this
     }
 
-    fun rotateLocalY(angleRadians: Double): Transform {
+    fun rotateLocalY(angleRadians: Float): Transform {
         localRotation = localRotation.rotateY(angleRadians)
         return this
     }
 
     @Suppress("unused")
-    fun rotateLocalZ(angleRadians: Double): Transform {
+    fun rotateLocalZ(angleRadians: Float): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
         return this
     }
@@ -390,16 +387,22 @@ class Transform() : Saveable() {
         super.save(writer)
         // global doesn't need to be saved, because it can be reconstructed
         writer.writeVector3d("pos", pos)
-        writer.writeQuaterniond("rot", rot)
-        writer.writeVector3d("sca", sca)
+        writer.writeQuaternionf("rot", rot)
+        writer.writeVector3f("sca", sca)
     }
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "local" -> setLocal(value as? Matrix4x3d ?: return)
+            "local" -> setLocal(value as? Matrix4x3m ?: return)
             "pos" -> localPosition = value as? Vector3d ?: return
-            "rot" -> localRotation = value as? Quaterniond ?: return
-            "sca" -> localScale = value as? Vector3d ?: return
+            "rot" -> when (value) {
+                is Quaternionf -> localRotation.set(value)
+                is Quaterniond -> localRotation.set(value)
+            }
+            "sca" -> when (value) {
+                is Vector3f -> localScale.set(value)
+                is Vector3d -> localScale.set(value)
+            }
             else -> super.setProperty(name, value)
         }
     }

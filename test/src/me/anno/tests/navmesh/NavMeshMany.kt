@@ -71,8 +71,8 @@ class AgentController1b(
         upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))
         entity.rotation = entity.rotation
             .identity()
-            .rotateY(atan2(np.x - lp.x, np.z - lp.z))
-            .rotateX(upDownAngle)
+            .rotateY(atan2(np.x - lp.x, np.z - lp.z).toFloat())
+            .rotateX(upDownAngle.toFloat())
         entity.position = np
     }
 }
@@ -110,7 +110,7 @@ fun main() {
             add(MeshComponent(navMeshSrc).apply {
                 collisionMask = mask
             })
-            setScale(2.5)
+            setScale(2.5f)
         })
 
         val meshData = navMesh1.build() ?: throw IllegalStateException("Failed to build NavMesh")
@@ -130,11 +130,11 @@ fun main() {
 
         for (i in 0 until 2500) {
             val flag = Entity("Flag", world)
-            flag.setScale(flagScale.toDouble())
+            flag.setScale(flagScale)
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
             val agent = Entity("Agent", world)
             agent.add(Entity().apply {
-                setScale(agentScale.toDouble())
+                setScale(agentScale)
                 add(MeshComponent(agentMeshRef).apply { isInstanced = true })
             })
             agent.add(
