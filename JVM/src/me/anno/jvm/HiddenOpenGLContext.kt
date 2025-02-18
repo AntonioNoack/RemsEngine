@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.WindowManagement
 import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
@@ -59,7 +60,7 @@ object HiddenOpenGLContext {
 
         // removes scaling options -> how could we replace them?
         window.pointer = glfwCreateWindow(width, height, "Hidden", 0L, 0L)
-        if (window.pointer == 0L) throw RuntimeException("Failed to create the GLFW window")
+        assertNotEquals(0L, window.pointer, "Failed to create the GLFW window")
         GFX.windows.add(window)
         GFX.activeWindow = window
 

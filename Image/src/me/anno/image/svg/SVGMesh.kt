@@ -19,6 +19,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.unmix
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
@@ -356,9 +357,7 @@ class SVGMesh {
                                     } else {
                                         min(bi, x + 1f)
                                     }
-                                    if (nx > bi) {
-                                        throw IllegalStateException()
-                                    }
+                                    assertTrue(nx <= bi)
                                     // add tripe from x to nx
                                     if (x == ai) {
                                         // add left triangle

@@ -17,8 +17,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.io
 
+import me.anno.utils.assertions.assertFail
 import org.recast4j.detour.NavMesh
-import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -40,7 +40,7 @@ object MeshSetReader {
     fun read(bb: ByteBuffer, maxVertPerPoly: Int): NavMesh {
         val header = readHeader(bb, maxVertPerPoly)
         if (header.maxVerticesPerPoly <= 0) {
-            throw IOException("Invalid number of vertices per poly " + header.maxVerticesPerPoly)
+            assertFail("Invalid number of vertices per poly " + header.maxVerticesPerPoly)
         }
         val cCompatibility = header.version == NavMeshSetHeader.NAVMESH_SET_VERSION
         val mesh = NavMesh(header.params, header.maxVerticesPerPoly)
@@ -54,15 +54,16 @@ object MeshSetReader {
         if (header.magic != NavMeshSetHeader.NAVMESH_SET_MAGIC) {
             header.magic = IOUtils.swapEndianness(header.magic)
             if (header.magic != NavMeshSetHeader.NAVMESH_SET_MAGIC) {
-                throw IOException("Invalid magic " + header.magic)
+                assertFail("Invalid magic " + header.magic)
             }
             bb.order(if (bb.order() == ByteOrder.BIG_ENDIAN) ByteOrder.LITTLE_ENDIAN else ByteOrder.BIG_ENDIAN)
         }
         header.version = bb.int
         if (header.version != NavMeshSetHeader.NAVMESH_SET_VERSION &&
             header.version != NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J_1 &&
-            header.version != NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J) {
-            throw IOException("Invalid version " + header.version)
+            header.version != NavMeshSetHeader.NAVMESH_SET_VERSION_RECAST4J
+        ) {
+            assertFail("Invalid version " + header.version)
         }
         header.numTiles = bb.int
         header.params = NavMeshParamReader.read(bb)

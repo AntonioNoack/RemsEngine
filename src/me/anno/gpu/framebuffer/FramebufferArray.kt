@@ -12,6 +12,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -266,7 +267,7 @@ class FramebufferArray(
             // update all attachments, updating the framebuffer texture targets
             updateAttachments(layer)
             val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-            if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
+            assertEquals(GL_FRAMEBUFFER_COMPLETE, status, "Framebuffer incomplete")
             render(layer)
         }
         depthTexture?.needsMipmaps = true

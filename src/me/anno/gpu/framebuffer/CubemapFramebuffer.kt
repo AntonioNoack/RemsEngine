@@ -126,7 +126,7 @@ class CubemapFramebuffer(
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
         pointer = glGenFramebuffers()
-        if (pointer == 0) throw RuntimeException()
+        assertNotEquals(0, pointer)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         //stack.push(this)

@@ -12,6 +12,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
@@ -23,6 +24,8 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
+import org.joml.AABBf
 import kotlin.reflect.jvm.javaMethod
 
 object InspectorUtils {
@@ -109,11 +112,19 @@ object InspectorUtils {
         val list1 = PanelListX(style)
         list1.add(TextPanel("$title:", style))
         val relevantInstances = instances.filter { it::class == instances.first()::class }
-        list1.add(UpdatingTextPanel(100L, style) {
-            relevantInstances
-                .joinToString { getter(it).toString() }
-                .shorten2Way(200)
-        })
+        list1.add(SizeLimitingContainer(UpdatingTextPanel(100L, style) {
+            relevantInstances.joinToString { relevantInstance ->
+                when (val i = getter(relevantInstance)) {
+                    is AABBf -> "${i.minX} - ${i.maxX}\n" +
+                            "${i.minY} - ${i.maxY}\n" +
+                            "${i.minZ} - ${i.maxZ}"
+                    is AABBd -> "${i.minX} - ${i.maxX}\n" +
+                            "${i.minY} - ${i.maxY}\n" +
+                            "${i.minZ} - ${i.maxZ}"
+                    else -> i.toString().shorten2Way(200)
+                }
+            }
+        }, 350, 250, style))
         list.add(list1)
         createTrackingButton(list, list1, relevantInstances, property, style)
     }

@@ -260,7 +260,7 @@ object GFXState {
     /**
      * render without blending and without depth test
      * */
-    fun <V> renderPurely(render: () -> V): V {
+    inline fun <V> renderPurely(crossinline render: () -> V): V {
         return blendMode.use(null) {
             depthMode.use(alwaysDepthMode, render)
         }
@@ -269,7 +269,7 @@ object GFXState {
     /**
      * render without blending and without depth test
      * */
-    fun <V> renderPurely2(render: () -> V): V {
+    inline fun <V> renderPurely2(crossinline render: () -> V): V {
         return blendMode.use(null) {
             depthMask.use(false) {
                 depthMode.use(alwaysDepthMode, render)
@@ -280,7 +280,7 @@ object GFXState {
     /**
      * render with back-to-front alpha blending and without depth test
      * */
-    fun <V> renderDefault(render: () -> V): V {
+    inline fun <V> renderDefault(crossinline render: () -> V): V {
         return blendMode.use(BlendMode.DEFAULT) {
             depthMode.use(alwaysDepthMode, render)
         }

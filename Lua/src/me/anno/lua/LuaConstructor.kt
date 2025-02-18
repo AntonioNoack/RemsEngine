@@ -117,13 +117,13 @@ class LuaConstructor(clazz: KClass<*>) : VarArgFunction() {
                     is LuaDouble -> value.todouble()
                     else -> throw NotImplementedError()
                 }
-                else -> throw IllegalArgumentException()
+                else -> null
             }
             value.isstring() -> value.tojstring()
             value.isboolean() -> value.toboolean()
             value.isuserdata() -> value.checkuserdata()
             value.isnil() -> null
-            else -> throw IllegalArgumentException()
+            else -> null
         }
     }
 }

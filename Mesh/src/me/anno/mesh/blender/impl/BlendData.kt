@@ -4,6 +4,7 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -166,7 +167,7 @@ open class BlendData(ptr: ConstructorData) {
         val block = file.blockTable.getBlockAt(position)
         val address = block.address + (position - block.positionInFile) + field.offset
         val sameBlock = file.blockTable.findBlock(file, address)
-        if (sameBlock != block) throw IllegalStateException("$position -> $address -> other, $sameBlock != $block")
+        assertEquals(sameBlock, block) { "$position -> $address -> other" }
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
         val struct: DNAStruct

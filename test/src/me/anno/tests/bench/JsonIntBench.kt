@@ -5,6 +5,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.utils.Clock
+import me.anno.utils.assertions.assertEquals
 
 fun main() {
 
@@ -55,9 +56,7 @@ fun main() {
 
         val readValues1 = readValues!!
         for (i in 0 until length) {
-            if (values[i] != readValues1[i]) {
-                throw Exception()
-            }
+            assertEquals(values[i], readValues1[i])
         }
     }
 }

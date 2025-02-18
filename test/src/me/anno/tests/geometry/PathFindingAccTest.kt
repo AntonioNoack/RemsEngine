@@ -134,7 +134,7 @@ fun main() {
                     check(x + 1, y, z)
                     check(x - 1, y, z)
                 }
-            }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
+            }
         }
     }
 

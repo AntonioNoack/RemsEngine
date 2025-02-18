@@ -1,12 +1,12 @@
 package me.anno.jvm.build
 
 import me.anno.io.files.Reference.getReference
+import me.anno.jvm.utils.BetterProcessBuilder.Companion.readLines
 import me.anno.utils.OS
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.home
-import me.anno.jvm.utils.BetterProcessBuilder.Companion.readLines
+import me.anno.utils.assertions.assertTrue
 import java.io.File
-import java.io.FileNotFoundException
 import kotlin.concurrent.thread
 
 /**
@@ -16,11 +16,11 @@ fun main() {
 
     // this shouldn't be hardcoded...
     val enginePath = documents.getChild("IdeaProjects/RemsEngine")
-    if (!enginePath.exists) throw FileNotFoundException("Missing $enginePath")
+    assertTrue(enginePath.exists) { "Missing $enginePath" }
 
     // this is linked by using a relative path... not the best solution...
     val builtJar = enginePath.getChild("out/artifacts/Android/RemsEngine.jar")
-    if (!builtJar.exists) throw FileNotFoundException("Missing $builtJar")
+    assertTrue(builtJar.exists) { "Missing $builtJar" }
 
     val sdkPaths = listOf(
         getReference(System.getenv("ANDROID_HOME") ?: ""), // for Linux
@@ -30,7 +30,7 @@ fun main() {
 
     val androidSDKPath = sdkPaths.first { it.exists && it.isDirectory }
     val adb = androidSDKPath.getChild(if (OS.isWindows) "platform-tools/adb.exe" else "platform-tools/adb")
-    if (!adb.exists) throw FileNotFoundException("Missing $adb")
+    assertTrue(adb.exists) { "Missing $adb" }
 
     val androidPortPath = documents.getChild("IdeaProjects/RemsEngineAndroid")
     androidPortPath.tryMkdirs()
@@ -51,7 +51,7 @@ fun main() {
     }
 
     val gradlew = androidPortPath.getChild(if (OS.isWindows) "gradlew.bat" else "gradlew")
-    if (!gradlew.exists) throw FileNotFoundException("Missing $gradlew")
+    assertTrue(gradlew.exists) { "Missing $gradlew" }
 
     execute(listOf(gradlew.absolutePath, "build"))
     execute(listOf(adb.absolutePath, "install", "-r", "app/build/outputs/apk/debug/app-debug.apk"))

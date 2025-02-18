@@ -6,7 +6,6 @@ import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.io.IOException
 
 class Clazz(input: DataInputStream) {
 
@@ -181,7 +180,7 @@ class Clazz(input: DataInputStream) {
                 dst.writeShort(constantMap[v.name]!!)
                 dst.writeShort(constantMap[v.type]!!)
             }
-            else -> throw NotImplementedError("Unknown type ${v!!::class}")
+            else -> assertFail("Unknown type ${v!!::class}")
         }
     }
 
