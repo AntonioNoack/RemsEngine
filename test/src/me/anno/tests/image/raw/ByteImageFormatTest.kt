@@ -1,7 +1,6 @@
 package me.anno.tests.image.raw
 
 import me.anno.image.raw.ByteImageFormat
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.random.Random

@@ -23,6 +23,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.maths.Maths.sq
@@ -78,7 +79,7 @@ class TextComponentImplTests {
     val expectedWhiteLevels = 190f..230f
     val expectedDifference = 0f..140f // ideally, this would be zero
 
-    fun getImageDifference(a: IntImage, b: IntImage): Float {
+    fun getImageDifference(a: Image, b: Image): Float {
         var error = 0f
         a.forEachPixel { x, y ->
             error += sq(a.getRGB(x, y).r() - b.getRGB(x, y).r())
@@ -88,15 +89,15 @@ class TextComponentImplTests {
         return diff
     }
 
-    fun generateSDFTextComponent(): IntImage {
+    fun generateSDFTextComponent(): Image {
         return testTextComponent(SDFTextComponent(text, font, AxisAlignment.CENTER))
     }
 
-    fun generateMeshTextComponent(): IntImage {
+    fun generateMeshTextComponent(): Image {
         return testTextComponent(MeshTextComponent(text, font, AxisAlignment.CENTER))
     }
 
-    fun generateTextureTextComponent(): IntImage {
+    fun generateTextureTextComponent(): Image {
         // width depends on size... why??
         // because we're using an SDF-like-shader to improve visual quality
         return testTextComponent(TextureTextComponent(text, font, AxisAlignment.CENTER))
@@ -137,7 +138,7 @@ class TextComponentImplTests {
         return rv
     }
 
-    fun testTextComponent(component: TextComponent): IntImage {
+    fun testTextComponent(component: TextComponent): Image {
 
         val scene = createScene(component)
         Systems.world = scene

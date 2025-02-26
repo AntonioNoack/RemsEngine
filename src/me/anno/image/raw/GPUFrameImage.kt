@@ -34,7 +34,7 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
 
     override fun asIntImage(): IntImage {
         val texture = frame.toTexture()
-        val image = texture.createImage(false, hasAlphaChannel)
+        val image = texture.createImage(false, hasAlphaChannel).asIntImage()
         texture.destroy()
         return image
     }

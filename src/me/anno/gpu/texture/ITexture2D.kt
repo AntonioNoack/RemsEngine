@@ -2,10 +2,9 @@ package me.anno.gpu.texture
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.DepthMode
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.GPUShader
-import me.anno.image.raw.IntImage
+import me.anno.image.Image
 import me.anno.io.files.FileReference
 
 interface ITexture2D : ICacheData {
@@ -71,7 +70,11 @@ interface ITexture2D : ICacheData {
         return if (isCreated()) this else ifNull
     }
 
-    fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int = 0): IntImage {
+    /**
+     * creates a directly-CPU-readable image, typically a IntImage, ByteImage or FloatImage;
+     * Texture2D uses a different implementation
+     * */
+    fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int = 0): Image {
         return VRAMToRAM.createImage(width, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
             VRAMToRAM.drawTexturePure(-x2, -y2, width, height, this, !withAlpha)
         }

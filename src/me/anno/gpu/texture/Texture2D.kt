@@ -26,8 +26,10 @@ import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.ImageTransform
+import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
+import me.anno.image.raw.FloatImage
 import me.anno.image.raw.GPUImage
-import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
@@ -839,12 +841,19 @@ open class Texture2D(
         return slot in boundTextures.indices && boundTextures[slot] == pointer
     }
 
-    override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int): IntImage {
+    override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int): Image {
         bindBeforeUpload()
-        val buffer = IntArray(width * height)
-        readBytePixels(0, 0, width, height, buffer)
-        convertARGB2ABGR(buffer)
-        val image = IntImage(width, height, buffer, withAlpha && channels > 3)
+        val image = if (isHDR) {
+            // for float textures, create float images
+            val image = FloatImage(width, height, channels)
+            readFloatPixels(0, 0, width, height, image.data)
+            image
+        } else {
+            // for standard textures, create byte images
+            val image = ByteImage(width, height, ByteImageFormat.getRGBAFormat(channels))
+            readBytePixels(0, 0, width, height, image.data)
+            image
+        }
         if (flipY) image.flipY()
         return image
     }
@@ -857,7 +866,12 @@ open class Texture2D(
         callReadPixels(x, y, w, h, GL_UNSIGNED_BYTE, dst)
     }
 
+    /**
+     * only supported for textures for four channels;
+     * otherwise, the OpenGL function compresses channel data into the start of dst
+     * */
     fun readIntPixels(x: Int, y: Int, w: Int, h: Int, dst: IntArray) {
+        assertEquals(4, channels)
         setReadAlignment(w * channels) // I'd guess * 4, but then it complains about not enough space 🤔
         callReadPixels(x, y, w, h, GL_UNSIGNED_BYTE, dst)
         convertABGR2ARGB(dst) // data from OpenGL is little-endian-RGBA, and we expect ARGB

@@ -61,7 +61,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     override fun asIntImage(): IntImage {
         return if (GFX.isGFXThread()) {
             if (texture.isCreated()) {
-                texture.createImage(false, hasAlphaChannel)
+                texture.createImage(false, hasAlphaChannel).asIntImage()
             } else {
                 val reason = if (texture.isDestroyed) "it was destroyed" else "it wasn't created"
                 LOGGER.warn("Failed converting '${texture.name}' to image, because $reason")

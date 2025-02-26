@@ -167,7 +167,7 @@ object Screenshots {
 
             GFX.check()
 
-            fun getPixels(renderer: Renderer): IntImage? {
+            fun getPixels(renderer: Renderer): Image? {
                 // draw only the clicked area?
                 GFXState.useFrame(fb, renderer) {
                     GFX.check()

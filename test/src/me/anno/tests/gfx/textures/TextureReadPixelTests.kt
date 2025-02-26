@@ -13,7 +13,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import org.junit.jupiter.api.Test
 
-class TextureReadTest {
+class TextureReadPixelTests {
 
     val w = 17
     val h = 9
@@ -105,18 +105,32 @@ class TextureReadTest {
 
     @Test
     fun testReadIntPixelsFromIntTexture() {
+        testReadIntPixelsFromIntTexture(true)
+        testReadIntPixelsFromIntTexture(false)
+    }
+
+    fun testReadIntPixelsFromIntTexture(hasAlphaChannel: Boolean) {
         HiddenOpenGLContext.createOpenGL()
-        val texture = createIntTexture(true)
+        val texture = createIntTexture(hasAlphaChannel)
         val readData = IntArray(wx * hx)
+        val byteData = ByteArray(wx * hx * 3)
+        val supportMask = if (hasAlphaChannel) -1 else 0xffffff
         forAllOffsets { ox, oy ->
             readData.fill(0)
             GFX.check()
-            texture.readIntPixels(ox, oy, wx, hx, readData)
+            if (hasAlphaChannel) {
+                texture.readIntPixels(ox, oy, wx, hx, readData)
+            } else {
+                texture.readBytePixels(ox, oy, wx, hx, byteData)
+                for (i in 0 until wx * hx) {
+                    readData[i] = ByteImageFormat.RGB.fromBytes(byteData, i * 3, true)
+                }
+            }
             GFX.check()
             forAllPixels(wx, hx) { xi, yi -> // validate all pixels
                 val idx = xi + yi * wx
-                val expectedColor = getIntValue(xi + ox, yi + oy)
-                val readColor = readData[idx]
+                val expectedColor = getIntValue(xi + ox, yi + oy) and supportMask
+                val readColor = readData[idx] and supportMask
                 assertEquals(expectedColor, readColor)
             }
         }
@@ -165,6 +179,6 @@ class TextureReadTest {
     }
 
     fun getIntValue(x: Int, y: Int): Int {
-        return (x + y * w) * 0x1
+        return (x + y * w) * 0x1020304
     }
 }
