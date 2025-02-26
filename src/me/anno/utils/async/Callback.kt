@@ -19,6 +19,12 @@ fun interface Callback<V> {
 
     companion object {
 
+        fun <V> printError(): Callback<V> {
+            return Callback { v, err ->
+                if (v == null) err?.printStackTrace()
+            }
+        }
+
         /**
          * returns a callback, this calls the original callback after mapping the value synchronously
          * */

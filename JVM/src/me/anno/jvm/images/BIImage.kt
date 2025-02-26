@@ -5,6 +5,7 @@ import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.convertARGB2ABGR
@@ -99,7 +100,7 @@ object BIImage {
                     i++
                 }
             }
-            return ByteImage(width, height, ByteImage.Format.R, bytes)
+            return ByteImage(width, height, ByteImageFormat.R, bytes)
         } else {
             val pixels = getRGB(0, 0, width, height, null, 0, width)
             val hasAlpha = colorModel.hasAlpha() && pixels.any { it.ushr(24) != 255 }

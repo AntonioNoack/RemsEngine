@@ -132,7 +132,7 @@ class Box2dTest {
         for (i in 0 until 20) {
 
             val actualPosition = sphere.position
-            val actualRotation = sphere.rotation.getEulerAnglesYXZ(Vector3f()).z
+            val actualRotation = sphere.rotation.getEulerAngleYXZvZ()
             val actualVelocity = rigidbody.linearVelocity
             // todo why is this 0.0 below a certain threshold force???
             val actualRotationVel = rigidbody.angularVelocity

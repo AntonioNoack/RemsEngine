@@ -1,6 +1,7 @@
 package me.anno.image.tga
 
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readNBytes2
@@ -169,10 +170,10 @@ object TGAReader {
         // image.originalImageType = imageType
         // image.originalPixelDepth = pixelDepth
         val format = when (numChannels) {
-            1 -> ByteImage.Format.R
-            2 -> ByteImage.Format.RG
-            3 -> ByteImage.Format.BGR
-            4 -> ByteImage.Format.BGRA
+            1 -> ByteImageFormat.R
+            2 -> ByteImageFormat.RG
+            3 -> ByteImageFormat.BGR
+            4 -> ByteImageFormat.BGRA
             else -> return IOException("Unsupported number of channels: $numChannels")
         }
         return ByteImage(width, height, format, rawData)

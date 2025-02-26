@@ -4,7 +4,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.files.Files.formatFileSize
 import org.junit.jupiter.api.Test
 
-class FormatFileSizeTests {
+class ByteImageFormatFileSizeTests {
     @Test
     fun testFormatFileSizeKibiSizes() {
         val divider = 1024

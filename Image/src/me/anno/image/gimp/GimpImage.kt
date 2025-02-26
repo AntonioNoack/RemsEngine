@@ -3,6 +3,7 @@ package me.anno.image.gimp
 import me.anno.image.Image
 import me.anno.image.ImageAsFolder
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE32
@@ -319,10 +320,10 @@ class GimpImage {
             DataType.U8_PERCEPTUAL -> ByteImage(
                 width, height,
                 when (channels) {
-                    1 -> ByteImage.Format.R
-                    2 -> ByteImage.Format.RG
-                    3 -> ByteImage.Format.RGB
-                    4 -> ByteImage.Format.ARGB
+                    1 -> ByteImageFormat.R
+                    2 -> ByteImageFormat.RG
+                    3 -> ByteImageFormat.RGB
+                    4 -> ByteImageFormat.ARGB
                     else -> return IOException("Too many channels in image")
                 }
             )

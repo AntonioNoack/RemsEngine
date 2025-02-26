@@ -12,6 +12,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.maths.Maths.sq
 import me.anno.utils.OS
 import me.anno.utils.structures.Collections.crossMap
@@ -73,8 +74,8 @@ fun metalRoughness(): MeshComponent {
     mat.metallicMinMax.set(0f, 1f)
     val texValues = ByteArray(16) { (it * 255 / 15).toByte() }
     mat.clamping = Clamping.CLAMP
-    mat.metallicMap = ByteImage(16, 1, ByteImage.Format.R, texValues).ref
-    mat.roughnessMap = ByteImage(1, 16, ByteImage.Format.R, texValues).ref
+    mat.metallicMap = ByteImage(16, 1, ByteImageFormat.R, texValues).ref
+    mat.roughnessMap = ByteImage(1, 16, ByteImageFormat.R, texValues).ref
     mesh.materials = listOf(mat.ref)
     return MeshComponent(mesh)
 }

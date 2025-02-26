@@ -693,10 +693,22 @@ open class Quaternionf(
     }
 
     fun getEulerAnglesYXZ(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = JomlMath.safeAsin(-2f * (y * z - w * x))
-        eulerAngles.y = atan2(x * z + y * w, 0.5f - y * y - x * x)
-        eulerAngles.z = atan2(y * x + w * z, 0.5f - x * x - z * z)
+        eulerAngles.x = getEulerAngleYXZvX()
+        eulerAngles.y = getEulerAngleYXZvY()
+        eulerAngles.z = getEulerAngleYXZvZ()
         return eulerAngles
+    }
+
+    fun getEulerAngleYXZvY(): Float {
+        return atan2(x * z + y * w, 0.5f - y * y - x * x)
+    }
+
+    fun getEulerAngleYXZvX(): Float {
+        return JomlMath.safeAsin(-2f * (y * z - w * x))
+    }
+
+    fun getEulerAngleYXZvZ(): Float {
+        return atan2(y * x + w * z, 0.5f - x * x - z * z)
     }
 
     fun lengthSquared(): Float {

@@ -31,12 +31,14 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_MILLIS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.Panel
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
 import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.OS.res
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
@@ -221,45 +223,67 @@ object WindowManagement {
     @JvmStatic
     fun createWindow(instance: OSWindow, tick: Clock?): OSWindow {
         synchronized(glfwLock) {
-            val width = instance.width
-            val height = instance.height
-            val sharedWindow = windows.firstOrNull { it.pointer != 0L }?.pointer ?: 0L
-            val window = GLFW.glfwCreateWindow(width, height, instance.title, 0L, sharedWindow)
-            if (window == 0L) throw RuntimeException("Failed to create the GLFW window")
-            instance.pointer = window
+            createBlankWindow(instance)
             windows.add(instance)
             tick?.stop("Create window")
             addCallbacks(instance)
             tick?.stop("Adding callbacks")
-            val videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
-            if (videoMode != null) GLFW.glfwSetWindowPos(
-                window,
-                (videoMode.width() - width) / 2,
-                (videoMode.height() - height) / 2
-            )
-
-            val w = intArrayOf(0)
-            val h = intArrayOf(1)
-            GLFW.glfwGetFramebufferSize(window, w, h)
-
-            instance.width = w[0]
-            instance.height = h[0]
+            centerWindowOnScreen(instance)
+            updateActualSize(instance)
 
             tick?.stop("Window position")
-            GLFW.glfwSetWindowTitle(window, instance.title)
+            GLFW.glfwSetWindowTitle(instance.pointer, instance.title)
 
             // tick.stop("window title"); // 0s
-            GLFW.glfwShowWindow(window)
+            GLFW.glfwShowWindow(instance.pointer)
             tick?.stop("Show window")
-            setIcon(window)
+            setIcon(instance)
             tick?.stop("Setting icon")
-            val x = DoubleArray(1)
-            val y = DoubleArray(1)
-            GLFW.glfwGetCursorPos(window, x, y)
-            instance.mouseX = x[0].toFloat()
-            instance.mouseY = y[0].toFloat()
+            updateMousePosition(instance)
         }
         return instance
+    }
+
+    private fun createBlankWindow(instance: OSWindow): Long {
+        val sharedWindow = findSharedWindow()
+        val window = GLFW.glfwCreateWindow(instance.width, instance.height, instance.title, 0L, sharedWindow)
+        assertNotEquals(0L, window, "Failed to create GLFW window")
+        instance.pointer = window
+        return window
+    }
+
+    /**
+     * windows sharing a context means we only need to support a single GFX context at a time
+     * */
+    private fun findSharedWindow(): Long {
+        val firstWindow = windows.firstOrNull { it.pointer != 0L } ?: return 0L
+        return firstWindow.pointer
+    }
+
+    private fun centerWindowOnScreen(instance: OSWindow) {
+        val videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()) ?: return
+        val alignment = AxisAlignment.CENTER
+        GLFW.glfwSetWindowPos(
+            instance.pointer,
+            alignment.getOffset(videoMode.width(), instance.width),
+            alignment.getOffset(videoMode.height(), instance.height)
+        )
+    }
+
+    private fun updateActualSize(instance: OSWindow) {
+        val w = intArrayOf(0)
+        val h = intArrayOf(1)
+        GLFW.glfwGetFramebufferSize(instance.pointer, w, h)
+        instance.width = w[0]
+        instance.height = h[0]
+    }
+
+    private fun updateMousePosition(instance: OSWindow) {
+        val x = DoubleArray(1)
+        val y = DoubleArray(1)
+        GLFW.glfwGetCursorPos(instance.pointer, x, y)
+        instance.mouseX = x[0].toFloat()
+        instance.mouseY = y[0].toFloat()
     }
 
     @JvmStatic
@@ -311,28 +335,36 @@ object WindowManagement {
         }
         tick.stop("Render frame zero")
         if (isDebug && (LOGGER.isInfoEnabled() || LOGGER.isWarnEnabled())) {
-            GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, msgPtr: Long, _: Long ->
-                var msg = if (msgPtr != 0L) MemoryUtil.memUTF8(msgPtr) else null
-                if (msg != null && "will use VIDEO memory as the source for buffer object operations" !in msg &&
-                    "detailed info: Based on the usage hint and actual usage," !in msg &&
-                    // this could be fixed by creating a shader for each attribute-configuration
-                    // todo we want to be able to use our own buffer formats anyway, so somehow implement it that we load/create the shader based on the actually used layout
-                    // todo after that's done, disable this check (?)
-                    "Program/shader state performance warning: Vertex shader in program" !in msg &&
-                    id != GFXState.PUSH_DEBUG_GROUP_MAGIC // spam that we can ignore
-                ) {
-                    msg += "" +
-                            ", source: " + getDebugSourceName(source) +
-                            ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
-                            ", id: " + getErrorTypeName(id) +
-                            ", severity: " + getDebugSeverityName(severity)
-                    if (type == KHRDebug.GL_DEBUG_TYPE_OTHER) LOGGER.info(msg)
-                    else LOGGER.warn(msg)
-                }
-            }, 0)
-            glEnable(KHRDebug.GL_DEBUG_OUTPUT)
+            setupDebugCallback()
         }
         init2(tick)
+    }
+
+    private fun setupDebugCallback() {
+        GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, msgPtr: Long, _: Long ->
+            handleDebugCallback(source, type, id, severity, msgPtr)
+        }, 0)
+        glEnable(KHRDebug.GL_DEBUG_OUTPUT)
+    }
+
+    private fun handleDebugCallback(source: Int, type: Int, id: Int, severity: Int, msgPtr: Long) {
+        var msg = if (msgPtr != 0L) MemoryUtil.memUTF8(msgPtr) else null
+        if (msg != null && "will use VIDEO memory as the source for buffer object operations" !in msg &&
+            "detailed info: Based on the usage hint and actual usage," !in msg &&
+            // this could be fixed by creating a shader for each attribute-configuration
+            // todo we want to be able to use our own buffer formats anyway, so somehow implement it that we load/create the shader based on the actually used layout
+            // todo after that's done, disable this check (?)
+            "Program/shader state performance warning: Vertex shader in program" !in msg &&
+            id != GFXState.PUSH_DEBUG_GROUP_MAGIC // spam that we can ignore
+        ) {
+            msg += "" +
+                    ", source: " + getDebugSourceName(source) +
+                    ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
+                    ", id: " + getErrorTypeName(id) +
+                    ", severity: " + getDebugSeverityName(severity)
+            if (type == KHRDebug.GL_DEBUG_TYPE_OTHER) LOGGER.info(msg)
+            else LOGGER.warn(msg)
+        }
     }
 
     @JvmStatic
@@ -582,11 +614,11 @@ object WindowManagement {
     }
 
     @JvmStatic
-    fun setIcon(window: Long) {
+    fun setIcon(instance: OSWindow) {
         val src = res.getChild("icon.png")
         val srcImage = ImageCache[src, false]
         if (srcImage != null) {
-            setIcon(window, srcImage)
+            setIcon(instance.pointer, srcImage)
         }
     }
 

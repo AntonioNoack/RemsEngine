@@ -249,7 +249,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             dst.localPosition = dst.localPosition
                 .mix(src.localPosition, dtTo01(10f * Time.deltaTime))
             dst.localRotation = dst.localRotation.slerp(
-                Quaternionf().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3f()).y),
+                Quaternionf().rotateY(src.localRotation.getEulerAngleYXZvY()),
                 dtTo01(2f * Time.deltaTime).toFloat()
             )
         }

@@ -2,6 +2,7 @@ package me.anno.experiments.segmentation
 
 import me.anno.image.ImageCache
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths
 import me.anno.utils.Color.a
@@ -312,7 +313,7 @@ fun main(){
 
     // show predicted image
     val randomColors = ByteArray(numClusters) { if (it == 0) 0 else ((it % 230) + (255 - 230)).toByte() }
-    val ids = ByteImage(w, h, ByteImage.Format.R)
+    val ids = ByteImage(w, h, ByteImageFormat.R)
     for (y in 0 until h) {
         for (x in 0 until w) {
             val ii = x + y * w

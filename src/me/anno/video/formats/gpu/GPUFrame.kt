@@ -20,6 +20,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.Files.findNextFile
@@ -122,7 +123,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
 
     fun writeMonochromeDebugImage(w: Int, h: Int, buffer: ByteBuffer) {
         val file = findNextFile(desktop, "mono", "png", 1, '-')
-        val image = ByteImage(w, h, ByteImage.Format.R)
+        val image = ByteImage(w, h, ByteImageFormat.R)
         val data = image.data
         for (i in 0 until w * h) {
             data[i] = buffer[i]

@@ -1134,10 +1134,22 @@ open class Quaterniond(
     }
 
     fun getEulerAnglesYXZ(eulerAngles: Vector3d): Vector3d {
-        eulerAngles.x = JomlMath.safeAsin(-2.0 * (y * z - w * x))
-        eulerAngles.y = atan2(x * z + y * w, 0.5 - y * y - x * x)
-        eulerAngles.z = atan2(y * x + w * z, 0.5 - x * x - z * z)
+        eulerAngles.x = getEulerAngleYXZvX()
+        eulerAngles.y = getEulerAngleYXZvY()
+        eulerAngles.z = getEulerAngleYXZvZ()
         return eulerAngles
+    }
+
+    fun getEulerAngleYXZvY(): Double {
+        return atan2(x * z + y * w, 0.5 - y * y - x * x)
+    }
+
+    fun getEulerAngleYXZvX(): Double {
+        return JomlMath.safeAsin(-2.0 * (y * z - w * x))
+    }
+
+    fun getEulerAngleYXZvZ(): Double {
+        return atan2(y * x + w * z, 0.5 - x * x - z * z)
     }
 
     /**

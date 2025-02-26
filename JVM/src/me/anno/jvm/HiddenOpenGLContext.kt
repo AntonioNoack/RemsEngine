@@ -1,8 +1,8 @@
 package me.anno.jvm
 
 import me.anno.gpu.GFX
-import me.anno.gpu.WindowManagement
 import me.anno.gpu.OSWindow
+import me.anno.gpu.WindowManagement
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
@@ -38,7 +38,11 @@ object HiddenOpenGLContext {
         createOpenGL()
     }
 
-    fun createOpenGL() {
+    fun createOpenGL(force: Boolean = false) {
+
+        if (!force && GFX.glThread != null) {
+            return
+        }
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion())
 

@@ -16,6 +16,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.io.files.FileReference
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
@@ -93,7 +94,7 @@ abstract class FrameTask(
 
         thread(name = "FrameTask::writeFrame") {// offload to other thread
             // val c1 = Clock()
-            val image = ByteImage(width, height, ByteImage.Format.RGB)
+            val image = ByteImage(width, height, ByteImageFormat.RGB)
             pixels.get(image.data, 0, image.data.size)
             // c1.stop("wrote to buffered image"), 0.025s on R5 2600, 1080p
             if (dst.exists) dst.delete()

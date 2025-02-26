@@ -11,7 +11,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.sumOfDouble
+import me.anno.utils.structures.lists.Lists.sumOfFloat
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -132,32 +132,31 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         if (children.size == 1) {
             val child = children.first()
             child.setPosSize(x, y, width, height)
-        } else {
-            val minWeight = 0.0001f
-            val available = (if (isY) height else width) - (children.size - 1) * spacing
-            val sumWeight = children.sumOfDouble { it.weight.toDouble() }.toFloat()
-            val weightScale = 1f / max(1e-38f, sumWeight)
-            var childPos = if (isY) y else x
-            val children = children
-            for (index in children.indices) {
-                val child = children[index]
-                val weight = max(minWeight, child.weight)
-                val betterWeight = max(weight * weightScale, minSize)
-                if (betterWeight != weight) child.weight = betterWeight
-                val childSize = (betterWeight * weightScale * available).roundToIntOr()
-                childPos += min(
-                    childSize, if (isY) {
-                        child.calculateSize(width, childSize)
-                        child.setPosSize(x, childPos, width, childSize)
-                        child.height
-                    } else {
-                        child.calculateSize(childSize, height)
-                        child.setPosSize(childPos, y, childSize, height)
-                        child.width
-                    }
-                )
-                childPos += spacing
+            return
+        }
+
+        val minWeight = 0.0001f
+        val available = (if (isY) height else width) - (children.size - 1) * spacing
+        val sumWeight = children.sumOfFloat { it.weight }
+        val weightScale = 1f / max(1e-38f, sumWeight)
+        var childPos = if (isY) y else x
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            val weight = max(minWeight, child.weight)
+            val betterWeight = max(weight * weightScale, minSize)
+            if (betterWeight != weight) child.weight = betterWeight
+            val childSize = (betterWeight * weightScale * available).roundToIntOr()
+            val usedSize = if (isY) {
+                child.calculateSize(width, childSize)
+                child.setPosSize(x, childPos, width, childSize)
+                child.height
+            } else {
+                child.calculateSize(childSize, height)
+                child.setPosSize(childPos, y, childSize, height)
+                child.width
             }
+            childPos += min(childSize, usedSize) + spacing
         }
     }
 

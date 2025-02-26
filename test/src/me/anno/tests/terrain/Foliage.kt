@@ -143,7 +143,7 @@ class FoliageShader(
         val pos = rv.cameraPosition
         val dir = rv.cameraDirection
         val rot = rv.cameraRotation
-        val camRotY = rot.getEulerAnglesYXZ(JomlPools.vec3f.borrow()).y
+        val camRotY = rot.getEulerAngleYXZvY()
         shader.v1f("camRotY", camRotY)
 
         val frustum = rv.pipeline.frustum

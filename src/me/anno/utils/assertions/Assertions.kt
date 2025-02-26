@@ -229,6 +229,10 @@ fun assertNotEquals(forbidden: Int, actual: Int, message: String = "expected dif
     assertTrue(forbidden != actual) { "$message, $forbidden == $actual" }
 }
 
+fun assertNotEquals(forbidden: Long, actual: Long, message: String = "expected different values") {
+    assertTrue(forbidden != actual) { "$message, $forbidden == $actual" }
+}
+
 fun assertNotEquals(forbidden: Any?, actual: Any?, message: () -> String) {
     assertTrue(forbidden != actual, message)
 }

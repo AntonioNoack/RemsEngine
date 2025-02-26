@@ -101,7 +101,7 @@ fun calculateField(contours: List<Contour>, roundEdges: Boolean): SignedDistance
 
     val solution = FloatArray(field.w * field.h)
     val tex = src!!.getTexture0() as Texture2D
-    tex.readFloatPixels(0, 0, tex.width, tex.height, 0, solution)
+    tex.readFloatPixels(0, 0, tex.width, tex.height, solution)
 
     fb0.destroy()
     fb1.destroy()

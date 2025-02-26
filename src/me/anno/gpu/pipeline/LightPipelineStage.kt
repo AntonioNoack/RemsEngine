@@ -50,7 +50,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     // not yet optimized
     val environmentMaps = ArrayList<EnvironmentMap>()
 
-    val size get() = instanced.size + nonInstanced.size
+    val size: Long get() = instanced.size + nonInstanced.size
 
     val instanced = LightData()
     val nonInstanced = LightData()
@@ -69,7 +69,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     }
 
     fun bind(callback: () -> Unit) {
-        if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
+        if (size > 0) {
             GFXState.blendMode.use(blendMode) {
                 GFXState.depthMode.use(depthMode) {
                     GFXState.depthMask.use(writeDepth) {
@@ -194,18 +194,16 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         }
 
         // draw instanced meshes
-        if (instanced.isNotEmpty()) {
-            this.cameraMatrix = cameraMatrix
-            this.cameraPosition = cameraPosition
-            GFXState.instanceData.use(MeshInstanceData.DEFAULT_INSTANCED) {
-                instanced.forEachType { lights, size, type ->
-                    val shader = getShader(type, true)
-                    if (type == LightType.DIRECTIONAL) {
-                        GFXState.depthMode.use(alwaysDepthMode) {
-                            drawBatches(pipeline, depthTexture, lights, size, type, shader)
-                        }
-                    } else drawBatches(pipeline, depthTexture, lights, size, type, shader)
-                }
+        this.cameraMatrix = cameraMatrix
+        this.cameraPosition = cameraPosition
+        GFXState.instanceData.use(MeshInstanceData.DEFAULT_INSTANCED) {
+            instanced.forEachType { lights, size, type ->
+                val shader = getShader(type, true)
+                if (type == LightType.DIRECTIONAL) {
+                    GFXState.depthMode.use(alwaysDepthMode) {
+                        drawBatches(pipeline, depthTexture, lights, size, type, shader)
+                    }
+                } else drawBatches(pipeline, depthTexture, lights, size, type, shader)
             }
         }
     }
@@ -274,7 +272,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         PipelineStageImpl.drawCalls += callCount
     }
 
-    operator fun get(index: Int): LightRequest {
+    operator fun get(index: Long): LightRequest {
         val nSize = nonInstanced.size
         return if (index < nSize) {
             nonInstanced[index]

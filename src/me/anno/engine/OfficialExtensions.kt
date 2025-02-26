@@ -1,6 +1,7 @@
 package me.anno.engine
 
 import me.anno.extensions.ExtensionLoader
+import me.anno.gpu.GFX
 import me.anno.utils.OS.res
 
 /**

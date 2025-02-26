@@ -28,11 +28,11 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.shiftSlowdown
 import me.anno.input.Key
 import me.anno.input.Touch
+import me.anno.input.controller.Controller
 import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo10
-import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
@@ -40,7 +40,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -255,7 +254,8 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             val result = query.result
             val pos = result.positionWS
             val normal = result.geometryNormalWS.normalize(
-                0.1f * result.positionWS.distance(renderView.cameraPosition).toFloat() * tan(renderView.fovYRadians * 0.5f)
+                0.1f * result.positionWS.distance(renderView.cameraPosition)
+                    .toFloat() * tan(renderView.fovYRadians * 0.5f)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
@@ -304,19 +304,24 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             if (controller.type == ControllerType.VIRTUAL_REALITY && controller.numAxes >= 4 &&
                 (0 until 4).all { controller.axisValues[it].isFinite() }
             ) {
-                // left hand for moving around; right hand left/right thumbstick is used for turning
-                val dx = controller.axisValues[0]
-                val dz = controller.axisValues[1]
-                velocity.x += dx * acceleration
-                velocity.z -= dz * acceleration
-                // trigger and squeeze
-                val dy = controller.axisValues[2] - controller.axisValues[3]
-                velocity.y += dy * acceleration
-                // todo having rumble on one hand and not the other feels weird...
-                //controller.rumble = 0.5f * clamp(length(dx, dy, dz))
-                break
+                collectControllerVelocity(acceleration, controller)
+                return
             }
         }
+    }
+
+    open fun collectControllerVelocity(acceleration: Float, controller: Controller) {
+        // left hand for moving around; right hand left/right thumbstick is used for turning
+        val axisValues = controller.axisValues
+        val dx = axisValues[0]
+        val dz = axisValues[1]
+        velocity.x += dx * acceleration
+        velocity.z -= dz * acceleration
+        // trigger and squeeze
+        val dy = axisValues[2] - axisValues[3]
+        velocity.y += dy * acceleration
+        // todo having rumble on one hand and not the other feels weird...
+        //controller.rumble = 0.5f * clamp(length(dx, dy, dz))
     }
 
     open fun jumpRotateForVR() {

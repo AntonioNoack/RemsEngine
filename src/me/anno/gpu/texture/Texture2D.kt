@@ -11,6 +11,7 @@ import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.GLNames
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
@@ -32,6 +33,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
@@ -46,6 +48,7 @@ import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL11C.glReadPixels
 import org.lwjgl.opengl.GL46C.GL_BGR
 import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_BYTE
@@ -90,7 +93,6 @@ import org.lwjgl.opengl.GL46C.glBindTexture
 import org.lwjgl.opengl.GL46C.glDeleteTextures
 import org.lwjgl.opengl.GL46C.glGenTextures
 import org.lwjgl.opengl.GL46C.glGenerateMipmap
-import org.lwjgl.opengl.GL46C.glGetTextureSubImage
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glPixelStorei
@@ -840,50 +842,56 @@ open class Texture2D(
     override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int): IntImage {
         bindBeforeUpload()
         val buffer = IntArray(width * height)
-        readBytePixels(0, 0, width, height, level, buffer)
+        readBytePixels(0, 0, width, height, buffer)
         convertARGB2ABGR(buffer)
         val image = IntImage(width, height, buffer, withAlpha && channels > 3)
         if (flipY) image.flipY()
         return image
     }
 
-    fun readBytePixels(x: Int, y: Int, w: Int, h: Int, level: Int, dst: Any) {
-        ensurePointer()
-        unbindPackBuffer()
+    /**
+     * dst shall be ByteArray, IntArray or ByteBuffer
+     * */
+    fun readBytePixels(x: Int, y: Int, w: Int, h: Int, dst: Any) {
         setReadAlignment(w * channels)
-        assertGreaterThanEquals(x, 0)
-        assertGreaterThanEquals(y, 0)
-        assertLessThanEquals(x + w, createdW)
-        assertLessThanEquals(y + h, createdH)
-        callGetTextureSubImage(level, x, y, w, h, GL_UNSIGNED_BYTE, dst)
+        callReadPixels(x, y, w, h, GL_UNSIGNED_BYTE, dst)
     }
 
-    fun readBytePixels(x: Int, y: Int, w: Int, h: Int, level: Int, dst: ByteArray) {
-        val tmp = ByteBufferPool.allocateDirect(dst.size)
-        readBytePixels(x, y, w, h, level, dst)
-        tmp.position(0)
-        tmp.get(dst)
-        ByteBufferPool.free(tmp)
+    fun readIntPixels(x: Int, y: Int, w: Int, h: Int, dst: IntArray) {
+        setReadAlignment(w * channels) // I'd guess * 4, but then it complains about not enough space 🤔
+        callReadPixels(x, y, w, h, GL_UNSIGNED_BYTE, dst)
+        convertABGR2ARGB(dst) // data from OpenGL is little-endian-RGBA, and we expect ARGB
     }
 
-    fun readFloatPixels(x: Int, y: Int, w: Int, h: Int, level: Int, dst: FloatArray) {
-        ensurePointer()
-        unbindPackBuffer()
+    fun readFloatPixels(x: Int, y: Int, w: Int, h: Int, dst: FloatArray) {
         setReadAlignment(w * channels * 4)
+        callReadPixels(x, y, w, h, GL_FLOAT, dst)
+    }
+
+    /**
+     * glGetTextureSubImage is a better call for modern OpenGL, but that's not supported on all platforms,
+     * so until we really need support to read multiple z-s, or from other levels, just stay with glReadPixels.
+     * */
+    private fun callReadPixels(x: Int, y: Int, w: Int, h: Int, type: Int, dst: Any) {
         assertGreaterThanEquals(x, 0)
         assertGreaterThanEquals(y, 0)
         assertLessThanEquals(x + w, createdW)
         assertLessThanEquals(y + h, createdH)
-        callGetTextureSubImage(level, x, y, w, h, GL_FLOAT, dst)
-    }
-
-    private fun callGetTextureSubImage(level: Int, x: Int, y: Int, w: Int, h: Int, type: Int, dst: Any) {
-        val format = getFormatByChannels(channels)
-        when (dst) {
-            is ByteBuffer -> glGetTextureSubImage(pointer, level, x, y, 0, w, h, 1, format, type, dst)
-            is IntArray -> glGetTextureSubImage(pointer, level, x, y, 0, w, h, 1, format, type, dst)
-            is FloatArray -> glGetTextureSubImage(pointer, level, x, y, 0, w, h, 1, format, type, dst)
-            else -> LOGGER.warn("Unknown type ${dst::class}")
+        useFrame(this) {
+            val format = getFormatByChannels(channels)
+            when (dst) {
+                is ByteBuffer -> glReadPixels(x, y, w, h, format, type, dst)
+                is IntArray -> glReadPixels(x, y, w, h, format, type, dst)
+                is FloatArray -> glReadPixels(x, y, w, h, format, type, dst)
+                is ByteArray -> {
+                    val tmp = ByteBufferPool.allocateDirect(dst.size)
+                    glReadPixels(x, y, w, h, format, type, tmp)
+                    tmp.position(0)
+                    tmp.get(dst)
+                    ByteBufferPool.free(tmp)
+                }
+                else -> LOGGER.warn("Unknown type ${dst::class}")
+            }
         }
     }
 

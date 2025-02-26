@@ -323,17 +323,17 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             // check if already filled:
             if (lights[0] == null) {
                 for (i in 0 until size) {
-                    lights[i] = lightStage[i]
+                    lights[i.toInt()] = lightStage[i]
                 }
                 // sort by type, and whether they have a shadow
-                lights.subList(0, size).sortWith { a, b ->
+                lights.subList(0, size.toInt()).sortWith { a, b ->
                     val va = a!!.light
                     val vb = b!!.light
                     va.hasShadow.compareTo(vb.hasShadow)
                         .ifSame(va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType))
                 }
             }// else done
-            return size
+            return size.toInt()
         } else {
             val center = center.set(region.centerX, region.centerY, region.centerZ)
             if (!center.isFinite) center.set(0.0)

@@ -227,7 +227,7 @@ fun run2dPhysicsWithUI() {
                     if (rb != null) {
                         val body = rb.box2dInstance!!
                         val pos = entity.transform.globalPosition
-                        val ang = entity.transform.globalRotation.getEulerAnglesYXZ(tmp).z
+                        val ang = entity.transform.globalRotation.getEulerAngleYXZvZ()
                         // calculate anchorWS from mouse position
                         val mouseX = (mouse.x - (x + this.width / 2)) / scale.x.toFloat() + center.x
                         val mouseY = (mouse.y - (y + this.height / 2)) / scale.y.toFloat() + center.y
@@ -293,9 +293,9 @@ fun run2dPhysicsWithUI() {
                         val pos = entity.transform.globalPosition
                         val x1i = x0i + scale * pos.x.toFloat()
                         val y1i = y0i + scale * pos.y.toFloat()
-                        val angle = entity.transform.globalRotation.getEulerAnglesYXZ(tmp).z
-                        val c = cos(angle).toFloat()// could be directly read from matrix
-                        val s = sin(angle).toFloat()
+                        val angle = entity.transform.globalRotation.getEulerAngleYXZvZ()
+                        val c = cos(angle)// could be directly read from matrix
+                        val s = sin(angle)
                         val dist = mouse.distanceSquared(x1i, y1i)
                         var inside = dist < bestDist
                         when (collider) {

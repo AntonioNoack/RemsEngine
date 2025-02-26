@@ -1,6 +1,7 @@
 package me.anno.tests.image.jpg
 
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
@@ -354,9 +355,9 @@ class JPGReader {
         }
         return ByteImage(
             imgX, imgY, when (outChannels) {
-                1 -> ByteImage.Format.R
-                3 -> ByteImage.Format.RGB
-                else -> ByteImage.Format.RGBA
+                1 -> ByteImageFormat.R
+                3 -> ByteImageFormat.RGB
+                else -> ByteImageFormat.RGBA
             }, out
         )
     }

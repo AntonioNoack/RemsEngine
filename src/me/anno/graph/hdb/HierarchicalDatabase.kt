@@ -341,20 +341,21 @@ class HierarchicalDatabase(
     private fun findStorageFile(size: Int): StorageFile {
         // find a storage file with enough space available
         synchronized(storageFiles) {
-            val maxLevel = targetFileSize - size
-            if (maxLevel >= 0) {
-                for (file in storageFiles.values) {
-                    if (file.size <= maxLevel) {
-                        return file
-                    }
-                }
+            val maxFillSize = targetFileSize - size
+            if (maxFillSize >= 0) {
+                val validFile = storageFiles.values.firstOrNull { it.size <= maxFillSize }
+                if (validFile != null) return validFile
             }
             // none was found, so create a new one
-            val maxOldIndex = storageFiles.values.maxOfOrNull { it.index } ?: -1
-            val newFile = StorageFile(maxOldIndex + 1)
-            storageFiles[newFile.index] = newFile
-            return newFile
+            return createNewStorageFile()
         }
+    }
+
+    private fun createNewStorageFile(): StorageFile {
+        val maxOldIndex = storageFiles.values.maxOfOrNull { it.index } ?: -1
+        val newFile = StorageFile(maxOldIndex + 1)
+        storageFiles[newFile.index] = newFile
+        return newFile
     }
 
     private var lastUpdate = 0L

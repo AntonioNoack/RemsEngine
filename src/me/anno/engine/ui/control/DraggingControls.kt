@@ -606,12 +606,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     fun addToParent(
-        prefab: Prefab,
-        root: PrefabSaveable,
-        type: Char,
-        position: Any?,
-        rotation: Any?,
-        scale: Any?,
+        prefab: Prefab, root: PrefabSaveable, type: Char,
+        position: Any?, rotation: Any?, scale: Any?,
         results: MutableCollection<PrefabSaveable>
     ) {
         val ci = PrefabInspector.currentInspector!!
@@ -622,11 +618,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     fun setTransform(
-        ci: PrefabInspector,
-        path: Path,
-        position: Any?,
-        rotation: Any?,
-        scale: Any?
+        ci: PrefabInspector, path: Path,
+        position: Any?, rotation: Any?, scale: Any?
     ) {
         var hasValidTransform = true
         if (position != null) {
@@ -648,6 +641,22 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
     }
 
+    private fun getDropTransform(
+        root: Entity, sampleInstance: Entity?,
+        dropPosition: Vector3d
+    ): Triple<Vector3d, Quaternionf, Vector3f> {
+        val newTransform = Matrix4x3()
+            .translationRotateScale(dropPosition, dropRotation, dropScale)
+        // we need to remove parent transform from this one
+        root.transform.globalTransform
+            .invert(Matrix4x3()).mul(newTransform, newTransform)
+        if (sampleInstance != null) newTransform.mul(sampleInstance.transform.globalTransform)
+        val position = newTransform.getTranslation(Vector3d())
+        val rotation = newTransform.getUnnormalizedRotation(Quaternionf())
+        val scale = newTransform.getScale(Vector3f())
+        return Triple(position, rotation, scale)
+    }
+
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val hovered by lazy { // get hovered element
             renderView.resolveClick(x, y)
@@ -656,134 +665,150 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val hovComponent = hovered.second
         val results = ArrayList<PrefabSaveable>()
         val ci = PrefabInspector.currentInspector!!
+        val dropPosition = findDropPosition(Vector3d())
         for (file in files) {
-            val prefab = PrefabCache[file] ?: continue
-            val dropPosition = findDropPosition(Vector3d())
-            fun posRotSca(root: Entity, sampleInstance: Entity?): Triple<Vector3d, Quaternionf, Vector3f> {
-                val newTransform = Matrix4x3()
-                    .translationRotateScale(
-                        dropPosition,
-                        dropRotation,
-                        dropScale,
-                    )
-                // we need to remove parent transform from this one
-                root.transform.globalTransform
-                    .invert(Matrix4x3()).mul(newTransform, newTransform)
-                if (sampleInstance != null) newTransform.mul(sampleInstance.transform.globalTransform)
-                val position = newTransform.getTranslation(Vector3d())
-                val rotation = newTransform.getUnnormalizedRotation(Quaternionf())
-                val scale = newTransform.getScale(Vector3f())
-                return Triple(position, rotation, scale)
-            }
-            when (val sampleInstance = prefab.getSampleInstance()) {
-                is Material -> {
-                    when (hovComponent) {
-                        is DCPaintable -> hovComponent.paint(this, sampleInstance, file)
-                        is MeshComponentBase -> {
-                            val mesh = hovComponent.getMesh()
-                            val numMaterials = mesh?.numMaterials ?: 1
-                            if (numMaterials <= 1) {
-                                // assign material
-                                hovComponent.materials = listOf(file)
-                                hovComponent.prefab?.set(hovComponent, "materials", hovComponent.materials)
-                            } else {
-                                // ask for slot to place material
-                                Menu.openMenu(
-                                    windowStack, NameDesc("Destination Slot for ${file.nameWithoutExtension}?"),
-                                    (0 until numMaterials).map { i ->
-                                        MenuOption(NameDesc("$i", "", "")) {
-                                            hovComponent.materials = createArrayList(numMaterials) {
-                                                if (it == i) file
-                                                else hovComponent.materials.getOrNull(it) ?: InvalidRef
-                                            }
-                                            hovComponent.prefab?.set(
-                                                hovComponent,
-                                                "materials",
-                                                hovComponent.materials
-                                            )
-                                        }
-                                    }
-                                )
-                                // what if there are multiple materials being dragged? :); we ask multiple times 😅
-                                // todo find what material is used at that triangle :), maybe draw component ids + material ids for this
-                            }
-                        }
-                        else -> {}
-                    }
-                    // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
-                    /*if (mesh != null) {
-                        mesh.materials = listOf(file)
-                        // add this change
-                        val inspector = PrefabInspector.currentInspector
-                        if (inspector != null) {
-                            val path = mesh.pathInRoot2(inspector.root, true)
-                            // inject the mesh into the path;
-                            path.setLast(mesh.name, 0, 'm')
-                            inspector.change(path, "materials", mesh.materials)
-                        }
-                    }*/
-                }
-                is Entity -> {
-                    // add this to the scene
-                    // where? selected / root
-                    // done while dragging this, show preview
-                    // done place it where the preview was drawn
-                    val world = renderView.getWorld() as? Entity
-                    var root = EditorState.selection.firstInstanceOrNull(Entity::class) ?: world
-                    while (root != null && root != world && root.prefab?.findCAdd(root.prefabPath)
-                            .run { this == null || this.prefab != InvalidRef }
-                    ) {
-                        root = root.parent as? Entity ?: world
-                    }
-                    root = root ?: world
-                    if (root is Entity) {
-                        val (pos, rot, sca) = posRotSca(root, sampleInstance)
-                        addToParent(prefab, root, 'e', pos, rot, sca, results)
-                        // TreeViews need to be updated
-                        for (window in GFX.windows) {
-                            for (window1 in window.windowStack) {
-                                window1.panel.forAllVisiblePanels {
-                                    if (it is ECSTreeView) it.invalidateLayout()
-                                }
-                            }
-                        }
-                    } else LOGGER.warn("Could not drop $file onto ${root?.className}")
-                }
-                is DCDroppable -> sampleInstance.drop(
-                    this, prefab, hovEntity, hovComponent,
-                    dropPosition, dropRotation, dropScale, results
-                )
-                is Component -> {
-                    val entity = hovEntity ?: renderView.getWorld() as? Entity
-                    if (entity != null) {
-                        if (sampleInstance is Renderable) {
-                            // if is Renderable & Component, add helper entity to define position
-                            val helperEntity = ci.addNewChild(entity, 'e', "Entity")
-                            val (pos, rot, sca) = posRotSca(entity, null)
-                            setTransform(ci, helperEntity, pos, rot, sca)
-                            val path = ci.addNewChild(helperEntity, 'c', prefab.clazzName, prefab.source)
-                            val sample = Hierarchy.getInstanceAt(ci.root, path)!!
-                            results.add(sample)
-                        } else {
-                            val path = ci.addNewChild(entity, 'c', prefab)!!
-                            val sample = Hierarchy.getInstanceAt(ci.root, path)
-                            if (sample != null) results.add(sample)
-                        }
-                    } else {
-                        LOGGER.warn("Entity is null")
-                        // this can happen when we paste a file
-                    }
-                }
-                else -> {
-                    // todo try to add it to all available, hovered and selected instances
-                    LOGGER.warn("Unknown type ${sampleInstance.className}")
-                }
-            }
-            LOGGER.info("Pasted $file")
+            onPasteFile(file, ci, hovEntity, hovComponent, dropPosition, results)
         }
         if (results.isNotEmpty()) {
             dragged = null
             requestFocus(true) // because we dropped sth here
+        }
+    }
+
+    fun onPasteFile(
+        file: FileReference, ci: PrefabInspector,
+        hovEntity: Entity?, hovComponent: Component?,
+        dropPosition: Vector3d, results: ArrayList<PrefabSaveable>
+    ) {
+        val prefab = PrefabCache[file] ?: return
+        when (val sampleInstance = prefab.getSampleInstance()) {
+            is Material -> {
+                onPasteMaterial(file, hovComponent, sampleInstance)
+            }
+            is Entity -> {
+                onPasteEntity(file, results, prefab, dropPosition, sampleInstance)
+            }
+            is DCDroppable -> sampleInstance.drop(
+                this, prefab, hovEntity, hovComponent,
+                dropPosition, dropRotation, dropScale, results
+            )
+            is Component -> {
+                onPasteComponent(results, hovEntity, ci, prefab, dropPosition, sampleInstance)
+            }
+            else -> {
+                // todo try to add it to all available, hovered and selected instances
+                LOGGER.warn("Unknown type ${sampleInstance.className}")
+            }
+        }
+        LOGGER.info("Pasted $file")
+    }
+
+    fun onPasteMaterial(
+        file: FileReference, hovComponent: Component?,
+        sampleInstance: Material,
+    ) {
+        when (hovComponent) {
+            is DCPaintable -> hovComponent.paint(this, sampleInstance, file)
+            is MeshComponentBase -> {
+                val mesh = hovComponent.getMesh()
+                val numMaterials = mesh?.numMaterials ?: 1
+                if (numMaterials <= 1) {
+                    // assign material
+                    hovComponent.materials = listOf(file)
+                    hovComponent.prefab?.set(hovComponent, "materials", hovComponent.materials)
+                } else {
+                    // ask for slot to place material
+                    Menu.openMenu(
+                        windowStack, NameDesc("Destination Slot for ${file.nameWithoutExtension}?"),
+                        (0 until numMaterials).map { i ->
+                            MenuOption(NameDesc("$i", "", "")) {
+                                hovComponent.materials = createArrayList(numMaterials) {
+                                    if (it == i) file
+                                    else hovComponent.materials.getOrNull(it) ?: InvalidRef
+                                }
+                                hovComponent.prefab?.set(
+                                    hovComponent,
+                                    "materials",
+                                    hovComponent.materials
+                                )
+                            }
+                        }
+                    )
+                    // what if there are multiple materials being dragged? :); we ask multiple times 😅
+                    // todo find what material is used at that triangle :), maybe draw component ids + material ids for this
+                }
+            }
+            else -> {}
+        }
+        // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
+        /*if (mesh != null) {
+            mesh.materials = listOf(file)
+            // add this change
+            val inspector = PrefabInspector.currentInspector
+            if (inspector != null) {
+                val path = mesh.pathInRoot2(inspector.root, true)
+                // inject the mesh into the path;
+                path.setLast(mesh.name, 0, 'm')
+                inspector.change(path, "materials", mesh.materials)
+            }
+        }*/
+    }
+
+    fun onPasteEntity(
+        file: FileReference, results: ArrayList<PrefabSaveable>,
+        prefab: Prefab, dropPosition: Vector3d, sampleInstance: Entity,
+    ) {
+        // add this to the scene
+        // where? selected / root
+        // done while dragging this, show preview
+        // done place it where the preview was drawn
+        val world = renderView.getWorld() as? Entity
+        var root = EditorState.selection.firstInstanceOrNull(Entity::class) ?: world
+        while (root != null && root != world && root.prefab?.findCAdd(root.prefabPath)
+                .run { this == null || this.prefab != InvalidRef }
+        ) {
+            root = root.parent as? Entity ?: world
+        }
+        root = root ?: world
+        if (root is Entity) {
+            val (pos, rot, sca) =
+                getDropTransform(root, sampleInstance, dropPosition)
+            addToParent(prefab, root, 'e', pos, rot, sca, results)
+            // TreeViews need to be updated
+            for (window in GFX.windows) {
+                for (window1 in window.windowStack) {
+                    window1.panel.forAllVisiblePanels {
+                        if (it is ECSTreeView) it.invalidateLayout()
+                    }
+                }
+            }
+        } else LOGGER.warn("Could not drop $file onto ${root?.className}")
+    }
+
+    fun onPasteComponent(
+        results: ArrayList<PrefabSaveable>,
+        hovEntity: Entity?, ci: PrefabInspector,
+        prefab: Prefab, dropPosition: Vector3d, sampleInstance: Component,
+    ) {
+        val entity = hovEntity ?: renderView.getWorld() as? Entity
+        if (entity != null) {
+            if (sampleInstance is Renderable) {
+                // if is Renderable & Component, add helper entity to define position
+                val helperEntity = ci.addNewChild(entity, 'e', "Entity")
+                val (pos, rot, sca) =
+                    getDropTransform(entity, null, dropPosition)
+                setTransform(ci, helperEntity, pos, rot, sca)
+                val path = ci.addNewChild(helperEntity, 'c', prefab.clazzName, prefab.source)
+                val sample = Hierarchy.getInstanceAt(ci.root, path)!!
+                results.add(sample)
+            } else {
+                val path = ci.addNewChild(entity, 'c', prefab)!!
+                val sample = Hierarchy.getInstanceAt(ci.root, path)
+                if (sample != null) results.add(sample)
+            }
+        } else {
+            LOGGER.warn("Entity is null")
+            // this can happen when we paste a file
         }
     }
 
@@ -827,11 +852,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             dst.sub(snappingSettings.snapY)
         }
         return dst
-    }
-
-    override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        super.onPaste(x, y, data, type)
-        LOGGER.info("pasted $data/$type")
     }
 
     override fun onCopyRequested(x: Float, y: Float): Any? {

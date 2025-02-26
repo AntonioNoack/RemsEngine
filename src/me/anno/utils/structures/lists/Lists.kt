@@ -66,8 +66,32 @@ object Lists {
      * allocation-free sumOf()
      * */
     @JvmStatic
+    inline fun <V> List<V>.sumOfInt(getPartialSum: (V) -> Int): Int {
+        var sum = 0
+        for (index in indices) {
+            sum += getPartialSum(this[index])
+        }
+        return sum
+    }
+
+    /**
+     * allocation-free sumOf()
+     * */
+    @JvmStatic
     inline fun <V> List<V>.sumOfLong(getPartialSum: (V) -> Long): Long {
         var sum = 0L
+        for (index in indices) {
+            sum += getPartialSum(this[index])
+        }
+        return sum
+    }
+
+    /**
+     * allocation-free sumOf()
+     * */
+    @JvmStatic
+    inline fun <V> List<V>.sumOfFloat(getPartialSum: (V) -> Float): Float {
+        var sum = 0f
         for (index in indices) {
             sum += getPartialSum(this[index])
         }
@@ -412,6 +436,9 @@ object Lists {
         return result
     }
 
+    /**
+     * creates a List with size elements generated from a generator function
+     * */
     @JvmStatic
     fun <V> createList(size: Int, createElement: (index: Int) -> V): List<V> {
         return createArrayList(size, createElement)

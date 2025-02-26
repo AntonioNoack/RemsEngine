@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.ByteImageFormat
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -252,7 +253,7 @@ object StaticMeshesLoader {
             val transform = Matrix4x3d()
             createSceneSetTransform(aiNode, deepPrefab, path, transform)
             createSceneAddMeshes(sceneMeshes, hasSkeleton, aiNode, deepPrefab, path)
-            node.parent?.transform?.mul(transform,transform)
+            node.parent?.transform?.mul(transform, transform)
             node.transform = transform
 
             if (aiNode.mNumMeshes() > 0) {
@@ -720,7 +721,7 @@ object StaticMeshesLoader {
             // best possible format: raw
             // ARGB8888
             // check whether image actually has alpha channel
-            parentFolder.createImageChild(fileName, ByteImage(width, height, ByteImage.Format.ARGB, data))
+            parentFolder.createImageChild(fileName, ByteImage(width, height, ByteImageFormat.ARGB, data))
         }
     }
 

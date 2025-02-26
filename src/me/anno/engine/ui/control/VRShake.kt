@@ -25,7 +25,7 @@ class VRShake(val falloff: Float, val strength: Float) {
         val dt = uiDeltaTime.toFloat()
         val amplitude = dtTo10(time * falloff)
         val additional = VROffset.additionalRotation
-        val ry = additional.getEulerAnglesYXZ(JomlPools.vec3f.borrow()).y
+        val ry = additional.getEulerAngleYXZvY()
         val x = time * noiseSpeed
         additional.rotationYXZ(
             ry + noise[x, 2f] * amplitude,

@@ -105,6 +105,7 @@ class SaveableFinder {
             for (source in sources) {
                 instance.index(project.getChild(source))
             }
+            // saveables.yaml
             println(instance.dst.toList()
                 .sortedBy { it.first }
                 .joinToString("\n") { (k, v) -> "$k: $v" })

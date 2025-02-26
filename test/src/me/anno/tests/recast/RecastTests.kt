@@ -26,7 +26,7 @@ import me.anno.recast.NavMeshUtils
 import me.anno.utils.Color.black
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.sumOfDouble
+import me.anno.utils.structures.lists.Lists.sumOfFloat
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector2d
@@ -189,20 +189,20 @@ class RecastTests {
     @Test
     fun testRecastOnCircleWithHoles2() {
         val agents = scene.getComponentsInChildren(TestAgent::class)
-        val startDistance = agents.sumOfDouble { it.start.distance(it.target).toDouble() }
+        val startDistance = agents.sumOfFloat { it.start.distance(it.target) }
         for (agent in agents) {
             agent.onUpdate()
         }
         val dt = 0.1f
         val numSteps = 209
-        val inaccuracy = 3.2
+        val inaccuracy = 3.2f
         // println(startDistance)
         for (i in 0 until numSteps) {
             crowd.update(dt, null)
-            val actualDistance = agents.sumOfDouble { it.target.distance(it.crowdAgent!!.currentPosition).toDouble() }
-            val expectedDistance = mix(startDistance, inaccuracy, (i + 1.0) / numSteps)
+            val actualDistance = agents.sumOfFloat { it.target.distance(it.crowdAgent!!.currentPosition) }
+            val expectedDistance = mix(startDistance, inaccuracy, (i + 1f) / numSteps)
             // println("$i: $actualDistance vs $expectedDistance")
-            assertEquals(expectedDistance, actualDistance, inaccuracy * 3.0)
+            assertEquals(expectedDistance, actualDistance, inaccuracy * 3f)
         }
     }
 
