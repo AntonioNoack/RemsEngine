@@ -1,5 +1,6 @@
 package me.anno.jvm
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.gpu.WindowManagement
@@ -40,6 +41,7 @@ object HiddenOpenGLContext {
 
     fun createOpenGL(force: Boolean = false) {
 
+        Engine.cancelShutdown()
         if (!force && GFX.glThread != null) {
             return
         }
