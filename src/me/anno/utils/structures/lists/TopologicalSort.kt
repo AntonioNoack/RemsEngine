@@ -36,10 +36,14 @@ abstract class TopologicalSort<NodeType, ListType : MutableCollection<NodeType>>
      * returns null if cycle was found;
      * contents if original list may be anything - or sorted on success
      * */
-    fun finish(): ListType? {
+    fun finish(restoreOriginal: Boolean): ListType? {
         list.clear()
         while (remaining.isNotEmpty()) {
             if (visit(remaining.first())) {
+                if (restoreOriginal) {
+                    // add back all elements that have been removed from that list; will be unordered
+                    list.addAll(remaining)
+                }
                 return null
             }
         }

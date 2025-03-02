@@ -47,18 +47,22 @@ object DrawTexts {
 
     val simpleChars = createArrayList(126 + 1 - 33) { (it + 33).toChar().toString() }
 
-    val monospaceFont by lazy {
-        val size = DefaultConfig.style.getSize("fontSize", 12)
+    private fun findMonospaceFont(): String {
         val fonts = FontManager.fontSet
-        val bold = false
-        val italic = false
-        val fontName = when {
+        return when {
             "Consolas" in fonts -> "Consolas" // best case
             "Courier New" in fonts -> "Courier New" // second best case
             else -> fonts.firstOrNull { it.contains("mono", true) }
                 ?: fonts.firstOrNull()
                 ?: "Courier New"
         }
+    }
+
+    val monospaceFont by lazy {
+        val size = DefaultConfig.style.getSize("fontSize", 12)
+        val bold = false
+        val italic = false
+        val fontName = findMonospaceFont()
         Font(fontName, size, bold, italic)
     }
 

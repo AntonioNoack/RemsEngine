@@ -1,8 +1,8 @@
 package me.anno.input
 
-import me.anno.utils.types.Strings.distance
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Strings.distance
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 
@@ -133,32 +133,47 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
             return Key.KEY_UNKNOWN
         }
 
-        fun parse(button: String, event: String, modifiers: String?): KeyCombination? {
-            val key = getButton(button)
-            if (key == Key.KEY_UNKNOWN) return null
-            val type = when (event.lowercase()) {
+        private fun getType(event: String): Type? {
+            return when (event.lowercase()) {
                 "down", "d" -> Type.DOWN
                 "press", "dragging", "drag" -> Type.DRAGGING
                 "typed", "t" -> Type.TYPED
                 "up", "u" -> Type.UP
                 "pressing", "press-unsafe", "p" -> Type.PRESSING
                 "double", "double-click", "2" -> Type.DOUBLE
-                else -> return null
+                else -> null
             }
+        }
+
+        private fun getModifiers(modifiers: String): Int {
             var mods = 0
-            if (modifiers != null) for (c in modifiers) {
-                when (c.lowercaseChar()) {
-                    'c' -> mods = mods or GLFW.GLFW_MOD_CONTROL
-                    's' -> mods = mods or GLFW.GLFW_MOD_SHIFT
-                    'a' -> mods = mods or GLFW.GLFW_MOD_ALT
-                    'x' -> mods = mods or GLFW.GLFW_MOD_SUPER
-                    'n' -> mods = mods or GLFW.GLFW_MOD_NUM_LOCK
-                    'l' -> mods = mods or GLFW.GLFW_MOD_CAPS_LOCK
-                    ' ' -> {
-                    }
-                    else -> LOGGER.warn("Unknown action modifier '$c'")
+            for (c in modifiers) {
+                mods = mods or getModifier(c)
+            }
+            return mods
+        }
+
+        private fun getModifier(c: Char): Int {
+            return when (c.lowercaseChar()) {
+                'c' -> GLFW.GLFW_MOD_CONTROL
+                's' -> GLFW.GLFW_MOD_SHIFT
+                'a' -> GLFW.GLFW_MOD_ALT
+                'x' -> GLFW.GLFW_MOD_SUPER
+                'n' -> GLFW.GLFW_MOD_NUM_LOCK
+                'l' -> GLFW.GLFW_MOD_CAPS_LOCK
+                ' ' -> 0 // ignore spaces
+                else -> {
+                    LOGGER.warn("Unknown action modifier '$c'")
+                    0
                 }
             }
+        }
+
+        fun parse(button: String, event: String, modifiers: String?): KeyCombination? {
+            val key = getButton(button)
+            if (key == Key.KEY_UNKNOWN) return null
+            val type = getType(event) ?: return null
+            val mods = if (modifiers != null) getModifiers(modifiers) else 0
             return KeyCombination(key, mods, type)
         }
     }

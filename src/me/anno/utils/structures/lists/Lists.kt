@@ -533,12 +533,12 @@ object Lists {
 
     @JvmStatic
     fun <V : Any> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V>? {
-        return toMutableList().sortByTopology(getDependencies)
+        return sortByTopology1(toMutableList(), getDependencies, false)
     }
 
     @JvmStatic
     fun <V : Any> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V>? {
-        return toMutableList().sortByParent(getParent)
+        return sortByParent1(toMutableList(), getParent, false)
     }
 
     /**
@@ -550,17 +550,20 @@ object Lists {
      * */
     @JvmStatic
     fun <V : Any> MutableList<V>.sortByTopology(getDependencies: (V) -> Collection<V>?): List<V>? {
-        return sortByTopology1(this, getDependencies)
+        return sortByTopology1(this, getDependencies, true)
     }
 
     @JvmStatic
-    private fun <V : Any> sortByTopology1(list: MutableList<V>, getDependencies: (V) -> Collection<V>?): List<V>? {
+    private fun <V : Any> sortByTopology1(
+        list: MutableList<V>, getDependencies: (V) -> Collection<V>?,
+        restoreOriginal: Boolean
+    ): List<V>? {
         return object : TopologicalSort<V, MutableList<V>>(list) {
             override fun visitDependencies(node: V): Boolean {
                 val dependencies = getDependencies(node)
                 return dependencies != null && dependencies.any { visit(it) }
             }
-        }.finish()
+        }.finish(restoreOriginal)
     }
 
     /**
@@ -569,17 +572,20 @@ object Lists {
      * */
     @JvmStatic
     fun <V : Any> MutableList<V>.sortByParent(getParent: (V) -> V?): List<V>? {
-        return sortByParent1(this, getParent)
+        return sortByParent1(this, getParent, true)
     }
 
     @JvmStatic
-    private fun <V : Any> sortByParent1(list: MutableList<V>, getParent: (V) -> V?): List<V>? {
+    private fun <V : Any> sortByParent1(
+        list: MutableList<V>, getParent: (V) -> V?,
+        restoreOriginal: Boolean
+    ): List<V>? {
         return object : TopologicalSort<V, MutableList<V>>(list) {
             override fun visitDependencies(node: V): Boolean {
                 val parent = getParent(node)
                 return parent != null && visit(parent)
             }
-        }.finish()
+        }.finish(restoreOriginal)
     }
 
     @JvmStatic
