@@ -83,8 +83,7 @@ open class Saveable {
     }
 
     fun getReflections(): CachedReflections {
-        val clazz = this::class
-        return reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
+        return Companion.getReflections(this)
     }
 
     open operator fun get(propertyName: String): Any? {
@@ -103,15 +102,15 @@ open class Saveable {
     companion object {
 
         private val LOGGER = LogManager.getLogger(Saveable::class)
-        private val reflectionCache: MutableMap<KClass<*>, CachedReflections> =
+        private val reflectionCache: MutableMap<Class<*>, CachedReflections> =
             if (OS.isWeb) HashMap()
             else ConcurrentHashMap()
 
         fun getReflections(instance: Any): CachedReflections {
-            return getReflections(instance::class)
+            return getReflectionsByClass(instance::class.java)
         }
 
-        fun <V: Any> getReflections(clazz: KClass<V>): CachedReflections {
+        fun getReflectionsByClass(clazz: Class<*>): CachedReflections {
             return reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
         }
 

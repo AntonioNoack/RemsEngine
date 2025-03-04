@@ -8,7 +8,6 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.saveable.Saveable
 import me.anno.ui.input.EnumInput.Companion.getEnumConstants
-import me.anno.utils.Reflections
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Strings.isNotBlank2
@@ -18,21 +17,18 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.jvm.isAccessible
 
 class CachedReflections private constructor(
-    val clazz: KClass<*>,
+    val clazz: Class<*>,
     val allProperties: Map<String, CachedProperty>,
-    val debugActions: List<KFunction<*>>,
+    val debugActions: List<Method>,
     val debugProperties: List<CachedProperty>,
     val editorFields: List<CachedProperty>,
     val debugWarnings: List<CachedProperty>,
 ) {
 
-    constructor(clazz: KClass<*>) : this(clazz, getMemberProperties(clazz))
-    private constructor(clazz: KClass<*>, allProperties: Map<String, CachedProperty>) : this(
+    constructor(clazz: Class<*>) : this(clazz, getMemberProperties(clazz))
+    private constructor(clazz: Class<*>, allProperties: Map<String, CachedProperty>) : this(
         clazz, allProperties,
         getDebugActions(clazz),
         getDebugProperties(allProperties),
@@ -96,10 +92,10 @@ class CachedReflections private constructor(
             return false
         }
 
-        fun getDebugActions(clazz: KClass<*>): List<KFunction<*>> {
-            var list = emptyList<KFunction<*>>()
-            for (item in clazz.memberFunctions) {
-                if (item.annotations.hasMember(DebugAction::class)) {
+        fun getDebugActions(clazz: Class<*>): List<Method> {
+            var list = emptyList<Method>()
+            for (item in clazz.methods) {
+                if (item.annotations.any { it is DebugAction }) {
                     item.isAccessible = true // it's debug, so we're allowed to access it
                     if (list is MutableList) list.add(item)
                     else list = arrayListOf(item)
@@ -126,13 +122,12 @@ class CachedReflections private constructor(
             return allProperties.values.filter { it.annotations.hasMember(clazz1) }
         }
 
-        fun getMemberProperties(clazz: KClass<*>): Map<String, CachedProperty> {
-            val jc = clazz.java
+        fun getMemberProperties(clazz: Class<*>): Map<String, CachedProperty> {
             return findProperties(
-                jc,
-                allFields(jc, ArrayList())
+                clazz,
+                allFields(clazz, ArrayList())
                     .filter { !Modifier.isStatic(it.modifiers) },
-                allMethods(jc, ArrayList())
+                allMethods(clazz, ArrayList())
                     .filter { !Modifier.isStatic(it.modifiers) || it.name.endsWith("\$annotations") })
         }
 
@@ -158,11 +153,11 @@ class CachedReflections private constructor(
         }
 
         fun getPropertiesByDeclaringClass(
-            clazz: KClass<*>, allProperties: Map<String, CachedProperty>
-        ): List<Pair<KClass<*>, List<CachedProperty>>> {
-            val superClass = Reflections.getParentClass(clazz)
-            if (superClass != null && !superClass.java.isInterface) {
-                val superReflections = Saveable.getReflections(superClass)
+            clazz: Class<*>, allProperties: Map<String, CachedProperty>
+        ): List<Pair<Class<*>, List<CachedProperty>>> {
+            val superClass = clazz.superclass
+            if (superClass != null) {
+                val superReflections = Saveable.getReflectionsByClass(superClass)
                 val superPropertyNames = superReflections.allProperties
                     .map { it.key }.toHashSet()
                 val customProperties = allProperties.filter { it.key !in superPropertyNames }.values

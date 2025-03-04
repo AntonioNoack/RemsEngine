@@ -26,7 +26,6 @@ import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
-import kotlin.reflect.jvm.javaMethod
 
 object InspectorUtils {
 
@@ -54,7 +53,7 @@ object InspectorUtils {
         val group = SettingCategory(NameDesc("DebugActions"), style).showByDefault()
         val debugActionWrapper = group.content
         for (action in reflections.debugActions) {
-            val clazz = action.javaMethod?.declaringClass ?: continue
+            val clazz = action.declaringClass ?: continue
             // todo if there are extra arguments, we would need to create a list inputs for them
             /* for (param in action.parameters) {
                      param.kind
@@ -65,7 +64,7 @@ object InspectorUtils {
                     // could become a little heavy....
                     for (instance in instances) {
                         if (clazz.isInstance(instance)) {
-                            action.call(instance)
+                            action.invoke(instance)
                         }
                     }
                     invalidateUI(true) // typically sth would have changed -> show that automatically

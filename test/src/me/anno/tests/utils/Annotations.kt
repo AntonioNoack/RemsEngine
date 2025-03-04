@@ -32,7 +32,7 @@ fun main() {
         println("[${getter.annotations.joinToString()}]")
     }
 
-    val test = CachedReflections(Entity::class)
+    val test = CachedReflections(Entity::class.java)
     println(test.allProperties["prefab"])
     println(test.allProperties["isEnabled"])
 

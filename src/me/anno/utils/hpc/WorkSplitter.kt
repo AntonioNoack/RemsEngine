@@ -69,10 +69,10 @@ abstract class WorkSplitter(val numThreads: Int) {
         processUnbalanced(i0, i1, if (heavy) 1 else 5, func)
     }
 
-    open fun processUnbalanced(i0: Int, i1: Int, countPerThread: Int, func: Task1d) {
+    fun spawnUnbalancedTasks(i0: Int, i1: Int, countPerThread: Int, func: Task1d): AtomicInteger {
         val count = i1 - i0
         val threadCount = ceilDiv(count, countPerThread)
-        val counter = AtomicInteger(1)
+        val counter = AtomicInteger(i0)
         for (threadId in 0 until threadCount) {
             plusAssign {
                 val min = threadId * countPerThread
@@ -81,7 +81,16 @@ abstract class WorkSplitter(val numThreads: Int) {
                 counter.addAndGet(max - min)
             }
         }
+        return counter
+    }
+
+    fun waitForCounter(counter: AtomicInteger, i1: Int) {
         waitUntil(true) { counter.get() >= i1 }
+    }
+
+    open fun processUnbalanced(i0: Int, i1: Int, countPerThread: Int, func: Task1d) {
+        val counter = spawnUnbalancedTasks(i0, i1, countPerThread, func)
+        waitForCounter(counter, i1)
     }
 
     fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: Task1d) {

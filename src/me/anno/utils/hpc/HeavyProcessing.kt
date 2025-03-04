@@ -18,10 +18,10 @@ object HeavyProcessing : WorkSplitter(max(1, Runtime.getRuntime().availableProce
     }
 
     override fun plusAssign(task: () -> Unit) {
-        thread(name = "HeavyProcessing[${counter.getAndIncrement()}]") { task() }
+        thread(name = "HeavyProcessing[${threadNameCtr.getAndIncrement()}]") { task() }
     }
 
     @JvmStatic
-    private val counter = AtomicInteger()
+    private val threadNameCtr = AtomicInteger()
 
 }
