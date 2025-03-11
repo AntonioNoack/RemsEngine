@@ -10,6 +10,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
 import me.anno.utils.assertions.assertFalse
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import kotlin.reflect.KClass
@@ -77,7 +78,7 @@ abstract class Node() : PrefabSaveable() {
     fun isConnected(): Boolean {
         val inputs = inputs
         val outputs = outputs
-        return inputs.any { !it.isEmpty() } || outputs.any { !it.isEmpty() }
+        return inputs.any2 { !it.isEmpty() } || outputs.any2 { !it.isEmpty() }
     }
 
     fun getInput(index: Int): Any? = inputs[index].getValue()

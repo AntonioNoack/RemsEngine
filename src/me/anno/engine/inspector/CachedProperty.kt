@@ -69,7 +69,7 @@ class CachedProperty(
                 val id = AnyToInt.getInt(value, parsingFailure)
                 val newValue = when {
                     id != parsingFailure -> {
-                        val valueOrNull = getEnumById(oldValue::class, id)
+                        val valueOrNull = getEnumById(oldValue::class.java, id)
                         if (valueOrNull == null) {
                             LOGGER.warn("Missing ${oldValue::class} with id $id")
                         }

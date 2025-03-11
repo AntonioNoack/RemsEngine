@@ -148,7 +148,7 @@ class NodeInput : NodeConnector {
             is Int -> {
                 val clazzName = type.substring(5, type.lastIndex)
                 val clazz = javaClass.classLoader.loadClass(clazzName)
-                getEnumById(clazz.kotlin, value)
+                getEnumById(clazz, value)
             }
             else -> null
         }

@@ -46,14 +46,31 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
 
         private val LOGGER = LogManager.getLogger(KeyCombination::class)
 
-        operator fun get(name: String) = keyMapping[name]
-        operator fun get(key: Key) = keyMapping.reverse[key]
+        operator fun get(name: String): Key? = keyMapping[name]
+        operator fun get(key: Key): String? = keyMapping.reverse[key]
 
         val keyMapping = BiMap<String, Key>(200)
+        fun put(key: Key, button: String) {
+            keyMapping[button] = key
+            keyMapping[button.lowercase()] = key
+        }
+
+        // not really necessary, just saving a few allocations
+        fun put(key: Key, button1: String, button2: String) {
+            put(key, button1)
+            put(key, button2)
+        }
+
+        // not really necessary, just saving a few allocations
+        fun put(key: Key, button1: String, button2: String, button3: String) {
+            put(key, button1)
+            put(key, button2)
+            put(key, button3)
+        }
+
         fun put(key: Key, vararg buttons: String) {
             for (button in buttons) {
-                keyMapping[button] = key
-                keyMapping[button.lowercase()] = key
+                put(key, button)
             }
         }
 
@@ -91,7 +108,9 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
             put(Key.KEY_RIGHT_BRACKET, "+", "rightBracket")
             put(Key.KEY_PAUSE, "pause")
             put(Key.KEY_GRAVE_ACCENT, "degrees", "^", "grave")
-            for (i in 1..25) put(GLFW.GLFW_KEY_F1 - 1 + i, "f$i")
+            for (i in 1..25) {
+                put(GLFW.GLFW_KEY_F1 - 1 + i, "f$i")
+            }
             put(Key.KEY_KP_ADD, "kp+", "+")
             put(Key.KEY_KP_SUBTRACT, "kp-", "-")
             put(Key.KEY_KP_MULTIPLY, "kp*", "*")

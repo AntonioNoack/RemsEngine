@@ -17,9 +17,6 @@ import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isNotBlank2
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
-import kotlin.reflect.full.memberProperties
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class EnumInput(
@@ -214,20 +211,15 @@ open class EnumInput(
             else getEnumConstants(clazz.superclass)
         }
 
-        fun getEnumConstants(clazz: KClass<*>): List<Enum<*>> {
-            return getEnumConstants(clazz.java)
-        }
-
         fun enumToNameDesc(instance: Enum<*>): NameDesc {
-            val clazz = instance::class
-            val naming = clazz.memberProperties
-                .firstOrNull { it.name == "naming" }?.getter?.call(instance) as? NameDesc
+            val reflections = getReflections(instance)
+            val naming = reflections[instance, "naming"] as? NameDesc
             if (naming != null) return naming
-            val desc = clazz.memberProperties
-                .firstOrNull { it.name == "desc" || it.name == "description" }
+            val desc0 = reflections[instance, "desc"]
+                ?: reflections[instance, "description"]
+            val desc1 = desc0 as? String
                 ?: return NameDesc(instance.toString())
-            val desc2 = (desc as KProperty<*>).getter.call(instance)?.toString() ?: ""
-            return NameDesc(instance.toString(), desc2, "")
+            return NameDesc(instance.toString(), desc1, "")
         }
     }
 }

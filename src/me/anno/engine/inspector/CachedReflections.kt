@@ -353,8 +353,8 @@ class CachedReflections private constructor(
             return { it: Enum<*> -> it.ordinal }
         }
 
-        private val enumByClass = HashMap<KClass<*>, Map<Int, Enum<*>>>()
-        fun getEnumById(clazz: KClass<*>, id: Int): Enum<*>? {
+        private val enumByClass = HashMap<Class<*>, Map<Int, Enum<*>>>()
+        fun getEnumById(clazz: Class<*>, id: Int): Enum<*>? {
             return enumByClass.getOrPut(clazz) {
                 val constants = getEnumConstants(clazz)
                 val getter = getEnumIdGetter(constants.first())
