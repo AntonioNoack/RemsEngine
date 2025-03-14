@@ -151,28 +151,16 @@ object AssetThumbnails {
         val textureFiles = HashSet<FileReference>()
         val meshToMat = HashSet<FileReference>()
         val matToTex = HashSet<FileReference>()
-        val async = true
-        val delta = 50L
-
-        fun <V : ICacheData> checkAsset(
-            cache: PrefabByFileCache<V>, file: FileReference,
-            mapFileOnce: HashSet<FileReference>,
-            addChildFiles: (V) -> Unit,
-        ): Boolean {
-            val mesh = cache[file, async]
-            if (mesh != null && mapFileOnce.add(file)) {
-                addChildFiles(mesh)
-            }
-            return mesh != null || cache.hasFileEntry(file, delta)
-        }
 
         waitUntil(true, {
+            val async = true
+            val delta = 50L
             meshFiles.all2 { meshFile ->
-                checkAsset(MeshCache, meshFile, meshToMat) { mesh ->
+                checkAsset(MeshCache, meshFile, meshToMat, async, delta) { mesh ->
                     materialFiles.addAll(mesh.materials.filter { it.exists })
                 }
             } && materialFiles.all { materialFile ->
-                checkAsset(MaterialCache, materialFile, matToTex) { material ->
+                checkAsset(MaterialCache, materialFile, matToTex, async, delta) { material ->
                     textureFiles.addAll(material.listTextures().filter { it.exists })
                 }
             } && textureFiles.all { textureFile ->
@@ -184,6 +172,19 @@ object AssetThumbnails {
                 callback()
             }
         }
+    }
+
+   private fun <V : ICacheData> checkAsset(
+        cache: PrefabByFileCache<V>, file: FileReference,
+        mapFileOnce: HashSet<FileReference>,
+        async: Boolean, delta: Long,
+        addChildFiles: (V) -> Unit,
+    ): Boolean {
+        val mesh = cache[file, async]
+        if (mesh != null && mapFileOnce.add(file)) {
+            addChildFiles(mesh)
+        }
+        return mesh != null || cache.hasFileEntry(file, delta)
     }
 
     @JvmStatic

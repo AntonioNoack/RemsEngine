@@ -8,11 +8,9 @@ import org.luaj.vm2.LuaInteger
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KType
+import java.lang.reflect.Constructor
 
-class LuaConstructor(clazz: KClass<*>) : VarArgFunction() {
+class LuaConstructor(clazz: Class<*>) : VarArgFunction() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(LuaConstructor::class)
@@ -23,7 +21,7 @@ class LuaConstructor(clazz: KClass<*>) : VarArgFunction() {
 
     override fun onInvoke(args: Varargs): Varargs {
         val size = args.narg() - 1
-        if (size == 0) return primary?.call().toLua()
+        if (size == 0) return primary?.newInstance().toLua()
         // types: array, number, string, hashmap, userdata
         return create((0 until size).map { args.arg(it + 2) })
     }
@@ -32,13 +30,13 @@ class LuaConstructor(clazz: KClass<*>) : VarArgFunction() {
         // types: array, number, string, hashmap, userdata
         val size = args.size
         var bestScore = 0
-        var bestMatch: KFunction<Any>? = null
+        var bestMatch: Constructor<*>? = null
         for (candidate in constructors) {
-            val parameters = candidate.parameters
+            val parameters = candidate.parameterTypes
             if (parameters.size == size) {
                 // check if all types are compatible
                 val scores = args.mapIndexed { i, arg ->
-                    getScore(parameters[i].type, arg)
+                    getScore(parameters[i], arg)
                 }
                 if (scores.min() > 0) {
                     val ourScore = scores.sum()
@@ -50,69 +48,69 @@ class LuaConstructor(clazz: KClass<*>) : VarArgFunction() {
             }
         }
         if (bestMatch == null) return LuaValue.NIL
-        val parameters = bestMatch.parameters
+        val parameters = bestMatch.parameterTypes
         val values = Array(size) { // must be an array
-            convert(parameters[it].type, args[it])
+            convert(parameters[it], args[it])
         }
         return try {
-            bestMatch.call(*values).toLua()
+            bestMatch.newInstance(*values).toLua()
         } catch (e: Exception) {
             LOGGER.error(
-                "Mismatch? ${parameters.map { it.type }} -> " +
+                "Mismatch? $parameters -> " +
                         "${values.map { if (it == null) null else it::class.simpleName }}",
             )
             LuaValue.NIL
         }
     }
 
-    fun getScore(type: KType, value: LuaValue): Int {
+    fun getScore(type: Class<*>, value: LuaValue): Int {
         return when {
-            value.isnumber() -> when (type.classifier) {
-                Byte::class -> 1
-                Short::class -> 2
-                Int::class -> 3
-                Long::class -> 5
-                Float::class -> 4
-                Double::class -> 6
+            value.isnumber() -> when (type) {
+                Byte::class.java -> 1
+                Short::class.java -> 2
+                Int::class.java -> 3
+                Long::class.java -> 5
+                Float::class.java -> 4
+                Double::class.java -> 6
                 else -> 0
             }
-            value.isstring() -> (type.classifier == String::class || type.classifier == CharSequence::class).toInt()
-            value.isboolean() -> (type.classifier == Boolean::class).toInt()
-            value.isnil() -> type.isMarkedNullable.toInt()
-            value.isuserdata() -> ((type.classifier as? KClass<*>)?.isInstance(value.checkuserdata()) == true).toInt()
+            value.isstring() -> (type == String::class.java || type == CharSequence::class.java).toInt()
+            value.isboolean() -> (type == Boolean::class.java || type == Boolean::class.javaPrimitiveType).toInt()
+            value.isnil() -> 1 // type.isMarkedNullable.toInt()
+            value.isuserdata() -> type.isInstance(value.checkuserdata()).toInt()
             else -> 0
         }
     }
 
-    fun convert(type: KType, value: LuaValue): Any? {
+    fun convert(type: Class<*>, value: LuaValue): Any? {
         return when {
-            value.isnumber() -> when (type.classifier) {
-                Byte::class -> when (value) {
+            value.isnumber() -> when (type) {
+                Byte::class.java, Byte::class.javaPrimitiveType -> when (value) {
                     is LuaInteger -> value.v.toByte()
                     is LuaDouble -> value.tobyte()
                     else -> throw NotImplementedError()
                 }
-                Short::class -> when (value) {
+                Short::class.java, Short::class.javaPrimitiveType -> when (value) {
                     is LuaInteger -> value.v.toShort()
                     is LuaDouble -> value.toshort()
                     else -> throw NotImplementedError()
                 }
-                Int::class -> when (value) {
+                Int::class.java, Int::class.javaPrimitiveType -> when (value) {
                     is LuaInteger -> value.v
                     is LuaDouble -> value.toint()
                     else -> throw NotImplementedError()
                 }
-                Long::class -> when (value) {
+                Long::class.java, Long::class.javaPrimitiveType -> when (value) {
                     is LuaInteger -> value.v.toLong()
                     is LuaDouble -> value.tolong()
                     else -> throw NotImplementedError()
                 }
-                Float::class -> when (value) {
+                Float::class.java, Float::class.javaPrimitiveType -> when (value) {
                     is LuaInteger -> value.v.toFloat()
                     is LuaDouble -> value.tofloat()
                     else -> throw NotImplementedError()
                 }
-                Double::class -> when (value) {
+                Double::class.java, Double::class.javaPrimitiveType -> when (value) {
                     is LuaInteger -> value.v.toDouble()
                     is LuaDouble -> value.todouble()
                     else -> throw NotImplementedError()

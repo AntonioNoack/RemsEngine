@@ -36,33 +36,33 @@ import org.luaj.vm2.LuaValue
 object ConstructorRegistry : LuaUserdata(Any()) {
 
     val extraRegistry = hashMapOf(
-        "Vector2i" to Vector2i::class,
-        "Vector2f" to Vector2f::class,
-        "Vector2d" to Vector2d::class,
-        "Vector3i" to Vector3i::class,
-        "Vector3f" to Vector3f::class,
-        "Vector3d" to Vector3d::class,
-        "Vector4i" to Vector4i::class,
-        "Vector4f" to Vector4f::class,
-        "Vector4d" to Vector4d::class,
-        "Quaternionf" to Quaternionf::class,
-        "Quaterniond" to Quaterniond::class,
-        "Planef" to Planef::class,
-        "Planed" to Planed::class,
-        "AABBf" to AABBf::class,
-        "AABBd" to AABBd::class,
-        "AxisAngle4f" to AxisAngle4f::class,
-        "AxisAngle4d" to AxisAngle4d::class,
-        "Matrix2f" to Matrix2f::class,
-        "Matrix2d" to Matrix2d::class,
-        "Matrix3f" to Matrix3f::class,
-        "Matrix3d" to Matrix3d::class,
-        "Matrix4f" to Matrix4f::class,
-        "Matrix4d" to Matrix4d::class,
-        "Matrix3x2f" to Matrix3x2f::class,
-        "Matrix3x2d" to Matrix3x2d::class,
-        "Matrix4x3f" to Matrix4x3f::class,
-        "Matrix4x3d" to Matrix4x3d::class,
+        "Vector2i" to Vector2i::class.java,
+        "Vector2f" to Vector2f::class.java,
+        "Vector2d" to Vector2d::class.java,
+        "Vector3i" to Vector3i::class.java,
+        "Vector3f" to Vector3f::class.java,
+        "Vector3d" to Vector3d::class.java,
+        "Vector4i" to Vector4i::class.java,
+        "Vector4f" to Vector4f::class.java,
+        "Vector4d" to Vector4d::class.java,
+        "Quaternionf" to Quaternionf::class.java,
+        "Quaterniond" to Quaterniond::class.java,
+        "Planef" to Planef::class.java,
+        "Planed" to Planed::class.java,
+        "AABBf" to AABBf::class.java,
+        "AABBd" to AABBd::class.java,
+        "AxisAngle4f" to AxisAngle4f::class.java,
+        "AxisAngle4d" to AxisAngle4d::class.java,
+        "Matrix2f" to Matrix2f::class.java,
+        "Matrix2d" to Matrix2d::class.java,
+        "Matrix3f" to Matrix3f::class.java,
+        "Matrix3d" to Matrix3d::class.java,
+        "Matrix4f" to Matrix4f::class.java,
+        "Matrix4d" to Matrix4d::class.java,
+        "Matrix3x2f" to Matrix3x2f::class.java,
+        "Matrix3x2d" to Matrix3x2d::class.java,
+        "Matrix4x3f" to Matrix4x3f::class.java,
+        "Matrix4x3d" to Matrix4x3d::class.java,
         // other types?
     )
 
@@ -72,7 +72,7 @@ object ConstructorRegistry : LuaUserdata(Any()) {
 
     override fun get(key: String): LuaValue {
         val entry = Saveable.objectTypeRegistry[key]
-        if (entry != null) return LuaConstructor(entry.sampleInstance::class)
+        if (entry != null) return LuaConstructor(entry.sampleInstance::class.java)
         val extra = extraRegistry[key]
         if (extra != null) return LuaConstructor(extra)
         if (key == "ListOf") return LuaListOf

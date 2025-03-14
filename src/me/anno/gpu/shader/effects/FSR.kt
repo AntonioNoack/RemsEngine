@@ -133,7 +133,6 @@ object FSR {
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
-        shader.use()
         shader
     }
 

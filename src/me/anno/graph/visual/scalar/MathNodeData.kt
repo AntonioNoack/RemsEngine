@@ -18,5 +18,16 @@ class MathNodeData<V : Enum<V>>(
     val defaultType = enumValues[0]
     val outputs = listOf(outputType, "Result")
     val byId = enumValues.associateBy { getId(it) }
-    val typeToIndex = enumValues.withIndex().associate { it.value to it.index }
+    val typeToIndex = createTypeToIndexMap(enumValues)
+
+    companion object {
+        @JvmStatic
+        private fun <V> createTypeToIndexMap(enumValues: List<V>): Map<V, Int> {
+            val map = HashMap<V, Int>(enumValues.size)
+            for (i in enumValues.indices) {
+                map[enumValues[i]] = i
+            }
+            return map
+        }
+    }
 }

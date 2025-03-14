@@ -3,6 +3,7 @@ package me.anno.utils
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
+import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.convertRGBA2ARGB
 import me.anno.utils.Color.g
@@ -137,6 +138,72 @@ object ColorParsing {
         } else false
     }
 
+    @JvmStatic
+    private fun splitName(name: String): List<String> {
+        return name.split(',').map { it.trim() }
+    }
+
+    @JvmStatic
+    private fun parsePercents(parts: List<String>): List<Float> {
+        return parts.map(::parsePercent)
+    }
+
+    @JvmStatic
+    private fun parsePercent(str: String): Float {
+        return str.substring(0, str.length - 1).toFloat() * 0.01f
+    }
+
+    @JvmStatic
+    private fun parse01Floats(parts: List<String>): List<Float> {
+        return parts.map(String::toFloat)
+    }
+
+    @JvmStatic
+    private fun parse255s(parts: List<String>): List<Float> {
+        return parts.map { it.toInt() / 255f }
+    }
+
+    @JvmStatic
+    private fun parse255(part: String): Float {
+        return part.toInt() / 255f
+    }
+
+    @JvmStatic
+    private fun parseRGB(name: String): Int? {
+        val parts = splitName(name)
+        return if (parts.size == 3) {
+            val rgb = when {
+                parts.all { it.isPercentFloat() } -> parsePercents(parts)
+                parts.all { it.is01Float() } -> parse01Floats(parts)
+                parts.all { it.is255Int() } -> parse255s(parts)
+                else -> return null
+            }
+            rgba(rgb[0], rgb[1], rgb[2], 1f)
+        } else null
+    }
+
+    @JvmStatic
+    private fun parseRGBA(name: String): Int? {
+        val parts = splitName(name)
+        return if (parts.size == 4) {
+            val rgba = when {
+                parts.all { it.isPercentFloat() } -> parsePercents(parts)
+                parts.all { it.is01Float() } -> parse01Floats(parts)
+                parts.all { it.is255Int() } -> parse255s(parts)
+                parts[0].is255Int() && parts[1].is255Int() && parts[2].is255Int() && parts[3].is01Float() -> {
+                    listOf(
+                        parse255(parts[0]),
+                        parse255(parts[1]),
+                        parse255(parts[2]),
+                        parts[3].toFloat(),
+                    )
+                }
+                else -> return null
+            }
+            rgba(rgba[0], rgba[1], rgba[2], rgba[3])
+        } else null
+    }
+
     /**
      * @return argb color code or null on failure
      * */
@@ -145,54 +212,10 @@ object ColorParsing {
         return when {
             name.startsWith('#') -> parseHex(name.substring(1))
             name.startsWith("0x") -> parseHex(name.substring(2))
-            name.startsWith("rgb(") && name.endsWith(")") -> {
-                val parts = name.substring(4, name.length - 1)
-                    .split(',')
-                    .map { it.trim() }
-                if (parts.size == 3) {
-                    val rgb = when {
-                        parts.all { it.isPercentFloat() } -> {
-                            parts.map { it.substring(0, it.length - 1).toFloat() * 0.01f }
-                        }
-                        parts.all { it.is01Float() } -> {
-                            parts.map { it.toFloat() }
-                        }
-                        parts.all { it.is255Int() } -> {
-                            parts.map { it.toInt() / 255f }
-                        }
-                        else -> return null
-                    }
-                    rgba(rgb[0], rgb[1], rgb[2], 1f)
-                } else null
-            }
-            name.startsWith("rgba(") && name.endsWith(")") -> {
-                val parts = name.substring(5, name.length - 1)
-                    .split(',')
-                    .map { it.trim() }
-                if (parts.size == 4) {
-                    val rgba = when {
-                        parts.all { it.isPercentFloat() } -> {
-                            parts.map { it.substring(0, it.length - 1).toFloat() * 0.01f }
-                        }
-                        parts.all { it.is01Float() } -> {
-                            parts.map { it.toFloat() }
-                        }
-                        parts.all { it.is255Int() } -> {
-                            parts.map { it.toInt() / 255f }
-                        }
-                        parts[0].is255Int() && parts[1].is255Int() && parts[2].is255Int() && parts[3].is01Float() -> {
-                            listOf(
-                                parts[0].toInt() / 255f,
-                                parts[1].toInt() / 255f,
-                                parts[2].toInt() / 255f,
-                                parts[3].toFloat(),
-                            )
-                        }
-                        else -> return null
-                    }
-                    rgba(rgba[0], rgba[1], rgba[2], rgba[3])
-                } else null
-            }
+            name.startsWith("rgb(") && name.endsWith(")") ->
+                parseRGB(name.substring(4, name.length - 1))
+            name.startsWith("rgba(") && name.endsWith(")") ->
+                parseRGBA(name.substring(5, name.length - 1))
             else -> colorMap[name.trim().toString().lowercase()]?.or(black)
         }
     }
@@ -212,11 +235,16 @@ object ColorParsing {
 
     @JvmStatic
     fun Int.toHexColorOrName(): String {
-        return colorMap.reverse[this] ?: toHexColor()
+        val byColorMap = if (a() == 255) {
+            colorMap.reverse[this and 0xffffff]
+        } else null
+        return byColorMap ?: toHexColor()
     }
 
     @JvmStatic
-    fun Int.rgbDistanceSq(other: Int) = sq(r() - other.r()) + sq(g() - other.g()) + sq(b() - other.b())
+    fun Int.rgbDistanceSq(other: Int): Int {
+        return sq(r() - other.r()) + sq(g() - other.g()) + sq(b() - other.b())
+    }
 
     /**
      * officially supported colors from the web (CSS/HTML)

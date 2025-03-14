@@ -40,8 +40,10 @@ object EntityQuery {
         return entity?.hasComponentInChildren(clazz, includingDisabled) == true
     }
 
-    fun <V : Any> Entity.getComponent(clazz: String, includingDisabled: Boolean = false): V? {
-        return getComponent(Saveable.getClass(clazz) as? KClass<V> ?: return null, includingDisabled)
+    fun <V : Any> Entity.getComponent(clazzName: String, includingDisabled: Boolean = false): V? {
+        val clazz = Saveable.getClass(clazzName) as? KClass ?: return null
+        @Suppress("UNCHECKED_CAST")
+        return getComponent(clazz as KClass<V>, includingDisabled)
     }
 
     fun <V : Any> Entity.getComponent(clazz: KClass<V>, includingDisabled: Boolean = false): V? {

@@ -134,18 +134,20 @@ class CachedReflections private constructor(
         private val declaredFields = LazyMap(Class<*>::getDeclaredFields)
         private val declaredMethods = LazyMap(Class<*>::getDeclaredMethods)
 
-        fun allFields(clazz: Class<*>, dst: ArrayList<Field>): List<Field> {
-            dst.addAll(declaredFields[clazz])
-            val superClass = clazz.superclass
-            if (superClass != null) allFields(superClass, dst)
-            return dst
+        fun allFields(clazz0: Class<*>, dst: ArrayList<Field>): List<Field> {
+            var clazz = clazz0
+            while (true) {
+                dst.addAll(declaredFields[clazz])
+                clazz = clazz.superclass ?: return dst
+            }
         }
 
-        fun allMethods(clazz: Class<*>, dst: ArrayList<Method>): List<Method> {
-            dst.addAll(declaredMethods[clazz])
-            val superClass = clazz.superclass
-            if (superClass != null) allMethods(superClass, dst)
-            return dst
+        fun allMethods(clazz0: Class<*>, dst: ArrayList<Method>): List<Method> {
+            var clazz = clazz0
+            while (true) {
+                dst.addAll(declaredMethods[clazz])
+                clazz = clazz.superclass ?: return dst
+            }
         }
 
         private fun sortProperties(input: Collection<CachedProperty>): List<CachedProperty> {
@@ -245,7 +247,7 @@ class CachedReflections private constructor(
                         val setterName = setterPrefix + name.substring(getterPrefix.length)
                         val setterMethod = methods.firstOrNull {
                             it.name == setterName && it.parameterCount == 1 &&
-                                    it.parameters[0].type == getterMethod.returnType
+                                    it.parameterTypes[0] == getterMethod.returnType
                         }
                         val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
                         val isPublic = Modifier.isPublic(getterMethod.modifiers)

@@ -9,7 +9,7 @@ import me.anno.gpu.shader.Shader
  * draws many shapes at once;
  * optimization, because drawCalls can be very expensive
  * */
-abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attribute>, val batchSize: Int = 65536) {
+abstract class Batch(name: String, val base: StaticBuffer, val attributes: List<Attribute>, val batchSize: Int = 65536) {
 
     var active = false
         private set
@@ -18,16 +18,16 @@ abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attr
 
     private var batchCount = 0
     private val buffer by lazy {
-        StaticBuffer(name, attributes, batchSize, BufferUsage.STREAM).apply {
+        StaticBuffer(name, attributes, batchSize, BufferUsage.STREAM)
+    }
+
+    val data by lazy {
+        buffer.apply {
             createNioBuffer()
             nioBuffer!!.position(batchSize * stride)
             ensureBuffer() // maximum size :)
-        }
+        }.nioBuffer!!
     }
-
-    val attributes get() = buffer.attributes
-
-    val data get() = buffer.nioBuffer!!
 
     fun next() {
         if (++batchCount >= batchSize) {
