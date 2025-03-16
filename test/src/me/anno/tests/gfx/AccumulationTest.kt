@@ -24,13 +24,13 @@ class AccumulationTest {
         HiddenOpenGLContext.createOpenGL()
 
         // store it inside a shader buffer
-        val nio = buffer.nioBuffer!!
+        val nio = buffer.getOrCreateNioBuffer()
         nio.position(0)
         nio.asIntBuffer().put(src)
         nio.position(src.size * 4)
         buffer.ensureBuffer()
 
-        tmp.nioBuffer!!.position(src.size * 4)
+        tmp.getOrCreateNioBuffer().position(src.size * 4)
         tmp.ensureBuffer()
 
         // accumulate the values

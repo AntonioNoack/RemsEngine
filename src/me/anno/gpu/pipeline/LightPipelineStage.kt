@@ -226,8 +226,8 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         initShader(shader, cameraMatrix, type, depthTexture)
 
         val buffer = lightInstanceBuffer
-        val nioBuffer = buffer.nioBuffer!!
-        val stride = buffer.attributes[0].stride
+        val nioBuffer = buffer.getOrCreateNioBuffer()
+        val stride = buffer.stride
 
         // draw them in batches of size <= batchSize
         // converted from for(.. step ..) to while to avoid allocation

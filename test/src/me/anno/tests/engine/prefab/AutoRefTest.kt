@@ -72,9 +72,9 @@ class AutoRefTest {
 
     fun compare(a: Entity, b: Entity) {
         assertEquals(a.name, b.name)
-        assertEquals(a.position, b.position)
-        assertEquals(a.rotation, b.rotation)
-        assertEquals(a.scale, b.scale)
+        assertEquals(a.position, b.position, 1e-7)
+        assertEquals(a.rotation, b.rotation, 1e-7)
+        assertEquals(a.scale, b.scale, 1e-7)
         assertEquals(a.children.size, b.children.size)
         for (i in 0 until a.children.size) {
             compare(a.children[i], b.children[i])

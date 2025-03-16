@@ -191,7 +191,8 @@ object DrawTexts {
                 val char = text[i]
                 val code = char.code - 33
                 if (code in simpleChars.indices) {
-                    simpleBatch.data.putFloat(x2f).putFloat(posY).putFloat(code.toFloat())
+                    simpleBatch.data
+                        .putFloat(x2f).putFloat(posY).putFloat(code.toFloat())
                         .putRGBA(textColor).putRGBA(background)
                     simpleBatch.next()
                 }

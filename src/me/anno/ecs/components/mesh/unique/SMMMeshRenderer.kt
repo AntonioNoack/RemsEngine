@@ -110,7 +110,8 @@ class SMMMeshRenderer(material: Material) :
                 when (mesh.drawMode) {
                     DrawMode.TRIANGLES -> {
                         val buffer = StaticBuffer(mesh.name, attributes, indices.size)
-                        for (i in indices.indices) putVertex(buffer.nioBuffer!!, indices[i])
+                        val nioBuffer = buffer.getOrCreateNioBuffer()
+                        for (i in indices.indices) putVertex(nioBuffer, indices[i])
                         return buffer
                     }
                     else -> throw NotImplementedError()
@@ -119,8 +120,9 @@ class SMMMeshRenderer(material: Material) :
                 when (mesh.drawMode) {
                     DrawMode.TRIANGLES -> {
                         val buffer = StaticBuffer(mesh.name, attributes, pos.size / 9 * 3)
+                        val nioBuffer = buffer.getOrCreateNioBuffer()
                         for (i in 0 until buffer.vertexCount) {
-                            putVertex(buffer.nioBuffer!!, i)
+                            putVertex(nioBuffer, i)
                         }
                         return buffer
                     }
@@ -133,7 +135,7 @@ class SMMMeshRenderer(material: Material) :
             when (mesh.drawMode) {
                 DrawMode.TRIANGLES -> {
                     val buffer = StaticBuffer(mesh.name, attributes, numInstances * 3)
-                    val nioBuffer = buffer.nioBuffer!!
+                    val nioBuffer = buffer.getOrCreateNioBuffer()
                     if (indices != null) {
                         for (mi in matIds.indices) {
                             if (matIds[mi] == key.index) {
@@ -168,8 +170,9 @@ class SMMMeshRenderer(material: Material) :
 
     override fun getData(key: SMMKey, mesh: Mesh): StaticBuffer? {
         val data = getData0(key, mesh) ?: return null
-        assertEquals(data.vertexCount * data.stride, data.nioBuffer!!.position()) {
-            "${data.vertexCount} * ${data.stride} != ${data.nioBuffer!!.position()}"
+        val dataBuffer = data.getOrCreateNioBuffer()
+        assertEquals(data.vertexCount * data.stride, dataBuffer.position()) {
+            "${data.vertexCount} * ${data.stride} != ${dataBuffer.position()}"
         }
         data.isUpToDate = false
         return data

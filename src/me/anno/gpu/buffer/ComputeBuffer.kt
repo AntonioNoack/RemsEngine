@@ -2,20 +2,20 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.opengl.GL46C.glGetBufferSubData
 import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BUFFER
+import org.lwjgl.opengl.GL46C.glGetBufferSubData
+import java.nio.ByteBuffer
 
 class ComputeBuffer(name: String, attr: List<Attribute>, elementCount: Int, type: Int = GL_SHADER_STORAGE_BUFFER) :
     OpenGLBuffer(name, type, attr) {
 
     init {
         this.elementCount = elementCount
-        createNioBuffer()
     }
 
-    override fun createNioBuffer() {
+    override fun createNioBuffer(): ByteBuffer {
         val byteSize = elementCount * attributes.sumOf { it.byteSize }
-        nioBuffer = ByteBufferPool.allocateDirect(byteSize)
+        return ByteBufferPool.allocateDirect(byteSize)
     }
 
     @Suppress("unused")
@@ -42,5 +42,4 @@ class ComputeBuffer(name: String, attr: List<Attribute>, elementCount: Int, type
         GFX.check()
         return values
     }
-
 }

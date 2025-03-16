@@ -16,7 +16,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBatchSize
+import me.anno.gpu.pipeline.InstancedBuffers.instancedBatchSize
 import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
@@ -85,12 +85,7 @@ object LightShaders {
         // instanced rendering does not support shadows -> no shadow data / as a uniform
     )
 
-    val lightInstanceBuffer = StaticBuffer(
-        "lights",
-        lightInstancedAttributes,
-        instancedBatchSize,
-        BufferUsage.STREAM
-    )
+    val lightInstanceBuffer = StaticBuffer("lights", lightInstancedAttributes, instancedBatchSize, BufferUsage.STREAM)
 
     val useMSAA: Boolean get() = GFXState.currentBuffer.samples > 1
 

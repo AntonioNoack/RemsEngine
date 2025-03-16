@@ -115,6 +115,10 @@ class CachedProperty(
                 }
                 val newValue = valueOrNull ?: oldValue
                 setter.invoke(instance, newValue)
+            } else if (oldValue is Float && value is Number) {
+                setter.invoke(instance, value.toFloat())
+            } else if (oldValue is Docs && value is Number) {
+                setter.invoke(instance, value.toDouble())
             } else setter.invoke(instance, value)
             true
         } catch (e: Exception) {

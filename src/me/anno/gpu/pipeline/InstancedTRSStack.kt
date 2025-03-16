@@ -98,9 +98,9 @@ class InstancedTRSStack(capacity: Int = 64) :
         GFX.check()
 
         // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
-        val buffer = PipelineStageImpl.instancedBufferSlim
+        val buffer = InstancedBuffers.instancedBufferSlim
         // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
-        val nioBuffer = buffer.nioBuffer!!
+        val nioBuffer = buffer.getOrCreateNioBuffer()
         // fill the data
         val cameraPosition = RenderState.cameraPosition
 

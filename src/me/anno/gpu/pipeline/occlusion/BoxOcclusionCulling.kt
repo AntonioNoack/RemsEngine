@@ -236,7 +236,6 @@ class BoxOcclusionCulling : AttachedDepthPass() {
             buffer.vertexCount = boxes.capacity
             buffer.elementCount = boxes.capacity
         }
-        if (buffer.nioBuffer == null) buffer.createNioBuffer()
         buffer.clear()
         buffer.put(boxes.values, 0, boxes.size * 6)
         buffer.ensureBuffer()
@@ -288,7 +287,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
         }
         if (!buffer.isUpToDate) {
             // create buffer properly
-            val buffer1 = buffer.nioBuffer!!
+            val buffer1 = buffer.getOrCreateNioBuffer()
             buffer1.position(buffer.vertexCount * buffer.stride)
         }
         buffer.ensureBuffer()

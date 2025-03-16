@@ -32,17 +32,8 @@ object ExportProcess {
             indexProject(projectI, sources, settings, progress)
         }
 
-        // todo option to add orbit-camera to export?
-
-        excludeLWJGLFiles(sources, settings)
-        excludeJNAFiles(sources, settings)
-        excludeWebpFiles(sources, settings)
-        if (settings.minimalUI) {
-            excludeNonMinimalUI(sources, settings.useKotlynReflect)
-        }
-        if (settings.useKotlynReflect) {
-            replaceReflections(sources)
-        }
+        // todo option to add orbit-camera to exported scene?
+        excludeFiles(settings, sources)
 
         // build .jar file from export settings and current project
         // - collect all required files
@@ -50,25 +41,9 @@ object ExportProcess {
         //  - respect platform (Linux/Windows/MacOS) settings in config file
         // todo - option for Android build
 
-        val assetMap = Packer.pack(
-            (settings.includedAssets + settings.firstSceneRef + settings.iconOverride)
-                .filter { it.exists },
-            sources
-        ) { packProgress, packTotal ->
-            progress.unit = "Bytes"
-            progress.total = (packTotal + 1).toDouble() // +1 to prevent unintentional finishing
-            progress.progress = packProgress.toDouble()
-        }
-
-        // override icon if needed
-        if (settings.iconOverride.exists) {
-            sources["icon.png"] = sources[assetMap[settings.iconOverride]]
-                ?: settings.iconOverride.readBytesSync()
-        }
-        val firstSceneRefMapped = assetMap[settings.firstSceneRef]
-        val firstSceneRef =
-            if (firstSceneRefMapped != null) res.getChild(firstSceneRefMapped)
-            else settings.firstSceneRef
+        val assetMap = packAssets(settings, sources, progress)
+        overrideIconMaybe(settings, sources, assetMap)
+        val firstSceneRef = findFirstScene(assetMap, settings)
         sources["export.json"] = createConfigJson(settings, firstSceneRef)
         sources["META-INF/MANIFEST.MF"] = createManifest()
         progress.unit = "Files"
@@ -78,6 +53,52 @@ object ExportProcess {
         // build a zip from it
         settings.dstFile.getParent().tryMkdirs()
         writeJar(settings, sources, settings.dstFile, progress)
+    }
+
+    private fun excludeFiles(settings: ExportSettings, sources: HashMap<String, ByteArray>) {
+        excludeLWJGLFiles(sources, settings)
+        excludeJNAFiles(sources, settings)
+        excludeWebpFiles(sources, settings)
+        if (settings.minimalUI) {
+            excludeNonMinimalUI(sources, settings.useKotlynReflect)
+        }
+        if (settings.useKotlynReflect) {
+            replaceReflections(sources)
+        }
+    }
+
+    private fun packAssets(
+        settings: ExportSettings,
+        sources: HashMap<String, ByteArray>,
+        progress: ProgressBar
+    ): Map<FileReference, String> {
+        return Packer.pack(
+            (settings.includedAssets + settings.firstSceneRef + settings.iconOverride)
+                .filter { it.exists },
+            sources
+        ) { packProgress, packTotal ->
+            progress.unit = "Bytes"
+            progress.total = (packTotal + 1).toDouble() // +1 to prevent unintentional finishing
+            progress.progress = packProgress.toDouble()
+        }
+    }
+
+    /**
+     * override icon if needed
+     * */
+    private fun overrideIconMaybe(
+        settings: ExportSettings, sources: HashMap<String, ByteArray>,
+        assetMap: Map<FileReference, String>
+    ) {
+        if (settings.iconOverride.exists) {
+            sources["icon.png"] = sources[assetMap[settings.iconOverride]]
+                ?: settings.iconOverride.readBytesSync()
+        }
+    }
+
+    private fun findFirstScene(assetMap: Map<FileReference, String>, settings: ExportSettings): FileReference {
+        val firstSceneRefMapped = assetMap[settings.firstSceneRef]
+        return if (firstSceneRefMapped != null) res.getChild(firstSceneRefMapped) else settings.firstSceneRef
     }
 
     private fun createConfigJson(settings: ExportSettings, firstSceneRef: FileReference): ByteArray {

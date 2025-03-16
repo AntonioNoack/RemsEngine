@@ -30,8 +30,8 @@ object TLASBuffer {
         val numNodes = nodeId
         val baseBuffer = ComputeBuffer("TLAS-base", tlasAttr0, numNodes)
         val transformBuffer = ComputeBuffer("TLAS-trans", tlasAttr1, root.countTLASLeaves())
-        val baseData = baseBuffer.nioBuffer!!
-        val transformData = transformBuffer.nioBuffer!!
+        val baseData = baseBuffer.getOrCreateNioBuffer()
+        val transformData = transformBuffer.getOrCreateNioBuffer()
         val f0 = baseData.asFloatBuffer()
         val f1 = transformData.asFloatBuffer()
 

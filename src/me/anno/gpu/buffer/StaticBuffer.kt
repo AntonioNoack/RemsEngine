@@ -5,7 +5,9 @@ import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.AABBf
 import org.lwjgl.opengl.GL46C
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.max
 
 open class StaticBuffer(
     name: String, attributes: List<Attribute>,
@@ -28,36 +30,60 @@ open class StaticBuffer(
         put(floats)
     }
 
-    init {
-        createNioBuffer()
-    }
-
     // data for SVGs, might be removed in the future
     var bounds: AABBf? = null
 
     /**
      * copies all information over
      * */
-    fun put(s: StaticBuffer) {
-        val dst = nioBuffer!!
-        val src = s.nioBuffer!!
-        val length = src.position()
-        for (i in 0 until length) {
-            dst.put(src[i])
-        }
+    fun put(src: StaticBuffer) {
+        val dstBuffer = getOrCreateNioBuffer()
+        val srcBuffer = src.getOrCreateNioBuffer()
+        val srcPosition = srcBuffer.position()
+        val srcLimit = srcBuffer.limit()
+        srcBuffer.position(0).limit(srcPosition)
+        dstBuffer.put(srcBuffer)
+        srcBuffer.limit(srcLimit).position(srcPosition)
     }
 
     open fun clear() {
-        val buffer = nioBuffer!!
-        buffer.position(0)
-        buffer.limit(buffer.capacity())
+        val buffer = nioBuffer
+        if (buffer != null) {
+            buffer.position(0)
+            buffer.limit(buffer.capacity())
+        }
         isUpToDate = false
         drawLength = 0
     }
 
-    final override fun createNioBuffer() {
+    fun ensureCapacity(capacityInBytes: Int) {
+        val oldBytes = nioBuffer
+        val size = oldBytes?.capacity() ?: 0
+        if (capacityInBytes <= size) return
+        val newCapacity = max(64, max(size * 2, capacityInBytes))
+        val newBytes = ByteBufferPool.allocateDirect(newCapacity)
+        if (oldBytes != null) {
+            // copy over
+            val position = oldBytes.position()
+            oldBytes.position(0)
+            newBytes.position(0)
+            newBytes.put(oldBytes)
+            newBytes.position(position)
+            ByteBufferPool.free(oldBytes)
+        }
+        nioBuffer = newBytes
+    }
+
+    fun ensureHasExtraSpace(extraSizeInBytes: Int) {
+        val oldBytes = nioBuffer
+        val position = oldBytes?.position() ?: 0
+        val newSize = extraSizeInBytes + position
+        ensureCapacity(newSize)
+    }
+
+    final override fun createNioBuffer(): ByteBuffer {
         val byteSize = vertexCount * stride
-        nioBuffer = ByteBufferPool.allocateDirect(byteSize)
+        return ByteBufferPool.allocateDirect(byteSize)
             .order(ByteOrder.nativeOrder())
     }
 

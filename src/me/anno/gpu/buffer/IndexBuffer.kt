@@ -18,6 +18,7 @@ import org.lwjgl.opengl.GL46C.glDrawElementsInstanced
 import org.lwjgl.opengl.GL46C.glGenBuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
 
 class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
     OpenGLBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
@@ -31,7 +32,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
     var elementsType = AttributeType.UINT32
     var drawMode: DrawMode? = null
 
-    override fun createNioBuffer() {
+    override fun createNioBuffer(): ByteBuffer {
         throw NotImplementedError("You are using this class wrong")
     }
 

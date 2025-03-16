@@ -15,7 +15,7 @@ object BLASBuffer {
     fun createBLASBuffer(blasRoots: List<BLASNode>): ComputeBuffer {
         val numNodes = blasRoots.sumOf { blasRoot -> blasRoot.countNodes() }
         val data = ComputeBuffer("BLAS", blasAttr, numNodes)
-        val nioBuffer = data.nioBuffer!!.asFloatBuffer()
+        val nioBuffer = data.getOrCreateNioBuffer().asFloatBuffer()
         fillBLAS(blasRoots, triangleIndexMultiplier = 3, nioBuffer)
         data.isUpToDate = false
         return data

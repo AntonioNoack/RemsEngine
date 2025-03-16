@@ -154,7 +154,7 @@ object AssetThumbHelper {
     }
 
     fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f? = null): Boolean {
-        return if (LineBuffer.bytes.position() > 0) {
+        return if (LineBuffer.hasLinesToDraw()) {
             if (worldMatrix == null) {
                 LineBuffer.finish(cameraMatrix)
             } else {

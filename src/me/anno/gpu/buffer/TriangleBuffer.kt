@@ -9,10 +9,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.pooling.ByteBufferPool
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import java.nio.ByteBuffer
 import kotlin.math.max
 
 /**
@@ -22,8 +19,6 @@ import kotlin.math.max
  * this method is much faster than calling Grid.drawLine 1000 times
  * */
 object TriangleBuffer {
-
-    private val LOGGER = LogManager.getLogger(TriangleBuffer::class)
 
     val shader = BaseShader(
         "DebugTriangles", listOf(
@@ -56,34 +51,12 @@ object TriangleBuffer {
         Attribute("color", AttributeType.UINT8_NORM, 4)
     )
 
-    // whenever this is updated, nioBuffer in buffer needs to be updated as well
+    private val buffer = StaticBuffer("triangles", attributes, 65536, BufferUsage.STREAM)
+    private val bytesPerTriangle: Int = 3 * buffer.stride
 
-    private val buffer = StaticBuffer("lines", attributes, 65536, BufferUsage.STREAM)
-    const val triangleSize = 3 * (3 * 4 + 4)
-
-    var bytes: ByteBuffer
-        get() = buffer.nioBuffer!!
-        set(value) {
-            buffer.nioBuffer = value
-        }
-
-    fun ensureSize(extraSize: Int) {
-        val position = bytes.position()
-        val newSize = extraSize + position
-        val size = bytes.capacity()
-        if (newSize > size) {
-            val newBytes = ByteBufferPool.allocateDirect(size * 2)
-            // copy over
-            LOGGER.info("Increased size of buffer $size*2")
-            val oldBytes = bytes
-            oldBytes.position(0)
-            newBytes.position(0)
-            newBytes.put(oldBytes)
-            newBytes.position(position)
-            ByteBufferPool.free(oldBytes)
-            bytes = newBytes
-            buffer.nioBuffer = newBytes
-        }
+    fun hasTrianglesToDraw(): Boolean {
+        val nioBuffer = buffer.nioBuffer
+        return nioBuffer != null && nioBuffer.position() > 0
     }
 
     fun putRelativeTriangle(
@@ -93,7 +66,7 @@ object TriangleBuffer {
         cam: org.joml.Vector3d,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        ensureSize(triangleSize)
+        buffer.ensureHasExtraSpace(bytesPerTriangle)
         putRelativePoint(x0, y0, z0, cam, r, g, b, a)
         putRelativePoint(x1, y1, z1, cam, r, g, b, a)
         putRelativePoint(x2, y2, z2, cam, r, g, b, a)
@@ -104,14 +77,11 @@ object TriangleBuffer {
         cam: org.joml.Vector3d,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        val bytes = bytes
-        bytes.putFloat((x0 - cam.x).toFloat())
-        bytes.putFloat((y0 - cam.y).toFloat())
-        bytes.putFloat((z0 - cam.z).toFloat())
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
+        buffer.getOrCreateNioBuffer()
+            .putFloat((x0 - cam.x).toFloat())
+            .putFloat((y0 - cam.y).toFloat())
+            .putFloat((z0 - cam.z).toFloat())
+            .put(r).put(g).put(b).put(a)
     }
 
     fun putRelativeTriangle(
@@ -145,7 +115,8 @@ object TriangleBuffer {
     }
 
     fun drawIf1M(camTransform: Matrix4f) {
-        if (bytes.position() >= 32 * 256 * 1024) {
+        val nioBuffer = buffer.nioBuffer
+        if (nioBuffer != null && nioBuffer.position() >= bytesPerTriangle * 256 * 1024) {
             // more than 256k points have been collected
             finish(camTransform)
         }
@@ -159,7 +130,8 @@ object TriangleBuffer {
     }
 
     private fun finish(transform: Matrix4f, shader: Shader) {
-
+        if (!hasTrianglesToDraw()) return
+        val buffer = buffer
         buffer.upload(allowResize = true, keepLarge = true)
         shader.m4x4("transform", transform)
         buffer.draw(shader)

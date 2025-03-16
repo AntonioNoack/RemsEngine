@@ -8,10 +8,11 @@ import me.anno.io.saveable.Saveable
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.black
 import me.anno.utils.assertions.assertFail
-import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Strings.toDouble
+import me.anno.utils.types.Strings.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -136,6 +137,10 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private fun readString(): String {
+        return readStringTmp().toString()
+    }
+
+    private fun readStringTmp(): StringBuilder {
 
         val str = tmpString
         str.clear()
@@ -155,7 +160,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                         else -> assertFail("Unknown escape sequence \\$char2")
                     }
                 )
-                '"' -> return str.toString()
+                '"' -> return str
                 else -> str.append(char)
             }
         }
@@ -164,7 +169,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     /**
      * reads a number string; may return invalid results
      * */
-    private fun readNumber(): String {
+    private fun readNumber(): StringBuilder {
         val str = tmpString
         str.clear()
         var isFirst = true
@@ -177,7 +182,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 }
                 else -> {
                     tmpChar = next.code
-                    return str.toString()
+                    return str
                 }
             }
             isFirst = false
@@ -265,7 +270,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         typeName: String, a0: Type,
         readValue: () -> Type,
     ): ArrayList<Type> {
-        return readArray(typeName,
+        return readArray(
+            typeName,
             { createArrayList(it, a0) },
             { array, index -> array[index] = readValue() }
         )
@@ -283,7 +289,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         readValue: () -> Type,
     ): ArrayList<List<Type>> {
         val sampleArray = emptyList<Type>()
-        return readArray(typeName,
+        return readArray(
+            typeName,
             { createArrayList(it, sampleArray) },
             { array, index -> array[index] = readArray(typeName, sampleInstance, readValue) }
         )
@@ -651,7 +658,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         val first = skipSpace()
         if (first == '"') {
             assertEquals('#', next())
-            val str = readString()
+            val str = readStringTmp()
             when (str.length) {
                 3 -> { // #rgb
                     val v = str.toInt(16)
@@ -770,32 +777,40 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
     }
 
-    private fun readFloat() = readNumber().toFloatOrNull() ?: 0f
-    private fun readDouble() = readNumber().toDoubleOrNull() ?: 0.0
+    private fun readFloat(): Float = readDouble().toFloat()
+    private fun readDouble(): Double = readNumber().toDouble()
 
-    private fun readBoolArray() = readArray("boolean",
+    private fun readBoolArray() = readArray(
+        "boolean",
         { BooleanArray(it) }, { array, index -> array[index] = readBool() })
 
-    private fun readCharArray() = readArray("char",
+    private fun readCharArray() = readArray(
+        "char",
         { CharArray(it) }, { array, index -> array[index] = readChar() })
 
-    private fun readByteArray() = readArray("byte",
+    private fun readByteArray() = readArray(
+        "byte",
         { ByteArray(it) }, { array, index -> array[index] = readByte() })
 
-    private fun readShortArray() = readArray("short",
+    private fun readShortArray() = readArray(
+        "short",
         { ShortArray(it) }, { array, index -> array[index] = readShort() })
 
-    private fun readIntArray() = readArray("int",
+    private fun readIntArray() = readArray(
+        "int",
         { IntArray(it) }, { array, index -> array[index] = readInt() })
 
-    private fun readLongArray() = readArray("long",
+    private fun readLongArray() = readArray(
+        "long",
         { LongArray(it) }, { array, index -> array[index] = readLong() })
 
-    private fun readFloatArray() = readArray("float",
+    private fun readFloatArray() = readArray(
+        "float",
         { FloatArray(it) }, { array, index -> array[index] = readFloat() }
     )
 
-    private fun readDoubleArray() = readArray("double",
+    private fun readDoubleArray() = readArray(
+        "double",
         { DoubleArray(it) }, { array, index -> array[index] = readDouble() }
     )
 
@@ -870,10 +885,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                         '{' -> obj.setProperty(name, readObjectAndRegister(type))
                         in '0'..'9' -> {
                             tmpChar = next.code
-                            val rawPtr = readNumber()
-                            val ptr = assertNotNull(rawPtr.toIntOrNull()) {
-                                "Invalid pointer: $rawPtr in $lineNumber:$lineIndex"
-                            }
+                            val ptr = readInt()
                             if (ptr > 0) {
                                 val child = getByPointer(ptr, false)
                                 if (child == null) {
@@ -916,7 +928,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             if (property0 == "class") {
                 assertEquals(skipSpace(), ':')
                 assertEquals(skipSpace(), '"')
-                assertEquals(readString(), type)
+                assertEquals(readStringTmp(), type)
                 assertEquals(skipSpace(), ',')
                 assertEquals(skipSpace(), '"')
                 property0 = readString()
@@ -928,8 +940,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             } else {
                 assertEquals(nextChar, ':')
                 if (isPtrProperty(property0)) {
-                    val ptr = readNumber().toIntOrNull()
-                        ?: throw InvalidFormatException("Invalid pointer")
+                    val ptr = readInt()
                     register(instance, ptr)
                 } else {
                     register(instance)

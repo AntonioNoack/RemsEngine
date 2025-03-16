@@ -78,7 +78,7 @@ class ChunkRenderer(val material: Material, val world: TestWorld) : UniqueMeshRe
         val pos = mesh.positions!!
         val col = mesh.color0!!
         val buffer = StaticBuffer("chunk$key", attributes, pos.size / 3)
-        val data = buffer.nioBuffer!!
+        val data = buffer.getOrCreateNioBuffer()
         val dx = key.x * csx
         val dy = key.y * csy
         val dz = key.z * csz

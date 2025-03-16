@@ -422,46 +422,77 @@ object Strings {
     }
 
     @JvmStatic
-    fun CharSequence.toInt(i0: Int = 0, i1: Int = length): Int = toLong(i0, i1).toInt()
+    fun CharSequence.toInt(): Int = toLong().toInt()
 
     @JvmStatic
-    fun CharSequence.toLong(i0: Int = 0, i1: Int = length): Long {
+    fun CharSequence.toInt(base: Int): Int = toLong(base).toInt()
+
+    @JvmStatic
+    fun CharSequence.toInt(i0: Int, i1: Int): Int = toLong(i0, i1).toInt()
+
+    @JvmStatic
+    fun CharSequence.toLong(): Long {
+        return toLong(10, 0, length)
+    }
+
+    @JvmStatic
+    fun CharSequence.toLong(base: Int): Long {
+        return toLong(base, 0, length)
+    }
+
+    @JvmStatic
+    fun CharSequence.toLong(i0: Int, i1: Int): Long {
+        return toLong(10, i0, i1)
+    }
+
+    @JvmStatic
+    fun CharSequence.toLong(base: Int, i0: Int, i1: Int): Long {
         if (i0 >= i1) return 0L
         val c0 = this[i0]
         val ix = if (c0 == '+' || c0 == '-') i0 + 1 else i0
         var number = 0L
         for (i in ix until i1) {
-            number = 10 * number - (this[i].code - 48)
+            val digit = Character.digit(this[i], base)
+            number = base * number - digit
         }
         return if (c0 == '-') number else -number
     }
 
     @JvmStatic
-    fun CharSequence.toFloat(i0: Int = 0, i1: Int = length): Float = toDouble(i0, i1).toFloat()
+    fun CharSequence.toFloat(defaultValue: Float = 0f): Float =
+        toDouble(defaultValue.toDouble()).toFloat()
 
     @JvmStatic
-    fun CharSequence.toDouble(i0: Int = 0, i1: Int = length): Double {
+    fun CharSequence.toFloat(i0: Int, i1: Int, defaultValue: Float = 0f): Float =
+        toDouble(i0, i1, defaultValue.toDouble()).toFloat()
+
+    @JvmStatic
+    fun CharSequence.toDouble(defaultValue: Double = 0.0): Double =
+        toDouble(0, length, defaultValue)
+
+    @JvmStatic
+    fun CharSequence.toDouble(i0: Int, i1: Int, defaultValue: Double = 0.0): Double {
         // support NaN, +/-Infinity
         if (startsWith("NaN", i0)) return Double.NaN
         if (startsWith("Inf", i0) || startsWith("+Inf", i0)) return Double.POSITIVE_INFINITY
         if (startsWith("-Inf", i0)) return Double.NEGATIVE_INFINITY
         var sign = 1.0
-        var number = 0L
+        var number = 0.0
         when (val char = this[i0]) {
             '-' -> sign = -1.0
-            in '0'..'9' -> number = char.code - 48L
+            in '0'..'9' -> number = char.code - 48.0
             '.' -> return readAfterDot(i0 + 1, i1, sign, 0.0)
-            // else should not happen
+            else -> return defaultValue // parse error
         }
         for (i in i0 + 1 until i1) {
             when (val char = this[i]) {
                 in '0'..'9' -> number = number * 10 + char.code - 48
-                '.' -> return readAfterDot(i + 1, i1, sign, number.toDouble())
-                'e', 'E' -> return sign * number * 10.0.pow(toInt(i + 1))
-                else -> break // idk ^^
+                '.' -> return readAfterDot(i + 1, i1, sign, number)
+                'e', 'E' -> return sign * number * 10.0.pow(toInt(i + 1, length))
+                else -> return defaultValue // parse error
             }
         }
-        return sign * number.toFloat()
+        return sign * number
     }
 
     @JvmStatic
@@ -472,9 +503,9 @@ object Strings {
             when (val char2 = this[i]) {
                 in '0'..'9' -> {
                     fraction += exponent * (char2.code - 48)
-                    exponent *= 0.1f
+                    exponent *= 0.1
                 }
-                'e', 'E' -> return sign * (number + fraction) * 10.0.pow(toInt(i + 1))
+                'e', 'E' -> return sign * (number + fraction) * 10.0.pow(toInt(i + 1, length))
                 else -> break // :/
             }
         }

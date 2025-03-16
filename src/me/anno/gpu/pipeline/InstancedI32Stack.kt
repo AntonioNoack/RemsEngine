@@ -119,9 +119,9 @@ open class InstancedI32Stack(
         GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
 
             // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
-            val buffer = PipelineStageImpl.instancedBufferI32
+            val buffer = InstancedBuffers.instancedBufferI32
             // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
-            val nioBytes = buffer.nioBuffer!!
+            val nioBytes = buffer.getOrCreateNioBuffer()
             nioBytes.limit(nioBytes.capacity())
             val nioInt = nioBytes.asIntBuffer()
             nioInt.limit(nioInt.capacity())

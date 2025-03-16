@@ -74,11 +74,11 @@ fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal
     }
 }
 
-fun str(value: Any?): String {
+private fun str(value: Any?): String {
     return if (value != null) "'$value'" else "null"
 }
 
-fun strAt(value: Any?): String {
+private fun strAt(value: Any?): String {
     return if (value != null) "'$value'@${hash32(value)}" else "null"
 }
 

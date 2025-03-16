@@ -15,15 +15,15 @@ import me.anno.gpu.GFXState.animated
 import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
+import me.anno.gpu.pipeline.InstancedBuffers.instancedBuffer
+import me.anno.gpu.pipeline.InstancedBuffers.instancedBufferA
+import me.anno.gpu.pipeline.InstancedBuffers.instancedBufferM
+import me.anno.gpu.pipeline.InstancedBuffers.instancedBufferMA
+import me.anno.gpu.pipeline.InstancedBuffers.instancedBufferSlim
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBuffer
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferA
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferM
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferMA
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferSlim
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -231,7 +231,7 @@ open class InstancedStack {
             material: Material, materialIndex: Int,
         ): Int {
             // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
-            val nioBuffer = buffer.nioBuffer!!
+            val nioBuffer = buffer.getOrCreateNioBuffer()
             // fill the data
             val transforms = instances.transforms
             val gfxIds = instances.gfxIds

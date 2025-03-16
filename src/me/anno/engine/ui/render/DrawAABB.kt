@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.LineBuffer.addLine
-import me.anno.gpu.buffer.LineBuffer.bytesPerLine
 import me.anno.gpu.buffer.LineBuffer.ensureSize
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
@@ -46,7 +46,7 @@ object DrawAABB {
         x1: Float, y1: Float, z1: Float,
         color: Int
     ) {
-        ensureSize(bytesPerLine * 12)
+        ensureSize(LineBuffer.bytesPerLine * 12)
 
         // dx
         addLine(x0, y0, z0, x1, y0, z0, color)

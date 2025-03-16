@@ -94,7 +94,7 @@ abstract class OpenGLBuffer(
         prepareUpload()
         bindBuffer(type, pointer)
 
-        val nio = nioBuffer!!
+        val nio = getOrCreateNioBuffer()
         val newLimit = nio.position()
         elementCount = max(elementCount, newLimit / stride)
         nio.position(0)
@@ -117,7 +117,7 @@ abstract class OpenGLBuffer(
         prepareUpload()
         bindBuffer(type, pointer)
 
-        val nio = nioBuffer!!
+        val nio = getOrCreateNioBuffer()
         val newLimit = nio.position()
         elementCount = max(elementCount, newLimit / stride)
         nio.position(0)
@@ -233,7 +233,7 @@ abstract class OpenGLBuffer(
         bindBuffer(type, 0)
     }
 
-    abstract fun createNioBuffer()
+    abstract fun createNioBuffer(): ByteBuffer
 
     fun ensureBuffer() {
         checkSession()
@@ -251,6 +251,14 @@ abstract class OpenGLBuffer(
         if (!isUpToDate) upload(false)
     }
 
+    fun getOrCreateNioBuffer(): ByteBuffer {
+        var buffer = nioBuffer
+        if (buffer != null) return buffer
+        buffer = createNioBuffer()
+        nioBuffer = buffer
+        return buffer
+    }
+
     fun put(v: Vector2f): OpenGLBuffer {
         return put(v.x, v.y)
     }
@@ -260,7 +268,7 @@ abstract class OpenGLBuffer(
     }
 
     fun put(v: FloatArray, index: Int, length: Int): OpenGLBuffer {
-        val nio = nioBuffer!!
+        val nio = getOrCreateNioBuffer()
         assertTrue(nio.remaining().shr(2) >= length)
         isUpToDate = false
         val pos = nio.position()
@@ -294,20 +302,19 @@ abstract class OpenGLBuffer(
     }
 
     fun put(f: Float): OpenGLBuffer {
-        nioBuffer!!.putFloat(f)
+        getOrCreateNioBuffer().putFloat(f)
         isUpToDate = false
         return this
     }
 
     fun putByte(b: Byte): OpenGLBuffer {
-        nioBuffer!!.put(b)
+        getOrCreateNioBuffer().put(b)
         isUpToDate = false
         return this
     }
 
     fun putRGBA(c: Int): OpenGLBuffer {
-        val buffer = nioBuffer!!
-        buffer
+        getOrCreateNioBuffer()
             .put(c.r().toByte())
             .put(c.g().toByte())
             .put(c.b().toByte())
@@ -322,13 +329,13 @@ abstract class OpenGLBuffer(
     }
 
     fun putShort(b: Short): OpenGLBuffer {
-        nioBuffer!!.putShort(b)
+        getOrCreateNioBuffer().putShort(b)
         isUpToDate = false
         return this
     }
 
     fun putInt(b: Int): OpenGLBuffer {
-        nioBuffer!!.putInt(b)
+        getOrCreateNioBuffer().putInt(b)
         isUpToDate = false
         return this
     }

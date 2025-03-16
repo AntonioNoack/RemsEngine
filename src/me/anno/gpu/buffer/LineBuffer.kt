@@ -10,14 +10,11 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.pooling.ByteBufferPool
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL46C.GL_LINE_SMOOTH
 import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
-import java.nio.ByteBuffer
 
 /**
  * a buffer for rapidly drawing thousands of lines,
@@ -26,8 +23,6 @@ import java.nio.ByteBuffer
  * this method is much faster than calling Grid.drawLine 1000 times
  * */
 object LineBuffer {
-
-    private val LOGGER = LogManager.getLogger(LineBuffer::class)
 
     val shader = BaseShader(
         "DebugLines", listOf(
@@ -57,38 +52,19 @@ object LineBuffer {
         Attribute("color", AttributeType.UINT8_NORM, 4)
     )
 
-    // whenever this is updated, nioBuffer in buffer needs to be updated as well
-
-    private val buffer = StaticBuffer("lines", attributes, 65536, BufferUsage.STREAM)
-    val bytesPerLine = 2 * buffer.stride
-
-    init {
-        buffer.drawMode = DrawMode.LINES
+    private val buffer = StaticBuffer("lines", attributes, 65536, BufferUsage.STREAM).apply {
+        drawMode = DrawMode.LINES
     }
 
-    var bytes: ByteBuffer
-        get() = buffer.nioBuffer!!
-        set(value) {
-            buffer.nioBuffer = value
-        }
+    val bytesPerLine: Int = 2 * buffer.stride
+
+    fun hasLinesToDraw(): Boolean {
+        val nioBuffer = buffer.nioBuffer
+        return nioBuffer != null && nioBuffer.position() > 0
+    }
 
     fun ensureSize(extraSize: Int) {
-        val position = bytes.position()
-        val newSize = extraSize + position
-        val size = bytes.capacity()
-        if (newSize > size) {
-            val newBytes = ByteBufferPool.allocateDirect(size * 2)
-            // copy over
-            LOGGER.info("Increased size of buffer $size*2")
-            val oldBytes = bytes
-            oldBytes.position(0)
-            newBytes.position(0)
-            newBytes.put(oldBytes)
-            newBytes.position(position)
-            ByteBufferPool.free(oldBytes)
-            bytes = newBytes
-            buffer.nioBuffer = newBytes
-        }
+        buffer.ensureHasExtraSpace(extraSize)
     }
 
     fun vToByte(d: Double): Byte {
@@ -116,22 +92,20 @@ object LineBuffer {
     ) {
         // ensure that there is enough space in bytes
         ensureSize(bytesPerLine)
-        // write two data points
-        val bytes = bytes
-        bytes.putFloat(x0)
-        bytes.putFloat(y0)
-        bytes.putFloat(z0)
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
-        bytes.putFloat(x1)
-        bytes.putFloat(y1)
-        bytes.putFloat(z1)
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
+        addPoint(x0, y0, z0, r, g, b, a)
+        addPoint(x1, y1, z1, r, g, b, a)
+    }
+
+    /**
+     * only use this function in pairs!
+     * */
+    fun addPoint(
+        x0: Float, y0: Float, z0: Float,
+        r: Byte, g: Byte, b: Byte, a: Byte
+    ) {
+        buffer.getOrCreateNioBuffer()
+            .putFloat(x0).putFloat(y0).putFloat(z0)
+            .put(r).put(g).put(b).put(a)
     }
 
     @Suppress("unused")
@@ -390,7 +364,8 @@ object LineBuffer {
     }
 
     fun drawIf1M(camTransform: Matrix4f) {
-        if (bytes.position() >= 32 * 256 * 1024) {
+        val nioBuffer = buffer.nioBuffer
+        if (nioBuffer != null && nioBuffer.position() >= 32 * 256 * 1024) {
             // more than 256k points have been collected
             finish(camTransform)
         }
@@ -404,7 +379,8 @@ object LineBuffer {
     }
 
     private fun finish(transform: Matrix4f, shader: Shader) {
-
+        if (!hasLinesToDraw()) return
+        val buffer = buffer
         buffer.upload(allowResize = true, keepLarge = true)
         shader.m4x4("transform", transform)
         if (enableLineSmoothing) glEnable(GL_LINE_SMOOTH)
