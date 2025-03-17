@@ -44,14 +44,9 @@ object TextThumbnails {
         val text = "The quick\nbrown fox\njumps over\nthe lazy dog"
         val lineCount = 4
         val key = Font(srcFile.absolutePath, size * 0.7f / lineCount, isBold = false, isItalic = false)
-        val texture = FontManager.getTexture(
-            key, text, size * 2, size * 2, 0, false
-        )
-        if (texture != null) {
-            Sleep.waitUntil(true, { texture.wasCreated }) {
-                callback.ok(texture)
-            }
-        } else callback.err(null)
+        Sleep.waitUntilDefined(canBeKilled = true, {
+            FontManager.getTexture(key, text, size * 2, size * 2, 0, false)
+        }) { texture -> callback.ok(texture) }
     }
 
     @JvmStatic

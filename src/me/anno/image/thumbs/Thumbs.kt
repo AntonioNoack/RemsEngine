@@ -217,11 +217,10 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         callback: Callback<ITexture2D>
     ) {
         TextureReader.getRotation(if (checkRotation) srcFile else InvalidRef) { rot, _ ->
-            println("creating $texture for $srcFile, $image")
+            val texture = Texture2D(srcFile.name, image.width, image.height, 1)
+            image.createTexture(texture, checkRedundancy = true) { tex, exc ->
                 if (tex is Texture2D) tex.rotation = rot
-                println("created $tex, rot: $rot")
                 callback.call(tex, exc)
-                println("after callback")
             }
         }
     }
