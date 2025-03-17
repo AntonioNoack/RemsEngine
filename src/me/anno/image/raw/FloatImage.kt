@@ -1,7 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.gpu.GFX
-import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -54,29 +52,15 @@ class FloatImage(
         }
     }
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
-    ) {
-        if (sync && GFX.isGFXThread()) {
-            texture.width = width
-            texture.height = height
-            val creationData = if (stride != width) {
-                val tmp = FloatArray(width * height)
-                for (y in 0 until height) {
-                    val src0 = getIndex(0, y)
-                    val src1 = src0 + width
-                    data.copyInto(tmp, y * width, src0, src1)
-                }
-                tmp
-            } else data
-            texture.create(TargetType.Float32xI[numChannels - 1], creationData)
-            callback.ok(texture)
-        } else {
-            addGPUTask("CompFBI.cTex", width, height) {
-                createTexture(texture, true, checkRedundancy, callback)
-            }
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
+        val tmp = FloatArray(width * height)
+        for (y in 0 until height) {
+            val src0 = getIndex(0, height - 1 - y)
+            val src1 = src0 + width
+            data.copyInto(tmp, y * width, src0, src1)
         }
+        texture.create(TargetType.Float32xI[numChannels - 1], tmp)
+        callback.ok(texture)
     }
 
     fun normalized() = clone().normalize()

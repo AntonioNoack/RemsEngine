@@ -12,7 +12,7 @@ class InlineBranchNode(type: String = "?") : CalculationNode(
     listOf("Bool", "Condition", type, "IfTrue", type, "IfFalse"), type
 ), GLSLExprNode {
 
-    // todo inline-switch-case-node (int input, many type inputs -> many outputs)
+    // todo inline-switch-case-node (int/string input, many type inputs -> many outputs)
 
     init {
         setInput(0, false)

@@ -15,6 +15,9 @@ enum class FileStatType(val alignment: AxisAlignment) {
     },
     FILE_SIZE(AxisAlignment.CENTER) {
         override fun getValue(file: FileReference): String {
+            // todo it might be interesting to know this ->
+            //  create a file-size cache for folders, and accumulate everything...
+            //  invalidation might be difficult
             return if (file.isDirectory) ""
             else file.length().formatFileSize()
         }
@@ -36,10 +39,20 @@ enum class FileStatType(val alignment: AxisAlignment) {
     },
     CREATED(AxisAlignment.MIN) {
         override fun getValue(file: FileReference): String {
-            return dateFormat.format(Date(file.creationTime))
+            return dateTimeFormat.format(Date(file.creationTime))
         }
     },
     MODIFIED(AxisAlignment.MIN) {
+        override fun getValue(file: FileReference): String {
+            return dateTimeFormat.format(Date(file.lastModified))
+        }
+    },
+    CREATED_DATE(AxisAlignment.MIN) {
+        override fun getValue(file: FileReference): String {
+            return dateFormat.format(Date(file.creationTime))
+        }
+    },
+    MODIFIED_DATE(AxisAlignment.MIN) {
         override fun getValue(file: FileReference): String {
             return dateFormat.format(Date(file.lastModified))
         }
@@ -48,6 +61,7 @@ enum class FileStatType(val alignment: AxisAlignment) {
     abstract fun getValue(file: FileReference): String
 
     companion object {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
     }
 }

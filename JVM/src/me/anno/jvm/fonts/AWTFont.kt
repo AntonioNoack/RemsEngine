@@ -182,8 +182,7 @@ class AWTFont(
     }
 
     private fun createTexture(texture: Texture2D, image: BufferedImage, callback: Callback<ITexture2D>) {
-        texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
-        callback.ok(texture)
+        texture.createFromBufferedImage(image, callback)
     }
 
     override fun generateASCIITexture(
@@ -518,7 +517,7 @@ class AWTFont(
         }
 
         gfx.dispose()
-        texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
+        texture.createFromBufferedImage(image, Callback.printError())
     }
 
     private fun createASCIITexture(

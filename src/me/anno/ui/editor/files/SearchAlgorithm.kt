@@ -6,11 +6,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.ui.base.Search
 import me.anno.utils.files.Files.listFiles2
-import org.apache.logging.log4j.LogManager
 
 object SearchAlgorithm {
-
-    private val LOGGER = LogManager.getLogger(SearchAlgorithm::class)
 
     private class ResultSet(
         val self: FileExplorer,
@@ -140,13 +137,13 @@ object SearchAlgorithm {
             val newFiles = directChildren.map { it.absolutePath }
             val lastSearch = self.lastSearch
 
-            if (self.lastFiles != newFiles) {
+            /*if (self.lastFiles != newFiles) {
                 LOGGER.info("Files changed from ${self.lastFiles.size} to ${newFiles.size}")
             } else if (lastSearch == null) {
                 LOGGER.info("Never searched before")
             } else if (!lastSearch.containsAllResultsOf(newSearch)) {
                 LOGGER.info("Search incompatible")
-            }
+            }*/
 
             val calcIndex = ++self.calcIndex
             if (self.lastFiles != newFiles || lastSearch == null || !lastSearch.containsAllResultsOf(newSearch)) {

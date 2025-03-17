@@ -193,11 +193,13 @@ object GFXx2D {
         flat01.draw(shader)
     }
 
-    fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {
-        posSize(shader, x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
+    fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int, flipped: Boolean = false) {
+        val yi = if (flipped) y + h - 1 else y
+        val hi = if (flipped) -h else h
+        posSize(shader, x.toFloat(), yi.toFloat(), w.toFloat(), hi.toFloat())
     }
 
-    fun posSizeDraw(shader: ComputeShader, x: Int, y: Int, w: Int, h: Int, padding: Int = 0) {
+    fun posSizeDraw(shader: ComputeShader, x: Int, y: Int, w: Int, h: Int, padding: Int) {
         val fb = GFXState.currentBuffer as? Framebuffer
         // check how much this out of bounds
         val minX = max(x - padding, GFX.viewportX)
@@ -205,7 +207,7 @@ object GFXx2D {
         val maxX = min(x + w + padding, GFX.viewportX + GFX.viewportWidth)
         val maxY = min(y + h + padding, GFX.viewportY + GFX.viewportHeight)
         if (minX < maxX && minY < maxY) {
-            shader.v2i("srcOffset", minX - x, minY - y)
+            shader.v2i("srcOffset", x - minX, y - minY)
             if (fb != null) shader.v2i("dstOffset", minX - fb.offsetX, minY - fb.offsetY)
             else shader.v2i("dstOffset", minX, minY)
             shader.v2i("invokeSize", maxX - minX, maxY - minY)

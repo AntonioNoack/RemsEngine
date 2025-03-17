@@ -141,8 +141,7 @@ class LinesFontGenerator(val key: FontKey) : TextGenerator {
             }
             image.createTexture(
                 Texture2D(text.toString(), image.width, image.height, 1),
-                sync = false, checkRedundancy = false,
-                callback
+                checkRedundancy = false, callback
             )
         }
     }

@@ -714,4 +714,13 @@ object Strings {
         setLength(length - len)
         return this
     }
+
+    @JvmStatic
+    fun append(a: String?, separator: String, b: String?): String? {
+        return when {
+            a.isNotBlank2() && b.isNotBlank2() -> "$a$separator$b"
+            a.isNotBlank2() -> a
+            else -> b
+        }
+    }
 }

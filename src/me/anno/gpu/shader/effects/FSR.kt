@@ -3,7 +3,7 @@ package me.anno.gpu.shader.effects
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib
@@ -149,7 +149,7 @@ object FSR {
             fsrConfig(shader, source.width, source.height, w, h)
             tiling(shader, flipY)
             texelOffset(shader, w, h)
-            GFXx2D.posSize(shader, x, y, w, h)
+            posSize(shader, x, y, w, h, true)
             shader.v3f("background", backgroundColor)
             shader.v1b("applyToneMapping", applyToneMapping)
             shader.v1i("numChannels", min(if (withAlpha) 4 else 3, source.channels))
@@ -190,7 +190,7 @@ object FSR {
             source.bindTrulyLinear(0)
             texelOffset(shader, w, h)
             tiling(shader, flipY)
-            GFXx2D.posSize(shader, x, y, w, h)
+            posSize(shader, x, y, w, h, true)
             flat01.draw(shader)
         } else {
             source.bindTrulyLinear(0)

@@ -116,7 +116,7 @@ class ImageTests {
         for (numChannels in 1..4) {
             val image = createFloatImage(base, numChannels)
             val texture = Texture2D("img", 3, 3, 1)
-            image.createTexture(texture, sync = true, checkRedundancy = false) { tex, err ->
+            image.createTexture(texture, checkRedundancy = false) { tex, err ->
                 assertSame(tex, texture)
                 assertNull(err)
                 val clonedImage = assertIs(FloatImage::class, tex!!.createImage(false, withAlpha = true))
@@ -130,7 +130,7 @@ class ImageTests {
     fun testCreateTextureImage(image: Image, mask: Int) {
         HiddenOpenGLContext.createOpenGL()
         val texture = Texture2D("img", 3, 3, 1)
-        image.createTexture(texture, sync = true, checkRedundancy = false) { tex, err ->
+        image.createTexture(texture, checkRedundancy = false) { tex, err ->
             assertSame(tex, texture)
             assertNull(err)
             val clonedImage = tex!!.createImage(false, withAlpha = true).asIntImage()

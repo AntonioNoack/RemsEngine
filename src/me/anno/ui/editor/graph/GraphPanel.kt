@@ -405,7 +405,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             val xc = (x0 + x1) * 0.5f
             // right, down, right
             val s0 = abs(xc - x0)
-            val s1 = abs(y0 - y1)
+            val s1 = abs(y1 - y0)
             val s2 = abs(xc - x1)
             val ss = s0 + s1 + s2
             if (ss > 0f) {

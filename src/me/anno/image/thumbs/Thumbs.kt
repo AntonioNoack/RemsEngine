@@ -38,6 +38,7 @@ import me.anno.utils.hpc.ProcessingQueue
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -212,14 +213,15 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     @JvmStatic
     private fun upload(
         srcFile: FileReference,
-        checkRotation: Boolean, dst: Image,
+        checkRotation: Boolean, image: Image,
         callback: Callback<ITexture2D>
     ) {
         TextureReader.getRotation(if (checkRotation) srcFile else InvalidRef) { rot, _ ->
-            val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
-            dst.createTexture(texture, sync = false, checkRedundancy = true) { tex, exc ->
+            println("creating $texture for $srcFile, $image")
                 if (tex is Texture2D) tex.rotation = rot
+                println("created $tex, rot: $rot")
                 callback.call(tex, exc)
+                println("after callback")
             }
         }
     }
@@ -284,6 +286,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         val image = if (!(w == sw && h == sh)) {
             src.resized(w, h, false)
         } else src
+
         saveNUpload(
             srcFile, checkRotation, dstFile, image,
             callback, alreadyInWorker
@@ -440,7 +443,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
             val (w, h) = scaleMax(image.width, image.height, size)
             val newImage = image.resized(w, h, false)
             val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
-            newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
+            newImage.createTexture(texture, checkRedundancy = false) { tex, exc ->
                 if (tex is Texture2D) tex.rotation = rot
                 callback.call(tex, exc)
             }
@@ -460,6 +463,18 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         }
     }
 
+    private fun shouldIgnoreFile(srcFile: FileReference): Boolean {
+        if (OS.isWindows) { // these files should be ignored
+            @Suppress("SpellCheckingInspection")
+            when (srcFile.name) {
+                "pagefile.sys", "hiberfil.sys",
+                "DumpStack.log", "DumpStack.log.tmp",
+                "swapfile.sys" -> return true
+            }
+        }
+        return false
+    }
+
     @JvmStatic
     fun generate(srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) {
 
@@ -474,23 +489,15 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         if (srcFile.isDirectory) {
             // todo thumbnails for folders: what files are inside, including their preview images
             // generateSystemIcon(srcFile, dstFile, size, callback)
-            return
+            return callback.err(IOException("Cannot generate thumbnail for folder"))
         }
 
         // generate the image,
         // upload the result to the gpu
         // save the file
 
-        if (OS.isWindows) { // these files should be ignored
-            @Suppress("SpellCheckingInspection")
-            when (srcFile.name) {
-                "pagefile.sys", "hiberfil.sys",
-                "DumpStack.log", "DumpStack.log.tmp",
-                "swapfile.sys" -> {
-                    callback.err(null)
-                    return
-                }
-            }
+        if (shouldIgnoreFile(srcFile)) {
+            return callback.err(IOException("$srcFile should be ignored"))
         }
 
         when (srcFile) {

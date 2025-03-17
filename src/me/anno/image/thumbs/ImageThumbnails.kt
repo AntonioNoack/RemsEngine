@@ -32,9 +32,7 @@ object ImageThumbnails {
     }
 
     private fun generateHDRImage(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
         srcFile.inputStream { stream, exc ->
@@ -56,13 +54,13 @@ object ImageThumbnails {
             if (image != null) {
                 Thumbs.transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
             } else {
-                generateImage2(srcFile, dstFile, size, callback)
+                generateIfReadImageFailed(srcFile, dstFile, size, callback)
             }
         }
     }
 
     @JvmStatic
-    private fun generateImage2(
+    private fun generateIfReadImageFailed(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {

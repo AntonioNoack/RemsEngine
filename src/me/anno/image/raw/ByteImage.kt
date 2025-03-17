@@ -1,12 +1,6 @@
 package me.anno.image.raw
 
-import me.anno.gpu.GFX
-import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Redundancy.checkRedundancyX1
-import me.anno.gpu.texture.Redundancy.checkRedundancyX2
-import me.anno.gpu.texture.Redundancy.checkRedundancyX3
-import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.async.Callback
@@ -34,54 +28,31 @@ open class ByteImage(
         format.toBytes(rgb, data, getIndex(x, y) * format.numChannels)
     }
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean,
-        checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
-    ) = createTexture(texture, checkRedundancy, data, callback)
-
-    private fun createTexture(
-        texture: Texture2D, checkRedundancy: Boolean,
-        data: ByteArray, callback: Callback<ITexture2D>
-    ) {
-        if (!GFX.isGFXThread()) {
-            val data2 = if (checkRedundancy) {
-                when (format.numChannels) {
-                    1 -> texture.checkRedundancyX1(data)
-                    2 -> texture.checkRedundancyX2(data)
-                    3 -> texture.checkRedundancyX3(data)
-                    else -> texture.checkRedundancyX4(data)
-                }
-            } else data
-            val buffer = byteBufferPool[data2.size, false, false]
-            buffer.put(data2)
-            buffer.flip()
-            addGPUTask("ByteImage $width x $height", width, height) {
-                createTexture(texture, false, buffer, callback)
-                byteBufferPool.returnBuffer(buffer)
-            }
-        } else {
-            val buffer = byteBufferPool[data.size, false, false]
-            buffer.put(data)
-            buffer.flip()
-            createTexture(texture, checkRedundancy, buffer, callback)
-        }
-    }
-
-    private fun createTexture(
-        texture: Texture2D, checkRedundancy: Boolean,
-        data: ByteBuffer, callback: Callback<ITexture2D>
-    ) {
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
+        val buffer = byteBufferPool[data.size, false, false]
+        putInto(buffer, true)
+        buffer.flip()
         when (format) {
-            ByteImageFormat.R -> texture.createMonochrome(data, checkRedundancy)
-            ByteImageFormat.RG -> texture.createRG(data, checkRedundancy)
-            ByteImageFormat.RGB -> texture.createRGB(data, checkRedundancy)
-            ByteImageFormat.BGR -> texture.createBGR(data, checkRedundancy)
-            ByteImageFormat.ARGB -> texture.createARGB(data, checkRedundancy)
-            ByteImageFormat.RGBA -> texture.createRGBA(data, checkRedundancy)
-            ByteImageFormat.BGRA -> texture.createBGRA(data, checkRedundancy)
+            ByteImageFormat.R -> texture.createMonochrome(buffer, checkRedundancy)
+            ByteImageFormat.RG -> texture.createRG(buffer, checkRedundancy)
+            ByteImageFormat.RGB -> texture.createRGB(buffer, checkRedundancy)
+            ByteImageFormat.BGR -> texture.createBGR(buffer, checkRedundancy)
+            ByteImageFormat.ARGB -> texture.createARGB(buffer, checkRedundancy)
+            ByteImageFormat.RGBA -> texture.createRGBA(buffer, checkRedundancy)
+            ByteImageFormat.BGRA -> texture.createBGRA(buffer, checkRedundancy)
         }
         callback.ok(texture)
+    }
+
+    fun putInto(dst: ByteBuffer, flipped: Boolean) {
+        val data = data
+        val width = width
+        val height = height
+        val numChannels = numChannels
+        for (y in 0 until height) {
+            val yi = if (flipped) height - 1 - y else y
+            dst.put(data, getIndex(0, yi) * numChannels, width * numChannels)
+        }
     }
 
     override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {

@@ -1,7 +1,6 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthArrayShader
@@ -59,7 +58,7 @@ object DrawTextures {
         val shader = flatShaderTexture.value
         val mono = getNumChannels(texture.internalFormat) == 1
         shader.use()
-        posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h, true)
         shader.v4f("color", color)
         shader.v1i("alphaMode", if (mono) 2 else ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -119,7 +118,7 @@ object DrawTextures {
         GFX.check()
         val shader = depthShader.value
         shader.use()
-        posSize(shader, x, y + h - 1, w, -h)
+        posSize(shader, x, y, w, h)
         GFXx2D.noTiling(shader)
         texture.bind(0)
         val depthFunc = texture.depthFunc
@@ -137,7 +136,7 @@ object DrawTextures {
         GFX.check()
         val shader = depthArrayShader.value
         shader.use()
-        posSize(shader, x, y + h - 1, w, -h)
+        posSize(shader, x, y, w, h)
         GFXx2D.noTiling(shader)
         shader.v1f("layer", layer)
         texture.bind(0, texture.filtering, texture.clamping)
@@ -223,7 +222,7 @@ object DrawTextures {
         GFX.check()
         val shader = flatShader3dSlice.value
         shader.use()
-        posSize(shader, x, y + h - 1, w, -h)
+        posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
         shader.v1b("applyToneMapping", applyToneMapping)

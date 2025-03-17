@@ -157,7 +157,7 @@ open class Texture2DArray(
         for (image in images) {
             val intImage = image.asIntImage()
             for (y in 0 until height) {
-                val srcI = intImage.getIndex(0, y)
+                val srcI = intImage.getIndex(0, intImage.height - 1 - y)
                 intImage.data.copyInto(intData, dstI, srcI, srcI + width)
                 dstI += width
             }

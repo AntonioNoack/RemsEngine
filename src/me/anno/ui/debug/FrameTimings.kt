@@ -9,7 +9,8 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
-import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.noTiling
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
@@ -168,10 +169,10 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 val shader = shader.value
                 shader.use()
                 shader.v1f("height", height1.toFloat())
-                GFXx2D.posSize(shader, x, y, width, height)
+                posSize(shader, x, y, width, height)
                 shader.v4f("color", barColor)
                 shader.v4f("background", background)
-                GFXx2D.noTiling(shader)
+                noTiling(shader)
                 texture.bindTrulyNearest(0)
                 SimpleBuffer.flat01.draw(shader)
                 GFX.check()

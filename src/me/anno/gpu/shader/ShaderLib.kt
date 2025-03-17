@@ -458,11 +458,12 @@ object ShaderLib {
                     "   return min(sum, 1.0);\n" +
                     "}\n" +
                     "void main(){\n" +
-                    "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy), uv0 = uv;\n" +
+                    "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                     "   if(uv.x >= invokeSize.x || uv.y >= invokeSize.y) return;\n" +
                     "   ivec2 size = textureSize(tex, 0).xy;\n" +
                     "   vec2 invSizeM1 = 1.0/vec2(size-1);\n" +
-                    "   vec2 uv1 = vec2(uv + srcOffset)*invSizeM1;\n" +
+                    "   ivec2 uv0 = ivec2(uv.x, size.y-1-uv.y) + srcOffset;\n" +
+                    "    vec2 uv1 = vec2(uv0) * invSizeM1;\n" +
                     (if (instanced)
                         "   vec3 mixingSrc = textureLod(tex, vec3(uv1,uvZ), 0.0).rgb;\n" else
                         "   vec3 mixingSrc = textureLod(tex, uv1, 0.0).rgb;\n") +
@@ -478,7 +479,7 @@ object ShaderLib {
                     "   vec4 backgroundColorI = imageLoad(dst, uv);\n" +
                     // todo there is awkward gray pieces around the text...
                     // "   if(mixingSrc.y < 1.0 && brightness(abs(textColor - backgroundColorI)) < 0.7)\n" +
-                    "       backgroundColorI.rgb = mix(backgroundColorI.rgb, backgroundColor.rgb, findBorder(uv0+srcOffset, invSizeM1));\n" +
+                    "       backgroundColorI.rgb = mix(backgroundColorI.rgb, backgroundColor.rgb, findBorder(uv0, invSizeM1));\n" +
                     "   vec4 color = mix(backgroundColorI, textColor, vec4(mixing, mixingAlpha));\n" +
                     "   imageStore(dst, uv, color);\n" +
                     "}"

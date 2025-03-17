@@ -191,7 +191,7 @@ open class ColorChooser(
     ) {
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
-        posSize(shader, x, y + h, w, -h)
+        posSize(shader, x, y, w, h, true)
         noTiling(shader)
         val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {

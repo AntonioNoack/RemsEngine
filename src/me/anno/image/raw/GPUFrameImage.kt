@@ -43,16 +43,9 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
         asIntImage().write(dst, quality)
     }
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
-    ) {
-        if (GFX.isGFXThread()) {
-            frame.toTexture(texture)
-            callback.ok(texture)
-        } else addGPUTask("frame.toTexture", width, height) {
-            createTexture(texture, sync, checkRedundancy, callback)
-        }
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
+        frame.toTexture(texture)
+        callback.ok(texture)
     }
 
     override fun toString(): String {

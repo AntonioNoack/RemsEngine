@@ -11,6 +11,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -164,7 +165,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
                         if (color2.a() > 0) {
                             shader.m4x4("transform", transform)
-                            GFXx2D.posSize(shader, x2, y2, texture.width, texture.height)
+                            posSize(shader, x2, y2, texture.width, texture.height)
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
                             flat01.draw(shader)
@@ -209,7 +210,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
                         if (color2.a() > 0) {
                             shader.m4x4("transform", transform)
-                            GFXx2D.posSize(shader, x2, y2, texture.width.toFloat(), texture.height.toFloat())
+                            posSize(shader, x2, y2, texture.width.toFloat(), texture.height.toFloat())
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
                             flat01.draw(shader)

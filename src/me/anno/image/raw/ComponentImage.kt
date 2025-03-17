@@ -20,10 +20,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
 
     private val shift = "bgra".indexOf(channel) * 8
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
-    ) {
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         if (src is GPUImage) {
             val map = if (inverse) channel.uppercaseChar() else channel
             val tex = src.texture
@@ -35,7 +32,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
                 }
             } else UInt8x4
             TextureMapper.mapTexture(src.texture, texture, "$map$map${map}1", type, callback)
-        } else super.createTexture(texture, sync, checkRedundancy, callback)
+        } else super.createTextureImpl(texture, checkRedundancy, callback)
     }
 
     private fun getValue(index: Int): Int {

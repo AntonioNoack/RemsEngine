@@ -35,6 +35,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.assertions.assertEquals
@@ -391,7 +392,7 @@ open class Texture2D(
         if (!isGFXThread() || (!requestBudget(width * height) && !loadTexturesSync.peek())) {
             create(image, false, checkRedundancy, callback)
         } else {
-            image.createTexture(this, true, checkRedundancy, callback)
+            image.createTexture(this, checkRedundancy, callback)
         }
     }
 
@@ -403,7 +404,7 @@ open class Texture2D(
     }
 
     fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
-        image.createTexture(this, sync, checkRedundancy, callback)
+        image.createTexture(this, checkRedundancy, callback)
     }
 
     fun overridePartially(data: Any, level: Int, x: Int, y: Int, w: Int, h: Int, type: TargetType) {
@@ -509,8 +510,9 @@ open class Texture2D(
     ) {
         val width = width
         val height = height
-        val tiles = Maths.max(Maths.roundDiv(height, Maths.max(1, (1024) / width)), 1)
-        val useTiles = tiles >= 4 && dataI.capacity() > 16
+        val numTiles = min((width * height) / (256 * 256), height)
+        val useTiles = numTiles >= 4 && dataI.capacity() > 16
+        println("use tiles? $useTiles")
         if (useTiles) {
             addGPUTask("IntImage.createTiled[0]", width, height) {
                 if (!isDestroyed) {
@@ -519,11 +521,11 @@ open class Texture2D(
                     wasCreated = false // mark as non-finished
                 } else LOGGER.warn("Image was already destroyed")
             }
-            for (y in 0 until tiles) {
-                val y0 = WorkSplitter.partition(y, height, tiles)
-                val y1 = WorkSplitter.partition(y + 1, height, tiles)
+            for (y in 0 until numTiles) {
+                val y0 = WorkSplitter.partition(y, height, numTiles)
+                val y1 = WorkSplitter.partition(y + 1, height, numTiles)
                 val dy = y1 - y0
-                addGPUTask("IntImage.createTiled[$y/$tiles]", width, dy) {
+                addGPUTask("IntImage.createTiled[$y/$numTiles]", width, dy) {
                     if (!isDestroyed) {
                         wasCreated = true // reset to true state
                         dataI.position(y0 * width)
@@ -540,11 +542,15 @@ open class Texture2D(
                 }
             }
         } else {
+            println("enqueuing create task")
             addGPUTask("IntImage.create", width, height) {
+                println("create it $isDestroyed")
                 if (!isDestroyed) {
                     create(creationType, uploadingType, dataI)
-                    callback.call(this, null)
-                } else LOGGER.warn("Image was already destroyed")
+                    callback.ok(this)
+                } else {
+                    callback.err(Exception("Image was already destroyed"))
+                }
                 Pools.byteBufferPool.returnBuffer(data1)
             }
         }

@@ -209,7 +209,7 @@ open class FileExplorerEntry(
     override fun calculateSize(w: Int, h: Int) {
         val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
         if (listMode) {
-            minW = titleSize * 5 // idk
+            minW = 65536 // must be large to fill all space
             minH = titleSize
         } else {
             val size = min(w, h - titleSize)
@@ -490,10 +490,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawThumb(
-        x0: Int, y0: Int,
-        x1: Int, y1: Int
-    ) {
+    private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         when (importType) {
             // todo audio preview???
             // todo animation preview: draw the animated skeleton
@@ -674,15 +671,17 @@ open class FileExplorerEntry(
                     val xi1 = xi + ((sumW + column.weight) * invW).toInt()
                     val text = column.type.getValue(ref1s)
                     val alignment = column.type.alignment
-                    drawTextCharByChar(
-                        alignment.getAnchor(xi0, xi1 - xi0),
-                        y + h, monospaceFont, text,
-                        titlePanel.textColor,
-                        titlePanel.backgroundColor,
-                        -1, -1,
-                        alignment, AxisAlignment.MAX,
-                        true
-                    )
+                    Clipping.clip(xi0, y, xi1 - xi0, h) {
+                        drawTextCharByChar(
+                            alignment.getAnchor(xi0, xi1 - xi0),
+                            y + h, monospaceFont, text,
+                            titlePanel.textColor,
+                            titlePanel.backgroundColor,
+                            -1, -1,
+                            alignment, AxisAlignment.MAX,
+                            true
+                        )
+                    }
                     sumW += column.weight
                 }
             }
@@ -717,13 +716,12 @@ open class FileExplorerEntry(
     private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
         val pbb = pushBetterBlending(true)
         val failed = DrawTexts.drawTextOrFail(
-            (x0 + x1).shr(1),
-            (y0 + y1).shr(1),
+            (x0 + x1).shr(1), y0 + 2,
             titlePanel.font, titlePanel.text,
             titlePanel.textColor,
             backgroundColor.withAlpha(0),
             x1 - x0, y1 - y0,
-            AxisAlignment.CENTER, AxisAlignment.CENTER
+            AxisAlignment.CENTER, AxisAlignment.MIN
         )
         popBetterBlending(pbb)
         if (failed) invalidateDrawing()

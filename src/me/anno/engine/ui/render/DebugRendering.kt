@@ -444,7 +444,7 @@ object DebugRendering {
             // todo special shader to better differentiate the values than black-white
             // (1 is extremely dark, nearly black)
             DrawTextures.drawTexture(
-                x0, y1, x1 - x0, y0 - y1,
+                x0, y0, x1 - x0, y1 - y0,
                 lightBuffer.getTexture0(), true,
                 -1, null, true // lights are bright -> dim them down
             )

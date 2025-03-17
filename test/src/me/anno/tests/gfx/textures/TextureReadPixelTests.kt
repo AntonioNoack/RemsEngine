@@ -145,7 +145,7 @@ class TextureReadPixelTests {
             }
         }
         val texture = Texture2D("textureReadText$numChannels", w, h, 1)
-        image.createTexture(texture, true, false, Callback.printError())
+        image.createTexture(texture, false, Callback.printError())
         Sleep.waitUntil(true) { texture.isCreated() }
         return texture
     }
@@ -156,7 +156,7 @@ class TextureReadPixelTests {
             image.setRGB(x, y, getIntValue(x, y))
         }
         val texture = Texture2D("textureReadText$format", w, h, 1)
-        image.createTexture(texture, true, false, Callback.printError())
+        image.createTexture(texture, false, Callback.printError())
         Sleep.waitUntil(true) { texture.isCreated() }
         assertEquals(format.numChannels, texture.channels)
         return texture
@@ -168,7 +168,7 @@ class TextureReadPixelTests {
             image.setRGB(x, y, getIntValue(x, y))
         }
         val texture = Texture2D("textureReadText$hasAlphaChannel", w, h, 1)
-        image.createTexture(texture, true, false, Callback.printError())
+        image.createTexture(texture, false, Callback.printError())
         Sleep.waitUntil(true) { texture.isCreated() }
         assertEquals(if (hasAlphaChannel) 4 else 3, image.numChannels)
         return texture

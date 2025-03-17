@@ -18,10 +18,7 @@ class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, co
     private val color = color and 0xffffff
     private val shift = "bgra".indexOf(channel) * 8
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
-    ) {
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         if (src is GPUImage && (color == 0 || color == 0xffffff)) {
             val map = if (inverse) channel.uppercaseChar() else channel
             val base = if (color == 0) "000" else "111"
@@ -35,7 +32,7 @@ class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, co
                 src.texture, texture, "$base$map",
                 type, callback
             )
-        } else super.createTexture(texture, sync, checkRedundancy, callback)
+        } else super.createTextureImpl(texture, checkRedundancy, callback)
     }
 
     private fun getValue(index: Int): Int {

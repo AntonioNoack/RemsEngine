@@ -196,9 +196,8 @@ object MeshBufferUtils {
 
     fun putUVs(buffer: StaticBuffer, uvs: FloatArray?, i2: Int) {
         if (uvs != null && i2 + 1 < uvs.size) {
-            // in the future, flip the textures instead?
             buffer.put(uvs[i2])
-            buffer.put(1f - uvs[i2 + 1])
+            buffer.put(uvs[i2 + 1])
         } else buffer.put(0f, 0f)
     }
 

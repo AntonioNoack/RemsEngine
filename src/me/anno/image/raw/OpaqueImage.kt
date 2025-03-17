@@ -16,20 +16,22 @@ open class OpaqueImage(val src: Image) :
 
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean,
-        checkRedundancy: Boolean, callback: Callback<ITexture2D>
-    ) {
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         when {
-            !src.hasAlphaChannel -> {
-                src.createTexture(texture, sync, checkRedundancy, callback)
-            }
-            src is GPUImage -> {
-                TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UInt8x4, callback)
+            !src.hasAlphaChannel -> src.createTextureImpl(texture, checkRedundancy, callback)
+            src is GPUImage -> TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UInt8x4, callback)
+            src is FloatImage -> {
+                val withoutAlpha = FloatImage(width, height, numChannels - 1)
+                withoutAlpha.forEachPixel { x, y ->
+                    for (c in 0 until withoutAlpha.numChannels) {
+                        withoutAlpha.setValue(x, y, c, src.getValue(x, y, c))
+                    }
+                }
+                withoutAlpha.createTextureImpl(texture, checkRedundancy, callback)
             }
             else -> {
-                val opaque = IntImage(width, height, src.asIntImage().data, false, offset, stride)
-                opaque.createTexture(texture, sync, checkRedundancy, callback)
+                IntImage(width, height, src.asIntImage().data, false, offset, stride)
+                    .createTexture(texture, checkRedundancy, callback)
             }
         }
     }

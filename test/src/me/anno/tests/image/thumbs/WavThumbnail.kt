@@ -1,4 +1,4 @@
-package me.anno.tests.image
+package me.anno.tests.image.thumbs
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions

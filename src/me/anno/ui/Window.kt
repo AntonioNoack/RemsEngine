@@ -529,7 +529,7 @@ open class Window(
         GFXState.depthMode.use(GFXState.alwaysDepthMode) {
             val blendMode = if (isTransparent) BlendMode.DEFAULT else null
             GFXState.blendMode.use(blendMode) {
-                drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
+                drawTexture(x0, y0, x1 - x0, y1 - y0, tex, -1, null)
             }
             if (EngineBase.showRedraws) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {

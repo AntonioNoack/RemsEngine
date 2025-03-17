@@ -1,6 +1,8 @@
 package me.anno.image
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.GFX
+import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -133,11 +135,18 @@ abstract class Image(
         return getRGB(xi, yi)
     }
 
-    open fun createTexture(
-        texture: Texture2D, sync: Boolean,
-        checkRedundancy: Boolean, callback: Callback<ITexture2D>
-    ) {
-        texture.create(asIntImage(), sync = sync, checkRedundancy = true, callback)
+    fun createTexture(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
+        if (GFX.isGFXThread()) {
+            createTextureImpl(texture, checkRedundancy, callback)
+        } else {
+            addGPUTask("Image.createTexture", width, height) {
+                createTextureImpl(texture, checkRedundancy, callback)
+            }
+        }
+    }
+
+    open fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
+        texture.create(asIntImage(), sync = true, checkRedundancy = true, callback)
     }
 
     open fun resized(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): Image {

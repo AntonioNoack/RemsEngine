@@ -174,14 +174,12 @@ object DrawTexts {
             }
             // must be called on every char overlap, or we get flickering
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            if (text.length > 1) {
-                x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth
-                forLoop(1, text.length, 2) { i ->
-                    drawChar(i)
-                    x2 += charWidth * 2
-                }
-                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+            x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth
+            forLoop(1, text.length, 2) { i ->
+                drawChar(i)
+                x2 += charWidth * 2
             }
+            if (text.length > 1) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth * text.length
         } else {
             val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
@@ -506,7 +504,7 @@ object DrawTexts {
             shader.use()
             when (shader) {
                 is Shader -> {
-                    posSize(shader, x2, y2, texture.width, texture.height)
+                    posSize(shader, x2, y2, texture.width, texture.height, true)
                     flat01.draw(shader)
                 }
                 is ComputeShader -> {
@@ -595,7 +593,7 @@ object DrawTexts {
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             } else {
                 shader as Shader
-                posSize(shader, x2, y2, w, h)
+                posSize(shader, x2, y2, w, h, true)
                 flat01.draw(shader)
             }
             GFX.check()

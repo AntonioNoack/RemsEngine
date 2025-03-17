@@ -1,14 +1,13 @@
 package me.anno.jvm.images
 
-import me.anno.gpu.GFX
-import me.anno.gpu.texture.Redundancy.checkRedundancyX4
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImageFormat
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
-import me.anno.utils.Color.convertARGB2ABGR
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -42,52 +41,14 @@ object BIImage {
         return result
     }
 
-    fun Texture2D.createFromBufferedImage(
-        image: BufferedImage,
-        sync: Boolean,
-        checkRedundancy: Boolean
-    ): (() -> Unit)? {
-
+    fun Texture2D.createFromBufferedImage(image: BufferedImage, callback: Callback<ITexture2D>) {
         width = image.width
         height = image.height
         wasCreated = false
-
-        // use the type to correctly create the image
-        val buffer = image.data.dataBuffer
-        when (image.type) {
-            BufferedImage.TYPE_INT_ARGB -> {
-                buffer as DataBufferInt
-                val data = buffer.data
-                if (sync && GFX.isGFXThread()) {
-                    createBGRA(data, checkRedundancy)
-                    return null
-                } else {
-                    val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
-                    convertARGB2ABGR(data2)
-                    return {
-                        createRGBA(data2, checkRedundancy)
-                    }
-                }
-            }
-            BufferedImage.TYPE_INT_RGB -> {
-                buffer as DataBufferInt
-                val data = buffer.data
-                if (sync && GFX.isGFXThread()) {
-                    createBGR(data, checkRedundancy)
-                    return null
-                } else {
-                    val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
-                    convertARGB2ABGR(data2)
-                    return {
-                        createRGB(data2, false)
-                    }
-                }
-            }
-            else -> throw NotImplementedError("BufferedImage.type[${image.type}]")
-        }
+        image.toImage().createTexture(this, checkRedundancy = false, callback)
     }
 
-    fun BufferedImage.toImage(): Image {
+    fun BufferedImage.toImage(withAlphaOverride: Boolean? = null): Image {
         // if image is grayscale, produce grayscale image
         // we could optimize a lot more formats, but that's probably not needed
         if (type == BufferedImage.TYPE_BYTE_GRAY) {
@@ -102,8 +63,12 @@ object BIImage {
             }
             return ByteImage(width, height, ByteImageFormat.R, bytes)
         } else {
-            val pixels = getRGB(0, 0, width, height, null, 0, width)
-            val hasAlpha = colorModel.hasAlpha() && pixels.any { it.ushr(24) != 255 }
+            val pixels = when (type) {
+                BufferedImage.TYPE_INT_ARGB, BufferedImage.TYPE_INT_RGB -> (data.dataBuffer as DataBufferInt).data
+                else -> getRGB(0, 0, width, height, null, 0, width)
+            }
+            val hasAlpha = withAlphaOverride
+                ?: (colorModel.hasAlpha() && pixels.any { it.ushr(24) != 255 })
             return IntImage(width, height, pixels, hasAlpha)
         }
     }

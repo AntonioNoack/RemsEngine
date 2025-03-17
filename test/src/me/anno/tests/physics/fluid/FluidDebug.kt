@@ -2,7 +2,8 @@ package me.anno.tests.physics.fluid
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.posSize
+import me.anno.gpu.drawing.GFXx2D.tiling
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
@@ -48,8 +49,8 @@ object FluidDebug {
         GFX.check()
         val shader = textureRShader.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
-        GFXx2D.tiling(shader, null)
+        posSize(shader, x, y, w, h)
+        tiling(shader, null)
         texture.bind(
             0,
             Filtering.NEAREST,
@@ -64,8 +65,8 @@ object FluidDebug {
         GFX.check()
         val shader = textureRGShader.value
         shader.use()
-        GFXx2D.posSize(shader, x, y, w, h)
-        GFXx2D.tiling(shader, null)
+        posSize(shader, x, y, w, h)
+        tiling(shader, null)
         texture.bind(
             0,
             Filtering.NEAREST,

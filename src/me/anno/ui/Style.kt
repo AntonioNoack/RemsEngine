@@ -5,6 +5,7 @@ import me.anno.fonts.Font
 import me.anno.fonts.FontStats
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color
+import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -36,7 +37,6 @@ class Style(val prefix: String?, val suffix: String?) {
                 values[name] = defaultValue
                 defaultValue
             }
-
         }
     }
 
@@ -58,7 +58,6 @@ class Style(val prefix: String?, val suffix: String?) {
                 values[name] = defaultValue
                 defaultValue
             }
-
         }
     }
 
@@ -79,7 +78,6 @@ class Style(val prefix: String?, val suffix: String?) {
                 values[name] = defaultValue
                 defaultValue
             }
-
         }
     }
 
@@ -165,20 +163,11 @@ class Style(val prefix: String?, val suffix: String?) {
     }
 
     private fun append(x: String?, y: String, z: String?): String {
-        return when {
-            x == null && z == null -> y
-            x == null -> "$y.$z"
-            z == null -> "$x.$y"
-            else -> "$x.$y.$z"
-        }
+        return append(append(x, y), z)
     }
 
     fun append(x: String?, y: String?): String {
-        return when {
-            x == null -> y!!
-            y == null -> x
-            else -> "$x.$y"
-        }
+        return Strings.append(x, ".", y)!!
     }
 
     val children = HashMap<String, Style>()
@@ -202,5 +191,4 @@ class Style(val prefix: String?, val suffix: String?) {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Style::class)
     }
-
 }

@@ -324,7 +324,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 comp.height = y1 - y0
                 comp.render()
                 val texture = comp.framebuffer!!.getTexture0()
-                drawTexture(x0, y1, x1 - x0, y0 - y1, texture, -1, null)
+                drawTexture(x0, y0, x1 - x0, y1 - y0, texture, -1, null)
             }
         }
     }
@@ -377,7 +377,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                     drawGizmos(buffer, true)
                 }
                 timeRendering("Final", DebugRendering.drawFinalTimer) {
-                    drawTexture(x0, y1, x1 - x0, y0 - y1, buffer.getTexture0(), true, -1, null)
+                    drawTexture(x0, y0, x1 - x0, y1 - y0, buffer.getTexture0(), true, -1, null)
                 }
             }
         }

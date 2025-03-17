@@ -1,10 +1,7 @@
 package me.anno.image.raw
 
-import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Redundancy.checkRedundancyX4
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths
@@ -13,7 +10,6 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.black
-import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools
@@ -88,7 +84,7 @@ open class IntImage(
     }
 
     fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float, color: Int, alpha: Float = color.a01()) {
-        val len = max(1, max(abs(x0 - x1), abs(y0 - y1)).toInt())
+        val len = max(1, max(abs(x1 - x0), abs(y1 - y0)).toInt())
         for (i in 0..len) {
             val f = i.toFloat() / len
             val lx = Maths.mix(x0, x1, f)
@@ -104,40 +100,21 @@ open class IntImage(
 
     override fun asIntImage(): IntImage = this
 
-    override fun createTexture(
-        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
-    ) {
+    override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
-        if (sync && GFX.isGFXThread()) {
-            if (hasAlphaChannel) texture.createBGRA(cloneData(), checkRedundancy)
-            else texture.createBGR(cloneData(), checkRedundancy)
-            callback.ok(texture)
-        } else {
-            val data1 = Pools.byteBufferPool[data.size * 4, false, false]
-            val dataI = data1.asIntBuffer()
-            putInto(dataI)
-            dataI.position(0)
-            if (checkRedundancy) texture.checkRedundancyX4(dataI)
-            convertARGB2ABGR(dataI)
-            // for testing, convert the data into a byte buffer
-            // -> 33% faster, partially because of wrong alignment and using 25% less data effectively
-            texture.createTiled(
-                TargetType.UInt8x4,
-                TargetType.UInt8x4,
-                dataI, data1, numChannels,
-                callback
-            )
-        }
+        val flipped = true
+        if (hasAlphaChannel) texture.createBGRA(cloneData(flipped), checkRedundancy)
+        else texture.createBGR(cloneData(flipped), checkRedundancy)
+        callback.ok(texture)
     }
 
-    fun putInto(dst: IntBuffer) {
-        if (stride == width) {
-            dst.put(data)
-        } else {
-            for (y in 0 until height) {
-                dst.put(data, getIndex(0, y), width)
-            }
+    fun putInto(dst: IntBuffer, flipped: Boolean) {
+        val data = data
+        val width = width
+        val height = height
+        for (y in 0 until height) {
+            val yi = if (flipped) height - 1 - y else y
+            dst.put(data, getIndex(0, yi), width)
         }
     }
 
@@ -145,23 +122,23 @@ open class IntImage(
         return IntImage(w0, h0, data, hasAlphaChannel, getIndex(x0, y0), stride)
     }
 
-    fun copyInto(other: IntImage, x0: Int, y0: Int) {
-        val selfData = data
-        val otherData = other.data
-        val width = min(width, other.width - x0)
-        val height = min(height, other.height - y0)
+    fun copyInto(dst: IntImage, x0: Int, y0: Int) {
+        val srcData = data
+        val dstData = dst.data
+        val width = min(width, dst.width - x0)
+        val height = min(height, dst.height - y0)
         if (width <= 0) return
         for (y in 0 until height) {
             val srcI0 = getIndex(0, y)
-            val dstI0 = other.getIndex(x0, y0 + y)
-            selfData.copyInto(otherData, dstI0, srcI0, srcI0 + width)
+            val dstI0 = dst.getIndex(x0, y0 + y)
+            srcData.copyInto(dstData, dstI0, srcI0, srcI0 + width)
         }
     }
 
-    fun cloneData(): IntArray {
+    fun cloneData(flipped: Boolean = false): IntArray {
         val clone = Pools.intArrayPool[width * height, false, true]
         for (y in 0 until height) {
-            val i0 = getIndex(0, y)
+            val i0 = getIndex(0, if (flipped) height - 1 - y else y)
             data.copyInto(clone, y * width, i0, i0 + width)
         }
         return clone

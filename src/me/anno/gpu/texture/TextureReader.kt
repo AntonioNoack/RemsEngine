@@ -65,7 +65,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
             val cpuImage = ImageCache.getImageWithoutGenerator(file)
             if (cpuImage != null) {
                 val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
-                cpuImage.createTexture(texture, sync = true, checkRedundancy = true, ::callback)
+                cpuImage.createTexture(texture, checkRedundancy = true, ::callback)
             } else loadTexture()
         }
     }
