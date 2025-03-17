@@ -115,9 +115,7 @@ object DrawTexts {
     }
 
     fun drawSimpleTextCharByChar(
-        x: Int, y: Int,
-        padding: Int,
-        text: CharSequence,
+        x: Int, y: Int, padding: Int, text: CharSequence,
         textColor: Int = FrameTimings.textColor,
         backgroundColor: Int = FrameTimings.backgroundColor or black,
         alignX: AxisAlignment = AxisAlignment.MIN,

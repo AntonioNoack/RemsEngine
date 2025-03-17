@@ -375,7 +375,7 @@ object ShaderLib {
                         "   position = localPos * windowSize;\n" +
                         "   textColor = color0;\n" +
                         "   backgroundColor = color1;\n" +
-                        "   uv = vec3(coords,instData.z);\n" +
+                        "   uv = vec3(coords.x,1.0-coords.y,instData.z);\n" +
                         "}"
             } else {
                 "" +

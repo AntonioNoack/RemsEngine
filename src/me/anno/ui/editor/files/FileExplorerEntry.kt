@@ -716,12 +716,12 @@ open class FileExplorerEntry(
     private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
         val pbb = pushBetterBlending(true)
         val failed = DrawTexts.drawTextOrFail(
-            (x0 + x1).shr(1), y0 + 2,
+            (x0 + x1).shr(1), (y0 + y1).shr(1),
             titlePanel.font, titlePanel.text,
             titlePanel.textColor,
             backgroundColor.withAlpha(0),
             x1 - x0, y1 - y0,
-            AxisAlignment.CENTER, AxisAlignment.MIN
+            AxisAlignment.CENTER, AxisAlignment.CENTER
         )
         popBetterBlending(pbb)
         if (failed) invalidateDrawing()
