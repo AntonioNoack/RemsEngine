@@ -9,7 +9,7 @@ import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.inner.lazy.InnerLazyByteFile
 import me.anno.io.files.inner.lazy.InnerLazyImageFile
 import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.UnsafeArrayList
 import java.io.IOException
 import java.io.InputStream

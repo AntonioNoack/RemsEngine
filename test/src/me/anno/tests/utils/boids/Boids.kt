@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
@@ -136,6 +136,6 @@ fun main() {
         scene.add(boid)
     }
     testSceneWithUI("Boids", scene) {
-        EngineBase.showFPS = true
+        WindowRenderFlags.showFPS = true
     }
 }

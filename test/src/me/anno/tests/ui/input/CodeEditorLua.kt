@@ -1,9 +1,9 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.TestEngine.Companion.testUI2
@@ -28,7 +28,7 @@ fun testCodeEditor(title: String, editor: CodeEditor) {
     disableRenderDoc()
     testUI2(title) {
 
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
 
         CodeEditor.registerActions()
 

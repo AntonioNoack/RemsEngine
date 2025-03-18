@@ -1,7 +1,7 @@
 package me.anno.tests.graph.octtree
 
 import me.anno.Time
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
@@ -92,7 +92,7 @@ fun main() {
     val radius = 2f * sqrt(1f / agents.size)
     val radSq = sq(radius)
     disableRenderDoc()
-    EngineBase.showFPS = true
+    WindowRenderFlags.showFPS = true
     val controlsText = listOf(
         " --- Controls ---------------- ",
         "|   Q   | Hide/Show QuadTree  |",

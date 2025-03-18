@@ -1,5 +1,6 @@
 package me.anno.utils.structures
 
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertFalse
 import kotlin.reflect.KClass
 

@@ -2,7 +2,7 @@ package me.anno.games.creeperworld
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.games.creeperworld.RockTypes.dissolved
 import me.anno.games.creeperworld.RockTypes.hardness
@@ -203,7 +203,7 @@ fun main() {
     val updateInterval = 1f / 60f
     val image = IntArray(world.size)
     testUI3("Creeper World") {
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
         val texture = Texture2D("tex", w, h, 1)
         var nextUpdate = 0L
         var tickIndex = 0

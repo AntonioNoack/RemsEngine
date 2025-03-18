@@ -496,7 +496,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         // save the file
 
         if (shouldIgnoreFile(srcFile)) {
-            return callback.err(IOException("$srcFile should be ignored"))
+            return callback.err(IgnoredException("$srcFile should be ignored"))
         }
 
         when (srcFile) {

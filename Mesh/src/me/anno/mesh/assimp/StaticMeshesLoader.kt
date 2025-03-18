@@ -22,12 +22,12 @@ import me.anno.io.xml.generic.XMLWriter
 import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
-import me.anno.utils.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.nextName
-import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Strings.distance

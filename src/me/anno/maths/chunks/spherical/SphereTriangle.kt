@@ -1,7 +1,7 @@
 package me.anno.maths.chunks.spherical
 
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.types.Triangles.rayTriangleIntersect
 import org.joml.Matrix4x3
 import org.joml.Vector3d

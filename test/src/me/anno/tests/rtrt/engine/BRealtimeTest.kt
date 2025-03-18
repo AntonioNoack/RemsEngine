@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.GFX
@@ -160,7 +160,7 @@ fun createControls(
                 controls.onMouseMoved(0f, 0f, dx, dy)
             }
             if (Input.wasKeyPressed('v')) {
-                EngineBase.instance?.toggleVsync()
+                WindowRenderFlags.toggleVsync()
             }
             val dw = Input.mouseWheelSumY - lz
             controls.onMouseWheel(0f, 0f, 0f, dw, true)

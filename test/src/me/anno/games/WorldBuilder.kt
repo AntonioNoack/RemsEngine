@@ -14,7 +14,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
@@ -87,7 +87,7 @@ fun main() {
     OfficialExtensions.initForTests()
     testUI3("World Builder") {
 
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
 
         val saveFolder = documents.getChild("RemsEngine/WorldBuilder")
         saveFolder.tryMkdirs()

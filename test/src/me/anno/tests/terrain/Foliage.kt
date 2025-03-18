@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSMeshShader
@@ -293,7 +293,7 @@ fun main() {
         }
         scene.add(AllMeshComp(mesh0))
         scene.add(AllMeshComp(mesh1))
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
 
         list
     }

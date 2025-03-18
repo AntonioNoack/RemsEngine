@@ -3,7 +3,7 @@ package me.anno.ecs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.Collections.filterIsInstance2
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import org.joml.AABBd
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast

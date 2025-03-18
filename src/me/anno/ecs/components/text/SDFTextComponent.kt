@@ -16,14 +16,14 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.TextSDFGroup
-import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.FinalRendering.isFinalRendering
+import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3
 
@@ -155,7 +155,7 @@ class SDFTextComponent(
 
                 callback(mesh, material, transform)
             } else if (texture is Texture2D && isFinalRendering) {
-                missingFrameException = "$className, $offset"
+                onMissingResource(className, offset)
                 true // quit loop
             } else false
         }

@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
-import me.anno.utils.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList

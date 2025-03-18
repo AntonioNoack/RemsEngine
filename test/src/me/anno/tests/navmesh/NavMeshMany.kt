@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.maths.Maths.dtTo01
@@ -86,7 +86,7 @@ fun main() {
     OfficialExtensions.initForTests()
     testUI("NavMeshMany") {
 
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
 
         val mask = 1 shl 16
         val world = Entity("World")

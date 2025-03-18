@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.systems.Systems
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView
 import me.anno.mesh.Shapes
 import kotlin.random.Random
@@ -56,6 +56,6 @@ fun main() {
 
     Systems.registerSystem(StaticMeshManager())
     SceneView.testSceneWithUI("StaticMeshManager", scene) {
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
     }
 }

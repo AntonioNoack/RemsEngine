@@ -5,7 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.EditorState
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.ui.debug.TestEngine.Companion.testUI
@@ -22,7 +22,7 @@ fun main() {
     // broken text input
     // testSceneWithUI(sample)
     testUI("PrefabTest") {
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
         sample.prefabPath = Path.ROOT_PATH
         EditorState.prefabSource = sample.ref
         PrefabInspector.currentInspector = PrefabInspector(sample.ref)

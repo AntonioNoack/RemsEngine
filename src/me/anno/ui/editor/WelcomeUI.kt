@@ -2,7 +2,8 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.engine.EngineBase.Companion.showFPS
+import me.anno.engine.WindowRenderFlags
+import me.anno.engine.WindowRenderFlags.showFPS
 import me.anno.engine.Events.addEvent
 import me.anno.engine.GFXSettings
 import me.anno.engine.projects.GameEngineProject
@@ -115,9 +116,9 @@ interface WelcomeUI {
                     "Recommended; false for debugging",
                     "ui.settings.vSync"
                 ),
-                EngineBase.enableVSync, true, style
+                WindowRenderFlags.enableVSync, true, style
             ).setChangeListener {
-                EngineBase.enableVSync = it
+                WindowRenderFlags.enableVSync = it
                 window.setVsyncEnabled(it)
             }
         } // else we cannot set vsync
@@ -191,7 +192,8 @@ interface WelcomeUI {
 
             tp.addLeftClickListener { open() }
             tp.addRightClickListener {
-                Menu.openMenu(window.windowStack, listOf(
+                Menu.openMenu(
+                    window.windowStack, listOf(
                     MenuOption(
                         NameDesc(
                             "Open",

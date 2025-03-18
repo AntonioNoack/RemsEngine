@@ -11,12 +11,17 @@ import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
+import java.awt.image.DirectColorModel
+import java.awt.image.Raster
 import java.io.OutputStream
 import javax.imageio.ImageIO
 
 object BIImage {
 
     private val LOGGER = LogManager.getLogger("BufferedImage")
+
+    private val MASKS_ARGB = intArrayOf(0xff0000, 0x00ff00, 0x0000ff, 0xff000000.toInt())
+    private val MASKS_RGB = intArrayOf(0xff0000, 0x00ff00, 0x0000ff)
 
     fun BufferedImage.write(dst: FileReference) {
         val format = dst.lcExtension
@@ -27,18 +32,27 @@ object BIImage {
         }
     }
 
-    fun Image.createBufferedImage(): BufferedImage {
-        val asIntImage = asIntImage()
-        val width = asIntImage.width
-        val height = asIntImage.height
-        val result = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
-        val dataBuffer = result.raster.dataBuffer as DataBufferInt
-        val dst = dataBuffer.data
-        for (y in 0 until height) {
-            val srcI = asIntImage.getIndex(0, y)
-            asIntImage.data.copyInto(dst, y * width, srcI, srcI + width)
-        }
-        return result
+    fun Image.createBufferedImage(withAlpha: Boolean): BufferedImage {
+        val src = asIntImage()
+        val width = src.width
+        val height = src.height
+
+        val pixelData =
+            if (src.offset == 0 && width == src.stride) {
+                // reuse data :3
+                src.data
+            } else {
+                val tmp = IntImage(width, height, withAlpha)
+                src.copyInto(tmp, 0, 0)
+                tmp.data
+            }
+
+        val dataBuffer = DataBufferInt(pixelData, pixelData.size)
+        val masks = if (withAlpha) MASKS_ARGB else MASKS_RGB
+        val raster = Raster.createPackedRaster(dataBuffer, width, height, width, masks, null)
+        val colorModel = if (withAlpha) DirectColorModel(32, masks[0], masks[1], masks[2], masks[3])
+        else DirectColorModel(24, masks[0], masks[1], masks[2])
+        return BufferedImage(colorModel, raster, false, null)
     }
 
     fun Texture2D.createFromBufferedImage(image: BufferedImage, callback: Callback<ITexture2D>) {

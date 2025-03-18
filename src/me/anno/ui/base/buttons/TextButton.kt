@@ -35,34 +35,34 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
             isInputAllowed: Boolean, borderSize: Padding, mouseDown: Boolean,
         ) {
             val isHovered = isHovered && isInputAllowed
-            val mouseDown = mouseDown && isInputAllowed
+            val mouseDown1 = mouseDown && isInputAllowed
             val bi = DrawRectangles.startBatch()
-            var leftColor = leftColor
-            var rightColor = rightColor
-            var topColor = topColor
-            var bottomColor = bottomColor
+            var leftColor1 = leftColor
+            var rightColor1 = rightColor
+            var topColor1 = topColor
+            var bottomColor1 = bottomColor
             if (!isInputAllowed) {
                 val avgColor = mixARGB(
-                    mixARGB(leftColor, rightColor, 0.5f),
-                    mixARGB(topColor, bottomColor, 0.5f), 0.5f
+                    mixARGB(leftColor1, rightColor1, 0.5f),
+                    mixARGB(topColor1, bottomColor1, 0.5f), 0.5f
                 )
                 val f = 0.5f
-                leftColor = mixARGB(leftColor, avgColor, f)
-                rightColor = mixARGB(rightColor, avgColor, f)
-                topColor = mixARGB(topColor, avgColor, f)
-                bottomColor = mixARGB(bottomColor, avgColor, f)
+                leftColor1 = mixARGB(leftColor1, avgColor, f)
+                rightColor1 = mixARGB(rightColor1, avgColor, f)
+                topColor1 = mixARGB(topColor1, avgColor, f)
+                bottomColor1 = mixARGB(bottomColor1, avgColor, f)
             }
             // draw button border
             drawRect(
                 x + width - borderSize.right, y, borderSize.right, height,
-                getColor(isHovered, mouseDown, rightColor, leftColor)
+                getColor(isHovered, mouseDown1, rightColor1, leftColor1)
             ) // right
             drawRect(
                 x, y + height - borderSize.bottom, width,
-                borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)
+                borderSize.bottom, getColor(isHovered, mouseDown1, bottomColor1, topColor1)
             ) // bottom
-            drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
-            drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
+            drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown1, leftColor1, rightColor1)) // left
+            drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown1, topColor1, bottomColor1)) // top
             DrawRectangles.finishBatch(bi)
         }
     }

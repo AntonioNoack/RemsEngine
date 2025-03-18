@@ -41,7 +41,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -210,8 +209,10 @@ object AnimatedMeshesLoader {
                 )
             } else null // must be ArrayList
 
-            addSkeleton(deepPrefab, skeleton, skeletonPath, sampleAnimations)
-            addSkeleton(flatPrefab, skeleton, skeletonPath, sampleAnimations)
+            if (sampleAnimations != null) {
+                insertSampleAnimations(deepPrefab, sampleAnimations)
+                insertSampleAnimations(flatPrefab, sampleAnimations)
+            }
 
             // create an animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
@@ -370,24 +371,17 @@ object AnimatedMeshesLoader {
         } else emptyList()
     }
 
-    private fun addSkeleton(
-        hierarchyPrefab: Prefab,
-        skeleton: Prefab,
-        skeletonPath: FileReference,
-        sampleAnimations: ArrayList<AnimationState>?
-    ): Prefab {
+    private fun insertSampleAnimations(hierarchyPrefab: Prefab, sampleAnimations: ArrayList<AnimationState>) {
         val adds = hierarchyPrefab.adds
         for ((_, addsI) in adds) {
             for (i in addsI.indices) {
                 val add = addsI[i]
                 if (add.clazzName == "AnimMeshComponent") {
                     val path = add.path.added(add.nameId, i, 'c')
-                    hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)
-                    if (sampleAnimations != null) hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
+                    hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
                 }
             }
         }
-        return skeleton
     }
 
     private fun loadMorphTargets(aiMesh: AIMesh): ArrayList<MorphTarget> {

@@ -26,11 +26,10 @@ object ImageWriterImpl {
             return
         }
 
-        val bImage = image.createBufferedImage()
-        if (isLossyFormat(format)) {
-            if (tryWritingJPG(bImage, output, quality)) {
-                return
-            }
+        val tryJPG = isLossyFormat(format)
+        val bImage = image.createBufferedImage(!tryJPG)
+        if (tryJPG && tryWritingJPG(bImage, output, quality)) {
+            return
         }
 
         if (!ImageIO.write(bImage, format, output)) {

@@ -1,6 +1,8 @@
 package me.anno.video
 
 import me.anno.gpu.Blitting
+import me.anno.gpu.FinalRendering
+import me.anno.gpu.FinalRendering.runFinalRendering
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.GFXState.blendMode
@@ -106,8 +108,6 @@ abstract class VideoBackgroundTask(
 
         GFX.check()
 
-        GFX.isFinalRendering = true
-
         // is this correct??? mmh...
         val renderer = Renderer.colorRenderer
 
@@ -117,11 +117,11 @@ abstract class VideoBackgroundTask(
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
             useFrame(0, 0, creator.width, creator.height, averageFrame, renderer) {
-                missingFrameException = null
-                renderScene(time, true, renderer)
-                assertTrue(GFX.isFinalRendering)
-                if (missingFrameException != null) {
-                    missingResource = missingFrameException ?: ""
+                val missing = runFinalRendering {
+                    renderScene(time, true, renderer)
+                }
+                if (missing != null) {
+                    missingResource = missing
                     needsMoreSources = true
                 }
             }
@@ -134,14 +134,14 @@ abstract class VideoBackgroundTask(
                 while (i++ < motionBlurSteps && !needsMoreSources) {
                     FBStack.reset(creator.width, creator.height)
                     useFrame(partialFrame, renderer) {
-                        missingFrameException = null
-                        renderScene(
-                            time + (i - motionBlurSteps / 2f) * shutterPercentage / (creator.fps * motionBlurSteps),
-                            true, renderer
-                        )
-                        assertTrue(GFX.isFinalRendering)
-                        if (missingFrameException != null) {
-                            missingResource = missingFrameException ?: ""
+                        val missing = runFinalRendering {
+                            renderScene(
+                                time + (i - motionBlurSteps / 2f) * shutterPercentage / (creator.fps * motionBlurSteps),
+                                true, renderer
+                            )
+                        }
+                        if (missing != null) {
+                            missingResource = missing
                             needsMoreSources = true
                         }
                     }
@@ -157,8 +157,6 @@ abstract class VideoBackgroundTask(
                 }
             }
         }
-
-        GFX.isFinalRendering = false
 
         if (needsMoreSources) return false
 

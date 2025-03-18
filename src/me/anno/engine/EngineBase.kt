@@ -1,11 +1,9 @@
 package me.anno.engine
 
-import me.anno.Build
 import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
-import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.systems.Systems
@@ -82,7 +80,7 @@ abstract class EngineBase(
     abstract fun createUI()
 
     open fun onGameLoopStart() {
-        systems.world = EditorState.prefab?.getSampleInstance()
+        systems.world = EditorState.prefabAsync?.getSampleInstance()
         (systems.world as? Entity)?.create() // really do that here???
         systems.onUpdate()
     }
@@ -190,7 +188,7 @@ abstract class EngineBase(
 
         if (isFirstFrame) tick("Game loop")
 
-        window.setVsyncEnabled(enableVSync)
+        window.setVsyncEnabled(WindowRenderFlags.enableVSync)
         updateHoveredAndCursor(window)
         processMouseMovement(window)
 
@@ -237,10 +235,6 @@ abstract class EngineBase(
         onGameLoopEnd()
     }
 
-    fun toggleVsync() {
-        enableVSync = !enableVSync
-    }
-
     fun processMouseMovement(window: OSWindow) {
         if (!Input.hadMouseMovement || !window.isInFocus) {
             // if our window doesn't have focus, or the cursor is outside,
@@ -271,11 +265,11 @@ abstract class EngineBase(
 
         var didSomething = false
 
-        if (showFPS && window.showFPS) {
+        if (WindowRenderFlags.showFPS && window.showFPS) {
             FrameTimings.showFPS(window)
         }
 
-        if (showTutorialKeys) {
+        if (WindowRenderFlags.showTutorialKeys) {
             if (ShowKeys.draw(0, 0, h)) {
                 didSomething = true
             }
@@ -303,27 +297,26 @@ abstract class EngineBase(
             didSomething = true
         }
 
-        // dragging can be a nice way to work, but dragging values to change them,
-        // and copying by ctrl+c/v is probably better -> no, we need both
-        // dragging files for example
-        val dragged = dragged
-        if (dragged != null) {
-            // todo if base below is sensitive, draw this transparent
-            //  (text is blocking view when dragging a scene item into DraggingControls/RenderView)
-            val (rw, rh) = dragged.getSize(w / 5, h / 5)
-            var x = lastMouseX.roundToIntOr() - rw / 2
-            var y = lastMouseY.roundToIntOr() - rh / 2
-            x = Maths.clamp(x, 0, w - rw)
-            y = Maths.clamp(y, 0, h - rh)
-            val xw = min(rw, w)
-            val xh = min(rh, h)
-            Clipping.clip(x, y, xw, xh) {
-                dragged.draw(x, y, xw, xh)
-                didSomething = true
-            }
-        }
+        renderDragged(w, h, dragged)
+        if (dragged != null) didSomething = true
 
         return didSomething
+    }
+
+    private fun renderDragged(w: Int, h: Int, dragged: IDraggable?) {
+        dragged ?: return
+        // todo if base below is sensitive, draw this transparent
+        //  (text is blocking view when dragging a scene item into DraggingControls/RenderView)
+        val (rw, rh) = dragged.getSize(w / 5, h / 5)
+        var x = lastMouseX.roundToIntOr() - rw / 2
+        var y = lastMouseY.roundToIntOr() - rh / 2
+        x = Maths.clamp(x, 0, w - rw)
+        y = Maths.clamp(y, 0, h - rh)
+        val xw = min(rw, w)
+        val xh = min(rh, h)
+        Clipping.clip(x, y, xw, xh) {
+            dragged.draw(x, y, x + xw, y + xh)
+        }
     }
 
     private var isFirstFrame = true
@@ -338,27 +331,22 @@ abstract class EngineBase(
 
     companion object {
 
-        @JvmStatic
-        var idleFPS by ConfigRef("ui.window.idleFPS", 10)
-
-        @JvmStatic
-        var maxFPS by ConfigRef("ui.window.maxFPS", 0)
-
-        /**
-         * prevents tearing, but also increases input-latency
-         * */
-        var enableVSync by ConfigRef("debug.ui.enableVsync", !Build.isDebug)
-
-        var instance: EngineBase? = null
-
-        var showRedraws by ConfigRef("debug.ui.showRedraws", false)
-        var showFPS by ConfigRef("debug.ui.showFPS", false)
-        var showTutorialKeys by ConfigRef("ui.tutorial.showKeys", true)
-
-        var workspace = OS.documents
-
         private val LOGGER = LogManager.getLogger(EngineBase::class)
 
+        /**
+         * Currently running instance of Engine.
+         * */
+        var instance: EngineBase? = null
+
+        /**
+         * In which folder the instance shall operate mainly, e.g., current project folder.
+         * */
+        var workspace = OS.documents
+
+        /**
+         * What's currently dragged by the user.
+         * Will be rendered as an overlay when set, and can be dropped on some panels.
+         * */
         var dragged: IDraggable? = null
     }
 }

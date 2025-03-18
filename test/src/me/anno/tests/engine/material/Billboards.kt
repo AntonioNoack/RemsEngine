@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.LookAtComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.engine.EngineBase.Companion.enableVSync
+import me.anno.engine.WindowRenderFlags.enableVSync
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
 import me.anno.mesh.Shapes

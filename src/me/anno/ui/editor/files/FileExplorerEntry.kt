@@ -1,5 +1,6 @@
 package me.anno.ui.editor.files
 
+import me.anno.Engine
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
@@ -65,6 +66,7 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
@@ -620,14 +622,12 @@ open class FileExplorerEntry(
     private var lines = 0
     private var padding = 0
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val t0 = System.nanoTime()
 
         drawBackground(x0, y0, x1, y1)
 
-        val font0 = titlePanel.font
-        val fontSize = font0.size
+        val t1 = System.nanoTime()
 
-        val x = x
-        val y = y
         val w = width
         val h = height
 
@@ -639,77 +639,111 @@ open class FileExplorerEntry(
         val remainingH = h - padding// * 2
 
         if (listMode) {
-
-            // todo customize weights
-            // todo add/remove columns
-
-            val imgSize = min(width, height) - 2 * padding
-            if (imgSize > 1) {
-
-                lines = 1
-
-                Clipping.clip2Dual(
-                    x0, y0, x1, y1,
-                    x + padding,
-                    y + padding,
-                    x + padding + imgSize,
-                    y + padding + imgSize,
-                    ::drawThumb
-                )
-
-                // todo draw lines for separation?
-                val spacing = padding
-                val available = w - imgSize - spacing * (fileStatColumns.size + 3)
-                val weightSum = fileStatColumns.sumOf { it.weight.toDouble() }
-                val invW = available / weightSum + spacing
-                val xi = x + imgSize + 3 * spacing
-                val ref1s = ref1s
-                var sumW = 0f
-                for (i in fileStatColumns.indices) {
-                    val column = fileStatColumns[i]
-                    val xi0 = xi + (sumW * invW).toInt()
-                    val xi1 = xi + ((sumW + column.weight) * invW).toInt()
-                    val text = column.type.getValue(ref1s)
-                    val alignment = column.type.alignment
-                    Clipping.clip(xi0, y, xi1 - xi0, h) {
-                        drawTextCharByChar(
-                            alignment.getAnchor(xi0, xi1 - xi0),
-                            y + h, monospaceFont, text,
-                            titlePanel.textColor,
-                            titlePanel.backgroundColor,
-                            -1, -1,
-                            alignment, AxisAlignment.MAX,
-                            true
-                        )
-                    }
-                    sumW += column.weight
-                }
-            }
+            drawListMode(x0, y0, x1, y1, x, y, w, h)
         } else {
+            drawTileMode(x0, y0, x1, y1, x, y, w, h, remainingW, remainingH)
+        }
 
-            val extraHeight = h - w
-            lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
+        val t2 = System.nanoTime()
+        if (t2 - t0 > 50 * MILLIS_TO_NANOS) {
+            IllegalStateException("Waiting too long (${(t1 - t0) / 1e6f} + ${(t2 - t1) / 1e6f}) for $ref1s")
+                .printStackTrace()
+        }
+    }
 
-            val textH = (lines * fontSize).toInt()
-            val imageH = remainingH - textH
+    private fun drawListMode(
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        x: Int, y: Int, w: Int, h: Int
+    ) {
+
+        // todo customize weights
+        // todo add/remove columns
+
+        val imgSize = min(width, height) - 2 * padding
+        if (imgSize > 1) {
+
+            lines = 1
 
             Clipping.clip2Dual(
                 x0, y0, x1, y1,
                 x + padding,
                 y + padding,
-                x + remainingW,
-                y + padding + imageH,
+                x + padding + imgSize,
+                y + padding + imgSize,
                 ::drawThumb
             )
 
-            if (showTitle) Clipping.clip2Dual(
-                x0, y0, x1, y1,
-                x + padding,
-                y + h - padding - textH,
-                x + remainingW,
-                y + h/* - padding*/, // only apply the padding, when not playing video?
-                ::drawTitle
-            )
+            // todo draw lines for separation?
+            val spacing = padding
+            val available = w - imgSize - spacing * (fileStatColumns.size + 3)
+            val weightSum = fileStatColumns.sumOf { it.weight.toDouble() }
+            val invW = available / weightSum + spacing
+            val xi = x + imgSize + 3 * spacing
+            val ref1s = ref1s
+            var sumW = 0f
+            for (i in fileStatColumns.indices) {
+                val column = fileStatColumns[i]
+                val xi0 = xi + (sumW * invW).toInt()
+                val xi1 = xi + ((sumW + column.weight) * invW).toInt()
+                val text = column.type.getValue(ref1s)
+                val alignment = column.type.alignment
+                Clipping.clip(xi0, y, xi1 - xi0, h) {
+                    drawTextCharByChar(
+                        alignment.getAnchor(xi0, xi1 - xi0),
+                        y + h, monospaceFont, text,
+                        titlePanel.textColor,
+                        titlePanel.backgroundColor,
+                        -1, -1,
+                        alignment, AxisAlignment.MAX,
+                        true
+                    )
+                }
+                sumW += column.weight
+            }
+        }
+    }
+
+    private fun drawTileMode(
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        x: Int, y: Int, w: Int, h: Int,
+        remainingW: Int, remainingH: Int
+    ) {
+
+        val t0 = System.nanoTime()
+
+        val font0 = titlePanel.font
+        val fontSize = font0.size
+        val extraHeight = h - w
+        lines = if (showTitle) max(ceil(extraHeight / fontSize).toInt(), 1) else 0
+
+        val textH = (lines * fontSize).toInt()
+        val imageH = remainingH - textH
+
+        val t1 = System.nanoTime()
+
+        Clipping.clip2Dual(
+            x0, y0, x1, y1,
+            x + padding,
+            y + padding,
+            x + remainingW,
+            y + padding + imageH,
+            ::drawThumb
+        )
+
+        val t2 = System.nanoTime()
+
+        if (showTitle) Clipping.clip2Dual(
+            x0, y0, x1, y1,
+            x + padding,
+            y + h - padding - textH,
+            x + remainingW,
+            y + h/* - padding*/, // only apply the padding, when not playing video?
+            ::drawTitle
+        )
+
+        val t3 = System.nanoTime()
+        if (t3 - t0 > 30 * MILLIS_TO_NANOS) {
+            println("Slow paint! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f}")
         }
     }
 
@@ -730,9 +764,7 @@ open class FileExplorerEntry(
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DragStart" -> {
-                // todo select the file, if the mouse goes up, not down
-                // why was that condition there?
-                // inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file
+                if (EngineBase.dragged != null) return true // already dragging
                 val selectedFiles = siblings
                     .filterIsInstance<FileExplorerEntry>()
                     .filter { it.isInFocus || it === this }

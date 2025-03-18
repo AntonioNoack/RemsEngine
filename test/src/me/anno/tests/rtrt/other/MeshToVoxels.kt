@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Materials
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Renderers.attributeRenderers
@@ -319,7 +319,7 @@ fun main() {
     testUI("MeshToVoxels") {
 
         // to measure performance
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
 
         val renderer = attributeRenderers[DeferredLayerType.COLOR]
 

@@ -11,7 +11,7 @@ import me.anno.fonts.signeddistfields.SDFCharKey
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.fonts.signeddistfields.TextSDFGroup.Companion.queue
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
-import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.FinalRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -34,7 +34,6 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.joinChars
-import me.anno.video.missingFrameException
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.junit.jupiter.api.Test
@@ -137,25 +136,25 @@ class SignedDistanceFontsTests {
         RenderState.aspectRatio = width.toFloat() / height.toFloat()
         RenderState.viewIndex = 0
         pipeline.frustum.setToEverything(RenderState.cameraPosition, RenderState.cameraRotation)
-        isFinalRendering = true // force exceptions if rendering is incomplete
+
         while (true) {
-            missingFrameException = null
-            pipeline.clear()
-            pipeline.fill(component)
-            if (missingFrameException == null) {
+           val missing = FinalRendering.runFinalRendering {
+               pipeline.clear()
+               pipeline.fill(component)
+            }
+            if (missing == null) {
                 break
             }
-
             Sleep.work(true)
-            println("Waiting on $missingFrameException")
+            println("Waiting on $missing")
             Thread.sleep(5)
         }
+
         assertFalse(pipeline.defaultStage.isEmpty())
         useFrame(framebuffer) {
             framebuffer.clearColor(black)
             pipeline.defaultStage.bindDraw(pipeline)
         }
-        isFinalRendering = false // restore non-instant loading
         return framebuffer.getTexture0()
     }
 }

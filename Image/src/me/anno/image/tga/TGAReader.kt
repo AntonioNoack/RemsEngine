@@ -8,7 +8,7 @@ import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.rgb
-import me.anno.utils.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException

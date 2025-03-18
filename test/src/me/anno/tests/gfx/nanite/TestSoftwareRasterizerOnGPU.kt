@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.drawing.DrawTexts
@@ -91,6 +91,6 @@ fun testSoftwareRasterizerOnGPU() {
                 )
             }
         }
-        EngineBase.enableVSync = false // we want to go fast, so we need to measure performance
+        WindowRenderFlags.enableVSync = false // we want to go fast, so we need to measure performance
     }
 }

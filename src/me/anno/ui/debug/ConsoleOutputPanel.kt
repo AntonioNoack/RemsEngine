@@ -1,6 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
 import me.anno.input.Key
@@ -149,9 +149,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                         MenuOption(NameDesc("Edit Keymap")) {
                             RemsEngine.openKeymapWindow(it.windowStack)
                         },
-                        MenuOption(NameDesc("Toggle VSync")) {
-                            EngineBase.enableVSync = !EngineBase.enableVSync
-                        },
+                        MenuOption(NameDesc("Toggle VSync"), WindowRenderFlags::toggleVsync),
                         MenuOption(NameDesc("Run GC"), ::runGC)
                     )
                 )

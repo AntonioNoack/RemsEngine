@@ -5,7 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.shader.BufferCompute.createAccessors
@@ -62,6 +62,6 @@ fun rotatingCube() {
     scene.add(comp)
     scene.add(MeshComponent(mesh))
     testSceneWithUI("Procedural GPU Mesh", scene) {
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
     }
 }

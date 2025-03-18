@@ -80,8 +80,8 @@ class InnerZipFile(
             }
         }
 
-        fun zipFileFromBytes(it: ByteArray, callback: Callback<ZipFile>) {
-            callback.ok(ZipFile(SeekableInMemoryByteChannel(it)))
+        fun zipFileFromBytes(bytes: ByteArray, callback: Callback<ZipFile>) {
+            callback.ok(ZipFile(SeekableInMemoryByteChannel(bytes)))
         }
 
         fun createZipRegistryV2(

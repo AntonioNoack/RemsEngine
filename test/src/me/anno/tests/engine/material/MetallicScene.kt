@@ -6,7 +6,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -85,6 +85,6 @@ fun main() {
         }
     }
     testSceneWithUI("Metallic", scene) {
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
     }
 }

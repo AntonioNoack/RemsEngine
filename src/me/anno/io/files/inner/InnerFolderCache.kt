@@ -12,6 +12,9 @@ import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.mesh.vox.VOXReader
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.waitFor
 import kotlin.math.max
 
 object InnerFolderCache : CacheSection("InnerFolderCache"),
@@ -19,6 +22,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
 
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
+    private val generator = { file1: FileReference, _: Long -> generate(file1) }
 
     init {
         // meshes
@@ -37,11 +41,13 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         return readAsFolder(file, timeoutMillis, async)
     }
 
+    fun readAsFolder(file: FileReference, async: Boolean, callback: Callback<InnerFolder?>) {
+        return getFileEntryAsync(file, false, timeoutMillis, async, generator, callback.waitFor())
+    }
+
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
-            generate(file1)
-        }
+        val data = getFileEntry(file, false, timeoutMillis, async, generator)
         if (!async) data?.waitFor()
         return data?.value
     }

@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
 import me.anno.gpu.DepthMode
+import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
 import me.anno.gpu.GFX.isGFXThread
@@ -32,7 +33,6 @@ import me.anno.image.raw.FloatImage
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
@@ -195,6 +195,7 @@ open class Texture2D(
 
     var createdW = 0
     var createdH = 0
+    var createdT = 0L
 
     override var isHDR = false
 
@@ -286,6 +287,7 @@ open class Texture2D(
             this.internalFormat = internalFormat
             createdW = w
             createdH = h
+            createdT = Time.nanoTime
         }
     }
 
@@ -759,6 +761,19 @@ open class Texture2D(
             return
         }
         if (!hasMipmap && filtering.needsMipmap && (width > 1 || height > 1)) {
+
+            // --- glGenerateMipmap is a synchronous operation to report OOM error ---
+            //       this makes it really slow, if it directly follows an upload,
+            //        because it forces the GPU to process everything remaining
+
+            // if is final rendering, immediately allow it
+            // else check that at least three frames have passed
+            val mayGenerateMipmap = isFinalRendering || (Time.nanoTime > createdT + 100 * MILLIS_TO_NANOS)
+            if (!mayGenerateMipmap) {
+                // todo mark this as having a mipmap, and ask it async???
+                return filtering(filtering.withoutMipmap)
+            }
+
             val t0 = Time.nanoTime
             glGenerateMipmap(target)
             // MipmapCalculator.generateMipmaps(this)
@@ -848,7 +863,9 @@ open class Texture2D(
     }
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean, level: Int): Image {
+        check()
         bindBeforeUpload()
+        check()
         val image = if (isHDR) {
             // for float textures, create float images
             val image = FloatImage(width, height, channels)
@@ -860,6 +877,7 @@ open class Texture2D(
             readBytePixels(0, 0, width, height, image.data)
             image
         }
+        check()
         if (flipY) image.flipY()
         return image
     }

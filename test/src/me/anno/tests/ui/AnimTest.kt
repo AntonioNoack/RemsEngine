@@ -3,7 +3,7 @@ package me.anno.tests.ui
 import me.anno.animation.Interpolation
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.engine.EngineBase.Companion.showRedraws
+import me.anno.engine.WindowRenderFlags.showRedraws
 import me.anno.ui.anim.AnimContainer
 import me.anno.ui.anim.EventType
 import me.anno.ui.anim.MoveAnimation

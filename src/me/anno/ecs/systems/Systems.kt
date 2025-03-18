@@ -5,8 +5,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.Compare.ifSame
-import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.sortedAdd
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast

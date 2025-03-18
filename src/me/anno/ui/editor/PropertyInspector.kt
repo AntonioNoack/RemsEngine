@@ -1,7 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.Time
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.inspector.Inspectable
 import me.anno.gpu.GFX
 import me.anno.language.translation.NameDesc
@@ -11,13 +11,13 @@ import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
+import me.anno.ui.base.Search
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.FrameTimings
-import me.anno.ui.base.Search
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
@@ -230,7 +230,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                     sizeY =
                         paddingForScrolling + if (win != null && window != null && win.windowStack.contains(window)) {
                             if (parent != null && x + width >= window.width - FrameTimings.width) {
-                                if (EngineBase.showFPS) {
+                                if (WindowRenderFlags.showFPS) {
                                     max(
                                         1,
                                         window.y + min(

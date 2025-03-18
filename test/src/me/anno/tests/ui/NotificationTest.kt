@@ -17,7 +17,7 @@ fun main() {
     OfficialExtensions.initForTests()
     assertTrue(SystemTray.isSupported())
     val tray = SystemTray.getSystemTray()
-    val image = ImageCache[res.getChild("icon.png"), false]!!.createBufferedImage()
+    val image = ImageCache[res.getChild("icon.png"), false]!!.createBufferedImage(true)
     val icon = TrayIcon(image, "Noti-Demo ✉")
     icon.isImageAutoSize = true
     icon.toolTip = "Hi, I'm some ttt with emojis 😃"

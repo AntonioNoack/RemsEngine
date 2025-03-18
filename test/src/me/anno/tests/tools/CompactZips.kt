@@ -6,7 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry

@@ -5,6 +5,7 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.utils.algorithms.Sorting.sortWith2
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
@@ -148,7 +149,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
 
         val children = children
         if (sorter != null) {
-            children.sortWith(sorter)
+            children.sortWith2(sorter)
         }
 
         val wi = w - padding.width

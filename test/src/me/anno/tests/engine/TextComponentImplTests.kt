@@ -18,7 +18,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView1
 import me.anno.fonts.Font
-import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.FinalRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -33,7 +33,6 @@ import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.video.missingFrameException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -161,15 +160,13 @@ class TextComponentImplTests {
 
         // loop to render & wait on SDF
         Sleep.waitUntil(true) {
-            isFinalRendering = true
-            missingFrameException = null
-            useFrame(fb) {
-                Systems.onUpdate()
-                rv.draw(0, 0, w, h)
-            }
-            Thread.sleep(10) // give SDF processing queue a little chance
-            isFinalRendering = false
-            missingFrameException == null
+            FinalRendering.runFinalRendering {
+                useFrame(fb) {
+                    Systems.onUpdate()
+                    rv.draw(0, 0, w, h)
+                }
+                Thread.sleep(10) // give SDF processing queue a little chance
+            } == null
         }
 
         val image = fb.createImage(flipY = true, withAlpha = false)!!

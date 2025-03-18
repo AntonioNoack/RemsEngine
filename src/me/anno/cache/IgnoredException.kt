@@ -1,6 +1,6 @@
 package me.anno.cache
 
-open class IgnoredException : RuntimeException() {
+open class IgnoredException(msg: String = "") : RuntimeException(msg) {
     override fun printStackTrace() {
     }
 }

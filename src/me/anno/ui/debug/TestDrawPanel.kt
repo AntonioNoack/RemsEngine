@@ -2,10 +2,10 @@ package me.anno.ui.debug
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.WindowRenderFlags
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.joml.Quaternionf
@@ -52,7 +52,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
         if (key == Key.KEY_V && Input.isControlDown) {
-            EngineBase.instance?.toggleVsync()
+            WindowRenderFlags.toggleVsync()
         } else super.onKeyDown(x, y, key)
     }
 

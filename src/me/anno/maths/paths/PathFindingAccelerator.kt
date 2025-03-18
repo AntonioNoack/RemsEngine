@@ -5,7 +5,7 @@ import me.anno.maths.paths.PathFinding.dijkstra
 import me.anno.maths.paths.PathFinding.emptyResult
 import me.anno.maths.paths.PathFinding.genericSearch
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 
 /**
  * accelerates many requests on large graphs by grouping them into proxies;

@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
@@ -189,6 +189,6 @@ fun main() {
     }
 
     testSceneWithUI("Boids V3", boid) {
-        EngineBase.showFPS = true
+        WindowRenderFlags.showFPS = true
     }
 }

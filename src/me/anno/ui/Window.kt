@@ -1,7 +1,7 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -401,7 +401,7 @@ open class Window(
         if (drawDirectly) {
             useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
                 panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
-                if (EngineBase.showRedraws) {
+                if (WindowRenderFlags.showRedraws) {
                     renderDefault {
                         showRedraws(listOf(fullRR(panel0)))
                     }
@@ -531,7 +531,7 @@ open class Window(
             GFXState.blendMode.use(blendMode) {
                 drawTexture(x0, y0, x1 - x0, y1 - y0, tex, -1, null)
             }
-            if (EngineBase.showRedraws) {
+            if (WindowRenderFlags.showRedraws) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {
                     showRedraws(wasRedrawn)
                 }

@@ -71,6 +71,8 @@ object ThumbsRendering {
             Framebuffer(srcFile.name, w, h, 1, TargetType.UInt8x4, depthType)
         }
 
+        GFX.check()
+
         GFXState.renderPurely {
             if (!withDepth) {
                 GFXState.useFrame(w, h, false, renderTarget, Renderer.colorRenderer) {
@@ -88,6 +90,8 @@ object ThumbsRendering {
                 } else render()
             }
         }
+
+        GFX.check()
 
         if (Thumbs.useCacheFolder) {
             val dst = renderTarget.createImage(flipY, true)

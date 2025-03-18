@@ -75,7 +75,7 @@ object ImageThumbnails {
                 when (srcFile.lcExtension) {
                     "txt", "md" -> TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
                     else -> {
-                        LOGGER.warn("No thumbnail generator found for $srcFile")
+                        // LOGGER.warn("No thumbnail generator found for $srcFile")
                         callback.err(null)
                     }
                 }

@@ -27,8 +27,8 @@ import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
 import me.anno.sdf.uv.UVMapper
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Booleans.hasFlag

@@ -30,7 +30,7 @@ object PDFCache : CacheSection("PDFCache") {
 
     class AtomicCountedDocument(val doc: PDDocument) {
 
-        val counter = AtomicInteger(1)
+        private val counter = AtomicInteger(1)
 
         fun borrow() {
             counter.incrementAndGet()
@@ -185,10 +185,12 @@ object PDFCache : CacheSection("PDFCache") {
     }
 
     fun disableLoggers() {
+        @Suppress("SpellCheckingInspection")
         LogManager.disableLoggers(
             "GlyphRenderer,PDSimpleFont,PDICCBased,PostScriptTable,GlyphSubstitutionTable," +
                     "GouraudShadingContext,FontMapperImpl,FileSystemFontProvider,ScratchFileBuffer,FontFileFinder," +
-                    "PDFObjectStreamParser,TriangleBasedShadingContext,Type4ShadingContext"
+                    "PDFObjectStreamParser,TriangleBasedShadingContext,Type4ShadingContext,TilingPaint," +
+                    "CIDType0Glyph2D,PDType0Font,CmapSubtable,PDFont,PDTrueTypeFont"
         )
     }
 

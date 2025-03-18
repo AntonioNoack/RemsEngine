@@ -17,10 +17,10 @@ import me.anno.utils.Color.toVecRGB
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.Collections.filterIsInstance2
-import me.anno.utils.structures.Recursion
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast

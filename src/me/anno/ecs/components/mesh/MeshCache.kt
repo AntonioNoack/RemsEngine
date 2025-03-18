@@ -10,7 +10,7 @@ import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager

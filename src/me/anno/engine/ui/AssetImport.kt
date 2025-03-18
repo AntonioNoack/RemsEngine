@@ -8,6 +8,7 @@ import me.anno.gpu.GFX
 import me.anno.image.ImageReadable
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
+import me.anno.io.files.ImportType.MESH
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.SignatureCache
@@ -64,10 +65,15 @@ object AssetImport {
         Thumbs.invalidate(dst.getParent())
     }
 
-    fun getPureTypeOrNull(file: FileReference): String? {
+    fun getImportType(file: FileReference): String? {
         val alias = (file as? InnerFolder)?.alias
         if (alias != null) return getPureTypeOrNull(alias)
         return SignatureCache[file, false]?.importType
+    }
+
+    fun getPureTypeOrNull(file: FileReference): String? {
+        val importType = getImportType(file) ?: return null
+        return if (importType == MESH) null else importType
     }
 
     private fun generalCopyAssets(

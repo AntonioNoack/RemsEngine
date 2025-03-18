@@ -5,7 +5,7 @@ import me.anno.ecs.EntityQuery.anyComponent
 import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 
 /**
  * Casts a ray into the scene, reports the closest hit.

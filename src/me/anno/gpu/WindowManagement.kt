@@ -5,6 +5,7 @@ import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.engine.NamedTask
@@ -453,7 +454,7 @@ object WindowManagement {
             if (window.isInFocus ||
                 window.hasActiveMouseTargets() ||
                 neverStarveWindows ||
-                abs(window.lastUpdate - time) * EngineBase.idleFPS > SECONDS_TO_NANOS
+                abs(window.lastUpdate - time) * WindowRenderFlags.idleFPS > SECONDS_TO_NANOS
             ) {
                 window.lastUpdate = time
                 // this is hopefully ok (calling it async to other glfw stuff)
@@ -498,7 +499,7 @@ object WindowManagement {
         if (mayIdle && !OS.isWeb) { // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
             val isIdle = windows.isNotEmpty() &&
                     windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
-            val maxFPS = if (isIdle) EngineBase.idleFPS else EngineBase.maxFPS
+            val maxFPS = if (isIdle) WindowRenderFlags.idleFPS else WindowRenderFlags.maxFPS
             if (maxFPS > 0) {
                 // enforce X fps, because we don't need more
                 // and don't want to waste energy

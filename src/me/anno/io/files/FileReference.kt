@@ -10,15 +10,12 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
-import me.anno.utils.assertions.assertEquals
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
-import me.anno.utils.types.Strings.removeRange2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
@@ -125,6 +122,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     fun getChildOrNull(name: String): FileReference? =
         getChild(name).nullIfUndefined()
+
+    fun getNameWithExtension(ext: String): String {
+        return "$nameWithoutExtension.$ext"
+    }
 
     open fun hasChildren(): Boolean = listChildren().isNotEmpty()
 

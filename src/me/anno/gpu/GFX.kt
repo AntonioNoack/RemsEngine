@@ -28,11 +28,6 @@ object GFX {
     @JvmStatic
     private val LOGGER = LogManager.getLogger(GFX::class)
 
-    // for final rendering we need to use the GPU anyway;
-    // so just use a static variable
-    @JvmField
-    var isFinalRendering = false
-
     @JvmField
     val windows = ArrayList<OSWindow>()
 

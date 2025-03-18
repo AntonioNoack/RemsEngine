@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
+import me.anno.gpu.FinalRendering
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 
@@ -10,7 +11,8 @@ object Materials {
         materials: List<FileReference>, index: Int
     ): Material {
         val ref = getMaterialRef(materialOverrides, materials, index)
-        return MaterialCache[ref, defaultMaterial]
+        val async = !FinalRendering.isFinalRendering
+        return MaterialCache[ref, async] ?: defaultMaterial
     }
 
     fun getMaterial(

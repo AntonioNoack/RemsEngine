@@ -4,6 +4,8 @@ import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.gpu.FinalRendering.isFinalRendering
+import me.anno.gpu.FinalRendering.onMissingResource
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.Matrix4x3
 import org.joml.Quaterniond
@@ -21,15 +23,19 @@ object TextShapes : CacheSection("TextShapes") {
         scale: Double,
         transform: Matrix4x3?
     ) {
-        val mesh = getEntry(text, 10000, false) {
+        val mesh = getEntry(text, 10000, true) {
             TextMeshGroup(font, text, 0f, false)
                 .getOrCreateMesh()
-        } ?: return
-        val matrix = MovingGrid.init()
-        if (transform != null) matrix.mul(transform)
-        matrix.translate(position)
-        if (rotation != null) matrix.rotate(rotation)
-        matrix.scale(scale)
-        MovingGrid.drawMesh(pipeline, mesh)
+        }
+        if (mesh != null) {
+            val matrix = MovingGrid.init()
+            if (transform != null) matrix.mul(transform)
+            matrix.translate(position)
+            if (rotation != null) matrix.rotate(rotation)
+            matrix.scale(scale)
+            MovingGrid.drawMesh(pipeline, mesh)
+        } else if (isFinalRendering) {
+            onMissingResource("TextMesh", text)
+        }
     }
 }

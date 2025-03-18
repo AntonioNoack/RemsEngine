@@ -9,15 +9,13 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
-import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
-import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
@@ -107,7 +105,7 @@ class AgentController1a(
 fun main() {
     testUI("NavMeshRaycast") {
 
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
         ECSRegistry.init()
 
         val mask = 1 shl 16

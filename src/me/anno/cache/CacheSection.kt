@@ -192,18 +192,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         oldValue?.destroy()
     }
 
-    private fun <K, R> generateSafely(key: K, generator: (K) -> R): R? {
-        try {
-            return generator(key)
-        } catch (_: IgnoredException) {
-        } catch (e: FileNotFoundException) {
-            warnFileMissing(e)
-        } catch (e: Exception) {
-            LOGGER.warn(e)
-        }
-        return null
-    }
-
     private fun <V, W, R : ICacheData> generateDualSafely(key0: V, key1: W, generator: (V, W) -> R?): R? {
         var data: R? = null
         try {
@@ -215,10 +203,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             LOGGER.warn(e)
         }
         return data
-    }
-
-    private fun warnFileMissing(e: FileNotFoundException) {
-        LOGGER.warn("FileNotFoundException: {}", e.message)
     }
 
     private fun checkKey(key: Any?) {
@@ -454,14 +438,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any?, key1: Any?) {
-        if (!async) {
-            // else no need/sense in waiting
-            if (entry.waitForValueReturnWhetherIncomplete()) {
-                val key = if (key1 == null) key0 else key0 to key1
-                onLongWaitStart(key, entry)
-                entry.waitForValueOrThrow(key)
-                onLongWaitEnd(key, entry)
-            }
+        if (async || entry.hasValue()) return // no need/sense in waiting
+        if (entry.waitForValueReturnWhetherIncomplete()) {
+            val key = if (key1 == null) key0 else key0 to key1
+            onLongWaitStart(key, entry)
+            entry.waitForValueOrThrow(key)
+            onLongWaitEnd(key, entry)
         }
     }
 
@@ -556,6 +538,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         @JvmStatic
+        private val LOGGER = LogManager.getLogger(CacheSection::class)
+
+        @JvmStatic
         @InternalAPI
         val caches = ConcurrentSkipListSet<CacheSection>()
 
@@ -618,7 +603,20 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             Reference.invalidateListeners += CacheSection::invalidateFiles
         }
 
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(CacheSection::class)
+        fun <K, R> generateSafely(key: K, generator: (K) -> R): R? {
+            try {
+                return generator(key)
+            } catch (_: IgnoredException) {
+            } catch (e: FileNotFoundException) {
+                warnFileMissing(e)
+            } catch (e: Exception) {
+                LOGGER.warn(e)
+            }
+            return null
+        }
+
+        private fun warnFileMissing(e: FileNotFoundException) {
+            LOGGER.warn("FileNotFoundException: {}", e.message)
+        }
     }
 }

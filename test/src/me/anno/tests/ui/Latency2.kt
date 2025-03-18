@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input
@@ -38,8 +38,8 @@ fun main() {
     TestEngine.testUI3("Input Latency") {
         val list = PanelListY(style)
         list.add(TestDrawPanel {
-            EngineBase.enableVSync = mode == LatencyTestMode.VSYNC // with v-sync it's about 30ms worse
-            EngineBase.maxFPS = if (mode == LatencyTestMode.LIMITED_60) 60 else 0
+            WindowRenderFlags.enableVSync = mode == LatencyTestMode.VSYNC // with v-sync it's about 30ms worse
+            WindowRenderFlags.maxFPS = if (mode == LatencyTestMode.LIMITED_60) 60 else 0
             it.backgroundColor = when {
                 toBeChanged < 0f -> 0x336633 or black
                 else -> 0x773333 or black

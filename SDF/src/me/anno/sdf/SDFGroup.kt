@@ -9,8 +9,8 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
 import me.anno.sdf.SDFCombiningFunctions.hgFunctions
 import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.first2

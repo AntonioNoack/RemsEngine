@@ -1,7 +1,7 @@
 package me.anno.tests.ui.groups
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.components.AxisAlignment
@@ -19,7 +19,7 @@ import me.anno.utils.Color.black
 fun main() {
     disableRenderDoc()
     testUI3("List Stresstest 2d") {
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
         val n = 100 // _000
         val all = PanelListY(style)
         val list = PanelList2D(style)

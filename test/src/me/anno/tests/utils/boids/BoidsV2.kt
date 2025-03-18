@@ -5,7 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
@@ -130,6 +130,6 @@ fun main() {
         scene.add(boid)
     }
     testSceneWithUI("Boids V2", scene) {
-        EngineBase.showFPS = true
+        WindowRenderFlags.showFPS = true
     }
 }

@@ -29,7 +29,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.askRename
-import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerEntry
@@ -100,35 +100,52 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
         val current = if (entry == null) folder else getReference(entry.path)
 
         val projectFolder = currentProject?.location ?: return
-
-        if (current.absolutePath.startsWith(projectFolder.absolutePath) &&
-            !files.all { AssetImport.getPureTypeOrNull(it) != null }
+        if (current.isSameOrSubFolderOf(projectFolder) &&
+            files.any { file -> AssetImport.getPureTypeOrNull(file) == null }
         ) {
-            openMenu(windowStack, listOf(
-                MenuOption(NameDesc("Shallow-Copy Import")) {
-                    shallowCopyImport(current, files, this)
-                },
-                MenuOption(NameDesc("Deep-Copy Import")) {
-                    deepCopyImport(current, files, this)
-                },
-                MenuOption(NameDesc("Link To Index")) {
-                    val firstParent = files.first().getParent().nullIfUndefined()
-                    val name = if (files.size == 1) files.first().nameWithoutExtension
-                    else if (files.all2 { it.getParent() == firstParent }) firstParent?.nameWithoutExtension ?: "Root"
-                    else files.first().nameWithoutExtension
-                    val newFile = current.findNextChild(name, "url", 3, '-')
-                    // http://www.lyberty.com/encyc/articles/tech/dot_url_format_-_an_unofficial_guide.html
-                    newFile.writeText(
-                        "[InternetShortcut]\r\n" +
-                                files.joinToString(",") { "URL=file://${it.toLocalPath()}\r\n" }
-                    )
-                    LOGGER.debug("Created url link file {}", newFile)
-                },
-                MenuOption(NameDesc("More Options")) {
-                    super.onPasteFiles(x, y, files)
-                }
-            ))
+            pasteFiles(
+                files, folder,
+            )
         } else super.onPasteFiles(x, y, files)
+    }
+
+    private val shallowCopyDesc =
+        NameDesc("Shallow-Copy Import", "Import the file as a prefab, but just link dependencies", "")
+    private val deepCopyDesc =
+        NameDesc("Deep-Copy Import", "Import the file and any dependencies as prefabs, except for images", "")
+    private val linkToIndexDesc = NameDesc(
+        "Link To Index",
+        "Creates a .url file, which will be used when the project is opened to index assets", ""
+    )
+
+    override fun getPasteOptions(files: List<FileReference>, folder: FileReference): List<MenuOption> {
+        val baseOptions = super.getPasteOptions(files, folder)
+        val projectFolder = currentProject?.location ?: return baseOptions
+        if (files.none { file -> AssetImport.getPureTypeOrNull(file) == null }) return baseOptions
+        // when dragging over a current folder, do that operation on that folder
+        val entry = content2d.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
+        val current = if (entry == null) folder else getReference(entry.path)
+        if (!current.isSameOrSubFolderOf(projectFolder)) return baseOptions
+        return baseOptions + listOf(
+            menuSeparator1,
+            MenuOption(shallowCopyDesc) { shallowCopyImport(current, files, this) },
+            MenuOption(deepCopyDesc) { deepCopyImport(current, files, this) },
+            MenuOption(linkToIndexDesc) { linkToIndex(current, files) }
+        )
+    }
+
+    private fun linkToIndex(current: FileReference, files: List<FileReference>) {
+        val firstParent = files.first().getParent().nullIfUndefined()
+        val name = if (files.size == 1) files.first().nameWithoutExtension
+        else if (files.all2 { it.getParent() == firstParent }) firstParent?.nameWithoutExtension ?: "Root"
+        else files.first().nameWithoutExtension
+        val newFile = current.findNextChild(name, "url", 3, '-')
+        // http://www.lyberty.com/encyc/articles/tech/dot_url_format_-_an_unofficial_guide.html
+        newFile.writeText(
+            "[InternetShortcut]\r\n" +
+                    files.joinToString(",") { "URL=file://${it.toLocalPath()}\r\n" }
+        )
+        LOGGER.debug("Created url link file {}", newFile)
     }
 
     private fun pastePrefab(data: String): Boolean {

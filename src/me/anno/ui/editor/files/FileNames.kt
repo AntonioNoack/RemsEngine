@@ -1,11 +1,17 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
+import me.anno.utils.types.Strings.indexOf2
 
 object FileNames {
 
     private val forbiddenConfig =
         DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + CharArray(32) { it.toChar() }.concatToString()
+
+    private val forbiddenNames = ("CON,PRN,AUX,NUL," +
+            "COM¹,COM²,COM³,COM1,COM2,COM3,COM4,COM5,COM6,COM7,COM8,COM9," +
+            "LPT¹,LPT²,LPT³,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9")
+        .split(',')
 
     private val forbiddenCharacters = forbiddenConfig.toHashSet()
 
@@ -21,22 +27,9 @@ object FileNames {
     fun String.toAllowedFilename(): String? {
         var name = filter { it !in forbiddenCharacters }
         name = name.trim()
-        while (name.startsWith(".")) {
-            name = name.substring(1).trim()
-        }
-        while (name.endsWith(".")) {
-            name = name.substring(0, name.lastIndex).trim()
-        }
-        val split = name.split('.')
-        when (split[0]) {// without extension
-            "CON", "PRN", "AUX", "NUL",
-            "COM1", "COM2", "COM3", "COM4",
-            "COM5", "COM6", "COM7", "COM8",
-            "LPT1", "LPT2", "LPT3", "LPT4",
-            "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" -> return null
-        }
-        if (name.isEmpty()) return null
+        if (name == "" || name == "." || name == "..") return null
+        val i = name.indexOf2('.')
+        if (name.substring(0, i) in forbiddenNames) return null
         return name
     }
-
 }

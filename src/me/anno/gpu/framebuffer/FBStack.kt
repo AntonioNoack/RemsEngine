@@ -1,16 +1,15 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.cache.SimpleCache
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
-object FBStack : CacheSection("FBStack") {
+object FBStack : SimpleCache("FBStack", 2100L) {
 
     private val LOGGER = LogManager.getLogger(FBStack::class)
-    private const val TIMEOUT = 2100L
 
     private abstract class FBStackData(
         val width: Int,
@@ -136,9 +135,7 @@ object FBStack : CacheSection("FBStack") {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey1(width, height, channels, quality, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, TIMEOUT, false) {
-            FBStackData1(it)
-        }!!
+        return getEntry(key, ::FBStackData1)!!
     }
 
     private fun getValue(
@@ -146,9 +143,7 @@ object FBStack : CacheSection("FBStack") {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey2(width, height, targetType, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, TIMEOUT, false) {
-            FBStackData2(it)
-        }!!
+        return getEntry(key, ::FBStackData2)!!
     }
 
     private fun getValue(
@@ -156,9 +151,7 @@ object FBStack : CacheSection("FBStack") {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey3(w, h, targetTypes, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, TIMEOUT, false) {
-            FBStackData3(it)
-        }!!
+        return getEntry(key, ::FBStackData3)!!
     }
 
     operator fun get(

@@ -1,6 +1,6 @@
 package me.anno.ecs
 
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 
 // (how) can we call them from Lua? -> the Java way, because Lua is using Java reflection iirc
 object EntityStats {

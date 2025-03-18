@@ -37,7 +37,7 @@ import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.MeshRendering.drawImpl
 import me.anno.mesh.MeshRendering.drawInstancedImpl
 import me.anno.mesh.MeshUtils.countPrimitives
-import me.anno.utils.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.InternalAPI
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize

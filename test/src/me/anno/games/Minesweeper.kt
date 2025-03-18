@@ -1,7 +1,7 @@
 package me.anno.games
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.EngineBase.Companion.showFPS
+import me.anno.engine.WindowRenderFlags.showFPS
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.texture.Filtering
 import me.anno.image.ImageCache

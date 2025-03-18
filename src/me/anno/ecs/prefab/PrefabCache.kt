@@ -33,7 +33,7 @@ import me.anno.io.yaml.saveable.YAML2JSON
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
@@ -114,9 +114,15 @@ object PrefabCache : CacheSection("Prefab") {
     fun getPrefabInstanceAsync(resource: FileReference?, depth: Int = maxPrefabDepth, callback: Callback<Saveable?>) {
         getPrefabPairAsync(resource, { pair, err ->
             if (pair != null) {
-                callback.ok(pair.instance ?: pair.prefab?.getSampleInstance(depth))
+                pair.waitFor {
+                    callback.ok(getPrefabInstance(pair, depth))
+                }
             } else callback.err(err)
         }, depth, timeoutMillis)
+    }
+
+    private fun getPrefabInstance(pair: FileReadPrefabData, depth: Int): Saveable? {
+        return pair.instance ?: pair.prefab?.getSampleInstance(depth)
     }
 
     fun printDependencyGraph(prefab: FileReference): String {
@@ -308,16 +314,17 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun loadPrefabFromFolder(file: FileReference, callback: Callback<Saveable>) {
-        val folder = InnerFolderCache.readAsFolder(file, false)
-        if (folder != null) {
-            val scene = folder.getChild("Scene.json") as? PrefabReadable
-            val scene2 = scene ?: folder.listChildren().firstInstanceOrNull(PrefabReadable::class)
-            if (scene2 != null) {
-                val prefab = scene2.readPrefab()
-                prefab.source = file
-                callback.ok(prefab)
-            } else callback.err(null)
-        } else callback.err(null)
+        InnerFolderCache.readAsFolder(file, true) { folder, err ->
+            if (folder != null) {
+                val scene = folder.getChild("Scene.json") as? PrefabReadable
+                val scene2 = scene ?: folder.listChildren().firstInstanceOrNull(PrefabReadable::class)
+                if (scene2 != null) {
+                    val prefab = scene2.readPrefab()
+                    prefab.source = file
+                    callback.ok(prefab)
+                } else callback.err(err)
+            } else callback.err(err)
+        }
     }
 
     fun getPrefabPair(

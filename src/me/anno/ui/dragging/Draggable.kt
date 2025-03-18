@@ -30,12 +30,11 @@ open class Draggable(
     init {
         loadTexturesSync.push(true)
         ui.calculateSize(300, 300)
-        ui.setPosSize(0, 0, ui.minW, ui.minH)
         loadTexturesSync.pop()
     }
 
     override fun getSize(w: Int, h: Int): IntPair {
-        return IntPair(ui.width, ui.height)
+        return IntPair(ui.minW, ui.minH)
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

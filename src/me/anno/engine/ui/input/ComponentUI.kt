@@ -79,7 +79,7 @@ import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
 import me.anno.utils.Reflections.getParentClasses
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
@@ -157,7 +157,8 @@ object ComponentUI {
             val file = files.first()
             // todo ask file instead
             val ext = if (OS.isWindows) "url" else "desktop"
-            Menu.askName(panel.windowStack, NameDesc.EMPTY,
+            Menu.askName(
+                panel.windowStack, NameDesc.EMPTY,
                 if (file.isDirectory) file.name
                 else "${file.nameWithoutExtension}.$ext",
                 NameDesc("Link"), { -1 }, { newName ->
@@ -454,7 +455,8 @@ object ComponentUI {
                 } else createIntInput(title, visibilityKey, value, default, property, range, style)
             }
             "Long" -> {
-                val type = NumberType(default as? Long ?: 0L,
+                val type = NumberType(
+                    default as? Long ?: 0L,
                     { clamp(AnyToLong.getLong(it, 0), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL

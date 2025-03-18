@@ -221,8 +221,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             p0.isParent -> -1
             p1.isParent -> +1
             else -> {
-                val a = p0.ref1s
-                val b = p1.ref1s
+                val a = p0.ref1 ?: InvalidRef
+                val b = p1.ref1 ?: InvalidRef
                 val base = clamp(fileSorting.compare(a, b), -1, +1) * (if (ascendingSorting) +1 else -1)
                 if (folderSorting == FolderSorting.MIXED) base
                 else base + p0.isDirectory.compareTo(p1.isDirectory) * folderSorting.weight
@@ -247,7 +247,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 action: String, isContinuous: Boolean
             ): Boolean {
                 return if (action == "OpenOptions") {
-                    openMenu(windowStack, listOf(
+                    openMenu(
+                        windowStack, listOf(
                         MenuOption(NameDesc(Dict["Remove from favourites", "ui.fileExplorer.removeFromFavourites"])) {
                             Favourites.removeFavouriteFiles(listOf(folder))
                         }
@@ -329,7 +330,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         searchBar.padding.add(padLR, 0, padLR, 0)
         pathPanel.addRightClickListener {
             val shortCutFolders = getShortcutFolders()
-            openMenu(windowStack, NameDesc("Options"),
+            openMenu(
+                windowStack, NameDesc("Options"),
                 listOf(
                     MenuOption(NameDesc("Add Current To Favourites")) {
                         DefaultConfig["files.shortcuts"] = (getShortcutFolders() + folder)
@@ -470,9 +472,13 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     fun pasteFiles(files: List<FileReference>, folder: FileReference, extraOptions: List<MenuOption> = emptyList()) {
+        openMenu(windowStack, getPasteOptions(files, folder) + extraOptions)
+    }
+
+    open fun getPasteOptions(files: List<FileReference>, folder: FileReference): List<MenuOption> {
         // create links? or truly copy them?
         // or just switch?
-        openMenu(windowStack, listOf(
+        return listOf(
             MenuOption(NameDesc("Move")) {
                 thread(name = "moving files") {
                     moveInto(files, folder)
@@ -494,9 +500,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                     createLinksInto(files, folder)
                 }
             }
-        ) + extraOptions + listOf(
-            MenuOption(NameDesc("Cancel")) {}
-        ))
+        )
     }
 
     fun copyInto(files: List<FileReference>, folder: FileReference) {
@@ -554,7 +558,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 val home = folder
                 val base = listOf(
                     MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
-                        askName(windowStack,
+                        askName(
+                            windowStack,
                             NameDesc("Name", "", "ui.newFolder.askName"),
                             "",
                             NameDesc("Create"),

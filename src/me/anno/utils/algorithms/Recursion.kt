@@ -1,4 +1,4 @@
-package me.anno.utils.structures
+package me.anno.utils.algorithms
 
 import me.anno.utils.hpc.threadLocal
 import kotlin.math.max

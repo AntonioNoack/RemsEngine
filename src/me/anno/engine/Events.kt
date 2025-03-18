@@ -25,8 +25,10 @@ object Events {
     private val scheduledTasks: Queue<ScheduledTask> = PriorityBlockingQueue(16)
 
     fun getCalleeName(): String {
-        val entry = Exception().stackTrace
-            .getOrNull(2) ?: return "?"
+        val trace = Exception().stackTrace
+        val entry = trace
+            .firstOrNull { it.className != "me.anno.utils.Sleep" && it.methodName != "getCalleeName" }
+            ?: return "?"
         return entry.toString()
     }
 

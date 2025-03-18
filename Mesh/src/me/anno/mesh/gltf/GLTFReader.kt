@@ -42,12 +42,12 @@ import me.anno.mesh.gltf.reader.Node
 import me.anno.mesh.gltf.reader.Texture
 import me.anno.mesh.gltf.writer.Sampler
 import me.anno.utils.Color.rgba
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.files.Files.nextName
-import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortedByTopology
@@ -61,8 +61,8 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector2i

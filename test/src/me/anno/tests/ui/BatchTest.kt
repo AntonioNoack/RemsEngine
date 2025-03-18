@@ -1,10 +1,10 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Key
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.toARGB
@@ -12,8 +12,8 @@ import org.joml.Vector4f
 
 fun main() {
     testUI3("Batch Test") {
-        EngineBase.enableVSync = false
-        EngineBase.showFPS = true
+        WindowRenderFlags.enableVSync = false
+        WindowRenderFlags.showFPS = true
         object : Panel(style) {
 
             var batch = false

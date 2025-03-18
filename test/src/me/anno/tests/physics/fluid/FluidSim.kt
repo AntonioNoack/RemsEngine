@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.systems.OnUpdate
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.ECSMeshShader
@@ -254,7 +254,7 @@ fun main() {
     // we handle collisions ourselves
     comp.collisionMask = 0
     testSceneWithUI("FluidSim", scene) {
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
         it.editControls = object : DraggingControls(it.renderView) {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {}
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

@@ -1,9 +1,9 @@
 package me.anno.tests.ui.groups
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.maths.Maths.sq
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
@@ -18,7 +18,7 @@ fun main() {
             AxisAlignment.CENTER,
             AxisAlignment.MAX,
         )
-        EngineBase.showFPS = false
+        WindowRenderFlags.showFPS = false
         NineTilePanel(style).apply {
             addLeftClickListener {
                 val window = window!!

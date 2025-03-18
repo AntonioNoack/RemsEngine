@@ -13,6 +13,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
+import me.anno.ui.base.Search
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
@@ -22,12 +23,11 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
-import me.anno.ui.base.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.roundToIntOr
@@ -86,7 +86,8 @@ object Menu {
      * let the user confirm something (like JavaScript confirm())
      * */
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit): Window? {
-        val window = openMenu(windowStack, question, listOf(
+        val window = openMenu(
+            windowStack, question, listOf(
             MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
             MenuOption(NameDesc("No", "", "ui.no")) {}
         ))
@@ -532,6 +533,7 @@ object Menu {
     fun openMenu(
         windowStack: WindowStack,
         x: Float, y: Float, nameDesc: NameDesc, options: List<MenuOption>, delta: Int = 10
-    ): Window? = openComplexMenu(windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, nameDesc,
+    ): Window? = openComplexMenu(
+        windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, nameDesc,
         options.map { option -> option.toComplex() })
 }

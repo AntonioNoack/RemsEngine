@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ECSRegistry
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
@@ -30,7 +30,7 @@ fun main() {
     OfficialExtensions.initForTests()
     testUI("NavMeshSmall") {
 
-        EngineBase.enableVSync = false
+        WindowRenderFlags.enableVSync = false
         ECSRegistry.init()
 
         val mask = 1 shl 16

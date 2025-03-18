@@ -1,7 +1,7 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.EngineBase
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.debug.TestEngine.Companion.testUI2
@@ -23,7 +23,7 @@ fun main() {
     val fvi = FloatVectorInput(NameDesc("Float Vector"), "", SCALE, style)
     val ivi = IntVectorInput(NameDesc("Int Vector"), "", VEC3D, style)
     testUI2("Text Input") {
-        EngineBase.enableVSync = true
+        WindowRenderFlags.enableVSync = true
         listOf(ti, fi, ii, fvi, ivi)
     }
 }

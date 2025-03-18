@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.Time
 import me.anno.gpu.Blitting
+import me.anno.gpu.FinalRendering
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
@@ -18,7 +19,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImageFormat
 import me.anno.io.files.FileReference
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
@@ -109,8 +109,6 @@ abstract class FrameTask(
 
         GFX.check()
 
-        GFX.isFinalRendering = true
-
         // is this correct??? mmh...
         val renderer = Renderer.colorRenderer
 
@@ -118,12 +116,12 @@ abstract class FrameTask(
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
             GFXState.useFrame(0, 0, width, height, averageFrame) {
-                missingFrameException = null
-                renderScene(time, true, renderer)
-                assertTrue(GFX.isFinalRendering)
-                if (missingFrameException != null) {
+                val missing = FinalRendering.runFinalRendering {
+                    renderScene(time, true, renderer)
+                }
+                if (missing != null) {
                     // e.printStackTrace()
-                    missingResource = missingFrameException ?: ""
+                    missingResource = missing
                     needsMoreSources = true
                 }
             }
@@ -136,15 +134,13 @@ abstract class FrameTask(
                 while (i++ < motionBlurSteps && !needsMoreSources) {
                     FBStack.reset(width, height)
                     GFXState.useFrame(partialFrame, renderer) {
-                        renderScene(
-                            time + (i - motionBlurSteps / 2f) * shutterPercentage / (fps * motionBlurSteps),
-                            true,
-                            renderer
-                        )
-                        assertTrue(GFX.isFinalRendering)
-                        if (missingFrameException != null) {
+                        val timeI = time + (i - motionBlurSteps / 2f) * shutterPercentage / (fps * motionBlurSteps)
+                        val missing = FinalRendering.runFinalRendering {
+                            renderScene(timeI, true, renderer)
+                        }
+                        if (missing != null) {
                             // e.printStackTrace()
-                            missingResource = missingFrameException ?: ""
+                            missingResource = missing
                             needsMoreSources = true
                         }
                     }
@@ -158,11 +154,8 @@ abstract class FrameTask(
                         }
                     }
                 }
-
             }
         }
-
-        GFX.isFinalRendering = false
 
         if (needsMoreSources) return false
 

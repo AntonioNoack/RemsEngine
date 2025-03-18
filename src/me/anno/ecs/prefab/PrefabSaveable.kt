@@ -23,7 +23,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.utils.InternalAPI
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.Hierarchical
-import me.anno.utils.structures.Recursion
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Strings.camelCaseToTitle

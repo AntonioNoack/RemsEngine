@@ -24,8 +24,8 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.stacked.Option
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.Recursion
 import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
