@@ -249,6 +249,9 @@ fun mergeChannels(
     dataXYZ.getTexture0(), dataZYX.getTexture0(), dataXZY.getTexture0(), dst
 )
 
+/**
+ * Rasterize a mesh on the GPU in 3D
+ * */
 fun main() {
 
     OfficialExtensions.initForTests()

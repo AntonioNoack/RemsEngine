@@ -118,7 +118,7 @@ object DrawTextures {
         GFX.check()
         val shader = depthShader.value
         shader.use()
-        posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h, true)
         GFXx2D.noTiling(shader)
         texture.bind(0)
         val depthFunc = texture.depthFunc
@@ -136,7 +136,7 @@ object DrawTextures {
         GFX.check()
         val shader = depthArrayShader.value
         shader.use()
-        posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h, true)
         GFXx2D.noTiling(shader)
         shader.v1f("layer", layer)
         texture.bind(0, texture.filtering, texture.clamping)
@@ -157,7 +157,7 @@ object DrawTextures {
         GFX.check()
         val shader = flatShaderTexture.value
         shader.use()
-        posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h, true)
         shader.v4f("color", color)
         shader.v1i("alphaMode", 3)
         shader.v1b("applyToneMapping", applyToneMapping)

@@ -1,5 +1,6 @@
 package me.anno.tests.sdf
 
+import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -10,6 +11,8 @@ import me.anno.sdf.shapes.SDFBox
 fun main() {
     OfficialExtensions.initForTests()
 
+    val material = DefaultAssets.goldenMaterial
+
     val array = SDFArrayMapper()
     array.cellSize.set(2f)
     array.count.set(10, 1, 10)
@@ -19,6 +22,7 @@ fun main() {
     rot.maxAngleDegrees.set(+2f, 0f, +2f)
 
     val shape = SDFBox()
+    shape.sdfMaterials = listOf(material.ref)
     shape.addChild(array)
     shape.addChild(rot)
 

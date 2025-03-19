@@ -696,7 +696,7 @@ object DebugRendering {
                     DrawTextures.drawDepthTexture(x2, y, x3 - x2, sz, texture)
                 } else {
                     DrawTextures.drawTexture(
-                        x2, y + sz, x3 - x2, -sz, texture,
+                        x2, y, x3 - x2, sz, texture,
                         true, -1, null, texture.isHDR
                     )
                 }

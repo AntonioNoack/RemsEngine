@@ -20,7 +20,7 @@ import kotlin.math.max
 object ExeSkipper {
     @JvmStatic
     fun main(args: Array<String>) {
-        val src = desktop.getChild("RemsStudio 1.3.1.exe")
+        val src = desktop.getChild("RemsStudio 1.3.2.exe")
         desktop.getChild("Extracted.zip").writeBytes(getBytesAfterExeSections(src))
     }
 
