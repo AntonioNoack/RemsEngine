@@ -1,6 +1,6 @@
 package org.recast4j.recast
 
-enum class PartitionType {
+enum class PartitionType(val id: Int) {
     /**
      * Watershed partitioning
      *  - the classic Recast partitioning
@@ -12,7 +12,7 @@ enum class PartitionType {
      *  - overlaps may occur if you have narrow spiral corridors (i.e., stairs), this make triangulation to fail
      *  - generally the best choice if you precompute the navmesh, use this if you have large open areas
      * */
-    WATERSHED,
+    WATERSHED(0),
 
     /**
      * Monotone portioning
@@ -21,7 +21,7 @@ enum class PartitionType {
      * - creates long thin polygons, which sometimes causes paths with detours
      * - use this if you want fast navmesh generation
      * */
-    MONOTONE,
+    MONOTONE(1),
 
     /**
      * Layer partitioning
@@ -33,5 +33,5 @@ enum class PartitionType {
      *  - can be slow and create ugly tessellation (still better than monotone) if you have large open areas with small obstacles (not a problem if you use tiles)
      *  - good choice to use for tiled navmesh with medium and small sized tiles
      * */
-    LAYERS
+    LAYERS(2)
 }

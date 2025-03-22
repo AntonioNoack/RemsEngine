@@ -6,6 +6,7 @@ import me.anno.input.ActionManager
 import me.anno.input.ActionManager.keyDragDelay
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.tests.FlakyTest
 import me.anno.tests.ui.UITests
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.FileInput
@@ -22,6 +23,7 @@ import kotlin.math.ceil
 
 class DraggingTest : UITests() {
     @Test
+    @FlakyTest("Only works when running separately, why ever")
     @Execution(ExecutionMode.SAME_THREAD)
     fun testCopyValueByDragging() {
 

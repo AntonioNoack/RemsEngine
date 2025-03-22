@@ -1,10 +1,10 @@
 package me.anno.cache
 
 import me.anno.Time.startDateTime
-import me.anno.io.files.LastModifiedCache
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.LastModifiedCache
 import me.anno.io.utils.StringMap
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.maps.Maps.removeIf
@@ -37,35 +37,38 @@ abstract class FileCache<Key, Value>(
     }
 
     // src1.exists && !src1.isDirectory
-    open fun isKeyValid(key: Key): Boolean = true
     abstract fun load(key: Key, src: FileReference?): Value
 
     fun getFile(uniqueFileName: String) = cacheFolder.getChild(uniqueFileName)
 
-    fun generateFile(key: Key): CacheData<Value?> {
+    fun generateFile(key: Key): AsyncCacheData<Value?> {
         init()
-        return if (isKeyValid(key)) {
-            val uuid = getUniqueFilename(key)
-            val dst = getFile(uuid)
-            val data = CacheData<Value?>(null)
-            if (!dst.exists) {
-                val tmp = cacheFolder.getChild(
-                    if (dst.lcExtension.isEmpty()) dst.nameWithoutExtension + ".tmp"
-                    else dst.nameWithoutExtension + ".tmp.${dst.extension}"
-                )
-                fillFileContents(key, tmp, {
-                    renameTmpToDst(uuid, tmp, dst)
-                    data.value = load(key, dst)
-                }, {
-                    it?.printStackTrace()
-                    data.value = load(key, InvalidRef)
-                })
-            } else {
-                markUsed(uuid)
+
+        val data = AsyncCacheData<Value?>()
+        val uuid = getUniqueFilename(key)
+        if (uuid == null) {
+            data.value = null
+            return data
+        }
+
+        val dst = getFile(uuid)
+        if (!dst.exists) {
+            val tmp = cacheFolder.getChild(
+                if (dst.lcExtension.isEmpty()) dst.nameWithoutExtension + ".tmp"
+                else dst.nameWithoutExtension + ".tmp.${dst.extension}"
+            )
+            fillFileContents(key, tmp, {
+                renameTmpToDst(uuid, tmp, dst)
                 data.value = load(key, dst)
-            }
-            data
-        } else CacheData(null)
+            }, {
+                it?.printStackTrace()
+                data.value = load(key, InvalidRef)
+            })
+        } else {
+            markUsed(uuid)
+            data.value = load(key, dst)
+        }
+        return data
     }
 
     fun markUsed(uuid: String) {
@@ -99,7 +102,10 @@ abstract class FileCache<Key, Value>(
         onError: (Exception?) -> Unit,
     )
 
-    abstract fun getUniqueFilename(key: Key): String
+    /**
+     * may return null, if the key isn't valid
+     * */
+    abstract fun getUniqueFilename(key: Key): String?
 
     private fun deleteUnusedFiles() {
         var deleted = 0
@@ -123,6 +129,4 @@ abstract class FileCache<Key, Value>(
         private const val FILE_TIMEOUT = 7 * 24 * 3600 * 1000 // delete values after one week of not-used
         private val LOGGER = LogManager.getLogger(FileCache::class)
     }
-
-
 }

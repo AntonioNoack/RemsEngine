@@ -35,32 +35,21 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         } else super.createTextureImpl(texture, checkRedundancy, callback)
     }
 
-    private fun getValue(index: Int): Int {
-        val base = src.getRGB(index).ushr(shift).and(255)
+    private fun extractValue(color: Int): Int {
+        val base = color.ushr(shift).and(255)
         return if (inverse) 255 - base else base
     }
 
-    override fun getRGB(index: Int): Int {
-        return (getValue(index) * 0x10101) or black
+    private fun valueToRGB(value: Int): Int {
+        return (value * 0x10101) or black
     }
 
-    override fun asIntImage(): IntImage {
-        val newImage0 = src.asIntImage()
-        val newData = newImage0.cloneData() // just to be safe to not modify the original
-        val newImage1 = IntImage(newImage0.width, newImage0.height, newData, false)
-        val size = newImage0.width * newImage0.height
-        for (i in 0 until size) {
-            newData[i] = newData[i].ushr(shift).and(255)
-        }
-        if (inverse) {
-            for (i in 0 until size) {
-                newData[i] = 255 - newData[i]
-            }
-        }
-        for (i in 0 until size) {
-            newData[i] = (newData[i] * 0x10101) or black
-        }
-        return newImage1
+    private fun getValue(index: Int): Int {
+        return extractValue(src.getRGB(index))
+    }
+
+    override fun getRGB(index: Int): Int {
+        return valueToRGB(getValue(index))
     }
 
     override fun toString(): String {

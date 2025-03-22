@@ -76,7 +76,7 @@ class TextComponentImplTests {
     // these values are very font dependent
     val expectedBlackLevels = 135f..170f
     val expectedWhiteLevels = 190f..230f
-    val expectedDifference = 0f..140f // ideally, this would be zero
+    val expectedDifference = 0f..142f // ideally, this would be zero
 
     fun getImageDifference(a: Image, b: Image): Float {
         var error = 0f

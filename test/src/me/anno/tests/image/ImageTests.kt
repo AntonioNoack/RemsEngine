@@ -121,7 +121,7 @@ class ImageTests {
                 assertNull(err)
                 val clonedImage = assertIs(FloatImage::class, tex!!.createImage(false, withAlpha = true))
                 assertNotSame(clonedImage, image)
-                assertContentEquals(clonedImage.data, image.data)
+                assertContentEquals(clonedImage, image)
                 texture.destroy()
             }
         }
@@ -133,19 +133,25 @@ class ImageTests {
         image.createTexture(texture, checkRedundancy = false) { tex, err ->
             assertSame(tex, texture)
             assertNull(err)
-            val clonedImage = tex!!.createImage(false, withAlpha = true).asIntImage()
+            val clonedImage = tex!!.createImage(false, withAlpha = true)
             assertNotSame(clonedImage, image)
-            assertContentEqualsMasked(clonedImage.data, image.asIntImage().data, mask)
+            assertContentEqualsMasked(clonedImage, image, mask)
             texture.destroy()
         }
     }
 
-    fun assertContentEqualsMasked(a: IntArray, b: IntArray, mask: Int) {
-        assertEquals(a.size, b.size)
-        // println(a.toList().map { it.toHexColor() })
-        for (i in a.indices) {
-            assertEquals(a[i] and mask, b[i] and mask)
+    fun assertContentEqualsMasked(a: Image, b: Image, mask: Int) {
+        assertEquals(a.width, b.width)
+        assertEquals(a.height, b.width)
+        a.forEachPixel { x, y ->
+            val colorA = a.getRGB(x, y) and mask
+            val colorB = b.getRGB(x, y) and mask
+            assertEquals(colorA, colorB)
         }
+    }
+
+    fun assertContentEquals(a: Image, b: Image) {
+        return assertContentEqualsMasked(a, b, -1)
     }
 
     @Test

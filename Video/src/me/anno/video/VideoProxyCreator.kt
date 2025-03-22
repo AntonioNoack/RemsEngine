@@ -32,12 +32,9 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
 
     fun getProxyFile(src: FileReference, sliceIndex: Int, async: Boolean = true): FileReference? {
         init()
-        return getEntry(getKey(src, sliceIndex), 10_000, async, ::generateFile)?.value
-    }
-
-    override fun isKeyValid(key: Key): Boolean {
-        val src1 = key.file
-        return src1.exists && !src1.isDirectory
+        val cacheValue = getEntry(getKey(src, sliceIndex), 10_000, async, ::generateFile)
+        if (!async && cacheValue != null) cacheValue.waitFor()
+        return cacheValue?.value
     }
 
     /**
@@ -94,8 +91,10 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
         )
     }
 
-    override fun getUniqueFilename(key: Key): String {
+    override fun getUniqueFilename(key: Key): String? {
         val (file, _, sliceIndex) = key
+        if (!file.exists || file.isDirectory) return null // invalid key
+
         val completePath = file.toString()
         val lastModified = file.lastModified
         return "${file.nameWithoutExtension}-" +

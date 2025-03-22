@@ -71,6 +71,7 @@ class SimpleExportTest {
         Engine.cancelShutdown()
         val clock = Clock("SimpleExportTest")
         val executableFile = createEngineBuild()
+        println("Executable: $executableFile")
         clock.stop("Creating Export")
         val process = BetterProcessBuilder("java", 2, false)
             .addAll(listOf("-jar", executableFile.absolutePath))

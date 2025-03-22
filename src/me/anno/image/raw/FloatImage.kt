@@ -53,11 +53,12 @@ class FloatImage(
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
-        val tmp = FloatArray(width * height)
+        val tmp = FloatArray(width * height * numChannels)
         for (y in 0 until height) {
-            val src0 = getIndex(0, height - 1 - y)
-            val src1 = src0 + width
-            data.copyInto(tmp, y * width, src0, src1)
+            val src0 = getIndex(0, height - 1 - y) * numChannels
+            val src1 = src0 + width * numChannels
+            val dstI = y * width * numChannels
+            data.copyInto(tmp, dstI, src0, src1)
         }
         texture.create(TargetType.Float32xI[numChannels - 1], tmp)
         callback.ok(texture)

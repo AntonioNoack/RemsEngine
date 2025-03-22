@@ -878,7 +878,7 @@ open class Texture2D(
             image
         }
         check()
-        if (flipY) image.flipY()
+        if (!flipY) image.flipY()
         return image
     }
 

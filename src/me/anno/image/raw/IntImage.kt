@@ -13,7 +13,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools
-import java.nio.IntBuffer
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -98,24 +97,12 @@ open class IntImage(
         else (data[index] or black)
     }
 
-    override fun asIntImage(): IntImage = this
-
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
         val flipped = true
         if (hasAlphaChannel) texture.createBGRA(cloneData(flipped), checkRedundancy)
         else texture.createBGR(cloneData(flipped), checkRedundancy)
         callback.ok(texture)
-    }
-
-    fun putInto(dst: IntBuffer, flipped: Boolean) {
-        val data = data
-        val width = width
-        val height = height
-        for (y in 0 until height) {
-            val yi = if (flipped) height - 1 - y else y
-            dst.put(data, getIndex(0, yi), width)
-        }
     }
 
     override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
@@ -133,6 +120,14 @@ open class IntImage(
             val dstI0 = dst.getIndex(x0, y0 + y)
             srcData.copyInto(dstData, dstI0, srcI0, srcI0 + width)
         }
+    }
+
+    override fun asIntImage(): IntImage = this
+
+    override fun cloneToIntImage(): IntImage {
+        val clone = IntImage(width, height, hasAlphaChannel)
+        copyInto(clone, 0, 0)
+        return clone
     }
 
     fun cloneData(flipped: Boolean = false): IntArray {

@@ -7,6 +7,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.black
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.LocalFile.toGlobalFile

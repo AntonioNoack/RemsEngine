@@ -48,6 +48,10 @@ abstract class Image(
     }
 
     open fun asIntImage(): IntImage {
+        return cloneToIntImage()
+    }
+
+    open fun cloneToIntImage(): IntImage {
         val width = width
         val height = height
         val data = IntArray(width * height)

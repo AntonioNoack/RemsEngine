@@ -5,7 +5,6 @@ import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.UnknownSaveable
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 
 abstract class BaseReader : ReaderImpl {
 
@@ -68,15 +67,6 @@ abstract class BaseReader : ReaderImpl {
     }
 
     companion object {
-
         private val LOGGER = LogManager.getLogger(BaseReader::class)
-
-        fun <V> assertEquals(a: V, b: V, msg: String) {
-            if (a != b) throw IOException("$msg, $a != $b")
-        }
-
-        fun <V> assertEquals(a: V, b: V) {
-            if (a != b) throw IOException("$a != $b")
-        }
     }
 }

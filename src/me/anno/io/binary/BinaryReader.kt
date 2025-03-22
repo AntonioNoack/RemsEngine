@@ -20,6 +20,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.SimpleType
 import me.anno.io.saveable.Saveable
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.createArrayList

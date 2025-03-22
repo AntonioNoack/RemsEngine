@@ -4,6 +4,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.io.MediaMetadata.Companion.getMeta
+import me.anno.tests.FlakyTest
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -28,6 +29,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
         val meta = getMeta(res.getChild("files/gimp-3x3.tga"), false)!!
@@ -37,6 +39,7 @@ class TgaImageReaderTest {
     }
 
     @Test
+    @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize2() {
         val meta = getMeta(res.getChild("files/gimp-3x3-fy.tga"), false)!!

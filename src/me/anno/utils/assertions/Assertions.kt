@@ -74,6 +74,16 @@ fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal
     }
 }
 
+fun assertEquals(expected: CharSequence?, actual: CharSequence?, message: String = "expected equal values") {
+    val condition = (expected == null && actual == null) ||
+            (expected != null && actual != null &&
+                    expected.length == actual.length &&
+                    expected.indices.all { idx -> expected[idx] == actual[idx] })
+    assertTrue(condition) {
+        "$message, \n  expected ${str(expected)} != \n  actually ${str(actual)}"
+    }
+}
+
 private fun str(value: Any?): String {
     return if (value != null) "'$value'" else "null"
 }
