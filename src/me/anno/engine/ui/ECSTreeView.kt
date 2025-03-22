@@ -68,10 +68,8 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     val inspector get() = currentInspector!!
 
     override fun listRoots(): List<Saveable> {
-        val instance = EngineBase.instance
-        val systems = instance?.systems
         val world = EditorState.prefab?.getSampleInstance()
-        return systems.wrapWith(world)
+        return Systems.wrapWith(world)
     }
 
     override fun isValidElement(element: Any?): Boolean {

@@ -73,16 +73,15 @@ abstract class EngineBase(
             versionSuffix
         )
 
-    val systems get() = Systems
-
     open fun loadConfig() {}
 
     abstract fun createUI()
 
     open fun onGameLoopStart() {
-        systems.world = EditorState.prefabAsync?.getSampleInstance()
-        (systems.world as? Entity)?.create() // really do that here???
-        systems.onUpdate()
+        val sampleInstance = EditorState.prefabAsync?.getSampleInstance()
+        Systems.world = sampleInstance
+        (sampleInstance as? Entity)?.create() // really do that here???
+        Systems.onUpdate()
     }
 
     open fun onGameLoopEnd() {}
