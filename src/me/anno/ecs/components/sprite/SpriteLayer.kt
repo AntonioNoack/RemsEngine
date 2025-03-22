@@ -22,6 +22,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.input.Input
 import me.anno.io.base.BaseWriter
+import me.anno.utils.assertions.assertTrue
 import org.joml.AABBf
 import org.joml.Matrix4x3
 import org.joml.Vector2i
@@ -91,6 +92,12 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(attributes, spr
     override fun getData(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer? {
         val k = material.numTiles.x
         if (mesh.entries.isEmpty() || k < 1) return null
+        return getDataSafely(key, mesh)
+    }
+
+    fun getDataSafely(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer {
+        val k = material.numTiles.x
+        assertTrue(mesh.entries.isNotEmpty() && k >= 1)
         val buffer = StaticBuffer("sprites", attributes, mesh.numPrimitives.toInt())
         mesh.fillBuffer(SPRITE_BITS_X, SPRITE_BITS_Y, key, buffer)
         return buffer
@@ -196,7 +203,7 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(attributes, spr
         bounds.maxX += dx + 1f // extend bounds for 1x1-sized cells
         bounds.maxY += dy + 1f
         val mesh = SpriteMeshLike(data, bounds, materials)
-        val buffer = getData(key, mesh)!!
+        val buffer = getDataSafely(key, mesh)
         return MeshEntry(mesh, bounds, buffer)
     }
 

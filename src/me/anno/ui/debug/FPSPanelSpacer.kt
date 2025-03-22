@@ -23,4 +23,10 @@ class FPSPanelSpacer(style: Style) : Panel(style) {
         }
         minH = 1
     }
+
+    override fun clone(): FPSPanelSpacer {
+        val clone = FPSPanelSpacer(style)
+        copyInto(clone)
+        return clone
+    }
 }

@@ -88,7 +88,7 @@ class FileCacheTests {
     }
 
     @Test
-    @FlakyTest("Only works when running separately, why ever...")
+    @FlakyTest()
     @Execution(ExecutionMode.SAME_THREAD)
     fun testFileCacheUpdateAndReloading() {
         val fileCache = init()

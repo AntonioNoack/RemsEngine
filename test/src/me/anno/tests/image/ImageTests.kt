@@ -119,7 +119,7 @@ class ImageTests {
             image.createTexture(texture, checkRedundancy = false) { tex, err ->
                 assertSame(tex, texture)
                 assertNull(err)
-                val clonedImage = assertIs(FloatImage::class, tex!!.createImage(false, withAlpha = true))
+                val clonedImage = assertIs(FloatImage::class, texture.createImage(false, withAlpha = true))
                 assertNotSame(clonedImage, image)
                 assertContentEquals(clonedImage, image)
                 texture.destroy()
@@ -133,7 +133,7 @@ class ImageTests {
         image.createTexture(texture, checkRedundancy = false) { tex, err ->
             assertSame(tex, texture)
             assertNull(err)
-            val clonedImage = tex!!.createImage(false, withAlpha = true)
+            val clonedImage = texture.createImage(false, withAlpha = true)
             assertNotSame(clonedImage, image)
             assertContentEqualsMasked(clonedImage, image, mask)
             texture.destroy()

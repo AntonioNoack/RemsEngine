@@ -53,12 +53,12 @@ class SpriteMeshLike(
             val spiteId = entry.toShort()
             val posX = key.x.shl(bitsX) + pos.and(maskX)
             val posY = key.y.shl(bitsY) + pos.shr(bitsX).and(maskY)
-            buffer.addVertex(posX, posY, spiteId, 2)
-            buffer.addVertex(posX + 1, posY, spiteId, 3)
-            buffer.addVertex(posX + 1, posY + 1, spiteId, 1)
-            buffer.addVertex(posX, posY, spiteId, 2)
-            buffer.addVertex(posX + 1, posY + 1, spiteId, 1)
-            buffer.addVertex(posX, posY + 1, spiteId, 0)
+            buffer.addVertex(posX, posY, spiteId, 0)
+            buffer.addVertex(posX + 1, posY, spiteId, 1)
+            buffer.addVertex(posX + 1, posY + 1, spiteId, 3)
+            buffer.addVertex(posX, posY, spiteId, 0)
+            buffer.addVertex(posX + 1, posY + 1, spiteId, 3)
+            buffer.addVertex(posX, posY + 1, spiteId, 2)
         }
     }
 }

@@ -125,8 +125,6 @@ object VRAMToRAM {
 
             setReadAlignment(width)
 
-            val hm1 = height - 1
-
             for (x0 in 0 until width step wi) {
                 for (y0 in 0 until height step hi) {
 
@@ -149,7 +147,8 @@ object VRAMToRAM {
 
                     for (y in 0 until partH) {
                         val srcIndex = partW * y
-                        val dstIndex = x0 + width * (if (flipY) hm1 - (y0 + y) else y0 + y)
+                        val yi = y0 + y
+                        val dstIndex = x0 + width * (if (flipY) height - 1 - yi else yi)
                         lineFiller.fill(partW, srcIndex, buffer, dstIndex)
                     }
                 }

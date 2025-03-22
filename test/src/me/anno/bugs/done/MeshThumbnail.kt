@@ -14,7 +14,7 @@ fun main() {
     val src = downloads.getChild("3d/emilia-rezero.glb")
     val dst = desktop.getChild(src.getNameWithExtension("jpg"))
     val thumb = Thumbs[src, 512, false]
-    thumb?.write(dst)
+    thumb?.write(dst, true) // todo why do we need a flip here???
     Engine.requestShutdown()
     println(thumb)
 }

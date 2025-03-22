@@ -23,6 +23,7 @@ import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
+import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
@@ -141,7 +142,11 @@ class SpriteLayerTests {
         for (i in 0 until 3) useFrame(fb) { // todo why are three frames necessary???
             rv.draw(0, 0, size, size)
         }
-        val asImage = fb.getTexture0().createImage(flipY = true, withAlpha = false)
+        val asImage = fb.getTexture0()
+            .createImage(flipY = false, withAlpha = false)
+        // todo this image has a row cut off... how???
+        asImage.write(OS.desktop.getChild("sprites.png"))
+        val expectedImage = IntImage(asImage.width, asImage.height, true)
         var wrongPixels = 0
         for (yi in 0 until cells) {
             for (xi in 0 until cells) {
@@ -156,6 +161,7 @@ class SpriteLayerTests {
                         val x = xi * sizePerCell + xii
                         val y = size - 1 - (yi * sizePerCell + yii)
                         val actualColor = asImage.getRGB(x, y)
+                        expectedImage.setRGB(x, y, expectedColor)
                         if (expectedColor != actualColor) {
                             wrongPixels++
                         }

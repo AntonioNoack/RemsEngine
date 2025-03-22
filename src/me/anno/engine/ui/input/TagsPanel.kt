@@ -1,5 +1,6 @@
 package me.anno.engine.ui.input
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.fract
 import me.anno.ui.Panel
@@ -118,5 +119,17 @@ class TagsPanel(value0: List<String>, style: Style) : PanelListY(style), InputPa
         }
         if (notify) onChange(newValue)
         return this
+    }
+
+    override fun clone(): TagsPanel {
+        val clone = TagsPanel(style)
+        copyInto(clone)
+        return clone
+    }
+
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        if (dst !is TagsPanel) return
+        dst.setValue(value, true)
     }
 }

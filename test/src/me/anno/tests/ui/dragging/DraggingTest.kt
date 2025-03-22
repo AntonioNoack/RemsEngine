@@ -23,7 +23,7 @@ import kotlin.math.ceil
 
 class DraggingTest : UITests() {
     @Test
-    @FlakyTest("Only works when running separately, why ever")
+    @FlakyTest()
     @Execution(ExecutionMode.SAME_THREAD)
     fun testCopyValueByDragging() {
 
