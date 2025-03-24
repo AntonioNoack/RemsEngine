@@ -16,13 +16,13 @@ object LogManager {
 
     @JvmStatic
     fun isEnabled(logger: LoggerImpl, level: Level): Boolean {
-        val value = logLevels[logger.prefix] ?: defaultLevel
+        val value = logLevels[logger.name] ?: defaultLevel
         return level <= value
     }
 
     @JvmStatic
     fun isEnabled(logger: LoggerImpl, level: Int): Boolean {
-        val value = logLevels[logger.prefix] ?: defaultLevel
+        val value = logLevels[logger.name] ?: defaultLevel
         return level <= value.value
     }
 
@@ -54,7 +54,7 @@ object LogManager {
     @JvmStatic
     @Suppress("unused")
     fun enableLogger(logger: LoggerImpl) {
-        enableLogger(logger.prefix)
+        enableLogger(logger.name)
     }
 
     @JvmStatic
@@ -73,10 +73,7 @@ object LogManager {
     }
 
     @JvmStatic
-    private val logger = LoggerImpl(null)
-
-    @JvmStatic
-    private val loggers = HashMap<String, LoggerImpl>()
+    private val loggers = HashMap<String, LoggerImpl>(256)
 
     @JvmStatic
     fun getLogger(clazz: Class<*>): LoggerImpl {
@@ -90,12 +87,7 @@ object LogManager {
 
     @JvmStatic
     fun getLogger(name: String?): LoggerImpl {
-        if (name == null) return logger
-        var logger = loggers[name]
-        if (logger == null) {
-            logger = LoggerImpl(name)
-            loggers[name] = logger
-        }
-        return logger
+        val nameI = name ?: ""
+        return loggers.getOrPut(nameI) { LoggerImpl(nameI) }
     }
 }

@@ -6,6 +6,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OS
+import me.anno.utils.types.Strings.indexOf2
 import org.apache.commons.logging.Log
 import java.io.IOException
 import java.io.OutputStream
@@ -13,10 +14,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.logging.Level
 
-open class LoggerImpl(val prefix: String?) : Logger, Log {
-
-    private val lastWarned = HashMap<String, Long>()
-    private val warningTimeoutNanos = 10L * SECONDS_TO_NANOS
+open class LoggerImpl(val name: String) : Logger, Log {
 
     private fun interleaveImpl(msg: String, args: Array<out Any?>): String {
         val builder = StringBuilder(msg.length)
@@ -58,8 +56,6 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         } else msg
     }
 
-    val suffix = if (prefix == null) "" else ":$prefix"
-
     private fun printRaw(prefix: String, line2: String) {
         if (prefix == "ERR!" || prefix == "WARN") {
             System.err.println(line2)
@@ -68,19 +64,27 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         }
     }
 
-    fun print(prefix: String, msg: String) {
+    private fun printLine(prefix: String, time: CharSequence, line: String, logFile: OutputStream?) {
+        val line2 = "[$time,$prefix:$name] $line"
+        printRaw(prefix, line2)
+        if (logFile != null) {
+            try {
+                logFile.writeString(line2)
+                logFile.writeString(System.lineSeparator())
+            } catch (ignored: IOException) {
+            }
+        }
+    }
+
+    private fun print(prefix: String, msg: String) {
         synchronized(LogManager) {
             val logFile = getLogFileStream()
-            for (line in msg.split('\n')) {
-                val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
-                printRaw(prefix, line2)
-                if (logFile != null) {
-                    try {
-                        logFile.writeString(line2)
-                        logFile.writeString(System.lineSeparator())
-                    } catch (ignored: IOException) {
-                    }
-                }
+            val time = getTimeStamp()
+            var i = 0
+            while (i < msg.length) {
+                val ni = msg.indexOf2('\n', i)
+                printLine(prefix, time, msg.substring(i, ni), logFile)
+                i = ni + 1
             }
             try {
                 logFile?.flush()
@@ -221,15 +225,20 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun warn(msg: String) {
-        if (isWarnEnabled()) {
-            synchronized(lastWarned) {
-                val time = Time.nanoTime
-                val lastWarnedI = lastWarned[msg]
-                if (lastWarnedI == null || (lastWarnedI - time) > warningTimeoutNanos) {
-                    lastWarned[msg] = time
-                    print("WARN", msg)
-                }
-            }
+        if (isWarnEnabled() && shouldWarnAgain(msg)) {
+            print("WARN", msg)
+        }
+    }
+
+    private fun shouldWarnAgain(msg: String): Boolean {
+        val lastWarned = lastWarned
+        synchronized(lastWarned) {
+            val time = Time.nanoTime
+            val lastWarnedI = lastWarned[msg]
+            if (lastWarnedI == null || (lastWarnedI - time) > WARNING_TIMEOUT_NANOS) {
+                lastWarned[msg] = time
+                return true
+            } else return false
         }
     }
 
@@ -332,6 +341,10 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)
     companion object {
+
+        private const val WARNING_TIMEOUT_NANOS = 10L * SECONDS_TO_NANOS
+
+        private val lastWarned = HashMap<String, Long>()
 
         private var lastTime = 0L
         private val lastTimeStr = StringBuilder(16)

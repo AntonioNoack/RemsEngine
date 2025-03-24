@@ -2,7 +2,6 @@ package me.anno.tests.gfx.graphs
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -13,6 +12,7 @@ import me.anno.graph.visual.render.RenderGraphEditor
 import me.anno.tests.gfx.metalRoughness
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.utils.Reflections.getEnumId
 import me.anno.utils.assertions.assertEquals
 
 /**

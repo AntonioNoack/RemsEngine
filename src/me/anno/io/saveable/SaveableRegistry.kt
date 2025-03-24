@@ -9,24 +9,30 @@ import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
 import me.anno.utils.OS.res
 import org.apache.logging.log4j.LogManager
+import java.lang.reflect.Constructor
 
 object SaveableRegistry {
+
     private val LOGGER = LogManager.getLogger(SaveableRegistry::class)
-    private val styleClass = Style::class.java
-    private val saveableClass = Saveable::class.java
 
     class LazyRegistryEntry(override val classPath: String) : IRegistryEntry {
         private val clazz by lazy {
             try {
                 Class.forName(classPath)
             } catch (ifModuleMissing: ClassNotFoundException) {
-                saveableClass
+                null
             }
         }
 
         private val constructor by lazy {
-            clazz.constructors.firstOrNull {
-                (it.parameterCount == 0) || (it.parameterCount == 1 && it.parameters[0].type == styleClass)
+            getConstructor() ?: getConstructor(Style::class.java)
+        }
+
+        private fun getConstructor(vararg args: Class<*>): Constructor<*>? {
+            return try {
+                clazz?.getConstructor(*args)
+            } catch (e: NoSuchMethodException) {
+                null
             }
         }
 

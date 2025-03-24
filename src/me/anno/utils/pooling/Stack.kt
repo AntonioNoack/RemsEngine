@@ -6,6 +6,10 @@ import org.apache.logging.log4j.LogManager
 import java.lang.ref.WeakReference
 import kotlin.reflect.KClass
 
+/**
+ * Thread-local stack of reusable-instances to reduce allocations (to reduce GC pressure).
+ * Typically used for mathematical objects like vectors or for helpers with a few fields.
+ * */
 class Stack<V : Any>(private val createInstance: () -> V) {
 
     companion object {

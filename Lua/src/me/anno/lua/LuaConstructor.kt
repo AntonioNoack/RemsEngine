@@ -17,7 +17,7 @@ class LuaConstructor(clazz: Class<*>) : VarArgFunction() {
     }
 
     val constructors = clazz.constructors
-    val primary = constructors.firstOrNull { it.parameters.isEmpty() }
+    val primary = constructors.firstOrNull { it.parameterCount == 0 }
 
     override fun onInvoke(args: Varargs): Varargs {
         val size = args.narg() - 1

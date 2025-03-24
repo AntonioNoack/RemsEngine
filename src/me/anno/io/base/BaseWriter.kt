@@ -2,12 +2,12 @@ package me.anno.io.base
 
 import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.render.Texture
 import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
+import me.anno.utils.Reflections.getEnumId
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -664,13 +664,13 @@ abstract class BaseWriter(
             is Vector3i -> writeVector3i(name, value, forceSaving)
             is Vector4i -> writeVector4i(name, value, forceSaving)
             // matrices
-            is Matrix2f -> writeMatrix2x2f(name, value,forceSaving)
-            is Matrix3x2f -> writeMatrix3x2f(name, value,forceSaving)
+            is Matrix2f -> writeMatrix2x2f(name, value, forceSaving)
+            is Matrix3x2f -> writeMatrix3x2f(name, value, forceSaving)
             is Matrix3f -> writeMatrix3x3f(name, value, forceSaving)
             is Matrix4x3f -> writeMatrix4x3f(name, value, forceSaving)
             is Matrix4f -> writeMatrix4x4f(name, value, forceSaving)
-            is Matrix2d -> writeMatrix2x2d(name, value,forceSaving)
-            is Matrix3x2d -> writeMatrix3x2d(name, value,forceSaving)
+            is Matrix2d -> writeMatrix2x2d(name, value, forceSaving)
+            is Matrix3x2d -> writeMatrix3x2d(name, value, forceSaving)
             is Matrix3d -> writeMatrix3x3d(name, value, forceSaving)
             is Matrix4x3d -> writeMatrix4x3d(name, value, forceSaving)
             is Matrix4d -> writeMatrix4x4d(name, value, forceSaving)

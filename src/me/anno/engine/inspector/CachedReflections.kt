@@ -7,7 +7,7 @@ import me.anno.ecs.annotations.EditorField
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.saveable.Saveable
-import me.anno.ui.input.EnumInput.Companion.getEnumConstants
+import me.anno.utils.Reflections.getEnumById
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Strings.isNotBlank2
@@ -58,8 +58,7 @@ class CachedReflections private constructor(
         val value2 = if (value is Array<*> && property[self] is List<*>) {
             value.toList()
         } else if (property.valueClass.isEnum && value is Int) {
-            val values = property.valueClass.enumConstants
-            values.firstOrNull { getEnumId(it) == value } ?: values.first()
+            getEnumById(property.valueClass, value) ?: return false
         } else value
         return try {
             property.set(self, value2)
@@ -182,6 +181,7 @@ class CachedReflections private constructor(
             properties: List<Field>,
             methods: List<Method>,
         ): Map<String, CachedProperty> {
+
             // this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
             val map = HashMap<String, CachedProperty>()
             val publicMethodNames = methods
@@ -294,10 +294,19 @@ class CachedReflections private constructor(
             return saveField(
                 clazz, field.type, savedName, serial,
                 serialize && setterMethod != null, annotations,
-                if (getterMethod != null && getterMethod.returnType == field.type) { it -> getterMethod.invoke(it) }
-                else field::get,
-                if (setterMethod != null) { i, v -> setterMethod.invoke(i, v) }
-                else { i, v -> field.set(i, v) })
+                createGetter(getterMethod, field),
+                createSetter(setterMethod, field)
+            )
+        }
+
+        private fun createGetter(getterMethod: Method?, field: Field): (Any) -> Any? {
+            return if (getterMethod != null && getterMethod.returnType == field.type) getterMethod::invoke
+            else field::get
+        }
+
+        private fun createSetter(setterMethod: Method?, field: Field): (Any, Any?) -> Unit {
+            return if (setterMethod != null) setterMethod::invoke
+            else { i, v -> field.set(i, v) }
         }
 
         private fun saveField(
@@ -316,52 +325,6 @@ class CachedReflections private constructor(
                 name, instanceClass, valueClass, serialize, forceSaving,
                 annotations, getter, setter
             )
-        }
-
-        fun getEnumId(value: Any): Int? {
-            // todo why is this not saved as an input for nodes when cloning???
-            return try {
-                value.javaClass.getField("id").get(value) as? Int
-            } catch (ignored: NoSuchFieldException) {
-                try {
-                    value.javaClass.getMethod("getId").invoke(value) as? Int
-                } catch (ignored: NoSuchMethodException) {
-                    null
-                }
-            }
-        }
-
-        fun getEnumIdGetter(value: Any): (Enum<*>) -> Int {
-            try {
-                val field = value.javaClass.getField("id")
-                field.get(value) as? Int ?: getEnumIdGetter1(value)
-                return { it: Enum<*> -> field.get(it) as Int }
-            } catch (ignored: NoSuchFieldException) {
-                return getEnumIdGetter1(value)
-            }
-        }
-
-        private fun getEnumIdGetter1(value: Any): (Enum<*>) -> Int {
-            try {
-                val method = value.javaClass.getMethod("getId")
-                method.invoke(value) as? Int ?: getEnumIdGetter2()
-                return { it: Enum<*> -> method.invoke(it) as Int }
-            } catch (ignored: NoSuchMethodException) {
-                return getEnumIdGetter2()
-            }
-        }
-
-        private fun getEnumIdGetter2(): (Enum<*>) -> Int {
-            return { it: Enum<*> -> it.ordinal }
-        }
-
-        private val enumByClass = HashMap<Class<*>, Map<Int, Enum<*>>>()
-        fun getEnumById(clazz: Class<*>, id: Int): Enum<*>? {
-            return enumByClass.getOrPut(clazz) {
-                val constants = getEnumConstants(clazz)
-                val getter = getEnumIdGetter(constants.first())
-                constants.associateBy { getter(it) }
-            }[id]
         }
     }
 }

@@ -6,9 +6,8 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
-import me.anno.engine.inspector.CachedReflections.Companion.getEnumById
-import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.ui.input.EnumInput
+import me.anno.utils.Reflections.getEnumById
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -17,6 +16,7 @@ import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.iff
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.toInt
 import org.apache.logging.log4j.LogManager
 
 class CachedProperty(
@@ -64,14 +64,15 @@ class CachedProperty(
             val oldValue = getter(instance)
             if (oldValue is Enum<*> && value !is Enum<*>) {
                 // an enum, let's try our best to find the correct value
-                val values = EnumInput.getEnumConstants(oldValue.javaClass)
+                val clazz = oldValue.javaClass
+                val values = EnumInput.getEnumConstants(clazz)
                 val parsingFailure = -1
                 val id = AnyToInt.getInt(value, parsingFailure)
                 val newValue = when {
                     id != parsingFailure -> {
-                        val valueOrNull = getEnumById(oldValue::class.java, id)
+                        val valueOrNull = getEnumById(clazz, id)
                         if (valueOrNull == null) {
-                            LOGGER.warn("Missing ${oldValue::class} with id $id")
+                            LOGGER.warn("Missing $clazz with id $id")
                         }
                         valueOrNull ?: oldValue
                     }
@@ -86,13 +87,14 @@ class CachedProperty(
                          * */
                         @Suppress("GrazieInspection")
                         val splitIndex = value.indexOf('/')
-                        val ordinal = if (splitIndex < 0) -1 else value.substring(0, splitIndex).toInt()
+                        val ordinal =
+                            if (splitIndex < 0) -1
+                            else (value as CharSequence).toInt(0, splitIndex)
                         val name = value.substring(splitIndex + 1)
-                        val idGetter = getEnumId(oldValue)
                         val valueOrNull = values.firstOrNull { it.name == name }
                             ?: values.firstOrNull { it.name.equals(name, true) }
-                            ?: (if (idGetter != null) values.firstOrNull { getEnumId(it) == ordinal } else null)
-                            ?: (if (ordinal > -1) values.firstOrNull { it.ordinal == ordinal } else null)
+                            ?: getEnumById(clazz, id)
+                            ?: getEnumById(clazz, ordinal)
                         // as a last resort, we could try to use the Levenshtein distance
                         if (valueOrNull == null) {
                             LOGGER.warn("Could not find appropriate enum value for value '$value' and class ${oldValue::class}")
@@ -108,10 +110,11 @@ class CachedProperty(
             } else if (oldValue is ExtendableEnum && value !is ExtendableEnum) {
                 // an enum, let's try our best to find the correct value
                 val values = oldValue.values
+                val clazz = oldValue.javaClass
                 val id = AnyToInt.getInt(value, Int.MIN_VALUE)
                 val valueOrNull = values.firstOrNull2 { it.id == id }
                 if (valueOrNull == null) {
-                    LOGGER.warn("Missing ${oldValue::class} with id $id")
+                    LOGGER.warn("Missing $clazz with id $id")
                 }
                 val newValue = valueOrNull ?: oldValue
                 setter.invoke(instance, newValue)

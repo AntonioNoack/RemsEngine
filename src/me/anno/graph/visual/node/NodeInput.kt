@@ -1,6 +1,5 @@
 package me.anno.graph.visual.node
 
-import me.anno.engine.inspector.CachedReflections.Companion.getEnumById
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -9,6 +8,7 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.Texture
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.Reflections.getEnumById
 import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
