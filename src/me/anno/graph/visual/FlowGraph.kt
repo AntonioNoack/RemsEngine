@@ -57,13 +57,20 @@ open class FlowGraph : Graph() {
             val node = nodeStack.lastFirst()
             val state = nodeStack.lastSecond()
             nodeStack.removeLast()
-            invalidate() // invalidate graph in O(1)
+
+            val expectedStackSize = nodeStack.size
 
             lastNode = node
             val nodeOutput = if (node is RecursiveFlowGraphNode<*> && state != null) {
                 node.continueExecutionUnsafe(state)
             } else node.execute()
             if (node is EarlyExitNode) break
+
+            if (nodeStack.size != expectedStackSize) {
+                // invalidation is only necessary, if things were pushed
+                invalidate() // invalidate graph in O(1)
+            }
+
             val nextNodes = nodeOutput?.others
             if (nextNodes != null) enqueue(nextNodes)
         }
