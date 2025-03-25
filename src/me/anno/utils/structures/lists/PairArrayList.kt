@@ -26,8 +26,8 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
     fun lastFirst() = getFirst(size - 1)
     fun lastSecond() = getSecond(size - 1)
 
-    fun removeLast(keepOrder: Boolean) {
-        removeAt(size - 1, keepOrder)
+    fun removeLast() {
+        elementSize -= 2
     }
 
     inline fun <V> mapFirstNotNull(mapEntry: (a: First, b: Second) -> V?): V? {

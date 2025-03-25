@@ -24,9 +24,6 @@ class RenderReturnNode : ReturnNode(
 
     override var shader: Shader? = null
     override var typeValues: HashMap<String, TypeValue>? = null
-    override fun execute(): NodeOutput? {
-        throw ReturnThrowable(this)
-    }
 
     override fun destroy() {
         super.destroy()

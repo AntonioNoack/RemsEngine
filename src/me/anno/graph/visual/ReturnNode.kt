@@ -1,25 +1,15 @@
 package me.anno.graph.visual
 
 import me.anno.graph.visual.node.NodeOutput
-import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
-import kotlin.math.max
+import me.anno.graph.visual.render.compiler.GraphCompiler
 
 open class ReturnNode(returnValues: List<String> = emptyList(), name: String = "Return") :
-    FlowGraphNode(name, inputBase + returnValues, emptyList()), GLSLFlowNode {
+    FlowGraphNode(name, inputBase + returnValues, emptyList()), GLSLFlowNode, EarlyExitNode {
 
     constructor(name: String) : this(emptyList(), name)
 
-    val values = ArrayList<Any?>(max(4, returnValues.size ushr 1))
-    override fun execute(): NodeOutput? {
-        values.clear()
-        for (i in 1 until inputs.size) {
-            values.add(getInput(i))
-        }
-        throw ReturnThrowable(this) // escape from loops and such
-    }
-
-    class ReturnThrowable(val node: ReturnNode) : Throwable()
+    override fun execute(): NodeOutput? = null
 
     override fun buildCode(g: GraphCompiler, depth: Int): Boolean {
         g.handleReturnNode(this)

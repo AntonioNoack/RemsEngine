@@ -1,11 +1,12 @@
 package me.anno.graph.visual.control
 
+import me.anno.graph.visual.FlowGraphNode
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.utils.types.Booleans.toInt
 
-class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs), GLSLFlowNode {
+class IfElseNode : FlowGraphNode("If-Else Branch", inputs, outputs), GLSLFlowNode {
 
     init {
         setInput(0, false)

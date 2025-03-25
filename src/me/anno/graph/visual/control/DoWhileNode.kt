@@ -3,19 +3,19 @@ package me.anno.graph.visual.control
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
-import me.anno.io.saveable.Saveable
 
-class DoWhileNode : FixedControlFlowNode("Do While Loop", WhileNode.inputs, WhileNode.outputs), GLSLFlowNode {
+class DoWhileNode : RecursiveFlowGraphNode<EmptyState>("Do While Loop", WhileNode.inputs, WhileNode.outputs),
+    GLSLFlowNode {
 
     override fun execute(): NodeOutput {
-        requestNextExecution(null)
+        requestNextExecution(EmptyState.INSTANCE)
         return getNodeOutput(0) // first time is always executed
     }
 
-    override fun continueExecution(state: Saveable?): NodeOutput {
+    override fun continueExecution(state: EmptyState): NodeOutput {
         if (getBoolInput(1)) {
             // continue execution
-            requestNextExecution(null)
+            requestNextExecution(state)
             return getNodeOutput(0)
         } else {
             return getNodeOutput(1)

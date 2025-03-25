@@ -1,9 +1,9 @@
 package me.anno.graph.visual.actions
 
+import me.anno.graph.visual.FlowGraphNode
 import me.anno.graph.visual.node.NodeOutput
-import me.anno.graph.visual.control.FixedControlFlowNode
 
-abstract class ActionNode : FixedControlFlowNode {
+abstract class ActionNode : FlowGraphNode {
 
     constructor(name: String) : super(name, Companion.inputs, Companion.outputs)
 
@@ -24,5 +24,4 @@ abstract class ActionNode : FixedControlFlowNode {
         val inputs = listOf("Flow", beforeName)
         val outputs = listOf("Flow", afterName)
     }
-
 }

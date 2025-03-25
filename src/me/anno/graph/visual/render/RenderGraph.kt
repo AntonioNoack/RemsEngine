@@ -6,7 +6,6 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
 import me.anno.graph.visual.node.NodeLibrary
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
@@ -134,8 +133,6 @@ object RenderGraph {
                 // then render
                 graph.execute(start) as? RenderReturnNode
             }
-        } catch (e: ReturnNode.ReturnThrowable) {
-            e.node as? RenderReturnNode
         } catch (e: Exception) {
             if (!OS.isWeb) Thread.sleep(100)
             if (throwExceptions) {

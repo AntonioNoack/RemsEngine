@@ -3,10 +3,9 @@ package me.anno.graph.visual.control
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
-import me.anno.io.saveable.Saveable
 import kotlin.math.sign
 
-class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode {
+class ForNode : RecursiveFlowGraphNode<ForLoopState>("For Loop", inputs, outputs), GLSLFlowNode {
 
     init {
         setInput(1, 0)
@@ -22,13 +21,13 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode 
         val endInclusive = getBoolInput(4)
         if (endInclusive) endIndex += increment.sign // not safe regarding overflow, but that would be u64, so it should be rare
         if (increment != 0L) {
-            requestNextExecution(ForLoopState(startIndex, endIndex, increment))
+            val state = ForLoopState(startIndex, endIndex, increment)
+            return continueExecution(state)
         }
         return null
     }
 
-    override fun continueExecution(state: Saveable?): NodeOutput {
-        state as ForLoopState
+    override fun continueExecution(state: ForLoopState): NodeOutput {
         val index = state.currentIndex
         val comparison = index.compareTo(state.endIndex)
         val continueExecution = state.increment.sign * comparison.sign < 0

@@ -5,7 +5,6 @@ import me.anno.graph.visual.ComputeNode
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.FlowGraphNode
 import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.control.FixedControlFlowNode
 import me.anno.graph.visual.local.GetLocalVariableNode
 import me.anno.graph.visual.local.SetLocalVariableNode
 import me.anno.graph.visual.node.Node
@@ -129,9 +128,7 @@ fun convertToFunction(node: Node, nodeIds: Map<Node, Int>, builder: StringBuilde
         is CalculationNode -> {
             // todo implement calculation...
         }
-        is FixedControlFlowNode -> {
-            // todo implement next call
-        }
+        // todo implement...
     }
 
     if (node is ActionNode) {

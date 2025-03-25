@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.ConfigRef
 import me.anno.engine.ui.render.RenderMode.Companion.opaqueNodeSettings
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.control.FixedControlFlowNode
+import me.anno.graph.visual.FlowGraphNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.QuickPipeline
@@ -26,7 +26,7 @@ import me.anno.maths.Maths.posMod
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 
-class FrameGenInitNode : FixedControlFlowNode(
+class FrameGenInitNode : FlowGraphNode(
     "FrameGenInit",
     listOf("Flow", beforeName), listOf(
         "Flow", afterName,

@@ -24,15 +24,6 @@ abstract class FlowGraphNode(name: String, inputs: List<String>, outputs: List<S
      * */
     abstract fun execute(): NodeOutput?
 
-    open fun continueExecution(state: Saveable?): NodeOutput? {
-        LOGGER.warn("If you use the graph-stack, you must implement execute(state)")
-        return null
-    }
-
-    fun requestNextExecution(state: Saveable?) {
-        (graph as? FlowGraph)?.push(this, state)
-    }
-
     // collection of a few helper methods
     fun getFileInput(i: Int): FileReference = getInput(i) as? FileReference ?: InvalidRef
     fun getBoolInput(i: Int): Boolean = getInput(i) == true
@@ -41,11 +32,12 @@ abstract class FlowGraphNode(name: String, inputs: List<String>, outputs: List<S
     fun getFloatInput(i: Int): Float = AnyToFloat.getFloat(getInput(i), 0f)
     fun getDoubleInput(i: Int): Double = AnyToDouble.getDouble(getInput(i), 0.0)
 
+    fun getNodeOutput(index: Int): NodeOutput = outputs[index]
+
     override fun supportsMultipleInputs(con: NodeConnector): Boolean = con.type == "Flow"
     override fun supportsMultipleOutputs(con: NodeConnector): Boolean = con.type != "Flow"
 
     companion object {
-        private val LOGGER = LogManager.getLogger(FlowGraphNode::class)
         val beforeName = "Before"
         val afterName = "After"
     }

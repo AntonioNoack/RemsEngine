@@ -18,28 +18,24 @@ class StateMachine : FlowGraph() {
     var state: StateNode? = null
 
     fun start(startNode: FlowGraphNode): StateNode? {
-        val newState = try {
-            execute(startNode)
-            null
-        } catch (e: NewState) {
-            e.state
-        }
-        return next(newState)
+        return next(execute(startNode) as? StateNode)
     }
 
     fun update(): StateNode? {
         var oldState = state
         if (oldState == null) {
-            // find default state
-            oldState = nodes.firstOrNull2 { it is StateNode && "default".equals(it.name, true) } as? StateNode
-                ?: nodes.firstOrNull2 { it is StateNode } as? StateNode
-            if (oldState == null) return null
+            oldState = findDefaultState() ?: return null
             if (!"default".equals(oldState.name, true)) {
                 LOGGER.warn("Missing node with name 'Default' for default state")
             }
             oldState.onEnterState(null)
         }
         return next(oldState.update())
+    }
+
+    private fun findDefaultState(): StateNode? {
+        return nodes.firstOrNull2 { it is StateNode && "default".equals(it.name, true) } as? StateNode
+            ?: nodes.firstOrNull2 { it is StateNode } as? StateNode
     }
 
     fun next(newState: StateNode?): StateNode? {

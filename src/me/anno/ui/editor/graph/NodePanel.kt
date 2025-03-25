@@ -236,9 +236,9 @@ class NodePanel(
             val texture = cachedTexture.getTexture0()
             texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
             if (texture.width >= width) {
-                DrawTextures.drawTexture(x, y + height, width, -height, texture)
+                DrawTextures.drawTexture(x, y, width, height, texture)
             } else {
-                FSR.upscale(texture, x, y, width, height, flipY = true, applyToneMapping = false, withAlpha = true)
+                FSR.upscale(texture, x, y, width, height, flipY = false, applyToneMapping = false, withAlpha = true)
             }
         } else {
             cachedTexture?.destroy()
@@ -287,7 +287,7 @@ class NodePanel(
         // draw sockets, and their names
         val baseTextSize = baseTextSize.toFloat()
         val dxTxt = (baseTextSize * 0.7f).toIntOr()
-        val dyTxt = (font.size - FontManager.getBaselineY(font)).toIntOr() // round?, ceil?
+        val dyTxt = (baseTextSize * 0.16f).toIntOr()
 
         // to do generally, weights could be useful on either end (maybe?)
 
@@ -306,14 +306,9 @@ class NodePanel(
     }
 
     fun drawConnector(
-        con: NodeConnector,
-        baseTextSize: Float,
-        mouseX: Float,
-        mouseY: Float,
-        dx: Int,
-        dy: Int,
-        font: Font,
-        textColor: Int
+        con: NodeConnector, baseTextSize: Float,
+        mouseX: Float, mouseY: Float, dx: Int, dy: Int,
+        font: Font, textColor: Int
     ) {
         val pos = con.position
         val px = gp.coordsToWindowX(pos.x).toFloat()
@@ -356,7 +351,8 @@ class NodePanel(
         val failed = DrawTexts.drawTextOrFail(
             pxi + dx, pyi + dy, font, con.name, textColor,
             bg, -1, -1,
-            if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN
+            if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN,
+            AxisAlignment.CENTER
         )
         if (failed) invalidateDrawing()
     }

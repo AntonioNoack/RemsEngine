@@ -1,9 +1,9 @@
 package me.anno.graph.visual
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.graph.visual.control.RecursiveFlowGraphNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeConnector
-import me.anno.graph.visual.node.NodeInput
 import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.lists.PairArrayList
 
@@ -18,7 +18,7 @@ open class FlowGraph : Graph() {
 
     val localVariables = HashMap<String, Any?>()
 
-    val nodeStack = PairArrayList<FlowGraphNode, Saveable?>()
+    private val nodeStack = PairArrayList<FlowGraphNode, Saveable?>()
 
     fun push(node: FlowGraphNode, state: Saveable?) {
         nodeStack.add(node, state)
@@ -41,53 +41,51 @@ open class FlowGraph : Graph() {
     }
 
     /**
-     * returns the last node, which was executed
+     * returns the last node, which was executed;
+     * returns a ReturnNode | NewStateNode, if that is found
      * */
     fun execute(startNode0: FlowGraphNode): Node {
-        val nodeStackPtr = nodeStack.size
-        var lastNode = executeLinearlyUntilDone(startNode0)
-        while (nodeStack.size > nodeStackPtr) {
+        val depth = nodeStack.size
+        push(startNode0, null)
+        return executeNodesUntilDepth(depth) ?: startNode0
+    }
+
+    private fun executeNodesUntilDepth(depth: Int): Node? {
+        var lastNode: Node? = null
+        while (nodeStack.size > depth) {
+
             val node = nodeStack.lastFirst()
             val state = nodeStack.lastSecond()
-            nodeStack.removeLast(true)
+            nodeStack.removeLast()
             invalidate() // invalidate graph in O(1)
-            val lastNodeI = node.continueExecution(state)
-            lastNode = if (lastNodeI != null) {
-                executeNodes(lastNodeI.others) ?: node
-            } else node
+
+            lastNode = node
+            val nodeOutput = if (node is RecursiveFlowGraphNode<*> && state != null) {
+                node.continueExecutionUnsafe(state)
+            } else node.execute()
+            if (node is EarlyExitNode) break
+            val nextNodes = nodeOutput?.others
+            if (nextNodes != null) enqueue(nextNodes)
         }
+        clearStack(depth)
         return lastNode
     }
 
-    private fun executeLinearlyUntilDone(startNode0: Node): Node {
-        var currentNode = startNode0
-        while (currentNode is FlowGraphNode) {
-            val exec = currentNode.execute() ?: return currentNode
-            val nextNodes = exec.others
-            val firstNext = nextNodes.firstOrNull()?.node
-            currentNode = if (nextNodes.size == 1 && firstNext != null) {
-                // non-recursive path to keep the stack trace flatter
-                firstNext
-            } else {
-                // recursion needed
-                executeNodes(nextNodes)
-                    ?: return currentNode
-            }
+    private fun clearStack(depth: Int) {
+        nodeStack.elementSize = depth * 2
+    }
+
+    private fun enqueue(nextNodes: List<NodeConnector>) {
+        for (ni in nextNodes.indices.reversed()) {
+            val nextNode = nextNodes[ni].node as? FlowGraphNode ?: continue
+            push(nextNode, null)
         }
-        return currentNode
     }
 
     fun executeNodes(nextNodes: List<NodeConnector>): Node? {
-        var lastNode: Node? = null
-        for (i in nextNodes.indices) {
-            val nodeX = nextNodes[i].node as? FlowGraphNode ?: continue
-            lastNode = execute(nodeX)
-        }
-        return lastNode
-    }
-
-    fun getValue(input: NodeInput): Any? {
-        return input.getValue()
+        val depth = nodeStack.size
+        enqueue(nextNodes)
+        return executeNodesUntilDepth(depth)
     }
 
     override fun getValidTypesForChild(child: PrefabSaveable) = "n"

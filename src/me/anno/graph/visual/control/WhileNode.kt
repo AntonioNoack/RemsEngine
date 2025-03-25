@@ -3,18 +3,16 @@ package me.anno.graph.visual.control
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
-import me.anno.io.saveable.Saveable
 
-class WhileNode : FixedControlFlowNode("While Loop", inputs, outputs), GLSLFlowNode {
+class WhileNode : RecursiveFlowGraphNode<EmptyState>("While Loop", inputs, outputs), GLSLFlowNode {
 
-    override fun execute(): NodeOutput? {
-        requestNextExecution(null)
-        return null
+    override fun execute(): NodeOutput {
+        return continueExecution(EmptyState.INSTANCE)
     }
 
-    override fun continueExecution(state: Saveable?): NodeOutput {
+    override fun continueExecution(state: EmptyState): NodeOutput {
         if (getBoolInput(1)) {
-            requestNextExecution(null)
+            requestNextExecution(state)
             return getNodeOutput(0)
         } else {
             return getNodeOutput(1)
