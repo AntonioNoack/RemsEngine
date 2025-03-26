@@ -177,8 +177,8 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
             val pipeline = Pipeline(DeferredSettings(listOf()))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStageImpl(
-                "", 16, null, if (GFX.supportsClipControl) DepthMode.CLOSE
-                else DepthMode.FORWARD_CLOSE,
+                "", 16, null,
+                if (GFX.supportsClipControl) DepthMode.CLOSE else DepthMode.FORWARD_CLOSE,
                 true,
                 CullMode.BACK, ECSShaderLib.pbrModelShader
             )

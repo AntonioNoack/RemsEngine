@@ -1,9 +1,9 @@
 package me.anno.utils.hpc
 
 import me.anno.Engine.shutdown
+import me.anno.utils.OS
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
-import me.anno.utils.Sleep.sleepShortly
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -25,6 +25,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
         shouldStop = true
     }
 
+    @Deprecated("Cannot be used in WebGL")
     fun waitUntilDone(canBeKilled: Boolean) {
         stopIfDone = true
         Sleep.waitUntil(canBeKilled) { tasks.isEmpty() && aliveThreads.get() == 0 }
@@ -44,30 +45,47 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
         if (aliveThreads.get() >= numThreads && !force) return
         shouldStop = false
         // LOGGER.info("Starting queue $name")
-        aliveThreads.incrementAndGet()
-        thread(name = name) {
-            workLoop@ while (!shutdown && !shouldStop) {
-                try {
-                    // will block, until we have new work
-                    if (!workItem()) {
-                        if (sleepingThreads.incrementAndGet() == aliveThreads.get()) {
-                            if (stopIfDone) {
-                                sleepingThreads.decrementAndGet()
-                                break@workLoop
-                            }
-                        }
-                        sleepShortly(true)
-                        sleepingThreads.decrementAndGet()
-                    }
-                } catch (e: ShutdownException) {
-                    // nothing to worry about (probably)
-                    break
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+        if (!OS.isWeb) {
+            // todo we need feature flags for stuff like Multi-Threading...
+            //  OS.isLinux via JVM is very different from OS.isLinux via JVM2CPP
+            aliveThreads.incrementAndGet()
+            thread(name = name) {
+                runWorker()
             }
-            aliveThreads.decrementAndGet()
-            // LOGGER.info("Finished $name")
+        } else {
+            // todo what do we do without Multi-Threading?
+            runUntilDone()
+        }
+    }
+
+    private fun runWorker() {
+        workLoop@ while (!shutdown && !shouldStop) {
+            try {
+                // will block, until we have new work
+                if (!workItem()) {
+                    if (sleepingThreads.incrementAndGet() == aliveThreads.get()) {
+                        if (stopIfDone) {
+                            sleepingThreads.decrementAndGet()
+                            break@workLoop
+                        }
+                    }
+                    Sleep.sleepShortly(true)
+                    sleepingThreads.decrementAndGet()
+                }
+            } catch (e: ShutdownException) {
+                // nothing to worry about (probably)
+                break
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        aliveThreads.decrementAndGet()
+        // LOGGER.info("Finished $name")
+    }
+
+    private fun runUntilDone() {
+        while (true) {
+            if (!workItem()) break
         }
     }
 

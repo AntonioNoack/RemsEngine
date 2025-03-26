@@ -79,8 +79,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
             field = max(1, value)
         }
 
-    val hasShadow get() = shadowMapCascades > 0
-
     @HideInInspector
     @NotSerializedProperty
     var shadowTextures: IFramebuffer? = null
@@ -88,9 +86,11 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     @NotSerializedProperty
     var timer: GPUClockNanos? = null
 
-    @SerializedProperty
-    var depthFunc = if (GFX.supportsClipControl) DepthMode.CLOSE
-    else DepthMode.FORWARD_CLOSE
+    val hasShadow get() = shadowMapCascades > 0
+    val depthFunc
+        get() =
+            if (GFX.supportsClipControl) DepthMode.CLOSE
+            else DepthMode.FORWARD_CLOSE
 
     @NotSerializedProperty
     var rootOverride: PrefabSaveable? = null
@@ -132,8 +132,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
             val resolution = shadowMapResolution
             if (timer == null) timer = GPUClockNanos()
             if (shadowTextures == null ||
-                (shadowTextures is Texture2DArray && shadowTextures.layers != targetSize) ||
-                shadowTextures.depthTexture?.depthFunc != depthFunc
+                (shadowTextures is Texture2DArray && shadowTextures.layers != targetSize)
             ) {
                 shadowTextures?.destroy()
                 // we currently use a depth bias of 0.005,

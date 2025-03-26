@@ -7,7 +7,7 @@ import me.anno.ui.Panel
 import kotlin.math.max
 import kotlin.math.min
 
-data class RedrawRequest(val panel: Panel, val p0: Int, val p1: Int) {
+data class RedrawRequest(var panel: Panel, var p0: Int, var p1: Int) {
     constructor(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) :
             this(panel, getSize(x0, y0), getSize(x1, y1))
 
@@ -26,7 +26,8 @@ data class RedrawRequest(val panel: Panel, val p0: Int, val p1: Int) {
         return x1 >= x2 && y1 >= y2 && x0 <= x3 && y0 <= y3
     }
 
-    fun union(x2: Int, y2: Int, x3: Int, y3: Int): RedrawRequest {
-        return RedrawRequest(panel, min(x0, x2), min(y0, y2), max(x1, x3), max(y1, y3))
+    fun union(x2: Int, y2: Int, x3: Int, y3: Int) {
+        p0 = getSize(min(x0, x2), min(y0, y2))
+        p1 = getSize(max(x1, x3), max(y1, y3))
     }
 }

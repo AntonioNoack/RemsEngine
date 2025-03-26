@@ -4,7 +4,6 @@ import me.anno.Build
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
-import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.BakedLayout
@@ -125,7 +124,7 @@ object GFXState {
         glDepthFunc(newValue.id)
         val reversedDepth = newValue.reversedDepth
         if (lastDepthMode?.reversedDepth != reversedDepth) {
-            if (supportsClipControl) {
+            if (GFX.supportsClipControl) {
                 glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
             } else {
                 LOGGER.warn("Reversed depth is not supported (because it's pointless without glClipControl")
@@ -290,7 +289,10 @@ object GFXState {
     val bakedMeshLayout = SecureStack<BakedLayout?>(null)
     val bakedInstLayout = SecureStack<BakedLayout?>(null)
 
-    val alwaysDepthMode get() = if (supportsClipControl) DepthMode.ALWAYS else DepthMode.FORWARD_ALWAYS
+    val alwaysDepthMode
+        get() =
+            if (GFX.supportsClipControl) DepthMode.ALWAYS
+            else DepthMode.FORWARD_ALWAYS
 
     // maximum expected depth for OpenGL operations
     // could be changed, if needed...

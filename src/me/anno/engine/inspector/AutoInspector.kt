@@ -33,8 +33,8 @@ object AutoInspector {
             null
         }
 
-        showProperties(list, reflections, instances, style, isWritable) { property, relevantInstances ->
+        showProperties(list, reflections, instances, style, isWritable, { property, relevantInstances ->
             InspectableProperty(relevantInstances, property, cleanInstance)
-        }
+        }, false)
     }
 }

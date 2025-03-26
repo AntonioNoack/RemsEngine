@@ -194,7 +194,7 @@ object GFXx2D {
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int, flipped: Boolean = false) {
-        val yi = if (flipped) y + h - 1 else y
+        val yi = if (flipped) y + h else y
         val hi = if (flipped) -h else h
         posSize(shader, x.toFloat(), yi.toFloat(), w.toFloat(), hi.toFloat())
     }

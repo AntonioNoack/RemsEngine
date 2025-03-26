@@ -4,6 +4,7 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.prefab.PrefabInspector.Companion.formatWarning
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
+import me.anno.engine.inspector.CachedProperty.Companion.DEFAULT_GROUP
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
@@ -11,7 +12,6 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
@@ -22,6 +22,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -131,7 +132,7 @@ object InspectorUtils {
     fun showPropertyI(
         property: CachedProperty,
         property2: IProperty<Any?>, reflections: CachedReflections,
-        list: PanelListY, isWritable: Boolean, style: Style,
+        list: PanelList, isWritable: Boolean, style: Style,
     ) {
         val name = property.name
         try {
@@ -160,14 +161,15 @@ object InspectorUtils {
     fun showEditorFields(
         list: PanelList, reflections: CachedReflections,
         instances: List<PrefabSaveable>, style: Style,
-        isWritable: Boolean, createProperty: (CachedProperty, List<PrefabSaveable>) -> IProperty<Any?>,
+        isWritable: Boolean, createIProperty: (CachedProperty, List<PrefabSaveable>) -> IProperty<Any?>,
     ) {
         if (reflections.editorFields.isEmpty()) return
         val group = SettingCategory(NameDesc("Editor Fields"), style).showByDefault()
         for (field in reflections.editorFields) {
             val property = reflections.allProperties[field.name]
             if (property != null) {
-                showProperty(group.content, reflections, property, instances, style, isWritable, createProperty)
+                val iProperty = createIProperty(property, instances)
+                showPropertyI(property, iProperty, reflections, group.content, isWritable, style)
             } else {
                 LOGGER.warn("Missing property ${field.name}")
             }
@@ -175,65 +177,66 @@ object InspectorUtils {
         list.add(group)
     }
 
-    private fun <V : Inspectable> showProperty(
-        list: PanelListY, reflections: CachedReflections,
-        property: CachedProperty, relevantInstances: List<V>,
-        style: Style, isWritable: Boolean,
-        createProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
-    ) {
-        val property2 = createProperty(property, relevantInstances)
-        showPropertyI(property, property2, reflections, list, isWritable, style)
-    }
-
     fun <V : Inspectable> showProperties(
         list: PanelList, reflections: CachedReflections,
         instances: List<V>, style: Style,
         isWritable: Boolean, createProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
+        hideNameDesc: Boolean
     ) {
-        val properties = reflections.propertiesByClass
-        val panelByGroup = HashMap<String, PanelListY>()
-        for (i in properties.indices) {
-            val (clazz, propertiesI) = properties[i]
-            if (propertiesI.isEmpty()) continue
+        val propertiesByClass = reflections.propertiesByClass
+        val panelByGroup = HashMap<String, PanelList>()
+        panelByGroup[DEFAULT_GROUP] = list
+        for (i in propertiesByClass.indices) {
+            val (clazz, propertiesI) = propertiesByClass[i]
             val relevantInstances = instances.filter { clazz.isInstance(it) }
-            val firstInstance = relevantInstances.firstOrNull() ?: continue
-            val propertiesJ = propertiesI.filter {
-                it.serialize && !it.hideInInspector(firstInstance)
-            }
+            val shownProperties = filterShownProperties(propertiesI, relevantInstances, hideNameDesc)
+            showProperties(
+                reflections, shownProperties, clazz, relevantInstances,
+                panelByGroup, list, style, isWritable, createProperty
+            )
+        }
+    }
 
-            if (propertiesJ.isEmpty()) continue
+    private fun <V> filterShownProperties(
+        properties: List<CachedProperty>, instances: List<V>,
+        hideNameDesc: Boolean
+    ): List<CachedProperty> {
+        val firstInstance = instances.firstOrNull() ?: return emptyList()
+        return properties.filter {
+            it.serialize && !it.hideInInspector(firstInstance) &&
+                    (!hideNameDesc || (it.name != "name" && it.name != "description"))
+        }
+    }
 
-            val defaultGroup = ""
+    private object PropertyComparator : Comparator<CachedProperty> {
+        override fun compare(pa: CachedProperty, pb: CachedProperty): Int {
+            return pa.group.compareTo(pb.group)
+                .ifSame(pa.order.compareTo(pb.order))
+        }
+    }
 
-            val className = clazz.simpleName ?: "Anonymous"
-            val groupPanel = SettingCategory(NameDesc(className), style).showByDefault()
-            list.add(groupPanel)
+    private fun getOrPutPanelList(
+        panelByGroup: HashMap<String, PanelList>,
+        groupPanel: PanelList, style: Style, groupName: String
+    ): PanelList {
+        return panelByGroup.getOrPut(groupName) {
+            val category = SettingCategory(NameDesc(groupName), style)
+            category.showByDefault()
+            groupPanel.add(category)
+            category.content
+        }
+    }
 
-            for (property in propertiesJ
-                .sortedWith { pa, pb ->
-                    val ga = pa.group ?: defaultGroup
-                    val gb = pb.group ?: defaultGroup
-                    ga.compareTo(gb).ifSame(pa.order.compareTo(pb.order))
-                }) {
-
-                // LOGGER.info("Showing property ${property.name} for class ${clazz.simpleName}")
-
-                val group = property.group ?: defaultGroup
-                val panelList = panelByGroup.getOrPut(group) {
-                    if (group == defaultGroup) groupPanel.content
-                    else {
-                        val category = SettingCategory(NameDesc(group), style)
-                        category.showByDefault()
-                        groupPanel.content.add(category)
-                        category.content
-                    }
-                }
-
-                showProperty(
-                    panelList, reflections, property, relevantInstances, style,
-                    isWritable, createProperty
-                )
-            }
+    private fun <V : Inspectable> showProperties(
+        reflections: CachedReflections, properties: List<CachedProperty>, clazz: Class<*>, relevantInstances: List<V>,
+        panelByGroup: HashMap<String, PanelList>, groupPanel: PanelList, style: Style,
+        isWritable: Boolean, createIProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
+    ) {
+        for (property in properties.sortedWith(PropertyComparator)) {
+            val group = property.group.ifBlank2(clazz.simpleName ?: DEFAULT_GROUP)
+            val panelList = getOrPutPanelList(panelByGroup, groupPanel, style, group)
+            val iProperty = createIProperty(property, relevantInstances)
+            showPropertyI(property, iProperty, reflections, panelList, isWritable, style)
         }
     }
 }

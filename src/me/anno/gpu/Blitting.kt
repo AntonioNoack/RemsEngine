@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.blending.BlendMode
@@ -98,7 +97,7 @@ object Blitting {
     fun copyNoAlpha(samples: Int, isSRGB: Boolean) {
         GFX.check()
         blendMode.use(BlendMode.DST_ALPHA) {
-            val depthModeI = if (supportsClipControl) DepthMode.ALWAYS
+            val depthModeI = if (GFX.supportsClipControl) DepthMode.ALWAYS
             else DepthMode.FORWARD_ALWAYS
             depthMode.use(depthModeI) {
                 val shader = if (samples > 1) copyShaderMS else copyShader

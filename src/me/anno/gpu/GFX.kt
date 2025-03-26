@@ -71,7 +71,7 @@ object GFX {
     var maxSamples = 1
 
     @JvmStatic
-    var supportsClipControl/* get()*/ = !OS.isAndroid && !OS.isWeb
+    var supportsClipControl = false
 
     @JvmField
     var supportsF32Targets = true
@@ -159,8 +159,10 @@ object GFX {
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         // todo check if rendering is still broken in DX11 in default render mode
         val debugLimitedGPUs = false
+        // todo flag for reducing depth texture quality to FP16
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
-        if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...
+        supportsClipControl = !OS.isAndroid && !OS.isWeb
+        if (debugLimitedGPUs) supportsClipControl = false
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         ClickIdBoundsArray.needsBoxes = supportsComputeShaders
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
@@ -254,7 +256,6 @@ object GFX {
     @JvmStatic
     fun checkIfGFX(name: String) {
         if (isDebug && isGFXThread()) {
-            // todo only if current session hasn't been destroyed yet
             check(name)
         }
     }

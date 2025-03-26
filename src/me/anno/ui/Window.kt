@@ -107,14 +107,35 @@ open class Window(
     private fun addNeedsRedraw1(drawnPanel: Panel, x2: Int, y2: Int, x3: Int, y3: Int) {
         for (i in 0 until needsRedraw.size) {
             val element = needsRedraw[i]
-            if (element.panel == drawnPanel && element.overlaps(x2, y2, x3, y3)) {
+            if (element.overlaps(x2, y2, x3, y3)) {
+                if (element.panel !== drawnPanel) {
+                    element.panel = findCommonParent(element.panel, drawnPanel)
+                }
                 // merge them
-                needsRedraw[i] = element.union(x2, y2, x3, y3)
+                element.union(x2, y2, x3, y3)
                 return
             }
-            // todo we could also merge them, if one contains the other
         }
         needsRedraw.forceAdd(RedrawRequest(drawnPanel, x2, y2, x3, y3))
+    }
+
+    private fun findCommonParent(a0: Panel, b0: Panel): Panel {
+        val d0 = a0.depth
+        val d1 = b0.depth
+        var ai = a0
+        var bi = b0
+        val root = panel
+        for (i in d0 until d1) {
+            ai = ai.uiParent ?: root
+        }
+        for (i in d1 until d0) {
+            bi = bi.uiParent ?: root
+        }
+        while (ai !== bi) {
+            ai = ai.uiParent ?: root
+            bi = bi.uiParent ?: root
+        }
+        return ai
     }
 
     fun addNeedsLayout(panel: Panel) {
@@ -349,11 +370,11 @@ open class Window(
             needs.addAll(toBeProcessed)
             toBeProcessed.clear()
             while (needs.isNotEmpty()) {
-                val p = needs.minByOrNull { it.panel.depth }!!
-                processOne(p)
+                val panel = needs.minByOrNull { it.panel.depth }!!
+                processOne(panel)
                 needs.removeIf { entry -> // remove covered children
-                    (entry === p || entry.panel.anyInHierarchy { it == p.panel }) &&
-                            p.contains(entry)
+                    (entry === panel || entry.panel.anyInHierarchy { it == panel.panel }) &&
+                            panel.contains(entry)
                 }
             }
         }

@@ -34,7 +34,7 @@ class CachedProperty(
     val hideInInspector1 = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, instanceClass) else null }
     val description = annotations.filterIsInstance2(Docs::class).joinToString("\n") { it.description }
     val order = annotations.firstInstanceOrNull(Order::class)?.index ?: 0
-    val group = annotations.firstInstanceOrNull(Group::class)?.name
+    val group = annotations.firstInstanceOrNull(Group::class)?.name ?: DEFAULT_GROUP
 
     fun hideInInspector(instance: Any): Boolean {
         return hideInInspector1.any2 { test -> test(instance) }
@@ -151,11 +151,12 @@ class CachedProperty(
                 ", force-saving".iff(forceSaving == true) +
                 ", $range".iff(range != null) +
                 ", order: $order" +
-                ", $group".iff(group != null) +
+                ", $group".iff(group != DEFAULT_GROUP) +
                 ", $annotations"
     }
 
     companion object {
+        const val DEFAULT_GROUP = ""
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
         private fun hide(it: HideInInspector, name: String, instanceClazz: Class<*>): (Any) -> Boolean {
             if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }

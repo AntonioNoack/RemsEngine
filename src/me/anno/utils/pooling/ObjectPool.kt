@@ -22,15 +22,16 @@ class ObjectPool<V>(
 
     constructor(size: Int, create: () -> V) : this(create, {}, {}, {}, false, 16, size)
     constructor(create: () -> V) : this(create, {}, {}, {}, false)
+    constructor(clazz: Class<V>) : this({ clazz.newInstance() })
 
-    private val map = if (checkDoubleReturns) HashSet<V>(initialSize) else null
-    private val data = ArrayList<V>(initialSize)
+    private val doubleReturnMap = if (checkDoubleReturns) HashSet<V>(initialSize) else null
+    private val cachedInstances = ArrayList<V>(initialSize)
 
     fun create(): V {
         return synchronized(this) {
-            val element = data.removeLastOrNull()
+            val element = cachedInstances.removeLastOrNull()
             if (element != null) {
-                map?.remove(element)
+                doubleReturnMap?.remove(element)
                 resetInstance(element)
             }
             element ?: createInstance()
@@ -38,20 +39,20 @@ class ObjectPool<V>(
     }
 
     fun destroy(v: V) {
-        if (map != null) {
+        if (doubleReturnMap != null) {
             synchronized(this) {
-                if (v in map) {
+                if (v in doubleReturnMap) {
                     LOGGER.warn("Returned element twice! $v")
-                } else map.add(v)
+                } else doubleReturnMap.add(v)
             }
         }
         destroyFunc(v)
         synchronized(this) {
-            if (data.size >= maxSize) {
+            if (cachedInstances.size >= maxSize) {
                 // we're at the limit, and can't destroy elements
                 freeInstance(v)
             } else {
-                data.add(v)
+                cachedInstances.add(v)
             }
         }
     }
@@ -61,10 +62,10 @@ class ObjectPool<V>(
      * */
     fun gc() {
         synchronized(this) {
-            for (i in data.indices) {
-                freeInstance(data[i])
+            for (i in cachedInstances.indices) {
+                freeInstance(cachedInstances[i])
             }
-            data.clear()
+            cachedInstances.clear()
         }
     }
 }

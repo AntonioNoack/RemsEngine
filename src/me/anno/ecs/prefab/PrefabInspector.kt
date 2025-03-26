@@ -269,9 +269,9 @@ class PrefabInspector(var reference: FileReference) {
         }
 
         // todo place actions into these groups
-        showProperties(list, reflections, instances, style, isWritable) { property, relevantInstances ->
+        showProperties(list, reflections, instances, style, isWritable, { property, relevantInstances ->
             PrefabSaveableProperty(this, relevantInstances, property.name, property)
-        }
+        }, true)
 
         val instance = instances.first()
         val types = instance.listChildTypes()

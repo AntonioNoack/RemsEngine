@@ -157,13 +157,11 @@ class CachedReflections private constructor(
             clazz: Class<*>, allProperties: Map<String, CachedProperty>
         ): List<Pair<Class<*>, List<CachedProperty>>> {
             val superClass = clazz.superclass
-            if (superClass != null) {
-                val superReflections = Saveable.getReflectionsByClass(superClass)
-                val superPropertyNames = superReflections.allProperties
-                    .map { it.key }.toHashSet()
-                val customProperties = allProperties.filter { it.key !in superPropertyNames }.values
-                return superReflections.propertiesByClass + (clazz to sortProperties(customProperties))
-            } else return listOf(clazz to sortProperties(allProperties.values))
+                ?: return listOf(clazz to sortProperties(allProperties.values))
+            val superReflections = Saveable.getReflectionsByClass(superClass)
+            val superPropertyNames = superReflections.allProperties
+            val customProperties = allProperties.filter { it.key !in superPropertyNames }.values
+            return superReflections.propertiesByClass + (clazz to sortProperties(customProperties))
         }
 
         fun getGetterName(fieldName: String, fieldCap: CharSequence): String {
