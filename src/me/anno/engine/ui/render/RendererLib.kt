@@ -73,13 +73,13 @@ object RendererLib {
             "       vec3 viewDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
             "       vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0);\n" +
             "       vec4 data0 = lightData0[i];\n" + // color, type
-            "       float data1 = lightData1[i];\n" + // point: radius, spot: angle
-            "       vec4 data2 = shadowData[i];\n" +
+            "       vec4 data1 = lightData1[i];\n" + // point: radius, spot: angle
+            "       vec4 data2 = canHaveShadows ? lightData2[i] : vec4(0.0);\n" +
             "       vec3 lightColor = data0.rgb;\n" +
             "       int lightType = int(data0.w);\n" +
             "       int shadowMapIdx0 = int(data2.x);\n" +
             "       int shadowMapIdx1 = int(data2.y);\n" +
-            "       float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
+            "       float shaderV0 = data1.x, shaderV1 = data1.y, shaderV2 = data1.z, shaderV3 = data1.w;\n" +
             // local coordinates of the point in the light "cone"
             // removed switch(), because WebGL had issues with continue inside it...
             LightType.entries.joinToString("") {

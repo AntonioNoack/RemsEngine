@@ -13,6 +13,7 @@ import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector4f
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
@@ -34,12 +35,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         if (cutoff == 0f) {
             dstUnion.all()
-        } else {
-            getLightPrimitive()
-                .getBounds()
-                .transformUnion(globalTransform, dstUnion)
-        }
-        return true
+            return true
+        } else return super.fillSpace(globalTransform, dstUnion)
     }
 
     override fun updateShadowMap(
@@ -83,7 +80,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
     // v0 is not used
-    override fun getShaderV1(): Float = shadowMapPower.toFloat()
+    override fun getShaderV1(): Float = shadowMapPower
     override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
 
     override fun drawShape(pipeline: Pipeline) {
@@ -102,7 +99,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
             return "" +
                     (if (cutoffContinue != null) {
                         "" +
-                                "#define invCutoff shaderV2\n" +
+                                "float invCutoff = shaderV2;\n" +
                                 "if(invCutoff > 0.0){\n" +
                                 "   float cut = min(invCutoff * (1.0 - dot(lightPos,lightPos)), 1.0);\n" +
                                 "   if(cut <= 0.0) { $cutoffContinue; }\n" +
@@ -132,7 +129,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             // when we are close to the edge, we blend in
                             "   float edgeFactor = min(20.0*(1.0-max(abs(lightPos.x),abs(lightPos.y))),1.0);\n" +
                             "   if(edgeFactor > 0.0){\n" +
-                            "       #define shadowMapPower shaderV1\n" +
+                            "       float shadowMapPower = shaderV1;\n" +
                             "       float invShadowMapPower = 1.0/shadowMapPower;\n" +
                             "       vec2 shadowDir = lightPos.xy;\n" +
                             "       vec2 nextDir = shadowDir * shadowMapPower;\n" +
@@ -147,7 +144,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           shadowDir = nextDir;\n" +
                             "           nextDir *= shadowMapPower;\n" +
                             "       }\n" +
-                            "       float depthFromShader = lightPos.z*.5+.5;\n" +
+                            "       float depthFromShader = lightPos.z*.5+.5 + 0.005;\n" +
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +
                             // todo this will become proportional to the distance to the shadow throwing surface

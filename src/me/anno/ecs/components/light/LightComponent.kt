@@ -33,15 +33,14 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.SQRT3f
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -256,6 +255,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     open fun getShaderV0(): Float = 0f
     open fun getShaderV1(): Float = 0f
     open fun getShaderV2(): Float = 0f
+    open fun getShaderV3(): Float = 0f
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

@@ -21,7 +21,6 @@ import org.joml.Vector3f
 /**
  * Showcase of all light types
  *
- * todo shadows are broken, when clip-control isn't supported
  * except for EnvironmentMap, which is kind of a light, too
  * */
 fun main() {

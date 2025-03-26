@@ -82,7 +82,8 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     private fun initShader(
         shader: Shader, cameraMatrix: Matrix4f,
-        type: LightType, depthTexture: ITexture2D
+        type: LightType, depthTexture: ITexture2D,
+        instanced: Boolean
     ) {
         shader.use()
         // information for the shader, which is material agnostic
@@ -91,6 +92,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
         shader.v1b("isSpotLight", type == LightType.SPOT)
         shader.v1b("receiveShadows", true)
+        shader.v1b("canHaveShadows", !instanced)
         shader.v1f("countPerPixel", countPerPixel)
         depthTexture.bindTrulyNearest(shader, "depthTex")
         shader.m4x4("transform", cameraMatrix)
@@ -127,7 +129,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             val mesh = sample.getLightPrimitive()
 
             val shader = getShader(type, false)
-            initShader(shader, cameraMatrix, type, depthTexture)
+            initShader(shader, cameraMatrix, type, depthTexture, false)
 
             mesh.ensureBuffer()
 
@@ -148,12 +150,11 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 bindTransformUniforms(shader, transform)
 
                 // define the light data
-                // data0: color, type;
-                // type is ignored by the shader -> just use 1
-                shader.v4f("data0", light.color, 1f)
+                // data0: color, type
+                shader.v4f("data0", light.color, type.id.toFloat())
 
-                // data1: shader specific value (cone angle / size)
-                shader.v1f("data1", light.getShaderV0())
+                // data1: shader specific values (cone angle / size)
+                shader.v4f("data1", light.getShaderV0(), light.getShaderV1(), light.getShaderV2(), light.getShaderV3())
                 shader.v4f("depthMask", depthMask)
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
@@ -183,7 +184,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                     }
                 }
 
-                shader.v4f("data2", 0f, i1, light.getShaderV1(), light.getShaderV2())
+                shader.v4f("data2", 0f, i1, 0f, 0f)
 
                 mesh.draw(pipeline, shader, 0)
 
@@ -223,7 +224,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!
 
-        initShader(shader, cameraMatrix, type, depthTexture)
+        initShader(shader, cameraMatrix, type, depthTexture, true)
 
         val buffer = lightInstanceBuffer
         val nioBuffer = buffer.getOrCreateNioBuffer()
@@ -254,11 +255,9 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 nioBuffer.putInt(light.lightType.id)
                 // put data1: type-dependant property
                 nioBuffer.putFloat(light.getShaderV0())
-                // put data2:
-                nioBuffer.putFloat(0f)
-                nioBuffer.putFloat(0f)
                 nioBuffer.putFloat(light.getShaderV1())
                 nioBuffer.putFloat(light.getShaderV2())
+                nioBuffer.putFloat(light.getShaderV3())
             }
             buffer.ensureBufferWithoutResize()
             mesh.drawInstanced(pipeline, shader, 0, buffer, Mesh.drawDebugLines)

@@ -296,6 +296,7 @@ class PipelineStageImpl(
                 val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
                 shader.v1i(numberOfLightsPtr, numberOfLights)
                 shader.v1b("receiveShadows", receiveShadows)
+                shader.v1b("canHaveShadows", true)
                 if (numberOfLights > 0) {
                     val buffer = buffer16x256
                     val invLightMatrices = shader["invLightMatrices"]
@@ -330,15 +331,19 @@ class PipelineStageImpl(
                     // additional, whether we have a texture, and maybe other data
                     val lightTypes = shader["lightData1"]
                     if (lightTypes >= 0) {
-                        buffer.limit(numberOfLights)
+                        buffer.limit(4 * numberOfLights)
                         for (i in 0 until numberOfLights) {
                             val light = lights[i]!!.light
-                            buffer.put(light.getShaderV0())
+                            buffer
+                                .put(light.getShaderV0())
+                                .put(light.getShaderV1())
+                                .put(light.getShaderV2())
+                                .put(light.getShaderV3())
                         }
                         buffer.flip()
-                        shader.v1fs(lightTypes, buffer)
+                        shader.v4fs(lightTypes, buffer)
                     }
-                    val shadowData = shader["shadowData"]
+                    val shadowData = shader["lightData2"]
                     if (shadowData >= 0) {
                         buffer.limit(4 * numberOfLights)
                         // write all texture indices, and bind all shadow textures (as long as we have slots available)
@@ -355,10 +360,7 @@ class PipelineStageImpl(
                             for (i in 0 until numberOfLights) {
                                 buffer.position(4 * i)
                                 val light = lights[i]!!.light
-                                buffer.put(0f)
-                                buffer.put(0f)
-                                buffer.put(light.getShaderV1())
-                                buffer.put(light.getShaderV2())
+                                buffer.put(0f).put(0f).put(0f).put(0f)
                                 buffer.position(4 * i)
                                 if (light.hasShadow) {
                                     if (light is PointLight) {

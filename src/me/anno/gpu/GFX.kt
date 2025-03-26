@@ -71,7 +71,7 @@ object GFX {
     var maxSamples = 1
 
     @JvmStatic
-    val supportsClipControl get() = !OS.isAndroid && !OS.isWeb
+    var supportsClipControl/* get()*/ = !OS.isAndroid && !OS.isWeb
 
     @JvmField
     var supportsF32Targets = true
@@ -160,7 +160,7 @@ object GFX {
         // todo check if rendering is still broken in DX11 in default render mode
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
-        // if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...
+        if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         ClickIdBoundsArray.needsBoxes = supportsComputeShaders
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)

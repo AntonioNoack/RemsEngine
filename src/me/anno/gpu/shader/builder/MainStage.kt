@@ -185,18 +185,12 @@ class MainStage {
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
             } else {
-                fun appendBias() {
-                    // code.append("float slopeBias = 1.0 + sqrt(1.0 - cosTheta * cosTheta) / abs(cosTheta);")
-                    code.append("float bias = 0.005;\n") // mmmh...
-                }
                 if (isArray) {
                     code.append("(int index, vec3 uv, float cosTheta, float depth){\n")
-                    appendBias()
-                    code.append("vec4 uvw = vec4(uv*.5+.5,depth+bias);\n")
+                    code.append("vec4 uvw = vec4(uv*.5+.5,depth);\n")
                 } else {
                     code.append("(int index, vec2 uv, float cosTheta, float depth){\n")
-                    appendBias()
-                    code.append("vec3 uvw = vec3(uv*.5+.5,depth+bias);\n")
+                    code.append("vec3 uvw = vec3(uv*.5+.5,depth);\n")
                 }
                 code.append("float sum,du;\n")
                 if (isMoreThanOne) code.append("switch(index){\n")

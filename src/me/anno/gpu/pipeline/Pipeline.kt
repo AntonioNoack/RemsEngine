@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Engine
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -41,6 +42,7 @@ import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
+import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.algorithms.Recursion
@@ -101,6 +103,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     fun bakeBoxCulling(previousFBWithDepth: IFramebuffer) {
         if (hasOcclusionCulling) return
         if (previousFBWithDepth.depthTexture?.createdOrNull() == null) return
+        val boxOcclusionCulling = getOcclusionCulling() ?: return
         boxOcclusionCulling.renderBoxes(this, previousFBWithDepth, defaultStage.depthMode, clickIdToBounds)
         hasOcclusionCulling = true
     }

@@ -955,7 +955,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             when (light) {
                 is SpotLight -> {
                     attr("outerConeAngle")
-                    write(atan(light.coneAngle))
+                    write(atan(light.outerConeAtan))
                     writeLightRange()
                 }
                 is PointLight -> {

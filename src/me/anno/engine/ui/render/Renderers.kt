@@ -160,10 +160,11 @@ object Renderers {
                         // light data
                         Variable(GLSLType.V1I, "numberOfLights"),
                         Variable(GLSLType.V1B, "receiveShadows"),
+                        Variable(GLSLType.V1B, "canHaveShadows"),
                         Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
-                        Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
-                        Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.V4F, "lightData2", RenderView.MAX_FORWARD_LIGHTS),
                         // light maps for shadows
                         // - spotlights, directional lights
                         Variable(GLSLType.S2DAShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),

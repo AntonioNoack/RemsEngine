@@ -11,15 +11,17 @@ import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix3f
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Planed
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -165,12 +167,22 @@ abstract class GPUShader(val name: String) : ICacheData {
                 glGetProgramInfoLog(shader)
             }
             if (log != null && !log.isBlank2()) {
-                LOGGER.warn(formatShader(shaderName, log, s0, s1))
+                if (hasErrorMessages(log)) {
+                    LOGGER.warn(formatShader(shaderName, log, s0, s1))
+                } else {
+                    LOGGER.warn("$shaderName: $log")
+                }
             }
             if (!isShader) {
                 if (glGetProgrami(shader, GL_LINK_STATUS) == 0) {
                     throw IllegalStateException("Linking $shader failed")
                 }
+            }
+        }
+
+        private fun hasErrorMessages(log: String): Boolean {
+            return log.split('\n').any2 { line ->
+                line.isNotBlank2() && ": warning " !in line
             }
         }
 

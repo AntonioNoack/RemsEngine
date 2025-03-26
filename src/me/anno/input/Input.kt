@@ -506,8 +506,7 @@ object Input {
 
         val event = UIEvent(
             window.currentWindow,
-            window.mouseX,
-            window.mouseY, 0f, 0f,
+            window.mouseX, window.mouseY, 0f, 0f,
             button, -1, byMouse = true,
             isLong = false, UIEventType.KEY_UP
         ).call()
