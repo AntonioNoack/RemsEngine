@@ -1,6 +1,5 @@
 package me.anno.ui.editor.files
 
-import me.anno.Engine
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL

@@ -144,7 +144,7 @@ object ThumbsRendering {
         // whether the aspect ratio of the parts can be adjusted to keep the result quadratic
         // if false, the result will be rectangular
         changeSubFrameAspectRatio: Boolean,
-        renderer0: Renderer,
+        renderer0: Renderer, flipY: Boolean,
         callback: Callback<ITexture2D>,
         drawFunction: (i: Int, aspect: Float) -> Unit
     ) {
@@ -157,7 +157,7 @@ object ThumbsRendering {
         val aspect = if (changeSubFrameAspectRatio) (w * sy).toFloat() / (h * sx) else 1f
         renderToImage(
             srcFile, false, dstFile, true,
-            renderer0, true, callback, w, h
+            renderer0, flipY, callback, w, h
         ) {
             val frame = GFXState.currentBuffer
             val renderer = GFXState.currentRenderer

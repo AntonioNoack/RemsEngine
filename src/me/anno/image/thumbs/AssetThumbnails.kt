@@ -59,8 +59,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
@@ -153,14 +153,12 @@ object AssetThumbnails {
         val matToTex = HashSet<FileReference>()
 
         waitUntil(true, {
-            val async = true
-            val delta = 50L
             meshFiles.all2 { meshFile ->
-                checkAsset(MeshCache, meshFile, meshToMat, async, delta) { mesh ->
+                checkAsset(MeshCache, meshFile, meshToMat) { mesh ->
                     materialFiles.addAll(mesh.materials.filter { it.exists })
                 }
             } && materialFiles.all { materialFile ->
-                checkAsset(MaterialCache, materialFile, matToTex, async, delta) { material ->
+                checkAsset(MaterialCache, materialFile, matToTex) { material ->
                     textureFiles.addAll(material.listTextures().filter { it.exists })
                 }
             } && textureFiles.all { textureFile ->
@@ -174,10 +172,12 @@ object AssetThumbnails {
         }
     }
 
-   private fun <V : ICacheData> checkAsset(
+    private val async = true
+    private val delta = 50L
+
+    private fun <V : ICacheData> checkAsset(
         cache: PrefabByFileCache<V>, file: FileReference,
         mapFileOnce: HashSet<FileReference>,
-        async: Boolean, delta: Long,
         addChildFiles: (V) -> Unit,
     ): Boolean {
         val mesh = cache[file, async]
@@ -203,7 +203,7 @@ object AssetThumbnails {
                 srcFile, false,
                 dstFile, true,
                 Renderers.previewRenderer,
-                true, callback, size, size
+                false, callback, size, size
             ) {
                 GFX.check()
                 val rv = rv
@@ -239,7 +239,7 @@ object AssetThumbnails {
             waitForTextures(textures) {
                 ThumbsRendering.renderMultiWindowImage(
                     srcFile, dstFile, materials.size, size, false,
-                    renderer, callback
+                    renderer, false, callback
                 ) { it, _ ->
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
@@ -336,11 +336,8 @@ object AssetThumbnails {
 
     @JvmStatic
     fun generateMaterialFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        material: Material,
-        size: Int,
-        callback: Callback<ITexture2D>
+        srcFile: FileReference, dstFile: HDBKey,
+        material: Material, size: Int, callback: Callback<ITexture2D>
     ) {
         waitForTextures(material, srcFile) {
             ThumbsRendering.renderToImage(
@@ -393,10 +390,8 @@ object AssetThumbnails {
 
     @JvmStatic
     private fun generateAnimationFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        animation: Animation,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey,
+        animation: Animation, size: Int,
         callback: Callback<ITexture2D>
     ) {
         val skeleton = SkeletonCache[animation.skeleton] ?: return
@@ -411,7 +406,7 @@ object AssetThumbnails {
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         ThumbsRendering.renderMultiWindowImage(
             srcFile, dstFile, count, size,
-            true, Renderers.simpleRenderer, { it, e ->
+            true, Renderers.simpleRenderer, true, { it, e ->
                 callback.call(it, e)
                 Pools.floatArrayPool.returnBuffer(meshVertices)
                 mesh.destroy()
