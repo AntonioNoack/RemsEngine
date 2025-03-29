@@ -204,8 +204,7 @@ abstract class EngineBase(
 
             windowStack.updateTransform(window, 0, 0, w, h)
             didSomething = windowStack.draw(
-                0, dy, w, h, didSomething,
-                didSomething || window.didNothingCounter < 3
+                0, dy, w, h, didSomething
             )
 
             window.framesSinceLastInteraction++
@@ -288,8 +287,7 @@ abstract class EngineBase(
                     time
                 )
             }
-            val changed = progressBars.removeAll { it.canBeRemoved(time) }
-            if (changed) window.invalidateLayout()
+            progressBars.removeAll { it.canBeRemoved(time) }
         }
 
         if (Tooltips.draw(window)) {

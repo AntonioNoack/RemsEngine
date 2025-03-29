@@ -13,7 +13,6 @@ import kotlin.math.max
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
 
-    override fun getVisualState(): Any? = getTexture()
     abstract fun getTexture(): ITexture2D?
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

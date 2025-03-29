@@ -118,7 +118,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     override fun onUpdate() {
         super.onUpdate()
-        if (dragged != null) invalidateDrawing() // might be displayable
         val renderSettings = settings
         renderView.renderMode = renderSettings.renderMode
         renderView.superMaterial = renderSettings.superMaterial
@@ -778,7 +777,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             for (window in GFX.windows) {
                 for (window1 in window.windowStack) {
                     window1.panel.forAllVisiblePanels {
-                        if (it is ECSTreeView) it.invalidateLayout()
+                        if (it is ECSTreeView) it.requestTreeUpdate()
                     }
                 }
             }

@@ -116,7 +116,6 @@ class TreeViewEntryPanel<V : Any>(
         ) {
             clamp(((window.mouseY - this.y) / this.height * 3).toInt(), 0, 2)
         } else null
-        if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
         val isInFocus = isAnyChildInFocus || EngineBase.instance?.isSelected(transform) == true
         val textColor = treeView.getLocalColor(transform, isHovered, isInFocus)
@@ -164,10 +163,8 @@ class TreeViewEntryPanel<V : Any>(
         )
         if (Input.isShiftDown && inFocusByParent < 2) {
             treeView.toggleCollapsed(element)
-            uiParent?.invalidateLayout()
         } else if (isMouseOnSymbol(x)) {
             treeView.toggleCollapsed(element)
-            uiParent?.invalidateLayout()
         } else {
             val elements = siblings.mapNotNull {
                 if (it == this) element

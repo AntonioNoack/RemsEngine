@@ -18,12 +18,6 @@ import me.anno.utils.Color.white
 class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {
 
     var color = 0
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
 
     // transparent background can draw over borders
     override val canDrawOverBorders get() = true

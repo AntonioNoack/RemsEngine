@@ -8,8 +8,8 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.ui.base.components.Padding
 import me.anno.ui.Style
+import me.anno.ui.base.components.Padding
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 
@@ -26,9 +26,6 @@ open class ImageButton(
     var guiScale = 1f
 
     private val icon get() = TextureCache[path, 10_000, true]
-
-    override fun getVisualState(): Any? = icon
-    override fun getLayoutState(): Any? = icon?.width
 
     override fun calculateSize(w: Int, h: Int) {
         val icon = TextureCache[path, 10_000, false]

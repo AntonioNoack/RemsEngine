@@ -28,6 +28,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
@@ -57,24 +58,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * min = left, max = right, center = centered, fill = all
      * */
     var alignmentX = AxisAlignment.FILL
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     /**
      * which space the element will take up horizontally after size calculation:
      * min = top, max = bottom, center = centered, fill = all
      * */
     var alignmentY = AxisAlignment.FILL
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     /**
      * this weight is used inside some layouts:
@@ -84,31 +73,19 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * like on Android
      * */
     var weight = 0f
-        set(value) {
-            if (value.isFinite() && field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     /**
      * this weight is used inside some 2d layouts
      * it allows layout by percentages and such
      * */
     var weight2 = 0f
-        set(value) {
-            if (value.isFinite() && field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     /**
      * Spreads this panel with the given weight
      * */
     fun fill(weight: Float): Panel {
         this.weight = weight
-        this.weight2 = weight2
+        this.weight2 = weight
         alignmentX = AxisAlignment.FILL
         alignmentY = AxisAlignment.FILL
         return this
@@ -117,11 +94,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var isVisible: Boolean
         get() = isEnabled
         set(value) {
-            val wasEnabled = isEnabled
             isEnabled = value
-            if (wasEnabled != value) {
-                invalidateLayout()
-            }
         }
 
     @NotSerializedProperty
@@ -156,41 +129,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
         isVisible = true
     }
 
-    @DebugAction
-    open fun invalidateLayout() {
-        val parent = uiParent
-        if (parent == null) {
-            window?.addNeedsLayout(this)
-        } else parent.invalidateLayout()
-    }
-
-    @DebugAction
-    open fun invalidateDrawing() {
-        invalidateDrawing(lx0, ly0, lx1, ly1)
-    }
-
-    fun invalidateDrawing(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (x1 > x0 && y1 > y0 && canBeSeen) {
-            window?.addNeedsRedraw(this, x0, y0, x1, y1)
-        }
-    }
-
     open fun onUpdate() {
-        if (wasInFocus != isInFocus) {
-            invalidateDrawing()
-        }
         wasInFocus = isInFocus
         wasHovered = isHovered
     }
-
-    @NotSerializedProperty
-    var oldLayoutState: Any? = null
-
-    @NotSerializedProperty
-    var oldVisualState: Any? = null
-
-    @NotSerializedProperty
-    var oldStateInt = 0
 
     // old task: mesh or image backgrounds for panels
     //  -> use a PanelStack, and an ImagePanel below your main panel
@@ -199,14 +141,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var backgroundOutlineThickness = 0f
     var backgroundRadius = style.getSize("background.radius", 0f)
     var backgroundRadiusCorners = style.getInt("background.radiusCorners", 15)
-
     var backgroundColor = style.getColor("background", -1)
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
 
     val originalBGColor = backgroundColor
 
@@ -251,23 +186,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @Type("Panel?/SameSceneRef")
     var tooltipPanel: Panel? = null
-
-    open fun getLayoutState(): Any? = null
-    open fun getVisualState(): Any? = null
-
-    fun tick() {
-        val newLayoutState = getLayoutState()
-        val newVisualState = getVisualState()
-        val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
-        if (newLayoutState != oldLayoutState) {
-            invalidateLayout()
-        } else if (oldStateInt != newStateInt || oldVisualState != newVisualState) {
-            invalidateDrawing()
-        }
-        oldLayoutState = newLayoutState
-        oldVisualState = newVisualState
-        oldStateInt = newStateInt
-    }
 
     open fun requestFocus(exclusive: Boolean = true) {
         windowStack.requestFocus(this, exclusive)
@@ -577,14 +495,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
         var par = uiParent
         while (par != null && (dx != 0 || dy != 0)) {
             if (dx != 0 && par is ScrollableX) {
-                par.scrollX(dx)
-                par.invalidateLayout()
-                dx = 0
+                dx = par.scrollX(dx).toIntOr()
             }
             if (dy != 0 && par is ScrollableY) {
-                par.scrollY(dy)
-                par.invalidateLayout()
-                dy = 0
+                dy = par.scrollY(dy).toIntOr()
             }
             par = par.uiParent
         }

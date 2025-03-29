@@ -33,7 +33,6 @@ fun main() {
                 ListAlignment.entries.map { NameDesc(it.name) }, style
             ).setChangeListener { _, index, _ ->
                 list.listAlignmentX = ListAlignment.entries[index]
-                list.invalidateLayout()
             }
         )
         controls.add(
@@ -42,14 +41,12 @@ fun main() {
                 ListAlignment.entries.map { NameDesc(it.name) }, style
             ).setChangeListener { _, index, _ ->
                 list.listAlignmentY = ListAlignment.entries[index]
-                list.invalidateLayout()
             }
         )
         controls.add(
             BooleanInput(NameDesc("IsY"), list.isY, false, style)
-                .setChangeListener {
-                    list.isY = it // todo toggling this sometimes behaves weirdly
-                    list.invalidateLayout()
+                .setChangeListener { isY ->
+                    list.isY = isY // todo toggling this sometimes behaves weirdly
                 }
         )
         all.add(controls)

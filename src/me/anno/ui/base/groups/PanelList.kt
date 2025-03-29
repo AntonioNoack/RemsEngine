@@ -24,18 +24,14 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     open fun clear() {
         children.clear()
-        invalidateLayout()
     }
 
     fun invalidateSorting() {
-        invalidateLayout() // causes calculateSize() to be called
     }
 
     fun isEmpty() = children.isEmpty()
 
     fun add(index: Int, child: Panel) {
-        if (children.size < index || children.getOrNull(index) != child)
-            invalidateLayout()
         children.add(index, child)
         child.parent = this
     }
@@ -55,7 +51,6 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     override fun remove(child: Panel) {
         children.remove(child)
         child.parent = null
-        invalidateLayout()
     }
 
     open operator fun plusAssign(child: Panel) {
@@ -65,7 +60,6 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     open fun add(child: Panel): PanelList {
         children += child
         child.parent = this
-        invalidateLayout()
         return this
     }
 

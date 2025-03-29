@@ -233,13 +233,13 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         val last = min(element.last, values.lastIndex)
         values.subList(element.first, last + 1).clear()
         onChange()
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     override fun removeRoot(root: IntRange) {
         values.clear()
         onChange()
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     override fun getTooltipText(element: IntRange): String? = null
@@ -273,7 +273,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     fun setValues(values: List<EntryType>) {
         this.values.clear()
         this.values.addAll(values)
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     fun set(panel: Panel, value: Any?) {
@@ -297,7 +297,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         values.removeAt(index - 1)
         list.children.removeAt(index)
         onChange()
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     fun paste(index: Int) {
@@ -311,7 +311,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     fun insert(index: Int, value: EntryType) {
         values.add(index - 1, value)
         onChange()
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -365,12 +365,12 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
                     val value = newValue()
                     values.add(value)
                     onChange()
-                    invalidateLayout()
+                    requestTreeUpdate()
                 },
                 MenuOption(NameDesc("Clear")) {
                     values.clear()
                     onChange()
-                    invalidateLayout()
+                    requestTreeUpdate()
                 }
             ))
         } else super.onMouseClicked(x, y, button, long)

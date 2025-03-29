@@ -48,7 +48,6 @@ open class EnumInput(
                 titleView?.enableHoverColor = value
                 inputPanel.enableHoverColor = value
                 inputPanel.enableFocusColor = value
-                invalidateDrawing()
             }
         }
 
@@ -69,7 +68,6 @@ open class EnumInput(
         lastIndex = index
         value = option
         if (notify) changeListener(option, index, options)
-        invalidateLayout() // layout, because the drawn length can change
     }
 
     override fun setValue(newValue: NameDesc, mask: Int, notify: Boolean): Panel {

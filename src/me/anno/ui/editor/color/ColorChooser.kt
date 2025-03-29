@@ -60,8 +60,6 @@ open class ColorChooser(
         super.calculateSize(min(w, maxWidth), h)
     }
 
-    override fun getVisualState() = Vector4f(hue, saturation, lightness, opacity)
-
     val rgb = Vector3f()
     val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)
 
@@ -93,9 +91,7 @@ open class ColorChooser(
         colorSpace.naming,
         ColorSpace.list.value.map { it.naming }, style
     ).setChangeListener { _, index, _ ->
-        val newColorSpace = ColorSpace.list.value[index]
-        colorSpace = newColorSpace
-        invalidateLayout()
+        colorSpace = ColorSpace.list.value[index]
     }
 
     private val styleInput = EnumInput(

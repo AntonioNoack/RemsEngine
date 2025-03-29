@@ -84,14 +84,12 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     // transfer events
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-        invalidateDrawing()
         if (control?.onCharTyped(codepoint) == true) return
         if (editMode?.onEditTyped(codepoint) == true) return
         super.onCharTyped(x, y, codepoint)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        invalidateDrawing()
         if (control?.onKeyTyped(key) == true) return
         if (editMode?.onEditClick(key, false) == true) return
         super.onKeyTyped(x, y, key)
@@ -102,21 +100,18 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
-        invalidateDrawing()
         if (control?.onKeyDown(key) == true) return
         if (editMode?.onEditDown(key) == true) return
         super.onKeyDown(x, y, key)
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Key) {
-        invalidateDrawing()
         if (control?.onKeyUp(key) == true) return
         if (editMode?.onEditUp(key) == true) return
         super.onKeyUp(x, y, key)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-        invalidateDrawing()
         if (control?.onMouseClicked(button, long) == true) return
         if (editMode?.onEditClick(button, long) == true) return
         selectObjectAtCursor(x, y)
@@ -124,7 +119,6 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        invalidateDrawing()
         if (control?.onMouseMoved(x, y, dx, dy) == true) return
         if (editMode?.onEditMove(x, y, dx, dy) == true) return
         if (isSelected && Input.isRightDown) {
@@ -163,7 +157,6 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             val tmp = rotationTargetToQuat(Quaternionf())
             renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0).toFloat())
         }
-        invalidateDrawing()
     }
 
     private fun rotationTargetToQuat(dst: Quaternionf): Quaternionf {
@@ -195,14 +188,12 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        invalidateDrawing()
         if (control?.onMouseWheel(x, y, dx, dy, byMouse) == true) return
         // not supported, will always be zooming
         // if (editMode?.onEditWheel(x, y, dx, dy) == true) return
         if (isSelected) {
             val factor = Maths.pow(0.5f, dy / 16f)
             zoom(factor)
-            invalidateDrawing()
         }
     }
 

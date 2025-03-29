@@ -21,7 +21,6 @@ class MoveableTitlePanel(title: NameDesc, style: Style) : TextPanel(title, style
                 window.y + dy.roundToIntOr(), 0,
                 windowStack.height - window.panel.height
             )
-            window.panel.invalidateLayout()
         } else super.onMouseMoved(x, y, dx, dy)
     }
 }

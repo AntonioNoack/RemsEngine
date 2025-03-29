@@ -99,11 +99,6 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         }
     }
 
-    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (dx != 0f) invalidateDrawing()
-        super.onMouseMoved(x, y, dx, dy)
-    }
-
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
         drawNumbered2DLineGrid(x0, y0, x1, y1)

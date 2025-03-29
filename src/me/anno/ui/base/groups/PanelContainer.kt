@@ -29,7 +29,6 @@ open class PanelContainer(
                 value.uiParent?.remove(value)
                 value.parent = this
                 children = listOf(value)
-                invalidateLayout()
             }
         }
 

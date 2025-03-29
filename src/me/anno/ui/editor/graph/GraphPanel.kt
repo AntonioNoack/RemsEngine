@@ -54,7 +54,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         set(value) {
             if (field !== value) {
                 field = value
-                invalidateLayout()
                 children.removeAll { it is NodePanel || it is NodeGroupPanel }
                 nodeToPanel.clear()
                 nodeToPanel2.clear()
@@ -119,7 +118,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         return nodeToPanel.getOrPut(node) {
             val panel = NodePanel(node, this, style)
             addChild(panel)
-            invalidateLayout()
             panel
         }
     }
@@ -128,7 +126,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         return nodeToPanel2.getOrPut(group) {
             val panel = NodeGroupPanel(group, this, style)
             addChild(0, panel)
-            invalidateLayout()
             panel
         }
     }
@@ -252,9 +249,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             dy2 *= multiplier
             center.add(dx2 / scale.x, dy2 / scale.y)
             target.set(center)
-            invalidateLayout()
-        } else {
-            invalidateDrawing()
         }
     }
 

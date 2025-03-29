@@ -155,26 +155,6 @@ class NodePanel(
         }
     }
 
-    @NotSerializedProperty
-    private var lmx = 0
-
-    @NotSerializedProperty
-    private var lmy = 0
-
-    override fun onUpdate() {
-        super.onUpdate()
-        if (canBeSeen) {
-            val window = window
-            if (window != null) {
-                if (lmx != window.mouseXi || lmy != window.mouseYi) {
-                    lmx = window.mouseXi
-                    lmy = window.mouseYi
-                    invalidateDrawing()
-                }
-            }
-        }
-    }
-
     private fun <V : NodeConnector> placeConnectors(connectors: List<V>?, y: Int, x: Double) {
         connectors ?: return
         for ((index, con) in connectors.withIndex()) {
@@ -348,13 +328,12 @@ class NodePanel(
                 bg, gp.getTypeColor(con), bg
             )
         }
-        val failed = DrawTexts.drawTextOrFail(
+        DrawTexts.drawTextOrFail(
             pxi + dx, pyi + dy, font, con.name, textColor,
             bg, -1, -1,
             if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN,
             AxisAlignment.CENTER
         )
-        if (failed) invalidateDrawing()
     }
 
     fun getConnectorAt(x: Float, y: Float): NodeConnector? {
@@ -392,7 +371,6 @@ class NodePanel(
             when {
                 key == Key.BUTTON_LEFT && con != null -> {
                     gp.dragged = con
-                    gp.invalidateDrawing()
                     gp.requestFocus(true)
                 }
                 key == Key.BUTTON_LEFT -> {
@@ -416,7 +394,6 @@ class NodePanel(
             node.position.add(dx2, dy2, 0.0)
             onNodeMoved(node)
             if (Input.isShiftDown) snapPosition()
-            gp.invalidateLayout()
         } else if (windowStack.inFocus.none2 { it.parent == uiParent }) {
             super.onMouseMoved(x, y, dx, dy)
         }
@@ -467,13 +444,11 @@ class NodePanel(
                         MenuOption(NameDesc("Add $typeI Connector")) {
                             if (input) node.inputs.add(idx1, NodeInput(typeI, node, true))
                             else node.outputs.add(idx1, NodeOutput(typeI, node, true))
-                            invalidateLayout()
                         }
                     } + (if (canRemove) listOf(
                         MenuOption(NameDesc("Remove Connector")) {
                             if (input) node.inputs.removeAt(idx)
                             else node.outputs.removeAt(idx)
-                            invalidateLayout()
                         }
                     ) else emptyList()))
                 } else super.onMouseClicked(x, y, button, long)
@@ -547,7 +522,6 @@ class NodePanel(
         }
         isDragged = false
         gp.dragged = null
-        gp.invalidateDrawing()
     }
 
     fun connect(con0: NodeConnector, con1: NodeConnector): Boolean {
@@ -590,13 +564,9 @@ class NodePanel(
         ) {
             Menu.askName(
                 windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
-                { textColor }, {
-                    node.name = it
-                    invalidateLayout()
-                })
+                { textColor }, { newName -> node.name = newName })
         } else {
             gp.target.set(node.position.x, node.position.y)
-            invalidateLayout()
         }
     }
 

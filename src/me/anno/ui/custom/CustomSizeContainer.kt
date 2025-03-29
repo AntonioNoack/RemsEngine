@@ -92,12 +92,10 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
         if (isDownIndex >= 0) {
             if (isX && abs(dx) >= 0.5f) {
                 customSizeX = max(customSizeX + dx.roundToIntOr(), interactionPadding)
-                invalidateLayout()
                 rx = 0f
             }
             if (isY && abs(dy) >= 0.5f) {
                 customSizeY = max(customSizeY + dy.roundToIntOr(), interactionPadding)
-                invalidateLayout()
                 ry = 0f
             }
         }
@@ -114,7 +112,7 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
 
     fun updateScrollbar(scrollbar: Scrollbar, isYBar: Boolean) {
         scrollbar.isHovered = (if (isYBar) dy else dx) >= 0
-        scrollbar.updateAlpha(this)
+        scrollbar.updateAlpha()
     }
 
     private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, originalBGColor, 0.8f))

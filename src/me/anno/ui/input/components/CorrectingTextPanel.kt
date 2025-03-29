@@ -20,9 +20,6 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
 
     var drawingOffset = 0
     var allowFirstLowercase = true
-
-    override fun getVisualState(): Any? = suggestions
-
     var enableSpellcheck = true
 
     private val suggestions

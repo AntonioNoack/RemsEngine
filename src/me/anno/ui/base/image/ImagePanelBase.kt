@@ -69,14 +69,12 @@ open class ImagePanelBase(style: Style) : Panel(style) {
         offsetX = 0f
         offsetY = 0f
         zoom = 1f
-        invalidateDrawing()
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (allowMovement && Input.mouseKeysDown.isNotEmpty()) {
             offsetX += dx / zoom
             offsetY += dy / zoom
-            invalidateDrawing()
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
@@ -97,7 +95,6 @@ open class ImagePanelBase(style: Style) : Panel(style) {
                 offsetX -= dmx * (if (flipX) -1 else +1)
                 offsetY -= dmy * (if (flipY) -1 else +1)
             }
-            invalidateDrawing()
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 

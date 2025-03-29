@@ -78,14 +78,12 @@ abstract class StackPanel<V : Inspectable>(
         content.add(index, OptionPanel(this, option.nameDesc, component))
         if (notify) {
             onAddComponent(component, index)
-            invalidateLayout()
         }
     }
 
     fun removeComponent(component: V) {
         content.children.removeAll { it is OptionPanel<*> && it.value === component }
         onRemoveComponent(component)
-        invalidateLayout()
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

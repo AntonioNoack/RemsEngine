@@ -111,12 +111,6 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
     }
 
     var isPressed = false
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
 
     override fun onUpdate() {
         super.onUpdate()
@@ -145,13 +139,12 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
         val textColor = textColor
         val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
         else textColor.a() / 2
-        val failed = DrawTexts.drawTextOrFail(
+        DrawTexts.drawTextOrFail(
             alignmentX.getAnchor(x + padding.left, width - padding.width),
             alignmentY.getAnchor(y + padding.top, height - padding.height),
             font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,
             alignmentX, alignmentY
         )
-        if (failed) invalidateDrawing()
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {

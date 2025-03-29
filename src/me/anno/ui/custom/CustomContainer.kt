@@ -35,10 +35,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         minH = child.minH
     }
 
-    override fun invalidateLayout() {
-        window?.addNeedsLayout(this)
-    }
-
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val crossSize = getCrossSize(style)
         return this.lx1 - lx1 < crossSize && ly0 - this.ly0 < crossSize
@@ -51,13 +47,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         val crossSize = getCrossSize(style).roundToIntOr()
         val x2 = x + width - (crossSize + 2)
         val y2 = y + 2
-        if (icon0 == null) {
-            invalidateDrawing(
-                max(x2, x0), max(y2, y0),
-                min(x2 + crossSize, x1),
-                min(y2 + crossSize, y1)
-            )
-        } // wait for texture to load
         val tint = 0x8f8f8f or black
         drawTexture(x2, y2, crossSize, crossSize, icon, tint, null)
     }

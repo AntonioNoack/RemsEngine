@@ -219,7 +219,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
                         transform.invert()
                     }
                     windowStack.updateTransform(window, transform, rv.x, rv.y, rv.width, rv.height, 0, 0, width, height)
-                    windowStack.draw(0, 0, width, height, true, forceRedraw = true)
+                    windowStack.draw(0, 0, width, height, true)
                     JomlPools.mat4f.sub(1)
                 }
             }

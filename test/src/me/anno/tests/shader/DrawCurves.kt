@@ -117,7 +117,6 @@ fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -
                 val selected = selected
                 if (selected != null && (dx != 0f || dy != 0f)) {
                     selected.add(dx / scale.x.toFloat(), dy / scale.y.toFloat())
-                    invalidateDrawing()
                 } else super.onMouseMoved(x, y, dx, dy)
             }
         }

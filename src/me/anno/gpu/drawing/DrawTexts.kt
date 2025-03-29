@@ -546,8 +546,7 @@ object DrawTexts {
     }
 
     /**
-     * aligns and draws the text; returns whether drawing failed;
-     * if so, please call Panel.invalidateDrawing()
+     * aligns and draws the text; returns whether drawing failed
      *
      * todo use this everywhere, maybe remove synchronous text drawing everywhere
      * */

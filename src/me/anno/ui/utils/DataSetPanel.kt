@@ -147,7 +147,6 @@ class DataSetPanel(
             }
             fillInColumn(x, property)
         }
-        invalidateLayout()
     }
 
     private fun fillInColumn(x: Int, prop: CachedProperty) {

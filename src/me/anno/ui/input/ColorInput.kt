@@ -72,7 +72,6 @@ open class ColorInput(
                 val alpha = if (value) 255 else 160
                 titleView.textColor = titleView.textColor.withAlpha(alpha)
                 titleView.focusTextColor = titleView.focusTextColor.withAlpha(alpha)
-                invalidateDrawing()
             }
         }
 
@@ -83,7 +82,6 @@ open class ColorInput(
         val newValue1 = newValue.toARGB()
         previewField.color = if (withAlpha) newValue1
         else newValue1.withAlpha(255)
-        previewField.invalidateDrawing()
         base.setRGBA(newValue, mask, false)
         return this
     }
@@ -164,7 +162,6 @@ open class ColorInput(
                         MenuOption(NameDesc("Pick Color")) {
                             pickColor(windowStack, style) { color ->
                                 base.setARGB(color, -1, true)
-                                invalidateDrawing()
                             }
                         }.checkEnabled(),
                         MenuOption(NameDesc("Reset")) {
@@ -283,7 +280,7 @@ open class ColorInput(
                     )
                     fb.ensure()
                     useFrame(fb) {
-                        windowStack.draw(0, 0, fb.width, fb.height, didSomething0 = true, forceRedraw = true)
+                        windowStack.draw(0, 0, fb.width, fb.height, didSomething0 = true)
                     }
                     val imageData = fb.createImage(flipY = true, withAlpha = false) ?: IntImage(1, 1, false)
                     ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, flipTexture = false, style)

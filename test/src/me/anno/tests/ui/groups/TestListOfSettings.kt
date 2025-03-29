@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.Events.addEvent
 import me.anno.engine.WindowRenderFlags.enableVSync
 import me.anno.engine.WindowRenderFlags.showFPS
-import me.anno.engine.WindowRenderFlags.showRedraws
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.text.TextPanel
@@ -37,7 +36,6 @@ fun main() {
     ui.addChild(SpyPanel { Thread.sleep(50) })
 
     addEvent {
-        showRedraws = true
         enableVSync = true
         showFPS = true
     }

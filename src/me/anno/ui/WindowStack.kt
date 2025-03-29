@@ -1,6 +1,5 @@
 package me.anno.ui
 
-import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
@@ -75,17 +74,11 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         if (EngineBase.dragged != null) return
         val inFocus = inFocus
         if (exclusive) {
-            for (index in inFocus.indices) {
-                inFocus[index].invalidateDrawing()
-            }
             inFocus.clear()
         } else {
             inFocus.removeAll(panels.toSet())
         }
         inFocus.addAll(panels)
-        for (panel in panels) {
-            panel.invalidateDrawing()
-        }
     }
 
     fun push(window: Window): Window {
@@ -199,14 +192,13 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         JomlPools.vec3f.sub(1)
     }
 
-    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
-        val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
+    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean): Boolean {
         var didSomething = didSomething0
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen && !it.isTransparent }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
             val window = windowStack.getOrNull(index) ?: break
-            didSomething = window.draw(dx, dy, windowW, windowH, sparseRedraw, didSomething, forceRedraw)
+            didSomething = window.draw(dx, dy, windowW, windowH, didSomething)
         }
         return didSomething
     }

@@ -28,12 +28,8 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         super.onUpdate()
         val time = nanoTime
         if (abs(time - lastUpdate) > updateInterval) {
-            val newText = getDebugText()
+            text = getDebugText()
             lastUpdate = time
-            if (text != newText) {
-                text = newText
-                invalidateDrawing()
-            }
         }
     }
 

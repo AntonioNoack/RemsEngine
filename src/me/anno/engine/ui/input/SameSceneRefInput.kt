@@ -77,18 +77,8 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             }
         }
 
-        private var lastType = 0
-        override fun onUpdate() {
-            super.onUpdate()
-            val type = isDraggingGoodType()
-            if (lastType != type) {
-                invalidateDrawing()
-                lastType = type
-            }
-        }
-
         override val effectiveTextColor: Int
-            get() = getColor(super.effectiveTextColor, lastType)
+            get() = getColor(super.effectiveTextColor, isDraggingGoodType())
     }.apply {
         padding.set(valueButton.padding)
         setTooltip("Drag entities or components of matching type (${clazz.simpleName}) here.")

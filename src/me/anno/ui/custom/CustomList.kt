@@ -31,10 +31,6 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         weight = 1f
     }
 
-    override fun invalidateLayout() {
-        window?.addNeedsLayout(this)
-    }
-
     val minSize get() = if (isY) 10f / height else 10f / width
 
     fun change(p: Panel, delta: Float, minSize: Float): Float {
@@ -54,7 +50,6 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 LOGGER.warn("Cannot remove root of custom UI hierarchy")
             }
         }
-        invalidateLayout()
     }
 
     fun move(index: Int, delta: Float) {
@@ -71,7 +66,6 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         while (abs(w1) > 1e-5f && ri < children.size) {
             w1 = change(children[ri++], w1, minSize)
         }
-        invalidateLayout()
     }
 
     override fun add(child: Panel): CustomList {
@@ -211,7 +205,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         val mx = window.mouseXi
         val my = window.mouseYi
         scrollbar.isHovered = touchesBar(index + 1, mx, my)
-        scrollbar.updateAlpha(this)
+        scrollbar.updateAlpha()
     }
 
     private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, originalBGColor, 0.8f))

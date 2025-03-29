@@ -6,9 +6,9 @@ import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
-import kotlin.math.roundToInt
 
-class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
+class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(
+    chooser,
     Vector3f(0f, 0f, 0f),
     Vector3f(0f, 0f, 1f),
     Vector3f(0f, 0f, 0f), 0f, style, 1f,
@@ -22,14 +22,6 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
             8, true
         )
     }) {
-
-    override fun invalidateDrawing() {
-        val parent = uiParent
-        if (parent != null) parent.invalidateDrawing()
-        else super.invalidateDrawing()
-    }
-
-    override fun getVisualState() = chooser.opacity
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToIntOr(), x0, x1 - 1)
         // drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))

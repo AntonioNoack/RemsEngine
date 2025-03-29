@@ -60,7 +60,6 @@ abstract class NumberInput<BaseType>(
         set(value) {
             titleView?.textSize = value
             inputPanel.textSize = value
-            invalidateLayout()
         }
 
     override var textColor: Int
@@ -68,7 +67,6 @@ abstract class NumberInput<BaseType>(
         set(value) {
             titleView?.textColor = value
             inputPanel.textColor = value
-            invalidateLayout()
         }
 
     override var isBold: Boolean
@@ -108,7 +106,7 @@ abstract class NumberInput<BaseType>(
             titleView.enableHoverColor = true
             titleView.disableFocusColors()
             titleView.addLeftClickListener {
-                InputVisibility.toggle(visibilityKey, this)
+                InputVisibility.toggle(visibilityKey)
             }
         }
         add(inputPanel)

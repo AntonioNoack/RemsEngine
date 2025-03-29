@@ -319,7 +319,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             content2d.listAlignmentX = ListAlignment.ALIGN_MIN
         }
         calculateChildSize()
-        content2d.invalidateLayout()
 
         val topBar = PanelListX(style)
         this += topBar
@@ -452,7 +451,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults(this)
         } else isValid -= Time.uiDeltaTime.toFloat()
-        if (loading != 0L) invalidateDrawing()
         val pts = panelToScrollTo
         if (pts != null) {
             pts.scrollTo()
@@ -637,7 +635,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         folder ?: return
         if (GFX.isGFXThread() && !OS.isWeb) {
             loading = Time.nanoTime
-            invalidateDrawing()
             thread(name = "switchTo($folder)") {
                 try {
                     switchTo1(folder)
@@ -646,7 +643,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                     e.printStackTrace()
                 }
                 loading = 0L
-                addEvent { invalidateDrawing() }
             }
         } else switchTo1(folder)
     }
@@ -707,7 +703,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         val textSize = sampleFont.sizeInt
         content2d.childHeight = if (listMode) (textSize * 1.5f).roundToIntOr()
         else esi + (textSize * 2.5f).roundToIntOr()
-        content2d.invalidateLayout()
     }
 
     private var lastScrollChangedPanel: FileExplorerEntry? = null

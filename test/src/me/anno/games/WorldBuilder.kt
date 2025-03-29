@@ -169,7 +169,6 @@ fun main() {
             val panels = files.map { file ->
                 val itemPanel = ThumbnailPanel(file, style)
                 itemPanel.addLeftClickListener {
-                    buildMenu.invalidateDrawing()
                     // not working :/
                     // sceneView.requestFocus()
                     selected = file

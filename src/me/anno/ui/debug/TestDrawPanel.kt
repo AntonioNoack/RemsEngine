@@ -17,11 +17,6 @@ import org.joml.Vector3f
  * */
 open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
-    override fun onUpdate() {
-        super.onUpdate()
-        invalidateDrawing()
-    }
-
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         draw(this)
     }

@@ -35,10 +35,6 @@ class ColorPicker(
         flipY = !flipTexture
     }
 
-    override fun onUpdate() {
-        invalidateDrawing()
-    }
-
     fun getMouseCoordinates(): IntPair {
         val window = window!!
         var x01 = unmix(lix.toFloat(), (lix + liw).toFloat(), window.mouseX)

@@ -31,8 +31,7 @@ fun main() {
                 editor.scale.set(1.0)
             }
             editor.targetScale.set(editor.scale)
-            editor.invalidateLayout()
-        } else editor.invalidateDrawing() // for testing normal performance
+        }
     }
     testUI("Graph Editor", listOf(spy, editor))
 }

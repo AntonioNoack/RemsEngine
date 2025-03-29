@@ -141,7 +141,7 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
     var lastNotEmptyTopic: TopicNode? = null
     private fun createLeftSide() {
         buildTopicTree()
-        leftContent.invalidateLayout()
+        leftContent.requestTreeUpdate()
     }
 
     fun buildTopicTree() {
@@ -212,8 +212,6 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
         for (group in groups.entries.sortedBy { it.key }) {
             processEntries(group.key, group.value)
         }
-
-        invalidateLayout()
     }
 
     private fun processEntries(groupName: String, entries: List<ContentCreator>) {

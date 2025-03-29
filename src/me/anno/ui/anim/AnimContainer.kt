@@ -70,7 +70,6 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         }
         if (needsUpdate) {
             updateAnimations()
-            invalidateDrawing()
         }
     }
 

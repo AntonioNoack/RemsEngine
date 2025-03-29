@@ -39,9 +39,7 @@ object SearchAlgorithm {
                 val parent = self.folder.getParent()
                 if (self.shouldShowFile(parent)) {
                     // option to go up a folder
-                    val entry = self.createEntry(true, parent)
-                    self.content2d += entry
-                    self.invalidateLayout()
+                    self.content2d += self.createEntry(true, parent)
                 }
             }
         }
@@ -71,7 +69,6 @@ object SearchAlgorithm {
                     for (i in windows.indices) {
                         windows[i].framesSinceLastInteraction = 0
                     }
-                    self.invalidateLayout()
                     if (file == null) {
                         self.lastFiles = newFiles
                         self.lastSearch = newSearch
@@ -168,16 +165,9 @@ object SearchAlgorithm {
                 resultSet.finish()
             } else {
                 val entries = self.content2d.children
-                var changedLayout = false
                 for (i in entries.indices) {
                     val entry = entries[i] as? FileExplorerEntry ?: continue
-                    val wasVisible = entry.isVisible
-                    entry.isVisible = entry.isParent ||
-                            newSearch.matches(getReferenceOrTimeout(entry.path).name)
-                    changedLayout = changedLayout || wasVisible != entry.isVisible
-                }
-                if (changedLayout) {
-                    self.invalidateLayout()
+                    entry.isVisible = entry.isParent || newSearch.matches(getReferenceOrTimeout(entry.path).name)
                 }
             }
 

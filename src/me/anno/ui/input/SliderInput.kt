@@ -79,7 +79,7 @@ class SliderInput(
         titleView.enableHoverColor = true
         titleView.disableFocusColors()
         titleView.addLeftClickListener {
-            InputVisibility.toggle(visibilityKey, this)
+            InputVisibility.toggle(visibilityKey)
         }
         tooltip = nameDesc.desc
     }
@@ -96,10 +96,7 @@ class SliderInput(
         val v1 = if (step == 0.0) v0 else round((v0 - minValue) / step) * step + minValue
         if (v1 != value) {
             value = v1
-            if (notify) {
-                changeListener?.invoke(value)
-            }
-            invalidateDrawing()
+            if (notify) changeListener?.invoke(value)
         }
         return this
     }

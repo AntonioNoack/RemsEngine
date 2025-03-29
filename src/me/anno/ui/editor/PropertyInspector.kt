@@ -98,10 +98,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
 
     fun invalidate() {
         needsUpdate = true
-        invalidateLayout()
     }
-
-    override fun getLayoutState(): List<Inspectable> = getInspectables()
 
     override fun onUpdate() {
         super.onUpdate()
@@ -120,7 +117,6 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
     }
 
     fun update(selected: List<Inspectable>) {
-        invalidateDrawing()
 
         if (oldValues.isAnyChildInFocus)
             return
@@ -256,11 +252,6 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                 lastInvalidated = time + (if (major) 0L else 500L * MILLIS_TO_NANOS)
                 for (window in GFX.windows) {
                     invalidateUI(window.windowStack)
-                }
-                for (window in GFX.windows) {
-                    for (window1 in window.windowStack) {
-                        window1.panel.invalidateDrawing()
-                    }
                 }
             }
         }

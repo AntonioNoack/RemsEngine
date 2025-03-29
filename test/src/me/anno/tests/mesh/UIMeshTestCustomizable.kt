@@ -102,7 +102,6 @@ class SimpleMeshTest(
         hour.setRotation(0f, 0f, -hours * TAUf / 12f + ZERO_ANGLE)
         minutes.setRotation(0f, 0f, -min * TAUf / 60f + ZERO_ANGLE)
         seconds.setRotation(0f, 0f, -sec * TAUf / 60f + ZERO_ANGLE)
-        invalidateDrawing()
     }
 
     private val size = RenderSize()

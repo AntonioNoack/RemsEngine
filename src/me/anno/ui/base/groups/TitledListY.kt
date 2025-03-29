@@ -22,7 +22,7 @@ open class TitledListY(val title: NameDesc, val visibilityKey: String, sorter: C
         if (titleView != null) {
             this.add(titleView)
             titleView.addLeftClickListener {
-                InputVisibility.toggle(visibilityKey, this)
+                InputVisibility.toggle(visibilityKey)
             }
         }
         disableConstantSpaceForWeightedChildren = true

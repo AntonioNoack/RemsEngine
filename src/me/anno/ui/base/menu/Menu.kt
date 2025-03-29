@@ -470,7 +470,6 @@ object Menu {
                         } else id // invisible things can be put to the end
                     }
                 }
-                list.invalidateLayout()
             }
             searchPanel.setEnterListener {
                 val children = list.children

@@ -33,13 +33,6 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     }
 
     override var isInputAllowed = true
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
-
     override var value: Boolean = startValue
 
     private var resetListener: () -> Boolean? = { defaultValue }
@@ -53,11 +46,6 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         super.calculateSize(w, h)
         minW = size + 2
         minH = size + 2
-    }
-
-    override fun getVisualState(): Any? {
-        val image = getImage(value)
-        return (image as? Texture2D)?.state ?: image?.name
     }
 
     override fun setValue(newValue: Boolean, mask: Int, notify: Boolean): Panel {

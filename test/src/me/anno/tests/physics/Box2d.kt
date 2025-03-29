@@ -241,7 +241,6 @@ fun run2dPhysicsWithUI() {
                         body.angularVelocity = speed * angleDifference((targetAngle - ang))
                     }
                 }
-                invalidateDrawing()
             }
 
             override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
@@ -266,8 +265,6 @@ fun run2dPhysicsWithUI() {
 
             val anchorLS = Vec2()
             val anchorWS = Vec2()
-
-            val tmp = Vector3f()
 
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.draw(x0, y0, x1, y1)

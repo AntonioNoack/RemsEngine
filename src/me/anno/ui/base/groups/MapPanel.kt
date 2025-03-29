@@ -113,21 +113,12 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
             scale.x = exp(mix(ln(scale.x), ln(targetScale.x), dtx))
             scale.y = exp(mix(ln(scale.y), ln(targetScale.y), dtx))
             onChangeSize()
-            invalidateLayout()
         } else if (scale != targetScale) {
             scale.set(targetScale)
             onChangeSize()
-            invalidateLayout()
-        }
-        if (target.distanceSquared(center) > 1e-5) {
-            invalidateLayout()
         }
         center.mix(target, dtx)
         super.onUpdate()
-    }
-
-    override fun invalidateLayout() {
-        window?.addNeedsLayout(this)
     }
 
     open fun shallMoveMap(): Boolean = Input.isLeftDown
@@ -154,24 +145,20 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         // moving around
         center.sub(dx / scale.x, dy / scale.y)
         target.set(center)
-        invalidateLayout()
     }
 
     fun moveMapTo(position: Vector2d) {
         target.set(position)
-        invalidateLayout()
     }
 
     fun teleportMapTo(position: Vector2d) {
         center.set(position)
         target.set(position)
-        invalidateLayout()
     }
 
     fun teleportScaleTo(newScale: Vector2d) {
         scale.set(newScale)
         targetScale.set(newScale)
-        invalidateLayout()
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
@@ -185,7 +172,6 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         val dxi = (x - centerX) * (oldInvY - 1.0 / targetScale.y)
         val dyi = (y - centerY) * (oldInvX - 1.0 / targetScale.x)
         target.add(dxi, dyi)
-        invalidateLayout()
     }
 
     fun mapMouseDown(x: Float, y: Float) {

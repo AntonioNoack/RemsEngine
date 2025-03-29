@@ -41,78 +41,32 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     fun setTextAlpha(alpha: Float) {
         textColor = textColor.withAlpha(alpha)
-        invalidateDrawing()
     }
 
     var instantTextLoading = false
     var useMonospaceCharacters = false
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     var padding = style.getPadding("textPadding", 2)
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     open var font = style.getFont("text")
         set(value) {
             if (field != value) {
                 field = value
                 xOffsets = i0
-                invalidateLayout()
             }
         }
 
     override var textColor = style.getColor("textColor", iconGray)
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
 
     var focusTextColor = style.getColor("textColorFocused", -1)
-        set(value) {
-            if (field != value) {
-                if (isInFocus) invalidateDrawing()
-                field = value
-            }
-        }
-
     var focusBackgroundColor = style.getColor("textBackgroundFocused", deepDark)
-        set(value) {
-            if (field != value) {
-                if (isInFocus) invalidateDrawing()
-                field = value
-            }
-        }
 
     private var xOffsets = i0
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
     // make this center??, no, center is sth for titles
     var textAlignmentX = AxisAlignment.MIN
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
-
     var textAlignmentY = AxisAlignment.CENTER
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
 
     @NotSerializedProperty
     var textCacheKey: TextCacheKey = TextCacheKey(text, font)
@@ -125,17 +79,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             if (field != value) {
                 field = value
                 xOffsets = i0
-                invalidateLayout()
             }
         }
 
     var breaksIntoMultiline = false
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     // can be disabled for parents to copy ALL lines, e.g., for a bug report :)
     var disableCopy = false
@@ -146,28 +93,19 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     override var textSize: Float
         get() = font.size
         set(value) {
-            if (font.size != value) {
-                font = font.withSize(value)
-                invalidateLayout()
-            }
+            font = font.withSize(value)
         }
 
     override var isBold: Boolean
         get() = font.isBold
         set(value) {
-            if (font.isBold != value) {
-                font = font.withBold(isBold)
-                invalidateLayout()
-            }
+            font = font.withBold(value)
         }
 
     override var isItalic: Boolean
         get() = font.isItalic
         set(value) {
-            if (font.isItalic != value) {
-                font = font.withItalic(isItalic)
-                invalidateLayout()
-            }
+            font = font.withItalic(value)
         }
 
     open fun drawText(color: Int) {
@@ -183,13 +121,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
                 textAlignmentX, textAlignmentY, true
             )
         } else {
-            val failed = DrawTexts.drawTextOrFail(
+            DrawTexts.drawTextOrFail(
                 ax, ay, font, textCacheKey, color, backgroundColor,
                 textAlignmentX, textAlignmentY
             )
-            if (failed) {
-                invalidateDrawing()
-            }
         }
     }
 
@@ -242,7 +177,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             val size = getTextSize(textCacheKey, !inst)
             if (size == -1) {
                 calculateSizeMono()
-                invalidateLayout() // mark as not final yet
             } else {
                 minW = max(1, getSizeX(size) + padding.width)
                 minH = max(1, getSizeY(size) + padding.height)

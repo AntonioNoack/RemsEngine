@@ -114,7 +114,6 @@ class Snake : Panel(style) {
                 generateFood()
             }
         }
-        invalidateDrawing()
         lastStep = Time.gameTimeN
         if (windowStack.inFocus0 == null)
             requestFocus()
@@ -219,7 +218,6 @@ class Snake : Panel(style) {
                 } else {
                     isPaused = !isPaused
                 }
-                invalidateDrawing()
             }
             else -> super.onKeyTyped(x, y, key)
         }
@@ -230,6 +228,6 @@ fun main() {
     disableRenderDoc()
     testUI3("Snake") {
         // container for layout
-        PanelContainer(me.anno.games.Snake(), Padding.Zero, style)
+        PanelContainer(Snake(), Padding.Zero, style)
     }
 }

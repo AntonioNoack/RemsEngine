@@ -20,6 +20,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
+import me.anno.ui.editor.code.codemirror.LanguageTheme
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.editor.code.tokenizer.LanguageTokenizer
 import me.anno.ui.editor.code.tokenizer.LuaTokenizer
@@ -71,15 +72,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     var language: LanguageTokenizer = LuaTokenizer()
-
-    var theme = LanguageThemeLib.Twilight
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
-
+    var theme: LanguageTheme = LanguageThemeLib.Twilight
     var styles = ByteArray(0)
 
     var changeListener: (CodeEditor, IntSequence) -> Unit = { _, _ -> }
@@ -164,7 +157,6 @@ open class CodeEditor(style: Style) : Panel(style) {
         while (variableNamesIndex > spellcheckedSections.size) {
             spellcheckedSections.removeAt(spellcheckedSections.lastIndex)
         }
-        invalidateDrawing()
     }
 
     fun recalculateBrackets() {
@@ -232,12 +224,9 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     var firstLineZero = false
-    var showCursor = false
+    val showCursor get() = isInFocus && blinkVisible
 
     override fun onUpdate() {
-        val sb = showCursor
-        showCursor = isInFocus && blinkVisible
-        if (sb != showCursor) invalidateDrawing()
         if (!isInFocus) cursor0.set(cursor1)
     }
 
@@ -443,7 +432,6 @@ open class CodeEditor(style: Style) : Panel(style) {
             for (i in fonts.indices) {
                 fonts[i] = fonts[i].withSize(newSize)
             }
-            invalidateLayout()
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
@@ -486,39 +474,23 @@ open class CodeEditor(style: Style) : Panel(style) {
             "Up" -> {
                 up()
                 cursor0.set(cursor1)
-                invalidateDrawing()
-            }
-            "Up-2" -> {
-                up()
-                invalidateDrawing()
             }
             "Down" -> {
                 down()
                 cursor0.set(cursor1)
-                invalidateDrawing()
-            }
-            "Down-2" -> {
-                down()
-                invalidateDrawing()
             }
             "Left" -> {
                 left()
                 cursor0.set(cursor1)
-                invalidateDrawing()
-            }
-            "Left-2" -> {
-                left()
-                invalidateDrawing()
             }
             "Right" -> {
                 right()
                 cursor0.set(cursor1)
-                invalidateDrawing()
             }
-            "Right-2" -> {
-                right()
-                invalidateDrawing()
-            }
+            "Up-2" -> up()
+            "Down-2" -> down()
+            "Left-2" -> left()
+            "Right-2" -> right()
             "Redo" -> history.redo()
             "Undo" -> history.undo()
             "Search" -> {
@@ -558,7 +530,6 @@ open class CodeEditor(style: Style) : Panel(style) {
         cursor0.set(0, 0)
         cursor1.set(content.getLineLength(content.lineCount - 1), content.lineCount - 1)
         notifyCursorTyped()
-        invalidateDrawing()
     }
 
     override fun onEmpty(x: Float, y: Float) {
@@ -616,7 +587,6 @@ open class CodeEditor(style: Style) : Panel(style) {
     private fun onChangeText(updateHistory: Boolean = true, notify: Boolean = true) {
         recalculateColors()
         recalculateBrackets()
-        invalidateLayout()
         notifyCursorTyped()
         if (updateHistory) history.put(content.toString())
         if (notify) changeListener(this, content)
@@ -662,7 +632,6 @@ open class CodeEditor(style: Style) : Panel(style) {
             if (xi == -1) {
                 if (codeBlockCollapser.isClosed(yi)) {
                     codeBlockCollapser.open(yi)
-                    invalidateDrawing()
                     return
                 } else {
                     val bracket = codeBlocks
@@ -670,7 +639,6 @@ open class CodeEditor(style: Style) : Panel(style) {
                         .maxByOrNull { it.count }
                     if (bracket != null) {
                         codeBlockCollapser.close(bracket)
-                        invalidateDrawing()
                         return
                     }
                 }
@@ -687,7 +655,6 @@ open class CodeEditor(style: Style) : Panel(style) {
         clampCursor(cursor)
         if (cursor.x != ox || cursor.y != oy) {
             notifyCursorTyped()
-            invalidateDrawing()
         }
     }
 

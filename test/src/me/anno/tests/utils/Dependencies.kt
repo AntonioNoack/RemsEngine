@@ -312,13 +312,7 @@ fun main() {
                     clickedPck.isCollapsed = !clickedPck.isCollapsed
                     if (clickedPck.isCollapsed) collapseAll(clickedPck)
                     calculateDependencies(root)
-                    invalidateLayout()
                 }
-            }
-
-            override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-                super.onMouseMoved(x, y, dx, dy)
-                invalidateLayout()
             }
         }
     }

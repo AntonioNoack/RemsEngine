@@ -194,12 +194,10 @@ class EditTypeButton(val sceneView: SceneView, val text: String, val controls: C
         val dst = controls
         sceneView.editControls = dst
         dst.rotationTargetDegrees.set(src.rotationTargetDegrees)
-        invalidateDrawing()
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Key) {
         isPressed = false
-        invalidateDrawing()
     }
 }
 

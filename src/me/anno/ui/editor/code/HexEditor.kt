@@ -308,14 +308,12 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         if (key == Key.BUTTON_LEFT) {
             cursor0 = getCursorAt(x, y)
             cursor1 = cursor0
-            invalidateDrawing()
         } else super.onKeyDown(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (isAnyChildInFocus && Input.isLeftDown) {
             cursor1 = getCursorAt(x, y)
-            invalidateDrawing()
         }
     }
 
@@ -327,7 +325,6 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                 cursor0 = -1L
                 cursor1 = -1L
                 this.file = file
-                invalidateDrawing()
             } else super.onPasteFiles(x, y, files)
         } else super.onPasteFiles(x, y, files)
     }

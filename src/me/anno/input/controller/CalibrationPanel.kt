@@ -92,7 +92,6 @@ abstract class CalibrationPanel(
             if (axis1 < 0) 0f else controller.getRawAxis(axis1),
             if (axis2 < 0) 0f else controller.getRawAxis(axis2)
         )
-        invalidateDrawing()
     }
 
     private var size = min(width, height)

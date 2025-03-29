@@ -19,12 +19,6 @@ class TagPanel(name: String, style: Style) : TextPanel(name, style) {
         super.calculateSize(w, h)
         minW += textSize.toIntOr()
     }
-    override fun onUpdate() {
-        super.onUpdate()
-        if (texture == null || wasHovered != isHovered) {
-            invalidateDrawing()
-        }
-    }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)

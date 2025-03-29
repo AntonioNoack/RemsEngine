@@ -145,7 +145,6 @@ open class FloatInput(
             value = newValue
             setText(stringify(newValue), notify)
             if (notify) changeListener(newValue)
-            invalidateLayout()
         }
         return this
     }

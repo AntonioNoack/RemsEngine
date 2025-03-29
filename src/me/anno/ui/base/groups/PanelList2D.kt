@@ -106,24 +106,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
     override val canDrawOverBorders: Boolean get() = true
 
     var childWidth: Int = style.getSize("childWidth", defaultSize)
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
-
     var childHeight: Int = style.getSize("childHeight", defaultSize)
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
-
-    override fun invalidateLayout() {
-        window?.addNeedsLayout(this)
-    }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         val dxi = if (isY) 1 else numTilesY

@@ -40,17 +40,15 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
         // todo if texture still loads, show loading circle
 
         // todo bug: background isn't drawn... why???
-        val failed = drawTextOrFail( // draw file name at bottom center
+        drawTextOrFail( // draw file name at bottom center
             x + width / 2, y + height, font, file.name,
             -1, backgroundColor, width, -1,
             AxisAlignment.CENTER, AxisAlignment.MAX
         )
-        if (failed) invalidateDrawing()
     }
 
     fun step(di: Int) {
         index = (index + di) % files.size
-        invalidateDrawing()
     }
 
     fun prev() = step(files.size - 1)
@@ -59,7 +57,6 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
         zoom = 1f
         offsetX = 0f
         offsetY = 0f
-        invalidateDrawing()
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -85,6 +82,5 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
         filtering =
             if (filtering == Filtering.NEAREST) Filtering.LINEAR
             else Filtering.NEAREST
-        invalidateDrawing()
     }
 }

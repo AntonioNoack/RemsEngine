@@ -38,19 +38,7 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
     override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = true
 
     var splitX = 0.2f
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
     var splitY = 0.2f
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     private val minWHs = IntArray(8)
 

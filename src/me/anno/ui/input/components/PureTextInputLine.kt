@@ -23,7 +23,6 @@ class PureTextInputLine(val self: PureTextInputML) : CorrectingTextPanel(self.st
         if (self.cursor1 != self.cursor2 || self.cursor1.x != position || self.cursor1.y != indexInParent) {
             self.cursor1.set(position, indexInParent)
             self.cursor2.set(self.cursor1)
-            self.invalidateDrawing()
         }
     }
 

@@ -151,12 +151,6 @@ open class FileExplorerEntry(
     var listMode = false
 
     var showTitle = true
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     var originalBackgroundColor = backgroundColor
     var hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
@@ -220,14 +214,6 @@ open class FileExplorerEntry(
         }
     }
 
-    override fun getVisualState(): Any? {
-        return when (val tex = getTexKey()) {
-            is GPUFrame -> if (tex.isCreated) tex else null
-            is ITexture2D -> (tex.createdOrNull() as? Texture2D)?.state
-            else -> tex
-        }
-    }
-
     override fun onUpdate() {
         super.onUpdate()
 
@@ -250,9 +236,6 @@ open class FileExplorerEntry(
         if (isHovered || isInFocus) {
             tooltipQueue += this::updateTooltip
         }
-
-        // todo only if is animation
-        if (isHovered) invalidateDrawing()
     }
 
     var supportsPlayback = true
@@ -268,7 +251,6 @@ open class FileExplorerEntry(
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
                     frameIndex = if (isHovered && supportsPlayback && GFX.activeWindow == GFX.focusedWindow) {
-                        invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = Time.nanoTime
                             val file = getReferenceOrTimeout(path)
@@ -394,7 +376,6 @@ open class FileExplorerEntry(
                         }
                     }
                 }
-                invalidateDrawing() // make sure to draw it next frame
                 return
             }
         }
@@ -749,7 +730,7 @@ open class FileExplorerEntry(
 
     private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
         val pbb = pushBetterBlending(true)
-        val failed = DrawTexts.drawTextOrFail(
+        DrawTexts.drawTextOrFail(
             (x0 + x1).shr(1), (y0 + y1).shr(1),
             titlePanel.font, titlePanel.text,
             titlePanel.textColor,
@@ -758,7 +739,6 @@ open class FileExplorerEntry(
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
         popBetterBlending(pbb)
-        if (failed) invalidateDrawing()
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -859,7 +839,6 @@ open class FileExplorerEntry(
                                 { delta, _ -> progress.progress += delta },
                                 { it?.printStackTrace() })
                             thisFile.invalidate()
-                            invalidateDrawing()
                             progress.finish()
                         }
                     },

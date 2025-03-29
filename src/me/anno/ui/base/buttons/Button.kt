@@ -31,9 +31,7 @@ open class Button(
         }
         val dt = Time.uiDeltaTime.toFloat()
         tint = mix(tint, targetTint, dtTo10(dt * 10f))
-        val prevColor = tintColor
         tintColor = mixARGB(0x777777 or black, -1, tint)
-        if (tintColor != prevColor) invalidateDrawing()
     }
 
     override fun clone(): Button {

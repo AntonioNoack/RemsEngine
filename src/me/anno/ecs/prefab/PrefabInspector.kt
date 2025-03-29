@@ -388,13 +388,9 @@ class PrefabInspector(var reference: FileReference) {
             override fun onUpdate() {
                 super.onUpdate()
                 val editMode = EditorState.editMode
-                val newBorderColor = if (editMode in customEditModes) {
-                    editMode!!.getEditModeBorderColor()
+                borderColor = if (editMode in customEditModes && editMode != null) {
+                    editMode.getEditModeBorderColor()
                 } else 0
-                if (newBorderColor != borderColor) {
-                    borderColor = newBorderColor
-                    invalidateDrawing()
-                }
             }
 
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

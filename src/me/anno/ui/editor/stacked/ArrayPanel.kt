@@ -154,7 +154,6 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         values.removeAt(index - 1)
         children.removeAt(index)
         onChange()
-        invalidateLayout()
     }
 
     fun paste(index: Int) {
@@ -169,7 +168,6 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         values.add(index - 1, value)
         addChild(index, createPanel(value))
         onChange()
-        invalidateLayout()
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -225,13 +223,11 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                         addChild(createPanel(value))
                         values.add(value)
                         onChange()
-                        invalidateLayout()
                     }.setEnabled(isInputAllowed, "Readonly"),
                     MenuOption(NameDesc("Clear")) {
                         values.clear()
                         clear()
                         onChange()
-                        invalidateLayout()
                     }.setEnabled(isInputAllowed, "Readonly")
                 )
             )

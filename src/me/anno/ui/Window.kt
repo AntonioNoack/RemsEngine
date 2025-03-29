@@ -1,7 +1,6 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -9,7 +8,6 @@ import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
@@ -32,8 +30,6 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.structures.lists.LimitedList
-import me.anno.utils.structures.lists.RedrawRequest
 import kotlin.math.max
 import kotlin.math.min
 
@@ -70,7 +66,6 @@ open class Window(
             if (field !== value) {
                 field = value
                 value.window = this
-                value.invalidateLayout()
             }
         }
 
@@ -79,67 +74,6 @@ open class Window(
     fun cannotClose(): Window {
         canBeClosedByUser = false
         return this
-    }
-
-    private val granularity = 16
-    private val needsRedraw = LimitedList<RedrawRequest>(granularity)
-    private val needsLayout = LimitedList<Panel>(granularity)
-    private val tmpNeeds = LimitedList<Panel>(granularity)
-    private val tmpNeeds2 = LimitedList<RedrawRequest>(granularity)
-
-    fun addNeedsRedraw(panel: Panel) {
-        addNeedsRedraw(panel, panel.lx0, panel.ly0, panel.lx1, panel.ly1)
-    }
-
-    fun addNeedsRedraw(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (!needsRedraw.isFull) {
-            val x2 = max(x0, 0)
-            val y2 = max(y0, 0)
-            val x3 = min(x1, windowStack.width)
-            val y3 = min(y1, windowStack.height)
-            if (x3 > x2 && y3 > y2) {
-                val drawnPanel = panel.getOverlayParent(x2, y2, x3, y3) ?: panel
-                addNeedsRedraw1(drawnPanel, x2, y2, x3, y3)
-            }
-        }
-    }
-
-    private fun addNeedsRedraw1(drawnPanel: Panel, x2: Int, y2: Int, x3: Int, y3: Int) {
-        for (i in 0 until needsRedraw.size) {
-            val element = needsRedraw[i]
-            if (element.overlaps(x2, y2, x3, y3)) {
-                if (element.panel !== drawnPanel) {
-                    element.panel = findCommonParent(element.panel, drawnPanel)
-                }
-                // merge them
-                element.union(x2, y2, x3, y3)
-                return
-            }
-        }
-        needsRedraw.forceAdd(RedrawRequest(drawnPanel, x2, y2, x3, y3))
-    }
-
-    private fun findCommonParent(a0: Panel, b0: Panel): Panel {
-        val d0 = a0.depth
-        val d1 = b0.depth
-        var ai = a0
-        var bi = b0
-        val root = panel
-        for (i in d0 until d1) {
-            ai = ai.uiParent ?: root
-        }
-        for (i in d1 until d0) {
-            bi = bi.uiParent ?: root
-        }
-        while (ai !== bi) {
-            ai = ai.uiParent ?: root
-            bi = bi.uiParent ?: root
-        }
-        return ai
-    }
-
-    fun addNeedsLayout(panel: Panel) {
-        needsLayout.add(panel)
     }
 
     var width = -1
@@ -203,34 +137,27 @@ open class Window(
         }
     }
 
-    fun draw(
-        dx: Int, dy: Int, windowW: Int, windowH: Int,
-        sparseRedraw: Boolean, didSomething0: Boolean, forceRedraw: Boolean
-    ): Boolean {
-
-        var didSomething = didSomething0
-        val panel = panel
+    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean): Boolean {
 
         update(dx, dy, windowW, windowH)
 
-        if (panel.width > 0 && panel.height > 0) {
-            when {
-                drawDirectly -> {
-                    fullRedraw(dx, dy, windowW, windowH, panel)
-                    didSomething = true
+        val panel = panel
+        val visible = panel.width > 0 && panel.height > 0
+        if (visible) {
+
+            GFX.resetFBStack()
+            Frame.reset()
+
+            useWindowXY(max(panel.x, 0), max(panel.y, 0), buffer) {
+                renderDefault {
+                    fullRedraw()
                 }
-                sparseRedraw -> {
-                    didSomething = sparseRedraw(panel, didSomething, forceRedraw)
-                }
-                didSomething || forceRedraw -> {
-                    fullRedraw(dx, dy, windowW, windowH, panel)
-                    didSomething = true
-                }
-                // else no buffer needs to be updated
             }
-            if (didSomething && !isFullscreen && !isTransparent) {
+
+            drawCachedImage(panel)
+
+            if (!isFullscreen && !isTransparent) {
                 drawWindowShadow()
-                didSomething = true
             }
         }
 
@@ -238,7 +165,7 @@ open class Window(
             GFXState.timeRecords.clear()
         }
 
-        return didSomething
+        return visible || didSomething0
     }
 
     fun otherWindowIsOverUs(): Boolean {
@@ -296,9 +223,10 @@ open class Window(
         // panel.findMissingParents()
 
         panel.forAllVisiblePanels(Panel::onUpdate)
-        panel.forAllVisiblePanels(Panel::tick)
 
-        validateLayouts(dx, dy, windowW, windowH, panel)
+        this.width = windowW
+        this.height = windowH
+        calculateFullLayout(dx, dy, windowW, windowH)
     }
 
     fun drawWindowShadow() {
@@ -335,137 +263,6 @@ open class Window(
         }
     }
 
-    fun processNeeds(
-        toBeProcessed: LimitedList<Panel>, rootPanel: Panel,
-        processAll: () -> Unit, processOne: (Panel) -> Unit
-    ) {
-        if (rootPanel in toBeProcessed) {
-            toBeProcessed.clear()
-            processAll()
-        } else {
-            val needs = tmpNeeds
-            needs.clear()
-            needs.addAll(toBeProcessed)
-            toBeProcessed.clear()
-            while (needs.isNotEmpty()) {
-                val p = needs.minByOrNull { it.depth }!!
-                processOne(p)
-                needs.removeIf { entry ->
-                    entry === p || entry.anyInHierarchy { it == p }
-                }
-            }
-        }
-    }
-
-    fun processNeeds(
-        toBeProcessed: LimitedList<RedrawRequest>, rootPanel: RedrawRequest,
-        processAll: () -> Unit, processOne: (RedrawRequest) -> Unit
-    ) {
-        if (rootPanel in toBeProcessed) {
-            toBeProcessed.clear()
-            processAll()
-        } else {
-            val needs = tmpNeeds2
-            needs.clear()
-            needs.addAll(toBeProcessed)
-            toBeProcessed.clear()
-            while (needs.isNotEmpty()) {
-                val panel = needs.minByOrNull { it.panel.depth }!!
-                processOne(panel)
-                needs.removeIf { entry -> // remove covered children
-                    (entry === panel || entry.panel.anyInHierarchy { it == panel.panel }) &&
-                            panel.contains(entry)
-                }
-            }
-        }
-    }
-
-    fun validateLayouts(dx: Int, dy: Int, windowW: Int, windowH: Int, panel: Panel) {
-        if (this.width != windowW || this.height != windowH) {
-            this.width = windowW
-            this.height = windowH
-            needsLayout.add(panel)
-        }
-        processNeeds(needsLayout, panel, {
-            calculateFullLayout(dx, dy, windowW, windowH)
-            needsRedraw.add(fullRR(panel))
-        }, { p ->
-            p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
-            p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
-            addNeedsRedraw(p)
-        })
-    }
-
-    private fun fullRR(panel: Panel): RedrawRequest {
-        val x0 = max(panel.x, 0)
-        val y0 = max(panel.y, 0)
-        // we don't need to draw more than is visible
-        val x1 = min(panel.x + panel.width, windowStack.width)
-        val y1 = min(panel.y + panel.height, windowStack.height)
-        return RedrawRequest(panel, x0, y0, x1, y1)
-    }
-
-    private fun fullRedraw(x: Int, y: Int, w: Int, h: Int, panel0: Panel) {
-
-        needsRedraw.clear()
-
-        GFX.loadTexturesSync.clear()
-        GFX.loadTexturesSync.push(false)
-
-        if (Input.needsLayoutUpdate(GFX.activeWindow!!)) {
-            calculateFullLayout(x, y, w, h)
-        }
-
-        val w2 = min(panel0.width, w - x)
-        val h2 = min(panel0.height, h - y)
-        panel0.canBeSeen = true
-        if (drawDirectly) {
-            useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
-                panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
-                if (WindowRenderFlags.showRedraws) {
-                    renderDefault {
-                        showRedraws(listOf(fullRR(panel0)))
-                    }
-                }
-            }
-        } else {
-            useFrame(panel0.x, panel0.y, w2, h2, buffer, Renderer.colorRenderer) {
-                panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
-            }
-            drawCachedImage(panel0, wasRedrawn)
-        }
-    }
-
-    private val wasRedrawn = ArrayList<RedrawRequest>()
-    private fun sparseRedraw(panel0: Panel, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
-
-        var didSomething = didSomething0
-
-        val needsRedraw = needsRedraw
-        val wasRedrawn = wasRedrawn
-        wasRedrawn.clear()
-
-        if (needsRedraw.isNotEmpty()) {
-
-            didSomething = true
-
-            GFX.resetFBStack()
-            Frame.reset()
-
-            useWindowXY(max(panel0.x, 0), max(panel0.y, 0), buffer) {
-                renderDefault {
-                    sparseRedraw2(panel0, wasRedrawn)
-                }
-            }
-        }
-
-        if (didSomething || forceRedraw) {
-            drawCachedImage(panel0, wasRedrawn)
-        }// else no buffer needs to be updated
-
-        return didSomething
-    }
-
     private fun useWindowXY(x: Int, y: Int, buffer: Framebuffer, process: () -> Unit) {
         val ox = buffer.offsetX
         val oy = buffer.offsetY
@@ -479,67 +276,37 @@ open class Window(
         }
     }
 
-    private fun sparseRedraw2(panel0: Panel, wasRedrawn: MutableCollection<RedrawRequest>) {
+    private fun fullRedraw() {
 
-        val x0 = max(panel0.x, 0)
-        val y0 = max(panel0.y, 0)
+        val panel = panel
+        val x0 = max(panel.x, 0)
+        val y0 = max(panel.y, 0)
         // we don't need to draw more than is visible
-        val x1 = min(panel0.x + panel0.width, windowStack.width)
-        val y1 = min(panel0.y + panel0.height, windowStack.height)
+        val x1 = min(panel.x + panel.width, windowStack.width)
+        val y1 = min(panel.y + panel.height, windowStack.height)
 
-        if (x1 > x0 && y1 > y0) {
+        if (x1 <= x0 || y1 <= y0) return
 
-            val request0 = fullRR(panel0)
-            val needsRedraw = needsRedraw
-            if (needsRedraw.isFull || needsRedraw.sumOf {
-                    if (it != null) max((it.x1 - it.x0) * (it.y1 - it.y0), 0) else 0
-                } >= panel0.width * panel0.height) {
-                needsRedraw.clear()
-                needsRedraw.add(request0)
-            }
+        GFX.loadTexturesSync.clear()
+        GFX.loadTexturesSync.push(false)
 
-            processNeeds(needsRedraw, request0, {
-                wasRedrawn += request0
-                clearLoadTexturesSync()
-                if (buffer.width != x1 - x0 || buffer.height != y1 - y0) {
-                    buffer.width = x1 - x0
-                    buffer.height = y1 - y0
-                    buffer.destroy()
-                }
-                useFrame(
-                    x0, y0, x1 - x0, y1 - y0,
-                    buffer, Renderer.colorRenderer
-                ) {
-                    buffer.clearColor(backgroundColor)
-                    panel0.canBeSeen = true
-                    panel0.draw(x0, y0, x1, y1)
-                }
-            }, { region ->
-                Panel.setLX = false
-                clearLoadTexturesSync()
-                useFrame(
-                    region.x0, region.y0,
-                    region.x1 - region.x0,
-                    region.y1 - region.y0, buffer,
-                    Renderer.colorRenderer
-                ) {
-                    region.panel.draw(
-                        region.x0, region.y0,
-                        region.x1, region.y1
-                    )
-                }
-                wasRedrawn += region
-                Panel.setLX = true
-            })
+        if (buffer.width != x1 - x0 || buffer.height != y1 - y0) {
+            buffer.width = x1 - x0
+            buffer.height = y1 - y0
+            buffer.destroy()
+        }
+
+        useFrame(
+            x0, y0, x1 - x0, y1 - y0,
+            buffer, Renderer.colorRenderer
+        ) {
+            buffer.clearColor(backgroundColor)
+            panel.canBeSeen = true
+            panel.draw(x0, y0, x1, y1)
         }
     }
 
-    private fun clearLoadTexturesSync() {
-        GFX.loadTexturesSync.clear()
-        GFX.loadTexturesSync.push(false)
-    }
-
-    private fun drawCachedImage(panel: Panel, wasRedrawn: List<RedrawRequest>) {
+    private fun drawCachedImage(panel: Panel) {
         val x0 = max(panel.x, 0)
         val y0 = max(panel.y, 0)
         // we don't need to draw more than is visible
@@ -552,26 +319,7 @@ open class Window(
             GFXState.blendMode.use(blendMode) {
                 drawTexture(x0, y0, x1 - x0, y1 - y0, tex, -1, null)
             }
-            if (WindowRenderFlags.showRedraws) {
-                GFXState.blendMode.use(BlendMode.DEFAULT) {
-                    showRedraws(wasRedrawn)
-                }
-            }
         }
-    }
-
-    private fun showRedraws(redrawnPanels: List<RedrawRequest>) {
-        val batch = DrawRectangles.startBatch()
-        for (i in redrawnPanels.indices) {
-            val panel = redrawnPanels[i]
-            DrawRectangles.drawRect(
-                panel.x0, panel.y0,
-                panel.x1 - panel.x0,
-                panel.y1 - panel.y0,
-                DEBUG_REDRAW_COLOR
-            )
-        }
-        DrawRectangles.finishBatch(batch)
     }
 
     fun close(closeAllAbove: Boolean = true) {
@@ -592,7 +340,6 @@ open class Window(
     }
 
     companion object {
-        private const val DEBUG_REDRAW_COLOR = 0x33ff0000
         private val shadowShader = Shader(
             "shadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V4F, "color"),

@@ -25,7 +25,6 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
     fun update() {
         clear()
 
-        invalidateLayout()
         val file = file
         var name = if (file == FileRootRef) "This Computer" else file?.name ?: ""
         if (name.isEmpty()) name = file.toString().replace("\\", "")
@@ -35,7 +34,5 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
         panel.addLeftClickListener { onChangeListener?.invoke(file?.getParent()) }
         panel.tooltip = file.toString()
         this += panel
-
-        invalidateLayout()
     }
 }

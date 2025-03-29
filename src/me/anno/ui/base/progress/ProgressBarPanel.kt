@@ -11,10 +11,7 @@ class ProgressBarPanel(name: String, unit: String, total: Double, val height1: I
     var progress
         get() = progressBar.progress
         set(value) {
-            if (progressBar.progress != value) {
-                progressBar.progress = value
-                invalidateDrawing()
-            }
+            progressBar.progress = value
         }
 
     override fun calculateSize(w: Int, h: Int) {

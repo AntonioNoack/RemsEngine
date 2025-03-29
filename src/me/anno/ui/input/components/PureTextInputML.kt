@@ -53,12 +53,6 @@ open class PureTextInputML(style: Style) :
         }
 
     private var text = ""
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
 
     var lineLimit = Int.MAX_VALUE
     var lengthLimit = Int.MAX_VALUE // todo respect this property
@@ -136,12 +130,6 @@ open class PureTextInputML(style: Style) :
         }
 
     override var isInputAllowed = true
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
 
     override var isEnabled: Boolean
         get() = super.isEnabled
@@ -151,7 +139,6 @@ open class PureTextInputML(style: Style) :
             for (i in children.indices) {
                 children[i].isEnabled = value
             }
-            invalidateDrawing()
         }
 
     override val value: String
@@ -195,16 +182,6 @@ open class PureTextInputML(style: Style) :
             panel.textColor = panel.textColor.withAlpha(if (needsPlaceholder) 70 else 255)
             panel.disableFocusColors()
         }
-        invalidateLayout()
-    }
-
-    private var lastClick = 0L
-    override fun onUpdate() {
-        super.onUpdate()
-        val isInFocus = isAnyChildInFocus
-        val oldShowBars = showBars
-        showBars = isInFocus && blinkVisible
-        if (showBars != oldShowBars) invalidateDrawing()
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -216,7 +193,7 @@ open class PureTextInputML(style: Style) :
     override val canDrawOverBorders: Boolean
         get() = true
 
-    private var showBars = false
+    private val showBars get() = isAnyChildInFocus && blinkVisible
     private var loadTextSync = false
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(loadTextSync)
@@ -650,8 +627,6 @@ open class PureTextInputML(style: Style) :
         if (!isHovered || y >= scrollbarStartY || dragged != null) return super.onMouseMoved(x, y, dx, dy)
         val indexY = getLineIndex(y)
 
-        invalidateDrawing()
-
         if (!isControlDown && isLeftDown) {
             val localX = x - ((content as PanelList).children.first().x + padding.left)
             val line = lines[indexY]
@@ -671,7 +646,6 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
-        lastClick = Time.nanoTime
         if ((!isHovered || y >= scrollbarStartY) || key != Key.BUTTON_LEFT) {
             super.onKeyDown(x, y, key)
         } else {
@@ -758,7 +732,6 @@ open class PureTextInputML(style: Style) :
     override fun onEnterKey(x: Float, y: Float) {
         if (isInputAllowed && lines.size + 1 < lineLimit) {
             insert('\n'.code, true)
-            invalidateDrawing()
         } else {
             val listener = enterListener
             if (listener != null) listener.invoke(text)

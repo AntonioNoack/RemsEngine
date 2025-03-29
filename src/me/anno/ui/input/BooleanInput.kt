@@ -49,7 +49,6 @@ class BooleanInput(
                 titleView.enableHoverColor = value
             }
             checkView.isInputAllowed = value
-            invalidateDrawing()
         }
 
     override var textColor: Int

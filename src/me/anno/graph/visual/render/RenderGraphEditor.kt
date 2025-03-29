@@ -42,11 +42,6 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
 
     var drawResultInBackground = true
 
-    override fun onUpdate() {
-        super.onUpdate()
-        invalidateDrawing() // for smooth rendering
-    }
-
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (drawResultInBackground) {
             // these two calls could be joined

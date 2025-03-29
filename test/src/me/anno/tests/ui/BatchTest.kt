@@ -18,11 +18,6 @@ fun main() {
 
             var batch = false
 
-            override fun onUpdate() {
-                super.onUpdate()
-                invalidateDrawing()
-            }
-
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 batch = !batch
             }

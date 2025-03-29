@@ -27,7 +27,6 @@ class FlatPacmanGame : Panel(style) {
     override fun onUpdate() {
         super.onUpdate()
         game.updateControls()
-        invalidateDrawing()
     }
 
     private val gemPath = res.getChild("textures/Gem.png")

@@ -13,13 +13,6 @@ import kotlin.math.max
 open class SimpleTextPanel(style: Style) : Panel(style) {
 
     var text = ""
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
-
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 

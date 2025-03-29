@@ -7,7 +7,6 @@ import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
-import me.anno.engine.WindowRenderFlags.showRedraws
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -45,7 +44,6 @@ fun main() {
 
     disableRenderDoc()
     testSceneWithUI("Dominos", scene) {
-        showRedraws = false
         it.renderView.renderMode = RenderMode.PHYSICS
 
         val audiosEntity = Entity("Audios")

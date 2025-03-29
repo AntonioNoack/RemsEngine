@@ -306,7 +306,6 @@ class ECSSceneTab(
             if (needsStar != hasStar) {
                 val name = findName(file)
                 text = if (needsStar) "$name*" else name
-                invalidateDrawing()
             }
         }
     }

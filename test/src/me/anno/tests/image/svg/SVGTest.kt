@@ -36,9 +36,6 @@ fun main() {
         // val srcFile = downloads.getChild("2d/polyline2.svg")
         object : Panel(DefaultConfig.style) {
             override val canDrawOverBorders get() = true
-            override fun onUpdate() {
-                invalidateDrawing()
-            }
 
             // show lines with new method
             /*init {

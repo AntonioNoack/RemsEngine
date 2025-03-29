@@ -86,12 +86,11 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
             scrollbar.isHovered = capturesChildEvents(mx, my)
         }
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(uiDeltaTime * scrollHardnessX))
-        scrollbar.updateAlpha(this)
+        scrollbar.updateAlpha()
         if (round(scrollPositionX) != lastScrollPosX || maxScrollPositionX != lastMaxScrollPosX) {
             lastScrollPosX = round(scrollPositionX)
             lastMaxScrollPosX = maxScrollPositionX
             placeChild()
-            invalidateDrawing()
         }
     }
 

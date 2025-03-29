@@ -114,12 +114,6 @@ object DebugGPUStorage {
     class TexturePanel3D(tex: Texture3D) :
         TexturePanel<Texture3D>("${tex.name}, ${tex.width} x ${tex.height} x ${tex.depth}", tex) {
 
-        // animated
-        override fun onUpdate() {
-            super.onUpdate()
-            invalidateDrawing()
-        }
-
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             // how can we display them? as slices...
             // slide through slices
@@ -138,12 +132,6 @@ object DebugGPUStorage {
         TexturePanel<Texture2DArray>("${tex.name}, ${tex.width} x ${tex.height} x ${tex.layers}", tex) {
 
         val isDepth get() = isDepthFormat(tex.internalFormat)
-
-        // animated
-        override fun onUpdate() {
-            super.onUpdate()
-            invalidateDrawing()
-        }
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             // how can we display them? as slices...

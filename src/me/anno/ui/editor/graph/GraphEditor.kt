@@ -44,11 +44,10 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             this.graph = graph
             this.library = library
         }
-        invalidateLayout()
     }
 
     fun pop(): Boolean {
-        val ret = synchronized(this) {
+        return synchronized(this) {
             if (graphs.size > 1) {
                 graphs.removeAt(graphs.lastIndex)
                 libraries.removeAt(libraries.lastIndex)
@@ -57,8 +56,6 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 true
             } else false
         }
-        if (ret) invalidateLayout()
-        return ret
     }
 
     override fun onEscapeKey(x: Float, y: Float) {
@@ -127,7 +124,6 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
 
                     if (callback != null) callback(newNode)
                     onChange(false)
-                    invalidateLayout()
                 }
             }
         )
@@ -194,7 +190,6 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 if (child is NodePanel) child.onKeyUp(x, y, key)
                 else getNodePanel(dragged.node!!).onKeyUp(x, y, key)
                 this.dragged = null
-                invalidateDrawing()
             } else if (selectingStart != null && key == Key.BUTTON_LEFT) {
                 // select all panels within the border :)
                 var first = true
@@ -205,7 +200,6 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                         first = false
                     }
                 }
-                invalidateDrawing()
                 this.selectingStart = null
             } else super.onKeyUp(x, y, key)
             mapMouseUp()
@@ -213,11 +207,6 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
     }
 
     override fun shallMoveMap(): Boolean = Input.isLeftDown && dragged == null && selectingStart == null
-
-    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (selectingStart != null) invalidateDrawing()
-        super.onMouseMoved(x, y, dx, dy)
-    }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)

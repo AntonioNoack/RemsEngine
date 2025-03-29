@@ -67,12 +67,8 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     }
 
     fun updatePosition() {
-        val oldPosition = position
         val dt = Time.uiDeltaTime.toFloat()
         position = constantLerpTo(position, targetPosition, dt * smoothingPerSeconds)
-        if (abs(position - oldPosition) > 1e-4) {
-            invalidateDrawing()
-        }
         // if not is controller down, then clamp targetPosition smoothly into an integer value
         val correction =
             if ((Input.isLeftDown && useLeftMouseButton) || (Input.isRightDown && useRightMouseButton)) 0f
@@ -89,14 +85,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     }
 
     private fun swipe(deltaPos: Float) {
-        if (deltaPos == 0f) return
-        val oldPosition = targetPosition.roundToIntOr()
-        invalidateDrawing()
         targetPosition = clamp(targetPosition - deltaPos * swipeSpeed, -leftBounce, (children.size - 1) + rightBounce)
-        val newPosition = targetPosition.roundToIntOr()
-        if (oldPosition != newPosition) {
-            invalidateLayout()
-        }
     }
 
     var rotationStrengthRadians = 90f.toRadians()

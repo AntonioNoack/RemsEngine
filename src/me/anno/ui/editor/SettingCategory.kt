@@ -34,7 +34,7 @@ open class SettingCategory private constructor(
 
     init {
         titlePanel.addLeftClickListener {
-            InputVisibility.toggle(visibilityKey, this)
+            InputVisibility.toggle(visibilityKey)
         }
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
@@ -43,7 +43,7 @@ open class SettingCategory private constructor(
     }
 
     fun showByDefault(): SettingCategory {
-        InputVisibility.showByDefault(visibilityKey, child)
+        InputVisibility.showByDefault(visibilityKey)
         return this
     }
 

@@ -214,7 +214,6 @@ fun main() {
             override fun onUpdate() {
                 super.onUpdate()
                 updateIfNeeded()
-                invalidateDrawing()
             }
 
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

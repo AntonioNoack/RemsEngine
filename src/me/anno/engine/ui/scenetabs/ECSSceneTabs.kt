@@ -99,8 +99,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
                 }
             }
         }
-
-        (uiParent ?: this).invalidateDrawing()
     }
 
     val project get() = currentProject
@@ -178,7 +176,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
                         ecsTabsRaw.removeAt(oldIndex)
                         val removedLeft = oldIndex < newIndex
                         ecsTabsRaw.add(newIndex - removedLeft.toInt(), tab)
-                        invalidateLayout()
                     }
                 } else {
                     open(file, PlayMode.EDITING, false)

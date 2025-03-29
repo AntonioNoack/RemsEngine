@@ -246,7 +246,7 @@ abstract class TreeView<V : Any>(
     open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int = white
 
     override fun onPropertiesChanged() {
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     open fun fulfillsSearch(element: V, name: String, ttt: String?, search: Search): Boolean {
@@ -290,7 +290,7 @@ abstract class TreeView<V : Any>(
             val left = inset * depth + padding.right
             if (padding.left != left) {
                 padding.left = left
-                invalidateLayout()
+                requestTreeUpdate()
             }
             index
         } else index0
@@ -319,8 +319,7 @@ abstract class TreeView<V : Any>(
         }
     }
 
-    override fun invalidateLayout() {
-        super.invalidateLayout()
+    fun requestTreeUpdate() {
         needsTreeUpdate = true
     }
 
@@ -386,7 +385,7 @@ abstract class TreeView<V : Any>(
                             }
                         }
                     }
-                    invalidateLayout()
+                    requestTreeUpdate()
                 }
                 true
             }

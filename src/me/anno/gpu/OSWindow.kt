@@ -328,18 +328,8 @@ open class OSWindow(var title: String) {
             synchronized(progressBars) {
                 progressBars.add(bar)
             }
-            invalidateLayout()
         }
         return bar
-    }
-
-    fun invalidateLayout() {
-        for (i in windowStack.indices) {
-            val window = windowStack[i]
-            if (window.isFullscreen) {
-                window.panel.invalidateLayout()
-            }
-        }
     }
 
     val progressbarHeight

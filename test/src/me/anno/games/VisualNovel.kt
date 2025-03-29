@@ -306,7 +306,6 @@ object VisualNovel {
 
                     drawChildren(x0, y0, x1, y1)
                 }
-                invalidateDrawing() // for next frame
             }
         }
         splitter.add(graphPanel)

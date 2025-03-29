@@ -77,8 +77,6 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         }
     }) {
 
-    override fun getVisualState() = Pair(super.getVisualState(), chooser.getVisualState())
-
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         val size = min(w, h)

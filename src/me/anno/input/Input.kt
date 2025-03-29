@@ -396,7 +396,6 @@ object Input {
                         } else {
                             nextSelected.requestFocus(false)
                         }
-                        nextSelected.invalidateDrawing()
                     } else {
                         val index0 = prevSelected.indexInParent
                         val index1 = nextSelected.indexInParent
@@ -404,9 +403,7 @@ object Input {
                         val minIndex = min(index0, index1)
                         val maxIndex = max(index0, index1)
                         for (index in minIndex..maxIndex) {
-                            val child = commonParent.children[index]
-                            child.requestFocus(false)
-                            child.invalidateDrawing()
+                            commonParent.children[index].requestFocus(false)
                         }
                     }
                     false
@@ -445,7 +442,6 @@ object Input {
                             },
                             MenuOption(NameDesc("Hide")) {
                                 window.progressBars.remove(progressBar)
-                                window.invalidateLayout()
                             },
                             MenuOption(NameDesc("Cancel")) {
                                 progressBar.cancel(false)

@@ -102,6 +102,5 @@ open class TrackingPanel(val getValues: List<() -> Double>, val colors: IntArray
             autoScale()
             autoMove()
         }
-        invalidateDrawing() // we got new values ^^
     }
 }

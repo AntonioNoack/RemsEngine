@@ -84,7 +84,6 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
     override fun onUpdate() {
         super.onUpdate()
         requestSize(width, height)
-        invalidateDrawing()
     }
 
     fun requestSize(w: Int, h: Int) {
@@ -150,8 +149,6 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
                     DrawRectangles.drawRect(x + 2, y + height / 2 - 1, width - 4, 2, Color.white.withAlpha(127))
                     DrawRectangles.drawRect(xi - 1, y + 3, 3, height - 3, Color.white)
                 }
-
-                override fun getVisualState() = movie.stream.getTime()
 
                 private var lastScrubbed = 0L
 

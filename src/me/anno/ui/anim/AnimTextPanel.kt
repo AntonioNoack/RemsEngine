@@ -54,7 +54,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     }
 
     var resetTransform = true
-    var autoRedraw = true
     var lineSpacing = 0.5f
     var disableSubpixels = true
     var periodMillis = 24L * 3600L * 1000L // 1 day
@@ -96,11 +95,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         val group2 = TextGroup(font, text, 0.0)
         textGroup = group2
         return group2
-    }
-
-    override fun onUpdate() {
-        super.onUpdate()
-        if (autoRedraw) invalidateDrawing()
     }
 
     override fun drawText(color: Int) {
@@ -233,7 +227,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeBoolean("resetTransform", resetTransform)
-        writer.writeBoolean("autoRedraw", autoRedraw)
         writer.writeFloat("lineSpacing", lineSpacing)
         writer.writeBoolean("disableSubpixels", disableSubpixels)
         writer.writeLong("periodMillis", periodMillis)
@@ -242,7 +235,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "resetTransform" -> resetTransform = value == true
-            "autoRedraw" -> autoRedraw = value == true
             "disableSubpixels" -> disableSubpixels = value == true
             "lineSpacing" -> lineSpacing = value as? Float ?: return
             "periodMillis" -> periodMillis = value as? Long ?: return

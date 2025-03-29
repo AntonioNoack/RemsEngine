@@ -113,7 +113,7 @@ class FileInclusionPanel(val roots: List<FileReference>, style: Style) :
 
     override fun setName(element: FileReference, name: String) {
         element.renameTo(element.getSibling(name))
-        invalidateLayout()
+        requestTreeUpdate()
     }
 
     override fun stringifyForCopy(element: FileReference): String {

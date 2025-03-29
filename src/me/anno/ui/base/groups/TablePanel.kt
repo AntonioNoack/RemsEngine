@@ -113,7 +113,6 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
     operator fun set(x: Int, y: Int, child: Panel) {
         if (x in 0 until sizeX && y in 0 until sizeY) {
             children[getIndex(x, y)] = child
-            invalidateLayout()
         }
     }
 
@@ -207,7 +206,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             val x1i = min(x1, xc)
             val sb = scrollbarsX[xi]
             sb.isHovered = containsMouse(window, x0i - padding, y0, x1i + padding, y1)
-            sb.updateAlpha(this)
+            sb.updateAlpha()
             sb.draw(x0i, y0, x1i, y1)
         }
         for (yi in scrollbarsY.indices) {
@@ -216,7 +215,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             val y1i = min(y1, yc)
             val sb = scrollbarsY[yi]
             sb.isHovered = containsMouse(window, x0 - padding, y0i, x1 + padding, y1i)
-            sb.updateAlpha(this)
+            sb.updateAlpha()
             sb.draw(x0, y0i, x1, y1i)
         }
     }
@@ -261,7 +260,6 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         val dxi = clamp(dx, -weights[idx], weights[idx + 1])
         weights[idx] += dxi
         weights[idx + 1] -= dxi
-        invalidateLayout()
         val newDx = dx - dxi
         return if (newDx != 0f) move(idx + (if (dx > 0f) 1 else -1), weights, dx) else 0f
     }
@@ -277,13 +275,6 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
     override fun remove(child: Panel) {
         if (child === placeholder) return
         val ix = children.indexOf(child)
-        if (ix >= 0) {
-            children[ix] = placeholder
-            invalidateLayout()
-        }
-    }
-
-    override fun invalidateLayout() {
-        window?.addNeedsLayout(this)
+        if (ix >= 0) children[ix] = placeholder
     }
 }
