@@ -260,8 +260,6 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         // todo adjust indices of all lists that were changed (?)
         //  - only this list was changed, and the one where we removed the item
         // finding the index can be complicated though, as we need to respect the hierarchy
-        // need to invalidate structure (TreeView)
-        requestTreeUpdate()
     }
 
     fun addRelative(sibling: PrefabSaveable, delta: Int): Pair<Path, Int> {
@@ -442,7 +440,6 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             prefab[path, "flags"] = element.flags
 
         needsTreeUpdate = true
-        requestTreeUpdate()
     }
 
     override fun getDragType(element: Saveable): String {

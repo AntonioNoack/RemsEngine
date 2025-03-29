@@ -245,10 +245,6 @@ abstract class TreeView<V : Any>(
 
     open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int = white
 
-    override fun onPropertiesChanged() {
-        requestTreeUpdate()
-    }
-
     open fun fulfillsSearch(element: V, name: String, ttt: String?, search: Search): Boolean {
         return if (ttt == null) search.matches(name)
         else search.matches(listOf(name, ttt))
@@ -287,11 +283,7 @@ abstract class TreeView<V : Any>(
             panel.setEntryName(name)
             panel.setEntryTooltip(ttt.value ?: "")
             val padding = panel.padding
-            val left = inset * depth + padding.right
-            if (padding.left != left) {
-                padding.left = left
-                requestTreeUpdate()
-            }
+            padding.left = inset * depth + padding.right
             index
         } else index0
     }
@@ -312,25 +304,15 @@ abstract class TreeView<V : Any>(
                 val child = children[i]
                 child.isVisible = false
             }
-            needsTreeUpdate = false
         } catch (e: Exception) {
             e.printStackTrace()
             lastWarning = e.message ?: lastWarning
         }
     }
 
-    fun requestTreeUpdate() {
-        needsTreeUpdate = true
-    }
-
     override fun onUpdate() {
         super.onUpdate()
-        if (needsTreeUpdate) updateTree()
-    }
-
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (needsTreeUpdate) updateTree()
-        super.draw(x0, y0, x1, y1)
+        updateTree()
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -385,7 +367,6 @@ abstract class TreeView<V : Any>(
                             }
                         }
                     }
-                    requestTreeUpdate()
                 }
                 true
             }

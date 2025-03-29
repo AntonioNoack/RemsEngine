@@ -1,7 +1,6 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable

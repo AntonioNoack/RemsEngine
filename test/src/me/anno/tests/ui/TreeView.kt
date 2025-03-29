@@ -73,7 +73,6 @@ class TestTreeView(val roots: List<Element>, val selected: MutableCollection<Ele
 
     override fun openAddMenu(parent: Element) {
         parent.add(Element())
-        requestTreeUpdate()
     }
 
     override fun onDeleteKey(x: Float, y: Float) {

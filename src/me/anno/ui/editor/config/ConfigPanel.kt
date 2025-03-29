@@ -141,7 +141,6 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
     var lastNotEmptyTopic: TopicNode? = null
     private fun createLeftSide() {
         buildTopicTree()
-        leftContent.requestTreeUpdate()
     }
 
     fun buildTopicTree() {

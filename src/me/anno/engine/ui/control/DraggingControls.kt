@@ -773,14 +773,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             val (pos, rot, sca) =
                 getDropTransform(root, sampleInstance, dropPosition)
             addToParent(prefab, root, 'e', pos, rot, sca, results)
-            // TreeViews need to be updated
-            for (window in GFX.windows) {
-                for (window1 in window.windowStack) {
-                    window1.panel.forAllVisiblePanels {
-                        if (it is ECSTreeView) it.requestTreeUpdate()
-                    }
-                }
-            }
         } else LOGGER.warn("Could not drop $file onto ${root?.className}")
     }
 
