@@ -21,7 +21,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
      * typically a directional light will be the sun;
      * its influence should be over the whole scene, while its shadows may not
      *
-     * with cutoff != 0, it is cutoff, as if it was a plane light
+     * with cutoff != 0, it is cut off, as if it was a plane light
      * */
     @Range(-1.0, 1.0)
     var cutoff = 0f
@@ -100,11 +100,13 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     (if (cutoffContinue != null) {
                         "" +
                                 "float invCutoff = shaderV2;\n" +
-                                "if(invCutoff > 0.0){\n" +
+                                // exactly 0.0 is impossible, if denormalized numbers are disabled (WebGL) ->
+                                // set a small threshold instead
+                                "if(invCutoff > 1e-9){\n" +
                                 "   float cut = min(invCutoff * (1.0 - dot(lightPos,lightPos)), 1.0);\n" +
                                 "   if(cut <= 0.0) { $cutoffContinue; }\n" +
                                 "   lightColor *= cut;\n" +
-                                "} else if(invCutoff < 0.0){\n" +
+                                "} else if(invCutoff < -1e-9){\n" +
                                 "   float cut = min(-invCutoff * (1.0 - max(max(abs(lightPos.x),abs(lightPos.y)),abs(lightPos.z))), 1.0);\n" +
                                 "   if(cut <= 0.0) { $cutoffContinue; }\n" +
                                 "   lightColor *= cut;\n" +
