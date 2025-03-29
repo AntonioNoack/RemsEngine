@@ -29,6 +29,7 @@ import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
+import me.anno.gpu.shader.ShaderLib.roughnessIfMissing
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -136,9 +137,7 @@ object LightShaders {
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
         ), "" +
                 colorToLinear +
-                "#ifndef HAS_ROUGHNESS\n" +
-                "   float finalRoughness = 1.0-finalReflectivity;\n" +
-                "#endif\n" +
+                roughnessIfMissing +
                 "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, finalReflectivity);\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
                 combineLightFinishLine +

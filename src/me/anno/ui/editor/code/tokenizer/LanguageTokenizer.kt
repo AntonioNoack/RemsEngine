@@ -10,6 +10,12 @@ interface LanguageTokenizer {
     fun getToken(stream: Stream, state: State): TokenType
     fun getIndentation(state: State, indentUnit: Int, textAfter: CharSequence): Int
 
+    fun getNextToken(stream: Stream, state: State): TokenType? {
+        stream.startToken()
+        val nextToken = getToken(stream, state)
+        return if (stream.isFinished()) null else nextToken
+    }
+
     val lineComment: String
     val blockCommentStart: String
     val blockCommentEnd: String
@@ -24,7 +30,7 @@ interface LanguageTokenizer {
 
         @JvmStatic
         fun fullMatch(list: List<String>): Collection<String> {
-            return if (list.size < 16) list else list.toHashSet()
+            return if (list.size < 16) list else list.toSet()
         }
 
         @JvmStatic

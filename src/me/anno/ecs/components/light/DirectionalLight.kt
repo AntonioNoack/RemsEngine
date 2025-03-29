@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.ShaderLib
 import me.anno.mesh.Shapes
 import org.joml.AABBd
 import org.joml.Matrix4f
@@ -13,7 +14,6 @@ import org.joml.Matrix4x3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.joml.Vector4f
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
@@ -79,7 +79,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
-    // v0 is not used
+    // v0 and v3 aren't used
     override fun getShaderV1(): Float = shadowMapPower
     override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
 
@@ -160,11 +160,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "if(hasSpecular){\n" +
                     // good like that?
                     "   float NdotLi = reflect(viewDir, lightNor).z;\n" +
-                    "#ifndef HAS_ROUGHNESS\n" +
-                    "   float invRoughness = finalReflectivity;\n" +
-                    "#else\n" +
-                    "   float invRoughness = 1.0 - finalRoughness;\n" +
-                    "#endif\n" +
+                    ShaderLib.invRoughness +
                     "   float x = max(NdotLi, 0.0), y = 1.0 + 256.0 * pow(invRoughness,2.0);\n" +
                     // pow(x,y) is the shape of sharpness; the divider is the integral from x=0 to x=1 over pow(x,y)*(1-x)
                     "   float lightEffect = pow(x,y) / (1.0/(y+1.0) - 1.0/(y+2.0));\n" +

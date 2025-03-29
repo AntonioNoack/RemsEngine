@@ -21,6 +21,7 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.roughnessIfMissing
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -70,9 +71,7 @@ class CellShadingNode : RenderViewNode(
                 Variable(GLSLType.V4F, "color", VariableMode.OUT)
             ), "" +
                     colorToLinear +
-                    "#ifndef HAS_ROUGHNESS\n" +
-                    "   float finalRoughness = 1.0-finalReflectivity;\n" +
-                    "#endif\n" +
+                    roughnessIfMissing +
                     "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, finalReflectivity);\n" +
                     "   float light0 = max(brightness(light), 1e-38);\n" +
                     "   float power = 3.333;\n" +

@@ -21,8 +21,12 @@ class Stream(val stream: IntSequence) {
     fun next(): Char = if (index < stream.length) stream[index++].toChar() else 0.toChar()
     fun current(): DirtyCharSequence = stream.toDirtyCharSequence(startIndex, index)
 
-    fun resetToken() {
+    fun startToken() {
         startIndex = index
+    }
+
+    fun isFinished(): Boolean {
+        return startIndex == index
     }
 
     fun eat(char: Char): Boolean {

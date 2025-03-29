@@ -131,14 +131,10 @@ open class CodeEditor(style: Style) : Panel(style) {
         styles.fill(TokenType.ERROR.ordinal.toByte())
         this.styles = styles
         var variableNamesIndex = 0
-        while (stream.index < text.length) {
-            val token = language.getToken(stream, state)
-            if (stream.startIndex == stream.index) break
+        while (true) {
+            val token = language.getNextToken(stream, state) ?: break
             // color from startIndex to index
-            val style = token.ordinal.toByte()
-            for (index in stream.startIndex until stream.index) {
-                styles[index] = style
-            }
+            styles.fill(token.ordinal.toByte(), stream.startIndex, stream.index)
             when (token) {
                 TokenType.VARIABLE, TokenType.VARIABLE2, TokenType.VARIABLE3,
                 TokenType.STRING, TokenType.STRING2, TokenType.COMMENT,
@@ -164,7 +160,6 @@ open class CodeEditor(style: Style) : Panel(style) {
                 }
                 else -> {}
             }
-            stream.resetToken()
         }
         while (variableNamesIndex > spellcheckedSections.size) {
             spellcheckedSections.removeAt(spellcheckedSections.lastIndex)
@@ -178,14 +173,14 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
         codeBlocks.clear()
         if (brackets.isEmpty()) return
+        val language = language
         val state = language.getStartState()
         val content = content
         val stream = Stream(content)
         val bracketStack = ArrayList<String>()
         val bracketLineStack = IntArrayList(16)
-        while (stream.index < content.length) {
-            language.getToken(stream, state)
-            if (stream.startIndex == stream.index) break // done
+        while (true) {
+            language.getNextToken(stream, state) ?: break
             val i0 = stream.startIndex
             val i1 = stream.index
             for ((openingName, pair) in brackets) {
@@ -205,7 +200,6 @@ open class CodeEditor(style: Style) : Panel(style) {
                     break
                 }
             }
-            stream.resetToken()
         }
     }
 

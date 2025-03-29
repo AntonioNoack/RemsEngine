@@ -1,5 +1,6 @@
 package me.anno.gpu.deferred
 
+import me.anno.gpu.shader.ShaderLib.invRoughness
 import kotlin.math.PI
 
 /**
@@ -13,11 +14,7 @@ object PBRLibraryGLTF {
     // to do: good idea, but unfortunately in forward mode, finalNormal won't wary as much on 1px thin lines, because it may consist of many triangles -> true delta unknown to the shader
     val angularCorrection = "" +
             "vec3 curvature = max(abs(dFdx(finalNormal)), abs(dFdy(finalNormal)));\n" +
-            "#ifndef HAS_ROUGHNESS\n" +
-            "   float invRoughness = finalReflectivity;\n" +
-            "#else\n" +
-            "   float invRoughness = 1.0-finalRoughness;\n" +
-            "#endif\n" +
+            invRoughness +
             "float roughness = 1.0 - invRoughness * max(0.0, 1.0 - length(curvature));\n" +
             "roughness = max(roughness, 0.01);\n"
 

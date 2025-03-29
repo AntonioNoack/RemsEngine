@@ -8,6 +8,7 @@ import me.anno.gpu.pipeline.LightShaders.addSpecularLight
 import me.anno.gpu.pipeline.LightShaders.combineLightFinishLine
 import me.anno.gpu.pipeline.LightShaders.mixAndClampLight
 import me.anno.gpu.pipeline.LightShaders.startLightSum
+import me.anno.gpu.shader.ShaderLib.roughnessIfMissing
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 
 object RendererLib {
@@ -96,9 +97,7 @@ object RendererLib {
             "   vec3 light;\n" +
             mixAndClampLight +
             // for roughness, use finalRoughness, if available, or 1-reflectivity, if not
-            "#ifndef HAS_ROUGHNESS\n" +
-            "   float finalRoughness = 1.0-finalReflectivity;\n" +
-            "#endif\n" +
+            roughnessIfMissing +
             "   light += sampleSkyboxForAmbient(finalNormal, finalRoughness, reflectivity);\n" +
             // cheating to make metallic stuff not too dark when using forward rendering
             // -> doesn't work as nicely, as I had hoped

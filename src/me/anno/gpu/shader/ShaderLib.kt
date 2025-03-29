@@ -551,6 +551,18 @@ object ShaderLib {
             "#undef get\n" +
             "}\n"
 
+    val roughnessIfMissing = "" +
+            "#ifndef HAS_ROUGHNESS\n" +
+            "   float finalRoughness = 1.0-finalReflectivity;\n" +
+            "#endif\n"
+
+    val invRoughness = "" +
+            "#ifndef HAS_ROUGHNESS\n" +
+            "   float invRoughness = finalReflectivity;\n" +
+            "#else\n" +
+            "   float invRoughness = 1.0-finalRoughness;\n" +
+            "#endif\n"
+
     fun createShader(
         shaderName: String,
         vertexVariables: List<Variable>,
