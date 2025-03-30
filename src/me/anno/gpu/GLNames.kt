@@ -2,6 +2,7 @@ package me.anno.gpu
 
 import me.anno.Build
 import me.anno.Time
+import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging
 import org.lwjgl.opengl.GL46C
@@ -67,18 +68,19 @@ object GLNames {
     @JvmStatic
     private fun discoverOpenGLNames(clazz: Class<*>) {
         val glConstants = glConstants ?: return
-        val properties2 = clazz.declaredFields
-        for (property in properties2) {
-            if (Modifier.isPublic(property.modifiers) &&
-                Modifier.isStatic(property.modifiers)
+        val fieldsByClass = clazz.declaredFields
+        val intType = Int::class.javaPrimitiveType
+        val requiredFlags = Modifier.STATIC or Modifier.PUBLIC or Modifier.FINAL
+        for (i in fieldsByClass.indices) {
+            val field = fieldsByClass[i]
+            val modifiers = field.modifiers
+            val name = field.name
+            if (modifiers.hasFlag(requiredFlags) &&
+                field.type == intType &&
+                field.name.startsWith("GL_")
             ) {
-                val name = property.name
-                if (name.startsWith("GL_")) {
-                    val value = property.get(null)
-                    if (value is Int) {
-                        glConstants[value] = name.substring(3)
-                    }
-                }
+                val value = field.getInt(null)
+                glConstants[value] = name.substring(3)
             }
         }
         discoverOpenGLNames(clazz.superclass ?: return)

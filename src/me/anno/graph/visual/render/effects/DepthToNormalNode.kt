@@ -75,7 +75,9 @@ class DepthToNormalNode : TimedRenderingNode(
                     "vec3 getPosition(vec2 uv, float depth){\n" +
                     "   return depthToPosition(uv, max(depth, 1e-10));\n" +
                     "}\n" +
-                    "void main(){\n" +
+                    // todo we might have only F16 precision forward depth on older hardware (FBStack -> set extra depth to FP16)
+                    //  if so, as long as the values are too similar, use a wider testing stencil if the values are too similar
+                    "void main() {\n" +
                     "   vec2 duv = vec2(dFdx(uv.x),dFdy(uv.y));\n" +
                     "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
                     "   float d00 = getDepth(uvi);\n" +
@@ -84,6 +86,7 @@ class DepthToNormalNode : TimedRenderingNode(
                     "   float dpy = getDepth(uvi+ivec2(0,1));\n" +
                     "   float dmy = getDepth(uvi-ivec2(0,1));\n" +
                     "   vec3 normal;\n" +
+                    // todo for F16 forward depth, this value isn't taking effect
                     "   if(d00 > 1e10){\n" +
                     // sky doesn't have depth information / is at infinity -> different algorithm for it
                     "       normal = -rawCameraDirection(uv);\n" +

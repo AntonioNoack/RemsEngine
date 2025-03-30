@@ -88,7 +88,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         private val identity4x3 = Matrix4x3f()
         private val identity4x3m = Matrix4x3()
         const val DefaultGLSLVersion = 150
-        var UniformCacheSize = if (OS.isWeb) 0 else 256 // todo remove when everything works
+        var UniformCacheSize = 256
         val UniformCacheSizeX4 get() = UniformCacheSize * 4
         var safeShaderBinding = false
         var lastProgram = -1

@@ -1,7 +1,5 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.gpu.GFX
-
 enum class DepthBufferType(val write: Boolean, val read: Boolean?) {
     NONE(false, false),
     INTERNAL(true, false), // using a renderbuffer; 24 or 32 bits typically
@@ -14,7 +12,6 @@ enum class DepthBufferType(val write: Boolean, val read: Boolean?) {
 
     fun chooseDepthFormat(): TargetType {
         return if (this == TEXTURE_16) TargetType.DEPTH16
-        else if (GFX.supportsClipControl) TargetType.DEPTH32F
-        else TargetType.DEPTH32
+        else TargetType.DEPTH32F
     }
 }
