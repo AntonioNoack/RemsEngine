@@ -53,6 +53,7 @@ import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
+import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -299,16 +300,19 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
         var newGizmoMask = 0
         val pos = JomlPools.vec3d.create()
+        val rot = JomlPools.quat4f.create()
         val scale = renderView.radius * tan(camera.fovY.toRadians() * 0.5f) * 0.2f
         val cam = renderView.cameraMatrix
         val pip = renderView.pipeline
         for (selected in instancesToTransform) {
             // todo like Unity allow more gizmos than that?
-            getGlobalPosition(selected, pos) ?: continue
+            val transform = getTransformMatrix(selected) ?: continue
+            transform.getTranslation(pos)
+            transform.getUnnormalizedRotation(rot)
             val mask = when (mode) {
                 Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(pip, cam, pos, scale, 0, chosenId, md)
                 Mode.ROTATING -> Gizmos.drawRotateGizmos(pip, cam, pos, scale, 0, chosenId, md)
-                Mode.SCALING -> Gizmos.drawScaleGizmos(pip, cam, pos, scale, 0, chosenId, md)
+                Mode.SCALING -> Gizmos.drawScaleGizmos(pip, cam, pos, rot, scale, 0, chosenId, md)
                 Mode.NOTHING -> 0
             }
             if (mask != 0 && Input.mouseKeysDown.isEmpty()) {
@@ -319,6 +323,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             gizmoMask = newGizmoMask
         }
         JomlPools.vec3d.sub(1)
+        JomlPools.quat4f.sub(1)
     }
 
     private fun getTransformMatrix(selected: Any?): Matrix4x3? {
@@ -327,10 +332,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             is DCMovable -> selected.getGlobalTransform(Matrix4x3())
             else -> null
         }
-    }
-
-    private fun getGlobalPosition(selected: Any?, dst: Vector3d): Vector3d? {
-        return getTransformMatrix(selected)?.getTranslation(dst)
     }
 
     open fun resetCamera() {
@@ -357,7 +358,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 camera.isPerspective = !camera.isPerspective
                 camera.fovOrthographic = renderView.radius
             }
-            // todo control + numpad does not work
             "Cam1" -> rotateCameraTo(Vector3f(0f, if (Input.isControlDown) 180f else 0f, 0f))// default view
             "Cam3" -> rotateCameraTo(Vector3f(0f, if (Input.isControlDown) -90f else +90f, 0f))// rotate to side view
             "Cam7" -> rotateCameraTo(Vector3f(if (Input.isControlDown) +90f else -90f, 0f, 0f)) // look from above
@@ -414,7 +414,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             isSelected && Input.isMiddleDown -> {
                 // move camera
                 val fovYRadians = renderView.editorCamera.fovY.toRadians()
-                val speed = tan(fovYRadians * 0.5f) * renderView.radius.toFloat() / height
+                val speed = tan(fovYRadians * 0.5f) * renderView.radius / height
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3f(dx * speed, -dy * speed, 0f))
@@ -456,7 +456,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val rotationAngle = if (mode == Mode.ROTATING) {
                     val pos = Vector3d()
                     val globalPosition = instances
-                        .mapFirstNotNull { getGlobalPosition(it, pos) }
+                        .mapFirstNotNull { getTransformMatrix(it)?.getTranslation(pos) }
 
                     val speed1 = 5.0 * PI
                     speed1 * if (globalPosition != null) {
@@ -553,12 +553,15 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     fun transformRotation(transform: Transform, rotationAngle: Float, dir: Vector3f, gizmoMask: Int) {
         val snap = snappingSettings.snapR != 0f
         when (gizmoMask) {
-            1 -> if (snap) snapRotate(transform, rotationAngle, dir, 0)
-            else transform.globalRotation = transform.globalRotation.rotateLocalX(rotationAngle * sign(dir.x))
-            2 -> if (snap) snapRotate(transform, rotationAngle, dir, 1)
-            else transform.globalRotation = transform.globalRotation.rotateLocalY(rotationAngle * sign(dir.y))
-            4 -> if (snap) snapRotate(transform, rotationAngle, dir, 2)
-            else transform.globalRotation = transform.globalRotation.rotateLocalZ(rotationAngle * sign(dir.z))
+            1 ->
+                if (snap) snapRotate(transform, rotationAngle, dir, 0)
+                else transform.globalRotation = transform.globalRotation.rotateLocalX(rotationAngle * sign(dir.x))
+            2 ->
+                if (snap) snapRotate(transform, rotationAngle, dir, 1)
+                else transform.globalRotation = transform.globalRotation.rotateLocalY(rotationAngle * sign(dir.y))
+            4 ->
+                if (snap) snapRotate(transform, rotationAngle, dir, 2)
+                else transform.globalRotation = transform.globalRotation.rotateLocalZ(rotationAngle * sign(dir.z))
             else -> {
                 if (snap) {
                     val global = transform.globalRotation
@@ -580,7 +583,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     fun transformScale(transform: Transform, delta: Double, offset: Vector3f) {
-        // todo rotate scaling gizmo
         if (gizmoMask == 0) {
             val scale = pow(2.0, delta / height).toFloat()
             transform.localScale = transform.localScale.mul(scale)

@@ -34,17 +34,23 @@ object Gizmos {
     val ringRef = res.getChild("meshes/ringX.obj")
     val scaleRef = res.getChild("meshes/scaleX.obj")
 
+    private fun combineResults(a: Int, b: Int): Int {
+        return if (b != 0) b.inv().and(7) else a
+    }
+
     fun drawScaleGizmos(
-        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, rotation: Quaternionf, scale: Float,
         clickId: Int, chosenId: Int, mouseDirection: Vector3f
     ): Int {
-        val a = drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, scaleRef)
-        val b = drawMesh(
-            pipeline, cameraTransform, position,
-            scale * 0.35f, clickId + 3,
-            chosenId, mouseDirection, arrowRef1
+        val a = drawMesh(
+            pipeline, cameraTransform, position, rotation, scale,
+            clickId, chosenId, mouseDirection, scaleRef
         )
-        return if (b != 0) b.inv().and(7) else a
+        val b = drawMesh(
+            pipeline, cameraTransform, position, rotation, scale * 0.35f,
+            clickId + 3, chosenId, mouseDirection, arrowRef1
+        )
+        return combineResults(a, b)
     }
 
     fun drawRotateGizmos(
@@ -58,32 +64,43 @@ object Gizmos {
         pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
         clickId: Int, chosenId: Int, mouseDirection: Vector3f
     ): Int {
-        val a = drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, arrowRef)
+        val a = drawMesh(
+            pipeline, cameraTransform, position, scale,
+            clickId, chosenId, mouseDirection, arrowRef
+        )
         val b = drawMesh(
             pipeline, cameraTransform, position, scale * 0.35f,
             clickId + 3, chosenId, mouseDirection, arrowRef1
         )
-        return if (b != 0) b.inv().and(7) else a
+        return combineResults(a, b)
     }
 
     fun drawMesh(
         pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Float,
         clickId: Int, chosenId: Int, mouseDirection: Vector3f, ref: FileReference
     ): Int {
-        val mesh = MeshCache[ref] ?: return 0
-        val x = drawMesh(
-            pipeline, cameraTransform, position, rotations[0], scale,
-            colorX, clickId, chosenId, mesh, mouseDirection
+        val tmp = rotations[4].identity()
+        return drawMesh(
+            pipeline, cameraTransform, position, tmp, scale,
+            clickId, chosenId, mouseDirection, ref
         )
-        val y = drawMesh(
-            pipeline, cameraTransform, position, rotations[1], scale,
-            colorY, clickId + 1, chosenId, mesh, mouseDirection
-        )
-        val z = drawMesh(
-            pipeline, cameraTransform, position, rotations[2], scale,
-            colorZ, clickId + 2, chosenId, mesh, mouseDirection
-        )
-        return x.toInt() + y.toInt(2) + z.toInt(4)
+    }
+
+    fun drawMesh(
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, rotation: Quaternionf, scale: Float,
+        clickId: Int, chosenId: Int, mouseDirection: Vector3f, ref: FileReference
+    ): Int {
+        val mesh = MeshCache[ref, true] ?: return 0
+        var result = 0
+        val tmp = rotations[3]
+        for (i in 0 until 3) {
+            rotation.mul(rotations[i], tmp)
+            result += drawMesh(
+                pipeline, cameraTransform, position, tmp, scale,
+                colors[i], clickId + i, chosenId, mesh, mouseDirection
+            ).toInt(1 shl i)
+        }
+        return result
     }
 
     val local = Matrix4x3()
@@ -95,7 +112,15 @@ object Gizmos {
     val rotations = listOf(
         Quaternionf(),
         Quaternionf().rotateX(+PIf * 0.5f).rotateY(+PIf * 0.5f),
-        Quaternionf().rotateX(-PIf * 0.5f).rotateZ(-PIf * 0.5f)
+        Quaternionf().rotateX(-PIf * 0.5f).rotateZ(-PIf * 0.5f),
+        Quaternionf(),// tmp1
+        Quaternionf() // tmp2
+    )
+
+    val colors = intArrayOf(
+        colorX,
+        colorY,
+        colorZ
     )
 
     fun drawMesh(
