@@ -4,6 +4,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.HeavyIterator
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFileWithData
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCallback
@@ -25,7 +26,7 @@ class InnerTarFile(
     relativePath: String,
     parent: FileReference,
     val readingPath: String = relativePath
-) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
+) : InnerFileWithData(absolutePath, relativePath, parent), SignatureFile {
 
     override var signature: Signature? = null
 
@@ -84,23 +85,14 @@ class InnerTarFile(
                     createFolderEntryTar(zipFileLocation, parent, registry)
                 }
                 if (entry.isDirectory) InnerFolder(absolutePath, path, parent2)
-                else InnerTarFile(absolutePath, zipFile, getStream, path, parent2)
-            }
-            file.lastModified = entry.lastModifiedDate?.time ?: 0L
-            file.size = entry.size
-            setDataAndSignature(file) {
-                // stream must not be closed
-                object : InputStream() {
-                    override fun read(): Int = zis.read()
-                    override fun read(p0: ByteArray): Int {
-                        return zis.read(p0)
-                    }
-
-                    override fun read(p0: ByteArray, p1: Int, p2: Int): Int {
-                        return zis.read(p0, p1, p2)
-                    }
+                else {
+                    val file = InnerTarFile(absolutePath, zipFile, getStream, path, parent2)
+                    file.size = entry.size
+                    setDataAndSignature(file) { NotClosingInputStream(zis) }
+                    file
                 }
             }
+            file.lastModified = entry.lastModifiedDate?.time ?: 0L
             return file
         }
 

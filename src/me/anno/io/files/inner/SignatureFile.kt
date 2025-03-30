@@ -13,7 +13,7 @@ interface SignatureFile {
 
     companion object {
         @JvmStatic
-        fun setDataAndSignature(file: InnerFile, getInputStream: () -> InputStream) {
+        fun setDataAndSignature(file: InnerFileWithData, getInputStream: () -> InputStream) {
             if (!file.isDirectory) {
                 file as SignatureFile
                 getInputStream().use { input ->

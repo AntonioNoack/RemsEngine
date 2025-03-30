@@ -5,6 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.HeavyAccess
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFileWithData
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
@@ -23,7 +24,7 @@ class InnerZipFile(
     val getZipStream: (callback: Callback<ZipFile>) -> Unit,
     relativePath: String,
     parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
+) : InnerFileWithData(absolutePath, relativePath, parent), SignatureFile {
 
     override var signature: Signature? = null
 
@@ -60,12 +61,15 @@ class InnerZipFile(
                 val absolutePath = "$zipFileLocation/$path"
                 val parent2 = registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, registry) }
                 if (entry.isDirectory) InnerFolder(absolutePath, path, parent2)
-                else InnerZipFile(absolutePath, zipFile, getStream, path, parent2)
+                else {
+                    val file = InnerZipFile(absolutePath, zipFile, getStream, path, parent2)
+                    file.size = entry.size
+                    setDataAndSignature(file) { zis.getInputStream(entry) }
+                    file
+                }
             }
             file.lastModified = entry.lastModifiedDate?.time ?: 0L
             file.creationTime = entry.creationTime?.toMillis() ?: 0L
-            file.size = entry.size
-            setDataAndSignature(file) { zis.getInputStream(entry) }
             return file
         }
 

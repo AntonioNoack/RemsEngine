@@ -1,14 +1,10 @@
 package me.anno.io.files.inner
 
-import me.anno.io.EmptyInputStream
 import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
-import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
-import java.io.ByteArrayInputStream
-import java.io.InputStream
 import java.io.OutputStream
 
 /**
@@ -48,13 +44,6 @@ abstract class InnerFile(
     override var lastAccessed = 0L
     override var creationTime = 0L
 
-    var compressedSize = 0L
-    var size = 65536L // we don't know in this class
-    var data: ByteArray? = null
-    var isEncrypted = false
-
-    override fun length(): Long = size
-
     fun markAsModified() {
         lastModified = max(lastModified + 1, System.currentTimeMillis())
     }
@@ -62,33 +51,6 @@ abstract class InnerFile(
     override fun invalidate() {
         super.invalidate()
         markAsModified()
-    }
-
-    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        val data = data
-        when {
-            size <= 0 -> callback.call(EmptyInputStream, null)
-            data != null -> callback.call(ByteArrayInputStream(data), null)
-            else -> callback.ok(inputStreamSync())
-        }
-    }
-
-    override fun readBytes(callback: Callback<ByteArray>) {
-        val data = data
-        if (data != null) callback.ok(data)
-        else super.readBytes(callback)
-    }
-
-    override fun readBytesSync(): ByteArray {
-        return data ?: super.readBytesSync()
-    }
-
-    override fun readText(callback: Callback<String>) {
-        callback.ok(readTextSync())
-    }
-
-    override fun readTextSync(): String {
-        return readBytesSync().decodeToString()
     }
 
     override fun outputStream(append: Boolean): OutputStream {

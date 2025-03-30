@@ -4,7 +4,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 
 class InnerByteFile(absolutePath: String, relativePath: String, parent: FileReference, content: ByteArray) :
-    InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
+    InnerFileWithData(absolutePath, relativePath, parent), SignatureFile {
 
     override var signature: Signature? = Signature.find(content)
 

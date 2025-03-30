@@ -1,14 +1,12 @@
 package me.anno.io.files.inner.lazy
 
-import me.anno.cache.AsyncCacheData
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.json.saveable.JsonStringWriter
-import java.io.ByteArrayInputStream
+import me.anno.utils.async.Callback
 import java.io.InputStream
 
 open class InnerLazyPrefabFile(
@@ -22,10 +20,8 @@ open class InnerLazyPrefabFile(
         v
     }
 
-    init {
-        val size = Int.MAX_VALUE.toLong()
-        this.size = size
-        this.compressedSize = size
+    override fun length(): Long {
+        return Int.MAX_VALUE.toLong()
     }
 
     val text by lazy { JsonStringWriter.toText(prefab2.value, InvalidRef) }
@@ -35,9 +31,6 @@ open class InnerLazyPrefabFile(
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference> = emptyList()
 
-    override fun readTextSync() = text
-    override fun readBytesSync() = bytes
-
     override fun readText(callback: Callback<String>) {
         callback.ok(text)
     }
@@ -46,8 +39,8 @@ open class InnerLazyPrefabFile(
         callback.ok(bytes)
     }
 
-    override fun inputStreamSync(): InputStream {
-        return ByteArrayInputStream(bytes)
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.ok(bytes.inputStream())
     }
 
     override fun readPrefab(): Prefab {

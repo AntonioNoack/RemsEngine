@@ -5,6 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.HeavyIterator
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFileWithData
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
@@ -23,7 +24,7 @@ class Inner7zFile(
     val getZipStream: (Callback<SevenZFile>) -> Unit,
     relativePath: String,
     parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
+) : InnerFileWithData(absolutePath, relativePath, parent), SignatureFile {
 
     override var signature: Signature? = null
 
@@ -74,17 +75,19 @@ class Inner7zFile(
             val (parent, path) = InnerFolderCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
                 val zipFileLocation = zipFile.absolutePath
+                val absolutePath = "$zipFileLocation/$path"
                 if (entry.isDirectory) {
-                    InnerFolder("$zipFileLocation/$path", path, registry[parent]!!)
+                    InnerFolder(absolutePath, path, registry[parent]!!)
                 } else {
-                    Inner7zFile("$zipFileLocation/$path", zipFile, getStream, path, registry[parent]!!)
+                    val file = Inner7zFile(absolutePath, zipFile, getStream, path, registry[parent]!!)
+                    file.size = entry.size
+                    setDataAndSignature(file) { zis.getInputStream(entry) }
+                    file
                 }
             }
             file.lastModified = if (entry.hasLastModifiedDate) entry.lastModifiedDate!!.time else 0L
             file.lastAccessed = if (entry.hasAccessDate) entry.accessDate!!.time else 0L
             file.creationTime = if (entry.hasCreationDate) entry.creationDate!!.time else 0L
-            file.size = entry.size
-            setDataAndSignature(file) { zis.getInputStream(entry) }
             return file
         }
     }

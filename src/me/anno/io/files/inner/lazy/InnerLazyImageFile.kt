@@ -6,8 +6,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.SignatureFile
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.tuples.IntPair
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -26,11 +26,6 @@ open class InnerLazyImageFile(
         return cpuImage.isInitialized() && super.hasInstantCPUImage()
     }
 
-    init {
-        size = 2_000_000L // unknown
-        compressedSize = size // unknown until we compress it
-    }
-
     val bytes: ByteArray by lazy {
         val bos = ByteArrayOutputStream()
         readCPUImage().write(bos, lcExtension)
@@ -45,7 +40,19 @@ open class InnerLazyImageFile(
         return IntPair(image.width, image.height)
     }
 
-    override fun readBytesSync(): ByteArray = bytes
-    override fun readTextSync(): String = bytes.decodeToString() // what are you doing? ;)
-    override fun inputStreamSync(): InputStream = ByteArrayInputStream(bytes)
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(bytes)
+    }
+
+    override fun readText(callback: Callback<String>) {
+        callback.ok(bytes.decodeToString()) // what are you doing? ;)
+    }
+
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.ok(bytes.inputStream())
+    }
+
+    override fun length(): Long {
+        return if (cpuImage.isInitialized()) cpuImage.value.sizeGuess() else 100_000L // just a guess
+    }
 }

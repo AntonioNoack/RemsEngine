@@ -2,11 +2,10 @@ package me.anno.io.files.inner
 
 import me.anno.image.Image
 import me.anno.image.ImageReadable
-import me.anno.image.bmp.BMPWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.tuples.IntPair
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -25,15 +24,14 @@ class InnerImageFile(
         content
     )
 
-    init {
-        size = BMPWriter.calculateSize(content) // very simple calculation
-        compressedSize = size // unknown until we compress it
-    }
-
     val bytes: ByteArray by lazy {
         val bos = ByteArrayOutputStream()
         content.write(bos, lcExtension)
         bos.toByteArray()
+    }
+
+    override fun length(): Long {
+        return content.sizeGuess()
     }
 
     override fun readCPUImage(): Image = content
@@ -42,5 +40,7 @@ class InnerImageFile(
 
     override fun readBytesSync(): ByteArray = bytes
     override fun readTextSync(): String = bytes.decodeToString() // what are you doing? ;)
-    override fun inputStreamSync(): InputStream = ByteArrayInputStream(bytes)
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.ok(bytes.inputStream())
+    }
 }

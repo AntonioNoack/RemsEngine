@@ -1,19 +1,27 @@
 package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
-import java.io.ByteArrayInputStream
+import me.anno.utils.async.Callback
+import java.io.InputStream
 
 class InnerTextFile(
     absolutePath: String, relativePath: String, parent: FileReference,
     var content: String
 ) : InnerFile(absolutePath, relativePath, false, parent) {
 
-    init {
-        size = content.length.toLong()
-        compressedSize = size
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.ok(content.byteInputStream())
     }
 
-    override fun inputStreamSync() = ByteArrayInputStream(readBytesSync())
-    override fun readBytesSync() = content.encodeToByteArray()
-    override fun readTextSync() = content
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(content.encodeToByteArray())
+    }
+
+    override fun readText(callback: Callback<String>) {
+        callback.ok(content)
+    }
+
+    override fun length(): Long {
+        return content.length.toLong() // a guess
+    }
 }

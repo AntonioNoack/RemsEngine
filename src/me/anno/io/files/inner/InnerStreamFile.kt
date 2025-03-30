@@ -1,6 +1,8 @@
 package me.anno.io.files.inner
 
+import me.anno.io.Streams.readText
 import me.anno.io.files.FileReference
+import me.anno.utils.async.Callback
 import java.io.InputStream
 
 open class InnerStreamFile(
@@ -16,13 +18,19 @@ open class InnerStreamFile(
         getStream
     )
 
-    init {
-        // unknown...
-        size = 100000
-        compressedSize = size
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.ok(getStream())
     }
 
-    override fun inputStreamSync(): InputStream = getStream()
-    override fun readBytesSync(): ByteArray = inputStreamSync().readBytes()
-    override fun readTextSync(): String = readBytesSync().decodeToString()
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(getStream().readBytes())
+    }
+
+    override fun readText(callback: Callback<String>) {
+        callback.ok(getStream().readText())
+    }
+
+    override fun length(): Long {
+        return 100_000L // unknown
+    }
 }

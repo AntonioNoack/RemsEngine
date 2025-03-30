@@ -10,6 +10,7 @@ import me.anno.io.files.inner.lazy.InnerLazyByteFile
 import me.anno.io.files.inner.lazy.InnerLazyImageFile
 import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.async.Callback
 import me.anno.utils.structures.lists.UnsafeArrayList
 import java.io.IOException
 import java.io.InputStream
@@ -40,6 +41,7 @@ open class InnerFolder(
 
     operator fun contains(fileName: String) = fileName in children
     override fun listChildren(): List<FileReference> = childrenList
+    override fun length(): Long = 0L
 
     override fun invalidate() {
         super.invalidate()
@@ -48,20 +50,24 @@ open class InnerFolder(
         }
     }
 
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        alias?.inputStream(lengthLimit, closeStream, callback) ?: callback.err(warnIsDirectory())
+    }
+
     override fun inputStreamSync(): InputStream {
-        return alias?.inputStreamSync() ?: warnIsDirectory()
+        return alias?.inputStreamSync() ?: throw warnIsDirectory()
     }
 
     override fun readBytesSync(): ByteArray {
-        return alias?.readBytesSync() ?: warnIsDirectory()
+        return alias?.readBytesSync() ?: throw warnIsDirectory()
     }
 
     override fun readByteBufferSync(native: Boolean): ByteBuffer {
-        return alias?.readByteBufferSync(native) ?: warnIsDirectory()
+        return alias?.readByteBufferSync(native) ?: throw warnIsDirectory()
     }
 
-    private fun warnIsDirectory(): Nothing {
-        throw IOException("'$this' is directory") // could be thrown as well
+    private fun warnIsDirectory(): IOException {
+        return IOException("'$this' is directory") // could be thrown as well
     }
 
     override fun getChildImpl(name: String): FileReference {

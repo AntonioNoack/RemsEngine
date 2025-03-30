@@ -7,6 +7,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFileWithData
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
@@ -20,7 +21,7 @@ class InnerRarFile(
     absolutePath: String,
     relativePath: String,
     parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
+) : InnerFileWithData(absolutePath, relativePath, parent), SignatureFile {
 
     override var signature: Signature? = null
 
@@ -55,7 +56,6 @@ class InnerRarFile(
             var e: Exception? = null
             try {
                 if (archive.isEncrypted) {
-                    file.isEncrypted = true
                     callback.err(IOException("RAR is encrypted"))
                     return
                 }
@@ -89,28 +89,28 @@ class InnerRarFile(
                 if (header.isDirectory) {
                     InnerFolder("$zipFileLocation/$path", path, parent2)
                 } else {
-                    InnerRarFile("$zipFileLocation/$path", path, parent2)
+                    val file = InnerRarFile("$zipFileLocation/$path", path, parent2)
+                    file.compressedSize = header.fullPackSize
+                    file.size = header.fullUnpackSize
+                    file.isEncrypted = header.isEncrypted
+                    if (!file.isDirectory) {
+                        if (file.isEncrypted) {
+                            file.data = "This file is encrypted :/".toByteArray()
+                        } else {
+                            val bos = ByteArrayOutputStream()
+                            archive.extractFile(header, bos)
+                            bos.close()
+                            val data = bos.toByteArray()
+                            file.data = data
+                            file.signature = Signature.find(data)
+                        }
+                    }
+                    file
                 }
             }
             file.lastModified = header.mTime?.time ?: 0L
             file.lastAccessed = header.aTime?.time ?: 0L
             file.creationTime = header.cTime?.time ?: 0L
-            file.compressedSize = header.fullPackSize
-            file.size = header.fullUnpackSize
-            file.isEncrypted = header.isEncrypted
-            if (!file.isDirectory) {
-                if (file.isEncrypted) {
-                    file.data = "This file is encrypted :/".toByteArray()
-                } else {
-                    val bos = ByteArrayOutputStream()
-                    archive.extractFile(header, bos)
-                    bos.close()
-                    val data = bos.toByteArray()
-                    file.data = data
-                    file as SignatureFile
-                    file.signature = Signature.find(data)
-                }
-            }
             return file
         }
 
@@ -126,8 +126,6 @@ class InnerRarFile(
                 InnerFolder("$zipFileLocation/$path", path, parent2)
             }
             file.lastModified = 0L
-            file.size = 0
-            file.data = null
             return file
         }
     }

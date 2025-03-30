@@ -5,7 +5,7 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
-import java.io.ByteArrayInputStream
+import me.anno.utils.async.Callback
 import java.io.InputStream
 
 class InnerLazyByteFile(
@@ -17,20 +17,26 @@ class InnerLazyByteFile(
     constructor(folder: InnerFolder, name: String, content: Lazy<ByteArray>) : this(
         "${folder.absolutePath}/$name",
         "${folder.relativePath}/$name",
-        folder,
-        content
+        folder, content
     )
-
-    init {
-        size = Int.MAX_VALUE.toLong()
-        compressedSize = size
-    }
 
     override var signature: Signature?
         get() = Signature.find(content.value)
         set(_) {}
 
-    override fun readBytesSync() = content.value
-    override fun readTextSync(): String = readBytesSync().decodeToString()
-    override fun inputStreamSync(): InputStream = ByteArrayInputStream(readBytesSync())
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(content.value)
+    }
+
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.ok(content.value.inputStream())
+    }
+
+    override fun readText(callback: Callback<String>) {
+        callback.ok(content.value.decodeToString())
+    }
+
+    override fun length(): Long {
+        return if(content.isInitialized()) content.value.size.toLong() else 100_000L // a guess
+    }
 }
