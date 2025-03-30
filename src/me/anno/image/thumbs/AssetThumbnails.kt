@@ -229,17 +229,14 @@ object AssetThumbnails {
 
     @JvmStatic
     fun generateMaterialFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        materials: List<FileReference>,
-        size: Int,
-        callback: Callback<ITexture2D>
+        srcFile: FileReference, dstFile: HDBKey,
+        materials: List<FileReference>, size: Int, callback: Callback<ITexture2D>
     ) {
         listTextures(materials, srcFile) { textures ->
             waitForTextures(textures) {
                 ThumbsRendering.renderMultiWindowImage(
                     srcFile, dstFile, materials.size, size, false,
-                    renderer, false, callback
+                    renderer, true, callback
                 ) { it, _ ->
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
