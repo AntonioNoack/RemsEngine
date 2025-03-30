@@ -2,6 +2,7 @@ package me.anno.ui.debug
 
 import me.anno.Time
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.gpu.buffer.SimpleBuffer
@@ -78,7 +79,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 "}"
     )
 
-    var textColor = TextPanel("", style).textColor
+    var textColor = style.getColor("textColor", iconGray)
 
     override fun calculateSize(w: Int, h: Int) {
         minW = width1

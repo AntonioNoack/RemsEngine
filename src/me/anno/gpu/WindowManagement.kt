@@ -5,10 +5,10 @@ import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.engine.NamedTask
+import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GLNames.getErrorTypeName
@@ -26,7 +26,6 @@ import me.anno.input.GLFWListeners
 import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Input.mouseLockWindow
-import me.anno.input.Touch
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_MILLIS
@@ -443,75 +442,101 @@ object WindowManagement {
 
     @JvmStatic
     fun renderFrame() {
-
         val time = Time.nanoTime
+        RenderStep.beforeRenderSteps()
+        if (!renderWindows(time)) {
+            keepProcessingHiddenWindows()
+        }
+        closeWindowsIfTheyShouldBeClosed()
+        if (mayIdle1()) {
+            waitIfIdle()
+        }
+    }
 
-        var workedTasks = false
-        Touch.updateAll()
+    private fun mayIdle1(): Boolean {
+        // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
+        return mayIdle && !OS.isWeb
+    }
 
-        for (index in 0 until windows.size) {
+    private fun closeWindowsIfTheyShouldBeClosed() {
+        val windows = windows
+        for (index in windows.indices) {
             val window = windows.getOrNull(index) ?: break
-            if (window.isInFocus ||
+            if (window.shouldClose) close(window)
+        }
+    }
+
+    private fun shouldRenderWindow(window: OSWindow, time: Long): Boolean {
+        return window.isInFocus ||
                 window.hasActiveMouseTargets() ||
                 neverStarveWindows ||
                 abs(window.lastUpdate - time) * WindowRenderFlags.idleFPS > SECONDS_TO_NANOS
-            ) {
+    }
+
+    private fun renderWindows(time: Long): Boolean {
+        var workedTasks = false
+        val windows = windows
+        for (index in windows.indices) {
+            val window = windows.getOrNull(index) ?: break
+            if (shouldRenderWindow(window, time)) {
                 window.lastUpdate = time
                 // this is hopefully ok (calling it async to other glfw stuff)
                 if (window.makeCurrent()) {
-                    synchronized(openglLock) {
-                        GFX.activeWindow = window
-                        renderStep(window, true)
-                    }
-                    synchronized(glfwLock) {
-                        if (!destroyed) {
-                            GLFW.glfwWaitEventsTimeout(0.0)
-                            GLFW.glfwSwapBuffers(window.pointer)
-                            // works in reducing input latency by 1 frame 😊
-                            // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
-                            if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
-                                GL46C.glFinish()
-                            }
-                            window.updateVsync()
-                        }
-                    }
+                    renderWindow(window)
                     workedTasks = true
                 }
             }
         }
+        return workedTasks
+    }
 
-        if (!workedTasks) {
-            // to keep processing, e.g., for Rem's Studio
-            val window = windows.getOrNull(0)
-            if (window != null && window.makeCurrent()) {
-                synchronized(openglLock) {
-                    GFX.activeWindow = window
-                    renderStep(window, false)
+    private fun renderWindow(window: OSWindow) {
+        synchronized(openglLock) {
+            GFX.activeWindow = window
+            renderStep(window, true)
+        }
+        synchronized(glfwLock) {
+            if (!destroyed) {
+                GLFW.glfwWaitEventsTimeout(0.0) // needed?
+                GLFW.glfwSwapBuffers(window.pointer)
+                // works in reducing input latency by 1 frame 😊
+                // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
+                if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
+                    GL46C.glFinish()
                 }
+                window.updateVsync()
             }
         }
+    }
 
-        for (index in 0 until windows.size) {
-            val window = windows.getOrNull(index) ?: break
-            if (window.shouldClose) close(window)
-        }
-
-        if (mayIdle && !OS.isWeb) { // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
-            val isIdle = windows.isNotEmpty() &&
-                    windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
-            val maxFPS = if (isIdle) WindowRenderFlags.idleFPS else WindowRenderFlags.maxFPS
-            if (maxFPS > 0) {
-                // enforce X fps, because we don't need more
-                // and don't want to waste energy
-                val currentTime = Time.nanoTime
-                val waitingTime = SECONDS_TO_MILLIS / max(1, maxFPS) - (currentTime - lastTime) / MILLIS_TO_NANOS
-                if (waitingTime > 0) try {
-                    // wait does not work, causes IllegalMonitorState exception
-                    Thread.sleep(waitingTime)
-                } catch (ignored: InterruptedException) {
-                }
-                lastTime = Time.nanoTime
+    /**
+     * to keep processing, e.g., for Rem's Studio
+     * */
+    private fun keepProcessingHiddenWindows() {
+        val window = windows.getOrNull(0)
+        if (window != null && window.makeCurrent()) {
+            synchronized(openglLock) {
+                GFX.activeWindow = window
+                renderStep(window, false)
             }
+        }
+    }
+
+    private fun waitIfIdle() {
+        val isIdle = windows.isNotEmpty() &&
+                windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
+        val maxFPS = if (isIdle) WindowRenderFlags.idleFPS else WindowRenderFlags.maxFPS
+        if (maxFPS > 0) {
+            // enforce X fps, because we don't need more
+            // and don't want to waste energy
+            val currentTime = Time.nanoTime
+            val waitingTime = SECONDS_TO_MILLIS / max(1, maxFPS) - (currentTime - lastTime) / MILLIS_TO_NANOS
+            if (waitingTime > 0) try {
+                // wait does not work, causes IllegalMonitorState exception
+                Thread.sleep(waitingTime)
+            } catch (ignored: InterruptedException) {
+            }
+            lastTime = Time.nanoTime
         }
     }
 
@@ -521,26 +546,33 @@ object WindowManagement {
     @JvmField
     var lastTrapWindow: OSWindow? = null
 
-    @JvmStatic
     private fun handleClose(window: OSWindow) {
-        val ws = window.windowStack
-        if (ws.isEmpty() ||
-            DefaultConfig["window.close.directly", false] ||
-            ws.last().isAskingUserAboutClosing ||
-            window.shouldClose
-        ) {
+        if (shouldCloseWindowImmediately(window)) {
             window.requestClose()
         } else {
-            GLFW.glfwSetWindowShouldClose(window.pointer, false)
-            addEvent {
-                ask(
-                    ws, NameDesc("Close %1?", "", "ui.closeProgram")
-                        .with("%1", window.title),
-                    window::requestClose
-                )?.isAskingUserAboutClosing = true
-                window.framesSinceLastInteraction = 0
-                ws.peek()?.setAcceptsClickAway(false)
-            }
+            deferClosingWindow(window)
+        }
+    }
+
+    private fun shouldCloseWindowImmediately(window: OSWindow): Boolean {
+        val ws = window.windowStack
+        return ws.isEmpty() ||
+                DefaultConfig["window.close.directly", false] ||
+                ws.last().isAskingUserAboutClosing ||
+                window.shouldClose
+    }
+
+    private fun deferClosingWindow(window: OSWindow) {
+        val ws = window.windowStack
+        GLFW.glfwSetWindowShouldClose(window.pointer, false)
+        addEvent {
+            ask(
+                ws, NameDesc("Close %1?", "", "ui.closeProgram")
+                    .with("%1", window.title),
+                window::requestClose
+            )?.isAskingUserAboutClosing = true
+            window.framesSinceLastInteraction = 0
+            ws.peek()?.setAcceptsClickAway(false)
         }
     }
 

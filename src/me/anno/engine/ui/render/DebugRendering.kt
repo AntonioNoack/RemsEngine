@@ -69,6 +69,7 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.ui.Panel
+import me.anno.ui.UIColors
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
@@ -253,6 +254,7 @@ object DebugRendering {
 
     fun showTimeRecords(rv: RenderView) {
         GFXState.drawCall("ShowTimeRecords") {
+            val textBatch = DrawTexts.startSimpleBatch()
             val records = GFXState.timeRecords
             var total = 0L
             for (i in records.indices) {
@@ -265,6 +267,7 @@ object DebugRendering {
             if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
                 records.clear()
             }
+            DrawTexts.finishSimpleBatch(textBatch)
         }
     }
 
@@ -464,7 +467,7 @@ object DebugRendering {
             DrawTextures.drawTexture(
                 x0, y0, x1 - x0, y1 - y0,
                 lightBuffer.getTexture0(), true,
-                -1, null, true // lights are bright -> dim them down
+                white, null, true // lights are bright -> dim them down
             )
             view.pipeline.lightStage.visualizeLightCount = false
         }
@@ -592,7 +595,7 @@ object DebugRendering {
                 val name: String
                 val texture: ITexture2D
                 var applyTonemapping = false
-                var color = white
+                var color = FrameTimings.textColor
                 when (index) {
                     size - (1 + GFX.supportsDepthTextures.toInt()) -> {
                         texture = light.getTexture0()
@@ -794,19 +797,19 @@ object DebugRendering {
                 } else {
                     DrawTextures.drawTexture(
                         x2, y, x3 - x2, sz, texture,
-                        true, -1, null, texture.isHDR
+                        true, white, null, texture.isHDR
                     )
                 }
                 if (isInspected) {
                     drawBorder(x2, y, x3 - x2, sz, black, 2)
-                    drawBorder(x2, y, x3 - x2, sz, white, 1)
+                    drawBorder(x2, y, x3 - x2, sz, UIColors.paleGoldenRod, 1)
                 }
             }
             val x = x0 + xi * sz
             val y = y0 - sz + 1
             DrawTexts.drawSimpleTextCharByChar(
                 x, y, 1, name,
-                -1, view.backgroundColor,
+                FrameTimings.textColor, view.backgroundColor,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }
@@ -827,12 +830,13 @@ object DebugRendering {
         fun drawLine(y: Int, text: String) {
             DrawTexts.drawSimpleTextCharByChar(
                 x2, y2 + y * fontSize, 1,
-                text, white, view.backgroundColor,
+                text, FrameTimings.textColor, view.backgroundColor,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }
 
         // draw info and colors and numbers
+        val textBatch = DrawTexts.startSimpleBatch()
         drawLine(0, passName)
         drawLine(1, "${texture.name}, ${GLNames.getName(texture.internalFormat)} ${texture.samples}x, $xii,$yii")
         val offset = (inspectorPadding * inspectorSize + inspectorPadding) * 4
@@ -840,9 +844,10 @@ object DebugRendering {
             drawLine(i + 2, "${"RGBA"[i]}: ${values[i + offset]}")
         }
         drawLine(numChannels + 2, "Controls: Alt + Arrows / P")
+        DrawTexts.finishSimpleBatch(textBatch)
 
         // draw inspected color as rectangle
-        val batch = DrawRectangles.startBatch()
+        val rectBatch = DrawRectangles.startBatch()
         val y3 = y2 + menuHeight - tileSize
         val isDepth = isDepthFormat(texture.internalFormat)
         for (yi in 0 until inspectorSize) {
@@ -857,7 +862,7 @@ object DebugRendering {
                 }
             }
         }
-        DrawRectangles.finishBatch(batch)
+        DrawRectangles.finishBatch(rectBatch)
     }
 
     private fun getColor(xi: Int, yi: Int, values: FloatArray, isHDR: Boolean, isDepth: Boolean): Int {

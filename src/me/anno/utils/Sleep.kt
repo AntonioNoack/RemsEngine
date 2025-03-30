@@ -9,6 +9,7 @@ import me.anno.engine.Events.getCalleeName
 import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.utils.assertions.assertSame
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -146,7 +147,7 @@ object Sleep {
      * returns V (or null on shutdown)
      * */
     @JvmStatic
-    @Deprecated("Please use the variant with callback")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V? {
         var value: V? = null
         this.waitUntil(canBeKilled) {
@@ -179,7 +180,7 @@ object Sleep {
             workingThread = thisThread
             Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
             GPUTasks.workGPUTasks(canBeKilled)
-            if (workingThread !== thisThread) throw IllegalStateException()
+            assertSame(workingThread, thisThread)
             workingThread = prevThread
         }
     }

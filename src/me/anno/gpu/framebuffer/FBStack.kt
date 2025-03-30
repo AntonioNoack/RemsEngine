@@ -51,7 +51,6 @@ object FBStack : SimpleCache("FBStack", 2100L) {
                     samples, targetTypes,
                     depthBufferType
                 )
-                println("Created FBStack of ${targetTypes.map { it.name }}")
                 data.add(framebuffer)
                 if (hasExtraDepthBuffer) {
                     framebuffer.ensure() // ensure textures

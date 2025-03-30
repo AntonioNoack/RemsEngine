@@ -12,49 +12,50 @@ import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
+import me.anno.input.Touch
 import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
+import me.anno.utils.pooling.Stack
 
 object RenderStep {
 
     @JvmStatic
-    fun renderStep(window: OSWindow, doRender: Boolean) {
-
+    private fun clearState() {
         GPUShader.invalidateBinding()
         Texture2D.destroyTextures()
         OpenGLBuffer.invalidateBinding()
         GFXState.invalidateState()
-
         Pools.freeUnusedEntries()
         AudioStream.byteBufferPool.freeUnusedEntries()
-
-        setFrameNullSize(window)
-
-        me.anno.utils.pooling.Stack.resetAll()
-
-        // rendering and editor section
-
-        Input.resetFrameSpecificKeyStates()
-
+        Stack.resetAll()
         resetFBStack()
-
-        Sleep.work(true)
-
-        resetFBStack()
-
-        setFrameNullSize(window)
-
-        Texture2D.resetBudget()
-
-        GFX.check()
 
         whiteTexture.bind(0)
+    }
 
+    @JvmStatic
+    fun beforeRenderSteps() {
+        // clear states & reset
+        clearState()
+        Texture2D.resetBudget()
+        Input.resetFrameSpecificKeyStates()
+
+        // work stuff
+        Touch.updateAll()
+        Sleep.work(true)
+    }
+
+    @JvmStatic
+    fun renderStep(window: OSWindow, doRender: Boolean) {
+        clearState()
+        setFrameNullSize(window)
+        renderStepImpl(window, doRender)
         GFX.check()
+    }
 
-        resetFBStack()
-
+    @JvmStatic
+    private fun renderStepImpl(window: OSWindow, doRender: Boolean) {
         val inst = EngineBase.instance
         if (inst != null && doRender) {
             if (shallRenderVR && window == windows.firstOrNull()) {
@@ -62,8 +63,6 @@ object RenderStep {
             } else {
                 callOnGameLoop(inst, window)
             }
-            resetFBStack()
-            GFX.check()
         }
     }
 
