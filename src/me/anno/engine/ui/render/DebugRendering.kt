@@ -12,12 +12,17 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.control.ControlSettings
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
+import me.anno.engine.ui.render.Renderers.tonemapKt
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.Clipping
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.timeRendering
+import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GLNames
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
@@ -25,6 +30,9 @@ import me.anno.gpu.debug.DebugGPUStorage.isDepthFormat
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.DrawRectangles.drawBorder
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
@@ -49,17 +57,23 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
+import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.framegen.FrameGenInitNode
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
-import me.anno.utils.Color
+import me.anno.utils.Color.black
+import me.anno.utils.Color.r
+import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.WorkSplitter
@@ -68,12 +82,16 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.NumberFormatter.formatFloat
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
+import me.anno.utils.types.Vectors.toLinear
+import me.anno.utils.types.Vectors.toSRGB
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.floor
+import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
@@ -375,7 +393,7 @@ object DebugRendering {
     }
 
     private fun drawDebugTexts2(
-        view: RenderView, camPosition: Vector3d,  v: Vector4f,
+        view: RenderView, camPosition: Vector3d, v: Vector4f,
         x0: Float, y0: Float, sx: Float, sy: Float
     ) {
         val texts = DebugShapes.debugTexts
@@ -493,7 +511,7 @@ object DebugRendering {
                 val texture = when (index) {
                     size - (1 + GFX.supportsDepthTextures.toInt()) -> {
                         // draw the light buffer as the last stripe
-                        color = (0x22 * 0x10101) or Color.black
+                        color = (0x22 * 0x10101) or black
                         applyToneMapping = true
                         lightBuffer.getTexture0()
                     }
@@ -591,7 +609,7 @@ object DebugRendering {
                         // draw the light buffer as the last stripe
                         val layer = deferred.layerTypes[index]
                         name = layer.name
-                        GFXState.useFrame(tmp) {
+                        useFrame(tmp) {
                             val shader = Renderers.attributeEffects[layer to settings]!!
                             shader.use()
                             DepthTransforms.bindDepthUniforms(shader)
@@ -655,28 +673,106 @@ object DebugRendering {
         }
     }
 
+    private const val inspectorSize = 15
+    private const val inspectorPadding = inspectorSize.shr(1)
+    private val settings = ControlSettings()
+    private val tmpTexture = Texture2D("debug", inspectorSize, inspectorSize, 1)
+    private val tmpPixels = FloatArray(4 * inspectorSize * inspectorSize)
+    private fun readPixelsAsFloatsAt(src: ITexture2D, mxi: Int, myi: Int): FloatArray {
+        if (!tmpTexture.isCreated()) tmpTexture.create(TargetType.Float32x4)
+        useFrame(tmpTexture) {
+            renderPurely {
+                val dx = inspectorPadding - mxi
+                val dy = inspectorPadding - myi
+                DrawTextures.drawTexture(dx, dy, src.width, src.height, src)
+            }
+        }
+        tmpTexture.readFloatPixels(0, 0, inspectorSize, inspectorSize, tmpPixels)
+        return tmpPixels
+    }
+
+    private fun handleDebugControls() {
+        if (Input.isAltDown) {
+            if (Input.wasKeyPressed(Key.KEY_ARROW_RIGHT)) settings.inspectedX++
+            if (Input.wasKeyPressed(Key.KEY_ARROW_LEFT)) settings.inspectedX--
+            if (Input.wasKeyPressed(Key.KEY_ARROW_UP)) settings.inspectedY++
+            if (Input.wasKeyPressed(Key.KEY_ARROW_DOWN)) settings.inspectedY--
+            if (Input.wasKeyPressed(Key.KEY_P)) settings.drawInspected = !settings.drawInspected
+        }
+    }
+
     private fun <V> List<Pair<String, V>>.removeDuplicates(): List<Pair<String, V>> {
         val set = HashSet<V>()
         return filter { set.add(it.second) }
     }
 
+    private fun findRelevantNodes(graph: FlowGraph): List<Pair<String, List<Pair<String, ITexture2D>>>> {
+        return graph.nodes.map {
+            it.name to it.outputs
+                .filter { o -> o.type == "Texture" }
+                .mapNotNull { o ->
+                    val value = (o.currValue as? Texture)?.texOrNull
+                    if (value != null) o.name to value else null
+                }.removeDuplicates()
+        }.filter { it.second.isNotEmpty() }
+    }
+
+    private fun drawTextureInBig(view: RenderView, slotName: String, texture: ITexture2D) {
+        if (isDepthFormat(texture.internalFormat) || slotName == "Depth") {
+            // if is depth, draw display depth
+            DrawTextures.drawDepthTexture(view.x, view.y, view.width, view.height, texture)
+        } else {
+            DrawTextures.drawTexture(
+                view.x, view.y, view.width, view.height, texture,
+                true, -1, null, texture.isHDR
+            )
+        }
+    }
+
     fun drawDebugSteps1(view: RenderView) {
+
+        // show color under cursor in bigger in a corner
+        // show color under cursor as numbers on a side
+        // use special keys/settings to define which frame is inspected
+        // draw a border around what's inspected
+        // optionally make what's inspected bigger
+
+        val window = view.windowStack
+        val mx = (window.mouseX - view.x) / view.width
+        val my = (window.mouseY - view.y) / view.height
+
+        handleDebugControls()
+
         val graph = view.renderMode.renderGraph ?: return
-        // go over graph, and show all rendering steps
-        val relevantNodes = graph.nodes
-            .map {
-                it.name to it.outputs
-                    .filter { o -> o.type == "Texture" }
-                    .mapNotNull { o ->
-                        val value = (o.currValue as? Texture)?.texOrNull
-                        if (value != null) o.name to value else null
-                    }
-                    .removeDuplicates()
-            }
-            .filter { it.second.isNotEmpty() }
+        val relevantNodes = findRelevantNodes(graph)
         if (relevantNodes.isEmpty()) return
-        // to do sort nodes by topology???
-        // at least without QuickPipeline-RenderModes, they're already sorted :)
+
+        settings.inspectedX = clamp(settings.inspectedX, 0, relevantNodes.lastIndex)
+        settings.inspectedY = clamp(settings.inspectedY, 0, relevantNodes.maxOf { it.second.lastIndex })
+
+        val inspectedX = settings.inspectedX
+        val inspectedY = clamp(settings.inspectedY, 0, relevantNodes[inspectedX].second.lastIndex)
+
+        val (passName, outputs) = relevantNodes[inspectedX]
+        val (slotName, texture) = outputs[outputs.lastIndex - inspectedY]
+
+        val mxi = (mx * texture.width).toIntOr()
+        val myi = (my * texture.height).toIntOr()
+        val inspectedValues = readPixelsAsFloatsAt(texture, mxi, myi)
+
+        if (settings.drawInspected) {
+            drawTextureInBig(view, slotName, texture)
+        }
+
+        drawDebugSteps(view, relevantNodes, inspectedX, inspectedY)
+        drawInspectedPixelData(view, passName, inspectedValues, texture, mxi, myi)
+    }
+
+    private fun drawDebugSteps(
+        view: RenderView,
+        relevantNodes: List<Pair<String, List<Pair<String, ITexture2D>>>>,
+        inspectedX: Int, inspectedY: Int,
+    ) {
         var nx = relevantNodes.size
         val ny = max(relevantNodes.maxOf { it.second.size }, 4)
         nx = max(ceilDiv(ny * view.width, view.height), nx)
@@ -684,13 +780,14 @@ object DebugRendering {
         val cx = (nx - relevantNodes.size).shr(1) * sz
         val x0 = view.x + cx
         val y0 = view.y + view.height
-        for (i in relevantNodes.indices) {
-            val (name, outputs) = relevantNodes[i]
-            for (j in outputs.indices) {
-                val (slotName, texture) = outputs[j]
-                val x2 = x0 + WorkSplitter.partition(i + 0, view.width, nx)
-                val x3 = x0 + WorkSplitter.partition(i + 1, view.width, nx)
-                val y = y0 - sz * (outputs.size - j)
+        for (xi in relevantNodes.indices) {
+            val (name, outputs) = relevantNodes[xi]
+            for (yi in outputs.indices) {
+                val (slotName, texture) = outputs[yi]
+                val x2 = x0 + WorkSplitter.partition(xi + 0, view.width, nx)
+                val x3 = x0 + WorkSplitter.partition(xi + 1, view.width, nx)
+                val y = y0 - sz * (outputs.size - yi)
+                val isInspected = inspectedX == xi && inspectedY == outputs.lastIndex - yi
                 if (isDepthFormat(texture.internalFormat) || slotName == "Depth") {
                     // if is depth, draw display depth
                     DrawTextures.drawDepthTexture(x2, y, x3 - x2, sz, texture)
@@ -700,8 +797,12 @@ object DebugRendering {
                         true, -1, null, texture.isHDR
                     )
                 }
+                if (isInspected) {
+                    drawBorder(x2, y, x3 - x2, sz, black, 2)
+                    drawBorder(x2, y, x3 - x2, sz, white, 1)
+                }
             }
-            val x = x0 + i * sz
+            val x = x0 + xi * sz
             val y = y0 - sz + 1
             DrawTexts.drawSimpleTextCharByChar(
                 x, y, 1, name,
@@ -709,5 +810,71 @@ object DebugRendering {
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }
+    }
+
+    private fun drawInspectedPixelData(
+        view: RenderView, passName: String, values: FloatArray,
+        texture: ITexture2D, xii: Int, yii: Int,
+    ) {
+        val fontSize = monospaceFont.sizeInt
+        val numChannels = texture.channels
+        val numLines = numChannels + 3
+        val tileSize = fontSize * 2 / 5
+        val x2 = view.x
+        val menuHeight = numLines * fontSize + tileSize * inspectorSize
+        val y2 = view.y + fontSize * 4
+
+        fun drawLine(y: Int, text: String) {
+            DrawTexts.drawSimpleTextCharByChar(
+                x2, y2 + y * fontSize, 1,
+                text, white, view.backgroundColor,
+                AxisAlignment.MIN, AxisAlignment.MAX
+            )
+        }
+
+        // draw info and colors and numbers
+        drawLine(0, passName)
+        drawLine(1, "${texture.name}, ${GLNames.getName(texture.internalFormat)} ${texture.samples}x, $xii,$yii")
+        val offset = (inspectorPadding * inspectorSize + inspectorPadding) * 4
+        for (i in 0 until numChannels) {
+            drawLine(i + 2, "${"RGBA"[i]}: ${values[i + offset]}")
+        }
+        drawLine(numChannels + 2, "Controls: Alt + Arrows / P")
+
+        // draw inspected color as rectangle
+        val batch = DrawRectangles.startBatch()
+        val y3 = y2 + menuHeight - tileSize
+        val isDepth = isDepthFormat(texture.internalFormat)
+        for (yi in 0 until inspectorSize) {
+            for (xi in 0 until inspectorSize) {
+                val color = getColor(xi, yi, values, texture.isHDR, isDepth)
+                val xj = x2 - 1 + xi * tileSize
+                val yj = y3 - yi * tileSize
+                drawRect(xj, yj, tileSize, tileSize, color)
+                if (xi == inspectorPadding && yi == inspectorPadding) {
+                    val borderColor = if (color.r() > 150) black else white
+                    drawBorder(xj, yj, tileSize, tileSize, borderColor, 1)
+                }
+            }
+        }
+        DrawRectangles.finishBatch(batch)
+    }
+
+    private fun getColor(xi: Int, yi: Int, values: FloatArray, isHDR: Boolean, isDepth: Boolean): Int {
+        val offset = (xi + yi * inspectorSize) * 4
+        val tmp3 = JomlPools.vec3f.borrow()
+        tmp3.set(values, offset)
+        if (isDepth) {
+            tmp3.set(
+                fract(log2(tmp3.x)),
+                fract(log2(tmp3.y)),
+                fract(log2(tmp3.z))
+            )
+        } else if (isHDR) {
+            tmp3.toLinear()
+            tonemapKt(tmp3)
+            tmp3.toSRGB()
+        }
+        return tmp3.toRGB(255f)
     }
 }

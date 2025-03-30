@@ -71,7 +71,7 @@ class SSRNode : TimedRenderingNode(
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
-            val result0 = FBStack["ssr", width, height, 4, true, 1, DepthBufferType.NONE]
+            val result0 = FBStack["SSR", width, height, 4, true, 1, DepthBufferType.NONE]
 
             val reflectivityT = reflectivity?.texOrNull ?: whiteTexture
             val reflectivityM = reflectivity.mask1Index
@@ -90,7 +90,7 @@ class SSRNode : TimedRenderingNode(
     }
 
     private fun mixResult(width: Int, height: Int, illumMT: ITexture2D, result0: IFramebuffer): IFramebuffer {
-        val result1 = FBStack["ssr-result", width, height, 3, true, illumMT.samples, DepthBufferType.NONE]
+        val result1 = FBStack["SSRMix", width, height, 3, true, illumMT.samples, DepthBufferType.NONE]
         useFrame(result1) {
             Blitting.copy(illumMT, true)
             GFXState.blendMode.use(BlendMode.DEFAULT) {

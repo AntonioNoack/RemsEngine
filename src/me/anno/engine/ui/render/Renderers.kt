@@ -69,12 +69,12 @@ object Renderers {
 
     @JvmField
     var tonemapKt = { color: Vector3f ->
-        color.div(1f + max(max(color.x, color.y), max(color.z, 0f)))
+        color.div(1f + max(color.max(), 0f))
     }
 
     @JvmField
     var tonemapInvKt = { color: Vector3f ->
-        color.div(1f - max(max(color.x, color.y), max(color.z, 0f)))
+        color.div(1f - max(color.max(), 0f))
     }
 
     @JvmStatic
