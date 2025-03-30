@@ -135,7 +135,7 @@ object AnimatedMeshesLoader {
             }
         }
 
-        val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, file, missingFilesLookup).toList()
+        val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, missingFilesLookup).toList()
         val materials = createReferences(root, "materials", materialList)
 
         val boneList = ArrayList<Bone>()

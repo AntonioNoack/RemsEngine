@@ -9,7 +9,8 @@ fun main() {
     // this test now can be directly executed by clicking on an .ico file in the file explorer
     val dst = desktop.getChild("ico")
     dst.tryMkdirs()
-    for (source in getReference("C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/data/games").listChildren()) {
+    val folder = getReference("C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/data/games")
+    for (source in folder.listChildren()) {
         try {
             val layers = ICOReader.readAllLayers(source.inputStreamSync()) as List<*>
             layers.forEachIndexed { index, image ->

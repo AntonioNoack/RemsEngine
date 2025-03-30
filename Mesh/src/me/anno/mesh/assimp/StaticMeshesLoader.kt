@@ -20,7 +20,6 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLWriter
 import me.anno.maths.EquationSolver.solveQuadratic
-import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.Recursion
@@ -393,22 +392,16 @@ object StaticMeshesLoader {
         aiScene: AIScene,
         texturesDir: FileReference,
         loadedTextures: List<FileReference>,
-        original: FileReference,
         missingFilesLookup: Map<String, FileReference>
     ): List<Prefab> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
-        val gltfMaterials = try {
-            GLTFMaterialExtractor.extract(original)
-        } catch (e: Exception) {
-            null
-        }
         val textureLookup = createTextureLookup(missingFilesLookup)
         return createList(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
             processMaterialPrefab(
                 aiScene, aiMaterial, loadedTextures, texturesDir,
-                gltfMaterials, missingFilesLookup, textureLookup
+                missingFilesLookup, textureLookup
             )
         }
     }
@@ -450,7 +443,6 @@ object StaticMeshesLoader {
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
         texturesDir: FileReference,
-        extraDataMap: Map<String, GLTFMaterialExtractor.PBRMaterialData>?,
         missingFilesLookup: Map<String, FileReference>,
         textureLookup: List<FileReference>,
     ): Prefab {
@@ -562,12 +554,6 @@ object StaticMeshesLoader {
 
             val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY, 0f) // 0.0, rarely 0.5
             if (metallic != 0f) prefab["metallicMinMax"] = Vector2f(0f, metallic)
-        }
-
-        val extraData = extraDataMap?.get(name)
-        if (extraData != null) {
-            prefab["metallicMinMax"] = Vector2f(0f, extraData.metallic)
-            prefab["roughnessMinMax"] = Vector2f(0f, extraData.roughness)
         }
 
         // other stuff
