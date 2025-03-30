@@ -52,10 +52,10 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
     }
 
     init {
-        load(ri)
+        continueReading(ri)
     }
 
-    fun load(nextReaderIndex: Int) {
+    fun continueReading(nextReaderIndex: Int) {
         // type handlers
         var currReaderIndex = 0
         for (thi in typeHandlers.indices) {
@@ -100,7 +100,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
                 if (size is IntPair) {
                     setImageSize(size)
                 } else if (size is Exception) {
-                    if (nextReaderIndex > 0) load(nextReaderIndex)
+                    if (nextReaderIndex > 0) continueReading(nextReaderIndex)
                     else size.printStackTrace()
                 } // else unknown case...
             } else exc?.printStackTrace()

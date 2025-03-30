@@ -9,6 +9,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.async.Callback
 
 fun main() {
     // todo something goes wrong when parsing my FBX Ascii files...
@@ -22,6 +23,5 @@ fun main() {
     assertTrue(src.exists, "$src must be a valid file ")
     val dst = desktop.getChild(src.name).getSiblingWithExtension("glb")
     val scene = PrefabCache[src]!!.getSampleInstance() as Entity
-    GLTFWriter().write(scene, dst)
-    Engine.requestShutdown()
+    GLTFWriter().write(scene, dst, Callback.finish { Engine.requestShutdown() })
 }

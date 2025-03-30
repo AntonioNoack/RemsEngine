@@ -16,18 +16,21 @@ inline fun <V : Any> promise(initialize: (Callback<V>) -> Unit): Promise<V> {
 /**
  * find the first sample that succeeds the processing
  * */
-fun <K, V : Any> firstPromise(samples: List<K>, process: (K, Callback<V>) -> Unit): Promise<V> {
-    return promiseStep(samples, 0, process)
+fun <K, V : Any> firstPromise(samples: Iterable<K>, process: (K, Callback<V>) -> Unit): Promise<V> {
+    return firstPromise(samples.iterator(), process)
 }
 
-private fun <K, V : Any> promiseStep(samples: List<K>, i: Int, initialize: (K, Callback<V>) -> Unit): Promise<V> {
-    return if (i < samples.size) {
-        val sample = samples[i]
+/**
+ * find the first sample that succeeds the processing
+ * */
+fun <K, V : Any> firstPromise(samples: Iterator<K>, process: (K, Callback<V>) -> Unit): Promise<V> {
+    return if (samples.hasNext()) {
+        val sample = samples.next()
         val promise = promise { cb ->
-            initialize(sample, cb)
+            process(sample, cb)
         }
         promise.catch {
-            promiseStep(samples, i + 1, initialize)
+            firstPromise(samples, process)
                 .thenFulfill(promise)
         }
     } else promise { cb ->

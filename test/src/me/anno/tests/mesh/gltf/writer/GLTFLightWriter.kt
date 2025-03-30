@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
+import me.anno.utils.async.Callback
 
 fun main() {
     // todo test these, Blender loads them :)
@@ -23,9 +24,10 @@ fun writeLight(light: LightComponent) {
     val scene = Entity()
     scene.add(light)
     scene.add(MeshComponent(LightComponent.shapeForTesting))
-    val dst = desktop.getChild("GLTF-Lights/${
+    val dst = desktop.getChild(
+        "GLTF-Lights/${
         light.name.ifBlank { light.className }
     }.glb")
     dst.getParent().tryMkdirs()
-    GLTFWriter().write(scene, dst)
+    GLTFWriter().write(scene, dst, Callback.printError())
 }

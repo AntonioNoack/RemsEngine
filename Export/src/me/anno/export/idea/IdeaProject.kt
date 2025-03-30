@@ -9,6 +9,11 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.mapAsync
+import me.anno.utils.async.Callback.Companion.mapCallback
+import java.io.InputStream
 
 class IdeaProject(val projectDir: FileReference) {
     val modules = HashMap<String, IdeaModule>()
@@ -21,18 +26,48 @@ class IdeaProject(val projectDir: FileReference) {
             getReference("C:/Program Files/IntelliJ IDEA/plugins/Kotlin/kotlinc")
         )
 
-        fun loadProject(projectDir: FileReference): IdeaProject {
+        fun loadProject(projectDir: FileReference, callback: Callback<IdeaProject>) {
             val result = IdeaProject(projectDir)
-            val modules = loadModules(projectDir)
-            for (file in modules) {
-                result.modules[file.nameWithoutExtension] = loadModule(result, file)
-            }
+            loadProjectModules(projectDir, result, callback.mapAsync { result1, callback1 ->
+                loadProjectLibraries(projectDir, result1, callback1)
+            })
+        }
+
+        private fun loadProjectLibraries(
+            projectDir: FileReference,
+            result: IdeaProject,
+            callback: Callback<IdeaProject>
+        ) {
             val libDir = projectDir.getChild(".idea/libraries")
-            for (file in libDir.listChildren()) {
-                val lib = loadLibrary(result, file)
-                result.libraries[lib.name] = lib
-            }
-            return result
+            val children = libDir.listChildren()
+            children.mapCallback({ _, file, cb ->
+                loadLibrary(result, file, cb)
+            }, callback.map { libraries ->
+                for (i in libraries.indices) {
+                    val lib = libraries[i]
+                    result.libraries[lib.name] = lib
+                }
+                result
+            })
+        }
+
+        private fun loadProjectModules(
+            projectDir: FileReference,
+            result: IdeaProject,
+            callback: Callback<IdeaProject>
+        ) {
+            loadModules(projectDir, callback.mapAsync { moduleFiles, then ->
+                moduleFiles.mapCallback({ _, file, cb1 ->
+                    loadModule(result, file, cb1)
+                }, then.map { loadedModules ->
+                    for (i in moduleFiles.indices) {
+                        val moduleFile = moduleFiles[i]
+                        val module = loadedModules[i]
+                        result.modules[moduleFile.nameWithoutExtension] = module
+                    }
+                    result
+                })
+            })
         }
 
         private val mavenHome = OS.home.getChild(".m2/repository")
@@ -52,10 +87,14 @@ class IdeaProject(val projectDir: FileReference) {
             }
         }
 
-        fun loadModules(projectDir: FileReference): List<FileReference> {
+        fun loadModules(projectDir: FileReference, callback: Callback<List<FileReference>>) {
             val moduleConfig = projectDir.getChild(".idea/modules.xml")
-            if (!moduleConfig.exists) return emptyList()
-            val node0 = moduleConfig.inputStreamSync().use {
+            if (!moduleConfig.exists) return callback.ok(emptyList())
+            moduleConfig.inputStream(callback.map { loadModules(projectDir, it) })
+        }
+
+        fun loadModules(projectDir: FileReference, moduleConfig: InputStream): List<FileReference> {
+            val node0 = moduleConfig.use {
                 XMLReader().read(it.reader()) as XMLNode
             }
             assertEquals("project", node0.type)

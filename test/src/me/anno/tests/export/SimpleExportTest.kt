@@ -2,6 +2,7 @@ package me.anno.tests.export
 
 import me.anno.Engine
 import me.anno.Time
+import me.anno.cache.AsyncCacheData.Companion.loadSync
 import me.anno.engine.projects.GameEngineProject
 import me.anno.export.ExportProcess
 import me.anno.export.ExportSettings
@@ -57,7 +58,7 @@ class SimpleExportTest {
         settings.dstFile = tmp.getChild("testJar.jar")
         settings.firstSceneRef = res.getChild("icon.obj")
         val progress = ProgressBar("Test", "%", 1.0)
-        ExportProcess.execute(project, settings, progress)
+        loadSync { ExportProcess.execute(project, settings, progress, it) }
         return settings.dstFile
     }
 

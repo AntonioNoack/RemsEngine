@@ -1,7 +1,9 @@
 package me.anno.cache
 
+import me.anno.gpu.GFX
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
+import kotlin.concurrent.thread
 
 open class AsyncCacheData<V> : ICacheData, Callback<V> {
 
@@ -17,7 +19,7 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
             hasValue = true
         }
 
-    @Deprecated(message = "Not supported on web")
+    @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
         Sleep.waitUntil(true) { hasValue }
         return value
@@ -55,6 +57,29 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
         } else {
             @Suppress("UNNECESSARY_NOT_NULL_ASSERTION") // necessary, because Intellij complains without it
             "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hashCode()},$hasValue)"
+        }
+    }
+
+    companion object {
+
+        const val ASYNC_WARNING = "Avoid blocking, it's also not supported in browsers"
+
+        @Deprecated(message = ASYNC_WARNING)
+        inline fun <V> loadSync(loadAsync: (Callback<V>) -> Unit): V? {
+            val wrapper = AsyncCacheData<V>()
+            loadAsync(wrapper)
+            wrapper.waitFor()
+            return wrapper.value
+        }
+
+        fun runOnNonGFXThread(threadName: String, runnable: () -> Unit) {
+            if (GFX.isGFXThread()) {
+                thread(name = threadName) {
+                    runnable()
+                }
+            } else {
+                runnable()
+            }
         }
     }
 }

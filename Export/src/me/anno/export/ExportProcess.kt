@@ -1,5 +1,6 @@
 package me.anno.export
 
+import me.anno.cache.AsyncCacheData
 import me.anno.engine.projects.GameEngineProject
 import me.anno.export.Exclusion.excludeJNAFiles
 import me.anno.export.Exclusion.excludeLWJGLFiles
@@ -14,6 +15,9 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS.res
+import me.anno.utils.async.Callback.Companion.mapAsync
+import me.anno.utils.async.Callback.Companion.mapCallback
+import me.anno.utils.async.UnitCallback
 import org.apache.logging.log4j.LogManager
 import java.io.OutputStream
 import java.util.zip.ZipEntry
@@ -23,9 +27,18 @@ object ExportProcess {
 
     private val LOGGER = LogManager.getLogger(ExportProcess::class)
 
-    fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
+    fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar, callback: UnitCallback) {
+        settings.projectRoots.mapCallback({_, root, cb ->
+            IdeaProject.loadProject(root, cb)
+        }, callback.mapAsync { projects, callback1 ->
+            execute(project, settings, progress, callback1, projects)
+        })
+    }
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar, callback: UnitCallback,
+                projects: List<IdeaProject>) {
         val sources = HashMap<String, ByteArray>(65536)
-        val projects = settings.projectRoots.map(IdeaProject::loadProject)
 
         // todo inclusion order???
         for (projectI in projects) {
@@ -53,6 +66,7 @@ object ExportProcess {
         // build a zip from it
         settings.dstFile.getParent().tryMkdirs()
         writeJar(settings, sources, settings.dstFile, progress)
+        callback.ok(Unit)
     }
 
     private fun excludeFiles(settings: ExportSettings, sources: HashMap<String, ByteArray>) {
@@ -86,6 +100,7 @@ object ExportProcess {
     /**
      * override icon if needed
      * */
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     private fun overrideIconMaybe(
         settings: ExportSettings, sources: HashMap<String, ByteArray>,
         assetMap: Map<FileReference, String>

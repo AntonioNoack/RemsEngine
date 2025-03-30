@@ -2,6 +2,7 @@ package me.anno.utils
 
 import me.anno.Engine.shutdown
 import me.anno.Time
+import me.anno.cache.AsyncCacheData
 import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.engine.Events.getCalleeName
@@ -51,13 +52,13 @@ object Sleep {
     }
 
     @JvmStatic
-    @Deprecated("Please use the variant with callback")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
         waitUntil(getCalleeName(), canBeKilled, isFinished)
     }
 
     @JvmStatic
-    @Deprecated("Please use the variant with callback")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean) {
         var lastTime = Time.nanoTime
         val mustWork = mustWorkTasks(true)
@@ -86,7 +87,7 @@ object Sleep {
      * returns if you need to keep waiting
      * */
     @JvmStatic
-    @Deprecated("Please use the variant with callback")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val timeLimit = Time.nanoTime + timeoutNanos
         val mustWork = mustWorkTasks(true)
@@ -100,7 +101,7 @@ object Sleep {
     }
 
     @JvmStatic
-    @Deprecated("Please use the variant with callback")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
         this.waitUntil(getCalleeName(), canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }

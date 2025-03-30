@@ -5,13 +5,20 @@ import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
+import java.io.InputStream
 
 class IdeaLibrary(val project: IdeaProject, val name: String) {
     val jars = ArrayList<FileReference>()
 
     companion object {
-        fun loadLibrary(project: IdeaProject, source: FileReference): IdeaLibrary {
-            val root = source.inputStreamSync().use {
+        fun loadLibrary(project: IdeaProject, source: FileReference, callback: Callback<IdeaLibrary>) {
+            source.inputStream(callback.map { stream -> loadLibrary(project, stream) })
+        }
+
+        fun loadLibrary(project: IdeaProject, source: InputStream): IdeaLibrary {
+            val root = source.use {
                 XMLReader().read(it.reader()) as XMLNode
             }
             assertEquals("component", root.type)

@@ -41,7 +41,7 @@ class CacheEntry private constructor(
     val hasBeenDestroyed get() = deletingThreadName != null
     var hasGenerator = false
 
-    @Deprecated("Please use the variant with callback")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitForValueOrThrow(key: Any?, limitNanos: Long = defaultTimeoutNanos) {
         Sleep.waitUntilOrThrow(true, limitNanos, key) {
             update(500) // ensure that it stays loaded; 500 is a little high,

@@ -898,12 +898,12 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         return IllegalArgumentException("Unsupported type ${scene.className}")
     }
 
-    fun write(scene: Saveable, dst: FileReference, callback: UnitCallback = UnitCallback.default) {
+    fun write(scene: Saveable, dst: FileReference, callback: UnitCallback) {
         defineSceneHierarchy(scene) { err ->
             if (err == null) {
                 writeAll(dst)
-                callback.call(null)
-            } else callback.call(err)
+                callback.ok(Unit)
+            } else callback.err(err)
         }
     }
 

@@ -287,7 +287,7 @@ class HierarchicalDatabase(
                 addFile(hash, value, sf, folder, bytes ?: B0)
             }
             scheduleStoreIndex()
-            callback?.call(null)
+            callback?.ok(Unit)
         }
     }
 

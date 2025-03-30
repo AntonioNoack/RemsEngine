@@ -1,7 +1,7 @@
 package me.anno.io.files
 
+import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.cache.IgnoredException
-import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.register
@@ -10,14 +10,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.concurrent.thread
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
     companion object {
-
-        // <= 0 = disabled, > 0 -> tracks all open files for debugging
-        private var trackOpenStreamsMillis = 0L
 
         fun createTempFile(name: String, extension: String): FileReference {
             return FileFileRef(File.createTempFile(name.padEnd(5, '-'), if (extension.isEmpty()) "" else ".$extension"))
@@ -38,11 +34,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        if (GFX.isGFXThread()) {
-            thread(name = "inputStream($absolutePath)") {
-                inputStream(lengthLimit, closeStream, callback)
-            }
-        } else {
+        runOnNonGFXThread(absolutePath) {
             var stream: InputStream? = null
             try {
                 stream = inputStreamSync()
@@ -60,28 +52,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun inputStreamSync(): InputStream {
-        val base = file.inputStream().useBuffered()
-        if (trackOpenStreamsMillis < 1) return base
-        var closed = false
-        val stack = Throwable("$this was not closed!")
-        thread(name = "inputStreamSync($absolutePath)") {
-            Thread.sleep(trackOpenStreamsMillis)
-            if (!closed) {
-                stack.printStackTrace()
-            }
-        }
-        return object : InputStream() {
-            override fun read() = base.read()
-            override fun mark(p0: Int) = base.mark(p0)
-            override fun markSupported() = base.markSupported()
-            override fun read(p0: ByteArray, p1: Int, p2: Int) = base.read(p0, p1, p2)
-            override fun read(p0: ByteArray) = base.read(p0)
-            override fun skip(n: Long): Long = base.skip(n)
-            override fun close() {
-                base.close()
-                closed = true
-            }
-        }
+        return file.inputStream().useBuffered()
     }
 
     override fun readBytes(callback: Callback<ByteArray>) {

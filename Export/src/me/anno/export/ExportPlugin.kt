@@ -1,5 +1,6 @@
 package me.anno.export
 
+import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
@@ -36,7 +37,6 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import kotlin.concurrent.thread
 
 class ExportPlugin : Plugin() {
 
@@ -128,18 +128,19 @@ class ExportPlugin : Plugin() {
 
         fun runExport(preset: ExportSettings) {
             markPresetAsUsed(preset)
-            val clock = Clock(LOGGER)
-            val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
-            progress.intFormatting = true
-            thread(name = "Export") {
-                try {
-                    ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
-                    clock.stop("Export")
-                    addEvent { msg(NameDesc("Export Finished!")) }
-                } catch (e: Exception) {
-                    LOGGER.warn("Export failed!", e)
-                    progress.cancel(true)
-                    addEvent { msg(NameDesc("Failed Export :/")) }
+            runOnNonGFXThread("Export") {
+                val clock = Clock(LOGGER)
+                val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
+                progress.intFormatting = true
+                ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress) { success, err ->
+                    if (success != null) {
+                        clock.stop("Export")
+                        addEvent { msg(NameDesc("Export Finished!")) }
+                    } else {
+                        LOGGER.warn("Export failed!", err ?: Exception())
+                        progress.cancel(true)
+                        addEvent { msg(NameDesc("Failed Export :/")) }
+                    }
                 }
             }
         }
@@ -154,10 +155,11 @@ class ExportPlugin : Plugin() {
         fun createPresetUI(preset: ExportSettings) {
             body.clear()
             // quick-button
-            body.add(TextButton(NameDesc("Export"), style)
-                .addLeftClickListener {
-                    runExport(preset)
-                })
+            body.add(
+                TextButton(NameDesc("Export"), style)
+                    .addLeftClickListener {
+                        runExport(preset)
+                    })
             // inputs
             preset.createInspector(body, style, { nameDesc, parent ->
                 val group = SettingCategory(nameDesc, style).showByDefault()
@@ -166,39 +168,45 @@ class ExportPlugin : Plugin() {
             }, { createPresetUI(preset) })
             addSeparator(body)
             // buttons
-            body.add(TextButton(NameDesc("Export"), style)
-                .addLeftClickListener {
-                    runExport(preset)
-                })
-            body.add(TextButton(NameDesc("Save Preset"), style)
-                .addLeftClickListener {
-                    preset.lastUsed = System.currentTimeMillis()
-                    storePresets(presets)
-                    msg(NameDesc("Saved Preset!"))
-                })
-            body.add(TextButton(NameDesc("Save Preset As..."), style)
-                .addLeftClickListener {
-                    askName(ui.windowStack, NameDesc("Preset Name"), preset.name,
-                        NameDesc("Save"), { -1 }) { newName0 ->
-                        val newPreset = preset.clone()
-                        val newName = newName0.trim()
-                        newPreset.name = newName
-                        newPreset.lastUsed = System.currentTimeMillis()
-                        // presets must be reloaded, because maybe we changed the current preset,
-                        // and now we want to save it under a NEW name, not the old one
-                        storePresets(loadPresets()
-                            .filter { it.name != newName } + newPreset)
+            body.add(
+                TextButton(NameDesc("Export"), style)
+                    .addLeftClickListener {
+                        runExport(preset)
+                    })
+            body.add(
+                TextButton(NameDesc("Save Preset"), style)
+                    .addLeftClickListener {
+                        preset.lastUsed = System.currentTimeMillis()
+                        storePresets(presets)
                         msg(NameDesc("Saved Preset!"))
-                        reloadUI(newName)
-                    }
-                })
-            body.add(TextButton(NameDesc("Delete Preset"), style)
-                .addLeftClickListener {
-                    ask(ui.windowStack, NameDesc("Delete ${preset.name}?")) {
-                        storePresets(presets.filter { it !== preset })
-                        reloadUI(nameToLoad)
-                    }
-                })
+                    })
+            body.add(
+                TextButton(NameDesc("Save Preset As..."), style)
+                    .addLeftClickListener {
+                        askName(
+                            ui.windowStack, NameDesc("Preset Name"), preset.name,
+                            NameDesc("Save"), { -1 }) { newName0 ->
+                            val newPreset = preset.clone()
+                            val newName = newName0.trim()
+                            newPreset.name = newName
+                            newPreset.lastUsed = System.currentTimeMillis()
+                            // presets must be reloaded, because maybe we changed the current preset,
+                            // and now we want to save it under a NEW name, not the old one
+                            storePresets(
+                                loadPresets()
+                                    .filter { it.name != newName } + newPreset)
+                            msg(NameDesc("Saved Preset!"))
+                            reloadUI(newName)
+                        }
+                    })
+            body.add(
+                TextButton(NameDesc("Delete Preset"), style)
+                    .addLeftClickListener {
+                        ask(ui.windowStack, NameDesc("Delete ${preset.name}?")) {
+                            storePresets(presets.filter { it !== preset })
+                            reloadUI(nameToLoad)
+                        }
+                    })
         }
 
         val loadedInitially = presets.firstOrNull { it.name == nameToLoad } ?: presets.firstOrNull()
@@ -206,32 +214,33 @@ class ExportPlugin : Plugin() {
             createPresetUI(loadedInitially)
         }
 
-        ui.add(EnumInput(
-            NameDesc("Preset"),
-            NameDesc(loadedInitially?.name ?: "Please Choose"),
-            listOf(NameDesc("New Preset")) +
-                    presets.map { NameDesc(it.name, it.description, "") }, style
-        ).setChangeListener { _, index, _ ->
-            if (index == 0) {
-                // create a new preset -> ask user for name
-                askName(
-                    GFX.someWindow.windowStack,
-                    NameDesc.EMPTY, "Preset Name", NameDesc("Create"), { white }, { newName0 ->
-                        Menu.close(ui)
-                        val newName = newName0.trim()
-                        val newList =
-                            loadPresets().filter { it.name != newName } +
-                                    ExportSettings().apply { name = newName }
-                        storePresets(newList)
-                        reloadUI(newName)
-                    }
-                )
-            } else {
-                val preset = presets[index - 1]
-                storePresets(loadPresets()) // undo all not-saved changes
-                reloadUI(preset.name)
-            }
-        })
+        ui.add(
+            EnumInput(
+                NameDesc("Preset"),
+                NameDesc(loadedInitially?.name ?: "Please Choose"),
+                listOf(NameDesc("New Preset")) +
+                        presets.map { NameDesc(it.name, it.description, "") }, style
+            ).setChangeListener { _, index, _ ->
+                if (index == 0) {
+                    // create a new preset -> ask user for name
+                    askName(
+                        GFX.someWindow.windowStack,
+                        NameDesc.EMPTY, "Preset Name", NameDesc("Create"), { white }, { newName0 ->
+                            Menu.close(ui)
+                            val newName = newName0.trim()
+                            val newList =
+                                loadPresets().filter { it.name != newName } +
+                                        ExportSettings().apply { name = newName }
+                            storePresets(newList)
+                            reloadUI(newName)
+                        }
+                    )
+                } else {
+                    val preset = presets[index - 1]
+                    storePresets(loadPresets()) // undo all not-saved changes
+                    reloadUI(preset.name)
+                }
+            })
 
         ui.add( // add a decorative strip around the settings ^^
             PanelContainer(

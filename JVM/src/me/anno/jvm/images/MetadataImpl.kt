@@ -2,34 +2,34 @@ package me.anno.jvm.images
 
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
+import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.firstPromise
 import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
+import javax.imageio.ImageReader
 
 object MetadataImpl {
 
-    private fun isSignatureSupported(signature: String?): Boolean {
-        return when (signature) {
-            "png", "jpg", "psd", "exr", "webp" -> true
-            else -> false
-        }
+    private val supportedExtensions = "png,jpg,psd,exr,webp".split(',')
+
+    fun readImageIOMetadata(
+        file: FileReference, signature: String?,
+        dst: MediaMetadata, nextReaderIndex: Int
+    ): Boolean {
+        if (signature !in supportedExtensions) return false
+        // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
+        firstPromise(ImageIO.getImageReadersBySuffix(signature)) { reader, cb ->
+            file.inputStream(cb.map { stream ->
+                tryReadImageIOMetadata(stream, reader, dst)
+            })
+        }.catch { dst.continueReading(nextReaderIndex) }
+        return true
     }
 
-    fun readImageIOMetadata(file: FileReference, signature: String?, dst: MediaMetadata, ri: Int): Boolean {
-        if (!isSignatureSupported(signature)) return false
-        // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
-        for (reader in ImageIO.getImageReadersBySuffix(signature)) {
-            try {
-                file.inputStreamSync().use { input: InputStream ->
-                    reader.input = ImageIO.createImageInputStream(input)
-                    dst.setImageSize(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
-                }
-                return true
-            } catch (_: IOException) {
-            } finally {
-                reader.dispose()
-            }
-        }
-        return false
+    @Throws(IOException::class)
+    private fun tryReadImageIOMetadata(stream: InputStream, reader: ImageReader, dst: MediaMetadata) {
+        reader.input = ImageIO.createImageInputStream(stream)
+        dst.setImageSize(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
     }
 }

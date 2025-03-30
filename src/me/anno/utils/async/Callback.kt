@@ -11,7 +11,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
  * this interface represents a typical callback from such a function,
  * and should be used whenever you have such a use-case.
  * */
-fun interface Callback<V> {
+fun interface Callback<in V> {
 
     fun call(value: V?, exception: Exception?)
     fun ok(value: V) = call(value, null)
@@ -20,8 +20,24 @@ fun interface Callback<V> {
     companion object {
 
         fun <V> printError(): Callback<V> {
+            return onSuccessImpl(null)
+        }
+
+        fun <V> onSuccess(callback: (V) -> Unit): Callback<V> {
+            return onSuccessImpl(callback)
+        }
+
+        fun finish(callback: () -> Unit): Callback<Any?> {
             return Callback { v, err ->
                 if (v == null) err?.printStackTrace()
+                callback()
+            }
+        }
+
+        private fun <V> onSuccessImpl(callback: ((V) -> Unit)? = null): Callback<V> {
+            return Callback { v, err ->
+                if (v == null) err?.printStackTrace()
+                else callback?.invoke(v)
             }
         }
 
@@ -31,6 +47,16 @@ fun interface Callback<V> {
         fun <V, W> Callback<V>.map(valueMapping: (W) -> V): Callback<W> {
             return Callback { value, err ->
                 call(if (value != null) valueMapping(value) else null, err)
+            }
+        }
+
+        /**
+         * returns a callback, this calls the original callback after mapping the value asynchronously
+         * */
+        fun <V, W> Callback<V>.mapAsync(then: (W, Callback<V>) -> Unit): Callback<W> {
+            return Callback { value, errI ->
+                if (value != null) then(value, this)
+                else err(errI)
             }
         }
 

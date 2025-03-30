@@ -83,7 +83,7 @@ class HierarchicalDatabaseTest {
         indices.map { i ->
             thread {
                 val data = sampleData[i]
-                instance.put(sampleKeys[i], data) { _ ->
+                instance.put(sampleKeys[i], data) { _, _ ->
                     doneCounter.decrementAndGet()
                 }
             }

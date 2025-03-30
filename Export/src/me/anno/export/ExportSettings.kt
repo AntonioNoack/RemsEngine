@@ -175,7 +175,7 @@ class ExportSettings : NamedSaveable() {
         // todo show a warning when a dependency isn't fulfilled
         val modules = getGroup(NameDesc("Included Modules"), list)
         val moduleList = projectRoots
-            .flatMap { IdeaProject.loadModules(it) }
+            .flatMap { IdeaProject.loadModules(it, it.inputStreamSync()) }
             .toHashSet()
             .sortedBy { it.name }
         for (file in moduleList) {

@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.TAU
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
+import me.anno.utils.async.Callback
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -39,6 +40,7 @@ fun main() {
     scene.add(MeshComponent(mesh))
     val dst = desktop.getChild("GLTF-Cameras.glb")
     dst.getParent().tryMkdirs()
-    GLTFWriter().write(scene, dst)
-    testSceneWithUI("GLTFWriter-Cameras", scene)
+    GLTFWriter().write(scene, dst, Callback.onSuccess {
+        testSceneWithUI("GLTFWriter-Cameras", scene)
+    })
 }

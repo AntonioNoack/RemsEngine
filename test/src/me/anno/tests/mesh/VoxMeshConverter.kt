@@ -7,6 +7,8 @@ import me.anno.engine.OfficialExtensions
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapCallback
 
 /**
  * load all MagicaVoxel samples, and export them as binary GLTF files
@@ -18,10 +20,13 @@ fun main() {
     val source = downloads.getChild("MagicaVoxel/vox")
     val destination = desktop.getChild("vox2glb")
     destination.tryMkdirs()
-    for (file in source.listChildren()) {
-        if (file.lcExtension != "vox") continue
-        val scene = getPrefabSampleInstance(file) as Entity
-        GLTFWriter().write(scene, destination.getChild("${file.nameWithoutExtension}.glb"))
-    }
-    Engine.requestShutdown()
+    source.listChildren()
+        .filter { it.lcExtension == "vox" }
+        .mapCallback({ _, file, cb ->
+            val scene = getPrefabSampleInstance(file) as Entity
+            GLTFWriter().write(scene, destination.getChild("${file.nameWithoutExtension}.glb"), cb)
+        }, Callback { _, err ->
+            err?.printStackTrace()
+            Engine.requestShutdown()
+        })
 }

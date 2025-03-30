@@ -1,5 +1,6 @@
 package me.anno.tests.mesh.blender
 
+import me.anno.cache.AsyncCacheData.Companion.loadSync
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.mesh.blender.BinaryFile
@@ -21,7 +22,7 @@ fun main() {
     val sample = MeshCache[src, false]
     println(sample)
     if (sample != null) {
-        GLTFWriter().write(sample, desktop.getChild(src.nameWithoutExtension + ".glb"))
+        loadSync { GLTFWriter().write(sample, desktop.getChild(src.nameWithoutExtension + ".glb"), it) }
     }
     val file = BlenderFile(BinaryFile(src.readByteBufferSync(false)), folder)
     println("Version ${file.version}")

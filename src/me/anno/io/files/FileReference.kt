@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.Engine
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.image.thumbs.Thumbs
@@ -176,19 +177,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
-    open fun inputStreamSync(): InputStream = readSync(::inputStream)
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    open fun inputStreamSync(): InputStream = readSync { inputStream(Long.MAX_VALUE, false, it) }
 
-    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open fun readBytesSync(): ByteArray = readSync(::readBytes)
 
-    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open fun readTextSync(): String = readSync(::readText)
 
-    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open fun readByteBufferSync(native: Boolean): ByteBuffer = readSync { readByteBuffer(native, it) }
 
-    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     private fun <V> readSync(reader: (Callback<V>) -> Unit): V {
         var e: Exception? = null
         var d: V? = null
@@ -217,7 +218,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         readLinesImpl(lineLengthLimit, true, callback)
     }
 
-    @Deprecated("Please use asynchronous methods where possible. Reading sync is a hassle/impossible on some platforms")
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
         return readSync { readLinesImpl(lineLengthLimit, false, it) }
     }
