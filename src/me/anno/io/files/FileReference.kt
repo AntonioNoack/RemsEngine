@@ -12,6 +12,7 @@ import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Strings
@@ -159,22 +160,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract fun outputStream(append: Boolean = false): OutputStream
 
     open fun readText(callback: Callback<String>) {
-        readBytes { it, exc ->
-            callback.call(it?.decodeToString(), exc)
-        }
+        readBytes(callback.map { it.decodeToString() })
     }
 
     open fun readBytes(callback: Callback<ByteArray>) {
-        inputStream { it, exc ->
-            if (it != null) try {
-                val bytes = it.readBytes()
-                callback.call(bytes, null)
-            } catch (e: Exception) {
-                callback.call(null, e)
-            } finally {
-                it.close()
-            } else callback.call(null, exc)
-        }
+        inputStream(callback.map { it.readBytes() })
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)

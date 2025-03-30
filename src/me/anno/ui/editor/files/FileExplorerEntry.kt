@@ -47,6 +47,7 @@ import me.anno.input.Clipboard
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.ImportType.AUDIO
 import me.anno.io.files.ImportType.CONTAINER

@@ -3,11 +3,10 @@ package me.anno.io.files.inner
 import me.anno.io.EmptyInputStream
 import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.max
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -18,8 +17,8 @@ import java.io.OutputStream
 abstract class InnerFileWithData(
     absolutePath: String,
     relativePath: String,
-     parent: FileReference
-) : InnerFile(absolutePath,relativePath,false,parent) {
+    parent: FileReference
+) : InnerFile(absolutePath, relativePath, false, parent) {
 
     var compressedSize = 0L
     var size = 65536L // we don't know in this class
@@ -38,26 +37,14 @@ abstract class InnerFileWithData(
         when {
             size <= 0 -> callback.call(EmptyInputStream, null)
             data != null -> callback.call(ByteArrayInputStream(data), null)
-            else -> callback.ok(inputStreamSync())
+            else -> callback.err(IOException("Missing data"))
         }
     }
 
     override fun readBytes(callback: Callback<ByteArray>) {
         val data = data
         if (data != null) callback.ok(data)
-        else super.readBytes(callback)
-    }
-
-    override fun readBytesSync(): ByteArray {
-        return data ?: super.readBytesSync()
-    }
-
-    override fun readText(callback: Callback<String>) {
-        callback.ok(readTextSync())
-    }
-
-    override fun readTextSync(): String {
-        return readBytesSync().decodeToString()
+        else callback.err(IOException("Missing data"))
     }
 
     override fun outputStream(append: Boolean): OutputStream {

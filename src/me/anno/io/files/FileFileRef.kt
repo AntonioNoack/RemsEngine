@@ -37,7 +37,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         runOnNonGFXThread(absolutePath) {
             var stream: InputStream? = null
             try {
-                stream = inputStreamSync()
+                stream = file.inputStream().useBuffered()
                 callback.ok(stream)
             } catch (_: IgnoredException) {
                 callback.call(null, null)
@@ -51,10 +51,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         }
     }
 
-    override fun inputStreamSync(): InputStream {
-        return file.inputStream().useBuffered()
-    }
-
     override fun readBytes(callback: Callback<ByteArray>) {
         try {
             callback.ok(file.readBytes())
@@ -62,8 +58,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             callback.err(e)
         }
     }
-
-    override fun readBytesSync() = file.readBytes()
 
     override fun outputStream(append: Boolean): OutputStream {
         val ret = FileOutputStream(file, append).useBuffered()

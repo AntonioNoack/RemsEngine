@@ -17,11 +17,10 @@ import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -33,6 +32,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.pow
+import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
@@ -97,23 +97,39 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val topLeft = PanelListX(style)
         val topLeftSett = PanelListY(style)
         topLeft.add(topLeftSett)
-        topLeft.add(
-            TextButton(NameDesc("Play", "Start the game", ""), false, style)
-                .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
-                .apply {
-                    alignmentX = AxisAlignment.CENTER
-                    alignmentY = AxisAlignment.CENTER
-                })
-        topLeft.add(
-            TextButton(NameDesc("⚙", "Settings", ""), 1f, style)
-                .addLeftClickListener { EditorState.select(settings) }
-                .apply {
-                    alignmentX = AxisAlignment.CENTER
-                    alignmentY = AxisAlignment.CENTER
-                })
+        topLeft.add(createPlayButton())
+        topLeft.add(createSettingsButton())
+        topLeft.add(createRenderModeButton())
         topLeft.alignmentX = AxisAlignment.MIN
         topLeft.alignmentY = AxisAlignment.MIN
         add(topLeft)
+    }
+
+    private fun createPlayButton(): Panel {
+        return TextButton(NameDesc("Play", "Start the game", ""), style)
+            .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
+    }
+
+    private fun createSettingsButton(): Panel {
+        return TextButton(NameDesc("⚙", "Settings", ""), 1f, style)
+            .addLeftClickListener { EditorState.select(settings) }
+    }
+
+    private fun createRenderModeButton(): Panel {
+        val renderSettings = DraggingControlSettings()
+        val renderMode0 = renderSettings.renderMode
+        return TextButton(renderMode0.nameDesc, style)
+            .addLeftClickListener { button ->
+                Menu.openMenu(windowStack, RenderMode.values.map { renderMode ->
+                    MenuOption(renderMode.nameDesc) {
+                        button as TextButton
+                        button.text = renderMode.nameDesc.name
+                        button.tooltip = renderMode.nameDesc.desc
+                        renderView.renderMode = renderMode
+                        settings.renderMode = renderMode
+                    }
+                })
+            }
     }
 
     override fun onUpdate() {
