@@ -3,6 +3,7 @@ package me.anno.ecs.prefab
 import me.anno.cache.ICacheData
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.EditorField
+import me.anno.ecs.annotations.Order
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.inspector.Inspectable
@@ -341,6 +342,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     @DebugAction
+    @Order(-1000)
     fun selectParent() {
         val parent = parent as? Inspectable ?: return
         ECSSceneTabs.refocus()

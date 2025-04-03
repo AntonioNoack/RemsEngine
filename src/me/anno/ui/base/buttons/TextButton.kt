@@ -129,6 +129,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
             leftColor, topColor, rightColor, bottomColor,
             isInputAllowed, borderSize, isPressed
         )
+        if (isInFocus) showIsInFocus(borderSize.left)
     }
 
     fun drawButtonText() {

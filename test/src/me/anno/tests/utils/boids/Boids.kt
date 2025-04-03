@@ -6,12 +6,12 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.noise.PerlinNoise
-import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -30,14 +30,14 @@ val noiseFlowField = PerlinNoise(1234L, 5, 0.5f, -1f, +1f, Vector4f(0.01f))
 
 val birdMesh = run {
     val birdMesh = Mesh()
-    val newPos = flatCube.front.positions!!.copyOf()
+    val newPos = flatCube.positions!!.copyOf()
     for (i in newPos.indices step 3) {
         val scale = if (newPos[i + 1] > 0f) 0f else 0.5f
         newPos[i + 0] *= scale
         newPos[i + 2] *= scale
     }
     birdMesh.positions = newPos
-    birdMesh.indices = flatCube.front.indices
+    birdMesh.indices = flatCube.indices
     birdMesh
 }
 

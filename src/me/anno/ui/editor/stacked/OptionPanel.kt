@@ -16,11 +16,11 @@ import me.anno.utils.types.Strings.isBlank2
 class OptionPanel<V: Inspectable>(
     private val stackPanel: StackPanel<V>,
     nameDesc: NameDesc,
-    val value: V
+    val option: V
 ) : SettingCategory(nameDesc, stackPanel.style) {
 
     init {
-        value.createInspector(content, style)
+        option.createInspector(content, style)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -41,7 +41,7 @@ class OptionPanel<V: Inspectable>(
                         "ui.general.removeComponent"
                     )
                 ) {
-                    stackPanel.removeComponent(value)
+                    stackPanel.removeComponent(option)
                 })
             }
             else -> super.onMouseClicked(x, y, button, long)
@@ -49,12 +49,12 @@ class OptionPanel<V: Inspectable>(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        stackPanel.removeComponent(value)
+        stackPanel.removeComponent(option)
     }
 
     override fun onCopyRequested(x: Float, y: Float): Any? {
-        return if (value is Saveable) {
-            JsonStringWriter.toText(value, InvalidRef)
+        return if (option is Saveable) {
+            JsonStringWriter.toText(option, InvalidRef)
         } else super.onCopyRequested(x, y)
     }
 

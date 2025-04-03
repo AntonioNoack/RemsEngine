@@ -53,14 +53,14 @@ object InspectorUtils {
         if (reflections.debugActions.isEmpty()) return
         val group = SettingCategory(NameDesc("DebugActions"), style).showByDefault()
         val debugActionWrapper = group.content
-        for (action in reflections.debugActions) {
+        for (debugAction in reflections.debugActions) {
+            val action = debugAction.method
             val clazz = action.declaringClass ?: continue
+            val isSupported = action.parameterCount == 0
             // todo if there are extra arguments, we would need to create a list inputs for them
-            /* for (param in action.parameters) {
-                     param.kind
-            } */
-            val title = action.name.camelCaseToTitle()
-            val button = TextButton(NameDesc(title), style)
+            val nameDesc = NameDesc(debugAction.title, if (isSupported) "" else "Not supported yet", "")
+            val button = TextButton(nameDesc, style)
+                .apply { isInputAllowed = isSupported }
                 .addLeftClickListener {
                     // could become a little heavy....
                     for (instance in instances) {

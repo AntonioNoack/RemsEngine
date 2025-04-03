@@ -218,24 +218,22 @@ object Input {
         inFocus0?.onKeyTyped(mouseX, mouseY, key)
     }
 
+    private fun isTabNavigationInput(it: Panel): Boolean {
+        return it is InputPanel<*> && it.isEnabled &&
+                it.isKeyInput() && !it.acceptsChar('\t'.code)
+    }
+
     fun tabToNextInput(inFocus0: Panel, backwards: Boolean) {
+
         // switch between input elements
         val root = inFocus0.rootPanel
-        // todo make non-empty category-settings inputs, so we can toggle them?
-        //  does that already work by chance?
-        val inputPanels = ArrayList<Panel>()
-        fun isInput(it: Panel): Boolean {
-            return it is InputPanel<*> && it.isEnabled && it.isKeyInput()
-        }
-        root.forAllVisiblePanels {
-            if (isInput(it)) {
-                inputPanels.add(it)
-            }
-        }
+        val inputPanels = root.listOfVisible.filter(::isTabNavigationInput)
+
         val index = inFocus0.listOfHierarchy.mapFirstNotNull {
             val idx = inputPanels.indexOf(it)
             if (idx >= 0) idx else null
         }
+
         var next = inputPanels.firstOrNull()
         if (index != null) {
             val delta = if (backwards) -1 else +1 // alt+tab goes backwards :3

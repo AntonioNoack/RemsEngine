@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.gpu.drawing.GFXx2D.getSize
@@ -23,8 +24,11 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
+import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.white
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
@@ -565,36 +569,26 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     fun listOfChildren(hierarchicalFilter: ((Panel) -> Boolean)?): List<Panel> {
-        return if (hierarchicalFilter != null && !hierarchicalFilter(this)) {
-            return emptyList()
-        } else if (this is PanelGroup) {
-            val dst = ArrayList<Panel>()
-            dst.add(this)
-            var i = 0
-            while (i < dst.size) {
-                val pi = dst[i++]
-                val children = (pi as? PanelGroup)?.children ?: continue
-                if (hierarchicalFilter == null) { // faster version
-                    dst.addAll(children)
-                } else {
-                    addChildrenIf(children, dst, hierarchicalFilter)
+        return when {
+            hierarchicalFilter != null && !hierarchicalFilter(this) -> emptyList()
+            this !is PanelGroup -> listOf(this)
+            else -> {
+                val result = ArrayList<Panel>()
+                result.add(this)
+                var readIndex = 0
+                while (readIndex < result.size) {
+                    val pi = result[readIndex++]
+                    val children = (pi as? PanelGroup)?.children ?: continue
+                    for (ci in children.indices) {
+                        val ch = children[ci]
+                        if (hierarchicalFilter == null || hierarchicalFilter(ch)) {
+                            result.add(ch)
+                        }
+                    }
                 }
-            }
-            dst
-        } else listOf(this)
-    }
-
-    private fun addChildrenIf(
-        children: List<Panel>, dst: ArrayList<Panel>,
-        filter: (Panel) -> Boolean
-    ): List<Panel> {
-        for (ci in children.indices) {
-            val ch = children[ci]
-            if (filter(ch)) {
-                dst.add(ch)
+                result
             }
         }
-        return dst
     }
 
     fun anyInChildren(filter: (Panel) -> Boolean, predicate: (Panel) -> Boolean): Boolean {
@@ -734,14 +728,48 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
+    fun showIsInFocus(extraPadding: Int = 0) {
+
+        val batch = DrawRectangles.startBatch()
+        val padding = 2 +extraPadding
+        val th = 2
+        val length = 6
+        val lengthX0 = min(length, width.shr(1) - padding)
+        val lengthY0 = min(length, height.shr(1) - padding)
+        val lengthX1 = min(length, (width + 1).shr(1) - padding)
+        val lengthY1 = min(length, (height + 1).shr(1) - padding)
+
+        val color = white.withAlpha(0.3f)
+        val x0 = x + padding
+        val x1 = x + width - padding
+        val y0 = y + padding
+        val y1 = y + height - padding
+
+        // top left
+        drawRect(x0, y0, lengthX0, th, color)
+        drawRect(x0, y0 + th, th, lengthY0 - th, color)
+
+        // top right
+        drawRect(x1 - lengthX1, y0, lengthX1, th, color)
+        drawRect(x1 - th, y0 + th, th, lengthY0 - th, color)
+
+        // bottom left
+        drawRect(x0, y1 - th, lengthX0, th, color)
+        drawRect(x0, y1 - lengthY1, th, lengthY1 - th, color)
+
+        // bottom right
+        drawRect(x1 - lengthX1, y1 - th, lengthX1, th, color)
+        drawRect(x1 - th, y1 - lengthY1, th, lengthY1 - th, color)
+
+        DrawRectangles.finishBatch(batch)
+    }
+
     companion object {
 
         const val CORNER_TOP_RIGHT = 1
         const val CORNER_BOTTOM_RIGHT = 2
         const val CORNER_TOP_LEFT = 4
         const val CORNER_BOTTOM_LEFT = 8
-
-        var setLX = true
 
         private val LOGGER = LogManager.getLogger(Panel::class)
         val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])

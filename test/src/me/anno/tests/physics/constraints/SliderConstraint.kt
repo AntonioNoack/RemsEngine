@@ -8,9 +8,9 @@ import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.Systems
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.types.Floats.toRadians
 
 // todo create and test slider constraint
@@ -24,7 +24,7 @@ fun main() {
     physics.updateInEditMode = true
 
     val box0 = Entity("Moving Cube", scene)
-    box0.add(MeshComponent(flatCube.front))
+    box0.add(MeshComponent(flatCube))
     box0.add(BoxCollider())
     box0.setPosition(0.0, 2.3, 0.0)
     val body0 = Rigidbody()
@@ -32,7 +32,7 @@ fun main() {
     box0.add(body0)
 
     val box1 = Entity("Static Cube", scene)
-    box1.add(MeshComponent(flatCube.front))
+    box1.add(MeshComponent(flatCube))
     box1.add(BoxCollider())
     box1.setRotation(5f.toRadians(), 0f, 0f)
     val body1 = Rigidbody()
@@ -50,7 +50,7 @@ fun main() {
     box0.add(sliding)
 
     Entity("Floor", scene)
-        .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
+        .add(MeshComponent(flatCube, Material.diffuse(0x333333)))
         .add(BoxCollider())
         .add(Rigidbody().apply {
             friction = 1.0

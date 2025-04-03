@@ -36,7 +36,12 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
     val newValues = PanelListY(style)
     var lastSelected: List<Inspectable> = emptyList()
 
-    val searchPanel = TextInput(NameDesc("Search Properties"), "", true, style)
+    val searchPanel = object : TextInput(NameDesc("Search Properties"), "", true, style) {
+        override fun acceptsChar(char: Int): Boolean {
+            // disable tab, so we can tab through all inputs
+            return char != '\t'.code && super.acceptsChar(char)
+        }
+    }
 
     init {
         alwaysShowShadowY = true

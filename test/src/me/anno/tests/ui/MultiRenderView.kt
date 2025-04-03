@@ -1,11 +1,11 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 
@@ -17,7 +17,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 fun main() {
     testUI3("Multi-RenderView") {
         val list = CustomList(false, style)
-        ECSSceneTabs.open(ECSSceneTab(flatCube.front.ref, PlayMode.EDITING), true)
+        ECSSceneTabs.open(ECSSceneTab(flatCube.ref, PlayMode.EDITING), true)
         for (i in 0 until 3) {
             list.add(SceneView(PlayMode.EDITING, style))
         }

@@ -1,14 +1,14 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.UIColors.fireBrick
 import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -30,7 +30,7 @@ fun main() {
     // a few temporary files; cannot be GCed, because scope isn't left at runtime
     val green = Material.diffuse(mediumAquamarine).ref
     val darkRed = Material.diffuse(fireBrick).ref
-    val tested = MeshComponent(flatCube.front, Material())
+    val tested = MeshComponent(flatCube, Material())
     EditorState.select(tested)
     disableRenderDoc()
     testUI3("Easy Material Editing", PropertyInspector({ EditorState.selection }, style))

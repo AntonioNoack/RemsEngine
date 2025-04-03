@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
@@ -23,7 +24,6 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.dtTo01
-import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.debug.PureTestEngine.Companion.testPureUI
@@ -111,20 +111,20 @@ fun spatialPacmanGame(): Entity {
                 wallThickness + (end.x - start.x) * 0.5f, wallHeight * 0.5f,
                 wallThickness + (end.y - start.y) * 0.5f,
             )
-            .add(MeshComponent(flatCube.front))
+            .add(MeshComponent(flatCube))
     }
 
     for (pos in game.voidPositions) {
         Entity("Void[$pos]", walls)
             .setPosition(pos.x + 0.5, 0.0, pos.y + 0.5)
             .setScale(0.5f)
-            .add(MeshComponent(flatCube.front))
+            .add(MeshComponent(flatCube))
     }
 
     Entity("Floor", scene)
         .setPosition(game.size.x * 0.5, -1.0, game.size.y * 0.5)
         .setScale(game.size.x * 0.5f, 1f, game.size.y * 0.5f)
-        .add(MeshComponent(flatCube.front))
+        .add(MeshComponent(flatCube))
 
     val collectibles = Entity("Gems", scene)
     val collectibleMesh = IcosahedronModel.createIcosphere(3)

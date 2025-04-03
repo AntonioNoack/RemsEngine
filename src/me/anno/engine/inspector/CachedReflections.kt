@@ -4,12 +4,13 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.EditorField
+import me.anno.ecs.annotations.Order
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.saveable.Saveable
 import me.anno.utils.Reflections.getEnumById
-import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.maps.LazyMap
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
@@ -21,7 +22,7 @@ import kotlin.reflect.KClass
 class CachedReflections private constructor(
     val clazz: Class<*>,
     val allProperties: Map<String, CachedProperty>,
-    val debugActions: List<Method>,
+    val debugActions: List<DebugActionInstance>,
     val debugProperties: List<CachedProperty>,
     val editorFields: List<CachedProperty>,
     val debugWarnings: List<CachedProperty>,
@@ -91,17 +92,23 @@ class CachedReflections private constructor(
             return false
         }
 
-        fun getDebugActions(clazz: Class<*>): List<Method> {
-            var list = emptyList<Method>()
-            for (item in clazz.methods) {
-                if (item.annotations.any { it is DebugAction }) {
-                    item.isAccessible = true // it's debug, so we're allowed to access it
+        fun getDebugActions(clazz: Class<*>): List<DebugActionInstance> {
+            var list = emptyList<DebugActionInstance>()
+            val debugAnnotationClass = DebugAction::class.java
+            val orderAnnotationClass = Order::class.java
+            for (method in clazz.methods) {
+                val debugAction = method.getAnnotation(debugAnnotationClass)
+                if (debugAction != null) {
+                    method.isAccessible = true // it's debug, so we're allowed to access it
+                    val order = method.getAnnotation(orderAnnotationClass)?.index ?: 0
+                    val title = debugAction.title.ifEmpty { method.name.camelCaseToTitle() }
+                    val item = DebugActionInstance(method, title, order)
                     if (list is MutableList) list.add(item)
                     else list = arrayListOf(item)
                 }
             }
-            // selectParent shall be first
-            (list as? ArrayList)?.partition1 { it.name == "selectParent" }
+            // selectParent shall be first, the rest shall be sorted
+            (list as? ArrayList)?.sort()
             return list
         }
 

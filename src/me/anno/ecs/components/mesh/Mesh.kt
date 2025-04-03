@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
@@ -350,7 +351,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     /**
      * upload the data to the gpu, if it has changed
      * */
-    @DebugAction
     override fun ensureBuffer() {
         synchronized(this) {
             if (needsMeshUpdate) createMeshBuffer()
@@ -445,7 +445,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         pipeline.addMesh(this, Pipeline.sampleMeshComponent, transform)
     }
 
-    @DebugAction
+    @DebugAction("Center XZ, on Floor")
     fun centerXZonY() {
         val bounds = getBounds()
         val dx = -bounds.centerX
@@ -454,7 +454,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         move(dx, dy, dz)
     }
 
-    @DebugAction
+    @DebugAction("Center XYZ")
     fun centerXYZ() {
         val bounds = getBounds()
         val dx = -bounds.centerX
@@ -464,6 +464,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     @DebugAction
+    @Order(1000)
     fun move(dx: Float, dy: Float, dz: Float) {
         if (prefab?.isWritable == false) {
             warnIsImmutable()
@@ -478,14 +479,14 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         }
     }
 
-    @DebugAction
-    fun scaleUp100x() {
-        scale(Vector3f(100f))
+    @DebugAction("Scale Up 10x")
+    fun scaleUp10x() {
+        scale(Vector3f(10f))
     }
 
-    @DebugAction
-    fun scaleDown100x() {
-        scale(Vector3f(0.01f))
+    @DebugAction("Scale Down 10x")
+    fun scaleDown10x() {
+        scale(Vector3f(0.1f))
     }
 
     @DebugAction

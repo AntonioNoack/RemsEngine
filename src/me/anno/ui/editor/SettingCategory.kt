@@ -9,6 +9,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.input.InputPanel
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.Color.mulAlpha
@@ -17,7 +18,7 @@ import kotlin.math.max
 open class SettingCategory private constructor(
     nameDesc: NameDesc, val visibilityKey: String,
     withScrollbar: Boolean, style: Style
-) : PanelGroup(style) {
+) : PanelGroup(style), InputPanel<Unit> {
 
     constructor(nameDesc: NameDesc, style: Style) : this(nameDesc, false, style)
     constructor(nameDesc: NameDesc, withScrollbar: Boolean, style: Style) :
@@ -34,12 +35,17 @@ open class SettingCategory private constructor(
 
     init {
         titlePanel.addLeftClickListener {
-            InputVisibility.toggle(visibilityKey)
+            if (isInputAllowed) InputVisibility.toggle(visibilityKey)
         }
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
-        titlePanel.focusTextColor = -1
+        titlePanel.disableFocusColors()
         child.parent = this
+    }
+
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
+        if (isInFocus) showIsInFocus()
     }
 
     fun showByDefault(): SettingCategory {
@@ -110,5 +116,13 @@ open class SettingCategory private constructor(
 
     override fun addChild(child: PrefabSaveable) {
         content.addChild(child)
+    }
+
+    // todo show that visually somehow
+    override var isInputAllowed: Boolean = true
+    override val value: Unit get() = Unit
+
+    override fun setValue(newValue: Unit, mask: Int, notify: Boolean): Panel {
+        return this
     }
 }

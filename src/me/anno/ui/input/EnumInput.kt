@@ -94,6 +94,7 @@ open class EnumInput(
         val focused = titleView?.isInFocus == true || inputPanel.isInFocus
         if (focused) isSelectedListener?.invoke()
         super.draw(x0, y0, x1, y1)
+        if (isAnyChildInFocus) showIsInFocus()
     }
 
     init {

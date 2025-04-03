@@ -82,7 +82,7 @@ abstract class StackPanel<V : Inspectable>(
     }
 
     fun removeComponent(component: V) {
-        content.children.removeAll { it is OptionPanel<*> && it.value === component }
+        content.children.removeAll { it is OptionPanel<*> && it.option === component }
         onRemoveComponent(component)
     }
 
