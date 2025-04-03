@@ -32,7 +32,6 @@ object GLFWListeners {
             }
         }
         addEvent {
-            window.framesSinceLastInteraction = 0
             val ws = window.windowStack
             val mouseX = window.mouseX
             val mouseY = window.mouseY
@@ -53,7 +52,6 @@ object GLFWListeners {
 
     fun handleMouseButton(window: OSWindow, button: Int, action: Int, mods: Int) {
         addEvent {
-            window.framesSinceLastInteraction = 0
             val button1 = Key.byId(button)
             when (action) {
                 GLFW.GLFW_PRESS -> onMousePress(window, button1)
@@ -71,7 +69,6 @@ object GLFWListeners {
         val time = nanoTime
         if (window1 != window.pointer) {
             // touch events are hacked into GLFW for Windows 7+
-            window.framesSinceLastInteraction = 0
             // val pressure = max(1, mods)
             val x = scancode * 0.01f
             val y = action * 0.01f

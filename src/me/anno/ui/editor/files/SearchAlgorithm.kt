@@ -1,7 +1,6 @@
 package me.anno.ui.editor.files
 
 import me.anno.engine.Events.addEvent
-import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.ui.base.Search
@@ -64,11 +63,6 @@ object SearchAlgorithm {
                         }
                     }
                     index = endIndex
-                    // force layout update
-                    val windows = GFX.windows
-                    for (i in windows.indices) {
-                        windows[i].framesSinceLastInteraction = 0
-                    }
                     if (file == null) {
                         self.lastFiles = newFiles
                         self.lastSearch = newSearch

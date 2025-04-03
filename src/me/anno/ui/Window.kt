@@ -137,7 +137,7 @@ open class Window(
         }
     }
 
-    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean): Boolean {
+    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int) {
 
         update(dx, dy, windowW, windowH)
 
@@ -164,8 +164,6 @@ open class Window(
         if (FrameGenInitNode.isLastFrame()) {
             GFXState.timeRecords.clear()
         }
-
-        return visible || didSomething0
     }
 
     fun otherWindowIsOverUs(): Boolean {

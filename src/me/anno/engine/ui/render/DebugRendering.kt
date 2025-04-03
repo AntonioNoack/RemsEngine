@@ -531,7 +531,7 @@ object DebugRendering {
                     DrawTextures.drawDepthTexture(x02, y02, x12 - x02, y12 - y02, texture)
                 } else {
                     DrawTextures.drawTexture(
-                        x02, y12, x12 - x02, y02 - y12, texture,
+                        x02, y02, x12 - x02, y12 - y02, texture,
                         true, color, null, applyToneMapping
                     )
                 }
@@ -542,7 +542,7 @@ object DebugRendering {
                     if (y12 - y02 > x12 - x02) x02 else Maths.mix(x02, x12, f),
                     if (y12 - y02 > x12 - x02) Maths.mix(y02, y12, f) else y02,
                     x12, y12
-                ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
+                ) { DrawTextures.drawTextureAlpha(x02, y02, x12 - x02, y12 - y02, texture) }
                 // draw title
                 DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, texture.name)
             }
@@ -628,7 +628,7 @@ object DebugRendering {
                     DrawTextures.drawDepthTexture(x02, y02, tw, th, texture)
                 } else {
                     DrawTextures.drawTexture(
-                        x02, y12, tw, -th, texture, true, color,
+                        x02, y02, tw, th, texture, true, color,
                         null, applyTonemapping
                     )
                 }

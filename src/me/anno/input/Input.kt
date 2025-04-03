@@ -110,9 +110,6 @@ object Input {
         mouseLockPanel = null
     }
 
-    var layoutFrameCount = 10
-    fun needsLayoutUpdate(window: OSWindow) = window.framesSinceLastInteraction < layoutFrameCount
-
     val shiftSlowdown get() = if (isAltDown) 5f else if (isShiftDown) 0.2f else 1f
 
     fun resetFrameSpecificKeyStates() {
@@ -121,7 +118,6 @@ object Input {
     }
 
     fun onCharTyped(window: OSWindow, codepoint: Int, mods: Int) {
-        window.framesSinceLastInteraction = 0
         KeyNames.onCharTyped(codepoint)
         val event = UIEvent(
             window.currentWindow,
@@ -147,7 +143,6 @@ object Input {
     }
 
     fun onKeyPressed(window: OSWindow, key: Key, nanoTime: Long) {
-        window.framesSinceLastInteraction = 0
         keysDown[key] = nanoTime
         keysWentDown += key
         if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_DOWN)) {
@@ -159,7 +154,6 @@ object Input {
     }
 
     fun onKeyReleased(window: OSWindow, key: Key) {
-        window.framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
         if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_UP)) {
@@ -171,7 +165,6 @@ object Input {
 
     fun onKeyTyped(window: OSWindow, key: Key) {
 
-        window.framesSinceLastInteraction = 0
         if (callKeyEventIsCancelled(window, key, UIEventType.KEY_TYPED)) {
             return
         }
@@ -264,10 +257,6 @@ object Input {
 
     fun onMouseMove(window: OSWindow, newX: Float, newY: Float) {
 
-        if (keysDown.isNotEmpty()) {
-            window.framesSinceLastInteraction = 0
-        }
-
         var dx: Float
         var dy: Float
         synchronized(window) {
@@ -302,9 +291,6 @@ object Input {
     fun onMouseWheel(window: OSWindow, dx: Float, dy: Float, byMouse: Boolean) {
         mouseWheelSumX += dx
         mouseWheelSumY += dy
-        if (length(dx, dy) > 0f) {
-            window.framesSinceLastInteraction = 0
-        }
         addEvent {
             val mouseX = window.mouseX
             val mouseY = window.mouseY

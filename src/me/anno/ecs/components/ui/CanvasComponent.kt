@@ -208,18 +208,19 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
 
     fun render(width: Int, height: Int) {
         val window = GFX.activeWindow ?: return
+        val entity = entity
         GFXState.depthMode.use(alwaysDepthMode) {
             GFXState.blendMode.use(BlendMode.DEFAULT) {
                 GFXState.cullMode.use(CullMode.BOTH) {
                     val rv = RenderView.currentInstance!!
                     val transform = JomlPools.mat4f.create()
-                    if (space == Space.WORLD_SPACE) {
+                    if (space == Space.WORLD_SPACE && entity != null) {
                         // I believe this should be correct: screen space = camera transform * world transform * world pos
-                        transform.set(Matrix4d(RenderState.cameraMatrix).mul(entity!!.transform.globalTransform))
+                        transform.set(Matrix4d(RenderState.cameraMatrix).mul(entity.transform.globalTransform))
                         transform.invert()
                     }
                     windowStack.updateTransform(window, transform, rv.x, rv.y, rv.width, rv.height, 0, 0, width, height)
-                    windowStack.draw(0, 0, width, height, true)
+                    windowStack.draw(0, 0, width, height)
                     JomlPools.mat4f.sub(1)
                 }
             }

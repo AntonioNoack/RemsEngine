@@ -571,7 +571,6 @@ object WindowManagement {
                     .with("%1", window.title),
                 window::requestClose
             )?.isAskingUserAboutClosing = true
-            window.framesSinceLastInteraction = 0
             ws.peek()?.setAcceptsClickAway(false)
         }
     }

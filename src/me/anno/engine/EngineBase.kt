@@ -194,8 +194,6 @@ abstract class EngineBase(
         if (isFirstFrame) tick("Before window drawing")
 
         // be sure always something is drawn
-        var didSomething = window.needsRefresh || Input.needsLayoutUpdate(window)
-        window.needsRefresh = false
         val windowStack = window.windowStack
 
         val dy = window.progressbarHeightSum
@@ -203,21 +201,14 @@ abstract class EngineBase(
         if (!window.isMinimized) {
 
             windowStack.updateTransform(window, 0, 0, w, h)
-            didSomething = windowStack.draw(
-                0, dy, w, h, didSomething
-            )
-
-            window.framesSinceLastInteraction++
+            windowStack.draw(0, dy, w, h)
 
             if (isFirstFrame) tick("Window drawing")
 
             GFXState.useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
-                if (drawUIOverlay(window, w, h)) didSomething = true
+                drawUIOverlay(window, w, h)
             }
         }
-
-        if (didSomething) window.didNothingCounter = 0
-        else window.didNothingCounter++
 
         FBStack.reset()
 
@@ -259,18 +250,14 @@ abstract class EngineBase(
         (hoveredPanel?.getCursor() ?: Cursor.default).useCursor(window)
     }
 
-    open fun drawUIOverlay(window: OSWindow, w: Int, h: Int): Boolean {
-
-        var didSomething = false
+    open fun drawUIOverlay(window: OSWindow, w: Int, h: Int) {
 
         if (WindowRenderFlags.showFPS && window.showFPS) {
             FrameTimings.showFPS(window)
         }
 
         if (WindowRenderFlags.showTutorialKeys) {
-            if (ShowKeys.draw(0, 0, h)) {
-                didSomething = true
-            }
+            ShowKeys.draw(0, 0, h)
         }
 
         val progressBars = window.progressBars
@@ -290,14 +277,9 @@ abstract class EngineBase(
             progressBars.removeAll { it.canBeRemoved(time) }
         }
 
-        if (Tooltips.draw(window)) {
-            didSomething = true
-        }
+        Tooltips.draw(window)
 
         renderDragged(w, h, dragged)
-        if (dragged != null) didSomething = true
-
-        return didSomething
     }
 
     private fun renderDragged(w: Int, h: Int, dragged: IDraggable?) {

@@ -18,6 +18,8 @@ import me.anno.utils.types.Strings.iff
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.toInt
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector
+import kotlin.math.min
 
 class CachedProperty(
     val name: String,
@@ -122,6 +124,13 @@ class CachedProperty(
                 setter.invoke(instance, value.toFloat())
             } else if (oldValue is Docs && value is Number) {
                 setter.invoke(instance, value.toDouble())
+            } else if (oldValue is Vector && value is Vector) {
+                // update old value
+                for(i in 0 until min(oldValue.numComponents, value.numComponents)) {
+                    oldValue.setComp(i, value.getComp(i))
+                }
+                // set it again, just in case the setter does something
+                setter.invoke(instance, oldValue)
             } else setter.invoke(instance, value)
             true
         } catch (e: Exception) {

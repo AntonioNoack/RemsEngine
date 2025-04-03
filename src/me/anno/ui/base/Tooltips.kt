@@ -58,9 +58,9 @@ object Tooltips {
         panel.draw(panel.x, panel.y, panel.x + panel.width, panel.y + panel.height)
     }
 
-    fun draw(window: OSWindow): Boolean {
+    fun draw(window: OSWindow) {
 
-        if (tooltipReactionTime < 0) return false
+        if (tooltipReactionTime < 0) return
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
@@ -75,7 +75,7 @@ object Tooltips {
 
         if (length(dx, dy) > Time.uiDeltaTime) {// 1px / s
             lastMovementTime = time
-            return false
+            return
         }
 
         val delta = abs(time - lastMovementTime)
@@ -88,7 +88,7 @@ object Tooltips {
                 if (pb != null && pb.name.isNotBlank2()) {
                     textPanel.text = pb.name
                     draw(window, pbi * progressbarHeight, container)
-                    return true
+                    return
                 }
             }
             val hovered = EngineBase.instance?.hoveredPanel
@@ -100,14 +100,11 @@ object Tooltips {
                 if (tooltip is Panel) {
                     tooltip.window = hovered.window
                     draw(window, hovered.y, tooltip)
-                    return true
                 } else if (tooltip is String && !tooltip.isBlank2()) {
                     textPanel.text = tooltip
                     draw(window, hovered.y, container)
-                    return true
                 }
             }
         } else lastPanel = null
-        return false
     }
 }

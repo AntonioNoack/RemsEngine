@@ -147,6 +147,7 @@ object Reduction {
         }
 
         buffer.position(0)
+        // todo use texture.getPixels here...
         glGetTexImage(target, 0, GL_RGBA, GL_FLOAT, buffer)
         GFX.check()
 

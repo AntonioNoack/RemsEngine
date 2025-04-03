@@ -192,15 +192,13 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         JomlPools.vec3f.sub(1)
     }
 
-    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean): Boolean {
-        var didSomething = didSomething0
+    fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int) {
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen && !it.isTransparent }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
             val window = windowStack.getOrNull(index) ?: break
-            didSomething = window.draw(dx, dy, windowW, windowH, didSomething)
+            window.draw(dx, dy, windowW, windowH)
         }
-        return didSomething
     }
 
     fun destroy() {

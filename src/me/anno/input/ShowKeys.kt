@@ -95,7 +95,7 @@ object ShowKeys {
     }
 
     @JvmStatic
-    fun draw(x: Int, y: Int, h: Int): Boolean {
+    fun draw(x: Int, y: Int, h: Int) {
 
         // draw the current keys for a tutorial...
         // fade out keys
@@ -117,31 +117,29 @@ object ShowKeys {
             }
         }
 
-        return if (activeKeys.isNotEmpty()) {
-            val dt = uiDeltaTime.toFloat() * decaySpeed
-            val iter = activeKeys.iterator()
-            for (key in iter) {
-                key.time = min(key.time - dt, 1f)
-                if (key.time < 0f) {
-                    activeKeysMap.remove(key.key)
-                    iter.remove()
-                }
+        if (activeKeys.isEmpty()) return
+        val dt = uiDeltaTime.toFloat() * decaySpeed
+        val iter = activeKeys.iterator()
+        for (key in iter) {
+            key.time = min(key.time - dt, 1f)
+            if (key.time < 0f) {
+                activeKeysMap.remove(key.key)
+                iter.remove()
             }
-            if (activeKeys.isNotEmpty()) {
-                activeKeys.sortBy { !it.isSuperKey }
-                renderDefault {
-                    var x0 = x
-                    for (index in activeKeys.indices) {
-                        val key = activeKeys[index]
-                        val alpha = key.time
-                        if (key.stateId != KeyNames.stateId) {
-                            key.name = key.findName()
-                        }
-                        x0 = drawKey(key.name, alpha, x0, h - y)
-                    }
+        }
+
+        if (activeKeys.isEmpty()) return
+        activeKeys.sortBy { !it.isSuperKey }
+        renderDefault {
+            var x0 = x
+            for (index in activeKeys.indices) {
+                val key = activeKeys[index]
+                val alpha = key.time
+                if (key.stateId != KeyNames.stateId) {
+                    key.name = key.findName()
                 }
-                true
-            } else false
-        } else false
+                x0 = drawKey(key.name, alpha, x0, h - y)
+            }
+        }
     }
 }

@@ -59,12 +59,7 @@ open class OSWindow(var title: String) {
     var isMinimized = false
     var showFPS = true
 
-    var needsRefresh = true
-
     var shouldClose = false
-
-    var framesSinceLastInteraction = 0
-    var didNothingCounter = 0
 
     /**
      * set these to finite values, and the mouse should move there
@@ -228,7 +223,6 @@ open class OSWindow(var title: String) {
                     if (w != width || h != height) {
                         width = w
                         height = h
-                        framesSinceLastInteraction = 0
                     }
                 }
             }
@@ -238,12 +232,7 @@ open class OSWindow(var title: String) {
             positionY = y
         }
         GLFW.glfwSetWindowFocusCallback(window) { _, isInFocus0 -> isInFocus = isInFocus0 }
-        GLFW.glfwSetWindowIconifyCallback(window) { _, isMinimized0 ->
-            isMinimized = isMinimized0
-            // just be sure in case the OS/glfw don't send it
-            if (!isMinimized0) needsRefresh = true
-        }
-        GLFW.glfwSetWindowRefreshCallback(window) { needsRefresh = true }
+        GLFW.glfwSetWindowIconifyCallback(window) { _, isMinimized0 -> isMinimized = isMinimized0 }
 
         // can we use that?
         // glfwSetWindowMaximizeCallback()
