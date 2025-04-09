@@ -1,7 +1,7 @@
 package me.anno.video
 
+import me.anno.Time
 import me.anno.gpu.Blitting
-import me.anno.gpu.FinalRendering
 import me.anno.gpu.FinalRendering.runFinalRendering
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.alwaysDepthMode
@@ -15,15 +15,30 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.utils.assertions.assertTrue
-import me.anno.video.FrameTask.Companion.missingResource
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
+import kotlin.math.abs
 
-abstract class VideoBackgroundTask(
-    val creator: VideoCreator,
-    val samples: Int,
-) {
+abstract class VideoBackgroundTask(val creator: VideoCreator, val samples: Int) {
+
+    companion object {
+
+        private val LOGGER = LogManager.getLogger(VideoBackgroundTask::class)
+
+        @JvmField
+        var lastPrinted = -1L
+
+        @JvmStatic
+        var missingResource = ""
+            set(value) {
+                if (value.isNotEmpty() && (lastPrinted == -1L || abs(Time.nanoTime - lastPrinted) > 1000_000_000L)) {
+                    lastPrinted = Time.nanoTime
+                    LOGGER.info("Waiting for $value")
+                }
+                field = value
+            }
+    }
 
     var isDone = false
     var isCancelled = false

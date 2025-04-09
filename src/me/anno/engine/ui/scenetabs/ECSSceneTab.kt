@@ -52,7 +52,6 @@ import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 
@@ -249,7 +248,7 @@ class ECSSceneTab(
                         MenuOption(NameDesc("Close")) {
                             ECSSceneTabs.close(this, true)
                         },
-                        MenuOption(NameDesc("Close Other Tabs")) {
+                        MenuOption(NameDesc("Close Others")) {
                             ECSSceneTabs.ecsTabsRaw.clear()
                             ECSSceneTabs.project?.openTabs?.clear()
                             ECSSceneTabs.currentTab = null

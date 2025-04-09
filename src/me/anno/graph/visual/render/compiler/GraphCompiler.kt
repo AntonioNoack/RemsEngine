@@ -124,39 +124,73 @@ abstract class GraphCompiler(val g: FlowGraph) {
         val input = out.others.firstOrNull() as? NodeInput
         val tex = input?.getValue() as? Texture
         if (tex != null) {
-            val map = tex.mapping
-            val enc = tex.encoding
-            val needsDataToWork = enc != null && !enc.dataToWork.endsWith('=')
-            if (needsDataToWork) {
-                builder.append('(').append(enc?.dataToWork).append("(")
-            }
-            if (tex.tex != whiteTexture) {
-                val currValue = input.currValue as? Texture
-                val currValue1 = currValue?.texMS
-                val useMS = currValue1 != null && currValue1.samples > 1
-                val texName = textures2.getOrPut(input) {
-                    val name =
-                        "tex2I${out.name.filter { it in 'A'..'Z' || it in 'a'..'z' }}${textures2.size}"
-                    val type = if (useMS) GLSLType.S2DMS else GLSLType.S2D
-                    Triple(name, type, true)
-                }
-                if (texName.second == GLSLType.S2DMS) {
-                    builder.append("texelFetch(").append(texName.first)
-                        .append(",ivec2(uv*vec2(textureSize(").append(texName.first)
-                        .append("))),gl_SampleID)")
-                } else {
-                    builder.append("texture(").append(texName.first).append(",uv)")
-                }
-            } else builder.append("vec4(1.0)")
-            if (map.isNotEmpty()) {
-                builder.append('.').append(map)
-            }
-            if (needsDataToWork) {
-                builder.append("))")
-            }
+            appendTextureLoad(tex, input, out)
         } else {
-            builder.append("((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))")
+            appendMissingTexturePattern()
         }
+    }
+
+    private fun appendMissingTexturePattern() {
+        builder.append("((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))")
+    }
+
+    private fun needsDataToWorkConversion(enc: DeferredLayerType?): Boolean {
+        return enc != null && !enc.dataToWork.endsWith('=')
+    }
+
+    private fun appendDataToWorkPrefix(enc: DeferredLayerType?) {
+        builder.append('(').append(enc?.dataToWork).append("(")
+    }
+
+    private fun appendDataToWorkSuffix() {
+        builder.append("))")
+    }
+
+    private fun appendMapping(mapping: String) {
+        if (mapping.isNotEmpty()) {
+            builder.append('.').append(mapping)
+        }
+    }
+
+    private fun appendTextureLoad(tex: Texture, input: NodeInput, out: NodeOutput) {
+        val textureEncoding = tex.encoding
+        val needsConversion = needsDataToWorkConversion(textureEncoding)
+        if (needsConversion) appendDataToWorkPrefix(textureEncoding)
+        appendTextureLoadCore(tex, input, out)
+        appendMapping(tex.mapping)
+        if (needsConversion) appendDataToWorkSuffix()
+    }
+
+    private fun appendTextureLoadCore(tex: Texture, input: NodeInput, out: NodeOutput) {
+        if (tex.tex != whiteTexture) {
+            val currValue = input.currValue as? Texture
+            val currValue1 = currValue?.texMS
+            appendTextureLoadCore(currValue1, input, out)
+        } else builder.append("vec4(1.0)")
+    }
+
+    private fun appendTextureLoadCore(currValue1: ITexture2D?, input: NodeInput, out: NodeOutput) {
+        val useMS = currValue1 != null && currValue1.samples > 1
+        val (texName, texType) = textures2.getOrPut(input) {
+            val name = createTextureName(out.name, textures2.size)
+            val type = if (useMS) GLSLType.S2DMS else GLSLType.S2D
+            Triple(name, type, true)
+        }
+        appendTextureLoad(texName, texType)
+    }
+
+    private fun appendTextureLoad(texName: String, texType: GLSLType) {
+        if (texType == GLSLType.S2DMS) {
+            builder.append("texelFetch(").append(texName)
+                .append(",ivec2(uv*vec2(textureSize(").append(texName)
+                .append("))),gl_SampleID)")
+        } else {
+            builder.append("texture(").append(texName).append(",uv)")
+        }
+    }
+
+    private fun createTextureName(baseName: String, numTextures: Int): String {
+        return "tex2I${baseName.filter { it in 'A'..'Z' || it in 'a'..'z' }}$numTextures"
     }
 
     fun appendVector2f(v: Any?) {

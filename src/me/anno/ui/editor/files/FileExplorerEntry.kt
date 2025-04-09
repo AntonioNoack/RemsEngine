@@ -47,7 +47,6 @@ import me.anno.input.Clipboard
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.ImportType.AUDIO
 import me.anno.io.files.ImportType.CONTAINER
@@ -110,7 +109,6 @@ import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.setNumber
 import me.anno.video.VideoStream
-import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4fArrayList
@@ -157,33 +155,7 @@ open class FileExplorerEntry(
     var darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
 
     private val importType = getImportTypeByExtension(file.lcExtension)
-    private var iconPath = if (isParent || file.isDirectory) {
-        if (isParent) {
-            folderPath
-        } else {
-            when (file.name.lowercase()) {
-                "music", "musik" -> musicPath
-                "videos", "movies" -> videoPath
-                "documents", "dokumente", "downloads" -> textPath
-                "images", "pictures", "bilder" -> imagePath
-                else -> if (file.hasChildren())
-                    folderPath else emptyFolderPath
-            }
-        }
-    } else {
-        // actually checking the type would need to be done async, because it's slow to ready many, many files
-        when (importType) {
-            CONTAINER -> zipPath
-            IMAGE, "Cubemap", CUBEMAP_EQU -> imagePath // is there a cubemap format?
-            TEXT -> textPath
-            AUDIO -> musicPath
-            VIDEO -> videoPath
-            EXECUTABLE -> exePath
-            METADATA -> metadataPath
-            LINK -> linkPath
-            else -> docsPath
-        }
-    }
+    private val iconPath = getDefaultIconPath(isParent, file, importType)
 
     val isDirectory = isParent || file.isDirectory
 
@@ -245,8 +217,8 @@ open class FileExplorerEntry(
                 val meta = getMeta(path, true)
                 this.meta = meta
                 if (meta != null) {
-                    val w = width
-                    val h = height
+                    val w = max(width, 1)
+                    val h = max(height, 1)
                     previewFPS = min(meta.videoFPS, 120.0)
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
@@ -866,6 +838,36 @@ open class FileExplorerEntry(
         val hoverPlaybackDelay = 0.5
 
         private val tooltipQueue = ProcessingQueue("FileExplorer-Tooltips")
+
+        fun getDefaultIconPath(isParent: Boolean, file: FileReference, importType: String?): FileReference {
+            return if (isParent || file.isDirectory) {
+                if (isParent) {
+                    folderPath
+                } else {
+                    when (file.name.lowercase()) {
+                        "music", "musik" -> musicPath
+                        "videos", "movies" -> videoPath
+                        "documents", "dokumente", "downloads" -> textPath
+                        "images", "pictures", "bilder" -> imagePath
+                        else -> if (file.hasChildren())
+                            folderPath else emptyFolderPath
+                    }
+                }
+            } else {
+                // actually checking the type would need to be done async, because it's slow to ready many, many files
+                when (importType) {
+                    CONTAINER -> zipPath
+                    IMAGE, "Cubemap", CUBEMAP_EQU -> imagePath // is there a cubemap format?
+                    TEXT -> textPath
+                    AUDIO -> musicPath
+                    VIDEO -> videoPath
+                    EXECUTABLE -> exePath
+                    METADATA -> metadataPath
+                    LINK -> linkPath
+                    else -> docsPath
+                }
+            }
+        }
 
         fun startAudioPlayback(file: FileReference, meta: MediaMetadata) {
             val audio = AudioFileStreamOpenAL(

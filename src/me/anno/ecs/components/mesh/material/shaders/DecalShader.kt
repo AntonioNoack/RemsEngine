@@ -53,9 +53,9 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val settings = key.renderer.deferredSettings
-        val availableSemantic = settings?.semanticLayers?.toHashSet() ?: emptySet()
-        val availableStorage = settings?.storageLayers?.toHashSet() ?: emptySet()
-        val availableLayerTypes = availableSemantic.map { it.type }.toHashSet()
+        val availableSemantic = settings?.semanticLayers?.toSet() ?: emptySet()
+        val availableStorage = settings?.storageLayers?.toSet() ?: emptySet()
+        val availableLayerTypes = availableSemantic.map { it.type }.toSet()
         val variables = ArrayList(depthVars)
         variables.addAll(
             listOf(

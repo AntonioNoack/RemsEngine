@@ -195,12 +195,16 @@ object FlatShaders {
 
     val depthShader = BaseShader(
         "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(
+            Variable(GLSLType.V1B, "reverseDepth"),
             Variable(GLSLType.S2D, "tex")
         ), "" +
                 "void main(){\n" +
                 "   float depth0 = texture(tex, uv).x;\n" +
-                "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +
-                "   gl_FragColor = vec4(depth0 > 0.0 ? vec3(depth1) : vec3(depth1, 0.0, 0.0), 1.0);\n" +
+                "   float depth1 = reverseDepth ? depth0 : 1.0-depth0;\n" +
+                "   float depth2 = fract(log2(abs(depth1)));\n" +
+                "   float depth3 = 0.1 + 0.9 * depth2;\n" +
+                "   bool withinBounds = depth0 > 0.0 && depth0 < 1.0;\n" +
+                "   gl_FragColor = vec4(withinBounds ? vec3(depth3) : vec3(depth3, 0.0, 0.0), 1.0);\n" +
                 "}"
     )
 

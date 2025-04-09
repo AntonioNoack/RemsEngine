@@ -191,6 +191,7 @@ object EngineActions {
         register["FileEntry.left.double", "Enter|Open"]
         register["FileEntry.f2.down", "Rename"]
         register["FileEntry.right.down", "OpenOptions"]
+        register["FavouritePanel.right.down", "OpenOptions"]
         register["FileExplorerEntry.left.double", "Enter|Open"]
         register["FileExplorerEntry.f2.down", "Rename"]
         register["FileExplorerEntry.right.down", "OpenOptions"]

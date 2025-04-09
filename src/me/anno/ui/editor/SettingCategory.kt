@@ -39,7 +39,6 @@ open class SettingCategory private constructor(
         }
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
-        titlePanel.disableFocusColors()
         child.parent = this
     }
 

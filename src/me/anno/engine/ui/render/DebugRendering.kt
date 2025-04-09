@@ -805,7 +805,7 @@ object DebugRendering {
                     drawBorder(x2, y, x3 - x2, sz, UIColors.paleGoldenRod, 1)
                 }
             }
-            val x = x0 + xi * sz
+            val x = x0 + WorkSplitter.partition(xi, view.width, nx)
             val y = y0 - sz + 1
             DrawTexts.drawSimpleTextCharByChar(
                 x, y, 1, name,

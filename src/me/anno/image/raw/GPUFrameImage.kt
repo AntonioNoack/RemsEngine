@@ -1,7 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.gpu.GFX
-import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image

@@ -37,9 +37,12 @@ This scene contains glb/gltf, obj and fbx files, jpegs and webps.
 ### Rendering Debug Modes
 
 Currently, the scene is in "MSAA Deferred" mode, so it renders MSAAx8 with deferred light rendering.
-There is more than fifty render modes for debugging all kinds of features and rendering processes.
+There is more than fifty [render modes](https://remsengine.phychi.com/?s=learn/rendermodes) for debugging all kinds of features and rendering processes.
 In the shown scene, there is also a bit of post-processing: SSR, SSAO, Bloom, outline for selection,
 refraction for glass. Shadows are conditionally real-time ofc, too.
+
+For deeper debugging, you can enable "Show Debug Frames" in the settings, and then all major rendering steps will be shown directly in the editor.
+
 
 ### Skeletal Animations
 

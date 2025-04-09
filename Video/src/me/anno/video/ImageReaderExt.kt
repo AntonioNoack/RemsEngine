@@ -31,7 +31,9 @@ object ImageReaderExt {
                         val frame = frames.firstOrNull()
                         if (frame != null) {
                             Sleep.waitUntil(true, { frame.isCreated || frame.isDestroyed }, {
-                                callback.call(GPUFrameImage(frame), null)
+                                val image = GPUFrameImage(frame)
+                                image.flipY()
+                                callback.call(image, null)
                             })
                         } else callback.err(IOException("No frame was found"))
                     }

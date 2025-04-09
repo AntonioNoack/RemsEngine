@@ -58,12 +58,16 @@ object Sleep {
         waitUntil(getCalleeName(), canBeKilled, isFinished)
     }
 
+    fun shouldContinueWaiting(canBeKilled: Boolean): Boolean {
+        return !canBeKilled || !shutdown
+    }
+
     @JvmStatic
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean) {
         var lastTime = Time.nanoTime
         val mustWork = mustWorkTasks(true)
-        while (!isFinished()) {
+        while (!isFinished() && shouldContinueWaiting(canBeKilled)) {
             if (mustWork) {
                 work(canBeKilled)
                 val time = Time.nanoTime
@@ -93,7 +97,7 @@ object Sleep {
         val timeLimit = Time.nanoTime + timeoutNanos
         val mustWork = mustWorkTasks(true)
         while (!isFinished()) {
-            if (canBeKilled && shutdown) return true
+            if (!shouldContinueWaiting(canBeKilled)) return true
             if (Time.nanoTime > timeLimit) return true
             if (mustWork) work(canBeKilled)
             else sleepABit(canBeKilled)
@@ -135,7 +139,7 @@ object Sleep {
         } else {
             if (isFinished()) {
                 callback()
-            } else if (!(canBeKilled && shutdown)) { // wait a little
+            } else if (shouldContinueWaiting(canBeKilled)) { // wait a little
                 addEvent(name, 0) {
                     waitUntil(name, canBeKilled, isFinished, callback)
                 }

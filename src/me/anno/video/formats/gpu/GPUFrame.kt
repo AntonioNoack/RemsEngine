@@ -31,6 +31,10 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
+/**
+ * GPU frames are synthetic textures that need a special shader, and might take up multiple texture slots.
+ * They are used to efficiently stream video from FFMPEG and similar to the GPU.
+ * */
 abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) : ICacheData {
 
     init {
@@ -150,7 +154,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                 val shader = get2DShader()
                 shader.use()
                 posSize(shader, 0, 0, texture.width, texture.height)
-                tiling(shader, 1f, -1f, 0f, 0f)
+                tiling(shader, 1f, 1f, 0f, 0f)
                 bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 bindUVCorrection(shader)
                 SimpleBuffer.flat01.draw(shader)

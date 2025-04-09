@@ -110,10 +110,7 @@ object DrawTextures {
         GFX.check()
     }
 
-    fun drawDepthTexture(
-        x: Int, y: Int, w: Int, h: Int,
-        texture: ITexture2D
-    ) {
+    fun drawDepthTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = depthShader.value
@@ -121,7 +118,9 @@ object DrawTextures {
         posSize(shader, x, y, w, h, true)
         GFXx2D.noTiling(shader)
         texture.bind(0)
+        // todo we should set the direction of the depth texture everywhere...
         val depthFunc = texture.depthFunc
+        shader.v1b("reverseDepth", GFX.supportsClipControl && depthFunc?.reversedDepth != false)
         texture.depthFunc = null
         flat01.draw(shader)
         texture.depthFunc = depthFunc

@@ -19,7 +19,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 
 @Docs("Controls animations using a state machine like in Unity")
-class AnimController : Component(), OnUpdate {
+class AnimGraphController : Component(), OnUpdate {
 
     @Docs("Source file for animation graph")
     @Type("StateMachine/Reference")
@@ -39,15 +39,6 @@ class AnimController : Component(), OnUpdate {
 
     @Docs("Whether the animation graph is allowed to load async")
     var asyncLoading = true
-
-    fun loadGraph(): StateMachine? {
-        if (lastGraphSource == graphSource) return graphInstance
-        val graph = graphSource
-        val prefab = PrefabCache[graph, asyncLoading] ?: return null // wait
-        lastGraphSource = graph
-        graphInstance = prefab.createInstance() as? StateMachine
-        return graphInstance
-    }
 
     @DebugAction
     fun openEditor() {
@@ -83,7 +74,16 @@ class AnimController : Component(), OnUpdate {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        if (dst !is AnimController) return
+        if (dst !is AnimGraphController) return
         dst.graphSource = graphSource
+    }
+
+    fun loadGraph(): StateMachine? {
+        if (lastGraphSource == graphSource) return graphInstance
+        val graph = graphSource
+        val prefab = PrefabCache[graph, asyncLoading] ?: return null // wait
+        lastGraphSource = graph
+        graphInstance = prefab.createInstance() as? StateMachine
+        return graphInstance
     }
 }

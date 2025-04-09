@@ -25,6 +25,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
 import me.anno.ui.base.Search
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.ListAlignment
@@ -38,6 +39,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.files.FileExplorerOptions.copyName
 import me.anno.ui.editor.files.FileExplorerOptions.copyNameDesc
@@ -240,36 +242,20 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         validateFavourites(Favourites.getFavouriteFiles())
     }
 
-    fun addFavourite(folder: FileReference) {
-        val entry = object : FileExplorerEntry(this@FileExplorer, false, folder, style) {
-            override fun onGotAction(
-                x: Float, y: Float, dx: Float, dy: Float,
-                action: String, isContinuous: Boolean
-            ): Boolean {
-                return if (action == "OpenOptions") {
-                    openMenu(
-                        windowStack, listOf(
-                        MenuOption(NameDesc(Dict["Remove from favourites", "ui.fileExplorer.removeFromFavourites"])) {
-                            Favourites.removeFavouriteFiles(listOf(folder))
-                        }
-                    ))
-                    true
-                } else super.onGotAction(x, y, dx, dy, action, isContinuous)
-            }
-
-            override fun calculateSize(w: Int, h: Int) {
-                val size = 64
-                minW = size
-                minH = size
-            }
-        }
-        favourites.add(entry)
-    }
-
     fun validateFavourites(favourites1: List<FileReference>) {
         favourites.clear()
+        val style = favourites.style
+
+        val favGroup = SettingCategory(NameDesc("Favourites"), false, style)
+        favourites.add(favGroup.showByDefault())
         for (fav in favourites1) {
-            addFavourite(fav)
+            favGroup.content.add(FavouritePanel(this, fav, false, style))
+        }
+
+        val rootGroup = SettingCategory(NameDesc("Roots"), false, style)
+        favourites.add(rootGroup.showByDefault())
+        for (root in FileRootRef.listChildren()) {
+            rootGroup.content.add(FavouritePanel(this, root, true, style))
         }
     }
 
@@ -351,11 +337,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             invalidate()
         }
 
-        uContent += ScrollPanelY(favourites, Padding(1), style).apply {
+        uContent.add(ScrollPanelY(favourites, Padding(1), style).apply {
             makeBackgroundTransparent()
             alwaysShowShadowY = true
-        }
-        uContent += wrapInScrollPanel(isY, content2d)
+        })
+        uContent.add(SpacerPanel(2, 0, style))
+        uContent.add(wrapInScrollPanel(isY, content2d))
 
         content2d.weight = 1f // expand to the right
         uContent.weight = 1f // expand to the right

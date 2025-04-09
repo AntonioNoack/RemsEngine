@@ -3,7 +3,6 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.utils.OS
@@ -11,7 +10,7 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 object Favourites {
 
-    private const val configKey = "ui.fileExplorer.favourites"
+    private const val CONFIG_KEY = "ui.fileExplorer.favourites"
 
     fun getDefault(): List<FileReference> {
         return listOf(
@@ -22,8 +21,7 @@ object Favourites {
             else workspace,
             OS.pictures,
             OS.videos,
-            OS.music,
-            FileRootRef
+            OS.music
         ).filter { it != InvalidRef }
     }
 
@@ -32,7 +30,7 @@ object Favourites {
     }
 
     fun getFavouriteFiles(): List<FileReference> {
-        return DefaultConfig[configKey, format(getDefault())].split("|")
+        return DefaultConfig[CONFIG_KEY, format(getDefault())].split("|")
             .map { it.toGlobalFile() }
     }
 
@@ -46,7 +44,7 @@ object Favourites {
 
     fun updateFavouriteFiles(removed: List<FileReference>, added: List<FileReference>) {
         val newFavourites = getFavouriteFiles().filter { it !in removed } + added
-        DefaultConfig[configKey] = format(newFavourites)
+        DefaultConfig[CONFIG_KEY] = format(newFavourites)
         for (window in GFX.windows) {
             for (window1 in window.windowStack) {
                 window1.panel.forAllPanels { fe ->

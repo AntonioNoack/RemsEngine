@@ -159,7 +159,6 @@ object GFX {
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         // todo check if rendering is still broken in DX11 in default render mode
         val debugLimitedGPUs = false
-        // todo flag for reducing depth texture quality to FP16
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
         supportsClipControl = !OS.isAndroid && !OS.isWeb
         if (debugLimitedGPUs) supportsClipControl = false

@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
-import me.anno.ecs.components.anim.graph.AnimController
+import me.anno.ecs.components.anim.graph.AnimGraphController
 import me.anno.ecs.components.anim.graph.AnimStateNode
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FADE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FORCE_ONCE
@@ -29,7 +29,7 @@ fun main() {
     val entity = Entity()
     val renderer = AnimMeshComponent()
     val graph = StateMachine()
-    val controller = AnimController()
+    val controller = AnimGraphController()
     controller.graphSource = graph.ref
 
     // find file with multiple animations -> fox :)
