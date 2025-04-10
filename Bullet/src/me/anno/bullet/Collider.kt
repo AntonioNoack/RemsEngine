@@ -29,6 +29,7 @@ import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.physics.CustomBulletCollider
+import me.anno.utils.algorithms.ForLoop.forLoop
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -109,7 +110,7 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
             val sy = scale.y.toFloat()
             val sz = scale.z.toFloat()
             val tmp = Vector3f()
-            for (i in positions.indices step 3) {
+            forLoop(0, positions.size - 2, 3) { i ->
                 tmp.set(positions[i], positions[i + 1], positions[i + 2])
                 fb.put(tmp.x * sx)
                 fb.put(tmp.y * sy)

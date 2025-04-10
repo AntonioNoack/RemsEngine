@@ -6,8 +6,6 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -17,7 +15,6 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color.black
 import me.anno.utils.OS.res
-import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -25,6 +22,8 @@ import org.apache.logging.log4j.LogManager
  * */
 class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
     PanelContainer(default, Padding(0), style) {
+
+    private val crossSize = getCrossSize(style)
 
     // todo when dragging on the cross, or maybe left corners as well, split UI there like Blender
     //  but also allow merging
@@ -36,7 +35,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        val crossSize = getCrossSize(style)
         return this.lx1 - lx1 < crossSize && ly0 - this.ly0 < crossSize
     }
 
@@ -44,7 +42,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         super.draw(x0, y0, x1, y1)
         val icon0 = TextureCache[crossPath, 360_000L, true]
         val icon = icon0 ?: whiteTexture
-        val crossSize = getCrossSize(style).roundToIntOr()
         val x2 = x + width - (crossSize + 2)
         val y2 = y + 2
         val tint = 0x8f8f8f or black
@@ -104,34 +101,38 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             }.setEnabled(parent is CustomList && (siblings.size > 1 || parent.parent is CustomList), warningForLast)
         )
         options.add(Menu.menuSeparator1)
-        options.add(MenuOption(
-            NameDesc(
-                "Add Panel Left",
-                "Adds a new panel to the left of this one",
-                "ui.customize.addBefore"
-            )
-        ) { addPanel(false, firstThis = false) })
-        options.add(MenuOption(
-            NameDesc(
-                "Add Panel Right",
-                "Adds a new panel to the right of this one",
-                "ui.customize.addAfter"
-            )
-        ) { addPanel(false, firstThis = true) })
-        options.add(MenuOption(
-            NameDesc(
-                "Add Panel Above",
-                "Adds a new panel to the top of this one",
-                "ui.customize.addAbove"
-            )
-        ) { addPanel(true, firstThis = false) })
-        options.add(MenuOption(
-            NameDesc(
-                "Add Panel Below",
-                "Adds a new panel to the bottom of this one",
-                "ui.customize.addBelow"
-            )
-        ) { addPanel(true, firstThis = true) })
+        options.add(
+            MenuOption(
+                NameDesc(
+                    "Add Panel Left",
+                    "Adds a new panel to the left of this one",
+                    "ui.customize.addBefore"
+                )
+            ) { addPanel(false, firstThis = false) })
+        options.add(
+            MenuOption(
+                NameDesc(
+                    "Add Panel Right",
+                    "Adds a new panel to the right of this one",
+                    "ui.customize.addAfter"
+                )
+            ) { addPanel(false, firstThis = true) })
+        options.add(
+            MenuOption(
+                NameDesc(
+                    "Add Panel Above",
+                    "Adds a new panel to the top of this one",
+                    "ui.customize.addAbove"
+                )
+            ) { addPanel(true, firstThis = false) })
+        options.add(
+            MenuOption(
+                NameDesc(
+                    "Add Panel Below",
+                    "Adds a new panel to the bottom of this one",
+                    "ui.customize.addBelow"
+                )
+            ) { addPanel(true, firstThis = true) })
         openMenu(windowStack, x + width - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
     }
 
@@ -161,25 +162,24 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     fun clicked(x: Float, y: Float): Boolean {
-        return if (isCross(x, y)) {
+        return if (isCursorOnCross(x, y, crossSize)) {
             changeType()
             true
         } else false
     }
 
-    companion object {
+    fun getCrossSize(style: Style): Int {
+        val fontSize = style.getSize("text.fontSize", FontStats.getDefaultFontSize())
+        return style.getSize("customizable.crossSize", fontSize)
+    }
 
+    fun isCursorOnCross(x: Float, y: Float, crossSize: Int): Boolean {
+        val crossSize1 = crossSize + 4f // +4f for 2*padding
+        return x - (this.x + width - crossSize1) in 0f..crossSize1 && y - this.y in 0f..crossSize1
+    }
+
+    companion object {
         private val crossPath = res.getChild("textures/Cross.png")
         private val LOGGER = LogManager.getLogger(CustomContainer::class)
-
-        fun getCrossSize(style: Style): Float {
-            val fontSize = style.getSize("text.fontSize", FontStats.getDefaultFontSize())
-            return style.getSize("customizable.crossSize", fontSize).toFloat()
-        }
-
-        fun Panel.isCross(x: Float, y: Float): Boolean {
-            val crossSize = getCrossSize(style) + 4f // +4f for 2*padding
-            return x - (this.x + width - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
-        }
     }
 }

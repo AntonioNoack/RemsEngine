@@ -26,7 +26,6 @@ object FontManager {
 
     val TextCache = CacheSection("Text")
     val TextSizeCache = CacheSection("TextSize")
-    val BaselineCache = CacheSection("Baseline")
 
     private const val textureTimeout = 10_000L
 
@@ -70,11 +69,11 @@ object FontManager {
     }
 
     fun getSize(key: TextCacheKey, async: Boolean): Int {
-        val data = TextSizeCache.getEntry(key, 100_000, async) {
-            val awtFont = getFont(it)
-            val wl = if (it.widthLimit < 0) GFX.maxTextureSize else min(it.widthLimit, GFX.maxTextureSize)
-            val hl = if (it.heightLimit < 0) GFX.maxTextureSize else min(it.heightLimit, GFX.maxTextureSize)
-            CacheData(awtFont.calculateSize(it.text, wl, hl))
+        val data = TextSizeCache.getEntry(key, 100_000, async) { keyI ->
+            val awtFont = getFont(keyI)
+            val wl = if (keyI.widthLimit < 0) GFX.maxTextureSize else min(keyI.widthLimit, GFX.maxTextureSize)
+            val hl = if (keyI.heightLimit < 0) GFX.maxTextureSize else min(keyI.heightLimit, GFX.maxTextureSize)
+            CacheData(awtFont.calculateSize(keyI.text, wl, hl))
         } as? CacheData<*>
         return data?.value as? Int ?: -1
     }

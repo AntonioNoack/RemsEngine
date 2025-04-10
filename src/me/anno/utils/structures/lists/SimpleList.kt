@@ -2,6 +2,14 @@ package me.anno.utils.structures.lists
 
 abstract class SimpleList<V> : List<V> {
 
+    class SimpleSubList<V>(
+        val fromIndex: Int, toIndex: Int,
+        val base: SimpleList<V>
+    ) : SimpleList<V>() {
+        override val size: Int = toIndex - fromIndex
+        override fun get(index: Int): V = base[index + fromIndex]
+    }
+
     override fun contains(element: V): Boolean {
         return indexOf(element) >= 0
     }
@@ -18,19 +26,27 @@ abstract class SimpleList<V> : List<V> {
     override fun listIterator(index: Int): ListIterator<V> = SimpleListIterator(this, index)
 
     override fun subList(fromIndex: Int, toIndex: Int): List<V> {
-        val self = this
-        return object : SimpleList<V>() {
-            override val size: Int = toIndex - fromIndex
-            override fun get(index: Int): V = self[index + fromIndex]
+        return if (fromIndex == 0 && toIndex == size) this
+        else if (this is SimpleSubList<V>) {
+            val offset = this.fromIndex
+            SimpleSubList(fromIndex + offset, toIndex + offset, base)
+        } else {
+            SimpleSubList(fromIndex, toIndex, this)
         }
     }
 
     override fun lastIndexOf(element: V): Int {
-        return indices.indexOfLast { this[it] == element }
+        for (i in size - 1 downTo 0) {
+            if (this[i] == element) return i
+        }
+        return -1
     }
 
     override fun indexOf(element: V): Int {
-        return indices.indexOfFirst { this[it] == element }
+        for (i in 0 until size) {
+            if (this[i] == element) return i
+        }
+        return -1
     }
 
     override fun toString(): String {

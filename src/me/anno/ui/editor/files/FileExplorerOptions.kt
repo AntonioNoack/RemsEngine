@@ -146,13 +146,14 @@ object FileExplorerOptions {
 
     fun openImageViewerImpl(windowStack: WindowStack, files: List<FileReference>, style: Style) {
         val nullMeta = getMeta(files.first(), false)
+        val deep = style.getChild("deep")
         val imagePanel = if (nullMeta != null && nullMeta.hasVideo && nullMeta.videoFrameCount > 1) {
             // todo switch between videos
-            VideoPanel.createSimpleVideoPlayer(files.first())
+            VideoPanel.createSimpleVideoPlayer(files.first(), deep)
         } else {
-            ImageViewer(files, style).enableControls()
+            ImageViewer(files, deep).enableControls()
         }
-        val stack = PanelStack(style)
+        val stack = PanelStack(deep)
         stack.add(imagePanel)
         stack.add(TextButton(NameDesc("Close"), style)
             .addLeftClickListener(Menu::close)

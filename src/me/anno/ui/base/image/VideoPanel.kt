@@ -118,11 +118,11 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
     }
 
     companion object {
-        fun createSimpleVideoPlayer(source: FileReference): Panel {
-            val list = PanelListY(DefaultConfig.style)
-            val controls = PanelListX(DefaultConfig.style)
+        fun createSimpleVideoPlayer(source: FileReference, style: Style): Panel {
+            val list = PanelListY(style)
+            val controls = PanelListX(style)
             val meta = MediaMetadata.getMeta(source, false)!!
-            val movie = object : VideoPanel(source, meta, true, DefaultConfig.style) {
+            val movie = object : VideoPanel(source, meta, true, style) {
                 override fun onKeyTyped(x: Float, y: Float, key: Key) {
                     when (key) {
                         Key.KEY_SPACE -> stream.togglePlaying()
@@ -137,12 +137,12 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
             }
             movie.looping = LoopingState.PLAY_LOOP
             controls.add(
-                TextButton(NameDesc(">"), 1.5f, DefaultConfig.style)
+                TextButton(NameDesc(">"), 1.5f, style)
                     .addLeftClickListener {
                         movie.stream.togglePlaying()
                         (it as TextButton).text = if (movie.stream.isPlaying) "||" else ">"
                     })
-            controls.add(object : Panel(DefaultConfig.style) {
+            controls.add(object : Panel(style) {
                 override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                     super.draw(x0, y0, x1, y1)
                     val xi = (x + width * movie.stream.getTime() / movie.meta.videoDuration).toInt()

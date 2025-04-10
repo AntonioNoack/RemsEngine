@@ -138,8 +138,7 @@ object TextureCache : CacheSection("Texture") {
 
     private fun createLUT(file: FileReference, img: Image): Texture3D {
         val size = sqrt(img.width + 0.5f).toInt()
-        return Texture3D("lut-${file.name}", size, img.height, size)
-            .create(img, false)
+        return Texture3D("lut-${file.name}", size, img.height, size).create(img)
     }
 
     fun getTextureArray(

@@ -58,6 +58,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
@@ -704,20 +705,26 @@ object DebugRendering {
         }
     }
 
-    private fun <V> List<Pair<String, V>>.removeDuplicates(): List<Pair<String, V>> {
+    private fun <V> List<Pair<String, V>>.distinctTextures(): List<Pair<String, V>> {
+        if (isEmpty()) return emptyList() // shortcut
         val set = HashSet<V>()
         return filter { set.add(it.second) }
     }
 
+    private fun findRelevantTextures(node: Node): List<Pair<String, ITexture2D>> {
+        return node.outputs.mapNotNull { output ->
+            if (output.type == "Texture") {
+                val value = (output.currValue as? Texture)?.texOrNull
+                if (value != null) Pair(output.name, value) else null
+            } else null
+        }.distinctTextures()
+    }
+
     private fun findRelevantNodes(graph: FlowGraph): List<Pair<String, List<Pair<String, ITexture2D>>>> {
-        return graph.nodes.map {
-            it.name to it.outputs
-                .filter { o -> o.type == "Texture" }
-                .mapNotNull { o ->
-                    val value = (o.currValue as? Texture)?.texOrNull
-                    if (value != null) o.name to value else null
-                }.removeDuplicates()
-        }.filter { it.second.isNotEmpty() }
+        return graph.nodes.mapNotNull { node ->
+            val textures = findRelevantTextures(node)
+            if (textures.isNotEmpty()) Pair(node.name, textures) else null
+        }
     }
 
     private fun drawTextureInBig(view: RenderView, slotName: String, texture: ITexture2D) {

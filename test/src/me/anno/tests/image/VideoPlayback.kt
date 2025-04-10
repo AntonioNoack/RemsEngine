@@ -1,6 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.ui.base.image.VideoPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.videos
@@ -15,6 +16,6 @@ fun main() {
         // texImage2D() seems to be the culprit...
         val files = videos.listChildren()
             .first { !it.isDirectory }
-        VideoPanel.createSimpleVideoPlayer(files)
+        VideoPanel.createSimpleVideoPlayer(files, style)
     }
 }

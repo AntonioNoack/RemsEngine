@@ -32,6 +32,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.min
 import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.structures.tuples.LongTriple
@@ -253,7 +254,7 @@ open class InstancedStack {
             val drawDebugLines = Mesh.drawDebugLines
             val instanceCount = instances.size
             val bindBuffersDirectly = GFXState.bakedMeshLayout.currentValue != null
-            for (baseIndex in 0 until instanceCount step batchSize) {
+            forLoop(0, instanceCount, batchSize) { baseIndex ->
 
                 val t2 = Time.nanoTime
 

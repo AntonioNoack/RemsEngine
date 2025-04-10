@@ -12,7 +12,7 @@ import me.anno.ui.base.image.TextSizedIconPanel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.files.FileExplorerEntry.Companion.getDefaultIconPath
+import me.anno.ui.editor.files.FileExplorerIcons.getDefaultIconPath
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.types.Booleans.toFloat
 import me.anno.utils.types.Strings.getImportTypeByExtension

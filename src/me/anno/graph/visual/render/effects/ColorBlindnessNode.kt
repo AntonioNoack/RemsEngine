@@ -1,6 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.engine.ui.render.RenderMode.Companion.postProcessGraph
+import me.anno.engine.ui.render.RenderMode.Companion.createHDRPostProcessGraph
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer
@@ -93,7 +93,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) : TimedRenderingNode(
         )
 
         fun createRenderGraph(mode: ColorBlindnessMode): FlowGraph {
-            return postProcessGraph(ColorBlindnessNode(mode))
+            return createHDRPostProcessGraph(ColorBlindnessNode(mode))
         }
     }
 }

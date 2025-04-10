@@ -47,19 +47,19 @@ class NightNode : RenderViewNode(
         val strength = getFloatInput(1)
         val skyDarkening = getFloatInput(2)
         val color0 = getInput(3) as? Texture
-        val color = color0.texOrNull
+        val color1 = color0.texOrNull
         val depth = (getInput(4) as? Texture).texOrNull ?: depthTexture
-        if (color == null || strength <= 0f) {
+        if (color1 == null || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
             timeRendering(name, timer) {
-                val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
+                val result = FBStack[name, color1.width, color1.height, 3, true, 1, DepthBufferType.NONE]
                 useFrame(result, copyRenderer) {
-                    val shader = shader
+                    val shader = simpleNightShader
                     shader.use()
                     shader.v1f("exposure", 0.02f / strength)
                     shader.v1f("skyDarkening", skyDarkening)
-                    color.bindTrulyNearest(shader, "colorTex")
+                    color1.bindTrulyNearest(shader, "colorTex")
                     depth.bindTrulyNearest(shader, "depthTex")
                     (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
                         .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
@@ -72,7 +72,7 @@ class NightNode : RenderViewNode(
     }
 
     companion object {
-        val shader = Shader(
+        private val simpleNightShader = Shader(
             "night", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "skyDarkening"),

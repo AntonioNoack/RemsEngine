@@ -9,7 +9,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.RenderMode.Companion.postProcessGraph
+import me.anno.engine.ui.render.RenderMode.Companion.createHDRPostProcessGraph
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFXState.useFrame
@@ -268,5 +268,5 @@ fun main() {
 }
 
 fun createSnowGraph(snowNode: SnowNode): FlowGraph {
-    return postProcessGraph(snowNode)
+    return createHDRPostProcessGraph(snowNode)
 }

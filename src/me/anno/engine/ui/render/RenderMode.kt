@@ -34,6 +34,7 @@ import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.FXAANode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.HeightExpFogNode
+import me.anno.graph.visual.render.effects.LUTColorMapNode
 import me.anno.graph.visual.render.effects.MSAAHelperNode
 import me.anno.graph.visual.render.effects.MotionBlurNode
 import me.anno.graph.visual.render.effects.NightNode
@@ -66,7 +67,9 @@ import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.scalar.FloatMathBinary
 import me.anno.graph.visual.vector.MathF2XNode
+import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
+import me.anno.utils.OS.res
 import org.joml.Vector4f
 
 /**
@@ -408,27 +411,8 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        val LINES = RenderMode(
-            "Lines",
-            QuickPipeline()
-                .then(BoxCullingNode())
-                .then1(RenderForwardNode(), opaqueNodeSettings)
-                .then(RenderGlassNode())
-                .then(ToneMappingNode())
-                .then(GizmoNode())
-                .finish()
-        )
-        val LINES_MSAA = RenderMode(
-            "Lines MSAA",
-            QuickPipeline()
-                .then(BoxCullingNode())
-                .then(MSAAHelperNode())
-                .then1(RenderForwardNode(), opaqueNodeSettings)
-                .then(RenderGlassNode())
-                .then(ToneMappingNode())
-                .then(GizmoNode())
-                .finish()
-        )
+        val LINES = RenderMode("Lines", FORWARD.renderGraph)
+        val LINES_MSAA = RenderMode("Lines MSAA", MSAA_FORWARD.renderGraph)
         val FRONT_BACK = RenderMode("Front/Back", frontBackRenderer)
 
         /** visualize the triangle structure by giving each triangle its own color */
@@ -500,6 +484,8 @@ class RenderMode private constructor(
                 .finish()
         )
 
+        val LINES_TAA = RenderMode("Lines TAA", TAA.renderGraph)
+
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
@@ -562,7 +548,7 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        fun postProcessGraph(node: ActionNode): FlowGraph {
+        fun createPostProcessGraphBase(): QuickPipeline {
             return QuickPipeline()
                 .then(BoxCullingNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
@@ -572,15 +558,27 @@ class RenderMode private constructor(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(RenderGlassNode())
-                .then(node)
+        }
+
+        fun createHDRPostProcessGraph(postProcessNode: ActionNode): FlowGraph {
+            return createPostProcessGraphBase()
+                .then(postProcessNode)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
                 .finish()
         }
 
-        val FOG_TEST = RenderMode("Fog Test", postProcessGraph(HeightExpFogNode()))
-        val NIGHT_TEST = RenderMode("Night Test", postProcessGraph(NightNode()))
-        val ANIME_OUTLINES = RenderMode("Anime Outlines", postProcessGraph(AnimeOutlineNode()))
+        fun createLUTGraph(source: FileReference): FlowGraph {
+            return createPostProcessGraphBase()
+                .then(BloomNode())
+                .then1(LUTColorMapNode(), mapOf("LUT Source" to source, "Apply Tone Mapping" to true))
+                .then(GizmoNode())
+                .finish()
+        }
+
+        val FOG_TEST = RenderMode("Fog Test", createHDRPostProcessGraph(HeightExpFogNode()))
+        val NIGHT_TEST = RenderMode("Night Test", createHDRPostProcessGraph(NightNode()))
+        val ANIME_OUTLINES = RenderMode("Anime Outlines", createHDRPostProcessGraph(AnimeOutlineNode()))
 
         val CELL_SHADING = RenderMode(
             "Cell Shading",
@@ -602,8 +600,11 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        val VIGNETTE = RenderMode("Vignette", postProcessGraph(VignetteNode()))
-        val PIXELATION = RenderMode("Pixelation", postProcessGraph(PixelationNode()))
+        val VIGNETTE = RenderMode("Vignette", createHDRPostProcessGraph(VignetteNode()))
+        val PIXELATION = RenderMode("Pixelation", createHDRPostProcessGraph(PixelationNode()))
+
+        val COLD_LUT = RenderMode("Cold LUT", createLUTGraph(res.getChild("textures/lut/coldLUT.png")))
+        val SEPIA_LUT = RenderMode("Sepia LUT", createLUTGraph(res.getChild("textures/lut/sepiaLUT.png")))
 
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
         val IS_INDEXED = RenderMode("Is Indexed", isIndexedRenderer)

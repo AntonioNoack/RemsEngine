@@ -20,9 +20,11 @@ import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.pooling.Pools.byteBufferPool
+import me.anno.utils.pooling.Pools.intArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BGRA
@@ -132,19 +134,37 @@ open class Texture3D(
         afterUpload(GL_RGBA32F, 16, true)
     }
 
-    fun create(img: Image, sync: Boolean): Texture3D {
-        // todo we could detect monochrome and such :)
-        val intData = img.asIntImage().data
+    fun create(img: Image): Texture3D {
+        // todo we could detect monochrome, float-precision and such :)
+        assertTrue(img.width >= width * depth)
+        assertTrue(img.height >= height)
+        val intData = intArrayPool[width * height * depth, false, false]
+        fillIntData(img, intData)
+        convertToRGBAForGPU(intData)
+        addGPUTask("Texture3D.create()", img.width, img.height) {
+            createRGBA8(intData)
+            intArrayPool.returnBuffer(intData)
+        }
+        return this
+    }
+
+    private fun fillIntData(img: Image, intData: IntArray) {
+        var k = 0
+        for (z in 0 until depth) {
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    intData[k++] = img.getRGB(z * width + x, y)
+                }
+            }
+        }
+    }
+
+    private fun convertToRGBAForGPU(intData: IntArray) {
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
             convertARGB2ABGR(intData)
         } else {
             convertARGB2RGBA(intData)
         }
-        if (sync) createRGBA8(intData)
-        else addGPUTask("Texture3D.create()", img.width, img.height) {
-            createRGBA8(intData)
-        }
-        return this
     }
 
     fun createRGBA8(data: IntArray): Texture3D {
@@ -305,15 +325,12 @@ open class Texture3D(
         return this
     }
 
-    fun filtering(nearest: Filtering): Texture3D {
-        if (nearest != Filtering.LINEAR) {
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        } else {
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        }
-        filtering = nearest
+    fun filtering(filtering: Filtering): Texture3D {
+        val glFilter = if (filtering == Filtering.NEAREST || filtering == Filtering.TRULY_NEAREST)
+            GL_NEAREST else GL_LINEAR
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, glFilter)
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, glFilter)
+        this.filtering = filtering
         return this
     }
 

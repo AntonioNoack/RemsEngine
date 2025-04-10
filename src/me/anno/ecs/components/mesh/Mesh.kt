@@ -38,8 +38,8 @@ import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.MeshRendering.drawImpl
 import me.anno.mesh.MeshRendering.drawInstancedImpl
 import me.anno.mesh.MeshUtils.countPrimitives
-import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.InternalAPI
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
 import org.apache.logging.log4j.LogManager
@@ -506,11 +506,14 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     companion object {
 
+        fun drawDebugLines(mode: RenderMode?): Boolean {
+            return mode == RenderMode.LINES ||
+                    mode == RenderMode.LINES_MSAA ||
+                    mode == RenderMode.LINES_TAA
+        }
+
         val drawDebugLines: Boolean
-            get() {
-                val mode = RenderView.currentInstance?.renderMode
-                return mode == RenderMode.LINES || mode == RenderMode.LINES_MSAA
-            }
+            get() = drawDebugLines(RenderView.currentInstance?.renderMode)
 
         private val defaultMaterials = emptyList<FileReference>()
         private val LOGGER = LogManager.getLogger(Mesh::class)

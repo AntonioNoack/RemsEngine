@@ -574,9 +574,22 @@ object Strings {
         return result.toString()
     }
 
+    private fun String.isTitleCase(): Boolean {
+        if (isEmpty()) return true
+        if (this[0] !in 'A'..'Z') return false
+        for (i in 1 until length) {
+            when (this[i]) {
+                in 'A'..'Z', in 'a'..'z', in '0'..'9' -> {}
+                ' ' -> if (i + 1 >= length || this[i + 1] !in 'A'..'Z') return false
+            }
+        }
+        return true
+    }
+
     @JvmStatic
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     fun String.splitCamelCase(titlecase: Boolean = false): String {
+        if (titlecase && isTitleCase()) return this
         return replace('_', ' ') // snake case replacements
             .splitCamelCaseI(titlecase)
             .replace("    ", " ")
@@ -596,7 +609,7 @@ object Strings {
                     // MeshComponent -> Mesh_Component
                     builder.append(' ')
                 } else if (i + 1 < length && this[i - 1] in 'A'..'Z' && this[i + 1] in 'a'..'z') {
-                    // SDFMesh -> SDF_Mesh
+                    // SDFMesh -> SDF Mesh
                     builder.append(' ')
                 }
             }

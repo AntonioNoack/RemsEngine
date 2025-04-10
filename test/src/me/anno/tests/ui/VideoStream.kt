@@ -1,5 +1,6 @@
 package me.anno.tests.ui
 
+import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.ui.base.image.VideoPanel.Companion.createSimpleVideoPlayer
@@ -12,6 +13,6 @@ fun main() {
     testUI3("Video Playback") {
         // todo there is broken frames... do we have two readers on the same stream???
         val source = videos.getChild("treemiddle.mp4")
-        createSimpleVideoPlayer(source).fill(1f)
+        createSimpleVideoPlayer(source, style).fill(1f)
     }
 }

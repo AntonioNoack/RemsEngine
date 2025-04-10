@@ -8,6 +8,7 @@ import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.callbacks.I2U
 import kotlin.math.max
 
 open class SimpleTextPanel(style: Style) : Panel(style) {
@@ -48,14 +49,14 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         GFX.loadTexturesSync.pop()
     }
 
-    open fun forEachLine(callback: (i0: Int, i1: Int) -> Unit) {
+    open fun forEachLine(callback: I2U) {
         val text = text
         var i = 0
         while (true) {
             val ni = text.indexOf('\n', i)
             var ni1 = if (ni < 0) text.length else ni
             if (ni1 > i && text[ni1 - 1] == '\r') ni1--
-            callback(i, ni1)
+            callback.call(i, ni1)
             if (ni > i) {
                 i = ni + 1
             } else break

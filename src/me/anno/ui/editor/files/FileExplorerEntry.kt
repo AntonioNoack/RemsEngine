@@ -79,17 +79,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer.Companion.rightClickedFiles
-import me.anno.ui.editor.files.FileExplorerIcons.docsPath
-import me.anno.ui.editor.files.FileExplorerIcons.emptyFolderPath
-import me.anno.ui.editor.files.FileExplorerIcons.exePath
-import me.anno.ui.editor.files.FileExplorerIcons.folderPath
-import me.anno.ui.editor.files.FileExplorerIcons.imagePath
-import me.anno.ui.editor.files.FileExplorerIcons.linkPath
-import me.anno.ui.editor.files.FileExplorerIcons.metadataPath
-import me.anno.ui.editor.files.FileExplorerIcons.musicPath
-import me.anno.ui.editor.files.FileExplorerIcons.textPath
-import me.anno.ui.editor.files.FileExplorerIcons.videoPath
-import me.anno.ui.editor.files.FileExplorerIcons.zipPath
+import me.anno.ui.editor.files.FileExplorerIcons.getDefaultIconPath
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
@@ -838,36 +828,6 @@ open class FileExplorerEntry(
         val hoverPlaybackDelay = 0.5
 
         private val tooltipQueue = ProcessingQueue("FileExplorer-Tooltips")
-
-        fun getDefaultIconPath(isParent: Boolean, file: FileReference, importType: String?): FileReference {
-            return if (isParent || file.isDirectory) {
-                if (isParent) {
-                    folderPath
-                } else {
-                    when (file.name.lowercase()) {
-                        "music", "musik" -> musicPath
-                        "videos", "movies" -> videoPath
-                        "documents", "dokumente", "downloads" -> textPath
-                        "images", "pictures", "bilder" -> imagePath
-                        else -> if (file.hasChildren())
-                            folderPath else emptyFolderPath
-                    }
-                }
-            } else {
-                // actually checking the type would need to be done async, because it's slow to ready many, many files
-                when (importType) {
-                    CONTAINER -> zipPath
-                    IMAGE, "Cubemap", CUBEMAP_EQU -> imagePath // is there a cubemap format?
-                    TEXT -> textPath
-                    AUDIO -> musicPath
-                    VIDEO -> videoPath
-                    EXECUTABLE -> exePath
-                    METADATA -> metadataPath
-                    LINK -> linkPath
-                    else -> docsPath
-                }
-            }
-        }
 
         fun startAudioPlayback(file: FileReference, meta: MediaMetadata) {
             val audio = AudioFileStreamOpenAL(

@@ -306,12 +306,12 @@ object Input {
 
     val controllers = ArrayList<Controller>()
 
-    fun onClickIntoWindow(window: OSWindow, button: Key, panelWindow: Pair<Panel, Window>?) {
-        if (panelWindow != null) {
+    fun onClickIntoWindow(window: OSWindow, button: Key, windowAt: Window?) {
+        if (windowAt != null) {
             val ws = window.windowStack
             while (true) {
                 val peek = ws.peek() ?: break
-                if (panelWindow.second == peek || !peek.acceptsClickAway(button)) break
+                if (windowAt == peek || !peek.acceptsClickAway(button)) break
                 ws.pop().destroy()
                 windowWasClosed = true
             }
@@ -341,8 +341,8 @@ object Input {
 
         windowWasClosed = false
         val windowStack = window.windowStack
-        val panelWindow = windowStack.getPanelAndWindowAt(mouseX, mouseY)
-        onClickIntoWindow(window, button, panelWindow)
+        val panelAt = windowStack.getPanelAt(mouseX, mouseY)
+        onClickIntoWindow(window, button, panelAt?.window)
         if (windowWasClosed) return
 
         // todo the selection order for multiselect not always makes sense (e.g. not for graph panels) ->

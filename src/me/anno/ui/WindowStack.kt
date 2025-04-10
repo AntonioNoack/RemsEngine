@@ -94,28 +94,19 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         return push(Window(panel, isTransparent, isFullscreen, this, x, y))
     }
 
-    fun getPanelAndWindowAt(x: Float, y: Float) =
-        getPanelAndWindowAt(x.toInt(), y.toInt())
-
-    fun getPanelAndWindowAt(x: Int, y: Int): Pair<Panel, Window>? {
-        for (windowIndex in size - 1 downTo 0) {
-            val window = this[windowIndex]
-            val panel = window.panel.getPanelAt(x, y)
-            if (panel != null) return Pair(panel, window)
-            else if (!window.isTransparent && window.panel.contains(x, y))
-                return Pair(window.panel, window)
-        }
-        return null
-    }
-
     fun getPanelAt(x: Float, y: Float) = getPanelAt(x.toInt(), y.toInt())
     fun getPanelAt(x: Int, y: Int): Panel? {
         for (i in size - 1 downTo 0) {
             val window = this[i]
-            val panel = window.panel.getPanelAt(x, y)
-            if (panel != null) return panel
-            else if (!window.isTransparent && window.panel.contains(x, y))
-                return window.panel
+            val windowPanel = window.panel
+            val panel = windowPanel.getPanelAt(x, y)
+            if (panel != null) {
+                panel.window = window
+                return panel
+            } else if (!window.isTransparent && windowPanel.contains(x, y)) {
+                windowPanel.window = window
+                return windowPanel
+            }
         }
         return null
     }

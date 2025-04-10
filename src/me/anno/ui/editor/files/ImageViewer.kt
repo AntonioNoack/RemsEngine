@@ -1,6 +1,11 @@
 package me.anno.ui.editor.files
 
+import me.anno.config.DefaultStyle
+import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
+import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
@@ -11,6 +16,7 @@ import me.anno.maths.Maths.max
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.image.ImagePanel
+import me.anno.utils.Color.withAlpha
 
 class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(style) {
 
@@ -32,17 +38,30 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
     }
 
     val font = style.getFont("text")
+    val textColor = style.getColor("textColor", DefaultStyle.iconGray)
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
+
         // todo draw controls into the background
         // todo show image statistics in a corner?
         // todo switch sources on the parent, so folders with images and videos can be (dis)played properly?
         // todo if texture still loads, show loading circle
 
-        // todo bug: background isn't drawn... why???
+        val padding = 10
+        val widthLimit = width
+        val radius = padding.toFloat()
+        val textSize = getTextSize(font, file.name, widthLimit, -1, true)
+        val textWidth = getSizeX(textSize) + padding
+        val textHeight = getSizeY(textSize) + padding.shr(1)
+        drawRoundedRect(
+            x + (width - textWidth) / 2, y + height - textHeight - padding.shr(2), textWidth, textHeight,
+            radius, radius, radius, radius, 0f, backgroundColor, backgroundColor,
+            backgroundColor.withAlpha(0), 1f
+        )
         drawTextOrFail( // draw file name at bottom center
-            x + width / 2, y + height, font, file.name,
-            -1, backgroundColor, width, -1,
+            x + width / 2, y + height - padding.shr(1), font, file.name,
+            textColor, backgroundColor, widthLimit, -1,
             AxisAlignment.CENTER, AxisAlignment.MAX
         )
     }

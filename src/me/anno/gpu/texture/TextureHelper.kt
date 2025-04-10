@@ -79,8 +79,9 @@ object TextureHelper {
         }
         glTexParameteri(target, GL_TEXTURE_WRAP_S, value)
         glTexParameteri(target, GL_TEXTURE_WRAP_T, value)
-        if (target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY)
+        if (target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY) {
             glTexParameteri(target, GL_TEXTURE_WRAP_R, value)
+        }
         if (value == GL_CLAMP_TO_BORDER) {
             val tmp = tmp4f
             tmp[0] = borderColor.r01()

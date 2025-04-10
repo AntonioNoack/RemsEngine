@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.light.sky.SkyboxUpscaler
 import me.anno.ecs.components.light.sky.shaders.SkyUpscaleShader
+import me.anno.ecs.components.mesh.Mesh.Companion.drawDebugLines
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderMode
@@ -20,8 +21,8 @@ import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.texture.CubemapTexture
@@ -109,7 +110,7 @@ object DrawSky {
     private fun bakeSkybox0(pipeline: Pipeline, resolution: Int) {
         val self = RenderView.currentInstance
         val renderMode = self?.renderMode
-        if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+        if (self != null && drawDebugLines(renderMode)) {
             self.renderMode = RenderMode.DEFAULT
         }
         // todo only update skybox every n frames

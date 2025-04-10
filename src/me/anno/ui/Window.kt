@@ -167,13 +167,15 @@ open class Window(
     }
 
     fun otherWindowIsOverUs(): Boolean {
-        val idx = max(0, windowStack.indexOf(this))
-        return (idx + 1 until windowStack.size).any {
-            val otherWindow = windowStack[it]
-            mouseXi - otherWindow.x in 0 until otherWindow.width &&
-                    mouseYi - otherWindow.y in 0 until otherWindow.height &&
-                    otherWindow.panel.contains(mouseXi, mouseYi)
+        val selfI = max(0, windowStack.indexOf(this))
+        for (otherI in selfI + 1 until windowStack.size) {
+            val otherWindow = windowStack[otherI]
+            if (mouseXi - otherWindow.x in 0 until otherWindow.width &&
+                mouseYi - otherWindow.y in 0 until otherWindow.height &&
+                otherWindow.panel.contains(mouseXi, mouseYi)
+            ) return true
         }
+        return false
     }
 
     fun otherWindowIsFocused(): Boolean {

@@ -240,10 +240,10 @@ abstract class EngineBase(
 
     fun updateHoveredAndCursor(window: OSWindow) {
         val hovered = window.windowStack
-            .getPanelAndWindowAt(window.mouseX, window.mouseY)
-        hoveredPanel = hovered?.first
-        hoveredWindow = hovered?.second
-        updateCursor(window, hovered?.first)
+            .getPanelAt(window.mouseX, window.mouseY)
+        hoveredPanel = hovered
+        hoveredWindow = hovered?.window
+        updateCursor(window, hovered)
     }
 
     fun updateCursor(window: OSWindow, hoveredPanel: Panel?) {

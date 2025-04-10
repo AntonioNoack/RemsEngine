@@ -1,6 +1,7 @@
 package me.anno.gpu
 
 import me.anno.gpu.GFXState.useFrame
+import me.anno.utils.callbacks.I4U
 import kotlin.math.max
 import kotlin.math.min
 
@@ -34,10 +35,10 @@ object Clipping {
     fun clip2Dual(
         x0: Int, y0: Int, x1: Int, y1: Int,
         x2: Int, y2: Int, x3: Int, y3: Int,
-        render: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
+        render: I4U // x0,y0,x1,y1
     ) {
         clip2Save(max(x0, x2), max(y0, y2), min(x1, x3), min(y1, y3)) {
-            render(x2, y2, x3, y3)
+            render.call(x2, y2, x3, y3)
         }
     }
 }
