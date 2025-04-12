@@ -53,6 +53,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.async.UnitCallback
@@ -284,7 +285,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         val v = Vector3f()
         val bounds = AABBf()
         val one = 1f.toRawBits()
-        for (i in data.indices step 3) {
+        forLoopSafely(data.size, 3) { i ->
             v.set(data[i], data[i + 1], data[i + 2])
             v.normalize()
             if (v.isFinite) {
@@ -380,7 +381,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         alignBinary(8)
         val pos = binary.size()
         val bounds = AABBf()
-        for (i in data.indices step 2) {
+        forLoopSafely(data.size, 2) { i ->
             var u = data[i]
             var v = 1f - data[i + 1]
             if (u.isNaN()) u = 0f

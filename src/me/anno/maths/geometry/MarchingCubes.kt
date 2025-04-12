@@ -3,6 +3,7 @@ package me.anno.maths.geometry
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.res
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
@@ -184,7 +185,7 @@ object MarchingCubes {
             if (edgeMask.and(2048) != 0) edges.addUnsafe(1f, findZero(v100, v110), 0f)
 
             val data = edges.values
-            for (i in 0 until edges.size step 3) {
+            forLoopSafely(edges.size, 3) { i ->
                 data[i] = data[i] * sx + px
                 data[i + 1] = data[i + 1] * sy + py
                 data[i + 2] = data[i + 2] * sz + pz

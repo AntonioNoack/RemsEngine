@@ -27,6 +27,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
@@ -255,7 +256,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             val yl1 = (min(y1.toLong(), by + lineCount * lineHeight) - yl0).toInt()
             val yl0i = yl0.toInt()
             val lineColor = mixARGB(backgroundColor, midLineColor, midLineColor.a() / 255f)
-            for (i in 0 until bytesPerLine step lineEveryN) {
+            forLoop(0, bytesPerLine, lineEveryN) { i ->
                 val x2 = bx + addressDx + i * (spacing2 + 2 * charWidth) - (spacing2 + 1) / 2
                 val lineColor2 = if (i > 0) mixARGB(backgroundColor, lineColor, 0.3f) else lineColor
                 drawRect(x2, yl0i, 1, yl1, lineColor2)

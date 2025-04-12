@@ -32,6 +32,7 @@ import me.anno.mesh.blender.impl.BObject
 import me.anno.mesh.blender.impl.BObjectType
 import me.anno.mesh.blender.impl.BScene
 import me.anno.utils.Clock
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isNotBlank2
@@ -152,7 +153,7 @@ object BlenderReader {
             val translations = FloatArray(numFrames * numBones * 3)
             val rotations = FloatArray(numFrames * numBones * 4)
 
-            for (i in rotations.indices step 4) {
+            forLoopSafely(rotations.size, 4) { i ->
                 rotations[i + 3] = 1f
             }
 

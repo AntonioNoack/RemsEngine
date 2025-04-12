@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
@@ -19,12 +20,8 @@ class ConvexCollider : Collider() {
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val points = points ?: return
-        for (i in 0 until points.size - 2 step 3) {
-            tmp.set(
-                points[i].toDouble(),
-                points[i + 1].toDouble(),
-                points[i + 2].toDouble()
-            )
+        forLoopSafely(points.size, 3) { i ->
+            tmp.set(points, i)
             aabb.union(globalTransform.transformPosition(tmp))
         }
     }
@@ -34,7 +31,7 @@ class ConvexCollider : Collider() {
         // triangles or polygons would be better, but we don't have them
         val points = points ?: return
         val color = getLineColor(hasPhysics)
-        for (i in 0 until points.size - 2 step 3) {
+        forLoopSafely(points.size, 3) { i ->
             LineShapes.drawPoint(entity, points[i], points[i + 1], points[i + 2], 0.1, color)
         }
     }

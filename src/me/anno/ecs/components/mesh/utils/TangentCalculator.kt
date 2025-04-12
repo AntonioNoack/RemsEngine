@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.utils
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.gpu.buffer.DrawMode
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.min
@@ -42,7 +43,7 @@ object TangentCalculator {
 
         // apply all the normals, smooth shading
         var j = 0
-        for (i in normals.indices step 3) {
+        forLoopSafely(normals.size, 3) { i ->
             compute(n, s, t, normals, i, tan1, j, tan2, j)
             j += 4
         }

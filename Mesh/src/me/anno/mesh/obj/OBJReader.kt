@@ -11,6 +11,8 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.mesh.Triangulation
+import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
@@ -386,7 +388,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 // points, the array, the return list, ...
 
                 val points2 = ArrayList<Point>(points.size / 3)
-                for (i in 0 until points.size step 3) {
+                forLoopSafely(points.size, 3) { i ->
                     val point = Point.stack.create()
                     val vi = points[i]
                     val ni = points[i + 1]
@@ -412,7 +414,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                     points2.add(point)
                 }
                 val triangles = Triangulation.ringToTrianglesPoint(points2)
-                for (i in triangles.indices step 3) {
+                forLoopSafely(triangles.size, 3) { i ->
                     putPoint(triangles[i])
                     putPoint(triangles[i + 1])
                     putPoint(triangles[i + 2])

@@ -1,8 +1,8 @@
 package me.anno.mesh.mitsuba
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.SimpleMesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
@@ -13,23 +13,23 @@ import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
+import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.InnerPrefabFile
-import me.anno.image.thumbs.Thumbs
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.mesh.assimp.StaticMeshesLoader.shininessToRoughness
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
+import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
-import me.anno.io.Streams.skipN
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
@@ -159,7 +159,9 @@ object MitsubaReader {
         } else null
         val uvs = if (hasUVs) {
             val uvs = readNumbers(2 * numVertices.toInt())
-            for (i in 1 until uvs.size step 2) uvs[i] = 1f - uvs[i]
+            forLoop(1, uvs.size, 2) { i ->
+                uvs[i] = 1f - uvs[i]
+            }
             uvs
         } else null
         val vertexColors = if (hasVertexColors) {

@@ -12,6 +12,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.noise.PerlinNoise
+import me.anno.utils.algorithms.ForLoop
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -31,7 +32,7 @@ val noiseFlowField = PerlinNoise(1234L, 5, 0.5f, -1f, +1f, Vector4f(0.01f))
 val birdMesh = run {
     val birdMesh = Mesh()
     val newPos = flatCube.positions!!.copyOf()
-    for (i in newPos.indices step 3) {
+    ForLoop.forLoop(0, newPos.size, 3) { i ->
         val scale = if (newPos[i + 1] > 0f) 0f else 0.5f
         newPos[i + 0] *= scale
         newPos[i + 2] *= scale

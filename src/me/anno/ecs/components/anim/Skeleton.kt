@@ -15,6 +15,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -195,7 +196,7 @@ class Skeleton : PrefabSaveable(), Renderable {
                     dirZ.set(dirX).cross(dirY).normalize(thickness)
                     mat.set(dirX, dirY, dirZ)
                     // add a bone from src to dst
-                    for (i in 0 until boneMeshVertices.size - 2 step 3) {
+                    forLoopSafely(boneMeshVertices.size, 3) { i ->
                         tmp.set(boneMeshVertices[i], boneMeshVertices[i + 1], boneMeshVertices[i + 2])
                         mat.transform(tmp)
                         tmp.add(srcPos)

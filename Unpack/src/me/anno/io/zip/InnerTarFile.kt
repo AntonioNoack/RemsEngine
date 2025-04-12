@@ -13,6 +13,7 @@ import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.unity.UnityPackage.unpack
 import me.anno.io.zip.internal.TarHeavyIterator
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -31,7 +32,8 @@ class InnerTarFile(
     override var signature: Signature? = null
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        if (data != null) super.inputStream(lengthLimit, closeStream, callback)
+        val data = data
+        if (data != null) callback.ok(data.inputStream())
         else HeavyIterator.iterate(zipFile, TarHeavyIterator(this, callback))
     }
 
@@ -87,8 +89,7 @@ class InnerTarFile(
                 if (entry.isDirectory) InnerFolder(absolutePath, path, parent2)
                 else {
                     val file = InnerTarFile(absolutePath, zipFile, getStream, path, parent2)
-                    file.size = entry.size
-                    setDataAndSignature(file) { NotClosingInputStream(zis) }
+                    setDataAndSignature(file, entry.size) { NotClosingInputStream(zis) }
                     file
                 }
             }

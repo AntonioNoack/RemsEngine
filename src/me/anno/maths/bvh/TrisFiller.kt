@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import java.nio.FloatBuffer
 
 fun interface TrisFiller {
@@ -36,7 +37,7 @@ fun interface TrisFiller {
                 }
                 val geometry = buffers[index]
                 val indices = geometry.indices
-                for (i in indices.indices step 3) {
+                forLoopSafely(indices.size, 3) { i ->
                     callback.fill(geometry, indices[i])
                     callback.fill(geometry, indices[i + 1])
                     callback.fill(geometry, indices[i + 2])

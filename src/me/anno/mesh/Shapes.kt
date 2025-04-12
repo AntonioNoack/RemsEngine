@@ -3,6 +3,7 @@ package me.anno.mesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -24,7 +25,7 @@ object Shapes {
 
     private fun linear(src: FloatArray, offset: Vector3f, scale: Vector3f): FloatArray {
         val dst = FloatArray(src.size)
-        for (i in src.indices step 3) {
+        forLoopSafely(src.size, 3) { i ->
             dst[i] = src[i] * scale.x + offset.x
             dst[i + 1] = src[i + 1] * scale.y + offset.y
             dst[i + 2] = src[i + 2] * scale.z + offset.z
@@ -119,7 +120,7 @@ object Shapes {
             val su = 1f / (bounds.maxX - bounds.minX)
             val sv = 1f / (bounds.maxY - bounds.minY)
             val uvs = FloatArray(positions.size / 3 * 2)
-            for (i in positions.indices step 3) {
+            forLoopSafely(positions.size, 3) { i ->
                 val j = i / 3 * 2
                 uvs[j] = (positions[i] - bounds.minX) * su
                 uvs[j + 1] = (positions[i + 1] - bounds.minY) * sv
@@ -230,8 +231,8 @@ object Shapes {
             val sx = sizeX * 0.5f
             val sy = sizeY * 0.5f
             val sz = sizeZ * 0.5f
-            for (i in position.indices step 3) {
-                position[i + 0] = sign(base2[i + 0]) * sx + offsetX
+            forLoopSafely(position.size, 3) { i ->
+                position[i] = sign(base2[i]) * sx + offsetX
                 position[i + 1] = sign(base2[i + 1]) * sy + offsetY
                 position[i + 2] = sign(base2[i + 2]) * sz + offsetZ
             }

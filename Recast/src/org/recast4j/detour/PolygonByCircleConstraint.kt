@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import org.joml.Vector3f
 import org.recast4j.FloatSubArray
 import org.recast4j.Vectors
@@ -72,7 +73,7 @@ interface PolygonByCircleConstraint {
         }
 
         private fun circle(center: Vector3f, radius: Float, circle: FloatArray) {
-            for (i in unitCircle.indices step 3) {
+            forLoopSafely(unitCircle.size, 3) { i ->
                 circle[i] = unitCircle[i] * radius + center.x
                 circle[i + 1] = center.y
                 circle[i + 2] = unitCircle[i + 2] * radius + center.z
@@ -91,7 +92,5 @@ interface PolygonByCircleConstraint {
                 unitCircle[3 * i + 2] = -sin(a)
             }
         }
-
     }
-
 }

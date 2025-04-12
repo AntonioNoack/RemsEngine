@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.terrain
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.posMod
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createList
@@ -102,7 +103,7 @@ object HexagonTerrainModel {
         assertEquals(numTriangles, k / 3)
 
         val normals = FloatArray(positions.size)
-        for (i in 1 until normals.size step 3) {
+        forLoop(1, normals.size, 3) { i ->
             normals[i] = 1f // up
         }
 

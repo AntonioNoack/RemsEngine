@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.countLines
 import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.gpu.buffer.DrawMode
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -59,7 +60,7 @@ object FindLines {
     fun findUniqueLines(mesh: Mesh, indices: IntArray?): IntArray? {
         val lines = findLines(mesh, indices, mesh.positions) ?: return null
         val found = HashSet<IntPair>()
-        for (i in lines.indices step 2) {
+        forLoopSafely(lines.size, 2) { i ->
             val a = lines[i]
             val b = lines[i + 1]
             found.add(IntPair(min(a, b), max(a, b)))
@@ -103,7 +104,7 @@ object FindLines {
         var lineCount = 0
         // compare vertices
         positions ?: return null
-        for (i in 0 until positions.size - 8 step 9) {
+        forLoopSafely(positions.size, 9) { i ->
             lineCount += isLine(positions, i, epsilon).toInt()
         }
         return if (lineCount > 0) {
@@ -126,7 +127,7 @@ object FindLines {
     fun findLinesByIndices(indices: IntArray): IntArray? {
         var lineCount = 0
         // compare indices
-        for (i in 0 until indices.size - 2 step 3) {
+        forLoopSafely(indices.size, 3) { i ->
             val a = indices[i]
             val b = indices[i + 1]
             val c = indices[i + 2]
@@ -137,7 +138,7 @@ object FindLines {
         return if (lineCount > 0) {
             var writeIndex = 0
             val result = IntArray(lineCount * 2)
-            for (readIndex in 0 until indices.size - 2 step 3) {
+            forLoopSafely(indices.size, 3) { readIndex ->
                 val a = indices[readIndex]
                 val b = indices[readIndex + 1]
                 val c = indices[readIndex + 2]

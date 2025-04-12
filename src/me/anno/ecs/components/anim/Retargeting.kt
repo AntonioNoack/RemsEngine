@@ -36,12 +36,13 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.NumberType
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -361,7 +362,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         // add a bone from src to dst
         val vertices = Skeleton.boneMeshVertices
         val list = ArrayList<Vector3d>()
-        for (i in 0 until vertices.size - 2 step 3) {
+        forLoopSafely(vertices.size, 3) { i ->
             tmp.set(vertices, i)
             tmp.sub(0f, 0.005f, 0f)
             tmp.mul(1.01f) // scale up slightly for better visibility
@@ -370,7 +371,7 @@ class Retargeting : PrefabSaveable(), Renderable {
             list.add(Vector3d(tmp))
         }
         // draw triangles
-        for (i in list.indices step 3) {
+        forLoopSafely(list.size, 3) { i ->
             val triangle = DebugTriangle(list[i], list[i + 1], list[i + 2], color, 0f)
             DebugShapes.debugTriangles.add(triangle)
         }

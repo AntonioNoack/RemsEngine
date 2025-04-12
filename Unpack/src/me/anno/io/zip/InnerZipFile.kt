@@ -29,7 +29,8 @@ class InnerZipFile(
     override var signature: Signature? = null
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        if (data != null) super.inputStream(lengthLimit, closeStream, callback)
+        val data = data
+        if (data != null) callback.ok(data.inputStream())
         else HeavyAccess.access(zipSource, ZipHeavyAccess(this, callback)) { callback.err(it) }
     }
 
@@ -63,8 +64,7 @@ class InnerZipFile(
                 if (entry.isDirectory) InnerFolder(absolutePath, path, parent2)
                 else {
                     val file = InnerZipFile(absolutePath, zipFile, getStream, path, parent2)
-                    file.size = entry.size
-                    setDataAndSignature(file) { zis.getInputStream(entry) }
+                    setDataAndSignature(file, entry.size) { zis.getInputStream(entry) }
                     file
                 }
             }

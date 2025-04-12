@@ -20,7 +20,7 @@ import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 
 /**
- * removes dither pattern from 2x2-dithered materials
+ * Removes dither pattern from 2x2-dithered materials
  * */
 class UnditherNode : RenderViewNode(
     "Undither",

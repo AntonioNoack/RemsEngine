@@ -42,6 +42,7 @@ import me.anno.mesh.gltf.reader.Node
 import me.anno.mesh.gltf.reader.Texture
 import me.anno.mesh.gltf.writer.Sampler
 import me.anno.utils.Color.rgba
+import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
@@ -892,7 +893,7 @@ class GLTFReader(val src: FileReference) {
                             val uvs = loadFloatArray(id, 2)
                             if (uvs != null) {
                                 // flip v/y-axis
-                                for (i in 1 until uvs.size step 2) {
+                                forLoop(1, uvs.size, 2) { i ->
                                     uvs[i] = 1f - uvs[i]
                                 }
                                 prefab["uvs"] = uvs

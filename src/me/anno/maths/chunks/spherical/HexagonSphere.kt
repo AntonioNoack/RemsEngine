@@ -5,6 +5,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
@@ -766,7 +767,7 @@ class HexagonSphere(
         val pointsToLines = createArrayList(12) { ArrayList<Hexagon>(5) }
 
         // define edges
-        for (i in lineIndices.indices step 2) {
+        forLoopSafely(lineIndices.size, 2) { i ->
 
             val ai = lineIndices[i]
             val bi = lineIndices[i + 1]
@@ -894,7 +895,7 @@ class HexagonSphere(
 
         if (hexagonsPerSide == 0) {
             // every second needs to be reordered
-            for (i in 0 until PENTAGON_COUNT step 2) {
+            forLoopSafely(PENTAGON_COUNT, 2) { i ->
                 val pentagon = pentagons[i]
                 pentagon.neighborIds.rotateRight(2)
                 pentagon.neighbors.rotateRight(2)

@@ -18,7 +18,7 @@ abstract class InnerFileWithData(
     absolutePath: String,
     relativePath: String,
     parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, parent) {
+) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     var compressedSize = 0L
     var size = 65536L // we don't know in this class
@@ -44,7 +44,7 @@ abstract class InnerFileWithData(
     override fun readBytes(callback: Callback<ByteArray>) {
         val data = data
         if (data != null) callback.ok(data)
-        else callback.err(IOException("Missing data"))
+        else super.readBytes(callback)
     }
 
     override fun outputStream(append: Boolean): OutputStream {

@@ -4,6 +4,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.buffer.DrawMode
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.mulARGB
+import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
@@ -107,7 +109,7 @@ abstract class MeshJoiner<V>(
         val dstBoneWeights = if (dstBoneIndices != null) {
             val w = alloc(true, numBoneIndices, dstMesh.boneWeights)!!
             // set every 4th value to 1
-            for (i in w.indices step 4) {
+            forLoopSafely(w.size, 4) { i ->
                 w[i] = 1f
             }
             w
@@ -198,7 +200,7 @@ abstract class MeshJoiner<V>(
             var i = i0
             var i4 = i0 / 3 * 4
             var j4 = 0
-            for (k in srcPositions.indices step 3) {
+            forLoopSafely(srcPositions.size, 3) { k ->
                 tmp.set(
                     srcPositions[k],
                     srcPositions[k + 1],
@@ -234,7 +236,7 @@ abstract class MeshJoiner<V>(
         val px = localToGlobal.m30
         val py = localToGlobal.m31
         val pz = localToGlobal.m32
-        for (k in srcPositions.indices step 3) {
+        forLoopSafely(srcPositions.size, 3) { k ->
             dstPositions[i++] = px + srcPositions[k]
             dstPositions[i++] = py + srcPositions[k + 1]
             dstPositions[i++] = pz + srcPositions[k + 2]
@@ -271,7 +273,7 @@ abstract class MeshJoiner<V>(
             srcIndices?.copyInto(dstBoneIndices, j0, 0, min(dataSize, srcIndices.size))
         } else {
             val boneId = getBoneId(element)
-            for (k in 0 until dataSize step 4) {
+            forLoop(0, dataSize, 4) { k ->
                 dstBoneIndices[j0 + k] = boneId
             }
         }

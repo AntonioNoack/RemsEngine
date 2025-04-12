@@ -1,8 +1,9 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -47,7 +48,7 @@ object TransformMesh {
     @Suppress("SameParameterValue")
     fun transformPositions(matrix: Matrix4x3, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3d.borrow()
-        for (i in 0 until src.size - 2 step stride) {
+        forLoopSafely(src.size, stride) { i ->
             tmp.set(src, i)
             matrix.transformPosition(tmp)
             tmp.get(src, i)
@@ -63,7 +64,7 @@ object TransformMesh {
         val tmp = JomlPools.vec3f.borrow()
         val tmpM = JomlPools.mat3f.borrow()
             .set(matrix).normal()
-        for (i in 0 until src.size - 2 step stride) {
+        forLoopSafely(src.size, stride) { i ->
             tmp.set(src, i)
             tmpM.transform(tmp)
             tmp.get(src, i)
@@ -79,7 +80,7 @@ object TransformMesh {
     @Suppress("SameParameterValue")
     fun transformPositions(matrix: Matrix4x3f, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3d.borrow()
-        for (i in 0 until src.size - 2 step stride) {
+        forLoopSafely(src.size, stride) { i ->
             tmp.set(src, i)
             matrix.transformPosition(tmp)
             tmp.get(src, i)
@@ -95,7 +96,7 @@ object TransformMesh {
         val tmp = JomlPools.vec3f.borrow()
         val tmpM = JomlPools.mat3f.borrow()
             .set(matrix).normal()
-        for (i in 0 until src.size - 2 step stride) {
+        forLoopSafely(src.size, stride) { i ->
             tmp.set(src, i)
             tmpM.transform(tmp)
             tmp.get(src, i)
@@ -111,7 +112,7 @@ object TransformMesh {
     @Suppress("SameParameterValue")
     fun translatePositions(offset: Vector3d, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3d.borrow()
-        for (i in 0 until src.size - 2 step stride) {
+        forLoopSafely(src.size, stride) { i ->
             tmp.set(src, i).add(offset).get(src, i)
         }
         return src
@@ -125,7 +126,7 @@ object TransformMesh {
     @Suppress("SameParameterValue")
     fun scalePositions(scale: Vector3f, src: FloatArray, stride: Int): FloatArray {
         val tmp = JomlPools.vec3d.borrow()
-        for (i in 0 until src.size - 2 step stride) {
+        forLoopSafely(src.size, stride) { i ->
             tmp.set(src, i).mul(scale).get(src, i)
         }
         return src

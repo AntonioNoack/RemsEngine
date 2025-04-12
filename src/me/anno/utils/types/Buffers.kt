@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.utils.algorithms.ForLoop.forLoop
 import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -12,7 +13,7 @@ object Buffers {
 
     @JvmStatic
     fun ByteBuffer.flip16() {
-        for (i in position() until limit() - 1 step 2) {
+        forLoop(position(), limit() - 1, 2) { i ->
             val t = this[i]
             put(i, this[i + 1])
             put(i + 1, t)

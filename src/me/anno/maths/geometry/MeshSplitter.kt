@@ -10,6 +10,7 @@ import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.TriangleSplitter.splitTriangle
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.mixARGB2
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
@@ -199,7 +200,7 @@ object MeshSplitter {
             val triangles = Triangulation.ringToTrianglesVec3f(ring.map { it.position })
             val tris = triangles.map { ringToVertex[it]!! }
             val (_, r1, _, r3) = result
-            for (i in tris.indices step 3) {
+            forLoopSafely(tris.size, 3) { i ->
                 r1.addTriangle(tris[i], tris[i + 1], tris[i + 2], posNormal)
                 r3.addTriangle(tris[i], tris[i + 2], tris[i + 1], negNormal)
             }
@@ -232,7 +233,7 @@ object MeshSplitter {
             val b = vc.getVertex(bi)
             val c = vc.getVertex(ci)
             val tris = splitTriangle(a, b, c, a.dist, b.dist, c.dist)
-            for (i in tris.indices step 3) {
+            forLoopSafely(tris.size, 3) { i ->
                 ms.addTriangle(tris[i], tris[i + 1], tris[i + 2])
             }; false
         }

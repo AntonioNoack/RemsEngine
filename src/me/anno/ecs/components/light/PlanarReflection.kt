@@ -198,20 +198,26 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         }
     }
 
+    private fun findRegionI(
+        x: Double, y: Double, drawTransform: Matrix4x3,
+        camPosition: Vector3d, cameraMatrix: Matrix4f, aabb: AABBf
+    ) {
+        val vec3d = tmp2d
+        val vec3f = tmp2f
+        val localSpace = vec3d.set(x, y, 0.0)
+        val worldSpace = drawTransform.transformPosition(localSpace)
+        worldSpace.sub(camPosition)
+        val openglSpace = cameraMatrix.transformProject(vec3f.set(worldSpace))
+        aabb.union(openglSpace)
+    }
+
     fun findRegion(aabb: AABBf, cameraMatrix: Matrix4f, drawTransform: Matrix4x3, camPosition: Vector3d): AABBf {
         // cam * world space * position
         aabb.clear()
-        val vec3d = tmp2d
-        val vec3f = tmp2f
-        for (x in -1..1 step 2) {
-            for (y in -1..1 step 2) {
-                val localSpace = vec3d.set(x.toDouble(), y.toDouble(), 0.0)
-                val worldSpace = drawTransform.transformPosition(localSpace)
-                worldSpace.sub(camPosition)
-                val openglSpace = cameraMatrix.transformProject(vec3f.set(worldSpace))
-                aabb.union(openglSpace)
-            }
-        }
+        findRegionI(-1.0, -1.0, drawTransform, camPosition, cameraMatrix, aabb)
+        findRegionI(-1.0, +1.0, drawTransform, camPosition, cameraMatrix, aabb)
+        findRegionI(+1.0, -1.0, drawTransform, camPosition, cameraMatrix, aabb)
+        findRegionI(+1.0, +1.0, drawTransform, camPosition, cameraMatrix, aabb)
         return aabb
     }
 

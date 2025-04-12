@@ -19,6 +19,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.unmix
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -425,7 +426,7 @@ class SVGMesh {
                         }
                     }
 
-                    for (i in triangles.indices step 3) {
+                    forLoopSafely(triangles.size, 3) { i ->
                         val a = triangles[i]
                         val b = triangles[i + 1]
                         val c = triangles[i + 2]
@@ -437,6 +438,7 @@ class SVGMesh {
                         val lyc = (c.y - minY) * scaleY
                         // if is circle: check if the point is within this triangle, and if so, split there
                         // todo get triX working
+                        var done = false
                         if (gradient is RadialGradient) {
                             val p = gradient.position
                             if (pointInTriangle(lxa, lya, lxb, lyb, lxc, lyc, p.x, p.y) ||
@@ -446,10 +448,10 @@ class SVGMesh {
                                 tri(a, b, p2)
                                 tri(b, c, p2)
                                 tri(c, a, p2)
-                                continue
+                                done = true
                             }
                         }
-                        tri(a, b, c)
+                        if (!done) tri(a, b, c)
                     }
                 } else {// no gradient -> fast path
                     val color = gradient.getColor(0f)

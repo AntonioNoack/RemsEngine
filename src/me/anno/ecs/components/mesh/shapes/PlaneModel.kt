@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.types.Triangles.subCross
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -70,7 +71,7 @@ object PlaneModel {
         val nx = normal.x
         val ny = normal.y
         val nz = normal.z
-        for (k in positions.indices step 3) {
+        forLoopSafely(normals.size, 3) { k ->
             normals[k] = nx
             normals[k + 1] = ny
             normals[k + 2] = nz

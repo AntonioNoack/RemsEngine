@@ -1,5 +1,6 @@
 package me.anno.gpu.texture
 
+import me.anno.utils.algorithms.ForLoop.forLoop
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
@@ -83,7 +84,7 @@ object Redundancy {
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
+        forLoop(4, width * height * 4, 4) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
         }
         setSize1x1()
@@ -95,7 +96,7 @@ object Redundancy {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
+        forLoop(3, width * height * 3, 3) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return data
         }
         setSize1x1()
@@ -107,7 +108,7 @@ object Redundancy {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
+        forLoop(3, width * height * 3, 3) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
         }
         setSize1x1()
@@ -120,7 +121,7 @@ object Redundancy {
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
+        forLoop(4, width * height * 4, 4) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
         }
         setSize1x1()
@@ -133,7 +134,7 @@ object Redundancy {
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
+        forLoop(4, width * height * 4, 4) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
         }
         setSize1x1()
@@ -146,7 +147,7 @@ object Redundancy {
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until width * height * 4 step 4) {
+        forLoop(4, width * height * 4, 4) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
         }
         setSize1x1()
@@ -157,7 +158,7 @@ object Redundancy {
         if (data.size < 2) return data
         val c0 = data[0]
         val c1 = data[1]
-        for (i in 2 until width * height * 2 step 2) {
+        forLoop(2, width * height * 2, 2) { i ->
             if (c0 != data[i] || c1 != data[i + 1]) return data
         }
         setSize1x1()
@@ -168,7 +169,7 @@ object Redundancy {
         if (data.size < 2) return data
         val c0 = data[0]
         val c1 = data[1]
-        for (i in 2 until width * height * 2 step 2) {
+        forLoop(2, width * height * 2, 2) { i ->
             if (c0 != data[i] || c1 != data[i + 1]) return data
         }
         setSize1x1()
@@ -180,7 +181,7 @@ object Redundancy {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
+        forLoop(3, width * height * 3, 3) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2])
                 return data
         }
@@ -193,7 +194,7 @@ object Redundancy {
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until width * height * 3 step 3) {
+        forLoop(3, width * height * 3, 3) { i ->
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2])
                 return
         }
@@ -208,11 +209,11 @@ object Redundancy {
         val c2 = data[2]
         val c3 = data[3]
         if (rgbOnly) {
-            for (i in 4 until width * height * 4 step 4) {
+            forLoop(4, width * height * 4, 4) { i ->
                 if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
             }
         } else {
-            for (i in 4 until width * height * 4 step 4) {
+            forLoop(4, width * height * 4, 4) { i ->
                 if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
             }
         }
@@ -225,7 +226,7 @@ object Redundancy {
         if (data.capacity() < 2) return
         val c0 = data[0]
         val c1 = data[1]
-        for (i in 2 until width * height * 2 step 2) {
+        forLoop(2, width * height * 2, 2) { i ->
             if (c0 != data[i] || c1 != data[i + 1]) return
         }
         setSize1x1()

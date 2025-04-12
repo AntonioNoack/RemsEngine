@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.terrain
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
@@ -215,7 +216,7 @@ object RectangleTerrainModel {
         val fz = -1f / bs.deltaZ
         val mx = bs.minX
         val mz = bs.maxZ
-        for (i in pos.indices step 3) {
+        forLoopSafely(pos.size, 3) { i ->
             uvs[j++] = (pos[i] - mx) * fx
             uvs[j++] = (pos[i + 2] - mz) * fz
         }

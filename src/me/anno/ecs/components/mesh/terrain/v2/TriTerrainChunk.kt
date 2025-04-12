@@ -1,14 +1,15 @@
 package me.anno.ecs.components.mesh.terrain.v2
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.terrain.TerrainBrush
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
+import me.anno.ecs.components.mesh.terrain.TerrainBrush
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.length
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.callbacks.F2F
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -79,7 +80,7 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         val sy = bounds.deltaZ / (resolution.y - 1)
         val pos = mesh.positions!!
         val nor = mesh.normals!!
-        for (i in pos.indices step 3) {
+        forLoopSafely(pos.size, 3) { i ->
             val px = bounds.minX + sx * pos[i]
             val pz = bounds.minZ + sy * pos[i + 2]
             val py = getHeight.call(px, pz)
@@ -144,7 +145,7 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         val dy = Vector3f()
         val dz = Vector3f()
         val eps = mesh.getBounds().maxDelta * 0.001f
-        for (i in pos.indices step 3) {
+        forLoopSafely(pos.size, 3) { i ->
             posToBrush.transformPosition(posI.set(pos, i))
             posToBrush.transformDirection(norI.set(nor, i))
 

@@ -6,16 +6,18 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.ecs.components.mesh.utils.IndexRemover.removeIndices
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-// todo something seems to be incorrect... some blender meshes have broken normals
+// todo some blender meshes have broken normals
 object NormalCalculator {
 
     @JvmStatic
@@ -114,8 +116,7 @@ object NormalCalculator {
         val c = JomlPools.vec3f.create()
         // just go through the vertices;
         // mode to calculate smooth shading by clustering points?
-        val size = Maths.min(positions.size, normals.size) - 8
-        for (i in 0 until size step 9) {
+        forLoopSafely(min(positions.size, normals.size), 9) { i ->
             // check whether the normal update is needed
             val needsUpdate = !isNormalValid(normals, i) ||
                     !isNormalValid(normals, i + 3) ||
@@ -123,11 +124,21 @@ object NormalCalculator {
             if (needsUpdate) {
                 // flat shading
                 val normal = calculateFlatNormal(positions, i, i + 3, i + 6, a, b, c)
-                for (offset in i until i + 9 step 3) {
-                    normals[offset + 0] = normal.x
-                    normals[offset + 1] = normal.y
-                    normals[offset + 2] = normal.z
-                }
+                val nx = normal.x
+                val ny = normal.y
+                val nz = normal.z
+
+                normals[i] = nx
+                normals[i + 1] = ny
+                normals[i + 2] = nz
+
+                normals[i + 3] = nx
+                normals[i + 4] = ny
+                normals[i + 5] = nz
+
+                normals[i + 6] = nx
+                normals[i + 7] = ny
+                normals[i + 8] = nz
             }
         }
         JomlPools.vec3f.sub(3)

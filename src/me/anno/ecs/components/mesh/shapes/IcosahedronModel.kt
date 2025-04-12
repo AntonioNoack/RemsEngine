@@ -6,6 +6,8 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.atan2
 
@@ -36,7 +38,7 @@ object IcosahedronModel {
         // so it is even
         val s = 1.0 / length(1.0, PHI)
         val c = PHI * s
-        for (i in positions.indices step 3) {
+        forLoop(0, positions.size, 3) { i ->
             val x = positions[i]
             val y = positions[i + 1]
             val z = positions[i + 2]
@@ -159,7 +161,7 @@ object IcosahedronModel {
         }
 
         val pos = this.positions
-        for (i in indices.indices step 3) {
+        forLoopSafely(indices.size, 3) { i ->
             val a = indices[i] * 3
             val b = indices[i + 1] * 3
             val c = indices[i + 2] * 3

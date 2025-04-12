@@ -20,6 +20,7 @@ import me.anno.mesh.blender.impl.mesh.MLoopUV
 import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.primitives.BVector2f
 import me.anno.mesh.blender.impl.primitives.BVector3f
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
@@ -387,7 +388,7 @@ object BlenderMeshConverter {
                     val uvIndex0 = uvIndex
                     uvIndex += loopSize
                     val triangles = Triangulation.ringToTrianglesVec3f(vectors)
-                    for (idx0 in triangles.indices step 3) {
+                    forLoopSafely(triangles.size, 3) { idx0 ->
                         val i0 = vec2Index[triangles[idx0]]!!
                         val i1 = vec2Index[triangles[idx0 + 1]]!!
                         val i2 = vec2Index[triangles[idx0 + 2]]!!
@@ -400,7 +401,7 @@ object BlenderMeshConverter {
                         addTriangle(v0, v1, v2, uv0, uv1, uv2)
                     }
                     if (materialIndices != null) {
-                        for (idx0 in triangles.indices step 3) {
+                        forLoopSafely(triangles.size, 3) {
                             materialIndices[matIndex++] = materialIndex
                         }
                     }
@@ -488,7 +489,7 @@ object BlenderMeshConverter {
                     for (tri in triangles) {
                         indices.add(vec2Index[tri]!!)
                     }
-                    for (j in triangles.indices step 3) {
+                    forLoopSafely(triangles.size, 3) {
                         materialIndices?.set(matIndex++, materialIndex)
                     }
                 }
