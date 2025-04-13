@@ -115,10 +115,10 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
         scrollbar.updateAlpha()
     }
 
-    private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, originalBGColor, 0.8f))
+    private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, background.originalColor, 0.8f))
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        backgroundColor = hoverColor
+        background.color = hoverColor
         drawBackground(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
         if (isX) {

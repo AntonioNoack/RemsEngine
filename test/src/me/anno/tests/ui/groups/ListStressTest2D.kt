@@ -23,7 +23,7 @@ fun main() {
         val n = 100 // _000
         val all = PanelListY(style)
         val list = PanelList2D(style)
-        list.backgroundColor = black
+        list.background.color = black
         list.childWidth = 120
         list.childHeight = 24
         val controls = PanelListX(style)

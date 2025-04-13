@@ -107,7 +107,7 @@ class TreeViewEntryPanel<V : Any>(
         super.onUpdate()
         val transform = getElement()
         val dragged = dragged
-        var backgroundColor = originalBGColor
+        var backgroundColor = background.originalColor
         val window = window!!
         val showAddIndex = if (
             window.mouseXi in lx0..lx1 &&
@@ -125,10 +125,10 @@ class TreeViewEntryPanel<V : Any>(
         backgroundColor = if (colorDifference < 512) {// too similar colors
             if (textColor.g() > 127) black
             else white
-        } else originalBGColor
+        } else background.originalColor
         this.textColor = textColor
-        text.backgroundColor = backgroundColor
-        uiSymbol?.backgroundColor = backgroundColor
+        text.background.color = backgroundColor
+        uiSymbol?.background?.color = backgroundColor
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

@@ -50,12 +50,12 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         if (!outline && !inner) return
         // draw whether the node is in focus
         if (outline) {
-            backgroundOutlineThickness = focusOutlineThickness
-            backgroundOutlineColor = focusOutlineColor
-            backgroundColor = backgroundColor.withAlpha(if (inner) bgAlpha else 0f)
+            background.outlineThickness = focusOutlineThickness
+            background.outlineColor = focusOutlineColor
+            background.color = backgroundColor.withAlpha(if (inner) bgAlpha else 0f)
         } else {
-            backgroundOutlineThickness = 0f
-            backgroundColor = backgroundColor.withAlpha(bgAlpha)
+            background.outlineThickness = 0f
+            background.color = backgroundColor.withAlpha(bgAlpha)
         }
         drawBackground(x0, y0, x1, y1)
     }
@@ -68,12 +68,12 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         // if gp is zooming, take a screenshot of this panel, and redraw it as such (because that's cheaper)
         // it allows us to render really smooth zooming :)
 
-        if (group.color != 0) backgroundColor = group.color
+        if (group.color != 0) background.color = group.color
 
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
         drawBackground(inFocus, true, x0, y0, x1, y1)
 
-        val backgroundColor = Color.mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
+        val backgroundColor = Color.mixARGB(gp.background.color, background.color, background.color.a()) and 0xffffff
         val font = gp.font
         val textSize = font.sampleHeight
 

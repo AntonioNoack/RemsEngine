@@ -303,7 +303,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val minCursor = minCursor
         val maxCursor = maxCursor
 
-        backgroundColor = theme.backgroundColor or black
+        background.color = theme.backgroundColor or black
         drawBackground(x0, y0, x1, y1)
 
         // draw the selected lines with special color background

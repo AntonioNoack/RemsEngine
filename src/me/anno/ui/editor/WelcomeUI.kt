@@ -2,10 +2,10 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.engine.WindowRenderFlags
-import me.anno.engine.WindowRenderFlags.showFPS
 import me.anno.engine.Events.addEvent
 import me.anno.engine.GFXSettings
+import me.anno.engine.WindowRenderFlags
+import me.anno.engine.WindowRenderFlags.showFPS
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.ProjectHeader
 import me.anno.engine.projects.Projects
@@ -47,7 +47,7 @@ import kotlin.concurrent.thread
 interface WelcomeUI {
 
     fun createBackground(style: Style): Panel {
-        return Panel(style).apply { backgroundColor = black }
+        return Panel(style).apply { background.color = black }
     }
 
     fun create(studio: EngineBase) {
@@ -194,38 +194,38 @@ interface WelcomeUI {
             tp.addRightClickListener {
                 Menu.openMenu(
                     window.windowStack, listOf(
-                    MenuOption(
-                        NameDesc(
-                            "Open",
-                            "Opens that project", "ui.recentProjects.open"
-                        )
-                    ) { open() },
-                    MenuOption(openInExplorerDesc) {
-                        openInExplorer(project.file)
-                    },
-                    MenuOption(
-                        NameDesc(
-                            "Hide",
-                            "Moves the project to the end of the list or removes it",
-                            "ui.recentProjects.hide"
-                        )
-                    ) {
-                        Projects.removeFromRecentProjects(project.file)
-                        tp.isVisible = false
-                    },
-                    MenuOption(
-                        NameDesc(
-                            "Delete",
-                            "Removes the project from your drive!", "ui.recentProjects.delete"
-                        )
-                    ) {
-                        Menu.ask(window.windowStack, NameDesc("Are you sure?", "", "")) {
+                        MenuOption(
+                            NameDesc(
+                                "Open",
+                                "Opens that project", "ui.recentProjects.open"
+                            )
+                        ) { open() },
+                        MenuOption(openInExplorerDesc) {
+                            openInExplorer(project.file)
+                        },
+                        MenuOption(
+                            NameDesc(
+                                "Hide",
+                                "Moves the project to the end of the list or removes it",
+                                "ui.recentProjects.hide"
+                            )
+                        ) {
                             Projects.removeFromRecentProjects(project.file)
-                            project.file.delete()
                             tp.isVisible = false
+                        },
+                        MenuOption(
+                            NameDesc(
+                                "Delete",
+                                "Removes the project from your drive!", "ui.recentProjects.delete"
+                            )
+                        ) {
+                            Menu.ask(window.windowStack, NameDesc("Are you sure?", "", "")) {
+                                Projects.removeFromRecentProjects(project.file)
+                                project.file.delete()
+                                tp.isVisible = false
+                            }
                         }
-                    }
-                ))
+                    ))
             }
             tp.padding.top--
             tp.padding.bottom--

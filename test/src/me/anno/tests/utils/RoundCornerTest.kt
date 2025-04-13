@@ -16,9 +16,8 @@ fun main() {
     panel.y = 50
     panel.width = 410
     panel.height = 120
-    panel.backgroundRadius = 50f
-    panel.backgroundRadiusCorners = CORNER_TOP_LEFT or CORNER_BOTTOM_RIGHT
-    panel.backgroundColor = -1
+    panel.background.radius = 50f
+    panel.background.color = -1
     testDrawing("Round Corners") {
         panel.drawBackground(panel.x, panel.y, panel.x + panel.width, panel.y + panel.height)
         for (y in 0 until panel.height + panel.y * 2) {

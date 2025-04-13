@@ -32,7 +32,7 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
         tooltip = nameDesc.desc
         base.enableSpellcheck = enableSpellcheck
         base.placeholder = nameDesc.name
-        base.backgroundColor = backgroundColor
+        base.background.color = background.color
     }
 
     override var isEnabled: Boolean
@@ -149,6 +149,6 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
         super.copyInto(dst)
         if (dst !is TextInput) return
         dst.base.placeholder = base.placeholder
-        dst.base.backgroundColor = base.backgroundColor
+        dst.base.background.color = base.background.color
     }
 }

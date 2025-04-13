@@ -62,7 +62,7 @@ class OSMPanelV1(val map: OSMap) : MapPanel(style) {
         val x1f = coordsToWindowX(+scaleX).toFloat()
         val y0f = coordsToWindowY(-1.0).toFloat()
         val y1f = coordsToWindowY(+1.0).toFloat()
-        val bg = backgroundColor.withAlpha(0)
+        val bg = background.color.withAlpha(0)
         drawLine(x0f, y0f, x1f, y0f, 1f, -1, bg, false)
         drawLine(x1f, y0f, x1f, y1f, 1f, -1, bg, false)
         drawLine(x1f, y1f, x0f, y1f, 1f, -1, bg, false)
@@ -92,7 +92,7 @@ class OSMPanelV1(val map: OSMap) : MapPanel(style) {
             var x0i = coordsToWindowX(nd0.relLon * scaleX).toFloat()
             var y0i = coordsToWindowY(nd0.relLat.toDouble()).toFloat()
             var inside0 = nd0.relLon in -1f..1f && nd0.relLat in -1f..1f
-            val bg = backgroundColor.withAlpha(0)
+            val bg = background.color.withAlpha(0)
             for (i in 1 until nds.size) {
                 val nd1 = nds[i]
                 val inside1 = nd1.relLon in -1f..1f && nd1.relLat in -1f..1f

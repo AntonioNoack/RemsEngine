@@ -317,7 +317,7 @@ object Menu {
                     val magicIndex = keyListeners.findNextFreeIndex(name)
                     button = ComplexMenuGroupPanel(option, magicIndex, { close(button) }, style)
                     if (!list.size.hasFlag(1)) { // add soft stripes
-                        button.backgroundColor = mixARGB(button.backgroundColor, button.textColor, 0.07f)
+                        button.background.color = mixARGB(button.background.color, button.textColor, 0.07f)
                     }
                     if (magicIndex in name.indices) {
                         val char = name[magicIndex].lowercaseChar()

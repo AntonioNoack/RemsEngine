@@ -658,7 +658,7 @@ object DebugRendering {
             view.x + 2, view.y + view.height + 1,
             0, debugBuilder,
             FrameTimings.textColor,
-            FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255),
+            FrameTimings.background.color.withAlpha(if (usesBetterBlending) 0 else 255),
             AxisAlignment.MIN, AxisAlignment.MAX
         )
         debugBuilder.clear()
@@ -816,7 +816,7 @@ object DebugRendering {
             val y = y0 - sz + 1
             DrawTexts.drawSimpleTextCharByChar(
                 x, y, 1, name,
-                FrameTimings.textColor, view.backgroundColor,
+                FrameTimings.textColor, view.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }
@@ -837,7 +837,7 @@ object DebugRendering {
         fun drawLine(y: Int, text: String) {
             DrawTexts.drawSimpleTextCharByChar(
                 x2, y2 + y * fontSize, 1,
-                text, FrameTimings.textColor, view.backgroundColor,
+                text, FrameTimings.textColor, view.background.color,
                 AxisAlignment.MIN, AxisAlignment.MAX
             )
         }

@@ -24,7 +24,7 @@ fun main() {
         val ui1 = SettingCategory(NameDesc("Child ${ui.content.children.size + 1}"), style)
             .showByDefault()
         val tp = TextPanel("Test ${ui.content.children.size + 1}", style)
-        tp.backgroundColor = rnd.nextInt() or black
+        tp.background.color = rnd.nextInt() or black
         ui1.content.add(tp)
         ui.content.add(ui1)
     }

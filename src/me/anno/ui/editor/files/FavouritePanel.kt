@@ -76,10 +76,10 @@ class FavouritePanel(
     override fun onUpdate() {
         val focusFactor = isAnyChildInFocus.toFloat(1f) + isHovered.toFloat(0.5f)
         val bgColor = mixARGB(normalBackgroundColor, focusBackgroundColor, focusFactor)
-        backgroundColor = bgColor
-        iconPanel.backgroundColor = bgColor
-        titlePanel.backgroundColor = bgColor
+        background.color = bgColor
+        iconPanel.background.color = bgColor
+        titlePanel.background.color = bgColor
         titlePanel.focusBackgroundColor = bgColor
-        spacer.backgroundColor = bgColor
+        spacer.background.color = bgColor
     }
 }

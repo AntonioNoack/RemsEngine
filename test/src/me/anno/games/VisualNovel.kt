@@ -219,15 +219,14 @@ object VisualNovel {
 
             init {
                 addChild(shownTextPanel)
-                shownTextPanel.backgroundRadiusCorners = CORNER_TOP_LEFT or CORNER_TOP_RIGHT
-                shownTextPanel.backgroundRadius = 15f
+                shownTextPanel.background.radius = 15f
                 shownTextPanel.padding.set(10)
                 shownTextPanel.instantTextLoading = true
-                shownTextPanel.backgroundColor = backgroundColor
-                shownTextPanel.focusBackgroundColor = backgroundColor
+                shownTextPanel.background.color = background.color
+                shownTextPanel.focusBackgroundColor = background.color
                 shownTextPanel.focusTextColor = shownTextPanel.textColor
                 shownTextPanel.breaksIntoMultiline = true
-                backgroundColor = backgroundColor.mulARGB(0xffcccccc.toInt())
+                background.color = background.color.mulARGB(0xffcccccc.toInt())
             }
 
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -272,7 +271,7 @@ object VisualNovel {
                 val hasText = shownText.isNotBlank2()
 
                 // draw background
-                val bgImage = TextureCache[background, true]
+                val bgImage = TextureCache[VisualNovel.background, true]
                 if (bgImage != null) {
                     // to do can/should we blur the background a little?
                     // to do maybe foreground, too, based on cursor?

@@ -9,7 +9,6 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
@@ -20,6 +19,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
+import me.anno.ui.background.Background
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
@@ -28,7 +28,6 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Strings
@@ -114,12 +113,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     fun makeBackgroundTransparent(): Panel {
-        backgroundColor = backgroundColor and 0xffffff
+        background.color = background.color and 0xffffff
         return this
     }
 
     fun makeBackgroundOpaque(): Panel {
-        backgroundColor = backgroundColor or black
+        background.color = background.color or black
         return this
     }
 
@@ -139,13 +138,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     // old task: mesh or image backgrounds for panels
     //  -> use a PanelStack, and an ImagePanel below your main panel
 
-    var backgroundOutlineColor = 0
-    var backgroundOutlineThickness = 0f
-    var backgroundRadius = style.getSize("background.radius", 0f)
-    var backgroundRadiusCorners = style.getInt("background.radiusCorners", 15)
-    var backgroundColor = style.getColor("background", -1)
-
-    val originalBGColor = backgroundColor
+    val background = Background(style)
+    val backgroundColor: Int get() = background.color
 
     var uiParent: PanelGroup?
         get() = parent as? PanelGroup
@@ -193,42 +187,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
         windowStack.requestFocus(this, exclusive)
     }
 
-    val hasRoundedCorners get() = backgroundRadius > 0f && backgroundRadiusCorners != 0
-
     val siblings get() = uiParent?.children ?: emptyList()
-
+    val hasRoundedCorners get() = background.radius > 0f || background.outlineThickness > 0f
     open val canDrawOverBorders get() = hasRoundedCorners
 
     open fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
-        // if the children are overlapping, this is incorrect
-        // this however, should rarely happen...
-        if (backgroundColor.a() > 0 || hasRoundedCorners &&
-            backgroundOutlineThickness > 0f &&
-            backgroundOutlineColor.a() > 0
-        ) {
-            if (hasRoundedCorners) {
-                val uip = uiParent
-                val bg = if (uip == null) black else uip.backgroundColor and 0xffffff
-                val th = backgroundOutlineThickness
-                val radius = backgroundRadius + th
-                val corners = backgroundRadiusCorners
-                drawRoundedRect(
-                    x + dx, y + dy, width - 2 * dx, height - 2 * dy,
-                    if (corners and CORNER_TOP_RIGHT != 0) radius else th,
-                    if (corners and CORNER_BOTTOM_RIGHT != 0) radius else th,
-                    if (corners and CORNER_TOP_LEFT != 0) radius else th,
-                    if (corners and CORNER_BOTTOM_LEFT != 0) radius else th, th,
-                    backgroundColor, backgroundOutlineColor, bg,
-                    1f
-                )
-            } else {
-                val x2 = max(x0, x + dx)
-                val y2 = max(y0, y + dy)
-                val x3 = min(x1, x + width - dx)
-                val y3 = min(y1, y + height - dy)
-                drawRect(x2, y2, x3 - x2, y3 - y2, backgroundColor)
-            }
-        }
+        background.drawBackground(x, y, width, height, x0, y0, x1, y1, dx, dy, hasRoundedCorners, uiParent)
     }
 
     @NotSerializedProperty
@@ -622,15 +586,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun isOpaqueAt(x: Int, y: Int): Boolean {
         return backgroundColor.a() >= minOpaqueAlpha && if (hasRoundedCorners) {
-            val cornerMasks = ((x - this.x) * 2 < this.width).toInt(2) + ((y - this.y) * 2 > this.height).toInt()
-            if ((1 shl cornerMasks) and backgroundRadiusCorners != 0) {
-                val px = ((x - this.x) * 2 - this.width)
-                val py = ((y - this.y) * 2 - this.height)
-                val r = backgroundRadius * 2
-                val qx = abs(px) - this.width + r
-                val qy = abs(py) - this.height + r
-                length(max(qx, 0f), max(qy, 0f)) + min(0f, max(qx, qy)) - r <= 0
-            } else contains(x, y)
+            val px = ((x - this.x) * 2 - this.width)
+            val py = ((y - this.y) * 2 - this.height)
+            val r = background.radius * 2
+            val qx = abs(px) - this.width + r
+            val qy = abs(py) - this.height + r
+            length(max(qx, 0f), max(qy, 0f)) + min(0f, max(qx, qy)) - r <= 0
         } else contains(x, y)
     }
 
@@ -681,9 +642,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
         dst.tooltipPanel = dst.tooltipPanel // could create issues, should be found in parent or cloned
         dst.weight = weight
         dst.isVisible = isVisible
-        dst.backgroundColor = backgroundColor
-        dst.backgroundRadiusCorners = backgroundRadiusCorners
-        dst.backgroundRadius = backgroundRadius
+        dst.background.color = background.color
+        dst.background.radius = background.radius
+        dst.background.outlineColor = background.outlineColor
+        dst.background.outlineThickness = background.outlineThickness
     }
 
     override fun save(writer: BaseWriter) {
@@ -698,11 +660,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
         // writer.writeObjectList(this, "clickListeners", clickListeners)
         writer.writeFloat("weight", weight)
         writer.writeBoolean("visibility", isVisible)
-        writer.writeColor("background", backgroundColor)
-        writer.writeInt("backgroundRadiusCorners", backgroundRadiusCorners)
-        writer.writeColor("backgroundOutline", backgroundOutlineColor)
-        writer.writeFloat("backgroundRadius", backgroundRadius)
-        writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
+        writer.writeColor("background", background.color)
+        writer.writeColor("backgroundOutline", background.outlineColor)
+        writer.writeFloat("backgroundRadius", background.radius)
+        writer.writeFloat("backgroundOutlineThickness", background.outlineThickness)
         writer.writeString("tooltip", tooltip)
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
@@ -710,8 +671,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "weight" -> weight = value as? Float ?: return
-            "backgroundRadius" -> backgroundRadius = value as? Float ?: return
-            "backgroundOutlineThickness" -> backgroundOutlineThickness = value as? Float ?: return
+            "background" -> background.color = value as? Int ?: return
+            "backgroundOutline" -> background.outlineColor = value as? Int ?: return
+            "backgroundRadius" -> background.radius = value as? Float ?: return
+            "backgroundOutlineThickness" -> background.outlineThickness = value as? Float ?: return
             "tooltip" -> tooltip = (value as? String)?.ifEmpty { null } ?: return
             "tooltipPanel" -> tooltipPanel = value as? Panel
             "x" -> x = value as? Int ?: return
@@ -721,8 +684,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
             "visibility" -> isVisible = value == true
             "alignmentX" -> alignmentX = AxisAlignment.find(value as? Int ?: return) ?: alignmentX
             "alignmentY" -> alignmentY = AxisAlignment.find(value as? Int ?: return) ?: alignmentY
-            "background" -> backgroundColor = value as? Int ?: return
-            "backgroundOutline" -> backgroundOutlineColor = value as? Int ?: return
             else -> super.setProperty(name, value)
         }
     }
@@ -730,7 +691,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     fun showIsInFocus(extraPadding: Int = 0) {
 
         val batch = DrawRectangles.startBatch()
-        val padding = 2 +extraPadding
+        val padding = 2 + extraPadding
         val th = 2
         val length = 6
         val lengthX0 = min(length, width.shr(1) - padding)

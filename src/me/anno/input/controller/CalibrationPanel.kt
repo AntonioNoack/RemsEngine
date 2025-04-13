@@ -124,6 +124,7 @@ abstract class CalibrationPanel(
         val y0 = cy - dy
         val x1 = cx + dx
         val y1 = cy + dy
+        val backgroundColor = background.color
         drawQuadraticBezier(cx, y0, x1, y0, x1, cy, 1f, color, backgroundColor, true)
         drawQuadraticBezier(x1, cy, x1, y1, cx, y1, 1f, color, backgroundColor, true)
         drawQuadraticBezier(cx, y1, x0, y1, x0, cy, 1f, color, backgroundColor, true)

@@ -202,7 +202,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
         drawSimpleTextCharByChar(
             x + width, y + height, 2, modeName,
-            -1, backgroundColor, AxisAlignment.MAX, AxisAlignment.MAX
+            -1, background.color, AxisAlignment.MAX, AxisAlignment.MAX
         )
     }
 

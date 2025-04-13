@@ -48,15 +48,6 @@ import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
-import me.anno.io.files.ImportType.AUDIO
-import me.anno.io.files.ImportType.CONTAINER
-import me.anno.io.files.ImportType.CUBEMAP_EQU
-import me.anno.io.files.ImportType.EXECUTABLE
-import me.anno.io.files.ImportType.IMAGE
-import me.anno.io.files.ImportType.LINK
-import me.anno.io.files.ImportType.METADATA
-import me.anno.io.files.ImportType.TEXT
-import me.anno.io.files.ImportType.VIDEO
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceAsync
@@ -140,9 +131,8 @@ open class FileExplorerEntry(
 
     var showTitle = true
 
-    var originalBackgroundColor = backgroundColor
-    var hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
-    var darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
+    var hoverBackgroundColor = mixARGB(black, background.originalColor, 0.85f)
+    var darkerBackgroundColor = mixARGB(black, background.originalColor, 0.7f)
 
     private val importType = getImportTypeByExtension(file.lcExtension)
     private val iconPath = getDefaultIconPath(isParent, file, importType)
@@ -188,10 +178,10 @@ open class FileExplorerEntry(
         // needs to be disabled in the future, I think
         isVisible = ref1?.isHidden != true
 
-        backgroundColor = when {
+        background.color = when {
             isInFocus || ref1 in rightClickedFiles -> darkerBackgroundColor
             isHovered -> hoverBackgroundColor
-            else -> originalBackgroundColor
+            else -> background.originalColor
         }
         updatePlaybackTime()
 

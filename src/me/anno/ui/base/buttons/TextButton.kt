@@ -88,7 +88,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
 
     val borderSize = style.getPadding("borderSize", 2)
 
-    val normalBackgroundColor = backgroundColor
+    val normalBackgroundColor get() = background.originalColor
     val hoveredBackgroundColor = mixARGB(bottomColor, normalBackgroundColor, 0.7f)
 
     init {
@@ -114,7 +114,7 @@ open class TextButton(nameDesc: NameDesc, var aspectRatio: Float, style: Style) 
 
     override fun onUpdate() {
         super.onUpdate()
-        backgroundColor = getCurrentBackgroundColor()
+        background.color = getCurrentBackgroundColor()
     }
 
     private fun getCurrentBackgroundColor(): Int {

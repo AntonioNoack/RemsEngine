@@ -24,7 +24,7 @@ fun main() {
         val c1 = 0x777777 or black
         val c2 = 0xff0000 or black
         val c3 = 0xffff00 or black
-        val bg = panel.backgroundColor and 0xffffff
+        val bg = panel.background.color and 0xffffff
 
         val scale = panel.scale.y
         val r = 3f * scale.toFloat()

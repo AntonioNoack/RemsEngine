@@ -181,7 +181,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val cornerRadius = (scale.y * cornerRadius).toFloat()
         for (i in children.indices) {
             val panel = children[i]
-            panel.backgroundRadius = cornerRadius
+            panel.background.radius = cornerRadius
             panel.calculateSize(w, h)
         }
     }
@@ -282,7 +282,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     open fun drawGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val gridColor = Color.mixARGB(backgroundColor, gridColor, gridColor.a() / 255f) or Color.black
+        val gridColor = Color.mixARGB(background.color, gridColor, gridColor.a() / 255f) or Color.black
         // what grid makes sense? power of 2
         // what is a good grid? one stripe every 10-20 px maybe
         val targetStripeDistancePx = 30.0

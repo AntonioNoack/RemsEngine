@@ -9,6 +9,7 @@ import me.anno.image.ImageReadable
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.utils.OS
@@ -114,16 +115,13 @@ object TextureCache : CacheSection("Texture") {
         return entry
     }
 
-    data class FileTriple<V>(val file: FileReference, val lastModified: Long, val type: V) {
+    private data class FileTriple<V>(val file: FileReference, val lastModified: Long, val type: V) {
         constructor(file: FileReference, type: V) : this(file, file.lastModified, type)
     }
 
-    @Suppress("unused") // used in Rem's Studio
-    fun getLUT(file: FileReference, async: Boolean, timeoutMillis: Long = 5000): Texture3D? {
-        // todo specialized function to invalid LUTs if the file changes???
-        val key = FileTriple(file, "LUT")
-        val texture = getEntry(key, timeoutMillis, async, TextureCache::generateLUT)
-        if (!async) texture?.waitFor()
+    fun getLUT(file: FileReference, timeoutMillis: Long = TextureCache.timeoutMillis): Texture3D? {
+        val key = FileTriple(getReference(file.absolutePath), "LUT")
+        val texture = getEntry(key, timeoutMillis, true, TextureCache::generateLUT)
         return texture?.value?.createdOrNull() as? Texture3D
     }
 

@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRounded
+import me.anno.gpu.drawing.DrawSquircle
 import me.anno.gpu.drawing.DrawStriped
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.GFXx2D
@@ -170,6 +171,15 @@ class DrawShaderCompileTest {
     fun testRoundedRectangle() {
         DrawRounded.drawRoundedRect(
             0, 0, 10, 10, 1f, 1f, 1f, 1f, 2f,
+            -1, UIColors.axisXColor, black, 1f
+        )
+    }
+
+    @Test
+    @Execution(ExecutionMode.SAME_THREAD)
+    fun testSquircle() {
+        DrawSquircle.drawSquircle(
+            0, 0, 10, 10, 10f, 5f, 2f,
             -1, UIColors.axisXColor, black, 1f
         )
     }

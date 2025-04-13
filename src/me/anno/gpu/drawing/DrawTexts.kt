@@ -88,7 +88,7 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN,
     ): Int = drawSimpleTextCharByChar(
         x, y, padding, text, FrameTimings.textColor,
-        FrameTimings.backgroundColor or black,
+        FrameTimings.background.color or black,
         alignX, alignY
     )
 

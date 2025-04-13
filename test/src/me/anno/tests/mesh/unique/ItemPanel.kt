@@ -40,7 +40,7 @@ class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
     override fun onUpdate() {
         super.onUpdate()
         source = previewBlocks[slot.type]?.ref ?: InvalidRef
-        backgroundColor = if (inHandBlock == slot.type) bg1 else bg0
+        background.color = if (inHandBlock == slot.type) bg1 else bg0
     }
 
     override fun calculateSize(w: Int, h: Int) {

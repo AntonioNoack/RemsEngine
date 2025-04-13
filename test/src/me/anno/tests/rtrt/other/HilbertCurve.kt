@@ -58,7 +58,7 @@ fun main() {
             // calculate first point
             val t0 = hilbert(fract(0, n), 15).mul(size).add(x, y)
             // draw background-of-lines without alpha for better blending of lines
-            val background = it.backgroundColor and black.inv()
+            val background = it.background.color and black.inv()
             for (i in 1 until n) {
                 // calculate next point
                 val t1 = hilbert(fract(i, n), 15).mul(size).add(x, y)

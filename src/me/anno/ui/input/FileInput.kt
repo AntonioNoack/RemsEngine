@@ -88,7 +88,7 @@ open class FileInput(
         }
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
-        if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
+        if (border > 0) this += SpacerPanel(border, 0, style).apply { background.color = 0 }
         base.weight = 1f
         base2.weight = 1f
         this += base
@@ -236,8 +236,8 @@ open class FileInput(
         }
         entry.showTitle = false
         // I like this better than a transparent background
-        entry.backgroundRadius = stdSize / 10f
-        entry.backgroundColor = mixARGB(backgroundColor, -1, 0.5f)
+        entry.background.radius = stdSize / 10f
+        entry.background.color = mixARGB(background.color, -1, 0.5f)
         return entry
     }
 

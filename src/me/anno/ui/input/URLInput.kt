@@ -40,7 +40,7 @@ open class URLInput(
         }
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
-        if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
+        if (border > 0) this += SpacerPanel(border, 0, style).apply { background.color = 0 }
         this += base
     }
 

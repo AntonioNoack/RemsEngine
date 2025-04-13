@@ -57,7 +57,7 @@ class NodePanel(
 
     init {
         // slightly transparent, so covered connections can be seen
-        backgroundColor = Color.mixARGB(backgroundColor, Color.black, 0.5f).withAlpha(bgAlpha)
+        background.color = Color.mixARGB(background.color, Color.black, 0.5f).withAlpha(bgAlpha)
         node.createUI(gp, this, style)
         name = node.name
     }
@@ -182,12 +182,12 @@ class NodePanel(
         if (!outline && !inner) return
         // draw whether the node is in focus
         if (outline) {
-            backgroundOutlineThickness = focusOutlineThickness
-            backgroundOutlineColor = focusOutlineColor
-            backgroundColor = backgroundColor.withAlpha(if (inner) bgAlpha else 0f)
+            background.outlineThickness = focusOutlineThickness
+            background.outlineColor = focusOutlineColor
+            background.color = background.color.withAlpha(if (inner) bgAlpha else 0f)
         } else {
-            backgroundOutlineThickness = 0f
-            backgroundColor = backgroundColor.withAlpha(bgAlpha)
+            background.outlineThickness = 0f
+            background.color = background.color.withAlpha(bgAlpha)
         }
         drawBackground(x0, y0, x1, y1)
     }
@@ -242,7 +242,7 @@ class NodePanel(
 
     fun doDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        if (node.color != 0) backgroundColor = node.color
+        if (node.color != 0) background.color = node.color
 
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
         drawBackground(inFocus, true, x0, y0, x1, y1)

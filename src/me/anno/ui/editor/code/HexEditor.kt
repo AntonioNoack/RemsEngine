@@ -139,11 +139,11 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     var textColor = white.withAlpha(0.8f)
     var textColorDifferent = mixARGB(textColor, 0xff0000 or black, 0.8f)
     var textColorSomeDifferent = mixARGB(textColor, 0xffff00 or black, 0.8f)
-    var midLineColor = mixARGB(textColor, backgroundColor, 0.5f)
+    var midLineColor = mixARGB(textColor, background.color, 0.5f)
     var lineEveryN = 4
     var showText = true
 
-    var selectedBackgroundColor = mixARGB(textColor, backgroundColor, 0.8f)
+    var selectedBackgroundColor = mixARGB(textColor, background.color, 0.8f)
 
     var extraScrolling = 0L
 
@@ -175,7 +175,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val l0 = max(0, (y0 - by) / lineHeight)
         val lineCount = ceilDiv(file.length(), bytesPerLine.toLong())
         val l1 = min(ceilDiv(y1 - by, lineHeight.toLong()), lineCount)
-        val bc = if (textNotBackground) backgroundColor.withAlpha(0) else backgroundColor
+        val bc = if (textNotBackground) background.color.withAlpha(0) else background.color
         val tc = textColor
         val tcAD = textColorDifferent
         val tcSD = textColorSomeDifferent

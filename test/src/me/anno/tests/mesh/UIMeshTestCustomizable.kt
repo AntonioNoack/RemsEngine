@@ -133,7 +133,7 @@ class SimpleMeshTest(
             if (msaa) FBStack["msaa", width, height, 4, BufferQuality.UINT_8, samples, DepthBufferType.NONE]
             else GFXState.currentBuffer
         useFrame(x, y, width, height, buffer, renderer) {
-            buffer.clearColor(backgroundColor, depth = true)
+            buffer.clearColor(background.color, depth = true)
             pipeline.singlePassWithSky(false)
         }
         if (msaa) {

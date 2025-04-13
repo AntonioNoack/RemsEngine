@@ -137,7 +137,7 @@ fun main() {
         //  - update tree
 
         var ctr = 0
-        val bg = it.backgroundColor.withAlpha(0)
+        val bg = it.background.color.withAlpha(0)
         val lineColor = (-1).withAlpha(16)
 
         fun accelerateAgent(i: Int) {

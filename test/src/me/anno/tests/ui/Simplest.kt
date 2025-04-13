@@ -8,9 +8,9 @@ import me.anno.utils.Color.withAlpha
 fun main() {
     testPureUI("Simplest") {
         TestDrawPanel {
-            it.backgroundRadius = 50f
-            it.backgroundOutlineColor = white.withAlpha(0.7f)
-            it.backgroundOutlineThickness = 3f
+            it.background.radius = 50f
+            it.background.outlineColor = white.withAlpha(0.7f)
+            it.background.outlineThickness = 3f
             it.clear()
         }
     }

@@ -287,10 +287,11 @@ class ECSSceneTab(
     override fun onUpdate() {
         super.onUpdate()
         inspector.update()
-        backgroundColor = when {
-            ECSSceneTabs.currentTab == this -> mixARGB(originalBGColor, white, 0.2f)
-            ECSSceneTabs.currentTab?.playMode == PlayMode.PLAY_TESTING -> mixARGB(originalBGColor, black, 0.1f)
-            else -> mixARGB(originalBGColor, black, 0.2f)
+        val originalBgColor = background.originalColor
+        background.color = when {
+            ECSSceneTabs.currentTab == this -> mixARGB(originalBgColor, white, 0.2f)
+            ECSSceneTabs.currentTab?.playMode == PlayMode.PLAY_TESTING -> mixARGB(originalBgColor, black, 0.1f)
+            else -> mixARGB(originalBgColor, black, 0.2f)
         }
         if (ECSSceneTabs.currentTab == this && needsStart) {
             needsStart = false

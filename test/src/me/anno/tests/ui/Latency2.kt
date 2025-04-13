@@ -40,7 +40,7 @@ fun main() {
         list.add(TestDrawPanel {
             WindowRenderFlags.enableVSync = mode == LatencyTestMode.VSYNC // with v-sync it's about 30ms worse
             WindowRenderFlags.maxFPS = if (mode == LatencyTestMode.LIMITED_60) 60 else 0
-            it.backgroundColor = when {
+            it.background.color = when {
                 toBeChanged < 0f -> 0x336633 or black
                 else -> 0x773333 or black
             }

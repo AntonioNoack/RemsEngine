@@ -25,7 +25,7 @@ class TagPanel(name: String, style: Style) : TextPanel(name, style) {
         val textSize = (textSize * 0.85f).toIntOr()
         val color = if (isHovered) Color.white else Color.black
         drawTexture(
-            x + width - textSize - (backgroundRadius * 0.5f).toIntOr(),
+            x + width - textSize - (background.radius * 0.5f).toIntOr(),
             y + AxisAlignment.CENTER.getOffset(height, textSize) + 2,
             textSize, textSize, texture ?: return, color
         )

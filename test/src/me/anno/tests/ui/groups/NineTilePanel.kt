@@ -25,7 +25,7 @@ fun main() {
                 splitX = (window.mouseX - x) / width * 0.5f
                 splitY = (window.mouseY - y) / height * 0.5f
             }
-            backgroundColor = -1
+            background.color = -1
             for (j in alignments.indices) {
                 for (i in alignments.indices) {
                     add(object : Panel(style) {
@@ -33,9 +33,9 @@ fun main() {
                         init {
                             alignmentX = alignments[i]
                             alignmentY = alignments[j]
-                            backgroundColor =
+                            background.color =
                                 (sq((i + j * 3 + 1) / (sq(alignments.size) + 1f)) * 255).toInt() * 0x10101 or black
-                            backgroundRadius = 20f
+                            background.radius = 20f
                             addLeftClickListener {
                                 weight = (((weight * 3).toInt() + 1) % 4) / 3f
                                 weight2 = weight

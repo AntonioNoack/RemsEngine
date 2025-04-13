@@ -33,10 +33,7 @@ object ImageCache : CacheSection("Image") {
         }
     }
 
-    fun registerStreamReader(
-        signatures: String,
-        streamReader: AsyncImageReader<InputStream>
-    ) {
+    fun registerStreamReader(signatures: String, streamReader: AsyncImageReader<InputStream>) {
         registerReader(signatures, { src, bytes, callback ->
             streamReader.read(src, ByteArrayInputStream(bytes), callback)
         }, { src, fileRef, callback ->
@@ -47,8 +44,19 @@ object ImageCache : CacheSection("Image") {
         }, streamReader)
     }
 
+    fun registerByteArrayReader(signatures: String, byteReader: AsyncImageReader<ByteArray>) {
+        registerReader(signatures, byteReader, { src, fileRef, callback ->
+            fileRef.readBytes { bytes, e ->
+                if (bytes != null) byteReader.read(src, bytes, callback)
+                else callback.err(e)
+            }
+        }, { src, stream, callback ->
+            byteReader.read(src, stream.readBytes(), callback)
+        })
+    }
+
     /**
-     * reader shall return image or exception
+     * streamReader shall return image or exception
      * */
     fun registerDirectStreamReader(
         signatures: String,
@@ -61,7 +69,7 @@ object ImageCache : CacheSection("Image") {
     }
 
     /**
-     * reader shall return image or exception
+     * streamReader shall return image or exception
      * */
     fun registerDirectStreamReader(
         signatures: String,

@@ -73,8 +73,8 @@ class TagsPanel(value0: List<String>, style: Style) : PanelListY(style), InputPa
         val tagPanel = TagPanel(tag, style)
         tagPanel.padding.add(3)
         tagPanel.textColor = Color.white
-        tagPanel.backgroundColor = color
-        tagPanel.backgroundRadius = (tagPanel.textSize + tagPanel.padding.width) * 0.5f
+        tagPanel.background.color = color
+        tagPanel.background.radius = (tagPanel.textSize + tagPanel.padding.width) * 0.5f
         tags.add(tagPanel)
         if (notify) onChange(getTags())
     }

@@ -172,7 +172,7 @@ class EditTypeButton(val sceneView: SceneView, val text: String, val controls: C
 
     override fun onUpdate() {
         super.onUpdate()
-        backgroundColor = if (sceneView.editControls == controls) bg1 else bg0
+        background.color = if (sceneView.editControls == controls) bg1 else bg0
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

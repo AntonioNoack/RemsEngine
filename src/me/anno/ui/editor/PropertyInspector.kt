@@ -245,7 +245,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                 }
             }
             panel.name = "Spacing For FrameTimings"
-            panel.backgroundColor = list.backgroundColor and 0xffffff
+            panel.background.color = list.background.color and 0xffffff
             list.add(panel)
         }
 

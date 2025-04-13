@@ -21,7 +21,7 @@ fun create(x: Boolean, depth: Int): Panel {
                 minH = 20
             }
         }.apply {
-            backgroundColor = (Maths.random() * 1e9).toInt() or black
+            background.color = (Maths.random() * 1e9).toInt() or black
         }
     } else {
         val p = if (x) {

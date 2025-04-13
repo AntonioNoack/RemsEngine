@@ -51,7 +51,7 @@ class LUTColorMapNode : RenderViewNode(
         val toneMappingExposure = getFloatInput(2)
         val applyToneMapping = getBoolInput(3)
         val lutSource = getInput(4) as? FileReference ?: InvalidRef
-        val lut = TextureCache.getLUT(lutSource, async = true)
+        val lut = TextureCache.getLUT(lutSource)
         val color0 = getInput(5) as? Texture
         val color1 = color0.texOrNull
         if (color1 == null || lut == null || abs(strength) < 1e-7f) {

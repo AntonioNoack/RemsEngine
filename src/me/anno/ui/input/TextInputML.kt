@@ -27,7 +27,7 @@ open class TextInputML(nameDesc: NameDesc, style: Style) : PanelContainer(
 
     init {
         base.placeholder = nameDesc.name
-        base.backgroundColor = backgroundColor
+        base.background.color = background.color
         tooltip = nameDesc.desc
     }
 
