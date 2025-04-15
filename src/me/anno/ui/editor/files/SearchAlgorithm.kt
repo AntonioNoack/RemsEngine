@@ -120,54 +120,57 @@ object SearchAlgorithm {
 
     fun createResults(self: FileExplorer) {
         self.searchTask.compute {
+            createResultsImpl(self)
+        }
+    }
 
-            val newSearch = Search(self.searchBar.value)
+    private fun createResultsImpl(self: FileExplorer) {
 
-            val directChildren: List<FileReference> = self.folder.listFiles2()
-                .filter { !it.isHidden }
-            val newFiles = directChildren.map { it.absolutePath }
-            val lastSearch = self.lastSearch
+        val newSearch = Search(self.searchBar.value)
 
-            /*if (self.lastFiles != newFiles) {
-                LOGGER.info("Files changed from ${self.lastFiles.size} to ${newFiles.size}")
-            } else if (lastSearch == null) {
-                LOGGER.info("Never searched before")
-            } else if (!lastSearch.containsAllResultsOf(newSearch)) {
-                LOGGER.info("Search incompatible")
-            }*/
+        val directChildren: List<FileReference> = self.folder.listFiles2()
+            .filter { !it.isHidden }
+        val newFiles = directChildren.map { it.absolutePath }
+        val lastSearch = self.lastSearch
 
-            val calcIndex = ++self.calcIndex
-            if (self.lastFiles != newFiles || lastSearch == null || !lastSearch.containsAllResultsOf(newSearch)) {
+        /*if (self.lastFiles != newFiles) {
+            LOGGER.info("Files changed from ${self.lastFiles.size} to ${newFiles.size}")
+        } else if (lastSearch == null) {
+            LOGGER.info("Never searched before")
+        } else if (!lastSearch.containsAllResultsOf(newSearch)) {
+            LOGGER.info("Search incompatible")
+        }*/
 
-                // when searching something, also include sub-folders up to depth of xyz
-                val searchDepth = self.searchDepth
+        val calcIndex = ++self.calcIndex
+        if (self.lastFiles != newFiles || lastSearch == null || !lastSearch.containsAllResultsOf(newSearch)) {
 
-                val resultSet = ResultSet(self, calcIndex, newFiles, newSearch)
-                if (newSearch.matchesEverything()) {
-                    for (file in directChildren) {
+            // when searching something, also include sub-folders up to depth of xyz
+            val searchDepth = self.searchDepth
+
+            val resultSet = ResultSet(self, calcIndex, newFiles, newSearch)
+            if (newSearch.matchesEverything()) {
+                for (file in directChildren) {
+                    resultSet.add(file)
+                }
+            } else {
+                for (file in directChildren) {
+                    if (newSearch.matches(file.name)) {
                         resultSet.add(file)
                     }
-                } else {
-                    for (file in directChildren) {
-                        if (newSearch.matches(file.name)) {
-                            resultSet.add(file)
-                        }
-                    }
-                    indexRecursively(directChildren, searchDepth, newSearch, resultSet)
                 }
-
-                resultSet.finish()
-            } else {
-                val entries = self.content2d.children
-                for (i in entries.indices) {
-                    val entry = entries[i] as? FileExplorerEntry ?: continue
-                    entry.isVisible = entry.isParent || newSearch.matches(getReferenceOrTimeout(entry.path).name)
-                }
+                indexRecursively(directChildren, searchDepth, newSearch, resultSet)
             }
 
-            // reset query time
-            self.isValid = 5f
-
+            resultSet.finish()
+        } else {
+            val entries = self.content2d.children
+            for (i in entries.indices) {
+                val entry = entries[i] as? FileExplorerEntry ?: continue
+                entry.isVisible = entry.isParent || newSearch.matches(getReferenceOrTimeout(entry.path).name)
+            }
         }
+
+        // reset query time
+        self.isValid = 5f
     }
 }

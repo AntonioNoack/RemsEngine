@@ -67,58 +67,60 @@ abstract class AudioStream(
     abstract fun getBuffer(bufferIndex: Long): Pair<ShortArray?, ShortArray?>
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
-
         isWaitingForBuffer = true
         taskQueue += {// load all data async
+            requestNextBufferImpl(bufferIndex, session)
+        }
+    }
 
-            val bufferSize = bufferSize
-            val size = bufferSize * 2 * (if (stereo) 2 else 1)
-            val sb0 = byteBufferPool[size, false, true]
-                .order(ByteOrder.nativeOrder())
-            val stereoBuffer = sb0.asShortBuffer()
+    private fun requestNextBufferImpl(bufferIndex: Long, session: Int) {
 
-            when {
-                center -> {
-                    val (left, right) = getBuffer(bufferIndex)
-                    if (left != null && right != null) {
-                        for (i in 0 until bufferSize) {
-                            stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
-                        }
-                    }
-                }
-                stereo -> {
-                    val (left, right) = getBuffer(bufferIndex)
-                    if (left != null && right != null) {
-                        for (i in 0 until bufferSize) {
-                            stereoBuffer.put(left[i])
-                            stereoBuffer.put(right[i])
-                        }
-                    }
-                }
-                left -> {
-                    val (left, _) = getBuffer(bufferIndex)
-                    if (left != null) {
-                        for (i in 0 until bufferSize) {
-                            stereoBuffer.put(left[i])
-                        }
-                    }
-                }
-                else -> {
-                    val (_, right) = getBuffer(bufferIndex)
-                    if (right != null) {
-                        for (i in 0 until bufferSize) {
-                            stereoBuffer.put(right[i])
-                        }
+        val bufferSize = bufferSize
+        val size = bufferSize * 2 * (if (stereo) 2 else 1)
+        val sb0 = byteBufferPool[size, false, true]
+            .order(ByteOrder.nativeOrder())
+        val stereoBuffer = sb0.asShortBuffer()
+
+        when {
+            center -> {
+                val (left, right) = getBuffer(bufferIndex)
+                if (left != null && right != null) {
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
                     }
                 }
             }
-
-            stereoBuffer.position(0)
-
-            if (onBufferFilled(stereoBuffer, sb0, bufferIndex, session)) {
-                byteBufferPool.returnBuffer(sb0)
+            stereo -> {
+                val (left, right) = getBuffer(bufferIndex)
+                if (left != null && right != null) {
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(left[i])
+                        stereoBuffer.put(right[i])
+                    }
+                }
             }
+            left -> {
+                val (left, _) = getBuffer(bufferIndex)
+                if (left != null) {
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(left[i])
+                    }
+                }
+            }
+            else -> {
+                val (_, right) = getBuffer(bufferIndex)
+                if (right != null) {
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(right[i])
+                    }
+                }
+            }
+        }
 
+        stereoBuffer.position(0)
+
+        if (onBufferFilled(stereoBuffer, sb0, bufferIndex, session)) {
+            byteBufferPool.returnBuffer(sb0)
         }
     }
 
