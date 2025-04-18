@@ -16,15 +16,13 @@ class SegmentToContours(w: Int, h: Int, values: FloatArray) {
     private val next1 = HashMap<Vector2f, Vector2f>()
 
     private val field = FloatImage(w, h, 1, values)
-    private val v0 = Vector2f()
+    private val tmpVec2f = Vector2f()
 
     private fun registerEdge2(a: Vector2f, b: Vector2f) {
         val prev = next0.put(a, b)
         if (prev != null) {
             val prev2 = next1.put(a, prev)
-            if (prev2 != null) {
-                LOGGER.warn("Triple link?? $a -> [$b, $prev, $prev2]")
-            }
+            if (prev2 != null) LOGGER.warn("Triple link?? $a -> [$b, $prev, $prev2]")
         }
     }
 
@@ -85,46 +83,52 @@ class SegmentToContours(w: Int, h: Int, values: FloatArray) {
                 curr = next
             }
 
-            // invert polygon, if necessary: compare gradients with the direction of the polygon
-            var innerValue = 0.0
-            val v0 = v0
-
-            val dx: Float
-            val dy: Float
-            val sx: Float
-            val sy: Float
-            if (bounds != null) {
-                sx = (field.width - 1f) / bounds.deltaX
-                sy = (field.height - 1f) / bounds.deltaY
-                dx = -bounds.minX * sx
-                dy = -bounds.minY * sy
-            } else {
-                dx = 0f
-                dy = 0f
-                sx = 1f
-                sy = 1f
+            // invert polygon, if necessary:
+            // compare values with the direction of the polygon
+            if (isInsideOut(polygon, bounds)) {
+                polygon.reverse()
             }
-
-            for (i0 in polygon.indices) {
-                val vert0 = polygon[i0]
-                val vert1 = polygon[posMod(i0 + 1, polygon.size)]
-                val vert2 = polygon[posMod(i0 + 2, polygon.size)]
-
-                vert2.sub(vert0, vert0)
-                vert0.set(-vert0.y, vert0.x) // rotate 90°
-                vert0.normalize(0.1f) // take a tiny step inside
-                vert0.add(vert1)
-
-                val fieldX = vert0.x * sx + dx
-                val fieldY = vert0.y * sy + dy
-                innerValue += field.getValue(fieldX, fieldY)
-            }
-
-            if (innerValue > 0.0) polygon.reverse()
 
             polygons.add(polygon)
         }
 
         return polygons
+    }
+
+    private fun isInsideOut(polygon: List<Vector2f>, bounds: AABBf?): Boolean {
+        var innerValue = 0.0
+
+        val dx: Float
+        val dy: Float
+        val sx: Float
+        val sy: Float
+        if (bounds != null) {
+            sx = (field.width - 1f) / bounds.deltaX
+            sy = (field.height - 1f) / bounds.deltaY
+            dx = -bounds.minX * sx
+            dy = -bounds.minY * sy
+        } else {
+            dx = 0f
+            dy = 0f
+            sx = 1f
+            sy = 1f
+        }
+
+        val tmp = tmpVec2f
+        for (i0 in polygon.indices) {
+            val vert0 = polygon[i0]
+            val vert1 = polygon[posMod(i0 + 1, polygon.size)]
+            val vert2 = polygon[posMod(i0 + 2, polygon.size)]
+
+            vert2.sub(vert0, tmp)
+            tmp.set(-tmp.y, tmp.x) // rotate 90°
+            tmp.safeNormalize(0.1f) // take a tiny step inside
+            tmp.add(vert1)
+
+            val fieldX = tmp.x * sx + dx
+            val fieldY = tmp.y * sy + dy
+            innerValue += field.getValue(fieldX, fieldY)
+        }
+        return innerValue > 0.0
     }
 }
