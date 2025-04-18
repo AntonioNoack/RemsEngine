@@ -23,6 +23,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
@@ -115,7 +116,7 @@ class BulletVehicleTest {
         assertEquals(Vector3d(0.0, 1.0, 0.0), vehicle.position, 0.1)
         // todo bug: velocity variable somehow is (0,0.6,0), even though the vehicle isn't moving
         // assertEquals(Vector3d(0.0), vehicle.getComponent(Rigidbody::class)!!.linearVelocity, 0.01)
-        assertEquals(Quaterniond(), vehicle.rotation, 0.01)
+        assertEquals(Quaternionf(), vehicle.rotation, 0.01)
     }
 
     @Test
@@ -142,7 +143,7 @@ class BulletVehicleTest {
         // check that it accelerates
         for (i in 0 until 50) {
             assertEquals(Vector3d(0.0, 1.05, sq((i - 0.5) / 48.5) * 12.25), vehicle.position, 0.05)
-            assertEquals(Quaterniond(), vehicle.rotation, 0.1)
+            assertEquals(Quaternionf(), vehicle.rotation, 0.1)
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
     }
@@ -165,7 +166,7 @@ class BulletVehicleTest {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
         assertEquals(Vector3d(0.0, 1.0, 0.0), vehicle.position, 0.1)
-        assertEquals(Quaterniond(), vehicle.rotation, 0.01)
+        assertEquals(Quaternionf(), vehicle.rotation, 0.01)
         // turn on motor & apply steering
         val vehicleI = vehicle.getComponent(Vehicle::class)!!
         vehicleI.engineForce = 200.0

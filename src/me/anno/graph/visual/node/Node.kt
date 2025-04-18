@@ -21,6 +21,7 @@ import kotlin.reflect.KClass
 //    - action node
 //    - macro node, allowing custom for loops or such
 // todo call-stack (loops, function calls), so we can resume at any time, and don't need actual sleeping?
+//  -> implement asynchronous nodes :3
 
 abstract class Node() : PrefabSaveable() {
 

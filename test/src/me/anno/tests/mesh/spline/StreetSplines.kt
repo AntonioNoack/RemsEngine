@@ -25,7 +25,6 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
 import me.anno.utils.OS.res
-import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.PI
@@ -54,7 +53,7 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     val materialToTint = materials.map { it.diffuseBase }
     val colors = IntArray(mesh.positions!!.size / 3)
     val baseColor = mesh.color0
-    val helperMeshes = mesh.helperMeshes !!
+    val helperMeshes = mesh.helperMeshes!!
     materialToTint.mapIndexed { mi, tint ->
         val tintRGB = tint.toARGB()
         helperMeshes[mi]?.forEachPointIndex { pi ->
@@ -152,10 +151,9 @@ fun main() {
         val splineEntity = Entity("Spline", world)
             .addSplineMesh()
 
-        fun add(parent: Entity, p: Vector3d, r: Quaterniond = Quaterniond()) {
+        fun add(parent: Entity, p: Vector3d) {
             Entity(parent)
                 .setPosition(p)
-                .setRotation(r)
                 .addControl()
         }
 
