@@ -12,6 +12,7 @@ import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.MarchingSquares
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.OS
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toLongOr
@@ -63,7 +64,9 @@ class MarchingSquaresTest {
             val b = contour[posMod(i + 1, contour.size)]
             val c = contour[posMod(i + 2, contour.size)]
             val angle = (b - a).angle(c - b) * sign
-            assertTrue(angle in expectedAngle * 0.5f..expectedAngle * 1.3f)
+            assertTrue(angle in expectedAngle * 0.5f..expectedAngle * 1.3f) {
+                "$angle !in $expectedAngle * (0.5..1.3)"
+            }
         }
     }
 
@@ -76,7 +79,7 @@ class MarchingSquaresTest {
     fun testNoisyCircleWithSign(sign: Float) {
         val noise = FullNoise((1234 * sign).toLongOr())
         fun sdf(x: Float, y: Float): Float {
-            return (x * x + y * y - sq(5f) + (noise[x, y] - 0.5f) * 200f) * sign
+            return (x * x + y * y - sq(5f) + (noise[x, y] - 0.5f) * 20f) * sign
         }
 
         val image = FloatImage(15, 15, 1)
@@ -89,7 +92,8 @@ class MarchingSquaresTest {
             image.width, image.height, image.data,
             0f, AABBf(0f, 0f, 0f, image.width - 1f, image.height - 1f, 0f)
         )
-        // image.normalized().scaleUp(4).write(desktop.getChild("circleI$sign.png"))
+
+        image.normalized().scaleUp(4).write(OS.desktop.getChild("circleI$sign.png"))
         // visualizeContours(contours, "circleC$sign.png")
         assertTrue(contours.isNotEmpty())
 

@@ -235,7 +235,7 @@ object DualContouring {
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     // find correct vertex indices
                     val vk = x + sx * y
-                    s2c.addEdge(vertices[vk - 1], vertices[vk], gradient)
+                    s2c.addEdge(vertices[vk - 1], vertices[vk], false)
                 }
             }
         }
@@ -246,11 +246,11 @@ object DualContouring {
                 val vj = vi + 1
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     val vk = x + sx * y
-                    s2c.addEdge(vertices[vk - sx], vertices[vk], gradient)
+                    s2c.addEdge(vertices[vk - sx], vertices[vk], false)
                 }
             }
         }
 
-        return s2c.joinLinesToPolygons()
+        return s2c.joinLinesToPolygons(null)
     }
 }

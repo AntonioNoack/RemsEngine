@@ -92,7 +92,7 @@ object MarchingSquares {
                     lerp(edges[0], xi, yi)
                     lerp(edges[1], xi, yi)
                     if (ei == 2) {
-                        s2c.addEdge(edges[0], edges[1])
+                        s2c.addEdge(edges[0], edges[1], true)
                     } else {
                         assertEquals(4, ei)
                         // ei must be 4
@@ -101,11 +101,11 @@ object MarchingSquares {
                         // test point in center to decide direction
                         val center = v00 + v01 + v10 + v11 >= 0f
                         if (center == b00) {
-                            s2c.addEdge(edges[0], edges[3])
-                            s2c.addEdge(edges[1], edges[2])
+                            s2c.addEdge(edges[0], edges[3], true)
+                            s2c.addEdge(edges[1], edges[2], true)
                         } else {
-                            s2c.addEdge(edges[0], edges[1])
-                            s2c.addEdge(edges[2], edges[3])
+                            s2c.addEdge(edges[0], edges[1], true)
+                            s2c.addEdge(edges[2], edges[3], true)
                         }
                     }
                 }
@@ -115,7 +115,7 @@ object MarchingSquares {
             }
         }
 
-        return s2c.joinLinesToPolygons()
+        return s2c.joinLinesToPolygons(bounds)
     }
 
     /**

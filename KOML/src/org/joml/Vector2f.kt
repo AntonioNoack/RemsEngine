@@ -1,6 +1,5 @@
 package org.joml
 
-import org.joml.Vector3f.Companion
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -283,11 +282,11 @@ open class Vector2f(
     }
 
     fun cross(other: Vector2f): Float {
-        return cross(other.x, other.y)
+        return dot(other.y, -other.x)
     }
 
     fun cross(vx: Float, vy: Float): Float {
-        return x * vy - y * vx
+        return dot(vy, -vx)
     }
 
     fun mulAdd(f: Float, b: Vector2f, dst: Vector2f): Vector2f {
