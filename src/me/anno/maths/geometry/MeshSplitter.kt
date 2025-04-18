@@ -196,9 +196,8 @@ object MeshSplitter {
         }
 
         private fun triangulateRing(ring: List<SplittableVertex>, posNormal: Vector3f, negNormal: Vector3f) {
-            val ringToVertex = ring.associateBy { it.position }
-            val triangles = Triangulation.ringToTrianglesVec3f(ring.map { it.position })
-            val tris = triangles.map { ringToVertex[it]!! }
+            val triangles = Triangulation.ringToTrianglesVec3fIndices(ring.map { it.position }) ?: return
+            val tris = triangles.map { ring[it] }
             val (_, r1, _, r3) = result
             forLoopSafely(tris.size, 3) { i ->
                 r1.addTriangle(tris[i], tris[i + 1], tris[i + 2], posNormal)

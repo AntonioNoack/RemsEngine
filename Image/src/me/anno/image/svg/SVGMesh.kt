@@ -198,7 +198,7 @@ class SVGMesh {
         val cx = x0 + w * 0.5f
         val cy = y0 + h * 0.5f
         val scale = 2f / h
-        val totalPointCount = curves.sumOf { it.triangles.size }
+        val totalPointCount = curves.sumOf { it.trianglesIndices.size }
         if (totalPointCount > 0) {
             val buffer = StaticBuffer("SVG", attr, totalPointCount)
             this.buffer = buffer
@@ -209,11 +209,13 @@ class SVGMesh {
             val c3 = Vector4f()
             val stops = Vector4f()
             for (curve in curves) {
-                if (curve.triangles.isEmpty()) continue
-                val minX = curve.triangles.minOf { it.x }
-                val maxX = curve.triangles.maxOf { it.x }
-                val minY = curve.triangles.minOf { it.y }
-                val maxY = curve.triangles.maxOf { it.y }
+                val triangleIndices = curve.trianglesIndices
+                if (triangleIndices.isEmpty()) continue
+                val triangleVertices = curve.triangleVertices
+                val minX = triangleVertices.minOf { it.x }
+                val maxX = triangleVertices.maxOf { it.x }
+                val minY = triangleVertices.minOf { it.y }
+                val maxY = triangleVertices.maxOf { it.y }
                 val scaleX = 1f / max(1e-7f, maxX - minX)
                 val scaleY = 1f / max(1e-7f, maxY - minY)
                 // upload all shapes
@@ -223,7 +225,8 @@ class SVGMesh {
                 val padding = gradient.spreadMethod.id.toFloat()
                 val z = curve.depth
                 val circle = if (formula.isCircle) 1f else 0f
-                for (v in curve.triangles) {
+                for (vi in 0 until triangleIndices.size) {
+                    val v = triangleVertices[triangleIndices[vi]]
                     val vx = v.x
                     val vy = v.y
                     // position, v3
@@ -257,19 +260,21 @@ class SVGMesh {
         val cx = x0 + w * 0.5f
         val cy = y0 + h * 0.5f
         val scale = 2f / h
-        val totalPointCount = curves.sumOf { it.triangles.size }
+        val totalPointCount = curves.sumOf { it.trianglesIndices.size }
         if (totalPointCount > 0) {
             val mesh = Mesh()
             this.mesh = mesh
             val positions = FloatArrayList(totalPointCount * 3)
             val colors = IntArrayList(totalPointCount)
             for (curve in curves) {
-                val triangles = curve.triangles
-                if (triangles.isEmpty()) continue
-                val minX = triangles.minOf { it.x }
-                val maxX = triangles.maxOf { it.x }
-                val minY = triangles.minOf { it.y }
-                val maxY = triangles.maxOf { it.y }
+                val triangleVertices = curve.triangleVertices
+                val triangleIndices = curve.trianglesIndices
+                if (triangleIndices.isEmpty()) continue
+                val triangles = triangleIndices.map(triangleVertices)
+                val minX = triangleVertices.minOf { it.x }
+                val maxX = triangleVertices.maxOf { it.x }
+                val minY = triangleVertices.minOf { it.y }
+                val maxY = triangleVertices.maxOf { it.y }
                 val scaleX = 1f / max(1e-7f, maxX - minX)
                 val scaleY = 1f / max(1e-7f, maxY - minY)
                 // upload all shapes

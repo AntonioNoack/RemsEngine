@@ -1,6 +1,6 @@
 package me.anno.parser
 
-class Vector {
+class ParseDataVector {
 
     val data = ArrayList<Any>()
     var isClosed = false
@@ -23,8 +23,8 @@ class Vector {
         return data.getOrNull(index)
     }
 
-    fun map(func: (Any) -> Any): Vector {
-        val mapped = Vector()
+    fun map(func: (Any) -> Any): ParseDataVector {
+        val mapped = ParseDataVector()
         mapped.isClosed = isClosed
         mapped.data.addAll(data.map { func(it) })
         return mapped

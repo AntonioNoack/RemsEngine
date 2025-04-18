@@ -146,7 +146,7 @@ object SimpleExpressionParser {
             val number = this[i]
             if (!number.isValue()) continue
             if (i == 1 || when (this[i - 2]) {
-                    is Double, is Vector -> false
+                    is Double, is ParseDataVector -> false
                     '*', '/', '^', ',', '(' -> true
                     else -> false
                 }
@@ -366,7 +366,7 @@ object SimpleExpressionParser {
     }
 
     fun Any?.isValue() = when (this) {
-        is Vector -> isClosed
+        is ParseDataVector -> isClosed
         is Double -> true
         else -> false
     }
@@ -377,13 +377,13 @@ object SimpleExpressionParser {
         // searched: '[' to open a vector
         loop@ for (i in 0 until size) {
             if (this[i] == '[') {
-                this[i] = Vector()
+                this[i] = ParseDataVector()
                 wasChanged = true
             }
         }
         // searched: ']' to close a vector
         loop@ for (i in 1 until size) {
-            val vector = this[i - 1] as? Vector ?: continue
+            val vector = this[i - 1] as? ParseDataVector ?: continue
             if (this[i] == ']' && !vector.isClosed) {
                 removeAt(i)
                 vector.close()
@@ -392,7 +392,7 @@ object SimpleExpressionParser {
         }
         // searched: v 5 ,/]
         loop@ for (i in 2 until size) {
-            val vector = this[i - 2] as? Vector ?: continue
+            val vector = this[i - 2] as? ParseDataVector ?: continue
             when (val symbol = this[i]) {
                 ',', ']' -> {
                     val value = this[i - 1]
@@ -407,8 +407,8 @@ object SimpleExpressionParser {
         }
         // array access
         loop@ for (i in 1 until size) {
-            val vector = this[i - 1] as? Vector ?: continue
-            val indices = this[i] as? Vector ?: continue
+            val vector = this[i - 1] as? ParseDataVector ?: continue
+            val indices = this[i] as? ParseDataVector ?: continue
             if (indices.isClosed && indices.data.size < 2) {
                 val value = when (val index = indices.data.getOrNull(0) ?: 0.0) {
                     is Double -> vector[index]
@@ -451,12 +451,12 @@ object SimpleExpressionParser {
     }
     val isValue = { x: Any -> x.isValue() }
     val isDouble = { x: Any -> x is Double }
-    val isVector = { x: Any -> x is Vector }
+    val isVector = { x: Any -> x is ParseDataVector }
     val operations = listOf(
         Operation(15, listOf('(', isValue, ')')) { list, i0 -> list[i0 + 1] },
-        Operation(15, listOf('[')) { _, _ -> Vector() },
+        Operation(15, listOf('[')) { _, _ -> ParseDataVector() },
         Operation(15, listOf(isVector, isValue, ',')) { list, i0 ->
-            val v = list[i0] as Vector
+            val v = list[i0] as ParseDataVector
             v += list[i0 + 1]
             v
         },

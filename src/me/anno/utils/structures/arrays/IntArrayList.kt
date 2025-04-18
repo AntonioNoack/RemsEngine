@@ -4,7 +4,8 @@ import me.anno.cache.ICacheData
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
 
-open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) : NativeArrayList, ICacheData {
+open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) :
+    NativeArrayList, ICacheData {
 
     constructor(values: IntArray) : this(values.size) {
         add(values)
@@ -181,10 +182,19 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
 
     fun toIntArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toIntArray(size, canReturnSelf, exact)
     fun toList(): List<Int> = subList(0, size)
+
     fun <V> map(mapping: (Int) -> V): List<V> {
         val dst = ArrayList<V>(size)
         for (i in 0 until size) {
-            dst.add(mapping(this[i]))
+            dst.add(mapping(get(i)))
+        }
+        return dst
+    }
+
+    fun <V> map(mapping: List<V>): List<V> {
+        val dst = ArrayList<V>(size)
+        for (i in 0 until size) {
+            dst.add(mapping[get(i)])
         }
         return dst
     }
@@ -196,6 +206,23 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
         } else {
             values.copyOf(size1)
         }
+    }
+
+    fun reverse() {
+        val li = size - 1
+        val values = values
+        for (i in 0 until size.shr(1)) {
+            val j = li - i
+            val tmp = values[i]
+            values[i] = values[j]
+            values[j] = tmp
+        }
+    }
+
+    fun swap(i: Int, j: Int) {
+        val tmp = values[i]
+        values[i] = values[j]
+        values[j] = tmp
     }
 
     override fun destroy() {

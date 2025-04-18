@@ -1,7 +1,7 @@
 package me.anno.image.svg
 
-import me.anno.mesh.Triangulation
 import me.anno.image.svg.gradient.Gradient1D
+import me.anno.mesh.Triangulation
 import org.joml.Vector2f
 
 class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gradient: Gradient1D, width: Float) {
@@ -49,9 +49,7 @@ class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gr
         return result
     }
 
-    val triangles = if (width <= 0f) {
-        Triangulation.ringToTrianglesVec2f(points)
-    } else {
+    val triangleVertices = if (width <= 0f) points else {
 
         // todo round caps instead of the sharp ones?...
         // todo create nice caps if not closed
@@ -59,11 +57,10 @@ class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gr
         // create two joint loops around
         val ring1 = createRing(points, +width, closed)
         val ring2 = createRing(points, -width, closed)
-
         ring2.reverse()
-
-        Triangulation.ringToTrianglesVec2f(ring1 + ring2)
-
+        ring1.addAll(ring2)
+        ring1
     }
 
+    val trianglesIndices = Triangulation.ringToTrianglesVec2fIndices(points)!!
 }

@@ -2,89 +2,55 @@ package me.anno.tests.mesh
 
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.Polygons.getPolygonArea2d
 import me.anno.maths.geometry.Polygons.getPolygonArea2f
 import me.anno.maths.geometry.Polygons.getPolygonArea3d
-import me.anno.mesh.Triangulation
-import me.anno.mesh.Triangulation.ringToTrianglesVec2f
-import me.anno.mesh.Triangulation.ringToTrianglesVec3d
-import me.anno.mesh.Triangulation.ringToTrianglesVec3f
+import me.anno.mesh.TriangulationBuilder
 import me.anno.tests.maths.geometry.PolygonsTests.Companion.createNgon
 import me.anno.tests.maths.geometry.PolygonsTests.Companion.getNgonArea
 import me.anno.utils.assertions.assertContains
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotContains
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Triangles
 import org.joml.Quaterniond
-import org.joml.Quaternionf
 import org.joml.Vector2d
 import org.joml.Vector2d.Companion.lengthSquared
 import org.joml.Vector2f
 import org.joml.Vector3d
-import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import org.the3deers.util.EarCut
 import kotlin.random.Random
 
-class TriangulationTests {
+class TriangulationBuilderTests {
 
     @Test
-    fun testEmpty2f() {
-        assertEquals(emptyList<Vector2f>(), ringToTrianglesVec2f(emptyList()))
+    fun testEmpty() {
+        val empty = TriangulationBuilder<Vector2f>()
+        assertEquals(emptyList<Vector2f>(), empty.triangulate())
     }
 
     @Test
     fun testSimple2f() {
+        val builder = TriangulationBuilder<Vector2f>()
         for (n in 2 until 10) {
             val points = createNgon(n).map { Vector2f(it) }
-            val triangulation = ringToTrianglesVec2f(points)
+            builder.addVertices(points)
+            val triangulation = builder.triangulate()
             assertEquals((n - 2) * 3, triangulation.size)
             val expectedArea = getPolygonArea2f(points)
             val totalArea = triangulation.indices.step(3).sumOf {
                 getPolygonArea2f(triangulation.subList(it, it + 3)).toDouble()
             }.toFloat()
             assertEquals(expectedArea, totalArea, 1e-6f)
-        }
-    }
-
-    @Test
-    fun testEmpty3d() {
-        assertEquals(emptyList<Vector3d>(), ringToTrianglesVec3d(emptyList()))
-    }
-
-    @Test
-    fun testSimple3f() {
-        val random = Random(1234L)
-        for (s in 0 until 10) {
-            // try a few random transforms
-            val transform = Quaternionf().rotateYXZ(
-                random.nextFloat() * TAUf,
-                random.nextFloat() * TAUf,
-                random.nextFloat() * TAUf
-            )
-            val randomZOffset = random.nextFloat() * 2f - 1f // shouldn't influence the result
-            for (n in 2 until 10) {
-                val points = createNgon(n).map {
-                    transform.transform(Vector3f(it.x.toFloat(), it.y.toFloat(), randomZOffset))
-                }
-                val triangulation = ringToTrianglesVec3f(points)
-                assertEquals((n - 2) * 3, triangulation.size)
-                val expectedArea = getPolygonArea3d(points.map { v -> Vector3d(v) })
-                val totalArea = triangulation.indices.step(3).sumOf {
-                    getPolygonArea3d(triangulation.subList(it, it + 3).map { v -> Vector3d(v) })
-                }
-                assertEquals(expectedArea, totalArea, 1e-13)
-            }
+            builder.clear()
         }
     }
 
     @Test
     fun testSimple3d() {
+        val builder = TriangulationBuilder<Vector3d>()
         val random = Random(1234L)
         for (s in 0 until 10) {
             // try a few random transforms
@@ -98,13 +64,15 @@ class TriangulationTests {
                 val points = createNgon(n).map {
                     transform.transform(Vector3d(it.x, it.y, randomZOffset))
                 }
-                val triangulation = ringToTrianglesVec3d(points)
+                builder.addVertices(points)
+                val triangulation = builder.triangulate()
                 assertEquals((n - 2) * 3, triangulation.size)
                 val expectedArea = getPolygonArea3d(points)
                 val totalArea = triangulation.indices.step(3).sumOf {
                     getPolygonArea3d(triangulation.subList(it, it + 3))
                 }
                 assertEquals(expectedArea, totalArea, 1e-14)
+                builder.clear()
             }
         }
     }
@@ -122,14 +90,10 @@ class TriangulationTests {
             points.add(Vector2d(radius, 0.0).rotate(angle))
         }
 
-        val data = DoubleArray(points.size * 2)
-        for (i in points.indices) {
-            val point = points[i]
-            data[i * 2] = point.x
-            data[i * 2 + 1] = point.y
-        }
+        val builder = TriangulationBuilder<Vector2d>()
+        builder.addVertices(points)
 
-        val triangles = EarCut.earcut(data, 2)!!
+        val triangles = builder.triangulateToIndices()!!
         if (false) ImageWriter.writeTriangles(512, "concave.png", points.map { Vector2f(it) }, triangles.toIntArray())
 
         // validate shape
@@ -170,16 +134,20 @@ class TriangulationTests {
     fun testShapeWithHoles() {
 
         val rnd = Random(123)
-        val points = ArrayList<Vector2d>()
-        val holeIndices = IntArrayList(16)
+        val builder = TriangulationBuilder<Vector2d>()
 
         val n = 7
         fun addCircle(pos: Vector2d, radius: Double, inside: Boolean) {
-            if (inside) holeIndices.add(points.size) // start indices for holes need to be given
+            val points = ArrayList<Vector2d>()
             val da = rnd.nextDouble() * TAU
             for (i in 0 until n) {
                 val angle = da + i * TAU / n
                 points.add(Vector2d(radius, 0.0).rotate(angle).add(pos))
+            }
+            if (inside) {
+                builder.addHole(points)
+            } else {
+                builder.addVertices(points)
             }
         }
 
@@ -206,8 +174,9 @@ class TriangulationTests {
             innerCircles.add(circle)
         }
 
-        val triangles = Triangulation.ringToTrianglesVec2dIndices(points, holeIndices.toIntArray())!!
-        ImageWriter.writeTriangles(512, "withHoles.png", points.map { Vector2f(it) }, triangles.toIntArray())
+        val points = builder.vertices
+        val triangles = builder.triangulateToIndices()!!
+        if (false) ImageWriter.writeTriangles(512, "withHoles.png", points.map { Vector2f(it) }, triangles.toIntArray())
 
         // validate shape
         // each signed edge must appear correctly once
@@ -234,6 +203,7 @@ class TriangulationTests {
         }
 
         // check inner circles are properly connected
+        val holeIndices = builder.holesStartIndices
         for (j in holeIndices.indices) {
             val j0 = holeIndices[j]
             for (di in 0 until n) {

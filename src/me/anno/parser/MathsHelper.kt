@@ -13,7 +13,7 @@ fun mulAny(a: Any?, b: Any?): Any {
     if (a is Double) {
         return when (b) {
             is Double -> a * b
-            is Vector -> b.map { mulAny(a, it) }
+            is ParseDataVector -> b.map { mulAny(a, it) }
             else -> RuntimeException("todo implement $a * $b")
         }
     }
@@ -27,7 +27,7 @@ fun divAny(a: Any?, b: Any?): Any {
     if (a is Double) {
         return when (b) {
             is Double -> a / b
-            is Vector -> b.map { divAny(a, it) }
+            is ParseDataVector -> b.map { divAny(a, it) }
             else -> RuntimeException("todo implement $a / $b")
         }
     }
@@ -41,13 +41,13 @@ fun modAny(a: Any?, b: Any?): Any {
     if (a is Double) {
         return when (b) {
             is Double -> a % b
-            is Vector -> b.map { modAny(a, it) }
+            is ParseDataVector -> b.map { modAny(a, it) }
             else -> RuntimeException("todo implement $a % $b")
         }
     }
     if (b is Double) {
         return when (a) {
-            is Vector -> a.map { modAny(it, b) }
+            is ParseDataVector -> a.map { modAny(it, b) }
             else -> RuntimeException("todo implement $a % $b")
         }
     }
@@ -67,7 +67,7 @@ fun addAny(a: Any?, b: Any?): Any {
     if (a is Double) {
         return when (b) {
             is Double -> a + b
-            is Vector -> b.map { addAny(a, it) }
+            is ParseDataVector -> b.map { addAny(a, it) }
             else -> RuntimeException()
         }
     }
@@ -81,7 +81,7 @@ fun subAny(a: Any?, b: Any?): Any {
     if (a is Double) {
         return when (b) {
             is Double -> a - b
-            is Vector -> b.map { subAny(a, it) }
+            is ParseDataVector -> b.map { subAny(a, it) }
             else -> throw RuntimeException()
         }
     }

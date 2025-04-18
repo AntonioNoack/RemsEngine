@@ -421,6 +421,11 @@ object ImageWriter {
     data class ColoredLine(val a: Vector2f, val b: Vector2f, val lineColor: Int, val pointColor: Int = lineColor)
 
     @JvmStatic
+    fun writeTriangles(size: Int, name: String, points: List<Vector2f>) {
+        return writeTriangles(size, name, points, IntArray(points.size) { it })
+    }
+
+    @JvmStatic
     fun writeTriangles(size: Int, name: String, points: List<Vector2f>, indices: IntArray) {
         val bounds = AABBf()
         for (p in points) {

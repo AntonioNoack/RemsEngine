@@ -1,5 +1,6 @@
 package org.the3deers.util
 
+import me.anno.utils.InternalAPI
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import kotlin.math.abs
@@ -10,7 +11,10 @@ import kotlin.math.min
  * from the3deers.org, a derivative work from https://github.com/mapbox/earcut
  * converted to Kotlin and doubles by Antonio Noack
  * (copyright (https://github.com/mapbox/earcut/blob/main/LICENSE) removed, because it's like spam for programmers)
+ *
+ * This class is pretty low-level. Use Triangulation/TriangulationBuilder first.
  */
+@InternalAPI
 object EarCut {
 
     @JvmStatic
@@ -20,9 +24,9 @@ object EarCut {
 
     @JvmStatic
     @Suppress("unused")
-    fun earcut(data: DoubleArray, holeIndices: IntArray?, dim: Int): IntArrayList? {
-        val hasHoles = holeIndices != null && holeIndices.isNotEmpty()
-        val outerLen = if (hasHoles) holeIndices!![0] * dim else data.size
+    fun earcut(data: DoubleArray, holeStartIndices: IntArray?, dim: Int): IntArrayList? {
+        val hasHoles = holeStartIndices != null && holeStartIndices.isNotEmpty()
+        val outerLen = if (hasHoles) holeStartIndices!![0] * dim else data.size
         var outerNode = linkedList(data, 0, outerLen, dim, true)
         if (outerNode == null || outerNode.next === outerNode.prev) return null
         val triangles = IntArrayList(max(data.size, 16))
@@ -33,8 +37,8 @@ object EarCut {
         var x: Double
         var y: Double
         var invSize = 0.0
-        if (hasHoles && holeIndices != null) {
-            outerNode = eliminateHoles(data, holeIndices, outerNode, dim)
+        if (hasHoles && holeStartIndices != null) {
+            outerNode = eliminateHoles(data, holeStartIndices, outerNode, dim)
         }
 
         // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
