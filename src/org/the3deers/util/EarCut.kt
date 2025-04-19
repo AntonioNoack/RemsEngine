@@ -16,14 +16,8 @@ import kotlin.math.min
  */
 @InternalAPI
 object EarCut {
-
+    
     @JvmStatic
-    fun earcut(data: DoubleArray, dim: Int): IntArrayList? {
-        return earcut(data, null, dim)
-    }
-
-    @JvmStatic
-    @Suppress("unused")
     fun earcut(data: DoubleArray, holeStartIndices: IntArray?, dim: Int): IntArrayList? {
         val hasHoles = holeStartIndices != null && holeStartIndices.isNotEmpty()
         val outerLen = if (hasHoles) holeStartIndices!![0] * dim else data.size

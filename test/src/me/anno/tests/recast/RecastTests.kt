@@ -3,7 +3,6 @@ package me.anno.tests.recast
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -55,6 +54,45 @@ class RecastTests {
         fun main(args: Array<String>) {
             enableDrawing = true
             RecastTests().testRecastOnCircleWithHoles()
+        }
+
+        /**
+         * Returns a list of all circles.
+         * The first one is the outer circle.
+         * Each circle is represented as x,y = x,y, z = radius.
+         * */
+        fun createCircleWithHoles(): List<Vector3d> {
+
+            fun collides(c1: Vector3d, c2: Vector3d): Boolean {
+                return lengthSquared(c1.x - c2.x, c1.y - c2.y) < sq(c1.z + c2.z)
+            }
+
+            val rnd = Random(1655)
+            val circles = ArrayList<Vector3d>()
+
+            circles.add(Vector3d(0.0, 0.0, 10.0))
+
+            for (i in 0 until 35) {
+                val circle = Vector3d()
+                do {
+                    circle.set(
+                        sqrt(rnd.nextDouble()) * 8.0, 0.0,
+                        mix(0.5, 1.0, rnd.nextDouble())
+                    ).rotateZ(rnd.nextDouble() * TAU)
+
+                    var needsMoreTries = false
+                    for (j in 1 until circles.size) {
+                        if (collides(circle, circles[j])) {
+                            needsMoreTries = true
+                            break
+                        }
+                    }
+                } while (needsMoreTries)
+                circles.add(circle)
+            }
+
+            // setup recast
+            return circles
         }
     }
 
@@ -111,31 +149,18 @@ class RecastTests {
         }
     }
 
-    private fun createScene(): Entity {
-        // create a circle with "holes"
+    private fun createCircleWithHolesScene(): Entity {
         val scene = Entity()
         val circles = Entity("Circles", scene)
-        addCircle(circles, Vector3d(0.0, 0.0, 10.0), false)
-
-        fun collides(c1: Vector3d, c2: Vector3d): Boolean {
-            return lengthSquared(c1.x - c2.x, c1.y - c2.y) < sq(c1.z + c2.z)
+        val circleList = createCircleWithHoles()
+        for (i in circleList.indices) {
+            addCircle(circles, circleList[i], i > 0)
         }
-
-        val rnd = Random(1655)
-        val innerCircles = ArrayList<Vector3d>()
-        for (i in 0 until 35) {
-            val circle = Vector3d()
-            do {
-                circle.set(
-                    sqrt(rnd.nextDouble()) * 8.0, 0.0,
-                    mix(0.5, 1.0, rnd.nextDouble())
-                ).rotateZ(rnd.nextDouble() * TAU)
-            } while (innerCircles.any { collides(circle, it) })
-            addCircle(circles, circle, true)
-            innerCircles.add(circle)
-        }
-
         // setup recast
+        return scene
+    }
+
+    private fun setupRecast(scene: Entity): NavMesh {
         val navMesh1 = NavMesh()
         navMesh1.agentHeight = 1f
         navMesh1.cellSize = 0.05f
@@ -145,14 +170,14 @@ class RecastTests {
         navMesh1.collisionMask = -1
         navMesh1.edgeMaxError = 1f
         scene.add(navMesh1)
-        return scene
+        return navMesh1
     }
 
 
     // create a circle with "holes"
-    val scene = createScene()
+    val scene = createCircleWithHolesScene()
 
-    val navMesh1 = scene.getComponent(NavMesh::class)!!
+    val navMesh1 = setupRecast(scene)
     val meshData = navMesh1.build()!!
 
     init {
