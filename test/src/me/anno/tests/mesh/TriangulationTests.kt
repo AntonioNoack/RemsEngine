@@ -28,7 +28,6 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import org.the3deers.util.EarCut
 import kotlin.random.Random
 
 class TriangulationTests {
@@ -122,14 +121,7 @@ class TriangulationTests {
             points.add(Vector2d(radius, 0.0).rotate(angle))
         }
 
-        val data = DoubleArray(points.size * 2)
-        for (i in points.indices) {
-            val point = points[i]
-            data[i * 2] = point.x
-            data[i * 2 + 1] = point.y
-        }
-
-        val triangles = EarCut.earcut(data, 2)!!
+        val triangles = Triangulation.ringToTrianglesVec2dIndices(points)!!
         if (false) ImageWriter.writeTriangles(512, "concave.png", points.map { Vector2f(it) }, triangles.toIntArray())
 
         // validate shape

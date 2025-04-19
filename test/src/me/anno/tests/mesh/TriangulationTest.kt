@@ -5,10 +5,10 @@ import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
+import me.anno.mesh.Triangulation
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2d
 import org.joml.Vector2f
-import org.the3deers.util.EarCut
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -29,14 +29,7 @@ fun main() {
             .add(1.0, 1.0).mul(offset)
     }
 
-    val data = DoubleArray(points.size * 2)
-    for (i in points.indices) {
-        val point = points[i]
-        data[i * 2] = point.x
-        data[i * 2 + 1] = point.y
-    }
-
-    val triangles = EarCut.earcut(data, 2)!!
+    val triangles = Triangulation.ringToTrianglesVec2dIndices(points)!!
     ImageWriter.writeTriangles(size, "triangulation.png", points.map { Vector2f(it) }, triangles.toIntArray())
     Engine.requestShutdown()
 }

@@ -6,6 +6,10 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector2f
 
+/**
+ * Collects line segments, and joins them into contours.
+ * Doesn't backtrack and starts arbitrarily, so don't use this with incomplete shapes.
+ * */
 class SegmentToContours(w: Int, h: Int, values: FloatArray) {
 
     companion object {
