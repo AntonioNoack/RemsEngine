@@ -11,33 +11,22 @@ import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
-import me.anno.engine.debug.DebugPoint
-import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
-import me.anno.recast.NavMesh
-import me.anno.recast.NavMeshAgent
-import me.anno.recast.NavMeshUtils
-import me.anno.utils.Color.black
+import me.anno.recast.NavMeshBuilder
+import me.anno.recast.NavMeshData
+import me.anno.recast.NavMeshDebugComponent
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.sumOfFloat
-import org.joml.AABBd
-import org.joml.Matrix4x3
 import org.joml.Vector2d
 import org.joml.Vector2d.Companion.lengthSquared
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import org.recast4j.detour.DefaultQueryFilter
-import org.recast4j.detour.MeshData
-import org.recast4j.detour.NavMeshQuery
-import org.recast4j.detour.crowd.Crowd
-import org.recast4j.detour.crowd.CrowdConfig
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -109,46 +98,6 @@ class RecastTests {
         addCircle(scene, Vector2d(circle.x, circle.y), circle.z, inside)
     }
 
-    class TestAgent(
-        meshData: MeshData,
-        navMesh: org.recast4j.detour.NavMesh,
-        query: NavMeshQuery,
-        filter: DefaultQueryFilter,
-        random: java.util.Random,
-        navMesh1: NavMesh,
-        crowd: Crowd,
-        mask: Int,
-        val start: Vector3f,
-        val target: Vector3f
-    ) : NavMeshAgent(
-        meshData, navMesh, query, filter, random,
-        navMesh1, crowd, mask, 1f, 1f
-    ), OnUpdate {
-
-        val init = lazy {
-            assertTrue(init())
-            moveTo(target)
-        }
-
-        override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
-            dstUnion.all()
-            return true
-        }
-
-        override fun onUpdate() {
-            init.value
-
-            if (enableDrawing) {
-                // draw current position
-                val pos = crowdAgent!!.currentPosition
-                DebugShapes.debugPoints.add(DebugPoint(Vector3d(pos), 0x2277ff or black, 0f))
-                // draw current path
-                val c = crowdAgent!!.corridor
-                NavMeshUtils.drawPath(navMesh, meshData, c.path, 0x555555 or black)
-            }
-        }
-    }
-
     private fun createCircleWithHolesScene(): Entity {
         val scene = Entity()
         val circles = Entity("Circles", scene)
@@ -160,45 +109,40 @@ class RecastTests {
         return scene
     }
 
-    private fun setupRecast(scene: Entity): NavMesh {
-        val navMesh1 = NavMesh()
-        navMesh1.agentHeight = 1f
-        navMesh1.cellSize = 0.05f
-        navMesh1.cellHeight = 0.5f
-        navMesh1.agentRadius = 0.01f
-        navMesh1.agentMaxClimb = 0f
-        navMesh1.collisionMask = -1
-        navMesh1.edgeMaxError = 1f
-        scene.add(navMesh1)
-        return navMesh1
+    private fun createNavMeshData(scene: Entity): NavMeshData {
+        val navMeshBuilder1 = NavMeshBuilder()
+        navMeshBuilder1.agentType.height = 1f
+        navMeshBuilder1.cellSize = 0.05f
+        navMeshBuilder1.cellHeight = 0.5f
+        navMeshBuilder1.agentType.radius = 0.01f
+        navMeshBuilder1.agentType.maxStepHeight = 0f
+        navMeshBuilder1.collisionMask = -1
+        navMeshBuilder1.edgeMaxError = 1f
+        return navMeshBuilder1.buildData(scene)!!
     }
 
 
     // create a circle with "holes"
     val scene = createCircleWithHolesScene()
 
-    val navMesh1 = setupRecast(scene)
-    val meshData = navMesh1.build()!!
+    val navMeshData = createNavMeshData(scene)
+
+    val meshData get() = navMeshData.meshData
+    val crowd get() = navMeshData.crowd
 
     init {
-        navMesh1.data = meshData
+        scene.add(NavMeshDebugComponent().apply { data = meshData })
     }
 
-    val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
-
-    val query = NavMeshQuery(navMesh)
-    val filter = DefaultQueryFilter()
-    val random = java.util.Random(1234L)
-
-    val config = CrowdConfig(navMesh1.agentRadius)
-    val crowd = Crowd(config, navMesh)
-
-    val agents = Entity("Agents", scene)
-    val na = 12
-
     init {
-        for (i in 0 until na) {
-            val angle = i * TAUf / na
+        spawnAgents()
+    }
+
+    fun spawnAgents() {
+        val numAgents = 12
+        val agents = Entity("Agents", scene)
+        for (i in 0 until numAgents) {
+            val angle = i * TAUf / numAgents
             val start = Vector3f(+9.5f, 0.5f, 0f).rotateY(angle)
             val end = Vector3f(start).rotateY(PIf)
             // todo test recast-calculated route whether it's valid and properly short
@@ -207,7 +151,7 @@ class RecastTests {
                 .setPosition(Vector3d(start))
                 .setScale(0.1f)
                 .add(MeshComponent(sphereMesh, gray))
-                .add(TestAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, -1, start, end))
+                .add(TestAgent(navMeshData, start, end))
         }
     }
 

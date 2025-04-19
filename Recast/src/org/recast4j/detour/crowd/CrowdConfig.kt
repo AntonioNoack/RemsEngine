@@ -17,7 +17,13 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
-class CrowdConfig(val maxAgentRadius: Float) {
+import me.anno.engine.inspector.Inspectable
+import me.anno.io.saveable.Saveable
+
+class CrowdConfig : Saveable(), Inspectable {
+
+    var maxAgentRadius = 2f
+
     /**
      * Max number of path requests in the queue
      */

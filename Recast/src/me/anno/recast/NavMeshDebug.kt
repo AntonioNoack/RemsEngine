@@ -3,7 +3,7 @@ package me.anno.recast
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.LineShapes.drawLine
-import me.anno.recast.NavMesh.Companion.debugColor
+import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.addUnsafe
@@ -15,18 +15,20 @@ import org.recast4j.detour.PolyDetail
 
 object NavMeshDebug {
 
+    var debugColor = 0xfff973 or black
+
     private fun decodeIndex(index: Byte): Int {
         return index.toInt().and(0xff)
     }
 
     private fun countTriangles(data: MeshData, dMeshes: Array<PolyDetail>): Int {
-        var triCount = 0
+        var numTriangles = 0
         for (i in 0 until data.polyCount) {
             val p = data.polygons[i]
             if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
-            triCount += dMeshes[i].triCount
+            numTriangles += dMeshes[i].triCount
         }
-        return triCount
+        return numTriangles
     }
 
     /**

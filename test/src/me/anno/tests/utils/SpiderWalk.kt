@@ -26,9 +26,11 @@ import me.anno.maths.Maths.pow
 import me.anno.maths.Maths.sq
 import me.anno.mesh.FindLines.makeLineMesh
 import me.anno.mesh.Shapes.flatCube
-import me.anno.recast.NavMesh
+import me.anno.recast.CrowdUpdateComponent
 import me.anno.recast.NavMeshAgent
+import me.anno.recast.NavMeshBuilder
 import me.anno.recast.NavMeshDebug.toMesh
+import me.anno.recast.NavMeshDebugComponent
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.types.Booleans.hasFlag
@@ -36,11 +38,6 @@ import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
-import org.recast4j.detour.DefaultQueryFilter
-import org.recast4j.detour.NavMeshQuery
-import org.recast4j.detour.crowd.Crowd
-import org.recast4j.detour.crowd.CrowdConfig
-import java.util.Random
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
@@ -302,9 +299,6 @@ fun main() {
     terrain.add(MeshComponent(res.getChild("meshes/NavMesh.fbx")))
     terrain.setScale(2.5f)
 
-    val navMesh1 = NavMesh()
-    scene.add(navMesh1)
-
     val sunE = Entity("Sun", scene).setScale(100f)
     val sun = DirectionalLight()
     sun.shadowMapCascades = 1
@@ -316,17 +310,20 @@ fun main() {
     sky.applyOntoSun(sunE, sun, 20f)
     scene.add(sky)
 
-    navMesh1.cellSize = 2f
-    navMesh1.cellHeight = 5f
-    navMesh1.agentHeight = 1f
-    navMesh1.agentRadius = 1.5f
-    navMesh1.agentMaxClimb = 10f
-    navMesh1.collisionMask = 1
+    val builder = NavMeshBuilder()
+    builder.cellSize = 2f
+    builder.cellHeight = 5f
+    builder.agentType.height = 1f
+    builder.agentType.radius = 1.5f
+    builder.agentType.maxStepHeight = 10f
+    builder.collisionMask = 1
+    builder.agentType.maxSpeed = 10f
+    builder.agentType.maxAcceleration = 50f
 
-    val meshData = navMesh1.build()!!
-    navMesh1.data = meshData
+    val navMeshData = builder.buildData(scene)!!
+    val meshData = navMeshData.meshData
+    scene.add(NavMeshDebugComponent().apply { data = meshData })
 
-    val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
     if (false) scene.add(MeshComponent(toMesh(meshData)!!.apply {
         makeLineMesh(true)
         material = Material().apply {
@@ -342,46 +339,36 @@ fun main() {
         collisionBits = 0
     }
 
-    val query = NavMeshQuery(navMesh)
-    val filter = DefaultQueryFilter()
-
-    val config = CrowdConfig(navMesh1.agentRadius)
-    val crowd = Crowd(config, navMesh)
-
     val spider = createSpider(scene, Double.NaN)
     val spiderComp = spider.getComponent(SpiderPrediction::class)!!
     val futureTransform = spiderComp.futureTransform
 
-    val agent = object : NavMeshAgent(
-        meshData, navMesh, query, filter, Random(1234),
-        navMesh1, crowd, 1, 10f, 300f
-    ), OnUpdate {
+    scene.add(CrowdUpdateComponent(navMeshData))
+
+    val agent = object : NavMeshAgent(navMeshData) {
 
         val velocity = Vector3d(1.0, 0.0, 0.0)
         val lastPos = Vector3d()
         val angleDictator = Vector3d(0.0, 1.0, 0.0)
 
         override fun onUpdate() {
-
-            if (crowdAgent == null) init()
+            super.onUpdate()
             val crowdAgent = crowdAgent ?: return
-
-            crowd.update(Time.deltaTime.toFloat(), null)
 
             // move spider along path to target
             // find proper position
             val start = Vector3d(crowdAgent.currentPosition).add(0.0, 10.0, 0.0)
-            val query0 =
-                RayQuery(start, Vector3d(0.0, -1.0, 0.0), 40.0, Raycast.TRIANGLE_FRONT, -1, false, setOf(spider))
-            val hit = Raycast.raycast(
-                scene, query0
+            val query = RayQuery(
+                start, Vector3d(0.0, -1.0, 0.0), 40.0, Raycast.TRIANGLE_FRONT,
+                -1, false, setOf(spider)
             )
+            val hit = Raycast.raycast(scene, query)
 
-            spider.position = (if (hit) query0.result.positionWS else Vector3d(crowdAgent.currentPosition))
+            spider.position = (if (hit) query.result.positionWS else Vector3d(crowdAgent.currentPosition))
                 .add(0.0, 1.0, 0.0)
 
             if (hit) {
-                val newAngle = query0.result.shadingNormalWS.normalize()
+                val newAngle = query.result.shadingNormalWS.normalize()
                 angleDictator.mix(Vector3d(newAngle), dtTo01(5.0 * Time.deltaTime))
             }
             if (velocity.lengthSquared() < 1e-16) velocity.set(1.0, 0.0, 0.0)
@@ -409,22 +396,17 @@ fun main() {
     }
     spider.add(agent)
 
-    testSceneWithUI("Spider IK", scene) {
-        it.editControls = object : DraggingControls(it.renderView) {
+    testSceneWithUI("Spider Walk", scene) { sceneView ->
+        sceneView.editControls = object : DraggingControls(sceneView.renderView) {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (button == Key.BUTTON_LEFT) {
-                    val ci = it.renderView
-                    val query0 = RayQuery(
-                        ci.cameraPosition, Vector3d(ci.mouseDirection), 1e3,
+                    val renderView = sceneView.renderView
+                    val rayQuery = RayQuery(
+                        renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e3,
                         -1, -1, false, setOf(spider)
                     )
-                    if (Raycast.raycast(scene, query0)) {
-                        val pt0 = Vector3f(query0.result.positionWS)
-                        val poly = query.findNearestPoly(pt0, Vector3f(1e3f), filter).result
-                        val pos = poly?.nearestPos
-                        if (poly != null && pos != null) {
-                            agent.crowdAgent!!.setTarget(poly.nearestRef, pos)
-                        }
+                    if (Raycast.raycast(scene, rayQuery)) {
+                        agent.moveTo(Vector3f(rayQuery.result.positionWS))
                     }
                 }
             }

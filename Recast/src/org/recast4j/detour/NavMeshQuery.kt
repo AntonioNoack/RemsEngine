@@ -28,15 +28,17 @@ import org.recast4j.LongArrayList
 import org.recast4j.Vectors
 import org.recast4j.detour.PolygonByCircleConstraint.StrictPolygonByCircleConstraint.CIRCLE_SEGMENTS
 import org.recast4j.detour.crowd.PathQueryResult
-import java.util.*
+import java.util.LinkedList
+import java.util.PriorityQueue
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 open class NavMeshQuery(val nav1: NavMesh) {
 
     val nodePool = NodePool()
-    val openList = PriorityQueue<Node> { n1, n2 -> n1.totalCost.compareTo(n2.totalCost) }
+    val openList = PriorityQueue(TotalCostComparator)
 
     /** Sliced query state. */
     lateinit var queryData: QueryData
@@ -172,7 +174,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
     ): FindRandomPointResult? {
 
         // Validate input
-        if (!nav1.isValidPolyRef(startRef) || !centerPos.isFinite || maxRadius < 0 || !maxRadius.isFinite()) {
+        if (!nav1.isValidPolyRef(startRef) || !centerPos.isFinite || maxRadius < 0) {
             return null
         }
 
@@ -308,10 +310,10 @@ open class NavMeshQuery(val nav1: NavMesh) {
                 neighbourNode.totalCost = total
                 if (neighbourNode.flags and Node.OPEN != 0) {
                     openList.remove(neighbourNode)
-                    openList.offer(neighbourNode)
+                    openList.add(neighbourNode)
                 } else {
                     neighbourNode.flags = Node.OPEN
-                    openList.offer(neighbourNode)
+                    openList.add(neighbourNode)
                 }
                 i = bestTile.links[i].indexOfNextLink
             }
@@ -437,21 +439,33 @@ open class NavMeshQuery(val nav1: NavMesh) {
         halfExtents: Vector3f,
         filter: QueryFilter
     ): Result<FindNearestPolyResult?> {
-
         // Get nearby polygons from proximity grid.
         val query = FindNearestPolyQuery(this, center)
         val status = queryPolygons(center, halfExtents, filter, query)
-        return if (status.isFailed) {
-            Result.of(status, null)
-        } else Result.success(query.result())
+        return if (status.isFailed) Result.of(status, null)
+        else Result.success(query.result())
     }
 
-    fun queryPolygonsInTile(
-        tile: MeshTile,
-        bounds: AABBf,
-        filter: QueryFilter,
-        query: PolyQuery
-    ) {
+    /**
+     * Finds the polygon nearest to the specified center point. If center and nearestPt point to an equal position,
+     * isOverPoly will be true; however there's also a special case of climb height inside the polygon
+     *
+     * @param center The center of the search box. [(x, y, z)]
+     * @param filter The polygon filter to apply to the query.
+     * @return FindNearestPolyResult containing nearestRef, nearestPt and overPoly
+     */
+    fun findNearestPoly(
+        center: Vector3f,
+        filter: QueryFilter
+    ): Result<FindNearestPolyResult?> {
+        // Get nearby polygons from proximity grid.
+        val query = FindNearestPolyQuery(this, center)
+        val status = queryPolygons(filter, query)
+        return if (status.isFailed) Result.of(status, null)
+        else Result.success(query.result())
+    }
+
+    fun queryPolygonsInTile(tile: MeshTile, bounds: AABBf, filter: QueryFilter, query: PolyQuery) {
         val data = tile.data
         if (data.bvTree != null) {
             var nodeIndex = 0
@@ -519,10 +533,47 @@ open class NavMeshQuery(val nav1: NavMesh) {
         }
     }
 
+    fun queryPolygonsInTile(tile: MeshTile, filter: QueryFilter, query: PolyQuery) {
+        val data = tile.data
+        val bvTree = data.bvTree
+        if (bvTree != null) {
+            // Traverse tree
+            val base = nav1.getPolyRefBase(tile)
+            for (nodeIndex in 0 until data.bvNodeCount) {
+                val node = bvTree[nodeIndex]
+                val isLeafNode = node.index >= 0
+                if (isLeafNode) {
+                    val ref = base or node.index.toLong()
+                    if (filter.passFilter(ref, tile, data.polygons[node.index])) {
+                        query.process(tile, data.polygons[node.index], ref)
+                    }
+                }
+            }
+        } else {
+            val meshBounds = AABBf()
+            val base = nav1.getPolyRefBase(tile)
+            for (i in 0 until data.polyCount) {
+                val p = data.polygons[i]
+                // Do not return off-mesh connection polygons.
+                if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) {
+                    continue
+                }
+                val ref = base or i.toLong()
+                if (!filter.passFilter(ref, tile, p)) {
+                    continue
+                }
+                // Calc polygon bounds.
+                meshBounds.clear()
+                for (j in 0 until p.vertCount) {
+                    meshBounds.union(data.vertices, p.vertices[j] * 3)
+                }
+                query.process(tile, p, ref)
+            }
+        }
+    }
+
     /**
      * Finds polygons that overlap the search box.
-     *
-     *
      * If no polygons are found, the function will return with a polyCount of zero.
      *
      * @param center      The center of the search box. [(x, y, z)]
@@ -535,8 +586,23 @@ open class NavMeshQuery(val nav1: NavMesh) {
         // Find tiles the query touches.
         val bounds = AABBf(center)
             .addMargin(halfExtents.x, halfExtents.y, halfExtents.z)
-        for (t in queryTiles(center, halfExtents)) {
-            queryPolygonsInTile(t, bounds, filter, query)
+        for (meshTile in queryTiles(center, halfExtents)) {
+            queryPolygonsInTile(meshTile, bounds, filter, query)
+        }
+        return Status.SUCCESS
+    }
+
+    /**
+     * Finds polygons that overlap the search box.
+     * If no polygons are found, the function will return with a polyCount of zero.
+     *
+     * @param filter      The polygon filter to apply to the query.
+     * @return The reference ids of the polygons that overlap the query box.
+     */
+    fun queryPolygons(filter: QueryFilter, query: PolyQuery): Status {
+        // Find tiles the query touches.
+        for (meshTile in nav1.allTiles) {
+            queryPolygonsInTile(meshTile, filter, query)
         }
         return Status.SUCCESS
     }
@@ -1113,8 +1179,6 @@ open class NavMeshQuery(val nav1: NavMesh) {
 
     /**
      * Finalizes and returns the results of a sliced path query.
-     * @param path An ordered list of polygon references representing the path. (Start to end.)
-     * [(polyRef) * @p pathCount]
      * @returns The status flags for the query.
      */
     open fun finalizeSlicedFindPath(): Result<LongArrayList> {
@@ -1148,8 +1212,6 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * Finalizes and returns the results of an incomplete sliced path query, returning the path to the furthest
      * polygon on the existing path that was visited during the search.
      * @param existing An array of polygon references for the existing path.
-     * @param path An ordered list of polygon references representing the path. (Start to end.)
-     * [(polyRef) * @p pathCount]
      * @returns The status flags for the query.
      */
     open fun finalizeSlicedFindPathPartial(existing: LongArrayList): Result<LongArrayList> {
@@ -1546,7 +1608,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         val searchRadSqr = searchRad * searchRad
         while (!stack.isEmpty()) {
             // Pop front.
-            val curNode: Node = stack.pop()
+            val curNode: Node = stack.removeFirst()
 
             // Get poly and tile.
             // The API input has been checked already, skip checking internal data.
@@ -1829,8 +1891,8 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @returns The status flags for the query.
      */
     fun raycast(
-        startRef: Long, startPos: Vector3f, endPos: Vector3f, filter: QueryFilter, options: Int,
-        prevRef0: Long
+        startRef: Long, startPos: Vector3f, endPos: Vector3f,
+        filter: QueryFilter, options: Int, prevRef0: Long
     ): Result<RaycastHit> {
         // Validate input
         var prevRef = prevRef0
@@ -2068,12 +2130,6 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param centerPos The center of the search circle. [(x, y, z)]
      * @param radius The radius of the search circle.
      * @param filter The polygon filter to apply to the query.
-     * @param resultRef The reference ids of the polygons touched by the circle. [opt]
-     * @param resultParent The reference ids of the parent polygons for each result.
-     * Zero if a result polygon has no parent. [opt]
-     * @param resultCost The search cost from @p centerPos to the polygon. [opt]
-     * @param resultCount The number of polygons found. [opt]
-     * @param maxResult The maximum number of polygons the result arrays can hold.
      * @returns The status flags for the query.
      */
     @Suppress("unused")
@@ -2227,14 +2283,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param startRef The reference id of the polygon where the search starts.
      * @param vertices The vertices describing the convex polygon. (CCW)
      * [(x, y, z) * @p nvertices]
-     * @param nvertices The number of vertices in the polygon.
      * @param filter The polygon filter to apply to the query.
-     * @param resultRef The reference ids of the polygons touched by the search polygon. [opt]
-     * @param resultParent The reference ids of the parent polygons for each result. Zero if a
-     * result polygon has no parent. [opt]
-     * @param resultCost The search cost from the centroid point to the polygon. [opt]
-     * @param resultCount The number of polygons found.
-     * @param maxResult The maximum number of polygons the result arrays can hold.
      * @returns The status flags for the query.
      */
     @Suppress("unused")
@@ -2391,10 +2440,6 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param radius The radius of the query circle.
      * @param filter The polygon filter to apply to the query.
      * @param resultRef The reference ids of the polygons touched by the circle.
-     * @param resultParent The reference ids of the parent polygons for each result.
-     * Zero if a result polygon has no parent. [opt]
-     * @param resultCount The number of polygons found.
-     * @param maxResult The maximum number of polygons the result arrays can hold.
      * @returns The status flags for the query.
      */
     fun findLocalNeighbourhood(
@@ -2572,10 +2617,6 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * @param ref The reference id of the polygon.
      * @param filter The polygon filter to apply to the query.
      * @param segmentVertices The segments. [(ax, ay, az, bx, by, bz) * segmentCount]
-     * @param segmentRefs The reference ids of each segment's neighbor polygon.
-     * Or zero if the segment is a wall. [opt] [(parentRef) * @p segmentCount]
-     * @param segmentCount The number of segments returned.
-     * @param maxSegments The maximum number of segments the result arrays can hold.
      * @returns The status flags for the query.
      */
     fun getPolyWallSegments(

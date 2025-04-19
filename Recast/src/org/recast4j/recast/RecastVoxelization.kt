@@ -42,7 +42,7 @@ object RecastVoxelization {
         // Find triangles which are walkable based on their slope and rasterize them.
         // If your input data is multiple meshes, you can transform them here,
         // calculate the area type for each of the meshes and rasterize them.
-        for (geom in geomProvider.meshes()) {
+        for (geom in geomProvider.meshes) {
             val vertices = geom.vertices
             if (cfg.useTiles) {
                 geom.foreachChunkOverlappingRect(builderCfg.bounds) { node ->

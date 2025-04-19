@@ -18,7 +18,6 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
-import org.recast4j.recast.PartitionType
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.round
@@ -128,25 +127,10 @@ class RecastConfig(
         edgeMaxError: Float, verticesPerPoly: Int, detailSampleDist: Float, detailSampleMaxError: Float,
         walkableAreaMod: AreaModification
     ) : this(
-        partitionType,
-        cellSize,
-        cellHeight,
-        agentMaxSlope,
-        true,
-        true,
-        true,
-        agentHeight,
-        agentRadius,
-        agentMaxClimb,
-        regionMinSize,
-        regionMergeSize,
-        edgeMaxLen,
-        edgeMaxError,
-        verticesPerPoly,
-        detailSampleDist,
-        detailSampleMaxError,
-        walkableAreaMod,
-        true
+        partitionType, cellSize, cellHeight, agentMaxSlope,
+        true, true, true,
+        agentHeight, agentRadius, agentMaxClimb, regionMinSize, regionMergeSize,
+        edgeMaxLen, edgeMaxError, verticesPerPoly, detailSampleDist, detailSampleMaxError, walkableAreaMod, true
     ) {
     }
 
@@ -154,25 +138,12 @@ class RecastConfig(
      * Non-tiled build configuration
      */
     constructor(
-        partitionType: PartitionType,
-        cellSize: Float,
-        cellHeight: Float,
-        agentMaxSlope: Float,
-        filterLowHangingObstacles: Boolean,
-        filterLedgeSpans: Boolean,
-        filterWalkableLowHeightSpans: Boolean,
-        agentHeight: Float,
-        agentRadius: Float,
-        agentMaxClimb: Float,
-        regionMinSize: Int,
-        regionMergeSize: Int,
-        edgeMaxLen: Float,
-        edgeMaxError: Float,
-        verticesPerPoly: Int,
-        detailSampleDist: Float,
-        detailSampleMaxError: Float,
-        walkableAreaMod: AreaModification,
-        buildMeshDetail: Boolean
+        partitionType: PartitionType, cellSize: Float, cellHeight: Float, agentMaxSlope: Float,
+        filterLowHangingObstacles: Boolean, filterLedgeSpans: Boolean, filterWalkableLowHeightSpans: Boolean,
+        agentHeight: Float, agentRadius: Float, agentMaxClimb: Float,
+        regionMinSize: Int, regionMergeSize: Int, edgeMaxLen: Float, edgeMaxError: Float,
+        verticesPerPoly: Int, detailSampleDist: Float, detailSampleMaxError: Float,
+        walkableAreaMod: AreaModification, buildMeshDetail: Boolean
     ) : this(
         false, 0, 0, 0,
         partitionType, cellSize, cellHeight, agentMaxSlope,

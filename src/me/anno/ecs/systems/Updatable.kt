@@ -17,5 +17,5 @@ interface Updatable {
      * If you need sorting within instances, use a custom child-class of Updatable and modify
      * fun update(instances: List<Component>)
      * */
-    fun priority(): Int = 100 //
+    fun priority(): Int = 100
 }

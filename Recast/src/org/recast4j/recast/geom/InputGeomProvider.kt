@@ -22,5 +22,5 @@ import org.joml.AABBf
 
 interface InputGeomProvider : ConvexVolumeProvider {
     val bounds: AABBf
-    fun meshes(): Iterable<TriMesh>
+    val meshes: Iterable<TriMesh>
 }

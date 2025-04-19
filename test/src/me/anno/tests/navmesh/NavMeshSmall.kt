@@ -9,18 +9,16 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ECSRegistry
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
-import me.anno.recast.NavMesh
+import me.anno.recast.CrowdUpdateComponent
+import me.anno.recast.NavMeshBuilder
 import me.anno.recast.NavMeshDebug.toMesh
+import me.anno.recast.NavMeshDebugComponent
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.res
-import org.recast4j.detour.*
-import org.recast4j.detour.crowd.Crowd
-import org.recast4j.detour.crowd.CrowdConfig
-import java.util.Random
 import kotlin.math.max
 
 /**
@@ -44,12 +42,11 @@ fun main() {
         val agentScale = 1f
         val flagScale = 1f
 
-        val navMesh1 = NavMesh()
-        navMesh1.agentHeight = agentBounds.deltaY * agentScale
-        navMesh1.agentRadius = max(agentBounds.deltaX, agentBounds.deltaZ) * agentScale * 0.5f
-        navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
-        navMesh1.collisionMask = mask
-        world.add(navMesh1)
+        val builder = NavMeshBuilder()
+        builder.agentType.height = agentBounds.deltaY * agentScale
+        builder.agentType.radius = max(agentBounds.deltaX, agentBounds.deltaZ) * agentScale * 0.5f
+        builder.agentType.maxStepHeight = builder.agentType.height * 0.7f
+        builder.collisionMask = mask
 
         val meshEntity = Entity("Mesh", world)
             .setScale(1.5f)
@@ -57,8 +54,9 @@ fun main() {
                 collisionMask = mask
             })
 
-        val meshData = navMesh1.build() ?: throw IllegalStateException("Failed to build NavMesh")
-        navMesh1.data = meshData
+        val navMeshData = builder.buildData(world) ?: throw IllegalStateException("Failed to build NavMesh")
+        val meshData = navMeshData.meshData
+        world.add(NavMeshDebugComponent().apply { data = meshData })
 
         // visualize navmesh
         world.add(MeshComponent(toMesh(meshData)!!.apply {
@@ -73,15 +71,6 @@ fun main() {
             }
         }.ref))
 
-        val navMesh = NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
-
-        val query = NavMeshQuery(navMesh)
-        val filter = DefaultQueryFilter()
-        val random = Random(1234L)
-
-        val config = CrowdConfig(navMesh1.agentRadius)
-        val crowd = Crowd(config, navMesh)
-
         val agents = Entity("Agents", world)
         val flagMesh = res.getChild("meshes/Flag.fbx")
         for (i in 0 until 5) {
@@ -89,22 +78,14 @@ fun main() {
             val flag = Entity("Flag", group)
                 .setScale(flagScale)
                 .add(MeshComponent(flagMesh))
-            val agent = Entity("Agent", group).add(
-                AgentController1a(
-                    meshEntity, meshData, navMesh, query, filter,
-                    random, navMesh1, crowd, flag, mask
-                )
-            )
+            val agent = Entity("Agent", group)
+                .add(AgentController1a(navMeshData, meshEntity, flag))
             Entity("AgentMesh", agent)
                 .setScale(agentScale)
                 .add(MeshComponent(agentMeshRef))
         }
 
-        world.addComponent(object : Component(), OnUpdate {
-            override fun onUpdate() {
-                crowd.update(Time.deltaTime.toFloat(), null)
-            }
-        })
+        world.addComponent(CrowdUpdateComponent(navMeshData))
 
         testScene(world)
 

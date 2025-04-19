@@ -19,7 +19,6 @@ freely, subject to the following restrictions:
 package org.recast4j.detour
 
 import org.joml.Vector3f
-import kotlin.math.min
 
 /**
  * **The Default Implementation**
@@ -48,29 +47,18 @@ import kotlin.math.min
  */
 class DefaultQueryFilter : QueryFilter {
 
-    var excludeFlags: Int
-    var includeFlags: Int
-    private val areaCosts = FloatArray(NavMesh.MAX_NUM_AREAS)
+    var excludeFlags = 0
+    var includeFlags = 0xffff
 
-    constructor() {
-        includeFlags = 0xffff
-        excludeFlags = 0
-        for (i in 0 until NavMesh.MAX_NUM_AREAS) {
-            areaCosts[i] = 1f
-        }
-    }
+    val areaCosts = FloatArray(NavMesh.MAX_NUM_AREAS)
 
-    constructor(includeFlags: Int, excludeFlags: Int, areaCost: FloatArray) {
-        this.includeFlags = includeFlags
-        this.excludeFlags = excludeFlags
-        System.arraycopy(areaCost, 0, areaCosts, 0, min(NavMesh.MAX_NUM_AREAS, areaCost.size))
-        for (i in areaCost.size until NavMesh.MAX_NUM_AREAS) {
-            areaCosts[i] = 1f
-        }
+    init {
+        areaCosts.fill(1f)
     }
 
     override fun passFilter(ref: Long, tile: MeshTile?, poly: Poly): Boolean {
-        return poly.flags and includeFlags != 0 && poly.flags and excludeFlags == 0
+        val polyFlags = poly.flags
+        return polyFlags.and(includeFlags) != 0 && polyFlags.and(excludeFlags) == 0
     }
 
     override fun getCost(

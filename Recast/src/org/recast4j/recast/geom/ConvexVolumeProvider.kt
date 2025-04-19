@@ -20,5 +20,5 @@ package org.recast4j.recast.geom
 import org.recast4j.recast.ConvexVolume
 
 interface ConvexVolumeProvider {
-    fun convexVolumes(): Iterable<ConvexVolume>
+    val convexVolumes: Iterable<ConvexVolume>
 }

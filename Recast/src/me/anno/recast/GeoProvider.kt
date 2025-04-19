@@ -14,9 +14,11 @@ import org.recast4j.recast.geom.TriMesh
 
 class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
 
-    val meshes1 = ArrayList<TriMesh>()
-
+    override val meshes = ArrayList<TriMesh>()
     override val bounds = AABBf()
+
+    // those are extra, so not needed here
+    override val convexVolumes get() = emptyList<ConvexVolume>()
 
     init {
         world.validateTransform()
@@ -40,10 +42,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
                 bounds.union(vec.set(src, i * 3))
             }
         } else bounds.union(mesh.getBounds())
-        meshes1.add(TriMesh(src, faces))
+        meshes.add(TriMesh(src, faces))
     }
 
-    // those are extra
-    override fun convexVolumes() = emptyList<ConvexVolume>()
-    override fun meshes() = meshes1
 }
