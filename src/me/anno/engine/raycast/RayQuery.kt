@@ -14,8 +14,8 @@ class RayQuery(
     val radiusAtOrigin: Double,
     val radiusPerUnit: Double,
     var typeMask: Int,
-    val collisionMask: Int,
-    val includeDisabled: Boolean,
+    var collisionMask: Int,
+    var includeDisabled: Boolean,
     var ignored: Set<PrefabSaveable>,
     val result: RayHit,
 ) {

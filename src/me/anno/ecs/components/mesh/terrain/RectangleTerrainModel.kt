@@ -2,31 +2,19 @@ package me.anno.ecs.components.mesh.terrain
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
+import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
-import org.joml.Vector3f
 import kotlin.math.max
 
 object RectangleTerrainModel {
 
-    fun interface ColorMap {
-        operator fun get(xi: Int, zi: Int): Int
-    }
-
-    fun interface HeightMap {
-        operator fun get(xi: Int, zi: Int): Float
-    }
-
-    fun interface NormalMap {
-        fun get(xi: Int, zi: Int, dst: Vector3f)
-    }
-
     fun generateRegularQuadHeightMesh(
         width: Int, height: Int, flipY: Boolean,
-        cellSizeMeters: Float, mesh: Mesh,
+        cellSize: Float, mesh: Mesh,
         heightMap: HeightMap, normalMap: NormalMap, colorMap: ColorMap? = null
     ): Mesh {
-        generateRegularQuadHeightMesh(width, height, flipY, cellSizeMeters, mesh, true)
+        generateRegularQuadHeightMesh(width, height, flipY, cellSize, mesh, true)
         generateQuadIndices(width, height, flipY, mesh)
         fillInYAndNormals(width, height, heightMap, normalMap, mesh)
         if (colorMap != null) fillInColor(width, height, colorMap, mesh)
@@ -89,27 +77,68 @@ object RectangleTerrainModel {
                 val i10 = i00 + width
                 val i11 = i01 + width
 
+                indices[k++] = i00
                 if (flipY) {
-                    indices[k++] = i00
                     indices[k++] = i11
                     indices[k++] = i10
-
                     indices[k++] = i01
                     indices[k++] = i11
-                    indices[k++] = i00
                 } else {
-                    indices[k++] = i00
                     indices[k++] = i10
                     indices[k++] = i11
-
                     indices[k++] = i11
                     indices[k++] = i01
-                    indices[k++] = i00
                 }
+                indices[k++] = i00
                 i00++
             }
         }
     }
+
+    fun generateSparseQuadIndices(
+        originalWidth: Int, originalHeight: Int,
+        sparseWidth: Int, sparseHeight: Int, flipY: Boolean,
+        sparseMesh: Mesh
+    ) {
+
+        val sparseSize = sparseWidth * sparseHeight
+        val indices = sparseMesh.indices.resize(sparseSize * 6)
+
+        val xs = IntArray(sparseWidth) { WorkSplitter.partition(it, originalWidth, sparseWidth) }
+
+        var k = 0
+        for (y in 0 until sparseHeight - 1) {
+            val y0 = WorkSplitter.partition(y, originalHeight, sparseHeight)
+            val y1 = WorkSplitter.partition(y + 1, originalHeight, sparseHeight)
+            for (x in 0 until sparseWidth - 1) {
+
+                val x0 = xs[x]
+                val x1 = xs[x + 1]
+
+                val i00 = y0 * originalWidth + x0
+                val i01 = y0 * originalWidth + x1
+                val i10 = y1 * originalWidth + x0
+                val i11 = y1 * originalWidth + x1
+
+                indices[k++] = i00
+                if (flipY) {
+                    indices[k++] = i11
+                    indices[k++] = i10
+                    indices[k++] = i01
+                    indices[k++] = i11
+                } else {
+                    indices[k++] = i10
+                    indices[k++] = i11
+                    indices[k++] = i11
+                    indices[k++] = i01
+                }
+                indices[k++] = i00
+            }
+        }
+
+        sparseMesh.indices = indices
+    }
+
 
     fun generateRegularQuadHeightMesh(
         numPointsX: Int,
@@ -171,16 +200,16 @@ object RectangleTerrainModel {
         numPointsX: Int,
         numPointsZ: Int,
         flipY: Boolean,
-        cellSizeMeters: Float,
+        cellSize: Float,
         mesh: Mesh, center: Boolean
     ): Mesh {
         generateQuadIndices(numPointsX, numPointsZ, flipY, mesh)
-        generateQuadVertices(numPointsX, numPointsZ, cellSizeMeters, mesh, center)
+        generateQuadVertices(numPointsX, numPointsZ, cellSize, mesh, center)
         mesh.invalidateGeometry()
         return mesh
     }
 
-    fun generateQuadVertices(numPointsX: Int, numPointsZ: Int, cellSizeMeters: Float, mesh: Mesh, center: Boolean) {
+    fun generateQuadVertices(numPointsX: Int, numPointsZ: Int, cellSize: Float, mesh: Mesh, center: Boolean) {
         val vertexCount = numPointsX * numPointsZ
         val numCoords = vertexCount * 3
         val positions = mesh.positions.resize(numCoords)
@@ -199,10 +228,10 @@ object RectangleTerrainModel {
         // define mesh positions
         for (zi in 0 until numPointsZ) {
             for (xi in 0 until numPointsX) {
-                positions[j++] = (xi - centerX) * cellSizeMeters
+                positions[j++] = (xi - centerX) * cellSize
                 normals[j] = 1f
                 positions[j++] = 0f
-                positions[j++] = (zi - centerY) * cellSizeMeters
+                positions[j++] = (zi - centerY) * cellSize
             }
         }
     }
