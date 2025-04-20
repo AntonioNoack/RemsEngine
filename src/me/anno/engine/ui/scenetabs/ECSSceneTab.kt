@@ -301,7 +301,7 @@ class ECSSceneTab(
             val prefab = PrefabCache[file, true]
             val needsStar = prefab != null &&
                     prefab.wasModified && prefab.isWritable &&
-                    prefab.source !is InnerTmpFile
+                    prefab.sourceFile !is InnerTmpFile
             val hasStar = text.endsWith("*")
             if (needsStar != hasStar) {
                 val name = findName(file)

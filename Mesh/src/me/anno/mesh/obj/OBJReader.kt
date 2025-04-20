@@ -184,7 +184,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             }
             // add mesh component to last object
             val meshRef = meshesFolder.createPrefabChild(fileName, mesh)
-            mesh.source = meshRef
+            mesh.sourceFile = meshRef
             var prefabName = name
             val usedNames = usedNames.getOrPut(lastObjectPath, ::HashSet)
             while (!usedNames.add(prefabName)) {

@@ -520,7 +520,7 @@ object UnityReader {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
                 file.hide()
-                prefab.source = file
+                prefab.sourceFile = file
                 prefab["name"] = node.key
                 file
             }
@@ -533,7 +533,7 @@ object UnityReader {
             } else {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(absolutePath, "Scene.json", folder, prefab)
-                prefab.source = file
+                prefab.sourceFile = file
                 file
             }
         }
@@ -678,7 +678,7 @@ object UnityReader {
                     if (base != null) {
                         val link = decodePath(guid, base, project)
                         LOGGER.info("[540, Prefab.PrefabParent] Set root object of $fileId to $link")
-                        prefab.prefab = link
+                        prefab.parentPrefabFile = link
                     }
                 }
                 "Transform" -> {
@@ -686,7 +686,7 @@ object UnityReader {
                     val prefabPath = decodePath(guid, prefab2, project)
                     if (prefabPath != InvalidRef) {
                         LOGGER.info("Setting $file.prefab = $prefabPath")
-                        prefab.prefab = prefabPath
+                        prefab.parentPrefabFile = prefabPath
                     }
                     val children = node["Children"]
                     if (children != null) {

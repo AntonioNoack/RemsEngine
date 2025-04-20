@@ -131,7 +131,7 @@ object PrefabCache : CacheSection("Prefab") {
             val prefab2 = PrefabCache[next]
             if (prefab2 != null) {
                 val con = HashSet<FileReference>()
-                val s0 = prefab2.prefab
+                val s0 = prefab2.parentPrefabFile
                 if (s0 != InvalidRef) {
                     con.add(s0)
                     remaining.add(s0)
@@ -180,8 +180,8 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     fun loadScenePrefab(file: FileReference): Prefab {
-        val prefab = this[file, maxPrefabDepth] ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
-        prefab.source = file
+        val prefab = this[file, maxPrefabDepth] ?: Prefab("Entity").apply { this.parentPrefabFile = ScenePrefab }
+        prefab.sourceFile = file
         return prefab
     }
 
@@ -251,7 +251,7 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun onReadPrefab(file: FileReference, prefab: Saveable?, callback: Callback<Saveable>) {
-        if (prefab is Prefab) prefab.source = file
+        if (prefab is Prefab) prefab.sourceFile = file
         if (prefab != null) {
             callback.ok(prefab)
         } else {
@@ -293,7 +293,7 @@ object PrefabCache : CacheSection("Prefab") {
                     val unityReader = unityReader
                     if (unityReader != null) {
                         unityReader(file) { prefab, e ->
-                            if (prefab is Prefab) prefab.source = file
+                            if (prefab is Prefab) prefab.sourceFile = file
                             if (prefab != null) {
                                 callback.ok(prefab)
                             } else {
@@ -320,7 +320,7 @@ object PrefabCache : CacheSection("Prefab") {
                 val scene2 = scene ?: folder.listChildren().firstInstanceOrNull(PrefabReadable::class)
                 if (scene2 != null) {
                     val prefab = scene2.readPrefab()
-                    prefab.source = file
+                    prefab.sourceFile = file
                     callback.ok(prefab)
                 } else callback.err(err)
             } else callback.err(err)
@@ -428,7 +428,7 @@ object PrefabCache : CacheSection("Prefab") {
         val sample1 = generateInstance()
         sample1.ref // create and fill prefab
         val prefab1 = sample1.prefab!!
-        prefab1.source = source
+        prefab1.sourceFile = source
         val encoding = GameEngineProject.encoding.getForExtension(source.lcExtension)
         source.writeBytes(encoding.encode(prefab1, workspace))
         return Triple(source, prefab1, sample1)

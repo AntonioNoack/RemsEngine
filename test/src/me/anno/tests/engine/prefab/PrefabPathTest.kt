@@ -19,7 +19,7 @@ fun printTree(file: FileReference) {
 }
 
 fun printTree(file: FileReference, instance: PrefabSaveable, depth: Int) {
-    assertEquals(file, instance.prefab!!.source)
+    assertEquals(file, instance.prefab!!.sourceFile)
     println("${"  ".repeat(depth)}${instance.className}: '${instance.name}'")
     println("${"  ".repeat(depth + 1)}Path: ${instance.prefabPath}")
     for (ct in instance.listChildTypes()) {

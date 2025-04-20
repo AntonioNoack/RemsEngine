@@ -427,7 +427,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 if (selection.isEmpty()) return
                 val prefab = selection.firstInstanceOrNull(PrefabSaveable::class)?.root?.prefab ?: return
                 if (!prefab.isWritable) {
-                    LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
+                    LOGGER.warn("Prefab from '${prefab.sourceFile}' cannot be directly modified, inherit from it")
                     return
                 }
 
@@ -807,7 +807,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val (pos, rot, sca) =
                     getDropTransform(entity, null, dropPosition)
                 setTransform(ci, helperEntity, pos, rot, sca)
-                val path = ci.addNewChild(helperEntity, 'c', prefab.clazzName, prefab.source)
+                val path = ci.addNewChild(helperEntity, 'c', prefab.clazzName, prefab.sourceFile)
                 val sample = Hierarchy.getInstanceAt(ci.root, path)!!
                 results.add(sample)
             } else {

@@ -196,7 +196,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                     LOGGER.info("SrcPrefab added original, oldRoot: '$oldRoot'")
                     val isRoot = oldRoot == Path.ROOT_PATH
                     val selfAdd = if (isRoot) listOf(
-                        CAdd(Path.ROOT_PATH, 'e', original.className, Path.generateRandomId(), srcPrefab.prefab)
+                        CAdd(Path.ROOT_PATH, 'e', original.className, Path.generateRandomId(), srcPrefab.parentPrefabFile)
                     ) else emptyList()
                     val prefix = (if (isRoot) {
                         // todo find correct index

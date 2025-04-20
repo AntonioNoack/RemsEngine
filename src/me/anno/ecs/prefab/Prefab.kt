@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
+import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
@@ -37,10 +38,10 @@ class Prefab : Saveable {
     }
 
     constructor(clazzName: String, prefab: FileReference) : this(clazzName) {
-        this.prefab = prefab
+        this.parentPrefabFile = prefab
     }
 
-    constructor(prefab: Prefab) : this(prefab.clazzName, prefab.source)
+    constructor(prefab: Prefab) : this(prefab.clazzName, prefab.sourceFile)
 
     @NotSerializedProperty
     var isWritable = true
@@ -70,8 +71,8 @@ class Prefab : Saveable {
             } else LOGGER.warn("Cannot modify prefab.tags")
         }
 
-    var prefab: FileReference = InvalidRef
-    var source: FileReference = InvalidRef
+    var parentPrefabFile: FileReference = InvalidRef
+    var sourceFile: FileReference = InvalidRef
 
     var wasCreatedFromJson = false
     var wasModified = true
@@ -119,7 +120,7 @@ class Prefab : Saveable {
     }
 
     fun invalidateInstance() {
-        if (source !is PrefabReadable || adds.isNotEmpty() || sets.isNotEmpty()) {
+        if (sourceFile !is PrefabReadable || adds.isNotEmpty() || sets.isNotEmpty()) {
             synchronized(this) {
                 _sampleInstance?.destroy()
                 _sampleInstance = null
@@ -151,8 +152,8 @@ class Prefab : Saveable {
     fun countTotalChanges(async: Boolean, depth: Int = 20): Int {
         var sum = adds.size + sets.size
         if (depth > 0) {
-            if (prefab != InvalidRef) {
-                val prefab = PrefabCache[prefab, async]
+            if (parentPrefabFile != InvalidRef) {
+                val prefab = PrefabCache[parentPrefabFile, async]
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
             for ((_, addI) in adds) {
@@ -190,7 +191,7 @@ class Prefab : Saveable {
                     break
                 }
             }
-            val prefab = PrefabCache[prefab]
+            val prefab = PrefabCache[parentPrefabFile]
             if (prefab != null) return prefab[path, property, depth - 1]
         }
         return null
@@ -205,7 +206,7 @@ class Prefab : Saveable {
     }
 
     fun checkIsMutable() {
-        assertTrue(isWritable) { "$source is immutable " }
+        assertTrue(isWritable) { "$sourceFile is immutable " }
         wasModified = true
     }
 
@@ -252,11 +253,11 @@ class Prefab : Saveable {
         typeChar: Char,
         className: String,
         nameId: String,
-        ref: FileReference,
+        prefabForNewChild: FileReference,
         insertIndex: Int = -1
     ): Path {
         val index = findNextIndex(typeChar, parentPath)
-        return add(CAdd(parentPath, typeChar, className, nameId, ref), insertIndex).getSetterPath(index)
+        return add(CAdd(parentPath, typeChar, className, nameId, prefabForNewChild), insertIndex).getSetterPath(index)
     }
 
     fun findNextIndex(typeChar: Char, parentPath: Path): Int {
@@ -279,7 +280,7 @@ class Prefab : Saveable {
             val key = Pair(change.path, change.nameId)
             if (addedPaths?.contains(key) == true) return false
             // todo check branched prefabs for adds as well
-            val sourcePrefab = PrefabCache[prefab]
+            val sourcePrefab = PrefabCache[parentPrefabFile]
             return sourcePrefab?.canAdd(change) ?: true
         } else {
             val addsI = adds[change.path] ?: return true
@@ -295,7 +296,7 @@ class Prefab : Saveable {
                 "Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}"
             }
             // todo check branched prefabs for adds as well
-            val sourcePrefab = PrefabCache[prefab]
+            val sourcePrefab = PrefabCache[parentPrefabFile]
             if (sourcePrefab != null) {
                 assertNotEquals(true, sourcePrefab.addedPaths?.contains(key)) {
                     "Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}"
@@ -303,6 +304,12 @@ class Prefab : Saveable {
             }
             addedPaths?.add(key)
         }
+
+        if (change.prefab != InvalidRef) {
+            GameEngineProject.currentProject
+                ?.addDependency(sourceFile, change.prefab)
+        }
+
         val adds = adds
         if (insertIndex == -1) {
             adds.getOrPut(change.path, ::ArrayList)
@@ -357,7 +364,7 @@ class Prefab : Saveable {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFile("prefab", prefab)
+        writer.writeFile("prefab", parentPrefabFile)
         writer.writeString("class", clazzName)
         writer.writeObjectList(null, "adds", adds.values.flatten())
         writer.writeObjectList(null, "sets", sets.map { k1, k2, v -> CSet(k1, k2, v) })
@@ -368,7 +375,7 @@ class Prefab : Saveable {
     override fun setProperty(name: String, value: Any?) {
         checkIsMutable()
         when (name) {
-            "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
+            "prefab" -> parentPrefabFile = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
             "className", "class" -> clazzName = value as? String ?: return
             "history" -> history = value as? ChangeHistory ?: return
             "adds" -> {
@@ -414,26 +421,27 @@ class Prefab : Saveable {
         }
     }
 
-    fun replaceReferences(src: FileReference, dst: FileReference) {
-        if (prefab == src) prefab = dst
+    fun replaceReferences(oldName: FileReference, newName: FileReference) {
+        if (parentPrefabFile == oldName) parentPrefabFile = newName
         for ((_, adds) in adds) {
             for (i in adds.indices) {
                 val add = adds[i]
-                if (add.prefab == src) {
-                    add.prefab = dst
-                }
+                add.prefab = add.prefab.replacePath(oldName, newName) ?: add.prefab
             }
         }
-        sets.replaceValues { _, _, v ->
-            if (v == src) dst else v
+        sets.replaceValues { _, _, value ->
+            if (value is FileReference) value.replacePath(oldName, newName) ?: value
+            else value
         }
+        GameEngineProject.currentProject
+            ?.addDependency(sourceFile, newName)
         // execute this?
         invalidateInstance()
     }
 
     private fun createNewInstance(depth: Int): PrefabSaveable {
         val adds = adds
-        val superPrefab = prefab
+        val superPrefab = parentPrefabFile
         val clazzName = clazzName
         // to do here is some kind of race condition taking place
         // without this println, or Thread.sleep(),
@@ -484,7 +492,7 @@ class Prefab : Saveable {
     val dependencies: HashSet<FileReference>
         get() {
             val result = HashSet<FileReference>()
-            result.add(prefab)
+            result.add(parentPrefabFile)
             sets.forEach { _, _, value ->
                 if (value is FileReference) {
                     result.add(value)
@@ -496,14 +504,14 @@ class Prefab : Saveable {
                 }
             }
             result.remove(InvalidRef)
-            result.remove(source)
+            result.remove(sourceFile)
             return result
         }
 
     override val approxSize get() = 1_000_000_096
 
     override fun isDefaultValue(): Boolean =
-        adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null
+        adds.isEmpty() && sets.isEmpty() && parentPrefabFile == InvalidRef && history == null
 
     override fun onReadingEnded() {
         wasModified = false

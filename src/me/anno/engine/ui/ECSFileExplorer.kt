@@ -364,7 +364,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                             file.writeBytes(encoding.encode(prefab, workspace))
                         }
                         for ((file, prefab) in materials) {
-                            prefab.prefab = materialFile
+                            prefab.parentPrefabFile = materialFile
                             prefab.adds.clear() // not really doing anything
                             prefab.sets.clear()
                             val encoding = GameEngineProject.encoding.getForExtension(file)

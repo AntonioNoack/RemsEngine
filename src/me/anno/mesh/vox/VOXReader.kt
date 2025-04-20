@@ -384,12 +384,12 @@ class VOXReader {
             val meshReferences = reader.models.mapIndexed { index, mesh ->
                 val prefab = mesh.createMeshPrefab(reader.palette)
                 val meshFile = meshes.createPrefabChild("$index.json", prefab)
-                prefab.source = meshFile
+                prefab.sourceFile = meshFile
                 meshFile
             }
             val prefab = reader.toEntityPrefab(meshReferences)
             val layersRoot = folder.createPrefabChild("Scene.json", prefab)
-            prefab.source = layersRoot
+            prefab.sourceFile = layersRoot
             folder.sealPrefabs()
             return folder
         }

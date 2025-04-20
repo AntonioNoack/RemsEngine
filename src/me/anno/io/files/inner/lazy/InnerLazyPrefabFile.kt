@@ -16,7 +16,7 @@ open class InnerLazyPrefabFile(
 
     val prefab2 = lazy {
         val v = prefab.value
-        v.source = this
+        v.sourceFile = this
         v
     }
 

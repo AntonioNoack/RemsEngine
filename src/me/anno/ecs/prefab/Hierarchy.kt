@@ -34,7 +34,7 @@ object Hierarchy {
             LOGGER.warn("Too many iterations for findAdd()")
             return null
         }
-        val prefab1 = PrefabCache[prefab.prefab]
+        val prefab1 = PrefabCache[prefab.parentPrefabFile]
         if (prefab1 != null) {
             val className = findAdd(prefab1, srcSetPath, newRecursionDepth)
             if (className != null) return className
@@ -73,7 +73,7 @@ object Hierarchy {
         val isRoot = srcPath == Path.ROOT_PATH
         if (isRoot) {
             // simple copy-paste
-            dstPrefab.prefab = srcPrefab.prefab
+            dstPrefab.parentPrefabFile = srcPrefab.parentPrefabFile
             for ((_, its) in srcPrefab.adds) {
                 for (it in its) {
                     dstPrefab.add(it.clone(), -1)
@@ -122,7 +122,7 @@ object Hierarchy {
 
             processPrefab(srcPrefab, Path.ROOT_PATH)
 
-            LOGGER.info("Found: ${dstPrefab.prefab}, prefab: ${srcPrefab.prefab}, own file: ${srcPrefab.source}")
+            LOGGER.info("Found: ${dstPrefab.parentPrefabFile}, prefab: ${srcPrefab.parentPrefabFile}, own file: ${srcPrefab.sourceFile}")
             LOGGER.info("check start")
             dstPrefab.getSampleInstance()
             LOGGER.info("check end")
@@ -161,7 +161,7 @@ object Hierarchy {
                         for (actualType in instance.listChildTypes()) {
                             val match2 = instance.getChildListByType(actualType).firstOrNull { it.prefabPath == pathI }
                             if (match2 != null) {
-                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$actualType' in ${instance0.prefab?.source} for ${instance.className}")
+                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$actualType' in ${instance0.prefab?.sourceFile} for ${instance.className}")
                                 pathI.type = actualType
                                 foundMatch = true
                                 instance = match2
@@ -214,11 +214,11 @@ object Hierarchy {
             @Suppress("LoggingStringTemplateAsArgument")
             LOGGER.debug(
                 "Trying to add " +
-                        "'${srcPrefab.source}'/'$srcPath'@${hash32(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
-                        "'${dstPrefab.source}'/'$dstParentPath'@${hash32(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
+                        "'${srcPrefab.sourceFile}'/'$srcPath'@${hash32(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
+                        "'${dstPrefab.sourceFile}'/'$dstParentPath'@${hash32(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
             )
         }
-        if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
+        if (srcPrefab == dstPrefab || (srcPrefab.sourceFile == dstPrefab.sourceFile && srcPrefab.sourceFile != InvalidRef)) {
             LOGGER.debug("src == dst, so trying extraction")
             return add(
                 extractPrefab(srcPrefab, srcPath), Path.ROOT_PATH,
@@ -231,10 +231,10 @@ object Hierarchy {
                 // find correct type and insert index
                 val nameId = Path.generateRandomId()
                 val clazz = srcPrefab.clazzName
-                val allowLink = srcPrefab.source != InvalidRef
+                val allowLink = srcPrefab.sourceFile != InvalidRef
                 LOGGER.debug("Allow link? $allowLink")
                 if (allowLink) {
-                    val srcPrefabSource = srcPrefab.source
+                    val srcPrefabSource = srcPrefab.sourceFile
                     if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
                     val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
                     LOGGER.debug(
@@ -244,7 +244,7 @@ object Hierarchy {
                     ECSSceneTabs.updatePrefab(dstPrefab)
                     return dstPath
                 } else {
-                    val srcPrefabSource = srcPrefab.prefab
+                    val srcPrefabSource = srcPrefab.parentPrefabFile
                     if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
                     val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
                     LOGGER.debug(
@@ -287,7 +287,7 @@ object Hierarchy {
         val dstPath2 = dstPrefab.add(
             dstPath.parent ?: Path.ROOT_PATH,
             type, child.className, nameId,
-            child.prefab?.source ?: InvalidRef
+            child.prefab?.sourceFile ?: InvalidRef
         )
         assertEquals(dstPath2, dstPath) { "Could not add child at index!" }
         val sample = Saveable.getSample(child.className)!!
@@ -394,7 +394,7 @@ object Hierarchy {
             // renumber(path.lastIndex(), -1, path, sets, t)
             prefab.invalidateInstance()
         } else {
-            LOGGER.info("Didn't find add @$parentPath[$clazzName], prefab: ${prefab.source}")
+            LOGGER.info("Didn't find add @$parentPath[$clazzName], prefab: ${prefab.sourceFile}")
             prefab[path, "isEnabled"] = false
         }
         ECSSceneTabs.updatePrefab(prefab)

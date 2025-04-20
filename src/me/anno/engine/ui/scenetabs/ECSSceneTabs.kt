@@ -129,7 +129,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun updatePrefab(prefab: Prefab, major: Boolean = true) {
         currentTab?.inspector?.onChange(major) // probably correct ^^
-        EditorState.prefabSource = prefab.source
+        EditorState.prefabSource = prefab.sourceFile
     }
 
     fun close(sceneTab: ECSSceneTab, setNextActive: Boolean) {

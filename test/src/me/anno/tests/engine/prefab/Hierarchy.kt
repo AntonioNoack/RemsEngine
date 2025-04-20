@@ -41,7 +41,7 @@ class HierarchyTests {
     fun testAdd() {
         // test
         val prefab = Prefab("Entity", ScenePrefab)
-        prefab.source = InnerTmpTextFile("")
+        prefab.sourceFile = InnerTmpTextFile("")
         val sample0 = prefab.createInstance() as Entity
         val size0 = sample0.sizeOfHierarchy
         val added = Hierarchy.add(prefab, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'e')!!

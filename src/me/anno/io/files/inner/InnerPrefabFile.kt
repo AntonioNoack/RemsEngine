@@ -14,7 +14,7 @@ open class InnerPrefabFile(
 ) : InnerFile(absolutePath, relativePath, false, parent), PrefabReadable {
 
     init {
-        prefab.source = this
+        prefab.sourceFile = this
     }
 
     val bytes by lazy {

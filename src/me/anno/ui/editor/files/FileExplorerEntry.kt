@@ -481,8 +481,8 @@ open class FileExplorerEntry(
 
     private fun appendPrefabTTT(ttt: StringBuilder, prefab: Prefab) {
         ttt.append('\n').append(prefab.clazzName)
-        if (prefab.prefab != InvalidRef) {
-            ttt.append(" : ").append(prefab.prefab.toLocalPath()).append('\n')
+        if (prefab.parentPrefabFile != InvalidRef) {
+            ttt.append(" : ").append(prefab.parentPrefabFile.toLocalPath()).append('\n')
         } else ttt.append(", ")
         // if is entity, or mesh, get sample bounds
         if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
@@ -518,7 +518,7 @@ open class FileExplorerEntry(
                     file is PrefabReadable -> {
                         val prefab = file.readPrefab()
                         val name = prefab.instanceName
-                        val base = prefab.prefab
+                        val base = prefab.parentPrefabFile
                         "" +
                                 "${file.name}\n" +
                                 (if (base != InvalidRef) "${base.nameWithoutExtension}\n" else "") +
@@ -933,25 +933,25 @@ open class FileExplorerEntry(
             }
         }
 
-        private fun renameToImpl(src: FileReference, dst: FileReference, explorer: FileExplorer?) {
-            val dependencies = currentProject?.findDependencies(src) ?: emptySet()
-            if (src.renameTo(dst)) {
+        private fun renameToImpl(oldName: FileReference, newName: FileReference, explorer: FileExplorer?) {
+            if (oldName.renameTo(newName)) {
+                val dependencies = currentProject?.findDependencies(oldName) ?: emptySet()
                 for (file in dependencies) {
-                    if (!file.isSameOrSubFolderOf(src) && !file.isSameOrSubFolderOf(dst)) {
-                        LOGGER.info("Replacing references of $src in $file")
-                        replaceDependencies(file, src, dst)
+                    if (!file.isSameOrSubFolderOf(oldName) && !file.isSameOrSubFolderOf(newName)) {
+                        LOGGER.info("Replacing references of $oldName in $file")
+                        replaceDependencies(file, oldName, newName)
                     } else {
                         // can't really do it
-                        LOGGER.info("Skipped renaming references of $src in $file")
+                        LOGGER.info("Skipped renaming references of $oldName in $file")
                     }
                 }
                 explorer?.invalidate()
-            } else LOGGER.warn("Renaming {} to {} failed", src, dst)
+            } else LOGGER.warn("Renaming {} to {} failed", oldName, newName)
         }
 
-        private fun replaceDependencies(prefabFile: FileReference, src: FileReference, dst: FileReference) {
+        private fun replaceDependencies(prefabFile: FileReference, oldName: FileReference, newName: FileReference) {
             val prefab = PrefabCache[prefabFile] ?: return
-            prefab.replaceReferences(src, dst)
+            prefab.replaceReferences(oldName, newName)
             GameEngineProject.save(prefabFile, prefab)
         }
 

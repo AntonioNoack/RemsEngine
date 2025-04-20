@@ -111,7 +111,7 @@ object AssetImport {
                         val name = findName(srcFile, prefab, dstFolder == dstFolder0)
                         val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth)
                         val dstFile = savePrefab(dstFolder, name, newPrefab)
-                        newPrefab.source = dstFile
+                        newPrefab.sourceFile = dstFile
                         prefabMapping[srcFile] = dstFile
                     } else LOGGER.warn("Skipped $srcFile, because it was not a prefab")
                 }
@@ -169,9 +169,9 @@ object AssetImport {
             if (prefab != null) {
                 val name = findName(srcFile, prefab, dstFolder == dstFolder0)
                 val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth + 1)
-                val dstFile = savePrefab(newPrefab.source.ifUndefined(dstFolder), name, newPrefab)
-                newPrefab.source = dstFile
-                cache[srcFile] = newPrefab.source
+                val dstFile = savePrefab(newPrefab.sourceFile.ifUndefined(dstFolder), name, newPrefab)
+                newPrefab.sourceFile = dstFile
+                cache[srcFile] = newPrefab.sourceFile
                 dstFile
             } else {
                 LOGGER.warn("Skipped $srcFile, because it was not a prefab")
@@ -200,10 +200,10 @@ object AssetImport {
                 if (dstFolder1 !== dstFolder) {
                     dstFolder1.tryMkdirs()
                 }
-                dstPrefab.source = dstFolder1
+                dstPrefab.sourceFile = dstFolder1
                 if (depth < 10) {
-                    dstPrefab.prefab = copyPrefab(
-                        srcPrefab.prefab, dstFolder1, dstFolder0,
+                    dstPrefab.parentPrefabFile = copyPrefab(
+                        srcPrefab.parentPrefabFile, dstFolder1, dstFolder0,
                         prefabMapping, depth, this
                     )
                     for ((_, addsI) in srcPrefab.adds) {

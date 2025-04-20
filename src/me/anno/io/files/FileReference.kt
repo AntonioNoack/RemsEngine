@@ -11,6 +11,7 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.files.LocalFile.toLocalPath
@@ -408,6 +409,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return emptyList()
     }
 
+    fun listHierarchy(): List<FileReference> {
+        val result = ArrayList<FileReference>()
+        var self = this
+        while (true) {
+            result.add(self)
+            val parent = self.getParent()
+            if (parent != self && parent != InvalidRef) {
+                self = parent
+            } else break
+        }
+        return result
+    }
+
     fun nullIfUndefined(): FileReference? {
         return if (this == InvalidRef) null
         else this
@@ -446,5 +460,26 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return path.length > other.length + 1 &&
                 path[other.length] == '/' &&
                 path.startsWith(other)
+    }
+
+    /**
+     * Replaces the sub-path of oldName with newName, if possible.
+     * If not, returns null.
+     * */
+    fun replacePath(oldName: String, newName: FileReference): FileReference? {
+        if (absolutePath == oldName) return newName
+        if (!isSubFolderOf(oldName)) return null
+        assertEquals('/', absolutePath[oldName.length])
+        val commonSubFile = absolutePath.substring(oldName.length + 1)
+        return newName.getChild(commonSubFile)
+    }
+
+    /**
+     * Replaces the sub-path of oldName with newName, if possible.
+     * If not, returns null.
+     * */
+    fun replacePath(oldName: FileReference, newName: FileReference): FileReference? {
+        if (oldName == InvalidRef) return null
+        return replacePath(oldName.absolutePath, newName)
     }
 }

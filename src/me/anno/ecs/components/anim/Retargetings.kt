@@ -99,7 +99,7 @@ object Retargetings {
         val prefab = getOrCreatePrefab(srcSkeleton, dstSkeleton) ?: return
         sampleModel = sampleModel1
         sampleAnimation = sampleAnimation1
-        ECSSceneTabs.open(prefab.source, PlayMode.EDITING, true)
+        ECSSceneTabs.open(prefab.sourceFile, PlayMode.EDITING, true)
     }
 
     private fun getOrCreatePrefab(srcSkeleton: FileReference, dstSkeleton: FileReference): Prefab? {
@@ -108,7 +108,7 @@ object Retargetings {
         if (prefab == null) {
             // create new file
             prefab = Prefab("Retargeting")
-            prefab.source = configReference
+            prefab.sourceFile = configReference
             prefab["srcSkeleton"] = srcSkeleton
             prefab["dstSkeleton"] = dstSkeleton
             defineDefaultMapping(

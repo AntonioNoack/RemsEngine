@@ -203,7 +203,7 @@ object AnimatedMeshesLoader {
             val sampleAnimations = if (animMap.isNotEmpty()) {
                 arrayListOf(
                     AnimationState(
-                        animMap.values.first().source, 1f,
+                        animMap.values.first().sourceFile, 1f,
                         0f, 1f, LoopingState.PLAY_LOOP
                     )
                 )
@@ -226,7 +226,7 @@ object AnimatedMeshesLoader {
                 }
             }
 
-            val animRefs = animMap.values.map { it.source }
+            val animRefs = animMap.values.map { it.sourceFile }
             skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.getParent().name })
             animationReferences = animRefs
         }
@@ -357,7 +357,7 @@ object AnimatedMeshesLoader {
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
                     val reference = meshFolder.createPrefabChild(fileName, instance)
-                    instance.source = reference
+                    instance.sourceFile = reference
                     reference
                 } else {
                     val name = (instance as? NamedSaveable)?.name ?: ""

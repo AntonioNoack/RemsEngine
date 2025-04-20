@@ -49,7 +49,7 @@ class PrefabSaveableProperty(
             // todo relative editing might be useful, too
             //  (e.g. for positions, calculate delta, for scale ratio)
             pi.onChange(false)
-        } else LOGGER.warn("Cannot modify ${pi.prefab.source}")
+        } else LOGGER.warn("Cannot modify ${pi.prefab.sourceFile}")
     }
 
     override fun get(): Any? {

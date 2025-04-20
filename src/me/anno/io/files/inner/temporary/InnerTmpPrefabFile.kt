@@ -15,7 +15,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
     constructor(prefab: Prefab) : this(prefab, prefab["name"] as? String ?: "")
 
     init {
-        prefab.source = this
+        prefab.sourceFile = this
         synchronized(prefabFiles) {
             prefabFiles
                 .getOrPut(prefab.clazzName, ::ArrayList)

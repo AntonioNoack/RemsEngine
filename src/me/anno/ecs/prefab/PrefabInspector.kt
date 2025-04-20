@@ -106,7 +106,7 @@ class PrefabInspector(var reference: FileReference) {
     fun reset(path: Path?) {
         path ?: return
         if (!prefab.isWritable) {
-            LOGGER.warn("Prefab '${prefab.source}' is immutable, so it cannot be reset on $path")
+            LOGGER.warn("Prefab '${prefab.sourceFile}' is immutable, so it cannot be reset on $path")
             return
         }
         if (sets.removeMajorIf { it == path }) {
@@ -119,7 +119,7 @@ class PrefabInspector(var reference: FileReference) {
     fun reset(path: Path?, name: String) {
         path ?: return
         if (!prefab.isWritable) {
-            LOGGER.warn("Prefab '${prefab.source}' is immutable, so it cannot be reset on $path.$name")
+            LOGGER.warn("Prefab '${prefab.sourceFile}' is immutable, so it cannot be reset on $path.$name")
             return
         }
         // if (sets.removeIf { it.path == path && it.name == name }) {
@@ -139,7 +139,7 @@ class PrefabInspector(var reference: FileReference) {
     fun change(path: Path?, instance: PrefabSaveable, name: String, value: Any?) {
         instance[name] = value
         path ?: return
-        LOGGER.info("Setting ${prefab.source}.$path.$name = $value")
+        LOGGER.info("Setting ${prefab.sourceFile}.$path.$name = $value")
         prefab[path, name] = value
     }
 
@@ -176,7 +176,7 @@ class PrefabInspector(var reference: FileReference) {
                     "Component ${instance.name}:${instance.className} " +
                             "is not part of tree ${root.name}:${root.className}, " +
                             "its root is ${instance.root.name}:${instance.root.className}; " +
-                            "${instance.prefab?.source} vs ${prefab.source}"
+                            "${instance.prefab?.sourceFile} vs ${prefab.sourceFile}"
                 )
         }
 
@@ -408,15 +408,15 @@ class PrefabInspector(var reference: FileReference) {
 
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
         if (src == InvalidRef) return true
-        return if (parent.anyInHierarchy { it.prefab?.source == src }) {
+        return if (parent.anyInHierarchy { it.prefab?.sourceFile == src }) {
             LOGGER.warn("Cannot add $src to ${parent.name} because of dependency loop!")
             false
         } else true
     }
 
     fun addNewChild(parent: PrefabSaveable, type: Char, prefab: Prefab): Path? {
-        if (!checkDependencies(parent, prefab.source)) return null
-        return this.prefab.add(parent.prefabPath, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
+        if (!checkDependencies(parent, prefab.sourceFile)) return null
+        return this.prefab.add(parent.prefabPath, type, prefab.clazzName, Path.generateRandomId(), prefab.sourceFile)
     }
 
     fun addNewChild(parent: PrefabSaveable, type: Char, clazz: String): Path {

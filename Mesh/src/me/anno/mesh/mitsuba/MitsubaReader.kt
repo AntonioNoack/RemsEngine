@@ -396,11 +396,11 @@ object MitsubaReader {
                 }
 
                 val prefab2 = Prefab()
-                prefab2.source = materialFolder.createPrefabChild("$id.json", prefab2)
+                prefab2.sourceFile = materialFolder.createPrefabChild("$id.json", prefab2)
                 prefab2._sampleInstance = material
                 material.prefab = prefab2
 
-                materials[id] = prefab2.source
+                materials[id] = prefab2.sourceFile
             }
             for (child in node.children) {
                 if (child is XMLNode) regMaterials(child)

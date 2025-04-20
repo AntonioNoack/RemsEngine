@@ -91,19 +91,23 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
     var encoding = FileEncoding.PRETTY_JSON
 
     val assetIndex = HashMap<String, HashSet<FileReference>>()
-    val dependencyIndex = HashMap<FileReference, HashSet<FileReference>>() // todo use these when renaming
+    val dependencyToPrefab = HashMap<FileReference, HashSet<FileReference>>()
     var maxIndexDepth = 5
 
-    fun addToIndex(file: FileReference, type: String) {
+    fun addToAssetIndex(file: FileReference, type: String) {
         assetIndex.getOrPut(type) { HashSet() }.add(file)
     }
 
-    fun addToIndex(file: FileReference, dependencies: HashSet<FileReference>) {
-        dependencyIndex[file] = dependencies
+    fun setDependencies(prefabFile: FileReference, dependencies: HashSet<FileReference>) {
+        dependencyToPrefab[prefabFile] = dependencies
+    }
+
+    fun addDependency(prefabFile: FileReference, dependency: FileReference) {
+        dependencyToPrefab.getOrPut(prefabFile, ::HashSet).add(dependency)
     }
 
     fun findDependencies(file: FileReference): Set<FileReference> {
-        return dependencyIndex.filterValues { dependencies ->
+        return dependencyToPrefab.filterValues { dependencies ->
             dependencies.any { dependency -> dependency.isSameOrSubFolderOf(file) }
         }.keys
     }
@@ -213,19 +217,19 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         SignatureCache.getAsync(file) { signature ->
             when (signature?.name) {
                 "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> {
-                    addToIndex(file, "Image") // cpu-side name
-                    addToIndex(file, "Texture") // gpu-side name
+                    addToAssetIndex(file, "Image") // cpu-side name
+                    addToAssetIndex(file, "Texture") // gpu-side name
                 }
-                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj", "ma", "ply" -> addToIndex(file, "Mesh")
-                "media", "gif" -> addToIndex(file, "Media")
-                "pdf" -> addToIndex(file, "PDF")
-                "ttf", "woff1", "woff2" -> addToIndex(file, "Font")
+                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj", "ma", "ply" -> addToAssetIndex(file, "Mesh")
+                "media", "gif" -> addToAssetIndex(file, "Media")
+                "pdf" -> addToAssetIndex(file, "PDF")
+                "ttf", "woff1", "woff2" -> addToAssetIndex(file, "Font")
                 else -> {
                     val timeout = 0L // because we don't really need it
                     val prefab = PrefabCache[file, Prefab.maxPrefabDepth, timeout, false]
                     if (prefab != null) {
-                        addToIndex(file, prefab.clazzName)
-                        addToIndex(file, prefab.dependencies)
+                        addToAssetIndex(file, prefab.clazzName)
+                        setDependencies(file, prefab.dependencies)
                     }
                 }
             }

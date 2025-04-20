@@ -17,14 +17,14 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
 
     operator fun get(skeleton: Skeleton) = getTexture(skeleton)
     fun getTexture(skeleton: Skeleton): AnimTexture {
-        return animTexCache.getEntry(skeleton.prefab!!.source, timeoutMillis, false) { _ ->
+        return animTexCache.getEntry(skeleton.prefab!!.sourceFile, timeoutMillis, false) { _ ->
             AnimTexture(skeleton)
         } as AnimTexture
     }
 
     fun invalidate(animation: Animation, skeleton: Skeleton) {
         (animTexCache.getEntryWithoutGenerator(
-            skeleton.prefab!!.source,
+            skeleton.prefab!!.sourceFile,
             timeoutMillis
         ) as? AnimTexture)?.invalidate(animation)
     }

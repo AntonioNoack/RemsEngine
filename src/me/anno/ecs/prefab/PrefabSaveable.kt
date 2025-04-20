@@ -78,20 +78,20 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     fun getOriginalOrDefault() = getOriginal() ?: getSuperInstance(className)
 
-    val refOrNull get() = prefab?.source
+    val refOrNull get() = prefab?.sourceFile
     val ref: FileReference
         get() {
             var prefab = prefab
             if (prefab == null) {
                 prefab = Prefab(className)
-                prefab.source = InnerTmpPrefabFile(prefab)
+                prefab.sourceFile = InnerTmpPrefabFile(prefab)
                 prefab._sampleInstance = this
                 this.prefab = prefab
                 this.prefabPath = Path.ROOT_PATH
                 setAllChildPaths()
                 collectPrimaryChanges()
             }
-            return prefab.source
+            return prefab.sourceFile
         }
 
     /**

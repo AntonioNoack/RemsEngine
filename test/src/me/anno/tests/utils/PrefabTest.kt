@@ -162,7 +162,7 @@ class PrefabTest {
         assertEquals(2, rigid.depth)
 
         val prefab = Prefab("Entity")
-        prefab.prefab = prefab0
+        prefab.parentPrefabFile = prefab0
         prefab[rigid, "gravity"] = Vector3d()
 
         assertEquals(0, prefab.numAdds)
