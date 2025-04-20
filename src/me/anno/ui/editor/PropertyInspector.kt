@@ -15,7 +15,7 @@ import me.anno.ui.base.Search
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.scrolling.ScrollPanelXY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.input.ColorInput
@@ -26,7 +26,7 @@ import me.anno.utils.structures.lists.Lists.wrap
 import org.apache.logging.log4j.LogManager
 
 open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
-    ScrollPanelXY(Padding(3), style.getChild("propertyInspector")) {
+    ScrollPanelY(Padding(3), style.getChild("propertyInspector")) {
 
     @Suppress("unused")
     constructor(getInspectable: () -> Inspectable?, style: Style, @Suppress("unused_parameter") ignored: Unit) :

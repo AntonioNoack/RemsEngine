@@ -133,6 +133,7 @@ object WindowManagement {
     }
 
     private fun shutdown() {
+        destroyed = true
         val clock = Clock(LOGGER)
         synchronized(openglLock) {
             // wait for the last frame to be finished,
@@ -140,7 +141,6 @@ object WindowManagement {
             clock.stop("Finishing last frame")
         }
         synchronized(glfwLock) {
-            destroyed = true
             val size = windows.size
             for (index in 0 until size) {
                 close(windows.getOrNull(index) ?: break)

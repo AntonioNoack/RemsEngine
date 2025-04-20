@@ -47,9 +47,6 @@ class CachedReflections private constructor(
 
     val serializedProperties = allProperties.filter { it.value.serialize }
 
-    // todo use this
-    // val executeInEditMode = annotations.any { it is ExecuteInEditMode }
-
     /**
      * updates the property in the instance
      * returns true on success
@@ -176,7 +173,7 @@ class CachedReflections private constructor(
             else "get$fieldCap"
         }
 
-        fun getSetterName(fieldName: String, fieldCap: CharSequence): String {
+        fun getSetterName(fieldCap: CharSequence): String {
             return if (fieldCap.startsWith("Is")) "set${fieldCap.substring(2).titlecase()}"
             else "set$fieldCap"
         }
@@ -202,7 +199,7 @@ class CachedReflections private constructor(
                 if (m != null) annotations += m.annotations.toList()
                 val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
                 val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
-                val setterName = getSetterName(field.name, fieldCap)
+                val setterName = getSetterName(fieldCap)
                 val isPublic = Modifier.isPublic(field.modifiers) ||
                         (getterName in publicMethodNames && setterName in publicMethodNames)
                 val serialize = serial != null || (isPublic && notSerial == null)
@@ -241,7 +238,7 @@ class CachedReflections private constructor(
                                 name.substring(getterPrefix.length + 1)
                     }
                     val annotations = getterMethod.annotations.toMutableList()
-                    val kotlinAnnotationName = "$name\$annotations" // todo is this still correct???
+                    val kotlinAnnotationName = "$name\$annotations"
                     val m = methods.firstOrNull { it.name == kotlinAnnotationName }
                     if (m != null) annotations += m.annotations.toList()
                     val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
@@ -284,7 +281,7 @@ class CachedReflections private constructor(
             field.isAccessible = true
             val capName = javaName.titlecase()
             val setterMethod = try {
-                clazz.getMethod(getSetterName(javaName, capName), field.type)
+                clazz.getMethod(getSetterName(capName), field.type)
             } catch (e: NoSuchMethodException) {
                 null
             }
