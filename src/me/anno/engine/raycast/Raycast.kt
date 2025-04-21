@@ -1,7 +1,6 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.anyComponent
 import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.components.collider.CollidingComponent
@@ -23,8 +22,6 @@ object Raycast {
     const val SDFS = 8
     const val SKY = 16
 
-    // todo option for smoothed collision surfaces by their normal
-
     /**
      * finds the minimum distance hit;
      * returns whether something was hit
@@ -34,7 +31,7 @@ object Raycast {
         scene.validateTransform()
         val originalDistance = query.result.distance
         Recursion.processRecursive(scene) { entity, remaining ->
-            raycast1(entity, query)
+            raycastComponents(entity, query)
             raycastAddChildren(entity, query, remaining)
         }
         return query.result.distance < originalDistance
@@ -49,7 +46,7 @@ object Raycast {
         }
     }
 
-    private fun raycast1(entity: Entity, query: RayQuery) {
+    private fun raycastComponents(entity: Entity, query: RayQuery) {
         entity.forAllComponents(query.includeDisabled) { component ->
             if (component is CollidingComponent &&
                 mayHit(component, query) &&

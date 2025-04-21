@@ -428,27 +428,34 @@ class PrefabInspector(var reference: FileReference) {
     }
 
     fun save() {
-        assertNotEquals(InvalidRef, reference, "Prefab doesn't have source!!")
-        if (reference.exists) {
+        val sourceFile = reference
+        assertNotEquals(InvalidRef, sourceFile, "Prefab doesn't have source!!")
+        if (sourceFile.exists) {
             // check, that we actually can save this file;
             //  we must not override resources like .obj files
             val testRead = try {
-                JsonStringReader.readFirstOrNull(reference, workspace, Prefab::class)
+                JsonStringReader.readFirstOrNull(sourceFile, workspace, Prefab::class)
             } catch (e: Exception) {
                 null
             }
             assertNotNull(testRead) {
-                "Must not override assets! $reference is not a prefab"
+                "Must not override assets! $sourceFile is not a prefab"
             }
         }
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
-        val encoding = GameEngineProject.encoding.getForExtension(reference)
+        val encoding = GameEngineProject.encoding.getForExtension(sourceFile)
         val prefab = prefab
-        reference.writeBytes(encoding.encode(prefab, workspace))
+        sourceFile.writeBytes(encoding.encode(prefab, workspace))
         prefab.wasModified = false // kind of needs to happen in-between...
-        addEvent(500) { restoreSelected(selected) }
+
+        // invalidate all thumbnails:
+        GameEngineProject.invalidateThumbnails(listOf(sourceFile))
+
+        addEvent(500) {
+            restoreSelected(selected)
+        }
     }
 
     override fun toString(): String = JsonStringWriter.toText(prefab, workspace)

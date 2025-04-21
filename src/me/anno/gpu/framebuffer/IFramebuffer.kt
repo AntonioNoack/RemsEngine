@@ -8,6 +8,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.image.Image
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
@@ -101,7 +102,7 @@ interface IFramebuffer {
     val depthTexture: ITexture2D?
     val depthMask: Int
 
-    fun createImage(flipY: Boolean, withAlpha: Boolean) =
+    fun createImage(flipY: Boolean, withAlpha: Boolean): Image? =
         getTexture0().createdOrNull()?.createImage(flipY, withAlpha)
 
     fun clearColor(color: Int, depth: Boolean = false) =

@@ -362,12 +362,10 @@ class Framebuffer(
                         needsToCopyDepth = false
                         useFrame(dstColor, dstFramebuffer) {
                             Blitting.copyColorAndDepth(srcColor, depthTexture, depthMask, isSRGB)
-                            GFX.check()
                         }
                     } else {
                         useFrame(dstColor) {
                             Blitting.copy(srcColor, isSRGB)
-                            GFX.check()
                         }
                     }
                 }
@@ -375,15 +373,16 @@ class Framebuffer(
                 if (needsToCopyDepth && depthTexture != null) {
                     useFrame(null, dstFramebuffer) {
                         Blitting.copyColorAndDepth(TextureLib.blackTexture, depthTexture, depthMask, false)
-                        GFX.check()
                     }
                 }
             }
         }
         Texture2D.restoreBindState(1, tex1)
         Texture2D.restoreBindState(0, tex0)
-        GPUShader.lastProgram = prevShader
-        glUseProgram(prevShader)
+        if (prevShader >= 0) {
+            GPUShader.lastProgram = prevShader
+            glUseProgram(prevShader)
+        }
     }
 
     fun checkIsComplete() {

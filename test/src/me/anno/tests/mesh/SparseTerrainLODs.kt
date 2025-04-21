@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.LODMeshComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.HeightMap
-import me.anno.ecs.components.mesh.terrain.NormalMapDefault
+import me.anno.ecs.components.mesh.terrain.DefaultNormalMap
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel.fillInYAndNormals
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel.generateQuadIndices
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel.generateQuadVertices
@@ -34,7 +34,7 @@ fun main() {
 
     generateQuadVertices(sx, sy, cellSize, lod0, true)
     val heightMap = HeightMap { x, y -> noise[x.toFloat(), y.toFloat()] }
-    fillInYAndNormals(sx, sy, heightMap, NormalMapDefault(heightMap, cellSize, flip, 0, 0), lod0)
+    fillInYAndNormals(sx, sy, heightMap, DefaultNormalMap(heightMap, cellSize, flip, 0, 0), lod0)
     generateQuadIndices(sx, sy, flip, lod0)
     lods.add(lod0)
 

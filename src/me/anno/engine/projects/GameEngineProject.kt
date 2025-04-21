@@ -12,6 +12,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.events.Event
 import me.anno.gpu.GFX
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -22,6 +23,7 @@ import me.anno.io.saveable.NamedSaveable
 import me.anno.io.saveable.Saveable
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
@@ -76,6 +78,21 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             val encoding = encoding.getForExtension(file)
             file.writeBytes(encoding.encode(values, workspace1))
         }
+
+        fun invalidateThumbnails(sourceFiles: Collection<FileReference>){
+            // invalidate all thumbnails:
+            val project = currentProject
+            val fileDependencies = if (project != null) {
+                Recursion.collectRecursive2(sourceFiles) { file, remaining ->
+                    remaining.addAll(project.findDependencies(file))
+                }
+            } else sourceFiles
+            for (dependency in fileDependencies) {
+                println("Invalidating dependency $dependency")
+                Thumbs.invalidate(dependency)
+            }
+        }
+
     }
 
     constructor(location: FileReference) : this() {

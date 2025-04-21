@@ -43,7 +43,7 @@ object DefaultAssets {
 
     // materials
     val whiteMaterial = Material().noVertexColors()
-    val mirrorMaterial = Material.metallic(-1, 0f).noVertexColors()
+    val mirrorMaterial = Material.metallic(white, 0f).noVertexColors()
     val silverMaterial =  Material.metallic(0xe5e5e5, 0f).noVertexColors()
     val steelMaterial =  Material.metallic(0x4c4c4c, 0.2f).noVertexColors()
     val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f).noVertexColors()

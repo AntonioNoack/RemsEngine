@@ -241,12 +241,16 @@ Some feature tests:
 You can find most examples in the "tests" folder. In total, there are more than 400 handwritten tests for you to see how
 the engine works :).
 
-## Ports
+## Ports (WIP)
 
-- Linux, Windows by default
-- [Web (WASM), currently very slow and limited](https://github.com/AntonioNoack/JVM2WASM), also got a C/C++-port (could be compiled to any platform)
-- [Android](https://github.com/AntonioNoack/RemsEngine-Android), currently JVM, but might use JVM2CPP in the future.
-- [DirectX11 backend](https://github.com/AntonioNoack/JDirectX11), not perfect yet
+Rem's Engine can be exported/deployed to many platforms, although, as with every project, additional work likely is required.
+
+- [Linux, Windows as JVM + OpenGL](https://github.com/AntonioNoack/RemsEngine) by default
+- [Web Assembly (WASM) + WebGL](https://github.com/AntonioNoack/JVM2WASM)
+- [JavaScript + WebGL](https://github.com/AntonioNoack/JVM2WASM)
+- [C/C++ + OpenGL](https://github.com/AntonioNoack/JVM2WASM)
+- [Android + OpenGL ES](https://github.com/AntonioNoack/RemsEngine-Android)
+- [JVM + DirectX11](https://github.com/AntonioNoack/JDirectX11)
 - MacOS should be simple, if OpenGL support is good enough
   - I've tried running it inside a VirtualBox VM, but I've got issues creating an OpenGL context
 - iOS: not yet tested, and idk whether Java runs on iOS. "codenameone"?
@@ -341,7 +345,7 @@ If you want an up-to-date build, just write me, e.g., via Discord, and I'll crea
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
 * [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
 * [QOI-Java](https://github.com/saharNooby/qoi-java) (QOI image format)
-* [Recast4j](https://github.com/AntonioNoack/recast4j/) (NavMesh generation; converted to Kotlin and adjusted for JOML;
+* [Recast4j](./Recast/src/me/anno/recast/RecastPlugin.kt) (NavMesh generation; converted to Kotlin and adjusted for JOML;
   partially integrated)
 
 If I forgot something, just write me a message 😄.

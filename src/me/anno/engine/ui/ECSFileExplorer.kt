@@ -318,7 +318,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                 // ask material
                 val meshes = ArrayList<Triple<FileReference, Prefab, List<FileReference>>>()
                 val materials = ArrayList<Pair<FileReference, Prefab>>()
-                val filesToBeInvalidated = ArrayList<FileReference>()
+                val invalidFiles = HashSet<FileReference>()
                 fun processMesh(file: FileReference, prefab: Prefab) {
                     val oldMaterials = (prefab["materials"] as? List<*>)
                         ?.filterIsInstance<FileReference>()
@@ -346,7 +346,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                                 }
                             }
                             if (addedAny) {
-                                filesToBeInvalidated.add(file)
+                                invalidFiles.add(file)
                             }
                         }
                         "Mesh" -> processMesh(file, prefab)
@@ -371,10 +371,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                             file.writeBytes(encoding.encode(prefab, workspace))
                         }
                         // and at the end, invalidate the thumbnail for these secondary source files
-                        // todo ideally, invalidate all files that depend on ours
-                        for (file in filesToBeInvalidated) {
-                            Thumbs.invalidate(file)
-                        }
+                        GameEngineProject.invalidateThumbnails(invalidFiles)
                     }
                 } else LOGGER.warn("No valid target was found")
             }
