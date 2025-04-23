@@ -28,6 +28,7 @@ import me.anno.ecs.components.collider.ConvexCollider
 import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.utils.algorithms.ForLoop.forLoop
 import org.apache.logging.log4j.LogManager
@@ -40,7 +41,7 @@ private val LOGGER = LogManager.getLogger("Collider")
 
 fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 
-    val mesh = mesh ?: return defaultShape
+    val mesh = mesh as? Mesh ?: return defaultShape
 
     val positions = mesh.positions
     if (positions == null) {

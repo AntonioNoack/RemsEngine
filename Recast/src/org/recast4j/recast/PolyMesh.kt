@@ -19,7 +19,6 @@ freely, subject to the following restrictions:
 package org.recast4j.recast
 
 import org.joml.AABBf
-import org.joml.Vector3f
 
 /**
  * Represents a polygon mesh suitable for use in building a navigation mesh.

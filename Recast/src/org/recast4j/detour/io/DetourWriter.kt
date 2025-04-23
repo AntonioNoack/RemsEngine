@@ -17,6 +17,13 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.io
 
+import me.anno.io.Streams.writeBE16
+import me.anno.io.Streams.writeBE32
+import me.anno.io.Streams.writeBE64
+import me.anno.io.Streams.writeLE16
+import me.anno.io.Streams.writeLE32
+import me.anno.io.Streams.writeLE64
+import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
 import org.joml.Vector3f
 import java.io.OutputStream
@@ -45,43 +52,29 @@ abstract class DetourWriter {
 
     protected fun writeI16(stream: OutputStream, value: Short, order: ByteOrder) {
         if (order == ByteOrder.BIG_ENDIAN) {
-            stream.write(value.toInt() shr 8 and 0xFF)
-            stream.write(value.toInt() and 0xFF)
+            stream.writeBE16(value.toInt())
         } else {
-            stream.write(value.toInt() and 0xFF)
-            stream.write(value.toInt() shr 8 and 0xFF)
+            stream.writeLE16(value.toInt())
         }
     }
 
     protected fun writeI64(stream: OutputStream, value: Long, order: ByteOrder) {
         if (order == ByteOrder.BIG_ENDIAN) {
-            writeI32(stream, (value ushr 32).toInt(), order)
-            writeI32(stream, value.toInt(), order)
+            stream.writeBE64(value)
         } else {
-            writeI32(stream, value.toInt(), order)
-            writeI32(stream, (value ushr 32).toInt(), order)
+            stream.writeLE64(value)
         }
     }
 
     protected fun writeI32(stream: OutputStream, value: Int, order: ByteOrder) {
         if (order == ByteOrder.BIG_ENDIAN) {
-            stream.write(value shr 24 and 0xFF)
-            stream.write(value shr 16 and 0xFF)
-            stream.write(value shr 8 and 0xFF)
-            stream.write(value and 0xFF)
+            stream.writeBE32(value)
         } else {
-            stream.write(value and 0xFF)
-            stream.write(value shr 8 and 0xFF)
-            stream.write(value shr 16 and 0xFF)
-            stream.write(value shr 24 and 0xFF)
+            stream.writeLE32(value)
         }
     }
 
     protected fun write(stream: OutputStream, bool: Boolean) {
-        write(stream, (if (bool) 1 else 0).toByte())
-    }
-
-    protected fun write(stream: OutputStream, value: Byte) {
-        stream.write(value.toInt())
+        stream.write(bool.toInt())
     }
 }

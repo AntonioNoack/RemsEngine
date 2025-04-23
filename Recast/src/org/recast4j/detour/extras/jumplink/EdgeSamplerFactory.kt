@@ -1,7 +1,6 @@
 package org.recast4j.detour.extras.jumplink
 
 import org.joml.Vector3f
-import org.recast4j.Vectors
 import kotlin.math.ceil
 import kotlin.math.max
 

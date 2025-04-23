@@ -19,7 +19,7 @@ open class ByteArrayList(initialCapacity: Int) {
 
     fun add(value: Byte) = plusAssign(value)
 
-    fun add(src: ByteArray?, startIndex: Int, length: Int) {
+    fun addAll(src: ByteArray?, startIndex: Int, length: Int) {
         ensureExtra(length)
         addUnsafe(src, startIndex, length)
     }
@@ -39,11 +39,6 @@ open class ByteArrayList(initialCapacity: Int) {
 
     fun addUnsafe(src: ByteArrayList, startIndex: Int, length: Int) {
         addUnsafe(src.values, startIndex, length)
-    }
-
-    fun addAll(src: ByteArray?, startIndex: Int, length: Int) {
-        ensureExtra(length)
-        addUnsafe(src, startIndex, length)
     }
 
     fun addAll(src: ByteArrayList, startIndex: Int, length: Int) {

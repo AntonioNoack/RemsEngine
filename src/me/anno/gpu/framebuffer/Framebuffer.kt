@@ -20,6 +20,7 @@ import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
@@ -107,7 +108,7 @@ class Framebuffer(
     override var depthTexture: Texture2D? = null
     override var depthMask: Int = 0
 
-    var textures: List<Texture2D>? = null
+    var textures: List<Texture2D> = emptyList()
 
     fun isCreated(): Boolean {
         return pointer != 0
@@ -125,10 +126,8 @@ class Framebuffer(
             renderBufferAllocated = 0L
             depthRenderbuffer = null
             val textures = textures
-            if (textures != null) {
-                for (i in textures.indices) {
-                    textures[i].checkSession()
-                }
+            for (i in textures.indices) {
+                textures[i].checkSession()
             }
             GFX.check()
             // validate it
@@ -153,38 +152,25 @@ class Framebuffer(
 
         // if the depth-attachment base changed, we need to recreate this texture
         val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
-        var wasDestroyed = false
         if (da != null) {
             val dtp = da.depthTexture?.pointer ?: da.depthRenderbuffer
-            if (dtp != depthAttachedPtr) {
-                destroy()
-                wasDestroyed = true
-            }
-            if ((width != da.width || height != da.height)) {
-                throw IllegalStateException("Depth is not matching dimensions, $width x $height vs ${da.width} x ${da.height}")
-            }
+            if (dtp != depthAttachedPtr) destroy()
+            assertEquals(width, da.width)
+            assertEquals(height, da.height)
         }
 
         ensure()
 
         if (da != null) {
-            val dtp =
-                (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.depthRenderbuffer?.pointer
-            if (dtp != depthAttachedPtr) {
-                throw IllegalStateException(
-                    "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
-                            "was destroyed? $wasDestroyed"
-                )
-            }
+            val dtp = (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.depthRenderbuffer?.pointer
+            assertEquals(dtp, depthAttachedPtr)
         }
 
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
 
         val textures = textures
-        if (textures != null) {
-            for (i in textures.indices) {
-                invalidateTexture(textures[i])
-            }
+        for (i in textures.indices) {
+            invalidateTexture(textures[i])
         }
         invalidateTexture(depthTexture)
     }
@@ -233,7 +219,7 @@ class Framebuffer(
         val h = height
         if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
-        if (textures == null) {
+        if (textures.size != targets.size) {
             textures = targets.mapIndexed { index, target ->
                 val texture = Texture2D("$name-tex[$index]", w, h, samples)
                 texture.owner = this
@@ -245,7 +231,7 @@ class Framebuffer(
             }
         } else {
             for (index in targets.indices) {
-                val texture = textures!![index]
+                val texture = textures[index]
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
             }
         }
@@ -346,7 +332,7 @@ class Framebuffer(
         val tex1 = Texture2D.getBindState(1)
         useFrame(dst, Renderer.copyRenderer) {
             renderPurely {
-                val textures = textures ?: emptyList()
+                val textures = textures
                 val dstFramebuffer = dst as? Framebuffer ?: (dst as MultiFramebuffer).targetsI[0]
                 var remainingMask = layerMask and ((1 shl targets.size) - 1)
                 while (remainingMask != 0) {
@@ -402,7 +388,7 @@ class Framebuffer(
             copyIfNeeded(ssBuffer, 1 shl index)
             ssBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
-            textures!![index].bind(offset, nearest, clamping)
+            textures[index].bind(offset, nearest, clamping)
         }
     }
 
@@ -413,7 +399,7 @@ class Framebuffer(
             copyIfNeeded(ssBuffer, (1 shl targets.size) - 1)
             ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
-            val textures = textures!!
+            val textures = textures
             for (i in textures.indices) {
                 textures[i].bind(offset + i, nearest, clamping)
             }
@@ -423,7 +409,7 @@ class Framebuffer(
 
     override fun bindTrulyNearestMS(offset: Int) {
         if (withMultisampling) {
-            val textures = textures!!
+            val textures = textures
             for (i in textures.indices) {
                 textures[i].bindTrulyNearest(offset + i)
             }
@@ -431,7 +417,7 @@ class Framebuffer(
     }
 
     override fun getTextureIMS(index: Int): ITexture2D {
-        return if (samples > 1) textures!![index]
+        return if (samples > 1) textures[index]
         else super.getTextureIMS(index)
     }
 
@@ -464,11 +450,11 @@ class Framebuffer(
 
     fun destroyTextures(deleteDepth: Boolean) {
         val textures = textures
-        if (textures != null) for (i in textures.indices) {
+        for (i in textures.indices) {
             textures[i].destroy()
         }
         if (deleteDepth) destroyDepthTexture()
-        this.textures = null
+        this.textures = emptyList()
     }
 
     fun destroyDepthTexture() {
@@ -495,9 +481,9 @@ class Framebuffer(
             val isDepthTexture = index == numTextures
             return LazyTexture(
                 if (isDepthTexture) ssBuffer.depthTexture!!
-                else ssBuffer.textures!![index],
+                else ssBuffer.textures[index],
                 if (isDepthTexture) depthTexture!!
-                else textures!![index], lazy {
+                else textures[index], lazy {
                     copyIfNeeded(ssBuffer, 1 shl index)
                 })
         } else getTextureI(index)
@@ -510,9 +496,9 @@ class Framebuffer(
             copyIfNeeded(ssBuffer, 1 shl index)
             ssBuffer.getTextureI(index)
         } else {
-            val textures = textures ?: return TextureLib.missingTexture
+            val textures = textures
             if (index == numTextures) depthTexture ?: TextureLib.depthTexture
-            else textures[index]
+            else textures.getOrNull(index) ?: TextureLib.missingTexture
         }
     }
 

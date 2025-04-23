@@ -287,7 +287,7 @@ class RecastArea {
             areaMod: AreaModification,
             chf: CompactHeightfield
         ) {
-            ctx?.startTimer(TelemetryType.MARK_CONVEXPOLY_AREA)
+            ctx?.startTimer(TelemetryType.MARK_CONVEX_POLY_AREA)
             val bmin = Vector3f().set(vertices, 0)
             val bmax = Vector3f().set(bmin)
             var i = 3
@@ -328,7 +328,7 @@ class RecastArea {
                     }
                 }
             }
-            ctx?.stopTimer(TelemetryType.MARK_CONVEXPOLY_AREA)
+            ctx?.stopTimer(TelemetryType.MARK_CONVEX_POLY_AREA)
         }
     }
 }

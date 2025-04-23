@@ -550,15 +550,15 @@ object RecastContour {
         for (i in 0 until region.nholes) {
             maxVertices += region.holes[i].contour!!.numVertices
         }
-        val diags = Array(maxVertices) { PotentialDiagonal() }
-        val outline = region.outline
+        val diagonals = Array(maxVertices) { PotentialDiagonal() }
+        val outline = region.outline ?: return
 
         // Merge holes into the outline one by one.
         for (i in 0 until region.nholes) {
-            val hole = region.holes[i].contour
+            val hole = region.holes[i].contour!!
             var index = -1
             var bestVertex = region.holes[i].leftmost
-            for (iter in 0 until hole!!.numVertices) {
+            for (iter in 0 until hole.numVertices) {
                 // Find potential diagonals.
                 // The 'best' vertex must be in the cone described by 3 cosequtive vertices of the outline.
                 // ..o j-1
@@ -569,26 +569,26 @@ object RecastContour {
                 // :
                 var ndiags = 0
                 val corner = bestVertex * 4
-                for (j in 0 until outline!!.numVertices) {
+                for (j in 0 until outline.numVertices) {
                     val vs = outline.vertices
                     val hs = hole.vertices
                     if (inCone(j, outline.numVertices, vs, corner, hs)) {
                         val dx = vs[j * 4] - hs[corner]
                         val dz = vs[j * 4 + 2] - hs[corner + 2]
-                        diags[ndiags].vert = j
-                        diags[ndiags].dist = dx * dx + dz * dz
+                        diagonals[ndiags].vert = j
+                        diagonals[ndiags].dist = dx * dx + dz * dz
                         ndiags++
                     }
                 }
 
                 // Sort potential diagonals by distance, we want to make the connection as short as possible.
-                Arrays.sort(diags, 0, ndiags, CompareDiagDist)
+                Arrays.sort(diagonals, 0, ndiags, CompareDiagDist)
 
                 // Find a diagonal that is not intersecting the outline not the remaining holes.
                 for (j in 0 until ndiags) {
-                    val pt = diags[j].vert * 4
+                    val pt = diagonals[j].vert * 4
                     var intersect = intersectSegCountour(
-                        pt, corner, diags[j].vert, outline.numVertices, outline.vertices,
+                        pt, corner, diagonals[j].vert, outline.numVertices, outline.vertices,
                         outline.vertices, hole.vertices
                     )
                     var k = i
@@ -600,7 +600,7 @@ object RecastContour {
                         k++
                     }
                     if (!intersect) {
-                        index = diags[j].vert
+                        index = diagonals[j].vert
                         break
                     }
                 }
@@ -674,7 +674,7 @@ object RecastContour {
         }
 
         // Merge holes if needed.
-        if (cset.contours.size > 0) {
+        if (cset.contours.isNotEmpty()) {
             mergeHoles(ctx, cset, chf)
         }
         ctx?.stopTimer(TelemetryType.CONTOURS)

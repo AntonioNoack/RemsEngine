@@ -40,10 +40,6 @@ class CompositeCollider : Collider {
     }
 
     companion object {
-        fun emptyBounds(): AABBf {
-            return AABBf()
-        }
-
         private fun bounds(colliders: List<Collider>): AABBf {
             val bounds = AABBf()
             for (collider in colliders) {

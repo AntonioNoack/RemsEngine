@@ -2,6 +2,7 @@ package me.anno.games.flatworld.vehicles
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
@@ -79,7 +80,7 @@ object RandomVehicle {
     fun createRandomVehicle(world: FlatWorld, route: List<StreetSegment>): Entity {
         val entity = Entity()
         val (meshName, matName) = carFiles.random()
-        val mesh = MeshCache[carsMeshes.getChild(meshName)]
+        val mesh = MeshCache[carsMeshes.getChild(meshName)] as? Mesh
         val meshComponent = MeshComponent(mesh ?: flatCube.front)
         if (mesh != null && matName.isNotBlank2()) {
             meshComponent.materials = mesh.materials.map { ref ->

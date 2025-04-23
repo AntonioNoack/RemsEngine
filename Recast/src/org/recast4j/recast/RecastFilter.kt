@@ -35,7 +35,7 @@ object RecastFilter {
         val h = solid.height
         for (y in 0 until h) {
             for (x in 0 until w) {
-                var s = solid.spans[x + y * w]
+                val s = solid.spans[x + y * w]
                 filterLowHangingWalkableObstacles(walkableClimb, s)
             }
         }
@@ -76,7 +76,7 @@ object RecastFilter {
         // Mark border spans.
         for (y in 0 until h) {
             for (x in 0 until w) {
-                var s = solid.spans[x + y * w]
+                val s = solid.spans[x + y * w]
                 filterLedgeSpans(walkableHeight, walkableClimb, solid, s, x, y, w, h)
             }
         }
@@ -166,7 +166,7 @@ object RecastFilter {
         // space above them for the agent to stand there.
         for (y in 0 until h) {
             for (x in 0 until w) {
-                var s = solid.spans[x + y * w]
+                val s = solid.spans[x + y * w]
                 filterWalkableLowHeightSpans(s, walkableHeight)
             }
         }

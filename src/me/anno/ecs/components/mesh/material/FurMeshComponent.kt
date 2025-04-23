@@ -16,7 +16,7 @@ class FurMeshComponent(mesh: Mesh) : MeshComponent(mesh) {
     }
 
     override fun getMeshOrNull(): Mesh? {
-        val meshInstance = super.getMeshOrNull()
+        val meshInstance = super.getMeshOrNull() as? Mesh
         meshInstance?.proceduralLength = furMaterial.numShells
         return meshInstance
     }

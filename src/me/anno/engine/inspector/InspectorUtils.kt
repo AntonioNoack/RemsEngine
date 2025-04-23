@@ -227,7 +227,7 @@ object InspectorUtils {
         }
     }
 
-    private fun <V : Inspectable> showProperties(
+    fun <V : Inspectable> showProperties(
         reflections: CachedReflections, properties: List<CachedProperty>, clazz: Class<*>, relevantInstances: List<V>,
         panelByGroup: HashMap<String, PanelList>, groupPanel: PanelList, style: Style,
         isWritable: Boolean, createIProperty: (CachedProperty, List<V>) -> IProperty<Any?>,

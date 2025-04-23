@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.blender
 
 import me.anno.Engine
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -14,7 +15,7 @@ fun main() {
     // check that material IDs are working -> yes :D
     OfficialExtensions.initForTests()
     LogManager.define("BlenderMeshConverter", Level.DEBUG)
-    val mesh = MeshCache[documents.getChild("Blender/GlassMaterialTest.blend"), false]!!
+    val mesh = MeshCache[documents.getChild("Blender/GlassMaterialTest.blend"), false] as Mesh
     testSceneWithUI("Blender Glass", mesh)
     Engine.requestShutdown()
 }

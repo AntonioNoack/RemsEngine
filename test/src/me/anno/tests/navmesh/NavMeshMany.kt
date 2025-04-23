@@ -3,6 +3,7 @@ package me.anno.tests.navmesh
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
@@ -82,7 +83,7 @@ fun main() {
         val world = Entity("World")
 
         val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
-        val agentMesh = assertNotNull(MeshCache[agentMeshRef])
+        val agentMesh = MeshCache[agentMeshRef] as Mesh
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
         val agentScale = 1f

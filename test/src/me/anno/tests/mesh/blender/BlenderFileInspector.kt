@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.blender
 
 import me.anno.cache.AsyncCacheData.Companion.loadSync
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.mesh.blender.BinaryFile
@@ -19,7 +20,7 @@ fun main() {
     val folder = documents.getChild("Blender")
     val src = folder.getChild("GlassMaterialTest.blend")
     InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
-    val sample = MeshCache[src, false]
+    val sample = MeshCache[src, false] as? Mesh
     println(sample)
     if (sample != null) {
         loadSync { GLTFWriter().write(sample, desktop.getChild(src.nameWithoutExtension + ".glb"), it) }

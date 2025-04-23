@@ -1,6 +1,7 @@
 package me.anno.bugs.done
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
@@ -24,7 +25,7 @@ fun main() {
     val scaledPrefab = PrefabCache[scaledFile]!!
     val scaledEntity = scaledPrefab.createInstance() as Entity
     scaledEntity.name = "Scaled"
-    val scaledMesh = MeshCache[scaledFile]!!
+    val scaledMesh = MeshCache[scaledFile] as Mesh
     // fixed scene is incorrect: both shown meshes should be the same size
     //  one is 2x bigger, the other is 2²x bigger
     val scene = Entity("Scene")

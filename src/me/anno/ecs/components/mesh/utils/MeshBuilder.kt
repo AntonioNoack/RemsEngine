@@ -4,40 +4,61 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.utils.structures.arrays.ByteArrayList
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 
-open class MeshBuilder(vc: Mesh) {
+open class MeshBuilder(flags: Int) {
 
-    val positions = FloatArrayList(64)
-    val normals = if (vc.normals != null) FloatArrayList(64) else null
-    val tangents = if (vc.tangents != null) FloatArrayList(64) else null
-    val colors = if (vc.color0 != null) IntArrayList(64) else null
-    val uvs = if (vc.uvs != null) FloatArrayList(64) else null
-
-    val boneWeights = if (vc.boneWeights != null) FloatArrayList(64) else null
-    val boneIndices = if (vc.boneIndices != null) ByteArrayList(64) else null
-
-    fun add(mesh: Mesh, i: Int) {
-        positions.addAll(mesh.positions!!, i * 3, 3)
-        normals?.addAll(mesh.normals!!, i * 3, 3)
-        tangents?.addAll(mesh.tangents!!, i * 4, 4)
-        colors?.add(mesh.color0!![i])
-        uvs?.addAll(mesh.uvs!!, i * 2, 2)
-
-        boneIndices?.add(mesh.boneIndices!!, i * 4, 4)
-        boneWeights?.addAll(mesh.boneWeights!!, i * 4, 4)
+    companion object {
+        const val WITH_NORMALS = 1
+        const val WITH_TANGENTS = 2
+        const val WITH_COLORS = 3
+        const val WITH_UVS = 4
+        const val WITH_INDICES = 5
+        const val WITH_BONES = 6
     }
 
-    fun build(mesh: Mesh = Mesh()): Mesh {
-        mesh.positions = positions.toFloatArray()
-        mesh.normals = normals?.toFloatArray()
-        mesh.uvs = uvs?.toFloatArray()
-        mesh.color0 = colors?.toIntArray()
-        mesh.tangents = tangents?.toFloatArray()
+    constructor(vc: Mesh) : this(
+        (vc.normals != null).toInt(WITH_NORMALS) or
+                (vc.tangents != null).toInt(WITH_TANGENTS) or
+                (vc.color0 != null).toInt(WITH_COLORS) or
+                (vc.uvs != null).toInt(WITH_UVS) or
+                (vc.boneIndices != null).toInt(WITH_BONES)
+        // indices are excluded on purpose!
+    )
 
-        mesh.boneWeights = boneWeights?.toFloatArray()
-        mesh.boneIndices = boneIndices?.toByteArray()
-        mesh.indices = null
-        mesh.invalidateGeometry()
-        return mesh
+    val positions = FloatArrayList(64)
+    val normals = if (flags.hasFlag(WITH_NORMALS)) FloatArrayList(64) else null
+    val tangents = if (flags.hasFlag(WITH_TANGENTS)) FloatArrayList(64) else null
+    val colors = if (flags.hasFlag(WITH_COLORS)) IntArrayList(64) else null
+    val uvs = if (flags.hasFlag(WITH_UVS)) FloatArrayList(64) else null
+    val indices = if (flags.hasFlag(WITH_INDICES)) IntArrayList(64) else null
+
+    val boneWeights = if (flags.hasFlag(WITH_BONES)) FloatArrayList(64) else null
+    val boneIndices = if (flags.hasFlag(WITH_BONES)) ByteArrayList(64) else null
+
+    fun add(mesh: Mesh, vertexIndex: Int) {
+        positions.addAll(mesh.positions!!, vertexIndex * 3, 3)
+        normals?.addAll(mesh.normals!!, vertexIndex * 3, 3)
+        tangents?.addAll(mesh.tangents!!, vertexIndex * 4, 4)
+        colors?.add(mesh.color0!![vertexIndex])
+        uvs?.addAll(mesh.uvs!!, vertexIndex * 2, 2)
+
+        boneIndices?.addAll(mesh.boneIndices!!, vertexIndex * 4, 4)
+        boneWeights?.addAll(mesh.boneWeights!!, vertexIndex * 4, 4)
+    }
+
+    fun build(dst: Mesh = Mesh()): Mesh {
+        dst.positions = positions.toFloatArray()
+        dst.normals = normals?.toFloatArray()
+        dst.uvs = uvs?.toFloatArray()
+        dst.color0 = colors?.toIntArray()
+        dst.tangents = tangents?.toFloatArray()
+
+        dst.boneWeights = boneWeights?.toFloatArray()
+        dst.boneIndices = boneIndices?.toByteArray()
+        dst.indices = indices?.toIntArray()
+        dst.invalidateGeometry()
+        return dst
     }
 }

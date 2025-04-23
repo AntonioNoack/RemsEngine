@@ -1,6 +1,7 @@
 package me.anno.tests.bench
 
 import me.anno.Engine
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.OfficialExtensions
 import me.anno.maths.bvh.BVHBuilder
@@ -17,7 +18,7 @@ fun main() {
     val clock = Clock(logger)
     OfficialExtensions.initForTests()
     clock.stop("Loading Extensions")
-    val mesh = MeshCache[downloads.getChild("3d/dragon.obj")]!!
+    val mesh = MeshCache[downloads.getChild("3d/dragon.obj")] as Mesh
     clock.stop("Loading Mesh")
     // 180ms/e, 230ms first time
     // optimized using multi-threading and pivot-reusing down to 42ms/e

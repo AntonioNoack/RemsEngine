@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers.previewRenderer
@@ -56,7 +57,7 @@ fun main() {
 
     initWithGFX()
 
-    val mesh = MeshCache[src]!!
+    val mesh = MeshCache[src] as Mesh
     val cameraMatrix = createCameraMatrix(1f).rotateZ(PIf)
 
     fun createModelMatrix(frameIndex: Float): Matrix4x3f {

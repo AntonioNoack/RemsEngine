@@ -2739,8 +2739,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      */
     open fun findDistanceToWall(
         startRef: Long, centerPos: Vector3f,
-        maxRadius: Float,
-        filter: QueryFilter
+        maxRadius: Float, filter: QueryFilter
     ): Result<FindDistanceToWallResult> {
 
         // Validate input

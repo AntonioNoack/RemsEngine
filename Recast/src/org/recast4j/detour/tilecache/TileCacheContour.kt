@@ -19,7 +19,7 @@ freely, subject to the following restrictions:
 package org.recast4j.detour.tilecache
 
 class TileCacheContour {
-    var nvertices = 0
+    var numVertices = 0
     lateinit var vertices: IntArray
     var reg = 0
     var area = 0

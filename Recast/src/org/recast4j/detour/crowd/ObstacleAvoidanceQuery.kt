@@ -91,13 +91,13 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
     }
 
     fun sweepCircleCircle(c0: Vector3f, r0: Float, v: Vector3f, c1: Vector3f, r1: Float): SweepCircleCircleResult? {
-        val EPS = 0.0001f
+        val epsilon = 0.0001f
         val sx = c1.x - c0.x
         val sz = c1.z - c0.z
         val r = r0 + r1
         val c = (sx * sx + sz * sz) - r * r
         var a = Vectors.dot2D(v, v)
-        if (a < EPS) return null // not moving
+        if (a < epsilon) return null // not moving
         // Overlap, calc time to exit.
         val b = v.x * sx + v.z * sz
         val d = b * b - a * c
@@ -339,7 +339,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
     }
 
     companion object {
-        /** Max numver of adaptive divs.  */
+        /** Max number of adaptive divs.  */
         private const val DT_MAX_PATTERN_DIVS = 32
 
         /** Max number of adaptive rings.  */

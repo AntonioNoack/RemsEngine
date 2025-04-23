@@ -10,7 +10,7 @@ open class ShortArrayList(initCapacity: Int) : NativeArrayList {
 
     fun add(value: Short) = plusAssign(value)
 
-    fun add(src: ShortArray?, startIndex: Int, length: Int) {
+    fun addAll(src: ShortArray?, startIndex: Int, length: Int) {
         ensureExtra(length)
         addUnsafe(src, startIndex, length)
     }

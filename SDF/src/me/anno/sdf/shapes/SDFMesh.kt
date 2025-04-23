@@ -101,7 +101,7 @@ open class SDFMesh : SDFSmoothShape() {
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         smartMinBegin(builder, dstIndex)
-        val mesh = loadMesh()
+        val mesh = loadMesh() as? Mesh
         val blas = if (mesh != null) BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16) else null
         if (blas == null) {
             builder.append("sdBox(pos")
@@ -306,7 +306,7 @@ open class SDFMesh : SDFSmoothShape() {
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         var minDistSq = Float.POSITIVE_INFINITY
-        val mesh = loadMesh() ?: return minDistSq
+        val mesh = loadMesh() as? Mesh ?: return minDistSq
         var absMinDistSq = minDistSq
         mesh.forEachTriangle { a, b, c ->
             val dist = calculateDistSq(a, b, c, pos, true)

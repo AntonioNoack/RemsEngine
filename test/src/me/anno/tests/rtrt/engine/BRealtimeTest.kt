@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
@@ -91,7 +92,7 @@ fun main() {
     val clock = Clock("BRealtimeTest")
     forceLoadRenderDoc()
     val meshSource = documents.getChild("monkey.obj")
-    val mesh = MeshCache[meshSource]!!
+    val mesh = MeshCache[meshSource] as Mesh
     clock.stop("Loading mesh")
     val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 8)!!
     clock.stop("Building BLAS")

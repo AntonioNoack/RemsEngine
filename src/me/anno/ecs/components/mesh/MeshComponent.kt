@@ -39,8 +39,8 @@ open class MeshComponent() : MeshComponentBase() {
             }
         }
 
-    override fun getMeshOrNull(): Mesh? = MeshCache[meshFile, true]
-    override fun getMesh(): Mesh? = MeshCache[meshFile, false]
+    override fun getMeshOrNull(): IMesh? = MeshCache[meshFile, true]
+    override fun getMesh(): IMesh? = MeshCache[meshFile, false]
 
     override fun destroy() {
         super.destroy()

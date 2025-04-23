@@ -30,26 +30,23 @@ class DynamicTileCheckpoint(heightfield: Heightfield, val colliders: Set<Long>) 
             source.width, source.height, AABBf(source.bounds),
             source.cellSize, source.cellHeight, source.borderSize
         )
-        var pz = 0
-        for (z in 0 until source.height) {
-            for (x in 0 until source.width) {
-                var span = source.spans[pz + x]
-                var prevCopy: Span? = null
-                while (span != null) {
-                    val copy = Span()
-                    copy.min = span.min
-                    copy.max = span.max
-                    copy.area = span.area
-                    if (prevCopy == null) {
-                        clone.spans[pz + x] = copy
-                    } else {
-                        prevCopy.next = copy
-                    }
-                    prevCopy = copy
-                    span = span.next
+        val size = source.width * source.height
+        for (spanIndex in 0 until size) {
+            var span = source.spans[spanIndex]
+            var prevCopy: Span? = null
+            while (span != null) {
+                val copy = Span()
+                copy.min = span.min
+                copy.max = span.max
+                copy.area = span.area
+                if (prevCopy == null) {
+                    clone.spans[spanIndex] = copy
+                } else {
+                    prevCopy.next = copy
                 }
+                prevCopy = copy
+                span = span.next
             }
-            pz += source.width
         }
         return clone
     }

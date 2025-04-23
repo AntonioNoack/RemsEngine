@@ -87,7 +87,7 @@ class LODMeshComponent() : MeshComponentBase() {
         return meshes.getOrNull(index) ?: InvalidRef
     }
 
-    override fun getMeshOrNull(): Mesh? = MeshCache[getLODMeshRef(), true]
+    override fun getMeshOrNull(): IMesh? = MeshCache[getLODMeshRef(), true]
     override fun getMesh(): IMesh? = MeshCache[getLODMeshRef(), false]
 
     override fun copyInto(dst: PrefabSaveable) {

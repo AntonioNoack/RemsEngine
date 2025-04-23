@@ -11,13 +11,7 @@ class JumpLinkBuilderConfig(
     val endDistance: Float,
     val minHeight: Float,
     maxHeight: Float,
-    jumpHeight: Float
-) {
     val jumpHeight: Float
-    val heightRange: Float
-
-    init {
-        heightRange = maxHeight - minHeight
-        this.jumpHeight = jumpHeight
-    }
+) {
+    val heightRange: Float = maxHeight - minHeight
 }

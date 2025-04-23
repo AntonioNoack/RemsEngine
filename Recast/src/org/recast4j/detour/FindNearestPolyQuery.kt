@@ -1,7 +1,6 @@
 package org.recast4j.detour
 
 import org.joml.Vector3f
-import org.recast4j.Vectors
 import kotlin.math.abs
 
 class FindNearestPolyQuery(private val query: NavMeshQuery, private val center: Vector3f) : PolyQuery {

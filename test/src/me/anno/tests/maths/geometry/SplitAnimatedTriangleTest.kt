@@ -30,7 +30,7 @@ fun main() {
     val sceneInstance = prefab.getSampleInstance() as Entity
     val srcAnimMesh = sceneInstance.getComponentInChildren(AnimMeshComponent::class)!!
 
-    val mesh = MeshCache[downloads.getChild("3d/azeria/scene.gltf")]!!
+    val mesh = MeshCache[downloads.getChild("3d/azeria/scene.gltf")] as Mesh
     val split = MeshSplitter.split(mesh) { v -> plane.dot(v) }
 
     fun createMeshComponent(mesh: Mesh, material: Material): AnimMeshComponent {

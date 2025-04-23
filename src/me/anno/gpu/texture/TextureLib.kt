@@ -38,10 +38,17 @@ object TextureLib {
     val blackCube = IndestructibleCubemap("blackCube", 1, black1)
     val missingColors = intArrayOf(magenta, black, black, magenta)
     val missingTexture = IndestructibleTexture2D("missing", 2, 2, missingColors)
+    val missingTexture3d = IndestructibleTexture3D(
+        "missing3d", 2, 2, 2,
+        intArrayOf(
+            magenta, black, black, magenta,
+            black, magenta, magenta, black
+        )
+    )
 
-    val chess8x8Texture = IndestructibleTexture2D("chess", 8, 8, IntArray(64) {
-        val y = it.shr(3)
-        (it + y).hasFlag(1).toInt(white, black)
+    val chess8x8Texture = IndestructibleTexture2D("chess", 8, 8, IntArray(64) { idx ->
+        val y = idx.shr(3)
+        (idx + y).hasFlag(1).toInt(white, black)
     })
 
     fun bindWhite(index: Int): Boolean {

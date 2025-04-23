@@ -22,7 +22,7 @@ import me.anno.utils.OS.downloads
 // todo meshlet-based LOD hierarchy somehow...
 fun main() {
     OfficialExtensions.initForTests()
-    val mesh = MeshCache[downloads.getChild("3d/dragon.obj")]!!
+    val mesh = MeshCache[downloads.getChild("3d/dragon.obj")] as Mesh
     val node = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 256)!! // todo run maxNodeSize=64 at 200 fps
     Build.isDebug = false
     val scene = Entity("Scene")

@@ -25,10 +25,6 @@ class TriMesh(val vertices: FloatArray, val triangles: IntArray) {
 
     private val chunkyTriMesh = ChunkyTriMesh(vertices, triangles, triangles.size / 3, 32)
 
-    fun getChunksOverlappingRect(bounds: AABBf): List<Node> {
-        return chunkyTriMesh.getChunksOverlappingRect(bounds)
-    }
-
     fun foreachChunkOverlappingRect(bounds: AABBf, callback: (Node) -> Unit) {
         chunkyTriMesh.foreachChunkOverlappingRect(bounds, callback)
     }

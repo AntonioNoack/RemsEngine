@@ -592,8 +592,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
             val weights = mesh.boneWeights
             val joints = mesh.boneIndices
             val hasBones = weights != null && joints != null && hasSkeleton
-            val weightsI = if (hasBones && weights != null) createWeightView(weights) else null
-            val jointsI = if (hasBones && joints != null && weights != null) createJointView(joints, weights) else null
+            val weightsI = if (hasBones) createWeightView(weights) else null
+            val jointsI = if (hasBones) createJointView(joints, weights) else null
 
             attr("primitives")
             writeArray {
@@ -744,7 +744,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         val name = node.name
         if (name.isNotEmpty()) attr("name", name)
         val mesh = node.getMesh()
-        if (mesh != null) {
+        if (mesh is Mesh) {
             attr("mesh")
             write(meshes.nextId(getMeshData(node, mesh)))
             val skin = meshCompToSkin[node]

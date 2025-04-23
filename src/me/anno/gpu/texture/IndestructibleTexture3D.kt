@@ -13,6 +13,7 @@ class IndestructibleTexture3D(
             isDestroyed = false
             when (creationData) {
                 is ByteArray -> createRGBA(creationData)
+                is IntArray -> createRGBA8(creationData)
                 else -> throw IllegalArgumentException("Unknown constructor data")
             }
         }

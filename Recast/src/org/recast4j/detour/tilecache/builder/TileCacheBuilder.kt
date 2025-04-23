@@ -460,8 +460,8 @@ object TileCacheBuilder {
         val w = layer.width
         val h = layer.height
         val lcset = TileCacheContourSet()
-        lcset.nconts = layer.regCount
-        lcset.conts = Array(lcset.nconts) { TileCacheContour() }
+        lcset.numContours = layer.regCount
+        lcset.contours = Array(lcset.numContours) { TileCacheContour() }
         // Allocate temp buffer for contour tracing.
         val temp = TempContour()
 
@@ -471,16 +471,16 @@ object TileCacheBuilder {
                 val idx = x + y * w
                 val ri = layer.getReg(idx)
                 if (ri == 0xff) continue
-                val cont = lcset.conts[ri]
-                if (cont.nvertices > 0) continue
+                val cont = lcset.contours[ri]
+                if (cont.numVertices > 0) continue
                 cont.reg = ri
                 cont.area = layer.getArea(idx)
                 walkContour(layer, x, y, temp)
                 simplifyContour(temp, maxError)
 
                 // Store contour.
-                cont.nvertices = temp.numVertices
-                if (cont.nvertices > 0) {
+                cont.numVertices = temp.numVertices
+                if (cont.numVertices > 0) {
                     cont.vertices = IntArray(4 * temp.numVertices)
                     var i = 0
                     var j = temp.numVertices - 1
@@ -616,12 +616,12 @@ object TileCacheBuilder {
         }
 
         // Mark portal edges.
-        for (i in 0 until lcset.nconts) {
-            val cont = lcset.conts[i]
-            if (cont.nvertices < 3) continue
+        for (i in 0 until lcset.numContours) {
+            val cont = lcset.contours[i]
+            if (cont.numVertices < 3) continue
             var j = 0
-            var k = cont.nvertices - 1
-            while (j < cont.nvertices) {
+            var k = cont.numVertices - 1
+            while (j < cont.numVertices) {
                 val va = k * 4
                 val vb = j * 4
                 val dir = cont.vertices[va + 3] and 0xf
@@ -1262,12 +1262,12 @@ object TileCacheBuilder {
         var maxVertices = 0
         var maxTris = 0
         var maxVerticesPerCont = 0
-        for (i in 0 until lcset.nconts) {
+        for (i in 0 until lcset.numContours) {
             // Skip null contours.
-            if (lcset.conts[i].nvertices < 3) continue
-            maxVertices += lcset.conts[i].nvertices
-            maxTris += lcset.conts[i].nvertices - 2
-            maxVerticesPerCont = max(maxVerticesPerCont, lcset.conts[i].nvertices)
+            if (lcset.contours[i].numVertices < 3) continue
+            maxVertices += lcset.contours[i].numVertices
+            maxTris += lcset.contours[i].numVertices - 2
+            maxVerticesPerCont = max(maxVerticesPerCont, lcset.contours[i].numVertices)
         }
 
         // TODO: warn about too many vertices?
@@ -1287,22 +1287,22 @@ object TileCacheBuilder {
         val indices = IntArray(maxVerticesPerCont)
         val tris = IntArray(maxVerticesPerCont * 3)
         val polys = IntArray(maxVerticesPerCont * maxVerticesPerPoly)
-        for (i in 0 until lcset.nconts) {
-            val cont = lcset.conts[i]
+        for (i in 0 until lcset.numContours) {
+            val cont = lcset.contours[i]
 
             // Skip null contours.
-            if (cont.nvertices < 3) continue
+            if (cont.numVertices < 3) continue
 
             // Triangulate contour
-            for (j in 0 until cont.nvertices) indices[j] = j
-            var numTriangles = triangulate(cont.nvertices, cont.vertices, indices, tris)
+            for (j in 0 until cont.numVertices) indices[j] = j
+            var numTriangles = triangulate(cont.numVertices, cont.vertices, indices, tris)
             if (numTriangles <= 0) {
                 // TODO: issue warning!
                 numTriangles = -numTriangles
             }
 
             // Add and merge vertices.
-            for (j in 0 until cont.nvertices) {
+            for (j in 0 until cont.numVertices) {
                 val v = j * 4
                 indices[j] = addVertex(
                     cont.vertices[v], cont.vertices[v + 1], cont.vertices[v + 2], mesh.vertices, firstVert,

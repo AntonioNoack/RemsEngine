@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GLNames
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
@@ -169,7 +170,7 @@ open class Texture3D(
 
     fun createRGBA8(data: IntArray): Texture3D {
         beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
         return this
     }
@@ -177,7 +178,7 @@ open class Texture3D(
     @Suppress("unused")
     fun createRGB8(data: IntArray): Texture3D {
         beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 3, false)
         return this
     }
@@ -407,6 +408,9 @@ open class Texture3D(
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
+
+    override fun toString() =
+        "Texture3D(\"$name\"@$pointer, $width x $height x $height x $samples, ${GLNames.getName(internalFormat)})"
 
     companion object {
         private val LOGGER = LogManager.getLogger(Texture3D::class)

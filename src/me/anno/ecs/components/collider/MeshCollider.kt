@@ -3,6 +3,7 @@ package me.anno.ecs.components.collider
 import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -60,7 +61,7 @@ open class MeshCollider() : Collider() {
 
     var isValid = false
 
-    val mesh: Mesh?
+    val mesh: IMesh?
         get() {
             if (meshFile == InvalidRef) {
                 val mesh = entity?.getComponentInChildren(MeshComponentBase::class, false)
@@ -77,7 +78,7 @@ open class MeshCollider() : Collider() {
      * */
     override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
 
-        val mesh = mesh ?: return Float.POSITIVE_INFINITY
+        val mesh = mesh as? Mesh ?: return Float.POSITIVE_INFINITY
         if (!mesh.getBounds().testLine(query.start, query.direction))
             return Float.POSITIVE_INFINITY
 
@@ -154,7 +155,7 @@ open class MeshCollider() : Collider() {
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
         // combine the sdfs of all faces :3 (will be slow, but might be beautiful :3)
-        val mesh = mesh ?: return Float.POSITIVE_INFINITY
+        val mesh = mesh as? Mesh ?: return Float.POSITIVE_INFINITY
         val nor = JomlPools.vec3f.create()
         val ba = JomlPools.vec3f.create()
         val ac = JomlPools.vec3f.create()
@@ -190,7 +191,7 @@ open class MeshCollider() : Collider() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        val mesh = mesh ?: return
+        val mesh = mesh as? Mesh ?: return
         val color = getLineColor(hasPhysics)
         mesh.forEachTriangle { a, b, c ->
             drawLine(entity, a, b, color)
@@ -201,7 +202,7 @@ open class MeshCollider() : Collider() {
     }
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        val mesh = mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
+        val mesh = mesh as? Mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
         mesh.forEachPoint(preferExact) { x, y, z ->
             tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
             globalTransform.transformPosition(tmp)

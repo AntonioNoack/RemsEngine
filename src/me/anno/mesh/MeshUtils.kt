@@ -4,27 +4,38 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.forAllEntitiesInChildren
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 
 object MeshUtils {
 
+    fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: IMesh, targetFrameUsage: Float = 0.95f) {
+        if (mesh is Mesh) centerMesh(cameraMatrix, modelMatrix, mesh, targetFrameUsage)
+        else centerMesh(
+            cameraMatrix,
+            modelMatrix,
+            AABBd(mesh.getBounds()),
+            { transform -> mesh.getBounds().transform(transform) },
+            targetFrameUsage
+        )
+    }
+
     fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
-        mesh.getBounds()
         centerMesh(
             cameraMatrix,
             modelMatrix,
             AABBd(mesh.getBounds()),
-            { mesh.getBounds(it, false) },
+            { transform -> mesh.getBounds(transform, false) },
             targetFrameUsage
         )
     }

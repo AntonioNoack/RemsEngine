@@ -17,15 +17,16 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.dynamic.io
 
+import me.anno.io.Streams.readBE16
+import me.anno.io.Streams.readBE32
+import me.anno.io.Streams.readLE16
+import me.anno.io.Streams.readLE32
 import org.joml.AABBf
-import org.recast4j.dynamic.io.ByteUtils.getIntBE
-import org.recast4j.dynamic.io.ByteUtils.getIntLE
-import org.recast4j.dynamic.io.ByteUtils.getShortBE
-import org.recast4j.dynamic.io.ByteUtils.getShortLE
 import org.recast4j.dynamic.io.ByteUtils.putInt
 import org.recast4j.dynamic.io.ByteUtils.putShort
 import org.recast4j.recast.Heightfield
 import org.recast4j.recast.Span
+import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -73,72 +74,52 @@ class VoxelTile {
     }
 
     private fun heightfieldBE(): Heightfield {
-        val hf = Heightfield(width, depth, bounds, cellSize, cellHeight, borderSize)
-        var position = 0
-        var z = 0
-        var pz = 0
-        while (z < depth) {
-            for (x in 0 until width) {
-                var prev: Span? = null
-                val spanCount: Int = getShortBE(spanData, position)
-                position += 2
-                for (s in 0 until spanCount) {
-                    val span = Span()
-                    span.min = getIntBE(spanData, position)
-                    position += 4
-                    span.max = getIntBE(spanData, position)
-                    position += 4
-                    span.area = getIntBE(spanData, position)
-                    position += 4
-                    if (prev == null) {
-                        hf.spans[pz + x] = span
-                    } else {
-                        prev.next = span
-                    }
-                    prev = span
+        val field = Heightfield(width, depth, bounds, cellSize, cellHeight, borderSize)
+        val stream = ByteArrayInputStream(spanData)
+        for (fieldIndex in 0 until width * depth) {
+            var prev: Span? = null
+            val spanCount = stream.readBE16()
+            for (s in 0 until spanCount) {
+                val span = Span()
+                span.min = stream.readBE32()
+                span.max = stream.readBE32()
+                span.area = stream.readBE32()
+                if (prev == null) {
+                    field.spans[fieldIndex] = span
+                } else {
+                    prev.next = span
                 }
+                prev = span
             }
-            z++
-            pz += width
         }
-        return hf
+        return field
     }
 
     private fun heightfieldLE(): Heightfield {
-        val hf = Heightfield(width, depth, bounds, cellSize, cellHeight, borderSize)
-        var position = 0
-        var z = 0
-        var pz = 0
-        while (z < depth) {
-            for (x in 0 until width) {
-                var prev: Span? = null
-                val spanCount: Int = getShortLE(spanData, position)
-                position += 2
-                for (s in 0 until spanCount) {
-                    val span = Span()
-                    span.min = getIntLE(spanData, position)
-                    position += 4
-                    span.max = getIntLE(spanData, position)
-                    position += 4
-                    span.area = getIntLE(spanData, position)
-                    position += 4
-                    if (prev == null) {
-                        hf.spans[pz + x] = span
-                    } else {
-                        prev.next = span
-                    }
-                    prev = span
+        val field = Heightfield(width, depth, bounds, cellSize, cellHeight, borderSize)
+        val stream = ByteArrayInputStream(spanData)
+        for (fieldIndex in 0 until width * depth) {
+            var prev: Span? = null
+            val spanCount = stream.readLE16()
+            for (s in 0 until spanCount) {
+                val span = Span()
+                span.min = stream.readLE32()
+                span.max = stream.readLE32()
+                span.area = stream.readLE32()
+                if (prev == null) {
+                    field.spans[fieldIndex] = span
+                } else {
+                    prev.next = span
                 }
+                prev = span
             }
-            z++
-            pz += width
         }
-        return hf
+        return field
     }
 
     private fun serializeSpans(heightfield: Heightfield, order: ByteOrder): ByteArray {
         val counts = IntArray(heightfield.width * heightfield.height)
-        var totalCount = serializeSpans0(heightfield, counts)
+        val totalCount = serializeSpans0(heightfield, counts)
         return serializeSpans1(heightfield, order, counts, totalCount)
     }
 

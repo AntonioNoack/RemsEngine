@@ -986,7 +986,7 @@ open class Texture2D(
 
         fun requestBudget(requested: Long): Boolean {
             val requiredBudget = textureBudgetUsed + requested
-            val total = textureBudgetTotal
+            val total = DefaultConfig["gpu.textureBudget", 1_000_000L]
             val totalHalf = total.shr(1)
             @Suppress("ConvertTwoComparisonsToRangeCheck")
             if (requiredBudget <= total || (requested > totalHalf && textureBudgetUsed < totalHalf)) {
@@ -1044,9 +1044,6 @@ open class Texture2D(
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Texture2D::class)
-
-        @JvmField
-        val textureBudgetTotal = DefaultConfig["gpu.textureBudget", 1_000_000L]
 
         @JvmField
         var textureBudgetUsed = 0L

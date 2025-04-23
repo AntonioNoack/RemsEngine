@@ -4,8 +4,8 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
@@ -32,8 +32,8 @@ import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import kotlin.math.max
 
 /**
@@ -85,7 +85,7 @@ object AssetThumbHelper {
         normalizeScale
     )
 
-    fun Mesh.drawAssimp(
+    fun IMesh.drawAssimp(
         cameraMatrix: Matrix4f,
         modelMatrix: Matrix4x3f,
         comp: MeshComponentBase?,
@@ -112,7 +112,7 @@ object AssetThumbHelper {
             val shader2 = material.shader?.value ?: shader
             bindShader(shader2, cameraMatrix, modelMatrix)
             material.bind(shader2)
-            draw(null, shader2, index)
+            draw(null, shader2, index, false)
         }
     }
 
@@ -171,7 +171,7 @@ object AssetThumbHelper {
     fun waitForTextures(comp: List<FileReference>, mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
         // wait for all textures
         iterateMaterials(comp, mesh.materials)
-            .mapCallback<FileReference, List<FileReference>>(
+            .mapCallback(
                 { _, ref, cb ->
                     listTextures(ref, cb)
                 }, { res, err ->
@@ -210,29 +210,6 @@ object AssetThumbHelper {
         }
     }
 
-    fun collectMaterials(entity: Entity, callback: Callback<HashSet<FileReference>>): HashSet<FileReference> {
-        val materials = HashSet<FileReference>()
-        entity.forAllComponentsInChildren(MeshComponentBase::class) { comp ->
-            val mesh = comp.getMesh()
-            if (mesh != null) {
-                materials += iterateMaterials(comp.materials, mesh.materials)
-            } else warnMissingMesh(comp, null)
-        }
-        return materials
-    }
-
-    fun warnMissingMesh(comp: MeshComponentBase, mesh: Mesh?) {
-        val msg = if (mesh == null) {
-            if (comp is MeshComponent) {
-                if (comp.meshFile == InvalidRef)
-                    "${comp.className} '${comp.name}' is missing path (${comp.meshFile})"
-                else
-                    "Mesh '${comp.name}'/'${comp.meshFile}' is missing from ${comp.className}"
-            } else "Missing mesh $comp, ${comp::class.simpleName} from ${comp.className}"
-        } else "Missing positions ${comp.getMesh()}"
-        LOGGER.warn(msg)
-    }
-
     fun listTextures(matRef: FileReference): List<FileReference> {
         if (matRef == InvalidRef) return emptyList()
         val material = MaterialCache[matRef]
@@ -249,9 +226,9 @@ object AssetThumbHelper {
     }
 
     fun listTextures(matRefs: List<FileReference>, srcFile: FileReference, callback: (HashSet<FileReference>) -> Unit) {
-        return matRefs.mapCallback<FileReference, List<FileReference>>(
+        return matRefs.mapCallback(
             { _, matRef, cb -> listTextures(matRef, cb) },
-            { res, err ->
+            { res: List<List<FileReference>>?, err ->
                 val textures = HashSet((res ?: emptyList()).flatten())
                 removeMissingFiles(textures, srcFile)
                 callback(textures)

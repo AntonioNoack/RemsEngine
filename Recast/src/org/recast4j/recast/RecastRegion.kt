@@ -487,8 +487,8 @@ object RecastRegion {
         val bcon = regb.connections
 
         // Find insertion point on A and B.
-        var insa = findInsertionPoint(acon, bid)
-        var insb = findInsertionPoint(bcon, aid)
+        val insa = findInsertionPoint(acon, bid)
+        val insb = findInsertionPoint(bcon, aid)
         if (insa == -1 || insb == -1) {
             return false
         }
@@ -1063,20 +1063,20 @@ object RecastRegion {
      * @see rcCompactHeightfield, rcBuildRegions, rcBuildRegionsMonotone
      */
     fun buildDistanceField(ctx: Telemetry?, chf: CompactHeightfield) {
-        ctx?.startTimer(TelemetryType.DISTANCEFIELD)
+        ctx?.startTimer(TelemetryType.DISTANCE_FIELD)
         var src = IntArray(chf.spanCount)
-        ctx?.startTimer(TelemetryType.DISTANCEFIELD_DIST)
+        ctx?.startTimer(TelemetryType.DISTANCE_FIELD_DIST)
         chf.maxDistance = calculateDistanceField(chf, src)
-        ctx?.stopTimer(TelemetryType.DISTANCEFIELD_DIST)
-        ctx?.startTimer(TelemetryType.DISTANCEFIELD_BLUR)
+        ctx?.stopTimer(TelemetryType.DISTANCE_FIELD_DIST)
+        ctx?.startTimer(TelemetryType.DISTANCE_FIELD_BLUR)
 
         // Blur
         src = boxBlur(chf, src)
 
         // Store distance.
         src.copyInto(chf.dist)
-        ctx?.stopTimer(TelemetryType.DISTANCEFIELD_BLUR)
-        ctx?.stopTimer(TelemetryType.DISTANCEFIELD)
+        ctx?.stopTimer(TelemetryType.DISTANCE_FIELD_BLUR)
+        ctx?.stopTimer(TelemetryType.DISTANCE_FIELD)
     }
 
     private fun paintRectRegion(

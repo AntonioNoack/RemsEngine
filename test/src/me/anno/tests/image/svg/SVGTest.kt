@@ -3,6 +3,7 @@ package me.anno.tests.image.svg
 import me.anno.gpu.texture.TextureReader.Companion.imageTimeout
 import me.anno.image.svg.SVGMeshCache
 import me.anno.config.DefaultConfig
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ui.render.ECSShaderLib
@@ -65,7 +66,7 @@ fun main() {
                         val mesh = MeshCache[srcFile, false]!!
                         defaultMaterial.bind(shader)
                         shader.v1i("hasVertexColors", mesh.hasVertexColors)
-                        mesh.draw(null, shader, 0)
+                        mesh.draw(null, shader, 0, Mesh.drawDebugLines)
                     } else {
                         // old method, uses specialized shader
                         val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!

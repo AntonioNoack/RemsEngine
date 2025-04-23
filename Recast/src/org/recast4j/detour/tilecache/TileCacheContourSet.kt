@@ -19,6 +19,6 @@ freely, subject to the following restrictions:
 package org.recast4j.detour.tilecache
 
 class TileCacheContourSet {
-    var nconts = 0
-    lateinit var conts: Array<TileCacheContour>
+    var numContours = 0
+    lateinit var contours: Array<TileCacheContour>
 }

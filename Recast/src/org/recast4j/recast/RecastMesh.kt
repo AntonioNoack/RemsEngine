@@ -958,7 +958,7 @@ object RecastMesh {
             for (j in 0 until cont.numVertices) {
                 indices[j] = j
             }
-            var numTriangles = triangulate(cont.numVertices, cont.vertices!!, indices, tris)
+            var numTriangles = triangulate(cont.numVertices, cont.vertices, indices, tris)
             if (numTriangles <= 0) {
                 // Bad triangulation, should not happen.
                 ctx?.warn("buildPolyMesh: Bad triangulation Contour $i.")
@@ -979,7 +979,7 @@ object RecastMesh {
         firstVert: IntArray, nextVert: IntArray, indices: IntArray,
         toBeRemovedVertices: BitSet
     ) {
-        val contVertices = cont.vertices ?: return
+        val contVertices = cont.vertices
         for (j in 0 until cont.numVertices) {
             val v = j * 4
             val inv = addVertex(

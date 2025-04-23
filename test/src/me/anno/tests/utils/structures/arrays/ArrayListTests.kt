@@ -16,7 +16,7 @@ class ArrayListTests {
         sample.add(2)
         sample.add(3)
         assertContentEquals(byteArrayOf(1, 2, 3), sample.toByteArray())
-        sample.add(byteArrayOf(4, 5, 6), 1, 1)
+        sample.addAll(byteArrayOf(4, 5, 6), 1, 1)
         assertContentEquals(byteArrayOf(1, 2, 3, 5), sample.toByteArray())
         sample[0] = -17
         assertContentEquals(byteArrayOf(-17, 2, 3, 5), sample.toByteArray())
@@ -31,7 +31,7 @@ class ArrayListTests {
         sample.add(2)
         sample.add(3)
         assertContentEquals(shortArrayOf(1, 2, 3), sample.toShortArray())
-        sample.add(shortArrayOf(4, 5, 6), 1, 1)
+        sample.addAll(shortArrayOf(4, 5, 6), 1, 1)
         assertContentEquals(shortArrayOf(1, 2, 3, 5), sample.toShortArray())
         sample[0] = -17
         assertContentEquals(shortArrayOf(-17, 2, 3, 5), sample.toShortArray())

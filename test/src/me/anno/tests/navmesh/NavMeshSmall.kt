@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
@@ -36,7 +37,7 @@ fun main() {
         world.add(Skybox())
 
         val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
-        val agentMesh = MeshCache[agentMeshRef, false]!!
+        val agentMesh = MeshCache[agentMeshRef, false] as Mesh
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
         val agentScale = 1f

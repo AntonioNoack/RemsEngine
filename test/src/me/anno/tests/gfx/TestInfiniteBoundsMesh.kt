@@ -1,6 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.DefaultAssets.flatCube
@@ -38,7 +39,7 @@ fun main() {
     //  I'd expect 10^38, not 10^150
     // -> length() used by ECSSceneTab didn't handle 1e38 well
 
-    val hugeMesh = MeshCache[tmpScene.ref]!!
+    val hugeMesh = MeshCache[tmpScene.ref] as Mesh
     // testSceneWithUI("HugeMesh", Entity().add(MeshComponent(hugeMesh)))
     testSceneWithUI("HugeMesh", hugeMesh)
 }

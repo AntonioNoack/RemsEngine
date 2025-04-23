@@ -237,11 +237,11 @@ object AssetThumbnails {
                 ThumbsRendering.renderMultiWindowImage(
                     srcFile, dstFile, materials.size, size, false,
                     renderer, true, callback
-                ) { it, _ ->
+                ) { materialIndex, _ ->
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
                         val mesh = SimpleMesh.sphereMesh
-                        mesh.material = materials[it]
+                        mesh.material = materials[materialIndex]
                         mesh.drawAssimp(
                             matCameraMatrix,
                             matModelMatrix,

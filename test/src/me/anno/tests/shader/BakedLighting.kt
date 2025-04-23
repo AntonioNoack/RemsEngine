@@ -6,6 +6,7 @@ import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.light.sky.SkyboxBase
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshIterators.forEachPointIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
@@ -303,7 +304,7 @@ fun buildTLAS(
     val objects = ArrayList<TLASLeaf>()
     scene.forAllComponentsInChildren(MeshComponent::class) { comp ->
         val mesh = comp.getMesh()
-        if (mesh != null) {
+        if (mesh is Mesh) {
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
             if (blas != null) {
                 mesh.raycaster = blas
@@ -342,7 +343,7 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val transform = Matrix4x3f()
         .set(component.transform!!.globalTransform)
 
-    val mesh = component.getMesh() ?: return
+    val mesh = component.getMesh() as? Mesh ?: return
     mesh.ensureNorTanUVs()
     val pos = mesh.positions ?: return
     val nor = mesh.normals ?: return
@@ -908,7 +909,7 @@ fun splitRegion(entries: List<WeightedValue>, remainingRegion: AABBi, resolution
 }
 
 fun calculateSurfaceArea(entity: Entity, component: MeshComponent): Double {
-    val mesh = component.getMesh() ?: return 0.0
+    val mesh = component.getMesh() as? Mesh ?: return 0.0
     mesh.uvs ?: return 0.0
     entity.validateTransform()
     var area = 0.0

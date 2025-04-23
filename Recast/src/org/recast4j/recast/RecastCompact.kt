@@ -40,7 +40,7 @@ object RecastCompact {
         ctx: Telemetry?, walkableHeight: Int, walkableClimb: Int,
         hf: Heightfield
     ): CompactHeightfield {
-        ctx?.startTimer(TelemetryType.BUILD_COMPACTHEIGHTFIELD)
+        ctx?.startTimer(TelemetryType.BUILD_COMPACT_HEIGHTFIELD)
         val w = hf.width
         val h = hf.height
         val spanCount = getHeightFieldSpanCount(hf)
@@ -48,7 +48,7 @@ object RecastCompact {
         fillInHeader(result, hf, walkableHeight, walkableClimb)
         fillInCellsAndSpans(result, w, h, hf)
         findNeighborConnections(result, w, h, walkableHeight, walkableClimb)
-        ctx?.stopTimer(TelemetryType.BUILD_COMPACTHEIGHTFIELD)
+        ctx?.stopTimer(TelemetryType.BUILD_COMPACT_HEIGHTFIELD)
         return result
     }
 

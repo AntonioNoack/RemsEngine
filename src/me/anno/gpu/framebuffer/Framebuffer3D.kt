@@ -9,6 +9,9 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureLib
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
@@ -24,7 +27,7 @@ class Framebuffer3D(
     override var name: String,
     override var width: Int,
     override var height: Int,
-    val depth: Int,
+    var depth: Int,
     val targets: List<TargetType>,
     override val depthBufferType: DepthBufferType
 ) : IFramebuffer {
@@ -32,13 +35,13 @@ class Framebuffer3D(
     override var pointer = 0
     var session = 0
 
-    override val samples = 1
-    override val numTextures = 1
+    override val samples get() = 1
+    override val numTextures get() = 1
     override var depthTexture: Texture3D? = null
     override val depthMask: Int get() = 0
     override var isSRGBMask: Int = 0
 
-    lateinit var textures: List<Texture3D>
+    var textures: List<Texture3D> = emptyList()
 
     var depthAttachedPtr = 0
     var depthAttachment: Framebuffer3D? = null
@@ -52,12 +55,12 @@ class Framebuffer3D(
         if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         session = GFXState.session
         // if (Build.isDebug) DebugGPUStorage.fbs.add(this)
-        Framebuffer.bindFramebuffer(GL_FRAMEBUFFER, pointer)
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         val w = width
         val h = height
         val d = depth
-        if (w * h * d < 1) throw RuntimeException("Invalid framebuffer size $w x $h x $d")
+        assertTrue(w > 0 && h > 0 && d > 0, "Invalid framebuffer size")
         GFX.check()
         textures = targets.mapIndexed { index, target ->
             val texture = Texture3D("$name-tex[$index]", w, h, d)
@@ -160,6 +163,42 @@ class Framebuffer3D(
     }
 
     override fun bindDirectly(w: Int, h: Int) {
+        ensureSize(w, h, depth)
+        bind()
+    }
+
+    fun bind() {
+
+        // if the depth-attachment base changed, we need to recreate this texture
+        val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
+        if (da != null) {
+            val dtp = da.depthTexture?.pointer
+            if (dtp != depthAttachedPtr) {
+                destroy()
+            }
+            assertEquals(width, da.width)
+            assertEquals(height, da.height)
+        }
+
+        ensure()
+
+        if (da != null) {
+            val dtp = if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null
+            assertEquals(dtp, depthAttachedPtr)
+        }
+
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
+
+        val textures = textures
+        for (i in textures.indices) {
+            invalidateTexture(textures[i])
+        }
+        invalidateTexture(depthTexture)
+    }
+
+    private fun invalidateTexture(texture: Texture3D?) {
+        texture ?: return
+        texture.filtering = Filtering.TRULY_NEAREST
     }
 
     override fun destroy() {
@@ -213,24 +252,28 @@ class Framebuffer3D(
     fun draw(renderer: Renderer, render: (z: Int) -> Unit) {
         GFXState.useFrame(this, renderer) {
             Frame.bind()
+            bindDirectly()
             for (z in 0 until depth) {
                 // update all attachments, updating the framebuffer texture targets
                 updateAttachments(z)
                 val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-                if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
+                assertEquals(GL_FRAMEBUFFER_COMPLETE, status) { "Framebuffer incomplete $status" }
                 render(z)
             }
         }
     }
 
     fun updateAttachments(z: Int) {
+        GFX.check()
         val target = GL_TEXTURE_3D
         val textures = textures
+        val level = 0
+        val layer = z
         for (index in textures.indices) {
             val texture = textures[index]
             glFramebufferTexture3D(
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index,
-                target, texture.pointer, 0, z
+                target, texture.pointer, level, layer
             )
         }
         GFX.check()
@@ -241,7 +284,7 @@ class Framebuffer3D(
                 val depthTexture = depthTexture!!
                 glFramebufferTexture3D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                    target, depthTexture.pointer, 0, z
+                    target, depthTexture.pointer, level, layer
                 )
             }
             else -> {}
@@ -250,19 +293,15 @@ class Framebuffer3D(
     }
 
     fun destroyExceptTextures(deleteDepth: Boolean) {
-        /*if (ssBuffer != null) {
-            ssBuffer?.destroyExceptTextures(deleteDepth)
-            ssBuffer = null
-            destroy()
-        } else {*/
         destroyFramebuffer()
         destroyInternalDepth()
         if (deleteDepth) destroyDepthTexture()
-        //}
     }
 
-    override fun getTexture0() = textures[0]
-    override fun getTextureI(index: Int) = textures[index]
+    override fun getTexture0(): Texture3D = getTextureI(0)
+    override fun getTextureI(index: Int): Texture3D {
+        return textures.getOrNull(index) ?: TextureLib.missingTexture3d
+    }
 
     override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         throw NotImplementedError()

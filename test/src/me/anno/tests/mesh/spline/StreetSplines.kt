@@ -114,7 +114,7 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val testProfileMesh = MeshCache[res.getChild("meshes/StreetProfile.glb")]!!
+    val testProfileMesh = MeshCache[res.getChild("meshes/StreetProfile.glb")] as Mesh
     val testProfileMesh1 = mergeMaterials(testProfileMesh)
     val testProfiles = meshToPathProfile(testProfileMesh1)[0]
 

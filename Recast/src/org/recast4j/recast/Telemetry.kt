@@ -17,20 +17,25 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 class Telemetry {
-    private val timerStart = ThreadLocal.withInitial<HashMap<TelemetryType, Long>> { HashMap() }
-    private val timerAccum: MutableMap<TelemetryType, AtomicLong> = ConcurrentHashMap()
+    companion object {
+        private val LOGGER = LogManager.getLogger(Telemetry::class)
+    }
+
+    private val startTimes = ThreadLocal.withInitial<HashMap<TelemetryType, Long>> { HashMap() }
+    private val accumulator = ConcurrentHashMap<TelemetryType, AtomicLong>()
 
     fun startTimer(type: TelemetryType) {
-        timerStart.get()[type] = System.nanoTime()
+        startTimes.get()[type] = System.nanoTime()
     }
 
     fun stopTimer(type: TelemetryType) {
-        timerAccum.computeIfAbsent(type) { AtomicLong() }
-            .addAndGet(System.nanoTime() - timerStart.get()[type]!!)
+        accumulator.computeIfAbsent(type) { AtomicLong() }
+            .addAndGet(System.nanoTime() - startTimes.get()[type]!!)
     }
 
     fun warn(string: String?) {
@@ -38,9 +43,9 @@ class Telemetry {
     }
 
     fun print() {
-        timerAccum.forEach { (n: TelemetryType, v: AtomicLong) ->
+        accumulator.forEach { (n: TelemetryType, v: AtomicLong) ->
             val time = v.get() / 100_000
-            println("${n.name}: ${time / 10}.${time % 10} ms")
+            LOGGER.info("${n.name}: ${time / 10}.${time % 10} ms")
         }
     }
 }
