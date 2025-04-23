@@ -144,12 +144,12 @@ object NavMeshBuilder {
     const val XM = 4
     const val ZM = 8
 
-    fun classifyOffMeshPoint(pt: VectorPtr, bounds: AABBf): Byte {
+    fun classifyOffMeshPoint(data: FloatArray, pt: Int, bounds: AABBf): Byte {
         var resultMap = 0
-        resultMap = resultMap or if (pt[0] >= bounds.maxX) XP else 0
-        resultMap = resultMap or if (pt[2] >= bounds.maxZ) ZP else 0
-        resultMap = resultMap or if (pt[0] < bounds.minX) XM else 0
-        resultMap = resultMap or if (pt[2] < bounds.minZ) ZM else 0
+        resultMap = resultMap or if (data[pt] >= bounds.maxX) XP else 0
+        resultMap = resultMap or if (data[pt + 2] >= bounds.maxZ) ZP else 0
+        resultMap = resultMap or if (data[pt] < bounds.minX) XM else 0
+        resultMap = resultMap or if (data[pt + 2] < bounds.minZ) ZM else 0
         return when (resultMap) {
             XP -> 0
             XP or ZP -> 1
@@ -374,16 +374,17 @@ object NavMeshBuilder {
         val bounds = getTightBounds(params)
         var offMeshConLinkCount = offMeshConLinkCount0
         var storedOffMeshConCount = storedOffMeshConCount0
+        val offMeshConVertices = params.offMeshConVertices
         for (i in 0 until params.offMeshConCount) {
-            val p0 = VectorPtr(params.offMeshConVertices, i * 2 * 3)
-            val p1 = VectorPtr(params.offMeshConVertices, (i * 2 + 1) * 3)
-            offMeshConClass[i * 2] = classifyOffMeshPoint(p0, bounds)
-            offMeshConClass[i * 2 + 1] = classifyOffMeshPoint(p1, bounds)
+            val p0 = i * 2 * 3
+            val p1 = p0 + 3
+            offMeshConClass[i * 2] = classifyOffMeshPoint(offMeshConVertices, p0, bounds)
+            offMeshConClass[i * 2 + 1] = classifyOffMeshPoint(offMeshConVertices, p1, bounds)
 
             // Zero out off-mesh start positions which are not even
             // potentially touching the mesh.
             if (offMeshConClass[i * 2] == OffMeshConnection.FROM_THIS_TILE) {
-                if (p0[1] < bounds.minY || p0[1] > bounds.maxY) {
+                if (offMeshConVertices[p0 + 1] < bounds.minY || offMeshConVertices[p0 + 1] > bounds.maxY) {
                     offMeshConClass[i * 2] = 0
                 }
             }
