@@ -107,6 +107,13 @@ class RenderMode private constructor(
     override val values: List<ExtendableEnum>
         get() = Companion.values
 
+    var renderLines: Boolean = false
+
+    fun onlyRenderLines(): RenderMode {
+        renderLines = true
+        return this
+    }
+
     companion object {
 
         val opaqueNodeSettings = mapOf(
@@ -412,7 +419,9 @@ class RenderMode private constructor(
         )
 
         val LINES = RenderMode("Lines", FORWARD.renderGraph)
+            .onlyRenderLines()
         val LINES_MSAA = RenderMode("Lines MSAA", MSAA_FORWARD.renderGraph)
+            .onlyRenderLines()
         val FRONT_BACK = RenderMode("Front/Back", frontBackRenderer)
 
         /** visualize the triangle structure by giving each triangle its own color */
@@ -485,6 +494,7 @@ class RenderMode private constructor(
         )
 
         val LINES_TAA = RenderMode("Lines TAA", TAA.renderGraph)
+            .onlyRenderLines()
 
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",

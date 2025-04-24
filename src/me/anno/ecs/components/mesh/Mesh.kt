@@ -507,9 +507,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     companion object {
 
         fun drawDebugLines(mode: RenderMode?): Boolean {
-            return mode == RenderMode.LINES ||
-                    mode == RenderMode.LINES_MSAA ||
-                    mode == RenderMode.LINES_TAA
+            return mode != null && mode.renderLines
         }
 
         val drawDebugLines: Boolean
