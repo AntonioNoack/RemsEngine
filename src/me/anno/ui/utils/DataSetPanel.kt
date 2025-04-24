@@ -107,7 +107,7 @@ class DataSetPanel(
                                 allowedValues.clear()
                                 recalculateFiltered()
                             })
-                        val presentValues = values.map(instanceToPropString).toHashSet().sorted()
+                        val presentValues = values.map(instanceToPropString).distinct().sorted()
                         for (value in presentValues) {
                             // checkbox for each option
                             val box = BooleanInput(NameDesc(value), value in allowedValues, false, style)

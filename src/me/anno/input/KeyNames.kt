@@ -11,14 +11,14 @@ object KeyNames {
         val shift: Boolean,
         val alt: Boolean,
         val superKey: Boolean,
-        val keys: HashSet<Key>
+        val keys: Set<Key>
     ) {
         constructor() : this(
             Input.isControlDown,
             Input.isShiftDown,
             Input.isKeyDown(Key.KEY_RIGHT_ALT),
             Input.isSuperDown,
-            Input.keysDown.keys.toHashSet()
+            Input.keysDown.keys.toSet()
         )
     }
 

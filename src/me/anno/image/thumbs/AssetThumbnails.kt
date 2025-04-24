@@ -141,11 +141,11 @@ object AssetThumbnails {
             .getComponentsInChildren(MeshComponent::class)
 
         val meshFiles = meshComponents
-            .map { it.meshFile }.toHashSet()
+            .map { it.meshFile }.distinct()
             .filter { it.exists }
 
         val materialFiles = meshComponents
-            .flatMap { it.materials }.toHashSet()
+            .flatMap { it.materials }.distinct()
             .filter { it.exists }.toHashSet()
 
         val textureFiles = HashSet<FileReference>()

@@ -4,8 +4,6 @@ import me.anno.image.raw.FloatImage
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import java.io.BufferedInputStream
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.IOException

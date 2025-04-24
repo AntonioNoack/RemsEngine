@@ -188,7 +188,7 @@ class CachedReflections private constructor(
             val map = HashMap<String, CachedProperty>()
             val publicMethodNames = methods
                 .filter { Modifier.isPublic(it.modifiers) }
-                .map { it.name }.toHashSet()
+                .map { it.name }.toSet()
             for (index in properties.indices) {
                 val field = properties[index]
                 val annotations = field.annotations.toMutableList()

@@ -53,7 +53,6 @@ import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -509,8 +508,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             val targets3 = selectedEntities + selectedMovables
             // remove all targets of which there is a parent selected
             return targets3.filter { target ->
-                val loh = (target as? Hierarchical<*>)?.listOfHierarchy?.toHashSet() ?: emptySet()
-                targets3.none2 { it !== target && it in loh }
+                val inHierarchy = (target as? Hierarchical<*>)?.listOfHierarchy?.toSet() ?: emptySet()
+                targets3.none2 { it !== target && it in inHierarchy }
             }
         }
 

@@ -41,7 +41,7 @@ object FontListMenu {
 
         fun sortFavourites() {
             fontList.sortBy { it.name }
-            val lastUsedSet = lastUsedFonts.toHashSet()
+            val lastUsedSet = lastUsedFonts.toSet()
             fontList.sortByDescending { if (it.name == Menu.MENU_SEPARATOR) 1 else if (it.name in lastUsedSet) 2 else 0 }
         }
 

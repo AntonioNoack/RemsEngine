@@ -24,6 +24,6 @@ class QueryChunksTest {
             result.add(sc)
             false
         }
-        println("total: ${result.size}, tris: ${result.map { it.tri }.toHashSet().sorted()}")
+        println("total: ${result.size}, tris: ${result.map { it.tri }.distinct().sorted()}")
     }
 }

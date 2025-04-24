@@ -100,7 +100,7 @@ class TriangleGridMathsTest {
                 assertEquals(len, neighbors.size)
                 val positions = neighbors.map { indexToCoords(it, Vector2d()) }
                 val angles = positions.map { (atan2(it.y, it.x) + TAU) % TAU }
-                assertEquals(neighbors.size, neighbors.toHashSet().size) // no duplicates
+                assertEquals(neighbors.size, neighbors.distinct().size) // no duplicates
                 assertContentEquals(angles.sorted(), angles)
             }
         }

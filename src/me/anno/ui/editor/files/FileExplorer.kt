@@ -134,7 +134,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     open fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
     open fun openOptions(files: List<FileReference>) {
-        rightClickedFiles = files.toHashSet()
+        rightClickedFiles = files.toSet()
         val title = NameDesc(
             if (files.size == 1) "For ${files.first().name}:"
             else "For ${files.size} files:"

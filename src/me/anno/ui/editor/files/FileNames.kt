@@ -13,7 +13,7 @@ object FileNames {
             "LPT¹,LPT²,LPT³,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9")
         .split(',')
 
-    private val forbiddenCharacters = forbiddenConfig.toHashSet()
+    private val forbiddenCharacters = forbiddenConfig.toSet()
 
     /**
      * Ensures that a file name is actually allowed to be used.

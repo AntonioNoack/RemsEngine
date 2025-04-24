@@ -332,7 +332,7 @@ class PrefabInspector(var reference: FileReference) {
         for (className in instances
             .map { it.className }
             .filter { it !in Saveable.objectTypeRegistry }
-            .toHashSet()
+            .distinct()
             .sorted()
         ) {
             val warningPanel1 = TextPanel("Class '$className' wasn't registered as a custom class", style)

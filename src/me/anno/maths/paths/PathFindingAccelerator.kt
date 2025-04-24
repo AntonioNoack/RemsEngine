@@ -36,7 +36,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
             neighborNodes.mapNotNull {
                 // mapNotNull or (pfa.getProxy(it) ?: it) ?
                 getProxy(it)
-            }.toHashSet()
+            }.toSet()
         }
         val links = lazy {
             neighborProxies.value.toList() + members
@@ -131,7 +131,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
         } ?: return null
         // build bridges from normal space to proxy space and back
         // allocation could be skipped in a few, or maybe even most cases
-        val result1 = if (result is MutableList) result else ArrayList(result)
+        val result1 = result as? MutableList ?: ArrayList(result)
         if (!includeStart && result.first() == start) result1.removeFirst()
         if (includeStart && result.first() != start) {
             result1.add(start)

@@ -9,16 +9,14 @@ abstract class ExtensionManager<V : Extension>(val instanceName: String) {
     fun enable(extensions: List<V>) {
         printStatus("Enabling", extensions)
         onEnable(extensions)
-        loaded += extensions
-        printStatus("Enabled", extensions)
+        loaded.addAll(extensions)
     }
 
     fun disable(extensions: List<V> = loaded.toList()) {
         printStatus("Disabling", extensions)
         onDisable(extensions)
-        printStatus("Disabled", extensions)
         if (extensions === loaded) loaded.clear()
-        else loaded.removeAll(extensions.toHashSet())
+        else loaded.removeAll(extensions.toSet())
     }
 
     private fun printStatus(type: String, extensions: List<V>) {

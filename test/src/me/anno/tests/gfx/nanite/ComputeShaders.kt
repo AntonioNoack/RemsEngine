@@ -310,7 +310,7 @@ object ComputeShaders {
         val (shader, target, meshAttr, instAttr, indexed, drawMode) = key
         val varyings = getVaryings(shader)
         val attributes = getAttributes(shader)
-        val instNames = instAttr.map { it.name }.toHashSet()
+        val instNames = instAttr.map { it.name }.toSet()
         val (vertexFunctions, vertexMain) = extractMain(shader.vertexShader)
         val (pixelFunctions, pixelMain) = extractMain(shader.fragmentShader)
         val uniforms = getUniforms(shader)

@@ -14,17 +14,26 @@ import kotlin.math.max
 class FloatImage(
     width: Int, height: Int, channels: Int,
     val data: FloatArray = FloatArray(width * height * channels),
-    map: ColorMap = LinearColorMap.default, offset: Int = 0, stride: Int = width
+    map: ColorMap, offset: Int, stride: Int
 ) : IFloatImage(width, height, channels, map, offset, stride) {
 
+    constructor(width: Int, height: Int, channels: Int) :
+            this(width, height, channels, LinearColorMap.default)
+
+    constructor(width: Int, height: Int, channels: Int, data: FloatArray) :
+            this(width, height, channels, data, LinearColorMap.default, 0, width)
+
     constructor(width: Int, height: Int, channels: Int, map: ColorMap) :
-            this(width, height, channels, FloatArray(width * height * channels), map)
+            this(width, height, channels, FloatArray(width * height * channels), map, 0, width)
+
+    constructor(width: Int, height: Int, channels: Int, data: FloatArray, offset: Int, stride: Int) :
+            this(width, height, channels, data, LinearColorMap.default, offset, stride)
 
     /**
      * gets the value on the field
      * */
     override fun getValue(index: Int, channel: Int): Float {
-        return data[index * numChannels + channel]
+        return data[index * numChannels + channel + offset]
     }
 
     /**
@@ -38,16 +47,17 @@ class FloatImage(
     }
 
     override fun getRGB(index: Int): Int {
-        val nc = numChannels
-        return if (nc == 1) {
-            map.getColor(data[index])
+        val numChannels = numChannels
+        val i = index * numChannels + offset
+        return if (numChannels == 1) {
+            map.getColor(data[i])
         } else {
-            val idx = index * nc
+            val i = index * numChannels + offset
             Color.rgba(
-                getColor(data[idx]),
-                getColor(data[idx + 1]),
-                if (nc > 2) getColor(data[idx + 2]) else 0,
-                if (nc > 3) getColor(data[idx + 3]) else 255
+                getColor(data[i]),
+                getColor(data[i + 1]),
+                if (numChannels > 2) getColor(data[i + 2]) else 0,
+                if (numChannels > 3) getColor(data[i + 3]) else 255
             )
         }
     }
@@ -67,7 +77,7 @@ class FloatImage(
     fun normalized() = clone().normalize()
 
     fun clone(): FloatImage {
-        return FloatImage(width, height, numChannels, data.copyOf(), map)
+        return FloatImage(width, height, numChannels, data.copyOf(), map, offset, stride)
     }
 
     override fun normalize(): FloatImage {

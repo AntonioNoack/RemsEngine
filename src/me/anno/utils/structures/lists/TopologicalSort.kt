@@ -8,7 +8,7 @@ import me.anno.utils.assertions.assertTrue
  * */
 abstract class TopologicalSort<NodeType : Any, ListType : MutableCollection<NodeType>>(val list: ListType) {
 
-    private val remaining = list.toHashSet()
+    private val remaining = HashSet(list)
     private val currentlyChecked = HashSet<NodeType>(clamp(list.size, 16, 64))
 
     private var isFindingCycle = false

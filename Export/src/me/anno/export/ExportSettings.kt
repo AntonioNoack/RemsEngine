@@ -176,8 +176,7 @@ class ExportSettings : NamedSaveable() {
         val modules = getGroup(NameDesc("Included Modules"), list)
         val moduleList = projectRoots
             .flatMap { IdeaProject.loadModules(it, it.inputStreamSync()) }
-            .toHashSet()
-            .sortedBy { it.name }
+            .distinct().sortedBy { it.name }
         for (file in moduleList) {
             val name = file.nameWithoutExtension
             val checkbox = BooleanInput(NameDesc(name), name !in excludedModules, false, style)
