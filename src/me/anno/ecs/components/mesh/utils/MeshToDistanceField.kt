@@ -10,6 +10,8 @@ import org.joml.Planef
 import org.joml.Vector3f
 import org.joml.Vector3i
 import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.sign
 
 /**
  * Reverse operation to MarchingCubes.
@@ -107,7 +109,7 @@ object MeshToDistanceField {
                         val newDistance = plane.dot(xi.toFloat(), yi.toFloat(), zi.toFloat())
                         // join with previous distance
                         val prevDistance = field[index]
-                        field[index] = absMin(prevDistance, newDistance)
+                        field[index] = absMinV2(prevDistance, newDistance)
                     }
                 }
             }
@@ -173,8 +175,13 @@ object MeshToDistanceField {
         }
     }
 
-    private fun absMin(a: Float, b: Float): Float {
-        return if (abs(a) < abs(b)) a else b
+    /**
+     * This function tries to create a continuous outer shape.
+     * */
+    private fun absMinV2(a: Float, b: Float): Float {
+        return if (sign(a) == sign(b)) {
+            if (abs(a) < abs(b)) a else b
+        } else min(a, b)
     }
 
     fun Planef.setFromTriangle(a: Vector3f, b: Vector3f, c: Vector3f, tmpNormal: Vector3f): Planef {

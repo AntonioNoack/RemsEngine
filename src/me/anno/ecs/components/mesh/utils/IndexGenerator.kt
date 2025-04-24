@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
@@ -17,8 +17,10 @@ object IndexGenerator {
         var b0: Byte, var b1: Byte, var b2: Byte, var b3: Byte,
         var w0: Float, var w1: Float, var w2: Float, var w3: Float,
     ) {
-        constructor(x: Float, y: Float, z: Float) :
-                this(x, y, z, 0f, 0f, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0f)
+        constructor(x: Float, y: Float, z: Float) : this(
+            x, y, z, 0f, 0f, 0, 0,
+            0, 0, 0, 0, 0f, 0f, 0f, 0f
+        )
     }
 
     @JvmStatic
@@ -39,7 +41,7 @@ object IndexGenerator {
         // in the future, we should maybe support all colors...
 
         // generate all points
-        val points = createArrayList(positions.size / 3) {
+        val points = createList(positions.size / 3) {
             val i3 = it * 3
             UniquePoint(positions[i3], positions[i3 + 1], positions[i3 + 2])
         }

@@ -2,29 +2,58 @@ package me.anno.tests.terrain
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.ecs.components.mesh.utils.MeshBuilder
 import me.anno.ecs.components.mesh.utils.MeshToDistanceField
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.graph.octtree.KdTree
+import me.anno.graph.octtree.OctTreeF
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.DualContouring3d
 import me.anno.maths.geometry.MarchingCubes
+import me.anno.tests.LOGGER
+import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertNull
+import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.min
+
+val trySelfIntersecting = true
 
 fun main() {
 
     // todo why are the normals inaccurate???
     //  is it because we use a plane to calculate the distance??? shouldn't be...
 
-    val originalMesh = IcosahedronModel.createIcosphere(5)
+    val originalMesh = if (!trySelfIntersecting) {
+        IcosahedronModel.createIcosphere(5)
+    } else {
+        val base = IcosahedronModel.createIcosphere(3)
+        MeshCache[Entity()
+            .add(
+                Entity()
+                    .setPosition(+0.5, 0.0, 0.0)
+                    .add(MeshComponent(base))
+            )
+            .add(
+                Entity()
+                    .setPosition(-0.5, 0.0, 0.0)
+                    .add(MeshComponent(base))
+            ).ref] as Mesh
+    }
     val fieldSize = Vector3i(64)
     val s = 0.9f
     val bounds = AABBf(-s, -s, -s, s, s, s)
@@ -35,9 +64,6 @@ fun main() {
     val marchedMesh5 = meshToDistanceFieldToMesh(marchedMesh4, fieldSize, bounds)
     val marchedMesh6 = meshToDistanceFieldToMesh(marchedMesh5, fieldSize, bounds)
     val marchedMesh7 = meshToDistanceFieldToMesh(marchedMesh6, fieldSize, bounds)
-
-    // todo can we polish the mesh by the original normals???
-    //  I don't think this would help much...
 
     // todo try out two overlapping spheres, how they are merged. Probably broken :/
 
@@ -78,12 +104,21 @@ fun baselineFieldToMesh(fieldSize: Vector3i, bounds: AABBf): Mesh {
     val x0 = (fieldSize.x - 1f) * 0.5f
     val y0 = (fieldSize.y - 1f) * 0.5f
     val z0 = (fieldSize.z - 1f) * 0.5f
+
+    val x1 = (fieldSize.x - 1f) * 0.25f
+    val x2 = (fieldSize.x - 1f) * 0.75f
+
     val radius = fieldSize.x / bounds.deltaX
     for (z in 0 until fieldSize.z) {
         for (y in 0 until fieldSize.y) {
             for (x in 0 until fieldSize.x) {
-                field[MeshToDistanceField.getIndex(fieldSize, x, y, z)] =
+                field[MeshToDistanceField.getIndex(fieldSize, x, y, z)] = if (trySelfIntersecting) {
+                    val distA = length(x - x1, y - y0, z - z0)
+                    val distB = length(x - x2, y - y0, z - z0)
+                    min(distA, distB) - radius
+                } else {
                     length(x - x0, y - y0, z - z0) - radius
+                }
             }
         }
     }
@@ -140,6 +175,7 @@ fun meshToDistanceFieldToMesh(mesh: Mesh, fieldSize: Vector3i, bounds: AABBf): M
             }
         ).flatten(fieldSize, bounds)
     }
+    smoothMesh(marchedMesh)
     return marchedMesh
 }
 
@@ -159,4 +195,173 @@ fun List<Vector3f>.flatten(fieldSize: Vector3i, bounds: AABBf): FloatArray {
         positions[k++] = value.z * dz + z0
     }
     return positions
+}
+
+fun buildAdjacency(mesh: Mesh): List<IntArrayList> {
+    val numVertices = mesh.positions!!.size / 3
+    val adjacency = createList(numVertices) {
+        IntArrayList(4)
+    }
+    mesh.forEachLineIndex { a, b ->
+        adjacency[a].add(b)
+        adjacency[b].add(a)
+        false
+    }
+    return adjacency
+}
+
+fun calculateDeltas(
+    positions: FloatArray, adjacency: List<IntArrayList>,
+    deltas: FloatArray
+) {
+    for (i in 0 until positions.size / 3) {
+        val i3 = i * 3
+
+        val adjacent = adjacency[i]
+        if (adjacent.isEmpty()) continue
+
+        var sumX = 0f
+        var sumY = 0f
+        var sumZ = 0f
+        for (j in adjacent.indices) {
+            val j3 = adjacent[j] * 3
+            sumX += positions[j3]
+            sumY += positions[j3 + 1]
+            sumZ += positions[j3 + 2]
+        }
+
+        val weight = 1f / adjacent.size
+        deltas[i3] = sumX * weight
+        deltas[i3 + 1] = sumY * weight
+        deltas[i3 + 2] = sumZ * weight
+    }
+}
+
+fun applyDeltas(positions: FloatArray, deltas: FloatArray, factor: Float) {
+    for (i in positions.indices) {
+        positions[i] = mix(positions[i], deltas[i], factor)
+    }
+}
+
+fun applySmoothing(
+    positions: FloatArray, adjacency: List<IntArrayList>,
+    tmpDeltas: FloatArray, factor: Float
+) {
+    calculateDeltas(positions, adjacency, tmpDeltas)
+    applyDeltas(positions, tmpDeltas, factor)
+}
+
+// done: can we polish the mesh by the original normals???
+//  I don't think this would help much... -> this improves quality a bit... but yes, not much.
+fun smoothMesh(mesh: Mesh) {
+    if (mesh.indices == null) {
+        // ensure vertices are unique
+        mesh.generateIndicesV2(0.001f)
+        assertNotNull(mesh.indices)
+    }
+    val adjacency = buildAdjacency(mesh)
+    val positions = mesh.positions!!
+    val deltas = FloatArray(positions.size)
+    val lambda = 0.5f
+    val mu = -0.53f
+    for (iteration in 0 until 1) {
+        applySmoothing(positions, adjacency, deltas, lambda)
+        applySmoothing(positions, adjacency, deltas, mu)
+    }
+}
+
+private class MinDistanceMap<Value>(val identityDistance: Float) : MutableMap<Vector3f, Value> {
+
+    private class Impl : OctTreeF<Vector3f>(16) {
+        override fun getMin(data: Vector3f): Vector3f = data
+        override fun getMax(data: Vector3f): Vector3f = data
+        override fun getPoint(data: Vector3f): Vector3f = data
+        override fun createChild(): KdTree<Vector3f, Vector3f> {
+            return Impl()
+        }
+    }
+
+    private val uniqueKeys = Impl()
+    private val content = HashMap<Vector3f, Value>()
+
+    private fun mapKey(key: Vector3f, insertIfMissing: Boolean): Vector3f? {
+        var closest: Vector3f? = null
+        var closestDistanceSq = sq(identityDistance)
+        uniqueKeys.query(
+            Vector3f(key).sub(identityDistance),
+            Vector3f(key).add(identityDistance)
+        ) { keyI ->
+            val distanceSq = keyI.distanceSquared(key)
+            if (distanceSq < closestDistanceSq) {
+                closest = keyI
+                closestDistanceSq = distanceSq
+            }
+            false
+        }
+        return closest ?: run {
+            if (insertIfMissing) {
+                uniqueKeys.add(key)
+                key
+            } else null
+        }
+    }
+
+    override fun get(key: Vector3f): Value? {
+        return content[mapKey(key, false)]
+    }
+
+    override fun containsKey(key: Vector3f): Boolean {
+        return content.containsKey(mapKey(key, false))
+    }
+
+    override fun put(key: Vector3f, value: Value): Value? {
+        return content.put(mapKey(key, true)!!, value)
+    }
+
+    override val size: Int get() = content.size
+    override fun containsValue(value: Value): Boolean = content.containsValue(value)
+    override fun isEmpty(): Boolean = content.isEmpty()
+
+    override val entries: MutableSet<MutableMap.MutableEntry<Vector3f, Value>> get() = content.entries
+    override val keys: MutableSet<Vector3f> get() = content.keys
+    override val values: MutableCollection<Value> get() = content.values
+    override fun clear() = content.clear()
+
+    override fun putAll(from: Map<out Vector3f, Value>) {
+        content.putAll(from.mapKeys { mapKey(it.key, true)!! })
+    }
+
+    override fun remove(key: Vector3f): Value? {
+        return content.remove(mapKey(key, false))
+    }
+}
+
+fun Mesh.generateIndicesV2(minVertexDistance: Float) {
+
+    assertNull(indices)
+    val positions = positions!!
+
+    // generate all points
+    val points = createList(positions.size / 3) {
+        val i3 = it * 3
+        Vector3f(positions[i3], positions[i3 + 1], positions[i3 + 2])
+    }
+
+    // remove
+    val builder = MeshBuilder(this)
+    val pointToIndex = MinDistanceMap<Int>(minVertexDistance)
+    for (i in points.indices) {
+        pointToIndex.getOrPut(points[i]) {
+            builder.add(this, i)
+            pointToIndex.size
+        }
+    }
+
+    LOGGER.info("Merged {} into {} points", points.size, pointToIndex.size)
+
+    builder.build(this)
+
+    indices = IntArray(points.size) {
+        pointToIndex[points[it]]!!
+    }
 }
