@@ -1,7 +1,6 @@
 package me.anno.maths.geometry
 
 import me.anno.utils.callbacks.I3U
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBf
 import org.joml.Planef
@@ -59,51 +58,49 @@ object Rasterizer {
     /**
      * callback: (x,y,z)
      * */
-    fun rasterize(ua: Vector3f, ub: Vector3f, uc: Vector3f, bounds: AABBf?, callback: I3U) {
+    fun rasterize(ua: Vector3f, ub: Vector3f, uc: Vector3f, bounds: AABBf?, callback: I3U): Int {
         // 0.5 is to ensure that we have enough tolerance for rounding
-        if (bounds != null && bounds.isEmpty()) return
-        val boundsI = bounds ?: AABBf().all()
+        if (bounds != null && bounds.isEmpty()) return 0
         val normal = subCross(ua, ub, uc, Vector3f()).normalize()
         val plane = Planef(ua, normal)
         normal.absolute()
+        var pixelCounter = 0
         when (normal.max()) {
             normal.x -> {
-                val minX = boundsI.minX
-                val maxX = boundsI.maxX
                 rasterize(ua.yz, ub.yz, uc.yz, bounds.yz) { yMin, yMax, z ->
                     for (y in yMin..yMax) {
                         val x = round(plane.findX(y.toFloat(), z.toFloat()))
-                        if (x in minX..maxX) {
+                        if (bounds == null || x in bounds.minX..bounds.maxX) {
                             callback.call(x.toInt(), y, z)
+                            pixelCounter++
                         }
                     }
                 }
             }
             normal.y -> {
-                val minY = boundsI.minY
-                val maxY = boundsI.maxY
                 rasterize(ua.xz, ub.xz, uc.xz, bounds.xz) { xMin, xMax, z ->
                     for (x in xMin..xMax) {
                         val y = round(plane.findY(x.toFloat(), z.toFloat()))
-                        if (y in minY..maxY) {
+                        if (bounds == null || y in bounds.minY..bounds.maxY) {
                             callback.call(x, y.toInt(), z)
+                            pixelCounter++
                         }
                     }
                 }
             }
             else -> {
-                val minZ = boundsI.minZ
-                val maxZ = boundsI.maxZ
                 rasterize(ua.xy, ub.xy, uc.xy, bounds.xy) { xMin, xMax, y ->
                     for (x in xMin..xMax) {
                         val z = round(plane.findZ(x.toFloat(), y.toFloat()))
-                        if (z in minZ..maxZ) {
+                        if (bounds == null || z in bounds.minZ..bounds.maxZ) {
                             callback.call(x, y, z.toInt())
+                            pixelCounter++
                         }
                     }
                 }
             }
         }
+        return pixelCounter
     }
 
     private val Vector3f.yz: Vector2f

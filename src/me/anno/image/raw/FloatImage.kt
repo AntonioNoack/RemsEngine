@@ -103,9 +103,9 @@ class FloatImage(
             }
         }
         if (min < max) {
-            val scale = 1f / (max - min)
+            val scale = 1f / max(max, -min)
             for (i in data.indices) {
-                data[i] = (data[i] - min) * scale
+                data[i] *= scale
             }
         }
         return this

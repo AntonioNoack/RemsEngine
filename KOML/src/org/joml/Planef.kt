@@ -38,7 +38,7 @@ open class Planef(
         return this
     }
 
-    fun set(pos: Vector3f, dir: Vector3f) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
+    fun set(pos: Vector3f, dir: Vector3f): Planef = set(dir.x, dir.y, dir.z, -pos.dot(dir))
     fun set(src: Planef): Planef = set(src.dirX, src.dirY, src.dirZ, src.distance)
 
     fun dot(x: Float, y: Float, z: Float): Float = x * dirX + y * dirY + z * dirZ + distance

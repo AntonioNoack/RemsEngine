@@ -54,48 +54,46 @@ object MarchingCubes {
     /**
      * finds all polygons within a field of float values, based on their height relative to threshold
      * if the relation on the border is not consistent, it will be made consistent
-     * @param w width of field (x size)
-     * @param h height of field (y size)
-     * @param d depth of field (z size)
+     * @param sizeX width of field
+     * @param sizeY height of field
+     * @param sizeZ depth of field
      * @param values field of values, row-major with stride w
      * @param threshold relative threshold of inside/outside, typically 0
      * @return list of triangles, that are defined by the field
      * */
     fun march(
-        w: Int,
-        h: Int,
-        d: Int,
-        values: FloatArray,
-        threshold: Float,
-        bounds: AABBf,
-        makeBordersUniform: Boolean,
+        sizeX: Int, sizeY: Int, sizeZ: Int,
+        values: FloatArray, threshold: Float, bounds: AABBf, makeBordersUniform: Boolean,
         dst: FloatArrayList = FloatArrayList(255)
     ): FloatArrayList {
-
         // the values on the edge need to be enforced to have the same sign
-        val wh = w * h
+        val wh = sizeX * sizeY
         if (makeBordersUniform) {
-            if (w <= 2 || h <= 2 || d <= 2) {
+
+            if (sizeX <= 2 || sizeY <= 2 || sizeZ <= 2) {
                 LOGGER.warn("Returned empty list, because bounds were too small")
                 return dst
             }
+
             val firstValue = values[0]
             val firstSign = firstValue >= threshold
+
             fun checkValue(v: Float): Float {
                 return if ((v >= threshold) == firstSign) v else firstValue
             }
-            for (z in 0 until d) {
-                for (y in 0 until h) {
-                    if (y == 0 || y == h - 1 || z == 0 || z == d - 1) {
+
+            for (z in 0 until sizeZ) {
+                for (y in 0 until sizeY) {
+                    if (y == 0 || y == sizeY - 1 || z == 0 || z == sizeZ - 1) {
                         // set stripe to zero
-                        val i0 = z * wh + y * w
-                        for (i in i0 until i0 + w) {
+                        val i0 = z * wh + y * sizeX
+                        for (i in i0 until i0 + sizeX) {
                             values[i] = checkValue(values[i])
                         }
                     } else {
                         // set end caps to zero
-                        val i0 = z * wh + y * w
-                        val i1 = i0 + w - 1
+                        val i0 = z * wh + y * sizeX
+                        val i1 = i0 + sizeX - 1
                         values[i0] = checkValue(values[i0])
                         values[i1] = checkValue(values[i1])
                     }
@@ -110,32 +108,38 @@ object MarchingCubes {
 
         val edges = FloatArrayList(12 * 3)
 
-        val invX = 1f / (w - 1f)
-        val invY = 1f / (h - 1f)
-        val invZ = 1f / (d - 1f)
+        val invX = 1f / (sizeX - 1f)
+        val invY = 1f / (sizeY - 1f)
+        val invZ = 1f / (sizeZ - 1f)
         val sx = bounds.deltaX * invX
         val sy = bounds.deltaY * invY
         val sz = bounds.deltaZ * invZ
 
-        for (z in 0 until d - 1) {
+        for (z in 0 until sizeZ - 1) {
             val indexOffset = z * wh
             val pz = mix(bounds.minZ, bounds.maxZ, z * invZ)
-            for (y in 0 until h - 1) {
+            for (y in 0 until sizeY - 1) {
                 val py = mix(bounds.minY, bounds.maxY, y * invY)
-                var index = y * w + indexOffset
+                var index = y * sizeX + indexOffset
                 // using this awkward grid: http://paulbourke.net/geometry/polygonise/
                 var v000 = values[index] - threshold
                 var v001 = values[index + wh] - threshold
-                var v010 = values[index + w] - threshold
-                var v011 = values[index + w + wh] - threshold
+                var v010 = values[index + sizeX] - threshold
+                var v011 = values[index + sizeX + wh] - threshold
                 index++
-                for (x in 0 until w - 1) {
+                for (x in 0 until sizeX - 1) {
                     val px = mix(bounds.minX, bounds.maxX, x * invX)
                     val v100 = values[index] - threshold
                     val v101 = values[index + wh] - threshold
-                    val v110 = values[index + w] - threshold
-                    val v111 = values[index + w + wh] - threshold
-                    march(v000, v001, v010, v011, v100, v101, v110, v111, px, py, pz, sx, sy, sz, edges, dst)
+                    val v110 = values[index + sizeX] - threshold
+                    val v111 = values[index + sizeX + wh] - threshold
+                    march(
+                        v000, v001, v010, v011,
+                        v100, v101, v110, v111,
+                        px, py, pz,
+                        sx, sy, sz,
+                        edges, dst
+                    )
                     v000 = v100
                     v010 = v110
                     v001 = v101
@@ -151,11 +155,15 @@ object MarchingCubes {
     fun march(
         v000: Float, v001: Float, v010: Float, v011: Float,
         v100: Float, v101: Float, v110: Float, v111: Float,
-        px: Float, py: Float, pz: Float,
-        sx: Float, sy: Float, sz: Float,
-        edges: FloatArrayList,
-        dst: FloatArrayList
+        px: Float, py: Float, pz: Float, sx: Float, sy: Float, sz: Float,
+        edges: FloatArrayList, dst: FloatArrayList
     ) {
+
+        if (!(v000.isFinite() && v001.isFinite() &&
+                    v010.isFinite() && v011.isFinite() &&
+                    v100.isFinite() && v101.isFinite() &&
+                    v110.isFinite() && v111.isFinite())
+        ) return
 
         val b0 = v000 >= 0f
         val b1 = v001 >= 0f
@@ -216,50 +224,45 @@ object MarchingCubes {
     /**
      * finds all polygons within a field of float values, based on their height relative to threshold
      * if the relation on the border is not consistent, it will be made consistent
-     * @param w width of field (x size)
-     * @param h height of field (y size)
-     * @param d depth of field (z size)
-     * @param values field of values, row-major with stride w
+     * @param sizeX width of field (x size)
+     * @param sizeY height of field (y size)
+     * @param sizeZ depth of field (z size)
+     * @param field field of values, row-major with stride w
      * @param threshold relative threshold of inside/outside, typically 0
      * @param callback gets called for every created triangle
      * */
     fun march(
-        w: Int,
-        h: Int,
-        d: Int,
-        values: FloatArray,
-        threshold: Float,
-        bounds: AABBf,
-        makeBordersUniform: Boolean,
+        sizeX: Int, sizeY: Int, sizeZ: Int,
+        field: FloatArray, threshold: Float, bounds: AABBf, makeBordersUniform: Boolean,
         callback: (Vector3f, Vector3f, Vector3f) -> Unit
     ) {
 
         // the values on the edge need to be enforced to have the same sign
-        val wh = w * h
+        val wh = sizeX * sizeY
         if (makeBordersUniform) {
-            if (w <= 2 || h <= 2 || d <= 2) {
+            if (sizeX <= 2 || sizeY <= 2 || sizeZ <= 2) {
                 LOGGER.warn("Returned empty list, because bounds were too small")
                 return
             }
-            val firstValue = values[0]
+            val firstValue = field[0]
             val firstSign = firstValue >= threshold
             fun checkValue(v: Float): Float {
                 return if ((v >= threshold) == firstSign) v else firstValue
             }
-            for (z in 0 until d) {
-                for (y in 0 until h) {
-                    if (y == 0 || y == h - 1 || z == 0 || z == d - 1) {
+            for (z in 0 until sizeZ) {
+                for (y in 0 until sizeY) {
+                    if (y == 0 || y == sizeY - 1 || z == 0 || z == sizeZ - 1) {
                         // set stripe to zero
-                        val i0 = z * wh + y * w
-                        for (i in i0 until i0 + w) {
-                            values[i] = checkValue(values[i])
+                        val i0 = z * wh + y * sizeX
+                        for (i in i0 until i0 + sizeX) {
+                            field[i] = checkValue(field[i])
                         }
                     } else {
                         // set end caps to zero
-                        val i0 = z * wh + y * w
-                        val i1 = i0 + w - 1
-                        values[i0] = checkValue(values[i0])
-                        values[i1] = checkValue(values[i1])
+                        val i0 = z * wh + y * sizeX
+                        val i1 = i0 + sizeX - 1
+                        field[i0] = checkValue(field[i0])
+                        field[i1] = checkValue(field[i1])
                     }
                 }
             }
@@ -272,31 +275,31 @@ object MarchingCubes {
 
         val edges = createList(12) { Vector3f() }
 
-        val invX = 1f / (w - 1f)
-        val invY = 1f / (h - 1f)
-        val invZ = 1f / (d - 1f)
+        val invX = 1f / (sizeX - 1f)
+        val invY = 1f / (sizeY - 1f)
+        val invZ = 1f / (sizeZ - 1f)
         val sx = bounds.deltaX * invX
         val sy = bounds.deltaY * invY
         val sz = bounds.deltaZ * invZ
 
-        for (z in 0 until d - 1) {
+        for (z in 0 until sizeZ - 1) {
             val indexOffset = z * wh
             val pz = z.toFloat()
-            for (y in 0 until h - 1) {
+            for (y in 0 until sizeY - 1) {
                 val py = y.toFloat()
-                var index = y * w + indexOffset
+                var index = y * sizeX + indexOffset
                 // using this awkward grid: http://paulbourke.net/geometry/polygonise/
-                var v0 = values[index] - threshold
-                var v1 = values[index + wh] - threshold
-                var v4 = values[index + w] - threshold
-                var v5 = values[index + w + wh] - threshold
+                var v0 = field[index] - threshold
+                var v1 = field[index + wh] - threshold
+                var v4 = field[index + sizeX] - threshold
+                var v5 = field[index + sizeX + wh] - threshold
                 index++
-                for (x in 0 until w - 1) {
+                for (x in 0 until sizeX - 1) {
                     val px = x.toFloat()
-                    val v3 = values[index] - threshold
-                    val v2 = values[index + wh] - threshold
-                    val v7 = values[index + w] - threshold
-                    val v6 = values[index + w + wh] - threshold
+                    val v3 = field[index] - threshold
+                    val v2 = field[index + wh] - threshold
+                    val v7 = field[index + sizeX] - threshold
+                    val v6 = field[index + sizeX + wh] - threshold
                     val b0 = v0 >= 0f
                     val b1 = v1 >= 0f
                     val b4 = v4 >= 0f
