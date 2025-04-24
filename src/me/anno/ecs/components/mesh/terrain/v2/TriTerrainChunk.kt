@@ -18,7 +18,7 @@ import org.joml.Vector3f
 import kotlin.math.exp
 import kotlin.math.max
 
-class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
+class TriTerrainChunk(val owner: TriTerrainRenderer) : OctTreeF<Mesh>(16) {
 
     companion object {
         val falloff0 = falloff0(1f)
@@ -78,29 +78,29 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         )
         val sx = bounds.deltaX / (resolution.x - 1)
         val sy = bounds.deltaZ / (resolution.y - 1)
-        val pos = mesh.positions!!
-        val nor = mesh.normals!!
-        forLoopSafely(pos.size, 3) { i ->
-            val px = bounds.minX + sx * pos[i]
-            val pz = bounds.minZ + sy * pos[i + 2]
+        val positions = mesh.positions!!
+        val normals = mesh.normals!!
+        forLoopSafely(positions.size, 3) { i ->
+            val px = bounds.minX + sx * positions[i]
+            val pz = bounds.minZ + sy * positions[i + 2]
             val py = getHeight.call(px, pz)
-            pos[i] = px
-            pos[i + 1] = py
-            pos[i + 2] = pz
+            positions[i] = px
+            positions[i + 1] = py
+            positions[i + 2] = pz
             // calculate normal
             val dx = (getHeight.call(px - sx, pz) - py) / sx
             val dz = (getHeight.call(px, pz - sy) - py) / sy
             val rn = 1f / length(dx, 1f, dz)
-            nor[i] = dx * rn
-            nor[i + 1] = rn
-            nor[i + 2] = dz * rn
+            normals[i] = dx * rn
+            normals[i + 1] = rn
+            normals[i + 2] = dz * rn
         }
         mesh.invalidateGeometry()
         addMesh(mesh, true)
         return mesh
     }
 
-    private fun addMesh(mesh: Mesh, addToTree: Boolean) {
+    fun addMesh(mesh: Mesh, addToTree: Boolean) {
         if (addToTree) add(mesh)
         if (GFX.isGFXThread()) {
             addMeshUnsafe(mesh)
@@ -137,17 +137,17 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         val boundsI = mesh.getBounds()
         val oldMin = boundsI.getMin(Vector3f())
         val oldMax = boundsI.getMax(Vector3f())
-        val pos = mesh.positions!!
-        val nor = mesh.normals!!
+        val positions = mesh.positions!!
+        val normals = mesh.normals!!
         val posI = Vector3f()
         val norI = Vector3f()
         val dx = Vector3f()
         val dy = Vector3f()
         val dz = Vector3f()
         val eps = mesh.getBounds().maxDelta * 0.001f
-        forLoopSafely(pos.size, 3) { i ->
-            posToBrush.transformPosition(posI.set(pos, i))
-            posToBrush.transformDirection(norI.set(nor, i))
+        forLoopSafely(positions.size, 3) { i ->
+            posToBrush.transformPosition(posI.set(positions, i))
+            posToBrush.transformDirection(norI.set(normals, i))
 
             posI.add(eps, 0f, 0f, dx)
             posI.add(0f, eps, 0f, dy)
@@ -168,8 +168,8 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
 
             brushToPos.transformPosition(posI)
             brushToPos.transformDirection(norI).normalize()
-            posI.get(pos, i)
-            norI.get(nor, i)
+            posI.get(positions, i)
+            norI.get(normals, i)
         }
         mesh.invalidateGeometry()
         addMesh(mesh, false)

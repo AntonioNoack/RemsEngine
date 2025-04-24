@@ -57,8 +57,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         for ((key, entry) in entryLookup) {
             val transform = getTransform(i++)
             val material = getTransformAndMaterial(key, transform)
-            val mesh = entry.mesh ?: continue
-            if (callback(mesh, material, transform)) break
+            if (callback(entry.mesh, material, transform)) break
         }
     }
 
@@ -129,12 +128,12 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         return true
     }
 
-    fun remove(key: Key, deleteMesh: Boolean): Boolean {
+    fun remove(key: Key, destroyMesh: Boolean): Boolean {
         val entry = entryLookup.remove(key) ?: return false
         assertTrue(remove(entry, entries, ranges))
         numPrimitives -= entry.buffer.vertexCount
-        if (deleteMesh) {
-            entry.mesh?.destroy()
+        if (destroyMesh) {
+            entry.mesh.destroy()
         }
         entry.buffer.destroy()
         invalidate()
@@ -142,8 +141,6 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     }
 
     var isValid = true
-
-    var baseShape: Buffer? = null
 
     fun invalidate() {
         isValid = false
@@ -252,8 +249,19 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         buffer1.destroy()
         for ((_, entry) in entryLookup) {
             entry.buffer.destroy()
-            entry.mesh?.destroy()
+            entry.mesh.destroy()
         }
+    }
+
+    open fun clear(destroyMeshes: Boolean) {
+        entryLookup.clear()
+        for (entry in entries) {
+            if (destroyMeshes) entry.mesh.destroy()
+            entry.buffer.destroy()
+        }
+        entries.clear()
+        ranges.clear()
+        numPrimitives = 0
     }
 
     companion object {

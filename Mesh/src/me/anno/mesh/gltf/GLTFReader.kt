@@ -17,6 +17,7 @@ import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE32F
 import me.anno.io.base64.Base64
+import me.anno.io.binary.ByteArrayIO.readLE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
@@ -56,7 +57,6 @@ import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
-import me.anno.utils.types.Arrays.readLE32
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager

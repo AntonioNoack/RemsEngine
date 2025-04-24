@@ -16,6 +16,7 @@ import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.structures.arrays.ByteArrayList
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
@@ -267,6 +268,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     fun writeBytes(bytes: ByteArray) {
         writeBytes(bytes, 0, bytes.size)
+    }
+
+    fun writeBytes(bytes: ByteArrayList) {
+        writeBytes(bytes.values, 0, bytes.size)
     }
 
     open fun writeBytes(bytes: ByteBuffer) {

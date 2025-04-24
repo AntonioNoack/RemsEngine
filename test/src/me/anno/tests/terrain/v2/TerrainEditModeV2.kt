@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.components.mesh.terrain.v2.BrushMode
-import me.anno.ecs.components.mesh.terrain.v2.TriTerrainComponent
+import me.anno.ecs.components.mesh.terrain.v2.TriTerrainRenderer
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -49,7 +49,7 @@ class TerrainEditModeV2 : Component(), CustomEditMode {
         // only run once per frame, because applying the brush can be expensive
         if (currTime == Time.gameTimeN) return true
         currTime = Time.gameTimeN
-        val terrain = getComponent(TriTerrainComponent::class)
+        val terrain = getComponent(TriTerrainRenderer::class)
         // raycast, then apply brush
         val ui = RenderView.currentInstance!!
         val query = RayQuery(ui.cameraPosition, Vector3d(ui.mouseDirection), Double.POSITIVE_INFINITY)

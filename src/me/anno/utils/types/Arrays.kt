@@ -79,34 +79,4 @@ object Arrays {
         }
         return -1
     }
-
-    fun ByteArray.read(i: Int, default: Int = 0): Int {
-        if (i < 0 || i + 1 > size) return default
-        return this[i].toInt().and(255)
-    }
-
-    fun ByteArray.readLE16(i: Int, default: Int = 0): Int {
-        if (i < 0 || i + 2 > size) return default
-        return read(i) + read(i + 1).shl(8)
-    }
-
-    fun ByteArray.readLE32(i: Int, default: Int = 0): Int {
-        if (i < 0 || i + 4 > size) return default
-        return readLE16(i) + readLE16(i + 2).shl(16)
-    }
-
-    fun ByteArray.readLE64(i: Int, default: Long = 0): Long {
-        if (i < 0 || i + 8 > size) return default
-        return readLE32(i).toLong().and(0xffffffffL) + readLE32(i + 4).toLong().shl(32)
-    }
-
-    fun ByteArray.readLE32F(i: Int, default: Float = 0f): Float {
-        if (i < 0 || i + 4 > size) return default
-        return Float.fromBits(readLE32(i))
-    }
-
-    fun ByteArray.readLE64F(i: Int, default: Double = 0.0): Double {
-        if (i < 0 || i + 8 > size) return default
-        return Double.fromBits(readLE64(i))
-    }
 }

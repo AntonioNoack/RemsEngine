@@ -122,7 +122,7 @@ open class Promise<V : Any> {
     private fun callSuccess(value: V, onSuccess1: (V) -> Unit) {
         try {
             onSuccess1(value)
-        } catch (ignored: IgnoredException) {
+        } catch (_: IgnoredException) {
         } catch (e: Exception) {
             setValue(null, e)
         }

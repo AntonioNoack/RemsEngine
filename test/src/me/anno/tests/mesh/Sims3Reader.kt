@@ -1,5 +1,6 @@
 package me.anno.tests.mesh
 
+import me.anno.io.binary.ByteArrayIO.leMagic
 import me.anno.io.files.Signature
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.hasFlag
@@ -252,12 +253,4 @@ fun toStr(i: Int): String {
             i.and(255).toChar()
         )
     )
-}
-
-fun leMagic(b: Char, g: Char, r: Char, a: Char): Int {
-    return (a.code shl 24) or (r.code shl 16) or (g.code shl 8) or b.code
-}
-
-fun beMagic(a: Char, r: Char, g: Char, b: Char): Int {
-    return (a.code shl 24) or (r.code shl 16) or (g.code shl 8) or b.code
 }

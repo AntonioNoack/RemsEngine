@@ -9,11 +9,14 @@ import kotlin.math.min
 
 object OnEdgeCalculator {
 
+    /**
+     * Calculate which vertices are on the edge of a Mesh.
+     * Aka which triangles are on the edge.
+     * */
     fun calculateIsOnEdge(mesh: Mesh, dst: BooleanArrayList): BooleanArrayList {
 
         dst.fill(true)
 
-        // calculate isOnEdge
         // if there is few vertices, we could use an IntArray for counting
         val sides = HashMap<Long, Int>()
         var index = 0
