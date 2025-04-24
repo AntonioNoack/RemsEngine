@@ -28,7 +28,7 @@ import org.joml.AABBd
 // todo this probably has undefined behaviour, because its RenderDocCaptures crash RenderDoc
 class StaticMeshManager : System(), Renderable {
 
-    val managers = HashMap<Material, UniqueMeshRenderer<Mesh, SMMKey>>()
+    val managers = HashMap<Material, UniqueMeshRenderer<SMMKey, Mesh>>()
     val meshes = HashSet<MeshComponent>(1024)
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

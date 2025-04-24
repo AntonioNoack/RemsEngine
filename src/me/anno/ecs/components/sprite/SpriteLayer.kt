@@ -37,7 +37,7 @@ import kotlin.math.sign
  *
  * For large worlds, you need a chunk-manager to load/unload them dynamically.
  * */
-class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(attributes, spriteVertexData, DrawMode.TRIANGLES),
+class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spriteVertexData, DrawMode.TRIANGLES),
     OnUpdate, CustomEditMode {
 
     companion object {

@@ -38,7 +38,7 @@ import java.nio.IntBuffer
  *
  * todo somehow use indexed meshes (less load on the vertex shader)
  * */
-abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
+abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
     val attributes: List<Attribute>,
     override val vertexData: MeshVertexData,
     val drawMode: DrawMode
@@ -128,8 +128,8 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         return true
     }
 
-    fun remove(key: Key, destroyMesh: Boolean): Boolean {
-        val entry = entryLookup.remove(key) ?: return false
+    fun remove(key: Key, destroyMesh: Boolean): Mesh? {
+        val entry = entryLookup.remove(key) ?: return null
         assertTrue(remove(entry, entries, ranges))
         numPrimitives -= entry.buffer.vertexCount
         if (destroyMesh) {
@@ -137,7 +137,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         }
         entry.buffer.destroy()
         invalidate()
-        return true
+        return entry.mesh
     }
 
     var isValid = true

@@ -18,7 +18,9 @@ import me.anno.tests.utils.TestWorld
 import me.anno.utils.Color.convertABGR2ARGB
 import org.joml.Vector3i
 
-class ChunkRenderer(val material: Material, val world: TestWorld) : UniqueMeshRenderer<Mesh, Vector3i>(attributes, blockVertexData, DrawMode.TRIANGLES) {
+class ChunkRenderer(val material: Material, val world: TestWorld) :
+    UniqueMeshRenderer<Vector3i, Mesh>(attributes, blockVertexData, DrawMode.TRIANGLES) {
+
     companion object {
         val attributes = listOf(
             Attribute("coords", 3),

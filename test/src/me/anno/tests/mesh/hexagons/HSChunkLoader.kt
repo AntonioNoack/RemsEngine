@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 class HSChunkLoader(
     val sphere: HexagonSphere, val world: HexagonSphereMCWorld,
     val transparent: Boolean?, val material: Material
-) : UniqueMeshRenderer<Mesh, HexagonSphere.Chunk>(attributes, hexVertexData, DrawMode.TRIANGLES), OnUpdate {
+) : UniqueMeshRenderer<HexagonSphere.Chunk, Mesh>(attributes, hexVertexData, DrawMode.TRIANGLES), OnUpdate {
 
     companion object {
         val attributes = listOf(

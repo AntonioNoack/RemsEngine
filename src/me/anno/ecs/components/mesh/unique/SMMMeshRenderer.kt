@@ -20,7 +20,7 @@ import org.joml.Vector3f
 import java.nio.ByteBuffer
 
 class SMMMeshRenderer(material: Material) :
-    UniqueMeshRenderer<Mesh, SMMKey>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
+    UniqueMeshRenderer<SMMKey, Mesh>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
 
     override val hasVertexColors: Int get() = 1
     override val materials: List<FileReference> = listOf(material.ref)
