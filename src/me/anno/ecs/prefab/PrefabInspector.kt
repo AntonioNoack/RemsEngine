@@ -15,6 +15,7 @@ import me.anno.engine.inspector.InspectorUtils.showDebugWarnings
 import me.anno.engine.inspector.InspectorUtils.showEditorFields
 import me.anno.engine.inspector.InspectorUtils.showProperties
 import me.anno.engine.projects.GameEngineProject
+import me.anno.engine.projects.GameEngineProject.Companion.invalidateThumbnails
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.input.TagsPanel
 import me.anno.engine.ui.render.PlayMode
@@ -45,9 +46,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
-import me.anno.utils.assertions.assertNotEquals
-import me.anno.utils.assertions.assertNotNull
-import me.anno.utils.assertions.assertSame
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -445,19 +443,25 @@ class PrefabInspector(var prefabSource: FileReference) {
         return this.prefab.add(parent, type, clazz, Path.generateRandomId(), source)
     }
 
-    fun save() {
+    fun save(force: Boolean = false) {
+
         val sourceFile = prefabSource
-        assertNotEquals(InvalidRef, sourceFile, "Prefab doesn't have source!!")
+        if (sourceFile == InvalidRef) {
+            LOGGER.warn("Prefab doesn't have source!!")
+            return
+        }
+
         if (sourceFile.exists) {
             // check, that we actually can save this file;
             //  we must not override resources like .obj files
             val testRead = try {
                 JsonStringReader.readFirstOrNull(sourceFile, workspace, Prefab::class)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
-            assertNotNull(testRead) {
-                "Must not override assets! $sourceFile is not a prefab"
+            if (testRead == null && !force) {
+                LOGGER.warn("Must not override assets! $sourceFile is not a prefab")
+                return
             }
         }
 
@@ -478,11 +482,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         PrefabCache.setPrefabPair(sourceFile, data, PrefabCache.timeoutMillis)
         FileWatch.stopIgnoring(sourceFile)
 
-        assertSame(data, PrefabCache.getPrefabPair(sourceFile))
-
-        // invalidate all thumbnails:
-        GameEngineProject.invalidateThumbnails(listOf(sourceFile))
-
+        invalidateThumbnails(listOf(sourceFile))
         restoreSelected(selected)
     }
 
@@ -499,10 +499,6 @@ class PrefabInspector(var prefabSource: FileReference) {
         }
 
         private val LOGGER = LogManager.getLogger(PrefabInspector::class)
-
-        init {
-            LogManager.disableLogger("FBStack")
-        }
 
         var currentInspector: PrefabInspector? = null
     }

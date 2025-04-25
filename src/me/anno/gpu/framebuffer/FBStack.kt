@@ -35,7 +35,9 @@ object FBStack : SimpleCache("FBStack", 2100L) {
                 for (it in data) {
                     it.destroy()
                 }
-                printDestroyed(data.size)
+                if (LOGGER.isDebugEnabled()) {
+                    printDestroyed(data.size)
+                }
                 data.clear()
             }
         }
@@ -99,7 +101,7 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         ) {
         override fun printDestroyed(size: Int) {
             val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
-            LOGGER.info("Freed $fs of size ${key.width} x ${key.height}, samples: ${key.samples}, quality: ${key.quality}")
+            LOGGER.debug("Freed $fs of size ${key.width} x ${key.height}, samples: ${key.samples}, quality: ${key.quality}")
         }
     }
 
@@ -117,7 +119,10 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         FBStackData(key.width, key.height, key.samples, listOf(key.targetType), key.depthBufferType) {
         override fun printDestroyed(size: Int) {
             val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
-            LOGGER.info("Freed $fs of size ${key.width} x ${key.height}, samples: ${key.samples}, type: ${key.targetType}")
+            LOGGER.debug(
+                "Freed {} of size {} x {}, samples: {}, type: {}",
+                fs, key.width, key.height, key.samples, key.targetType
+            )
         }
     }
 
@@ -125,7 +130,10 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         FBStackData(key.width, key.height, key.samples, key.targetTypes, key.depthBufferType) {
         override fun printDestroyed(size: Int) {
             val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
-            LOGGER.info("Freed $fs of size ${key.width} x ${key.height}, samples: ${key.samples}, type: ${key.targetTypes}")
+            LOGGER.debug(
+                "Freed {} of size {} x {}, samples: {}, type: {}",
+                fs, key.width, key.height, key.samples, key.targetTypes
+            )
         }
     }
 
