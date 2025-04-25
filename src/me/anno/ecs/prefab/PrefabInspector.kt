@@ -23,6 +23,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
@@ -59,12 +60,12 @@ import org.apache.logging.log4j.LogManager
 /**
  * creates UI to inspect and edit PrefabSaveables
  * */
-class PrefabInspector(var reference: FileReference) {
+class PrefabInspector(var prefabSource: FileReference) {
 
     val prefab: Prefab
         get() {
-            val prefab = PrefabCache[reference]
-                ?: throw NullPointerException("Missing prefab of $reference, ${reference::class.simpleName}")
+            val prefab = PrefabCache[prefabSource]
+                ?: throw NullPointerException("Missing prefab of $prefabSource, ${prefabSource::class.simpleName}")
             val history = prefab.history ?: ChangeHistory()
             if (history.currentState.isEmpty()) {
                 history.put(serialize(prefab))
@@ -81,7 +82,7 @@ class PrefabInspector(var reference: FileReference) {
     }
 
     fun update() {
-        reference = reference.validate()
+        prefabSource = prefabSource.validate()
     }
 
     val adds get() = prefab.adds
@@ -192,6 +193,21 @@ class PrefabInspector(var reference: FileReference) {
             prefab.findPrefabSourceRecursively(it.prefabPath)
                 ?.nullIfUndefined()
         }
+
+        if (prefabSource is InnerTmpFile) {
+            list += TextPanel("Temporary file!", style).apply {
+                textColor = 0xff0000 or black
+                disableFocusColors()
+            }
+        }
+
+        if (!prefab.isWritable) {
+            list += TextPanel("Unwritable file!", style).apply {
+                textColor = 0xffff00 or black
+                disableFocusColors()
+            }
+        }
+
         val pathInformation = instances.indices
             .joinToString("\n\n") { idx ->
                 val instance = instances[idx]
@@ -430,7 +446,7 @@ class PrefabInspector(var reference: FileReference) {
     }
 
     fun save() {
-        val sourceFile = reference
+        val sourceFile = prefabSource
         assertNotEquals(InvalidRef, sourceFile, "Prefab doesn't have source!!")
         if (sourceFile.exists) {
             // check, that we actually can save this file;

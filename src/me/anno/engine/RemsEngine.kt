@@ -59,15 +59,11 @@ import org.joml.Matrix4f
 
 // todo: translate everything (again xD)
 
-// todo create first release :3 (to easier get started for others)
-
 // todo billboards, which are conditionally rendered: when point is visible (for nice light camera-bug effects, e.g. stars with many blades)
 
 // todo forward-plus rendering
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
-
-// todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
 
 // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 

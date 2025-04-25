@@ -58,7 +58,7 @@ import org.joml.Vector3d
 class ECSSceneTab(
     val inspector: PrefabInspector,
     val playMode: PlayMode,
-    name: String = findName(inspector.reference)
+    name: String = findName(inspector.prefabSource)
 ) : TextPanel(name, DefaultConfig.style) {
 
     constructor(
@@ -71,7 +71,7 @@ class ECSSceneTab(
         padding.set(6, 2, 6, 2)
     }
 
-    val file get() = inspector.reference
+    val file get() = inspector.prefabSource
 
     // different tabs have different "cameras"
     var radius = 10f
