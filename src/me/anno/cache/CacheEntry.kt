@@ -35,6 +35,7 @@ class CacheEntry private constructor(
         set(value) {
             field = value
             hasValueMaybe = true
+            hasGenerator = true
         }
 
     private var hasValueMaybe = false

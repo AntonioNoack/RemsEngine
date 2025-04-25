@@ -46,8 +46,19 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     }
 
     operator fun set(k1: KManifold, k2: KFewOnly, v: Value) {
+        put(k1, k2, v)
+    }
+
+    fun put(k1: KManifold, k2: KFewOnly, v: Value): Value? {
         val list = values.getOrPut(k1) { PairArrayList(8) }
-        if (list.replaceOrAddMap(k2, v)) size++
+        val index = list.indexOfFirst(k2)
+        return if (index >= 0) {
+            list.setSecond(index, v)
+        } else {
+            list.add(k2, v)
+            size++
+            null
+        }
     }
 
     fun setUnsafe(k1: KManifold, k2: KFewOnly, v: Value) {

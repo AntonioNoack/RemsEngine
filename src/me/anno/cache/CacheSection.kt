@@ -85,7 +85,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun removeFileEntry(file: FileReference) = removeEntry(file, file.lastModified)
+    fun removeFileEntry(file: FileReference) = removeFileEntry(file, file.lastModified)
+    fun removeFileEntry(file: FileReference, lastModified: Long) = removeEntry(file, lastModified)
 
     fun <R : ICacheData> getFileEntry(
         file: FileReference, allowDirectories: Boolean,
@@ -185,11 +186,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val oldValue = synchronized(dualCache) {
             val entry = CacheEntry(timeoutMillis)
             entry.data = newValue
-            val oldValue = dualCache[key0, key1]
-            dualCache[key0, key1] = entry
-            oldValue
+            dualCache.put(key0, key1, entry)
         }
         oldValue?.destroy()
+    }
+
+    fun overrideFileEntry(key: FileReference, newValue: ICacheData?, timeoutMillis: Long) {
+        overrideDual(key, key.lastModified, newValue, timeoutMillis)
     }
 
     private fun <V, W, R : ICacheData> generateDualSafely(key0: V, key1: W, generator: (V, W) -> R?): R? {

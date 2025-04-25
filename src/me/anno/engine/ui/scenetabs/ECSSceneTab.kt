@@ -328,9 +328,6 @@ class ECSSceneTab(
     override fun getTooltipText(x: Float, y: Float) = file.absolutePath
 
     fun save() {
-        // todo issue/bug: when we save something,
-        //  because the file is replaced/written, and we immediately load it again,
-        //  it might be empty at that point in time, and then throw exceptions in all kinds of places
         inspector.save()
     }
 

@@ -2,6 +2,7 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.System
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabCache
@@ -287,9 +288,16 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         }
 
         fun collectSelected(): Any {
-            val selection = EditorState.selection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
-            val lastSelection = EditorState.lastSelection.run { (this as? PrefabSaveable)?.prefabPath ?: this }
+            val selection = EditorState.selection.map { inspectableToCollectable(it) }
+            val lastSelection = inspectableToCollectable(EditorState.lastSelection)
             return Pair(selection, lastSelection)
+        }
+
+        private fun inspectableToCollectable(instance: Inspectable?): Any? {
+            return if (instance is PrefabSaveable && instance !is System) {
+                // Systems are PrefabSaveable, but don't have a path (yet?)
+                instance.prefabPath
+            } else instance
         }
 
         fun restoreSelected(collected: Any) {

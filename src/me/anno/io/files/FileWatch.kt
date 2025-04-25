@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.utils.InternalAPI
+import java.util.concurrent.ConcurrentSkipListSet
 
 // file change watcher
 // to do why are meshes disappearing, but not re-appearing?
@@ -30,5 +31,15 @@ object FileWatch {
      * */
     fun removeWatchDog(file: FileReference) {
         watchDogRemoveImpl?.invoke(file)
+    }
+
+    val ignoredFiles = ConcurrentSkipListSet<String>()
+
+    fun startIgnoring(file: FileReference) {
+        ignoredFiles.add(file.absolutePath)
+    }
+
+    fun stopIgnoring(file: FileReference) {
+        ignoredFiles.remove(file.absolutePath)
     }
 }

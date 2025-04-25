@@ -92,7 +92,7 @@ private fun strAt(value: Any?): String {
     return if (value != null) "'$value'@${hash32(value)}" else "null"
 }
 
-fun assertSame(expected: Any?, actual: Any?, message: String = "expected equal values") {
+fun assertSame(expected: Any?, actual: Any?, message: String = "expected identical value") {
     assertTrue(expected === actual) {
         "$message, \n  expected ${strAt(expected)} === \n  actually ${strAt(actual)}"
     }

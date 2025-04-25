@@ -89,16 +89,25 @@ object FileWatchImpl {
                     for (event in key.pollEvents()) {
 
                         val kind = event.kind()
-                        if (kind == StandardWatchEventKinds.OVERFLOW) continue
+                        if (kind == StandardWatchEventKinds.OVERFLOW) {
+                            key.reset()
+                            continue
+                        }
 
                         val fileName = event.context() as Path
                         val folder = key.watchable()
                             .toString()
                             .replace('\\', '/')
+
                         val absolutePath = "$folder/$fileName"
-                        Events.addEvent {
-                            Reference.invalidate(absolutePath)
+                        if (absolutePath !in FileWatch.ignoredFiles) {
+                            Events.addEvent {
+                                if (absolutePath !in FileWatch.ignoredFiles) {
+                                    Reference.invalidate(absolutePath)
+                                }
+                            }
                         }
+
                         LOGGER.debug("{} {}", kind, absolutePath)
 
                         // they say the directory is no longer valid...

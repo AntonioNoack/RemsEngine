@@ -21,6 +21,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -45,6 +46,7 @@ import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertSame
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -442,20 +444,30 @@ class PrefabInspector(var reference: FileReference) {
                 "Must not override assets! $sourceFile is not a prefab"
             }
         }
+
+        val oldLastModified = sourceFile.lastModified
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
         val encoding = GameEngineProject.encoding.getForExtension(sourceFile)
         val prefab = prefab
+
+        FileWatch.startIgnoring(sourceFile)
         sourceFile.writeBytes(encoding.encode(prefab, workspace))
         prefab.wasModified = false // kind of needs to happen in-between...
+
+        PrefabCache.removeFileEntry(sourceFile, oldLastModified)
+        val data = FileReadPrefabData(sourceFile)
+        data.value = prefab
+        PrefabCache.setPrefabPair(sourceFile, data, PrefabCache.timeoutMillis)
+        FileWatch.stopIgnoring(sourceFile)
+
+        assertSame(data, PrefabCache.getPrefabPair(sourceFile))
 
         // invalidate all thumbnails:
         GameEngineProject.invalidateThumbnails(listOf(sourceFile))
 
-        addEvent(500) {
-            restoreSelected(selected)
-        }
+        restoreSelected(selected)
     }
 
     override fun toString(): String = JsonStringWriter.toText(prefab, workspace)

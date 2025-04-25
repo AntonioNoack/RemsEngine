@@ -23,6 +23,24 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
     @Suppress("unchecked_cast")
     fun getSecond(index: Int): Second = array[index * 2 + 1] as Second
 
+    @Suppress("unchecked_cast")
+    fun setFirst(index: Int, first: First): First? {
+        val i = index * 2
+        val array = array
+        val prev = array[i]
+        array[i] = first
+        return prev as First
+    }
+
+    @Suppress("unchecked_cast")
+    fun setSecond(index: Int, second: Second): Second? {
+        val i = index * 2 + 1
+        val array = array
+        val prev = array[i]
+        array[i] = second
+        return prev as Second
+    }
+
     fun lastFirst() = getFirst(size - 1)
     fun lastSecond() = getSecond(size - 1)
 

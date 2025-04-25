@@ -31,9 +31,9 @@ import me.anno.io.xml.saveable.XML2JSON
 import me.anno.io.yaml.generic.YAMLReader
 import me.anno.io.yaml.saveable.YAML2JSON
 import me.anno.utils.Logging.hash32
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
-import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
@@ -333,23 +333,40 @@ object PrefabCache : CacheSection("Prefab") {
         timeout: Long = timeoutMillis,
         async: Boolean = false
     ): FileReadPrefabData? {
+        var source = resource
+        while (source is InnerLinkFile) {
+            notifyLink(source)
+            source = source.link
+        }
         return when {
-            resource == null || resource == InvalidRef -> null
-            resource is InnerLinkFile -> {
-                notifyLink(resource)
-                getPrefabPair(resource.link, depth, timeout, async)
-            }
-            resource is PrefabReadable -> {
-                val result = FileReadPrefabData(resource)
-                result.value = resource.readPrefab()
+            source == null || source == InvalidRef -> null
+            source is PrefabReadable -> {
+                val result = FileReadPrefabData(source)
+                result.value = source.readPrefab()
                 result
             }
-            resource.exists && !resource.isDirectory -> {
-                val entry = getFileEntry(resource, false, timeout, async, ::loadPrefabPair)
-                warnLoadFailedMaybe(resource, entry)
+            source.exists && !source.isDirectory -> {
+                val entry = getFileEntry(source, false, timeout, async, ::loadPrefabPair)
+                warnLoadFailedMaybe(source, entry)
                 return entry
             }
             else -> null
+        }
+    }
+
+    fun setPrefabPair(resource: FileReference?, value: FileReadPrefabData, timeout: Long = timeoutMillis): Boolean {
+        var source = resource
+        while (source is InnerLinkFile) {
+            notifyLink(source)
+            source = source.link
+        }
+        return when (source) {
+            null, InvalidRef -> false
+            is PrefabReadable -> false
+            else -> {
+                overrideFileEntry(source, value, timeout)
+                true
+            }
         }
     }
 
@@ -400,6 +417,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadPrefabPair(file: FileReference, lastModified: Long): FileReadPrefabData {
         if (debugLoading) LOGGER.debug("Loading {}@{}", file, lastModified)
+        LOGGER.info("Loading {}@{}", file, lastModified)
         ensureClasses()
         val data = FileReadPrefabData(file)
         loadPrefab4(file) { loaded, e ->
