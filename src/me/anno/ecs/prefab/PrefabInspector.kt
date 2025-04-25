@@ -473,6 +473,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         val prefab = prefab
 
         FileWatch.startIgnoring(sourceFile)
+        sourceFile.invalidate() // invalidate resources depending on this file
         sourceFile.writeBytes(encoding.encode(prefab, workspace))
         prefab.wasModified = false // kind of needs to happen in-between...
 
