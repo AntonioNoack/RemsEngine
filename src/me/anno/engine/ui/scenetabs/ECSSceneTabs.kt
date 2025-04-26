@@ -109,7 +109,9 @@ object ECSSceneTabs : ScrollPanelX(style) {
         val project = project
         if (project != null) {
             val tabLocal = tab.file.toLocalPath(project.location)
-            if (project.openTabs.add(tabLocal) || project.lastScene != tabLocal) {
+            val newTab = tabLocal !in project.openTabs
+            if (newTab || project.lastScene != tabLocal) {
+                if (newTab) project.openTabs.add(tabLocal)
                 project.lastScene = tabLocal
                 project.save()
             }

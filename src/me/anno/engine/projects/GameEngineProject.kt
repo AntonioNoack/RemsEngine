@@ -25,6 +25,7 @@ import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
@@ -102,7 +103,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
     var location: FileReference = InvalidRef // a folder
     var lastScene: String = ""
-    val openTabs = HashSet<String>()
+    val openTabs = ArrayList<String>()
 
     val configFile get() = location.getChild("Project.json")
     var encoding = FileEncoding.PRETTY_JSON
@@ -173,7 +174,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         val lastScene = lastScene
 
         // open all tabs
-        for (tab in openTabs.toList()) {
+        for (tab in openTabs) {
             try {
                 ECSSceneTabs.open(tab.toGlobalFile(EngineBase.workspace), PlayMode.EDITING, false)
             } catch (e: Exception) {
@@ -200,10 +201,8 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
                 val filesToIndex = ArrayList<FileReference>()
                 indexFolder(progressBar, location, maxIndexDepth, filesToIndex)
                 while (!Engine.shutdown && filesToIndex.isNotEmpty() && !progressBar.isCancelled) {
-                    if (Engine.shutdown) break
                     progressBar.progress += 1.0
-                    val fileToIndex = filesToIndex.removeFirst()
-                    indexResource(fileToIndex)
+                    indexResource(filesToIndex.removeFirst())
                 }
                 progressBar.finish(true)
             }
@@ -269,8 +268,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             "openTabs" -> {
                 val values = value as? List<*> ?: return
                 openTabs.clear()
-                openTabs.addAll(values.filterIsInstance<String>())
-                openTabs.addAll(values.filterIsInstance<FileReference>().map { it.toLocalPath(location) })
+                openTabs.addAll(values.filterIsInstance2(String::class))
             }
             "encoding" -> encoding = FileEncoding.entries.getOrNull(value as? Int ?: return) ?: encoding
             else -> super.setProperty(name, value)

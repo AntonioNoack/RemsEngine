@@ -35,6 +35,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.mul4x3delta
+import me.anno.gpu.VRRenderingRoutine
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredRenderer
@@ -182,7 +183,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val vrr = GFX.vrRenderingRoutine
+        val vrr = VRRenderingRoutine.vrRoutine
         val fb0 = vrr?.fb
         if (vrr != null && vrr.isActive && fb0?.textures?.all2 { it.isCreated() } == true) {
             showStereoView(x, y + height, width, -height, fb0)
