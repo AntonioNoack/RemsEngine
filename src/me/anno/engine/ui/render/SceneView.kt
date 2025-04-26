@@ -12,9 +12,9 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
-import me.anno.engine.ui.scenetabs.ECSSceneTab.Companion.tryStartVR
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
+import me.anno.gpu.VRRenderingRoutine
 import me.anno.graph.visual.Graph
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
@@ -129,7 +129,7 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
         private fun tryStartVR(sceneView: SceneView) {
             addEvent {
                 val osWindow = GFX.someWindow
-                tryStartVR(osWindow, sceneView.renderView)
+                VRRenderingRoutine.tryStartVR(osWindow, sceneView.renderView)
             }
         }
     }

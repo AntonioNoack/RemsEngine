@@ -3,9 +3,9 @@ package me.anno.gpu
 import me.anno.audio.streams.AudioStream
 import me.anno.engine.EngineBase
 import me.anno.gpu.GFX.resetFBStack
-import me.anno.gpu.GFX.shallRenderVR
-import me.anno.gpu.GFX.vrRenderingRoutine
 import me.anno.gpu.GFX.windows
+import me.anno.gpu.VRRenderingRoutine.Companion.shallRenderVR
+import me.anno.gpu.VRRenderingRoutine.Companion.vrRoutine
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader
@@ -58,8 +58,9 @@ object RenderStep {
     private fun renderStepImpl(window: OSWindow, doRender: Boolean) {
         val inst = EngineBase.instance
         if (inst != null && doRender) {
-            if (shallRenderVR && window == windows.firstOrNull()) {
-                shallRenderVR = vrRenderingRoutine!!.drawFrame(window)
+            val vrRoutine = vrRoutine
+            if (shallRenderVR && vrRoutine != null && window == windows.firstOrNull()) {
+                shallRenderVR = vrRoutine.drawFrame(window)
             } else {
                 callOnGameLoop(inst, window)
             }

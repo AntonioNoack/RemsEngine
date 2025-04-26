@@ -10,7 +10,6 @@ import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache
@@ -22,8 +21,6 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
-import me.anno.gpu.OSWindow
 import me.anno.graph.visual.Graph
 import me.anno.image.thumbs.AssetThumbnails.getBoundsForRendering
 import me.anno.input.Clipboard.setClipboardContent
@@ -88,22 +85,22 @@ class ECSSceneTab(
             is MeshComponentBase -> {
                 resetCamera2(root.getMesh() ?: return)
             }
-            is Mesh -> resetCamera2(root)
+            is IMesh -> resetCamera2(root)
             is Material, is LightComponentBase -> {
                 radius = 2f
             }
             is Entity -> {
                 root.validateTransform()
                 val bounds = getBoundsForRendering(root)
-                resetCamera(bounds, true)
+                resetCamera(bounds)
             }
             is Animation -> {
                 val skeleton = SkeletonCache[root.skeleton] ?: return
                 val aabb = skeletalBounds(skeleton)
                 // widen bounds by motion
                 val motionBounds = AABBf()
-                for (i in 0 until root.numFrames) {
-                    val matrices = root.getMatrices(0, BoneData.tmpMatrices) ?: break
+                for (frameIndex in 0 until root.numFrames) {
+                    val matrices = root.getMatrices(frameIndex, BoneData.tmpMatrices) ?: break
                     for (j in skeleton.bones.indices) {
                         val offset = matrices[j]
                         motionBounds.union(offset.m30, offset.m31, offset.m32)
@@ -115,19 +112,19 @@ class ECSSceneTab(
                 aabb.maxX += motionBounds.maxX
                 aabb.maxY += motionBounds.maxY
                 aabb.maxZ += motionBounds.maxZ
-                resetCamera(aabb, true)
+                resetCamera(aabb)
             }
             is CollidingComponent -> {
                 val aabb = JomlPools.aabbd.create().clear()
                 val mat = JomlPools.mat4x3m.create().identity()
                 root.fillSpace(mat, aabb)
-                resetCamera(aabb, true)
+                resetCamera(aabb)
                 JomlPools.mat4x3m.sub(1)
                 JomlPools.aabbd.sub(1)
             }
             is Skeleton -> {
                 // find still bounds
-                resetCamera(skeletalBounds(root), true)
+                resetCamera(skeletalBounds(root))
             }
             is Retargeting -> {
                 val bounds = AABBd()
@@ -135,7 +132,7 @@ class ECSSceneTab(
                 val dstSkeleton = SkeletonCache[root.dstSkeleton]
                 if (srcSkeleton != null) bounds.set(skeletalBounds(srcSkeleton))
                 if (dstSkeleton != null) bounds.union(skeletalBounds(dstSkeleton))
-                resetCamera(bounds, true)
+                resetCamera(bounds)
             }
             is Graph -> {} // idc
             else -> LOGGER.warn("Please implement bounds for class ${root.className}")
@@ -151,16 +148,16 @@ class ECSSceneTab(
     }
 
     private fun resetCamera2(mesh: IMesh) {
-        resetCamera(mesh.getBounds(), true)
+        resetCamera(mesh.getBounds())
     }
 
-    private fun resetCamera(aabb: AABBf, translate: Boolean) {
-        resetCamera(AABBd(aabb), translate)
+    private fun resetCamera(aabb: AABBf) {
+        resetCamera(AABBd(aabb))
     }
 
-    private fun resetCamera(aabb: AABBd, translate: Boolean) {
+    private fun resetCamera(aabb: AABBd) {
         if (aabb.centerX.isFinite() && aabb.centerY.isFinite() && aabb.centerZ.isFinite()) {
-            if (translate) position.set(aabb.centerX, aabb.centerY, aabb.centerZ)
+            position.set(aabb.centerX, aabb.centerY, aabb.centerZ)
             radius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ).toFloat()
         }
     }
@@ -335,20 +332,5 @@ class ECSSceneTab(
         private val LOGGER = LogManager.getLogger(ECSSceneTab::class)
         private val defaultRotation = Quaternionf()
             .rotationYXZ((30f).toRadians(), (-10f).toRadians(), 0f)
-
-        fun tryStartVR(window: OSWindow?, rv: RenderView?) {
-            if (GFX.shallRenderVR) {
-                LOGGER.warn("Already running VR")
-                return
-            }
-            val rr = GFX.vrRenderingRoutine
-            if (rr != null) {
-                if (window != null && rv != null) {
-                    GFX.shallRenderVR = rr.startSession(window, rv)
-                    if (!GFX.shallRenderVR) LOGGER.warn("Failed to initialize VR")
-                    else LOGGER.info("Started VR")
-                } else LOGGER.warn(if (window == null) "Window is null" else "RenderView is missing")
-            } else LOGGER.warn("VR isn't supported")
-        }
     }
 }

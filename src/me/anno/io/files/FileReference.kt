@@ -19,7 +19,6 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.arrays.ByteArrayList
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.indexOf2
-import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
@@ -40,10 +39,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     companion object {
         private val LOGGER = LogManager.getLogger(FileReference::class)
     }
-
-    // done if there is a !!, it's into a zip file -> it only needs to be a slash;
-    // all zip files should be detected automatically
-    // done if res:// at the start, then it's a local resource
 
     private var isValid = true
 
@@ -72,9 +67,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     private val _hashCode = absolutePath.hashCode()
-
-    private val _hasValidName = !absolutePath.isBlank2()
-    fun hasValidName() = _hasValidName
 
     var isHidden = name.startsWith('.')// hidden file in Linux, or file in unity package
 
@@ -447,8 +439,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun isSameOrSubFolderOf(other: FileReference): Boolean {
-        if (other == InvalidRef) return false
-        return this == other || isSubFolderOf(other.absolutePath)
+        return isSameOrSubFolderOf(other.absolutePath)
     }
 
     fun isSameOrSubFolderOf(other: String): Boolean {
@@ -456,7 +447,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun isSubFolderOf(other: FileReference): Boolean {
-        if (other == InvalidRef) return false
         return isSubFolderOf(other.absolutePath)
     }
 

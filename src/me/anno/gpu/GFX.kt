@@ -192,9 +192,6 @@ object GFX {
     @JvmField
     var gpuTaskBudgetNanos = 11L * MILLIS_TO_NANOS
 
-    var vrRenderingRoutine: VRRenderingRoutine? = null
-    var shallRenderVR = false
-
     /**
      * Checks whether the current thread is a graphics-capable thread.
      * */

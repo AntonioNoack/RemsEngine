@@ -4,7 +4,6 @@ import me.anno.Engine
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.extensions.plugins.Plugin
-import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.gpu.RenderStep.callOnGameLoop
 import me.anno.gpu.VRRenderingRoutine
@@ -23,7 +22,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
     override fun onEnable() {
         super.onEnable()
-        GFX.vrRenderingRoutine = this
+        VRRenderingRoutine.vrRoutine = this
     }
 
     private var instance: OpenXR? = null
@@ -38,6 +37,10 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
     init {
         fb.textures = listOf(ct0, ct1)
+    }
+
+    override fun setRenderView(rv: RenderView) {
+        this.rv = rv
     }
 
     override fun startSession(window: OSWindow, rv: RenderView): Boolean {

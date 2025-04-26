@@ -5,7 +5,7 @@ import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
@@ -488,7 +488,7 @@ open class FileExplorerEntry(
         if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
             when (val sample = prefab.getSampleInstance()) {
                 is Entity -> ttt.append(AABBf(sample.getGlobalBounds())).append('\n')
-                is Mesh -> ttt.append(sample.getBounds()).append('\n')
+                is IMesh -> ttt.append(sample.getBounds()).append('\n')
             }
         }
         ttt.append(prefab.adds.size).append("+, ").append(prefab.sets.size).append("*")

@@ -18,12 +18,12 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.SceneView
-import me.anno.engine.ui.scenetabs.ECSSceneTab.Companion.tryStartVR
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
+import me.anno.gpu.VRRenderingRoutine.Companion.tryStartVR
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.image.thumbs.AssetThumbHelper
@@ -155,7 +155,6 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
 
         ECSSceneTabs.currentTab?.applyRadius(sceneView.renderView)
 
-        // todo if RenderView is deleted/disabled, make other RenderView VR-renderer
         val osWindow = GFX.someWindow
         tryStartVR(osWindow, sceneView.renderView)
 
