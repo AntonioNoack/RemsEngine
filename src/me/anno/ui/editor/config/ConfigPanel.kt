@@ -268,7 +268,7 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
 
         // todo TextPanel and TextInput aren't aligned, which looks bad
 
-        right.add(InputCheckPanel(NameDesc("Input Checker"), style))
+        right.add(InputKeyShowPanel(NameDesc("Input Checker"), style))
 
         right.add(SpacerPanel(0, 1, style))
 

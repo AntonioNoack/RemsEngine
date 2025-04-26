@@ -9,9 +9,9 @@ import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 
 /**
- * Input field, which accepts any input, and shows the current action value 🤔
+ * Panel, which accepts any input, and shows the current key value for ActionManager
  * */
-class InputCheckPanel(val title: NameDesc, style: Style) : TextPanel(title, style) {
+class InputKeyShowPanel(val title: NameDesc, style: Style) : TextPanel(title, style) {
 
     private val prefix = "${title.name}: "
 
