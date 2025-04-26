@@ -1,5 +1,6 @@
 package me.anno.engine.inspector
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.prefab.PrefabInspector.Companion.formatWarning
 import me.anno.ecs.prefab.PrefabSaveable
@@ -12,7 +13,9 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PropertyTablePanel
 import me.anno.ui.base.groups.SizeLimitingContainer
+import me.anno.ui.base.groups.TablePanel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
@@ -21,6 +24,7 @@ import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.shorten2Way
@@ -132,18 +136,34 @@ object InspectorUtils {
     fun showPropertyI(
         property: CachedProperty,
         property2: IProperty<Any?>, reflections: CachedReflections,
-        list: PanelList, isWritable: Boolean, style: Style,
+        table: TablePanel, isWritable: Boolean, style: Style,
     ) {
         val name = property.name
         try {
-            val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: return
+
+            val panel = ComponentUI.createUI2(
+                "", "",
+                property2, property.range, style
+            ) ?: return
             panel.tooltip = property.description
             panel.forAllPanels { panel2 ->
                 if (panel2 is InputPanel<*>) {
                     panel2.isInputAllowed = isWritable
                 }
             }
-            list.add(panel)
+
+            val tableY = table.sizeY++
+            table[0, tableY] = TextPanel(name.camelCaseToTitle(), style)
+            table[1, tableY] = panel
+
+            val ttt = property.annotations
+                .firstInstanceOrNull2(Docs::class)
+                ?.description
+
+            if (ttt != null) {
+                table[0, tableY].tooltip = ttt
+                table[1, tableY].tooltip = ttt
+            }
         } catch (e: Error) {
             warn(reflections, name, e)
         } catch (e: Exception) {
@@ -164,16 +184,20 @@ object InspectorUtils {
         isWritable: Boolean, createIProperty: (CachedProperty, List<PrefabSaveable>) -> IProperty<Any?>,
     ) {
         if (reflections.editorFields.isEmpty()) return
-        val group = SettingCategory(NameDesc("Editor Fields"), style).showByDefault()
+        val table = PropertyTablePanel(2, 0, style)
         for (field in reflections.editorFields) {
             val property = reflections.allProperties[field.name]
             if (property != null) {
                 val iProperty = createIProperty(property, instances)
-                showPropertyI(property, iProperty, reflections, group.content, isWritable, style)
+                showPropertyI(property, iProperty, reflections, table, isWritable, style)
             } else {
                 LOGGER.warn("Missing property ${field.name}")
             }
         }
+
+        val group = SettingCategory(NameDesc("Editor Fields"), style)
+            .showByDefault()
+        group.content.add(table)
         list.add(group)
     }
 
@@ -183,9 +207,13 @@ object InspectorUtils {
         isWritable: Boolean, createProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
         hideNameDesc: Boolean
     ) {
+
         val propertiesByClass = reflections.propertiesByClass
-        val panelByGroup = HashMap<String, PanelList>()
-        panelByGroup[DEFAULT_GROUP] = list
+        val panelByGroup = HashMap<String, TablePanel>()
+        val table0 = PropertyTablePanel(2, 0, style)
+        panelByGroup[DEFAULT_GROUP] = table0
+        list.add(table0)
+
         for (i in propertiesByClass.indices) {
             val (clazz, propertiesI) = propertiesByClass[i]
             val relevantInstances = instances.filter { clazz.isInstance(it) }
@@ -216,25 +244,26 @@ object InspectorUtils {
     }
 
     private fun getOrPutPanelList(
-        panelByGroup: HashMap<String, PanelList>,
+        tablesByGroup: HashMap<String, TablePanel>,
         groupPanel: PanelList, style: Style, groupName: String
-    ): PanelList {
-        return panelByGroup.getOrPut(groupName) {
-            val category = SettingCategory(NameDesc(groupName), style)
-            category.showByDefault()
+    ): TablePanel {
+        return tablesByGroup.getOrPut(groupName) {
+            val category = SettingCategory(NameDesc(groupName), style).showByDefault()
             groupPanel.add(category)
-            category.content
+            val table = PropertyTablePanel(2, 0, style)
+            category.content.add(table)
+            table
         }
     }
 
     fun <V : Inspectable> showProperties(
         reflections: CachedReflections, properties: List<CachedProperty>, clazz: Class<*>, relevantInstances: List<V>,
-        panelByGroup: HashMap<String, PanelList>, groupPanel: PanelList, style: Style,
+        tablesByGroup: HashMap<String, TablePanel>, groupPanel: PanelList, style: Style,
         isWritable: Boolean, createIProperty: (CachedProperty, List<V>) -> IProperty<Any?>,
     ) {
         for (property in properties.sortedWith(PropertyComparator)) {
             val group = property.group.ifBlank2(clazz.simpleName ?: DEFAULT_GROUP)
-            val panelList = getOrPutPanelList(panelByGroup, groupPanel, style, group)
+            val panelList = getOrPutPanelList(tablesByGroup, groupPanel, style, group)
             val iProperty = createIProperty(property, relevantInstances)
             showPropertyI(property, iProperty, reflections, panelList, isWritable, style)
         }

@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.Entity
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.change.Path
@@ -290,6 +291,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         }, true)
 
         val instance = instances.first()
+        if (instance is Entity) return // todo regulate this using annotations...
         val types = instance.listChildTypes()
         for (i in types.indices) {
             showChildType(list, types[i], instance, style, isWritable)

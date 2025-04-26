@@ -17,13 +17,11 @@ import me.anno.utils.Color.toVecRGB
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
-import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.Collections.filterIsInstance2
+import me.anno.utils.structures.lists.Lists.firstInstance2
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
-import kotlin.reflect.safeCast
 
 class AutoInspectorTest {
 
@@ -210,9 +208,6 @@ class AutoInspectorTest {
     }
 
     private fun <V : Any> findPanel(ui: PanelGroup, clazz: KClass<V>): V {
-        return Recursion.findRecursive(ui) { item, remaining ->
-            remaining.addAll(item.children.filterIsInstance2(PanelGroup::class))
-            clazz.safeCast(item)
-        }!!
+        return ui.listOfAll.firstInstance2(clazz)
     }
 }

@@ -99,7 +99,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @NotSerializedProperty
     private val internalComponents: ArrayList<Component> = ArrayList(4)
 
-    @SerializedProperty
+    @NotSerializedProperty
     val components: List<Component>
         get() = internalComponents
 
@@ -262,7 +262,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return this.collisionBits.and(collisionMask) != 0
     }
 
-    @DebugAction
+    @DebugAction("Invalidate AABBs Completely")
     fun invalidateAABBsCompletely() {
         invalidateOwnAABB()
         invalidateChildAABBs()
