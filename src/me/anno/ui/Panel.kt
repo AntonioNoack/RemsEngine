@@ -415,7 +415,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         val tooltip = tooltip
         println(
             "${Strings.spaces(tabDepth * 2)}$className(${(weight * 10).roundToIntOr()}, " +
-                    "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""})) " +
+                    "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""}) " +
                     "$x-${x + width}, $y-${y + height} ($minW $minH) ${
                         if (tooltip.isBlank2()) "" else "'${tooltip.shorten(20)}' "
                     }${getPrintSuffix()}"

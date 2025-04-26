@@ -20,7 +20,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.utils.Color.mulAlpha
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.round
 
 open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     PanelContainer(child, padding, style), ScrollableX, ScrollableY {
@@ -31,41 +30,15 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     open val content get() = child
 
-    @NotSerializedProperty
-    private var lastScrollPosX = -1.0
-
-    @NotSerializedProperty
-    private var lastScrollPosY = -1.0
-
-    @NotSerializedProperty
-    private var lastMaxScrollPosX = -1L
-
-    @NotSerializedProperty
-    private var lastMaxScrollPosY = -1L
-
     override fun onUpdate() {
         super.onUpdate()
-        val window = window!!
-        val mx = window.mouseXi
-        val my = window.mouseYi
-        scrollbarX.isHovered = drawsOverX(mx, my)
-        scrollbarY.isHovered = drawsOverY(mx, my)
+        val window = window
+        scrollbarX.isHovered = window != null && drawsOverX(window.mouseXi, window.mouseYi)
+        scrollbarY.isHovered = window != null && drawsOverY(window.mouseXi, window.mouseYi)
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(uiDeltaTime * scrollHardnessX))
         scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(uiDeltaTime * scrollHardnessY))
         scrollbarX.updateAlpha()
         scrollbarY.updateAlpha()
-        if (
-            round(scrollPositionX) != lastScrollPosX ||
-            round(scrollPositionY) != lastScrollPosY ||
-            maxScrollPositionX != lastMaxScrollPosX ||
-            maxScrollPositionY != lastMaxScrollPosY
-        ) {
-            lastScrollPosX = round(scrollPositionX)
-            lastScrollPosY = round(scrollPositionY)
-            lastMaxScrollPosX = maxScrollPositionX
-            lastMaxScrollPosY = maxScrollPositionY
-            setPosition(x, y)
-        }
     }
 
     override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {

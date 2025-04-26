@@ -32,12 +32,6 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
     constructor(child: Panel, style: Style) : this(child, Padding(), style)
     constructor(padding: Padding, style: Style) : this(PanelListX(style), padding, style)
 
-    @NotSerializedProperty
-    var lastScrollPosX = -1.0
-
-    @NotSerializedProperty
-    var lastMaxScrollPosX = -1L
-
     override var scrollHardnessX = 25.0
 
     override var scrollPositionX = 0.0
@@ -80,18 +74,9 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
     override fun onUpdate() {
         super.onUpdate()
         val window = window
-        if (window != null) {
-            val mx = window.mouseXi
-            val my = window.mouseYi
-            scrollbar.isHovered = capturesChildEvents(mx, my)
-        }
+        scrollbar.isHovered = window != null && capturesChildEvents(window.mouseXi, window.mouseYi)
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(uiDeltaTime * scrollHardnessX))
         scrollbar.updateAlpha()
-        if (round(scrollPositionX) != lastScrollPosX || maxScrollPositionX != lastMaxScrollPosX) {
-            lastScrollPosX = round(scrollPositionX)
-            lastMaxScrollPosX = maxScrollPositionX
-            placeChild()
-        }
     }
 
     fun placeChild() {
