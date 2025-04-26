@@ -14,7 +14,7 @@ import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
-import me.anno.gpu.VRRenderingRoutine
+import me.anno.engine.ui.vr.VRRenderingRoutine
 import me.anno.graph.visual.Graph
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel

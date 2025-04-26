@@ -4,8 +4,8 @@ import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.input.ButtonUpdateState
 import me.anno.input.Key
-import me.anno.input.VROffset.additionalOffset
-import me.anno.input.VROffset.additionalRotation
+import me.anno.engine.ui.vr.VROffset.additionalOffset
+import me.anno.engine.ui.vr.VROffset.additionalRotation
 import me.anno.maths.Maths.clamp
 import me.anno.openxr.OpenXRController.Companion.xrControllers
 import me.anno.openxr.OpenXRUtils.checkXR

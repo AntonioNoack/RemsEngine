@@ -3,13 +3,12 @@ package me.anno.openxr
 import me.anno.Engine
 import me.anno.Time
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.vr.VRRendering
 import me.anno.gpu.drawing.Perspective
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.openxr.OpenXRUtils.xrInstance
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3f
 import org.lwjgl.openxr.XR10.XR_SESSION_STATE_UNKNOWN
 import org.lwjgl.openxr.XR10.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
 import org.lwjgl.openxr.XR10.xrDestroyInstance
@@ -18,16 +17,15 @@ import org.lwjgl.openxr.XrFovf
 import org.lwjgl.openxr.XrSpaceLocation
 import kotlin.math.abs
 import kotlin.math.atan
-import kotlin.math.max
 import kotlin.math.tan
 
-abstract class OpenXR(val window: Long) {
+abstract class OpenXR(val window: Long) : VRRendering() {
 
     companion object {
 
         private val LOGGER = LogManager.getLogger(OpenXR::class)
         const val VIEW_CONFIG_TYPE = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
-        val sessionTestTimeout = 2 * SECONDS_TO_NANOS
+        var sessionTestTimeout = 2 * SECONDS_TO_NANOS
 
         fun createProjectionFov(projectionMatrix: Matrix4f, fov: XrFovf, nearZ: Float, farZ: Float, rv: RenderView?) {
             val tanLeft = tan(fov.angleLeft())
@@ -58,13 +56,9 @@ abstract class OpenXR(val window: Long) {
         colorTexture: Int, depthTexture: Int,
     )
 
+    abstract fun beginRenderViews()
+
     var state = XR_SESSION_STATE_UNKNOWN
-
-    val viewMatrix = Matrix4f()
-    val projectionMatrix = Matrix4f()
-
-    val position = Vector3f()
-    val rotation = Quaternionf()
 
     val system = OpenXRSystem(window)
     var session: OpenXRSession? = null
@@ -110,10 +104,8 @@ abstract class OpenXR(val window: Long) {
         xrInstance = null
     }
 
-    open fun beginRenderViews() {
-        val session = session ?: return
-        position.set(0f)
-        rotation.set(0f, 0f, 0f, 0f)
+    override fun accumulateViewTransforms(): Int {
+        val session = session ?: return 0
         val viewCount = session.viewCount
         val views = session.views
         for (i in 0 until viewCount) {
@@ -123,7 +115,6 @@ abstract class OpenXR(val window: Long) {
             position.add(pos.x(), pos.y(), pos.z())
             rotation.add(rot.x(), rot.y(), rot.z(), rot.w())
         }
-        position.mul(1f / max(1, viewCount))
-        rotation.normalize()
+        return viewCount
     }
 }

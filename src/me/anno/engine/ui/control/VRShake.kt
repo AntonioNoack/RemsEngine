@@ -3,7 +3,7 @@ package me.anno.engine.ui.control
 import me.anno.Time
 import me.anno.Time.uiDeltaTime
 import me.anno.engine.Events.addEvent
-import me.anno.input.VROffset
+import me.anno.engine.ui.vr.VROffset
 import me.anno.maths.Maths.dtTo10
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.pooling.JomlPools

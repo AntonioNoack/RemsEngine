@@ -457,17 +457,17 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         } else {
             actions.clearActions(fs.frameState)
         }
-        fs.beginFrame(session)
 
-        val rendered = fs.frameState.shouldRender()
-        if (rendered) {
+        fs.beginFrame(session)
+        val shouldRender = fs.frameState.shouldRender()
+        if (shouldRender) {
             xr.beginRenderViews()
             for (viewIndex in 0 until viewCount) {
                 renderView(xr, viewIndex)
             }
         }
-
         fs.endFrame(session, space, projectionViews)
-        return rendered
+
+        return shouldRender
     }
 }

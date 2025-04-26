@@ -18,7 +18,6 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DebugRendering.drawDebugStats
 import me.anno.engine.ui.render.DebugRendering.drawDebugSteps
-import me.anno.engine.ui.render.DebugRendering.showStereoView
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
@@ -26,6 +25,8 @@ import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleRenderer
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
+import me.anno.engine.ui.vr.DebugVRRendering.showStereoView
+import me.anno.engine.ui.vr.VRRenderingRoutine
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
@@ -35,7 +36,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.mul4x3delta
-import me.anno.gpu.VRRenderingRoutine
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredRenderer
@@ -58,6 +58,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.graph.visual.render.RenderGraph
 import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.TAANode
@@ -75,7 +76,6 @@ import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
@@ -92,7 +92,6 @@ import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.tan
 
 // todo make shaders of materials be references via a file (StaticRef)? this will allow for visual shaders in the future
@@ -181,14 +180,25 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         cameraNode.validateTransform()
     }
 
+    private fun tryRenderVRViews(): Boolean {
+        val vrr = VRRenderingRoutine.vrRoutine
+        if (vrr == null || !vrr.isActive) return false
+
+        val leftTexture = vrr.leftTexture ?: return false
+        val rightTexture = vrr.rightTexture ?: TextureLib.blackTexture
+        if (!leftTexture.isCreated() || !rightTexture.isCreated()) return false
+
+        showStereoView(
+            x, y + height, width, -height,
+            leftTexture, null,
+            rightTexture, null,
+        )
+        return true
+    }
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val vrr = VRRenderingRoutine.vrRoutine
-        val fb0 = vrr?.fb
-        if (vrr != null && vrr.isActive && fb0?.textures?.all2 { it.isCreated() } == true) {
-            showStereoView(x, y + height, width, -height, fb0)
-            return
-        }
+        if (tryRenderVRViews()) return
 
         val drawnPrimitives0 = PipelineStageImpl.drawnPrimitives
         val drawnInstances0 = PipelineStageImpl.drawnInstances
@@ -531,7 +541,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         fovYRadians = fov // not really defined
         fovXCenter = 0.5f
         fovYCenter = 0.5f
-        val sceneScaleXY = 1f /  fov
+        val sceneScaleXY = 1f / fov
         val sceneScaleZ = 1f / (f - n)
         val inverseDepth = inverseDepth
         val m22 = 2f * if (inverseDepth) +sceneScaleZ else -sceneScaleZ

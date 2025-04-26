@@ -1,8 +1,10 @@
-package me.anno.gpu
+package me.anno.engine.ui.vr
 
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.OSWindow
+import me.anno.gpu.texture.ITexture2D
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector4f
 
 /**
  * Delegation for VR rendering:
@@ -22,8 +24,12 @@ interface VRRenderingRoutine {
 
     fun setRenderView(rv: RenderView)
 
-    val fb: Framebuffer
     val isActive: Boolean
+
+    val leftView: Vector4f?
+    val rightView: Vector4f?
+    val leftTexture: ITexture2D?
+    val rightTexture: ITexture2D?
 
     companion object {
         private val LOGGER = LogManager.getLogger(VRRenderingRoutine::class)

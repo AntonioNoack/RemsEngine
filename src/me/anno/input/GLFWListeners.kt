@@ -98,7 +98,7 @@ object GLFWListeners {
         GLFW.glfwSetCharModsCallback(window.pointer) { _, codepoint, mods ->
             handleCharMods(window, codepoint, mods)
         }
-        GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
+        GLFW.glfwSetCursorPosCallback(window.pointer) { ptr, xPosition, yPosition ->
             handleCursorPos(window, xPosition, yPosition)
         }
         GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, mods ->

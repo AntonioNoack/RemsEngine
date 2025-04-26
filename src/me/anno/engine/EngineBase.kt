@@ -226,11 +226,13 @@ abstract class EngineBase(
 
     fun processMouseMovement(window: OSWindow) {
         if (!Input.hadMouseMovement || !window.isInFocus) {
-            // if our window doesn't have focus, or the cursor is outside,
-            // we need to ask for updates manually
-            window.updateMousePosition()
-            if (!Input.hadMouseMovement) {
-                ActionManager.onMouseIdle(window)
+            if (GFX.focusedWindow == null) { // only if no other window is in focus
+                // if our window doesn't have focus, or the cursor is outside,
+                // we need to ask for updates manually
+                window.updateMousePosition()
+                if (!Input.hadMouseMovement) {
+                    ActionManager.onMouseIdle(window)
+                }
             }
         }
         lastMouseX = window.mouseX

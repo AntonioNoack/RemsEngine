@@ -20,7 +20,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.maths.Maths
 import me.anno.ui.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool

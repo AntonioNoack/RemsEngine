@@ -23,7 +23,7 @@ import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
-import me.anno.gpu.VRRenderingRoutine.Companion.tryStartVR
+import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.tryStartVR
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.image.thumbs.AssetThumbHelper

@@ -18,6 +18,7 @@ import org.joml.Vector4f
 object GFXx2D {
 
     val transform = Matrix4fArrayList()
+    val noTiling = Vector4f(1f, 1f, 0f, 0f)
 
     // done implement transformed UI rendering:
     // subpixel errors -> non subpixel font textures, maybe sdf,
@@ -25,8 +26,7 @@ object GFXx2D {
     // done implement a global matrix here, which can be used to draw GUI element inside the world
 
     fun tiling(shader: Shader, tiling: Vector4f?) {
-        if (tiling != null) tiling(shader, tiling.x, tiling.y, tiling.z, tiling.w)
-        else noTiling(shader)
+        shader.v4f("tiling", tiling ?: noTiling)
     }
 
     fun tiling(shader: Shader, sx: Float, sy: Float, ox: Float, oy: Float) {
@@ -34,7 +34,7 @@ object GFXx2D {
     }
 
     fun noTiling(shader: Shader) {
-        tiling(shader, 1f, 1f, 0f, 0f)
+        tiling(shader, noTiling)
     }
 
     fun getSizeX(value: Int) = value.and(0xffff)

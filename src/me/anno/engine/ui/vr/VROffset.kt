@@ -1,4 +1,4 @@
-package me.anno.input
+package me.anno.engine.ui.vr
 
 import org.joml.Quaternionf
 import org.joml.Vector3d

@@ -1,7 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.Time
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.getComponents
@@ -13,7 +12,6 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlSettings
-import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.engine.ui.render.Renderers.tonemapKt
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.Clipping
@@ -36,21 +34,13 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.DepthTransforms
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
@@ -102,59 +92,6 @@ import kotlin.math.tan
  * Helpers to draw debug information onto RenderView
  * */
 object DebugRendering {
-
-    // https://en.wikipedia.org/wiki/Anaglyph_3D
-    val redCyanShader = Shader(
-        "redCyanShader",
-        ShaderLib.uiVertexShaderList,
-        ShaderLib.uiVertexShader, uvList,
-        listOf(
-            Variable(GLSLType.V1B, "applyToneMapping"),
-            Variable(GLSLType.S2D, "tex0"),
-            Variable(GLSLType.S2D, "tex1"),
-        ), "" +
-                tonemapGLSL +
-                "void main(){\n" +
-                "   vec3 col = mix(texture(tex0, uv).rgb, texture(tex1, uv).rgb, vec3(0.0, 1.0, 1.0));\n" +
-                "   col = sqrt(max(col,vec3(0.0)));\n" +
-                "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec3(1.0,0.0,1.0); }\n" +
-                "   else col = tonemap(col);\n" +
-                "   gl_FragColor = vec4(col,1.0);\n" +
-                "}"
-    )
-
-    val simpleShader = Shader(
-        "redCyanShader",
-        ShaderLib.uiVertexShaderList,
-        ShaderLib.uiVertexShader, uvList,
-        listOf(
-            Variable(GLSLType.V1B, "applyToneMapping"),
-            Variable(GLSLType.S2D, "tex0"),
-            // Variable(GLSLType.S2D, "tex1"),
-        ), "" +
-                tonemapGLSL +
-                "void main(){\n" +
-                // "   vec3 col = mix(texture(tex0, uv).rgb,texture(tex1, uv).rgb,vec3(0.5));\n" +
-                "   vec3 col = texture(tex0, uv).rgb;\n" +
-                "   col = sqrt(max(col,vec3(0.0)));\n" +
-                "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec3(1.0,0.0,1.0); }\n" +
-                "   else col = tonemap(col);\n" +
-                "   gl_FragColor = vec4(col,1.0);\n" +
-                "}"
-    )
-
-    fun showStereoView(x: Int, y: Int, w: Int, h: Int, fb: Framebuffer) {
-        GFX.check()
-        val shader = if (DefaultConfig["debug.showStereoInRedCyan", false]) redCyanShader else simpleShader
-        shader.use()
-        posSize(shader, x, y, w, h)
-        GFXx2D.tiling(shader, null)
-        fb.getTextureI(0).bindTrulyLinear(shader, "tex0")
-        fb.getTextureI(1).bindTrulyLinear(shader, "tex1")
-        flat01.draw(shader)
-        GFX.check()
-    }
-
     fun findInspectedLight(): LightComponentBase? {
         return EditorState.selection
             .mapFirstNotNull { e ->

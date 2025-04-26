@@ -55,6 +55,11 @@ object ShaderLib {
 
     val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
 
+    const val applyTiling = "" +
+            "vec2 applyTiling(vec2 uv, vec4 tiling) {\n" +
+            "   return (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "}\n"
+
     const val coordsVertexShader = "" +
             "void main(){\n" +
             "   vec2 coords = vec2(\n" +
@@ -80,9 +85,10 @@ object ShaderLib {
     )
 
     const val uiVertexShader = "" +
+            applyTiling +
             "void main(){\n" +
             "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-            "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "   uv = applyTiling(coords,tiling);\n" +
             "}"
 
     const val dither2x2 = "" +
@@ -233,10 +239,11 @@ object ShaderLib {
     )
 
     const val v3D = "" +
+            applyTiling +
             "void main(){\n" +
             "   finalPosition = coords;\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-            "   uv = (uvs-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "   uv = applyTiling(uvs,tiling);\n" +
             "   uvw = coords;\n" +
             flatNormal +
             "}"

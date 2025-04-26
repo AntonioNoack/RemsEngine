@@ -4,8 +4,8 @@ import me.anno.audio.streams.AudioStream
 import me.anno.engine.EngineBase
 import me.anno.gpu.GFX.resetFBStack
 import me.anno.gpu.GFX.windows
-import me.anno.gpu.VRRenderingRoutine.Companion.shallRenderVR
-import me.anno.gpu.VRRenderingRoutine.Companion.vrRoutine
+import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.shallRenderVR
+import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.vrRoutine
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader

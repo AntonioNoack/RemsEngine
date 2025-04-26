@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.tiling
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -19,11 +20,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.raw.ByteImage
-import me.anno.image.raw.ByteImageFormat
-import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.pooling.Pools
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
@@ -106,12 +103,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
 
     fun interlaceReplace(a: ByteBuffer, b: ByteBuffer): ByteBuffer {
         val dst = Pools.byteBufferPool[a.remaining() * 2, false, false]
-        val size = a.limit()
-        for (i in 0 until size) {
-            dst.put(a[i])
-            dst.put(b[i])
-        }
-        dst.flip()
+        interlace(a, b, dst)
         Pools.byteBufferPool.returnBuffer(a)
         Pools.byteBufferPool.returnBuffer(b)
         return dst
@@ -123,16 +115,6 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
         val w = width
         val h = height
         shader.v2f("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
-    }
-
-    fun writeMonochromeDebugImage(w: Int, h: Int, buffer: ByteBuffer) {
-        val file = findNextFile(desktop, "mono", "png", 1, '-')
-        val image = ByteImage(w, h, ByteImageFormat.R)
-        val data = image.data
-        for (i in 0 until w * h) {
-            data[i] = buffer[i]
-        }
-        image.write(file)
     }
 
     /**
@@ -154,7 +136,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                 val shader = get2DShader()
                 shader.use()
                 posSize(shader, 0, 0, texture.width, texture.height)
-                tiling(shader, 1f, 1f, 0f, 0f)
+                tiling(shader, GFXx2D.noTiling)
                 bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 bindUVCorrection(shader)
                 SimpleBuffer.flat01.draw(shader)
@@ -226,8 +208,9 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                     Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                     Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 ), "" +
+                        ShaderLib.applyTiling +
                         "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
-                        "   uv = (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+                        "   uv = applyTiling(uv, tiling);\n" +
                         "   return texture(tex, uv);\n" +
                         "}\n" +
                         "void main(){\n" +

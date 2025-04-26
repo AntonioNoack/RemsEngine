@@ -980,7 +980,6 @@ object ComponentUI {
                 })
                 panelList.add(optionList)
                 for (i in options.indices) {
-                    // todo why is the image upside down for meshes???
                     val option = options[i]
                     optionList.add(object : FileExplorerEntry(option, style) {
                         override fun updateTooltip() {
