@@ -26,7 +26,6 @@ import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -34,7 +33,6 @@ import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Matrix4x3
 import org.joml.Matrix4x3f
-import kotlin.math.max
 
 /**
  * extra functions for thumbnail generator, because that class is growing too big
@@ -44,17 +42,6 @@ object AssetThumbHelper {
     val unityExtensions = "mat,prefab,unity,asset,controller,meta"
     val unityExtensions1 = unityExtensions.split(',')
     private val LOGGER = LogManager.getLogger(AssetThumbHelper::class)
-
-    private fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>): List<FileReference> {
-        return when {
-            l0.isEmpty() -> l1
-            l1.isEmpty() -> l0
-            else -> createArrayList(max(l0.size, l1.size)) { index ->
-                val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
-                if (li != null && li != InvalidRef) li else InvalidRef
-            }
-        }
-    }
 
     fun createCameraMatrix(aspectRatio: Float): Matrix4f {
         val cameraMatrix = Matrix4f()
@@ -166,28 +153,6 @@ object AssetThumbHelper {
             }
             true
         } else false
-    }
-
-    fun waitForTextures(comp: List<FileReference>, mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
-        // wait for all textures
-        iterateMaterials(comp, mesh.materials)
-            .mapCallback(
-                { _, ref, cb ->
-                    listTextures(ref, cb)
-                }, { res, err ->
-                    err?.printStackTrace()
-                    if (res != null) {
-                        val textures = res.flatten().toHashSet()
-                        removeMissingFiles(textures, srcFile)
-                        waitForTextures(textures, callback)
-                    } else {
-                        callback()
-                    }
-                })
-    }
-
-    fun waitForTextures(mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
-        waitForTextures(emptyList(), mesh, srcFile, callback)
     }
 
     fun removeMissingFiles(files: MutableSet<FileReference>, srcFile: FileReference) {

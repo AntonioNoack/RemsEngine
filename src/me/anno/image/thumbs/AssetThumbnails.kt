@@ -294,28 +294,12 @@ object AssetThumbnails {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         mesh: Mesh, callback: Callback<ITexture2D>
     ) {
-        mesh.ensureBuffer()
-        waitForTextures(mesh, srcFile) {
-            ThumbsRendering.renderToImage(
-                srcFile, false,
-                dstFile, true,
-                Renderers.simpleRenderer,
-                true, callback, size, size
-            ) {
-                GFXState.cullMode.use(CullMode.BOTH) {
-                    mesh.drawAssimp(
-                        1f, null,
-                        useMaterials = true,
-                        centerMesh = true,
-                        normalizeScale = true
-                    )
-                }
-            }
-        }
+        val tmp = Entity().add(MeshComponent(mesh))
+        generateEntityFrame(srcFile, dstFile, size, tmp, callback)
     }
 
     @JvmStatic
-    private fun generateMeshFrame(
+    private fun generateRenderableFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         comp: Renderable, callback: Callback<ITexture2D>
     ) {
@@ -412,9 +396,9 @@ object AssetThumbnails {
             // generate the matrices
             animation.getMatrices(frameIndex, skinningMatrices)
             // apply the matrices to the bone positions
-            for (i in 0 until min(animPositions.size, bones.size)) {
-                val position = animPositions[i].set(bones[i].bindPosition)
-                skinningMatrices[i].transformPosition(position)
+            for (boneId in 0 until min(animPositions.size, bones.size)) {
+                val position = animPositions[boneId].set(bones[boneId].bindPosition)
+                skinningMatrices[boneId].transformPosition(position)
             }
             Skeleton.generateSkeleton(bones, animPositions, meshVertices, null)
             mesh.invalidateGeometry()
@@ -516,7 +500,7 @@ object AssetThumbnails {
             is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
             is Animation -> generateAnimationFrame(srcFile, dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)
-            is Renderable -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
+            is Renderable -> generateRenderableFrame(srcFile, dstFile, size, asset, callback)
             is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
                 val gt = JomlPools.mat4x3m.borrow()

@@ -972,14 +972,16 @@ object ComponentUI {
                     }
                 }
                 optionList.childWidth = entrySize.toInt()
-                optionList.childHeight = optionList.childHeight
+                optionList.childHeight = optionList.childWidth
                 // title needs to be bold, or sth like that
                 panelList.add(TextPanel(title, style).apply {
                     isBold = true
                     textSize *= 1.5f
                 })
                 panelList.add(optionList)
-                for (option in options) {
+                for (i in options.indices) {
+                    // todo why is the image upside down for meshes???
+                    val option = options[i]
                     optionList.add(object : FileExplorerEntry(option, style) {
                         override fun updateTooltip() {
                             // as tooltip texts, show their whole path
