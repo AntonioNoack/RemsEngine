@@ -5,9 +5,11 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState
 import me.anno.gpu.OSWindow
 import me.anno.gpu.RenderStep.callOnGameLoop
+import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
+import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
@@ -16,7 +18,10 @@ import org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL30C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL30C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL30C.glGenFramebuffers
+import org.lwjgl.openxr.XrFovf
 import org.lwjgl.openxr.XrSpaceLocation
+import kotlin.math.atan
+import kotlin.math.tan
 
 class OpenXRRendering(
     val window0: OSWindow, var rv: RenderView,
@@ -25,6 +30,25 @@ class OpenXRRendering(
     val rightTexture: Texture2D,
     val depthTexture: Texture2D,
 ) : OpenXR(window0.pointer) {
+
+    companion object {
+        fun createProjectionFov(projectionMatrix: Matrix4f, fov: XrFovf, nearZ: Float, farZ: Float, rv: RenderView?) {
+            val tanLeft = tan(fov.angleLeft())
+            val tanRight = tan(fov.angleRight())
+            val tanUp = tan(fov.angleUp())
+            val tanDown = tan(fov.angleDown())
+            Perspective.setPerspectiveVR(
+                projectionMatrix, tanLeft, tanRight, tanUp, tanDown,
+                nearZ, farZ, farZ <= nearZ
+            )
+            if (rv != null) {
+                rv.fovXCenter = (tanRight + tanLeft) / (tanRight - tanLeft) + 0.5f
+                rv.fovYCenter = (tanUp + tanDown) / (tanUp - tanDown) + 0.5f
+                rv.fovXRadians = 2f * atan((tanRight - tanLeft) * 0.5f)
+                rv.fovYRadians = 2f * atan((tanUp - tanDown) * 0.5f)
+            }
+        }
+    }
 
     override fun copyToDesktopWindow(w: Int, h: Int) {
         callOnGameLoop(EngineBase.instance!!, window0)

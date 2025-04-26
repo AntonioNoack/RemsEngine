@@ -4,8 +4,6 @@ import me.anno.Time
 import me.anno.gpu.GLNames
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.openxr.OpenXR.Companion.VIEW_CONFIG_TYPE
-import me.anno.openxr.OpenXR.Companion.farZ
-import me.anno.openxr.OpenXR.Companion.nearZ
 import me.anno.openxr.OpenXRUtils.checkHandTrackingAndPrintSystemProperties
 import me.anno.openxr.OpenXRUtils.checkOpenGLRequirements
 import me.anno.openxr.OpenXRUtils.checkXR
@@ -299,8 +297,8 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
                 .next(0)
                 .minDepth(0f) // todo set to -1 if depth-clipping isn't supported???
                 .maxDepth(1f)
-                .nearZ(nearZ) // todo fetch these from a RenderView???
-                .farZ(farZ)
+                .nearZ(0.001f) // todo fetch these from a RenderView???
+                .farZ(1000f)
             defineSubImage(info.subImage(), swapchains[viewCount + i], viewConfigViews[i])
             projectionViews[i].next(info)
         }
