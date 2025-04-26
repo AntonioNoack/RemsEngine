@@ -54,7 +54,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         sumWeight = calculator.weightSum
 
         minW = (calculator.maxX - x) + padding.width
-        minH = calculator.constantSumWW + padding.height
+        minH = calculator.constantSum + padding.height
         ListSizeCalculator.pop()
     }
 
@@ -110,12 +110,12 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                 }
             } else {
                 var perWeight = 0f
-                var minWFactor = 1f
+                var shrinkingFactor = 1f
                 if (availableH > sumConst && sumWeight > 1e-7f) {
                     val availableForWeighted = availableH - sumConstWW
                     perWeight = availableForWeighted / sumWeight
                 } else if (availableH < sumConst) {
-                    minWFactor = availableH.toFloat() / sumConst.toFloat()
+                    shrinkingFactor = availableH.toFloat() / sumConst.toFloat()
                 }
                 for (i in children.indices) {
                     val child = children[i]
@@ -123,7 +123,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                         var childH = if (perWeight > 0f && child.weight > 0f) {
                             (perWeight * child.weight)
                         } else {
-                            (minWFactor * child.minH)
+                            (shrinkingFactor * child.minH)
                         }.roundToIntOr()
                         val currentH = currentY - currentY0
                         val remainingH = availableH - currentH

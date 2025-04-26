@@ -2,6 +2,7 @@ package me.anno.image.svg
 
 import me.anno.image.svg.gradient.Gradient1D
 import me.anno.mesh.Triangulation
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector2f
 
 class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gradient: Gradient1D, width: Float) {
@@ -62,5 +63,5 @@ class SVGCurve(points: List<Vector2f>, closed: Boolean, val depth: Float, val gr
         ring1
     }
 
-    val trianglesIndices = Triangulation.ringToTrianglesVec2fIndices(points)!!
+    val trianglesIndices = Triangulation.ringToTrianglesVec2fIndices(points) ?: IntArrayList(0)
 }

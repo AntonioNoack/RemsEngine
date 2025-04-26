@@ -354,6 +354,13 @@ enum class Key(val id: Int) {
     companion object {
         private val byId = arrayListOfNulls<Key>(556)
 
+        val modifierKeys = listOf<Key>(
+            KEY_LEFT_SHIFT, KEY_RIGHT_SHIFT,
+            KEY_LEFT_CONTROL, KEY_RIGHT_CONTROL,
+            KEY_LEFT_ALT, KEY_RIGHT_ALT,
+            KEY_LEFT_SUPER, KEY_RIGHT_SUPER
+        )
+
         init {
             for (v in entries) {
                 if (v.id >= 0) {

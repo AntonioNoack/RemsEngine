@@ -6,7 +6,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.Search
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.groups.MinSizeTablePanel
 import me.anno.ui.base.groups.PanelContainer.Companion.withPadding
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -17,6 +19,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.FPSPanelSpacer
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.TextInput
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
@@ -175,27 +178,18 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
 
     fun buildSettingsForTopic(topic: TopicNode?) {
 
-        // todo if type is KeyMap, create an appropriate different layout!
-
         lastTopic = topic
         if (topic != null) lastNotEmptyTopic = topic
 
         right.clear()
         contentList.clear()
 
-        val pattern = if (topic == null) "" else "${topic.key}."
-        val entries = config.entries
-            .filter { (key, value) -> value !is StringMap && key.startsWith(pattern) }
-            .map { (fullName, _) ->
-                val relevantName = fullName.substring(pattern.length)
-                val depth = relevantName.count { char -> char == '.' }
-                val li = relevantName.lastIndexOf('.') + 1
-                val key = relevantName.substring(0, max(0, li - 1))
-                val shortName = relevantName.substring(li)
-                ContentCreator(fullName, relevantName, depth, key, shortName, config)
-            }
-            .sortedBy { it.relevantName }
+        if (type == ConfigType.KEYMAP) {
+            createKeymapUI(topic)
+            return
+        }
 
+        val entries = findEntriesForTopic(topic)
         val topList = entries.filter { it.depth == 0 }
 
         // add header
@@ -211,6 +205,102 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
         for (group in groups.entries.sortedBy { it.key }) {
             processEntries(group.key, group.value)
         }
+    }
+
+    private fun findEntriesForTopic(topic: TopicNode?): List<ContentCreator> {
+        val pattern = if (topic == null) "" else "${topic.key}."
+        return config.entries
+            .filter { (key, value) -> value !is StringMap && key.startsWith(pattern) }
+            .map { (fullName, _) ->
+                val relevantName = fullName.substring(pattern.length)
+                val depth = relevantName.count { char -> char == '.' }
+                val li = relevantName.lastIndexOf('.') + 1
+                val key = relevantName.substring(0, max(0, li - 1))
+                val shortName = relevantName.substring(li)
+                ContentCreator(fullName, relevantName, depth, key, shortName, config)
+            }
+            .sortedBy { it.relevantName }
+    }
+
+    /**
+     * TreeViewEntryPanel.left.drag = open|close
+     * */
+    private fun createKeymapUI(topic: TopicNode?) {
+
+        if (topic != null) {
+            right.add(TextPanel(topic.title, largeHeaderStyle))
+        }
+
+        val entries = findEntriesForTopic(topic)
+        val entryTable = MinSizeTablePanel(3, entries.size, style)
+
+        for (i in entries.indices) {
+            val entry = entries[i]
+            val value = config[entry.fullName]
+            if (value !is String) continue
+
+            val input = entry.createInputPanel(right)
+                ?: entryTable.placeholder
+
+            // todo format the action to a standard format, where e.g., p -> press
+            var title = entry.fullName
+            if (topic != null) {
+                title = title.substring(topic.key.length + 1)
+            }
+
+            entryTable[0, i] = TextPanel(title, style)
+            entryTable[1, i] = input
+            entryTable[2, i] = TextButton(NameDesc("X"), true, style)
+                .addLeftClickListener {
+                    config.remove(entry.fullName)
+                    showChanges()
+                }
+
+            val searchKey = entry.fullName.lowercase()
+            val content = listOf(searchKey, value)
+            contentList.add(content to entryTable[0, i])
+            contentList.add(content to entryTable[1, i])
+            contentList.add(content to entryTable[2, i])
+        }
+
+        right.add(entryTable)
+        right.add(SpacerPanel(0, 1, style))
+
+        // todo TextPanel and TextInput aren't aligned, which looks bad
+
+        right.add(InputCheckPanel(NameDesc("Input Checker"), style))
+
+        right.add(SpacerPanel(0, 1, style))
+
+        val addAction = SettingCategory(NameDesc("Add Action"), style).showByDefault()
+        val table = MinSizeTablePanel(2, 3, style)
+
+        val classInput = NameDesc("Panel Class")
+        val classInputPanel = TextInput(classInput, "", false, topic?.key ?: "", style)
+        table[0, 0] = TextPanel(classInput, style)
+        table[1, 0] = classInputPanel
+
+        val eventInput = NameDesc("Event")
+        val eventInputPanel = TextInput(eventInput, "", false, "w.down", style)
+        table[0, 1] = TextPanel(eventInput, style)
+        table[1, 1] = eventInputPanel
+
+        val actionInput = NameDesc("Action")
+        val actionInputPanel = TextInput(actionInput, "", false, "Rename", style)
+        table[0, 2] = TextPanel(actionInput, style)
+        table[1, 2] = actionInputPanel
+
+        addAction.content.add(table)
+        addAction.content.add(
+            TextButton(NameDesc("Add Action"), style)
+                .addLeftClickListener {
+                    val fullName = "${classInputPanel.value}.${eventInputPanel.value}"
+                    config[fullName] = actionInputPanel.value
+                    showChanges()
+                }
+        )
+
+        right.add(addAction)
     }
 
     private fun processEntries(groupName: String, entries: List<ContentCreator>) {
@@ -233,9 +323,11 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
         subList.tooltip = entry.fullName
         entry.createPanels(subList)
         val searchKey = entry.fullName.lowercase()
-        contentList.add(listOf(searchKey) to subList)
+        val value = config[entry.fullName].toString()
+        contentList.add(listOf(searchKey, value) to subList)
         right.add(subList)
         subChain2.add(searchKey)
+        subChain2.add(value)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

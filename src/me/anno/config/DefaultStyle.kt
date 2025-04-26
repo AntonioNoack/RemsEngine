@@ -39,6 +39,7 @@ object DefaultStyle {
         // light / dark
         default("small.textColor", fontGray, black)
         default("header.text.fontItalic", true)
+        default("header.text.fontSize", (fontSize * 1.2).toInt())
         default("textColor", fontGray, black)
         default("options.textColor", fontGray, black)
         default("italic.propertyInspector.textColor", fontGray, black)

@@ -10,7 +10,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.ui.base.groups.TablePanel
+import me.anno.ui.base.groups.WeightBasedTablePanel
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.Menu.openMenuByPanels
@@ -26,7 +26,7 @@ class DataSetPanel(
     val reflectionsI: CachedReflections,
     firstIndex: Int,
     style: Style
-) : TablePanel(reflectionsI.serializedProperties.size + (firstIndex < Int.MAX_VALUE).toInt(), values.size + 1, style) {
+) : WeightBasedTablePanel(reflectionsI.serializedProperties.size + (firstIndex < Int.MAX_VALUE).toInt(), values.size + 1, style) {
 
     constructor(values: ArrayList<Saveable>, firstIndex: Int, style: Style) :
             this(values, values.first().getReflections(), firstIndex, style)

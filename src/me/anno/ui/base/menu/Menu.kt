@@ -141,7 +141,7 @@ object Menu {
         callback: (String) -> Unit
     ): Window {
 
-        val style = DefaultConfig.style.getChild("menu")
+        val style = style.getChild("menu")
 
         val textInput = PureTextInput(style)
         textInput.setText(value0, false)
@@ -283,7 +283,7 @@ object Menu {
             }
         } else options
 
-        val style = DefaultConfig.style.getChild("menu")
+        val style = style.getChild("menu")
 
         val list = ArrayList<Panel>()
         val keyListeners = ExtraKeyListeners()
@@ -399,7 +399,7 @@ object Menu {
 
         if (panels.isEmpty()) return null
 
-        val style = DefaultConfig.style.getChild("menu")
+        val style = style.getChild("menu")
         val list = PanelListY(style)
 
         val container = object : ScrollPanelY(list, Padding(1), style) {

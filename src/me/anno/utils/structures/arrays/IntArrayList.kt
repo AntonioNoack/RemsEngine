@@ -225,6 +225,19 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
         values[j] = tmp
     }
 
+    fun fill(value: Int) {
+        values.fill(value, 0, size)
+    }
+
+    fun sum(): Long {
+        var sum = 0L
+        val values = values
+        for (i in 0 until size) {
+            sum += values[i]
+        }
+        return sum
+    }
+
     override fun destroy() {
         pool?.returnBuffer(values)
         size = 0

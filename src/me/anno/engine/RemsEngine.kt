@@ -277,7 +277,6 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             openConfigWindow(windowStack, style.values, ConfigType.STYLE)
         }
 
-        // todo test this
         fun openKeymapWindow(windowStack: WindowStack) {
             openConfigWindow(windowStack, ActionManager, ConfigType.KEYMAP)
         }
