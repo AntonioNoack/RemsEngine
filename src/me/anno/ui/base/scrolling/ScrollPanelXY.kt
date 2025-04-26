@@ -125,11 +125,16 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     override fun calculateSize(w: Int, h: Int) {
         // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingX = padding.width + (hasScrollbarXF * scrollbarWidth).toInt()
-        val paddingY = padding.height + (hasScrollbarYF * scrollbarHeight).toInt()
-        child.calculateSize(MAX_LENGTH - paddingX, MAX_LENGTH - paddingY)
-        minW = min(w, child.minW + paddingX)
-        minH = min(h, child.minH + paddingY)
+        val paddingX0 = padding.width + scrollbarWidth
+        val paddingY0 = padding.height + scrollbarHeight
+        child.calculateSize(MAX_LENGTH - paddingX0, MAX_LENGTH - paddingY0)
+        width = w
+        height = h
+        // these must follow child.calculateSize and this weird early assignment, because they use them as values
+        val paddingX1 = padding.width + (hasScrollbarXF * scrollbarWidth).toInt()
+        val paddingY1 = padding.height + (hasScrollbarYF * scrollbarHeight).toInt()
+        minW = min(w, child.minW + paddingX1)
+        minH = min(h, child.minH + paddingY1)
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {

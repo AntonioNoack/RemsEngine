@@ -17,7 +17,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawShadowY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
-import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
@@ -63,6 +62,8 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
             return childH + padding.height - height
         }
 
+    private val hasScrollbarF: Float get() = clamp(maxScrollPositionYRaw / (scrollbarWidth * 3f) + 1f)
+
     override fun scrollY(delta: Double): Double {
         val prev = targetScrollPositionY
         targetScrollPositionY += delta
@@ -93,12 +94,16 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
     }
 
     override fun calculateSize(w: Int, h: Int) {
+        // calculation must not depend on hasScrollbar, or we get flickering
         val child = child
         val padding = padding
-        // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
-        child.calculateSize(w - paddingX, MAX_LENGTH - padding.height)
-        minW = min(child.minW + paddingX, w)
+        val paddingX0 = padding.width + scrollbarWidth
+        child.calculateSize(w - paddingX0, MAX_LENGTH - padding.height)
+        width = w
+        height = h
+        // these must follow child.calculateSize and this weird early assignment, because they use them as values
+        val paddingX1 = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
+        minW = min(child.minW + paddingX1, w)
         minH = min(child.minH + padding.height, h)
     }
 
@@ -107,7 +112,7 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
         val padding = padding
         val scroll0 = round(scrollPositionY).toLong()
         val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
-        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
+        val paddingX = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
         child.setPosSize(
             x + padding.left, y + padding.top - scroll,
             width - paddingX, max(child.minH, height - padding.height)

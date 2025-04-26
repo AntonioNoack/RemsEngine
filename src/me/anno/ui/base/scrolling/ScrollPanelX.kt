@@ -17,7 +17,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawShadowX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
-import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
@@ -63,6 +62,8 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
             return childW + padding.width - width
         }
 
+    private val hasScrollbarF: Float get() = clamp(maxScrollPositionXRaw / (scrollbarHeight * 3f) + 1f)
+
     override fun scrollX(delta: Double): Double {
         val prev = targetScrollPositionX
         targetScrollPositionX += delta
@@ -84,21 +85,6 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         scrollbar.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
     }
 
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        val child = child
-        val padding = padding
-        val scroll0 = round(scrollPositionX).toLong()
-        val scroll = clamp(scroll0, 0L, max(0, child.minW + padding.width - width).toLong()).toInt()
-        val paddingY = padding.height + hasScrollbar.toInt(scrollbarHeight)
-        child.setPosSize(
-            x + padding.left - scroll, y + padding.top,
-            max(child.minW, width - padding.width), height - paddingY
-        )
-        if (child is LongScrollable) {
-            child.setExtraScrolling(scroll0 - scroll, 0L)
-        }
-    }
-
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverX(
@@ -108,13 +94,32 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
     }
 
     override fun calculateSize(w: Int, h: Int) {
+        // calculation must not depend on hasScrollbar, or we get flickering
         val child = child
         val padding = padding
-        // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingY = padding.height + hasScrollbar.toInt(scrollbarHeight)
-        child.calculateSize(MAX_LENGTH - padding.width, h - paddingY)
+        val paddingY0 = padding.height + scrollbarHeight
+        child.calculateSize(MAX_LENGTH - padding.width, h - paddingY0)
+        width = w
+        height = h
+        // these must follow child.calculateSize and this weird early assignment, because they use them as values
+        val paddingY1 = padding.height + (hasScrollbarF * scrollbarHeight).toInt()
         minW = min(child.minW + padding.width, w)
-        minH = min(child.minH + paddingY, h)
+        minH = min(child.minH + paddingY1, h)
+    }
+
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
+        val child = child
+        val padding = padding
+        val scroll0 = round(scrollPositionX).toLong()
+        val scroll = clamp(scroll0, 0L, max(0, child.minW + padding.width - width).toLong()).toInt()
+        val paddingY = padding.height + (hasScrollbarF * scrollbarHeight).toInt()
+        child.setPosSize(
+            x + padding.left - scroll, y + padding.top,
+            max(child.minW, width - padding.width), height - paddingY
+        )
+        if (child is LongScrollable) {
+            child.setExtraScrolling(scroll0 - scroll, 0L)
+        }
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
