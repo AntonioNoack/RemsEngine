@@ -79,7 +79,12 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         scrollbar.updateAlpha()
     }
 
-    fun placeChild() {
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+        scrollbar.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
+    }
+
+    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
         val child = child
         val padding = padding
         val scroll0 = round(scrollPositionX).toLong()
@@ -92,15 +97,6 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         if (child is LongScrollable) {
             child.setExtraScrolling(scroll0 - scroll, 0L)
         }
-    }
-
-    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
-        scrollbar.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
-    }
-
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        placeChild()
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {

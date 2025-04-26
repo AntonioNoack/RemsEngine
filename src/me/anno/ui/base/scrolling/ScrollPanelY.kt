@@ -79,21 +79,6 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
         scrollbar.updateAlpha()
     }
 
-    fun placeChild() {
-        val child = child
-        val padding = padding
-        val scroll0 = round(scrollPositionY).toLong()
-        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
-        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
-        child.setPosSize(
-            x + padding.left, y + padding.top - scroll,
-            width - paddingX, max(child.minH, height - padding.height)
-        )
-        if (child is LongScrollable) {
-            child.setExtraScrolling(0L, scroll0 - scroll)
-        }
-    }
-
     override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean, x0: Int, y0: Int, x1: Int, y1: Int) {
         super.updateChildrenVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
         scrollbar.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
@@ -118,7 +103,18 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        placeChild()
+        val child = child
+        val padding = padding
+        val scroll0 = round(scrollPositionY).toLong()
+        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
+        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
+        child.setPosSize(
+            x + padding.left, y + padding.top - scroll,
+            width - paddingX, max(child.minH, height - padding.height)
+        )
+        if (child is LongScrollable) {
+            child.setExtraScrolling(0L, scroll0 - scroll)
+        }
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

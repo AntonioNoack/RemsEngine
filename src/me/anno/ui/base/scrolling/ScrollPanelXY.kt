@@ -133,10 +133,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        placeChild()
-    }
-
-    fun placeChild() {
         val child = child
         val padding = padding
 
