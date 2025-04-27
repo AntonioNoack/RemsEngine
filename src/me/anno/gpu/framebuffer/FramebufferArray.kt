@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -52,7 +53,8 @@ class FramebufferArray(
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
 
-    override var pointer = 0
+    override var pointer by ContextPointer()
+
     var session = 0
     var depthRenderBuffer: Renderbuffer? = null
     override var depthTexture: Texture2DArray? = null
@@ -62,7 +64,7 @@ class FramebufferArray(
 
     override val numTextures: Int = targets.size
 
-    lateinit var textures: List<Texture2DArray>
+    var textures: List<Texture2DArray> = emptyList()
 
     var autoUpdateMipmaps = true
 
@@ -137,12 +139,14 @@ class FramebufferArray(
         Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()
-        textures = targets.mapIndexed { index, target ->
-            val texture = Texture2DArray("$name-$index", width, height, layers)
-            texture.autoUpdateMipmaps = autoUpdateMipmaps
-            texture.create(target)
-            GFX.check()
-            texture
+        if (textures.size != targets.size) {
+            textures = targets.mapIndexed { index, target ->
+                val texture = Texture2DArray("$name-$index", width, height, layers)
+                texture.autoUpdateMipmaps = autoUpdateMipmaps
+                texture.create(target)
+                GFX.check()
+                texture
+            }
         }
         GFX.check()
         val textures = textures
@@ -159,19 +163,28 @@ class FramebufferArray(
         when (depthBufferType) {
             DepthBufferType.NONE -> {
             }
-            DepthBufferType.INTERNAL -> createDepthBuffer()
+            DepthBufferType.INTERNAL -> {
+                val renderBuffer = depthRenderBuffer
+                if (renderBuffer == null) {
+                    createDepthBuffer()
+                } else {
+                    renderBuffer.attachToFramebuffer(true)
+                }
+            }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                GFX.check()
-                val texture = Texture2DArray("$name-depth", width, height, layers)
-                texture.autoUpdateMipmaps = autoUpdateMipmaps
-                texture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                if (depthTexture == null) {
+                    GFX.check()
+                    val texture = Texture2DArray("$name-depth", width, height, layers)
+                    texture.autoUpdateMipmaps = autoUpdateMipmaps
+                    texture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                    depthTexture = texture
+                }
                 GFX.check()
                 glFramebufferTextureLayer(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                    texture.pointer, 0, 0
+                    depthTexture!!.pointer, 0, 0
                 )
                 GFX.check()
-                this.depthTexture = texture
             }
             DepthBufferType.ATTACHMENT -> {
                 GFX.check()

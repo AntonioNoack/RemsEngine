@@ -1,10 +1,10 @@
 package me.anno.tests.gfx
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.engine.ui.vr.VRRendering
 import me.anno.engine.ui.vr.VRRenderingRoutine
@@ -15,8 +15,10 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
-import me.anno.maths.Maths.PIf
+import me.anno.input.Input
+import me.anno.tests.engine.material.createMetallicScene
 import me.anno.ui.Panel
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4f
 import org.joml.Quaternionf
@@ -99,6 +101,27 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
     override val previewGamma: Float get() = 1f
 }
 
+object VRViewPanel : Panel(style) {
+
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val texture = VREmulator.framebuffer.getTexture0()
+        if (texture.isCreated()) {
+            DrawTextures.drawTexture(
+                x, y, width, height, texture,
+                ignoreAlpha = true
+            )
+        } else drawBackground(x0, y0, x1, y1)
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        // make drag turn the camera
+        val renderView = VREmulator.rv ?: return
+        val sceneView = renderView.listOfHierarchy.firstInstanceOrNull2(SceneView::class) ?: return
+        val controls = sceneView.editControls
+        if (Input.isRightDown) controls.rotateCamera(dx, dy)
+    }
+}
+
 /**
  * add VR-emulator window
  * render VR like in Web onto single framebuffer to find eventual clear-issues
@@ -108,17 +131,7 @@ fun main() {
     addEvent {
         // open secondary window, which shows the framebuffer directly
         // todo controls for VR positions, perspective, hands, etc...
-        WindowManagement.createWindow("VR Views", object : Panel(style) {
-            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                val texture = VREmulator.framebuffer.getTexture0()
-                if (texture.isCreated()) {
-                    DrawTextures.drawTexture(
-                        x, y, width, height, texture,
-                        ignoreAlpha = true
-                    )
-                } else drawBackground(x0, y0, x1, y1)
-            }
-        }, 800, 450)
+        WindowManagement.createWindow("VR Views", VRViewPanel, 800, 450)
     }
-    testSceneWithUI("VR Emulator", IcosahedronModel.createIcosphere(2))
+    testSceneWithUI("VR Emulator", createMetallicScene())
 }

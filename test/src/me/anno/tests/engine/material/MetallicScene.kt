@@ -6,8 +6,8 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFBox
@@ -24,12 +24,21 @@ fun main() {
 
     // todo we need an exposure setting or auto-exposure (and desaturation in the dark)
     // fixed: SkyboxBase looked like it's not reflected
+
+    testSceneWithUI("Metallic", createMetallicScene()) {
+        WindowRenderFlags.enableVSync = false
+    }
+}
+
+fun createMetallicScene(): Entity {
+
     val scene = Entity()
     scene.add(SDFSphere().apply {
         name = "Red Sphere"
         val redMetal = Material.metallic(0xe51a1a, 0f)
         sdfMaterials = listOf(redMetal.ref)
     })
+
     val sky = Skybox()
     scene.add(sky)
     val sun = DirectionalLight()
@@ -84,7 +93,6 @@ fun main() {
                 }))
         }
     }
-    testSceneWithUI("Metallic", scene) {
-        WindowRenderFlags.enableVSync = false
-    }
+
+    return scene
 }

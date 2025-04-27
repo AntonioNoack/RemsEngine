@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -43,7 +44,8 @@ class CubemapFramebuffer(
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
 
-    override var pointer = 0
+    override var pointer by ContextPointer()
+
     var session = 0
     var depthRenderBuffer: Renderbuffer? = null
     override var isSRGBMask: Int = 0
@@ -131,14 +133,16 @@ class CubemapFramebuffer(
         Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()
-        textures = targets.mapIndexed { index, target ->
-            val texture = CubemapTexture("$name-$index", size, samples)
-            texture.autoUpdateMipmaps = autoUpdateMipmaps
-            texture.create(target)
+        if (textures.size != targets.size) {
+            textures = targets.mapIndexed { index, target ->
+                val texture = CubemapTexture("$name-$index", size, samples)
+                texture.autoUpdateMipmaps = autoUpdateMipmaps
+                texture.create(target)
+                GFX.check()
+                texture
+            }
             GFX.check()
-            texture
         }
-        GFX.check()
         val textures = textures
         for (index in textures.indices) {
             val texture = textures[index]
@@ -153,16 +157,28 @@ class CubemapFramebuffer(
         when (depthBufferType) {
             DepthBufferType.NONE -> {
             }
-            DepthBufferType.INTERNAL -> createDepthBuffer()
+            DepthBufferType.INTERNAL -> {
+                val renderBuffer = depthRenderBuffer
+                if (renderBuffer == null) {
+                    createDepthBuffer()
+                } else {
+                    renderBuffer.attachToFramebuffer(true)
+                }
+            }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val texture = CubemapTexture("$name-depth", size, samples)
-                texture.autoUpdateMipmaps = autoUpdateMipmaps
-                texture.create(depthBufferType.chooseDepthFormat())
+                if (depthTexture == null) {
+                    GFX.check()
+                    val texture = this.depthTexture ?: CubemapTexture("$name-depth", size, samples)
+                    texture.autoUpdateMipmaps = autoUpdateMipmaps
+                    texture.create(depthBufferType.chooseDepthFormat())
+                    this.depthTexture = texture
+                }
+                GFX.check()
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X, texture.pointer, 0
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X, depthTexture!!.pointer, 0
                 )
-                this.depthTexture = texture
+                GFX.check()
             }
             DepthBufferType.ATTACHMENT -> {
                 val target = GL_TEXTURE_CUBE_MAP_POSITIVE_X

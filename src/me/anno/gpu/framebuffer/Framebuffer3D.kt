@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GLNames
@@ -32,7 +33,8 @@ class Framebuffer3D(
     override val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
-    override var pointer = 0
+    override var pointer by ContextPointer()
+
     var session = 0
 
     override val samples get() = 1
@@ -62,12 +64,14 @@ class Framebuffer3D(
         val d = depth
         assertTrue(w > 0 && h > 0 && d > 0, "Invalid framebuffer size")
         GFX.check()
-        textures = targets.mapIndexed { index, target ->
-            val texture = Texture3D("$name-tex[$index]", w, h, d)
-            // texture.autoUpdateMipmaps = autoUpdateMipmaps
-            texture.create(target)
-            GFX.check()
-            texture
+        if (textures.size != targets.size) {
+            textures = targets.mapIndexed { index, target ->
+                val texture = Texture3D("$name-tex[$index]", w, h, d)
+                // texture.autoUpdateMipmaps = autoUpdateMipmaps
+                texture.create(target)
+                GFX.check()
+                texture
+            }
         }
         GFX.check()
         val textures = textures
@@ -76,10 +80,8 @@ class Framebuffer3D(
             glFramebufferTexture3D(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT0 + index,
-                texture.target,
-                texture.pointer,
-                0,
-                0 // todo change the layer dynamically like for cubemaps
+                texture.target, texture.pointer,
+                0, 0 // todo change the layer dynamically like for cubemaps
             )
         }
         GFX.check()
@@ -102,9 +104,13 @@ class Framebuffer3D(
             }
             DepthBufferType.INTERNAL -> throw NotImplementedError()// createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val depthTexture = Texture3D("$name-depth", w, h, d)
-                // depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
-                depthTexture.create(depthBufferType.chooseDepthFormat())
+                if (depthTexture == null) {
+                    val depthTexture = Texture3D("$name-depth", w, h, d)
+                    // depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
+                    depthTexture.create(depthBufferType.chooseDepthFormat())
+                    this.depthTexture = depthTexture
+                }
+                val depthTexture = depthTexture!!
                 glFramebufferTexture3D(
                     GL_FRAMEBUFFER,
                     GL_DEPTH_ATTACHMENT,
@@ -112,7 +118,6 @@ class Framebuffer3D(
                     depthTexture.pointer,
                     0, 0
                 )
-                this.depthTexture = depthTexture
             }
         }
         GFX.check()
