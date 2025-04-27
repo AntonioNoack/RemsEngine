@@ -16,15 +16,12 @@ import kotlin.math.max
 
 abstract class VRRendering {
 
-    val viewMatrix = Matrix4f()
-    val projectionMatrix = Matrix4f()
-
     val position = Vector3f()
     val rotation = Quaternionf()
 
-    private val lastPosition = Vector3d()
+    private val lastPosition = Vector3f()
     private var lastAngleY = 0.0
-    private val tmp = Vector3d()
+    private val tmp = Vector3f()
 
     class PrevData {
 
@@ -55,8 +52,6 @@ abstract class VRRendering {
         position.mul(1f / max(1, viewCount))
         rotation.normalize()
 
-        val pos = position // play space
-        val rot = rotation
         rv.enableOrbiting = false
 
         val rt = rv.controlScheme?.rotationTargetDegrees
@@ -64,10 +59,12 @@ abstract class VRRendering {
             (rt.y - lastAngleY).toFloat().toRadians()
         } else 0f
 
-        tmp.set(pos).sub(lastPosition).rotate(VROffset.additionalRotation)
-        rv.orbitCenter.add(tmp) // scene space
+        val delta = position.sub(lastPosition, tmp)
+            .rotate(VROffset.additionalRotation)
+        rv.orbitCenter.add(delta) // scene space
+
         rv.radius = 3f // define the general speed
-        lastPosition.set(pos)
+        lastPosition.set(position)
 
         VROffset.additionalOffset
             .set(position).rotate(VROffset.additionalRotation).negate()
@@ -77,7 +74,7 @@ abstract class VRRendering {
 
         rv.orbitRotation
             .set(VROffset.additionalRotation)
-            .mul(rot.x, rot.y, rot.z, rot.w)
+            .mul(rotation)
 
         if (rt != null) {
             rv.orbitRotation.toEulerAnglesDegrees(rt)
@@ -150,7 +147,7 @@ abstract class VRRendering {
         val ow = rv.width
         val oh = rv.height
         rv.x = x
-        rv.y = x
+        rv.y = y
         rv.width = width
         rv.height = height
         rv.setRenderState()

@@ -19,7 +19,8 @@ import org.joml.Vector4f
 object DebugVRRendering {
 
     private const val applyTonemappingToCol = "" +
-            "   col = sqrt(max(col,vec3(0.0)));\n" +
+            "   col = max(col,vec3(0.0));\n" +
+            "   col = pow(col,vec3(gamma));\n" +
             "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec3(1.0,0.0,1.0); }\n" +
             "   else { col = tonemap(col); }\n" +
             "   result = vec4(col,1.0);\n"
@@ -33,6 +34,7 @@ object DebugVRRendering {
         ShaderLib.uiVertexShader, uvList,
         listOf(
             Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "gamma"),
             Variable(GLSLType.V4F, "leftTiling"),
             Variable(GLSLType.V4F, "rightTiling"),
             Variable(GLSLType.S2D, "leftTexture"),
@@ -56,6 +58,7 @@ object DebugVRRendering {
         ShaderLib.uiVertexShader, uvList,
         listOf(
             Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.V1F, "gamma"),
             Variable(GLSLType.V4F, "leftTiling"),
             Variable(GLSLType.S2D, "leftTexture"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
@@ -71,14 +74,15 @@ object DebugVRRendering {
     fun showStereoView(
         x: Int, y: Int, w: Int, h: Int,
         leftTexture: ITexture2D, leftView: Vector4f?,
-        rightTexture: ITexture2D, rightView: Vector4f?
+        rightTexture: ITexture2D, rightView: Vector4f?,
+        gamma: Float, showBoth: Boolean
     ) {
         GFX.check()
-        val showBoth = DefaultConfig["debug.showStereoInRedCyan", false]
         val shader = if (showBoth) redCyanShader else simpleShader
         shader.use()
-        posSize(shader, x, y, w, h)
+        posSize(shader, x, y, w, h, true)
         noTiling(shader)
+        shader.v1f("gamma", gamma)
         shader.v4f("leftTiling", leftView ?: noTiling)
         shader.v4f("rightTiling", rightView ?: noTiling)
         leftTexture.bindTrulyLinear(shader, "leftTexture")

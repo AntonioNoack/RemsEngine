@@ -9,21 +9,19 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.engine.ui.vr.VRRendering
 import me.anno.engine.ui.vr.VRRenderingRoutine
 import me.anno.gpu.OSWindow
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.RenderStep.callOnGameLoop
 import me.anno.gpu.WindowManagement
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
+import me.anno.maths.Maths.PIf
 import me.anno.ui.Panel
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
-
-// todo bug: all complex render-modes only show the left frame...
-//  why the left one and not the right one???
 
 object VREmulator : VRRendering(), VRRenderingRoutine {
 
@@ -31,17 +29,22 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
     var rv: RenderView? = null
     val framebuffer = Framebuffer("VR", res * 2, res, TargetType.UInt8x4)
 
-    val userPosition = Vector3f(0f, 0f, -2f)
+    // todo we're spawning at the center... can/should we change that? no, use different scene
+    val userPosition = Vector3f(0f, 0f, 0f)
+    val userRotation = Quaternionf()
 
     val eyeDistHalf = 0.03f
     val eyeZ = 0.1f // todo is this the correct direction??
     val leftEyeOffset = Vector3f(-eyeDistHalf, 0f, eyeZ)
     val rightEyeOffset = Vector3f(+eyeDistHalf, 0f, eyeZ)
-    val leftEyeRotation = Quaternionf()
-    val rightEyeRotation = Quaternionf()
+    val leftEyeRotation = Quaternionf().rotateY((15f).toRadians())
+    val rightEyeRotation = Quaternionf().rotateY((-15f).toRadians())
 
     val projection = Matrix4f()
         .setPerspective(1f, 1f, 0.01f, 100f)
+
+    private val tmpPos = Vector3f()
+    private val tmpRot = Quaternionf()
 
     override fun startSession(window: OSWindow, rv: RenderView): Boolean {
         isActive = true
@@ -52,13 +55,17 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
     override fun drawFrame(window: OSWindow): Boolean {
         val rv = rv!!
         beginRenderViews(rv, res, res)
+        userPosition.add(leftEyeOffset, tmpPos)
+        userRotation.mul(leftEyeRotation, tmpRot)
         renderFrame(
             rv, 0, 0, 0, res, res, 0, 0,
-            leftEyeOffset, leftEyeRotation, projection
+            tmpPos, tmpRot, projection
         )
+        userPosition.add(rightEyeOffset, tmpPos)
+        userRotation.mul(rightEyeRotation, tmpRot)
         renderFrame(
             rv, 1, res, 0, res, res, 0, 0,
-            rightEyeOffset, rightEyeRotation, projection
+            tmpPos, tmpRot, projection
         )
         callOnGameLoop(EngineBase.instance!!, window)
         return true
@@ -86,9 +93,10 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
 
     override val leftTexture: ITexture2D? get() = framebuffer.getTexture0()
     override val rightTexture: ITexture2D? get() = framebuffer.getTexture0()
-    override val leftView: Vector4f = Vector4f(2f, 1f, 0f, 0f)
-    override val rightView: Vector4f = Vector4f(2f, 1f, 0.5f, 0f)
+    override val leftView: Vector4f = Vector4f(0.5f, 1f, 0.25f, 0f)
+    override val rightView: Vector4f = Vector4f(0.5f, 1f, -0.25f, 0f)
     override var isActive: Boolean = false
+    override val previewGamma: Float get() = 1f
 }
 
 /**
@@ -96,27 +104,21 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
  * render VR like in Web onto single framebuffer to find eventual clear-issues
  * */
 fun main() {
-
     VRRenderingRoutine.vrRoutine = VREmulator
-
-    disableRenderDoc()
-
-    addEvent(250) {
+    addEvent {
         // open secondary window, which shows the framebuffer directly
         // todo controls for VR positions, perspective, hands, etc...
         WindowManagement.createWindow("VR Views", object : Panel(style) {
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                super.draw(x0, y0, x1, y1)
                 val texture = VREmulator.framebuffer.getTexture0()
                 if (texture.isCreated()) {
                     DrawTextures.drawTexture(
                         x, y, width, height, texture,
                         ignoreAlpha = true
                     )
-                }
+                } else drawBackground(x0, y0, x1, y1)
             }
-        })
+        }, 800, 450)
     }
-
     testSceneWithUI("VR Emulator", IcosahedronModel.createIcosphere(2))
 }

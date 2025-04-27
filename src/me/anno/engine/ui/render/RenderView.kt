@@ -188,10 +188,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val rightTexture = vrr.rightTexture ?: TextureLib.blackTexture
         if (!leftTexture.isCreated() || !rightTexture.isCreated()) return false
 
+        val showBoth = controlScheme?.settings?.displayVRInRedCyan == true
         showStereoView(
-            x, y + height, width, -height,
-            leftTexture, null,
-            rightTexture, null,
+            x, y, width, height,
+            leftTexture, vrr.leftView,
+            rightTexture, vrr.rightView,
+            1f / vrr.previewGamma, showBoth
         )
         return true
     }

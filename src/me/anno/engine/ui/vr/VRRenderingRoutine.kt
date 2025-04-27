@@ -30,6 +30,7 @@ interface VRRenderingRoutine {
     val rightView: Vector4f?
     val leftTexture: ITexture2D?
     val rightTexture: ITexture2D?
+    val previewGamma: Float
 
     companion object {
         private val LOGGER = LogManager.getLogger(VRRenderingRoutine::class)

@@ -36,6 +36,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
     override val rightTexture = Texture2D("OpenXR-Right", 1, 1, 1)
     override val leftView: Vector4f? get() = null
     override val rightView: Vector4f? get() = null
+    override val previewGamma: Float get() = 2f
 
     override var isActive = false
         private set

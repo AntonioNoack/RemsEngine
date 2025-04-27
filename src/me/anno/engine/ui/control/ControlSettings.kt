@@ -44,4 +44,7 @@ open class ControlSettings : Inspectable {
 
     @Group("Debug")
     var drawInspected by ConfigRef("debug.ui.drawInspected", false)
+
+    @Group("Debug")
+    var displayVRInRedCyan by ConfigRef("debug.showStereoInRedCyan", false)
 }

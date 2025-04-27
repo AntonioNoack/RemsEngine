@@ -880,6 +880,8 @@ object ComponentUI {
                         }
                     }
                     value is Saveable && Saveable.getClass(type0) != UnknownSaveable::class -> {
+                        // todo we're currently wasting quite a lot of space... fix that somehow...
+                        //  example: SnapSettings
                         return createISaveableInput(title, value, style, property)
                     }
                 }
