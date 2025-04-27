@@ -77,7 +77,7 @@ class OpenXRRendering(
     }
 
     override fun setupFramebuffer(
-        viewIndex: Int, w: Int, h: Int,
+        viewIndex: Int, width: Int, height: Int,
         colorTextureI: Int, depthTextureI: Int
     ): Framebuffer {
         if (depthTextureI < 0 && !depthTexture.isCreated()) {
@@ -89,11 +89,11 @@ class OpenXRRendering(
             framebuffer.session = session
             framebuffer.pointer = glGenFramebuffers()
         }
-        framebuffer.width = w
-        framebuffer.height = h
+        framebuffer.width = width
+        framebuffer.height = height
         val colorTexture = if (viewIndex == 0) leftTexture else rightTexture
-        defineTexture(w, h, colorTexture, colorTextureI, session)
-        defineTexture(w, h, depthTexture, depthTextureI, session)
+        defineTexture(width, height, colorTexture, colorTextureI, session)
+        defineTexture(width, height, depthTexture, depthTextureI, session)
         framebuffer.bind()
         attachTexture(GL_COLOR_ATTACHMENT0, colorTextureI)
         attachTexture(GL_DEPTH_ATTACHMENT, depthTextureI)

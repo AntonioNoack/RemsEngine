@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.blender
 
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
@@ -30,12 +31,13 @@ fun main() {
     if (true) {
         ECSRegistry.init()
         if (false) {
-            println(MeshCache[file, false]?.uvs)
-            println(MeshCache[file, false]?.normals)
-            println(MeshCache[file, false]?.positions)
-            println(MeshCache[file, false]?.ensureNorTanUVs())
-            println(MeshCache[file, false]?.invalidateGeometry())
-            testSceneWithUI("PackedImages", MeshCache[file, false]!!.ref)
+            val mesh = MeshCache[file, false] as? Mesh
+            println(mesh?.uvs)
+            println(mesh?.normals)
+            println(mesh?.positions)
+            println(mesh?.ensureNorTanUVs())
+            println(mesh?.invalidateGeometry())
+            testSceneWithUI("PackedImages", mesh!!.ref)
         }
         testUI3("PackedImages2") {
             ECSFileExplorer(file, style)

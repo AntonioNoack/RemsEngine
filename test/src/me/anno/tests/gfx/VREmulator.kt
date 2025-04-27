@@ -18,6 +18,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input
 import me.anno.tests.engine.material.createMetallicScene
 import me.anno.ui.Panel
+import me.anno.utils.Sleep
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4f
@@ -30,6 +31,7 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
     val res = 1024
     var rv: RenderView? = null
     val framebuffer = Framebuffer("VR", res * 2, res, TargetType.UInt8x4)
+    var frameIndex = 0
 
     // todo we're spawning at the center... can/should we change that? no, use different scene
     val userPosition = Vector3f(0f, 0f, 0f)
@@ -55,6 +57,9 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
     }
 
     override fun drawFrame(window: OSWindow): Boolean {
+
+        frameIndex++
+
         val rv = rv!!
         beginRenderViews(rv, res, res)
         userPosition.add(leftEyeOffset, tmpPos)
@@ -86,7 +91,7 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
     }
 
     override fun setupFramebuffer(
-        viewIndex: Int, w: Int, h: Int,
+        viewIndex: Int, width: Int, height: Int,
         colorTextureI: Int, depthTextureI: Int
     ): Framebuffer {
         // nothing to do here
@@ -95,8 +100,8 @@ object VREmulator : VRRendering(), VRRenderingRoutine {
 
     override val leftTexture: ITexture2D? get() = framebuffer.getTexture0()
     override val rightTexture: ITexture2D? get() = framebuffer.getTexture0()
-    override val leftView: Vector4f = Vector4f(0.5f, 1f, 0.25f, 0f)
-    override val rightView: Vector4f = Vector4f(0.5f, 1f, -0.25f, 0f)
+    override val leftView: Vector4f = Vector4f(0.5f, 1f, -0.25f, 0f)
+    override val rightView: Vector4f = Vector4f(0.5f, 1f, +0.25f, 0f)
     override var isActive: Boolean = false
     override val previewGamma: Float get() = 1f
 }
@@ -129,9 +134,11 @@ object VRViewPanel : Panel(style) {
 fun main() {
     VRRenderingRoutine.vrRoutine = VREmulator
     addEvent {
-        // open secondary window, which shows the framebuffer directly
-        // todo controls for VR positions, perspective, hands, etc...
-        WindowManagement.createWindow("VR Views", VRViewPanel, 800, 450)
+        Sleep.waitUntil(true, { VREmulator.frameIndex > 0 }) {
+            // open secondary window, which shows the framebuffer directly
+            // todo controls for VR positions, perspective, hands, etc...
+            WindowManagement.createWindow("VR Views", VRViewPanel, 800, 450)
+        }
     }
     testSceneWithUI("VR Emulator", createMetallicScene())
 }

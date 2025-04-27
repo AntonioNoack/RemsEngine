@@ -44,7 +44,7 @@ abstract class VRRendering {
 
     val prevData = LazyMap { _: Int -> PrevData() }
 
-    fun beginRenderViews(rv: RenderView, w: Int, h: Int) {
+    fun beginRenderViews(rv: RenderView, width: Int, height: Int) {
 
         position.set(0f)
         rotation.set(0f, 0f, 0f, 0f)
@@ -52,6 +52,13 @@ abstract class VRRendering {
         position.mul(1f / max(1, viewCount))
         rotation.normalize()
 
+        if (viewCount > 0) {
+            overrideRenderViewControls(rv)
+            prepareRenderViewRendering(rv, width, height)
+        } // else we don't want to override the standard controls
+    }
+
+    private fun overrideRenderViewControls(rv: RenderView) {
         rv.enableOrbiting = false
 
         val rt = rv.controlScheme?.rotationTargetDegrees
@@ -83,9 +90,12 @@ abstract class VRRendering {
 
         // todo define camera fov for frustum based on actually used angles
         rv.editorCamera.fovY = 110f // just a guess, should be good enough
+    }
+
+    private fun prepareRenderViewRendering(rv: RenderView, width: Int, height: Int) {
         rv.updateEditorCameraTransform()
         val skipFrame = rv.skipUpdate()
-        rv.prepareDrawScene(w, h, 1f, rv.editorCamera, !skipFrame, !skipFrame)
+        rv.prepareDrawScene(width, height, 1f, rv.editorCamera, !skipFrame, !skipFrame)
     }
 
     abstract fun accumulateViewTransforms(): Int
@@ -134,7 +144,7 @@ abstract class VRRendering {
     }
 
     abstract fun setupFramebuffer(
-        viewIndex: Int, w: Int, h: Int,
+        viewIndex: Int, width: Int, height: Int,
         colorTextureI: Int, depthTextureI: Int
     ): Framebuffer
 

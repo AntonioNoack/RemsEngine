@@ -6,7 +6,6 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderView
 import me.anno.graph.visual.render.scene.RenderViewNode
-import org.apache.logging.log4j.LogManager
 import java.util.WeakHashMap
 
 class OutlineEffectSelectNode : RenderViewNode(
@@ -16,7 +15,6 @@ class OutlineEffectSelectNode : RenderViewNode(
 ) {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(OutlineEffectSelectNode::class)
         private val lastSelection = WeakHashMap<RenderView, List<Inspectable>>()
     }
 
@@ -43,6 +41,5 @@ class OutlineEffectSelectNode : RenderViewNode(
                 }
             }
         }
-        LOGGER.info("Selected $numSelected/$numTotal meshes")
     }
 }
