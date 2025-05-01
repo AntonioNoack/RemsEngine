@@ -60,9 +60,6 @@ import kotlin.math.sqrt
  * */
 object BlenderReader {
 
-    // postTransform=false may not be setting positions / translations correctly
-    const val postTransform = true
-
     private val LOGGER = LogManager.getLogger(BlenderReader::class)
 
     fun readAsFolder(ref: FileReference, callback: InnerFolderCallback) {
@@ -235,9 +232,7 @@ object BlenderReader {
                     paths[bObject] = path
                     createObject(prefab, bObject, path, false, fps)
                 }
-                if (postTransform) {
-                    prefab[Path.ROOT_PATH, "rotation"] = Quaterniond().rotateX(-PI / 2)
-                }
+                prefab[Path.ROOT_PATH, "rotation"] = Quaterniond().rotateX(-PI / 2)
             } else {
                 // there must be a root
                 paths[roots.first()] = Path.ROOT_PATH
@@ -380,16 +375,13 @@ object BlenderReader {
         val localMatrix = Matrix4f(parentMatrix).invert().mul(obj.finalWSMatrix)
         // if(path == Path.ROOT_PATH) localMatrix.rotateX(-PI.toFloat() * 0.5f)
         val translation = localMatrix.getTranslation(Vector3d())
-        if (!postTransform) translation.set(translation.x, translation.z, -translation.y)
         if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
             prefab.setUnsafe(path, "position", translation)
         val rotation = localMatrix.getUnnormalizedRotation(Quaternionf())
-        if (!postTransform) rotation.set(rotation.x, rotation.z, -rotation.y, rotation.w)
-        if (isRoot && postTransform) rotation.rotateLocalX(-PIf * 0.5f)
+        if (isRoot) rotation.rotateLocalX(-PIf * 0.5f)
         if (rotation.w != 1f)
             prefab.setUnsafe(path, "rotation", Quaterniond(rotation))
         val scale = localMatrix.getScale(Vector3d())
-        if (!postTransform) scale.set(scale.x, scale.z, -scale.y)
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
             prefab.setUnsafe(path, "scale", scale)
         val typeId = obj.type.toInt()

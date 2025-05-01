@@ -138,13 +138,6 @@ object BlenderMeshConverter {
             }
         }
 
-        if (!BlenderReader.postTransform) {
-            flipVertices(positions)
-            if (normals != null) {
-                flipVertices(normals)
-            }
-        }
-
         @Suppress("UNCHECKED_CAST")
         val newUVs0 = src.lData.layers
             .firstOrNull { it.data.firstOrNull() is MLoopUV }

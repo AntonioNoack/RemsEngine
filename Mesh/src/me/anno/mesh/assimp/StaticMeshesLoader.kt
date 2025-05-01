@@ -129,8 +129,13 @@ object StaticMeshesLoader {
     }
 
     fun loadFile(file: FileReference, flags: Int, callback: Callback<Pair<AIScene, Boolean>>) {
+        SignatureCache.getAsync(file) { signature ->
+            loadFile(file, flags, signature?.name, callback)
+        }
+    }
+
+    fun loadFile(file: FileReference, flags: Int, signature: String?, callback: Callback<Pair<AIScene, Boolean>>) {
         // obj files should use our custom importer
-        val signature = SignatureCache[file, false]?.name // todo should be async
         if ((signature == "dae" || signature == "xml") && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)

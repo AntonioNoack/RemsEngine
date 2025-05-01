@@ -183,15 +183,19 @@ class ECSSceneTab(
         }
     }
 
-    fun applyRadius(panel: RenderView) {
-        val fov = panel.controlScheme?.settings?.fovY ?: 90f
-        val radius = radius * 90f / fov
-        panel.radius = radius
-        panel.near = 1e-3f * radius
-        panel.far = 1e10f * radius
-        panel.orbitCenter.set(position)
-        panel.orbitRotation.set(rotation)
-        val cs = panel.controlScheme
+    private fun getRadiusScale(renderView: RenderView): Float {
+        val fov = renderView.controlScheme?.settings?.fovY ?: 90f
+       return 90f / fov
+    }
+
+    fun applyRadius(renderView: RenderView) {
+        val radius = radius * getRadiusScale(renderView)
+        renderView.radius = radius
+        renderView.near = 1e-3f * radius
+        renderView.far = 1e10f * radius
+        renderView.orbitCenter.set(position)
+        renderView.orbitRotation.set(rotation)
+        val cs = renderView.controlScheme
         if (cs != null) {
             rotation
                 .getEulerAnglesYXZ(cs.rotationTargetDegrees)
@@ -201,11 +205,11 @@ class ECSSceneTab(
 
     fun onStop() {
         for (window in windowStack) {
-            window.panel.forAll { panel ->
-                if (panel is RenderView) {
-                    radius = panel.radius
-                    position.set(panel.orbitCenter)
-                    rotation.set(panel.orbitRotation)
+            window.panel.forAll { renderView ->
+                if (renderView is RenderView) {
+                    radius = renderView.radius / getRadiusScale(renderView)
+                    position.set(renderView.orbitCenter)
+                    rotation.set(renderView.orbitRotation)
                 }
             }
         }
