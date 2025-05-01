@@ -730,7 +730,7 @@ class BulletTest {
             val (mesh, pos) = meshes[i]
             Entity(scene)
                 .setPosition(pos)
-                .add(MeshCollider(mesh).apply { margin = 0.0 })
+                .add(MeshCollider(mesh).apply { margin = 0f })
                 .add(Rigidbody().apply { this.mass = mass })
         }
         val physics = BulletPhysics()

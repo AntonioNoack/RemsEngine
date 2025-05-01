@@ -42,7 +42,7 @@ fun main() {
                 friction = 0.9
             })
             .add(MeshCollider(mesh).apply {
-                margin = 0.0
+                margin = 0f
                 isConvex = true
             })
             .add(MeshComponent(mesh))

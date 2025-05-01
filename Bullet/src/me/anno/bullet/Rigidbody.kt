@@ -16,6 +16,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
@@ -79,9 +80,11 @@ open class Rigidbody : Component(), OnDrawGUI {
         else bi.applyCentralImpulse(javax.vecmath.Vector3d(0.0, 10.0 * mass, 0.0))
     }
 
+    @Group("Movement")
     @SerializedProperty
     var deleteWhenKilledByDepth = false // mmh... depending on edit mode?
 
+    @Group("Mass")
     @SerializedProperty
     var overrideGravity = false
         set(value) {
@@ -93,6 +96,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             }
         }
 
+    @Group("Mass")
     @SerializedProperty
     var gravity: Vector3d = Vector3d(gravity0)
         set(value) {
@@ -101,6 +105,7 @@ open class Rigidbody : Component(), OnDrawGUI {
                 bulletInstance?.setGravity(castB(value))
         }
 
+    @Group("Mass")
     @Docs("How heavy it is; 0 means static")
     @SerializedProperty
     var mass = 0.0
@@ -120,6 +125,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             }
         }
 
+    @Group("Movement")
     @Docs("Friction against motion when moving through air / water")
     var linearDamping = 0.0
         set(value) {
@@ -127,6 +133,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.setDamping(value, angularDamping)
         }
 
+    @Group("Rotation")
     @Docs("Friction against rotation when moving through air / water")
     var angularDamping = 0.0
         set(value) {
@@ -142,6 +149,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.restitution = value
         }
 
+    @Group("Movement")
     @Docs("Minimum velocity to count as standing still")
     @Range(0.0, Double.POSITIVE_INFINITY)
     var linearSleepingThreshold = 1.0
@@ -150,6 +158,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.setSleepingThresholds(value, angularSleepingThreshold)
         }
 
+    @Group("Rotation")
     @Docs("Minimum angular velocity to count as standing still")
     @Range(0.0, Double.POSITIVE_INFINITY)
     var angularSleepingThreshold = 0.8
@@ -166,6 +175,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.deactivationTime = value
         }
 
+    @Group("Movement")
     @Docs("velocity in global space")
     @DebugProperty
     var linearVelocity = Vector3d()
@@ -179,6 +189,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             }
         }
 
+    @Group("Movement")
     @DebugProperty
     var localLinearVelocity = Vector3d()
         get() {
@@ -205,6 +216,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             }
         }
 
+    @Group("Movement")
     val localVelocityX: Double
         get() {
             val tr = transform
@@ -217,6 +229,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             } else 0.0
         }
 
+    @Group("Movement")
     val localVelocityY: Double
         get() {
             val tr = transform
@@ -229,6 +242,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             } else 0.0
         }
 
+    @Group("Movement")
     val localVelocityZ: Double
         get() {
             val tr = transform
@@ -241,6 +255,8 @@ open class Rigidbody : Component(), OnDrawGUI {
             } else 0.0
         }
 
+
+    @Group("Rotation")
     @Docs("Angular velocity in global space")
     @DebugProperty
     var angularVelocity = Vector3d()
@@ -263,6 +279,7 @@ open class Rigidbody : Component(), OnDrawGUI {
     /**
      * slowing down on contact
      * */
+    @Group("Movement")
     @Range(0.0, 1.0)
     var friction = 0.5
         set(value) {
@@ -270,6 +287,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.friction = friction
         }
 
+    @Group("Mass")
     @SerializedProperty
     var centerOfMass = Vector3d()
         set(value) {
@@ -283,6 +301,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             }
         }
 
+    @Group("Mass")
     @Docs("If an object is static, it will never move, and has infinite mass")
     @NotSerializedProperty
     var isStatic
@@ -350,34 +369,42 @@ open class Rigidbody : Component(), OnDrawGUI {
      * applies an impulse, like a hit
      * must be called onPhysicsUpdate()
      * */
-    fun applyImpulse(x: Double, y: Double, z: Double) {
+    fun applyImpulse(strengthX: Double, strengthY: Double, strengthZ: Double) {
+        val bulletInstance = bulletInstance ?: return
         val impulse = Stack.borrowVec()
-        impulse.set(x, y, z)
-        bulletInstance?.applyCentralImpulse(impulse)
+        impulse.set(strengthX, strengthY, strengthZ)
+        bulletInstance.applyCentralImpulse(impulse)
     }
 
     /**
      * applies an impulse in global space, like a hit
      * must be called onPhysicsUpdate()
      * */
-    fun applyImpulse(impulse: Vector3d) = applyImpulse(impulse.x, impulse.y, impulse.z)
+    fun applyImpulse(strength: Vector3d) = applyImpulse(strength.x, strength.y, strength.z)
 
     /**
      * applies an impulse, and a bit of torque
      * must be called onPhysicsUpdate()
      * */
-    fun applyImpulse(px: Double, py: Double, pz: Double, x: Double, y: Double, z: Double) {
-        val relPos = Stack.newVec()
-        relPos.set(px, py, pz)
-        val impulse = Stack.newVec()
-        impulse.set(x, y, z)
-        bulletInstance?.applyImpulse(impulse, relPos)
+    fun applyImpulse(
+        relPosX: Double, relPosY: Double, relPosZ: Double,
+        strengthX: Double, strengthY: Double, strengthZ: Double
+    ) {
+        val bulletInstance = bulletInstance ?: return
+        val relativePosition = Stack.newVec()
+        relativePosition.set(relPosX, relPosY, relPosZ)
+        val strength = Stack.newVec()
+        strength.set(strengthX, strengthY, strengthZ)
+        bulletInstance.applyImpulse(strength, relativePosition)
         Stack.subVec(2)
     }
 
     /**
      * applies an impulse, and a bit of torque
      * must be called onPhysicsUpdate()
+     *
+     * @param relativePosition globalHitPosition - rigidBody.globalPosition
+     * @param impulse direction times strength in global space
      * */
     fun applyImpulse(relativePosition: Vector3d, impulse: Vector3d) =
         applyImpulse(relativePosition.x, relativePosition.y, relativePosition.z, impulse.x, impulse.y, impulse.z)
@@ -387,9 +414,10 @@ open class Rigidbody : Component(), OnDrawGUI {
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(x: Double, y: Double, z: Double) {
+        val bulletInstance = bulletInstance ?: return
         val impulse = Stack.borrowVec() // is reused by method
         impulse.set(x, y, z)
-        bulletInstance?.applyTorqueImpulse(impulse)
+        bulletInstance.applyTorqueImpulse(impulse)
     }
 
     /**

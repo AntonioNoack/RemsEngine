@@ -5,6 +5,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.YUVHelper.yuv2rgb
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -30,7 +31,7 @@ object DrawGradients {
                 Variable(GLSLType.V4F, "rColor"),
                 Variable(GLSLType.V1B, "inXDirection"),
             ), "" +
-                    ShaderLib.yuv2rgb +
+                    yuv2rgb +
                     "void main(){\n" +
                     "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "   linColor = pow((inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor, vec4(2.0));\n" + // srgb -> linear
@@ -38,7 +39,7 @@ object DrawGradients {
                     "}", listOf(
                 Variable(GLSLType.V2F, "finalUV"), Variable(GLSLType.V4F, "linColor")
             ), key?.variables?.filter { !it.isOutput } ?: emptyList(), "" +
-                    ShaderLib.yuv2rgb +
+                    yuv2rgb +
                     "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
                     "   return texture(tex, uv);\n" + // tiling isn't needed
                     "}\n" +

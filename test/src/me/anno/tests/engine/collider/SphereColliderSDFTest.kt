@@ -29,7 +29,7 @@ class SphereColliderSDFTest {
             val nor = Vector3f()
             val tmp = Vector3f(pos)
             val radius = random.nextFloat()
-            tested.radius = radius.toDouble()
+            tested.radius = radius
             base.scale = radius
             val distance = tested.getSignedDistance(tmp, nor)
             assertEquals(pos, tmp)

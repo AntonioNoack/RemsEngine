@@ -9,8 +9,8 @@ import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -170,13 +170,17 @@ object LineShapes {
     }
 
     fun drawBox(entity: Entity?, color: Int = defaultColor, halfExtends: Vector3d? = null) {
+        val hx = halfExtends?.x ?: 1.0
+        val hy = halfExtends?.y ?: 1.0
+        val hz = halfExtends?.z ?: 1.0
+        drawBox(entity, color, hx, hy, hz)
+    }
+
+    fun drawBox(entity: Entity?, color: Int, hx: Double, hy: Double, hz: Double) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
-        val hx = halfExtends?.x ?: 1.0
-        val hy = halfExtends?.y ?: 1.0
-        val hz = halfExtends?.z ?: 1.0
         for (i in 0 until 8) {
             val position = positions[i].set(
                 if ((i.and(1) != 0)) -hx else +hx,

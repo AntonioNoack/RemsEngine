@@ -27,34 +27,34 @@ val testShapes = listOf(
     BoxCollider(),
     BoxCollider().apply {
         name = "BoxWithBorder"
-        roundness = 0.5
+        roundness = 0.5f
     },
     SphereCollider(),
     CapsuleCollider().apply {
-        radius = 0.8
-        halfHeight = 0.8
+        radius = 0.8f
+        halfHeight = 0.8f
     },
     CylinderCollider(),
     CylinderCollider().apply {
         name = "CylinderWithBorder"
-        roundness = 0.5
+        roundness = 0.5f
     },
     ConeCollider().apply {
         name = "Cone"
     },
     ConeCollider().apply {
         name = "ConeWithBorder"
-        roundness = 0.5
+        roundness = 0.5f
     },
     ConeCollider().apply {
         name = "ConeSmall"
-        radius *= 0.5
-        height *= 0.5
+        radius *= 0.5f
+        height *= 0.5f
     },
     ConeCollider().apply {
         name = "ConeWide"
-        radius *= 1.5
-        height /= 1.5
+        radius *= 1.5f
+        height /= 1.5f
     },
     MeshCollider().apply {
         registerCustomClass(Entity())

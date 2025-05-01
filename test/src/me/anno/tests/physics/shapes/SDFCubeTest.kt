@@ -16,7 +16,7 @@ import kotlin.random.Random
 
 class SDFCubeTest {
 
-    private fun createBaseline(marginI: Double): BoxShape {
+    private fun createBaseline(marginI: Float): BoxShape {
         val baseline = BoxCollider().apply { margin = marginI }
             .createBulletShape(Vector3d(1.0))
         assertEquals(marginI, baseline.margin)
@@ -39,7 +39,7 @@ class SDFCubeTest {
 
     @Test
     fun testSDFSupportVector() {
-        val baseline = createBaseline(0.0)
+        val baseline = createBaseline(0f)
         val tested = createTested(0f)
         val random = Random(1234)
         for (i in 0 until 20) {
@@ -52,7 +52,7 @@ class SDFCubeTest {
 
     @Test
     fun testSDFSupportVectorCorners() {
-        val baseline = createBaseline(0.0)
+        val baseline = createBaseline(0f)
         val tested = createTested(0f)
         for (i in 0 until 8) {
             val pos = javax.vecmath.Vector3d(
@@ -68,7 +68,7 @@ class SDFCubeTest {
 
     @Test
     fun testSDFSupportVectorWithMargin() {
-        val baseline = createBaseline(1.0)
+        val baseline = createBaseline(1f)
         val tested = createTested(1f)
         val random = Random(1234)
         for (i in 0 until 100) {

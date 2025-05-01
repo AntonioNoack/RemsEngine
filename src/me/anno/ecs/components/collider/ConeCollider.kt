@@ -25,18 +25,18 @@ class ConeCollider : Collider() {
     var axis = Axis.Y
 
     @SerializedProperty
-    var height = 2.0
+    var height = 2f
 
     @SerializedProperty
-    var radius = 1.0
+    var radius = 1f
 
     @SerializedProperty
-    var margin = 0.04
+    var margin = 0.04f
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the peak and the bottom ring
         val h = height * 0.5
-        val r = radius
+        val r = radius.toDouble()
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
         tmp[axis.id] = +h
         aabb.union(globalTransform.transformPosition(tmp))
@@ -45,7 +45,7 @@ class ConeCollider : Collider() {
     override fun getSignedDistance(deltaPos: Vector3f): Float {
 
         val roundness = roundness.toFloat()
-        val h = -height.toFloat() + roundness * 2f
+        val h = -height + roundness * 2f
         val dist1D = deltaPos[axis.id] + h * 0.5f // centering
         val dist2D = when (axis) {
             Axis.X -> length(deltaPos.y, deltaPos.z)
@@ -55,7 +55,7 @@ class ConeCollider : Collider() {
 
         // todo how can we include roundness here?
 
-        val r = radius.toFloat() - roundness
+        val r = radius - roundness
         val t = clamp((dist2D * r + dist1D * h) / (r * r + h * h))
         val a2 = lengthSquared(r * t - dist2D, h * t - dist1D)
         val b2 = lengthSquared(clamp(dist2D, 0f, r) - dist2D, h - dist1D)
@@ -75,7 +75,8 @@ class ConeCollider : Collider() {
             Axis.Z -> null
         }
         val color = getLineColor(hasPhysics)
-        drawCone(entity, radius, radius, height, 0.0, matrix, color)
+        val radius = radius.toDouble()
+        drawCone(entity, radius, radius, height.toDouble(), 0.0, matrix, color)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

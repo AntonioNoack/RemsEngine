@@ -100,7 +100,7 @@ class RayHit(maxDistance: Double) {
         // LOGGER.info("hit position $hitPosition from local hit $localStart + $localDistance * $localDir")
         globalTransform.transformPosition(hitPosition)
         val hitNormal = geometryNormalWS.set(localNormal)
-        globalTransform.transformDirection(hitNormal)
+        globalTransform.transformDirection(hitNormal).safeNormalize()
         shadingNormalWS.set(geometryNormalWS)
         // calculate the world space distance
         val distance = hitPosition.distance(query.start)

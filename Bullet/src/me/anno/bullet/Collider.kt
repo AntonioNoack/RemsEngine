@@ -63,12 +63,12 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
         convex.margin = 0.0
 
         if (positions.size < 30 || !enableSimplifications) {
-            convex.margin = margin
+            convex.margin = margin.toDouble()
             return convex
         }
 
         val hull = ShapeHull(convex)
-        hull.buildHull(margin)
+        hull.buildHull(margin.toDouble())
         val shape = ConvexHullShape(hull.vertexPointer)
         shape.margin = 0.0
         return shape
@@ -129,7 +129,7 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
             vertexCount, vertexBase, 12
         )
         val shape = BvhTriangleMeshShape(smi, true, true)
-        shape.margin = margin
+        shape.margin = margin.toDouble()
         return shape
     }
 }
@@ -140,7 +140,7 @@ fun CapsuleCollider.createBulletShape(scale: Vector3d): CapsuleShape {
         Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis.id) // x
         Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis.id) // y
         Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis.id) // z
-    }.apply { margin = self.margin }
+    }.apply { margin = self.margin.toDouble() }
 }
 
 fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
@@ -149,7 +149,7 @@ fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
         Axis.X -> ConeShapeX(radius * scale.y, height * scale.x)
         Axis.Y -> ConeShape(radius * scale.x, height * scale.y)
         Axis.Z -> ConeShapeZ(radius * scale.x, height * scale.z)
-    }.apply { margin = self.margin }
+    }.apply { margin = self.margin.toDouble() }
 }
 
 fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
@@ -158,7 +158,7 @@ fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
         Axis.X -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
         Axis.Y -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
         Axis.Z -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
-    }.apply { margin = self.margin }
+    }.apply { margin = self.margin.toDouble() }
 }
 
 fun BoxCollider.createBulletShape(scale: Vector3d): BoxShape {
@@ -169,11 +169,11 @@ fun BoxCollider.createBulletShape(scale: Vector3d): BoxShape {
             (halfExtends.y + margin) * scale.y,
             (halfExtends.z + margin) * scale.z
         )
-    ).apply { margin = self.margin }
+    ).apply { margin = self.margin.toDouble() }
 }
 
 fun SphereCollider.createBulletShape(scale: Vector3d): SphereShape {
-    return SphereShape(radius).apply {
+    return SphereShape(radius.toDouble()).apply {
         setLocalScaling(javax.vecmath.Vector3d(scale.x, scale.y, scale.z))
     }
 }

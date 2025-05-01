@@ -20,19 +20,19 @@ class SDFCylinderTest {
 
     @Test
     fun testSDFSupportVectorWithoutMargin() {
-        testSDFSupportVector(Axis.X, 0.0)
-        testSDFSupportVector(Axis.Y, 0.0)
-        testSDFSupportVector(Axis.Z, 0.0)
+        testSDFSupportVector(Axis.X, 0f)
+        testSDFSupportVector(Axis.Y, 0f)
+        testSDFSupportVector(Axis.Z, 0f)
     }
 
     @Test
     fun testSDFSupportVectorWithMargin() {
-        testSDFSupportVector(Axis.X, 1.0)
-        testSDFSupportVector(Axis.Y, 1.0)
-        testSDFSupportVector(Axis.Z, 1.0)
+        testSDFSupportVector(Axis.X, 1f)
+        testSDFSupportVector(Axis.Y, 1f)
+        testSDFSupportVector(Axis.Z, 1f)
     }
 
-    fun testSDFSupportVector(axisI: Axis, marginI: Double) {
+    fun testSDFSupportVector(axisI: Axis, marginI: Float) {
         val baseline = CylinderCollider().apply {
             axis = axisI
             margin = marginI
@@ -41,9 +41,9 @@ class SDFCylinderTest {
         val tested = ConvexSDFShape(
             SDFCylinder().apply {
                 axis = axisI
-                halfHeight = 1f + marginI.toFloat()
-                radius = 1f + marginI.toFloat()
-                smoothness = marginI.toFloat()
+                halfHeight = 1f + marginI
+                radius = 1f + marginI
+                smoothness = marginI
                 localAABB
                     .setMin(-1.0, -1.0, -1.0)
                     .setMax(1.0, 1.0, 1.0)
@@ -51,7 +51,7 @@ class SDFCylinderTest {
         )
         tested.margin = 0.0
         val random = Random(1234)
-        val accurate = marginI == 0.0
+        val accurate = marginI == 0f
         // it's a shame that we have to use soo big margins :/
         val threshold = if (accurate) 1e-5 else 1.0 + marginI
         for (i in 0 until 100) {

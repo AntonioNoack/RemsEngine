@@ -22,25 +22,25 @@ class CylinderCollider : Collider() {
     var axis = Axis.Y
 
     @SerializedProperty
-    var halfHeight = 1.0
+    var halfHeight = 1f
 
     @SerializedProperty
-    var radius = 1.0
+    var radius = 1f
 
     @SerializedProperty
-    var margin = 0.04
+    var margin = 0.04f
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the two rings
-        val h = halfHeight
-        val r = radius
+        val h = halfHeight.toDouble()
+        val r = radius.toDouble()
         unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
-        val halfHeight = halfHeight.toFloat()
-        val radius = radius.toFloat()
+        val halfHeight = halfHeight
+        val radius = radius
         val circle = when (axis) {
             Axis.X -> length(deltaPos.y, deltaPos.z)
             Axis.Y -> length(deltaPos.x, deltaPos.z)
@@ -49,12 +49,12 @@ class CylinderCollider : Collider() {
         val box = abs(deltaPos[axis.id]) - halfHeight
         deltaPos.x = circle
         deltaPos.y = box
-        return and2SDFs(deltaPos, roundness.toFloat())
+        return and2SDFs(deltaPos, roundness)
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        val h = halfHeight
-        val r = radius
+        val h = halfHeight.toDouble()
+        val r = radius.toDouble()
         val e = entity
         val color = getLineColor(hasPhysics)
         when (axis) {

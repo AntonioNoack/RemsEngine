@@ -8,11 +8,7 @@ import me.anno.utils.types.Triangles
 import kotlin.math.abs
 
 object RaycastCollider {
-    fun raycastGlobalCollider(
-        query: RayQuery,
-        entity: Entity,
-        collider: Collider
-    ): Boolean {
+    fun raycastGlobalCollider(query: RayQuery, entity: Entity, collider: Collider): Boolean {
 
         val localToGlobal = entity.transform.globalTransform
         val globalToLocal = localToGlobal.invert(JomlPools.mat4x3m.create())
@@ -21,17 +17,17 @@ object RaycastCollider {
         // (e.g., for inaccurate checks like a large beam)
         // for that, just move towards the ray towards the origin of the collider by min(<radius>, <distance(ray, collider-origin)>)
         val radiusScale = globalToLocal.getScaleLength() / Maths.SQRT3
-        var testRadiusAtOrigin = (query.radiusAtOrigin * radiusScale).toFloat()
-        var testRadiusPerUnit = query.radiusPerUnit.toFloat() // like an angle -> stays the same for regular scales
+        var localRadiusAtOrigin = (query.radiusAtOrigin * radiusScale).toFloat()
+        var localRadiusPerUnit = query.radiusPerUnit.toFloat() // like an angle -> stays the same for regular scales
         val interpolation = if ((query.radiusAtOrigin > 0.0 || query.radiusPerUnit > 0.0) && collider.isConvex) {
-            testRadiusAtOrigin = 0f
-            testRadiusPerUnit = 0f
-            1f - Triangles.computeConeInterpolation(
+            localRadiusAtOrigin = 0f
+            localRadiusPerUnit = 0f
+            Triangles.computeConeInterpolation(
                 query.start, query.direction,
                 localToGlobal.m30, localToGlobal.m31, localToGlobal.m32,
                 query.radiusAtOrigin, query.radiusPerUnit
             ).toFloat()
-        } else 1f
+        } else 0f
 
         val result = query.result
         val tmp3f = result.tmpVector3fs
@@ -41,18 +37,21 @@ object RaycastCollider {
 
         val localStart0 = globalToLocal.transformPosition(query.start, tmp3d[0])
         val localStart = local.start.set(localStart0)
-        if (interpolation < 1f) localStart.mul(interpolation)
+        if (interpolation > 0f) localStart.mul(1f - interpolation)
 
         val localDir0 = globalToLocal.transformDirection(tmp3f[1].set(query.direction))
         val localDir = local.direction.set(localDir0)
 
         JomlPools.mat4x3m.sub(1)
 
-        val maxDistance = (query.result.distance * localDir.length()).toFloat()
-        local.radiusAtOrigin = testRadiusAtOrigin
-        local.radiusPerUnit = testRadiusPerUnit
+        val scale = localDir.length()
+        val maxDistance = (query.result.distance * scale).toFloat()
+        local.radiusAtOrigin = localRadiusAtOrigin
+        local.radiusPerUnit = localRadiusPerUnit
         local.maxDistance = maxDistance
         local.hitType = result.hitType
+
+        localDir.safeNormalize()
 
         val localNormal = tmp3f[2]
         val localDistance = collider.raycast(local, localNormal)

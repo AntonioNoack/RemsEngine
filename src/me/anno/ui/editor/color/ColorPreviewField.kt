@@ -4,6 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.YUVHelper
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -30,7 +31,7 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val bgColor = if (ShaderLib.y.dot(color.r01(), color.g01(), color.b01(), 0f) > 0.5f) black else white
+        val bgColor = if (YUVHelper.YUV_Y.dot(color.r01(), color.g01(), color.b01(), 0f) > 0.5f) black else white
         val size = min(width, height)
         DrawRectangles.drawRect(
             x + padding - 1, y + padding - 1,

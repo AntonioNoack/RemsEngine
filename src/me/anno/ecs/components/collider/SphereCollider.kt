@@ -15,7 +15,7 @@ import kotlin.math.sqrt
 class SphereCollider : Collider() {
 
     @SerializedProperty
-    var radius = 1.0
+    var radius = 1f
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
@@ -25,7 +25,7 @@ class SphereCollider : Collider() {
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // otherwise just use a cube and its 8 sides
-        val r = radius
+        val r = radius.toDouble()
         if (preferExact) {
             // if prefer exact, then use multiple outer-sphere points
             // outer ring != outer sphere, increase the radius once more!
@@ -70,6 +70,6 @@ class SphereCollider : Collider() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        drawSphere(entity, radius, null, getLineColor(hasPhysics))
+        drawSphere(entity, radius.toDouble(), null, getLineColor(hasPhysics))
     }
 }

@@ -141,9 +141,9 @@ fun main() {
 
         val collider = CapsuleCollider().apply {
             axis = Axis.Y
-            halfHeight = length * 0.32
-            radius = halfHeight * 0.3
-            margin = 0.01
+            halfHeight = length.toFloat() * 0.32f
+            radius = halfHeight * 0.3f
+            margin = 0.01f
             capsules.add(this)
         }
 

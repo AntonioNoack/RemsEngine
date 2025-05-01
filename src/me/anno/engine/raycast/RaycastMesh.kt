@@ -35,9 +35,9 @@ object RaycastMesh {
             // transform the ray into local mesh coordinates
             val result = query.result
             val inverse = result.tmpMat4x3m
-            if (transform != null) {
+            if (globalTransform != null) {
                 // local -> global
-                globalTransform!!.invert(inverse)
+                globalTransform.invert(inverse)
             } else inverse.identity()
 
             val tmp0 = result.tmpVector3fs

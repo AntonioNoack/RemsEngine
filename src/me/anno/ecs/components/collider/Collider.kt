@@ -39,7 +39,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     @Range(0.0, 1.0)
     @SerializedProperty
-    var roundness = 0.0
+    var roundness = 0f
 
     @Docs("Whether this collider will collide with stuff, or just detect collisions")
     @SerializedProperty
@@ -168,7 +168,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         union(globalTransform, aabb, tmp, 0.0, 0.0, -1.0)
     }
 
-    fun and2SDFs(deltaPos: Vector3f, roundness: Float = this.roundness.toFloat()): Float {
+    fun and2SDFs(deltaPos: Vector3f, roundness: Float = this.roundness): Float {
         val dx = deltaPos.x + roundness
         val dy = deltaPos.y + roundness
         val outside = Maths.length(max(dx, 0f), max(dy, 0f))
@@ -176,7 +176,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         return outside + inside - roundness
     }
 
-    fun and3SDFs(deltaPos: Vector3f, roundness: Float = this.roundness.toFloat()): Float {
+    fun and3SDFs(deltaPos: Vector3f, roundness: Float = this.roundness): Float {
         val dx = deltaPos.x + roundness
         val dy = deltaPos.y + roundness
         val dz = deltaPos.z + roundness

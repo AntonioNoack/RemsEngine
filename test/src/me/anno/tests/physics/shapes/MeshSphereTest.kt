@@ -20,7 +20,7 @@ class MeshSphereTest {
         assertEquals(1.0, baseline.margin)
         val tested = MeshCollider(IcosahedronModel.createIcosphere(2))
             .apply {
-                margin = 0.0
+                margin = 0f
                 enableSimplifications = false
                 isConvex = true
             }
@@ -41,7 +41,7 @@ class MeshSphereTest {
         assertEquals(1.0, baseline.margin)
         val tested = MeshCollider(IcosahedronModel.createIcosphere(3))
             .apply {
-                margin = 0.0
+                margin = 0f
                 enableSimplifications = true
                 isConvex = true
             }
@@ -62,7 +62,7 @@ class MeshSphereTest {
         assertEquals(1.0, baseline.margin)
         val tested = MeshCollider(IcosahedronModel.createIcosphere(2))
             .apply {
-                margin = 0.0
+                margin = 0f
                 isConvex = false
             }
             .createBulletShape(Vector3d(1.0)) as TriangleMeshShape

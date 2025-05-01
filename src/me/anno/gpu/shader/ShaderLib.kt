@@ -1,11 +1,10 @@
 package me.anno.gpu.shader
 
+import me.anno.gpu.shader.YUVHelper.YUV_Y
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.Lists.createList
-import org.joml.Matrix4x3f
 import org.joml.Vector3i
-import org.joml.Vector4f
 import kotlin.math.sqrt
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
@@ -41,17 +40,6 @@ object ShaderLib {
             "   );\n" +
             "}\n" +
             "#endif\n"
-
-    val y = Vector4f(0.299f, 0.587f, 0.114f, 0f)
-    val u = Vector4f(-0.169f, -0.331f, 0.500f, 0.5f)
-    val v = Vector4f(0.500f, -0.419f, -0.081f, 0.5f)
-    val mi = Matrix4x3f(
-        y.x, u.x, v.x,
-        y.y, u.y, v.y,
-        y.z, u.z, v.z,
-        y.w, u.w, v.w,
-    )
-    val m = mi.invert(Matrix4x3f())
 
     val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
 
@@ -104,10 +92,10 @@ object ShaderLib {
 
     val brightness = "" +
             "float brightness(vec3 color){\n" +
-            "   return sqrt(${y.x}*color.r*color.r + ${y.y}*color.g*color.g + ${y.z}*color.b*color.b);\n" +
+            "   return sqrt(${YUV_Y.x}*color.r*color.r + ${YUV_Y.y}*color.g*color.g + ${YUV_Y.z}*color.b*color.b);\n" +
             "}\n" +
             "float brightness(vec4 color){\n" +
-            "   return sqrt(${y.x}*color.r*color.r + ${y.y}*color.g*color.g + ${y.z}*color.b*color.b);\n" +
+            "   return sqrt(${YUV_Y.x}*color.r*color.r + ${YUV_Y.y}*color.g*color.g + ${YUV_Y.z}*color.b*color.b);\n" +
             "}\n"
 
     const val blendColor = "" +
@@ -115,7 +103,7 @@ object ShaderLib {
             "   return vec4(mix(back.rgb,front.rgb,front.a),1.0-(1.0-front.a)*(1.0-back.a));\n" +
             "}\n"
 
-    fun brightness(r: Float, g: Float, b: Float) = sqrt(y.dot(r * r, g * g, b * b, 1f))
+    fun brightness(r: Float, g: Float, b: Float) = sqrt(YUV_Y.dot(r * r, g * g, b * b, 1f))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
     const val quatRot = "" +
@@ -176,34 +164,6 @@ object ShaderLib {
             foreignBicubicInterpolation +
             "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
             "   return textureBicubic(tex, uv);\n" +
-            "}\n"
-
-    val rgb2yuv = "" +
-            "vec3 rgb2yuv(vec3 rgb){\n" +
-            "   vec4 rgba = vec4(rgb,1);\n" +
-            "   return vec3(\n" +
-            "       dot(rgb,  vec3(${y.x}, ${y.y}, ${y.z})),\n" +
-            "       dot(rgba, vec4(${u.x}, ${u.y}, ${u.z}, 0.5)),\n" +
-            "       dot(rgba, vec4(${v.x}, ${v.y}, ${v.z}, 0.5))\n" +
-            "   );\n" +
-            "}\n"
-
-    val rgb2uv = "" +
-            "vec2 RGBtoUV(vec3 rgb){\n" +
-            "   vec4 rgba = vec4(rgb,1.0);\n" +
-            "   return vec2(\n" +
-            "       dot(rgba, vec4(${u.x}, ${u.y}, ${u.z}, 0.5)),\n" +
-            "       dot(rgba, vec4(${v.x}, ${v.y}, ${v.z}, 0.5))\n" +
-            "   );\n" +
-            "}\n"
-
-    val yuv2rgb = "" +
-            "vec3 yuv2rgb(vec3 yuv){\n" +
-            "   return vec3(\n" +
-            "       dot(yuv, vec3(${m.m00}, ${m.m10}, ${m.m20}))+${m.m30},\n" +
-            "       dot(yuv, vec3(${m.m01}, ${m.m11}, ${m.m21}))+${m.m31},\n" +
-            "       dot(yuv, vec3(${m.m02}, ${m.m12}, ${m.m22}))+${m.m32}\n" +
-            "   );\n" +
             "}\n"
 
     const val anisotropic16 = "" +

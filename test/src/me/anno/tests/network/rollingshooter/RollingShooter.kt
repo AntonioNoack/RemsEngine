@@ -41,7 +41,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.pictures
-import me.anno.utils.OS.res
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LoggerImpl
 import org.joml.Vector3d
@@ -99,7 +98,7 @@ fun main() {
             angularDamping = 0.9
             restitution = 0.0
         })
-        player.add(SphereCollider().apply { radius = 1.0 })
+        player.add(SphereCollider().apply { radius = 1f })
         player.add(MeshComponent(sphereMesh).apply {
             materials = listOf(Material().apply {
                 (color or black).toVecRGBA(diffuseBase)

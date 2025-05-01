@@ -44,7 +44,6 @@ class Transform() : Saveable() {
         else parent?.invalidateForChildren() // keep behaviour linear
     }
 
-    // todo it would be nice if we could combine these into one field
     var entity: Entity? = null
     var parentEntity: Entity? = null
     val parent get() = (entity?.parentEntity ?: parentEntity)?.transform

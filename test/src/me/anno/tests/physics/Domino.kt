@@ -96,8 +96,8 @@ fun main() {
         val density = 1.0
         val mass1 = width * height * thickness * density
 
-        val halfExtends1 = Vector3d(width * 0.5, height * 0.5, thickness * 0.5)
-        val mesh = flatCube.scaled(Vector3f(halfExtends1)).front.ref
+        val halfExtends1 = Vector3f(width * 0.5f, height * 0.5f, thickness * 0.5f)
+        val mesh = flatCube.scaled(halfExtends1).front.ref
 
         val dominos = Entity("Dominos")
         scene.add(dominos)
@@ -114,9 +114,9 @@ fun main() {
             })
             domino.add(BoxCollider().apply {
                 halfExtends = halfExtends1
-                margin = 0.0
+                margin = 0f
             })
-            domino.setPosition(x.toDouble(), halfExtends1.y, z.toDouble())
+            domino.setPosition(x.toDouble(), halfExtends1.y.toDouble(), z.toDouble())
             dominos.add(domino)
             return domino
         }
@@ -134,7 +134,7 @@ fun main() {
             })
             floor.add(BoxCollider().apply {
                 halfExtends.set(floorHalfSize)
-                margin = 0.0
+                margin = 0f
             })
             floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
             floor.setPosition(0.0, -floorHalfSize, 2 * z * floorHalfSize)

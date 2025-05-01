@@ -47,7 +47,7 @@ open class MeshCollider() : Collider() {
     var enableSimplifications = true
 
     @SerializedProperty
-    var margin = 0.04
+    var margin = 0.04f
 
     @DebugProperty
     val meshTriangles get() = mesh?.numPrimitives

@@ -106,7 +106,7 @@ fun createTerrain(player: LocalPlayer): Entity {
             val wrapper = Entity("E$chunkX/$chunkZ")
                 .setPosition(chunkX * chunkSize, 0.0, chunkZ * chunkSize)
                 .add(MeshComponent(mesh))
-                .add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5 })
+                .add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5f })
                 .add(Rigidbody())
             terrain.add(wrapper)
             terrain.invalidateAABBsCompletely()

@@ -23,18 +23,18 @@ class CapsuleCollider : Collider() {
     var axis = Axis.Y
 
     @SerializedProperty
-    var halfHeight = 1.0
+    var halfHeight = 1f
 
     @SerializedProperty
-    var radius = 1.0
+    var radius = 1f
 
     @SerializedProperty
-    var margin = 0.04
+    var margin = 0.04f
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the two rings, and the top and bottom peak
-        val r = radius
-        val h = halfHeight
+        val r = radius.toDouble()
+        val h = halfHeight.toDouble()
         unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
         val s = h + r
@@ -44,15 +44,15 @@ class CapsuleCollider : Collider() {
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         // roundness is ignored, because a capsule is already perfectly round
-        val halfExtends = halfHeight.toFloat()
+        val halfExtends = halfHeight
         deltaPos.absolute()
         deltaPos.setComponent(axis.id, max(deltaPos[axis.id] - halfExtends, 0f))
-        return deltaPos.length() - radius.toFloat()
+        return deltaPos.length() - radius
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        val h = halfHeight
-        val r = radius
+        val h = halfHeight.toDouble()
+        val r = radius.toDouble()
         val xi = PI / 2
         val zi = xi * 3
         val color = getLineColor(hasPhysics)
