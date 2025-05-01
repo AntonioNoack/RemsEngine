@@ -94,9 +94,15 @@ class GlassPass : TransparentPass() {
                                 "float milkiness = 0.5 * finalRoughness;\n" +
                                 "float iorValue = gl_FrontFacing ? 1.0 / IOR : IOR;\n" +
                                 "float fresnel = 0.04;\n" + // we don't have SSR for glass, so this is the best we can do visually
-                                "finalAlpha = mix(fresnel, 1.0, milkiness);\n" +
+                                "float newAlpha = mix(fresnel, 1.0, milkiness);\n" +
+                                // alpha is used for opacity and shadow... find a solution, where shadow is separate:
+                                "#ifdef MODULATE_ALPHA\n" +
+                                "   finalAlpha *= newAlpha;\n" +
+                                "#else\n" +
+                                "   finalAlpha = newAlpha;\n" +
+                                "#endif\n" +
                                 "finalReflections = finalColor * finalAlpha;\n" + // color from sky
-                                "finalTinting = -log(finalColor0) * finalAlpha;\n" + // actual color
+                                "finalTinting = -log(max(finalColor0, 1e-6)) * finalAlpha;\n" + // actual color
                                 "finalRefraction = IOR == 1.0 ? 0.0 : -log(IOR) * finalAlpha;\n" +
                                 "finalNormal2D = IOR == 1.0 ? vec2(0.0) : vec2(dot(finalNormal,dirX), dot(finalNormal,dirY)) * finalAlpha;\n"
                     ).add(getReflectivity).add(sampleSkyboxForAmbient).add(brightness)
@@ -160,7 +166,11 @@ class GlassPass : TransparentPass() {
         // todo baked ambient occlusion is somehow put into depth buffer, when we split FBs
 
         val old = GFXState.currentBuffer
-        val tmp = getFramebufferWithAttachedDepth(listOf(TargetType.Float16x4, TargetType.Float16x4, TargetType.Float16x2))
+        val tmp = getFramebufferWithAttachedDepth(listOf(
+            TargetType.Float16x4, // diffuse tinting + alpha/opacity
+            TargetType.Float16x4, // reflections + refraction (IOR)
+            TargetType.Float16x2, // 2d normal
+        ))
         glassPassDepth = old.depthTexture
         useFrame(old.width, old.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)

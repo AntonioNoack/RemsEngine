@@ -19,11 +19,9 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    // todo light shine around lamps
-    //  particles in air, and viewing ray really close to light source
-
-    // todo we need an exposure setting or auto-exposure (and desaturation in the dark)
-    // fixed: SkyboxBase looked like it's not reflected
+    // done we need an exposure setting: can be found in RenderGraph
+    // todo we need an auto-exposure implementation
+    // done: and desaturation in the dark: there is a sample night-shader, which implements that
 
     testSceneWithUI("Metallic", createMetallicScene()) {
         WindowRenderFlags.enableVSync = false
