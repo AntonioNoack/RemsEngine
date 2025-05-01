@@ -56,32 +56,38 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         // cascade style must only influence xy, not z
         dstCameraMatrix.set(drawTransform).invert()
         dstCameraMatrix.setTranslation(0f, 0f, 0f)
-        val sx = (1.0 / (cascadeScale))
+        val sx = 1.0 / cascadeScale
         val sz = 1.0
 
         // z must be mapped from [-1,1] to [0,1]
         // additionally it must be scaled to match the world size
         dstCameraMatrix.scaleLocal(sx.toFloat(), sx.toFloat(), (sz * 0.5).toFloat())
-        dstCameraMatrix.m32 = ((1.0 / cascadeScale).toFloat()) // w
+        dstCameraMatrix.m32 = sx.toFloat() // w
         dstCameraMatrix.determineProperties() // after writing a field, we need to recalculate them
 
-        // is this correct if cascadeScale != 1.0?
-        // should be
+        // is this correct if cascadeScale != 1.0? should be
         pipeline.frustum.defineOrthographic(
             drawTransform, resolution,
             dstCameraPosition, cameraRotation
         )
 
         // offset camera position accordingly
-        val factor = -(2f / cascadeScale - 1f)
-        dstCameraPosition.add(cameraDirection.x * factor, cameraDirection.y * factor, cameraDirection.z * factor)
+        val factor = (2f / cascadeScale - 1f)
+        dstCameraPosition.sub(
+            cameraDirection.x * factor,
+            cameraDirection.y * factor,
+            cameraDirection.z * factor // todo this might be wrong... but idk how much :/
+        )
     }
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
-    // v0 and v3 aren't used
     override fun getShaderV1(): Float = shadowMapPower
     override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
+    override fun getShaderV3(): Float {
+        val scaleZ = transform?.globalScale?.z ?: 0f
+        return 1f - 0.5f / scaleZ
+    }
 
     override fun drawShape(pipeline: Pipeline) {
         drawBox(entity)
@@ -146,7 +152,14 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           shadowDir = nextDir;\n" +
                             "           nextDir *= shadowMapPower;\n" +
                             "       }\n" +
-                            "       float depthFromShader = lightPos.z*.5+.5 + 0.005;\n" +
+
+                            // todo why does it need this scale factor and offset??
+                            // todo can we integrate it into the matrix somehow??
+                            // todo for large scale.z-values, the shadow becomes weaker... why???
+                            //   must be our interpolation, I think... half of the pixels become shadowed,
+                            //   because we would need a tighter/wider bias
+                            "       float depthFromShader = (lightPos.z*.5 + shaderV3) + 0.005;\n" +
+
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +
                             // todo this will become proportional to the distance to the shadow throwing surface

@@ -26,6 +26,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.PI
 
+// todo this has become really wonky, probably because of flipped y or depth 🤔
+
 // todo support flat texture format, too
 //  https://harpingtonbear.artstation.com/projects/581r9O
 

@@ -22,7 +22,7 @@ object UVSkyboxShader : SkyShaderBase("uv-skybox") {
     override fun getSkyColor(): String {
         return "vec3 getSkyColor(vec3 pos) {\n" +
                 "   float u = atan(pos.z,pos.x)*${0.5 / PI}+0.5;\n" +
-                "   float v = atan(pos.y,length(pos.xz))*${1.0 / PI}+.5;\n" +
+                "   float v = atan(-pos.y,length(pos.xz))*${1.0 / PI}+.5;\n" +
                 // this fixes the seam; it is caused by sampling the 2x2 field with (0,v) and (1,v) as neighbors
                 // -> anisotropic filtering wants to fix that, and the lowest-res LOD would be sampled
                 // -> we sample LOD 0 for these pixels instead. Subsampling patterns shouldn't appear,

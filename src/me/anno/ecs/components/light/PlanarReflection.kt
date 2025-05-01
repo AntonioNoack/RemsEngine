@@ -95,7 +95,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         cameraMatrix0: Matrix4f,
         cameraPosition: Vector3d
     ) {
-        val transform = transform!!.getDrawMatrix()
+        val transform = transform!!.globalTransform
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction
@@ -103,7 +103,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             .transformDirection(globalNormal.set(0f, 0f, 1f)) // default direction: z
             .normalize()
 
-        isBackSide = cameraPosition.dot(mirrorNormal) - mirrorPosition.dot(mirrorNormal) < 0.0
+        isBackSide = cameraPosition.dot(mirrorNormal) < mirrorPosition.dot(mirrorNormal)
         if (isBackSide) {
             if (bothSided) {
                 mirrorNormal.mul(-1f)

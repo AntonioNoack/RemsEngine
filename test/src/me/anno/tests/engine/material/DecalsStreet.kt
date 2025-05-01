@@ -11,6 +11,7 @@ import me.anno.mesh.Shapes.flatCube
 
 /**
  * create a street, and place decal markings onto it
+ * todo bug: decals are invisible in orthographic mode
  * todo bug: decals in the distance disappear in VR
  *  making them higher improves things, so probably a depth-calculation issue or sth like that
  * */

@@ -21,6 +21,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBf
@@ -87,8 +88,6 @@ class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spr
         )
     }
 
-    // todo sprite-frustum-culling is behaving incorrectly!!!
-
     override fun getData(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer? {
         val k = material.numTiles.x
         if (mesh.entries.isEmpty() || k < 1) return null
@@ -114,19 +113,33 @@ class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spr
      * */
     override fun onEditMove(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         if (!Input.isLeftDown && !Input.isRightDown) return false
+        editMove(if (Input.isLeftDown) Key.BUTTON_LEFT else Key.BUTTON_RIGHT)
+        return true
+    }
+
+    override fun onEditClick(button: Key, long: Boolean): Boolean {
+        editMove(button)
+        return true
+    }
+
+    private fun editMove(button: Key) {
         // project ray onto this
         val globalTransform = transform?.globalTransform?.invert(Matrix4x3())
             ?: Matrix4x3()
-        val ri = RenderView.currentInstance ?: return false
+        val ri = RenderView.currentInstance ?: return
         val pos = globalTransform.transformPosition(ri.mousePosition, Vector3d())
         val dir = globalTransform.transformDirection(ri.mouseDirection, Vector3f())
-        if (dir.z * sign(pos.z) > 0.0) return false
+        if (dir.z * sign(pos.z) > 0.0) return
         val distance = -pos.z / dir.z
         val posX = floor(pos.x + dir.x * distance).toInt()
         val posY = floor(pos.y + dir.y * distance).toInt()
-        // set tile to drawingId
-        setSprite(posX, posY, if (Input.isLeftDown) drawingId else -1)
-        return true
+        if (button == Key.BUTTON_MIDDLE) {
+            val newDrawingId = getSprite(posX, posY)
+            if (newDrawingId >= 0) drawingId = newDrawingId
+        } else {
+            // set tile to drawingId
+            setSprite(posX, posY, if (button == Key.BUTTON_LEFT) drawingId else -1)
+        }
     }
 
     @SerializedProperty

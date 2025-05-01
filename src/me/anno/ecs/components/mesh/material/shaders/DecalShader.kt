@@ -112,7 +112,7 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
                         "vec3 alphaMultiplier3d = clamp(decalSharpness * (1.0-abs(localPosition)), vec3(0.0), vec3(1.0));\n" +
                         "alphaMultiplier = alphaMultiplier3d.x * alphaMultiplier3d.y * alphaMultiplier3d.z;\n" +
                         "if(alphaMultiplier < 0.5/255.0) discard;\n" +
-                        "uv = localPosition.xy * vec2(0.5,-0.5) + 0.5;\n" +
+                        "uv = localPosition.xy * 0.5 + 0.5;\n" +
                         // prepare pseudo-vertex outputs for original stage
                         "normal = -finalNormal_in2;\n" +
                         // calculate tangent based on uv and normal

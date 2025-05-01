@@ -70,8 +70,9 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                 ) + depthVars,
                 concatDefines(key).toString() +
                         discardByCullingPlane +
-                        "float alpha0 = 1.0 - texture(diffuseMap, vec2(16.0,8.0) * uv + uvScroll).x;\n" +
-                        "finalColor = diffuseBase.xyz;//mix(diffuseBase.xyz, vec3(1.0), alpha0);\n" +
+                        "float alpha0 = texture(diffuseMap, vec2(16.0,8.0) * uv + uvScroll).x;\n" +
+                        "alpha0 = 1.0 - pow(alpha0,2.0);\n" +
+                        "finalColor = alpha0 * diffuseBase.xyz;\n" +
                         "finalAlpha = diffuseBase.a * alpha0 * 0.99 + 0.01;\n" +
                         "finalEmissive = finalColor * emissiveBase;\n" +
                         normalTanBitanCalculation +

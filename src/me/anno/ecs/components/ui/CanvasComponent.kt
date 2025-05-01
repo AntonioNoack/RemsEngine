@@ -37,7 +37,6 @@ import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.groups.PanelGroup
 import org.joml.Matrix4d
-import org.joml.Vector3f
 
 // todo focus / unfocus
 // todo interactions with that UI

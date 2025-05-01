@@ -10,7 +10,7 @@ import me.anno.mesh.Shapes.flatCube
 import kotlin.random.Random
 
 /**
- * Test the shadow of a point light properly;
+ * Test the shadow of a point light:
  *
  * go inside the cube, and inspect the shadows
  * */

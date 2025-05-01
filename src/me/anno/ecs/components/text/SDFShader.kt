@@ -23,7 +23,7 @@ object SDFShader : ECSMeshShader("SDF") {
                         // step by step define all material properties
                         // to do smoothstep (? would need transparency, and that's an issue...)
                         // to do smoothstep for non-deferred mode?
-                        "finalAlpha = step(texture(diffuseMap,vec2(uv.x,-uv.y)).x,0.5);\n" +
+                        "finalAlpha = step(texture(diffuseMap,uv).x,0.5);\n" +
                         "if(invertSDF) finalAlpha = 1.0 - finalAlpha;\n" +
                         "if(finalAlpha < 0.5) discard;\n" +
                         "finalColor = vertexColor0.rgb * diffuseBase.rgb;\n" +
