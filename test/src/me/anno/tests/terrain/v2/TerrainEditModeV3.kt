@@ -83,7 +83,7 @@ class TerrainEditModeV3 : Component(), CustomEditMode {
         val terrain = getComponent(TriTerrainRenderer::class)
         // raycast, then apply brush
         val renderView = RenderView.currentInstance!!
-        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), Double.POSITIVE_INFINITY)
+        val query = renderView.rayQuery()
         if (terrain != null && Raycast.raycast(terrain.entity!!, query)) {
             if (Input.isLeftDown) applyBrush(query, terrain.terrain)
             updateCursor(query, renderView)

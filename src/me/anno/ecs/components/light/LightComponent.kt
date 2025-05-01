@@ -228,7 +228,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
                             drawTransform, pipeline, resolution
                         )
                         val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
-                        RenderState.calculateDirections(isPerspective)
+                        RenderState.calculateDirections(isPerspective, true)
                         val root = rootOverride ?: entity.getRoot(Entity::class)
                         pipeline.fill(root)
                         // decals and transparent objects are irrelevant for shadows

@@ -24,7 +24,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
     }
 
     fun findHoveredBuildings() {
-        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e6)
+        val query = renderView.rayQuery()
         if (!Raycast.raycast(world.scene, query)) return
         // find which instance is used...
         val instance = query.result.component?.getComponent(Building::class) ?: return

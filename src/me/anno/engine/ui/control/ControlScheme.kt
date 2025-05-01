@@ -228,7 +228,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     private fun testHits() {
         val world = renderView.getWorld()
-        val start = Vector3d(renderView.cameraPosition)
+        val start = Vector3d(renderView.mousePosition)
         val dir = Vector3d(renderView.mouseDirection)
         val maxDistance = renderView.radius * 1e9
         val query = RayQuery(
@@ -245,8 +245,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
             val result = query.result
             val pos = result.positionWS
             val normal = result.geometryNormalWS.normalize(
-                0.1f * result.positionWS.distance(renderView.cameraPosition)
-                    .toFloat() * tan(renderView.fovYRadians * 0.5f)
+                0.1f * result.distance.toFloat() * tan(renderView.fovYRadians * 0.5f)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))

@@ -1,5 +1,6 @@
 package me.anno.tests.engine.ui
 
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.LineRenderer
 import me.anno.ecs.components.mesh.MeshComponent
@@ -10,6 +11,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.language.translation.NameDesc
 import me.anno.openxr.ecs.VRHandController
@@ -28,10 +30,25 @@ fun main() {
     ECSRegistry.init()
     OfficialExtensions.initForTests()
 
+    val ui = object : TextButton(NameDesc("Test Button"), style) {
+        override fun onUpdate() {
+            super.onUpdate()
+            val ws = windowStack
+            text = "[${ws.mouseXi},${ws.mouseYi}]"
+        }
+
+        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            super.draw(x0, y0, x1, y1)
+            // draw cursor position
+            val ws = windowStack
+            DrawRectangles.drawRect(ws.mouseXi, ws.mouseYi, 1, 1, -1)
+        }
+    }
+
     val scene = Entity("Scene")
     scene.add(CanvasComponent().apply {
-        add(TextButton(NameDesc("Test Button"), style))
-        width = 120
+        add(ui)
+        width = 240
         height = 40
     })
 

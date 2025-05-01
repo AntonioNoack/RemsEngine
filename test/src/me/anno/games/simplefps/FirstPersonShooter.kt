@@ -35,7 +35,7 @@ class SimpleShootingControls : Component(), CustomEditMode {
             val scene = rv?.getWorld() as? Entity ?: return false
 
             // apply impulse onto scene
-            val query = RayQuery(rv.cameraPosition, Vector3d(rv.mouseDirection), 1e9)
+            val query = rv.rayQuery()
             if (Raycast.raycast(scene, query)) {
                 val hitComponent = query.result.component
                 val hitEntity = hitComponent?.entity
@@ -47,7 +47,7 @@ class SimpleShootingControls : Component(), CustomEditMode {
                 } else {
                     DebugShapes.debugArrows.add(
                         DebugLine(
-                            Vector3d(rv.cameraPosition),
+                            Vector3d(query.start),
                             Vector3d(query.result.positionWS),
                             0x3377ff or black
                         )

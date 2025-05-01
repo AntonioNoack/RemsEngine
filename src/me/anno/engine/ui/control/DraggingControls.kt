@@ -451,7 +451,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
                 val instances = instancesToTransform
-                val dir = renderView.getRelativeMouseRayDirection(0.0, 0.0)
+                val dir = renderView.cameraDirection
                 val rotationAngle = if (mode == Mode.ROTATING) {
                     val pos = Vector3d()
                     val globalPosition = instances
@@ -830,7 +830,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         // todo depending on mode, use other strategies to find zero-point on object
         // to do use mouse wheel to change height? maybe...
         // done depending on settings, we also can use snapping
-        val camPos = renderView.cameraPosition
+        val camPos = renderView.mousePosition
         val camDir = renderView.mouseDirection
         var y0 = 0.0
         val snapY = snappingSettings.snapY
@@ -851,7 +851,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             if (hasHit) distance = query.result.distance
         }
         // to do camDirection will only be correct, if this was the last drawn instance
-        dst.set(renderView.mouseDirection).mul(distance).add(renderView.cameraPosition)
+        dst.set(renderView.mouseDirection).mul(distance).add(renderView.mousePosition)
         snappingSettings.snapPosition(dst)
         if (camDir.y > 0.0 && dst.y < camPos.y) {
             dst.add(snappingSettings.snapY)

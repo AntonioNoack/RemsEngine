@@ -130,7 +130,7 @@ class SignedDistanceFontsTests {
             0.01f, 100f, 0f, 0f, false
         )
         RenderState.cameraRotation.identity()
-        RenderState.calculateDirections(true)
+        RenderState.calculateDirections(true, true)
         RenderState.near = 0.01f
         RenderState.far = 100f
         RenderState.aspectRatio = width.toFloat() / height.toFloat()

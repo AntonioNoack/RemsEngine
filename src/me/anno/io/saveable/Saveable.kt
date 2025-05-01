@@ -174,7 +174,7 @@ open class Saveable {
                     null
                 }
                 if (clone != null && clone::class != instance0::class) {
-                    throw RuntimeException("${instance0::class}.clone() is incorrect, returns ${clone::class} instead")
+                    LOGGER.warn("${instance0::class}.clone() is incorrect, returns ${clone::class} instead")
                 }
             }
         }

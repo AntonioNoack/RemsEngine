@@ -145,7 +145,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         RenderState.cameraPosition.set(reflectedCameraPosition)
         RenderState.cameraDirection.reflect(mirrorNormal) // for sorting
         RenderState.cameraRotation.set(reflectedCameraRotation)
-        RenderState.calculateDirections(isPerspective)
+        RenderState.calculateDirections(isPerspective, true)
 
         // is that worth it?
         // todo cut frustum into local area by bounding box

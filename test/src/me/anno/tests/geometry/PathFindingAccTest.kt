@@ -296,8 +296,7 @@ fun main() {
         val view = SceneView(PlayMode.EDITING, style)
 
         fun raycastPoint(): AccNode? {
-            val maxDistance = 1e3
-            val query = RayQuery(view.renderView.cameraPosition, Vector3d(view.renderView.mouseDirection), maxDistance)
+            val query = view.renderView.rayQuery()
             val hit = Raycast.raycast(scene, query)
             return if (hit) {
                 val result = query.result

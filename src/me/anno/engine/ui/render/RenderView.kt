@@ -14,6 +14,7 @@ import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.Systems
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.inspector.Inspectable
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DebugRendering.drawDebugStats
@@ -92,6 +93,7 @@ import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.tan
 
 // todo make shaders of materials be references via a file (StaticRef)? this will allow for visual shaders in the future
@@ -329,7 +331,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
                 comp.width = x1 - x0
                 comp.height = y1 - y0
-                comp.render()
+                comp.render(this)
                 val texture = comp.framebuffer!!.getTexture0()
                 drawTexture(x0, y0, x1 - x0, y1 - y0, texture, -1, null)
             }
@@ -448,7 +450,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     private fun findFOV(camera: Camera): Float {
-        return if (camera.isPerspective) camera.fovY else camera.fovOrthographic.toFloat() * 0.5f
+        return if (camera.isPerspective) camera.fovY else camera.fovOrthographic * 0.5f
     }
 
     fun prepareDrawScene(
@@ -490,14 +492,19 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val t1 = camera.entity?.transform?.getValidDrawMatrix()
 
-        val camRot = JomlPools.quat4f.create()
+        val camRot = cameraRotation
         if (t1 != null) {
             t1.getUnnormalizedRotation(camRot)
             if (!camRot.isFinite) camRot.identity()
         } else camRot.identity()
 
-        rotateCamMatrix(camRot)
-        JomlPools.quat4f.sub(1)
+        // rotate camera matrix
+        cameraMatrix.rotateInv(camRot)
+        // calculate camera direction at the center of the screen
+        camRot.transform(cameraDirection.set(0f, 0f, -1f)).safeNormalize()
+
+        // calculate inverse camera matrix
+        cameraMatrix.invert(cameraMatrixInv)
 
         if (t1 != null) t1.getTranslation(cameraPosition)
         else cameraPosition.set(0.0)
@@ -506,8 +513,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         if (update) {
             val window = window
             if (window != null) {
-                getMouseRayDirection(window.mouseX, window.mouseY, mouseDirection)
-            } else mouseDirection.set(cameraDirection)
+                updateMouseRay(window.mouseX, window.mouseY)
+            } else {
+                mousePosition.set(cameraPosition)
+                mouseDirection.set(cameraDirection)
+            }
         }
 
         currentInstance = this
@@ -516,12 +526,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             Systems.onBeforeDrawing()
             definePipeline(width, height, aspectRatio, fov, world)
         }
-    }
-
-    private fun rotateCamMatrix(camRot: Quaternionf) {
-        cameraMatrix.rotateInv(camRot)
-        cameraRotation.set(camRot)
-        camRot.transform(cameraDirection.set(0f, 0f, -1f)).normalize()
     }
 
     fun setPerspectiveCamera(fov: Float, aspectRatio: Float, centerX: Float, centerY: Float) {
@@ -538,7 +542,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun setOrthographicCamera(fov: Float, aspectRatio: Float) {
         val n = near
-        val f = far
+        val f = min(far, n * 1e7f)
         fovXRadians = fov * aspectRatio
         fovYRadians = fov // not really defined
         fovXCenter = 0.5f
@@ -697,13 +701,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         if (world != null && drawAABBs) {
             pipeline.traverse(world) { entity ->
                 val aabb1 = entity.getGlobalBounds()
-                val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
+                val hit1 = aabb1.testLine(mousePosition, mouseDirection, 1e10)
                 drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
                 if (entity.hasRenderables) {
                     entity.forAllComponents(Renderable::class, false) { component ->
                         val aabb2 = component.getGlobalBounds()
                         if (aabb2 != null) {
-                            val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                            val hit2 = aabb2.testLine(mousePosition, mouseDirection, 1e10)
                             drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
                         }
                     }
@@ -759,10 +763,16 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
      * get the mouse direction from this camera
      * todo for other cameras: can be used for virtual mice
      * */
-    fun getMouseRayDirection(cx: Float, cy: Float, dst: Vector3f): Vector3f {
-        val rx = (cx - x) / width * 2.0 - 1.0
-        val ry = (cy - y) / height * 2.0 - 1.0
+    fun getMouseRayDirection(mx: Float, my: Float, dst: Vector3f): Vector3f {
+        val rx = (mx - x) / width * 2.0 - 1.0
+        val ry = (my - y) / height * 2.0 - 1.0
         return getRelativeMouseRayDirection(rx, -ry, dst)
+    }
+
+    fun getMouseRayPosition(mx: Float, my: Float, dst: Vector3d): Vector3d {
+        val rx = (mx - x) / width * 2.0 - 1.0
+        val ry = (my - y) / height * 2.0 - 1.0
+        return getRelativeMouseRayPosition(rx, -ry, dst)
     }
 
     fun getRelativeMouseRayDirection(
@@ -770,15 +780,40 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         ry: Double, // -1 .. 1
         dst: Vector3f = Vector3f()
     ): Vector3f {
-        val tanHalfFoV = tan(fovYRadians * 0.5)
-        val aspectRatio = width.toFloat() / height
-        dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
-        return cameraRotation.transform(dst).normalize()
+        return if (isPerspective) {
+            val z = if (depthMode.reversedDepth) 1f else -1f
+            cameraMatrixInv
+                .transformProject(rx.toFloat(), ry.toFloat(), z, dst)
+                .safeNormalize()
+        } else {
+            // todo is this the correct way? should be cameraRotationInv...
+            cameraRotation.transform(0f, 0f, -1f, dst)
+        }
+    }
+
+    fun getRelativeMouseRayPosition(rx: Double, ry: Double, dst: Vector3d): Vector3d {
+        return if (isPerspective) {
+            dst.set(cameraPosition)
+        } else {
+            val tmp = Vector3f()
+            // todo is this the correct way?
+            cameraMatrixInv.transformDirection(tmp.set(rx, ry, 0.0))
+            dst.set(tmp).add(cameraPosition)
+        }
+    }
+
+    private fun updateMouseRay(x: Float, y: Float) {
+        getMouseRayPosition(x, y, mousePosition)
+        getMouseRayDirection(x, y, mouseDirection)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        getMouseRayDirection(x, y, mouseDirection)
+        updateMouseRay(x, y)
         super.onMouseMoved(x, y, dx, dy)
+    }
+
+    fun rayQuery(maxDistance: Double = 1e9): RayQuery {
+        return RayQuery(mousePosition, Vector3d(mouseDirection), maxDistance)
     }
 
     var fovXRadians = 1f
@@ -793,17 +828,21 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         get() = abs(cameraMatrix.m33 - 1f) > 1e-5f
 
     val cameraMatrix = Matrix4f()
+    val cameraMatrixInv = Matrix4f()
     val cameraPosition = Vector3d()
     val cameraDirection = Vector3f()
     val cameraRotation = Quaternionf()
+    val mousePosition = Vector3d()
     val mouseDirection = Vector3f()
 
     val prevCamMatrix = Matrix4f()
+    val prevCamMatrixInv = Matrix4f()
     val prevCamPosition = Vector3d()
     val prevCamRotation = Quaternionf()
 
     fun updatePrevState() {
         prevCamMatrix.set(cameraMatrix)
+        prevCamMatrixInv.set(cameraMatrixInv)
         prevCamPosition.set(cameraPosition)
         prevCamRotation.set(cameraRotation)
     }
@@ -812,9 +851,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.aspectRatio = width.toFloat() / height.toFloat()
 
         RenderState.cameraMatrix.set(cameraMatrix)
+        RenderState.cameraMatrixInv.set(cameraMatrixInv)
         RenderState.cameraPosition.set(cameraPosition)
         RenderState.cameraRotation.set(cameraRotation)
-        RenderState.calculateDirections(isPerspective)
+        RenderState.calculateDirections(isPerspective, false)
 
         RenderState.prevCameraMatrix.set(prevCamMatrix)
         RenderState.prevCameraPosition.set(prevCamPosition)

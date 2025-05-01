@@ -118,7 +118,7 @@ class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spr
         val globalTransform = transform?.globalTransform?.invert(Matrix4x3())
             ?: Matrix4x3()
         val ri = RenderView.currentInstance ?: return false
-        val pos = globalTransform.transformPosition(ri.cameraPosition, Vector3d())
+        val pos = globalTransform.transformPosition(ri.mousePosition, Vector3d())
         val dir = globalTransform.transformDirection(ri.mouseDirection, Vector3f())
         if (dir.z * sign(pos.z) > 0.0) return false
         val distance = -pos.z / dir.z

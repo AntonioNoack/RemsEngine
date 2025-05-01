@@ -26,17 +26,20 @@ abstract class VRRendering {
     class PrevData {
 
         val prevCamMatrix = Matrix4f()
+        val prevCamMatrixInv = Matrix4f()
         val prevCamRotation = Quaterniond()
         val prevCamPosition = Vector3d()
 
         fun loadPrevMatrix(rv: RenderView) {
             rv.prevCamMatrix.set(prevCamMatrix)
+            rv.prevCamMatrixInv.set(prevCamMatrixInv)
             rv.prevCamPosition.set(prevCamPosition)
             rv.prevCamRotation.set(prevCamRotation)
         }
 
         fun storePrevMatrix(rv: RenderView) {
             prevCamMatrix.set(rv.cameraMatrix)
+            prevCamMatrixInv.set(rv.cameraMatrixInv)
             prevCamPosition.set(rv.cameraPosition)
             prevCamRotation.set(rv.cameraRotation)
         }
@@ -129,6 +132,7 @@ abstract class VRRendering {
         FBStack.reset()
 
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
+        rv.cameraMatrix.invert(rv.cameraMatrixInv)
         rv.pipeline.superMaterial = rv.superMaterial.material
 
         val prevData = prevData[viewIndex]

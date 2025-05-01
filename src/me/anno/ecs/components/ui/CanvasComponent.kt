@@ -1,6 +1,5 @@
 package me.anno.ecs.components.ui
 
-import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
@@ -29,6 +28,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
+import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
@@ -36,8 +36,8 @@ import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
+import org.joml.Vector3f
 
 // todo focus / unfocus
 // todo interactions with that UI
@@ -86,7 +86,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         CAMERA_SPACE(1)
     }
 
-    var space = Space.CAMERA_SPACE
+    var space = Space.WORLD_SPACE
         set(value) {
             if (field != value) {
                 field = value
@@ -99,9 +99,6 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
                 }
             }
         }
-
-    @NotSerializedProperty
-    var style = DefaultConfig.style
 
     @NotSerializedProperty
     val windowStack = WindowStack()
@@ -146,7 +143,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
 
     override fun getMeshOrNull() = internalMesh
 
-    private fun defineMesh() {
+    private fun updateMesh() {
         val aspectRatio = width.toFloat() / height.toFloat()
         val pos = internalMesh.positions!!
         if (pos[0] != -aspectRatio) {
@@ -159,11 +156,10 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
     }
 
     override fun onUpdate() {
-        if (space == Space.WORLD_SPACE ||
-            RenderView.currentInstance?.playMode == PlayMode.EDITING
-        ) {
-            defineMesh()
-            render()
+        val renderView = RenderView.currentInstance
+        if (renderView != null && (space == Space.WORLD_SPACE || renderView.playMode == PlayMode.EDITING)) {
+            updateMesh()
+            render(renderView)
         }
     }
 
@@ -176,14 +172,9 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
     // todo this material always need glCullFace, or you see the back when it's transparent
     val material = Material()
 
-    fun render() {
-        GFX.checkIsGFXThread()
-        GFX.check()
-        var fb = framebuffer
-        val width = width
-        val height = height
-        if (width < 1 || height < 1) return
-        if (fb == null || fb.pointer != lastPointer) {
+    private fun ensureFramebuffer(fb0: Framebuffer?, width: Int, height: Int): Framebuffer? {
+        var fb = fb0
+        if ((fb == null || fb.pointer != lastPointer) && width > 0 && height > 0) {
             fb = Framebuffer("canvas", width, height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
             fb.ensure()
             (fb.getTexture0() as Texture2D).clamping = Clamping.CLAMP
@@ -196,32 +187,58 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
             framebuffer = fb
             internalMesh.material = this.material.ref
         }
+        return fb
+    }
+
+    fun render(renderView: RenderView) {
+        GFX.checkIsGFXThread()
+        GFX.check()
+        val width = width
+        val height = height
+        val framebuffer = ensureFramebuffer(this@CanvasComponent.framebuffer, width, height) ?: return
         val dsr = disableSubpixelRendering
         disableSubpixelRendering = true
-        useFrame(width, height, true, fb) {
-            fb.clearColor(0, true)
-            render(width, height)
+        useFrame(width, height, true, framebuffer) {
+            framebuffer.clearColor(0, true)
+            render(width, height, renderView)
         }
         disableSubpixelRendering = dsr
         GFX.check()
     }
 
-    fun render(width: Int, height: Int) {
+    var camZ = -0.005
+
+    fun render(width: Int, height: Int, renderView: RenderView) {
         val window = GFX.activeWindow ?: return
-        val entity = entity
         GFXState.depthMode.use(alwaysDepthMode) {
             GFXState.blendMode.use(BlendMode.DEFAULT) {
                 GFXState.cullMode.use(CullMode.BOTH) {
-                    val rv = RenderView.currentInstance!!
-                    val transform = JomlPools.mat4f.create()
+                    val viewTransform = windowStack.viewTransform
+                    val entity = entity
                     if (space == Space.WORLD_SPACE && entity != null) {
-                        // I believe this should be correct: screen space = camera transform * world transform * world pos
-                        transform.set(Matrix4d(RenderState.cameraMatrix).mul(entity.transform.globalTransform))
-                        transform.invert()
+                        // todo this is incorrect :/
+                        viewTransform.set(
+                            Matrix4d(RenderState.cameraMatrix)
+                                .translateLocal(
+                                    0.0,
+                                    0.0,
+                                    camZ
+                                ) // todo camZ needs to be come actual Z value ... which one???
+                                .translate(-RenderState.cameraPosition)
+                                .mul(entity.transform.globalTransform)
+                        ).invert()
+
+                        if (Input.isControlDown) viewTransform.identity()
+                    } else {
+                        viewTransform.identity()
                     }
-                    windowStack.updateTransform(window, transform, rv.x, rv.y, rv.width, rv.height, 0, 0, width, height)
+                    val rv = renderView
+                    windowStack.updateTransform(
+                        window, viewTransform,
+                        rv.x, rv.y, rv.width, rv.height,
+                        0, 0, width, height
+                    )
                     windowStack.draw(0, 0, width, height)
-                    JomlPools.mat4f.sub(1)
                 }
             }
         }
@@ -233,7 +250,6 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         dst.space = space
         dst.width = width
         dst.height = height
-        dst.style = style
         dst.windowStack.clear()
         dst.windowStack.addAll(windowStack.map {
             val newPanel = it.panel.clone()
@@ -318,11 +334,11 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         )
         private val uvs = floatArrayOf(
             // front
-            0f, 1f, 0f, 0f,
-            1f, 1f, 1f, 0f,
+            0f, 0f, 0f, 1f,
+            1f, 0f, 1f, 1f,
             // back
-            1f, 1f, 1f, 0f,
-            0f, 1f, 0f, 0f
+            1f, 0f, 1f, 1f,
+            0f, 0f, 0f, 1f
         )
         private val indices = intArrayOf(
             // front

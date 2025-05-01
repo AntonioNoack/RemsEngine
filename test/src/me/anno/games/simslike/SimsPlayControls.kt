@@ -89,7 +89,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // resolve click
         // todo when clicked Sim, select it
-        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e9)
+        val query = renderView.rayQuery()
         if (Raycast.raycast(scene, query)) {
             val comp = query.result.component
             var entity = comp?.entity

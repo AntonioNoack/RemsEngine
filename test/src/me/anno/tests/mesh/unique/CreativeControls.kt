@@ -72,11 +72,7 @@ class CreativeControls(
         // todo is this still called???
         // find, which block was clicked
         // expensive way, using raycasting:
-        val query = RayQuery(
-            renderView.cameraPosition,
-            Vector3d(renderView.mouseDirection),
-            1e3
-        )
+        val query = renderView.rayQuery(1e3)
         // todo also implement cheaper raytracing (to show how) going block by block
         //  then we can throw away the meshes and save even more memory :3
         val hitSomething = Raycast.raycast(scene, query)

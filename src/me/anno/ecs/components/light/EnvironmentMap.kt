@@ -145,7 +145,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
                     RenderState.cameraMatrix.set(cameraMatrix)
                     RenderState.cameraPosition.set(position)
                     RenderState.cameraRotation.set(camRotInv)
-                    RenderState.calculateDirections(true)
+                    RenderState.calculateDirections(true, true)
 
                     // clear using sky
                     clearSky(pipeline)

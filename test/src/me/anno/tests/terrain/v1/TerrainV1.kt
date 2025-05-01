@@ -74,7 +74,7 @@ fun main() {
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown && (dx != 0f || dy != 0f)) {
                     // draw height / paint
-                    val query = RayQuery(it.renderView.cameraPosition, Vector3d(it.renderView.mouseDirection), 1e9)
+                    val query = renderView.rayQuery()
                     val hit = Raycast.raycast(scene, query)
                     val comp = query.result.component as? TerrainChunk
                     val mesh = comp?.getMeshOrNull()

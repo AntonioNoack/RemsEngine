@@ -375,6 +375,14 @@ open class Vector3d(
         return quat.transform(this, dst)
     }
 
+    fun rotateInv(q: Quaternionf, dst: Vector3d = this): Vector3d {
+        return q.transformInverse(this, dst)
+    }
+
+    fun rotateInv(q: Quaterniond, dst: Vector3d = this): Vector3d {
+        return q.transformInverse(this, dst)
+    }
+
     fun rotationTo(toDir: Vector3d, dst: Quaterniond): Quaterniond {
         return dst.rotationTo(this, toDir)
     }
@@ -721,15 +729,6 @@ open class Vector3d(
     fun findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
         findSecondAxis(dstY)
         cross(dstY, dstZ).safeNormalize()
-    }
-
-    fun rotateInv(q: Quaterniond, dst: Vector3d = this): Vector3d {
-        synchronized(q) {
-            q.conjugate()
-            q.transform(this, dst)
-            q.conjugate()
-        }
-        return dst
     }
 
     fun fract(dst: Vector3d = this): Vector3d =

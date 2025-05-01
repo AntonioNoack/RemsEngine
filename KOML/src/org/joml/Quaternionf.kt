@@ -445,6 +445,10 @@ open class Quaternionf(
         return transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
+    fun transformInverse(vec: Vector3d, dst: Vector3d = vec): Vector3d {
+        return transformInverse(vec.x, vec.y, vec.z, dst)
+    }
+
     fun transform(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
         val xx = this.x * this.x
         val yy = this.y * this.y
@@ -484,6 +488,30 @@ open class Quaternionf(
     }
 
     fun transformInverse(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
+        val n = 1f / lengthSquared()
+        val qx = this.x * n
+        val qy = this.y * n
+        val qz = this.z * n
+        val qw = w * n
+        val xx = qx * qx
+        val yy = qy * qy
+        val zz = qz * qz
+        val ww = qw * qw
+        val xy = qx * qy
+        val xz = qx * qz
+        val yz = qy * qz
+        val xw = qx * qw
+        val zw = qz * qw
+        val yw = qy * qw
+        val k = 1f / (xx + yy + zz + ww)
+        return dst.set(
+            ((xx - yy - zz + ww) * k) * x + ((2f * (xy + zw) * k) * y + (2f * (xz - yw) * k) * z),
+            (2f * (xy - zw) * k) * x + (((yy - xx - zz + ww) * k) * y + (2f * (yz + xw) * k) * z),
+            (2f * (xz + yw) * k) * x + ((2f * (yz - xw) * k) * y + ((zz - xx - yy + ww) * k) * z)
+        )
+    }
+
+    fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val n = 1f / lengthSquared()
         val qx = this.x * n
         val qy = this.y * n

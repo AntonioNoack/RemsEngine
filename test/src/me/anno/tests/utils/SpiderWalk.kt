@@ -402,7 +402,7 @@ fun main() {
                 if (button == Key.BUTTON_LEFT) {
                     val renderView = sceneView.renderView
                     val rayQuery = RayQuery(
-                        renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e3,
+                        renderView.mousePosition, Vector3d(renderView.mouseDirection), 1e3,
                         -1, -1, false, setOf(spider)
                     )
                     if (Raycast.raycast(scene, rayQuery)) {

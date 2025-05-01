@@ -22,7 +22,7 @@ object RenderState {
     val cameraDirectionUp = Vector3f() // = cameraRotation.transform([0,1,0])
     val cameraDirection = Vector3f() // = cameraRotation.transform([0,0,-1])
 
-    fun calculateDirections(isPerspective: Boolean) {
+    fun calculateDirections(isPerspective: Boolean, needsInversion: Boolean) {
         cameraDirection
             .set(0.0, 0.0, -1.0)
             .rotate(cameraRotation)
@@ -32,7 +32,7 @@ object RenderState {
         cameraDirectionUp
             .set(0.0, 1.0, 0.0)
             .rotate(cameraRotation)
-        cameraMatrix.invert(cameraMatrixInv)
+        if (needsInversion) cameraMatrix.invert(cameraMatrixInv)
         this.isPerspective = isPerspective
     }
 
@@ -53,5 +53,4 @@ object RenderState {
 
     // 0 or 1; for effects, which need to store data between frames
     var viewIndex = 0
-
 }

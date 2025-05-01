@@ -97,7 +97,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
                         // define camera position and rotation
                         val cameraRotation = rot3.invert(RenderState.cameraRotation)
-                        RenderState.calculateDirections(true)
+                        RenderState.calculateDirections(true, true)
 
                         pipeline.clear()
                         pipeline.frustum.definePerspective(

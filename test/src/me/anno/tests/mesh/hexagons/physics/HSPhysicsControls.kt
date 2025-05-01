@@ -67,9 +67,9 @@ class HSPhysicsControls(
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // resolve click
-        val start = it.renderView.cameraPosition
-        val dir = Vector3d(it.renderView.mouseDirection)
-        val query = RayQuery(start, dir, 10.0)
+        val renderView = it.renderView
+        val dir = Vector3d(renderView.mouseDirection)
+        val query = renderView.rayQuery(10.0)
         val hit = Raycast.raycast(scene, query)
         if (hit) {
             val result = query.result

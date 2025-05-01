@@ -7,6 +7,7 @@ import me.anno.input.Input
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.lists.SimpleList
+import me.anno.utils.types.Floats.toIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import kotlin.math.max
@@ -38,12 +39,12 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
     var mouseX = 0f
         set(value) {
             field = value
-            mouseXi = value.toInt()
+            mouseXi = value.toIntOr()
         }
     var mouseY = 0f
         set(value) {
             field = value
-            mouseYi = value.toInt()
+            mouseYi = value.toIntOr()
         }
 
     var mouseXi = 0
@@ -139,6 +140,10 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
         this.h1 = h
     }
 
+    /**
+     * x0,y0,w0,h0: where the window is rendered to
+     * x1,y1,w1,h1: what the new coordinates are
+     * */
     fun updateTransform(
         window: OSWindow,
         transform: Matrix4f,
@@ -163,22 +168,21 @@ class WindowStack(val osWindow: OSWindow? = null) : SimpleList<Window>() {
     fun updateMousePosition(window: OSWindow) {
 
         val tmp = JomlPools.vec3f.create()
+        val rx = (window.mouseX - x0) / w0 * 2f - 1f
+        val ry = (window.mouseY - y0) / h0 * 2f - 1f
+        viewTransform.transformProject(rx, ry, 0f, tmp)
+            .mul(0.5f).add(0.5f)
 
-        viewTransform.transformProject(
-            (window.mouseX - x0) / w0 * 2f - 1f,
-            (window.mouseY - y0) / h0 * 2f - 1f,
-            0f, tmp
-        )
-        mouseX = x1 + (tmp.x * .5f + .5f) * w1
-        mouseY = y1 + (tmp.y * .5f + .5f) * h1
+        mouseX = x1 + tmp.x * w1
+        mouseY = y1 + tmp.y * h1
 
-        viewTransform.transformProject(
-            (Input.mouseDownX - x0) / w0 * 2f - 1f,
-            (Input.mouseDownY - y0) / h0 * 2f - 1f,
-            0f, tmp
-        )
-        mouseDownX = x1 + (tmp.x * .5f + .5f) * w1
-        mouseDownY = y1 + (tmp.y * .5f + .5f) * h1
+        val rx1 = (Input.mouseDownX - x0) / w0 * 2f - 1f
+        val ry1 = (Input.mouseDownY - y0) / h0 * 2f - 1f
+        viewTransform.transformProject(rx1, ry1, 0f, tmp)
+            .mul(0.5f).add(0.5f)
+
+        mouseDownX = x1 + tmp.x * w1
+        mouseDownY = y1 + tmp.y * h1
 
         JomlPools.vec3f.sub(1)
     }

@@ -129,13 +129,13 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
     }
 
     fun getAnchorAt0(): Vector3d? {
-        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e6)
+        val query = renderView.rayQuery()
         if (!Raycast.raycast(world.terrain, query)) return null
         return query.result.positionWS
     }
 
     fun getAnchorAt(i: Int): Vector3d? {
-        val query = RayQuery(renderView.cameraPosition, Vector3d(renderView.mouseDirection), 1e6)
+        val query = renderView.rayQuery()
         if (!Raycast.raycast(world.terrain, query)) return null
         val position0 = query.result.positionWS
         val position = Vector3d(position0)
@@ -147,7 +147,7 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         // todo snap to certain degrees / distances of the map? definitely must be configurable
         // snap to other streets, not just their anchor points
         val bestOnRoad = world.streetSegments
-            .map { it to it.distanceToRay(renderView.cameraPosition, Vector3d(renderView.mouseDirection)) }
+            .map { it to it.distanceToRay(renderView.mousePosition, Vector3d(renderView.mouseDirection)) }
             .minByOrNull { (_, distance) -> distance }
         if (bestOnRoad != null) {
             val (bestSegment, bestDistance) = bestOnRoad
