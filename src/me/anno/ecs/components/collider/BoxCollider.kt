@@ -2,9 +2,6 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.debug.DebugAABB
-import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawBox
@@ -14,7 +11,6 @@ import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.min
 
 class BoxCollider : Collider() {
 
