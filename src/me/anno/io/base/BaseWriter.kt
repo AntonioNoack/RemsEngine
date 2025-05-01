@@ -493,13 +493,7 @@ abstract class BaseWriter(
          * this would be developer-friendlier :)
          * at the same time, it causes issues, when old save files are read
          * */
-        val id = getEnumId(value)
-        if (id is Int) {
-            writeInt(name, id, forceSaving)
-        } else {
-            LOGGER.warn("Enum class '${value::class}' is missing property 'id' of type Int for automatic serialization!")
-            writeString(name, "${value.ordinal}/${value.name}", forceSaving)
-        }
+        writeInt(name, getEnumId(value), forceSaving)
     }
 
     fun writeSomething(self: Saveable?, type: String, name: String, value: Any?, forceSaving: Boolean) {
