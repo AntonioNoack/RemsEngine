@@ -1,6 +1,5 @@
 package me.anno.ui.base.groups
 
-import me.anno.Time
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.structures.lists.Lists.count2
@@ -86,59 +85,55 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        // todo some elements don't like this shortcut...
-        if (true || needsPosUpdate(x, y)) {
-            lastPosTime = Time.frameTimeNanos
 
-            val availableW = width - padding.width
-            val availableH = height - padding.height
+        val availableW = width - padding.width
+        val availableH = height - padding.height
 
-            val childX = x + padding.left
-            var currentY = y + padding.top
-            val currentY0 = currentY
+        val childX = x + padding.left
+        var currentY = y + padding.top
+        val currentY0 = currentY
 
-            val children = children
-            if (allChildrenHaveSameSize && children.isNotEmpty()) {
-                val idealH = availableH / max(1, children.count2 { it.isVisible })
-                val childH = if (children[0].weight > 0f) idealH else min(children[0].minH, idealH)
-                for (i in children.indices) {
-                    val child = children[i]
-                    if (child.isVisible) {
-                        child.setPosSize(childX, currentY, availableW, childH)
-                        currentY += childH + spacing
-                    } else child.setPosSize(childX, currentY, 0, 0)
-                }
-            } else {
-                var perWeight = 0f
-                var shrinkingFactor = 1f
-                if (availableH > sumConst && sumWeight > 1e-7f) {
-                    val availableForWeighted = availableH - sumConstWW
-                    perWeight = availableForWeighted / sumWeight
-                } else if (availableH < sumConst) {
-                    shrinkingFactor = availableH.toFloat() / sumConst.toFloat()
-                }
-                for (i in children.indices) {
-                    val child = children[i]
-                    if (child.isVisible) {
-                        var childH = if (perWeight > 0f && child.weight > 0f) {
-                            (perWeight * child.weight)
-                        } else {
-                            (shrinkingFactor * child.minH)
-                        }.roundToIntOr()
-                        val currentH = currentY - currentY0
-                        val remainingH = availableH - currentH
-                        childH = min(childH, remainingH)
-                        if (child.minW != availableW || child.minH != childH) {
-                            // update the children, if they need to be updated
-                            child.calculateSize(availableW, childH)
-                        }
-                        //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
-                        // something changes, or constraints are used
-                        child.setPosSizeAligned(childX, currentY, availableW, childH)
-                        //}
-                        currentY += childH + spacing
-                    } else child.setPosSize(childX, currentY, 0, 0)
-                }
+        val children = children
+        if (allChildrenHaveSameSize && children.isNotEmpty()) {
+            val idealH = availableH / max(1, children.count2 { it.isVisible })
+            val childH = if (children[0].weight > 0f) idealH else min(children[0].minH, idealH)
+            for (i in children.indices) {
+                val child = children[i]
+                if (child.isVisible) {
+                    child.setPosSize(childX, currentY, availableW, childH)
+                    currentY += childH + spacing
+                } else child.setPosSize(childX, currentY, 0, 0)
+            }
+        } else {
+            var perWeight = 0f
+            var shrinkingFactor = 1f
+            if (availableH > sumConst && sumWeight > 1e-7f) {
+                val availableForWeighted = availableH - sumConstWW
+                perWeight = availableForWeighted / sumWeight
+            } else if (availableH < sumConst) {
+                shrinkingFactor = availableH.toFloat() / sumConst.toFloat()
+            }
+            for (i in children.indices) {
+                val child = children[i]
+                if (child.isVisible) {
+                    var childH = if (perWeight > 0f && child.weight > 0f) {
+                        (perWeight * child.weight)
+                    } else {
+                        (shrinkingFactor * child.minH)
+                    }.roundToIntOr()
+                    val currentH = currentY - currentY0
+                    val remainingH = availableH - currentH
+                    childH = min(childH, remainingH)
+                    if (child.minW != availableW || child.minH != childH) {
+                        // update the children, if they need to be updated
+                        child.calculateSize(availableW, childH)
+                    }
+                    //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
+                    // something changes, or constraints are used
+                    child.setPosSizeAligned(childX, currentY, availableW, childH)
+                    //}
+                    currentY += childH + spacing
+                } else child.setPosSize(childX, currentY, 0, 0)
             }
         }
     }

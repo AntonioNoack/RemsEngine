@@ -175,8 +175,13 @@ object Reference {
 
     @JvmStatic
     fun appendPath(parent: String, name: String): String {
-        return if (parent.isBlank2()) name
-        else if (parent.endsWith("/") || name.startsWith("/")) "$parent$name"
-        else "$parent/$name"
+        val pe = parent.endsWith("/")
+        val ne = name.startsWith("/")
+        return when {
+            parent.isBlank2() -> name
+            pe && ne -> "${parent.substring(0, parent.lastIndex)}$name"
+            pe || ne -> "$parent$name"
+            else -> "$parent/$name"
+        }
     }
 }

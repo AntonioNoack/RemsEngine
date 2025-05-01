@@ -3,9 +3,6 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.drawing.GFXx2D.noTiling
-import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
@@ -31,7 +28,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.min
 
-// todo change mouse cursor if on active area of color chooser
 open class ColorChooser(
     style: Style,
     val withAlpha: Boolean,
@@ -172,48 +168,23 @@ open class ColorChooser(
 
     fun getColor() = Vector4f(rgb, opacity)
 
-    fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
-        drawColorBox(
-            element.x, element.y, element.width, element.height,
-            d0, du, dv, dh,
-            if (mainBox) visualisation else ColorVisualisation.BOX
-        )
-    }
-
     fun drawColorBox(
         x: Int, y: Int, w: Int, h: Int,
         d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
-        spaceStyle: ColorVisualisation
+        mainBox: Boolean
     ) {
-        val shader = colorSpace.getShader(spaceStyle)
-        shader.use()
-        posSize(shader, x, y, w, h, true)
-        noTiling(shader)
-        val sharpness = min(w, h) * 0.25f + 1f
-        when (spaceStyle) {
-            ColorVisualisation.WHEEL -> {
-                shader.v3f("v0", d0.x + hue * dh, d0.y, d0.z)
-                shader.v3f("du", du)
-                shader.v3f("dv", dv)
-                val hue0 = colorSpace.hue0
-                shader.v2f("ringSL", hue0.y, hue0.z)
-                shader.v1f("sharpness", sharpness)
-                flat01.draw(shader)
-            }
-            ColorVisualisation.CIRCLE -> {
-                shader.v1f("lightness", lightness)
-                shader.v1f("sharpness", sharpness)
-                flat01.draw(shader)
-            }
-            ColorVisualisation.BOX -> {
-                shader.v3f("v0", d0.x + hue * dh, d0.y, d0.z)
-                shader.v3f("du", du)
-                shader.v3f("dv", dv)
-                // shader.v1("sharpness", sharpness)
-                flat01.draw(shader)
-            }
-        }
+        val visualisation = if (mainBox) visualisation else ColorVisualisation.BOX
+        visualisation.drawColorBox(
+            x, y, w, h,
+            d0, du, dv, dh, this
+        )
     }
+
+    fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
+        drawColorBox(element.x, element.y, element.width, element.height, d0, du, dv, dh, mainBox)
+    }
+
+    // todo change mouse cursor if on active area of color chooser
 
     var resetListener: (() -> Vector4f)? = null
         private set

@@ -6,7 +6,7 @@ import me.anno.graph.hdb.index.StorageFile
 import me.anno.utils.OS.home
 
 fun main() {
-    // todo read thumbnail cache
+    // read thumbnail cache
     // todo export all entries into a .zip file
     val folder = home.getChild(".cache/RemsEngine/thumbs")
     val indexFile = folder.getChild("index.json")

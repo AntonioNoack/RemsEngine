@@ -42,12 +42,12 @@ fun main() {
         HeavyProcessing.processBalanced2d(
             0, 0, w, h, 32, 8
         ) { x0, y0, x1, y1 ->
-            val tmp = Vector3f()
+            val invDir = Vector3f()
             for (y in y0 until y1) {
                 for (x in x0 until x1) {
-                    tmp.set(x - x0f, y0f - y, z).rotate(cameraRotation).normalize()
-                    tmp.set(1f / tmp.x, 1f / tmp.y, 1f / tmp.z)
-                    if (bounds.isRayIntersecting(cameraPosition, tmp, 1e9f)) {
+                    invDir.set(x - x0f, y0f - y, z).rotate(cameraRotation).normalize()
+                    invDir.set(1f / invDir.x, 1f / invDir.y, 1f / invDir.z)
+                    if (bounds.isRayIntersecting(cameraPosition, invDir, 1e9f)) {
                         data[x + y * w] = -1
                     }
                 }

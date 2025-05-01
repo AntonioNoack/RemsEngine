@@ -1,6 +1,5 @@
 package me.anno.ui.base.groups
 
-import me.anno.Time
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -15,12 +14,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     var disableConstantSpaceForWeightedChildren = false
 
     val padding = Padding(0)
-    var lastPosTime = 0L
     var allChildrenHaveSameSize = false
-
-    fun needsPosUpdate(x: Int, y: Int): Boolean {
-        return this.x != x || this.y != y || lastPosTime != Time.frameTimeNanos
-    }
 
     open fun clear() {
         children.clear()

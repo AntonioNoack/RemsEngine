@@ -1,6 +1,5 @@
 package me.anno.ui.base.groups
 
-import me.anno.Time
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -57,8 +56,6 @@ open class PanelOverflowListX(sorter: Comparator<Panel>?, style: Style) : PanelL
     }
 
     override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-
-        lastPosTime = Time.frameTimeNanos
 
         val w = width - padding.width
 
