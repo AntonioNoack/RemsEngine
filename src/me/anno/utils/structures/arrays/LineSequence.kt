@@ -8,8 +8,6 @@ import kotlin.math.min
 
 class LineSequence : IntSequence {
 
-    // todo line sequence with automatic line breaks on words
-
     override val length get() = indexTable.last() - 1
 
     private var lines = ArrayList<IntArrayList>()

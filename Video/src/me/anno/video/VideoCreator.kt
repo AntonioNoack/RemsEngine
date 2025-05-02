@@ -259,7 +259,7 @@ open class VideoCreator(
                 videoOut.flush()
                 videoOut.close()
             }
-        } catch (ignored: IOException) {
+        } catch (_: IOException) {
 
         }
         process.waitFor()

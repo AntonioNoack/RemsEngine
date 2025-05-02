@@ -3,8 +3,6 @@ package me.anno.language.translation
 /**
  * translatable name and description in one,
  * because most times they go together
- *
- * todo object with typically used NameDescs like Cancel, Close, Accept and such
  * */
 class NameDesc(name: String, description: String, private val dictPath: String) {
 

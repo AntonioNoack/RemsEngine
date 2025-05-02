@@ -19,7 +19,6 @@ import java.io.IOException
 import java.io.OutputStream
 import kotlin.concurrent.thread
 import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 abstract class AudioCreator(
     val durationSeconds: Double,
@@ -34,12 +33,15 @@ abstract class AudioCreator(
 
     abstract fun createStreams(): List<AudioStream>
 
-    fun createOrAppendAudio(output: FileReference, videoCreatorOutput: FileReference, deleteVCO: Boolean) {
+    fun createOrAppendAudio(
+        output: FileReference, videoCreatorOutput: FileReference,
+        deleteIntermediateVideoFile: Boolean
+    ) {
 
         output.delete()
         output.getParent().tryMkdirs()
 
-        // todo allow different audio codecs (if required...)
+        // to do allow different audio codecs (if required...)
         // quality:
         // libopus > libvorbis >= libfdk_aac > libmp3lame >= eac3/ac3 > aac > libtwolame > vorbis (dont) > mp2 > wmav2/wmav1 (dont)
         val audioCodec = audioCodecByExtension(output.lcExtension) ?: return
@@ -96,10 +98,12 @@ abstract class AudioCreator(
 
         // delete the temporary file
         //
-        if (videoCreatorOutput != InvalidRef && deleteVCO) {
+        if (videoCreatorOutput != InvalidRef && deleteIntermediateVideoFile) {
             // temporary file survives sometimes
             // -> kill it at the end at the very least
-            if (!videoCreatorOutput.delete()) videoCreatorOutput.deleteOnExit()
+            if (!videoCreatorOutput.delete()) {
+                videoCreatorOutput.deleteOnExit()
+            }
         }
 
         onFinished()
@@ -179,11 +183,11 @@ abstract class AudioCreator(
         } finally {
             try {
                 audioOutput.flush()
-            } catch (ignored: Exception) {
+            } catch (_: Exception) {
             }
             try {
                 audioOutput.close()
-            } catch (ignored: Exception) {
+            } catch (_: Exception) {
             }
         }
     }

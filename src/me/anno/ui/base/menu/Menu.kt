@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -164,7 +165,7 @@ object Menu {
             close(textInput)
         }
 
-        val cancel = TextButton(NameDesc("Cancel"), style)
+        val cancel = TextButton(DefaultNames.cancel, style)
         cancel.weight = 1f
         cancel.addLeftClickListener { close(textInput) }
 

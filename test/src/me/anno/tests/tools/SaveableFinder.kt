@@ -60,16 +60,16 @@ class SaveableFinder {
                         try {
                             val sample = clazz.newInstance() as Saveable
                             put(sample, classPath)
-                        } catch (ignored: IllegalAccessException) {
-                        } catch (ignored: NoSuchMethodException) {
-                        } catch (ignored: InstantiationException) {
+                        } catch (_: IllegalAccessException) {
+                        } catch (_: NoSuchMethodException) {
+                        } catch (_: InstantiationException) {
                             try {
                                 val sample = clazz.getConstructor(Style::class.java).newInstance(style) as Saveable
                                 put(sample, classPath)
-                            } catch (ignored: InstantiationException) {
+                            } catch (_: InstantiationException) {
                             } catch (e: IllegalAccessException) {
                                 e.printStackTrace()
-                            } catch (ignored: NoSuchMethodException) {
+                            } catch (_: NoSuchMethodException) {
                             }
                         }
                     } catch (e: ClassNotFoundException) {

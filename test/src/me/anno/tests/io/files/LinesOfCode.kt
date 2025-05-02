@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.ImportType.CONTAINER
-import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -150,7 +149,7 @@ fun indexMaybe(file: FileReference, depth: Int): Vector3i? {
                         }
                     }
                 }
-            } catch (ignored: FileNotFoundException) {
+            } catch (_: FileNotFoundException) {
                 null
             }
         }

@@ -39,7 +39,7 @@ object Reflections {
         // must be separate for our JVM without exceptions
         return try {
             clazz.getField("id")
-        } catch (ignored: NoSuchFieldException) {
+        } catch (_: NoSuchFieldException) {
             null
         }
     }
@@ -48,7 +48,7 @@ object Reflections {
         // must be separate for our JVM without exceptions
         return try {
             clazz.getMethod("getId")
-        } catch (ignored: NoSuchMethodException) {
+        } catch (_: NoSuchMethodException) {
             null
         }
     }

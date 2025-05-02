@@ -7,15 +7,8 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.EntityQuery
-import me.anno.ecs.components.anim.AnimationCache
-import me.anno.ecs.components.anim.SkeletonCache
-import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
-import me.anno.gpu.texture.TextureCache
-import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.lua.utils.SafeFunction
@@ -142,14 +135,9 @@ open class ScriptComponent : Component(), OnUpdate {
             g.set("Engine", Time.toLua())
             g.set("R", ConstructorRegistry) // R for Rem or Registry
             g.set("OS", OS.toLua())
-            // todo register all important caches
-            g.set("MeshCache", MeshCache.toLua())
-            g.set("MaterialCache", MaterialCache.toLua())
-            g.set("AnimationCache", AnimationCache.toLua())
-            g.set("SkeletonCache", SkeletonCache.toLua())
-            g.set("PrefabCache", PrefabCache.toLua())
-            g.set("ImageCache", ImageCache.toLua())
-            g.set("TextureCache", TextureCache.toLua())
+            for (cache in CacheSection.caches) {
+                g.set(cache.name, cache.toLua())
+            }
             g.set("EntityQuery", EntityQuery.toLua())
             g.set("FindClass", LuaFindClass)
             return g

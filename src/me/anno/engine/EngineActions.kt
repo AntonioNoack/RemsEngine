@@ -130,7 +130,7 @@ object EngineActions {
     private fun registerCodeEditorActions() {
         try {
             CodeEditor.registerActions()
-        } catch (ignored: NoClassDefFoundError) {
+        } catch (_: NoClassDefFoundError) {
         }
     }
 

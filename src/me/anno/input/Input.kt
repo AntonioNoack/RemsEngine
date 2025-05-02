@@ -16,6 +16,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
+import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
@@ -427,7 +428,7 @@ object Input {
                             MenuOption(NameDesc("Hide")) {
                                 window.progressBars.remove(progressBar)
                             },
-                            MenuOption(NameDesc("Cancel")) {
+                            MenuOption(DefaultNames.cancel) {
                                 progressBar.cancel(false)
                                 // the user interacted, and knows what he was doing,
                                 // so close much quicker than usual

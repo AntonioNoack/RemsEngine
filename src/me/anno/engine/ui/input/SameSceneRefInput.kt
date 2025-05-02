@@ -2,6 +2,7 @@ package me.anno.engine.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
+import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -89,11 +90,11 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             // open tree view to select an element without drag-and-drop
             val oldValue: Type = value
             val panel = SameSceneRefTreeView(this)
-            val acceptButton = TextButton(NameDesc("Accept"), style)
+            val acceptButton = TextButton(DefaultNames.accept, style)
                 .addLeftClickListener {
                     it.window?.close()
                 }
-            val cancelButton = TextButton(NameDesc("Cancel"), style)
+            val cancelButton = TextButton(DefaultNames.cancel, style)
                 .addLeftClickListener {
                     setValue(oldValue, true)
                     it.window?.close()

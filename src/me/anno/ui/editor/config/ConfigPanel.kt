@@ -2,6 +2,7 @@ package me.anno.ui.editor.config
 
 import me.anno.config.DefaultStyle
 import me.anno.io.utils.StringMap
+import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -74,7 +75,7 @@ class ConfigPanel(val config: StringMap, val type: ConfigType, style: Style) : P
             }
             Menu.close(keyPanel)
         }
-        val cancel = TextButton(NameDesc("Cancel"), false, style)
+        val cancel = TextButton(DefaultNames.cancel, false, style)
         cancel.addLeftClickListener { Menu.close(keyPanel) }
         val buttons = PanelListX(style)
         buttons += cancel

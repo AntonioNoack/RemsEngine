@@ -37,7 +37,7 @@ object LastModifiedCache {
                     val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java) ?: null
                     lastAccessed = attr?.lastAccessTime()?.toMillis() ?: 0L
                     creationTime = attr?.creationTime()?.toMillis() ?: 0L
-                } catch (ignored: NoSuchFileException) {
+                } catch (_: NoSuchFileException) {
                 }
             }
         }

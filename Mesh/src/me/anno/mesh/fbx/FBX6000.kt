@@ -125,8 +125,7 @@ object FBX6000 {
             while (true) {
                 read()
             }
-        } catch (ignored: EOFException) {
-
+        } catch (_: EOFException) {
         }
 
         return stack.first()

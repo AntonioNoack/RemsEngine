@@ -258,7 +258,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                             res.append(hex4(b[j].toInt().shr(4)))
                             res.append(hex4(b[j].toInt()))
                         }
-                    } catch (e: UnsupportedEncodingException) {
+                    } catch (_: UnsupportedEncodingException) {
                         res.append('%')
                         res.append(hex4(cp.shr(4)))
                         res.append(hex4(cp))

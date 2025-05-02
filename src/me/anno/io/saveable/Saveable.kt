@@ -170,7 +170,7 @@ open class Saveable {
             if (Build.isDebug && instance0 is PrefabSaveable) {
                 val clone = try {
                     instance0.clone()
-                } catch (ignored: Exception) {
+                } catch (_: Exception) {
                     null
                 }
                 if (clone != null && clone::class != instance0::class) {

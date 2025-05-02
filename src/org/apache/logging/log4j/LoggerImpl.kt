@@ -71,7 +71,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
             try {
                 logFile.writeString(line2)
                 logFile.writeString(System.lineSeparator())
-            } catch (ignored: IOException) {
+            } catch (_: IOException) {
             }
         }
     }
@@ -88,7 +88,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
             }
             try {
                 logFile?.flush()
-            } catch (ignored: IOException) {
+            } catch (_: IOException) {
             }
         }
     }

@@ -534,7 +534,7 @@ object WindowManagement {
             if (waitingTime > 0) try {
                 // wait does not work, causes IllegalMonitorState exception
                 Thread.sleep(waitingTime)
-            } catch (ignored: InterruptedException) {
+            } catch (_: InterruptedException) {
             }
             lastTime = Time.nanoTime
         }

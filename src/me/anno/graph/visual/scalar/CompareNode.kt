@@ -34,7 +34,7 @@ class CompareNode() : TypedMathNode<CompareMode>(data, types) {
                 @Suppress("UNCHECKED_CAST")
                 a as Comparable<Any?>
                 return a.compareTo(b)
-            } catch (ignored: Exception) {
+            } catch (_: Exception) {
             }
         }
         val ha = hash32raw(a)

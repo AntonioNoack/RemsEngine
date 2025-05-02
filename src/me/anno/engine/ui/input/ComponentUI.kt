@@ -46,6 +46,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.UnknownSaveable
+import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
@@ -1020,12 +1021,12 @@ object ComponentUI {
         // todo button to create temporary instance?
         // todo button to create instance in project
         // todo search panel
-        val buttons = TextButton(NameDesc("Cancel"), style)
+        val cancelButton = TextButton(DefaultNames.cancel, style)
             .addLeftClickListener {
                 callback(value1, true)
                 it.window?.close()
             }
-        buttons.weight = 1f
+        cancelButton.weight = 1f
         val mainList = SizeLimitingContainer(
             panelList,
             max(sampleUI.window!!.width / 3, 200),
@@ -1033,7 +1034,7 @@ object ComponentUI {
         )
         Menu.openMenuByPanels(
             sampleUI.windowStack, NameDesc("Choose $type1"),
-            listOf(ScrollPanelY(mainList, style), buttons)
+            listOf(ScrollPanelY(mainList, style), cancelButton)
         )
     }
 

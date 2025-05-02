@@ -70,7 +70,7 @@ open class IntInput(
             else if (trimmed.startsWith("0b")) trimmed.substring(2).toLongOrNull(2)
             else trimmed.toLongOrNull()) ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLongOr()
             if (parsed == null) null else AnyToLong.getLong(type.clamp(parsed), 0L)
-        } catch (ignored: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

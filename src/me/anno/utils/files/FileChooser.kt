@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.WindowManagement
 import me.anno.gpu.OSWindow
 import me.anno.io.files.FileReference
+import me.anno.language.translation.DefaultNames
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -89,8 +90,8 @@ object FileChooser {
         style: Style, callback: (List<FileReference>) -> Unit
     ): Panel {
 
-        val cancel = TextButton(NameDesc("Cancel"), style)
-        val submit = TextButton(NameDesc("Select"), style)
+        val cancel = TextButton(DefaultNames.cancel, style)
+        val submit = TextButton(DefaultNames.select, style)
         submit.isInputAllowed = allowFolders
 
         val selected = ArrayList<FileReference>()

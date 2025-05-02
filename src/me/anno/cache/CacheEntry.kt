@@ -84,7 +84,7 @@ class CacheEntry private constructor(
                 if (hasBeenDestroyed) null
                 else data as? R, exception
             )
-        } catch (ignored: IgnoredException) {
+        } catch (_: IgnoredException) {
         }
     }
 

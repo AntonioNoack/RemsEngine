@@ -149,7 +149,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     fun flush() {
         try {
             ensureConnection(1)
-        } catch (ignored: TimeoutException) {
+        } catch (_: TimeoutException) {
         }
         synchronized(dos) {
             dos.flush()
@@ -180,7 +180,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
             sender.send(packet, onReceive)
             sender.close()
             true
-        } catch (ignored: TimeoutException) {
+        } catch (_: TimeoutException) {
             false
         }
     }

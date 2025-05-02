@@ -135,7 +135,7 @@ fun isConnectedRecursive(field: BooleanArray, sx: Int, sy: Int): Boolean {
             stepOn(j, 0)
         }
         false
-    } catch (ignored: Done) {
+    } catch (_: Done) {
         true
     }
 }

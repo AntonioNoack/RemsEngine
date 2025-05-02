@@ -1,7 +1,6 @@
 package me.anno.ui.editor.graph
 
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFXState
@@ -21,6 +20,7 @@ import me.anno.graph.visual.node.NodeOutput
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.language.translation.DefaultNames
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -563,7 +563,7 @@ class NodePanel(
             abs(xi * 2 - (this.x * 2 + this.width)) < max(titleWidth, titleY1 - titleY0)
         ) {
             Menu.askName(
-                windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
+                windowStack, xi, yi, NameDesc("Set Node Name"), node.name, DefaultNames.ok,
                 { textColor }, { newName -> node.name = newName })
         } else {
             gp.target.set(node.position.x, node.position.y)

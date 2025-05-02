@@ -6,7 +6,7 @@ inline fun <V : Any> promise(initialize: (Callback<V>) -> Unit): Promise<V> {
     val promise = Promise<V>()
     try {
         initialize(promise::setValue)
-    } catch (ignored: IgnoredException) {
+    } catch (_: IgnoredException) {
     } catch (e: Exception) {
         promise.setValue(null, e)
     }
