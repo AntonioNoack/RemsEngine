@@ -10,6 +10,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.Events.addEvent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.control.DraggingControlSettings
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -123,7 +124,7 @@ fun main() {
         } else Engine.requestShutdown()
     }
 
- if(false)   addEvent(3_000) {
+    if (false) addEvent(3_000) {
         renderNextImage()
     }
     testUI3("PromoGenerator", sceneView)
@@ -136,6 +137,7 @@ fun renderScene(renderMode: RenderMode) {
     // to do why are some images randomly just orange???
     val renderView = sceneView.renderView
     renderView.setPosSize(0, 0, width, height)
+    (sceneView.editControls.settings as? DraggingControlSettings)?.renderMode = renderMode
     renderView.renderMode = renderMode
     renderView.renderSize.resize(width, height, Time.nanoTime)
     val times = if (renderView.usesFrameGen() ||
@@ -157,7 +159,7 @@ fun renderScene(renderMode: RenderMode) {
 
     LOGGER.info("Finished rendering ${renderMode.nameDesc.englishName}")
     framebuffer.getTexture0()
-        .createImage(flipY = true, withAlpha = false)
+        .createImage(flipY = false, withAlpha = false)
         .write(dst.getChild("${renderMode.nameDesc.englishName.toAllowedFilename()}.webp"))
     LOGGER.info("Finished saving ${renderMode.nameDesc.englishName}")
 }

@@ -18,8 +18,5 @@ abstract class System : PrefabSaveable() {
     open fun setContains(entity: Entity, contains: Boolean) {}
     open fun setContains(component: Component, contains: Boolean) {}
 
-    open fun onUpdate() {}
-    open fun onBeforeDrawing() {}
-
     open fun clear() {}
 }

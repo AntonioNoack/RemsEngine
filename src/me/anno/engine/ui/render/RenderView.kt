@@ -10,6 +10,7 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnBeforeDraw
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.ecs.systems.Systems
 import me.anno.engine.debug.DebugShapes
@@ -52,6 +53,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.effects.FSR2v2
 import me.anno.gpu.shader.renderer.Renderer
@@ -232,7 +234,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         FrameTimings.add(t2 - t1, UIColors.midOrange)
 
         setRenderState()
-        updatePipelineStage0(renderMode)
+        updatePipelineStages(renderMode)
 
         render(x0, y0, x1, y1)
 
@@ -280,12 +282,23 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    fun updatePipelineStage0(renderMode: RenderMode) {
-        val stage0 = pipeline.stages.firstOrNull() ?: return
-        stage0.depthMode = depthMode
-        stage0.blendMode = if (renderMode == RenderMode.OVERDRAW || renderMode == RenderMode.TRIANGLE_SIZE)
+    fun updatePipelineStages(renderMode: RenderMode) {
+        val blendMode = if (renderMode == RenderMode.OVERDRAW || renderMode == RenderMode.TRIANGLE_SIZE)
             BlendMode.ADD else null
-        stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.FRONT else CullMode.BOTH
+        val depthMode = depthMode
+        val cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.FRONT else CullMode.BOTH
+        val stage0 = pipeline.stages.firstOrNull()
+        if (stage0 != null) {
+            stage0.depthMode = depthMode
+            stage0.blendMode = blendMode
+            stage0.cullMode = cullMode
+        }
+        val stage2 = pipeline.stages.getOrNull(PipelineStage.DECAL.id)
+        if (stage2 != null) {
+            stage2.depthMode = depthMode
+            stage2.blendMode = blendMode
+            stage2.cullMode = cullMode
+        }
     }
 
     fun findBuffer(renderer: Renderer): IFramebuffer {
@@ -523,7 +536,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         currentInstance = this
 
         if (fillPipeline) {
-            Systems.onBeforeDrawing()
+            OnBeforeDraw.onBeforeDrawing()
             definePipeline(width, height, aspectRatio, fov, world)
         }
     }

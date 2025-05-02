@@ -7,6 +7,7 @@ import me.anno.image.Image
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.utils.Color
 import me.anno.utils.async.Callback
 import kotlin.math.max
@@ -20,27 +21,37 @@ class FloatImage(
     constructor(width: Int, height: Int, channels: Int) :
             this(width, height, channels, LinearColorMap.default)
 
-    constructor(width: Int, height: Int, channels: Int, data: FloatArray) :
-            this(width, height, channels, data, LinearColorMap.default, 0, width)
+    constructor(width: Int, height: Int, channels: Int, data: FloatArray) : this(
+        width, height, channels, data, LinearColorMap.default,
+        0, channels * width
+    )
 
-    constructor(width: Int, height: Int, channels: Int, map: ColorMap) :
-            this(width, height, channels, FloatArray(width * height * channels), map, 0, width)
+    constructor(width: Int, height: Int, channels: Int, map: ColorMap) : this(
+        width, height, channels, FloatArray(width * height * channels), map,
+        0, channels * width
+    )
 
     constructor(width: Int, height: Int, channels: Int, data: FloatArray, offset: Int, stride: Int) :
             this(width, height, channels, data, LinearColorMap.default, offset, stride)
+
+    override fun getIndex(x: Int, y: Int): Int {
+        val xi = clamp(x, 0, width - 1)
+        val yi = clamp(y, 0, height - 1)
+        return offset + xi * numChannels + yi * stride
+    }
 
     /**
      * gets the value on the field
      * */
     override fun getValue(index: Int, channel: Int): Float {
-        return data[index * numChannels + channel + offset]
+        return data[index + channel]
     }
 
     /**
      * sets the value in the buffer, and returns the previous value
      * */
     override fun setValue(index: Int, channel: Int, value: Float): Float {
-        val i = index * numChannels + channel
+        val i = index + channel
         val previous = data[i]
         data[i] = value
         return previous
@@ -48,26 +59,25 @@ class FloatImage(
 
     override fun getRGB(index: Int): Int {
         val numChannels = numChannels
-        val i = index * numChannels + offset
         return if (numChannels == 1) {
-            map.getColor(data[i])
+            map.getColor(data[index])
         } else {
-            val i = index * numChannels + offset
             Color.rgba(
-                getColor(data[i]),
-                getColor(data[i + 1]),
-                if (numChannels > 2) getColor(data[i + 2]) else 0,
-                if (numChannels > 3) getColor(data[i + 3]) else 255
+                getColor(data[index]),
+                getColor(data[index + 1]),
+                if (numChannels > 2) getColor(data[index + 2]) else 0,
+                if (numChannels > 3) getColor(data[index + 3]) else 255
             )
         }
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         val tmp = FloatArray(width * height * numChannels)
+        val lineLength = width * numChannels
         for (y in 0 until height) {
-            val src0 = getIndex(0, height - 1 - y) * numChannels
-            val src1 = src0 + width * numChannels
-            val dstI = y * width * numChannels
+            val src0 = getIndex(0, height - 1 - y)
+            val src1 = src0 + lineLength
+            val dstI = y * lineLength
             data.copyInto(tmp, dstI, src0, src1)
         }
         texture.create(TargetType.Float32xI[numChannels - 1], tmp)

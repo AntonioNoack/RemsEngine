@@ -200,8 +200,8 @@ object MeshSplitter {
             val tris = triangles.map { ring[it] }
             val (_, r1, _, r3) = result
             forLoopSafely(tris.size, 3) { i ->
-                r1.addTriangle(tris[i], tris[i + 1], tris[i + 2], posNormal)
-                r3.addTriangle(tris[i], tris[i + 2], tris[i + 1], negNormal)
+                r1.addTriangle(tris[i], tris[i + 2], tris[i + 1], posNormal)
+                r3.addTriangle(tris[i], tris[i + 1], tris[i + 2], negNormal)
             }
         }
 
@@ -237,6 +237,11 @@ object MeshSplitter {
             }; false
         }
         ms.collectRings()
-        return ms.result.map { it.build() }
+        return ms.result.map {
+            val newMesh = it.build()
+            newMesh.skeleton = mesh.skeleton
+            newMesh.materials = mesh.materials
+            newMesh
+        }
     }
 }

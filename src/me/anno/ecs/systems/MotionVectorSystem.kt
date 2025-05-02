@@ -5,7 +5,7 @@ import me.anno.ecs.System
 import me.anno.ecs.Transform
 import me.anno.utils.structures.sets.FastIteratorSet
 
-object MotionVectorSystem : System() {
+object MotionVectorSystem : System(), OnUpdate {
 
     override val priority: Int
         get() = -10_000_000 // should be really, really early

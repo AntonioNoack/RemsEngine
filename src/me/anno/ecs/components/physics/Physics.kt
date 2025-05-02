@@ -16,6 +16,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnPhysicsUpdate
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
@@ -40,7 +41,7 @@ import kotlin.reflect.KClass
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val rigidComponentClass: KClass<InternalRigidBody>
-) : System() {
+) : System(), OnUpdate {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Physics::class)

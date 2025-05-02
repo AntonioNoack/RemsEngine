@@ -12,10 +12,10 @@ open class MeshBuilder(flags: Int) {
     companion object {
         const val WITH_NORMALS = 1
         const val WITH_TANGENTS = 2
-        const val WITH_COLORS = 3
-        const val WITH_UVS = 4
-        const val WITH_INDICES = 5
-        const val WITH_BONES = 6
+        const val WITH_COLORS = 4
+        const val WITH_UVS = 8
+        const val WITH_INDICES = 16
+        const val WITH_BONES = 32
     }
 
     constructor(vc: Mesh) : this(

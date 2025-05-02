@@ -29,23 +29,25 @@ class SplitMeshTests {
         testSplitSphereI(1, 62, 20, 0.05f, transform)
     }
 
-    fun testSplitSphereI(subDivisions: Int, v0: Long, v1: Long, en: Float, transform: Matrix4x3?) {
+    fun testSplitSphereI(
+        subDivisions: Int, expectedVerticesHalfSphere: Long, expectedVerticesHalfPlane: Long,
+        allowedEpsilon: Float, transform: Matrix4x3?
+    ) {
         val base = IcosahedronModel.createIcosphere(subDivisions)
         if (transform != null) base.transform(transform)
         val meshes = MeshSplitter.split(base) { it.y }
         val (top, topPlane, bottom, bottomPlane) = meshes
-        println(meshes.map { it.numPrimitives })
-        checkIsHalfSphere(top, true, v0, en)
-        checkIsHalfSphere(bottom, false, v0, en)
-        checkIsPlane(topPlane, true, v1, en)
-        checkIsPlane(bottomPlane, false, v1, en)
+        checkIsHalfSphere(top, true, expectedVerticesHalfSphere, allowedEpsilon)
+        checkIsHalfSphere(bottom, false, expectedVerticesHalfSphere, allowedEpsilon)
+        checkIsPlane(topPlane, true, expectedVerticesHalfPlane, allowedEpsilon)
+        checkIsPlane(bottomPlane, false, expectedVerticesHalfPlane, allowedEpsilon)
     }
 
-    fun checkIsPlane(mesh: Mesh, top: Boolean, numVertices: Long, en: Float) {
+    fun checkIsPlane(mesh: Mesh, top: Boolean, numVertices: Long, allowedEpsilon: Float) {
         // expect 18 vertices
         assertEquals(numVertices, mesh.numPrimitives)
         // all vertices-distance to center is 1
-        checkVerticesAreNormalized(mesh, en)
+        checkVerticesAreNormalized(mesh, allowedEpsilon)
         val pos = mesh.positions!!
         val nor = mesh.normals!!
         val tmp = Vector3f()
@@ -59,13 +61,22 @@ class SplitMeshTests {
             assertEquals(expectedNormal, tmp.set(nor, i * 3), 1e-6)
             false
         }
+        // ensure the faces have the correct order by recalculating the normals
+        mesh.calculateNormals(false)
+        mesh.forEachPointIndex(true) { i ->
+            // check all vertices are on y=0,
+            assertEquals(0f, tmp.set(pos, i * 3).y, 1e-6f)
+            // check the normal to be 0,+/-1,0
+            assertEquals(expectedNormal, tmp.set(nor, i * 3), 1e-6)
+            false
+        }
     }
 
-    fun checkIsHalfSphere(mesh: Mesh, top: Boolean, numVertices: Long, en: Float) {
+    fun checkIsHalfSphere(mesh: Mesh, top: Boolean, expectedNumVertices: Long, allowedEpsilon: Float) {
         // expect 160 vertices
-        assertEquals(numVertices, mesh.numPrimitives)
+        assertEquals(expectedNumVertices, mesh.numPrimitives)
         // check all vertices-distance to center is 1
-        checkVerticesAreNormalized(mesh, en)
+        checkVerticesAreNormalized(mesh, allowedEpsilon)
         val pos = mesh.positions!!
         val nor = mesh.normals!!
         val tmp1 = Vector3f()
@@ -83,11 +94,11 @@ class SplitMeshTests {
         }
     }
 
-    fun checkVerticesAreNormalized(mesh: Mesh, e: Float = 0.02f) {
+    fun checkVerticesAreNormalized(mesh: Mesh, epsilon: Float = 0.02f) {
         val pos = mesh.positions!!
         val tmp = Vector3f()
-        val min = 1f - e
-        val max = 1f + e
+        val min = 1f - epsilon
+        val max = 1f + epsilon
         mesh.forEachPointIndex(true) { i ->
             tmp.set(pos, i * 3)
             assertTrue(tmp.length() in min..max) {

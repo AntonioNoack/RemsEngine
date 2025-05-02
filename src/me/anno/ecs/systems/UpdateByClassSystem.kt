@@ -7,7 +7,7 @@ import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.sets.FastIteratorSet
 import kotlin.reflect.KClass
 
-abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
+abstract class UpdateByClassSystem : System() {
 
     @DebugProperty
     val numRegisteredClasses: Int
@@ -47,14 +47,6 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
     abstract fun update(sample: Component, instances: List<Component>)
     abstract fun getPriority(sample: Component): Int
 
-    override fun onUpdate() {
-        if (isOnUpdate) execute()
-    }
-
-    override fun onBeforeDrawing() {
-        if (!isOnUpdate) execute()
-    }
-
     private fun updateInstances(): Boolean {
         synchronized(lock) {
             val hasEntries = changeSet.isNotEmpty()
@@ -75,7 +67,7 @@ abstract class UpdateByClassSystem(val isOnUpdate: Boolean) : System() {
         sortedComponents.sortBy { getPriority(it.value.first()) }
     }
 
-    private fun execute() {
+    fun execute() {
         // "components" is only changed during this, so we're free to iterate over it after that
         val changed = updateInstances()
         if (changed) sortComponentsByPriority()

@@ -10,29 +10,26 @@ import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3
-import org.joml.Vector3f
 import kotlin.math.abs
 
 @Docs("rotates and scales the entity parallel to the camera; only works well with a single local player")
 open class LookAtComponent : Component(), OnBeforeDraw {
 
-    @Docs("minimum scale; set this to maximum scale to disable scaling in screen space")
+    @Docs("Minimum scale; set this to maximum scale to disable scaling in screen space")
     var minSize = 0.0
 
-    @Docs("maximum scale at a distance of maxSizeDistance")
+    @Docs("Maximum scale at a distance of maxSizeDistance")
     var maxSize = 0.1
 
-    @Docs("base distance for scale calculations")
+    @Docs("Base distance for scale calculations")
     var maxSizeDistance = 1000.0
 
     var tiltX = true
     var tiltY = true
     var tiltZ = true
 
-    @Docs("needs to be enabled, if the base entity of this may rotate or scale; disabled is faster")
+    @Docs("Needs to be enabled, if the base entity of this may rotate or scale; disabled is faster")
     var useGlobalTransform = true
-
-    val dir = Vector3f()
 
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         dstUnion.all()
@@ -43,6 +40,7 @@ open class LookAtComponent : Component(), OnBeforeDraw {
         val transform = transform ?: return
         transform.validate()
 
+        val dir = JomlPools.vec3f.create()
         transform.globalPosition.sub(RenderState.cameraPosition, dir)
 
         val minDistance = 1e-38f
@@ -72,6 +70,8 @@ open class LookAtComponent : Component(), OnBeforeDraw {
                 } else null
             }
 
+        JomlPools.vec3f.sub(1)
+
         if (rotation != null) {
             if (useGlobalTransform) transform.globalRotation = rotation
             else transform.localRotation = rotation
@@ -80,7 +80,7 @@ open class LookAtComponent : Component(), OnBeforeDraw {
         if (useGlobalTransform) transform.globalScale = transform.globalScale.set(scale)
         else transform.localScale = transform.localScale.set(scale)
 
-        transform.teleportUpdate()
+        transform.validate()
         invalidateAABB()
     }
 

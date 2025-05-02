@@ -104,11 +104,9 @@ object Systems : PrefabSaveable() {
     override fun getChildListByType(type: Char): List<PrefabSaveable> = systems
 
     fun onUpdate() {
-        forAllSystems { it.onUpdate() }
-    }
-
-    fun onBeforeDrawing() {
-        forAllSystems { it.onBeforeDrawing() }
+        forAllSystems(Updatable::class) { system ->
+            system.update(listOf(system))
+        }
     }
 
     inline fun forAllSystems(callback: (System) -> Unit) {

@@ -11,7 +11,7 @@ import me.anno.mesh.Shapes
 import me.anno.utils.OS.res
 
 fun main() {
-    // todo this lags behind one frame, because update() is called before cameraMatrix updates, can we get it perfect?
+    // todo why does this still lag one frame behind???
     val source = res.getChild("icon.png")
     val material = Material().apply {
         // for alpha

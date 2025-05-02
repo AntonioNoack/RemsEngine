@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
 import me.anno.ecs.interfaces.Renderable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -26,7 +27,7 @@ import org.joml.AABBd
 //  - transform                      | 12
 
 // todo this probably has undefined behaviour, because its RenderDocCaptures crash RenderDoc
-class StaticMeshManager : System(), Renderable {
+class StaticMeshManager : System(), Renderable, OnUpdate {
 
     val managers = HashMap<Material, UniqueMeshRenderer<SMMKey, Mesh>>()
     val meshes = HashSet<MeshComponent>(1024)

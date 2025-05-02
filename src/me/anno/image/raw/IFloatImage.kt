@@ -10,18 +10,15 @@ import me.anno.utils.Color
 import kotlin.math.floor
 
 abstract class IFloatImage(
-    width: Int, height: Int, channels: Int,
+    width: Int, height: Int, numChannels: Int,
     val map: ColorMap, offset: Int, stride: Int
-) : Image(width, height, channels, channels > 3, offset, stride) {
+) : Image(width, height, numChannels, numChannels > 3, offset, stride) {
 
-    constructor(width: Int, height: Int, channel: Int, map: ColorMap) :
-            this(width, height, channel, map, 0, width)
+    private val hm1f get() = height - 1f
+    private val wm1f get() = width - 1f
 
-    private var hm1f = height - 1f
-    private var wm1f = width - 1f
-
-    private var wm2f = width - 2f
-    private var hm2f = height - 2f
+    private val wm2f get() = width - 2f
+    private val hm2f get() = height - 2f
 
     /**
      * interpolated value access
@@ -132,8 +129,8 @@ abstract class IFloatImage(
         return if (this is FloatImage) {
             if (mustCopy) clone() else this
         } else {
-            val dstImage = FloatImage(width, height, numChannels, map)
-            for (c in 0 until numChannels) {
+            val dstImage = FloatImage(width, height, this@IFloatImage.numChannels, map)
+            for (c in 0 until this@IFloatImage.numChannels) {
                 for (i in 0 until width * height) {
                     dstImage.setValue(i, c, getValue(i, c))
                 }
@@ -153,7 +150,7 @@ abstract class IFloatImage(
     fun getColor(f: Float): Int = clamp(f * 255f, 0f, 255f).toInt()
 
     override fun getRGB(index: Int): Int {
-        val nc = numChannels
+        val nc = this@IFloatImage.numChannels
         return if (nc == 1) {
             map.getColor(getValue(index, 0))
         } else {

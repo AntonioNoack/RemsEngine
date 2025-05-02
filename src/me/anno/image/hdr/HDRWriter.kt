@@ -22,7 +22,7 @@ object HDRWriter {
             out.write(2)
             // "checksum"
             out.writeBE16(w)
-            convertFloatsToBytes(w, y * stride * 3, pixels, rowBytes)
+            convertFloatsToBytes(w, y * stride, pixels, rowBytes)
             rleEncodeBytes(w, rowBytes, out)
         }
     }

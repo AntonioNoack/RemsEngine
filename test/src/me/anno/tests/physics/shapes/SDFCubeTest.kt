@@ -19,7 +19,7 @@ class SDFCubeTest {
     private fun createBaseline(marginI: Float): BoxShape {
         val baseline = BoxCollider().apply { margin = marginI }
             .createBulletShape(Vector3d(1.0))
-        assertEquals(marginI, baseline.margin)
+        assertEquals(marginI, baseline.margin.toFloat())
         return baseline
     }
 
