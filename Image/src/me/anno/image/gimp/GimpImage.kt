@@ -108,7 +108,7 @@ class GimpImage {
             val h = gimpImage.height
             // to do if the source has HDR contents, use HDR here as well
             //  -> we can't read HDR yet anyway
-            val dst = IntArray(w * h)
+            val result = IntImage(w, h, true)
             for (layer in gimpImage.layers) {
                 val image = layer.image
                 if (layer.isVisible && image != null && layer.opacity > 0) {
@@ -122,29 +122,27 @@ class GimpImage {
                     val opacity = layer.opacity
                     if (image.hasAlphaChannel || opacity < 255) {
                         for (y in y0 until y1) {
-                            var dstIndex = x0 + y * w
-                            var srcIndex = (x0 - dx) + (y - dy) * layer.width
                             // layer.blendSpace
                             for (x in x0 until x1) {
+                                var color = image.getRGB(x - dx, y - dy)
+                                val dstIndex = result.getIndex(x, y)
                                 // todo theoretically, we would need to apply the correct blending function here
-                                val color = image.getRGB(srcIndex++)
-                                dst[dstIndex] = blend(dst[dstIndex], color, opacity)
-                                dstIndex++
+                                color = blend(dstIndex, color, opacity)
+                                result.setRGB(dstIndex, color)
                             }
                         }
                     } else {
                         for (y in y0 until y1) {
-                            var dstIndex = x0 + y * w
-                            var srcIndex = (x0 - dx) + (y - dy) * layer.width
                             for (x in x0 until x1) {
-                                dst[dstIndex++] = image.getRGB(srcIndex++)
+                                val color = image.getRGB(x - dx, y - dy)
+                                result.setRGB(x, y, color)
                             }
                         }
                     }
                 }
             }
-            val reallyHasAlpha = hasAlpha && dst.any { it.ushr(24) != 255 }
-            return IntImage(w, h, dst, reallyHasAlpha)
+            result.hasAlphaChannel = hasAlpha && result.data.any { it.ushr(24) != 255 }
+            return result
         }
 
         private fun readImage(src: FileReference, data: ByteBuffer): Any {
@@ -430,7 +428,7 @@ class GimpImage {
         val tileYs = ceilDiv(height, TILE_SIZE)
         val tiles = tileXs * tileYs
         val maxDataLength = bpp * TILE_SIZE * TILE_SIZE * 3 / 2
-        if (tmp == null || tmp!!.size < maxDataLength) {
+        if ((tmp?.size ?: -1) < maxDataLength) {
             tmp = ByteArray(maxDataLength)
         }
         for (tileIndex in 0 until tiles) {
@@ -574,7 +572,7 @@ class GimpImage {
                 val dst = image.data
                 var readIndex = 0
                 for (y in y0 until y0 + dy) {
-                    var writeIndex = (x0 + y * image.width) * bpp
+                    var writeIndex = image.getIndex(x0, y)
                     for (x in 0 until dx * bpp) {
                         dst[writeIndex++] = tileData[readIndex++]
                     }
