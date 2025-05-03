@@ -1,5 +1,7 @@
 package me.anno.tests.mesh.hexagons
 
+import me.anno.image.ImageDrawing.drawLine
+import me.anno.image.ImageDrawing.mixRGB
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.chunks.spherical.HexagonSphere

@@ -11,21 +11,27 @@ open class ByteImage(
     width: Int, height: Int,
     val format: ByteImageFormat, val data: ByteArray,
     offset: Int, stride: Int
-) : Image(width, height, format.numChannels, format.numChannels > 3, offset, stride) {
+) : Image(
+    width, height, format.numChannels, format.numChannels > 3, offset,
+    format.numChannels * stride
+) {
 
     constructor(width: Int, height: Int, format: ByteImageFormat) :
             this(width, height, format, ByteArray(width * height * format.numChannels))
 
     constructor(width: Int, height: Int, format: ByteImageFormat, data: ByteArray) :
-            this(width, height, format, data, 0, width)
+            this(width, height, format, data, 0, format.numChannels * width)
 
-    override fun getRGB(index: Int): Int {
-        return format.fromBytes(data, index * format.numChannels, hasAlphaChannel)
+    override fun getIndex(x: Int, y: Int): Int {
+        return offset + x * numChannels + y * stride
     }
 
-    fun setRGB(x: Int, y: Int, rgb: Int) {
-        if (x !in 0 until width || y !in 0 until height) return
-        format.toBytes(rgb, data, getIndex(x, y) * format.numChannels)
+    override fun getRGB(index: Int): Int {
+        return format.fromBytes(data, index, hasAlphaChannel)
+    }
+
+    override fun setRGB(index: Int, value: Int) {
+        format.toBytes(value, data, index)
     }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
@@ -48,10 +54,10 @@ open class ByteImage(
         val data = data
         val width = width
         val height = height
-        val numChannels = numChannels
+        val lineLength = width * numChannels
         for (y in 0 until height) {
             val yi = if (flipped) height - 1 - y else y
-            dst.put(data, getIndex(0, yi) * numChannels, width * numChannels)
+            dst.put(data, getIndex(0, yi), lineLength)
         }
     }
 

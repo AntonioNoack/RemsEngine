@@ -1,12 +1,15 @@
 package me.anno.image.raw
 
-import me.anno.utils.async.Callback
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
+import me.anno.image.raw.ComponentImage.Companion.getShiftFromChannel
+import me.anno.image.raw.ComponentImage.Companion.setComponentFromValue
+import me.anno.utils.Color.a
 import me.anno.utils.Color.hex24
+import me.anno.utils.async.Callback
 import org.lwjgl.opengl.GL46C
 
 /**
@@ -16,7 +19,7 @@ class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, co
     Image(src.width, src.height, 1, false, src.offset, src.stride) {
 
     private val color = color and 0xffffff
-    private val shift = "bgra".indexOf(channel) * 8
+    private val shift = getShiftFromChannel(channel)
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         if (src is GPUImage && (color == 0 || color == 0xffffff)) {
@@ -42,6 +45,11 @@ class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, co
 
     override fun getRGB(index: Int): Int {
         return getValue(index).shl(24) or color
+    }
+
+    override fun setRGB(index: Int, value: Int) {
+        val base = src.getRGB(index)
+        src.setRGB(index, setComponentFromValue(value.a(), inverse, base, shift))
     }
 
     override fun toString(): String {

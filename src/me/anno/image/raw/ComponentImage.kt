@@ -8,6 +8,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
 import me.anno.utils.Color.black
+import me.anno.utils.Color.g
 import me.anno.utils.async.Callback
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
@@ -18,7 +19,7 @@ import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     Image(src.width, src.height, 1, false) {
 
-    private val shift = "bgra".indexOf(channel) * 8
+    private val shift = getShiftFromChannel(channel)
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         if (src is GPUImage) {
@@ -52,7 +53,26 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         return valueToRGB(getValue(index))
     }
 
+    override fun setRGB(index: Int, value: Int) {
+        val base = src.getRGB(index)
+        src.setRGB(index, setComponentFromValue(value.g(), inverse, base, shift))
+    }
+
     override fun toString(): String {
         return "ComponentImage { $src, ${if (inverse) "1-" else ""}$channel }"
+    }
+
+    companion object {
+        fun getShiftFromChannel(channel: Char): Int {
+            return "bgra".indexOf(channel) * 8
+        }
+
+        fun setComponentFromValue(value: Int, inverse: Boolean, base: Int, shift: Int): Int {
+            var valueI = value
+            if (inverse) valueI = 255 - valueI
+            // manipulate just that single channel
+            val mask = 0xff shl shift
+            return base.and(mask.inv()) or valueI.shl(shift)
+        }
     }
 }

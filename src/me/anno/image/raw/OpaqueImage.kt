@@ -6,6 +6,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.black
 import me.anno.utils.async.Callback
+import org.joml.Vector4f
 import kotlin.math.min
 
 /**
@@ -15,6 +16,14 @@ open class OpaqueImage(val src: Image) :
     Image(src.width, src.height, min(3, src.numChannels), false, src.offset, src.stride) {
 
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
+
+    override fun setRGB(index: Int, value: Int) {
+        src.setRGB(index, value)
+    }
+
+    override fun setRGB(index: Int, value: Vector4f) {
+        src.setRGB(index, value)
+    }
 
     override fun createTextureImpl(texture: Texture2D, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         when {

@@ -9,7 +9,13 @@ import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color
+import me.anno.utils.Color.a01
+import me.anno.utils.Color.b01
+import me.anno.utils.Color.g01
+import me.anno.utils.Color.r01
 import me.anno.utils.async.Callback
+import me.anno.utils.pooling.JomlPools
+import org.joml.Vector4f
 import kotlin.math.max
 
 class FloatImage(
@@ -55,6 +61,20 @@ class FloatImage(
         val previous = data[i]
         data[i] = value
         return previous
+    }
+
+    override fun setRGB(index: Int, value: Vector4f) {
+        setValue(index, 0, value.x)
+        if (numChannels > 1) setValue(index, 1, value.y)
+        if (numChannels > 2) setValue(index, 2, value.z)
+        if (numChannels > 3) setValue(index, 3, value.w)
+    }
+
+    override fun setRGB(index: Int, value: Int) {
+        setValue(index, 0, value.r01())
+        if (numChannels > 1) setValue(index, 1, value.g01())
+        if (numChannels > 2) setValue(index, 2, value.b01())
+        if (numChannels > 3) setValue(index, 3, value.a01())
     }
 
     override fun getRGB(index: Int): Int {

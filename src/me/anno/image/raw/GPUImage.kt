@@ -40,6 +40,10 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
         }
     }
 
+    override fun setRGB(index: Int, value: Int) {
+        LOGGER.warn("Setting pixels in GPUImage not yet supported")
+    }
+
     override fun write(dst: FileReference, quality: Float) {
         texture.createImage(false, hasAlphaChannel).write(dst, quality)
     }

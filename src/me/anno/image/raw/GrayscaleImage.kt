@@ -7,11 +7,20 @@ import me.anno.image.Image
 import me.anno.utils.Color.black
 import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools.byteBufferPool
+import org.joml.Vector4f
 
 open class GrayscaleImage(val src: Image) :
     Image(src.width, src.height, 1, false, src.offset, src.stride) {
 
     override fun getRGB(index: Int): Int = (getLuminance(src.getRGB(index)) * 0x10101) or black
+
+    override fun setRGB(index: Int, value: Int) {
+        src.setRGB(index, value)
+    }
+
+    override fun setRGB(index: Int, value: Vector4f) {
+        src.setRGB(index, value)
+    }
 
     override fun createTextureImpl(
         texture: Texture2D, checkRedundancy: Boolean,

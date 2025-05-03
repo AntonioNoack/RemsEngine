@@ -16,12 +16,14 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.mixARGB22d
+import me.anno.utils.Color.toARGB
 import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.async.Callback
 import me.anno.utils.callbacks.I2U
 import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
+import org.joml.Vector4f
 import java.io.OutputStream
 import kotlin.math.floor
 
@@ -99,6 +101,24 @@ abstract class Image(
         return getRGB(getIndex(x, y))
     }
 
+    fun setRGB(x: Int, y: Int, value: Int): Boolean {
+        val validCoords = x in 0 until width && y in 0 until height
+        if (validCoords) setRGB(getIndex(x, y), value)
+        return validCoords
+    }
+
+    abstract fun setRGB(index: Int, value: Int)
+
+    fun setRGB(x: Int, y: Int, value: Vector4f): Boolean {
+        val validCoords = x in 0 until width && y in 0 until height
+        if (validCoords) setRGB(getIndex(x, y), value)
+        return validCoords
+    }
+
+    open fun setRGB(index: Int, value: Vector4f) {
+        setRGB(index, value.toARGB())
+    }
+
     fun sampleRGB(x: Float, y: Float, filtering: Filtering, clamping: Clamping): Int {
         return when (filtering) {
             Filtering.TRULY_NEAREST,
@@ -169,22 +189,16 @@ abstract class Image(
     override fun destroy() {}
 
     /**
-     * for debugging and easier seeing pixels
+     * for debugging and easier seeing pixels: nearest filtering, no interpolation
      * */
     open fun scaleUp(sx: Int, sy: Int = sx): Image {
-        return object : Image(width * sx, height * sy, numChannels, hasAlphaChannel) {
-            override fun getRGB(index: Int): Int {
-                val x = (index % this.width) / sx
-                val y = (index / this.width) / sy
-                return this@Image.getRGB(x, y)
-            }
-        }
+        return ScaledImage(this, sx, sy)
     }
 
     open fun split(numTilesX: Int, numTilesY: Int): List<Image> {
-        return createArrayList(numTilesX * numTilesY) {
-            val ix = it % numTilesX
-            val iy = it / numTilesX
+        return createList(numTilesX * numTilesY) { tileId ->
+            val ix = tileId % numTilesX
+            val iy = tileId / numTilesX
             val x0 = WorkSplitter.partition(ix, width, numTilesX)
             val x1 = WorkSplitter.partition(ix + 1, width, numTilesX)
             val y0 = WorkSplitter.partition(iy, height, numTilesY)

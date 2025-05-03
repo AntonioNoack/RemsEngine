@@ -34,6 +34,7 @@ class WaveFunctionCollapse {
             val hm1 = h - 1
             return when (r) {
                 1 -> object : Image(h, w, numChannels, hasAlphaChannel) {
+                    override fun setRGB(index: Int, value: Int) {}
                     override fun getRGB(index: Int): Int {
                         val rx = index % h
                         val ry = index / h
@@ -41,6 +42,7 @@ class WaveFunctionCollapse {
                     }
                 }
                 2 -> object : Image(h, w, numChannels, hasAlphaChannel) {
+                    override fun setRGB(index: Int, value: Int) {}
                     override fun getRGB(index: Int): Int {
                         val rx = wm1 - index % w
                         val ry = hm1 - index / w
@@ -48,6 +50,7 @@ class WaveFunctionCollapse {
                     }
                 }
                 3 -> object : Image(h, w, numChannels, hasAlphaChannel) {
+                    override fun setRGB(index: Int, value: Int) {}
                     override fun getRGB(index: Int): Int {
                         val rx = index % h
                         val ry = index / h
@@ -60,13 +63,18 @@ class WaveFunctionCollapse {
 
         fun Image.mirrorX(b: Boolean): Image {
             if (!b) return this
-            val i = this
+            return mirrorX()
+        }
+
+        fun Image.mirrorX(): Image {
+            val self = this
             return object : Image(width, height, numChannels, hasAlphaChannel) {
                 val wm1 = width - 1
+                override fun setRGB(index: Int, value: Int) {}
                 override fun getRGB(index: Int): Int {
                     val x = index % width
                     val x2 = wm1 - x
-                    return i.getRGB(index + x2 - x)
+                    return self.getRGB(index + x2 - x)
                 }
             }
         }

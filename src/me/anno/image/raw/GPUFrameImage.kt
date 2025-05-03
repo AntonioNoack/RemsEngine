@@ -30,6 +30,10 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
         return color
     }
 
+    override fun setRGB(index: Int, value: Int) {
+        LOGGER.warn("Setting pixels in GPUFrameImage not yet supported")
+    }
+
     override fun asIntImage(): IntImage {
         val texture = frame.toTexture()
         val image = texture.createImage(false, hasAlphaChannel).asIntImage()
