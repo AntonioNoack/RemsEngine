@@ -47,11 +47,11 @@ open class XMLReader(input: Reader) : XMLReaderBase(input) {
     }
 
     private fun skipDocType(): Any {
-        var ctr = 1
-        while (ctr > 0) {
+        var depth = 1
+        while (depth > 0) {
             when (input.read()) {
-                '<'.code -> ctr++
-                '>'.code -> ctr--
+                '<'.code -> depth++
+                '>'.code -> depth--
             }
         }
         return read(-1)

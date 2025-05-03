@@ -7,8 +7,6 @@ import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.Reader
 
-// todo test ignoring nodes in XML scanner (xml-version-prefix, comment, ...)
-// todo test all beginning types
 // todo test escaping characters
 class XMLReaderTest {
 
@@ -91,7 +89,7 @@ class XMLReaderTest {
     }
 
     @Test
-    fun testReaderCData(){
+    fun testReaderCData() {
         val data = "Hello World!<&>"
         val baseline = XMLNode("p")
         baseline.children.add(data)
@@ -101,7 +99,7 @@ class XMLReaderTest {
     }
 
     @Test
-    fun testScannerCData(){
+    fun testScannerCData() {
         val data = "Hello World!<&>"
         val baseline = XMLNode("p")
         baseline.children.add(data)
@@ -111,7 +109,7 @@ class XMLReaderTest {
     }
 
     @Test
-    fun testReaderCDataEarlyEnd(){
+    fun testReaderCDataEarlyEnd() {
         val data = "Hello World!<&>"
         val baseline = XMLNode("p")
         baseline.children.add(data)
@@ -121,12 +119,102 @@ class XMLReaderTest {
     }
 
     @Test
-    fun testScannerCDataEarlyEnd(){
+    fun testScannerCDataEarlyEnd() {
         val data = "Hello World!<&>"
         val baseline = XMLNode("p")
         baseline.children.add(data)
         val formatted = "<p><![cdata[$data"
         val copy = ScannerToXMLNode(formatted.reader()).read()
         assertEquals(baseline, copy)
+    }
+
+    @Test
+    fun testReaderSkipComment() {
+        val input = """
+            <!-- this is a first comment -->
+            <p>
+            <!--
+            this is a second comment
+            -->
+            content
+            </p>
+        """.trimIndent()
+        val output = "<p>content</p>"
+        val inputParsed = XMLReader(input.reader()).read()
+        val outputParsed = XMLReader(output.reader()).read()
+        assertEquals(outputParsed, inputParsed)
+    }
+
+    @Test
+    fun testScannerSkipComment() {
+        val input = """
+            <!-- this is a first comment -->
+            <p>
+            <!--
+            this is a second comment
+            -->
+            content
+            </p>
+        """.trimIndent()
+        val output = "<p>content</p>"
+        val inputParsed = XMLReader(input.reader()).read()
+        val outputParsed = XMLReader(output.reader()).read()
+        assertEquals(outputParsed, inputParsed)
+    }
+
+    @Test
+    fun testReaderSkipDocType() {
+        val input = """
+            <!docType someType
+            [
+            <!entity idk "more content">
+            <!entity idk "more content">
+            ]>
+            <p>content</p>
+        """.trimIndent()
+        val output = "<p>content</p>"
+        val inputParsed = XMLReader(input.reader()).read()
+        val outputParsed = XMLReader(output.reader()).read()
+        assertEquals(outputParsed, inputParsed)
+    }
+
+    @Test
+    fun testScannerSkipDocType() {
+        val input = """
+            <!docType someType
+            [
+            <!entity idk "more content">
+            <!entity idk "more content">
+            ]>
+            <p>content</p>
+        """.trimIndent()
+        val output = "<p>content</p>"
+        val inputParsed = XMLReader(input.reader()).read()
+        val outputParsed = XMLReader(output.reader()).read()
+        assertEquals(outputParsed, inputParsed)
+    }
+
+    @Test
+    fun testReaderSkipVersion() {
+        val input = """
+            <?xml version="1.0"?>
+            <p>content</p>
+        """.trimIndent()
+        val output = "<p>content</p>"
+        val inputParsed = XMLReader(input.reader()).read()
+        val outputParsed = XMLReader(output.reader()).read()
+        assertEquals(outputParsed, inputParsed)
+    }
+
+    @Test
+    fun testScannerSkipVersion() {
+        val input = """
+            <?xml version="1.0"?>
+            <p>content</p>
+        """.trimIndent()
+        val output = "<p>content</p>"
+        val inputParsed = XMLReader(input.reader()).read()
+        val outputParsed = XMLReader(output.reader()).read()
+        assertEquals(outputParsed, inputParsed)
     }
 }
