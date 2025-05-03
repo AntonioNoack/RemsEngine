@@ -1,22 +1,18 @@
 package me.anno.engine.raycast
 
-import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.gpu.CullMode
 import me.anno.maths.Maths
-import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.bvh.BLASNode
 import me.anno.maths.bvh.HitType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3
 import org.joml.Vector3f
 
 object RaycastMesh {
-
-    private val LOGGER = LogManager.getLogger(RaycastMesh::class)
 
     fun raycastGlobalMesh(query: RayQuery, transform: Transform?, mesh: Mesh): Boolean {
         val original = query.result.distance
@@ -160,33 +156,9 @@ object RaycastMesh {
         val orderOfMagnitudeIsFine = true // relativePositionsSquared in 1e-6f..1e6f
 
         if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
-            val t0 = Time.nanoTime
-            // todo executing a raycast is 20x cheaper than building a BLAS (30ms vs 600ms for dragon.obj),
-            //  so only build it if truly necessary
-            //  - async builder?
-            //  - build only if demand is high?
-            val blas = mesh.raycaster// ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
-            val t1 = Time.nanoTime
-            if (t1 - t0 > MILLIS_TO_NANOS) {
-                LOGGER.warn(
-                    "Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
-                            "${mesh.numPrimitives} primitives"
-                )
-            }
+            val blas = BLASCache.getBLAS(mesh)
             if (blas != null) {
-                mesh.raycaster = blas
-                val localMaxDistance = localStart.distance(localEnd)
-                result.distance = localMaxDistance.toDouble()
-                if (blas.raycast(localStart, localDir, result)) {
-                    if (globalTransform != null) {
-                        result.setFromLocal(
-                            globalTransform, localStart, localDir, result.distance.toFloat(),
-                            Vector3f(result.geometryNormalWS), query
-                        )
-                    } else {
-                        query.direction.mul(result.distance, result.positionWS).add(query.start)
-                    }
-                }
+                raycastBLAS(blas, localStart, localDir, localEnd, globalTransform, query)
             } else {
                 raycastLocalMesh(
                     mesh, globalTransform, inverse, localStart, localDir, localEnd,
@@ -197,6 +169,25 @@ object RaycastMesh {
             // mesh is scaled to zero on some axis, need to work in global coordinates
             // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
             raycastGlobal(query, globalTransform, mesh)
+        }
+    }
+
+    fun raycastBLAS(
+        blas: BLASNode, localStart: Vector3f, localDir: Vector3f, localEnd: Vector3f,
+        globalTransform: Matrix4x3?, query: RayQuery
+    ) {
+        val result = query.result
+        val localMaxDistance = localStart.distance(localEnd)
+        result.distance = localMaxDistance.toDouble()
+        if (blas.raycast(localStart, localDir, result)) {
+            if (globalTransform != null) {
+                result.setFromLocal(
+                    globalTransform, localStart, localDir, result.distance.toFloat(),
+                    Vector3f(result.geometryNormalWS), query
+                )
+            } else {
+                query.direction.mul(result.distance, result.positionWS).add(query.start)
+            }
         }
     }
 

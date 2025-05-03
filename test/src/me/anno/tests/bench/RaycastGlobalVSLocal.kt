@@ -3,11 +3,13 @@ package me.anno.tests.bench
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.DefaultAssets.plane
+import me.anno.engine.raycast.BLASCache
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.Clock
+import me.anno.utils.assertions.assertNull
 import org.joml.Matrix4x3
 import org.joml.Vector3d
 import kotlin.math.max
@@ -33,6 +35,9 @@ fun main() {
         val n = mesh.numPrimitives
         val numRuns = max(10_000_000 / n, 1_000).toInt()
 
+        BLASCache.disableBLASCache = true
+        mesh.raycaster = null // just in case, shouldn't be necessary
+
         clock.benchmark(
             50, numRuns, n,
             "raycastGlobalImpl[$n]"
@@ -49,7 +54,10 @@ fun main() {
             RaycastMesh.raycastGlobalViaLocal(query, transform, mesh)
         }
 
+        assertNull(mesh.raycaster, "Raycaster should be null")
+
         clock.start()
+        BLASCache.disableBLASCache = false
         mesh.raycaster = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
         clock.stop("Building BLAS for $n")
 
