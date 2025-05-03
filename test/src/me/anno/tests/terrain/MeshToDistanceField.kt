@@ -65,7 +65,8 @@ fun main() {
     val marchedMesh6 = meshToDistanceFieldToMesh(marchedMesh5, fieldSize, bounds)
     val marchedMesh7 = meshToDistanceFieldToMesh(marchedMesh6, fieldSize, bounds)
 
-    // todo try out two overlapping spheres, how they are merged. Probably broken :/
+    // try out two overlapping spheres, how they are merged. Probably broken :/
+    //  -> kind of acceptable
 
     val scene = Entity("Scene")
     Entity("Marched1", scene)
@@ -124,7 +125,7 @@ fun baselineFieldToMesh(fieldSize: Vector3i, bounds: AABBf): Mesh {
     }
 
     // field doesn't look good yet, print it somehow
-    for (z in 0 until fieldSize.z) {
+    if (false) for (z in 0 until fieldSize.z) {
         val offset = z * fieldSize.x * fieldSize.y
         val values = field.copyOfRange(offset, offset + fieldSize.x * fieldSize.y)
         ImageWriter.writeImageFloat(fieldSize.x, fieldSize.y, "M2SDF/Layer$z.png", true, values)

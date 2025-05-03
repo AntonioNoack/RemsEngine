@@ -19,90 +19,10 @@ object RaycastMesh {
     private val LOGGER = LogManager.getLogger(RaycastMesh::class)
 
     fun raycastGlobalMesh(query: RayQuery, transform: Transform?, mesh: Mesh): Boolean {
-
         val original = query.result.distance
         if (query.typeMask.and(Raycast.TRIANGLES) == 0) return false
 
-        val globalTransform = transform?.globalTransform
-        // quick-path for easy meshes: no extra checks worth it
-        if (mesh.numPrimitives <= 16) {
-            raycastGlobal1(query, globalTransform, mesh)
-        } else {
-
-            // todo it would be great if we would/could project the start+end onto the global aabb,
-            //  if they lay outside, so we can use the faster method more often
-
-            // transform the ray into local mesh coordinates
-            val result = query.result
-            val inverse = result.tmpMat4x3m
-            if (globalTransform != null) {
-                // local -> global
-                globalTransform.invert(inverse)
-            } else inverse.identity()
-
-            val tmp0 = result.tmpVector3fs
-            val tmp1 = result.tmpVector3ds
-
-            val localSrt0 = inverse.transformPosition(query.start, tmp1[0])
-            val localEnd0 = inverse.transformPosition(query.end, tmp1[1])
-            val localDir0 = tmp1[2].set(tmp1[1]).sub(tmp1[0]).normalize()
-
-            // todo reprojection doesn't work yet correctly (test: monkey ears)
-            // project points onto front/back of box
-            val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
-            // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
-
-            val localStart = tmp0[0].set(localSrt0)
-            val localEnd = tmp0[1].set(localEnd0)
-            val localDir = tmp0[2].set(localDir0)
-
-            // if any coordinates of start or end are invalid, work in global coordinates
-            val hasValidCoordinates = localStart.isFinite && localDir.isFinite
-
-            // the fast method only works, if the numbers have roughly the same order of magnitude
-            // val relativePositionsSquared = localStart.lengthSquared() / localEnd.lengthSquared()
-            val orderOfMagnitudeIsFine = true // relativePositionsSquared in 1e-6f..1e6f
-
-            if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
-                val t0 = Time.nanoTime
-                // todo executing a raycast is 20x cheaper than building a BLAS (30ms vs 600ms for dragon.obj),
-                //  so only build it if truly necessary
-                //  - async builder?
-                //  - build only if demand is high?
-                val blas = mesh.raycaster// ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
-                val t1 = Time.nanoTime
-                if (t1 - t0 > MILLIS_TO_NANOS) {
-                    LOGGER.warn(
-                        "Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
-                                "${mesh.numPrimitives} primitives"
-                    )
-                }
-                if (blas != null) {
-                    mesh.raycaster = blas
-                    val localMaxDistance = localStart.distance(localEnd)
-                    result.distance = localMaxDistance.toDouble()
-                    if (blas.raycast(localStart, localDir, result)) {
-                        if (globalTransform != null) {
-                            result.setFromLocal(
-                                globalTransform, localStart, localDir, result.distance.toFloat(),
-                                Vector3f(result.geometryNormalWS), query
-                            )
-                        } else {
-                            query.direction.mul(result.distance, result.positionWS).add(query.start)
-                        }
-                    }
-                } else {
-                    raycastLocalMesh(
-                        mesh, globalTransform, inverse, localStart, localDir, localEnd,
-                        extraDistance, tmp0, query
-                    )
-                }
-            } else {
-                // mesh is scaled to zero on some axis, need to work in global coordinates
-                // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
-                raycastGlobal(query, globalTransform, mesh)
-            }
-        }
+        raycastGlobalViaLocal(query, transform?.globalTransform, mesh)
         return isCloser(query, original)
     }
 
@@ -167,11 +87,11 @@ object RaycastMesh {
         val globalAABB = query.result.tmpAABBd.set(mesh.getBounds())
         if (globalTransform != null) globalAABB.transformAABB(globalTransform)
         if (globalAABB.testLine(query.start, query.direction, query.result.distance)) {
-            raycastGlobal1(query, globalTransform, mesh)
+            raycastGlobalImpl(query, globalTransform, mesh)
         }
     }
 
-    fun raycastGlobal1(query: RayQuery, globalTransform: Matrix4x3?, mesh: Mesh) {
+    fun raycastGlobalImpl(query: RayQuery, globalTransform: Matrix4x3?, mesh: Mesh) {
         val typeMask = query.typeMask
         if (typeMask.and(Raycast.TRIANGLES) == 0) return
         val acceptFront = getCullingFront(typeMask, mesh.cullMode)
@@ -201,6 +121,82 @@ object RaycastMesh {
                 }
             }
             false
+        }
+    }
+
+    fun raycastGlobalViaLocal(query: RayQuery, globalTransform: Matrix4x3?, mesh: Mesh) {
+        // todo it would be great if we would/could project the start+end onto the global aabb,
+        //  if they lay outside, so we can use the faster method more often
+
+        // transform the ray into local mesh coordinates
+        val result = query.result
+        val inverse = result.tmpMat4x3m
+        if (globalTransform != null) {
+            // local -> global
+            globalTransform.invert(inverse)
+        } else inverse.identity()
+
+        val tmp0 = result.tmpVector3fs
+        val tmp1 = result.tmpVector3ds
+
+        val localSrt0 = inverse.transformPosition(query.start, tmp1[0])
+        val localEnd0 = inverse.transformPosition(query.end, tmp1[1])
+        val localDir0 = tmp1[2].set(tmp1[1]).sub(tmp1[0]).normalize()
+
+        // todo reprojection doesn't work yet correctly (test: monkey ears)
+        // project points onto front/back of box
+        val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
+        // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
+
+        val localStart = tmp0[0].set(localSrt0)
+        val localEnd = tmp0[1].set(localEnd0)
+        val localDir = tmp0[2].set(localDir0)
+
+        // if any coordinates of start or end are invalid, work in global coordinates
+        val hasValidCoordinates = localStart.isFinite && localDir.isFinite
+
+        // the fast method only works, if the numbers have roughly the same order of magnitude
+        // val relativePositionsSquared = localStart.lengthSquared() / localEnd.lengthSquared()
+        val orderOfMagnitudeIsFine = true // relativePositionsSquared in 1e-6f..1e6f
+
+        if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
+            val t0 = Time.nanoTime
+            // todo executing a raycast is 20x cheaper than building a BLAS (30ms vs 600ms for dragon.obj),
+            //  so only build it if truly necessary
+            //  - async builder?
+            //  - build only if demand is high?
+            val blas = mesh.raycaster// ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
+            val t1 = Time.nanoTime
+            if (t1 - t0 > MILLIS_TO_NANOS) {
+                LOGGER.warn(
+                    "Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
+                            "${mesh.numPrimitives} primitives"
+                )
+            }
+            if (blas != null) {
+                mesh.raycaster = blas
+                val localMaxDistance = localStart.distance(localEnd)
+                result.distance = localMaxDistance.toDouble()
+                if (blas.raycast(localStart, localDir, result)) {
+                    if (globalTransform != null) {
+                        result.setFromLocal(
+                            globalTransform, localStart, localDir, result.distance.toFloat(),
+                            Vector3f(result.geometryNormalWS), query
+                        )
+                    } else {
+                        query.direction.mul(result.distance, result.positionWS).add(query.start)
+                    }
+                }
+            } else {
+                raycastLocalMesh(
+                    mesh, globalTransform, inverse, localStart, localDir, localEnd,
+                    extraDistance, tmp0, query
+                )
+            }
+        } else {
+            // mesh is scaled to zero on some axis, need to work in global coordinates
+            // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
+            raycastGlobal(query, globalTransform, mesh)
         }
     }
 

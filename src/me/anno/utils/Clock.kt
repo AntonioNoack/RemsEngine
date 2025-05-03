@@ -133,13 +133,13 @@ class Clock(
         }
     }
 
-    fun benchmark(warmupRuns: Int, measuredRuns: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Unit =
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Double =
         benchmark(warmupRuns, measuredRuns, 1, usedFor, benchmarkRun)
 
-    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Unit =
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Double =
         benchmark(warmupRuns, measuredRuns, numElements.toLong(), usedFor, benchmarkRun)
 
-    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Long, usedFor: String, benchmarkRun: (Int) -> Unit) {
+    fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Long, usedFor: String, benchmarkRun: (Int) -> Unit): Double {
         for (i in 0 until warmupRuns) {
             benchmarkRun(i - warmupRuns)
         }
@@ -147,7 +147,8 @@ class Clock(
         for (i in 0 until measuredRuns) {
             benchmarkRun(i)
         }
-        stop(usedFor, measuredRuns * numElements)
+        val elementCount = measuredRuns * numElements
+        return stop(usedFor, elementCount)
     }
 
     companion object {
