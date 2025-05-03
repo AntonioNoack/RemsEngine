@@ -132,6 +132,7 @@ object VRViewPanel : Panel(style) {
  * render VR like in Web onto single framebuffer to find eventual clear-issues
  * */
 fun main() {
+    // todo make main window run at full speed if first window isn't minimized and second window is focussed
     VRRenderingRoutine.vrRoutine = VREmulator
     addEvent {
         Sleep.waitUntil(true, { VREmulator.frameIndex > 0 }) {

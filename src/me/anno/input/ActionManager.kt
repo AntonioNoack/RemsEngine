@@ -18,20 +18,28 @@ object ActionManager : StringMap() {
     @JvmStatic
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
+    const val GLOBAL_ACTION = "global"
+
     @JvmStatic
     var keyDragDelay by ConfigRef("ui.keyDragDelay", 0.5f)
 
     @JvmStatic
     var enableQuickDragging by ConfigRef("ui.mouse.enableQuickDragging", true)
 
+    /**
+     * (NameSpace(PanelClass | global), KeyCombination) -> List<ActionName>
+     * */
     @JvmStatic
-    private val localActions = KeyPairMap<String, KeyCombination, List<String>>(512)
-
-    @JvmStatic
-    private val globalKeyCombinations = HashMap<KeyCombination, List<String>>()
+    private val registeredActions = KeyPairMap<String, KeyCombination, List<String>>(512)
 
     @JvmStatic
     private val globalActions = HashMap<String, () -> Boolean>()
+
+    enum class CombinationDirection(val id: Int) {
+        OVERRIDE(0),
+        PREPEND(1),
+        APPEND(2)
+    }
 
     @JvmStatic
     fun init() {
@@ -59,62 +67,55 @@ object ActionManager : StringMap() {
         }
     }
 
-    /**
-     * @param direction 0 = override, -1 = prepend, +1 = append
-     * */
     @JvmStatic
-    fun register(key: String, value: String, direction: Int = 0) {
-        if (value == "") return
+    fun register(key: String, value: String, direction: CombinationDirection = CombinationDirection.OVERRIDE): Boolean {
+        if (value == "") return false
         val keys = key.split('.')
         val namespace = keys[0]
         val button = keys.getOrNull(1)
         if (button == null) {
             LOGGER.warn("KeyCombination $key needs button!")
-            return
+            return false
         }
         val buttonEvent = keys.getOrNull(2)
         if (buttonEvent == null) {
             LOGGER.warn("[WARN] KeyCombination $key needs type!")
-            return
+            return false
         }
         val modifiers = keys.getOrElse(3) { "" }
         val keyComb = KeyCombination.parse(button, buttonEvent, modifiers)
-        if (keyComb != null) {
-            val values = value.split('|')
-            register(namespace, keyComb, values, direction)
-        } else {
+        if (keyComb == null) {
             LOGGER.warn("Could not parse combination $value")
+            return false
         }
+        val values = value.split('|')
+        register(namespace, keyComb, values, direction)
+        return true
     }
 
-    /**
-     * @param direction 0 = override, -1 = prepend, +1 = append
-     * */
     @JvmStatic
-    fun register(namespace: String, keyCombination: KeyCombination, actions: List<String>, direction: Int = 0) {
-        if (namespace.equals("global", true)) {
-            globalKeyCombinations[keyCombination] =
-                combine(globalKeyCombinations[keyCombination], actions, direction)
-        } else {
-            localActions[namespace, keyCombination] =
-                combine(localActions[namespace, keyCombination], actions, direction)
-        }
+    fun register(
+        namespace: String, keyCombination: KeyCombination, actions: List<String>,
+        direction: CombinationDirection = CombinationDirection.OVERRIDE
+    ) {
+        registeredActions[namespace, keyCombination] =
+            combine(registeredActions[namespace, keyCombination], actions, direction)
     }
 
-    /**
-     * @param direction 0 = override, -1 = prepend, +1 = append
-     * */
     @JvmStatic
-    fun register(namespace: String, keyCombination: KeyCombination, action: String, direction: Int = 0) {
+    fun register(
+        namespace: String, keyCombination: KeyCombination, action: String,
+        direction: CombinationDirection = CombinationDirection.OVERRIDE
+    ) {
         register(namespace, keyCombination, listOf(action), direction)
     }
 
     @JvmStatic
-    fun combine(oldValues: List<String>?, actions: List<String>, direction: Int): List<String> {
+    fun combine(oldActions: List<String>?, newActions: List<String>, direction: CombinationDirection): List<String> {
         return when {
-            direction == 0 || oldValues == null -> actions
-            direction < 0 -> actions + oldValues
-            else -> oldValues + actions
+            direction == CombinationDirection.OVERRIDE || oldActions == null -> newActions
+            direction == CombinationDirection.PREPEND -> newActions + oldActions
+            else -> oldActions + newActions
         }
     }
 
@@ -151,7 +152,9 @@ object ActionManager : StringMap() {
     }
 
     @JvmStatic
-    fun onMouseIdle(window: OSWindow) = onMouseMoved(window, 0f, 0f)
+    fun onMouseIdle(window: OSWindow) {
+        onMouseMoved(window, 0f, 0f)
+    }
 
     @JvmStatic
     fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
@@ -188,17 +191,17 @@ object ActionManager : StringMap() {
         }
         // LOGGER.info("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
         if (!isWriting) {
-            executeGlobally(window, 0f, 0f, false, globalKeyCombinations[combination])
+            executeGlobally(window, 0f, 0f, false, registeredActions[GLOBAL_ACTION, combination])
         }
         val x = window.mouseX
         val y = window.mouseY
-        val localActions = localActions
+        val localActions = registeredActions
         val globalActions = localActions["*", combination]
         val print = lastComb != combination
         // if (print) LOGGER.info("-- processing $universally, $combination")
         lastComb = combination
         val lastParentClass = getParentClass(Panel::class)
-        targetSearch@ while (panel != null) {
+        while (panel != null) {
             val actions = localActions[panel.className, combination]
             if (processActions(panel, x, y, dx, dy, isContinuous, actions, print)) {
                 return true

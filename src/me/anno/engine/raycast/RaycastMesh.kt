@@ -121,8 +121,6 @@ object RaycastMesh {
     }
 
     fun raycastGlobalViaLocal(query: RayQuery, globalTransform: Matrix4x3?, mesh: Mesh) {
-        // todo it would be great if we would/could project the start+end onto the global aabb,
-        //  if they lay outside, so we can use the faster method more often
 
         // transform the ray into local mesh coordinates
         val result = query.result

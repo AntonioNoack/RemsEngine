@@ -117,9 +117,9 @@ interface WelcomeUI {
                     "ui.settings.vSync"
                 ),
                 WindowRenderFlags.enableVSync, true, style
-            ).setChangeListener {
-                WindowRenderFlags.enableVSync = it
-                window.setVsyncEnabled(it)
+            ).setChangeListener { enableVSync ->
+                WindowRenderFlags.enableVSync = enableVSync
+                window.setVsyncEnabled(enableVSync) // todo do we need to call this???
             }
         } // else we cannot set vsync
 

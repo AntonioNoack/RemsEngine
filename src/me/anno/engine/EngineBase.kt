@@ -230,10 +230,10 @@ abstract class EngineBase(
                 // if our window doesn't have focus, or the cursor is outside,
                 // we need to ask for updates manually
                 window.updateMousePosition()
-                if (!Input.hadMouseMovement) {
-                    ActionManager.onMouseIdle(window)
-                }
             }
+        }
+        if (!Input.hadMouseMovement) {
+            ActionManager.onMouseIdle(window)
         }
         lastMouseX = window.mouseX
         lastMouseY = window.mouseY
