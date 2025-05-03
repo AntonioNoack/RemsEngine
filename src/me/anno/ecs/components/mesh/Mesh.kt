@@ -11,6 +11,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.ecs.components.mesh.TransformMesh.rotateX90DegreesImpl
 import me.anno.ecs.components.mesh.TransformMesh.scale
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
@@ -487,6 +488,11 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction("Scale Down 10x")
     fun scaleDown10x() {
         scale(Vector3f(0.1f))
+    }
+
+    @DebugAction("Rotate X90°/SwapYZ")
+    fun rotateX90Degrees() {
+        rotateX90DegreesImpl()
     }
 
     @DebugAction

@@ -40,6 +40,24 @@ object TransformMesh {
         return this
     }
 
+    fun Mesh.rotateX90DegreesImpl(): Mesh {
+        rotateX90Degrees(positions, 3)
+        rotateX90Degrees(normals, 3)
+        rotateX90Degrees(tangents, 4)
+        invalidateGeometry()
+        return this
+    }
+
+    fun rotateX90Degrees(src: FloatArray?, stride: Int) {
+        src ?: return
+        forLoopSafely(src.size, stride) { i ->
+            val y = src[i + 1]
+            val z = src[i + 2]
+            src[i + 1] = -z
+            src[i + 2] = y
+        }
+    }
+
     @Suppress("SameParameterValue")
     fun transformPositionsOrNull(matrix: Matrix4x3, src: FloatArray?, stride: Int): FloatArray? {
         return transformPositions(matrix, src ?: return null, stride)
