@@ -6,7 +6,6 @@ import me.anno.image.ImageReadable
 import me.anno.image.raw.IntImage
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.OS.desktop
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
@@ -41,7 +40,6 @@ class GimpImageReaderTest {
                 0x77ff77, 0x3fc5e6, 0xffc900,
             ), false
         )
-        image.write(desktop.getChild("incorrect gimp.png"))
         baseline.forEachPixel { x, y ->
             assertEquals(baseline.getRGB(x, y), image.getRGB(x, y)) {
                 "Mismatch at ($x $y), ${baseline.getRGB(x, y).toHexColor()} != ${image.getRGB(x, y).toHexColor()}"
