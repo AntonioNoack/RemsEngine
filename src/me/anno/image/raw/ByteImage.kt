@@ -3,6 +3,7 @@ package me.anno.image.raw
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.maths.Maths.clamp
 import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools.byteBufferPool
 import java.nio.ByteBuffer
@@ -11,10 +12,7 @@ open class ByteImage(
     width: Int, height: Int,
     val format: ByteImageFormat, val data: ByteArray,
     offset: Int, stride: Int
-) : Image(
-    width, height, format.numChannels, format.numChannels > 3, offset,
-    format.numChannels * stride
-) {
+) : Image(width, height, format.numChannels, format.numChannels > 3, offset, stride) {
 
     constructor(width: Int, height: Int, format: ByteImageFormat) :
             this(width, height, format, ByteArray(width * height * format.numChannels))
@@ -23,7 +21,9 @@ open class ByteImage(
             this(width, height, format, data, 0, format.numChannels * width)
 
     override fun getIndex(x: Int, y: Int): Int {
-        return offset + x * numChannels + y * stride
+        val xi = clamp(x, 0, width - 1)
+        val yi = clamp(y, 0, height - 1)
+        return offset + xi * numChannels + yi * stride
     }
 
     override fun getRGB(index: Int): Int {
