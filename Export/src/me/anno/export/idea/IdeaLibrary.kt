@@ -19,7 +19,7 @@ class IdeaLibrary(val project: IdeaProject, val name: String) {
 
         fun loadLibrary(project: IdeaProject, source: InputStream): IdeaLibrary {
             val root = source.use {
-                XMLReader().read(it.reader()) as XMLNode
+                XMLReader(it.reader()).read() as XMLNode
             }
             assertEquals("component", root.type)
             assertEquals("libraryTable", root["name"])

@@ -19,7 +19,7 @@ class IdeaModule(val project: IdeaProject) {
 
         fun loadModule(project: IdeaProject, source: InputStream): IdeaModule {
             val root = source.use {
-                XMLReader().read(it.reader()) as XMLNode
+                XMLReader(it.reader()).read() as XMLNode
             }
             assertEquals("module", root.type)
             val modManager = root.children

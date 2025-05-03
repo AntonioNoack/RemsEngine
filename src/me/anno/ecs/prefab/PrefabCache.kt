@@ -225,7 +225,7 @@ object PrefabCache : CacheSection("Prefab") {
     private fun readXMLRE(file: FileReference, callback: Callback<Saveable>) {
         file.inputStream { str, err ->
             if (str != null) {
-                val node = XMLReader().read(str.reader()) as XMLNode
+                val node = XMLReader(str.reader()).read() as XMLNode
                 assertEquals(MAIN_NODE_NAME, node.type)
                 val jsonLike = XML2JSON.fromXML(node)
                 readJSONLike(file, jsonLike, callback)

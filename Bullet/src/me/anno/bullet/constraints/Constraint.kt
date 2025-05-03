@@ -125,7 +125,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as Constraint<*>
+        if (dst !is Constraint<*>) return
         dst.other = getInClone(other, dst)
         dst.selfPosition.set(selfPosition)
         dst.selfRotation.set(selfRotation)

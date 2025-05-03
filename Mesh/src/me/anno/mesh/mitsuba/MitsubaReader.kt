@@ -200,7 +200,7 @@ object MitsubaReader {
 
         val folder = sceneMain.getParent()
 
-        val scene = XMLReader().read(inputStream.reader()) as XMLNode
+        val scene = XMLReader(inputStream.reader()).read() as XMLNode
         if (scene.type != "scene") throw IOException("Wrong type: ${scene.type}")
 
         val byId = HashMap<String, XMLNode>()

@@ -5,7 +5,7 @@ import me.anno.fonts.Codepoints.codepoints
 object XMLWriter {
 
     fun write(xml: XMLNode): String {
-        return write(xml, " ", false)
+        return write(xml, "  ", false)
     }
 
     fun write(xml: XMLNode, indentation: String?, closeEmptyTypes: Boolean): String {

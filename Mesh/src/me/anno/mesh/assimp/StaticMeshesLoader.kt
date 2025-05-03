@@ -141,7 +141,7 @@ object StaticMeshesLoader {
             // Assimp 5.2 fixes that (but also breaks my animation code)
             return file.inputStream { str, err ->
                 if (str != null) {
-                    val xml = XMLReader().read(str.reader())!!
+                    val xml = XMLReader(str.reader()).read()!!
                     fun clean(xml: Any): Any {
                         return if (xml is XMLNode) {
                             for (i in xml.children.indices) {

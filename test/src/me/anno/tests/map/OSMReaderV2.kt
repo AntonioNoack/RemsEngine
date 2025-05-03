@@ -67,115 +67,124 @@ object OSMReaderV2 {
             return ((lon - minLon) * lonScale).toFloat()
         }
 
-        XMLScanner().scan(file.reader(), { _, type ->
-            shallReadTags || type != "tag"
-        }, { depth, type ->
-            when (type) {
-                "bounds" -> if (depth == 1) {
-                    lonScale = map.lonScale
-                    latScale = map.latScale
-                    minLon = map.minLon
-                    minLat = map.minLat
-                }
-                "node" -> map.nodes[id] = OSMNode(relLat, relLon, readTags2())
-                "way" -> {
-                    map.ways[id] = OSMWay(
-                        mapNodes.toList(),
-                        mapNodes.minOf { it.relLon },
-                        mapNodes.minOf { it.relLat },
-                        mapNodes.maxOf { it.relLon },
-                        mapNodes.maxOf { it.relLat }, readTags2()
-                    )
-                    mapNodes.clear()
-                }
-                "tag" -> tags[tagKey] = tagValue
-                "relation" -> {
-                    map.relations[id] = OSMRelation(
-                        relWays.groupBy { it.role },
-                        relNodes.groupBy { it.role },
-                        readTags2()
-                    )
-                    relWays.clear()
-                    relNodes.clear()
-                }
-                "nd" -> {
-                    if (ref != 0L) {
-                        val node = map.nodes[ref]!!
-                        node.used = true
-                        mapNodes.add(node)
-                        ref = 0L
-                    } else {
-                        relNodes.add(OSMNode(relLat, relLon, emptyMap()))
+        object : XMLScanner(file.reader()) {
+            override fun onStart(depth: Int, type: CharSequence): Boolean {
+                return shallReadTags || type != "tag"
+            }
+
+            override fun onEnd(depth: Int, type: CharSequence) {
+                when (type) {
+                    "bounds" -> if (depth == 1) {
+                        lonScale = map.lonScale
+                        latScale = map.latScale
+                        minLon = map.minLon
+                        minLat = map.minLat
                     }
-                }
-                "member" -> {
-                    when (memType) {
-                        "way" -> {
-                            var way = map.ways[memRef]
-                            if (way != null) {
-                                way.used = true
-                                way.role = memRole
-                                relWays.add(way)
-                            } else {
-                                way = OSMWay(
-                                    ArrayList(relNodes),
-                                    relNodes.minOf { it.relLon },
-                                    relNodes.minOf { it.relLat },
-                                    relNodes.maxOf { it.relLon },
-                                    relNodes.maxOf { it.relLat },
-                                    null, true, memRole
-                                )
-                                map.ways[memRef] = way
-                                relNodes.clear()
-                            }
+                    "node" -> map.nodes[id] = OSMNode(relLat, relLon, readTags2())
+                    "way" -> {
+                        map.ways[id] = OSMWay(
+                            mapNodes.toList(),
+                            mapNodes.minOf { it.relLon },
+                            mapNodes.minOf { it.relLat },
+                            mapNodes.maxOf { it.relLon },
+                            mapNodes.maxOf { it.relLat }, readTags2()
+                        )
+                        mapNodes.clear()
+                    }
+                    "tag" -> tags[tagKey] = tagValue
+                    "relation" -> {
+                        map.relations[id] = OSMRelation(
+                            relWays.groupBy { it.role },
+                            relNodes.groupBy { it.role },
+                            readTags2()
+                        )
+                        relWays.clear()
+                        relNodes.clear()
+                    }
+                    "nd" -> {
+                        if (ref != 0L) {
+                            val node = map.nodes[ref]!!
+                            node.used = true
+                            mapNodes.add(node)
+                            ref = 0L
+                        } else {
+                            relNodes.add(OSMNode(relLat, relLon, emptyMap()))
                         }
-                        "node" -> {
-                            val node = map.nodes[memRef]
-                            if (node != null) {
-                                node.used = true
-                                node.role = memRole
-                                relNodes.add(node)
+                    }
+                    "member" -> {
+                        when (memType) {
+                            "way" -> {
+                                var way = map.ways[memRef]
+                                if (way != null) {
+                                    way.used = true
+                                    way.role = memRole
+                                    relWays.add(way)
+                                } else {
+                                    way = OSMWay(
+                                        ArrayList(relNodes),
+                                        relNodes.minOf { it.relLon },
+                                        relNodes.minOf { it.relLat },
+                                        relNodes.maxOf { it.relLon },
+                                        relNodes.maxOf { it.relLat },
+                                        null, true, memRole
+                                    )
+                                    map.ways[memRef] = way
+                                    relNodes.clear()
+                                }
+                            }
+                            "node" -> {
+                                val node = map.nodes[memRef]
+                                if (node != null) {
+                                    node.used = true
+                                    node.role = memRole
+                                    relNodes.add(node)
+                                }
                             }
                         }
                     }
                 }
             }
-        }, { depth, type, k, v ->
-            when (type) {
-                "bounds" -> if (depth == 1) {
-                    when (k) {
-                        "minlon" -> map.minLon = v.toDouble()
-                        "minlat" -> map.minLat = v.toDouble()
-                        "maxlon" -> map.maxLon = v.toDouble()
-                        "maxlat" -> map.maxLat = v.toDouble()
+
+            override fun onContent(depth: Int, type: CharSequence, value: CharSequence) {}
+
+            override fun onAttribute(depth: Int, type: CharSequence, key: CharSequence, value: CharSequence) {
+                val k = key
+                val v = value
+                when (type) {
+                    "bounds" -> if (depth == 1) {
+                        when (k) {
+                            "minlon" -> map.minLon = v.toDouble()
+                            "minlat" -> map.minLat = v.toDouble()
+                            "maxlon" -> map.maxLon = v.toDouble()
+                            "maxlat" -> map.maxLat = v.toDouble()
+                        }
+                    }
+                    "node" -> when (k) {
+                        "id" -> id = v.toLong()
+                        "lat" -> relLat = latTo01(v.toDouble())
+                        "lon" -> relLon = lonTo01(v.toDouble())
+                    }
+                    "way", "relation" -> if (k == "id") id = v.toLong()
+                    "nd" -> when (k) {
+                        "ref" -> ref = v.toLong()
+                        "lat" -> relLat = latTo01(v.toDouble())
+                        "lon" -> relLon = lonTo01(v.toDouble())
+                    }
+                    "tag" -> when (k) {
+                        "key" -> tagKey = v.toString()
+                        "value" -> tagValue = v.toString()
+                    }
+                    "member" -> when (k) {
+                        "ref" -> memRef = v.toLong()
+                        "type" -> memType = types[v] ?: ""
+                        "role" -> memRole = roles[v] ?: v.toString()
                     }
                 }
-                "node" -> when (k) {
-                    "id" -> id = v.toLong()
-                    "lat" -> relLat = latTo01(v.toDouble())
-                    "lon" -> relLon = lonTo01(v.toDouble())
-                }
-                "way", "relation" -> if (k == "id") id = v.toLong()
-                "nd" -> when (k) {
-                    "ref" -> ref = v.toLong()
-                    "lat" -> relLat = latTo01(v.toDouble())
-                    "lon" -> relLon = lonTo01(v.toDouble())
-                }
-                "tag" -> when (k) {
-                    "key" -> tagKey = v.toString()
-                    "value" -> tagValue = v.toString()
-                }
-                "member" -> when (k) {
-                    "ref" -> memRef = v.toLong()
-                    "type" -> memType = types[v] ?: ""
-                    "role" -> memRole = roles[v] ?: v.toString()
-                }
             }
-        })
+        }.scan()
 
         println("loaded ${map.nodes.size} nodes + ${map.ways.size} ways + ${map.relations.size} relations")
 
         return map
     }
-
 }

@@ -37,7 +37,7 @@ object JsonLike {
 
     fun xmlBytesToJsonLike(bytes: ByteArray): Any {
         val str = bytes.inputStream().reader()
-        val node = XMLReader().read(str) as XMLNode
+        val node = XMLReader(str).read() as XMLNode
         assertEquals(MAIN_NODE_NAME, node.type)
         return XML2JSON.fromXML(node)
     }

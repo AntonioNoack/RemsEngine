@@ -79,4 +79,8 @@ open class ByteArrayList(initialCapacity: Int) {
         if (size == array.size) return array
         return array.copyOf(dstSize)
     }
+
+    fun decodeToString(dstSize: Int = size): String {
+        return values.decodeToString(0, dstSize)
+    }
 }

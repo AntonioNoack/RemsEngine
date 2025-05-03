@@ -20,4 +20,18 @@ class XMLNode(var type: String) {
         clone.children.addAll(children)
         return clone
     }
+
+    override fun hashCode(): Int {
+        var hash = type.hashCode()
+        hash = hash * 31 + attributes.size
+        hash = hash * 31 + children.size
+        return hash
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other === this || other is XMLNode &&
+                other.type == type &&
+                other.attributes == attributes &&
+                other.children == children
+    }
 }

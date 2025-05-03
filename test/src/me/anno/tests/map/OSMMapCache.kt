@@ -1,5 +1,6 @@
 package me.anno.tests.map
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HierarchicalDatabase
@@ -13,7 +14,6 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.toLongOr
 import org.joml.AABBd
 import java.io.ByteArrayInputStream
-import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Semaphore
@@ -47,39 +47,48 @@ object OSMMapCache : CacheSection("OSMMapData") {
                 "node(${bounds.minY},${bounds.minX},${bounds.maxY},${bounds.maxX});\n" +
                 "relation(${bounds.minY},${bounds.minX},${bounds.maxY},${bounds.maxX});\n" +
                 "out geom;"
-        return getEntry(key, 10_000, async) { key1 ->
-            // to do make this fully async?
-            var result: OSMap? = null
+        val result = getEntry(key, 10_000, async) { key1 ->
+            val result = AsyncCacheData<OSMap>()
             val path = listOf(key1.xi.toString(), key1.yi.toString(), key1.level.toString())
             val hash = query.hashCode().toLong().and(0xffffffff)
             hdb.get(path, hash) { bytes, _ ->
-                if (bytes != null) {
-                    result = readOSM2(bytes.stream())
-                }
-            }
-            TODO("wait for result")
-            if (result == null) {
-                limit.acquire()
-                val con = URL(MAIN_URL).openConnection() as HttpURLConnection
-                con.doOutput = true
-                con.outputStream.writeString("data=${encodeURIComponent(query)}")
-                if (con.responseCode == 200) {
-                    val bytes = con.inputStream.use { it.readBytes() }
-                    result = readOSM2(ByteArrayInputStream(bytes))
-                    hdb.put(path, hash, ByteSlice(bytes))
-                    println("made successful request, ${bytes.size.formatFileSize()}")
-                    Thread.sleep(apiLimitMillis)
-                    limit.release()
+                result.value = if (bytes != null) {
+                    readOSM2(bytes.stream())
                 } else {
-                    Thread.sleep(apiLimitMillis)
-                    limit.release()
-                    println("Illegal response code: ${con.responseCode}")
-                    println(con.errorStream.readText())
-                    throw IOException()
+                    startDownloading(query, path, hash)
                 }
             }
-            result!!
+            result
         }
+        if (!async && result != null) result.waitFor()
+        return result?.value
+    }
+
+    private fun startDownloading(query: String, path: List<String>, hash: Long): OSMap? {
+        limit.acquire()
+        val con = buildRequest(query)
+        return if (con.responseCode == 200) {
+            val bytes = con.inputStream.use { it.readBytes() }
+            val result = readOSM2(ByteArrayInputStream(bytes))
+            hdb.put(path, hash, ByteSlice(bytes))
+            println("made successful request, ${bytes.size.formatFileSize()}")
+            Thread.sleep(apiLimitMillis)
+            limit.release()
+            result
+        } else {
+            println("Illegal response code: ${con.responseCode}")
+            println(con.errorStream.readText())
+            Thread.sleep(apiLimitMillis)
+            limit.release()
+            null
+        }
+    }
+
+    private fun buildRequest(query: String): HttpURLConnection {
+        val con = URL(MAIN_URL).openConnection() as HttpURLConnection
+        con.doOutput = true
+        con.outputStream.writeString("data=${encodeURIComponent(query)}")
+        return con
     }
 
     fun getMapData(bounds: AABBd, async: Boolean): List<Pair<AABBd, OSMap>> {

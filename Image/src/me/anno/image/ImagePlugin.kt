@@ -91,7 +91,7 @@ class ImagePlugin : Plugin() {
                 dst.ready = false
                 file.inputStream { stream, err ->
                     if (stream != null) {
-                        val xml = XMLReader().read(stream.reader())
+                        val xml = XMLReader(stream.reader()).read()
                         if (xml is XMLNode && xml.type == "svg") {
                             // width="800px" height="800px"
                             val width = parseSVGSize(xml["width"])

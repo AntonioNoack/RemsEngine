@@ -25,10 +25,10 @@ fun main() {
 }
 
 fun testSVG(text: String) {
-    SVGMesh().parse(XMLReader().read(text.reader()) as XMLNode)
+    SVGMesh().parse(XMLReader(text.reader()).read() as XMLNode)
 }
 
 fun testXML(text: String) {
     val logger = LogManager.getLogger("TestXML")
-    logger.info(XMLReader().read(text.reader()))
+    logger.info(XMLReader(text.reader()).read())
 }
