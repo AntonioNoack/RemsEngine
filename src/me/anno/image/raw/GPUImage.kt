@@ -79,6 +79,12 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
         }
     }
 
+    override fun resized(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): Image {
+        // otherwise, this would use getRGB a thousand times, which is very slow
+        if (width == dstWidth && height == dstHeight) return this
+        return asIntImage().resized(dstWidth, dstHeight, allowUpscaling)
+    }
+
     override fun toString(): String {
         return "GPUImage { $texture, $numChannels ch, ${if (hasAlphaChannel) "alpha" else "opaque"} }"
     }
