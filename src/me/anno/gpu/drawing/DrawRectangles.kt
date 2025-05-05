@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.transform
@@ -21,20 +22,20 @@ object DrawRectangles {
     // to do support textures for batching with Map<Texture, Buffer>()?
 
     val batch = object : Batch(
-        "rectBatch", flat01, listOf(
+        "rectBatch", flat01, bind(
             Attribute("instancePosSize", AttributeType.FLOAT, 4),
             Attribute("instanceColor", AttributeType.FLOAT, 4),
         )
     ) {
         private val flatShaderBatching = BaseShader(
             "rectShader", ShaderLib.coordsList + listOf(
-                Variable(GLSLType.V4F, attributes[0].name, VariableMode.ATTR),
-                Variable(GLSLType.V4F, attributes[1].name, VariableMode.ATTR),
+                Variable(GLSLType.V4F, attributes.name(0), VariableMode.ATTR),
+                Variable(GLSLType.V4F, attributes.name(1), VariableMode.ATTR),
                 Variable(GLSLType.M4x4, "transform")
             ), "" +
                     "void main(){\n" +
                     "   vec4 posSize = instancePosSize;\n" +
-                    "   gl_Position = matMul(transform, vec4(posSize.xy + coords * posSize.zw, 0.0, 1.0));\n" +
+                    "   gl_Position = matMul(transform, vec4(posSize.xy + positions * posSize.zw, 0.0, 1.0));\n" +
                     "   color1 = instanceColor;\n" +
                     "}", listOf(Variable(GLSLType.V4F, "color1")), emptyList(), "" +
                     "void main(){\n" +

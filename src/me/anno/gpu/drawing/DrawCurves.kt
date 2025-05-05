@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat11x2
@@ -26,7 +27,7 @@ import kotlin.math.hypot
 object DrawCurves {
 
     val lineBatch = object : Batch(
-        "lineBatch", flat11x2, listOf(
+        "lineBatch", flat11x2, bind(
             Attribute("pi0", 4),
             Attribute("tsf", 3),
             Attribute("ci0", AttributeType.UINT8_NORM, 4),
@@ -39,7 +40,7 @@ object DrawCurves {
     ) {
         private val lineBatchShader = Shader(
             "lineBatch", listOf(
-                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
                 Variable(GLSLType.V4F, "posSize"),
                 Variable(GLSLType.M4x4, "transform"),
                 Variable(GLSLType.V4F, "pi0", VariableMode.ATTR),
@@ -58,10 +59,10 @@ object DrawCurves {
                     "   backgroundColor = bg0;\n" +
                     "   float extrusion = thickness + smoothness;\n" +
                     "   float tScale = tsf.z != 0.0 ? 1.0 : 1.0 + extrusion * 2.0 / length(p1-p0);\n" + // at least for lines...
-                    "   t = .5 + (coords.x-.5) * tScale;\n" +
+                    "   t = .5 + (positions.x-.5) * tScale;\n" +
                     "   float dt = 0.01;\n" +
                     "   vec2 p1x = mix(p0,p1,t);\n" +
-                    "   uv = p1x + rot90(normalize(p1-p0)) * coords.y * extrusion;\n" +
+                    "   uv = p1x + rot90(normalize(p1-p0)) * positions.y * extrusion;\n" +
                     "   gl_Position = matMul(transform, vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "}",
             listOf(
@@ -126,7 +127,7 @@ object DrawCurves {
     private fun parametricShader(name: String, parametricFunction: String, numParams: Int): Shader {
         return Shader(
             name, listOf(
-                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
                 Variable(GLSLType.V4F, "posSize"),
                 Variable(GLSLType.M4x4, "transform"),
                 Variable(GLSLType.V1F, "extrusion"),
@@ -141,12 +142,12 @@ object DrawCurves {
                     "    $parametricFunction;\n" +
                     "}\n" +
                     "void main(){\n" +
-                    "   t = .5 + (coords.x-.5) * tScale;\n" +
+                    "   t = .5 + (positions.x-.5) * tScale;\n" +
                     "   float dt = 0.01;\n" +
                     "   vec2 p0 = point(t - dt);\n" +
                     "   vec2 p1 = point(t);\n" +
                     "   vec2 p2 = point(t + dt);\n" +
-                    "   uv = p1 + rot90(normalize(p2-p0)) * coords.y * extrusion;\n" +
+                    "   uv = p1 + rot90(normalize(p2-p0)) * positions.y * extrusion;\n" +
                     "   gl_Position = matMul(transform, vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V1F, "t")),
             listOf(

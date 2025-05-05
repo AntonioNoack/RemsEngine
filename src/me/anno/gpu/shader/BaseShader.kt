@@ -8,7 +8,7 @@ import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.BakedLayout
+import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -49,8 +49,8 @@ open class BaseShader(
         val vertexData: MeshVertexData,
         val instanceData: MeshInstanceData,
         val ditherMode: DitherMode,
-        val meshLayout: BakedLayout?,
-        val instLayout: BakedLayout?,
+        val meshLayout: AttributeLayout?,
+        val instLayout: AttributeLayout?,
         val flags: Int,
     )
 

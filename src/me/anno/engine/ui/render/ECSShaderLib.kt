@@ -9,9 +9,9 @@ object ECSShaderLib {
 
     val simpleShader = BaseShader(
         "SimpleECS", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform")
-        ), "gl_Position = matMul(transform, vec4(coords, 1.0));", emptyList(), listOf(
+        ), "gl_Position = matMul(transform, vec4(positions, 1.0));", emptyList(), listOf(
             Variable(GLSLType.V4F, "diffuseBase"),
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),

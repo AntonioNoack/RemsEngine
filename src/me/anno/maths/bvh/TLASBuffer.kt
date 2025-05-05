@@ -2,19 +2,20 @@ package me.anno.maths.bvh
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.maths.bvh.TLASTexture.putBounds
 
 object TLASBuffer {
 
-    val tlasAttr0 = listOf(
+    val tlasAttr0 = bind(
         Attribute("min", 3),
         Attribute("v0", 1),
         Attribute("max", 3),
         Attribute("v1", 1),
     )
 
-    val tlasAttr1 = listOf(
+    val tlasAttr1 = bind(
         Attribute("worldToLocal", 12),
         Attribute("localToWorld", 12),
     )

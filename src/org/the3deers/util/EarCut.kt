@@ -20,7 +20,7 @@ object EarCut {
     @JvmStatic
     fun earcut(data: DoubleArray, holeStartIndices: IntArray?, dim: Int): IntArrayList? {
         val hasHoles = holeStartIndices != null && holeStartIndices.isNotEmpty()
-        val outerLen = if (hasHoles) holeStartIndices!![0] * dim else data.size
+        val outerLen = if (hasHoles) holeStartIndices[0] * dim else data.size
         var outerNode = linkedList(data, 0, outerLen, dim, true)
         if (outerNode == null || outerNode.next === outerNode.prev) return null
         val triangles = IntArrayList(max(data.size, 16))
@@ -31,7 +31,7 @@ object EarCut {
         var x: Double
         var y: Double
         var invSize = 0.0
-        if (hasHoles && holeStartIndices != null) {
+        if (hasHoles) {
             outerNode = eliminateHoles(data, holeStartIndices, outerNode, dim)
         }
 
@@ -52,7 +52,7 @@ object EarCut {
                 i += dim
             }
 
-            // minX, minY and invSize are later used to transform coords into integers for z-order calculation
+            // minX, minY and invSize are later used to transform positions into integers for z-order calculation
             invSize = max(maxX - minX, maxY - minY)
             invSize = if (invSize != 0.0) 1.0 / invSize else 0.0
         }
@@ -465,7 +465,7 @@ object EarCut {
                         qSize--
                     }
                     if (tail != null) tail.nextZ = e else list = e
-                    e!!.prevZ = tail
+                    e.prevZ = tail
                     tail = e
                 }
                 p = q
@@ -476,11 +476,11 @@ object EarCut {
     }
 
     /**
-     * z-order of a point given coords and inverse of the longer side of data bounding box
+     * z-order of a point given positions and inverse of the longer side of data bounding box
      * */
     @JvmStatic
     fun zOrder(x0: Double, y0: Double, minX: Double, minY: Double, invSize: Double): Int {
-        // coords are transformed into non-negative 15-bit integer range
+        // positions are transformed into non-negative 15-bit integer range
         var x = (32767 * (x0 - minX) * invSize).toInt()
         var y = (32767 * (y0 - minY) * invSize).toInt()
         x = x or (x shl 8) and 0x00FF00FF
@@ -713,7 +713,7 @@ object EarCut {
         var prevZ: EarCutNode? = null
 
         override fun equals(other: Any?): Boolean {
-            return other === this || (other is EarCutNode && other.x == x && other.y == y)
+            return other is EarCutNode && other.x == x && other.y == y
         }
 
         override fun hashCode() = x.hashCode() * 31 + y.hashCode()

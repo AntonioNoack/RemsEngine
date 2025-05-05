@@ -1,11 +1,12 @@
 package me.anno.maths.bvh
 
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.maths.bvh.BLASFiller.Companion.fillBLAS
 
 object BLASBuffer {
-    val blasAttr = listOf(
+    val blasAttr = bind(
         Attribute("min", 3),
         Attribute("v0", 1),
         Attribute("max", 3),

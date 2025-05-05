@@ -106,7 +106,7 @@ object FlatShaders {
 
     val coordsPosSizeVShader = "" +
             "void main(){\n" +
-            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
+            "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
             "}"
 
     // color only for a rectangle
@@ -222,13 +222,13 @@ object FlatShaders {
 
     val flatShaderCubemap = BaseShader(
         "flatShaderCubemap", listOf(
-            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
             Variable(GLSLType.V4F, "posSize"),
             Variable(GLSLType.M4x4, "transform"),
         ), "" +
                 "void main(){\n" +
-                "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-                "   uv = (coords - 0.5) * vec2(${PI * 2},${PI});\n" +
+                "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
+                "   uv = (positions - 0.5) * vec2(${PI * 2},${PI});\n" +
                 "}", listOf(Variable(GLSLType.V2F, "uv")), listOf(
             Variable(GLSLType.SCube, "tex"),
             Variable(GLSLType.V4F, "color"),
@@ -249,14 +249,14 @@ object FlatShaders {
 
     val flatShader3dSlice = BaseShader(
         "flatShader3dSlice", listOf(
-            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
             Variable(GLSLType.V4F, "posSize"),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1F, "z")
         ), "" +
                 "void main(){\n" +
-                "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-                "   uvw = vec3(coords, z);\n" +
+                "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
+                "   uvw = vec3(positions, z);\n" +
                 "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(
             Variable(GLSLType.S3D, "tex"),
             Variable(GLSLType.V4F, "color"),
@@ -274,14 +274,14 @@ object FlatShaders {
 
     val flatShader2DArraySlice = BaseShader(
         "flatShader3dSlice", listOf(
-            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
             Variable(GLSLType.V4F, "posSize"),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1F, "layer"),
         ), "" +
                 "void main(){\n" +
-                "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-                "   uvw = vec3(coords, layer);\n" +
+                "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
+                "   uvw = vec3(positions, layer);\n" +
                 "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(
             Variable(GLSLType.S2DA, "tex"),
             Variable(GLSLType.V4F, "color"),

@@ -1,6 +1,7 @@
 package me.anno.tests.terrain.v1
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sx

@@ -106,14 +106,14 @@ class FoliageShader(
                     "center += vec2(0.5,0.0) * rot(seed*6.2832*31.0);\n" +
                     "float scale = zero ? 0.0 : mix(0.7, 1.2, seed);\n" +
                     "mat2 bladeRot = rot(seed*6.2832*17.0);\n" +
-                    "vec2 pos = bladeRot * (coords.xz * scale) + center;\n" +
-                    "float animWeight = coords.y * coords.y * sign(coords.y);\n" +
+                    "vec2 pos = bladeRot * (positions.xz * scale) + center;\n" +
+                    "float animWeight = positions.y * positions.y * sign(positions.y);\n" +
                     "float anim1 = animWeight * animCurve(uv0,time.x);\n" +
-                    "vec3 basePos1 = vec3(pos.x,terrain+coords.y*scale*mix(1.0,0.6366,abs(anim1)),pos.y);\n" +
+                    "vec3 basePos1 = vec3(pos.x,terrain+positions.y*scale*mix(1.0,0.6366,abs(anim1)),pos.y);\n" +
                     "localPosition = basePos1 + vec3(anim1,0.0,anim1);\n" +
                     "#ifdef MOTION_VECTORS\n" +
                     "   float anim2 = animWeight * animCurve(uv0,time.y);\n" +
-                    "   vec3 basePos2 = vec3(pos.x,terrain+coords.y*scale*mix(1.0,0.6366,abs(anim2)),pos.y);\n" +
+                    "   vec3 basePos2 = vec3(pos.x,terrain+positions.y*scale*mix(1.0,0.6366,abs(anim2)),pos.y);\n" +
                     "   prevLocalPosition = basePos2 + vec3(anim2,0.0,anim2);\n" +
                     "#endif\n" +
                     "#ifdef COLORS\n" +
@@ -121,7 +121,7 @@ class FoliageShader(
                     "   tangent.xz = bladeRot * tangent.xz;\n" +
                     "#endif\n" +
                     "#ifdef COLORS\n" +
-                    "   vertexColor0 = mix(vec4(0.02,0.22,0.02,1),vec4(0.72,0.6,0.73,1), coords.y*0.5);\n" +
+                    "   vertexColor0 = mix(vec4(0.02,0.22,0.02,1),vec4(0.72,0.6,0.73,1), positions.y*0.5);\n" +
                     "#endif\n"
         ).add(animFunc).add(quatRot).add(randomGLSL).add(sdfConstants).add(generalNoise).add(perlinNoise)
         return createDefines(key) +

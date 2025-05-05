@@ -20,9 +20,9 @@ class MeshVertexData(
             listOf(
                 ShaderStage(
                     "def-lp", listOf(
-                        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                        Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
-                    ), "localPosition = coords;\n"
+                    ), "localPosition = positions;\n"
                 )
             ),
             listOf(

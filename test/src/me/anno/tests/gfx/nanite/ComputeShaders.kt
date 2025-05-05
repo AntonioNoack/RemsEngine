@@ -1,6 +1,7 @@
 package me.anno.tests.gfx.nanite
 
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.deferred.DeferredSettings
@@ -42,7 +43,7 @@ object ComputeShaders {
     }
 
     private fun createMeshAccessors(
-        meshAttr: List<Attribute>,
+        meshAttr: AttributeLayout,
         attributes: List<Variable>,
         instNames: Set<String>
     ): String {
@@ -55,13 +56,14 @@ object ComputeShaders {
     }
 
     private fun createInstanceAccessors(
-        instAttr: List<Attribute>,
+        instAttr: AttributeLayout,
         attributes: List<Variable>,
         instNames: Set<String>
     ): String {
-        return createAccessors(instAttr, attributes
-            .filter { it.name in instNames }
-            .map { Attribute(it.name, it.type.components) },
+        return createAccessors(
+            instAttr, attributes
+                .filter { it.name in instNames }
+                .map { Attribute(it.name, it.type.components) },
             "Inst", 1, false
         )
     }
@@ -199,7 +201,7 @@ object ComputeShaders {
                     val srcIndex = if (isInstanced) "glInstanceID" else "glVertexID"
                     "${it.type.glslName} ${it.name} = get$srcBuffer${it.name.titlecase()}($srcIndex);\n"
                 } +
-                // "   vec3 coord = coords;\n" +
+                // "   vec3 coord = positions;\n" +
                 // coord -> localPosition -> finalPosition -> gl_Position -> /w [-1,1] -> [0,w]
                 // "   coord = matMul(localTransform,vec4(coord,1.0));\n" +
                 varyings.joinToString("") { "${it.type.glslName} ${it.name} = ${it.type.glslName}(0);\n" } +
@@ -310,7 +312,7 @@ object ComputeShaders {
         val (shader, target, meshAttr, instAttr, indexed, drawMode) = key
         val varyings = getVaryings(shader)
         val attributes = getAttributes(shader)
-        val instNames = instAttr.map { it.name }.toSet()
+        val instNames = (0 until instAttr.size).map { instAttr.name(it) }.toSet()
         val (vertexFunctions, vertexMain) = extractMain(shader.vertexShader)
         val (pixelFunctions, pixelMain) = extractMain(shader.fragmentShader)
         val uniforms = getUniforms(shader)

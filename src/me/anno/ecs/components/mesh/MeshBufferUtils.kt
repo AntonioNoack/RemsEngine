@@ -2,10 +2,16 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
+import me.anno.ecs.components.mesh.MeshAttributes.color0
+import me.anno.ecs.components.mesh.MeshAttributes.color1
+import me.anno.ecs.components.mesh.MeshAttributes.color2
+import me.anno.ecs.components.mesh.MeshAttributes.color3
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
+import me.anno.gpu.buffer.AttributeLayout
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.types.Booleans.toInt
@@ -22,17 +28,24 @@ object MeshBufferUtils {
         oldValue: StaticBuffer?,
     ): StaticBuffer {
         if (oldValue != null) {
-            // offsets are compared, so they need to be consistent
-            computeOffsets(attributes)
-            computeOffsets(oldValue.attributes)
-            if (oldValue.attributes == attributes && oldValue.vertexCount == vertexCount) {
+            if (attributesAreEqual(oldValue.attributes, attributes) && oldValue.vertexCount == vertexCount) {
                 oldValue.clear()
                 return oldValue
             } else {
                 oldValue.destroy()
             }
         }
-        return StaticBuffer(name, attributes, vertexCount)
+        return StaticBuffer(name, bind(attributes), vertexCount, BufferUsage.STATIC)
+    }
+
+    private fun attributesAreEqual(a: AttributeLayout, b: List<Attribute>): Boolean {
+        if (a.size != b.size) return false
+        for (i in b.indices) {
+            if (!a.equals(i, b[i])) {
+                return false
+            }
+        }
+        return true
     }
 
     fun replaceBuffer(base: Buffer, indices: IntArray?, oldValue: IndexBuffer?): IndexBuffer? {
@@ -67,7 +80,7 @@ object MeshBufferUtils {
 
     fun addBoneAttributes(attributes: ArrayList<Attribute>) {
         attributes += Attribute("boneWeights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
-        attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS, true)
+        attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS)
     }
 
     fun addNormalAttribute(attributes: ArrayList<Attribute>, hasHighPrecisionNormals: Boolean) {
@@ -117,7 +130,7 @@ object MeshBufferUtils {
         val hasHighPrecisionNormals = hasHighPrecisionNormals
 
         val attributes = ArrayList<Attribute>()
-        attributes += Attribute("coords", 3)
+        attributes += Attribute("positions", 3)
         addNormalAttribute(attributes, hasHighPrecisionNormals)
         if (hasUVs) addUVAttributes(attributes)
         addColorAttributes(attributes, hasColor0, hasColor1, hasColor2, hasColor3)

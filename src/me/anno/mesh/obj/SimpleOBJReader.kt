@@ -25,6 +25,7 @@ class SimpleOBJReader(input: InputStream) : TextFileReader(input) {
         readCoordinate()
         readCoordinate()
         readCoordinate()
+        skipLine()
     }
 
     private fun readFace() {
@@ -58,9 +59,8 @@ class SimpleOBJReader(input: InputStream) : TextFileReader(input) {
                 when (nextChar()) {
                     'v' -> readPosition()
                     'f' -> readFace()
-                    else -> {}
+                    else -> skipLine()
                 }
-                skipLine()
             }
         } catch (_: EOFException) {
         }

@@ -11,6 +11,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
@@ -19,8 +20,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindCameraUniforms
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindJitterUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindLightUniforms
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.shader.ComputeShader
@@ -105,8 +106,9 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
 
         val deferredSettings = GFXState.currentRenderer.deferredSettings
         val key = ComputeShaderKey(
-            shader, deferredSettings, mesh.buffer!!.attributes,
-            instanceData?.attributes ?: emptyList(),
+            shader, deferredSettings,
+            mesh.buffer!!.attributes,
+            instanceData?.attributes ?: AttributeLayout.EMPTY,
             triBuffer?.elementsType,
             if (drawLines) DrawMode.LINES else mesh.drawMode
         )

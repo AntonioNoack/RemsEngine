@@ -10,6 +10,7 @@ import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
@@ -70,7 +71,7 @@ object LightShaders {
     val combineLightFinishLine =
         "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalReflectivity);\n"
 
-    private val lightInstancedAttributes = listOf(
+    private val lightInstancedAttributes = bind(
         // transform
         Attribute("instanceTrans0", 4),
         Attribute("instanceTrans1", 4),
@@ -120,7 +121,7 @@ object LightShaders {
     val combineVStage = ShaderStage(
         "combineLight-v",
         coordsList + Variable(GLSLType.V2F, "uv", VariableMode.OUT),
-        "gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\nuv = coords;\n"
+        "gl_Position = vec4(positions*2.0-1.0,0.5,1.0);\nuv = positions;\n"
     )
 
     val combineFStage = ShaderStage(
@@ -150,7 +151,7 @@ object LightShaders {
 
     val vertexI = ShaderStage(
         "v", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
@@ -175,10 +176,10 @@ object LightShaders {
                 "data2 = vec4(0.0);\n" + // shadow-data aka unused for instanced lights
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "if(isDirectional && data1.z <= 0.0){\n" +
-                "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                "   gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
                 "   mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                "   vec3 localPosition = coords;\n" +
+                "   vec3 localPosition = positions;\n" +
                 "   if(isSpotLight){\n" +
                 "       float coneAngle = lightData1.x;\n" +
                 "       localPosition.xy *= coneAngle;\n" +
@@ -194,7 +195,7 @@ object LightShaders {
 
     val vertexNI = ShaderStage(
         "v", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
             Variable(GLSLType.V1F, "cutoff"),
@@ -204,9 +205,9 @@ object LightShaders {
         ), "" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "if(cutoff <= 0.0){\n" +
-                "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                "   gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
-                "   vec3 localPosition = coords;\n" +
+                "   vec3 localPosition = positions;\n" +
                 "   if(isSpotLight){\n" +
                 "       float coneAngle = data1.x;\n" +
                 "       localPosition.xy *= coneAngle;\n" +
@@ -269,7 +270,7 @@ object LightShaders {
     val visualizeLightCountShader = Shader(
         "visualize-light-count",
         listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
             Variable(GLSLType.V1B, "isSpotLight"),
@@ -279,9 +280,9 @@ object LightShaders {
                 "void main(){\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "   if(fullscreen){\n" +
-                "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                "      gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
-                "       vec3 localPosition = coords;\n" +
+                "       vec3 localPosition = positions;\n" +
                 "       if(isSpotLight){\n" +
                 "           float coneAngle = data1.x;\n" +
                 "           localPosition.xy *= coneAngle;\n" +
@@ -297,7 +298,7 @@ object LightShaders {
 
     val visualizeLightCountShaderInstanced = Shader(
         "visualize-light-count-instanced", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
@@ -311,10 +312,10 @@ object LightShaders {
                 "void main(){\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "   if(isDirectional && lightData1.z <= 0.0){\n" +
-                "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                "      gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
                 "       mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                "       vec3 localPosition = coords;\n" +
+                "       vec3 localPosition = positions;\n" +
                 "       if(isSpotLight){\n" +
                 "           float coneAngle = lightData1.x;\n" +
                 "           localPosition.xy *= coneAngle;\n" +

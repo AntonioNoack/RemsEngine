@@ -217,7 +217,7 @@ object AssetThumbHelper {
 
     fun doneCondition(textures: Collection<FileReference>, endTime: Long): Boolean {
         // textures may be missing; just ignore them, if they cannot be read
-        return if (Time.gameTimeN > endTime) {
+        return if (Time.nanoTime > endTime) {
             warnMissingTextures(textures)
             true
         } else {
@@ -226,7 +226,7 @@ object AssetThumbHelper {
     }
 
     fun getEndTime(): Long {
-        return Time.gameTimeN + TEXTURE_TIMEOUT * Maths.MILLIS_TO_NANOS
+        return Time.nanoTime + TEXTURE_TIMEOUT * Maths.MILLIS_TO_NANOS
     }
 
     private fun hasLoadedAllTextures(textureSources: Collection<FileReference>): Boolean {

@@ -1,13 +1,14 @@
 package me.anno.gpu.buffer
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 
 open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: String) :
-    StaticBuffer(name0, listOf(Attribute(name, 2)), vertices.size) {
+    StaticBuffer(name0, bind(Attribute(name, 2)), vertices.size) {
 
     constructor(name0: String, vertices: List<Vector2f>, indices: IntArray, name: String) :
             this(name0, createArray(vertices, indices), name)
@@ -33,7 +34,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             val iList = -10..10
             val buffer = StaticBuffer(
                 "flatLarge",
-                listOf(Attribute("coords", 2)),
+                bind(Attribute("positions", 2)),
                 6 * (4 * iList.toList().size - 3)
             )
             for ((index, i) in iList.withIndex()) {
@@ -83,7 +84,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
                 Vector2f(0f, 1f),
                 Vector2f(1f, 1f),
                 Vector2f(1f, 0f)
-            ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
+            ), intArrayOf(0, 1, 2, 0, 2, 3), "positions"
         ) {
             // https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html
             private val flat01FS = SimpleBuffer(
@@ -91,7 +92,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
                     Vector2f(0f, 0f),
                     Vector2f(2f, 0f),
                     Vector2f(0f, 2f),
-                ),"coords"
+                ), "positions"
             )
 
             override fun draw(shader: Shader) {
@@ -140,7 +141,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             "flat11x2",
             splitVertices(2),
             splitIndices(2),
-            listOf(Attribute("coords", 2))
+            listOf(Attribute("positions", 2))
         )
 
         @JvmField
@@ -148,7 +149,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             "flat11x3",
             splitVertices(3),
             splitIndices(3),
-            listOf(Attribute("coords", 2))
+            listOf(Attribute("positions", 2))
         )
 
         @JvmField
@@ -156,7 +157,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             "flat11x6",
             splitVertices(6),
             splitIndices(6),
-            listOf(Attribute("coords", 2))
+            listOf(Attribute("positions", 2))
         )
 
         @JvmField
@@ -164,7 +165,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             "flat11x12",
             splitVertices(12),
             splitIndices(12),
-            listOf(Attribute("coords", 2))
+            listOf(Attribute("positions", 2))
         )
 
         @JvmField
@@ -172,7 +173,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             "flat11x25",
             splitVertices(25),
             splitIndices(25),
-            listOf(Attribute("coords", 2))
+            listOf(Attribute("positions", 2))
         )
 
         @JvmField
@@ -180,7 +181,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             "flat11x50",
             splitVertices(50),
             splitIndices(50),
-            listOf(Attribute("coords", 2))
+            listOf(Attribute("positions", 2))
         )
 
         @JvmField
@@ -257,7 +258,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
                 Vector2f(-1f, 1f),
                 Vector2f(1f, 1f),
                 Vector2f(1f, -1f)
-            ), intArrayOf(0, 1, 2, 0, 2, 3), "coords"
+            ), intArrayOf(0, 1, 2, 0, 2, 3), "positions"
         )
 
         @JvmStatic
@@ -266,7 +267,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
             // angle, scaling
             val buffer = StaticBuffer(
                 "circle",
-                listOf(Attribute("coords", 2)),
+                bind(Attribute("positions", 2)),
                 3 * 2 * n
             )
 

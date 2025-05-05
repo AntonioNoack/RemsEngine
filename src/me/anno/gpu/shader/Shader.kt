@@ -89,7 +89,7 @@ open class Shader(
 
         val varyings = varyings.map {
             // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
-            val isFlat = it.isFlat || it.type.isFlat || it.type.glslName.startsWith("mat")
+            val isFlat = it.isFlat || it.type.isNativeInt || it.type.glslName.startsWith("mat")
             Varying(if (isFlat) "flat" else "", it.type, it.name)
         }
 
@@ -246,6 +246,10 @@ open class Shader(
 
     fun getAttributeLocation(name: String): Int {
         return attributes.indexOfFirst2 { it.name == name }
+    }
+
+    fun isAttributeNative(attributeLocation: Int): Boolean {
+        return attributes[attributeLocation].type.isNativeInt
     }
 
     override fun printLocationsAndValues() {

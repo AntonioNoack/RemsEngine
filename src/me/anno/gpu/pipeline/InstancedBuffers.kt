@@ -1,6 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
@@ -14,7 +15,7 @@ object InstancedBuffers {
     // each buffer is ~1MB in size
 
     val instancedBuffer = StaticBuffer(
-        "instanced", listOf(
+        "instanced", bind(
             Attribute("instanceTrans0", 4),
             Attribute("instanceTrans1", 4),
             Attribute("instanceTrans2", 4),
@@ -23,7 +24,7 @@ object InstancedBuffers {
     )
 
     val instancedBufferA = StaticBuffer(
-        "instancedA", listOf(
+        "instancedA", bind(
             Attribute("instanceTrans0", 4),
             Attribute("instanceTrans1", 4),
             Attribute("instanceTrans2", 4),
@@ -34,7 +35,7 @@ object InstancedBuffers {
     )
 
     val instancedBufferM = StaticBuffer(
-        "instancedM", listOf(
+        "instancedM", bind(
             Attribute("instanceTrans0", 4),
             Attribute("instanceTrans1", 4),
             Attribute("instanceTrans2", 4),
@@ -46,7 +47,7 @@ object InstancedBuffers {
     )
 
     val instancedBufferMA = StaticBuffer(
-        "instancedMA", listOf(
+        "instancedMA", bind(
             Attribute("instanceTrans0", 4),
             Attribute("instanceTrans1", 4),
             Attribute("instanceTrans2", 4),
@@ -63,16 +64,14 @@ object InstancedBuffers {
     )
 
     val instancedBufferSlim = StaticBuffer(
-        "instancedSlim", listOf(
+        "instancedSlim", bind(
             Attribute("instancePosSize", 4),
             Attribute("instanceRot", 4),
-        ),
-        instancedBatchSize * 2, BufferUsage.DYNAMIC
+        ), instancedBatchSize * 2, BufferUsage.DYNAMIC
     )
 
     val instancedBufferI32 = StaticBuffer(
-        "instancedI32", listOf(
-            Attribute("instanceI32", AttributeType.SINT32, 1, true)
-        ), instancedBatchSize * 16, BufferUsage.DYNAMIC
+        "instancedI32", bind(Attribute("instanceI32", AttributeType.SINT32, 1)),
+        instancedBatchSize * 16, BufferUsage.DYNAMIC
     )
 }

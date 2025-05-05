@@ -13,7 +13,7 @@ import kotlin.math.round
  * This objects provides utility functions to make triangle grids easy to implement.
  * It contains all the maths required for them.
  * The center of each triangle is defined as the center of the AABB.
- * This makes it nicer to add textures to the triangles, and neighbor (180° rotated) triangles have the same coords.y.
+ * This makes it nicer to add textures to the triangles, and neighbor (180° rotated) triangles have the same positions.y.
  *
  * In this implementation, each side is 1.0 long.
  * If you need another scale, just scale the coordinates by a constant.
@@ -145,13 +145,13 @@ object TriangleGridMaths {
     }
 
     fun coordsToIndex(
-        coords: Vector2d,
+        positions: Vector2d,
         dstIndex: Vector2i,
         dstRemainder: Vector2d,
         uvSpaceRemainder: Boolean
     ): Vector2i {
-        val i = coords.dot(dx)
-        val j = coords.dot(dy)
+        val i = positions.dot(dx)
+        val j = positions.dot(dy)
         val fi = floor(i + 0.25)
         val fj = round(j)
         dstIndex.set(fi.toInt() * 2, fj.toInt())
@@ -176,12 +176,12 @@ object TriangleGridMaths {
     }
 
     fun getClosestVertex(
-        coords: Vector2d, allowCenter: Boolean,
+        positions: Vector2d, allowCenter: Boolean,
         tmpCoords: Vector2d, tmpDiffCenter: Vector2d,
         dstIndex: Vector2i,
     ): Int {
-        if (coords === tmpCoords) throw IllegalArgumentException()
-        coordsToIndex(coords, dstIndex, tmpDiffCenter, false)
+        if (positions === tmpCoords) throw IllegalArgumentException()
+        coordsToIndex(positions, dstIndex, tmpDiffCenter, false)
         indexToCoords(dstIndex, tmpCoords)
         val down = dstIndex.x.hasFlag(1)
         tmpDiffCenter.y += (if (down) -DELTA_Y_TO_CENTER else +DELTA_Y_TO_CENTER)
@@ -195,12 +195,12 @@ object TriangleGridMaths {
     }
 
     fun getClosestLine(
-        coords: Vector2d,
+        positions: Vector2d,
         tmpCoords: Vector2d, tmpRemainder: Vector2d,
         dstIndex: Vector2i,
     ): Int {
-        if (coords === tmpCoords) throw IllegalArgumentException()
-        coordsToIndex(coords, dstIndex, tmpRemainder, false)
+        if (positions === tmpCoords) throw IllegalArgumentException()
+        coordsToIndex(positions, dstIndex, tmpRemainder, false)
         indexToCoords(dstIndex, tmpCoords)
         val down = dstIndex.x.hasFlag(1)
         val remY = tmpRemainder.y + (if (down) -DELTA_Y_TO_CENTER else +DELTA_Y_TO_CENTER)

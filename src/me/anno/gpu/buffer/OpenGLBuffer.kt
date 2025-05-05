@@ -5,7 +5,6 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.maths.Maths
 import me.anno.utils.Color.a
@@ -35,12 +34,11 @@ import kotlin.math.max
 
 abstract class OpenGLBuffer(
     val name: String, val type: Int,
-    var attributes: List<Attribute>, val usage: BufferUsage
+    var attributes: AttributeLayout,
+    val usage: BufferUsage
 ) : ICacheData {
 
-    constructor(name: String, type: Int, attributes: List<Attribute>) : this(name, type, attributes, BufferUsage.STATIC)
-
-    val stride = computeOffsets(attributes)
+    val stride get() = attributes.stride
 
     var nioBuffer: ByteBuffer? = null
 

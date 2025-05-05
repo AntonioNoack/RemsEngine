@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min

@@ -23,7 +23,7 @@ object DrawGradients {
     private val flatShaderGradient = LazyMap<ShaderStage?, BaseShader> { key ->
         ShaderLib.createShader(
             "flatShaderGradient", listOf(
-                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
                 Variable(GLSLType.V4F, "posSize"),
                 Variable(GLSLType.M4x4, "transform"),
                 Variable(GLSLType.V4F, "uvs"),
@@ -33,9 +33,9 @@ object DrawGradients {
             ), "" +
                     yuv2rgb +
                     "void main(){\n" +
-                    "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-                    "   linColor = pow((inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor, vec4(2.0));\n" + // srgb -> linear
-                    "   finalUV = mix(uvs.xy, uvs.zw, coords);\n" +
+                    "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
+                    "   linColor = pow((inXDirection ? positions.x : positions.y) < 0.5 ? lColor : rColor, vec4(2.0));\n" + // srgb -> linear
+                    "   finalUV = mix(uvs.xy, uvs.zw, positions);\n" +
                     "}", listOf(
                 Variable(GLSLType.V2F, "finalUV"), Variable(GLSLType.V4F, "linColor")
             ), key?.variables?.filter { !it.isOutput } ?: emptyList(), "" +

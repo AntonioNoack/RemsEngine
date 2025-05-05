@@ -2,8 +2,10 @@ package me.anno.image.svg
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.gradient.Formula
@@ -925,7 +927,7 @@ class SVGMesh {
 
         private val LOGGER = LogManager.getLogger(SVGMesh::class)
 
-        val attr = listOf(
+        val attr = bind(
             Attribute("aLocalPosition", 3),
             Attribute("aLocalPos2", 2),
             Attribute("aFormula0", 4),

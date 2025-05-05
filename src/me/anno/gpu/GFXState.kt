@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.buffer.BakedLayout
+import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.TimeRecord
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -286,8 +286,8 @@ object GFXState {
     }
 
     // this would allow us to specify per-model parameters :)
-    val bakedMeshLayout = SecureStack<BakedLayout?>(null)
-    val bakedInstLayout = SecureStack<BakedLayout?>(null)
+    val bakedMeshLayout = SecureStack<AttributeLayout?>(null)
+    val bakedInstLayout = SecureStack<AttributeLayout?>(null)
 
     val alwaysDepthMode
         get() =

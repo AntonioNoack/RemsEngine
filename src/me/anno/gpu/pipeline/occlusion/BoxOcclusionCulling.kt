@@ -5,6 +5,8 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.BufferUsage
@@ -54,7 +56,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
             Shader(
                 "gpuBoxCulling", listOf(
                     // attributes per vertex; could be packed into the shader
-                    Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                    Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
                     // these attributes are per-instance
                     Variable(GLSLType.V3F, "minBox", VariableMode.ATTR),
                     Variable(GLSLType.V3F, "maxBox", VariableMode.ATTR),
@@ -67,7 +69,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
                         // must be clamped to avoid numeric issues for huge meshes
                         "   vec3 minBox1 = max(minBox, vec3(-1e15));\n" +
                         "   vec3 maxBox1 = min(maxBox, vec3(+1e15));\n" +
-                        "   vec3 back = mix(minBox1, maxBox1, coords);\n" +
+                        "   vec3 back = mix(minBox1, maxBox1, positions);\n" +
                         // find the point on the front-side for depth-comparison values
                         "   vec3 dist = (maxBox1-minBox1)/abs(cameraDirection);\n" +
                         "   float n = min(dist.x,min(dist.y,dist.z));\n" +
@@ -203,7 +205,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
      * */
     private val boxBuffer = StaticBuffer(
         "boxBuffer",
-        listOf(
+        bind(
             // 4 * 6 = 24 bytes each
             Attribute("minBox", 3),
             Attribute("maxBox", 3),
@@ -216,17 +218,17 @@ class BoxOcclusionCulling : AttachedDepthPass() {
      * stores on what frame a clickId was last visible
      * */
     private val visibilityBuffer = ComputeBuffer(
-        "isVisible", listOf(Attribute("isVisible", AttributeType.UINT32, 1, true)),
+        "isVisible", bind(Attribute("isVisible", AttributeType.UINT32, 1)),
         16 * 1024
     )
 
     private val indirectBuffer = ComputeBuffer(
-        "indirect", listOf(Attribute("stats", AttributeType.UINT32, 1, true)),
+        "indirect", bind(Attribute("stats", AttributeType.UINT32, 1)),
         5, GL_DRAW_INDIRECT_BUFFER
     )
 
-    private val mappedAttributes = LazyMap { attr: List<Attribute> ->
-        StaticBuffer("mappedAttrs", attr, 16)
+    private val mappedAttributes = LazyMap { attr: AttributeLayout ->
+        StaticBuffer("mappedAttrs", attr, 16, BufferUsage.STATIC)
     }
 
     private fun fillBoxBuffer(boxes: ClickIdBoundsArray) {
@@ -314,12 +316,13 @@ class BoxOcclusionCulling : AttachedDepthPass() {
     }
 
     private fun compactIds(
-        instanceBuffer: Buffer, clickIdAttribute: Attribute,
+        instanceBuffer: Buffer, clickIdAttribute: Int,
         first: Int, count: Int
     ): Buffer {
         indirectBuffer.ensureBuffer()
-        assertTrue(clickIdAttribute.offset % 4 == 0)
-        assertTrue(clickIdAttribute.stride % 4 == 0)
+        val layout = instanceBuffer.attributes
+        assertTrue(layout.offset(clickIdAttribute) % 4 == 0)
+        assertTrue(layout.stride % 4 == 0)
 
         val mappedInstances = getMappedInstanceBuffer(instanceBuffer)
         val shader = compactingNShader
@@ -329,8 +332,8 @@ class BoxOcclusionCulling : AttachedDepthPass() {
 
         // uniform sizes, so we don't write OOB
         shader.v1i("numInstances", instanceBuffer.elementCount)
-        shader.v1i("clickIdIndex", clickIdAttribute.offset.shr(2))
-        shader.v1i("numAttributes", clickIdAttribute.stride.shr(2))
+        shader.v1i("clickIdIndex", layout.offset(clickIdAttribute).shr(2))
+        shader.v1i("numAttributes", layout.stride.shr(2))
 
         shader.bindBuffer(0, indirectBuffer)
         shader.bindBuffer(1, visibilityBuffer)
@@ -373,7 +376,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
     }
 
     fun drawArraysInstanced(
-        shader: Shader, instanceBuffer: Buffer, clickIdAttribute: Attribute,
+        shader: Shader, instanceBuffer: Buffer, clickIdAttribute: Int,
         first: Int, count: Int, drawMode: DrawMode,
     ) {
         val mapped = compactIds(instanceBuffer, clickIdAttribute, first, count)
@@ -383,13 +386,13 @@ class BoxOcclusionCulling : AttachedDepthPass() {
     }
 
     fun drawElementsInstanced(
-        shader: Shader, instanceBuffer: Buffer, clickIdAttribute: Attribute,
+        shader: Shader, instanceBuffer: Buffer, clickIdAttribute: Int,
         first: Int, count: Int, drawMode: DrawMode, indexType: AttributeType,
     ) {
         val mapped = compactIds(instanceBuffer, clickIdAttribute, first, count)
         bindMappedInstances(shader, mapped)
         bindIndirectBuffer()
-        glDrawElementsIndirect(drawMode.id, indexType.id, 0)
+        glDrawElementsIndirect(drawMode.id, indexType.glslId, 0)
     }
 
     override fun destroy() {

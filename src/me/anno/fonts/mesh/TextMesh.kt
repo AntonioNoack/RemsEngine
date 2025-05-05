@@ -159,7 +159,7 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
     companion object {
 
         val attributes = listOf(
-            Attribute("coords", 2)
+            Attribute("positions", 2)
         )
 
         // todo also move defaultLineHeight into TextMeshGroup:

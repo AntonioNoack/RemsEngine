@@ -4,6 +4,7 @@ AnimMeshComponent: me.anno.ecs.components.anim.AnimMeshComponent
 AnimStateNode: me.anno.ecs.components.anim.graph.AnimStateNode
 AnimationState: me.anno.ecs.components.anim.AnimationState
 AnimeOutlineNode: me.anno.graph.visual.render.effects.AnimeOutlineNode
+Attribute: me.anno.gpu.buffer.Attribute
 AudioComponent: me.anno.ecs.components.audio.AudioComponent
 AutoTileableMaterial: me.anno.ecs.components.mesh.material.AutoTileableMaterial
 BakeSkyboxNode: me.anno.graph.visual.render.scene.BakeSkyboxNode
@@ -132,6 +133,7 @@ MathI1Node: me.anno.graph.visual.scalar.MathI1Node
 MathI2Node: me.anno.graph.visual.scalar.MathI2Node
 MathI3Node: me.anno.graph.visual.scalar.MathI3Node
 Mesh: me.anno.ecs.components.mesh.Mesh
+MeshAttribute: me.anno.ecs.components.mesh.MeshAttribute
 MeshCollider: me.anno.ecs.components.collider.MeshCollider
 MeshComponent: me.anno.ecs.components.mesh.MeshComponent
 MeshTextComponent: me.anno.ecs.components.text.MeshTextComponent

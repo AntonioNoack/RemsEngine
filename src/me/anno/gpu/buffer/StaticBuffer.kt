@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.AABBf
@@ -10,13 +11,13 @@ import java.nio.ByteOrder
 import kotlin.math.max
 
 open class StaticBuffer(
-    name: String, attributes: List<Attribute>,
+    name: String, attributes: AttributeLayout,
     var vertexCount: Int, usage: BufferUsage = BufferUsage.STATIC
 ) : Buffer(name, attributes, usage) {
 
     constructor(name: String, points: FloatArray, vertices: IntArray, attributes: List<Attribute>) :
-            this(name, attributes, vertices.size) {
-        val dimPerPoint = attributes.sumOf { it.components }
+            this(name, bind(attributes), vertices.size, BufferUsage.STATIC) {
+        val dimPerPoint = attributes.sumOf { it.numComponents }
         for (v in vertices) {
             val baseIndex = v * dimPerPoint
             for (dOffset in 0 until dimPerPoint) {
@@ -26,7 +27,7 @@ open class StaticBuffer(
     }
 
     constructor(name: String, floats: FloatArray, attributes: List<Attribute>) :
-            this(name, attributes, floats.size / attributes.sumOf { it.components }) {
+            this(name, bind(attributes), floats.size / attributes.sumOf { it.numComponents }, BufferUsage.STATIC) {
         put(floats)
     }
 
@@ -89,10 +90,13 @@ open class StaticBuffer(
 
     companion object {
 
+        /**
+         * Buffer with draw calls without any attributes
+         * */
         private val nullBuffer = StaticBuffer(
             "null",
-            listOf(Attribute("nothing0", AttributeType.UINT8_NORM, 4)),
-            4
+            bind(Attribute("nothing0", AttributeType.UINT8_NORM, 4)),
+            4, BufferUsage.STATIC
         ).apply {
             putInt(0)
             putInt(1)

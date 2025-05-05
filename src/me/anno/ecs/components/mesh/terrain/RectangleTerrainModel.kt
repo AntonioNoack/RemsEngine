@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.terrain
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.JomlPools

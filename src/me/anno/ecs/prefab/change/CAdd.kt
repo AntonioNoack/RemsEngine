@@ -87,7 +87,7 @@ class CAdd() : Change() {
             synchronized(loadedPrefab.listeners) {
                 loadedPrefab.listeners.add(prefab0)
             }
-            loadedPrefab.createInstance()
+            loadedPrefab.createInstance(depth - 1)
         } else {
             when (val newInstance1 = create(clazzName)) {
                 is PrefabSaveable -> newInstance1

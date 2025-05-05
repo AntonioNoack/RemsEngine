@@ -67,13 +67,13 @@ val morphVertexData = MeshVertexData(
     listOf(
         ShaderStage(
             "morph-lp", listOf(
-                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
                 Variable(GLSLType.V3F, "coords0", VariableMode.ATTR),
                 Variable(GLSLType.V3F, "coords1", VariableMode.ATTR),
                 Variable(GLSLType.V2F, "morph"),
                 Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
             ), "localPosition =\n" +
-                    "coords * (1.0-(morph.x+morph.y)) +\n" +
+                    "positions * (1.0-(morph.x+morph.y)) +\n" +
                     "coords0 * morph.x +\n" +
                     "coords1 * morph.y;\n"
         )
@@ -118,7 +118,7 @@ fun Mesh.createMeshBufferImpl1() {
     val hasHighPrecisionNormals = hasHighPrecisionNormals
 
     val attributes = ArrayList<Attribute>()
-    attributes += Attribute("coords", 3)
+    attributes += Attribute("positions", 3)
     for (i in morphs.indices) {
         attributes += Attribute("coords$i", 3)
     }

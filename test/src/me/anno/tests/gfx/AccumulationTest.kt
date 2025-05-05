@@ -2,6 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.Engine
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.jvm.HiddenOpenGLContext
@@ -18,7 +19,7 @@ class AccumulationTest {
         val src = IntArray(100) { it + 1 }
         val dst = IntArray(src.size)
 
-        val buffer = ComputeBuffer("values", listOf(Attribute("v", AttributeType.UINT32, 1, true)), src.size)
+        val buffer = ComputeBuffer("values", bind(Attribute("v", AttributeType.UINT32, 1)), src.size)
         val tmp = ComputeBuffer("tmp", buffer.attributes, buffer.elementCount)
 
         HiddenOpenGLContext.createOpenGL()

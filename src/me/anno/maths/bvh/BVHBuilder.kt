@@ -3,6 +3,7 @@ package me.anno.maths.bvh
 import me.anno.ecs.Component
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.texture.Texture2D

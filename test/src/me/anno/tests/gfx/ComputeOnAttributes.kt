@@ -35,7 +35,7 @@ fun rotatingCube() {
         ), "" +
                 createAccessors(
                     mesh.buffer!!, listOf(
-                        Attribute("coords", 3),
+                        Attribute("positions", 3),
                         Attribute("normals", 3)
                     ), "Vertex", 0, true
                 ) +

@@ -21,18 +21,18 @@ class TriangleGridMathsTest {
 
     @Test
     fun transformInvertible() {
-        val coords = Vector2d()
+        val positions = Vector2d()
         val index = Vector2i()
         val remainder = Vector2d()
         for (j in -5..5) {
             for (i in -5..5) {
-                assertSame(indexToCoords(index.set(i, j), coords), coords)
-                assertSame(coordsToIndex(coords, index, remainder, false), index)
+                assertSame(indexToCoords(index.set(i, j), positions), positions)
+                assertSame(coordsToIndex(positions, index, remainder, false), index)
                 assertEquals(0.0, remainder.x, 1e-15)
                 assertEquals(0.0, remainder.y, 1e-15)
                 assertEquals(i, index.x)
                 assertEquals(j, index.y)
-                assertSame(coordsToIndex(coords, index, remainder, true), index)
+                assertSame(coordsToIndex(positions, index, remainder, true), index)
                 assertEquals(0.0, remainder.x, 1e-15)
                 assertEquals(0.0, remainder.y, 1e-15)
                 assertEquals(i, index.x)
@@ -43,7 +43,7 @@ class TriangleGridMathsTest {
 
     @Test
     fun transformInvertible2() {
-        val coords = Vector2d()
+        val positions = Vector2d()
         val index = Vector2i()
         val remainder = Vector2d()
         val s = 10
@@ -52,13 +52,13 @@ class TriangleGridMathsTest {
             for (i in -s..s) {
                 val x = i * scale
                 val y = j * scale
-                coords.set(x, y)
-                assertSame(coordsToIndex(coords, index, remainder, false), index)
-                coords.set(0.0) // delete value just in case ^^
-                assertSame(indexToCoords(index, coords), coords)
-                coords.add(remainder)
-                assertEquals(x, coords.x, 1e-15)
-                assertEquals(y, coords.y, 1e-15)
+                positions.set(x, y)
+                assertSame(coordsToIndex(positions, index, remainder, false), index)
+                positions.set(0.0) // delete value just in case ^^
+                assertSame(indexToCoords(index, positions), positions)
+                positions.add(remainder)
+                assertEquals(x, positions.x, 1e-15)
+                assertEquals(y, positions.y, 1e-15)
             }
         }
     }

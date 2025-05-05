@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
@@ -47,8 +48,8 @@ class TriTerrainRenderer : UniqueMeshRenderer<Mesh, Mesh>(attributes, MeshVertex
     }
 
     companion object {
-        private val attributes = listOf(
-            Attribute("coords", 3),
+        private val attributes = bind(
+            Attribute("positions", 3),
             Attribute("normals", AttributeType.SINT8_NORM, 4)
         )
     }

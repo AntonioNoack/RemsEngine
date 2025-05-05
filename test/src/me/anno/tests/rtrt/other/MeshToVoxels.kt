@@ -179,9 +179,9 @@ val skipDistanceShader = ComputeShader(
     ), "" +
             "layout(rgba8, binding = 0) uniform image3D data;\n" +
             "#define s 0.003921569\n" +
-            "float read(ivec3 coords){\n" +
-            "   if(all(greaterThanEqual(coords,ivec3(0))) && all(lessThan(coords,size))){\n" +
-            "       vec4 v = imageLoad(data, coords);\n" +
+            "float read(ivec3 positions){\n" +
+            "   if(all(greaterThanEqual(positions,ivec3(0))) && all(lessThan(positions,size))){\n" +
+            "       vec4 v = imageLoad(data, positions);\n" +
             "       if(v.a > 0.0){\n" +
             "           return -s;\n" +
             "       } else {\n" +

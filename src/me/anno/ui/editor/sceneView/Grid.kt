@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
@@ -34,7 +35,7 @@ object Grid {
     val yAxisColor = style.getColor("grid.axis.y.color", UIColors.axisYColor)
     val zAxisColor = style.getColor("grid.axis.z.color", UIColors.axisZColor)
 
-    private val attr = listOf(Attribute("coords", 3))
+    private val attr = bind(Attribute("positions", 3))
     val gridBuffer = StaticBuffer("grid", attr, 201 * 4)
     val lineBuffer = StaticBuffer("gridLines", attr, 2)
     val sphereBuffer = StaticBuffer("gridSphere", attr, 3 * 64 * 2)

@@ -38,7 +38,7 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
         return listOf(
             ShaderStage(
                 "vertex", listOf(
-                    Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                    Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
                     Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                     Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
                     Variable(GLSLType.V3F, "normal", VariableMode.OUT),
@@ -53,10 +53,10 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                     Variable(GLSLType.V2F, "uv", VariableMode.OUT)
                 ),
                 defines +
-                        "localPosition = meshScale * coords;\n" +
+                        "localPosition = meshScale * positions;\n" +
                         "finalPosition = localPosition;\n" +
                         "#ifdef COLORS\n" +
-                        "   normal = -coords;\n" +
+                        "   normal = -positions;\n" +
                         "#endif\n" +
                         "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                         motionVectorCode2 +

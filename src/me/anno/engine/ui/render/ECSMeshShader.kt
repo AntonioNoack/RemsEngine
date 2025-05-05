@@ -234,7 +234,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   if(hasAnimation){\n" +
                 "       mat4x3 jointMat;\n" +
                 animationCode() +
-                "       localPosition = matMul(jointMat, vec4(coords, 1.0));\n" +
+                "       localPosition = matMul(jointMat, vec4(positions, 1.0));\n" +
                 "       #ifdef MOTION_VECTORS\n" +
                 animationCode2() +
                 "       #endif\n" +
@@ -266,7 +266,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "jointMat2 += getAnimMatrix(boneIndices.y,prevAnimIndices,prevAnimWeights) * boneWeights.y;\n" +
                     "jointMat2 += getAnimMatrix(boneIndices.z,prevAnimIndices,prevAnimWeights) * boneWeights.z;\n" +
                     "jointMat2 += getAnimMatrix(boneIndices.w,prevAnimIndices,prevAnimWeights) * boneWeights.w;\n" +
-                    "prevLocalPosition = matMul(jointMat2, vec4(coords, 1.0));\n"
+                    "prevLocalPosition = matMul(jointMat2, vec4(positions, 1.0));\n"
         } else {
             "prevLocalPosition = localPosition;\n"
         }

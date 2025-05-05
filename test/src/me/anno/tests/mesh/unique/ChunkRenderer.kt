@@ -2,10 +2,12 @@ package me.anno.tests.mesh.unique
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
@@ -22,17 +24,17 @@ class ChunkRenderer(val material: Material, val world: TestWorld) :
     UniqueMeshRenderer<Vector3i, Mesh>(attributes, blockVertexData, DrawMode.TRIANGLES) {
 
     companion object {
-        val attributes = listOf(
-            Attribute("coords", 3),
+        val attributes = bind(
+            Attribute("positions", 3),
             Attribute("colors0", AttributeType.UINT8_NORM, 4)
         )
         val blockVertexData = MeshVertexData(
             listOf(
                 ShaderStage(
-                    "coords", listOf(
-                        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                    "positions", listOf(
+                        Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
-                    ), "localPosition = coords;\n"
+                    ), "localPosition = positions;\n"
                 )
             ),
             listOf(

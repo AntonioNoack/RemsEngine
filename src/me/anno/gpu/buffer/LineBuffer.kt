@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -47,7 +48,7 @@ object LineBuffer {
 
     // drawing all these lines is horribly slow -> speed it up by caching them
     // we also could calculate their position in 2D on the CPU and just upload them xD
-    val attributes = listOf(
+    val attributes = bind(
         Attribute("position", 3),
         Attribute("color", AttributeType.UINT8_NORM, 4)
     )

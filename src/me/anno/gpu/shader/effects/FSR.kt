@@ -100,8 +100,8 @@ object FSR {
                     "void main(){\n" +
                     "   vec3 color;\n" +
                     "   float alpha = texture(source,uv).a;\n" +
-                    "   vec2 coords = uv * dstWH;\n" +
-                    "   FsrEasuF(color, coords, con0, con1, con2, con3);\n" +
+                    "   vec2 positions = uv * dstWH;\n" +
+                    "   FsrEasuF(color, positions, con0, con1, con2, con3);\n" +
                     "   glFragColor = vec4(applyToneMapping ? tonemap(color) : color, alpha);\n" +
                     "}"
         )
@@ -128,8 +128,8 @@ object FSR {
                     "void FsrRcasInputF(inout float r,inout float g,inout float b){}\n" +
                     functions +
                     "void main(){\n" +
-                    "   ivec2 coords = ivec2(uv*dstWH);\n" +
-                    "   FsrRcasF(color.r,color.g,color.b,color.a,coords,sharpness);\n" +
+                    "   ivec2 positions = ivec2(uv*dstWH);\n" +
+                    "   FsrRcasF(color.r,color.g,color.b,color.a,positions,sharpness);\n" +
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such

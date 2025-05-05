@@ -6,6 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.control.CameraController.Companion.setup
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.TransformMesh.scale
 import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner

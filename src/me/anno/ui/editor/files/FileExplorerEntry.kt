@@ -676,7 +676,7 @@ open class FileExplorerEntry(
 
         val t3 = System.nanoTime()
         if (t3 - t0 > 30 * MILLIS_TO_NANOS) {
-            println("Slow paint! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f}")
+            LOGGER.warn("Slow paint! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f}")
         }
     }
 

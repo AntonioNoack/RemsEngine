@@ -28,13 +28,13 @@ object GFXx3D {
 
     val shader3DCircle = ShaderLib.createShader(
         "3dCircle", listOf(
-            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),// angle, inner/outer
+            Variable(GLSLType.V2F, "positions", VariableMode.ATTR),// angle, inner/outer
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V3F, "circleParams"), // 1 - inner r, start, end
         ), "" +
                 "void main(){\n" +
-                "   float angle = mix(circleParams.y, circleParams.z, coords.x);\n" +
-                "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * coords.y);\n" +
+                "   float angle = mix(circleParams.y, circleParams.z, positions.x);\n" +
+                "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * positions.y);\n" +
                 "   finalPosition = vec3(betterUV, 0.0);\n" +
                 "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 ShaderLib.flatNormal +

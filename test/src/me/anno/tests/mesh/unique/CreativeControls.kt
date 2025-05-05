@@ -30,14 +30,14 @@ class CreativeControls(
         return Vector3i(floor(pos.x).toInt(), floor(pos.y).toInt(), floor(pos.z).toInt())
     }
 
-    fun setBlock(coords: Vector3i, block: Byte) {
-        world.setElementAt(coords.x, coords.y, coords.z, true, block)
-        val chunkId = coordsToChunkId(coords)
+    fun setBlock(positions: Vector3i, block: Byte) {
+        world.setElementAt(positions.x, positions.y, positions.z, true, block)
+        val chunkId = coordsToChunkId(positions)
         invalidateChunkAt(chunkId)
         val localCoords = Vector3i(
-            posMod(coords.x, csx),
-            posMod(coords.y, csy),
-            posMod(coords.z, csz),
+            posMod(positions.x, csx),
+            posMod(positions.y, csy),
+            posMod(positions.z, csz),
         )
         // when we're on the edge, and we remove a block (set a transparent one), we need to invalidate our neighbors, too
         if (block == TestWorld.air) {
@@ -54,17 +54,17 @@ class CreativeControls(
         }
     }
 
-    fun coordsToChunkId(coords: Vector3i): Vector3i {
+    fun coordsToChunkId(positions: Vector3i): Vector3i {
         return Vector3i(
-            floorDiv(coords.x, csx),
-            floorDiv(coords.y, csy),
-            floorDiv(coords.z, csz)
+            floorDiv(positions.x, csx),
+            floorDiv(positions.y, csy),
+            floorDiv(positions.z, csz)
         )
     }
 
-    fun invalidateChunkAt(coords: Vector3i) {
+    fun invalidateChunkAt(positions: Vector3i) {
         chunkLoader.worker += {
-            chunkLoader.generateChunk(coords)
+            chunkLoader.generateChunk(positions)
         }
     }
 
@@ -80,18 +80,18 @@ class CreativeControls(
             when (button) {
                 Key.BUTTON_LEFT -> {
                     // remove block
-                    val coords = getCoords(query, +1e-3)
-                    setBlock(coords, 0)
+                    val positions = getCoords(query, +1e-3)
+                    setBlock(positions, 0)
                 }
                 Key.BUTTON_RIGHT -> {
                     // add block
-                    val coords = getCoords(query, -1e-3)
-                    setBlock(coords, inHandBlock)
+                    val positions = getCoords(query, -1e-3)
+                    setBlock(positions, inHandBlock)
                 }
                 Key.BUTTON_MIDDLE -> {
                     // get block
-                    val coords = getCoords(query, +1e-3)
-                    inHandBlock = world.getElementAt(coords.x, coords.y, coords.z, true) ?: 0
+                    val positions = getCoords(query, +1e-3)
+                    inHandBlock = world.getElementAt(positions.x, positions.y, positions.z, true) ?: 0
                 }
                 else -> {}
             }

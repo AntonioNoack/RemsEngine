@@ -13,7 +13,7 @@ object AttributeLoading {
 
     fun appendAttributeLoader(
         code: StringBuilder, main: StringBuilder,
-        attr: Attribute, variable: Variable,
+        attributeLayout: AttributeLayout, attributeIndex: Int, variable: Variable,
         isInstanced: Boolean
     ) {
         assertFalse(variable.type.isSampler)
@@ -22,14 +22,16 @@ object AttributeLoading {
         code.append(" ").append(variable.name)
         code.append(";\n")
 
-        appendAttributeLoader2(main, attr, variable, isInstanced)
+        appendAttributeLoader2(main, attributeLayout, attributeIndex, variable, isInstanced)
     }
 
     private fun appendAttributeLoader2(
         main: StringBuilder,
-        attr: Attribute, variable: Variable,
+        attributeLayout: AttributeLayout, attributeIndex: Int, variable: Variable,
         isInstanced: Boolean
     ) {
+
+        val attributeType = attributeLayout.type(attributeIndex)
 
         // load variable from respective buffer
         main.append(variable.name).append(" = ")
@@ -41,11 +43,11 @@ object AttributeLoading {
         fun loadIntS32(component: Int) {
             // todo this might break with fractional overlap
             // validate stride
-            assertEquals(0, attr.stride.and(3))
+            assertEquals(0, attributeLayout.stride.and(3))
             main.append(bufferName)
             main.append('[').append(idName)
-                .append(" * ").append(attr.stride.shr(2))
-                .append(" + ").append(attr.offset.shr(2) + component)
+                .append(" * ").append(attributeLayout.stride.shr(2))
+                .append(" + ").append(attributeLayout.offset(attributeIndex).shr(2) + component)
                 .append(']')
         }
 
@@ -100,11 +102,11 @@ object AttributeLoading {
         }
 
         fun loadInt(component: Int) {
-            loadInt(component, attr.type)
+            loadInt(component, attributeType)
         }
 
         fun loadFloat(component: Int) {
-            when (attr.type) {
+            when (attributeType) {
                 AttributeType.FLOAT -> {
                     main.append("intBitsToFloat(")
                     loadInt(component, AttributeType.SINT32)
@@ -119,15 +121,15 @@ object AttributeLoading {
                 AttributeType.SINT8, AttributeType.SINT16, AttributeType.SINT32,
                 AttributeType.UINT8, AttributeType.UINT16, AttributeType.UINT32 -> {
                     main.append("float(")
-                    loadInt(component, attr.type)
+                    loadInt(component, attributeType)
                     main.append(")")
                 }
-                else -> throw NotImplementedError("loadFloat(${attr.type})")
+                else -> throw NotImplementedError("loadFloat(${attributeType})")
             }
         }
 
         fun loadFloatFinish() {
-            val bitCount = when (attr.type) {
+            val bitCount = when (attributeType) {
                 AttributeType.SINT8_NORM -> 7
                 AttributeType.SINT16_NORM -> 15
                 AttributeType.SINT32_NORM -> 31
@@ -145,13 +147,13 @@ object AttributeLoading {
                 loadFloatFinish()
             }
             GLSLType.V1I -> {
-                main.append(if (attr.type.signed) "(" else "int(")
+                main.append(if (attributeType.signed) "(" else "int(")
                 loadInt(0)
                 main.append(")")
             }
             GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> {
-                val prefix = if (attr.type.signed) "((" else "(int("
-                val separator = if (attr.type.signed) "),(" else "),int("
+                val prefix = if (attributeType.signed) "((" else "(int("
+                val separator = if (attributeType.signed) "),(" else "),int("
                 main.append(type.glslName).append(prefix)
                 for (i in 0 until type.components) {
                     if (i > 0) main.append(separator)
@@ -161,10 +163,10 @@ object AttributeLoading {
             }
             GLSLType.V1B -> {
                 loadInt(0)
-                main.append(if (attr.type.signed) "!=0" else "!=0u")
+                main.append(if (attributeType.signed) "!=0" else "!=0u")
             }
             GLSLType.V2B, GLSLType.V3B, GLSLType.V4B -> {
-                val check = if (attr.type.signed) "!=0" else "!=0u"
+                val check = if (attributeType.signed) "!=0" else "!=0u"
                 main.append(type.glslName).append('(')
                 for (i in 0 until type.components) {
                     if (i > 0) main.append(',')

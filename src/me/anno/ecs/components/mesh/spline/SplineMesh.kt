@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.Splines.generateSplinePoints
 import me.anno.ecs.components.mesh.utils.MeshJoiner

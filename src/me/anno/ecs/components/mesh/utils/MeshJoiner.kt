@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.gpu.buffer.DrawMode
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.mulARGB

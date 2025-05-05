@@ -33,9 +33,9 @@ object Logo {
 
     private val shader = Shader( // very simple shader, drawing a single color
         "logo", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.V3F, "size")
-        ), "void main(){ gl_Position = vec4(coords * size, 1.0); }",
+        ), "void main(){ gl_Position = vec4(positions * size, 1.0); }",
         emptyList(), listOf(
             Variable(GLSLType.V4F, "logoColor")
         ), "void main(){ gl_FragColor = logoColor; }"

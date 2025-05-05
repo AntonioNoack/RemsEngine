@@ -14,6 +14,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.pipeline.Pipeline
@@ -148,9 +149,9 @@ class StaticMeshManager : System(), Renderable, OnUpdate {
     }
 
     companion object {
-        val attributes = listOf(
+        val attributes = bind(
             // total size: 32 bytes
-            Attribute("coords", 3),
+            Attribute("positions", 3),
             Attribute("normals", AttributeType.SINT8_NORM, 4),
             Attribute("uvs", 2),
             Attribute("tangents", AttributeType.SINT8_NORM, 4),

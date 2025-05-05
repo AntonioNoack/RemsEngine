@@ -3,6 +3,7 @@ package me.anno.tests.mesh.spline
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachPointIndex

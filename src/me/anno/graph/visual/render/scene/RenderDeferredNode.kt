@@ -274,10 +274,10 @@ open class RenderDeferredNode : RenderViewNode(
                     builder.addVertex(
                         ShaderStage(
                             "simple-triangle", listOf(
-                                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                                Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
                                 Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-                            ), "gl_Position = vec4(coords*2.0-1.0,0.0,1.0);\n" +
-                                    "uv = coords;\n"
+                            ), "gl_Position = vec4(positions*2.0-1.0,0.0,1.0);\n" +
+                                    "uv = positions;\n"
                         )
                     )
 

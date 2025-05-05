@@ -13,9 +13,9 @@ fun main() {
     val vertex = "#version 150\n" +
             "precision highp float;\n" +
             "precision highp int;\n" +
-            "in vec4 coords;\n" +
+            "in vec4 positions;\n" +
             "void main(){\n" +
-            "   gl_Position = coords;\n" +
+            "   gl_Position = positions;\n" +
             "}"
 
     val fragment = "#version 150\n" +

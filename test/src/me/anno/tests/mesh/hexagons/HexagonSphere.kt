@@ -7,6 +7,7 @@ import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere.Companion.PENTAGON_COUNT
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.utils.NormalCalculator.makeFlatShaded
 import me.anno.engine.ui.EditorState

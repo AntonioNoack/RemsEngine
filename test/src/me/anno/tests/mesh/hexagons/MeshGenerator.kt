@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.hexagons
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.chunks.spherical.Hexagon

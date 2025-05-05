@@ -13,7 +13,9 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.GLSLType
@@ -43,9 +45,9 @@ class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spr
 
     companion object {
 
-        private val attributes = listOf(
-            Attribute("coordsI", AttributeType.SINT16, 2, true),
-            Attribute("spriteI", AttributeType.SINT16, 2, true),
+        private val attributes = bind(
+            Attribute("coordsI", AttributeType.SINT16, 2),
+            Attribute("spriteI", AttributeType.SINT16, 2),
         )
 
         private const val SPRITE_BITS_X = 5
@@ -57,7 +59,7 @@ class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spr
         val spriteVertexData = MeshVertexData(
             listOf(
                 ShaderStage(
-                    "coords", listOf(
+                    "positions", listOf(
                         Variable(GLSLType.V2I, "coordsI", VariableMode.ATTR),
                         Variable(GLSLType.V2I, "spriteI", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
@@ -97,7 +99,7 @@ class SpriteLayer : UniqueMeshRenderer<Vector2i, SpriteMeshLike>(attributes, spr
     fun getDataSafely(key: Vector2i, mesh: SpriteMeshLike): StaticBuffer {
         val k = material.numTiles.x
         assertTrue(mesh.entries.isNotEmpty() && k >= 1)
-        val buffer = StaticBuffer("sprites", attributes, mesh.numPrimitives.toInt())
+        val buffer = StaticBuffer("sprites", attributes, mesh.numPrimitives.toInt(), BufferUsage.STATIC)
         mesh.fillBuffer(SPRITE_BITS_X, SPRITE_BITS_Y, key, buffer)
         return buffer
     }

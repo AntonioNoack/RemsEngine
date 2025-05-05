@@ -2,6 +2,7 @@ package me.anno.maths.geometry
 
 import me.anno.ecs.components.mesh.BoneWeights
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.ecs.components.mesh.utils.MeshBuilder
 import me.anno.maths.Maths.mix

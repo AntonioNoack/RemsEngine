@@ -2,6 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.engine.ui.render.RenderMode

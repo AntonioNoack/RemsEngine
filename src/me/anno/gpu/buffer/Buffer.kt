@@ -4,13 +4,13 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Booleans.withoutFlag
@@ -20,10 +20,11 @@ import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
 import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
 import org.lwjgl.opengl.GL46C.glVertexAttribPointer
 
-abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUsage) :
+abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUsage) :
     OpenGLBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
-    constructor(name: String, attributes: List<Attribute>) : this(name, attributes, BufferUsage.STATIC)
+    constructor(name: String, attributes: List<Attribute>) :
+            this(name, bind(attributes), BufferUsage.STATIC)
 
     var drawMode = DrawMode.TRIANGLES
     var drawLength
@@ -37,24 +38,25 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         bindBuffer(type, pointer, true)
     }
 
-    private var hasWarned = false
     open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
         bindAttributes(shader, false)
         instanceData?.bindAttributes(shader, true)
-        unbindAttributes(shader, attributes, instanceData?.attributes ?: emptyList())
+        unbindAttributes(shader, attributes, instanceData?.attributes)
     }
 
     @InternalAPI
     private fun unbindAttributes(
-        shader: Shader, instancedAttributes: List<Attribute>,
-        nonInstancedAttributes: List<Attribute>
+        shader: Shader, instancedAttributes: AttributeLayout,
+        nonInstancedAttributes: AttributeLayout?
     ) {
         val declaredAttributes = shader.attributes
         for (i in declaredAttributes.indices) {
             val attr = declaredAttributes[i]
             // check if name is bound in attr1/attr2
             val attrName = attr.name
-            if (nonInstancedAttributes.none2 { it.name == attrName } && instancedAttributes.none2 { it.name == attrName }) {
+            if ((nonInstancedAttributes == null || nonInstancedAttributes.indexOf(attrName) < 0) &&
+                instancedAttributes.indexOf(attrName) < 0
+            ) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
             }
@@ -66,8 +68,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     fun bindAttributes(shader: Shader, instanced: Boolean) {
         forceBind()
         val attrs = attributes
-        for (i in attrs.indices) {
-            bindAttribute(shader, attrs[i], instanced)
+        for (i in 0 until attrs.size) {
+            bindAttribute(shader, attrs, i, instanced)
         }
     }
 
@@ -92,9 +94,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     open fun unbind(shader: Shader) {
         bindBuffer(GL_ARRAY_BUFFER, 0)
-        for (index in attributes.indices) {
-            val attr = attributes[index]
-            unbindAttribute(shader, attr.name)
+        val attributes = attributes
+        for (i in 0 until attributes.size) {
+            val attr = attributes
+            unbindAttribute(shader, attr.name(i))
         }
     }
 
@@ -108,8 +111,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         bindInstanced(shader, instanceData)
         GFXState.bind()
         val culling = Pipeline.currentInstance?.getOcclusionCulling()
-        val clickIdAttr = if (culling != null) findClickIdAttr(instanceData) else null
-        if (culling != null && clickIdAttr != null) {
+        val clickIdAttr = if (culling != null) findClickIdAttr(instanceData) else -1
+        if (culling != null && clickIdAttr >= 0) {
             culling.drawArraysInstanced(shader, instanceData, clickIdAttr, 0, drawLength, drawMode)
         } else {
             GL46C.glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
@@ -176,25 +179,25 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         private var enabledAttributes = 0
 
         // todo this doesn't really belong here, move it somewhere else
-        fun findClickIdAttr(instanceData: Buffer): Attribute? {
-            return instanceData.attributes.firstOrNull { it.name == "instanceFinalId" }
+        fun findClickIdAttr(instanceData: Buffer): Int {
+            return instanceData.attributes.indexOf("instanceFinalId")
         }
 
         @JvmStatic
-        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
+        fun bindAttribute(shader: Shader, attr: AttributeLayout, i: Int, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
-            val index = shader.getAttributeLocation(attr.name)
+            val index = shader.getAttributeLocation(attr.name(i))
             return if (index in 0 until GFX.maxAttributes) {
-                val type = attr.type
-                if (attr.isNativeInt) {
+                val type = attr.type(i)
+                if (shader.isAttributeNative(index)) {
                     glVertexAttribIPointer(
-                        index, attr.components, type.id,
-                        attr.stride, attr.offset.toLong()
+                        index, attr.components(i), type.glslId,
+                        attr.stride, attr.offset(i).toLong()
                     )
                 } else {
                     glVertexAttribPointer(
-                        index, attr.components, type.id,
-                        type.normalized, attr.stride, attr.offset.toLong()
+                        index, attr.components(i), type.glslId,
+                        type.normalized, attr.stride, attr.offset(i).toLong()
                     )
                 }
                 glVertexAttribDivisor(index, instanceDivisor)

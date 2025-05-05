@@ -1,6 +1,7 @@
 package me.anno.tests.terrain.v1
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
 import me.anno.maths.chunks.cartesian.ChunkSystem

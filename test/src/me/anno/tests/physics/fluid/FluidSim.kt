@@ -117,7 +117,7 @@ class ParticleShader(val sim: FluidSimulation) : ECSMeshShader("particles") {
                     "ivec2 texSize = textureSize(positionTex,0);\n" +
                     "ivec2 particleUV = ivec2(gl_InstanceID % texSize.x, gl_InstanceID / texSize.x);\n" +
                     "vec3 particlePos = texelFetch(positionTex, particleUV, 0).xyz - vec3(0.5, 0.0, 0.5);\n" +
-                    "localPosition = particlePos * areaSize + coords;\n"
+                    "localPosition = particlePos * areaSize + positions;\n"
         )
         return createDefines(key) +
                 loadVertex(key) +

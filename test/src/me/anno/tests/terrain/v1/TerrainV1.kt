@@ -1,8 +1,8 @@
 package me.anno.tests.terrain.v1
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -12,7 +12,6 @@ import me.anno.maths.Maths.sq
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sx
 import me.anno.tests.terrain.v1.TerrainChunkSystem.Companion.sz
 import me.anno.utils.Color.toRGB
-import org.joml.Vector3d
 import kotlin.math.ceil
 import kotlin.math.floor
 

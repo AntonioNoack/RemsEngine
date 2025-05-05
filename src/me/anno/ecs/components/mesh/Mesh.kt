@@ -9,6 +9,14 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
+import me.anno.ecs.components.mesh.MeshAttribute.Companion.copyOf
+import me.anno.ecs.components.mesh.MeshAttributes.boneIndicesType
+import me.anno.ecs.components.mesh.MeshAttributes.boneWeightsType
+import me.anno.ecs.components.mesh.MeshAttributes.color0
+import me.anno.ecs.components.mesh.MeshAttributes.coordsType
+import me.anno.ecs.components.mesh.MeshAttributes.normalsType
+import me.anno.ecs.components.mesh.MeshAttributes.tangentsType
+import me.anno.ecs.components.mesh.MeshAttributes.uvsType
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.TransformMesh.rotateX90DegreesImpl
@@ -25,6 +33,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
@@ -41,6 +50,7 @@ import me.anno.mesh.MeshRendering.drawInstancedImpl
 import me.anno.mesh.MeshUtils.countPrimitives
 import me.anno.utils.InternalAPI
 import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
 import org.apache.logging.log4j.LogManager
@@ -48,8 +58,11 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.max
+import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
-// open, so you can define your own attributes
+// open, so you can define your own properties;
+// custom attributes can be added to vertexAttributes
 open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @NotSerializedProperty
@@ -87,7 +100,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     var inverseOutline = false
 
     @HideInInspector
-    var positions: FloatArray? = null
+    var vertexAttributes = ArrayList<MeshAttribute>()
 
     @Type("List<MorphTarget>")
     var morphTargets: List<MorphTarget> = emptyList()
@@ -96,61 +109,44 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @Type("Skeleton/Reference")
     override var skeleton: FileReference = InvalidRef
 
-    @Docs("Normals in local space, will be generated automatically if missing")
+    @Docs("Position in local space, packed (x,y,z)")
+    @NotSerializedProperty
+    var positions: FloatArray? // todo change "positions" to "positions" everywhere
+        get() = getAttr("positions", FloatArray::class)
+        set(value) = setAttr("positions", value, coordsType)
+
+    @Docs("Normals in local space, packed (nx,ny,nz), will be generated automatically if missing")
     @Type("FloatArray?")
-    @HideInInspector
-    var normals: FloatArray? = null
+    @NotSerializedProperty
+    var normals: FloatArray?
+        get() = getAttr("normals", FloatArray::class)
+        set(value) = setAttr("normals", value, normalsType)
 
+    @Docs("Tangents in local space, packed (tx,ty,tz,tw)")
     @Type("FloatArray?")
-    @HideInInspector
-    var tangents: FloatArray? = null
+    @NotSerializedProperty
+    var tangents: FloatArray?
+        get() = getAttr("tangents", FloatArray::class)
+        set(value) = setAttr("tangents", value, tangentsType)
 
+    @Docs("Texture coordinates, packed (u,v)")
     @Type("FloatArray?")
-    @HideInInspector
-    var uvs: FloatArray? = null
-
-    // colors, rgba,
-    // the default shader only supports the first color
-    // other colors still can be loaded for ... idk... maybe terrain information or sth like that
-    @Type("IntArray?")
-    @HideInInspector
-    var color0: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color1: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color2: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color3: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color4: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color5: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color6: IntArray? = null
-
-    @Type("IntArray?")
-    @HideInInspector
-    var color7: IntArray? = null
+    @NotSerializedProperty
+    var uvs: FloatArray?
+        get() = getAttr("uvs", FloatArray::class)
+        set(value) = setAttr("uvs", value, uvsType)
 
     @Type("FloatArray?")
     @HideInInspector
-    var boneWeights: FloatArray? = null
+    var boneWeights: FloatArray?
+        get() = getAttr("boneWeights", FloatArray::class)
+        set(value) = setAttr("boneWeights", value, boneWeightsType)
 
     @Type("ByteArray?")
     @HideInInspector
-    var boneIndices: ByteArray? = null
+    var boneIndices: ByteArray?
+        get() = getAttr("boneIndices", ByteArray::class)
+        set(value) = setAttr("boneIndices", value, boneIndicesType)
 
     @DebugProperty
     val hasBones get() = boneIndices?.isEmpty() == false
@@ -158,6 +154,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugProperty
     val isIndexed get() = indices != null
 
+    /**
+     * maps (triangle/line-)indices to vertices
+     * not a traditional MeshAttribute
+     * */
     @HideInInspector
     var indices: IntArray? = null
 
@@ -174,7 +174,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         }
 
     /**
-     * one index per triangle
+     * one index per triangle;
+     * not a traditional MeshAttribute
      * */
     @Type("IntArray?")
     @HideInInspector
@@ -206,21 +207,13 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     fun unlinkGeometry() {
-        positions = positions?.copyOf()
-        normals = normals?.copyOf()
-        uvs = uvs?.copyOf()
-        tangents = tangents?.copyOf()
-        color0 = color0?.copyOf()
-        color1 = color1?.copyOf()
-        color2 = color2?.copyOf()
-        color3 = color3?.copyOf()
-        color4 = color4?.copyOf()
-        color5 = color5?.copyOf()
-        color6 = color6?.copyOf()
-        color7 = color7?.copyOf()
-        boneWeights = boneWeights?.copyOf()
-        boneIndices = boneIndices?.copyOf()
+        val attributes = vertexAttributes
+        for (i in attributes.indices) {
+            val attribute = attributes[i]
+            attribute.data = copyOf(attribute.data)
+        }
         indices = indices?.copyOf()
+        // how about material IDs?
     }
 
     fun deepClone(): Mesh {
@@ -237,21 +230,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         // materials
         dst.materials = materials
         // mesh data
-        dst.positions = positions
-        dst.normals = normals
-        dst.uvs = uvs
-        dst.color0 = color0
-        dst.color1 = color1
-        dst.color2 = color2
-        dst.color3 = color3
-        dst.color4 = color4
-        dst.color5 = color5
-        dst.color6 = color6
-        dst.color7 = color7
-        dst.tangents = tangents
+        dst.vertexAttributes = ArrayList(vertexAttributes)
         dst.indices = indices
-        dst.boneWeights = boneWeights
-        dst.boneIndices = boneIndices
         dst.materialIds = materialIds
         // morph targets
         dst.morphTargets = morphTargets
@@ -278,14 +258,29 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if (name == "boneIndices" && value is IntArray) {
-            boneIndices = ByteArray(value.size) { value[it].toByte() }
-        } else if (!setSerializableProperty(name, value)) {
-            super.setProperty(name, value)
+        when (name) {
+            // support for legacy files
+            "positions" -> positions = value as? FloatArray ?: return
+            "normals" -> normals = value as? FloatArray ?: return
+            "uvs" -> uvs = value as? FloatArray ?: return
+            "color0" -> color0 = value as? IntArray ?: return
+            "boneWeights" -> boneWeights = value as? FloatArray ?: return
+            "boneIndices" -> {
+                boneIndices = if (value is IntArray) {
+                    ByteArray(value.size) { value[it].toByte() }
+                } else {
+                    value as? ByteArray ?: return
+                }
+            }
+            else -> {
+                if (!setSerializableProperty(name, value)) {
+                    super.setProperty(name, value)
+                }
+            }
         }
     }
 
-    override val approxSize get() = 1
+    override val approxSize get() = 300
 
     fun calculateAABB() {
         aabb.clear()
@@ -508,6 +503,30 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     private fun warnIsImmutable() {
         LOGGER.warn("Mesh is immutable")
+    }
+
+    private fun getAttribute(name: String): MeshAttribute? {
+        return vertexAttributes.firstOrNull2 { it.attribute.name == name }
+    }
+
+    fun <V : Any> getAttr(name: String, clazz: KClass<V>): V? {
+        val value = getAttribute(name)?.data
+        return clazz.safeCast(value)
+    }
+
+    fun <V : Any> setAttr(name: String, value: V?, attrType: Attribute) {
+        val attributes = vertexAttributes
+        if (value == null) {
+            attributes.removeIf { it.attribute.name == name }
+        } else {
+            var attribute = attributes.firstOrNull2 { it.attribute.name == name }
+            if (attribute == null) {
+                attribute = MeshAttribute(attrType.withName(name), value)
+                attributes.add(attribute)
+            } else {
+                attribute.data = value
+            }
+        }
     }
 
     companion object {

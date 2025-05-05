@@ -14,7 +14,6 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.GFXFeatures
-import me.anno.utils.OS
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
@@ -200,7 +199,8 @@ class MainStage {
                     if (isMoreThanOne) code.append("case ").append(index).append(":\n")
                     // 5x5 percentage closer filtering for prettier results
                     // disable this on weak devices, e.g. on mobile
-                    var radius = DefaultConfig["gpu.percentageCloserFilteringRadius", if (GFXFeatures.hasWeakGPU) 0 else 2]
+                    var radius =
+                        DefaultConfig["gpu.percentageCloserFilteringRadius", if (GFXFeatures.hasWeakGPU) 0 else 2]
                     radius = min(radius, 5) // just in case
                     if (radius < 1) {
                         if (GFX.supportsDepthTextures) {
@@ -284,11 +284,10 @@ class MainStage {
         val code = StringBuilder()
         val main = StringBuilder()
 
-        if (key.meshLayout != null) {
+        val meshLayout = key.meshLayout
+        val instLayout = key.instLayout
+        if (meshLayout != null) {
             main.append("{ // loading baked attributes\n")
-            // define all attributes based on the given layout
-            val meshNames = key.meshLayout.associateBy { it.name }
-            val instNames = key.instLayout?.associateBy { it.name } ?: emptyMap()
 
             // append buffers
             // to do only when used
@@ -297,17 +296,15 @@ class MainStage {
 
             for (i in attributes.indices) {
                 val attr = attributes[i]
-                val byMesh = meshNames[attr.name]
-                if (byMesh != null) {
-                    appendAttributeLoader(code, main, byMesh, attr, false)
-                } else {
-                    val byInst = instNames[attr.name]
-                    if (byInst != null) {
-                        appendAttributeLoader(code, main, byInst, attr, true)
-                    } else {
-                        appendAttributeZero(code, attr)
-                    }
-                }
+                val byMesh = meshLayout.indexOf(attr.name)
+                if (byMesh >= 0) {
+                    appendAttributeLoader(code, main, meshLayout, byMesh, attr, false)
+                } else if (instLayout != null) {
+                    val byInst = instLayout.indexOf(attr.name)
+                    if (byInst >= 0) {
+                        appendAttributeLoader(code, main, instLayout, byInst, attr, true)
+                    } else appendAttributeZero(code, attr)
+                } else appendAttributeZero(code, attr)
             }
             // including instanced attributes
             main.append("}\n")

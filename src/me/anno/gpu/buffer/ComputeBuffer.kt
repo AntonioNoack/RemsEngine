@@ -6,15 +6,15 @@ import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BUFFER
 import org.lwjgl.opengl.GL46C.glGetBufferSubData
 import java.nio.ByteBuffer
 
-class ComputeBuffer(name: String, attr: List<Attribute>, elementCount: Int, type: Int = GL_SHADER_STORAGE_BUFFER) :
-    OpenGLBuffer(name, type, attr) {
+class ComputeBuffer(name: String, attr: AttributeLayout, elementCount: Int, type: Int = GL_SHADER_STORAGE_BUFFER) :
+    OpenGLBuffer(name, type, attr, BufferUsage.STATIC) {
 
     init {
         this.elementCount = elementCount
     }
 
     override fun createNioBuffer(): ByteBuffer {
-        val byteSize = elementCount * attributes.sumOf { it.byteSize }
+        val byteSize = elementCount * attributes.stride
         return ByteBufferPool.allocateDirect(byteSize)
     }
 

@@ -1,6 +1,7 @@
 package me.anno.mesh.vox.model
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.prefab.Prefab
 import me.anno.mesh.vox.meshing.BakeMesh
 import me.anno.mesh.vox.meshing.BakeMesh.getColors

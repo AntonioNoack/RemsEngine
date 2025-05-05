@@ -5,6 +5,7 @@ import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Texture2D
@@ -131,7 +132,7 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
     // like Unity, only load stuff in software, if we need it?
     // first load into GPU for rendering
 
-    val buffer2 = StaticBuffer("assimp", listOf(Attribute("attr", 3)), buffer.remaining())
+    val buffer2 = StaticBuffer("assimp", bind(Attribute("attr", 3)), buffer.remaining())
     buffer2.pointer = glGenBuffers()
     bindBuffer(GL_ARRAY_BUFFER, buffer2.pointer)
     nglBufferData(// very efficient upload

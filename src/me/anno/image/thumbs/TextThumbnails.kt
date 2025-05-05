@@ -5,7 +5,6 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -79,8 +78,6 @@ object TextThumbnails {
     }
 
     private fun generateImage(lines: List<String>, w: Int, h: Int, sx: Int, sy: Int, callback: Callback<ITexture2D>) {
-        val transform = GFXx2D.transform
-        transform.identity().scale(1f, -1f, 1f)
         val tex = Texture2D("textThumbs", w, h, 1)
         tex.create(TargetType.UInt8x3)
         GFXState.useFrame(tex) {
@@ -98,7 +95,6 @@ object TextThumbnails {
                 }
             }
         }
-        transform.identity()
         callback.ok(tex)
     }
 

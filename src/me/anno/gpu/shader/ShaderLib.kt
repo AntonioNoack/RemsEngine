@@ -41,7 +41,7 @@ object ShaderLib {
             "}\n" +
             "#endif\n"
 
-    val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
+    val coordsList = listOf(Variable(GLSLType.V2F, "positions", VariableMode.ATTR))
 
     const val applyTiling = "" +
             "vec2 applyTiling(vec2 uv, vec4 tiling) {\n" +
@@ -50,19 +50,19 @@ object ShaderLib {
 
     const val coordsVertexShader = "" +
             "void main(){\n" +
-            "   vec2 coords = vec2(\n" +
+            "   vec2 positions = vec2(\n" +
             "       gl_VertexID == 1 ? 2.0 : 0.0,\n" +
             "       gl_VertexID == 2 ? 2.0 : 0.0);\n" +
-            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
+            "   gl_Position = vec4(positions*2.0-1.0,0.5,1.0);\n" +
             "}"
 
     const val coordsUVVertexShader = "" +
             "void main(){\n" +
-            "   vec2 coords = vec2(\n" +
+            "   vec2 positions = vec2(\n" +
             "       gl_VertexID == 1 ? 2.0 : 0.0,\n" +
             "       gl_VertexID == 2 ? 2.0 : 0.0);\n" +
-            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
-            "   uv = coords;\n" +
+            "   gl_Position = vec4(positions*2.0-1.0,0.5,1.0);\n" +
+            "   uv = positions;\n" +
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
@@ -75,8 +75,8 @@ object ShaderLib {
     const val uiVertexShader = "" +
             applyTiling +
             "void main(){\n" +
-            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-            "   uv = applyTiling(coords,tiling);\n" +
+            "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
+            "   uv = applyTiling(positions,tiling);\n" +
             "}"
 
     const val dither2x2 = "" +
@@ -192,7 +192,7 @@ object ShaderLib {
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 
     val v3Dl = listOf(
-        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+        Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
         Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
         Variable(GLSLType.M4x4, "transform"),
         Variable(GLSLType.V4F, "tiling")
@@ -201,10 +201,10 @@ object ShaderLib {
     const val v3D = "" +
             applyTiling +
             "void main(){\n" +
-            "   finalPosition = coords;\n" +
+            "   finalPosition = positions;\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "   uv = applyTiling(uvs,tiling);\n" +
-            "   uvw = coords;\n" +
+            "   uvw = positions;\n" +
             flatNormal +
             "}"
 
@@ -225,12 +225,12 @@ object ShaderLib {
 
     val v3DlMasked = listOf(
         Variable(GLSLType.M4x4, "transform"),
-        Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+        Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
     )
 
     const val v3DMasked = "" +
             "void main(){\n" +
-            "   finalPosition = vec3(coords*2.0-1.0, 0.0);\n" +
+            "   finalPosition = vec3(positions*2.0-1.0, 0.0);\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "   uv = gl_Position.xyw;\n" +
             "}"
@@ -294,10 +294,10 @@ object ShaderLib {
         ),
         "" +
                 "void main(){\n" +
-                "   vec2 localPos = posSize.xy + coords * posSize.zw;\n" +
+                "   vec2 localPos = posSize.xy + positions * posSize.zw;\n" +
                 "   gl_Position = matMul(transform, vec4(localPos*2.0-1.0, 0.0, 1.0));\n" +
                 "   position = localPos * windowSize;\n" +
-                "   uv = coords;\n" +
+                "   uv = positions;\n" +
                 "}",
         listOf(
             Variable(GLSLType.V2F, "uv"),
@@ -326,7 +326,7 @@ object ShaderLib {
         val type = if (instanced) VariableMode.ATTR else VariableMode.IN
         BaseShader(
             "subpixelCorrectTextShader", listOf(
-                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
                 Variable(GLSLType.V3F, "instData", type),
                 Variable(GLSLType.V4F, "color0", type),
                 Variable(GLSLType.V4F, "color1", type),
@@ -337,20 +337,20 @@ object ShaderLib {
             ), if (instanced) {
                 "" +
                         "void main(){\n" +
-                        "   vec2 localPos = coords * posSize.zw + instData.xy;\n" +
+                        "   vec2 localPos = positions * posSize.zw + instData.xy;\n" +
                         "   gl_Position = matMul(transform, vec4(localPos*2.0-1.0, 0.0, 1.0));\n" +
                         "   position = localPos * windowSize;\n" +
                         "   textColor = color0;\n" +
                         "   backgroundColor = color1;\n" +
-                        "   uv = vec3(coords.x,1.0-coords.y,instData.z);\n" +
+                        "   uv = vec3(positions.x,1.0-positions.y,instData.z);\n" +
                         "}"
             } else {
                 "" +
                         "void main(){\n" +
-                        "   vec2 localPos = coords * posSize.zw + posSize.xy;\n" +
+                        "   vec2 localPos = positions * posSize.zw + posSize.xy;\n" +
                         "   gl_Position = matMul(transform, vec4(localPos*2.0-1.0, 0.0, 1.0));\n" +
                         "   position = localPos * windowSize;\n" +
-                        "   uv = coords;\n" +
+                        "   uv = positions;\n" +
                         "}"
             },
             if (instanced) listOf(

@@ -1,58 +1,53 @@
 package me.anno.gpu.buffer
 
-import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.types.Strings.addPrefix
+import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 
-class Attribute(val name: String, val type: AttributeType, val components: Int, val isNativeInt: Boolean = false) {
+data class Attribute(
+    /**
+     * name for use in GLSL
+     * */
+    var name: String,
+    /**
+     * what number type it uses
+     * */
+    var type: AttributeType,
+    /**
+     * how many components there are, 1 = scalar, more = vector
+     * */
+    var numComponents: Int
+) : Saveable() {
 
-    constructor(name: String, components: Int) : this(name, AttributeType.FLOAT, components, false)
+    constructor() : this("", 0)
+    constructor(name: String, components: Int) : this(name, AttributeType.FLOAT, components)
 
-    val byteSize = components * type.byteSize
-    var offset = 0
-    var stride = 0
+    val byteSize get() = numComponents * type.byteSize
 
     override fun toString(): String {
-        return "Attribute($name,$type,$components${if (isNativeInt) ",nativeInt" else ""})"
+        return "Attribute($name,$type,$numComponents)"
     }
 
-    override fun equals(other: Any?): Boolean {
-        return other is Attribute &&
-                other.type == type && other.components == components &&
-                other.isNativeInt == isNativeInt &&
-                other.name == name &&
-                other.offset == offset &&
-                other.stride == stride
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeString("name", name)
+        writer.writeEnum("type", type)
+        writer.writeInt("components", numComponents)
     }
 
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + type.hashCode()
-        result = 31 * result + components
-        result = 31 * result + isNativeInt.hashCode()
-        result = 31 * result + byteSize
-        result = 31 * result + offset.hashCode()
-        result = 31 * result + stride.hashCode()
-        return result
-    }
-
-    companion object {
-
-        val types = createArrayList(8) {
-            val isInt = it >= 4
-            val sub = it and 3
-            addPrefix(if (isInt) "i" else null, if (sub == 1) "float" else "vec$sub")
-        }
-
-        fun computeOffsets(attributes: List<Attribute>): Int {
-            var offset = 0
-            val stride = attributes.sumOf { it.byteSize }
-            for (it in attributes) {
-                it.offset = offset
-                it.stride = stride
-                offset += it.byteSize
-            }
-            return stride
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "name" -> this.name = value as? String ?: return
+            "type" -> type = AttributeType.getById(value as? Int ?: return)
+            "components" -> numComponents = value as? Int ?: return
+            else -> super.setProperty(name, value)
         }
     }
+
+    fun withName(name: String): Attribute {
+        if (name == this.name) return this
+        return Attribute(name, type, numComponents)
+    }
+
+    override val approxSize: Int get() = 100
 }
 

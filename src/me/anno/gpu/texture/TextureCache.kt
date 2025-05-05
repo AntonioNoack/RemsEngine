@@ -45,7 +45,7 @@ object TextureCache : CacheSection("Texture") {
         return when {
             entry == null -> false
             entry.hasValue && entry.value == null -> true
-            entry.value?.wasCreated == true -> true
+            entry.value?.isCreated() == true -> true
             else -> false
         }
     }

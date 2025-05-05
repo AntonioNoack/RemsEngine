@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.createEndPiece
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.generateSplineMesh

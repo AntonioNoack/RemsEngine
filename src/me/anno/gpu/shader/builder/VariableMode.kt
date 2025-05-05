@@ -3,7 +3,7 @@ package me.anno.gpu.shader.builder
 enum class VariableMode(val glslName: String) {
     /** shader stage inout, typically uniforms or the stage before it */
     IN("in"),
-    /** shader input, by vertex buffers like coords, normals, ... */
+    /** shader input, by vertex buffers like positions, normals, ... */
     ATTR("attr"),
     /** shader stage output */
     OUT("out"),

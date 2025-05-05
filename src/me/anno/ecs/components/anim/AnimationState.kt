@@ -64,7 +64,7 @@ class AnimationState(
             "weight" -> weight = value as? Float ?: return
             "progress" -> progress = value as? Float ?: return
             "speed" -> speed = value as? Float ?: return
-            "repeat" -> repeat = LoopingState.getState(value as? Int ?: return)
+            "repeat" -> repeat = LoopingState.getById(value as? Int ?: return)
             else -> super.setProperty(name, value)
         }
     }

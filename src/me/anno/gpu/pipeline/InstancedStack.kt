@@ -149,10 +149,10 @@ open class InstancedStack {
 
                 mesh.ensureBuffer()
 
-                // todo useBakedLayout in non-instanced meshes, too (?)
+                // todo useAttributeLayout in non-instanced meshes, too (?)
                 // todo test with lots and lots of attributes
                 //  (whether we still fail before this)
-                val useBakedLayout = false && (mesh is Mesh && mesh.helperMeshes == null &&
+                val useAttributeLayout = false && (mesh is Mesh && mesh.helperMeshes == null &&
                         !Mesh.drawDebugLines && mesh.buffer != null) // && Input.isShiftDown
 
                 val tmpShader = stage.getShader(material)
@@ -206,7 +206,7 @@ open class InstancedStack {
                     )
                 }
 
-                if (useBakedLayout) {
+                if (useAttributeLayout) {
                     mesh as Mesh
                     val bufferI = mesh.buffer!!
                     GFXState.bakedMeshLayout.use(bufferI.attributes) {

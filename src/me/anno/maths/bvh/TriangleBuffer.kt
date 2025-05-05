@@ -1,12 +1,13 @@
 package me.anno.maths.bvh
 
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.maths.bvh.TrisFiller.Companion.fillTris
 
 object TriangleBuffer {
 
-    val triangleAttr1 = listOf(
+    val triangleAttr1 = bind(
         Attribute("pos", 3),
         Attribute("pad0", 1),
     )

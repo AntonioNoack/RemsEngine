@@ -17,6 +17,7 @@ import me.anno.ecs.components.mesh.HelperMesh
 import me.anno.ecs.components.mesh.HelperMesh.Companion.createHelperMeshes
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material

@@ -95,7 +95,7 @@ object OSMMapCache : CacheSection("OSMMapData") {
         val dx = min(bounds.deltaX, bounds.deltaY)
         val level = round(log2(dx))
         val levelI = level.toInt()
-        // calculate min/max coords
+        // calculate min/max positions
         val di = 2.0.pow(level)
         val x0 = floor(bounds.minX / di).toLongOr()
         val y0 = floor(bounds.minY / di).toLongOr()

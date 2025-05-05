@@ -47,10 +47,10 @@ class LoopingStateTests {
 
     @Test
     fun testGetStateById() {
-        assertEquals(LoopingState.getState(-1), LoopingState.PLAY_ONCE)
-        assertEquals(LoopingState.getState(0), LoopingState.PLAY_ONCE)
-        assertEquals(LoopingState.getState(1), LoopingState.PLAY_LOOP)
-        assertEquals(LoopingState.getState(2), LoopingState.PLAY_REVERSING_LOOP)
-        assertEquals(LoopingState.getState(3), LoopingState.PLAY_ONCE)
+        assertEquals(LoopingState.getById(-1), LoopingState.PLAY_ONCE)
+        assertEquals(LoopingState.getById(0), LoopingState.PLAY_ONCE)
+        assertEquals(LoopingState.getById(1), LoopingState.PLAY_LOOP)
+        assertEquals(LoopingState.getById(2), LoopingState.PLAY_REVERSING_LOOP)
+        assertEquals(LoopingState.getById(3), LoopingState.PLAY_ONCE)
     }
 }

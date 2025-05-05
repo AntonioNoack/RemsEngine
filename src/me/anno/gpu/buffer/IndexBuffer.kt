@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.Buffer.Companion.findClickIdAttr
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline
@@ -114,7 +115,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
             GFXState.bind()
-            glDrawElements(drawMode.id, indices.size, elementsType.id, 0)
+            glDrawElements(drawMode.id, indices.size, elementsType.glslId, 0)
             unbind()
             GFX.check()
         }
@@ -163,11 +164,11 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         GFXState.bind()
         GFX.check()
         val culling = Pipeline.currentInstance?.getOcclusionCulling()
-        val clickIdAttr = if (culling != null) findClickIdAttr(instanceData) else null
-        if (culling != null && clickIdAttr != null) {
+        val clickIdAttr = if (culling != null) findClickIdAttr(instanceData) else -1
+        if (culling != null && clickIdAttr >= 0) {
             culling.drawElementsInstanced(shader, instanceData, clickIdAttr, 0, indices.size, drawMode, elementsType)
         } else {
-            glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceData.drawLength)
+            glDrawElementsInstanced(drawMode.id, indices.size, elementsType.glslId, 0, instanceData.drawLength)
         }
         GFX.check()
         unbind()
@@ -178,7 +179,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         bindInstanced(shader, null)
         val drawMode = (drawMode ?: base.drawMode)
         GFXState.bind()
-        glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceCount)
+        glDrawElementsInstanced(drawMode.id, indices.size, elementsType.glslId, 0, instanceCount)
         unbind()
     }
 
@@ -199,7 +200,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
 
     companion object {
         private val i0 = IntArray(0)
-        private val int32Attrs = listOf(Attribute("index", AttributeType.UINT32, 1))
-        private val int16Attrs = listOf(Attribute("index", AttributeType.UINT16, 1))
+        private val int32Attrs = bind(Attribute("index", AttributeType.UINT32, 1))
+        private val int16Attrs = bind(Attribute("index", AttributeType.UINT16, 1))
     }
 }

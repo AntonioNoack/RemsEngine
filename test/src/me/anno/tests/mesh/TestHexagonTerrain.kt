@@ -2,6 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.HexagonTerrainModel.createHexagonTerrain
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -41,8 +42,8 @@ fun main() {
     val n = 75
     val scene = Entity()
     val baseMesh = createHexagonTerrain(n, 0.05f, HexagonGridMaths.corners, Mesh())
-    for (coords in getHexagonTilesInRadius(3)) {
-        val offset = HexagonGridMaths.getCenter(coords, Vector2d())
+    for (positions in getHexagonTilesInRadius(3)) {
+        val offset = HexagonGridMaths.getCenter(positions, Vector2d())
         val mesh = baseMesh.deepClone() // indices could be copied instead of deep-copied
         val elevation = PerlinNoise(1234, 8, 0.4f, 0f, 1f, Vector4f(1f))
         val positions = mesh.positions!!
@@ -64,7 +65,7 @@ fun main() {
             normal.get(normals, i)
             colors[i / 3] = getColor(h0)
         }
-        Entity("Tile$coords", scene)
+        Entity("Tile$positions", scene)
             .add(MeshComponent(mesh))
             .setPosition(offset.x, 0.0, offset.y)
             .setScale(0.9f)

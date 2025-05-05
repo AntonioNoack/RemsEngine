@@ -1,11 +1,11 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.OpenGLBuffer
-import me.anno.utils.types.Strings.titlecase
-import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Strings.iff
+import me.anno.utils.types.Strings.titlecase
 
 /**
  * functions to create compute shaders operating on OpenGLBuffers
@@ -49,7 +49,7 @@ object BufferCompute {
     }
 
     fun createAccessors(
-        given: List<Attribute>,
+        given: AttributeLayout,
         wanted: List<Attribute>,
         name: String, binding: Int,
         setters: Boolean
@@ -63,24 +63,26 @@ object BufferCompute {
                     "    uint data[];\n" +
                     "} $name;\n"
         )
-        val stride4 = (given.firstOrNull()?.stride ?: 0) / 4
-        for (attr in given) {
-            val offset4 = pos / 4
-            val name1 = attr.name.titlecase()
-            val reqType = wanted.firstOrNull { it.name == attr.name }
+        val stride4 = given.stride shr 2
+        for (attr in 0 until given.size) {
+            val offset4 = pos shr 2
+            val attrName = given.name(attr)
+            val name1 = attrName.titlecase()
+            val reqType = wanted.firstOrNull { it.name == attrName }
+            val numAttrComponents = given.components(attr)
             if (reqType != null) {
-                when (attr.type) {
+                when (given.type(attr)) {
                     AttributeType.FLOAT -> {
-                        val type = floatType(attr.components)
-                        val alignment = floatAlignment(attr.components)
-                        val size = attr.components * 4
+                        val type = floatType(numAttrComponents)
+                        val alignment = floatAlignment(numAttrComponents)
+                        val size = numAttrComponents * 4
                         if (pos % alignment != 0) {
                             throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
                         }
                         result.append(
                             "$type get$name$name1(uint index){\n" +
                                     "   uint idx = index*${stride4}+$offset4;\n" +
-                                    when (attr.components) {
+                                    when (numAttrComponents) {
                                         1 -> "return uintBitsToFloat($name.data[idx]);\n"
                                         2 -> "return vec2(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]));\n"
                                         3 -> "return vec3(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]));\n"
@@ -93,7 +95,7 @@ object BufferCompute {
                             result.append(
                                 "void set$name$name1(uint index, $type value){\n" +
                                         "   uint idx = index*${stride4}+$offset4;\n" +
-                                        (0 until attr.components).joinToString("") {
+                                        (0 until numAttrComponents).joinToString("") {
                                             "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]});\n"
                                         } +
                                         "}\n"
@@ -102,16 +104,16 @@ object BufferCompute {
                         pos += size
                     }
                     AttributeType.UINT32 -> {
-                        val type = uintType(attr.components)
-                        val alignment = floatAlignment(attr.components)
-                        val size = attr.components * 4
+                        val type = uintType(numAttrComponents)
+                        val alignment = floatAlignment(numAttrComponents)
+                        val size = numAttrComponents * 4
                         if (pos % alignment != 0) {
                             throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
                         }
                         result.append(
                             "$type get$name$name1(uint index){\n" +
                                     "   uint idx = index*${stride4}+$offset4;\n" +
-                                    when (attr.components) {
+                                    when (numAttrComponents) {
                                         1 -> "return ($name.data[idx]);\n"
                                         2 -> "return uvec2(($name.data[idx]),($name.data[idx+1]));\n"
                                         3 -> "return uvec3(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]));\n"
@@ -124,7 +126,7 @@ object BufferCompute {
                             result.append(
                                 "void set$name$name1(uint index, $type value){\n" +
                                         "   uint idx = index*${stride4}+$offset4;\n" +
-                                        (0 until attr.components).joinToString("") {
+                                        (0 until numAttrComponents).joinToString("") {
                                             "$name.data[idx+$it] = (value.${"xyzw"[it]})\n"
                                         } +
                                         "}\n"
@@ -133,16 +135,16 @@ object BufferCompute {
                         pos += size
                     }
                     AttributeType.SINT32 -> {
-                        val type = sintType(attr.components)
-                        val alignment = floatAlignment(attr.components)
-                        val size = attr.components * 4
+                        val type = sintType(numAttrComponents)
+                        val alignment = floatAlignment(numAttrComponents)
+                        val size = numAttrComponents * 4
                         if (pos % alignment != 0) {
                             throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
                         }
                         result.append(
                             "$type get$name$name1(uint index){\n" +
                                     "   uint idx = index*${stride4}+$offset4;\n" +
-                                    when (attr.components) {
+                                    when (numAttrComponents) {
                                         1 -> "return int($name.data[idx]);\n"
                                         2 -> "return ivec2(int($name.data[idx]),int($name.data[idx+1]));\n"
                                         3 -> "return ivec3(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]));\n"
@@ -155,7 +157,7 @@ object BufferCompute {
                             result.append(
                                 "void set$name$name1(uint index, $type value){\n" +
                                         "   uint idx = index*${stride4}+$offset4;\n" +
-                                        (0 until attr.components).joinToString("") {
+                                        (0 until numAttrComponents).joinToString("") {
                                             "$name.data[idx+$it] = uint(value.${"xyzw"[it]})\n"
                                         } +
                                         "}\n"
@@ -164,10 +166,10 @@ object BufferCompute {
                         pos += size
                     }
                     AttributeType.SINT8_NORM -> {
-                        if (attr.components != 4) throw NotImplementedError()
+                        if (numAttrComponents != 4) throw NotImplementedError()
                         val alignment = 4
                         if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std140")
-                        val c = reqType.components
+                        val c = reqType.numComponents
                         when (c) {
                             1 -> result.append(
                                 "float get$name$name1(uint index){\n" +
@@ -211,14 +213,14 @@ object BufferCompute {
                                         "}\n"
                             )
                         }
-                        val size = attr.components
+                        val size = numAttrComponents
                         pos += size
                     }
                     AttributeType.UINT8_NORM -> {
-                        if (attr.components != 4) throw NotImplementedError()
+                        if (numAttrComponents != 4) throw NotImplementedError()
                         val alignment = 4
                         if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std430")
-                        val c = reqType.components
+                        val c = reqType.numComponents
                         when (c) {
                             1 -> result.append(
                                 "float get$name$name1(uint index){\n" +
@@ -262,20 +264,20 @@ object BufferCompute {
                                         "}\n"
                             )
                         }
-                        val size = attr.components
+                        val size = numAttrComponents
                         pos += size
                     }
                     else -> throw NotImplementedError(attr.toString())
                 }
             }
         }
-        for (attr in wanted) {
-            if (given.none2 { it.name == attr.name }) {
+        // append missing attributes as 0 or (0,0,0,0)
+        for (i in wanted.indices) {
+            val attr = wanted[i]
+            if (given.indexOf(attr.name) < 0) {
                 val name1 = attr.name.titlecase()
-                val type = floatType(attr.components)
-                result.append(
-                    "$type get$name$name1(uint index){ return $type(0.0); }\n"
-                )
+                val type = floatType(attr.numComponents)
+                result.append("$type get$name$name1(uint index){ return $type(0.0); }\n")
                 if (setters) {
                     result.append("void set$name$name1(uint index, $type value){}\n")
                 }

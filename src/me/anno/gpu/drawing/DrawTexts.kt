@@ -9,6 +9,7 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawCurves.putRGBA
@@ -67,7 +68,7 @@ object DrawTexts {
     }
 
     private val simpleBatch = object : Batch(
-        "simpleTextBatch", flat01, listOf(
+        "simpleTextBatch", flat01, bind(
             Attribute("instData", 3),
             Attribute("color0", AttributeType.UINT8_NORM, 4),
             Attribute("color1", AttributeType.UINT8_NORM, 4),

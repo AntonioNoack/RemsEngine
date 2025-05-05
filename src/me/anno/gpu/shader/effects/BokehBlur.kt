@@ -131,8 +131,8 @@ object BokehBlur {
                     "void main(){\n" +
                     "   vec4 sum = vec4(0);\n" +
                     loop +
-                    "       vec2 coords = uv + vec2(stepVal.x*f11,0.0);\n" +
-                    "       float imageTexelR = dot(texture(image, coords), channelSelection);\n" +
+                    "       vec2 positions = uv + vec2(stepVal.x*f11,0.0);\n" +
+                    "       float imageTexelR = dot(texture(image, positions), channelSelection);\n" +
                     "       imageTexelR = imageTexelR * imageTexelR;\n" + // srgb -> linear
                     "       sum += imageTexelR * getFilters(f01);\n" +
                     "    }\n" +
@@ -168,11 +168,11 @@ object BokehBlur {
 
                     loop +
 
-                    "       vec2 coords = uv + vec2(0.0,stepVal.y*f11);\n" +
-                    "       vec4 imageTexelR = texture(inputRed,   coords);  \n" +
-                    "       vec4 imageTexelG = texture(inputGreen, coords); \n" +
-                    "       vec4 imageTexelB = texture(inputBlue,  coords);  \n" +
-                    "       vec4 imageTexelA = texture(inputAlpha, coords);  \n" +
+                    "       vec2 positions = uv + vec2(0.0,stepVal.y*f11);\n" +
+                    "       vec4 imageTexelR = texture(inputRed,   positions);  \n" +
+                    "       vec4 imageTexelG = texture(inputGreen, positions); \n" +
+                    "       vec4 imageTexelB = texture(inputBlue,  positions);  \n" +
+                    "       vec4 imageTexelA = texture(inputAlpha, positions);  \n" +
 
                     "       vec4 c0_c1 = getFilters(f01);\n" +
 

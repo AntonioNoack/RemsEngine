@@ -232,6 +232,8 @@ object AssetThumbnails {
         srcFile: FileReference, dstFile: HDBKey,
         materials: List<FileReference>, size: Int, callback: Callback<ITexture2D>
     ) {
+        // todo bug: E:/Assets/Unity/POLYGON_AncientEmpire_Unity_Package_2019_4.unitypackage/Assets/PolygonAncientEmpire/Materials/Ivy
+        //  is missing the textures on the first try
         listTextures(materials, srcFile) { textures ->
             waitForTextures(textures) {
                 ThumbsRendering.renderMultiWindowImage(

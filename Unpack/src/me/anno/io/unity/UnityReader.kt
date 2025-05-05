@@ -36,6 +36,9 @@ import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.min
 
+// todo directional light in E:/Assets/Unity/POLYGON_Adventure_Unity_Package_2017_1.unitypackage/Assets/PolygonAdventure/DemoScene/Demo_Scene.unity
+//  is looking the wrong direction
+
 // todo transforms are broken, e.g.
 //  E:/Assets/Unity/Polygon_Construction_Unity_Package_2017_4.unitypackage/Assets/PolygonConstruction/Prefabs/Vehicles/SM_Veh_Mini_Loader_01.prefab
 //  worked in the past
@@ -278,7 +281,8 @@ object UnityReader {
             // todo mark as used
             LOGGER.debug("Adding Transform from Prefab node, {}", file)
             knownChildren.add(file)
-            addPrefabChild((prefabParent as PrefabReadable).readPrefab(), file)
+            val prefab = (prefabParent as PrefabReadable).readPrefab()
+            addPrefabChild(prefab, file)
         }
 
         val changes = mods?.get("Modifications")?.children
@@ -501,6 +505,7 @@ object UnityReader {
             val nameId = child["name"] as? String ?: path.nameWithoutExtension // collisions should be rare
             val add = CAdd(ROOT_PATH, type, child.clazzName, nameId, path)
             if (!prefab.canAdd(add)) add.nameId = path.nameWithoutExtension
+            while (!prefab.canAdd(add)) add.nameId += "-"
             prefab.add(add, prefab.findNextIndex(type, ROOT_PATH))
         }
     }
@@ -508,7 +513,6 @@ object UnityReader {
     fun readUnityObjects(root: YAMLNode, guid: String, project: UnityProject, folder: InnerFolder): FileReference {
 
         if (!isValidUUID(guid)) return InvalidRef
-        root.children ?: return InvalidRef
 
         var nodeCount = 0
         var firstNode: FileReference? = null
@@ -598,7 +602,7 @@ object UnityReader {
                     // todo find out all light types
                     // 1 = directional light
                     prefab.clazzName = "DirectionalLight"
-                    prefab["color"] = color
+                    prefab["color"] = color.mul(30f)
                 }
                 "Material" -> defineMaterial(prefab, node, guid, project)
                 "BoxCollider" -> defineBoxCollider(prefab, node)
