@@ -78,7 +78,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.GFXFeatures
-import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
@@ -662,10 +661,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun drawSceneLights(deferred: IFramebuffer, deferredDepth: Texture2D, depthMask: Vector4f, dst: IFramebuffer) {
         useFrame(deferred.width, deferred.height, true, dst, copyRenderer) {
             dst.clearColor(0)
-            pipeline.lightStage.bindDraw(
-                pipeline, deferred, deferredDepth, depthMask,
-                cameraMatrix, cameraPosition
-            )
+            pipeline.lightStage.bindDraw(pipeline, deferred, deferredDepth, depthMask)
         }
     }
 

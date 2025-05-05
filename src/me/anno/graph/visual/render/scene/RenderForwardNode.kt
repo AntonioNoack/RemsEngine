@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
@@ -72,45 +73,51 @@ class RenderForwardNode : RenderViewNode(
             setOutput(2, getInput(9) ?: Texture(depthTexture))
             return
         }
+
         timeRendering(name, timer) {
-
-            val framebuffer = FBStack["scene-forward",
-                width, height, TargetType.Float16x4,
-                samples, DepthBufferType.TEXTURE]
-
-            // if skybox is not used, bake it anyway?
-            // -> yes, the pipeline architect (^^) has to be careful
-            pipeline.bakeSkybox(skyboxResolution)
-
-            val prepassColor = (getInput(8) as? Texture).texOrNull
-            val prepassDepth = getInput(9) as? Texture
-
-            pipeline.applyToneMapping = applyToneMapping
-            val depthMode = pipeline.defaultStage.depthMode
-            GFXState.useFrame(width, height, true, framebuffer, GizmoNode.renderer) {
-                defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
-            }
-            GFXState.useFrame(width, height, true, framebuffer, renderer) {
-                if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
-                    pipeline.drawSky()
-                }
-
-                if (stageImpl != null && !stageImpl.isEmpty()) {
-                    stageImpl.bindDraw(pipeline)
-                }
-                if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
-                    pipeline.drawSky()
-                }
-                pipeline.defaultStage.depthMode = depthMode
-                GFX.check()
-            }
-
-            if (framebuffer.depthBufferType != DepthBufferType.NONE) {
-                pipeline.prevDepthBuffer = framebuffer
-            }
-            setOutput(1, Texture.texture(framebuffer, 0))
-            setOutput(2, Texture.depth(framebuffer))
+            executeRendering(
+                width, height, samples, skyboxResolution,
+                applyToneMapping, drawSky, stageImpl
+            )
         }
+    }
+
+    fun executeRendering(
+        width: Int, height: Int, samples: Int,
+        skyboxResolution: Int, applyToneMapping: Boolean,
+        drawSky: DrawSkyMode, stageImpl: PipelineStageImpl?
+    ) {
+        val framebuffer = FBStack["scene-forward",
+            width, height, TargetType.Float16x4,
+            samples, DepthBufferType.TEXTURE]
+
+        // if skybox is not used, bake it anyway?
+        // -> yes, the pipeline architect (^^) has to be careful
+        pipeline.bakeSkybox(skyboxResolution)
+
+        val prepassColor = (getInput(8) as? Texture).texOrNull
+        val prepassDepth = getInput(9) as? Texture
+
+        pipeline.applyToneMapping = applyToneMapping
+        val depthMode = pipeline.defaultStage.depthMode
+        GFXState.useFrame(width, height, true, framebuffer, GizmoNode.renderer) {
+            defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
+        }
+
+        GFXState.useFrame(width, height, true, framebuffer, renderer) {
+            if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) pipeline.drawSky()
+            if (stageImpl != null && !stageImpl.isEmpty()) stageImpl.bindDraw(pipeline)
+            if (drawSky == DrawSkyMode.AFTER_GEOMETRY) pipeline.drawSky()
+            pipeline.defaultStage.depthMode = depthMode
+            GFX.check()
+        }
+
+        if (framebuffer.depthBufferType != DepthBufferType.NONE) {
+            pipeline.prevDepthBuffer = framebuffer
+        }
+
+        setOutput(1, Texture.texture(framebuffer, 0))
+        setOutput(2, Texture.depth(framebuffer))
     }
 
     fun defineInputs(

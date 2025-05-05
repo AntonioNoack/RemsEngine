@@ -24,10 +24,12 @@ import org.joml.Vector3f
  * except for EnvironmentMap, which is kind of a light, too
  * */
 fun main() {
-
     forceLoadRenderDoc()
     OfficialExtensions.initForTests()
+    testSceneWithUI("Light Types", createLightTypesScene())
+}
 
+fun createLightTypesScene(): Entity {
     val scene = Entity("Scene")
     // scene.add(SkyboxBase().apply { skyColor.set(0f) })
 
@@ -111,5 +113,5 @@ fun main() {
     rect.setRotation(PIf * 0.5f, 0f, 0f)
     scene.add(rect)
 
-    testSceneWithUI("Light Types", scene)
+    return scene
 }

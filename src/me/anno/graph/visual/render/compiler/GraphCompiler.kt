@@ -433,7 +433,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         }
     }
 
-    fun finish(): Pair<Shader, Map<String, TypeValue>> {
+    fun finish(): GraphShader {
         return Pair(currentShader, typeValues)
     }
 }

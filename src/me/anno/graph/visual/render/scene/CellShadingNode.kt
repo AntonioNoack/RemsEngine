@@ -1,6 +1,5 @@
 package me.anno.graph.visual.render.scene
 
-import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.getReflectivity
@@ -34,6 +33,7 @@ import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.compiler.GraphShader
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
@@ -97,7 +97,7 @@ class CellShadingNode : RenderViewNode(
         shader = null
     }
 
-    private var shader: Pair<Shader, Map<String, TypeValue>>? = null // current number of shaders
+    private var shader: GraphShader? = null // current number of shaders
     private fun bindShader(skybox: CubemapTexture): Shader {
         val shader1 = shader ?: object : GraphCompiler(graph as FlowGraph) {
 

@@ -27,7 +27,6 @@ import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.ShapedBlurNode
 import me.anno.graph.visual.render.effects.ToneMappingNode
-import me.anno.graph.visual.render.scene.BakeSkyboxNode
 import me.anno.graph.visual.render.scene.BoxCullingNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
@@ -104,15 +103,9 @@ object RenderGraph {
     private fun writeSceneIntoRenderNodes(graph: FlowGraph, renderView: RenderView) {
         val nodes = graph.nodes
         for (i in nodes.indices) {
-            when (val node = nodes[i]) {
-                is RenderViewNode -> {
-                    node.pipeline = renderView.pipeline
-                    node.renderView = renderView
-                }
-                is BakeSkyboxNode -> {
-                    node.pipeline = renderView.pipeline
-                }
-            }
+            val node = nodes[i]
+            node as? RenderViewNode ?: continue
+            node.renderView = renderView
         }
     }
 

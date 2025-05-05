@@ -33,9 +33,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths.min
+import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.lists.SmallestKList
-import org.joml.Matrix4f
-import org.joml.Vector3d
 import org.joml.Vector4f
 
 class LightPipelineStage(var deferred: DeferredSettings?) {
@@ -55,16 +54,10 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     val instanced = LightData()
     val nonInstanced = LightData()
 
-    fun bindDraw(
-        pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f,
-        cameraMatrix: Matrix4f, cameraPosition: Vector3d,
-    ) {
+    fun bindDraw(pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f, ) {
         bind {
             source.bindTrulyNearestMS(0)
-            draw(
-                pipeline, cameraMatrix, cameraPosition,
-                ::getShader, depthTexture, depthMask
-            )
+            draw(pipeline, ::getShader, depthTexture, depthMask)
         }
     }
 
@@ -80,11 +73,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         }
     }
 
-    private fun initShader(
-        shader: Shader, cameraMatrix: Matrix4f,
-        type: LightType, depthTexture: ITexture2D,
-        instanced: Boolean
-    ) {
+    private fun initShader(shader: Shader, type: LightType, depthTexture: ITexture2D, instanced: Boolean) {
         shader.use()
         // information for the shader, which is material agnostic
         // add all things, the shader needs to know, e.g., light direction, strength, ...
@@ -95,7 +84,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         shader.v1b("canHaveShadows", !instanced)
         shader.v1f("countPerPixel", countPerPixel)
         depthTexture.bindTrulyNearest(shader, "depthTex")
-        shader.m4x4("transform", cameraMatrix)
+        shader.m4x4("transform", RenderState.cameraMatrix)
         shader.v3f("cameraPosition", RenderState.cameraPosition)
         shader.v4f("cameraRotation", RenderState.cameraRotation)
         val target = GFXState.currentBuffer
@@ -109,16 +98,13 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             if (isInstanced) visualizeLightCountShaderInstanced
             else visualizeLightCountShader
         } else {
-            val deferred = deferred
-                ?: throw IllegalStateException("Cannot draw lights directly without deferred buffers")
+            val deferred = assertNotNull(deferred, "Cannot draw lights directly without deferred buffers")
             LightShaders.getShader(deferred, type)
         }
     }
 
     fun draw(
         pipeline: Pipeline,
-        cameraMatrix: Matrix4f,
-        cameraPosition: Vector3d,
         getShader: (LightType, Boolean) -> Shader,
         depthTexture: ITexture2D,
         depthMask: Vector4f,
@@ -129,7 +115,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             val mesh = sample.getLightPrimitive()
 
             val shader = getShader(type, false)
-            initShader(shader, cameraMatrix, type, depthTexture, false)
+            initShader(shader, type, depthTexture, false)
 
             mesh.ensureBuffer()
 
@@ -160,7 +146,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
-                var i1 = 0f
+                var endIndex = 0
                 val textures = light.shadowTextures
                 if (textures != null) {
                     var texture = textures.depthTexture ?: textures.getTexture0()
@@ -172,19 +158,19 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
                             texture.bind(cubicIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                            i1 = 1f // end index
+                            endIndex = 1
                         }
                     } else {
                         if (supportsPlanarShadows) {
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
                             texture.bind(planarIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                            i1 = (texture as Texture2DArray).layers.toFloat() // end index
+                            endIndex = (texture as Texture2DArray).layers
                         }
                     }
                 }
 
-                shader.v4f("data2", 0f, i1, 0f, 0f)
+                shader.v4f("data2", 0f, endIndex.toFloat(), 0f, 0f)
 
                 mesh.draw(pipeline, shader, 0)
 
@@ -195,8 +181,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         }
 
         // draw instanced meshes
-        this.cameraMatrix = cameraMatrix
-        this.cameraPosition = cameraPosition
         GFXState.instanceData.use(MeshInstanceData.DEFAULT_INSTANCED) {
             instanced.forEachType { lights, size, type ->
                 val shader = getShader(type, true)
@@ -209,9 +193,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         }
     }
 
-    private var cameraMatrix: Matrix4f? = null
-    private var cameraPosition: Vector3d? = null
-
     fun drawBatches(
         pipeline: Pipeline, depthTexture: ITexture2D,
         lights: List<LightRequest>, size: Int,
@@ -221,10 +202,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         val sample = lights[0].light
         val mesh = sample.getLightPrimitive()
 
-        val cameraMatrix = cameraMatrix!!
-        val cameraPosition = cameraPosition!!
-
-        initShader(shader, cameraMatrix, type, depthTexture, true)
+        initShader(shader, type, depthTexture, true)
 
         val buffer = lightInstanceBuffer
         val nioBuffer = buffer.getOrCreateNioBuffer()
@@ -243,7 +221,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             for (index in baseIndex until min(size, baseIndex + batchSize)) {
                 nioBuffer.position((index - baseIndex) * stride)
                 val lightI = lights[index]
-                m4x3delta(lightI.drawMatrix, cameraPosition, nioBuffer)
+                m4x3delta(lightI.drawMatrix, RenderState.cameraPosition, nioBuffer)
                 m4x3x(lightI.invCamSpaceMatrix, nioBuffer)
                 // put all light data: lightData0, lightData1
                 // put data0:

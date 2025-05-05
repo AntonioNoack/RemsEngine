@@ -13,7 +13,7 @@ abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<
     ActionNode(name, inputs, outputs) {
 
     lateinit var renderView: RenderView
-    lateinit var pipeline: Pipeline
+    val pipeline: Pipeline get() = renderView.pipeline
 
     var framebuffer: IFramebuffer? = null
     val timer = GPUClockNanos()

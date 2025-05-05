@@ -103,5 +103,5 @@ fun main() {
     scene.add(spot)
     placeTruck(spot)
 
-    testSceneWithUI("Light Types", scene)
+    testSceneWithUI("Shadow Types", scene)
 }

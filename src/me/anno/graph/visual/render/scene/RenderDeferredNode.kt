@@ -1,6 +1,5 @@
 package me.anno.graph.visual.render.scene
 
-import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.gpu.Blitting
 import me.anno.gpu.GFX
@@ -13,11 +12,8 @@ import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -25,13 +21,13 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
-import me.anno.graph.visual.render.compiler.GraphCompiler
+import me.anno.graph.visual.render.compiler.GraphShader
+import me.anno.graph.visual.render.scene.utils.CopyInputsOrClear.Companion.bindCopyShader
+import me.anno.graph.visual.render.scene.utils.CopyInputsOrClear.Companion.hasNonDepthInputs
 import me.anno.maths.Maths.clamp
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 
@@ -157,21 +153,26 @@ open class RenderDeferredNode : RenderViewNode(
 
     override fun executeAction() {
         if (width < 1 || height < 1) return
-        if (!needsRendering(stage) && !needsToRenderSky()) {
-            // just copy inputs to outputs
-            for (i in 0 until outList.size.shr(1)) {
-                setOutput(firstOutputIndex + i, getInput(firstInputIndex + i))
+        if (needsRendering(stage) || needsToRenderSky()) executeRendering()
+        else skipRendering()
+    }
+
+    fun skipRendering() {
+        // just copy inputs to outputs
+        for (i in 0 until outList.size.shr(1)) {
+            setOutput(firstOutputIndex + i, getInput(firstInputIndex + i))
+        }
+    }
+
+    fun executeRendering() {
+        val framebuffer = defineFramebuffer() ?: return
+        timeRendering(name, timer) {
+            pipeline.bakeSkybox(skyResolution)
+            copyInputsOrClear(framebuffer)
+            GFXState.useFrame(width, height, true, framebuffer, renderer) {
+                render()
             }
-        } else {
-            val framebuffer = defineFramebuffer() ?: return
-            timeRendering(name, timer) {
-                pipeline.bakeSkybox(skyResolution)
-                copyInputsOrClear(framebuffer)
-                GFXState.useFrame(width, height, true, framebuffer, renderer) {
-                    render()
-                }
-                setOutputs(framebuffer)
-            }
+            setOutputs(framebuffer)
         }
     }
 
@@ -212,114 +213,23 @@ open class RenderDeferredNode : RenderViewNode(
         }
     }
 
-    private val shaders = HashMap<Renderer, Pair<Shader, Map<String, TypeValue>>>()
-
-    fun pipedInputs(): List<IndexedValue<DeferredLayerType>> {
-        return DeferredLayerType.values.withIndex()
-            .filter { (index, _) ->
-                !inputs[index + firstInputIndex].isEmpty() &&
-                        isOutputUsed(outputs[index + firstOutputIndex])
-            }
-    }
-
-    private fun bindShader(): Shader {
-        val renderer = GFXState.currentRenderer
-        val shader1 = shaders.getOrPut(renderer) {
-            object : GraphCompiler(graph as FlowGraph) {
-
-                // not being used, as we only have an expression
-                override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
-
-                val shader: Shader
-
-                init {
-
-                    // to do: filter for non-composite types
-                    // only load what is given? -> yes :D
-
-                    val output0 = pipedInputs()
-                    val outputs = renderer.deferredSettings!!.semanticLayers.toList()
-                        .map { tt -> output0.first { it.value == tt.type } }
-
-                    if (DeferredLayerType.CLICK_ID in outputs.map { it.value } ||
-                        DeferredLayerType.GROUP_ID in outputs.map { it.value }) {
-                        extraVariables.add(Variable(GLSLType.V4F, "finalId", VariableMode.INOUT))
-                    }
-
-                    assertTrue(builder.isEmpty())
-                    var expressions = outputs.joinToString("") { (i, type) ->
-                        val nameI = type.glslName
-                        expr(inputs[firstInputIndex + i])
-                        val exprI = builder.toString()
-                        builder.clear()
-                        "$nameI = $exprI;\n"
-                    }
-
-                    if (outputs.any2 { it.value == DeferredLayerType.DEPTH }) {
-                        expressions += "gl_FragDepth = depthToRaw(finalDepth);\n"
-                    }
-
-                    defineLocalVars(builder)
-
-                    extraVariables.add(Variable(GLSLType.V2F, "uv"))
-
-                    val variables = outputs
-                        .map { (_, type) ->
-                            val typeI = GLSLType.floats[type.workDims - 1]
-                            val nameI = type.glslName
-                            Variable(typeI, nameI, VariableMode.OUT)
-                        } + typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables
-
-                    val builder = ShaderBuilder(name)
-                    builder.addVertex(
-                        ShaderStage(
-                            "simple-triangle", listOf(
-                                Variable(GLSLType.V2F, "positions", VariableMode.ATTR),
-                                Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-                            ), "gl_Position = vec4(positions*2.0-1.0,0.0,1.0);\n" +
-                                    "uv = positions;\n"
-                        )
-                    )
-
-                    builder.settings = renderer.deferredSettings
-                    builder.useRandomness = false
-                    builder.addFragment(
-                        ShaderStage("rsdn-expr", variables, expressions)
-                            .add(extraFunctions.toString())
-                    )
-                    shader = builder.create(getKey(), "rsdn-${outputs.joinToString { it.value.name }}")
-                }
-
-                override val currentShader: Shader get() = shader
-            }.finish()
-        }
-
-        val (shader, typeValues) = shader1
-        shader.use()
-        for ((k, v) in typeValues) {
-            v.bind(shader, k)
-        }
-        return shader
-    }
-
-    private fun hasAnyInputIgnoreDepth(): Boolean {
-        val ignoredI = depthInputIndex - firstInputIndex
-        for (i in 0 until inList.size.shr(1)) {
-            if (i != ignoredI && !inputs[firstInputIndex + i].isEmpty()) {
-                return true
-            }
-        }
-        return false
-    }
+    private val shaders = HashMap<Renderer, GraphShader>()
 
     fun hasDepthPrepass(): Boolean {
-        // mmh...
         val prepassDepthT = getInput(depthInputIndex) as? Texture
         val prepassDepth = prepassDepthT.texOrNull
         return prepassDepth != null && inputs[0].others.any2 { it.node is DepthPrepassNode }
     }
 
     open fun copyInputsOrClear(framebuffer: IFramebuffer) {
+        copyDepthInput(framebuffer)
+        // if all inputs are null, we can skip this
+        if (hasNonDepthInputs(inputs)) {
+            copyNonDepthInputs(framebuffer)
+        }
+    }
+
+    fun copyDepthInput(framebuffer: IFramebuffer) {
         val prepassDepthT = getInput(depthInputIndex) as? Texture
         val prepassDepth = prepassDepthT.texOrNull
         if (prepassDepth != null) {
@@ -329,20 +239,20 @@ open class RenderDeferredNode : RenderViewNode(
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS
         } else {
-            // find the renderMode, so we know what to clear depth to
+            // set depth mode to clear the correct depth value (could be 0 or 1)
             GFXState.depthMode.use(renderView.depthMode) {
                 framebuffer.clearColor(0, depth = true)
             }
         }
-        // if all inputs are null, we can skip this
-        if (hasAnyInputIgnoreDepth()) {
-            GFXState.useFrame(framebuffer, renderer) {
-                GFXState.depthMode.use(alwaysDepthMode) {
-                    GFXState.depthMask.use(false) {
-                        val shader = bindShader()
-                        bindDepthUniforms(shader)
-                        flat01.draw(shader)
-                    }
+    }
+
+    fun copyNonDepthInputs(framebuffer: IFramebuffer) {
+        GFXState.useFrame(framebuffer, renderer) {
+            GFXState.depthMode.use(alwaysDepthMode) {
+                GFXState.depthMask.use(false) {
+                    val shader = bindCopyShader(inputs, outputs, name, graph as FlowGraph, shaders)
+                    bindDepthUniforms(shader)
+                    flat01.draw(shader)
                 }
             }
         }

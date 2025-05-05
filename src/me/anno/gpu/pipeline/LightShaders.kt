@@ -42,7 +42,7 @@ import me.anno.utils.types.Booleans.toInt
 
 object LightShaders {
 
-    val translucencyNL = 0.5f
+    val translucencyNdotL = 0.5f
 
     val startLightSum = "" +
             "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
@@ -60,7 +60,7 @@ object LightShaders {
 
     val addDiffuseLight = "" + // translucency; looks good and approximately correct
             // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
-            "float NdotLi = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
+            "float NdotLi = mix(NdotL, $translucencyNdotL, finalTranslucency) + finalSheen;\n" +
             "diffuseLight += effectiveDiffuse * clamp(NdotLi, 0.0, 1.0);\n"
 
     val mixAndClampLight = "" +
