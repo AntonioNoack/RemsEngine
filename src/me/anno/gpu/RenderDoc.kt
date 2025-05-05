@@ -35,7 +35,7 @@ object RenderDoc {
 
     @JvmStatic
     fun forceLoadRenderDoc(renderDocPath: String? = null) {
-        if (OSFeatures.mayLoadRenderDocExplicitly) return // not supported
+        if (!OSFeatures.mayLoadRenderDocExplicitly) return
         val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
         try {
             // if renderdoc is installed on linux, or given in the path, we could use it as well with loadLibrary()

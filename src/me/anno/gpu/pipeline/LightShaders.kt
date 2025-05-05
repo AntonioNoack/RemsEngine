@@ -149,6 +149,21 @@ object LightShaders {
 
     var countPerPixel = 0.25f
 
+    val positionCalculation = "" +
+            "if(fullscreen){\n" +
+            "   gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
+            "} else {\n" +
+            "   vec3 localPosition = positions;\n" +
+            "   if(isSpotLight){\n" +
+            "       float coneAngle = lightData1.x;\n" +
+            "       localPosition.xy *= coneAngle;\n" +
+            "   }\n" +
+            "   vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
+            "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
+            "}\n"
+
+    val instancedLocalTransform = "mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n"
+
     val vertexI = ShaderStage(
         "v", listOf(
             Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
@@ -175,18 +190,9 @@ object LightShaders {
                 "data1 = lightData1;\n" + // shaderV0-V2, unused
                 "data2 = vec4(0.0);\n" + // shadow-data aka unused for instanced lights
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "if(isDirectional && data1.z <= 0.0){\n" +
-                "   gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
-                "} else {\n" +
-                "   mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                "   vec3 localPosition = positions;\n" +
-                "   if(isSpotLight){\n" +
-                "       float coneAngle = lightData1.x;\n" +
-                "       localPosition.xy *= coneAngle;\n" +
-                "   }\n" +
-                "   vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
-                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                "}\n" +
+                "bool fullscreen = isDirectional && data1.z <= 0.0;\n" +
+                instancedLocalTransform +
+                positionCalculation +
                 "invInsTrans0v = invInsTrans0;\n" +
                 "invInsTrans1v = invInsTrans1;\n" +
                 "invInsTrans2v = invInsTrans2;\n" +
@@ -204,17 +210,9 @@ object LightShaders {
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
         ), "" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "if(cutoff <= 0.0){\n" +
-                "   gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
-                "} else {\n" +
-                "   vec3 localPosition = positions;\n" +
-                "   if(isSpotLight){\n" +
-                "       float coneAngle = data1.x;\n" +
-                "       localPosition.xy *= coneAngle;\n" +
-                "   }\n" +
-                "   vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
-                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                "}\n" +
+                "bool fullscreen = cutoff <= 0.0;\n" +
+                "vec4 lightData1 = data1;\n" +
+                positionCalculation +
                 "uvw = gl_Position.xyw;\n"
     )
 
@@ -277,19 +275,9 @@ object LightShaders {
             Variable(GLSLType.V4F, "data1").flat(),
             Variable(GLSLType.V1B, "fullscreen"),
         ), "" +
-                "void main(){\n" +
-                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "   if(fullscreen){\n" +
-                "      gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
-                "   } else {\n" +
-                "       vec3 localPosition = positions;\n" +
-                "       if(isSpotLight){\n" +
-                "           float coneAngle = data1.x;\n" +
-                "           localPosition.xy *= coneAngle;\n" +
-                "       }\n" +
-                "       vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
-                "      gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                "   }\n" +
+                "void main() {\n" +
+                "   vec4 lightData1 = data1;\n" +
+                positionCalculation +
                 "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
@@ -311,18 +299,9 @@ object LightShaders {
                 loadMat4x3 +
                 "void main(){\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "   if(isDirectional && lightData1.z <= 0.0){\n" +
-                "      gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
-                "   } else {\n" +
-                "       mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                "       vec3 localPosition = positions;\n" +
-                "       if(isSpotLight){\n" +
-                "           float coneAngle = lightData1.x;\n" +
-                "           localPosition.xy *= coneAngle;\n" +
-                "       }\n" +
-                "       vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
-                "       gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                "   }\n" +
+                "   bool fullscreen = isDirectional && lightData1.z <= 0.0;\n" +
+                instancedLocalTransform +
+                positionCalculation +
                 "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
