@@ -425,18 +425,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun getPrintSuffix(): String = "${style.prefix}"
 
     /**
-     * if this returns true, the parent must be drawn for the child to look correct
+     * If this returns true, the parent must be drawn for the child to look correct.
+     * x0,y0,x1,y1 is the rectangle to be checked. x0 <= x1, y0 <= y1.
      * */
-    open fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) =
-        capturesChildEvents(lx0, ly0, lx1, ly1) // the default behaviour
+    open fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int) =
+        capturesChildEvents(x0, y0, x1, y1) // the default behaviour
 
-    /**
-     * if this returns true, the parent must be drawn for the child to look correct
-     * */
-    fun drawsOverlayOverChildren(x: Int, y: Int) = drawsOverlayOverChildren(x, y, x + 1, y + 1)
-    fun drawsOverlayOverChildren() = drawsOverlayOverChildren(lx0, ly0, lx1, ly1)
-
-    open fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
+    open fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int) = false
 
     fun capturesChildEvents(x: Int, y: Int) = capturesChildEvents(x, y, x + 1, y + 1)
 

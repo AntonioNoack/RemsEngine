@@ -3,7 +3,7 @@ package me.anno.gpu
 import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -35,7 +35,7 @@ object RenderDoc {
 
     @JvmStatic
     fun forceLoadRenderDoc(renderDocPath: String? = null) {
-        if (OS.isWeb) return // not supported
+        if (OSFeatures.mayLoadRenderDocExplicitly) return // not supported
         val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
         try {
             // if renderdoc is installed on linux, or given in the path, we could use it as well with loadLibrary()

@@ -60,7 +60,6 @@ import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.editor.files.SearchAlgorithm.createResults
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.hex32
-import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
@@ -68,6 +67,7 @@ import me.anno.utils.OS.home
 import me.anno.utils.OS.music
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
+import me.anno.utils.OSFeatures
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.OpenFileExternally.editInStandardProgram
@@ -371,7 +371,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         content2d.clear()
     }
 
-    val searchTask = UpdatingTask("FileExplorer-Query") {}
+    val searchTask = UpdatingTask("FileExplorer-Query")
 
     override fun destroy() {
         super.destroy()
@@ -394,7 +394,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     var loading = 0L
 
-    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return loading != 0L
     }
 
@@ -620,21 +620,21 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     fun switchTo(folder: FileReference?) {
         folder ?: return
-        if (GFX.isGFXThread() && !OS.isWeb) {
+        if (GFX.isGFXThread() && OSFeatures.hasMultiThreading) {
             loading = Time.nanoTime
             thread(name = "switchTo($folder)") {
                 try {
-                    switchTo1(folder)
+                    switchToImpl(folder)
                 } catch (_: IgnoredException) {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
                 loading = 0L
             }
-        } else switchTo1(folder)
+        } else switchToImpl(folder)
     }
 
-    private fun switchTo1(folder: FileReference) {
+    private fun switchToImpl(folder: FileReference) {
         if (folder == InvalidRef) return
         if (!canSensiblyEnter(folder)) {
             switchTo(folder.getParent())

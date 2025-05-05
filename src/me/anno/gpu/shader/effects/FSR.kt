@@ -11,7 +11,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.utils.OS
+import me.anno.utils.GFXFeatures
 import me.anno.utils.OS.res
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.async.LazyPromise
@@ -46,7 +46,7 @@ object FSR {
                     "#define ANNO 1\n" + // we use our custom version
                     defines +
                     "#define FSR_EASU_F 1\n" +
-                    (if (OS.isWeb) "#define HLSL\n" else "") +
+                    (if (GFXFeatures.supportsTextureGather) "" else "#define HLSL\n") +
                     "#ifdef HLSL\n" +
                     "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
                     "   vec2 dx = vec2(con1.x,0.0);\n" +

@@ -15,7 +15,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.utils.InternalAPI
-import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.video.VideoCache
@@ -71,15 +71,22 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
     }
 
     private fun loadTexture() {
-        if (OS.isWeb) loadTexture(null)
-        else SignatureCache.getAsync(file, ::loadTexture)
+        if (OSFeatures.fileAccessIsHorriblySlow) { // skip loading the signature
+            loadTexture1()
+        } else {
+            SignatureCache.getAsync(file, ::loadTexture0)
+        }
     }
 
-    private fun loadTexture(signature: Signature?) {
+    private fun loadTexture0(signature: Signature?) {
         when (signature?.name) {
             "dds", "media" -> tryUsingVideoCache(file)
-            else -> ImageAsFolder.readImage(file, true).waitFor(::loadImage)
+            else -> loadTexture1()
         }
+    }
+
+    private fun loadTexture1() {
+        ImageAsFolder.readImage(file, true).waitFor(::loadImage)
     }
 
     private fun loadImage(image: Image?) {

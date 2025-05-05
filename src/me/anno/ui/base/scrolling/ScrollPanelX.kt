@@ -85,11 +85,11 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         scrollbar.updateVisibility(mx, my, canBeHovered, x0, y0, x1, y1)
     }
 
-    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverX(
-            this.lx0, this.ly0, this.lx1, this.ly1,
-            sbHeight, lx0, ly0, lx1, ly1
+            lx0, ly0, lx1, ly1,
+            sbHeight, x0, y0, x1, y1
         )
     }
 
@@ -157,8 +157,8 @@ open class ScrollPanelX(child: Panel, padding: Padding, style: Style) :
         targetScrollPositionX = clamp(targetScrollPositionX, 0.0, maxScrollPositionX.toDouble())
     }
 
-    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return hasScrollbar && ly1 >= y + height - scrollbarHeight
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        return hasScrollbar && y1 >= y + height - scrollbarHeight
     }
 
     @NotSerializedProperty

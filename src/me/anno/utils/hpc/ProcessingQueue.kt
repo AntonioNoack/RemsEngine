@@ -1,7 +1,7 @@
 package me.anno.utils.hpc
 
 import me.anno.Engine.shutdown
-import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -44,18 +44,13 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     open fun start(name: String = this.name, force: Boolean = false) {
         if (aliveThreads.get() >= numThreads && !force) return
         shouldStop = false
-        // LOGGER.info("Starting queue $name")
-        if (!OS.isWeb) {
-            // todo we need feature flags for stuff like Multi-Threading...
-            //  OS.isLinux via JVM is very different from OS.isLinux via JVM2CPP
+        // LOGGER.debug("Starting queue $name")
+        if (OSFeatures.hasMultiThreading) {
             aliveThreads.incrementAndGet()
             thread(name = name) {
                 runWorker()
             }
-        } else {
-            // todo what do we do without Multi-Threading?
-            runUntilDone()
-        }
+        } else runUntilDone()
     }
 
     private fun runWorker() {
@@ -72,7 +67,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
                     Sleep.sleepShortly(true)
                     sleepingThreads.decrementAndGet()
                 }
-            } catch (e: ShutdownException) {
+            } catch (_: ShutdownException) {
                 // nothing to worry about (probably)
                 break
             } catch (e: Exception) {

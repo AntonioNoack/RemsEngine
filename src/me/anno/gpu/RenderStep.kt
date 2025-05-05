@@ -2,10 +2,10 @@ package me.anno.gpu
 
 import me.anno.audio.streams.AudioStream
 import me.anno.engine.EngineBase
-import me.anno.gpu.GFX.resetFBStack
-import me.anno.gpu.GFX.windows
 import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.shallRenderVR
 import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.vrRoutine
+import me.anno.gpu.GFX.resetFBStack
+import me.anno.gpu.GFX.windows
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.gpu.shader.GPUShader
@@ -13,7 +13,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.input.Touch
-import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
 import me.anno.utils.pooling.Stack
@@ -68,19 +68,11 @@ object RenderStep {
     }
 
     fun callOnGameLoop(inst: EngineBase, window: OSWindow) {
-        // in case of an error, we have to fix it,
-        // so give us the best chance to do so:
-        //  - on desktop, sleep a little, so we don't get too many errors
-        //  - on web, just crash, we cannot sleep there
-        if (OS.isWeb) {
+        try {
             inst.onGameLoop(window, window.width, window.height)
-        } else {
-            try {
-                inst.onGameLoop(window, window.width, window.height)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Thread.sleep(250)
-            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (OSFeatures.canSleep) Thread.sleep(250)
         }
     }
 }

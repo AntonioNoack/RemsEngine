@@ -9,6 +9,7 @@ import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.GPUShader
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Clock
+import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -100,6 +101,10 @@ object GFX {
     @JvmField
     var maxTextureSize = 512 // assumption before loading anything
 
+    /**
+     * Tens based version, e.g., 3.2 becomes 32.
+     * Be careful when using this, because we might be running on OpenGL ES instead!
+     * */
     @JvmField
     var glVersion = 0
 
@@ -143,11 +148,9 @@ object GFX {
         LOGGER.info("OpenGL Version: ${GL46C.glGetString(GL46C.GL_VERSION)}")
         LOGGER.info("GLSL Version: ${GL46C.glGetString(GL46C.GL_SHADING_LANGUAGE_VERSION)}")
         LOGGER.info("GPU: ${GL46C.glGetString(GL46C.GL_RENDERER)}, Vendor: ${GL46C.glGetString(GL46C.GL_VENDOR)}")
-        if (!OS.isWeb) {
-            // these are not defined in WebGL
-            glVersion = GL46C.glGetInteger(GL46C.GL_MAJOR_VERSION) * 10 + GL46C.glGetInteger(GL46C.GL_MINOR_VERSION)
-            LOGGER.info("OpenGL Version Id $glVersion")
-        }
+        // these are not defined in WebGL
+        glVersion = GL46C.glGetInteger(GL46C.GL_MAJOR_VERSION) * 10 + GL46C.glGetInteger(GL46C.GL_MINOR_VERSION)
+        LOGGER.info("OpenGL Version Id $glVersion")
         GL46C.glPixelStorei(GL46C.GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         val capabilities = WindowManagement.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
@@ -160,7 +163,7 @@ object GFX {
         // todo check if rendering is still broken in DX11 in default render mode
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
-        supportsClipControl = !OS.isAndroid && !OS.isWeb
+        supportsClipControl = !GFXFeatures.isOpenGLES
         if (debugLimitedGPUs) supportsClipControl = false
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         ClickIdBoundsArray.needsBoxes = supportsComputeShaders
@@ -173,7 +176,9 @@ object GFX {
         maxSamples = if (debugLimitedGPUs) 1 else max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
         maxTextureSize = if (debugLimitedGPUs) 1024 else max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
         GPUShader.useShaderFileCache = !WindowManagement.usesRenderDoc && glVersion >= 41
-        if (glVersion >= 43) OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
+        if (!GFXFeatures.isOpenGLES && glVersion >= 43) {
+            OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
+        }
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
         LOGGER.info("Max Attributes: $maxAttributes")

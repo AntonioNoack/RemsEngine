@@ -6,6 +6,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.utils.types.Strings.indexOf2
 import org.apache.commons.logging.Log
 import java.io.IOException
@@ -351,7 +352,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
         private var logFileStream: OutputStream? = null
 
         fun getLogFileStream(): OutputStream? {
-            if (OS.isWeb || OS.isAndroid) return null
+            if (!OSFeatures.supportsContinuousLogFiles) return null
             if (logFileStream != null) return logFileStream
             val logFolder = ConfigBasics.cacheFolder.getChild("logs")
             logFolder.tryMkdirs()
@@ -365,6 +366,7 @@ open class LoggerImpl(val name: String) : Logger, Log {
             }
             val logFile = logFolder.getChild("$time.log")
             logFileStream = logFile.outputStream(true)
+            // must use println, or we would create an infinite loop
             println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
             return logFileStream
         }

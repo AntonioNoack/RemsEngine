@@ -35,7 +35,7 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
         panel.parent = this
     }
 
-    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = true
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int) = true
 
     var splitX = 0.2f
     var splitY = 0.2f

@@ -612,11 +612,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
-    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return true
     }
 
-    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return false
     }
 

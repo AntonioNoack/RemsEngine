@@ -55,6 +55,7 @@ object OpenFileExternallyImpl {
                 return true
             }
             else -> {
+                // todo implement this for Web: this is just a link with target=new
                 LOGGER.warn("Opening a file in browser is not supported")
                 return false
             }

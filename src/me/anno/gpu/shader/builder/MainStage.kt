@@ -13,6 +13,7 @@ import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.arrays.BooleanArrayList
@@ -199,7 +200,7 @@ class MainStage {
                     if (isMoreThanOne) code.append("case ").append(index).append(":\n")
                     // 5x5 percentage closer filtering for prettier results
                     // disable this on weak devices, e.g. on mobile
-                    var radius = DefaultConfig["gpu.percentageCloserFilteringRadius", if (OS.isAndroid) 0 else 2]
+                    var radius = DefaultConfig["gpu.percentageCloserFilteringRadius", if (GFXFeatures.hasWeakGPU) 0 else 2]
                     radius = min(radius, 5) // just in case
                     if (radius < 1) {
                         if (GFX.supportsDepthTextures) {

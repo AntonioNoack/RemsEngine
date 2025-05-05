@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.Time.nanoTime
 import me.anno.engine.Events.addEvent
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import kotlin.concurrent.thread
 
 class SaveMaybe {
@@ -14,7 +14,7 @@ class SaveMaybe {
         if (wasChanged()) {
             synchronized(this) {
                 if (nanoTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
-                    if (OS.isWeb) {
+                    if (!OSFeatures.hasMultiThreading) {
                         save()
                         lastSaveTime = nanoTime
                     } else {

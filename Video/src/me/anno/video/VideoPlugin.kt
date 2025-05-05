@@ -8,6 +8,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.WebRef
 import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.video.FFMPEGMetadata.loadFFMPEG
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEG.ffmpegPath
@@ -49,7 +50,7 @@ class VideoPlugin : Plugin() {
         MediaMetadata.registerSignatureHandler(100, "video") { file, signature, dst, _ ->
             // only use ffmpeg for ffmpeg files
             if (signature == "gif" || signature == "media" || signature == "dds") {
-                if (!OS.isAndroid && (file is FileFileRef || file is WebRef)) {
+                if (OSFeatures.supportsFFMPEG && (file is FileFileRef || file is WebRef)) {
                     dst.loadFFMPEG()
                 }
                 true

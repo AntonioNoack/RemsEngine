@@ -4,7 +4,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
-import me.anno.utils.OS
+import me.anno.utils.GFXFeatures
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BYTE
 import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_BORDER
@@ -67,14 +67,13 @@ import org.lwjgl.opengl.GL46C.glTexParameteri
 
 object TextureHelper {
 
-    private val tmp4f = FloatArray(4)
-
     private val LOGGER = LogManager.getLogger(TextureHelper::class)
+    private val tmp4f = FloatArray(4)
 
     fun clamping(target: Int, value0: Int, borderColor: Int) {
         var value = value0
-        if (value == GL_CLAMP_TO_BORDER && OS.isWeb) {
-            LOGGER.warn("GL_CLAMP_TO_BORDER is not supported in WebGL; using GL_CLAMP_TO_EDGE")
+        if (value == GL_CLAMP_TO_BORDER && !GFXFeatures.supportsBorderColors) {
+            LOGGER.warn("GL_CLAMP_TO_BORDER not supported! Using GL_CLAMP_TO_EDGE")
             value = GL_CLAMP_TO_EDGE
         }
         glTexParameteri(target, GL_TEXTURE_WRAP_S, value)

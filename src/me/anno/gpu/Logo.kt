@@ -13,9 +13,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.mesh.obj.SimpleOBJReader
-import me.anno.utils.OS
 import me.anno.utils.OS.res
-import me.anno.utils.Sleep.waitUntilDefined
 import java.io.IOException
 import java.io.InputStream
 import kotlin.math.max
@@ -50,7 +48,7 @@ object Logo {
         )
     }
 
-    fun drawLogo(width: Int, height: Int, destroy: Boolean): Boolean {
+    fun drawLogo(width: Int, height: Int) {
 
         GFX.check()
 
@@ -67,13 +65,11 @@ object Logo {
         GFX.check()
 
         val frame = if (GFX.maxSamples > 1) frame else null
-
-        var success = false
         GFXState.blendMode.use(null) {
             if (frame != null) {
                 setFrameNullSize(width, height)
                 useFrame(width, height, true, frame) {
-                    success = drawLogo(shader)
+                    drawLogo(shader)
                 }
                 useFrame(NullFramebuffer) {
                     Blitting.copy(frame, true)
@@ -81,33 +77,27 @@ object Logo {
             } else drawLogo(shader)
         }
 
-        if (destroy) {
-            frame?.destroy()
-            shader.destroy()
-        }
-
         GFX.check()
-        return success
+    }
+
+    fun destroy() {
+        frame.destroy()
+        shader.destroy()
+        mesh = null
+        requested = false
+        hasMesh = false
     }
 
     var mesh: Mesh? = null
     var requested = false
     var hasMesh = false
 
-    fun getLogoMesh(async: Boolean): Mesh? {
-        if (requested) {
-            if (!async) {
-                waitUntilDefined(true) { mesh }
-            }
-        } else {
+    fun getLogoMesh(): Mesh? {
+        if (!requested) {
             requested = true
-            if (async) {
-                logoSrc.inputStream { i, e ->
-                    e?.printStackTrace()
-                    readMesh(i)
-                }
-            } else {
-                readMesh(logoSrc.inputStreamSync())
+            logoSrc.inputStream { i, e ->
+                e?.printStackTrace()
+                readMesh(i)
             }
         }
         return mesh
@@ -118,24 +108,17 @@ object Logo {
         hasMesh = true
     }
 
-    fun drawLogo(shader: Shader): Boolean {
+    fun drawLogo(shader: Shader) {
         // load icon.obj as file, and draw it
         GFXState.currentBuffer.clearColor(logoBackgroundColor, 1f)
-        var success = false
         renderPurely {
             try {
                 // you can override this file, if you want to change the logo
                 // but please show Rem's Engine somewhere in there!
-                val async = OS.isWeb // must be async on Web; maybe Android too later
-                val mesh = getLogoMesh(async)
-                if (mesh != null) {
-                    mesh.draw(null, shader, 0)
-                    success = true
-                }
+                getLogoMesh()?.draw(null, shader, 0)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
-        return success
     }
 }

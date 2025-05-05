@@ -40,8 +40,10 @@ class Accelerator(val boids: BoidV3) : OctTreeF<Int>(32) {
     }
 }
 
-// only a little faster,
-// which means we did good, I think, with Entity optimizations and such :)
+/**
+ * only a little faster,
+ * which means we did good, I think, with Entity optimizations and such :)
+ * */
 class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
 
     val newDir = Vector3f()
@@ -184,8 +186,12 @@ fun main() {
     val s = 1000f
     val rnd = Random(1234)
     for (i in 0 until n) {
-        boid.positions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).mul(s)
-        boid.directions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).normalize()
+        boid.positions[i]
+            .set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat())
+            .sub(0.5f).mul(s)
+        boid.directions[i]
+            .set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat())
+            .sub(0.5f).safeNormalize()
     }
 
     testSceneWithUI("Boids V3", boid) {

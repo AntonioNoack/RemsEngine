@@ -154,13 +154,13 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         }
     }
 
-    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         for (i in 1 until children.size) {
-            if (touchesBar(i, lx0, ly0, lx1, ly1)) {
+            if (touchesBar(i, x0, y0, x1, y1)) {
                 return true
             }
         }
-        return super.capturesChildEvents(lx0, ly0, lx1, ly1)
+        return super.capturesChildEvents(x0, y0, x1, y1)
     }
 
     var isDownIndex = -1

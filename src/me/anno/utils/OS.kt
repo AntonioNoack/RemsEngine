@@ -6,6 +6,8 @@ import me.anno.io.files.Reference.getReference
 /**
  * the os is important for some things, e.g., the allowed file names, and the home directory;
  * this object contains information about which OS/base-engine is used, and where user-related documents are located;
+ *
+ * todo move most OS checks to OSFeatures-checks, so we can define mixed environments
  * */
 @Suppress("unused")
 object OS {
@@ -32,9 +34,6 @@ object OS {
 
     @JvmField
     var isAndroid = false // set to true by my Android porting runtime
-
-    @JvmStatic
-    val supportsNetworkUDP get() = !isWeb
 
     @JvmStatic
     val home by lazy { getReference(System.getProperty("user.home")) }

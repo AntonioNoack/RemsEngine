@@ -140,7 +140,7 @@ object SpellcheckingImpl {
     private fun start(language: Language): Queue<Any> {
         val queue: Queue<Any> = ConcurrentLinkedQueue()
         thread(name = "Spellchecking ${language.code}") {
-            if (!OS.isAndroid) {
+            if (!OS.isAndroid && !OS.isWeb) {
                 getExecutable(language) { executable ->
                     val process = createProcess(executable, language)
                     runProcess(process, language, queue)

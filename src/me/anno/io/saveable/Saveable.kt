@@ -102,9 +102,7 @@ open class Saveable {
     companion object {
 
         private val LOGGER = LogManager.getLogger(Saveable::class)
-        private val reflectionCache: MutableMap<Class<*>, CachedReflections> =
-            if (OS.isWeb) HashMap()
-            else ConcurrentHashMap()
+        private val reflectionCache: MutableMap<Class<*>, CachedReflections> = ConcurrentHashMap()
 
         fun getReflections(instance: Any): CachedReflections {
             return getReflectionsByClass(instance::class.java)

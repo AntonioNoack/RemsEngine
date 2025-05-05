@@ -3,7 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX.supportsF16Targets
 import me.anno.gpu.GFX.supportsF32Targets
 import me.anno.gpu.GLNames.getName
-import me.anno.utils.OS
+import me.anno.utils.GFXFeatures
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32
@@ -69,7 +69,7 @@ class TargetType(
         val Float32x4 = if (!supportsF32Targets) UInt8x4
         else TargetType("f4", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4 * 4, 4, true)
         val Float32x3 = if (!supportsF32Targets) UInt8x3
-        else if (OS.isWeb || OS.isAndroid) Float32x4 // f32x3 isn't color-renderable on Web, and Android threw an error, too
+        else if (GFXFeatures.isOpenGLES) Float32x4 // f32x3 isn't color-renderable on Web, and Android threw an error, too
         else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
         val Float32xI = listOf(Float32x1, Float32x2, Float32x3, Float32x4)
 
@@ -94,9 +94,12 @@ class TargetType(
         // their support is quite limited, e.g. not available on Android...
         //   to do what is available is the integer format... we kind of need to support that...
         //   -> but then we wouldn't be able to support MSAA -> just stay with these non-integer formats
-        val UInt16x1 = if (OS.isWeb || OS.isAndroid) Float16x1 else TargetType("u16x1", GL_R16, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
-        val UInt16x2 = if (OS.isWeb || OS.isAndroid) Float16x2 else TargetType("u16x2", GL_RG16, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
-        val UInt16x4 = if (OS.isWeb || OS.isAndroid) Float16x3 else TargetType("u16x4", GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
+        val UInt16x1 = if (GFXFeatures.isOpenGLES) Float16x1
+        else TargetType("u16x1", GL_R16, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
+        val UInt16x2 = if (GFXFeatures.isOpenGLES) Float16x2
+        else TargetType("u16x2", GL_RG16, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
+        val UInt16x4 = if (GFXFeatures.isOpenGLES) Float16x3
+        else TargetType("u16x4", GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
         val UInt16xI = listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
     }
 }

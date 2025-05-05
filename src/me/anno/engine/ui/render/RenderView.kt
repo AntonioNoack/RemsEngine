@@ -77,6 +77,7 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
+import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
@@ -891,7 +892,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
          * maximum number of lights used for forward rendering
          * todo forward plus rendering?
          * */
-        val MAX_FORWARD_LIGHTS = if (OS.isAndroid) 8 else 32
+        val MAX_FORWARD_LIGHTS get() = if (GFXFeatures.isOpenGLES) 8 else 32
 
         val stack = Matrix4fArrayList()
 

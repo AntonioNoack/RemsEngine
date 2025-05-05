@@ -33,11 +33,11 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     }
 
     // if they are overlapping, we need to redraw the others as well
-    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return false
     }
 
-    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         return children.size > 1
     }
 

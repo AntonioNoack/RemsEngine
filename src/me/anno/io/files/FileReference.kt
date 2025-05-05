@@ -10,6 +10,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
@@ -277,7 +278,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         val parts = absolutePath.split('/')
         val baseParts = basePath.absolutePath.split('/')
         var matchingStartPaths = 0 // those can be skipped
-        val ignoreCase = OS.isLinux || OS.isAndroid
+        val ignoreCase = !OSFeatures.filesAreCaseSensitive
         for (i in 0 until min(parts.size, baseParts.size)) {
             if (!parts[i].equals(baseParts[i], ignoreCase)) break
             matchingStartPaths++

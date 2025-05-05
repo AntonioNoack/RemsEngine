@@ -12,7 +12,6 @@ import me.anno.engine.WindowRenderFlags
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GLNames.getErrorTypeName
-import me.anno.gpu.Logo.drawLogo
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
 import me.anno.gpu.debug.LWJGLDebugCallback
@@ -36,8 +35,10 @@ import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
 import me.anno.utils.Color
+import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.OS.res
+import me.anno.utils.OSFeatures
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
@@ -153,7 +154,7 @@ object WindowManagement {
 
     @JvmStatic
     fun initLWJGL(): Clock {
-        if (!OS.isWeb) LOGGER.info("Using LWJGL Version " + Version.getVersion())
+        LOGGER.info("Using LWJGL Version " + Version.getVersion())
         val tick = Clock(LOGGER)
         GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
         tick.stop("Error callback")
@@ -196,13 +197,8 @@ object WindowManagement {
     }
 
     @JvmStatic
-    fun supportsExtraWindows(): Boolean {
-        return !(OS.isAndroid || OS.isWeb)
-    }
-
-    @JvmStatic
     fun createWindow(title: String, panel: Panel): OSWindow {
-        if (!supportsExtraWindows()) return windows.first()
+        if (!GFXFeatures.canOpenNewWindows) return windows.first()
         val window = OSWindow(title)
         createWindow(window, null)
         window.windowStack.push(panel)
@@ -211,7 +207,7 @@ object WindowManagement {
 
     @JvmStatic
     fun createWindow(title: String, panel: Panel, width: Int, height: Int): OSWindow {
-        if (!supportsExtraWindows()) return windows.first()
+        if (!GFXFeatures.canOpenNewWindows) return windows.first()
         val window = OSWindow(title)
         window.width = width
         window.height = height
@@ -323,16 +319,26 @@ object WindowManagement {
         tick.stop("Make context current + vsync")
         prepareForRendering(tick)
         setFrameNullSize(window0)
+        val timeout = Time.nanoTime + 1000 * MILLIS_TO_NANOS
         val logoFrames = numLogoFrames
-        for (i in 0 until logoFrames) {
-            drawLogo(window0.width, window0.height, i == logoFrames - 1)
+        var frameIdx = 0
+        while (Time.nanoTime < timeout) {
+            Logo.drawLogo(window0.width, window0.height)
             GFX.check()
             GLFW.glfwSwapBuffers(window0.pointer)
             val err = GL46C.glGetError()
-            if (err != 0)
-                LOGGER.warn("Got awkward OpenGL error from calling glfwSwapBuffers: ${getErrorTypeName(err)}")
-            // GFX.check()
+            if (err != 0) {
+                val errName = getErrorTypeName(err)
+                LOGGER.warn("Got awkward OpenGL error from calling glfwSwapBuffers: $errName")
+            }
+            if (Logo.hasMesh) {
+                frameIdx++
+                if (frameIdx >= logoFrames) {
+                    break
+                }
+            } else Thread.sleep(10)
         }
+        Logo.destroy()
         tick.stop("Render frame zero")
         if (isDebug && (LOGGER.isInfoEnabled() || LOGGER.isWarnEnabled())) {
             setupDebugCallback()
@@ -454,8 +460,7 @@ object WindowManagement {
     }
 
     private fun mayIdle1(): Boolean {
-        // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
-        return mayIdle && !OS.isWeb
+        return mayIdle && OSFeatures.canSleep
     }
 
     private fun closeWindowsIfTheyShouldBeClosed() {

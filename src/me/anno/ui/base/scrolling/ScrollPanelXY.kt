@@ -104,13 +104,13 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         return delta - moved
     }
 
-    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return drawsOverX(lx0, ly0, lx1, ly1) || drawsOverY(lx0, ly0, lx1, ly1)
+    override fun capturesChildEvents(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        return drawsOverX(x0, y0, x1, y1) || drawsOverY(x0, y0, x1, y1)
     }
 
-    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return (hasScrollbarX && ly1 >= y + height - scrollbarHeight) ||
-                (hasScrollbarY && lx1 >= x + width - scrollbarWidth)
+    override fun drawsOverlayOverChildren(x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        return (hasScrollbarX && y1 >= y + height - scrollbarHeight) ||
+                (hasScrollbarY && x1 >= x + width - scrollbarWidth)
     }
 
     private fun drawsOverX(lx0: Int, ly0: Int, lx1: Int = lx0 + 1, ly1: Int = ly0 + 1): Boolean {

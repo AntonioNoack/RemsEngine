@@ -39,7 +39,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
-import me.anno.utils.OS
+import me.anno.utils.GFXFeatures
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.concurrent.thread
@@ -109,7 +109,7 @@ interface WelcomeUI {
             studio.gfxSettings = value
         }
 
-        if (!OS.isWeb && !OS.isAndroid) {
+        if (GFXFeatures.canToggleVSync) {
             quickSettings += BooleanInput(
                 NameDesc(
                     "Enable Vsync",
@@ -240,12 +240,8 @@ interface WelcomeUI {
     fun createProjectUI()
 
     fun openProject(studio: EngineBase, name: String, folder: FileReference) {
-        if (OS.isWeb) { // threading not yet supported in web
+        thread(name = "UILayouts::openProject()") {
             openProject2(name, folder)
-        } else {
-            thread(name = "UILayouts::openProject()") {
-                openProject2(name, folder)
-            }
         }
     }
 

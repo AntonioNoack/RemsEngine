@@ -13,6 +13,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.utils.OS
+import me.anno.utils.OSFeatures
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import org.apache.logging.log4j.LogManager
@@ -67,7 +68,7 @@ object TextureCache : CacheSection("Texture") {
             generateImageData(fileI)
         }
         return if (imageData != null) {
-            if (!asyncGenerator && !OS.isWeb) {
+            if (!asyncGenerator && OSFeatures.canSleep) {
                 // the texture was forced to be loaded -> wait for it
                 imageData.waitFor()
             }

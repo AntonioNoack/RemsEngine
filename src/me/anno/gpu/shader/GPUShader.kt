@@ -9,6 +9,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
+import me.anno.utils.GFXFeatures
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.any2
@@ -102,8 +103,8 @@ abstract class GPUShader(val name: String) : ICacheData {
             return when {
                 // ERROR: 0:1: '150' : client/version number not supported
                 // todo how do we find out which version is supported in WebGL?
-                OS.isWeb -> "#version 300 es\n"
-                OS.isAndroid -> "#version $version es\n"
+                OS.isWeb -> "#version 300 es\n" // WebGL is limited to exactly 300
+                GFXFeatures.isOpenGLES -> "#version $version es\n"
                 else -> "#version $version\n"
             }
         }

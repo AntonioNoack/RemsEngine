@@ -21,7 +21,7 @@ import me.anno.io.xml.ComparableStringBuilder
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.OS
+import me.anno.utils.GFXFeatures
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.float32ToFloat16
 import kotlin.math.max
@@ -106,7 +106,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         container.putValue(value)
     }
 
-    val withoutInterpolation get() = OS.isAndroid
+    val withoutInterpolation get() = GFXFeatures.isOpenGLES
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 

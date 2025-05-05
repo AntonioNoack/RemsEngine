@@ -28,7 +28,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindTransformUniforms
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths
-import me.anno.utils.OS
+import me.anno.utils.GFXFeatures
 import me.anno.utils.pooling.JomlPools
 import kotlin.math.max
 import kotlin.math.min
@@ -58,7 +58,7 @@ object DrawSky {
         val target = GFXState.currentBuffer
         val renderer = GFXState.currentRenderer
         val deferred = renderer.deferredSettings
-        val defaultMaxRes = if (OS.isAndroid) 256 else 4096
+        val defaultMaxRes = if (GFXFeatures.hasWeakGPU) 256 else 4096
         val resolution = DefaultConfig["gpu.maxSkyResolution", defaultMaxRes]
         if (deferred != null && max(target.width, target.height) * 2 > resolution * 3) {
             // draw sky at lower resolution, then upscale (using cubic interpolation)
@@ -148,7 +148,8 @@ object DrawSky {
         }
         JomlPools.quat4f.sub(1)
         JomlPools.mat4f.sub(1)
-        if (!OS.isAndroid) {
+        if (!GFXFeatures.hasWeakGPU) {
+            // calculate mipmap levels
             // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
             framebuffer.textures[0].bind(0, Filtering.LINEAR)
         }
