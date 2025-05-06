@@ -45,17 +45,6 @@ open class Shader(
         if (attributes.isEmpty() && ("in " in vertexShader || "attribute " in vertexShader)) {
             LOGGER.warn("Shader '$shaderName' should use Variables")
         }
-        if (attributes.size > GFX.maxAttributes) {
-            // when this happens, try to find a way to compact your data more,
-            // or we'll have to find a way how we can bind buffers with per-index access,
-            // or use textures for that...
-            // my RTX 3070 has a limit of 16, my phone (Honor 10) has a limit of 8,
-            // so 8 is probably a reasonable lower limit
-            throw IllegalArgumentException(
-                "Cannot use more than ${GFX.maxAttributes} attributes" +
-                        " in $name, given: ${attributes.map { it.name }}"
-            )
-        }
     }
 
     var vertexSource = vertexShader
@@ -87,13 +76,25 @@ open class Shader(
 
     override fun compile() {
 
+        if (attributes.size > GFX.maxAttributes) {
+            // when this happens, try to find a way to compact your data more,
+            // or we'll have to find a way how we can bind buffers with per-index access,
+            // or use textures for that...
+            // my RTX 3070 has a limit of 16, my phone (Honor 10) has a limit of 8,
+            // so 8 is probably a reasonable lower limit
+            throw IllegalArgumentException(
+                "Cannot use more than ${GFX.maxAttributes} attributes" +
+                        " in $name, given: ${attributes.map { it.name }}"
+            )
+        }
+
         val varyings = varyings.map {
             // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
             val isFlat = it.isFlat || it.type.isNativeInt || it.type.glslName.startsWith("mat")
             Varying(if (isFlat) "flat" else "", it.type, it.name)
         }
 
-        if (glslVersion < 430 && ("layout(std430, binding = 0) buffer" in vertexShader)) {
+        if (glslVersion < 430 && ("layout(std430" in vertexShader || "layout(std430" in fragmentShader)) {
             glslVersion = 430
         }
 

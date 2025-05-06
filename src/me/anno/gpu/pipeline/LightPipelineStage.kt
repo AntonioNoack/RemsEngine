@@ -2,7 +2,6 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
@@ -73,13 +72,11 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         }
     }
 
-    private fun initShader(shader: Shader, type: LightType, depthTexture: ITexture2D, instanced: Boolean) {
+    private fun initShader(shader: Shader, depthTexture: ITexture2D, instanced: Boolean) {
         shader.use()
         // information for the shader, which is material agnostic
         // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
-        shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
-        shader.v1b("isSpotLight", type == LightType.SPOT)
         shader.v1b("receiveShadows", true)
         shader.v1b("canHaveShadows", !instanced)
         shader.v1f("countPerPixel", countPerPixel)
@@ -115,7 +112,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
             val mesh = sample.getLightPrimitive()
 
             val shader = getShader(type, false)
-            initShader(shader, type, depthTexture, false)
+            initShader(shader, depthTexture, false)
 
             mesh.ensureBuffer()
 
@@ -131,19 +128,16 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 val light = request.light
                 val transform = request.drawMatrix
 
-                shader.v1b("fullscreen", light is DirectionalLight && light.cutoff == 0f)
-
                 bindTransformUniforms(shader, transform)
 
                 // define the light data
                 // data0: color, type
-                shader.v4f("data0", light.color, type.id.toFloat())
-
                 // data1: shader specific values (cone angle / size)
-                shader.v4f("data1", light.getShaderV0(), light.getShaderV1(), light.getShaderV2(), light.getShaderV3())
-                shader.v4f("depthMask", depthMask)
 
-                shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
+                shader.v4f("data0", light.color, type.id.toFloat())
+                shader.v4f("data1", light.getShaderV0(), light.getShaderV1(), light.getShaderV2(), light.getShaderV3())
+
+                shader.v4f("depthMask", depthMask)
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
                 var endIndex = 0
@@ -186,23 +180,22 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 val shader = getShader(type, true)
                 if (type == LightType.DIRECTIONAL) {
                     GFXState.depthMode.use(alwaysDepthMode) {
-                        drawBatches(pipeline, depthTexture, lights, size, type, shader)
+                        drawBatches(pipeline, depthTexture, lights, size, shader)
                     }
-                } else drawBatches(pipeline, depthTexture, lights, size, type, shader)
+                } else drawBatches(pipeline, depthTexture, lights, size, shader)
             }
         }
     }
 
     fun drawBatches(
         pipeline: Pipeline, depthTexture: ITexture2D,
-        lights: List<LightRequest>, size: Int,
-        type: LightType, shader: Shader,
+        lights: List<LightRequest>, size: Int, shader: Shader,
     ) {
 
         val sample = lights[0].light
         val mesh = sample.getLightPrimitive()
 
-        initShader(shader, type, depthTexture, true)
+        initShader(shader, depthTexture, true)
 
         val buffer = lightInstanceBuffer
         val nioBuffer = buffer.getOrCreateNioBuffer()
@@ -230,7 +223,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 nioBuffer.putFloat(color.x)
                 nioBuffer.putFloat(color.y)
                 nioBuffer.putFloat(color.z)
-                nioBuffer.putInt(light.lightType.id)
+                nioBuffer.putFloat(light.lightType.id.toFloat())
                 // put data1: type-dependant property
                 nioBuffer.putFloat(light.getShaderV0())
                 nioBuffer.putFloat(light.getShaderV1())

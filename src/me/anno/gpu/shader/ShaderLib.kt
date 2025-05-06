@@ -31,13 +31,18 @@ object ShaderLib {
     const val loadMat4x3 = "" +
             "#ifndef LOAD_MAT4x3\n" +
             "#define LOAD_MAT4x3\n" +
-            "mat4x3 loadMat4x3(vec4 a, vec4 b, vec4 c){\n" +
+            "mat4x3 loadMat4x3(vec4 a, vec4 b, vec4 c) {\n" +
             "   return mat4x3(\n" +
             "       a.xyz,\n" +
             "       vec3(a.w, b.xy),\n" +
             "       vec3(b.zw, c.x),\n" +
             "       c.yzw\n" +
             "   );\n" +
+            "}\n" +
+            "void storeMat4x3(mat4x3 m, out vec4 a, out vec4 b, out vec4 c) {\n" +
+            "    a = vec4(m[0].xyz, m[1].x);\n" +
+            "    b = vec4(m[1].yz, m[2].xy);\n" +
+            "    c = vec4(m[2].z, m[3].xyz);\n" +
             "}\n" +
             "#endif\n"
 

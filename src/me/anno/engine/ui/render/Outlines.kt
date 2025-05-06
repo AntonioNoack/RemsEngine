@@ -115,9 +115,9 @@ object Outlines {
                         shader.m4x4("transform", RenderState.cameraMatrix)
                         shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
 
-                        shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, scale)
+                        shader.m4x3delta("localTransform", offsetCorrectedTransform, scale)
                         // todo inv local transform
-                        shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, scale)
+                        shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, scale)
                         shader.v4f("tint", 1f)
 
                         val hasAnim = animated && comp.defineVertexTransform(shader, entity.transform, mesh)

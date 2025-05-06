@@ -2,9 +2,7 @@ package me.anno.gpu
 
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.shader.GPUShader
-import me.anno.maths.Maths
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
 import org.joml.Vector3d
@@ -28,19 +26,13 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun GPUShader.m4x3delta(
-        location: String, m: Matrix4x3?,
-        pos: Vector3d = RenderState.cameraPosition
-    ) {
+    fun GPUShader.m4x3delta(location: String, m: Matrix4x3?, pos: Vector3d) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) m4x3delta(uniformIndex, m, pos)
     }
 
     @JvmStatic
-    fun GPUShader.m4x3delta(
-        uniformIndex: Int, m: Matrix4x3?,
-        pos: Vector3d = RenderState.cameraPosition
-    ) {
+    fun GPUShader.m4x3delta(uniformIndex: Int, m: Matrix4x3?, pos: Vector3d) {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
 
@@ -89,30 +81,6 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun m4x3delta(m: Matrix4x3, pos: Vector3d, buffer16: FloatBuffer) {
-        buffer16
-            .put(m.m00)
-            .put(m.m01)
-            .put(m.m02)
-
-            .put(m.m10)
-            .put(m.m11)
-            .put(m.m12)
-
-            .put(m.m20)
-            .put(m.m21)
-            .put(m.m22)
-
-            .put(((m.m30 - pos.x)).toFloat())
-            .put(((m.m31 - pos.y)).toFloat())
-            .put(((m.m32 - pos.z)).toFloat())
-    }
-
-    /**
-     * uploads the transform, minus some offset, to the GPU uniform <location>
-     * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
-     * */
-    @JvmStatic
     fun m4x3x(m: Matrix4x3f, buffer16: ByteBuffer) {
         buffer16
             .putFloat(m.m00)
@@ -138,30 +106,31 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun GPUShader.m4x3delta(location: String, m: Matrix4x3, b: Vector3d, localScale: Float) {
+    fun GPUShader.m4x3delta(location: String, m: Matrix4x3, localScale: Float) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
 
             // false = column major, however the labelling of these things is awkward
             // A_ji, as far, as I can see
+            val pos = RenderState.cameraPosition
             val buffer16 = buffer16
             buffer16.limit(12).position(0)
             buffer16
-                .put((m.m00) * localScale)
-                .put((m.m01) * localScale)
-                .put((m.m02) * localScale)
+                .put(m.m00 * localScale)
+                .put(m.m01 * localScale)
+                .put(m.m02 * localScale)
 
-                .put((m.m10) * localScale)
-                .put((m.m11) * localScale)
-                .put((m.m12) * localScale)
+                .put(m.m10 * localScale)
+                .put(m.m11 * localScale)
+                .put(m.m12 * localScale)
 
-                .put((m.m20) * localScale)
-                .put((m.m21) * localScale)
-                .put((m.m22) * localScale)
+                .put(m.m20 * localScale)
+                .put(m.m21 * localScale)
+                .put(m.m22 * localScale)
 
-                .put((m.m30 - b.x).toFloat())
-                .put((m.m31 - b.y).toFloat())
-                .put((m.m32 - b.z).toFloat())
+                .put((m.m30 - pos.x).toFloat())
+                .put((m.m31 - pos.y).toFloat())
+                .put((m.m32 - pos.z).toFloat())
                 .flip()
 
             m4x3(uniformIndex, buffer16)
@@ -169,9 +138,10 @@ object M4x3Delta {
     }
 
     @JvmStatic
-    fun Matrix4f.mul4x3delta(m: Matrix4x3, pos: Vector3d): Matrix4f {
+    fun Matrix4f.mul4x3delta(m: Matrix4x3): Matrix4f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
+        val pos = RenderState.cameraPosition
         return mul(
             m.m00, m.m01, m.m02, 0f,
             m.m10, m.m11, m.m12, 0f,
@@ -181,9 +151,10 @@ object M4x3Delta {
     }
 
     @JvmStatic
-    fun Matrix4x3f.set4x3delta(m: Matrix4x3, pos: Vector3d): Matrix4x3f {
+    fun Matrix4x3f.set4x3delta(m: Matrix4x3): Matrix4x3f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
+        val pos = RenderState.cameraPosition
         return set(
             m.m00, m.m01, m.m02,
             m.m10, m.m11, m.m12,

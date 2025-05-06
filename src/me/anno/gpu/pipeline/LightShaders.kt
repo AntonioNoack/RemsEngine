@@ -4,6 +4,7 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.engine.ui.render.RendererLib.defineLightVariables
 import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
@@ -150,12 +151,15 @@ object LightShaders {
     var countPerPixel = 0.25f
 
     val positionCalculation = "" +
-            "if(fullscreen){\n" +
+            "int lightType = int(data0.w);\n" +
+            "bool isFullscreen = lightType == ${LightType.DIRECTIONAL.id} && data1.z <= 0.0;\n" +
+            "bool isSpotLight = lightType == ${LightType.SPOT.id};\n" +
+            "if (isFullscreen) {\n" +
             "   gl_Position = vec4(positions.xy, 0.5, 1.0);\n" +
             "} else {\n" +
             "   vec3 localPosition = positions;\n" +
-            "   if(isSpotLight){\n" +
-            "       float coneAngle = lightData1.x;\n" +
+            "   if (isSpotLight) {\n" +
+            "       float coneAngle = data1.x;\n" +
             "       localPosition.xy *= coneAngle;\n" +
             "   }\n" +
             "   vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
@@ -176,8 +180,6 @@ object LightShaders {
             Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.V1B, "isDirectional"),
-            Variable(GLSLType.V1B, "isSpotLight"),
             Variable(GLSLType.V4F, "invInsTrans0v", VariableMode.OUT).flat(),
             Variable(GLSLType.V4F, "invInsTrans1v", VariableMode.OUT).flat(),
             Variable(GLSLType.V4F, "invInsTrans2v", VariableMode.OUT).flat(),
@@ -190,7 +192,6 @@ object LightShaders {
                 "data1 = lightData1;\n" + // shaderV0-V2, unused
                 "data2 = vec4(0.0);\n" + // shadow-data aka unused for instanced lights
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "bool fullscreen = isDirectional && data1.z <= 0.0;\n" +
                 instancedLocalTransform +
                 positionCalculation +
                 "invInsTrans0v = invInsTrans0;\n" +
@@ -205,13 +206,12 @@ object LightShaders {
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
             Variable(GLSLType.V1F, "cutoff"),
+            Variable(GLSLType.V4F, "data0").flat(),
             Variable(GLSLType.V4F, "data1").flat(),
             Variable(GLSLType.V1B, "isSpotLight"),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
         ), "" +
-                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "bool fullscreen = cutoff <= 0.0;\n" +
-                "vec4 lightData1 = data1;\n" +
+                "vec4 data2 = vec4(0.0);\n" + // shadows are disabled
                 positionCalculation +
                 "uvw = gl_Position.xyw;\n"
     )
@@ -247,16 +247,13 @@ object LightShaders {
                     startLightSum +
                     "vec3 V = -normalize(rawCameraDirection(uv));\n" +
                     "float NdotV = dot(finalNormal,V);\n" +
-                    "int shadowMapIdx0 = 0;\n" + // always 0 at the start
-                    "int shadowMapIdx1 = canHaveShadows ? int(data2.y) : 0;\n" +
                     // light properties, which are typically inside the loop
-                    "vec3 lightColor = data0.rgb;\n" +
                     "vec3 lightPos = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
                     "vec3 lightNor = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
                     "vec3 viewDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
                     "vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0), lightDir = vec3(0.0,0.0,-1.0);\n" +
-                    "float shaderV0 = data1.x, shaderV1 = data1.y, shaderV2 = data1.z, shaderV3 = data1.w;\n" +
+                    defineLightVariables +
                     coreFragment +
                     addSpecularLight +
                     addDiffuseLight +
@@ -271,12 +268,10 @@ object LightShaders {
             Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
-            Variable(GLSLType.V1B, "isSpotLight"),
+            Variable(GLSLType.V4F, "data0").flat(),
             Variable(GLSLType.V4F, "data1").flat(),
-            Variable(GLSLType.V1B, "fullscreen"),
         ), "" +
                 "void main() {\n" +
-                "   vec4 lightData1 = data1;\n" +
                 positionCalculation +
                 "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
@@ -290,16 +285,15 @@ object LightShaders {
             Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "lightData2", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.V1B, "isDirectional"),
-            Variable(GLSLType.V1B, "isSpotLight"),
         ), "" +
                 loadMat4x3 +
-                "void main(){\n" +
-                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                "   bool fullscreen = isDirectional && lightData1.z <= 0.0;\n" +
+                "void main() {\n" +
+                "   vec4 data0 = lightData0;\n" +
+                "   vec4 data1 = lightData1;\n" +
+                "   vec4 data2 = vec4(0.0);\n" +
                 instancedLocalTransform +
                 positionCalculation +
                 "}\n", emptyList(), listOf(

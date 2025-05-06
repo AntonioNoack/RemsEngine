@@ -31,7 +31,7 @@ object BVHBuilder {
         cameraPosition: Vector3d,
     ): TLASLeaf {
         val drawMatrix = transform.getDrawMatrix()
-        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition)
+        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix)
         val worldToLocal = Matrix4x3f()
         localToWorld.invert(worldToLocal)
         val centroid = Vector3f()

@@ -57,6 +57,13 @@ object RendererLib {
             "   return (1.0 - reflectivity) * textureLod(reflectionMap, -${cubemapsAreLeftHanded} * dir, lod).rgb;\n" +
             "}\n"
 
+    val defineLightVariables = "" +
+            "vec3 lightColor = data0.rgb;\n" +
+            "int lightType = int(data0.w);\n" +
+            "int shadowMapIdx0 = int(data2.x);\n" +
+            "int shadowMapIdx1 = canHaveShadows ? int(data2.y) : 0;\n" +
+            "float shaderV0 = data1.x, shaderV1 = data1.y, shaderV2 = data1.z, shaderV3 = data1.w;\n"
+
     val lightCode = "" +
             colorToLinear +
             "   vec3 V = normalize(-finalPosition);\n" +
@@ -75,19 +82,15 @@ object RendererLib {
             "       vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0);\n" +
             "       vec4 data0 = lightData0[i];\n" + // color, type
             "       vec4 data1 = lightData1[i];\n" + // point: radius, spot: angle
-            "       vec4 data2 = canHaveShadows ? lightData2[i] : vec4(0.0);\n" +
-            "       vec3 lightColor = data0.rgb;\n" +
-            "       int lightType = int(data0.w);\n" +
-            "       int shadowMapIdx0 = int(data2.x);\n" +
-            "       int shadowMapIdx1 = int(data2.y);\n" +
-            "       float shaderV0 = data1.x, shaderV1 = data1.y, shaderV2 = data1.z, shaderV3 = data1.w;\n" +
+            "       vec4 data2 = lightData2[i];\n" +
+            defineLightVariables +
             // local coordinates of the point in the light "cone"
             // removed switch(), because WebGL had issues with continue inside it...
-            LightType.entries.joinToString("") {
-                val start = if (it.ordinal == 0) "if" else " else if"
+            LightType.entries.joinToString("") { type ->
+                val start = if (type.ordinal == 0) "if" else " else if"
                 val cutoffKeyword = "continue"
                 val withShadows = true
-                "$start(lightType == ${it.ordinal}){\n${LightType.getShaderCode(it, cutoffKeyword, withShadows)}}"
+                "$start(lightType == ${type.id}){\n${LightType.getShaderCode(type, cutoffKeyword, withShadows)}}"
             } + "\n" +
             addSpecularLight +
             addDiffuseLight +

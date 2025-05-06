@@ -20,7 +20,6 @@ import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
 import org.joml.Matrix4x3f
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -53,6 +52,11 @@ fun main() {
 
     ECSRegistry.init()
     Build.isDebug = false // disable glGetError() calls
+
+    testSceneWithUI("Lights2", createRingOfLights())
+}
+
+fun createRingOfLights(): Entity {
 
     val scene = Entity()
     // scene.add(SkyboxBase().apply { skyColor.set(0f) })
@@ -136,5 +140,5 @@ fun main() {
         .setScale(0.5f, 1f, 1f)
         .add(MeshComponent(cube))
 
-    testSceneWithUI("Lights2", scene)
+    return scene
 }

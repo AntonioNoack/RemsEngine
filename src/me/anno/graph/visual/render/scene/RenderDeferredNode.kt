@@ -84,9 +84,10 @@ open class RenderDeferredNode : RenderViewNode(
 
     val width get() = getIntInput(1)
     val height get() = getIntInput(2)
-    val skyResolution get() = getIntInput(6)
-
+    val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
     val stage get() = getInput(4) as PipelineStage
+    val applyToneMapping get() = getBoolInput(5)
+    val skyResolution get() = getIntInput(6)
     val drawSky get() = getInput(7) as DrawSkyMode
 
     override fun invalidate() {
@@ -103,7 +104,7 @@ open class RenderDeferredNode : RenderViewNode(
      * */
     fun defineFramebuffer(): IFramebuffer? {
         var settings = settings
-        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
+        val samples = samples
         if (settings == null || framebuffer?.samples != samples) {
             enabledLayers.clear()
             val outputs = outputs
@@ -178,10 +179,8 @@ open class RenderDeferredNode : RenderViewNode(
 
     fun render() {
         val drawSky = drawSky
-        if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
-            pipeline.drawSky()
-        }
-        pipeline.applyToneMapping = getBoolInput(5)
+        if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) pipeline.drawSky()
+        pipeline.applyToneMapping = applyToneMapping
         if (needsRendering(stage)) {
             val stage = pipeline.stages.getOrNull(stage.id)
             if (stage != null) {
@@ -191,9 +190,7 @@ open class RenderDeferredNode : RenderViewNode(
                 stage.depthMode = oldDepth
             }
         }
-        if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
-            pipeline.drawSky()
-        }
+        if (drawSky == DrawSkyMode.AFTER_GEOMETRY) pipeline.drawSky()
     }
 
     fun setOutputs(framebuffer: IFramebuffer) {

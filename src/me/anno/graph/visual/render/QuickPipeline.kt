@@ -114,6 +114,11 @@ class QuickPipeline {
         }
     }
 
+    fun mapOutputs(extraOutputs: Map<String, List<String>>): QuickPipeline {
+        registerOutputs(graph.nodes.last(), extraOutputs)
+        return this
+    }
+
     private fun registerOutput(output: NodeOutput, extraOutputs: Map<String, List<String>>) {
         val mapping = extraOutputs[output.name]
         if (mapping != null) {

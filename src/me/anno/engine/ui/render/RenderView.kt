@@ -737,7 +737,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         val transform = entity.transform
                         val globalTransform = transform.globalTransform
                         stack.pushMatrix()
-                        stack.mul4x3delta(globalTransform, cameraPosition)
+                        stack.mul4x3delta(globalTransform)
                     }
 
                     component.onDrawGUI(pipeline, true)

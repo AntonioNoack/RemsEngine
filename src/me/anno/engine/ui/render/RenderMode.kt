@@ -60,9 +60,11 @@ import me.anno.graph.visual.render.scene.CellShadingNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DepthPrepassNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
+import me.anno.graph.visual.render.scene.FillLightBucketsNode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
+import me.anno.graph.visual.render.scene.RenderForwardPlusSceneNode
 import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.scalar.FloatMathBinary
@@ -185,12 +187,9 @@ class RenderMode private constructor(
 
         val NO_DEPTH = RenderMode("No Depth", Renderers.pbrRenderer)
 
-        private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
-            return pipeline
-                .then(BoxCullingNode())
-                .then1(RenderForwardNode(), opaqueNodeSettings)
-                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then(RenderGlassNode(), mapOf("Illuminated" to listOf("A")))
+        fun QuickPipeline.depthToSSAO(): QuickPipeline {
+            return this
+                .mapOutputs(mapOf("Illuminated" to listOf("A")))
                 .then(DepthToNormalNode())
                 .then(SSAONode(), mapOf("Inverse" to true), mapOf("Ambient Occlusion" to listOf("B")))
                 .then(
@@ -200,6 +199,15 @@ class RenderMode private constructor(
                     mapOf("Result" to listOf("Data"))
                 )
                 .then(ShaderExprNode(), mapOf("Result" to listOf("Illuminated")))
+        }
+
+        private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
+            return pipeline
+                .then(BoxCullingNode())
+                .then1(RenderForwardNode(), opaqueNodeSettings)
+                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then(RenderGlassNode())
+                .depthToSSAO()
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
         }
@@ -208,6 +216,25 @@ class RenderMode private constructor(
         val MSAA_FORWARD = RenderMode(
             "MSAA Forward",
             defineForwardPipeline(QuickPipeline().then(MSAAHelperNode())).finish()
+        )
+
+        val FORWARD_PLUS = RenderMode(
+            "Forward+",
+            QuickPipeline()
+                .then(BoxCullingNode())
+                .then(FillLightBucketsNode())
+                .then(RenderForwardPlusSceneNode())
+                // .then(RenderDecalsNode())
+                .depthToSSAO()
+                // .then(SSRNode())
+                .then(RenderGlassNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                // .then(OutlineEffectSelectNode())
+                // .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
+                .then(GizmoNode())
+                // .then(UnditherNode())
+                // .then(FXAANode())
+                .finish()
         )
 
         val ALL_DEFERRED_LAYERS = RenderMode("All Deferred Layers")
