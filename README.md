@@ -122,7 +122,7 @@ and any other special kind of rendering.
 
 - PBR-based material descriptions (roughness-metallic)
 - pipeline / shader-object abstraction over graphics APIs like OpenGL
-- simple switch between forward- and deferred rendering
+- simple switch between forward, forward-plus and deferred rendering
     - for beautiful MSAA with a few lights,
     - or thousands of lights without performance hit
     - Note: forward rendering does not support SSR
