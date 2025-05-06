@@ -219,7 +219,7 @@ class RenderMode private constructor(
         )
 
         val FORWARD_PLUS = RenderMode(
-            "Forward+",
+            "Forward Plus",
             QuickPipeline()
                 .then(BoxCullingNode())
                 .then(FillLightBucketsNode())
