@@ -174,7 +174,8 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         val lastScene = lastScene
 
         // open all tabs
-        for (tab in openTabs) {
+        for (i in openTabs.indices) {
+            val tab = openTabs[i]
             try {
                 ECSSceneTabs.open(tab.toGlobalFile(EngineBase.workspace), PlayMode.EDITING, false)
             } catch (e: Exception) {

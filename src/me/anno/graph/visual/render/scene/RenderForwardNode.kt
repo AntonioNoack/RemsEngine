@@ -3,6 +3,7 @@ package me.anno.graph.visual.render.scene
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -22,6 +23,7 @@ import me.anno.maths.Maths.clamp
 class RenderForwardNode : RenderViewNode(
     "RenderSceneForward",
     listOf(
+        // usual rendering inputs
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
@@ -29,14 +31,36 @@ class RenderForwardNode : RenderViewNode(
         "Boolean", "Apply Tone Mapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
-    ) + listLayers(),
-    // list all available deferred layers
-    listLayers()
+        // previous data
+        "Texture", "Illuminated",
+        "Texture", "Depth"
+    ), listOf(
+        "Texture", "Illuminated",
+        "Texture", "Depth"
+    )
 ) {
 
     companion object {
-        fun listLayers(): List<String> {
-            return listOf("Texture", "Illuminated", "Texture", "Depth")
+        fun defineInputs(
+            framebuffer: IFramebuffer, prepassColor: ITexture2D?,
+            prepassDepth: ITexture2D?, prepassDepthM: Int
+        ) {
+            renderPurely {
+                if (prepassDepth != null && prepassDepth.isCreated()) {
+                    GizmoNode.copyColorAndDepth(prepassColor, prepassDepth, prepassDepthM)
+                } else if (prepassColor != null && prepassColor != blackTexture) {
+                    GizmoNode.copyColorAndDepth(prepassColor, depthTexture, 0)
+                    framebuffer.clearDepth()
+                } else {
+                    framebuffer.clearColor(0, depth = true)
+                }
+            }
+        }
+
+        fun copyInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: Texture?) {
+            GFXState.useFrame(framebuffer, GizmoNode.gizmoRenderer) {
+                defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
+            }
         }
     }
 
@@ -52,64 +76,59 @@ class RenderForwardNode : RenderViewNode(
 
     var renderer = pbrRenderer
 
-    override fun executeAction() {
+    val width get() = getIntInput(1)
+    val height get() = getIntInput(2)
+    val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
 
-        val width = getIntInput(1)
-        val height = getIntInput(2)
-        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
+    val stage get() = getInput(4) as PipelineStage
+    val applyToneMapping get() = getBoolInput(5)
+    val skyboxResolution get() = getIntInput(6)
+    val drawSky get() = getInput(7) as DrawSkyMode
+
+    val prepassColor get() = getInput(8) as? Texture
+    val prepassDepth get() = getInput(9) as? Texture
+
+    val stageImpl get() = pipeline.stages.getOrNull(stage.id)
+
+    override fun executeAction() {
         if (width < 1 || height < 1) return
 
-        val stage = getInput(4) as PipelineStage
-        val applyToneMapping = getBoolInput(5)
-        val skyboxResolution = getIntInput(6)
-        val drawSky = getInput(7) as DrawSkyMode
-        val stageImpl = pipeline.stages.getOrNull(stage.id)
-
         val skipSky = drawSky == DrawSkyMode.DONT_DRAW_SKY || skyboxResolution <= 0
+        val stageImpl = stageImpl
         val skipGeometry = stageImpl == null || stageImpl.isEmpty()
         if (skipSky && skipGeometry) {
             // if there is nothing to render, redirect inputs/defaults to outputs
-            setOutput(1, getInput(8) ?: Texture(blackTexture))
-            setOutput(2, getInput(9) ?: Texture(depthTexture))
+            setOutput(1, prepassColor ?: Texture(blackTexture))
+            setOutput(2, prepassDepth ?: Texture(depthTexture))
             return
         }
 
         timeRendering(name, timer) {
-            executeRendering(
-                width, height, samples, skyboxResolution,
-                applyToneMapping, drawSky, stageImpl
-            )
+            executeRendering(stageImpl)
         }
     }
 
-    fun executeRendering(
-        width: Int, height: Int, samples: Int,
-        skyboxResolution: Int, applyToneMapping: Boolean,
-        drawSky: DrawSkyMode, stageImpl: PipelineStageImpl?
-    ) {
-        val framebuffer = FBStack["scene-forward",
-            width, height, TargetType.Float16x4,
-            samples, DepthBufferType.TEXTURE]
+    private fun prepareFramebuffer(): IFramebuffer {
+        return FBStack["scene-forward", width, height, TargetType.Float16x4, samples, DepthBufferType.TEXTURE]
+    }
+
+    fun executeRendering(stageImpl: PipelineStageImpl?) {
 
         // if skybox is not used, bake it anyway?
         // -> yes, the pipeline architect (^^) has to be careful
         pipeline.bakeSkybox(skyboxResolution)
-
-        val prepassColor = (getInput(8) as? Texture).texOrNull
-        val prepassDepth = getInput(9) as? Texture
-
         pipeline.applyToneMapping = applyToneMapping
-        val depthMode = pipeline.defaultStage.depthMode
-        GFXState.useFrame(width, height, true, framebuffer, GizmoNode.renderer) {
-            defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
-        }
 
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) pipeline.drawSky()
-            if (stageImpl != null && !stageImpl.isEmpty()) stageImpl.bindDraw(pipeline)
-            if (drawSky == DrawSkyMode.AFTER_GEOMETRY) pipeline.drawSky()
-            pipeline.defaultStage.depthMode = depthMode
-            GFX.check()
+        val drawSky = drawSky
+        val framebuffer = prepareFramebuffer()
+        GFXState.depthMode.use(renderView.depthMode) {
+            copyInputs(framebuffer, prepassColor.texOrNull, prepassDepth)
+            GFXState.useFrame(framebuffer, renderer) {
+                if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) pipeline.drawSky()
+                if (stageImpl != null && !stageImpl.isEmpty()) stageImpl.bindDraw(pipeline)
+                if (drawSky == DrawSkyMode.AFTER_GEOMETRY) pipeline.drawSky()
+                GFX.check()
+            }
         }
 
         if (framebuffer.depthBufferType != DepthBufferType.NONE) {
@@ -118,19 +137,5 @@ class RenderForwardNode : RenderViewNode(
 
         setOutput(1, Texture.texture(framebuffer, 0))
         setOutput(2, Texture.depth(framebuffer))
-    }
-
-    fun defineInputs(
-        framebuffer: IFramebuffer, prepassColor: ITexture2D?,
-        prepassDepth: ITexture2D?, prepassDepthM: Int
-    ) {
-        if (prepassDepth != null && prepassDepth.isCreated()) {
-            GizmoNode.copyColorAndDepth(prepassColor, prepassDepth, prepassDepthM)
-        } else if (prepassColor != null && prepassColor != blackTexture) {
-            GizmoNode.copyColorAndDepth(prepassColor, depthTexture, 0)
-            framebuffer.clearDepth()
-        } else {
-            framebuffer.clearColor(0, depth = true)
-        }
     }
 }

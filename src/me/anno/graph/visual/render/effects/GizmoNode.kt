@@ -92,7 +92,7 @@ class GizmoNode : RenderViewNode(
 
         timeRendering(name, timer) {
             framebuffer.isSRGBMask = 1
-            useFrame(framebuffer, renderer) {
+            useFrame(framebuffer, gizmoRenderer) {
                 copyColorAndDepth(colorT, depthT, depthM)
                 GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
@@ -129,7 +129,7 @@ class GizmoNode : RenderViewNode(
             )
         }
 
-        val renderer by lazy {
+        val gizmoRenderer by lazy {
             val settings = DeferredSettings(
                 if (GFX.supportsDepthTextures) listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA) else
                     listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA, DeferredLayerType.DEPTH)

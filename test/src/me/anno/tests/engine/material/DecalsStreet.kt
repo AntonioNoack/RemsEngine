@@ -50,5 +50,5 @@ fun main() {
             .setScale(0.1f, 0.1f, 1.2f)
     }
 
-    testSceneWithUI("Decals", scene)
+    testSceneWithUI("Decal Street", scene)
 }

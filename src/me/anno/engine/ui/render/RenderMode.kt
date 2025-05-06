@@ -64,7 +64,7 @@ import me.anno.graph.visual.render.scene.FillLightBucketsNode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
-import me.anno.graph.visual.render.scene.RenderForwardPlusSceneNode
+import me.anno.graph.visual.render.scene.RenderForwardPlusNode
 import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.scalar.FloatMathBinary
@@ -223,17 +223,12 @@ class RenderMode private constructor(
             QuickPipeline()
                 .then(BoxCullingNode())
                 .then(FillLightBucketsNode())
-                .then(RenderForwardPlusSceneNode())
-                // .then(RenderDecalsNode())
-                .depthToSSAO()
-                // .then(SSRNode())
+                .then1(RenderForwardPlusNode(), opaqueNodeSettings)
+                .then1(RenderForwardPlusNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderGlassNode())
+                .depthToSSAO()
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                // .then(OutlineEffectSelectNode())
-                // .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())
-                // .then(UnditherNode())
-                // .then(FXAANode())
                 .finish()
         )
 

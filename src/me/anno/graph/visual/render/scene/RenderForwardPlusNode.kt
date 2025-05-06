@@ -20,12 +20,14 @@ import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders.addDiffuseLight
 import me.anno.gpu.pipeline.LightShaders.addSpecularLight
 import me.anno.gpu.pipeline.LightShaders.startLightSum
 import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -37,6 +39,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.graph.visual.render.scene.RenderForwardNode.Companion.copyInputs
 import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.hasFlag
@@ -53,17 +57,23 @@ import org.joml.Vector2i
  *   can we use bindless textures? might help a lot, too
  *   textures with lots of shadow maps could use two memory slots, if we need that
  * */
-class RenderForwardPlusSceneNode() : RenderViewNode(
-    "Forward+ FillLights", listOf(
+class RenderForwardPlusNode() : RenderViewNode(
+    "RenderSceneForward+", listOf(
+        // usual rendering inputs
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
         "Boolean", "Apply Tone Mapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
+        "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
+        // previous data
+        "Texture", "Illuminated",
+        "Texture", "Depth",
+        // light buckets input
         "Buffer", "LightBuckets",
-        "Int", "LightBucketsX",
-        "Int", "LightBucketsY",
+        "Int", "NumLightBucketsX",
+        "Int", "NumLightBucketsY",
     ), listOf(
         "Texture", "Illuminated",
         "Texture", "Depth",
@@ -181,7 +191,8 @@ class RenderForwardPlusSceneNode() : RenderViewNode(
                                 colorToSRGB +
                                 "   finalResult = vec4(finalColor, finalAlpha);\n"
                     ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)
-                        .add(brightness).add(FillLightBucketsNode.Companion.getBucketId).add(FillLightBucketsNode.Companion.lightBucketsReadonlyDeclaration).add(loadMat4x3),
+                        .add(brightness).add(FillLightBucketsNode.Companion.getBucketId)
+                        .add(FillLightBucketsNode.Companion.lightBucketsReadonlyDeclaration).add(loadMat4x3),
                     finalResultStage
                 )
             }
@@ -189,70 +200,73 @@ class RenderForwardPlusSceneNode() : RenderViewNode(
     }
 
     init {
-        setInput(1, 256)
-        setInput(2, 256)
-        setInput(3, 1)
+        setInput(1, 256) // width
+        setInput(2, 256) // height
+        setInput(3, 1) // samples
         setInput(4, PipelineStage.OPAQUE)
-        setInput(5, false)
-        setInput(6, 256)
+        setInput(5, false) // apply tonemapping
+        setInput(6, 0) // skybox resolution
+        setInput(7, DrawSkyMode.DONT_DRAW_SKY)
     }
 
+    // usual data
     val width get() = getIntInput(1)
     val height get() = getIntInput(2)
     val samples get() = clamp(getIntInput(3), 1, GFX.maxSamples)
     val stage get() = getInput(4) as PipelineStage
     val applyToneMapping get() = getBoolInput(5)
     val skyResolution get() = getIntInput(6)
-    val bucketInput get() = getInput(7) as ComputeBuffer
-    val width2 get() = getIntInput(8)
-    val height2 get() = getIntInput(9)
+    val drawSky get() = getInput(7) as DrawSkyMode
+
+    // previous data
+    val prepassColor get() = getInput(8) as? Texture
+    val prepassDepth get() = getInput(9) as? Texture
+
+    // light bucket data
+    val bucketInput get() = getInput(10) as ComputeBuffer
+    val numBucketsX get() = getIntInput(11)
+    val numBucketsY get() = getIntInput(12)
+
+    val stageImpl get() = pipeline.stages.getOrNull(stage.id)
 
     override fun executeAction() {
-        val width = width
-        val height = height
-        val samples = samples
         if (width <= 0 || height <= 0) return
-
-        var framebuffer = framebuffer
-        if (framebuffer !is Framebuffer ||
-            framebuffer.width != width ||
-            framebuffer.height != height ||
-            framebuffer.samples != samples
-        ) {
-            framebuffer?.destroy()
-            if (framebuffer !is Framebuffer || framebuffer.samples != samples) {
-                framebuffer = Framebuffer(
-                    "Forward+ Render", width, height, samples,
-                    TargetType.Float16x4, DepthBufferType.TEXTURE
-                )
-                this.framebuffer = framebuffer
-            } else {
-                framebuffer.width = width
-                framebuffer.height = height
-            }
+        timeRendering(name, timer) {
+            executeRendering(stageImpl)
         }
+    }
 
-        numBuckets.set(width2, height2)
+    private fun prepareFramebuffer(): IFramebuffer {
+        return FBStack["scene-forwardPlus", width, height, TargetType.Float16x4, samples, DepthBufferType.TEXTURE]
+    }
+
+    fun executeRendering(stageImpl: PipelineStageImpl?) {
+
+        numBuckets.set(numBucketsX, numBucketsY)
         bucket = bucketInput
         // verify that the bucket has enough data
         assertTrue(
             bucketInput.pointer >= 0 &&
-                    bucketInput.elementCount >= width2 * height2 * FillLightBucketsNode.Companion.lightBucketSize
+                    bucketInput.elementCount >= numBucketsX * numBucketsY * FillLightBucketsNode.Companion.lightBucketSize
         )
 
-        timeRendering(name, timer) {
-            pipeline.bakeSkybox(skyResolution)
+        pipeline.bakeSkybox(skyResolution)
+        pipeline.applyToneMapping = applyToneMapping
+
+        val drawSky = drawSky
+        val framebuffer = prepareFramebuffer()
+        GFXState.depthMode.use(renderView.depthMode) {
+            copyInputs(framebuffer, prepassColor.texOrNull, prepassDepth)
             useFrame(framebuffer, forwardPlusRenderer) {
-                GFXState.depthMode.use(renderView.depthMode) {
-                    framebuffer.clearDepth()
-                }
-                val prevApplyToneMapping = pipeline.applyToneMapping
-                pipeline.applyToneMapping = applyToneMapping
-                pipeline.stages.getOrNull(stage.id)
-                    ?.bindDraw(pipeline)
-                pipeline.drawSky()
-                pipeline.applyToneMapping = prevApplyToneMapping // needed???
+                if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) pipeline.drawSky()
+                if (stageImpl != null && !stageImpl.isEmpty()) stageImpl.bindDraw(pipeline)
+                if (drawSky == DrawSkyMode.AFTER_GEOMETRY) pipeline.drawSky()
+                GFX.check()
             }
+        }
+
+        if (framebuffer.depthBufferType != DepthBufferType.NONE) {
+            pipeline.prevDepthBuffer = framebuffer
         }
 
         setOutput(1, Texture.texture(framebuffer, 0))

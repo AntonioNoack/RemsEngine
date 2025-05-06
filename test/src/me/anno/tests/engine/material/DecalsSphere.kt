@@ -41,5 +41,5 @@ fun main() {
             diffuseBase.set(1f, 0.7f, 0.3f, 1f)
         }.ref)
     })
-    testSceneWithUI("Decals", scene)
+    testSceneWithUI("Decal Sphere", scene)
 }

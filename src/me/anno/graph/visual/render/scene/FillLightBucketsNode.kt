@@ -23,8 +23,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.TextureLib
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.scene.RenderForwardPlusSceneNode.Companion.bucketSize
-import me.anno.graph.visual.render.scene.RenderForwardPlusSceneNode.Companion.maxLightsPerTile
+import me.anno.graph.visual.render.scene.RenderForwardPlusNode.Companion.bucketSize
+import me.anno.graph.visual.render.scene.RenderForwardPlusNode.Companion.maxLightsPerTile
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Color
 import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
@@ -33,14 +33,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 class FillLightBucketsNode : RenderViewNode(
-    "Forward+ FillLights", listOf(
+    "FillLightBuckets", listOf(
         "Int", "Width",
         "Int", "Height",
     ), listOf(
         "Buffer", "LightBuckets",
         "Texture", "LightTextureDebug",
-        "Int", "LightBucketsX",
-        "Int", "LightBucketsY",
+        "Int", "NumLightBucketsX",
+        "Int", "NumLightBucketsY",
     )
 ) {
 
@@ -78,7 +78,7 @@ class FillLightBucketsNode : RenderViewNode(
         /**
          * When the light is small, we might miss a few pixels, so extend it by 1-2 pixels on all sides.
          * */
-        val extendBy1Pixel = "" +
+        private val extendBy1Pixel = "" +
                 "if (!isFullscreen) {\n" +
                 "   vec3 center = isSpotLight ? vec3(0.0, 0.0, -0.5) : vec3(0.0);\n" +
                 "   vec3 finalCenter = matMul(localTransform, vec4(center, 1.0));\n" +
@@ -209,11 +209,11 @@ class FillLightBucketsNode : RenderViewNode(
         val width = getIntInput(1)
         val height = getIntInput(2)
 
-        val width2 = ceilDiv(width, bucketSize)
-        val height2 = ceilDiv(height, bucketSize)
-        if (width2 <= 0 || height2 <= 0) return
+        val numBucketsX = ceilDiv(width, bucketSize)
+        val numBucketsY = ceilDiv(height, bucketSize)
+        if (numBucketsX <= 0 || numBucketsY <= 0) return
 
-        val numBuckets = width2 * height2
+        val numBuckets = numBucketsX * numBucketsY
         val numValues = numBuckets * lightBucketSize
         var lightBuckets = lightBuckets
         if (lightBuckets == null || lightBuckets.elementCount != numValues) {
@@ -223,17 +223,17 @@ class FillLightBucketsNode : RenderViewNode(
         }
 
         var framebuffer = framebuffer
-        if (framebuffer !is Framebuffer || framebuffer.width != width2 || framebuffer.height != height2) {
+        if (framebuffer !is Framebuffer || framebuffer.width != numBucketsX || framebuffer.height != numBucketsY) {
             framebuffer?.destroy()
             if (framebuffer !is Framebuffer) {
                 framebuffer = Framebuffer(
-                    "UnusedForLightBuckets", width2, height2,
+                    "UnusedForLightBuckets", numBucketsX, numBucketsY,
                     1, TargetType.UInt8x1, DepthBufferType.NONE
                 )
                 this.framebuffer = framebuffer
             } else {
-                framebuffer.width = width2
-                framebuffer.height = height2
+                framebuffer.width = numBucketsX
+                framebuffer.height = numBucketsY
             }
         }
 
@@ -243,7 +243,7 @@ class FillLightBucketsNode : RenderViewNode(
                 GFXState.blendMode.use(null) {
                     val shader0 = clearBucketsShader
                     shader0.use()
-                    shader0.v2i("numBuckets", width2, height2)
+                    shader0.v2i("numBuckets", numBucketsX, numBucketsY)
                     shader0.bindBuffer(0, lightBuckets)
                     flat01.draw(shader0)
                 }
@@ -253,15 +253,19 @@ class FillLightBucketsNode : RenderViewNode(
                 // render lights into buckets
                 GFXState.cullMode.use(CullMode.BACK) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
-                        val numLights = max(pipeline.lightStage.size, 1L)
+
+                        var numLightsForGlow = pipeline.lightStage.size
+                        numLightsForGlow = min(maxLightsPerTile.toLong(), numLightsForGlow)
+                        numLightsForGlow = max(numLightsForGlow, 4)
+
                         pipeline.lightStage.draw(
                             pipeline, { lightType, isInstanced ->
                                 val shader =
                                     if (isInstanced) addLightToBucketShaderInstanced
                                     else addLightToBucketShader
                                 shader.use()
-                                shader.v2i("numBuckets", width2, height2)
-                                shader.v1f("debugGlow", 1f / min(maxLightsPerTile.toLong(), numLights))
+                                shader.v2i("numBuckets", numBucketsX, numBucketsY)
+                                shader.v1f("debugGlow", 1f / numLightsForGlow)
                                 shader.bindBuffer(0, lightBuckets)
                                 shader
                             },
@@ -277,8 +281,8 @@ class FillLightBucketsNode : RenderViewNode(
 
         setOutput(1, lightBuckets)
         setOutput(2, Texture.texture(framebuffer, 0))
-        setOutput(3, width2)
-        setOutput(4, height2)
+        setOutput(3, numBucketsX)
+        setOutput(4, numBucketsY)
     }
 
     override fun destroy() {

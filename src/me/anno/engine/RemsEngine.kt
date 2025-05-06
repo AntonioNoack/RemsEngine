@@ -61,10 +61,6 @@ import org.joml.Matrix4f
 
 // todo billboards, which are conditionally rendered: when point is visible (for nice light camera-bug effects, e.g. stars with many blades)
 
-// todo forward-plus rendering
-// which platforms support Compute Shaders? we need them for forward+
-// Windows, Android with OpenGL 3.0
-
 // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 
 // games, which we want to develop:
