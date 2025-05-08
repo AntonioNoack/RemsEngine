@@ -19,11 +19,11 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.tryStartVR
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
-import me.anno.engine.ui.vr.VRRenderingRoutine.Companion.tryStartVR
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.image.thumbs.AssetThumbHelper
@@ -48,6 +48,8 @@ import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.config.ConfigType
 import me.anno.utils.OS
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
 import org.joml.Matrix4f
 
 // to do Unity($)/RemsEngine(research) shader debugger:
@@ -226,8 +228,13 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         callEvent(GameEngineProject.ProjectLoadedEvent(project))
     }
 
-    override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
-        val project = GameEngineProject.readOrCreate(folder)!!
+    override fun loadProject(name: String, folder: FileReference, callback: Callback<Pair<String, FileReference>>) {
+        GameEngineProject.readOrCreate(folder, callback.map { project ->
+            loadProjectImpl(name, folder, project)
+        })
+    }
+
+    fun loadProjectImpl(name: String, folder: FileReference, project: GameEngineProject): Pair<String, FileReference> {
         currentProject = project
         project.init()
         val title = "${nameDesc.name} - $name"

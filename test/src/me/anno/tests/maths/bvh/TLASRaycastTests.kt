@@ -13,11 +13,15 @@ import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
 import me.anno.utils.assertions.assertGreaterThan
 import me.anno.utils.types.Booleans.toInt
+import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.junit.jupiter.api.Test
 
 class TLASRaycastTests {
+    companion object {
+        private val LOGGER = LogManager.getLogger(TLASRaycastTests::class)
+    }
 
     fun createTLAS(): TLASNode {
         val scene = Entity()
@@ -53,6 +57,7 @@ class TLASRaycastTests {
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
             ctr += (shouldHitSphere == hitsSphere).toInt()
         }
+        LOGGER.info("Sphere-Closest: $ctr/1000")
         assertGreaterThan(ctr, 990)
     }
 
@@ -68,6 +73,7 @@ class TLASRaycastTests {
             val hitsSphere = blas.raycast(gen.pos, gen.dir, hit)
             ctr += (shouldHitSphere == hitsSphere).toInt()
         }
+        LOGGER.info("Sphere-Any: $ctr/1000")
         assertGreaterThan(ctr, 990)
     }
 }

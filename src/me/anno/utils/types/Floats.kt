@@ -177,24 +177,26 @@ object Floats {
     // by x4u on https://stackoverflow.com/a/6162687/4979303
     @JvmStatic
     fun float16ToFloat32(bits: Int): Float {
-        var mant = bits and 0x03ff // 10 bits mantissa
-        var exp = bits and 0x7c00 // 5 bits exponent
-        if (exp == 0x7c00) exp = 0x3fc00 // NaN/Inf
-        else if (exp != 0) {// normalized value
-            exp += 0x1c000 // exp - 15 + 127
-            if (mant == 0 && exp > 0x1c400) // smooth transition
-                return Float.fromBits((bits and 0x8000).shl(16) or (exp shl 13) or 0x3ff)
-        } else if (mant != 0) {// && exp==0 -> subnormal
-            exp = 0x1c400 // make it normal
+        var mantissa = bits and 0x03ff // 10 bits mantissa
+        var exponent = bits and 0x7c00 // 5 bits exponent
+        if (exponent == 0x7c00) {
+            exponent = 0x3fc00 // NaN/Inf
+        } else if (exponent != 0) {// normalized value
+            exponent += 0x1c000 // exp - 15 + 127
+            if (mantissa == 0 && exponent > 0x1c400) {// smooth transition
+                return Float.fromBits((bits and 0x8000).shl(16) or (exponent shl 13) or 0x3ff)
+            }
+        } else if (mantissa != 0) {// && exp==0 -> subnormal
+            exponent = 0x1c400 // make it normal
             do {
-                mant = mant shl 1 // mantissa * 2
-                exp -= 0x400 // decrease exp by 1
-            } while (mant and 0x400 == 0) // while not normal
-            mant = mant and 0x3ff // discard subnormal bit
+                mantissa = mantissa shl 1 // mantissa * 2
+                exponent -= 0x400 // decrease exp by 1
+            } while (mantissa and 0x400 == 0) // while not normal
+            mantissa = mantissa and 0x3ff // discard subnormal bit
         } // else +/-0 -> +/-0
         return Float.fromBits( // combine all parts
-            (bits and 0x8000).shl(16) // sign  << ( 31 - 15 )
-                    or ((exp or mant) shl 13)  // value << ( 23 - 10 )
+            (bits and 0x8000).shl(16) // sign  << (31 - 15)
+                    or ((exponent or mantissa) shl 13)  // value << ( 23 - 10 )
         )
     }
 

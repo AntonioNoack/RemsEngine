@@ -40,6 +40,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.GFXFeatures
+import me.anno.utils.async.Callback
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.concurrent.thread
@@ -235,23 +236,24 @@ interface WelcomeUI {
         return recentProjects
     }
 
-    fun loadProject(name: String, folder: FileReference): Pair<String, FileReference>
+    fun loadProject(name: String, folder: FileReference, callback: Callback<Pair<String, FileReference>>)
 
     fun createProjectUI()
 
     fun openProject(studio: EngineBase, name: String, folder: FileReference) {
-        thread(name = "UILayouts::openProject()") {
+        thread(name = "OpenProject") { // prevent the engine from hanging
             openProject2(name, folder)
         }
     }
 
     private fun openProject2(name: String, folder: FileReference) {
-        val p = loadProject(name.trim(), folder)
-        addEvent {
-            GFX.someWindow.windowStack.clear()
-            createProjectUI()
-        }
-        Projects.addToRecentProjects(p.first, p.second)
+        loadProject(name.trim(), folder, Callback.onSuccess { (name, project) ->
+            addEvent {
+                GFX.someWindow.windowStack.clear()
+                createProjectUI()
+            }
+            Projects.addToRecentProjects(name, project)
+        })
     }
 
     fun loadLastProject(

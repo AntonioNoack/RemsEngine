@@ -1,5 +1,6 @@
 package me.anno.tests.tools
 
+import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -29,6 +30,7 @@ fun main() {
     val corners = sampleCorners(sorted, 6, 6)
     corners.write(desktop.getChild("corners.png"))
     printSmallImage(corners)
+    Engine.requestShutdown()
 }
 
 fun sampleCorners(image: Image, w: Int, h: Int): IntImage {

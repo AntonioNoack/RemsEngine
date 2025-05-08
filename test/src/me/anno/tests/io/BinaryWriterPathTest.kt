@@ -69,7 +69,7 @@ class BinaryWriterPathTest {
         writer.close()
         bos.close()
         val bytes = bos.toByteArray()
-        println(
+        if (false) println(
             bytes
                 .joinToString {
                     if (it >= 32 && it <= 'z'.code) "'${it.toInt().toChar()}'"

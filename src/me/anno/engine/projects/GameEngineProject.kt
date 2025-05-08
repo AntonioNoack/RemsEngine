@@ -24,6 +24,9 @@ import me.anno.io.saveable.Saveable
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.promise
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Floats.toLongOr
@@ -44,22 +47,34 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         val encoding get() = currentProject?.encoding ?: FileEncoding.PRETTY_JSON
 
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
-        fun readOrCreate(location: FileReference?): GameEngineProject? {
-            if (location == null || location == InvalidRef) return null
+        fun readOrCreate(location: FileReference?, callback: Callback<GameEngineProject>) {
+            if (location == null || location == InvalidRef) return callback.err(null)
             val location2 = if (location.exists && !location.isDirectory) location.getParent() else location
             val configFile = location2.getChild("Project.json")
-            return readProject(location2, configFile) ?: createProject(location2, configFile)
+
+            promise { cb -> readProject(location2, configFile, cb) }
+                .then(callback)
+                .catch { callback.ok(createProject(location2, configFile)) }
         }
 
-        private fun readProject(location: FileReference, configFile: FileReference): GameEngineProject? {
-            return if (configFile.exists) {
-                val instance = JsonStringReader.readFirstOrNull(configFile, location, GameEngineProject::class)
-                instance?.location = location
+        private fun readProject(
+            location: FileReference, configFile: FileReference,
+            callback: Callback<GameEngineProject>
+        ) {
+            if (!configFile.exists) return callback.err(null)
+            configFile.readText(callback.map { stream ->
+                val instance = JsonStringReader
+                    .readFirstOrNull(stream, location, GameEngineProject::class)
+                    ?: createProject(location, configFile)
+                instance.location = location
                 instance
-            } else null
+            })
         }
 
-        private fun createProject(location: FileReference, configFile: FileReference): GameEngineProject {
+        private fun createProject(
+            location: FileReference,
+            configFile: FileReference,
+        ): GameEngineProject {
             val project = GameEngineProject(location)
             val encoding = encoding.getForExtension(location)
             configFile.writeBytes(encoding.encode(project, location))
@@ -80,7 +95,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             file.writeBytes(encoding.encode(values, workspace1))
         }
 
-        fun invalidateThumbnails(sourceFiles: Collection<FileReference>){
+        fun invalidateThumbnails(sourceFiles: Collection<FileReference>) {
             // invalidate all thumbnails:
             val project = currentProject
             val fileDependencies = if (project != null) {
@@ -93,7 +108,6 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
                 Thumbs.invalidate(dependency)
             }
         }
-
     }
 
     constructor(location: FileReference) : this() {

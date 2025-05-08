@@ -14,7 +14,7 @@ fun main() {
     registerCustomClass(WindowsPlatforms::class)
     registerCustomClass(LinuxPlatforms::class)
     registerCustomClass(MacOSPlatforms::class)
-    val source = getReference("C:\\Users\\Antonio\\.config\\RemsEngine\\Export.json")
+    val source = getReference("C:/Users/Antonio/.config/RemsEngine/Export.json")
     val instances = JsonStringReader.read(source, InvalidRef, false)
     println(instances)
 }

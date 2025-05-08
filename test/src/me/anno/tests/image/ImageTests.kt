@@ -37,7 +37,7 @@ class ImageTests {
     fun createByteImage(src: Image, format: ByteImageFormat): ByteImage {
         val dst = ByteImage(src.width, src.height, format)
         src.forEachPixel { x, y ->
-            format.toBytes(src.getRGB(x, y), dst.data, dst.getIndex(x, y) * format.numChannels)
+            format.toBytes(src.getRGB(x, y), dst.data, dst.getIndex(x, y))
         }
         return dst
     }

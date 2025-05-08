@@ -1,5 +1,6 @@
 package me.anno.io.saveable
 
+import me.anno.cache.AsyncCacheData
 import me.anno.io.files.FileReference
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
@@ -30,6 +31,7 @@ interface StreamReader {
         return reader.allInstances
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<Saveable> {
         // buffered is very important and delivers an improvement of 5x
         return file.inputStreamSync().use { input: InputStream ->
@@ -41,6 +43,7 @@ interface StreamReader {
         return read(data, workspace, "", safely)
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun <Type : Saveable> readFirstOrNull(
         data: FileReference, workspace: FileReference,
         clazz: KClass<Type>, safely: Boolean = true

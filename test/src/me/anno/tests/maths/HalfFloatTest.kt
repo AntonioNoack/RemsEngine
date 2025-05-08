@@ -23,11 +23,19 @@ class HalfFloatTest {
 
     @Test
     fun testFP16ToFP32Conversions() {
-        // todo test actual values, too
-        for (fp16Src in 0 until 65536) {
+        for (fp16Src in 0..0xffff) {
             val fp32 = float16ToFloat32(fp16Src)
             val fp16Dst = float32ToFloat16(fp32)
             assertEquals(fp16Src, fp16Dst)
         }
+    }
+
+    @Test
+    fun testSpecificValues() {
+        // test actual values, too
+        assertEquals(0x3c00, float32ToFloat16(+1f))
+        assertEquals(0xbc00, float32ToFloat16(-1f))
+        assertEquals(0x0000, float32ToFloat16(+0f))
+        assertEquals(0x8000, float32ToFloat16(-0f))
     }
 }

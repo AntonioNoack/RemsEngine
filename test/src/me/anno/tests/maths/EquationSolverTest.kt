@@ -4,6 +4,7 @@ import me.anno.maths.EquationSolver
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.cbrt
@@ -11,6 +12,9 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 class EquationSolverTest {
+    companion object {
+        private val LOGGER = LogManager.getLogger(EquationSolverTest::class)
+    }
 
     private fun equals1(a: Float, b: Float): Boolean {
         return abs(a - b) < 1e-4f
@@ -49,7 +53,7 @@ class EquationSolverTest {
             assertEquals(dst[0], x0, 1e-5f)
             ctr++
         }
-        println("tested $ctr/20")
+        LOGGER.info("1-Quadratic solutions: $ctr/20")
         assertTrue(ctr > 10)
     }
 
@@ -115,8 +119,8 @@ class EquationSolverTest {
             assertTrue(equals1(dst[0], x1) || equals1(dst[1], x1))
             ctr++
         }
-        println("tested $ctr/1000")
-        assertTrue(ctr > 10)
+        LOGGER.info("2-Cubic solutions: $ctr/1000")
+        assertTrue(ctr > 20)
     }
 
     @Test
@@ -140,7 +144,7 @@ class EquationSolverTest {
             assertEquals(dst[0], x0, 0.1f)
             ctr++
         }
-        println("tested $ctr/20")
+        LOGGER.info("1-Cubic solutions: $ctr/20")
         assertTrue(ctr > 10)
     }
 

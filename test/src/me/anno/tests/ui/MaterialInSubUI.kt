@@ -14,24 +14,27 @@ import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.OS.documents
+import me.anno.utils.async.Callback
 
+/**
+ * Check whether all materials get made available properly (library button)
+ * */
 fun main() {
-
-    // todo UI is invisible.. why???
 
     OfficialExtensions.initForTests()
 
     // index sample project
     val folder = documents.getChild("RemsEngine/YandereSim")
-    val project = GameEngineProject.readOrCreate(folder)!!
-    currentProject = project
-    project.init()
+    GameEngineProject.readOrCreate(folder, Callback.onSuccess { project ->
+        currentProject = project
+        project.init()
 
-    // a few temporary files; cannot be GCed, because scope isn't left at runtime
-    val green = Material.diffuse(mediumAquamarine).ref
-    val darkRed = Material.diffuse(fireBrick).ref
-    val tested = MeshComponent(flatCube, Material())
-    EditorState.select(tested)
-    disableRenderDoc()
-    testUI3("Easy Material Editing", PropertyInspector({ EditorState.selection }, style))
+        // a few temporary files; cannot be GCed, because scope isn't left at runtime
+        val green = Material.diffuse(mediumAquamarine).ref
+        val darkRed = Material.diffuse(fireBrick).ref
+        val tested = MeshComponent(flatCube, Material())
+        EditorState.select(tested)
+        disableRenderDoc()
+        testUI3("Easy Material Editing", PropertyInspector({ EditorState.selection }, style))
+    })
 }
