@@ -6,6 +6,7 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.register
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapAsync
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -103,25 +104,16 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
         thread(name = "$absolutePath.listChildren") { // can be extremely slow
-            var done = false
             if (exists) {
                 if (isDirectory) {
                     val answer = file.listFiles()?.map { getChild(it.name) }
-                    if (answer != null) {
-                        callback.ok(answer)
-                        done = true
-                    }
-                } else {
-                    val zipFile = zipFileForDirectory
-                    if (zipFile != null) {
-                        zipFile.listChildren(callback)
-                        done = true
-                    }
+                    if (answer != null) return@thread callback.ok(answer)
                 }
-            }
-            if (!done) {
-                super.listChildren(callback)
-            }
+                zipFileForDirectory(callback.mapAsync { zipFile, cb ->
+                    if (zipFile != null) zipFile.listChildren(cb)
+                    else super.listChildren(cb)
+                })
+            } else super.listChildren(callback)
         }
     }
 

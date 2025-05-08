@@ -87,9 +87,10 @@ abstract class InnerFile(
     }
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        val zipFile = zipFileForDirectory
-        if (zipFile != null) zipFile.listChildren(callback)
-        else callback.ok(emptyList())
+        zipFileForDirectory({ zipFile, err ->
+            if (zipFile != null) zipFile.listChildren(callback)
+            else callback.ok(emptyList())
+        })
     }
 
     override fun getParent(): FileReference {

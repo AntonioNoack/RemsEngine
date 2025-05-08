@@ -14,6 +14,7 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.mapAsync
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.arrays.ByteArrayList
@@ -318,18 +319,22 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     val zipFileForDirectory: FileReference?
-        get() {
-            var zipFile = InnerFolderCache.readAsFolder(this, false)
-            if (zipFile != null && !zipFile.isDirectory) {
-                zipFile = InnerFolderCache.readAsFolder(zipFile, false) ?: return null
-            }
-            return zipFile
-        }
+        get() = AsyncCacheData.loadSync(this::zipFileForDirectory)
 
+    fun zipFileForDirectory(callback: Callback<FileReference>) {
+        InnerFolderCache.readAsFolder(this, true, callback.mapAsync { zipFile, cb ->
+            if (zipFile != null && !zipFile.isDirectory) {
+                InnerFolderCache.readAsFolder(zipFile, true, cb.map { twice -> twice ?: zipFile })
+            } else cb.call(zipFile, null)
+        })
+    }
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun getSiblingWithExtension(ext: String): FileReference {
         return getParent().getChild("$nameWithoutExtension.$ext")
     }
