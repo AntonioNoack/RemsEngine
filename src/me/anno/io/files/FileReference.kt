@@ -9,7 +9,6 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.maths.Maths.min
-import me.anno.utils.OS
 import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.assertions.assertEquals
@@ -75,10 +74,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         isHidden = true
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun getChild(name: String): FileReference {
         return getChildUnsafe(name, true)
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun getChildUnsafe(name: String, onlyChildren: Boolean): FileReference {
         if (this == InvalidRef) return InvalidRef
         val nameI = if ('\\' in name) { // please, don't use back-slashes
@@ -105,8 +106,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return result
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract fun getChildImpl(name: String): FileReference
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract fun length(): Long
 
     abstract fun delete(): Boolean
@@ -123,8 +126,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     fun getNameWithExtension(ext: String): String {
         return "$nameWithoutExtension.$ext"
     }
-
-    open fun hasChildren(): Boolean = listChildren().isNotEmpty()
 
     open fun invalidate() {
         LOGGER.info("Invalidated {}", absolutePath)
@@ -300,18 +301,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return result.toString()
     }
 
-    fun findRecursively(maxDepth: Int, find: (FileReference) -> Boolean): FileReference? {
-        if (find(this)) return this
-        if (maxDepth > 0 && isDirectory) {
-            val children = listChildren()
-            for (child in children) {
-                val r = child.findRecursively(maxDepth - 1, find)
-                if (r != null) return r
-            }
-        }
-        return null
-    }
-
     fun tryMkdirs(): Boolean {
         return try {
             mkdirs()
@@ -327,17 +316,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     val zipFileForDirectory: FileReference?
         get() {
-            var zipFile = zipFile ?: return null
-            if (!zipFile.isDirectory) {
+            var zipFile = InnerFolderCache.readAsFolder(this, false)
+            if (zipFile != null && !zipFile.isDirectory) {
                 zipFile = InnerFolderCache.readAsFolder(zipFile, false) ?: return null
             }
             return zipFile
         }
-
-    private val zipFile: FileReference?
-        get() = InnerFolderCache.readAsFolder(this, false)
 
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)
@@ -363,17 +350,26 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         copyTo(dst) {}
     }
 
-    abstract val isDirectory: Boolean
-
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
         val signature = SignatureCache[this, false]
         return InnerFolderCache.getReaders(signature, lcExtension).isNotEmpty()
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    abstract val isDirectory: Boolean
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract val exists: Boolean
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract val lastModified: Long
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract val lastAccessed: Long
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract val creationTime: Long
 
     override fun equals(other: Any?): Boolean {
@@ -394,30 +390,24 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return absolutePath.toLocalPath(workspace)
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open val isSomeKindOfDirectory get() = isDirectory || isPacked.value
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     val isPacked = lazy {
         !isDirectory && isSerializedFolder()
     }
 
-    open fun listChildren(): List<FileReference> {
-        val folder = InnerFolderCache.readAsFolder(this, false)
-        if (folder is InnerFolder) return folder.listChildren()
-        if (folder != null) return listOf(folder)
-        return emptyList()
+    open fun listChildren(callback: Callback<List<FileReference>>) {
+        InnerFolderCache.readAsFolder(this, true) { folder, _ ->
+            if (folder is InnerFolder) folder.listChildren(callback)
+            else callback.ok(emptyList())
+        }
     }
 
-    fun listHierarchy(): List<FileReference> {
-        val result = ArrayList<FileReference>()
-        var self = this
-        while (true) {
-            result.add(self)
-            val parent = self.getParent()
-            if (parent != self && parent != InvalidRef) {
-                self = parent
-            } else break
-        }
-        return result
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    fun listChildren(): List<FileReference> {
+        return AsyncCacheData.loadSync(this::listChildren) ?: emptyList()
     }
 
     fun nullIfUndefined(): FileReference? {
@@ -430,6 +420,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         else this
     }
 
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun printTree(depth: Int = 0) {
         LOGGER.info("${Strings.spaces(depth * 2)}$name")
         if (isDirectory) {

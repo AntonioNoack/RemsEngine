@@ -8,6 +8,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.concurrent.thread
 
 object FileRootRef : FileReference("root") {
 
@@ -38,8 +39,10 @@ object FileRootRef : FileReference("root") {
 
     override fun mkdirs(): Boolean = true
 
-    override fun listChildren(): List<FileReference> {
-        return File.listRoots().map { getReference(it.absolutePath) }
+    override fun listChildren(callback: Callback<List<FileReference>>) {
+        thread(name = "$absolutePath.listChildren") { // can be extremely slow
+            callback.ok(File.listRoots().map { getReference(it.absolutePath) })
+        }
     }
 
     override fun getChildImpl(name: String): FileReference {

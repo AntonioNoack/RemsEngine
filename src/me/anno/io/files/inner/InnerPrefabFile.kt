@@ -25,7 +25,7 @@ open class InnerPrefabFile(
 
     // it's a prefab, not a zip; never ever
     override fun isSerializedFolder(): Boolean = false
-    override fun listChildren(): List<FileReference> = emptyList()
+    override fun listChildren(callback: Callback<List<FileReference>>) = callback.ok(emptyList())
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         callback.ok(bytes.inputStream())

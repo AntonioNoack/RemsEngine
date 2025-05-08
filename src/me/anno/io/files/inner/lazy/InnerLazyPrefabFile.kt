@@ -29,7 +29,7 @@ open class InnerLazyPrefabFile(
 
     // it's a prefab, not a zip; never ever
     override fun isSerializedFolder(): Boolean = false
-    override fun listChildren(): List<FileReference> = emptyList()
+    override fun listChildren(callback: Callback<List<FileReference>>) = callback.ok(emptyList())
 
     override fun readText(callback: Callback<String>) {
         callback.ok(text)

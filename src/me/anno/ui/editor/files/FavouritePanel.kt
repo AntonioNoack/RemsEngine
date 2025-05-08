@@ -32,8 +32,9 @@ class FavouritePanel(
     val titlePanel = TextPanel(file.name, style)
     val spacer = SpacerPanel(extraXPadding, 0, style)
 
+    val importType = getImportTypeByExtension(file.lcExtension)
+
     init {
-        val importType = getImportTypeByExtension(file.lcExtension)
         val defaultIcon = getDefaultIconPath(false, file, importType)
         iconPanel = TextSizedIconPanel(defaultIcon, style)
 
@@ -77,6 +78,7 @@ class FavouritePanel(
         val focusFactor = isAnyChildInFocus.toFloat(1f) + isHovered.toFloat(0.5f)
         val bgColor = mixARGB(normalBackgroundColor, focusBackgroundColor, focusFactor)
         background.color = bgColor
+        iconPanel.source = getDefaultIconPath(false, file, importType)
         iconPanel.background.color = bgColor
         titlePanel.background.color = bgColor
         titlePanel.focusBackgroundColor = bgColor

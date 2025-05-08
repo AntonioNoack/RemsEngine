@@ -32,7 +32,9 @@ object InvalidRef : FileReference("") {
         return false
     }
 
-    override fun listChildren(): List<FileReference> = emptyList()
+    override fun listChildren(callback: Callback<List<FileReference>>) {
+        callback.ok(emptyList())
+    }
 
     override fun getParent(): FileReference = InvalidRef
     override fun renameTo(newName: FileReference): Boolean {

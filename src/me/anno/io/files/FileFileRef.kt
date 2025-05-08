@@ -10,6 +10,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.concurrent.thread
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
@@ -100,15 +101,28 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         return success
     }
 
-    override fun hasChildren(): Boolean {
-        return file.listFiles()?.isNotEmpty() == true
-    }
-
-    override fun listChildren(): List<FileReference> {
-        return (if (exists) {
-            if (isDirectory) file.listFiles()?.map { getChild(it.name) }
-            else zipFileForDirectory?.listChildren()
-        } else null) ?: super.listChildren()
+    override fun listChildren(callback: Callback<List<FileReference>>) {
+        thread(name = "$absolutePath.listChildren") { // can be extremely slow
+            var done = false
+            if (exists) {
+                if (isDirectory) {
+                    val answer = file.listFiles()?.map { getChild(it.name) }
+                    if (answer != null) {
+                        callback.ok(answer)
+                        done = true
+                    }
+                } else {
+                    val zipFile = zipFileForDirectory
+                    if (zipFile != null) {
+                        zipFile.listChildren(callback)
+                        done = true
+                    }
+                }
+            }
+            if (!done) {
+                super.listChildren(callback)
+            }
+        }
     }
 
     override fun getParent(): FileReference =

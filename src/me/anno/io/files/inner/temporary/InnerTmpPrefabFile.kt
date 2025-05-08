@@ -31,7 +31,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
     }
 
     override fun isSerializedFolder(): Boolean = false
-    override fun listChildren(): List<FileReference> = emptyList()
+    override fun listChildren(callback: Callback<List<FileReference>>) = callback.ok(emptyList())
 
     override fun readText(callback: Callback<String>) {
         callback.ok(text)

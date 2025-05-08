@@ -40,7 +40,10 @@ open class InnerFolder(
         private set
 
     operator fun contains(fileName: String) = fileName in children
-    override fun listChildren(): List<FileReference> = childrenList
+    override fun listChildren(callback: Callback<List<FileReference>>) {
+        callback.ok(childrenList)
+    }
+
     override fun length(): Long = 0L
 
     override fun invalidate() {

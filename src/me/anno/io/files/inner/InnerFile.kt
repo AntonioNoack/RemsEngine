@@ -4,6 +4,7 @@ import me.anno.io.VoidOutputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.OutputStream
 
@@ -85,8 +86,10 @@ abstract class InnerFile(
         return false
     }
 
-    override fun listChildren(): List<FileReference> {
-        return zipFileForDirectory?.listChildren() ?: emptyList()
+    override fun listChildren(callback: Callback<List<FileReference>>) {
+        val zipFile = zipFileForDirectory
+        if (zipFile != null) zipFile.listChildren(callback)
+        else callback.ok(emptyList())
     }
 
     override fun getParent(): FileReference {

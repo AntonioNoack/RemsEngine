@@ -3,6 +3,7 @@ package me.anno.ui.editor.files
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
+import me.anno.cache.AsyncCacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.IMesh
@@ -117,6 +118,8 @@ open class FileExplorerEntry(
 
     val path = file.absolutePath
     val ref1 get() = getReferenceAsync(path)
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     val ref1s get() = getReference(path)
 
     private var startTime = 0L
@@ -135,7 +138,7 @@ open class FileExplorerEntry(
     var darkerBackgroundColor = mixARGB(black, background.originalColor, 0.7f)
 
     private val importType = getImportTypeByExtension(file.lcExtension)
-    private val iconPath = getDefaultIconPath(isParent, file, importType)
+    private val iconPath get() = getDefaultIconPath(isParent, ref1 ?: InvalidRef, importType)
 
     val isDirectory = isParent || file.isDirectory
 

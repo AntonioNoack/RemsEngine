@@ -32,12 +32,11 @@ class InnerLinkFile(
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) =
         link.inputStream(lengthLimit, callback)
+
     override fun readText(callback: Callback<String>) = link.readText(callback)
     override fun readBytes(callback: Callback<ByteArray>) = link.readBytes(callback)
-    override fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) =
-        link.readByteBuffer(native, callback)
-
-    override fun listChildren() = link.listChildren()
+    override fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) = link.readByteBuffer(native, callback)
+    override fun listChildren(callback: Callback<List<FileReference>>) = link.listChildren(callback)
     override fun length() = link.length()
 
     override val exists: Boolean = link.exists

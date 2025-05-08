@@ -1,6 +1,7 @@
 package me.anno.ui.editor.files
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.HasChildrenCache
 import me.anno.io.files.ImportType.AUDIO
 import me.anno.io.files.ImportType.CONTAINER
 import me.anno.io.files.ImportType.CUBEMAP_EQU
@@ -64,6 +65,7 @@ object FileExplorerIcons {
     @JvmField
     val zipPath = folder.getChild("compressed.png")
 
+    // todo call this every frame where needed, and make file.hasChildren a cache
     fun getDefaultIconPath(isParent: Boolean, file: FileReference, importType: String?): FileReference {
         return if (isParent || file.isDirectory) {
             if (isParent) {
@@ -75,7 +77,7 @@ object FileExplorerIcons {
                     "documents", "dokumente", "my documents", "meine dokumente" -> documentFolderPath
                     "images", "pictures", "bilder" -> imageFolderPath
                     "downloads" -> downloadsPath
-                    else -> if (file.hasChildren())
+                    else -> if (HasChildrenCache.hasChildren(file, true) ?: true)
                         folderPath else emptyFolderPath
                 }
             }
