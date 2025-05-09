@@ -232,7 +232,7 @@ object Reference {
         return tmp ?: InvalidRef
     }
 
-    private fun isWindowsDriveLetterWithoutSlash(absolutePath: String): Boolean {
+    fun isWindowsDriveLetterWithoutSlash(absolutePath: String): Boolean {
         return absolutePath.length == 2 && absolutePath[1] == ':' &&
                 (absolutePath[0] in 'A'..'Z' || absolutePath[0] in 'a'..'z')
     }

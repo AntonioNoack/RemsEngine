@@ -182,7 +182,11 @@ object UnityReader {
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
         var isSubMesh = false
-        if (children.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
+        if (children.size == 1 &&
+            name.length == "4300000.json".length &&
+            name.startsWith("43000") &&
+            name.endsWith(".json")
+        ) {
             isSubMesh = true
             val meshes = children.first()
                 .getChild("Meshes").listChildren()
@@ -541,8 +545,10 @@ object UnityReader {
             }
         }
 
-        println("#nodes, first: $nodeCount, $firstNode")
-        if (nodeCount == 0) return folder
+        if (nodeCount == 0) {
+            LOGGER.warn("Didn't find any nodes for $guid")
+            return folder
+        }
 
         val sceneFile = folder.getOrPut("Scene.json") {
             val absolutePath = folder.absolutePath + "/Scene.json"
@@ -703,13 +709,13 @@ object UnityReader {
                     val prefab2 = node["PrefabParentObject"]
                     val prefabPath = decodePath(guid, prefab2, project)
                     if (prefabPath != InvalidRef) {
-                        LOGGER.info("Setting $file.prefab = $prefabPath")
+                        // LOGGER.info("Setting $file.prefab = $prefabPath")
                         prefab.parentPrefabFile = prefabPath
                     }
                     val children = node["Children"]
                     if (children != null) {
                         val children2 = children.packListEntries()
-                        LOGGER.info("processing ${children2.size} children from transform, adding to $file")
+                        // LOGGER.info("Processing ${children2.size} children from transform, adding to $file")
                         for (childNode in children2) {
                             val path0 = decodePath(guid, childNode, project)
                             val path1 = transformToGameObject.reverse[path0] ?: path0

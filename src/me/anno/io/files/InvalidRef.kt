@@ -42,6 +42,7 @@ object InvalidRef : FileReference("") {
         return false
     }
 
+    override fun getChild(name: String): FileReference = InvalidRef
     override fun getChildImpl(name: String): FileReference = InvalidRef
 
     override val exists: Boolean get() = false
