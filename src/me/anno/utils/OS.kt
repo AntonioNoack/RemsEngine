@@ -57,7 +57,7 @@ object OS {
     val music by lazy { home.getChild("Music") }
 
     @JvmStatic
-    val res get() = BundledRef.origin
+    val res get() = getReference(BundledRef.PREFIX)
 
     // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
     @JvmStatic

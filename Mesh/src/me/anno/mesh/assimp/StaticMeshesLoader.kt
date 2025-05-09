@@ -540,8 +540,8 @@ object StaticMeshesLoader {
         if (ior > 1f) prefab["indexOfRefraction"] = ior
 
         if (metallicRoughness != InvalidRef) {
-            prefab["metallicMap"] = metallicRoughness.getChild("b.png")
-            prefab["roughnessMap"] = metallicRoughness.getChild("g.png")
+            prefab["metallicMap"] = metallicRoughness.getChildImpl("b.png")
+            prefab["roughnessMap"] = metallicRoughness.getChildImpl("g.png")
             prefab["roughnessMinMax"] = Vector2f(0.1f, 1f)
             prefab["metallicMinMax"] = Vector2f(0f, 1f)
         } else {
@@ -612,7 +612,7 @@ object StaticMeshesLoader {
         // replace double slashes
         val path1 = path0.replace("//", "/")
         // check whether it may be a global path, not a local one
-        val maybePath = if (':' in path1) getReference(path1) else parentFolder.getChild(path1)
+        val maybePath = if (':' in path1) getReference(path1) else parentFolder.getChildImpl(path1)
         // if the path does not exist, check whether the name matches with any internal texture
         if (maybePath.exists) return maybePath
         else {

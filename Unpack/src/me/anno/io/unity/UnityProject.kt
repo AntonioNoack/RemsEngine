@@ -1,15 +1,16 @@
 package me.anno.io.unity
 
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.unity.UnityReader.assetExtension
 import me.anno.io.unity.UnityReader.readUnityObjects
 import me.anno.io.yaml.generic.YAMLNode
 import me.anno.io.yaml.generic.YAMLReader.parseYAML
-import me.anno.io.files.inner.InnerFolder
-import me.anno.io.files.inner.InnerLinkFile
-import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.utils.Clock
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
@@ -19,6 +20,10 @@ import java.io.IOException
  * - there is a guid. This is the identifier for the file
  * */
 class UnityProject(val root: FileReference) : InnerFolder(root) {
+
+    init {
+        assertTrue(root != InvalidRef)
+    }
 
     val clock = Clock(LOGGER)
 
@@ -63,7 +68,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
             if (folder == null && isValidUUID(guid)) {
                 val guidObject = registry[guid]
                 if (guidObject == null) {
-                    LOGGER.warn("GUID '$guid' was not found in registry!")
+                    LOGGER.warn("GUID '$guid' was not found in registry@$root!")
                     return InvalidRef
                 }
                 // this looks much nicer, because then we have the file name in the name, not just IDs
@@ -113,17 +118,20 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     }
 
     fun getMeta(metaFile: FileReference): YAMLNode {
-        return if (metaFile.lcExtension == "meta") {
-            metaFile.hide()
-            getYAML(metaFile)
-        } else {
-            getMeta(metaFile.getSibling(metaFile.name + ".meta"))
+        var file = metaFile
+        if (metaFile.lcExtension != "meta") {
+            val quickAnswer = yamlCache[metaFile]
+            if (quickAnswer != null) return quickAnswer
+            file = metaFile.getParent().getChildImpl(metaFile.name + ".meta")
         }
+        file.hide()
+        return getYAML(file)
     }
 
-    fun register(guid: String, assetFile: FileReference) {
+    fun register(guid: String, assetFile: FileReference, metadata: YAMLNode) {
         synchronized(this) {
             registry[guid] = assetFile
+            yamlCache[assetFile] = metadata
         }
     }
 
@@ -148,13 +156,12 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 when (file.lcExtension) {
                     "meta"/*, "mat", "prefab", "unity", "asset"*/ -> {
                         try {
-                            file.inputStreamSync().bufferedReader().use {
-                                val yaml = parseYAML(it, true)
+                            file.inputStreamSync().bufferedReader().use { reader ->
+                                val yaml = parseYAML(reader, true)
                                 val guid = yaml["Guid"]?.value
                                 if (guid != null) {
                                     // LOGGER.info("Registered guid $file")
-                                    val content = file.getSibling(file.nameWithoutExtension)
-                                    registry[guid] = content
+                                    register(guid, file.getSibling(file.nameWithoutExtension), yaml)
                                 } else LOGGER.warn("Didn't find guid in $file")
                                 yamlCache[file] = yaml
                             }
@@ -175,7 +182,6 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     companion object {
 
         private val LOGGER = LogManager.getLogger(UnityProject::class)
-        val invalidProject = UnityProject(InvalidRef)
 
         fun isValidUUID(name: String): Boolean {
             for (char in name) {

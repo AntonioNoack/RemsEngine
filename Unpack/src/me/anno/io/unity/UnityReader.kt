@@ -6,8 +6,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -16,12 +14,11 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.saveable.Saveable
-import me.anno.io.unity.UnityProject.Companion.invalidProject
 import me.anno.io.unity.UnityProject.Companion.isValidUUID
 import me.anno.io.yaml.generic.YAMLNode
 import me.anno.io.yaml.generic.YAMLReader.beautify
-import me.anno.io.yaml.generic.YAMLReader.parseYAML
 import me.anno.utils.ColorParsing.parseHex
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Ints.toLongOrDefault
@@ -96,9 +93,9 @@ object UnityReader {
         } else {
             LOGGER.info("Indexing files $root")
             val project = UnityProject(root)
-            val hasAssetsFolder = project.register(root.getChild("Assets"))
-            project.register(root.getChild("ProjectSettings"))
-            project.register(root.getChild("UserSettings"))
+            val hasAssetsFolder = project.register(root.getChildImpl("Assets"))
+            project.register(root.getChildImpl("ProjectSettings"))
+            project.register(root.getChildImpl("UserSettings"))
             if (!hasAssetsFolder) {
                 for (childFile in root.listChildren()) {
                     project.register(childFile)
@@ -111,12 +108,16 @@ object UnityReader {
 
     fun findUnityProject(file: FileReference): UnityProject? {
         // LOGGER.debug("$file, ${file.exists}, ${file.isDirectory}, ${file.listChildren()}, ${file.length()}")
-        if (!file.exists) return null
+        if (!file.exists) {
+            return null
+        }
         var abs = file.absolutePath
         if (!abs.endsWith("/")) abs += "/"
         if (file.isDirectory) {
-            val child = file.getChild("Assets")
-            if (child.exists) return getUnityProjectByChild(child)
+            val child = file.getChildImpl("Assets")
+            if (child.exists) {
+                return getUnityProjectByChild(child)
+            }
         }
         val key = "/Assets/"
         var endIndex = abs.lastIndex
@@ -124,8 +125,8 @@ object UnityReader {
             val index = abs.lastIndexOf(key, endIndex)
             // if there are multiple indices, try all, from back first
             if (index > 0) {
-                val file2 = getReference(abs.substring(0, index + key.length - 1))
-                val project = getUnityProjectByChild(file2)
+                val root = getReference(abs.substring(0, index + key.length - 1))
+                val project = getUnityProjectByChild(root)
                 if (project != null) return project
                 endIndex = min(index - 1, endIndex - 3)// correct???
             } else break
@@ -165,9 +166,10 @@ object UnityReader {
             return InvalidRef
         }
         // val base = project.getGuidFolder(guid)
-        // val fine = base.getChild(fileId)
+        // val fine = base.getChildImpl(fileId)
         // LOGGER.info("Parsed $guid/$fileId for ids of path, $base, ${base.listChildren()?.map { it.name }}, $fine")
-        val guid1 = project.getChild(guid)
+        assertTrue('/' !in guid)
+        val guid1 = project.getChildImpl(guid)
         var baseFile = guid1.getChildByNameOrFirst(fileId) ?: InvalidRef
         while (baseFile is InnerLinkFile) baseFile = baseFile.link
         return baseFile
@@ -176,13 +178,14 @@ object UnityReader {
     private fun FileReference.getChildByNameOrFirst(name: String): FileReference? {
         if (name.isBlank2()) return this
         if (name == "0.json") return InvalidRef
-        val child = getChild(name)
+        val child = getChildImpl(name)
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
         var isSubMesh = false
         if (children.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
             isSubMesh = true
-            val meshes = children.first().getChild("Meshes").listChildren()
+            val meshes = children.first()
+                .getChildImpl("Meshes").listChildren()
             if (meshes.size > 1) {
                 val id = name.substring(0, name.length - 5).toInt() - 4300000
                 // find submesh
@@ -200,7 +203,9 @@ object UnityReader {
             }
         }
         val newChild = if (children.isNotEmpty()) {
-            getChildOrNull("100100000.json") ?: getChildOrNull("Scene.json") ?: children.first()
+            getChildImplOrNull("100100000.json")
+                ?: getChildImplOrNull("Scene.json")
+                ?: children.first()
         } else null
         if (!isSubMesh && name != "2800000.json") {
             // 4300000 is a magic for meshes,
@@ -877,19 +882,20 @@ object UnityReader {
         if (project == null) {
             LOGGER.warn("No project found in $file")
             // try to read without project
-            file.inputStream { s, e ->
-                if (s != null) {
-                    val node = parseYAML(s.bufferedReader(), true)
-                    val tmpFolder = InnerFolder(file)
-                    val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
-                    if (objects !== tmpFolder) callback.ok(null)
-                    else callback.ok(objects.listChildren().firstOrNull())
-                } else callback.err(e)
-            }
+            /* file.inputStream { s, e ->
+                 if (s != null) {
+                     val node = parseYAML(s.bufferedReader(), true)
+                     val tmpFolder = InnerFolder(file)
+                     val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
+                     if (objects !== tmpFolder) callback.ok(null)
+                     else callback.ok(objects.listChildren().firstOrNull())
+                 } else callback.err(e)
+             }*/
+            callback.ok(null)
         } else {
             LOGGER.debug("Found unity project for {}: {} :)", file, project)
             val objects = project.getGuidFolder(file)
-            val scene = objects.getChild("Scene.json")
+            val scene = objects.getChildImpl("Scene.json")
             if (scene != InvalidRef) {
                 callback.ok(scene)
                 return
@@ -903,7 +909,7 @@ object UnityReader {
             // find the main id
             val mainFileId = project.getMainId(meta)
             val file2 = if (mainFileId != null) {
-                objects.getChild(mainFileId)
+                objects.getChildImpl(mainFileId)
             } else {
                 // get the object with the lowest id
                 children.minByOrNull { it.nameWithoutExtension.toLongOrDefault(Long.MAX_VALUE) }
@@ -927,11 +933,4 @@ object UnityReader {
     // todo rename doesn't work in zips (shouldn't, but it should show a message or sth like that)
     // todo option to hide .meta files in the file explorer, as it's just distracting
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        ECSRegistry.init()
-        val project = getReference("E:/Assets/Unity/Polygon_Construction_Unity_Package_2017_4.unitypackage")
-        val file = project.getChild("/Assets/PolygonConstruction/Prefabs/Vehicles/SM_Veh_Mini_Loader_01.prefab")
-        testSceneWithUI("Unity", file)
-    }
 }

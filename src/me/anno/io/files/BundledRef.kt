@@ -82,8 +82,17 @@ class BundledRef private constructor(
         fun parse(absolutePath: String): FileReference? {
             return if (absolutePath.startsWith(PREFIX, true)) {
                 synchronized(cache) { cache[absolutePath] }
-                    ?: origin.getChild(absolutePath.substring(PREFIX.length))
+                    ?: create(absolutePath)
             } else null
+        }
+
+        private fun create(absolutePath: String): FileReference? {
+            val parts = absolutePath.substring(PREFIX.length).split('/')
+            var file: FileReference = origin
+            for (i in parts.indices) {
+                file = file.getChildImpl(parts[i])
+            }
+            return file
         }
     }
 }

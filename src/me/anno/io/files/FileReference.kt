@@ -5,6 +5,7 @@ import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.image.thumbs.Thumbs
+import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
@@ -12,6 +13,8 @@ import me.anno.maths.Maths.min
 import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.async.Callback.Companion.mapAsync
@@ -49,6 +52,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     val lcExtension: String // the extension is often required in lowercase, so we cache it here
 
     init {
+        assertTrue('\\' !in absolutePath, "Path must not contain backwards slashes")
+        assertFalse(
+            absolutePath.endsWith("/") && !absolutePath.endsWith("://"),
+            "Path must not end with slash, except for protocol roots"
+        )
+    }
+
+    init {
         val lastIndex = absolutePath.lastIndexOf('/')
         val endIndex = min(
             absolutePath.indexOf2('?', lastIndex + 1),
@@ -75,9 +86,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         isHidden = true
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    fun getChild(name: String): FileReference {
-        return getChildUnsafe(name, true)
+    // @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    open fun getChild(name: String): FileReference {
+        return getReference(appendPath(absolutePath, name))
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
@@ -123,6 +134,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     fun getChildOrNull(name: String): FileReference? =
         getChild(name).nullIfUndefined()
+
+    fun getChildImplOrNull(name: String): FileReference? =
+        getChildImpl(name).nullIfUndefined()
 
     fun getNameWithExtension(ext: String): String {
         return "$nameWithoutExtension.$ext"

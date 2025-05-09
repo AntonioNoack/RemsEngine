@@ -6,6 +6,7 @@ import me.anno.io.files.inner.InnerFile.Companion.createRegistry
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCallback
+import me.anno.io.yaml.generic.YAMLReader
 import me.anno.io.zip.InnerTarFile
 import me.anno.utils.types.Strings.indexOf2
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -37,21 +38,25 @@ object UnityPackage {
             val registry = createRegistry(unityArchive)
             for (value in rawArchive.listChildren()) {
                 // the name of the file is the guid (unique unity resource id)
-                val pathname0 = value.getChild("pathname")
+                val pathname0 = value.getChildImpl("pathname")
                 if (pathname0.exists && pathname0.length() in 1 until 1024) {
                     val guid = value.name
                     val name = firstLine(pathname0.readTextSync())
-                    val meta = value.getChild("asset.meta")
-                    val metaFile = if (meta is InnerTarFile) {
-                        createArchiveEntry(parent, "$name.meta", meta, registry)
+                    val metaFile = value.getChildImpl("asset.meta")
+                    val meta = if (metaFile is InnerTarFile) {
+                        // needed for meta-resolution and detecting whether a folder is a Unity project
+                        createArchiveEntry(parent, "$name.meta", metaFile, registry)
+                        metaFile.inputStreamSync().bufferedReader().use { reader ->
+                            YAMLReader.parseYAML(reader, true)
+                        }
                     } else null
-                    val asset = value.getChild("asset")
+                    metaFile.hide()
+                    val asset = value.getChildImpl("asset")
                     val assetFile = if (asset is InnerTarFile) {
                         createArchiveEntry(parent, name, asset, registry)
                     } else null
-                    metaFile?.hide()
-                    if (metaFile != null && assetFile != null) {
-                        unityArchive.project.register(guid, assetFile)
+                    if (meta != null && assetFile != null) {
+                        unityArchive.project.register(guid, assetFile, meta)
                     }
                 }
             }
