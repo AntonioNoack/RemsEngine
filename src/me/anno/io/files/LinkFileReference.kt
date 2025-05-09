@@ -3,9 +3,9 @@ package me.anno.io.files
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getRealReference
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
+import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -15,13 +15,21 @@ import java.nio.ByteBuffer
  * */
 class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(LinkFileReference::class)
+    }
+
     private val original: FileReference
         get() {
             val file = getRealReference(absolutePath)
-            assertTrue(file !is LinkFileReference) {
-                "$absolutePath resolved to LinkFileReference"
+            if (file is LinkFileReference) {
+                LOGGER.warn("Failed to resolve '$absolutePath', somehow got a LinkFileReference again")
+                return InvalidRef
             }
-            assertEquals(absolutePath, file.absolutePath)
+            if (absolutePath != file.absolutePath) {
+                LOGGER.warn("Failed to resolve '$absolutePath', got '${file.absolutePath}'")
+                return InvalidRef
+            }
             return file
         }
 
@@ -38,12 +46,13 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
     override fun mkdirs(): Boolean = original.mkdirs()
 
     override fun getParent(): FileReference {
+        if (absolutePath == BundledRef.PREFIX) return FileRootRef
         var index = absolutePath.lastIndexOf('/')
         val parent = if (index < 0) {
             if (absolutePath == FileRootRef.name) InvalidRef
             else FileRootRef
         } else {
-            assertTrue(index != absolutePath.lastIndex)
+            assertTrue(index != absolutePath.lastIndex, absolutePath)
             if (index >= 2 && absolutePath[index - 1] == '/' && absolutePath[index - 2] == ':') index++
             getReference(absolutePath.substring(0, index))
         }

@@ -66,7 +66,8 @@ abstract class InnerFile(
     }
 
     override fun getChildImpl(name: String): FileReference {
-        return InnerFolderCache.readAsFolder(this, false)?.getChild(name) ?: InvalidRef
+        val asFolder = InnerFolderCache.readAsFolder(this, false)
+        return asFolder?.getChild(name) ?: InvalidRef
     }
 
     override val exists: Boolean = true

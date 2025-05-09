@@ -175,9 +175,9 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             meshes.add(meshI)
             val meshesFolder = meshesFolder
             // find good new name for mesh
-            if (meshesFolder.getChildImpl(fileName) != InvalidRef) {
+            if (meshesFolder.getChild(fileName) != InvalidRef) {
                 fileName = "$name-${lastMaterial.name}"
-                val fileI = meshesFolder.getChildImpl(fileName)
+                val fileI = meshesFolder.getChild(fileName)
                 if (fileI != InvalidRef) {
                     fileName = findNextFileName(fileI, 1, '-', 1)
                 }

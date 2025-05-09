@@ -73,6 +73,11 @@ open class InnerFolder(
         return IOException("'$this' is directory") // could be thrown as well
     }
 
+    override fun getChild(name: String): FileReference {
+        return if (isValidName(name)) super.getChild(name)
+        else getChildImpl(name)
+    }
+
     override fun getChildImpl(name: String): FileReference {
         return synchronized(children) {
             val c0 = children.values.filter { it.name.equals(name, true) }

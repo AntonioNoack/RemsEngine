@@ -42,6 +42,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(FileReference::class)
+
+        fun isValidName(name: String): Boolean {
+            return '/' in name || '\\' in name || name == ".." || name == "."
+        }
     }
 
     private var isValid = true
@@ -92,7 +96,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    fun getChildUnsafe(name: String, onlyChildren: Boolean): FileReference {
+    fun getChildUnsafe(name: String): FileReference {
         if (this == InvalidRef) return InvalidRef
         val nameI = if ('\\' in name) { // please, don't use back-slashes
             name.replace('\\', '/')
@@ -103,19 +107,25 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             val ni = nameI.indexOf('/', i)
             if (ni < 0) break
             val nameJ = nameI.substring(i, ni)
-            result = if (nameJ == "..") {
-                if (onlyChildren) InvalidRef
-                else result.getParent()
-            } else result.getChildImpl(nameJ)
+            result = getChildImplI(result, nameJ)
             if (result == InvalidRef) {
                 return InvalidRef
             }
             i = ni + 1
         }
         if (i < nameI.length) {
-            result = result.getChildImpl(nameI.substring(i))
+            result = getChildImplI(result, nameI.substring(i))
         }
         return result
+    }
+
+    @Deprecated(AsyncCacheData.ASYNC_WARNING)
+    private fun getChildImplI(result: FileReference, nameJ: String): FileReference {
+        return when (nameJ) {
+            "." -> result
+            ".." -> result.getParent()
+            else -> result.getChildImpl(nameJ)
+        }
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)

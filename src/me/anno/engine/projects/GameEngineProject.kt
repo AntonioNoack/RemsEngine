@@ -17,6 +17,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.SignatureCache
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.NamedSaveable
@@ -168,7 +169,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         EngineBase.workspace = location
 
         // if last scene is invalid, create a valid scene
-        if (lastScene == "" || lastScene.startsWith("tmp://")) {
+        if (lastScene == "" || lastScene.startsWith(InnerTmpFile.PREFIX)) {
             lastScene = location.getChild("Scene.${encoding.extension}").absolutePath
             LOGGER.info("Set scene to {}", lastScene)
         }

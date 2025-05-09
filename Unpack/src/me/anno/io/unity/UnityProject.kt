@@ -8,11 +8,10 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.unity.UnityReader.assetExtension
 import me.anno.io.unity.UnityReader.readUnityObjects
 import me.anno.io.yaml.generic.YAMLNode
-import me.anno.io.yaml.generic.YAMLReader.parseYAML
+import me.anno.io.yaml.generic.YAMLReader
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 
 /**
  * in a Unity file,
@@ -33,15 +32,14 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     // guid -> folder file for the decoded instances
     val files = HashMap<String, InnerFolder>()
 
-    private fun getYAML(file: FileReference): YAMLNode {
+    private fun getCachedYAML(file: FileReference): YAMLNode {
         return synchronized(this) {
             yamlCache.getOrPut(file) {
                 if (file.lcExtension == "meta") file.hide()
                 try {
-                    file.inputStreamSync()
-                        .bufferedReader().use {
-                            parseYAML(it, true)
-                        }
+                    file.inputStreamSync().bufferedReader().use { reader ->
+                        YAMLReader.parseYAML(reader, true)
+                    }
                 } catch (e: Exception) {
                     LOGGER.warn("$e by $file")
                     throw e
@@ -79,7 +77,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 files[guid] = folder
                 when (guidObject.lcExtension) {
                     in AssetThumbHelper.unityExtensions1 -> {
-                        val node = getYAML(guidObject)
+                        val node = getCachedYAML(guidObject)
                         parse(node, guid, folder)
                     }
                     else -> {
@@ -122,16 +120,15 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         if (metaFile.lcExtension != "meta") {
             val quickAnswer = yamlCache[metaFile]
             if (quickAnswer != null) return quickAnswer
-            file = metaFile.getParent().getChildImpl(metaFile.name + ".meta")
+            file = metaFile.getParent().getChild(metaFile.name + ".meta")
         }
         file.hide()
-        return getYAML(file)
+        return getCachedYAML(file)
     }
 
-    fun register(guid: String, assetFile: FileReference, metadata: YAMLNode) {
+    fun register(guid: String, assetFile: FileReference) {
         synchronized(this) {
             registry[guid] = assetFile
-            yamlCache[assetFile] = metadata
         }
     }
 
@@ -155,19 +152,13 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
             else -> {
                 when (file.lcExtension) {
                     "meta"/*, "mat", "prefab", "unity", "asset"*/ -> {
-                        try {
-                            file.inputStreamSync().bufferedReader().use { reader ->
-                                val yaml = parseYAML(reader, true)
-                                val guid = yaml["Guid"]?.value
-                                if (guid != null) {
-                                    // LOGGER.info("Registered guid $file")
-                                    register(guid, file.getSibling(file.nameWithoutExtension), yaml)
-                                } else LOGGER.warn("Didn't find guid in $file")
-                                yamlCache[file] = yaml
-                            }
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
+                        // this metadata isn't necessarily the same as file.getSibling!
+                        val yaml = getCachedYAML(file)
+                        val guid = yaml["Guid"]?.value
+                        if (guid != null) {
+                            val sibling = file.getSibling(file.nameWithoutExtension)
+                            register(guid, sibling) // metadata != yaml
+                        } else LOGGER.warn("Didn't find guid in $file")
                     }
                 }
             }
@@ -185,7 +176,10 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
 
         fun isValidUUID(name: String): Boolean {
             for (char in name) {
-                if (char !in 'A'..'Z' && char !in 'a'..'z' && char !in '0'..'9') return false
+                if (char !in 'A'..'Z' &&
+                    char !in 'a'..'z' &&
+                    char !in '0'..'9'
+                ) return false
             }
             return name.isNotEmpty()
         }

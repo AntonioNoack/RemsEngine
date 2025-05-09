@@ -87,12 +87,7 @@ class BundledRef private constructor(
         }
 
         private fun create(absolutePath: String): FileReference? {
-            val parts = absolutePath.substring(PREFIX.length).split('/')
-            var file: FileReference = origin
-            for (i in parts.indices) {
-                file = file.getChildImpl(parts[i])
-            }
-            return file
+            return origin.getChildUnsafe(absolutePath.substring(PREFIX.length))
         }
     }
 }

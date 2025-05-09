@@ -215,7 +215,7 @@ object Menu {
             if (validName != name) {
                 0xff0000
             } else {
-                val sibling = folder.getChildUnsafe(name, false)
+                val sibling = folder.getChildUnsafe(name)
                 if (sibling.exists) {
                     0xffff00
                 } else {
@@ -225,7 +225,7 @@ object Menu {
         }, { name ->
             val validName = name.toAllowedFilename()
             val result = if (validName == name) {
-                folder.getChildUnsafe(name, false)
+                folder.getChildUnsafe(name)
             } else {
                 LOGGER.warn("Ignoring invalid file name $validName")
                 InvalidRef

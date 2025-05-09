@@ -140,7 +140,7 @@ object PBRTReader {
     fun findFile(source0: String, resources: FileReference): FileReference {
         var source = source0
         while (true) {
-            val sourceI = resources.getChildUnsafe(source, false)
+            val sourceI = resources.getChildUnsafe(source)
             if (sourceI.exists) return sourceI
             val idx = source.indexOf('/')
             if (idx >= 0) {

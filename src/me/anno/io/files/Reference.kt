@@ -121,8 +121,7 @@ object Reference {
         val str4 = if ("/../" in str3 || str3.endsWith("/..") ||
             "/./" in str3 || str3.endsWith("/.")
         ) {
-            val parts = str3.split('/')
-                .toMutableList()
+            val parts = str3.split('/').toMutableList()
             var i = 0
             while (i < parts.size) {
                 val part = parts[i]
@@ -224,7 +223,7 @@ object Reference {
     }
 
     private fun isTemporaryFile(absolutePath: String): Boolean {
-        return absolutePath.startsWith("tmp://")
+        return absolutePath.startsWith(InnerTmpFile.PREFIX)
     }
 
     private fun resolveTemporaryFile(absolutePath: String): FileReference {

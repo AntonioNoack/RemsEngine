@@ -93,9 +93,9 @@ object UnityReader {
         } else {
             LOGGER.info("Indexing files $root")
             val project = UnityProject(root)
-            val hasAssetsFolder = project.register(root.getChildImpl("Assets"))
-            project.register(root.getChildImpl("ProjectSettings"))
-            project.register(root.getChildImpl("UserSettings"))
+            val hasAssetsFolder = project.register(root.getChild("Assets"))
+            project.register(root.getChild("ProjectSettings"))
+            project.register(root.getChild("UserSettings"))
             if (!hasAssetsFolder) {
                 for (childFile in root.listChildren()) {
                     project.register(childFile)
@@ -114,7 +114,7 @@ object UnityReader {
         var abs = file.absolutePath
         if (!abs.endsWith("/")) abs += "/"
         if (file.isDirectory) {
-            val child = file.getChildImpl("Assets")
+            val child = file.getChild("Assets")
             if (child.exists) {
                 return getUnityProjectByChild(child)
             }
@@ -166,10 +166,10 @@ object UnityReader {
             return InvalidRef
         }
         // val base = project.getGuidFolder(guid)
-        // val fine = base.getChildImpl(fileId)
+        // val fine = base.getChild(fileId)
         // LOGGER.info("Parsed $guid/$fileId for ids of path, $base, ${base.listChildren()?.map { it.name }}, $fine")
         assertTrue('/' !in guid)
-        val guid1 = project.getChildImpl(guid)
+        val guid1 = project.getChild(guid)
         var baseFile = guid1.getChildByNameOrFirst(fileId) ?: InvalidRef
         while (baseFile is InnerLinkFile) baseFile = baseFile.link
         return baseFile
@@ -178,14 +178,14 @@ object UnityReader {
     private fun FileReference.getChildByNameOrFirst(name: String): FileReference? {
         if (name.isBlank2()) return this
         if (name == "0.json") return InvalidRef
-        val child = getChildImpl(name)
+        val child = getChild(name)
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
         var isSubMesh = false
         if (children.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
             isSubMesh = true
             val meshes = children.first()
-                .getChildImpl("Meshes").listChildren()
+                .getChild("Meshes").listChildren()
             if (meshes.size > 1) {
                 val id = name.substring(0, name.length - 5).toInt() - 4300000
                 // find submesh
@@ -515,9 +515,15 @@ object UnityReader {
         }
     }
 
-    fun readUnityObjects(root: YAMLNode, guid: String, project: UnityProject, folder: InnerFolder): FileReference {
+    fun readUnityObjects(
+        root: YAMLNode, guid: String, project: UnityProject,
+        folder: InnerFolder
+    ): FileReference {
 
-        if (!isValidUUID(guid)) return InvalidRef
+        if (!isValidUUID(guid)) {
+            LOGGER.warn("Invalid guid '$guid'")
+            return InvalidRef
+        }
 
         var nodeCount = 0
         var firstNode: FileReference? = null
@@ -534,6 +540,9 @@ object UnityReader {
                 file
             }
         }
+
+        println("#nodes, first: $nodeCount, $firstNode")
+        if (nodeCount == 0) return folder
 
         val sceneFile = folder.getOrPut("Scene.json") {
             val absolutePath = folder.absolutePath + "/Scene.json"
@@ -850,7 +859,7 @@ object UnityReader {
     private fun forAllUnityObjects(node: YAMLNode, callback: (fileId: String, node: YAMLNode) -> Unit) {
         val children = node.children
         if (!children[0].key.startsWith("%YAML")) {
-            LOGGER.warn("Not a unity yaml file")
+            LOGGER.warn("Not a unity yaml file: $node")
             return
         }
         var index = -1
@@ -895,7 +904,7 @@ object UnityReader {
         } else {
             LOGGER.debug("Found unity project for {}: {} :)", file, project)
             val objects = project.getGuidFolder(file)
-            val scene = objects.getChildImpl("Scene.json")
+            val scene = objects.getChild("Scene.json")
             if (scene != InvalidRef) {
                 callback.ok(scene)
                 return
@@ -909,7 +918,7 @@ object UnityReader {
             // find the main id
             val mainFileId = project.getMainId(meta)
             val file2 = if (mainFileId != null) {
-                objects.getChildImpl(mainFileId)
+                objects.getChild(mainFileId)
             } else {
                 // get the object with the lowest id
                 children.minByOrNull { it.nameWithoutExtension.toLongOrDefault(Long.MAX_VALUE) }
