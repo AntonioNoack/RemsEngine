@@ -15,13 +15,11 @@ import java.io.OutputStream
 abstract class InnerFile(
     absolutePath: String,
     val relativePath: String,
-    final override val isDirectory: Boolean,
+    override val isDirectory: Boolean,
     val _parent: FileReference
 ) : FileReference(absolutePath) {
 
     var folder: InnerFile? = null
-
-    val lcName = name.lowercase()
 
     init {
         if (_parent is InnerFolder) {

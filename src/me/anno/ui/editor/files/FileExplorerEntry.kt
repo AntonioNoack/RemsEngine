@@ -293,7 +293,7 @@ open class FileExplorerEntry(
                         else -> false
                     }
                 ) PrefabCache.getPrefabSampleInstance(file, true) else null
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null // just not an animation
             }
             if (animSample is Animation) {

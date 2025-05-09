@@ -216,14 +216,8 @@ object AnimatedMeshesLoader {
 
             // create an animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val deepAnimPath = deepPrefab.add(ROOT_PATH, 'c', "AnimMeshComponent", "AnimMeshComponent")
-                val flatAnimPath = flatPrefab.add(ROOT_PATH, 'c', "AnimMeshComponent", "AnimMeshComponent")
-                deepPrefab.setUnsafe(deepAnimPath, "skeleton", skeletonPath)
-                flatPrefab.setUnsafe(flatAnimPath, "skeleton", skeletonPath)
-                if (sampleAnimations != null) {
-                    deepPrefab.setUnsafe(deepAnimPath, "animations", sampleAnimations)
-                    flatPrefab.setUnsafe(flatAnimPath, "animations", sampleAnimations)
-                }
+                createAnimationNode(deepPrefab, skeletonPath, sampleAnimations)
+                createAnimationNode(flatPrefab, skeletonPath, sampleAnimations)
             }
 
             val animRefs = animMap.values.map { it.sourceFile }
@@ -248,6 +242,16 @@ object AnimatedMeshesLoader {
         root.sealPrefabs()
 
         return root
+    }
+
+    private fun createAnimationNode(
+        prefab: Prefab, skeletonPath: FileReference,
+        sampleAnimations: List<AnimationState>?
+    ) {
+        val clazz = "AnimMeshComponent"
+        val deepAnimPath = prefab.add(ROOT_PATH, 'c', clazz, clazz)
+        prefab.setUnsafe(deepAnimPath, "skeleton", skeletonPath)
+        prefab.setUnsafe(deepAnimPath, "animations", sampleAnimations)
     }
 
     @Suppress("SpellCheckingInspection")

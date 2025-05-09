@@ -3,7 +3,6 @@ package me.anno.io.unity
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
 
 class UnityPackageFolder(root: FileReference) : InnerFolder(root) {
 
@@ -17,9 +16,9 @@ class UnityPackageFolder(root: FileReference) : InnerFolder(root) {
     }
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
-        super.listChildren(callback.map { list ->
-            list + project.files.values
-        })
+        super.listChildren { list, err ->
+            callback.ok((list ?: emptyList()) + project.files.values)
+        }
     }
 
     override fun getChildImpl(name: String): FileReference {

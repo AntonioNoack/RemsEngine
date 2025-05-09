@@ -26,8 +26,8 @@ class CAdd() : Change() {
         this.path = parentPath
         this.type = type
         this.clazzName = clazzName
-        this.prefab = prefab
         this.nameId = nameId
+        this.prefab = prefab
     }
 
     fun withPath(path: Path, changeId: Boolean): CAdd {
@@ -91,7 +91,7 @@ class CAdd() : Change() {
         } else {
             when (val newInstance1 = create(clazzName)) {
                 is PrefabSaveable -> newInstance1
-                is UnknownSaveable -> return InvalidClassException("Missing class \"$clazzName\"")
+                is UnknownSaveable -> return InvalidClassException("Missing class \"$clazzName\" in \"${prefab0.sourceFile}\"")
                 else -> return InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
             }
         }

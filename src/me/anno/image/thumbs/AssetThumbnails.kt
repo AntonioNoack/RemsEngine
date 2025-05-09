@@ -389,7 +389,7 @@ object AssetThumbnails {
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         ThumbsRendering.renderMultiWindowImage(
             srcFile, dstFile, count, size,
-            true, Renderers.simpleRenderer, true, { it, e ->
+            true, Renderers.simpleRenderer, false, { it, e ->
                 callback.call(it, e)
                 Pools.floatArrayPool.returnBuffer(meshVertices)
                 mesh.destroy()

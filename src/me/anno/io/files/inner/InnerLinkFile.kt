@@ -10,7 +10,7 @@ class InnerLinkFile(
     relativePath: String,
     parent: FileReference,
     val link: FileReference
-) : InnerFile(absolutePath, relativePath, link.isDirectory, parent) {
+) : InnerFile(absolutePath, relativePath, false, parent) {
 
     constructor(folder: InnerFolder, name: String, content: FileReference) : this(
         "${folder.absolutePath}/$name",
@@ -27,8 +27,7 @@ class InnerLinkFile(
         }
     }
 
-    override val isSomeKindOfDirectory: Boolean
-        get() = link.isSomeKindOfDirectory
+    override val isSomeKindOfDirectory: Boolean get() = link.isSomeKindOfDirectory
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) =
         link.inputStream(lengthLimit, callback)
@@ -38,6 +37,6 @@ class InnerLinkFile(
     override fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) = link.readByteBuffer(native, callback)
     override fun listChildren(callback: Callback<List<FileReference>>) = link.listChildren(callback)
     override fun length() = link.length()
-
-    override val exists: Boolean = link.exists
+    override val isDirectory: Boolean get() = link.isDirectory
+    override val exists: Boolean get() = link.exists
 }
