@@ -199,7 +199,7 @@ class TriangulationTests {
         }
 
         val triangles = Triangulation.ringToTrianglesVec2dIndices(points, holeIndices.toIntArray())!!
-        ImageWriter.writeTriangles(512, "withHoles.png", points.map { Vector2f(it) }, triangles.toIntArray())
+        if (false) ImageWriter.writeTriangles(512, "withHoles.png", points.map { Vector2f(it) }, triangles.toIntArray())
 
         // validate shape
         // each signed edge must appear correctly once

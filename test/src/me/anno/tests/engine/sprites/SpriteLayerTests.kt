@@ -144,8 +144,7 @@ class SpriteLayerTests {
         }
         val asImage = fb.getTexture0()
             .createImage(flipY = false, withAlpha = false)
-        // todo this image has a row cut off... how???
-        asImage.write(OS.desktop.getChild("sprites.png"))
+        if (false) asImage.write(OS.desktop.getChild("sprites.png"))
         val expectedImage = IntImage(asImage.width, asImage.height, true)
         var wrongPixels = 0
         for (yi in 0 until cells) {
