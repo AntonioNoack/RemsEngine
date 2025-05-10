@@ -17,7 +17,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.SignatureCache
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.NamedSaveable
@@ -117,8 +116,8 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
     }
 
     var location: FileReference = InvalidRef // a folder
-    var lastScene: String = ""
-    val openTabs = ArrayList<String>()
+    var lastScene: FileReference = InvalidRef
+    val openTabs = ArrayList<FileReference>()
 
     val configFile get() = location.getChild("Project.json")
     var encoding = FileEncoding.PRETTY_JSON
@@ -169,12 +168,12 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         EngineBase.workspace = location
 
         // if last scene is invalid, create a valid scene
-        if (lastScene == "" || lastScene.startsWith(InnerTmpFile.PREFIX)) {
-            lastScene = location.getChild("Scene.${encoding.extension}").absolutePath
+        if (lastScene == InvalidRef) {
+            lastScene = location.getChild("Scene.${encoding.extension}")
             LOGGER.info("Set scene to {}", lastScene)
         }
 
-        val lastSceneRef = lastScene.toGlobalFile(location)
+        val lastSceneRef = lastScene
         if (!lastSceneRef.exists && lastSceneRef != InvalidRef) {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.getParent().tryMkdirs()
@@ -192,7 +191,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
         for (i in openTabs.indices) {
             val tab = openTabs[i]
             try {
-                ECSSceneTabs.open(tab.toGlobalFile(EngineBase.workspace), PlayMode.EDITING, false)
+                ECSSceneTabs.open(tab, PlayMode.EDITING, false)
             } catch (e: Exception) {
                 LOGGER.warn("Could not open $tab", e)
             }
@@ -270,8 +269,8 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeString("lastScene", lastScene)
-        writer.writeStringList("openTabs", openTabs.toList())
+        writer.writeFile("lastScene", lastScene)
+        writer.writeFileList("openTabs", openTabs)
         writer.writeInt("maxIndexDepth", maxIndexDepth)
         writer.writeInt("encoding", encoding.id)
         // location doesn't really need to be saved
@@ -279,12 +278,17 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "lastScene" -> lastScene = value as? String ?: (value as? FileReference)?.absolutePath ?: return
+            "lastScene" -> {
+                lastScene = (value as? FileReference)
+                    ?: ((value as? String)?.toGlobalFile(location))
+                            ?: return
+            }
             "maxIndexDepth" -> maxIndexDepth = value as? Int ?: return
             "openTabs" -> {
                 val values = value as? List<*> ?: return
                 openTabs.clear()
-                openTabs.addAll(values.filterIsInstance2(String::class))
+                openTabs.addAll(values.filterIsInstance2(String::class).map { it.toGlobalFile(location) })
+                openTabs.addAll(values.filterIsInstance2(FileReference::class))
             }
             "encoding" -> encoding = FileEncoding.entries.getOrNull(value as? Int ?: return) ?: encoding
             else -> super.setProperty(name, value)

@@ -286,7 +286,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                 NameDesc("Extend Prefab", "Create a child prefab with this file as its base", ""),
             ) { p, files ->
                 val defaultExtension = GameEngineProject.encoding.extension
-                files.mapCallback<FileReference, Unit>({ _, src, cb ->
+                files.mapCallback({ _, src, cb ->
                     PrefabCache.getPrefabAsync(src) { prefab, err ->
                         if (prefab != null) {
                             askRename(

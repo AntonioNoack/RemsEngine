@@ -134,11 +134,13 @@ object Packer {
     ): Map<FileReference, String> {
 
         val resourceMap = findResources(resources0)
-        val resourceSizeApprox = resourceMap.keys.associateWith { it.length() }
+        val resourceList = resourceMap.entries.toList()
+        val resourceSizeApprox = LongArray(resourceList.size) { resourceList[it].key.length() }
 
         var doneSize = 0L
-        var totalSize = resourceSizeApprox.values.sum()
-        for ((srcFile, dstFile) in resourceMap) {
+        var totalSize = resourceSizeApprox.sum()
+        for (i in resourceList.indices) {
+            val (srcFile, dstFile) = resourceList[i]
             try {
                 val importType = SignatureCache[srcFile, false]?.importType
                 val bytes = when (importType) {
@@ -152,16 +154,15 @@ object Packer {
                     .substring(BundledRef.PREFIX.length)
                 dst[fileName] = bytes
                 doneSize += bytes.size
-                totalSize += bytes.size - resourceSizeApprox[srcFile]!!
+                totalSize += bytes.size - resourceSizeApprox[i]
                 reportProgress?.callback(doneSize, totalSize)
             } catch (e: Exception) {
                 LOGGER.warn("Issue when copying $srcFile: ${e.message}")
                 e.printStackTrace()
             }
         }
-        return resourceMap.mapValues {
-            it.value.absolutePath
-                .substring(BundledRef.PREFIX.length)
+        return resourceMap.mapValues { (_, dstFile) ->
+            dstFile.absolutePath.substring(BundledRef.PREFIX.length)
         }
     }
 

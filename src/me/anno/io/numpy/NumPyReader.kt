@@ -13,6 +13,8 @@ import me.anno.io.Streams.readLE64F
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.mapAsync
 import me.anno.utils.async.Callback.Companion.mapCallback
 import me.anno.utils.types.Strings.indexOf2
 import java.io.DataInputStream
@@ -24,15 +26,15 @@ import kotlin.math.min
 object NumPyReader {
 
     fun readNPZ(folder: FileReference, callback: Callback<Map<String, NumPyData?>>) {
-        folder.listChildren().mapCallback<FileReference, Pair<String, NumPyData?>>({ _, file, cb1 ->
-            file.inputStream { stream, err ->
-                val data = if (stream != null) readNPY(stream) else null
-                if (data is NumPyData?) {
-                    cb1.ok(file.nameWithoutExtension to data)
-                } else cb1.err(data as? Exception ?: err)
-            }
-        }, { list, err ->
-            callback.call(list?.toMap(), err)
+        folder.listChildren(callback.mapAsync { children, cb2 ->
+            children.mapCallback({ _, file, cb1 ->
+                file.inputStream { stream, err ->
+                    val data = if (stream != null) readNPY(stream) else null
+                    if (data is NumPyData?) {
+                        cb1.ok(file.nameWithoutExtension to data)
+                    } else cb1.err(data as? Exception ?: err)
+                }
+            }, cb2.map { it.toMap() })
         })
     }
 

@@ -82,7 +82,7 @@ object ClipboardImpl {
             file.deleteOnExit()
             file
         }
-        files.mapCallback<FileReference, File>(
+        files.mapCallback(
             { _, src, cb ->
                 if (src is FileFileRef) {
                     cb.ok(src.file)

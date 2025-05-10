@@ -21,7 +21,7 @@ class CallbackMappingTest {
     @Test
     fun testMapMapCallback() {
         var hasResult = 0
-        mapOf("a" to 1, "b" to 2, "c" to 3).mapCallback<String, Int, String>(
+        mapOf("a" to 1, "b" to 2, "c" to 3).mapCallback(
             { key, value, cb ->
                 addEvent(Maths.randomLong(0, 10)) {
                     cb.ok("$key: $value")
@@ -37,7 +37,7 @@ class CallbackMappingTest {
     @Test
     fun testListMapCallback() {
         var hasResult = 0
-        listOf(1, 2, 3).mapCallback<Int, Int>(
+        listOf(1, 2, 3).mapCallback(
             { index, value, cb ->
                 assertEquals(index + 1, value)
                 addEvent(Maths.randomLong(0, 10)) {
@@ -54,7 +54,7 @@ class CallbackMappingTest {
     @Test
     fun testSetMapCallback() {
         var hasResult = 0
-        setOf(1, 2, 3).mapCallback<Int, Int>(
+        setOf(1, 2, 3).mapCallback(
             { index, value, cb ->
                 assertTrue(index in 0 until 3)
                 addEvent(Maths.randomLong(0, 10)) {
@@ -71,7 +71,7 @@ class CallbackMappingTest {
     @Test
     fun testListError() {
         var hasResult = 0
-        listOf(2, -1, 1, 3).mapCallback<Int, Int>(
+        listOf(2, -1, 1, 3).mapCallback(
             { index, value, cb ->
                 assertTrue(index in 0 until 4)
                 addEvent(Maths.randomLong(0, 10)) {
@@ -89,7 +89,7 @@ class CallbackMappingTest {
     @Test
     fun testSetError() {
         var hasResult = 0
-        setOf(2, -1, 1, 3).mapCallback<Int, Int>(
+        setOf(2, -1, 1, 3).mapCallback(
             { index, value, cb ->
                 assertTrue(index in 0 until 4)
                 addEvent(Maths.randomLong(0, 10)) {

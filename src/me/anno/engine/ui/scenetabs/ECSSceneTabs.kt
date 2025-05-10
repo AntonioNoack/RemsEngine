@@ -108,7 +108,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         // add tab to project
         val project = project
         if (project != null) {
-            val tabLocal = tab.file.toLocalPath(project.location)
+            val tabLocal = tab.file
             val newTab = tabLocal !in project.openTabs
             if (newTab || project.lastScene != tabLocal) {
                 if (newTab) project.openTabs.add(tabLocal)
@@ -156,7 +156,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         } else sceneTab.removeFromParent()
         val project = project
         if (project != null && setNextActive) {
-            val failed = project.openTabs.remove(sceneTab.file.toLocalPath(project.location))
+            val failed = project.openTabs.remove(sceneTab.file)
             if (failed) LOGGER.warn("Failed to close ${sceneTab.file}!!")
             project.save()
         }
