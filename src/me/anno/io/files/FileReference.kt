@@ -213,16 +213,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) {
-        readBytes { bytes, exc ->
-            val buffer = if (bytes != null) {
-                if (native) {
-                    val buffer = ByteBufferPool.allocateDirect(bytes.size)
-                    buffer.put(bytes).flip()
-                    buffer
-                } else ByteBuffer.wrap(bytes)
-            } else null
-            callback.call(buffer, exc)
-        }
+        readBytes(callback.map { bytes ->
+            if (native) {
+                val buffer = ByteBufferPool.allocateDirect(bytes.size)
+                buffer.put(bytes).flip()
+                buffer
+            } else ByteBuffer.wrap(bytes)
+        })
     }
 
     open fun readLines(lineLengthLimit: Int, callback: Callback<ReadLineIterator>) {
@@ -235,12 +232,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     private fun readLinesImpl(lineLengthLimit: Int, closeStream: Boolean, callback: Callback<ReadLineIterator>) {
-        inputStream(Long.MAX_VALUE, closeStream) { it, exc ->
-            if (it != null) {
-                val reader = it.bufferedReader()
-                callback.call(ReadLineIterator(reader, lineLengthLimit), null)
-            } else callback.call(null, exc)
-        }
+        inputStream(Long.MAX_VALUE, closeStream, callback.map { stream ->
+            ReadLineIterator(stream.bufferedReader(), lineLengthLimit)
+        })
     }
 
     open fun writeFile(
@@ -330,7 +324,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return try {
             mkdirs()
         } catch (e: Exception) {
-            LOGGER.warn("Failed to create ${toString()}")
+            LOGGER.warn("Failed to create ${toString()}", e)
             false
         }
     }

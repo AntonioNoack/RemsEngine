@@ -8,6 +8,7 @@ import me.anno.io.files.Reference.register
 import me.anno.utils.async.Callback
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.concurrent.thread
@@ -43,7 +44,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             } catch (_: IgnoredException) {
                 callback.call(null, null)
             } catch (e: Throwable) {
-                callback.err(Exception("Failure reading '$this'", e))
+                callback.err(IOException("Failure reading '$this'", e))
             } finally {
                 if (closeStream) {
                     stream?.close()

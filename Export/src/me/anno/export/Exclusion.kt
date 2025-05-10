@@ -64,7 +64,7 @@ object Exclusion {
         sources.removeIf { it.key.endsWith(".md") }
         excludeFiles(sources, "me/anno/ui/editor/", listOf("stacked/Option.class", "OptionBar"))
         excludeFiles(sources, "me/anno/engine/ui/input/")
-        excludeFiles(sources, "me/anno/ui/input/")
+        excludeFiles(sources, "me/anno/ui/input/", listOf("EnumInput", "InputPanel")) // why is this needed??
         excludeFiles(sources, "me/anno/ui/debug/", listOf("FrameTimings"))
         excludeFiles(sources, "me/anno/ui/anim/")
         excludeFiles(sources, "me/anno/ui/custom/", listOf("CustomPanelType", "UITypeLibrary"))

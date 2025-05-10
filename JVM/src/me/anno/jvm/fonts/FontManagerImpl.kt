@@ -1,5 +1,6 @@
 package me.anno.jvm.fonts
 
+import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.FontManager.getFontSizeIndex
@@ -19,7 +20,6 @@ import java.awt.Toolkit
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.util.Locale
-import kotlin.concurrent.thread
 
 object FontManagerImpl {
 
@@ -31,7 +31,7 @@ object FontManagerImpl {
         FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
         FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
         FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
-        thread(name = "SubpixelLayout") { SubpixelOffsets.calculateSubpixelOffsets() }
+        runOnNonGFXThread("SubpixelLayout") { SubpixelOffsets.calculateSubpixelOffsets() }
     }
 
     private fun getDefaultFontSize(): Int {

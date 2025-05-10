@@ -59,7 +59,7 @@ object Dict {
             if (name != null) {
                 LanguageOption(data, file, name)
             } else null
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             LOGGER.warn("Skipped $file, didn't find it")
             null
         }

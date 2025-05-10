@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.AsyncCacheData
+import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.IMesh
@@ -784,7 +785,7 @@ open class FileExplorerEntry(
             explorer != null && canReplace -> explorer.pasteFiles(
                 files, explorer.folder, listOf(
                     MenuOption(NameDesc("Replace")) {
-                        thread(name = "replacing file") {
+                        runOnNonGFXThread("Replacing File") {
                             val progress = GFX.someWindow.addProgressBar(
                                 "Replacing", "Bytes",
                                 files.sumOf { it.length() }.toDouble()

@@ -52,8 +52,7 @@ class IdeaProject(val projectDir: FileReference) {
         }
 
         private fun loadProjectModules(
-            projectDir: FileReference,
-            result: IdeaProject,
+            projectDir: FileReference, result: IdeaProject,
             callback: Callback<IdeaProject>
         ) {
             loadModules(projectDir, callback.mapAsync { moduleFiles, then ->
@@ -93,7 +92,7 @@ class IdeaProject(val projectDir: FileReference) {
             moduleConfig.inputStream(callback.map { loadModules(projectDir, it) })
         }
 
-        fun loadModules(projectDir: FileReference, moduleConfig: InputStream): List<FileReference> {
+        private fun loadModules(projectDir: FileReference, moduleConfig: InputStream): List<FileReference> {
             val node0 = moduleConfig.use {
                 XMLReader(it.reader()).read() as XMLNode
             }

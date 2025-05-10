@@ -24,6 +24,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.OS.documents
+import me.anno.utils.async.Callback.Companion.mapCallback
 import kotlin.concurrent.thread
 
 class ExportSettings : NamedSaveable() {
@@ -109,49 +110,67 @@ class ExportSettings : NamedSaveable() {
     ) {
         // general settings
         val general = getGroup(NameDesc("General"), list)
-        general.add(TextInput(NameDesc("Name"), "", name, DefaultConfig.style)
-            .addChangeListener { name = it.trim() })
-        general.add(TextInput(NameDesc("Description"), "", description, DefaultConfig.style)
-            .addChangeListener { description = it.trim() })
-        general.add(FileInput(NameDesc("Destination"), DefaultConfig.style, dstFile, emptyList(), false)
-            .addChangeListener { dstFile = it })
-        general.add(FileInput(NameDesc("Icon Override"), DefaultConfig.style, iconOverride, emptyList(), false)
-            .addChangeListener { iconOverride = it })
-        general.add(TextInput(NameDesc("Game Title"), "", gameTitle, DefaultConfig.style)
-            .addChangeListener { gameTitle = it.trim() })
-        general.add(TextInput(NameDesc("Config Name"), "", configName, DefaultConfig.style)
-            .addChangeListener { configName = it.trim() })
-        general.add(IntInput(NameDesc("Version Number"), "", versionNumber, DefaultConfig.style)
-            .setChangeListener { versionNumber = it.toInt() })
-        general.add(FileInput(NameDesc("First Scene"), DefaultConfig.style, firstSceneRef, emptyList(), false)
-            .addChangeListener { firstSceneRef = it })
+        general.add(
+            TextInput(NameDesc("Name"), "", name, DefaultConfig.style)
+                .addChangeListener { name = it.trim() })
+        general.add(
+            TextInput(NameDesc("Description"), "", description, DefaultConfig.style)
+                .addChangeListener { description = it.trim() })
+        general.add(
+            FileInput(NameDesc("Destination"), DefaultConfig.style, dstFile, emptyList(), false)
+                .addChangeListener { dstFile = it })
+        general.add(
+            FileInput(NameDesc("Icon Override"), DefaultConfig.style, iconOverride, emptyList(), false)
+                .addChangeListener { iconOverride = it })
+        general.add(
+            TextInput(NameDesc("Game Title"), "", gameTitle, DefaultConfig.style)
+                .addChangeListener { gameTitle = it.trim() })
+        general.add(
+            TextInput(NameDesc("Config Name"), "", configName, DefaultConfig.style)
+                .addChangeListener { configName = it.trim() })
+        general.add(
+            IntInput(NameDesc("Version Number"), "", versionNumber, DefaultConfig.style)
+                .setChangeListener { versionNumber = it.toInt() })
+        general.add(
+            FileInput(NameDesc("First Scene"), DefaultConfig.style, firstSceneRef, emptyList(), false)
+                .addChangeListener { firstSceneRef = it })
         val shared = getGroup(NameDesc("Shared Settings"), list)
-        shared.add(FileInput(NameDesc("Kotlinc Folder"), style, kotlinc, emptyList(), true)
-            .addChangeListener { kotlinc = it })
+        shared.add(
+            FileInput(NameDesc("Kotlinc Folder"), style, kotlinc, emptyList(), true)
+                .addChangeListener { kotlinc = it })
         // platforms
         val platforms = getGroup(NameDesc("Platforms"), list)
         val linux = getGroup(NameDesc("Linux"), platforms)
-        linux.add(BooleanInput(NameDesc("x64"), linuxPlatforms.x64, true, style)
-            .setChangeListener { linuxPlatforms.x64 = it })
-        linux.add(BooleanInput(NameDesc("arm64"), linuxPlatforms.arm64, true, style)
-            .setChangeListener { linuxPlatforms.arm64 = it })
-        linux.add(BooleanInput(NameDesc("arm32"), linuxPlatforms.arm32, false, style)
-            .setChangeListener { linuxPlatforms.arm32 = it })
+        linux.add(
+            BooleanInput(NameDesc("x64"), linuxPlatforms.x64, true, style)
+                .setChangeListener { linuxPlatforms.x64 = it })
+        linux.add(
+            BooleanInput(NameDesc("arm64"), linuxPlatforms.arm64, true, style)
+                .setChangeListener { linuxPlatforms.arm64 = it })
+        linux.add(
+            BooleanInput(NameDesc("arm32"), linuxPlatforms.arm32, false, style)
+                .setChangeListener { linuxPlatforms.arm32 = it })
         val windows = getGroup(NameDesc("Windows"), platforms)
-        windows.add(BooleanInput(NameDesc("x64 (64-bit)"), windowsPlatforms.x64, true, style)
-            .setChangeListener { windowsPlatforms.x64 = it })
-        windows.add(BooleanInput(NameDesc("x86 (32-bit)"), windowsPlatforms.x86, false, style)
-            .setChangeListener { windowsPlatforms.x86 = it })
-        windows.add(BooleanInput(NameDesc("arm64"), windowsPlatforms.arm64, true, style)
-            .setChangeListener { windowsPlatforms.arm64 = it })
-        windows.add(FileInput(NameDesc("Exe-Base-Location"), style, windowsPlatforms.exeBaseLocation, emptyList())
-            .addChangeListener { windowsPlatforms.exeBaseLocation = it }
-            .setTooltip("When exporting as an .exe-file, use this file as the base (.jar-contents just get appended to it)"))
+        windows.add(
+            BooleanInput(NameDesc("x64 (64-bit)"), windowsPlatforms.x64, true, style)
+                .setChangeListener { windowsPlatforms.x64 = it })
+        windows.add(
+            BooleanInput(NameDesc("x86 (32-bit)"), windowsPlatforms.x86, false, style)
+                .setChangeListener { windowsPlatforms.x86 = it })
+        windows.add(
+            BooleanInput(NameDesc("arm64"), windowsPlatforms.arm64, true, style)
+                .setChangeListener { windowsPlatforms.arm64 = it })
+        windows.add(
+            FileInput(NameDesc("Exe-Base-Location"), style, windowsPlatforms.exeBaseLocation, emptyList())
+                .addChangeListener { windowsPlatforms.exeBaseLocation = it }
+                .setTooltip("When exporting as an .exe-file, use this file as the base (.jar-contents just get appended to it)"))
         val macos = getGroup(NameDesc("MacOS"), platforms)
-        macos.add(BooleanInput(NameDesc("x64 (Intel)"), macosPlatforms.x64, true, style)
-            .setChangeListener { macosPlatforms.x64 = it })
-        macos.add(BooleanInput(NameDesc("arm64 (M-Series)"), macosPlatforms.arm64, true, style)
-            .setChangeListener { macosPlatforms.arm64 = it })
+        macos.add(
+            BooleanInput(NameDesc("x64 (Intel)"), macosPlatforms.x64, true, style)
+                .setChangeListener { macosPlatforms.x64 = it })
+        macos.add(
+            BooleanInput(NameDesc("arm64 (M-Series)"), macosPlatforms.arm64, true, style)
+                .setChangeListener { macosPlatforms.arm64 = it })
 
         // modules
         val logicSources = getGroup(NameDesc("Project Roots"), list)
@@ -174,38 +193,48 @@ class ExportSettings : NamedSaveable() {
 
         // todo show a warning when a dependency isn't fulfilled
         val modules = getGroup(NameDesc("Included Modules"), list)
-        val moduleList = projectRoots
-            .flatMap { IdeaProject.loadModules(it, it.inputStreamSync()) }
-            .distinct().sortedBy { it.name }
-        for (file in moduleList) {
-            val name = file.nameWithoutExtension
-            val checkbox = BooleanInput(NameDesc(name), name !in excludedModules, false, style)
-            checkbox.setChangeListener { included ->
-                if (included) excludedModules.remove(name)
-                else excludedModules.add(name)
+
+        projectRoots.mapCallback({ _, dir, cb ->
+            IdeaProject.loadModules(dir, cb)
+        }, { files: List<List<FileReference>>?, err ->
+
+            val moduleList = (files ?: emptyList())
+                .flatten().distinct()
+                .sortedBy { it.name }
+
+            for (file in moduleList) {
+                val name = file.nameWithoutExtension
+                val checkbox = BooleanInput(NameDesc(name), name !in excludedModules, false, style)
+                checkbox.setChangeListener { included ->
+                    if (included) excludedModules.remove(name)
+                    else excludedModules.add(name)
+                }
+                checkbox.setTooltip(file.toLocalPath())
+                modules.add(checkbox)
+                // load module info for ttt
+                thread(name = "extInfo(${file.nameWithoutExtension})") {
+                    val extInfoTxt = file.getSibling("src").listChildren()
+                        .firstOrNull { it.name.endsWith("-ext.info") }
+                    val info = if (extInfoTxt != null) {
+                        ExtensionInfo().loadFromTxt(extInfoTxt)
+                    } else null
+                    checkbox.setTooltip(
+                        if (info?.description.isNullOrBlank()) file.toLocalPath()
+                        else "${info.description}\n${file.toLocalPath()}"
+                    )
+                }
             }
-            checkbox.setTooltip(file.toLocalPath())
-            modules.add(checkbox)
-            // load module info for ttt
-            thread(name = "extInfo(${file.nameWithoutExtension})") {
-                val extInfoTxt = file.getSibling("src").listChildren()
-                    .firstOrNull { it.name.endsWith("-ext.info") }
-                val info = if (extInfoTxt != null) {
-                    ExtensionInfo().loadFromTxt(extInfoTxt)
-                } else null
-                checkbox.setTooltip(
-                    if (info?.description.isNullOrBlank()) file.toLocalPath()
-                    else "${info?.description}\n${file.toLocalPath()}"
-                )
-            }
-        }
+        })
+
         val opt = getGroup(NameDesc("Space Optimization"), list)
-        opt.add(BooleanInput(NameDesc("Minimal UI"), minimalUI, false, style)
-            .setChangeListener { minimalUI = it })
-        opt.add(BooleanInput(
-            NameDesc("Kotlyn Reflect", "Minimized Kotlin reflections to reduce export size",""),
-            useKotlynReflect, false, style
-        ).setChangeListener { useKotlynReflect = it })
+        opt.add(
+            BooleanInput(NameDesc("Minimal UI"), minimalUI, false, style)
+                .setChangeListener { minimalUI = it })
+        opt.add(
+            BooleanInput(
+                NameDesc("Kotlyn Reflect", "Minimized Kotlin reflections to reduce export size", ""),
+                useKotlynReflect, false, style
+            ).setChangeListener { useKotlynReflect = it })
 
         // assets
         val assets = getGroup(NameDesc("Assets"), list)

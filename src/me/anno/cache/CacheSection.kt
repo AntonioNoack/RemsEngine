@@ -2,6 +2,7 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Time.nanoTime
+import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference
@@ -16,7 +17,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
@@ -41,7 +41,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     private fun runAsync(name: String, runnable: () -> Unit) {
         LOGGER.debug("Started {}", name)
-        thread(name = name, block = runnable)
+        runOnNonGFXThread(name, runnable)
     }
 
     fun remove(filter: (Any?, CacheEntry) -> Boolean): Int {
