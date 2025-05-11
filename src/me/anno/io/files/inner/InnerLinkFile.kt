@@ -27,8 +27,6 @@ class InnerLinkFile(
         }
     }
 
-    override val isSomeKindOfDirectory: Boolean get() = link.isSomeKindOfDirectory
-
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) =
         link.inputStream(lengthLimit, callback)
 

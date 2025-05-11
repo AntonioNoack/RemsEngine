@@ -648,8 +648,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     fun canSensiblyEnter(file: FileReference): Boolean {
-        return file.isDirectory || (file.isSomeKindOfDirectory &&
-                InnerFolderCache.readAsFolder(file, false)?.listChildren()?.isEmpty() == false)
+        return file.isDirectory || InnerFolderCache.readAsFolder(file, false)?.listChildren()?.isEmpty() == false
     }
 
     var hoveredItemIndex = 0

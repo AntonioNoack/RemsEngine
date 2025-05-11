@@ -95,7 +95,7 @@ object SearchAlgorithm {
                 if (file.isDirectory || when (file.lcExtension) {
                         "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
                         "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst",
-                        "unitypackage" -> file.isPacked.value
+                        "unitypackage" -> file.isSerializedFolder()
                         else -> false
                     }
                 ) {

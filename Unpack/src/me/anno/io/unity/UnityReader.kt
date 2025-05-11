@@ -56,6 +56,9 @@ object UnityReader {
     val assetExtension = ".json"
     val zeroAssetName = "0$assetExtension"
 
+    private val FileReference.isSomeKindOfDirectory get() = isDirectory || isPacked
+    private val FileReference.isPacked get() = !isDirectory && isSerializedFolder()
+
     fun getUnityProjectByRoot(root: FileReference, async: Boolean = false): UnityProject? {
         if (root.isSomeKindOfDirectory) {
             val children = root.listChildren()

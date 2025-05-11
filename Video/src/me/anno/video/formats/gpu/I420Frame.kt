@@ -10,27 +10,27 @@ import java.io.InputStream
 
 class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
 
-    private val w2 get() = (width + 1) ushr 1
-    private val h2 get() = (height + 1) ushr 1
+    private val halfWidth get() = (width + 1) ushr 1
+    private val halfHeight get() = (height + 1) ushr 1
 
-    private val s0 get() = width * height
-    private val s1 get() = w2 * h2
+    private val imageSize get() = width * height
+    private val halfImageSize get() = halfWidth * halfHeight
 
     private val y = Texture2D("i420.y", width, height, 1)
-    private val uv = Texture2D("i420.uv", w2, h2, 1)
+    private val uv = Texture2D("i420.uv", halfWidth, halfHeight, 1)
 
     override fun getByteSize(): Long {
-        return (width * height) + 2L * (w2 * h2)
+        return (width * height) + 2L * (halfWidth * halfHeight)
     }
 
     override fun load(input: InputStream) {
         if (isDestroyed) return
 
-        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
+        val yData = input.readNBytes2(imageSize, Pools.byteBufferPool)
         blankDetector.putChannel(yData, 0)
-        val uData = input.readNBytes2(s1, Pools.byteBufferPool)
+        val uData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
         blankDetector.putChannel(uData, 1)
-        val vData = input.readNBytes2(s1, Pools.byteBufferPool)
+        val vData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
         blankDetector.putChannel(vData, 2)
         val interlaced = interlaceReplace(uData, vData)
         Sleep.acquire(true, creationLimiter) {

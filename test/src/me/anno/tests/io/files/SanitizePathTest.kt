@@ -39,4 +39,9 @@ class SanitizePathTest {
     fun testKeepsDriveLetterSlash() {
         assertEquals("C:/", sanitizePath("C:/"))
     }
+
+    @Test
+    fun testKeepsDoubleDotsIfFirst() {
+        assertEquals("../../../a/b/c", sanitizePath("../../../a/b/c"))
+    }
 }

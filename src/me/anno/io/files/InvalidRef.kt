@@ -47,7 +47,6 @@ object InvalidRef : FileReference("") {
 
     override val exists: Boolean get() = false
     override val isDirectory: Boolean get() = false
-    override val isSomeKindOfDirectory: Boolean get() = false
 
     override val lastModified: Long get() = 0L
     override val lastAccessed: Long get() = 0L

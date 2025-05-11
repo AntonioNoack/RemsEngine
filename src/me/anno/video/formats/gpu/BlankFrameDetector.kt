@@ -16,22 +16,22 @@ class BlankFrameDetector {
 
     private val pixels = IntArray(NUM_SAMPLES)
 
+    private fun getRandomIndex(size: Int, i: Int): Int {
+        return (size.toLong() * randomIndexSequence[i]).shr(31).toInt()
+    }
+
     fun putRGBA(data: ByteBuffer) {
-        val ris = randomIndexSequence
         val size = data.remaining() shr 2
-        if (size > 0) for (i in ris.indices) {
-            val pixelIndex = (size * ris[i]).toInt()
-            pixels[i] = data.getInt(pixelIndex * 4)
+        if (size > 0) for (i in 0 until NUM_SAMPLES) {
+            pixels[i] = data.getInt(getRandomIndex(size, i) * 4)
         }
     }
 
     fun putChannel(data: ByteBuffer, channel: Int) {
         val shift = channel * 8
-        val ris = randomIndexSequence
         val size = data.remaining()
-        if (size > 0) for (i in ris.indices) {
-            val pixelIndex = (size * ris[i]).toInt()
-            val byte = data[pixelIndex]
+        if (size > 0) for (i in 0 until NUM_SAMPLES) {
+            val byte = data[getRandomIndex(size, i)]
             pixels[i] = pixels[i] or byte.toInt().and(255).shl(shift)
         }
     }
@@ -89,7 +89,7 @@ class BlankFrameDetector {
         private val LOGGER = LogManager.getLogger(BlankFrameDetector::class)
 
         private const val NUM_SAMPLES = 250
-        private val randomIndexSequence = FloatArray(NUM_SAMPLES) { Maths.random().toFloat() }
+        private val randomIndexSequence = IntArray(NUM_SAMPLES) { Maths.randomInt() and 0x7fff_ffff }
             .apply { sort() }
 
         fun getFrame(

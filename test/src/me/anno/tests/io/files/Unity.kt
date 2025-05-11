@@ -5,18 +5,17 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.jvm.HiddenOpenGLContext
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.AssetThumbnails
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.image.thumbs.Thumbs
 import me.anno.io.json.generic.JsonFormatter
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.tests.LOGGER
 import me.anno.ui.debug.TestEngine
 import me.anno.ui.editor.files.FileExplorer
@@ -38,7 +37,7 @@ fun inspectAsset(asset: FileReference) {
 fun FileReference.printTree(depth: Int, maxDepth: Int) {
     if (!isHidden) {
         LOGGER.debug(Strings.spaces(depth * 2) + name)
-        if (depth + 1 < maxDepth && (if (depth == 0) isSomeKindOfDirectory else isDirectory)) {
+        if (depth + 1 < maxDepth) {
             for (child in listChildren()) {
                 child.printTree(depth + 1, maxDepth)
             }

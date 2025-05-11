@@ -42,7 +42,7 @@ fun main() {
     // a special file, which does not work as a stream using the default ZipInputStream (only DEFLATED entries can have EXT descriptor)
     @Suppress("SpellCheckingInspection")
     val ref = OS.downloads.getChild("Stone_Wall_uljlcdwew_4K_surface_ms.zip")
-    logger.info(ref.isSomeKindOfDirectory)
+    logger.info(ref.listChildren())
 
     val zis2 = ZipFile(SeekableInMemoryByteChannel(ref.readBytesSync()))
     val entries = zis2.entries

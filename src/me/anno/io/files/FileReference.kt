@@ -413,14 +413,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return absolutePath.toLocalPath(workspace)
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    open val isSomeKindOfDirectory get() = isDirectory || isPacked.value
-
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    val isPacked = lazy {
-        !isDirectory && isSerializedFolder()
-    }
-
     open fun listChildren(callback: Callback<List<FileReference>>) {
         InnerFolderCache.readAsFolder(this, true) { folder, _ ->
             if (folder is InnerFolder) folder.listChildren(callback)

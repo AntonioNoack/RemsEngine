@@ -3,6 +3,7 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.YUVHelper
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -19,17 +20,18 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
             "YUV", listOf(
                 Variable(GLSLType.V2F, "finalUV"),
                 Variable(GLSLType.V2F, "uvCorrection"),
+                Variable(GLSLType.V2F, "textureDeltaUV"),
                 Variable(GLSLType.S2D, "texY"),
                 Variable(GLSLType.S2D, "texUV"),
                 Variable(GLSLType.V4F, "color", VariableMode.OUT)
             ), "" +
                     "   vec2 correctedUV = finalUV * uvCorrection;\n" +
-                    "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
-                    "   vec3 yuv = vec3(" +
-                    "       getTexture(texY, finalUV).r, " +
+                    "   vec2 correctedDUV = textureDeltaUV * uvCorrection;\n" +
+                    "   vec3 yuv = vec3(\n" +
+                    "       getTexture(texY, finalUV).r,\n" +
                     "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" +
                     "   color = vec4(yuv2rgb(yuv), 1.0);\n"
-        )
+        ).add(YUVHelper.yuv2rgb)
     }
 
     private val y = Texture2D("i444-y-frame", width, height, 1)

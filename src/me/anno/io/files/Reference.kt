@@ -134,13 +134,16 @@ object Reference {
                 val part = parts[i]
                 when (part) {
                     ".." -> {
-                        parts.removeAt(i)
-                        parts.removeAt(i - 1)
-                        i--
+                        if (i > 0 && parts[i - 1] != "..") {
+                            parts.removeAt(i)
+                            parts.removeAt(i - 1)
+                            i--
+                        } else {
+                            LOGGER.warn("../ at the start cannot be sanitized ('$str')")
+                            i++
+                        }
                     }
-                    ".", "" -> {
-                        parts.removeAt(i)
-                    }
+                    ".", "" -> parts.removeAt(i)
                     else -> i++
                 }
             }

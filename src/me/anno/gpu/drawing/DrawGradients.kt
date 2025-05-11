@@ -32,7 +32,7 @@ object DrawGradients {
                 Variable(GLSLType.V1B, "inXDirection"),
             ), "" +
                     yuv2rgb +
-                    "void main(){\n" +
+                    "void main() {\n" +
                     "   gl_Position = matMul(transform, vec4((posSize.xy + positions * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "   linColor = pow((inXDirection ? positions.x : positions.y) < 0.5 ? lColor : rColor, vec4(2.0));\n" + // srgb -> linear
                     "   finalUV = mix(uvs.xy, uvs.zw, positions);\n" +
@@ -41,6 +41,10 @@ object DrawGradients {
             ), key?.variables?.filter { !it.isOutput } ?: emptyList(), "" +
                     yuv2rgb +
                     "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
+                    "   return texture(tex, uv);\n" + // tiling isn't needed
+                    "}\n" +
+                    // used by I420Frame and in Rem's Studio, duv ~ 1/textureSize
+                    "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv) {\n" +
                     "   return texture(tex, uv);\n" + // tiling isn't needed
                     "}\n" +
                     "void main(){\n" +

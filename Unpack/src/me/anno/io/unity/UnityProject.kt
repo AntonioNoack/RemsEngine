@@ -52,12 +52,13 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         readUnityObjects(node, guid, this, file)
     }
 
-    private fun getGuid(metaFile: FileReference): String {
-        return getMeta(metaFile)["Guid"]!!.value!!
+    private fun getGuid(metaFile: FileReference): String? {
+        return getMeta(metaFile)["Guid"]?.value
     }
 
     fun getGuidFolder(metaFile: FileReference): FileReference {
-        return getGuidFolder(getGuid(metaFile))
+        val guid = getGuid(metaFile) ?: return InvalidRef
+        return getGuidFolder(guid)
     }
 
     fun getGuidFolder(guid: String): FileReference {

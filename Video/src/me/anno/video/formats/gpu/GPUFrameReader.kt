@@ -21,7 +21,7 @@ class GPUFrameReader(
             frame = createGPUFrame(w, h, frameIndex, codec, file)
             frame.load(input)
             return frame
-        } catch (e: EOFException) {
+        } catch (_: EOFException) {
             // e.printStackTrace()
         } catch (e: IOException) {
             e.printStackTrace()

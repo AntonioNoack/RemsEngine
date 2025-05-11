@@ -6,7 +6,7 @@ import me.anno.utils.pooling.Pools
 import java.io.EOFException
 import java.io.InputStream
 
-class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
+class RGBAFrame(width: Int, height: Int) : RGBFrame(width, height, 4) {
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

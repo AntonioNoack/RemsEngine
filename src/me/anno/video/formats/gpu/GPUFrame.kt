@@ -7,7 +7,6 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.tiling
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -76,12 +75,6 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<ITexture2D>) {
         for (index in tex.indices.reversed()) {
             tex[index].bind(offset + index, filtering, clamping)
-        }
-    }
-
-    fun bind2(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<IFramebuffer>) {
-        for (index in tex.indices.reversed()) {
-            tex[index].bindTexture0(offset + index, filtering, clamping)
         }
     }
 
@@ -183,19 +176,24 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
             ), "color = vec4(getTexture(tex, finalUV).xxx,1.0);\n"
         )
 
-        private val shaderMap2d = LazyMap<ShaderStage, Shader> { key ->
+        private val shaderMap2d = LazyMap<ShaderStage, Shader> { stage ->
             Shader(
-                "2d-${this::class.simpleName}",
+                "2d-GPUFrame",
                 ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader,
-                ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
+                ShaderLib.uvList, stage.variables.filter { !it.isOutput } + listOf(
                     Variable(GLSLType.V4F, "color", VariableMode.OUT),
                 ), "" +
                         "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
                         "   return texture(tex,uv);\n" +
                         "}\n" +
-                        "void main(){\n" +
+                        // duv ~ 1/textureSize, used in Rem's Studio
+                        "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv) {\n" +
+                        "   return texture(tex,uv);\n" +
+                        "}\n" +
+                        stage.functions.joinToString("\n") { it.body } +
+                        "void main() {\n" +
                         "   vec2 finalUV = uv;\n" +
-                        key.body +
+                        stage.body +
                         "}"
             )
         }
@@ -213,7 +211,11 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                         "   uv = applyTiling(uv, tiling);\n" +
                         "   return texture(tex, uv);\n" +
                         "}\n" +
-                        "void main(){\n" +
+                        // used by Rem's Studio
+                        "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv) {\n" +
+                        "   return getTexture(tex,uv);\n" +
+                        "}\n" +
+                        "void main() {\n" +
                         "   vec2 finalUV = uv;\n" +
                         "   vec4 color;\n" +
                         key.body +
