@@ -19,9 +19,9 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabByFileCache
@@ -242,7 +242,7 @@ object AssetThumbnails {
                 ) { materialIndex, _ ->
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
-                        val mesh = SimpleMesh.sphereMesh
+                        val mesh = UVSphereModel.sphereMesh
                         mesh.material = materials[materialIndex]
                         mesh.drawAssimp(
                             matCameraMatrix,
@@ -328,7 +328,7 @@ object AssetThumbnails {
                 true, callback, size, size
             ) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {
-                    val mesh = SimpleMesh.sphereMesh
+                    val mesh = UVSphereModel.sphereMesh
                     mesh.material = srcFile
                     mesh.drawAssimp(
                         matCameraMatrix,

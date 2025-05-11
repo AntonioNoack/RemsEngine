@@ -11,9 +11,9 @@ import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Materials.getMaterial
+import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.Systems
@@ -41,9 +41,9 @@ import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.PIf
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
-import me.anno.utils.algorithms.Recursion
 import me.anno.utils.structures.lists.SmallestKList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -404,6 +404,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
-        val sampleMesh = SimpleMesh.sphereMesh
+        val sampleMesh = UVSphereModel.sphereMesh
     }
 }

@@ -14,6 +14,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3
 import kotlin.math.log2
 
+@Docs("Changes the mesh out for less-detailed ones, when the player is far enough away")
 class LODMeshComponent() : MeshComponentBase() {
 
     @Suppress("unused")

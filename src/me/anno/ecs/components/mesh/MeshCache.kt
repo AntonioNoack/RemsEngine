@@ -8,6 +8,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.saveable.Saveable
 import org.apache.logging.log4j.LogManager
 
+/**
+ * Caches meshes. If given an Entity, MeshComponentBase or MeshSpawner, will join the meshes inside into a new mesh.
+ * */
 object MeshCache : PrefabByFileCache<IMesh>(IMesh::class, "Mesh") {
 
     private val LOGGER = LogManager.getLogger(MeshCache::class)
@@ -22,6 +25,7 @@ object MeshCache : PrefabByFileCache<IMesh>(IMesh::class, "Mesh") {
             is MeshComponentBase -> instance.getMesh()
             is MeshSpawner -> joinMeshes(listOf(instance))
             is Entity -> joinMeshes(findMeshes(instance))
+            // cast Material?
             null -> null
             else -> {
                 LOGGER.warn("Requesting mesh from ${instance.className}, cannot extract it")

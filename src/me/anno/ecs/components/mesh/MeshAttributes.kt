@@ -3,6 +3,9 @@ package me.anno.ecs.components.mesh
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 
+/**
+ * Typically used attributes by Mesh-based algorithms.
+ * */
 object MeshAttributes {
 
     val coordsType = Attribute("positions", 3)

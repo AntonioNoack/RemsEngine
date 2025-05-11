@@ -16,6 +16,11 @@ object MeshIterators {
 
     // for each point
 
+    /**
+     * Runs callback function for every point in the mesh.
+     *
+     * @param onlyFaces use indices if available; otherwise will use positions
+     * */
     fun Mesh.forEachPointIndex(onlyFaces: Boolean, callback: I1Z) {
         val indices = indices
         if (onlyFaces && indices != null) {
@@ -28,6 +33,11 @@ object MeshIterators {
         }
     }
 
+    /**
+     * Runs callback function for every point in the mesh.
+     *
+     * @param onlyFaces use indices if available; otherwise will use positions
+     * */
     fun Mesh.forEachPoint(onlyFaces: Boolean, callback: F3Z) {
         val positions = positions ?: return
         forEachPointIndex(onlyFaces) { i ->
@@ -36,16 +46,26 @@ object MeshIterators {
         }
     }
 
+    /**
+     * Runs callback function for every point in the mesh.
+     * Uses HelperMesh.indices.
+     * */
     fun HelperMesh.forEachPointIndex(callback: I1Z) {
         forEachPointIndex(indices, callback)
     }
 
+    /**
+     * Runs callback function for every point in the mesh.
+     * */
     private fun forEachPointIndex(indices: IntArray, callback: I1Z) {
         for (i in indices.indices) {
             if (callback.call(indices[i])) break
         }
     }
 
+    /**
+     * Runs callback function for every point in the mesh.
+     * */
     fun Mesh.forEachPoint(helperMesh: HelperMesh, callback: F3Z) {
         val positions = positions ?: return
         helperMesh.forEachPointIndex { i ->
@@ -56,6 +76,13 @@ object MeshIterators {
 
     // for each triangle
 
+    /**
+     * Runs callback function for every triangle in the mesh.
+     * Parameters for the callback function are A-index, B-index, and C-index for the triangle ABC.
+     *
+     * Doesn't do anything for point or line meshes.
+     * Quits early, if the callback returns true.
+     * */
     fun Mesh.forEachTriangleIndex(callback: I3Z) {
         forEachTriangleIndexV2 { x, y, z, _ ->
             callback.call(x, y, z)
@@ -63,7 +90,12 @@ object MeshIterators {
     }
 
     /**
-     * ai,bi,ci, faceIndex
+     * Runs callback function for every triangle in the mesh.
+     * Parameters for the callback function are A-index, B-index, C-index for the triangle ABC,
+     * and faceIndex for the forth parameter.
+     *
+     * Doesn't do anything for point or line meshes.
+     * Quits early, if the callback returns true.
      * */
     fun Mesh.forEachTriangleIndexV2(callback: I4Z) {
         val positions = positions ?: return
@@ -126,6 +158,13 @@ object MeshIterators {
         }
     }
 
+    /**
+     * Runs callback function for every triangle in the mesh.
+     * Doesn't do anything for point or line meshes.
+     * Quits early, if the callback returns true.
+     *
+     * Vectors are temporarily allocated once, so if you want to store them somewhere, you must copy them!
+     * */
     fun Mesh.forEachTriangle(callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Boolean) {
         val a = JomlPools.vec3f.create()
         val b = JomlPools.vec3f.create()
@@ -134,6 +173,11 @@ object MeshIterators {
         JomlPools.vec3f.sub(3)
     }
 
+    /**
+     * Runs callback function for every triangle in the mesh.
+     * Doesn't do anything for point or line meshes.
+     * Quits early, if the callback returns true.
+     * */
     fun Mesh.forEachTriangle(
         a: Vector3f, b: Vector3f, c: Vector3f,
         callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Boolean
@@ -147,6 +191,11 @@ object MeshIterators {
         }
     }
 
+    /**
+     * Runs callback function for every triangle in the mesh.
+     * Doesn't do anything for point or line meshes.
+     * Quits early, if the callback returns true.
+     * */
     fun Mesh.forEachTriangle(
         a: Vector3d, b: Vector3d, c: Vector3d,
         callback: (a: Vector3d, b: Vector3d, c: Vector3d) -> Boolean
@@ -162,6 +211,10 @@ object MeshIterators {
 
     // count lines
 
+    /**
+     * Counts the number of lines in a mesh. If given triangles, it still returns the number of lines on them.
+     * Takes indices into account if present, but doesn't handle any duplicates.
+     * */
     fun Mesh.countLines(): Int {
         val positions = positions
         val indices = indices
@@ -190,6 +243,10 @@ object MeshIterators {
 
     // for each line
 
+    /**
+     * Calls callback on every line with x = first line index, y = second line index.
+     * Quits execution early, if the callback returns true
+     * */
     fun Mesh.forEachLineIndex(callback: I2Z) {
         val positions = positions ?: return
         val indices = indices
@@ -230,6 +287,10 @@ object MeshIterators {
         }
     }
 
+    /**
+     * Calls callback on every line.
+     * Quits execution early, if the callback returns true
+     * */
     fun Mesh.forEachLine(callback: (Vector3f, Vector3f) -> Boolean) {
         val positions = positions ?: return
         val a = JomlPools.vec3f.create()
@@ -242,6 +303,10 @@ object MeshIterators {
         JomlPools.vec3f.sub(2)
     }
 
+    /**
+     * Calls callback on every line with x = first line index, y = second line index for that helperMesh.
+     * Quits execution early, if the callback returns true
+     * */
     fun Mesh.forEachLineIndex(helperMesh: HelperMesh, callback: I2Z) {
         forEachLineIndex(helperMesh.indices, callback)
     }

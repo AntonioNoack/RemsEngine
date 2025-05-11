@@ -163,11 +163,12 @@ object MeshUtils {
         val indices = indices
         val positions = positions
         val drawMode = drawMode
-        val baseLength = if (indices != null) {
-            numPrimitivesByType(indices.size * 3, drawMode)
-        } else if (positions != null) {
-            numPrimitivesByType(positions.size, drawMode)
-        } else 0
+        val numPositionValues = when {
+            indices != null -> indices.size * 3
+            positions != null -> positions.size
+            else -> 0
+        }
+        val baseLength = numPrimitivesByType(numPositionValues, drawMode)
         val size = proceduralLength
         return if (size <= 0) baseLength.toLong()
         else if (baseLength > 0) baseLength.toLong() * size

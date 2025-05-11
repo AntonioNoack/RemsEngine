@@ -36,7 +36,7 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
                         }
                     }
                 } else LOGGER.debug("${file!!.absolutePath.shorten(200)} cannot be read as image(s) by FFMPEG")
-            } catch (e: OutOfMemoryError) {
+            } catch (_: OutOfMemoryError) {
                 LOGGER.warn("Engine has run out of memory!!")
             } catch (_: EOFException) {
             } catch (_: IgnoredException) {

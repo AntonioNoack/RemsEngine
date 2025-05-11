@@ -1,9 +1,11 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.annotations.Docs
 import me.anno.gpu.buffer.Attribute
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 
+@Docs("Represents a per-vertex attribute in Mesh. Data should be a native array for easy serialization.")
 class MeshAttribute(var attribute: Attribute, var data: Any?) : Saveable() {
 
     constructor() : this(Attribute("", 0), null)

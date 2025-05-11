@@ -9,6 +9,8 @@ import kotlin.math.sin
 
 object UVSphereModel {
 
+    val sphereMesh = createUVSphere(30, 30)
+
     /**
      * creates a UV-sphere with <us> vertical and <vs> horizontal sections
      * */
