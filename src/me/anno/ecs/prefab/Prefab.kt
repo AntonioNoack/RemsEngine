@@ -457,10 +457,8 @@ class Prefab : Saveable {
                 try {
                     val error = add.apply(this, instance, depth - 1)
                     if (error != null) LOGGER.warn("Error applying CAdd", error)
-                } catch (e: InvalidClassException) {
-                    LOGGER.warn("Invalid class ${add.clazzName}", e)
                 } catch (e: Exception) {
-                    LOGGER.warn("Change $index, $add failed")
+                    LOGGER.warn("Change $index, $add failed", e)
                 }
             }
         }
@@ -468,7 +466,7 @@ class Prefab : Saveable {
             try {
                 CSet.apply(instance, k1, k2, v)
             } catch (e: Exception) {
-                LOGGER.warn("Change '$k1' '$k2' '$v' failed")
+                LOGGER.warn("Change '$k1' '$k2' '$v' failed", e)
             }
         }
         // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")

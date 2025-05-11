@@ -25,12 +25,8 @@ object TextThumbnails {
     @JvmStatic
     @InternalAPI
     fun register() {
-        Thumbs.registerSignatures("ttf", TextThumbnails::generateFontPreview)
-        Thumbs.registerSignatures("woff1", TextThumbnails::generateFontPreview)
-        Thumbs.registerSignatures("woff2", TextThumbnails::generateFontPreview)
-        Thumbs.registerFileExtensions("txt", TextThumbnails::generateTextImage)
-        Thumbs.registerFileExtensions("html", TextThumbnails::generateTextImage)
-        Thumbs.registerFileExtensions("md", TextThumbnails::generateTextImage)
+        Thumbs.registerSignatures("ttf,woff1,woff2", TextThumbnails::generateFontPreview)
+        Thumbs.registerFileExtensions("txt,html,md", TextThumbnails::generateTextImage)
     }
 
     @JvmStatic

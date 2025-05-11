@@ -1,7 +1,5 @@
 package me.anno
 
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager
 
 object Build {
@@ -25,9 +23,6 @@ object Build {
     @JvmStatic
     var isLocked = false
         private set
-
-    @JvmStatic // who is using this?
-    var assetsFolder: FileReference = InvalidRef
 
     /**
      * locks the properties "isDebug", "isShipped" and "isLocked", so they no longer can be changed (e.g., by mods);
