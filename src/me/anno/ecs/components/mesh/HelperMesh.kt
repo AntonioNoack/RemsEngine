@@ -21,7 +21,7 @@ class HelperMesh(val indices: IntArray) : ICacheData {
             val first = materialIds?.firstOrNull() ?: 0
             val hasMultipleMaterials = materialIds != null && materialIds.any { it != first }
             if (hasMultipleMaterials) {
-                createHelperMeshes(materialIds!!)
+                createHelperMeshes(materialIds)
             } else {
                 destroyHelperMeshes()
                 numMaterials = 1

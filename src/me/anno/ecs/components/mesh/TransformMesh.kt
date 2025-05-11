@@ -13,6 +13,8 @@ import org.joml.Vector3f
 object TransformMesh {
 
     fun Mesh.transform(matrix: Matrix4x3): Mesh {
+        if (matrix.isIdentity()) return this
+        unlinkPositionsAndNormals()
         positions = transformPositionsOrNull(matrix, positions, 3)
         normals = transformDirectionsOrNull(matrix, normals, 3)
         tangents = transformDirectionsOrNull(matrix, tangents, 4)
@@ -21,6 +23,8 @@ object TransformMesh {
     }
 
     fun Mesh.transform(matrix: Matrix4x3f): Mesh {
+        if (matrix.isIdentity()) return this
+        unlinkPositionsAndNormals()
         positions = transformPositionsOrNull(matrix, positions, 3)
         normals = transformDirectionsOrNull(matrix, normals, 3)
         tangents = transformDirectionsOrNull(matrix, tangents, 4)
@@ -29,18 +33,23 @@ object TransformMesh {
     }
 
     fun Mesh.translate(delta: Vector3d): Mesh {
+        if (delta.x == 0.0 && delta.y == 0.0 && delta.z == 0.0) return this
+        unlinkPositionsAndNormals()
         positions = translatePositionsOrNull(delta, positions, 3)
         invalidateGeometry()
         return this
     }
 
     fun Mesh.scale(scale: Vector3f): Mesh {
+        if (scale.x == 1f && scale.y == 1f && scale.z == 1f) return this
+        unlinkPositionsAndNormals()
         positions = scalePositionsOrNull(scale, positions, 3)
         invalidateGeometry()
         return this
     }
 
     fun Mesh.rotateX90DegreesImpl(): Mesh {
+        unlinkPositionsAndNormals()
         rotateX90Degrees(positions, 3)
         rotateX90Degrees(normals, 3)
         rotateX90Degrees(tangents, 4)
@@ -56,6 +65,10 @@ object TransformMesh {
             src[i + 1] = -z
             src[i + 2] = y
         }
+    }
+
+    fun Mesh.unlinkPositionsAndNormals() {
+        if (positions === normals) normals = normals?.copyOf()
     }
 
     @Suppress("SameParameterValue")

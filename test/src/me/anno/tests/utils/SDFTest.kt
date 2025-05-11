@@ -62,7 +62,7 @@ fun testCPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         val distance = finalShape.raycast(camPosition, dir, 0.1f, 100f, 200, seeds)
         dir.mul(distance).add(camPosition)
         if (distance.isFinite()) {
-            val normal = finalShape.calcNormal(dir, dir).mul(0.5f).add(0.5f, 0.5f, 0.5f)
+            val normal = finalShape.computeNormal(dir, dir).mul(0.5f).add(0.5f, 0.5f, 0.5f)
             if (normal.x in -1f..1f) {
                 rgba(normal.x, normal.y, normal.z, 1f)
                 /*val color = ((normal.x * 100f).toInt() + 155) * 0x10101

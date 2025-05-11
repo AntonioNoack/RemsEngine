@@ -7,8 +7,8 @@ fun main() {
     // todo why is it getting stuck soo early??
     val collider = CapsuleCollider()
     val mesh = createCapsule(
-        20, 20, collider.axis,
-        collider.radius.toFloat(), collider.halfHeight.toFloat()
+        20, 10,
+        collider.radius, collider.halfHeight
     )
     testCollider(collider, mesh.ref)
 }

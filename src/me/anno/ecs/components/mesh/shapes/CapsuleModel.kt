@@ -17,13 +17,12 @@ import kotlin.math.sin
 
 object CapsuleModel {
     /**
-     * creates a capsule mesh with <us> vertical and <vs> horizontal sections
+     * creates a capsule mesh with <us> horizontal and <vs> vertical sections in each half-sphere
      * */
-    fun createCapsule(us: Int, vs: Int, axis: Axis, r: Float, h: Float, mesh: Mesh = Mesh()): Mesh {
-        assertEquals(0, vs.and(1))
-        UVSphereModel.createUVSphere(us, vs, mesh)
+    fun createCapsule(us: Int, vs: Int, r: Float, h: Float, mesh: Mesh = Mesh()): Mesh {
+        UVSphereModel.createUVSphere(us, vs * 2, mesh)
         val numSrcTriangles = mesh.numPrimitives.toInt()
-        val numDstTriangles = numSrcTriangles + 6 * us
+        val numDstTriangles = numSrcTriangles + 2 * us
         val positions = FloatArrayList(numDstTriangles * 9)
         val normals = FloatArrayList(numDstTriangles * 9)
         fun addPoint(a: Vector3f, dy: Float) {
@@ -53,17 +52,21 @@ object CapsuleModel {
             addPoint(x, +h)
             addPoint(x + 1, +h)
         }
-        assertEquals(numDstTriangles * 3, positions.size)
-        assertEquals(numDstTriangles * 3, normals.size)
+        assertEquals(numDstTriangles * 9, positions.size)
+        assertEquals(numDstTriangles * 9, normals.size)
         mesh.positions = positions.toFloatArray()
         mesh.normals = normals.toFloatArray()
         mesh.indices = null
+        mesh.invalidateGeometry()
+        return mesh
+    }
+
+    fun transformYToAxis(mesh: Mesh, axis: Axis): Mesh {
         when (axis) {
             Axis.X -> mesh.transform(Matrix4x3().rotateZ(PIf * 0.5f))
             Axis.Y -> {}
             Axis.Z -> mesh.transform(Matrix4x3().rotateX(PIf * 0.5f))
         }
-        mesh.invalidateGeometry()
         return mesh
     }
 }

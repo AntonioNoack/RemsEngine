@@ -384,7 +384,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             val localDistance0 = localDistance + if (startOffset.isFinite()) startOffset else 0.0
             if (sq(localDistance0) < maxLocalDistanceSq0) {
                 val localHit = vec3f[3].set(localDir).mul(localDistance).add(localSrt)
-                val localNormal = calcNormal(localHit, vec3f[4], seeds, normalEpsilon)
+                val localNormal = computeNormal(localHit, vec3f[4], seeds, normalEpsilon)
                 val bestHit = findClosestComponent(vec4f[0].set(localHit, 0f), seeds)
                 result.setFromLocal(globalTransform, localHit, localNormal, query)
                 result.component = bestHit
@@ -676,7 +676,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         return Float.POSITIVE_INFINITY
     }
 
-    open fun calcNormal(
+    open fun computeNormal(
         hit: Vector3f,
         dst: Vector3f = Vector3f(),
         seeds: IntArrayList = IntArrayList(8),

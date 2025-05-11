@@ -36,7 +36,7 @@ fun main() {
         val distance = finalShape.raycast(camPosition, dir, 0.1f, 100f, 200, seeds)
         dir.mul(distance).add(camPosition)
         val color = if (distance.isFinite()) {
-            val normal = finalShape.calcNormal(dir, dir)
+            val normal = finalShape.computeNormal(dir, dir)
             if (normal.x in -1f..1f) {
                 val color = ((normal.x * 100f).toInt() + 155) * 0x10101
                 color

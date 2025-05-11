@@ -16,7 +16,8 @@ import kotlin.math.sin
 object CylinderModel {
 
     fun createCylinder(
-        us: Int, vs: Int, top: Boolean, bottom: Boolean,
+        us: Int, vs: Int,
+        top: Boolean, bottom: Boolean,
         // option to use different materials for top, middle and bottom
         middleTopBottom: List<FileReference>?, uScale: Float, mesh: Mesh,
     ): Mesh = createCylinder(us, vs, top, bottom, middleTopBottom, uScale, mesh, -1f, +1f, 1f)
