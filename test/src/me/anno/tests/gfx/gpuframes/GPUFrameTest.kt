@@ -16,6 +16,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertGreaterThanEquals
 import me.anno.utils.types.Booleans.toInt
 import me.anno.video.formats.cpu.YUVFrames
+import me.anno.video.formats.gpu.ARGBFrame
 import me.anno.video.formats.gpu.BGRAFrame
 import me.anno.video.formats.gpu.BGRFrame
 import me.anno.video.formats.gpu.GPUFrame
@@ -94,6 +95,21 @@ class GPUFrameTest {
             bytes[i * 4 + 3] = rgb.a().toByte()
         }
         val frame = RGBAFrame(image.width, image.height)
+        validateToTexture(image, frame, bytes, -1)
+    }
+
+    @Test
+    fun testARGBFrame() {
+        val (image, bytes) = init(4)
+        image.forEachPixel { x, y ->
+            val i = x + y * image.width
+            val rgb = image.getRGB(x, y)
+            bytes[i * 4] = rgb.a().toByte()
+            bytes[i * 4 + 1] = rgb.r().toByte()
+            bytes[i * 4 + 2] = rgb.g().toByte()
+            bytes[i * 4 + 3] = rgb.b().toByte()
+        }
+        val frame = ARGBFrame(image.width, image.height)
         validateToTexture(image, frame, bytes, -1)
     }
 
