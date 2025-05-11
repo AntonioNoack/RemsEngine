@@ -43,11 +43,18 @@ class GPUFrameTest {
         return ByteArray(image.width * image.height * bytesPerPixel)
     }
 
-    private fun validateToTexture(image: Image, frame: GPUFrame, bytes: ByteArray, mask: Int) {
+    private fun frameToImage(frame: GPUFrame, bytes: ByteArray): Image {
         frame.load(ByteArrayInputStream(bytes))
         Sleep.waitUntil(true) { frame.isCreated }
         val asTexture = frame.toTexture()
         val clonedImage = asTexture.createImage(flipY = false, withAlpha = true)
+        assertEquals(frame.width, clonedImage.width)
+        assertEquals(frame.height, clonedImage.height)
+        return clonedImage
+    }
+
+    private fun validateToTexture(image: Image, frame: GPUFrame, bytes: ByteArray, mask: Int) {
+        val clonedImage = frameToImage(frame, bytes)
         image.forEachPixel { x, y ->
             assertEquals(image.getRGB(x, y) and mask, clonedImage.getRGB(x, y) and mask)
         }
@@ -56,10 +63,7 @@ class GPUFrameTest {
 
     @Suppress("SameParameterValue")
     private fun validateToTextureWithMargin(image: Image, frame: GPUFrame, bytes: ByteArray, margin: Int) {
-        frame.load(ByteArrayInputStream(bytes))
-        Sleep.waitUntil(true) { frame.isCreated }
-        val asTexture = frame.toTexture()
-        val clonedImage = asTexture.createImage(flipY = false, withAlpha = true)
+        val clonedImage = frameToImage(frame, bytes)
         image.forEachPixel { x, y ->
             val expected = image.getRGB(x, y)
             val actual = clonedImage.getRGB(x, y)
@@ -194,10 +198,7 @@ class GPUFrameTest {
         image: Image, frame: GPUFrame, bytes: ByteArray,
         margin: Int, ratio: Float
     ) {
-        frame.load(ByteArrayInputStream(bytes))
-        Sleep.waitUntil(true) { frame.isCreated }
-        val asTexture = frame.toTexture()
-        val clonedImage = asTexture.createImage(flipY = false, withAlpha = true)
+        val clonedImage = frameToImage(frame, bytes)
         val bounds = AABBf()
         val tmp = Vector3f()
         val marginF = margin / 255f
