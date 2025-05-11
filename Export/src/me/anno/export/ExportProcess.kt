@@ -28,7 +28,7 @@ object ExportProcess {
     private val LOGGER = LogManager.getLogger(ExportProcess::class)
 
     fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar, callback: UnitCallback) {
-        settings.projectRoots.mapCallback({_, root, cb ->
+        settings.projectRoots.mapCallback({ _, root, cb ->
             IdeaProject.loadProject(root, cb)
         }, callback.mapAsync { projects, callback1 ->
             execute(project, settings, progress, callback1, projects)
@@ -36,8 +36,10 @@ object ExportProcess {
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar, callback: UnitCallback,
-                projects: List<IdeaProject>) {
+    fun execute(
+        project: GameEngineProject, settings: ExportSettings, progress: ProgressBar, callback: UnitCallback,
+        projects: List<IdeaProject>
+    ) {
         val sources = HashMap<String, ByteArray>(65536)
 
         // todo inclusion order???
@@ -55,18 +57,18 @@ object ExportProcess {
         // todo - option for Android build
 
         val assetMap = packAssets(settings, sources, progress)
-        overrideIconMaybe(settings, sources, assetMap)
         val firstSceneRef = findFirstScene(assetMap, settings)
         sources["export.json"] = createConfigJson(settings, firstSceneRef)
         sources["META-INF/MANIFEST.MF"] = createManifest()
         progress.unit = "Files"
         progress.progress = 0.0
         progress.total = sources.size + 2.0 // 2.0 just for safety
-        if (progress.isCancelled) return
-        // build a zip from it
-        settings.dstFile.getParent().tryMkdirs()
-        writeJar(settings, sources, settings.dstFile, progress)
-        callback.ok(Unit)
+        overrideIconMaybe(settings, sources, assetMap) {
+            // build a zip from it
+            settings.dstFile.getParent().tryMkdirs()
+            writeJar(settings, sources, settings.dstFile, progress)
+            callback.ok(Unit)
+        }
     }
 
     private fun excludeFiles(settings: ExportSettings, sources: HashMap<String, ByteArray>) {
@@ -100,15 +102,23 @@ object ExportProcess {
     /**
      * override icon if needed
      * */
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     private fun overrideIconMaybe(
         settings: ExportSettings, sources: HashMap<String, ByteArray>,
-        assetMap: Map<FileReference, String>
+        assetMap: Map<FileReference, String>, callback: () -> Unit
     ) {
         if (settings.iconOverride.exists) {
-            sources["icon.png"] = sources[assetMap[settings.iconOverride]]
-                ?: settings.iconOverride.readBytesSync()
-        }
+            val source0 = sources[assetMap[settings.iconOverride]]
+            if (source0 != null) {
+                sources["icon.png"] = source0
+                callback()
+            } else {
+                settings.iconOverride.readBytes { bytes, err ->
+                    if (bytes != null) sources["icon.png"] = bytes
+                    else err?.printStackTrace()
+                    callback()
+                }
+            }
+        } else callback()
     }
 
     private fun findFirstScene(assetMap: Map<FileReference, String>, settings: ExportSettings): FileReference {

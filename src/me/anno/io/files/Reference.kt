@@ -112,16 +112,23 @@ object Reference {
         return fileCache.getEntry(path, fileTimeout, true, generator)
     }
 
-    private fun sanitizePath(str: String): String {
+    fun sanitizePath(str: String): String {
         val str2 = if ('\\' in str) str.replace('\\', '/') else str
-        val str3 = if (
-            !isWindowsDriveLetterWithoutSlash(str2) &&
-            str2.endsWith('/') && !str2.endsWith("://")
-        ) str2.substring(0, str2.lastIndex) else str2
-        val str4 = if ("/../" in str3 || str3.endsWith("/..") ||
-            "/./" in str3 || str3.endsWith("/.")
+        var prefixIdx = str.indexOf("://")
+        prefixIdx = when {
+            prefixIdx >= 0 -> prefixIdx + 3 // protocol prefix
+            str.length >= 3 && str[1] == ':' && str[2] == '/' -> 3 // drive letter prefix
+            else -> 0
+        }
+        val str4 = if (
+            "/../" in str2 || str2.endsWith("/..") ||
+            "/./" in str2 || str2.endsWith("/.") || str2.startsWith("./") ||
+            str2.startsWith("/") || str2.endsWith("/") || str2.contains("//")
         ) {
-            val parts = str3.split('/').toMutableList()
+            val parts = str2
+                .substring(prefixIdx)
+                .split('/')
+                .toMutableList()
             var i = 0
             while (i < parts.size) {
                 val part = parts[i]
@@ -129,13 +136,17 @@ object Reference {
                     ".." -> {
                         parts.removeAt(i)
                         parts.removeAt(i - 1)
+                        i--
                     }
-                    "." -> parts.removeAt(i)
+                    ".", "" -> {
+                        parts.removeAt(i)
+                    }
+                    else -> i++
                 }
-                i++
             }
-            parts.joinToString("/")
-        } else str3
+            val prefix = str2.substring(0, prefixIdx)
+            parts.joinToString("/", prefix)
+        } else str2
         return str4
     }
 

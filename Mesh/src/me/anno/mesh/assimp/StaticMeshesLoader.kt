@@ -10,6 +10,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
+import me.anno.io.files.Reference.sanitizePath
 import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerFile
@@ -598,58 +599,67 @@ object StaticMeshesLoader {
             aiMaterial, type, 0, path, null as IntBuffer?,
             null, null, null, null, null
         )
+
         var path0 = path.dataString() ?: return InvalidRef
         if (path0.isBlank2()) return InvalidRef
 
-        path0 = path0.replace('\\', '/')
+        path0 = sanitizePath(path0)
         if (path0.startsWith('*')) {
-            val index = path0.substring(1).toIntOrNull() ?: return InvalidRef
-            if (index !in 0 until aiScene.mNumTextures()) return InvalidRef
-            return loadedTextures.getOrNull(index) ?: InvalidRef
+            return resolveStarFile(path0, aiScene, loadedTextures)
         }
 
-        if (path0.startsWith("./")) path0 = path0.substring(2)
-        // replace double slashes
-        val path1 = path0.replace("//", "/")
         // check whether it may be a global path, not a local one
-        val maybePath = if (':' in path1) getReference(path1) else parentFolder.getChild(path1)
+        // todo does this work properly on Linux???
+        val maybePath =
+            if (':' in path0) getReference(path0)
+            else parentFolder.getChild(path0)
+
         // if the path does not exist, check whether the name matches with any internal texture
+        if (maybePath == InvalidRef) return InvalidRef
         if (maybePath.exists) return maybePath
-        else {
-            val candidate = if (maybePath == InvalidRef) null
-            else {
-                loadedTextures.firstOrNull { it.name == maybePath.name }
-                    ?: loadedTextures.firstOrNull { it.name.equals(maybePath.name, true) }
-                    ?: loadedTextures.firstOrNull { it.nameWithoutExtension == maybePath.nameWithoutExtension }
-                    ?: loadedTextures.firstOrNull {
-                        it.nameWithoutExtension.equals(maybePath.nameWithoutExtension, true)
-                    } ?: missingFilesLookup[maybePath.name]
-                    ?: missingFilesLookup[maybePath.nameWithoutExtension + "_A"] // for files from Synty
+
+        return loadedTextures.firstOrNull { it.name == maybePath.name }
+            ?: loadedTextures.firstOrNull { it.name.equals(maybePath.name, true) }
+            ?: loadedTextures.firstOrNull { it.nameWithoutExtension == maybePath.nameWithoutExtension }
+            ?: loadedTextures.firstOrNull {
+                it.nameWithoutExtension.equals(maybePath.nameWithoutExtension, true)
+            } ?: missingFilesLookup[maybePath.name]
+            ?: missingFilesLookup[maybePath.nameWithoutExtension + "_A"] // for files from Synty Store
+            ?: findSyntyStoreCandidate(path0, textureLookup)
+            ?: maybePath
+    }
+
+    /**
+     * more specialized code for Synthy Store assets ^^
+     * */
+    private fun findSyntyStoreCandidate(path0: String, textureLookup: List<FileReference>): FileReference? {
+        val prefix = "_Texture_"
+        val i0 = path0.lastIndexOf(prefix) + prefix.length
+        if (i0 < prefix.length) return null
+        val i1 = path0.lastIndexOf('.')
+        if (i1 <= i0) return null
+
+        val sub = path0.substring(i0, i1)
+        val isNormal = path0.contains("normal", true)
+        val candidate1 = textureLookup
+            .minByOrNull {
+                val sub1 = it.nameWithoutExtension
+                val idx = sub1.indexOf("_Texture_")
+                val sub2 = sub1.substring(idx + "_Texture_".length)
+                val isLikelyNormal = sub1.contains("normal", true)
+                sub.distance(sub2) + if (isNormal == isLikelyNormal) 0
+                else 10 // penalty for being different type probably
             }
-            if (candidate == null && "_Texture_" in path1) {
-                // more specialized code for Synty ^^
-                val i0 = path1.lastIndexOf("_Texture_") + "_Texture_".length
-                val i1 = path1.lastIndexOf('.')
-                if (i1 > i0) {
-                    val sub = path1.substring(i0, i1)
-                    val isNormal = path1.contains("normal", true)
-                    val candidate1 = textureLookup
-                        .minByOrNull {
-                            val sub1 = it.nameWithoutExtension
-                            val idx = sub1.indexOf("_Texture_")
-                            val sub2 = sub1.substring(idx + "_Texture_".length)
-                            val isLikelyNormal = sub1.contains("normal", true)
-                            sub.distance(sub2) + if (isNormal == isLikelyNormal) 0
-                            else 10 // penalty for being different type probably
-                        }
-                    if (candidate1 != null) {
-                        LOGGER.debug("Resolved {} to {}", path0, candidate1)
-                        return candidate1
-                    }
-                }
-            }
-            return candidate ?: maybePath
+        if (candidate1 != null) {
+            LOGGER.debug("Resolved {} to {}", path0, candidate1)
         }
+        return candidate1
+    }
+
+    private fun resolveStarFile(path0: String, aiScene: AIScene, loadedTextures: List<FileReference>): FileReference {
+        val index = path0.substring(1).toIntOrNull() ?: return InvalidRef
+        if (index !in 0 until aiScene.mNumTextures()) return InvalidRef
+        return loadedTextures.getOrNull(index) ?: InvalidRef
     }
 
     private fun createTextureLookup(missingFilesLookup: Map<String, FileReference>): List<FileReference> {
@@ -971,9 +981,9 @@ object StaticMeshesLoader {
             // -> 10 = (constant + linear*x + quadratic*x²)
             // -> constant + linear*x + quadratic*x² - 10 = 0
             maxBrightness = 1f / max(aiLight.mAttenuationConstant(), 1e3f) // ok so?
-            aiLight.mAttenuationLinear()
-            aiLight.mAttenuationConstant()
-            aiLight.mAttenuationQuadratic()
+            // aiLight.mAttenuationLinear()
+            // aiLight.mAttenuationConstant()
+            // aiLight.mAttenuationQuadratic()
             val solution = FloatArray(2)
             val numSolutions = solveQuadratic(
                 solution, aiLight.mAttenuationQuadratic(), aiLight.mAttenuationLinear(),

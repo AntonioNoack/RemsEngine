@@ -4,13 +4,16 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Signature
+import me.anno.io.files.Signature.Companion.json
+import me.anno.io.files.inner.SignatureFile
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.async.Callback
 import java.io.InputStream
 import java.lang.ref.WeakReference
 
 class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json") :
-    InnerTmpFile(name, ext), PrefabReadable {
+    InnerTmpFile(name, ext), PrefabReadable, SignatureFile {
 
     constructor(prefab: Prefab) : this(prefab, prefab["name"] as? String ?: "")
 
@@ -23,6 +26,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
         }
     }
 
+    override var signature: Signature? = json
     val text by lazy { JsonStringWriter.toText(prefab, InvalidRef) }
     val bytes by lazy { text.encodeToByteArray() }
 

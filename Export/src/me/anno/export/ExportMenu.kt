@@ -40,7 +40,6 @@ class ExportMenu(val configFile: FileReference, val presetName: String?) {
     val ui = PanelListY(style)
 
     fun loadPresets(): List<ExportSettings> {
-        if (!configFile.exists || configFile.isDirectory) return emptyList()
         return try {
             JsonStringReader.read(configFile, workspace, true)
                 .filterIsInstance2(ExportSettings::class)

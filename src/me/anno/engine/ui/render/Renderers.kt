@@ -266,6 +266,7 @@ object Renderers {
                         Variable(GLSLType.V1F, "finalOcclusion"),
                         Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                     ), "" +
+                            colorToLinear +
                             // shared pbr data
                             "vec3 V = normalize(-finalPosition);\n" +
                             // light calculations
@@ -304,7 +305,8 @@ object Renderers {
                             specularBRDFv2NoDivInlined2End +
                             "finalColor = diffuseColor * diffuseLight + specularLight * specularColor;\n" +
                             "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                            "finalColor = tonemap(finalColor);\n" +
+                            "finalColor = tonemapLinear(finalColor);\n" +
+                            colorToSRGB +
                             "finalResult = vec4(finalColor, finalAlpha);\n"
                 ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity), finalResultStage
             )

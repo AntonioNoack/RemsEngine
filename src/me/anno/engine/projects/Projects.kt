@@ -3,10 +3,10 @@ package me.anno.engine.projects
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.saveable.Saveable
 import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -31,23 +31,19 @@ object Projects {
         if (DefaultConfig["recent.projects.detectAutomatically", true]) {
             try {
                 for (folder in EngineBase.workspace.listChildren()) {
-                    if (folder !in usedFiles) {
-                        if (folder.isDirectory) {
-                            val configFile = folder.getChild("Project.json")
-                            if (configFile.exists) {
-                                try {
-                                    LOGGER.debug("Reading {}", configFile)
-                                    val config = JsonStringReader.readFirstOrNull(
-                                        configFile, folder, GameEngineProject::class, true
-                                    )
-                                    if (config != null) {
-                                        projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
-                                        usedFiles += folder
-                                    }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
+                    if (folder !in usedFiles && folder.isDirectory) {
+                        val configFile = folder.getChild("Project.json")
+                        if (configFile.exists) try {
+                            LOGGER.debug("Reading {}", configFile)
+                            val config = JsonStringReader.readFirstOrNull(
+                                configFile, folder, GameEngineProject::class, true
+                            )
+                            if (config != null) {
+                                projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
+                                usedFiles += folder
                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -82,8 +78,8 @@ object Projects {
             }
         }
         for (j in i until recentProjectCount) {
-            DefaultConfig.remove("recent.projects[$i].name")
-            DefaultConfig.remove("recent.projects[$i].file")
+            DefaultConfig.remove("recent.projects[$j].name")
+            DefaultConfig.remove("recent.projects[$j].file")
         }
         DefaultConfig.save("main.config")
     }

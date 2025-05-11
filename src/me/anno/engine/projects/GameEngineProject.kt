@@ -61,7 +61,6 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             location: FileReference, configFile: FileReference,
             callback: Callback<GameEngineProject>
         ) {
-            if (!configFile.exists) return callback.err(null)
             configFile.readText(callback.map { stream ->
                 val instance = JsonStringReader
                     .readFirstOrNull(stream, location, GameEngineProject::class)

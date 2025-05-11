@@ -24,10 +24,8 @@ object SignatureCache : CacheSection("Signatures") {
     }
 
     private fun generate(file: FileReference, callback: Callback<Signature?>) {
-        if (file is SignatureFile) return callback.ok(file.signature)
-        if (!file.exists) return callback.ok(null)
         return when (file) {
-            is PrefabReadable -> callback.ok(json)
+            is SignatureFile -> callback.ok(file.signature)
             else -> {
                 // reads the bytes, or 255 if at end of file
                 // how much do we read? 🤔

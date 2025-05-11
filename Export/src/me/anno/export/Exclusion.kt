@@ -120,20 +120,21 @@ object Exclusion {
         }
     }
 
-    fun excludeFiles(sources: HashMap<String, ByteArray>, flag: Boolean, path: String) {
+    private fun excludeFiles(sources: HashMap<String, ByteArray>, flag: Boolean, path: String) {
         if (!flag) excludeFiles(sources, path)
     }
 
-    fun excludeFiles(sources: HashMap<String, ByteArray>, path: String) {
+    private fun excludeFiles(sources: HashMap<String, ByteArray>, path: String) {
         sources.removeIf {
             it.key.startsWith(path)
         }
     }
 
-    fun excludeFiles(sources: HashMap<String, ByteArray>, path: String, except: List<String>) {
+    private fun excludeFiles(sources: HashMap<String, ByteArray>, path: String, except: List<String>) {
         sources.removeIf { (srcFile, _) ->
-            val i = path.length
-            srcFile.startsWith(path) && except.none { srcFile.startsWith(it, i) }
+            srcFile.startsWith(path) && except.none { excluded ->
+                srcFile.startsWith(excluded, path.length)
+            }
         }
     }
 }
