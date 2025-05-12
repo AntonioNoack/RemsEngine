@@ -1,10 +1,8 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.cache.ICacheData
-import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
-import me.anno.mesh.FindLines
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls

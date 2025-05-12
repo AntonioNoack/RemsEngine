@@ -2,11 +2,20 @@ package me.anno.export.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
+import me.anno.ui.UIColors.fireBrick
 import me.anno.ui.UIColors.greenYellow
+import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileContentImporter
+import me.anno.ui.editor.treeView.ITreeViewEntryPanel
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.editor.treeView.TreeViewEntryPanel
+import me.anno.utils.Color.black
 import me.anno.utils.Color.white
+import me.anno.utils.structures.Collections.setContains
+import me.anno.utils.structures.lists.Lists.mod
 
 class FileInclusionPanel(val roots: List<FileReference>, style: Style) :
     TreeView<FileReference>(
@@ -14,30 +23,84 @@ class FileInclusionPanel(val roots: List<FileReference>, style: Style) :
         true, style
     ) {
 
-    enum class FileState {
-        INCLUDED,
-        CLOSED,
-        OPEN;
+    // todo serialize this state somehow: included + excluded files
+    val fileStates = HashMap<FileReference, Boolean>()
 
-        val next by lazy {
-            entries[(ordinal + 1) % entries.size]
-        }
-    }
+    val stateValues = listOf(true, false, null)
+    val stateLabels = listOf(
+        NameDesc("✔"),
+        NameDesc("❌"),
+        NameDesc("➕")
+    )
 
-    val states = HashMap<FileReference, FileState>()
-    val includedFiles
-        get() = states.entries
-            .filter { it.value == FileState.INCLUDED }
-            .map { it.key }
+    val notCollapsed = HashSet<FileReference>()
 
     init {
-        for (root in roots) {
-            states[root] = FileState.OPEN
+        notCollapsed.addAll(roots)
+    }
+
+    fun getIncludedFiles(): Set<FileReference> {
+        val dst = HashSet<FileReference>(fileStates.size)
+        for ((file, isIncluded) in fileStates) {
+            if (isIncluded) addIncludedFiles(file, dst)
+        }
+        return dst
+    }
+
+    private fun addIncludedFiles(file: FileReference, dst: HashSet<FileReference>) {
+        when {
+            isExcluded(file) -> return
+            isFullyIncluded(file) -> dst.add(file)
+            isPartiallyIncluded(file) -> {
+                val children = getChildren(file)
+                for (child in children) {
+                    addIncludedFiles(child, dst)
+                }
+            }
         }
     }
 
-    fun getState(element: FileReference): FileState {
-        return states.getOrDefault(element, FileState.CLOSED)
+    override fun getOrCreateChildPanel(index: Int, element: FileReference): ITreeViewEntryPanel {
+        return if (index < list.children.size) {
+            val panel = list.children[index] as TreeViewEntryPanel<*>
+            updateLabel(panel.children[0] as TextPanel, index)
+            panel
+        } else {
+            val panel = createChildPanel(index)
+            val textPanel = object : TextPanel(getStateLabel(element), style) {
+                override fun calculateSize(w: Int, h: Int) {
+                    super.calculateSize(w, h)
+                    minW = minH
+                }
+            }
+            textPanel.textAlignmentX = AxisAlignment.CENTER
+            textPanel.addLeftClickListener { button ->
+                nextState(elementByIndex[index])
+                updateLabel(button as TextPanel, index)
+            }
+            panel.add(0, textPanel)
+            list += panel
+            panel
+        }
+    }
+
+    private fun updateLabel(button: TextPanel, index: Int) {
+        val label = getStateLabel(elementByIndex[index])
+        button.text = label.name
+        button.tooltip = label.desc
+    }
+
+    private fun getStateLabel(file: FileReference): NameDesc {
+        val oldState = fileStates[file]
+        return stateLabels[stateValues.indexOf(oldState)]
+    }
+
+    private fun nextState(file: FileReference): NameDesc {
+        val oldState = fileStates[file]
+        val newState = stateValues.mod(stateValues.indexOf(oldState) + 1)
+        if (newState == null) fileStates.remove(file)
+        else fileStates[file] = newState
+        return getStateLabel(file)
     }
 
     override fun listRoots(): List<FileReference> = roots
@@ -51,7 +114,7 @@ class FileInclusionPanel(val roots: List<FileReference>, style: Style) :
 
     override fun getSymbol(element: FileReference): String {
         return when {
-            getState(element) == FileState.INCLUDED || isPartiallyIncluded(element) -> "✔"
+            !isCollapsed(element) -> "▶"
             element.isDirectory -> "📂"
             else -> when (getImportType(element)) {
                 "Image" -> "🖼"
@@ -72,31 +135,49 @@ class FileInclusionPanel(val roots: List<FileReference>, style: Style) :
         return DefaultConfig["import.mapping.${element.lcExtension}"] as? String
     }
 
+    private fun isFullyIncluded(element: FileReference): Boolean {
+        return isPartiallyIncluded(element) &&
+                !hasChildrenWithState(element, false)
+    }
+
     private fun isPartiallyIncluded(element: FileReference): Boolean {
-        return states.any { (maybeChild, childState) ->
-            childState == FileState.INCLUDED && maybeChild.isSubFolderOf(element)
+        return !hasParentWithState(element, false) &&
+                hasParentWithState(element, true)
+    }
+
+    private fun hasChildrenWithState(element: FileReference, state: Boolean): Boolean {
+        return fileStates.any { (maybeChild, childState) ->
+            childState == state && maybeChild.isSameOrSubFolderOf(element)
         }
+    }
+
+    private fun hasParentWithState(element: FileReference, state: Boolean): Boolean {
+        return fileStates.any { (maybeParent, childState) ->
+            childState == state && element.isSameOrSubFolderOf(maybeParent)
+        }
+    }
+
+    private fun isExcluded(element: FileReference): Boolean {
+        return hasParentWithState(element, false)
     }
 
     override fun getLocalColor(element: FileReference, isHovered: Boolean, isInFocus: Boolean): Int {
         // change color based on is-included
         // mixed states: [excluded, partially, included]
-        return when (getState(element)) {
-            FileState.INCLUDED -> greenYellow
+        return when {
+            isExcluded(element) -> fireBrick
+            isPartiallyIncluded(element) -> greenYellow
+            isFullyIncluded(element) -> 0x76ff00 or black
             else -> white
         }
     }
 
     override fun isCollapsed(element: FileReference): Boolean {
-        return getState(element) != FileState.OPEN
-    }
-
-    override fun toggleCollapsed(element: FileReference) {
-        states[element] = getState(element).next
+        return element !in notCollapsed
     }
 
     override fun setCollapsed(element: FileReference, collapsed: Boolean) {
-        // todo implement?
+        notCollapsed.setContains(element, !collapsed)
     }
 
     override fun addChild(element: FileReference, child: Any, type: Char, index: Int): Boolean {

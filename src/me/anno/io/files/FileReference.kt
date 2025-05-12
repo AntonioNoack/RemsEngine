@@ -445,12 +445,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    fun isSameOrSubFolderOf(other: FileReference): Boolean {
-        return isSameOrSubFolderOf(other.absolutePath)
+    fun isSameOrSubFolderOf(maybeParent: FileReference): Boolean {
+        return isSameOrSubFolderOf(maybeParent.absolutePath)
     }
 
-    fun isSameOrSubFolderOf(other: String): Boolean {
-        return absolutePath == other || isSubFolderOf(other)
+    fun isSameOrSubFolderOf(maybeParent: String): Boolean {
+        return absolutePath == maybeParent || isSubFolderOf(maybeParent)
     }
 
     fun isSubFolderOf(other: FileReference): Boolean {

@@ -1,5 +1,6 @@
 package me.anno.utils.structures.lists
 
+import me.anno.maths.Maths.posMod
 import me.anno.utils.callbacks.VtoD
 import me.anno.utils.search.BinarySearch
 import me.anno.utils.structures.Collections.filterIsInstance2
@@ -674,5 +675,10 @@ object Lists {
             if (sum <= 0.0) return i
         }
         return -1
+    }
+
+    @JvmStatic
+    fun <V> List<V>.mod(i: Int = 1): V {
+        return this[posMod(i, size)]
     }
 }

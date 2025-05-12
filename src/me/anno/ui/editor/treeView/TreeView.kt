@@ -1,6 +1,5 @@
 package me.anno.ui.editor.treeView
 
-import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.input.Input
@@ -48,7 +47,6 @@ abstract class TreeView<V : Any>(
     val elementByIndex = ArrayList<V>()
 
     var inset = style.getSize("fontSize", 12)
-    var collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
     var needsTreeUpdate = true
 

@@ -9,7 +9,6 @@ import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
-import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable

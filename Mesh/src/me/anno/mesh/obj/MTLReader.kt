@@ -1,5 +1,6 @@
 package me.anno.mesh.obj
 
+import me.anno.cache.AsyncCacheData
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
@@ -193,12 +194,8 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
         fun readAsFolderSync(
             file: FileReference,
             dstFolder: InnerFolder = InnerFolder(file)
-        ): InnerFolder {
-            val it = file.inputStreamSync()
-            val materials = MTLReader(file, it).materials
-            for ((name, material) in materials)
-                dstFolder.createPrefabChild("$name.json", material)
-            return dstFolder
+        ): InnerFolder? {
+            return AsyncCacheData.loadSync { readAsFolder(file, it, dstFolder) }
         }
 
         private val LOGGER = LogManager.getLogger(MTLReader::class)

@@ -104,7 +104,7 @@ object Logo {
     }
 
     private fun readMesh(i: InputStream?) {
-        mesh = if (i != null) SimpleOBJReader(i).mesh else null
+        mesh = if (i != null) SimpleOBJReader(i).read() else null
         hasMesh = true
     }
 

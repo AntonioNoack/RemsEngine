@@ -11,7 +11,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.mesh.Triangulation
-import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.async.Callback
 import me.anno.utils.files.Files.findNextFileName
@@ -22,7 +21,6 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStream
 
 // in a really heavy scene (San Miguel with 10M vertices),
@@ -273,15 +271,11 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         if (nextChar() == 't' && nextChar() == 'l' && nextChar() == 'l' && nextChar() == 'i' && nextChar() == 'b') {
             val file2 = readPath(file)
             if (file2.exists && !file2.isDirectory) {
-                try {
-                    val folder = MTLReader.readAsFolderSync(file2, materialsFolder)
-                    val subMaterials = folder.listChildren()
-                    materials.putAll(subMaterials.map {
-                        it.nameWithoutExtension to it
-                    })
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+                val subFolder = MTLReader.readAsFolderSync(file2, materialsFolder) ?: return
+                val subMaterials = subFolder.listChildren()
+                materials.putAll(subMaterials.map {
+                    it.nameWithoutExtension to it
+                })
             }
         }
     }

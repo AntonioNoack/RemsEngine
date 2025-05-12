@@ -49,9 +49,9 @@ class SimpleOBJReader(input: InputStream) : TextFileReader(input) {
         points.clear()
     }
 
-    val mesh = Mesh()
+    fun read(): Mesh {
 
-    init {
+        val mesh = Mesh()
         try {
             while (true) {
                 // read the line
@@ -66,6 +66,8 @@ class SimpleOBJReader(input: InputStream) : TextFileReader(input) {
         }
         mesh.positions = positions.toFloatArray()
         mesh.indices = indices.toIntArray()
+
+        return mesh
     }
 
     companion object {
