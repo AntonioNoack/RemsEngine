@@ -29,6 +29,7 @@ object BLASCache : CacheSection("BLASCache") {
             ?.value?.raycaster
     }
 
+    @Suppress("unused")
     fun getBLASAsync(mesh: Mesh, callback: Callback<BLASNode?>) {
         return getEntryAsync(
             mesh, timeoutMillis, true, generator,

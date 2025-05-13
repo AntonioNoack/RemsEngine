@@ -8,8 +8,9 @@ import me.anno.io.saveable.Saveable
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.Maps.removeIf
-import me.anno.utils.types.Ints.toIntOrDefault
-import me.anno.utils.types.Ints.toLongOrDefault
+import me.anno.utils.types.AnyToDouble
+import me.anno.utils.types.AnyToLong
+import me.anno.utils.types.Booleans.toLong
 import kotlin.math.min
 
 /**
@@ -204,83 +205,34 @@ open class StringMap(
     }
 
     operator fun get(key: String, default: Float): Float {
-        return when (val value = this[key]) {
-            is Float -> value
-            is Double -> value.toFloat()
-            is Int -> value.toFloat()
-            is Long -> value.toFloat()
-            is String -> value.toFloatOrNull() ?: default
-            null -> {
-                set(key, default)
-                default
-            }
-            else -> value.toString().toFloatOrNull() ?: default
-        }
+        return get(key, default.toDouble()).toFloat()
     }
 
     operator fun get(key: String, default: Double): Double {
-        return when (val value = this[key]) {
-            is Float -> value.toDouble()
-            is Double -> value
-            is Number -> value.toDouble()
-            is String -> value.toDoubleOrNull() ?: default
-            null -> {
-                set(key, default)
-                default
-            }
-            else -> value.toString().toDoubleOrNull() ?: default
-        }
+        val value = this[key]
+        if (this[key] == null) set(key, default)
+        return AnyToDouble.getDouble(value,default)
     }
 
     operator fun get(key: String, default: Int): Int {
-        return when (val value = this[key]) {
-            is Int -> value
-            is Long -> value.toInt()
-            is Float -> value.toInt()
-            is Double -> value.toInt()
-            is String -> value.toIntOrDefault(default)
-            null -> {
-                set(key, default)
-                default
-            }
-            else -> value.toString().toIntOrDefault(default)
-        }
+        return get(key, default.toLong()).toInt()
     }
 
     operator fun get(key: String, default: Long): Long {
-        return when (val value = this[key]) {
-            is Int -> value.toLong()
-            is Long -> value
-            is Float -> value.toLong()
-            is Double -> value.toLong()
-            is String -> value.toLongOrDefault(default)
-            null -> {
-                set(key, default)
-                default
-            }
-            else -> value.toString().toLongOrDefault(default)
-        }
+        val value = this[key]
+        if (value == null) set(key, default)
+        return AnyToLong.getLong(value, default)
     }
 
     operator fun get(key: String, default: Boolean): Boolean {
         return when (val value = this[key]) {
             is Boolean -> value
-            is Int -> value != 0
-            is Long -> value != 0L
-            is Float -> !value.isNaN() && value != 0f
-            is Double -> !value.isNaN() && value != 0.0
-            is String -> {
-                when (value.lowercase()) {
-                    "true", "t" -> true
-                    "false", "f" -> false
-                    else -> default
-                }
+            is String -> when (value.lowercase()) {
+                "true", "t" -> true
+                "false", "f" -> false
+                else -> default
             }
-            null -> {
-                set(key, default)
-                default
-            }
-            else -> value.toString().toBoolean()
+            else -> get(key, default.toLong()) != 0L
         }
     }
 

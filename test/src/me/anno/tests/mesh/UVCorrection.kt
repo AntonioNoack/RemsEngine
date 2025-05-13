@@ -101,7 +101,7 @@ object UVCorrection {
         if (normalContrast > 0.0) {
             if (normalContrast > 1.1 * invertedContrast) {
                 LOGGER.info("Checked UVs of $folder: ${(normalContrast / invertedContrast).f3()} -> inverted Vs")
-                for (meshFile in meshes ?: emptyList()) {
+                for (meshFile in meshes) {
                     meshFile as InnerPrefabFile
                     val mesh = meshFile.prefab.getSampleInstance() as Mesh
                     val uvs = mesh.uvs

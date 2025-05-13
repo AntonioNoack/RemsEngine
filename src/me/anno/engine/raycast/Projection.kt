@@ -6,7 +6,6 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 object Projection {
 

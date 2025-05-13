@@ -13,6 +13,7 @@ class ConfigRef<V>(val key: String, val default: V) {
         val default = default
         @Suppress("UNCHECKED_CAST")
         return when (default) {
+            // this looks really stupid, but there's lots of different functions, actually
             is Int -> DefaultConfig[key, default]
             is Long -> DefaultConfig[key, default]
             is Float -> DefaultConfig[key, default]

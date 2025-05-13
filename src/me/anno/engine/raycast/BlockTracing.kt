@@ -87,7 +87,7 @@ object BlockTracing {
         val invUStepZ = dirSignZ * invDirZ
         var lastNormal = if (dtf3Z == dtf1) 2 else if (dtf3Y == dtf1) 1 else 0
         var hitSomething = false
-        for (i in 0 until maxSteps) {
+        for (step in 0 until maxSteps) {
             val nextDist = min(dist3X, min(dist3Y, dist3Z))
             val skippingDist = hitBlock.getSkipDistance(blockPosX, blockPosY, blockPosZ)
             if (skippingDist >= CUSTOM_SKIP_DISTANCE) {

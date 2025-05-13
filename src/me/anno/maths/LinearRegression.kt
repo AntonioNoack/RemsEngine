@@ -84,25 +84,26 @@ object LinearRegression {
      * */
     fun findPolynomialCoefficients(
         points: List<Vector2d>,
-        dimensions: Int = points.size,
+        numDimensions: Int = points.size,
         regularisation: Double = 1e-14
     ): DoubleArray? {
         // the same as above, just more efficient
-        val size = points.size
-        val xt = DoubleArray(size * dimensions)
-        for (i in 0 until size) xt[i * dimensions] = 1.0
-        for (i in 0 until size) {
-            val px = points[i].x
-            var j = i * dimensions + 1
-            xt[j] = px
-            for (pow in 2 until dimensions) {
+        val numPoints = points.size
+        val features = DoubleArray(numPoints * numDimensions)
+        for (i in 0 until numPoints) features[i * numDimensions] = 1.0
+        for (i in 0 until numPoints) {
+            val xi = points[i].x
+            var j = i * numDimensions + 1
+            features[j] = xi
+            for (pow in 2 until numDimensions) {
                 val k = j + 1
-                xt[k] = px * xt[j]
+                features[k] = xi * features[j]
                 j = k
             }
         }
-        val y = DoubleArray(size) { points[it].y }
-        return solve(xt, y, regularisation)
+
+        val values = DoubleArray(numPoints) { points[it].y }
+        return solve(features, values, regularisation)
     }
 
     fun evaluatePolynomial(x: Double, polynomial: DoubleArray): Double {

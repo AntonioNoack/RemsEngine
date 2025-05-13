@@ -11,6 +11,7 @@ import org.joml.Vector3d
 fun main() {
     // first click onto dragon is slow... why???
     // -> RTAS building takes a long time
+    // todo why is it still slow??? shouldn't the RTAS be generated async???
     val clock = Clock("FirstClickSlow")
     OfficialExtensions.initForTests()
     clock.stop("Loading Extensions")

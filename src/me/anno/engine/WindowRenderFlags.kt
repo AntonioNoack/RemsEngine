@@ -21,12 +21,6 @@ object WindowRenderFlags {
     var enableVSync by ConfigRef("debug.ui.enableVsync", !Build.isDebug)
 
     /**
-     * Whether red squares shall be drawn over everything that was re-rendered this frame;
-     * Will be removed/useless, if we switch to an immediate rendering method.
-     * */
-    var showRedraws by ConfigRef("debug.ui.showRedraws", false)
-
-    /**
      * Whether the FPS together with a frame-time-graph shall be rendered as an overlay.
      * */
     var showFPS by ConfigRef("debug.ui.showFPS", false)

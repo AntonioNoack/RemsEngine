@@ -7,7 +7,6 @@ import me.anno.engine.OfficialExtensions
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
-import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.mapCallback
 
 /**
@@ -25,7 +24,7 @@ fun main() {
         .mapCallback({ _, file, cb ->
             val scene = getPrefabSampleInstance(file) as Entity
             GLTFWriter().write(scene, destination.getChild("${file.nameWithoutExtension}.glb"), cb)
-        }, Callback { _, err ->
+        }, { _, err ->
             err?.printStackTrace()
             Engine.requestShutdown()
         })

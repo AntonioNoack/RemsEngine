@@ -71,20 +71,19 @@ abstract class Component : PrefabSaveable() {
         entity?.invalidateOwnAABB()
     }
 
+    // todo make this an interface?
     open fun onCreate() {}
 
     override fun destroy() {}
 
+    // todo make these interfaces?
     open fun onEnable() {}
     open fun onDisable() {}
 
-    open fun onBeginPlay() {}
-
+    // todo make this an interface?
     open fun onChangeStructure(entity: Entity) {}
 
     override fun isDefaultValue(): Boolean = false
-
-    open fun onChangeProperty(name: String, value: Any?) {}
 
     fun invalidateRigidbody() {
         entity?.invalidateRigidbody()

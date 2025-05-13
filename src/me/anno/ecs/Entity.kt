@@ -85,6 +85,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             flags = flags.withFlag(CREATED_FLAG, value)
         }
 
+    // todo there should be a system and an interface for this, shouldn't they?
     fun create() {
         if (isCreated) return
         transform.teleportUpdate()
@@ -125,9 +126,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     override fun getIndexOf(child: PrefabSaveable): Int {
-        return if (child is Component) {
-            components.indexOf(child)
-        } else children.indexOf(child)
+        val childrenByType = if (child is Component) components else children
+        return childrenByType.indexOf(child)
     }
 
     override fun getOptionsByType(type: Char): List<Option<PrefabSaveable>> {
