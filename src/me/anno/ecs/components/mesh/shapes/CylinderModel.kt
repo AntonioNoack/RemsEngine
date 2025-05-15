@@ -1,6 +1,8 @@
 package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.shapes.MaxAreaCircle.createCircleIndices
+import me.anno.ecs.components.mesh.shapes.MaxAreaCircle.numCircleIndices
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.mix
@@ -124,11 +126,8 @@ object CylinderModel {
         if (top) {
             // add ring
             // 0 1 2 0 2 3 0 3 4
-            for (u in 2 until us) {
-                indices[k++] = v0
-                indices[k++] = v0 + u
-                indices[k++] = v0 + u - 1
-            }
+            createCircleIndices(us, v0, indices, k, false)
+            k += numCircleIndices(us)
             v0 += us
         }
 
@@ -136,11 +135,9 @@ object CylinderModel {
         materialIds?.fill(1, k0, k1)
 
         if (bottom) {
-            for (u in 2 until us) {
-                indices[k++] = v0
-                indices[k++] = v0 + u - 1
-                indices[k++] = v0 + u
-            }
+            createCircleIndices(us, v0, indices, k, true)
+            k += numCircleIndices(us)
+            // v0 += us // unused
         }
 
         val k2 = k / 3
