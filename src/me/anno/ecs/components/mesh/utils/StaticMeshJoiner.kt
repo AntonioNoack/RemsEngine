@@ -84,6 +84,11 @@ object StaticMeshJoiner {
     private fun join1Mesh(meshes: Triple<Mesh, Transform?, List<FileReference>>): Mesh {
         // special case: no joining required
         val (mesh, transform, materials) = meshes
+        return join1Mesh(mesh, transform, materials)
+    }
+
+    fun join1Mesh(mesh: Mesh, transform: Transform?, materials: List<FileReference>): Mesh {
+        // special case: no joining required
         transform?.validate()
         val matrix = transform?.globalTransform
         val identityTransform = matrix == null || matrix.isIdentity()

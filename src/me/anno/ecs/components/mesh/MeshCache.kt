@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.utils.StaticMeshJoiner.findMeshes
+import me.anno.ecs.components.mesh.utils.StaticMeshJoiner.join1Mesh
 import me.anno.ecs.components.mesh.utils.StaticMeshJoiner.joinMeshes
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.io.files.FileReference
@@ -22,7 +23,11 @@ object MeshCache : PrefabByFileCache<IMesh>(IMesh::class, "Mesh") {
     override fun castInstance(instance: Saveable?, ref: FileReference): IMesh? {
         return when (instance) {
             is IMesh -> instance
-            is MeshComponentBase -> instance.getMesh()
+            is MeshComponentBase -> {
+                val baseMesh = instance.getMesh()
+                if (baseMesh is Mesh) join1Mesh(baseMesh, null, instance.materials)
+                else null // unsolved/null
+            }
             is MeshSpawner -> joinMeshes(listOf(instance))
             is Entity -> joinMeshes(findMeshes(instance))
             // cast Material?
