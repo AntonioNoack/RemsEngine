@@ -4,8 +4,18 @@ import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.gpu.FinalRendering
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import org.joml.Vector2f
 
 object Materials {
+
+    var lodBias = 0f
+    val jitterInPixels = Vector2f()
+
+    fun reset() {
+        lodBias = 0f
+        jitterInPixels.set(0f)
+    }
+
     fun getMaterial(
         materialOverrides: List<FileReference>?,
         materials: List<FileReference>, index: Int

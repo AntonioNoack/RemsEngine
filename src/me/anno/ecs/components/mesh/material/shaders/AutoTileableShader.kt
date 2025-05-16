@@ -136,6 +136,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         // step by step define all material properties
                         "vec3 colorPos = finalPosition - tileOffset;\n" +
                         "vec2 uv = vec2(dot(colorPos, tilingU), sign(finalNormal.y) * dot(colorPos, tilingV));\n" +
+                        jitterUVCorrection +
                         "vec4 texDiffuseMap = sampleAutoTileableTexture(diffuseMap, invLUTTex, uv);\n" +
                         "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                         "if(color.a < ${1f / 255f}) discard;\n" +

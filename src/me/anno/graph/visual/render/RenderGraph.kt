@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render
 
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -26,6 +27,7 @@ import me.anno.graph.visual.render.effects.OutlineNode
 import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.ShapedBlurNode
+import me.anno.graph.visual.render.effects.TAANode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.scene.BoxCullingNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
@@ -92,7 +94,7 @@ object RenderGraph {
         } else {
             LOGGER.warn("Missing end")
         }
-        Material.lodBias = 0f // reset lod bias
+        Materials.reset()
         Pipeline.currentInstance = null // reset pipeline
     }
 
@@ -115,7 +117,7 @@ object RenderGraph {
         graph.invalidate()
         start.setOutput(1, renderSize.renderWidth)
         start.setOutput(2, renderSize.renderHeight)
-        Material.lodBias = 0f // reset just in case
+        Materials.reset() // reset just in case
         Pipeline.currentInstance = rv.pipeline
     }
 

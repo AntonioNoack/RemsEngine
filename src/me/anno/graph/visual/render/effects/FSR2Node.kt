@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.deferred.DeferredLayerType.Companion.COLOR
@@ -75,7 +76,7 @@ class FSR2Node : RenderViewNode(
             setOutput(2, Texture.texture(view.data1, 1, "x", DEPTH))
             setOutput(3, width)
             setOutput(4, height)
-            Material.lodBias = 0f
+            Materials.reset()
 
             // unjitter Gizmos
             fsr.unjitter(RenderState.cameraMatrix)

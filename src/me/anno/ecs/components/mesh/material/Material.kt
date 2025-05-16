@@ -221,7 +221,8 @@ open class Material : PrefabSaveable(), Renderable {
         shader.v1f("finalSheen", sheen)
         shader.v1f("sheen", sheen)
         shader.v1f("IOR", indexOfRefraction)
-        shader.v1f("lodBias", lodBias)
+        shader.v1f("lodBias", Materials.lodBias)
+        shader.v2f("jitterInPixels", Materials.jitterInPixels)
 
         GFX.check()
 
@@ -351,13 +352,10 @@ open class Material : PrefabSaveable(), Renderable {
 
     companion object {
 
-        // what is a good timeout???
-        var timeout = 30000L
-        var lodBias = 0f
-
         val defaultMaterial = Material()
 
-        fun getTex(image: FileReference): ITexture2D? = TextureCache[image, timeout, true]?.createdOrNull()
+        fun getTex(image: FileReference): ITexture2D? =
+            TextureCache[image, TextureCache.timeoutMillis, true]?.createdOrNull()
 
         fun bindTexture(shader: Shader, name: String, file: FileReference, default: ITexture2D): ITexture2D? {
             val index = shader.getTextureIndex(name)

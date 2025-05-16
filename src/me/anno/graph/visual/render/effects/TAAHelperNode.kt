@@ -1,6 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Materials
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.maths.Maths.mix
 
@@ -14,6 +14,7 @@ class TAAHelperNode : ActionNode("TAAHelper", emptyList(), emptyList()) {
         val s = TAANode.getCameraSteadiness()
         // if steady, return -1 to avoid blurring
         // else, return 0 for smooth textures
-        Material.lodBias = mix(0f, -1f, s) // = -s
+        Materials.lodBias = mix(0f, -1f, s) // = -s
+        Materials.jitterInPixels.set(TAANode.getPattern(0))
     }
 }

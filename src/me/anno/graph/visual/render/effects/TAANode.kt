@@ -65,8 +65,8 @@ class TAANode : TimedRenderingNode(
                         color.bindTrulyNearest(shader, "colorTex1")
                         motion.bindTrulyNearest(shader, "motionTex")
                         maskTex.bindTrulyNearest(shader, "maskTex")
-                        val jitter = getPattern(0) - getPattern(-1)
-                        shader.v2f("jitter", jitter.mul(1f / src.width, 1f / src.height))
+                        val deltaJitter = getPattern(0) - getPattern(-1)
+                        shader.v2f("jitter", deltaJitter.mul(1f / src.width, 1f / src.height))
                         shader.v1f("maxTAA", maxTAA)
                         flat01.draw(shader)
                     } else {

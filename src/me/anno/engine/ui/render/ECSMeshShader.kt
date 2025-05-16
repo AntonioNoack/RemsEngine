@@ -69,6 +69,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val discardByCullingPlane = "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n"
 
+        // todo we should add a flag for using TAA...
+        val jitterUVCorrection = "// uv -= jitterInPixels.x * dFdx(uv) + jitterInPixels.y * dFdy(uv);\n"
+
         val v0 = "vec3 V0 = normalize(-finalPosition);\n"
         val sheenCalculation = "" +
                 // sheen calculation
@@ -477,6 +480,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V4F, "finalClearCoat", VariableMode.INOUT),
             Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
             Variable(GLSLType.V1F, "lodBias"),
+            Variable(GLSLType.V2F, "jitterInPixels"),
             // for reflections;
             // we could support multiple
             Variable(GLSLType.V1B, "hasReflectionPlane"),
@@ -523,6 +527,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "material", createFragmentVariables(key),
                 concatDefines(key).toString() +
                         discardByCullingPlane +
+                        jitterUVCorrection +
                         // step by step define all material properties
                         baseColorCalculation +
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {

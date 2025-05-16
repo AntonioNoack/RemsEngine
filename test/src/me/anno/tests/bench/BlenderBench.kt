@@ -1,7 +1,6 @@
 package me.anno.tests.bench
 
 import me.anno.mesh.blender.BlenderReader
-import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 import org.apache.logging.log4j.LogManager
