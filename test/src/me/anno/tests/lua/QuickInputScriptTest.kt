@@ -80,7 +80,7 @@ class QuickInputScriptTest {
     }
 
     @Test
-    fun testMouseWheel(){
+    fun testMouseWheel() {
         assertEquals("1, 2, 3, 4, false", testScript {
             it.mouseWheelScript = getTester +
                     "tester:setResult(x .. ', ' .. y .. ', ' .. dx .. ', ' .. dy .. ', ' .. tostring(byMouse))"
@@ -89,7 +89,7 @@ class QuickInputScriptTest {
     }
 
     @Test
-    fun testAction(){
+    fun testAction() {
         assertEquals("1, 2, 3, 4, action", testScript {
             it.actionScript = getTester +
                     "tester:setResult(x .. ', ' .. y .. ', ' .. dx .. ', ' .. dy .. ', ' .. tostring(action))"
@@ -98,11 +98,11 @@ class QuickInputScriptTest {
     }
 
     private fun testScript(init: (QuickInputScriptComponent) -> Unit): String {
-        val entity = Entity()
         val tester = TestComponent()
         val instance = QuickInputScriptComponent()
-        entity.add(instance)
-        entity.add(tester)
+        Entity()
+            .add(instance)
+            .add(tester)
         init(instance)
         return tester.result
     }

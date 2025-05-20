@@ -18,28 +18,24 @@ import me.anno.utils.OS
 import me.anno.utils.structures.Collections.crossMap
 import me.anno.utils.structures.tuples.IntPair
 import org.joml.Matrix4x3f
-import org.joml.Vector3d
 
 fun main() {
     OfficialExtensions.initForTests()
+
     // test environment map
-    val scene = Entity()
-    scene.add(Entity().apply {
-        position = Vector3d(2.8, 0.0, 0.0)
-        add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
-        add(EnvironmentMap())
-    })
-    scene.add(Entity().apply {
-        add(MeshComponent(IcosahedronModel.createIcosphere(3)).apply {
-            materials = listOf(Material().apply {
-                roughnessMinMax.set(0f)
-                metallicMinMax.set(1f)
-            }.ref)
-        })
-        add(EnvironmentMap())
-    })
-    scene.add(metalRoughness())
-    scene.add(Skybox())
+    val scene = Entity("Scene")
+        .add(metalRoughness())
+        .add(Skybox())
+
+    Entity("Helmet", scene)
+        .setPosition(2.8, 0.0, 0.0)
+        .add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
+        .add(EnvironmentMap())
+
+    Entity("Middle", scene)
+        .add(MeshComponent(IcosahedronModel.createIcosphere(3), Material.metallic(-1, 0f)))
+        .add(EnvironmentMap())
+
     testSceneWithUI("EnvironmentMap", scene)
 }
 

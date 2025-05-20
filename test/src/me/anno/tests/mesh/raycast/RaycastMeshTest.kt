@@ -4,9 +4,12 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachLine
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.engine.raycast.BLASCache.disableBLASCache
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
+import me.anno.maths.Maths.SQRT2f
+import me.anno.maths.Maths.SQRT3f
 import me.anno.maths.bvh.HitType
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.assertions.assertEquals
@@ -69,9 +72,9 @@ object RaycastMeshTest {
     @Test
     fun testEdgeCasesInside() {
         mesh.forEachLine { a, b ->
-            val dir = a.mix(b, 0.5f)
+            val dir = a.mix(b, 0.5f).normalize()
             val pos = b.set(0f)
-            checkHit(mesh, pos, dir, 2f, -1, 1f, null)
+            checkHit(mesh, pos, dir, 2f, -1, SQRT2f, null)
             false
         }
     }
@@ -79,9 +82,9 @@ object RaycastMeshTest {
     @Test
     fun testEdgeCasesOutside() {
         mesh.forEachLine { a, b ->
-            val dir = a.mix(b, 0.5f)
+            val dir = a.mix(b, 0.5f).normalize()
             val pos = a.mul(-3f, b)
-            checkHit(mesh, pos, dir, 3f, -1, 2f, null)
+            checkHit(mesh, pos, dir, 3f, -1, 3f - SQRT2f, null)
             false
         }
     }
@@ -91,8 +94,8 @@ object RaycastMeshTest {
         val pos = Vector3f()
         val dir = Vector3f()
         mesh.forEachPoint(false) { x, y, z ->
-            dir.set(x, y, z)
-            checkHit(mesh, pos, dir, 2f, -1, 1f, null)
+            dir.set(x, y, z).normalize()
+            checkHit(mesh, pos, dir, 2f, -1, SQRT3f, null)
             false
         }
     }
@@ -103,8 +106,8 @@ object RaycastMeshTest {
         val dir = Vector3f()
         mesh.forEachPoint(false) { x, y, z ->
             pos.set(x, y, z).mul(-3f)
-            dir.set(x, y, z)
-            checkHit(mesh, pos, dir, 3f, -1, 2f, null)
+            dir.set(x, y, z).normalize()
+            checkHit(mesh, pos, dir, 3f, -1, 3f - SQRT3f, null)
             false
         }
     }
@@ -113,8 +116,10 @@ object RaycastMeshTest {
         mesh: Mesh, pos: Vector3f, dir: Vector3f, maxDistance: Float, typeMask: Int,
         expectedDistance: Float, expectedNormal: Vector3f?
     ) {
+        disableBLASCache = true
         checkLocalHit(mesh, pos, dir, maxDistance, typeMask, expectedDistance, expectedNormal)
         checkGlobalHit(mesh, pos, dir, maxDistance, typeMask, expectedDistance, expectedNormal)
+        disableBLASCache = false
     }
 
     fun checkLocalHit(

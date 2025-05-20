@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.material
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GPUTasks.addGPUTask
@@ -31,7 +32,8 @@ class AutoTileableMaterial : PlanarMaterialBase() {
         }
     }
 
-    var anisotropic = true
+    @Docs("More much computationally expensive, but also visually more stable")
+    var useAnisotropicFiltering = true
 
     init {
         shader = AutoTileableShader
@@ -39,7 +41,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
 
     override fun bind(shader: GPUShader) {
         super.bind(shader)
-        shader.v1b("anisotropic", anisotropic)
+        shader.v1b("anisotropic", useAnisotropicFiltering)
         // could be customizable, but who would use that?
         shader.m2x2("latToWorld", AutoTileableShader.latToWorld)
         shader.m2x2("worldToLat", AutoTileableShader.worldToLat)
@@ -49,6 +51,6 @@ class AutoTileableMaterial : PlanarMaterialBase() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is AutoTileableMaterial) return
-        dst.anisotropic = anisotropic
+        dst.useAnisotropicFiltering = useAnisotropicFiltering
     }
 }

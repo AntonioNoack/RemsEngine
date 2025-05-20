@@ -53,7 +53,5 @@ fun testComplex() {
             }.ref)
         })
 
-    testSceneWithUI("Glass MSAA Deferred", scene) {
-        it.renderView.renderMode = RenderMode.MSAA_DEFERRED
-    }
+    testSceneWithUI("Glass MSAA Deferred", scene, RenderMode.MSAA_DEFERRED)
 }

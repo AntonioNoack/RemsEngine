@@ -156,6 +156,7 @@ object RaycastMesh {
         if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
             val blas = BLASCache.getBLAS(mesh)
             if (blas != null) {
+                println("Using BLAS")
                 raycastBLAS(blas, localStart, localDir, localEnd, globalTransform, query)
             } else {
                 raycastLocalMesh(
@@ -242,7 +243,8 @@ object RaycastMesh {
             mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
                 // check collision of localStart-localEnd with triangle ABC
                 val localDistance = Triangles.rayTriangleIntersection(
-                    start, dir, ai, bi, ci, bestDistance, localNormalTmp, localHitTmp,
+                    start, dir, ai, bi, ci,
+                    bestDistance, localNormalTmp, localHitTmp,
                 )
                 if (localDistance < bestDistance && localDistance <= maxDistance &&
                     if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack

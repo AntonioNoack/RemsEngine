@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh.material
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.shaders.FurShader
 import me.anno.gpu.shader.GLSLType
 import org.joml.Vector3f
 
+@Docs("Implements shell rendering for fur-like visuals")
 class FurMaterial : Material() {
 
     @Range(1.0, 1024.0)

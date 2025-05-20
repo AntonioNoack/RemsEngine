@@ -228,10 +228,11 @@ open class StringMap(
         return when (val value = this[key]) {
             is Boolean -> value
             is String -> when (value.lowercase()) {
-                "true", "t" -> true
-                "false", "f" -> false
+                "true", "t", "1" -> true
+                "false", "f", "0" -> false
                 else -> default
             }
+            null -> set(key, default) // must be here for proper default
             else -> get(key, default.toLong()) != 0L
         }
     }

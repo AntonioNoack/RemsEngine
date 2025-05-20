@@ -12,7 +12,5 @@ import me.anno.utils.OS.downloads
  * */
 fun main() {
     val src = downloads.getChild("3d/DamagedHelmet.glb")
-    testSceneWithUI("Too Faint Smudges", src) {
-        it.renderView.renderMode = RenderMode.FORWARD
-    }
+    testSceneWithUI("Too Faint Smudges", src, RenderMode.FORWARD)
 }

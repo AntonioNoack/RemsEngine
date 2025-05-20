@@ -16,6 +16,9 @@ class TriplanarMaterial : Material() {
     var blendPreferY: Float = 0.675f
 
     var primaryTiling: Vector4f = Vector4f(1f, 1f, 0f, 0f)
+        set(value) {
+            field.set(value)
+        }
 
     init {
         shader = TriplanarShader

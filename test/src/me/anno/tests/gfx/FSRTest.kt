@@ -7,7 +7,5 @@ import me.anno.utils.OS.downloads
 
 fun main() {
     OfficialExtensions.initForTests()
-    testSceneWithUI("FSR1", downloads.getChild("3d/DamagedHelmet.glb")) {
-        it.renderView.renderMode = RenderMode.FSR_X4
-    }
+    testSceneWithUI("FSR1", downloads.getChild("3d/DamagedHelmet.glb"), RenderMode.FSR_X4)
 }

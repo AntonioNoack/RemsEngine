@@ -247,7 +247,7 @@ object BlenderReader {
         return prefab
     }
 
-    fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
+    fun readAsFolder(ref: FileReference, buffer: ByteBuffer): InnerFolder {
 
         // todo 1: find equivalent meshes, and replace them for speed
         // todo 2: read positions, indices, and normals without instantiation
@@ -259,7 +259,7 @@ object BlenderReader {
         clock.stop("read bytes")
 
         clock.stop("put into other array")
-        val binaryFile = BinaryFile(nio)
+        val binaryFile = BinaryFile(buffer)
         val folder = InnerFolder(ref)
         val file = BlenderFile(binaryFile, ref.getParent())
         clock.stop("read blender file")

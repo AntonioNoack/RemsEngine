@@ -7,7 +7,8 @@ import me.anno.gpu.shader.builder.Variable
 
 object SpriteShader : ECSMeshShader("SpriteECS") {
 
-    val replacements = "diffuseMap,emissiveMap,normalMap,occlusionMap,roughnessMap,metallicMap".split(',')
+    val replacements = "diffuseMap,emissiveMap,normalMap,occlusionMap,roughnessMap,metallicMap"
+        .split(',')
         .map { name -> name to "${name}Array" }
 
     override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
@@ -27,10 +28,10 @@ object SpriteShader : ECSMeshShader("SpriteECS") {
         return stages.subList(0, stages.lastIndex) + lastStage
     }
 
-    fun StringBuilder.replace(src: String, dst: String) {
-        for (i in 0 until length - src.length) {
-            if (startsWith(src, startIndex = i)) {
-                replace(i, i + src.length, dst)
+    private fun replace(builder: StringBuilder, src: String, dst: String) {
+        for (i in 0 until builder.length - src.length) {
+            if (builder.startsWith(src, startIndex = i)) {
+                builder.replace(i, i + src.length, dst)
             }
         }
     }
@@ -38,14 +39,8 @@ object SpriteShader : ECSMeshShader("SpriteECS") {
     fun replaceTextureReading(shader: String): String {
         val builder = StringBuilder(shader)
         for ((src, dst) in replacements) {
-            builder.replace(
-                "texture($src, uv,",
-                "texture($dst, vec3(uv, spriteIndex),"
-            )
-            builder.replace(
-                "textureSize($src,",
-                "textureSize($dst,"
-            )
+            replace(builder, "texture($src, uv,", "texture($dst, vec3(uv, spriteIndex),")
+            replace(builder, "textureSize($src,", "textureSize($dst,")
         }
         return builder.toString()
     }

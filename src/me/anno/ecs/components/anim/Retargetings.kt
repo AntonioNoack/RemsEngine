@@ -43,7 +43,7 @@ object Retargetings {
     val dstMat = Material.diffuse(dstColor)
 
     private val cache = CacheSection("Retargeting")
-    private const val timeout = 500_000L
+    private const val timeoutMillis = 500_000L
 
     fun openUI(anim: AnimMeshComponent) {
         // find all animation states, where the skeleton needs mapping, and ask the user, which to edit
@@ -185,8 +185,8 @@ object Retargetings {
 
     private fun getConfigName(skeleton: FileReference): String {
         println("getting skeleton '$skeleton'")
-        return SkeletonCache[skeleton]!!.bones.joinToString("/") { it.name }
-            .hashCode().toUInt().toString(36)
+        val hash = SkeletonCache[skeleton]!!.bones.joinToString("/") { it.name }.hashCode()
+        return Integer.toUnsignedString(hash, 36)
     }
 
     fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {
@@ -201,13 +201,12 @@ object Retargetings {
 
     fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
         if (srcSkeleton == dstSkeleton) return null
-        val data = cache.getEntry(
+        return cache.getEntry(
             DualFileKey(srcSkeleton, dstSkeleton),
-            timeout, false
+            timeoutMillis, false
         ) { key ->
             val prefab = getOrCreatePrefab(key.file0, key.file1)
             CacheData(prefab?.getSampleInstance() as? Retargeting)
-        } as CacheData<*>
-        return data.value as Retargeting
+        }?.value
     }
 }

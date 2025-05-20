@@ -17,7 +17,7 @@ import me.anno.utils.OS
 fun main() {
     // todo for testing, find an easier case: one, where the mesh isn't rotated/scaled
     OfficialExtensions.initForTests()
-    EngineBase.workspace = OS.documents.getChild("RemsEngine\\YandereSim")
+    EngineBase.workspace = OS.documents.getChild("RemsEngine/YandereSim")
     // find two human meshes with different skeletons
     val meshFile = EngineBase.workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
     val animFile = EngineBase.workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")

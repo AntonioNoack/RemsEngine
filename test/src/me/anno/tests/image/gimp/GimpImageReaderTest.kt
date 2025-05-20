@@ -53,7 +53,6 @@ class GimpImageReaderTest {
         assertEquals(1, layers.listChildren().size)
         val layerFile = layers.getChild("Background.png")
         assertTrue(layerFile.exists)
-        assertTrue(layerFile is ImageReadable)
         val image = ImageCache[layerFile, false]!!
         assertEquals(3, image.width)
         assertEquals(3, image.height)

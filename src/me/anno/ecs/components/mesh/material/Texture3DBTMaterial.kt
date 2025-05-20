@@ -10,7 +10,6 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
-import org.joml.Vector3i
 
 /**
  * [Texture3D] - block traced material.
@@ -20,19 +19,18 @@ import org.joml.Vector3i
 @Suppress("unused")
 open class Texture3DBTMaterial : Material() {
 
-    val size = Vector3i(1)
-
     @NotSerializedProperty
     var blocks: Texture3D? = null
-        set(value) {
-            field = value
-            if (value != null) {
-                size.set(value.width, value.height, value.depth)
-            }
-        }
 
     var color0 = Vector3f()
+        set(value) {
+            field.set(value)
+        }
+
     var color1 = Vector3f()
+        set(value) {
+            field.set(value)
+        }
 
     init {
         shader = Texture3DBTShader
@@ -50,11 +48,11 @@ open class Texture3DBTMaterial : Material() {
     override fun bind(shader: GPUShader) {
         super.bind(shader)
         val ti = shader.getTextureIndex("blocksTexture")
-        val blocks = blocks
-        if (ti >= 0) (blocks ?: TextureLib.whiteTex3d).bindTrulyNearest(ti)
-        shader.v3i("bounds", size)
+        val blocks = blocks ?: TextureLib.whiteTex3d
+        if (ti >= 0) blocks.bindTrulyNearest(ti)
+        shader.v3i("bounds", blocks.width, blocks.height, blocks.depth)
         // max amount of blocks that can be traversed
-        val maxSteps = Maths.max(1, size.x + size.y + size.z)
+        val maxSteps = Maths.max(1, blocks.width + blocks.height + blocks.depth)
         shader.v1i("maxSteps", maxSteps)
         shader.v3f("color0", color0)
         shader.v3f("color1", color1)
@@ -63,9 +61,8 @@ open class Texture3DBTMaterial : Material() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is Texture3DBTMaterial) return
-        dst.color0.set(color0)
-        dst.color1.set(color1)
-        dst.size.set(size)
+        dst.color0 = color0
+        dst.color1 = color1
         // texture cannot be simply copied
     }
 }

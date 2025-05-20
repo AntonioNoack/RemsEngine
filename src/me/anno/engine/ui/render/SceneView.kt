@@ -13,8 +13,8 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX
 import me.anno.engine.ui.vr.VRRenderingRoutine
+import me.anno.gpu.GFX
 import me.anno.graph.visual.Graph
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
@@ -83,6 +83,18 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
 
         fun testSceneWithUI(title: String, prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
             testSceneWithUI(title, prefab.createInstance(), init)
+        }
+
+        fun testSceneWithUI(title: String, source: FileReference, renderMode: RenderMode) {
+            testSceneWithUI(title, source) {
+                (it.editControls as DraggingControls).settings.renderMode = renderMode
+            }
+        }
+
+        fun testSceneWithUI(title: String, prefab: PrefabSaveable, renderMode: RenderMode) {
+            testSceneWithUI(title, prefab) {
+                (it.editControls as DraggingControls).settings.renderMode = renderMode
+            }
         }
 
         fun testSceneWithUI(title: String, scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {

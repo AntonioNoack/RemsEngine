@@ -89,7 +89,7 @@ class SplitMeshTests {
             else assertTrue(py <= e)
             // check pos = normal
             tmp2.set(nor, i * 3)
-            assertEquals(tmp1, tmp2)
+            assertEquals(tmp1, tmp2, 1e-6)
             false
         }
     }

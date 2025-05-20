@@ -6,7 +6,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.forAllComponents
-import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.System
@@ -108,12 +107,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             nonStaticRigidBodies.remove(entity)
         } else {
             nonStaticRigidBodies[entity] = bodyWithScale
-        }
-    }
-
-    fun invalidateRecursively(entity: Entity) {
-        entity.forAllComponentsInChildren(rigidComponentClass) { comp ->
-            getInit(comp.entity!!)
         }
     }
 
@@ -331,7 +324,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                         addEvent { FrameTimings.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
                     }
                 }
-            } catch (e: InterruptedException) {
+            } catch (_: InterruptedException) {
                 // we were stopped, which is fine
             } finally {
                 workerThread = null

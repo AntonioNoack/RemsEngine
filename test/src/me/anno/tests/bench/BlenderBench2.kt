@@ -12,6 +12,7 @@ import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 
 fun main() {
@@ -20,25 +21,23 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     OfficialExtensions.initForTests()
     val clock = Clock("BlenderBench2")
-    LogManager.disableLogger("BlenderShaderTree")
-    LogManager.disableLogger("BlenderFile")
-    LogManager.disableLogger("BlockTable")
-    val source = downloads.getChild("The Junk Shop.blend")
-    val bytes = source.readByteBufferSync(true)
-
-    clock.benchmark(1, 50, "Loading") {
-        val folder = BlenderReader.readAsFolder(source, bytes)
-        val prefab = (folder.getChild("Scene.json") as PrefabReadable).readPrefab()
-        val scene = prefab.getSampleInstance() as Entity
-        var done = false
-        AssetThumbnails.generateEntityFrame(source, InvalidKey, 64, scene) { result, exc ->
-            done = true
-            result?.destroy()
-            exc?.printStackTrace()
+    LogManager.disableLoggers("BlenderShaderTree,BlenderFile,BlockTable")
+    val source = downloads.getChild("3d/TheJunkShop/The Junk Shop.blend")
+    source.readByteBuffer(true, Callback.onSuccess { buffer ->
+        clock.benchmark(1, 50, "Loading") {
+            val folder = BlenderReader.readAsFolder(source, buffer)
+            val prefab = (folder.getChild("Scene.json") as PrefabReadable).readPrefab()
+            val scene = prefab.getSampleInstance() as Entity
+            var done = false
+            AssetThumbnails.generateEntityFrame(source, InvalidKey, 64, scene) { result, exc ->
+                done = true
+                result?.destroy()
+                exc?.printStackTrace()
+            }
+            waitUntil(true) { done }
+            // reset caches
+            ImageCache.clear()
+            TextureCache.clear()
         }
-        waitUntil(true) { done }
-        // reset caches
-        ImageCache.clear()
-        TextureCache.clear()
-    }
+    })
 }

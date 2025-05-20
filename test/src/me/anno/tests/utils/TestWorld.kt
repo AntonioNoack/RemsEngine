@@ -143,8 +143,8 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         texture.createMonochrome { x, y, z -> getElementAt(x0 + x, y0 + y, z0 + z) }
         texture.clamping(Clamping.CLAMP)
         val material = Texture3DBTMaterial()
-        material.color0 = dirtColor.toVecRGB()
-        material.color1 = grassColor.toVecRGB()
+        dirtColor.toVecRGB(material.color0)
+        grassColor.toVecRGB(material.color1)
         material.limitColors(2)
         material.blocks = texture
         return createCube(sx, sy, sz, material)

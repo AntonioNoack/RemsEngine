@@ -403,10 +403,7 @@ object BlenderMeshConverter {
         }
         prefab["positions"] = positions2.toFloatArray()
         prefab["uvs"] = uvs2.toFloatArray()
-        if (normals2 != null) {
-            prefab["normals"] = normals2.toFloatArray()
-            LOGGER.debug("Normals: ${normals2.toFloatArray().joinToString()}")
-        }
+        if (normals2 != null) prefab["normals"] = normals2.toFloatArray()
         if (boneWeights2 != null && boneIndices2 != null) {
             prefab["boneWeights"] = boneWeights2.toFloatArray()
             prefab["rawBoneIndices"] = boneIndices2.toIntArray() // these need to be mapped

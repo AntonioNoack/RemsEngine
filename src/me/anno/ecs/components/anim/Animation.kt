@@ -26,6 +26,19 @@ import org.joml.Matrix4x3f
 abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     companion object {
         private val LOGGER = LogManager.getLogger(Animation::class)
+
+        data class FrameIndex(val fraction: Float, val index0: Int, val index1: Int)
+
+        fun calculateMonotonousTime(frameIndex: Float, frameCount: Int): FrameIndex {
+
+            val timeF = fract(frameIndex / frameCount) * frameCount
+
+            val index0 = timeF.toInt() % frameCount
+            val index1 = (index0 + 1) % frameCount
+
+            val fraction = fract(timeF)
+            return FrameIndex(fraction, index0, index1)
+        }
     }
 
     constructor() : super()
@@ -44,18 +57,6 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     @DebugProperty
     abstract val numFrames: Int
-
-    fun calculateMonotonousTime(frameIndex: Float, frameCount: Int): Triple<Float, Int, Int> {
-
-        val timeF = fract(frameIndex / frameCount) * frameCount
-
-        val index0 = timeF.toInt() % frameCount
-        val index1 = (index0 + 1) % frameCount
-
-        val fraction = fract(timeF)
-
-        return Triple(fraction, index0, index1)
-    }
 
     abstract fun getMatrices(frameIndex: Float, dst: List<Matrix4x3f>): List<Matrix4x3f>?
     abstract fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f>?

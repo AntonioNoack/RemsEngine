@@ -21,7 +21,7 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
         private val LOGGER = LogManager.getLogger(LinkFileReference::class)
     }
 
-    private val original: FileReference
+    val original: FileReference
         get() {
             val file = getRealReference(absolutePath)
             if (file is LinkFileReference) {

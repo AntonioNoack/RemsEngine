@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.io.files.LinkFileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.WebRef
 import me.anno.utils.assertions.assertEquals
@@ -11,9 +12,17 @@ class WebRefTest {
     @Suppress("PrivatePropertyName")
     private val LOGGER = LogManager.getLogger(WebRefTest::class)
 
+    private fun getWebRef(path: String): WebRef {
+        return when (val file = getReference(path)) {
+            is LinkFileReference -> file.original as WebRef
+            is WebRef -> file
+            else -> throw NotImplementedError(file.javaClass.name)
+        }
+    }
+
     @Test
     fun testGoogleURL() {
-        val file = getReference("https://www.google.com/search?q=search&oq=search#hash") as WebRef
+        val file = getWebRef("https://www.google.com/search?q=search&oq=search#hash")
         assertTrue(file.exists)
         LOGGER.info(file.lastModified)
         LOGGER.info(file.length())
@@ -23,7 +32,7 @@ class WebRefTest {
 
     @Test
     fun testURLParsing() {
-        val file = getReference("https://www.google.com/search?q=search&oq=search#hash") as WebRef
+        val file = getWebRef("https://www.google.com/search?q=search&oq=search#hash")
         assertEquals("https://www.google.com/search", file.path)
         assertEquals(mapOf("q" to "search", "oq" to "search"), file.arguments)
         assertEquals("hash", file.hashbang)
