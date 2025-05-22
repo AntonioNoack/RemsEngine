@@ -156,7 +156,6 @@ object RaycastMesh {
         if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
             val blas = BLASCache.getBLAS(mesh)
             if (blas != null) {
-                println("Using BLAS")
                 raycastBLAS(blas, localStart, localDir, localEnd, globalTransform, query)
             } else {
                 raycastLocalMesh(

@@ -181,7 +181,7 @@ object UnityReader {
     private fun FileReference.getChildByNameOrFirst(name: String): FileReference? {
         if (name.isBlank2()) return this
         if (name == "0.json") return InvalidRef
-        val child = getChild(name)
+        val child = getChildImpl(name)
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
         var isSubMesh = false
@@ -192,7 +192,7 @@ object UnityReader {
         ) {
             isSubMesh = true
             val meshes = children.first()
-                .getChild("Meshes").listChildren()
+                .getChildImpl("Meshes").listChildren()
             if (meshes.size > 1) {
                 val id = name.substring(0, name.length - 5).toInt() - 4300000
                 // find submesh
