@@ -6,14 +6,17 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.games.trainbuilder.rail.CurvePiece
-import me.anno.games.trainbuilder.rail.PlacedRailPiece
+import me.anno.games.trainbuilder.rail.RailMap
 import me.anno.games.trainbuilder.rail.RailPiece
+import me.anno.games.trainbuilder.rail.RailPieces.curve10
+import me.anno.games.trainbuilder.rail.RailPieces.curve20
+import me.anno.games.trainbuilder.rail.RailPieces.curve40
+import me.anno.games.trainbuilder.rail.RailPieces.straight10
+import me.anno.games.trainbuilder.rail.RailPieces.straight5
 import me.anno.games.trainbuilder.rail.StraightPiece
 import me.anno.gpu.buffer.DrawMode
-import me.anno.graph.octtree.OctTree
+import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
-import kotlin.math.PI
 
 val debugMaterial = Material().apply {
     emissiveBase.set(1f, 5f, 5f)
@@ -38,36 +41,15 @@ fun debugRailMesh(piece: RailPiece): Mesh {
     return mesh
 }
 
-val straight5 = StraightPiece(straightRail5, Vector3d(), Vector3d(0.0, 0.0, -5.0))
-val straight10 = StraightPiece(straightRail10, Vector3d(), Vector3d(0.0, 0.0, -10.0))
-
-val curve10 = CurvePiece(curvedRail10, Vector3d(-10.0, 0.0, 0.0), 10.0, -PI * 0.5)
-val curve20 = CurvePiece(curvedRail20, Vector3d(-20.0, 0.0, 0.0), 20.0, -PI * 0.5)
-val curve40 = CurvePiece(curvedRail40, Vector3d(-40.0, 0.0, 0.0), 40.0, -PI * 0.5)
-
-class RailMap() : OctTree<PlacedRailPiece>(16) {
-    override fun createChild() = RailMap()
-    override fun getPoint(data: PlacedRailPiece) = data.start
-
-    fun register(placed: List<PlacedRailPiece>) {
-        for (i in placed.indices) {
-            val pieceI = placed[i]
-            add(pieceI)
-            add(pieceI.reversed as PlacedRailPiece)
-        }
-    }
-}
-
+/**
+ * Generate a course and run a train on it
+ * */
 fun main() {
-
-    // generate a simple course
-    // todo run a train on it
 
     OfficialExtensions.initForTests()
 
     val scene = Entity()
-
-    val map = RailMap()
+    val railMap = RailMap()
 
     val pieces = listOf(
 
@@ -98,10 +80,11 @@ fun main() {
         curve40.reversed
     )
 
+    val railEntity = Entity("Rail", scene)
     val placed = placeRail(Vector3d(), pieces)
     for (i in placed.indices) {
         val rail = placed[i]
-        Entity(scene)
+        Entity("Piece$i", railEntity)
             .add(MeshComponent(rail.meshFile))
             .add(MeshComponent(debugRailMesh(rail.original)))
             .setPosition(rail.position)
@@ -109,10 +92,11 @@ fun main() {
             .setScale(scale)
     }
 
-    map.register(placed)
+    railMap.register(placed)
 
-    // todo spawn train
-    // todo generate route for it...
+    // spawn train
+    val meshes = listOf(cargoTrainModels.first()) + createList(5, coalCarrierModels.first())
+    createTrain(scene, 0, meshes, placed, railMap)
 
     testSceneWithUI("Rail", scene)
 }

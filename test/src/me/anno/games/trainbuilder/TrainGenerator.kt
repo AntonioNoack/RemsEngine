@@ -6,7 +6,10 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.games.trainbuilder.rail.PlacedRailPiece
+import me.anno.games.trainbuilder.rail.RailMap
 import me.anno.games.trainbuilder.rail.RailPiece
+import me.anno.games.trainbuilder.rail.RailPieces.curve40
+import me.anno.games.trainbuilder.rail.RailPieces.straight10
 import me.anno.games.trainbuilder.rail.ReversedPiece
 import me.anno.games.trainbuilder.train.TrainController
 import me.anno.games.trainbuilder.train.TrainPoint
@@ -21,9 +24,11 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.random.Random
 
-val padding = 1.0
-val width = 100.0
+val couplingDistance = 1.0
 
+/**
+ * Merge a sequence of rail pieces into a continuous sequence with positions and rotations.
+ * */
 fun placeRail(start: Vector3d, pieces: List<RailPiece>): List<PlacedRailPiece> {
 
     val tmp = Vector3d()
@@ -62,8 +67,8 @@ fun indexPlusStep(index: Double, step: Double, pieces: List<RailPiece>): Double 
 fun createTrain(
     scene: Entity, k: Int,
     meshes: List<FileReference>,
-    controller: TrainController,
-    pieces: List<PlacedRailPiece>
+    pieces: List<PlacedRailPiece>,
+    railMap: RailMap,
 ) {
 
     val joined = Entity("Train$k", scene)
@@ -72,6 +77,8 @@ fun createTrain(
     var idealPos = 0.0
     var lastIdealPos = 0.0
 
+    val controller = TrainController()
+    controller.railMap = railMap
     controller.pathSegments.addAll(pieces)
 
     fun addFractionalPoint(fract: Double, waggonLength: Double): TrainPoint {
@@ -105,8 +112,8 @@ fun createTrain(
             else TrainSegment(p0, p1, visuals, offset)
         )
 
-        idealPos += length + padding
-        index0 = indexPlusStep(index0, length + padding, pieces)
+        idealPos += length + couplingDistance
+        index0 = indexPlusStep(index0, length + couplingDistance, pieces)
     }
 
     for (i in meshes.indices) {
@@ -132,11 +139,11 @@ fun createRail(scene: Entity, name: String, pieces: List<PlacedRailPiece>) {
 fun calculateTrainLength(meshes: List<FileReference>): Double {
     return meshes.sumOf {
         MeshCache[it]!!.getBounds().deltaZ.toDouble()
-    } * scale + padding * max(meshes.size - 1, 0)
+    } * scale + couplingDistance * max(meshes.size - 1, 0)
 }
 
 /**
- * create a series of trains programmatically
+ * Create a series of trains running on their own small circle.
  * */
 fun main() {
 
@@ -147,33 +154,42 @@ fun main() {
     var k = 0
     val random = Random(2634)
 
-    val map = RailMap()
+    val railMap = RailMap()
+
+    fun generateRail(meshes: List<FileReference>): List<PlacedRailPiece> {
+        val curve = curve40
+        val straight = straight10
+        val straightLength = calculateTrainLength(meshes) - 4 * curve.length
+        val numStraights = max(ceil(0.5f * straightLength / straight.length).toInt(), 0)
+        val halfNumRails = numStraights + 2
+        val numRails = halfNumRails * 2
+        val pieces = createList(numRails) {
+            if (it < 2 || it >= halfNumRails && it < halfNumRails + 2) curve
+            else straight
+        }
+        return placeRail(Vector3d(k * 100.0, 0.0, 0.0), pieces)
+    }
+
+    fun createTrain(meshes: List<FileReference>) {
+        val rail = generateRail(meshes)
+        createTrain(scene, k, meshes, rail, railMap)
+        createRail(scene, "Rail$k", rail)
+        railMap.register(rail)
+        k++
+    }
 
     fun createTrain(trains: List<FileReference>, carriers: List<FileReference>) {
         val train = trains.random(random)
         val numWaggons = random.nextInt(5, 10)
         val waggons = (0 until numWaggons).map { carriers.random(random) }
-        val railPiece = curve40
         val meshes = listOf(train) + waggons + train
-        val numRails1 = ceil(calculateTrainLength(meshes) / railPiece.length).toInt()
-        val straights = max((numRails1 - 4) * 3, 0)
-        val numRails2 = 4 + straights * 2
-        val pieces = createList(numRails2) {
-            if (it < 2 || it >= numRails2 / 2 && it < numRails2 / 2 + 2) curve40
-            else straight10
-        }
-        val rail = placeRail(Vector3d(k * width, 0.0, 0.0), pieces)
-        val controller = TrainController()
-        createTrain(scene, k, meshes, controller, rail)
-        createRail(scene, "Rail$k", rail)
-        controller.railMap = map
-        map.register(rail)
-        k++
+        createTrain(meshes)
     }
 
     for (type in cargoCarriers) {
         createTrain(cargoTrainModels, type)
     }
+
     createTrain(personTrainModels, personCarrierModels)
     createTrain(metroTrains, metroCarriers)
 

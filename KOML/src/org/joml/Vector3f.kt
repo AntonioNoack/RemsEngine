@@ -7,6 +7,7 @@ import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.floor
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -116,7 +117,7 @@ open class Vector3f(
         return dst.set(x * v.x, y * v.y, z * v.z)
     }
 
-    fun mul(v: Double, dst: Vector3d ): Vector3d {
+    fun mul(v: Double, dst: Vector3d): Vector3d {
         return dst.set(x * v, y * v, z * v)
     }
 
@@ -384,9 +385,6 @@ open class Vector3f(
         return dst.set(x, y, z)
     }
 
-    fun lengthSquared() = x * x + y * y + z * z
-    fun length(): Float = length(x, y, z)
-
     @JvmOverloads
     fun normalize(dst: Vector3f = this) = mul(1f / length(), dst)
 
@@ -404,15 +402,19 @@ open class Vector3f(
         return dst.set(rx, ry, rz)
     }
 
+    fun length(): Float = length(x, y, z)
+    fun lengthSquared() = x * x + y * y + z * z
     fun distance(v: Vector3f) = distance(v.x, v.y, v.z)
-    fun distance(vx: Float, vy: Float, vz: Float): Float {
-        return distance(x, y, z, vx, vy, vz)
-    }
-
+    fun distance(vx: Float, vy: Float, vz: Float): Float = distance(x, y, z, vx, vy, vz)
     fun distanceSquared(v: Vector3f) = distanceSquared(v.x, v.y, v.z)
-    fun distanceSquared(vx: Float, vy: Float, vz: Float): Float {
-        return distanceSquared(x, y, z, vx, vy, vz)
-    }
+    fun distanceSquared(vx: Float, vy: Float, vz: Float): Float = distanceSquared(x, y, z, vx, vy, vz)
+
+    fun lengthXZ(): Float = Vector2f.length(x, z)
+    fun lengthXZSquared(): Float = Vector2f.lengthSquared(x, z)
+    fun distanceXZ(v: Vector3f): Float = hypot(x - v.x, z - v.z)
+    fun distanceXZ(vx: Float, vz: Float): Float = hypot(x - vx, z - vz)
+    fun distanceXZSquared(v: Vector3f): Float = Vector2f.lengthSquared(x - v.x, z - v.z)
+    fun distanceXZSquared(vx: Float, vz: Float): Float = Vector2f.lengthSquared(x - vx, z - vz)
 
     fun dot(v: Vector3f): Float = dot(v.x, v.y, v.z)
     fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)

@@ -3,12 +3,11 @@ package me.anno.games.trainbuilder.train
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.systems.OnUpdate
-import me.anno.games.trainbuilder.RailMap
 import me.anno.games.trainbuilder.rail.PlacedRailPiece
+import me.anno.games.trainbuilder.rail.RailMap
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toIntOr
-import org.joml.Vector2d.Companion.length
 import org.joml.Vector3d
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -133,7 +132,7 @@ class TrainController : Component(), OnUpdate {
         for (i in 1 until points.size) {
             val curr = points[i]
 
-            val step = prev.position.distance(curr.position) - curr.distanceToPrevious
+            val step = prev.position.distanceXZ(curr.position) - curr.distanceToPrevious
             moveIndex(curr, step)
 
             prev = curr
@@ -144,15 +143,15 @@ class TrainController : Component(), OnUpdate {
         val tmp = JomlPools.vec3d.create()
         for (si in segments.indices) {
             val segment = segments[si]
-            val a = segment.pa.position
-            val b = segment.pb.position
-            val rx = atan2(a.y - b.y, length(a.x - b.x, a.z - b.z)).toFloat()
-            val ry = atan2(a.x - b.x, a.z - b.z)
+            val front = segment.frontAnchor.position
+            val back = segment.backAnchor.position
+            val rx = atan2(front.y - back.y, front.distanceXZ(back)).toFloat()
+            val ry = atan2(front.x - back.x, front.z - back.z)
             val offset = segment.offset.rotateY(ry, tmp)
             segment.visuals.setPosition(
-                (a.x + b.x) * 0.5 + offset.x,
-                (a.y + b.y * 0.5) + offset.y,
-                (a.z + b.z) * 0.5 + offset.z
+                (front.x + back.x) * 0.5 + offset.x,
+                (front.y + back.y) * 0.5 + offset.y,
+                (front.z + back.z) * 0.5 + offset.z
             ).setRotation(rx, ry.toFloat(), 0f)
         }
         JomlPools.vec3d.sub(1)
