@@ -29,7 +29,7 @@ fun testComplex() {
     }
 
     val meshSphere = IcosahedronModel.createIcosphere(5)
-    meshSphere.material = glass.ref
+    meshSphere.materials = listOf(glass.ref)
     scene.add(MeshComponent(meshSphere))
 
     // doesn't support backside rendering yet

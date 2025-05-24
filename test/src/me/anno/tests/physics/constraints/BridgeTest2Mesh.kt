@@ -11,6 +11,7 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.lists.Lists.createList
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -57,7 +58,7 @@ fun createBridgeMeshes(n: Int, dx: Float, dy: Float, dxHalfOffset: Float): List<
                 getBridgePoint(i, dy, n),
             ).onEach { it.sub(center) }, -dx + dxI, dx + dxI
         )
-        mesh.material = (if (i.hasFlag(1)) m0 else m1).ref
+        mesh.materials = (if (i.hasFlag(1)) m0 else m1).ref.wrap()
         val pos = Vector3d(0f, center.y, center.x)
         mesh to pos
     }

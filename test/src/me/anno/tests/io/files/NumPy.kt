@@ -131,7 +131,7 @@ fun main() {
         material.diffuseMap = src.getSibling("${name}_diffuse.png")
         material.normalMap = src.getSibling("${name}_normal.png")
         material.occlusionMap = src.getSibling("${name}_ao.png")
-        mesh.material = material.ref
+        mesh.materials = listOf(material.ref)
 
         testSceneWithUI("NumPy Fedora", mesh)
     }

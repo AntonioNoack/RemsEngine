@@ -96,7 +96,7 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
             uvs[j++] = sign(flat11[i + 1]) * 0.5f + 0.5f
         }
         mesh.positions = pos
-        mesh.material = material.ref
+        mesh.materials = listOf(material.ref)
         mesh.uvs = uvs
     }
 

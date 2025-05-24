@@ -16,6 +16,7 @@ import me.anno.tests.gfx.initWithGFX
 import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.utils.Color
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.VideoBackgroundTask
 import me.anno.video.VideoCreator
@@ -59,7 +60,7 @@ fun main() {
     }
 
     val mesh = Shapes.flatCube.front.clone() as Mesh
-    mesh.material = Material.diffuse(mediumAquamarine or Color.black).ref
+    mesh.materials = Material.diffuse(mediumAquamarine or Color.black).ref.wrap()
     val vc = VideoCreator(w, h, fps, numFrames, FFMPEGEncodingBalance.M0, FFMPEGEncodingType.DEFAULT, 10, true, dst)
     val vbt = object : VideoBackgroundTask(vc, samples) {
         override fun getMotionBlurSteps(time: Double): Int = 5

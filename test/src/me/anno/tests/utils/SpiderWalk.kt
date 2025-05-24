@@ -33,6 +33,7 @@ import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.recast.NavMeshDebugComponent
 import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4x3
 import org.joml.Vector3d
@@ -326,10 +327,10 @@ fun main() {
 
     if (false) scene.add(MeshComponent(toMesh(meshData)!!.apply {
         makeLineMesh(true)
-        material = Material().apply {
+        materials = Material().apply {
             cullMode = CullMode.BOTH
             diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
-        }.ref
+        }.ref.wrap()
         positions!!.apply {
             for (i in indices step 3) {
                 this[i + 1] += 0.03f

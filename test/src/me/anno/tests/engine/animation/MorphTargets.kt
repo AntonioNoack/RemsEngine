@@ -165,7 +165,7 @@ fun main() {
 
     val mesh = MorphMesh()
     IcosahedronModel.createIcosphere(4, 1f, mesh)
-    mesh.material = material.ref
+    mesh.materials = listOf(material.ref)
 
     mesh.morphTargets = listOf(
         sphereToCube(mesh),

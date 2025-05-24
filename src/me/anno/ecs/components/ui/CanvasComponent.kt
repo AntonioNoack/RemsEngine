@@ -184,7 +184,7 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
             material.diffuseMap = texturePath
             material.emissiveMap = texturePath
             framebuffer = fb
-            internalMesh.material = this.material.ref
+            internalMesh.materials = listOf(material.ref)
         }
         return fb
     }

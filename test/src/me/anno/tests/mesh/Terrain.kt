@@ -19,6 +19,6 @@ fun main() {
     val material = AutoTileableMaterial()
     material.diffuseMap = pictures.getChild("textures/grass.jpg")
     material.scale.set(10.0)
-    mesh.material = material.ref
+    mesh.materials = listOf(material.ref)
     testSceneWithUI("Terrain", mesh)
 }

@@ -105,7 +105,8 @@ fun meshToPathProfile(mesh: Mesh): List<ColoredProfile> {
         }
         val profile = builder.build()
         return if (profile != null) {
-            listOf(ColoredProfile(profile, mesh.material))
+            val materialRef = mesh.materials.firstOrNull() ?: InvalidRef
+            listOf(ColoredProfile(profile, materialRef))
         } else emptyList()
     }
 }

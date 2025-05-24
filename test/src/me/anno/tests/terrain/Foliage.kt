@@ -45,6 +45,7 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
+import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
@@ -236,10 +237,10 @@ fun main() {
     val invMaxDensity = 1f / maxDensity
 
     val terrainMesh = Mesh()
-    terrainMesh.material = Material().apply {
+    terrainMesh.materials = Material().apply {
         diffuseBase.set(0.02f, 0.22f, 0.02f, 1f)
         diffuseMap = densitySource
-    }.ref
+    }.ref.wrap()
 
     val cellSize = size * invMaxDensity / (terrainSize - 1)
     RectangleTerrainModel.generateRegularQuadHeightMesh(
@@ -272,16 +273,16 @@ fun main() {
         list.add(sv1, 1f)
 
         val grassTranslucency = 0.9f
-        mesh0.material = Material().apply {
+        mesh0.materials = Material().apply {
             cullMode = CullMode.BOTH
             translucency = grassTranslucency
             shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), mesh0, sv0.renderView)
-        }.ref
-        mesh1.material = Material().apply {
+        }.ref.wrap()
+        mesh1.materials = Material().apply {
             cullMode = CullMode.BOTH
             translucency = grassTranslucency
             shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), mesh1, sv0.renderView)
-        }.ref
+        }.ref.wrap()
 
         class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {
             override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {

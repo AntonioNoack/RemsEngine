@@ -246,8 +246,7 @@ open class Material : PrefabSaveable(), Renderable {
     override fun fill(pipeline: Pipeline, transform: Transform) {
         val mesh = Pipeline.sampleMesh
         val stage = pipeline.findStage(this)
-        val materialSource = root.ref
-        mesh.material = materialSource
+        mesh.materials = listOf(root.ref)
         stage.add(Pipeline.sampleMeshComponent, mesh, transform, this, 0)
     }
 

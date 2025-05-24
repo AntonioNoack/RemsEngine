@@ -499,7 +499,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         material.shader = shader
         material.shaderOverrides.clear()
         material.shaderOverrides.putAll(overrides)
-        data.material = material.ref
+        data.materials = listOf(material.ref)
     }
 
     open fun createShader(): Pair<Map<String, TypeValue>, BaseShader> {

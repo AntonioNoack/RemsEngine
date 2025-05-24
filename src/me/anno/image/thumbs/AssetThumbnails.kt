@@ -243,7 +243,7 @@ object AssetThumbnails {
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
                         val mesh = UVSphereModel.sphereMesh
-                        mesh.material = materials[materialIndex]
+                        mesh.materials = listOf(materials[materialIndex])
                         mesh.drawAssimp(
                             matCameraMatrix,
                             matModelMatrix,
@@ -329,7 +329,7 @@ object AssetThumbnails {
             ) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {
                     val mesh = UVSphereModel.sphereMesh
-                    mesh.material = srcFile
+                    mesh.materials = listOf(srcFile)
                     mesh.drawAssimp(
                         matCameraMatrix,
                         matModelMatrix,

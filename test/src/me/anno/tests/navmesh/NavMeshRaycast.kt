@@ -26,6 +26,7 @@ import me.anno.recast.NavMeshDebug.toMesh
 import me.anno.recast.NavMeshDebugComponent
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.res
+import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.Vector3d
 import org.recast4j.detour.*
 import kotlin.math.atan
@@ -127,10 +128,10 @@ fun main() {
 
         // visualize navmesh
         if (false) world.add(MeshComponent(toMesh(navMeshData.meshData, Mesh())!!.apply {
-            material = Material().apply {
+            materials = Material().apply {
                 cullMode = CullMode.BOTH
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
-            }.ref
+            }.ref.wrap()
             positions!!.apply {
                 for (i in indices step 3) {
                     this[i + 1] += 0.03f

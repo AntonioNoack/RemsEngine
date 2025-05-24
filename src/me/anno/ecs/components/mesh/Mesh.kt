@@ -165,14 +165,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @Type("List<Material/Reference>")
     override var materials: List<FileReference> = defaultMaterials
 
-    @HideInInspector
-    @NotSerializedProperty
-    var material: FileReference
-        get() = materials.firstOrNull() ?: InvalidRef
-        set(value) {
-            materials = value.wrap()
-        }
-
     /**
      * one index per triangle;
      * not a traditional MeshAttribute

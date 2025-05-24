@@ -108,7 +108,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             previewData = mesh
         }
         val mesh = previewData!!
-        mesh.material = material.ref
+        mesh.materials = listOf(material.ref)
         pipeline.fill(mesh)
     }
 

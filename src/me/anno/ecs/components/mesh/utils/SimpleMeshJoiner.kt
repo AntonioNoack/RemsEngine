@@ -17,8 +17,9 @@ class SimpleMeshJoiner(val joinMaterials: Boolean, hasColors: Boolean, hasUVs: B
 
     override fun getVertexColor(element: Mesh): Int {
         return if (joinMaterials) {
-            val mat = MaterialCache[element.material] ?: Material.defaultMaterial
-            mat.diffuseBase.toARGB()
+            val materialRef = element.materials.firstOrNull()
+            val material = MaterialCache[materialRef] ?: Material.defaultMaterial
+            material.diffuseBase.toARGB()
         } else white
     }
 

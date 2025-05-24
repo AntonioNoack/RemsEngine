@@ -166,7 +166,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             mesh.setUnsafe("positions", pos)
             mesh.setUnsafe("normals", nor)
             mesh.setUnsafe("uvs", uvs)
-            meshI.material = lastMaterial
+            meshI.materials = listOf(lastMaterial)
             meshI.positions = pos
             meshI.normals = nor
             meshI.uvs = uvs

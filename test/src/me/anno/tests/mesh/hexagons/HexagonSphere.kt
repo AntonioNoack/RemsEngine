@@ -29,6 +29,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import kotlin.concurrent.thread
@@ -287,15 +288,15 @@ fun main() {
     var n = 4
 
     val lineMesh = Mesh()
-    lineMesh.material = Material().apply {
+    lineMesh.materials = Material().apply {
         diffuseBase.set(0f, 0f, 0f)
         emissiveBase.set(0.5f, 0.7f, 1.0f)
-    }.ref
+    }.ref.wrap()
 
     val niceMesh = Mesh()
-    niceMesh.material = Material().apply {
+    niceMesh.materials = Material().apply {
         roughnessMinMax.set(0.1f)
-    }.ref
+    }.ref.wrap()
 
     val simpleMesh = Mesh()
     val connMesh = Mesh()

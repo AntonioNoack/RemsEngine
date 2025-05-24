@@ -23,7 +23,7 @@ fun createMesh(color: Int): Mesh {
     val material = Material()
     color.toVecRGBA(material.diffuseBase)
     material.cullMode = CullMode.BOTH
-    mesh.material = material.ref
+    mesh.materials = listOf(material.ref)
     return mesh
 }
 
