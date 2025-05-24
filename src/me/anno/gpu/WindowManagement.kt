@@ -120,6 +120,7 @@ object WindowManagement {
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
+            LOGGER.info("glfwTerminate")
             GLFW.glfwTerminate()
         }
     }

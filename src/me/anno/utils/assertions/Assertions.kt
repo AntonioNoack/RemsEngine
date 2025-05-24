@@ -161,11 +161,11 @@ fun <V> assertContentEquals(expected: List<V>, actual: List<V>, message: String 
 }
 
 fun assertEquals(expected: Int, actual: Int, message: String = "expected equal values") {
-    assertTrue(expected == actual) { "$message, $expected != $actual" }
+    assertTrue(expected == actual) { "$message, expected != actual: $expected != $actual" }
 }
 
 fun assertEquals(expected: Char, actual: Char, message: String = "expected equal values") {
-    assertTrue(expected == actual) { "$message, $expected != $actual" }
+    assertTrue(expected == actual) { "$message, expected != actual: $expected != $actual" }
 }
 
 fun assertEquals(
@@ -173,13 +173,13 @@ fun assertEquals(
     message: String = "expected equal values"
 ) {
     assertTrue(abs(expected - actual) <= absoluteThreshold) {
-        "$message, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
+        "$message, |expected - actual| = |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
     }
 }
 
 fun assertEquals(expected: Double, actual: Double, absoluteThreshold: Double, message: () -> String) {
     assertTrue(abs(expected - actual) <= absoluteThreshold) {
-        "${message()}, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
+        "${message()}, |expected - actual| = |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
     }
 }
 
@@ -189,7 +189,7 @@ fun assertEquals(expected: Float, actual: Float, absoluteThreshold: Float, messa
 
 fun assertEquals(expected: Long, actual: Long, absoluteThreshold: Long, message: String = "expected equal values") {
     assertTrue(abs(expected - actual) <= absoluteThreshold) {
-        "$message, |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
+        "$message, |expected - actual| = |$expected - $actual| = ${abs(expected - actual)} > $absoluteThreshold"
     }
 }
 

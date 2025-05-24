@@ -11,14 +11,17 @@ import me.anno.games.trainbuilder.rail.RailPiece
 import me.anno.games.trainbuilder.rail.RailPieces.curve40
 import me.anno.games.trainbuilder.rail.RailPieces.straight10
 import me.anno.games.trainbuilder.rail.ReversedPiece
+import me.anno.games.trainbuilder.rail.StraightPiece
 import me.anno.games.trainbuilder.train.TrainController
 import me.anno.games.trainbuilder.train.TrainPoint
 import me.anno.games.trainbuilder.train.TrainSegment
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
+import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -39,13 +42,19 @@ fun placeRail(start: Vector3d, pieces: List<RailPiece>): List<PlacedRailPiece> {
         val piece = pieces[i]
         val isBackwards = piece is ReversedPiece
         if (isBackwards) angle -= piece.angle
+        val isBackwardsRamp = isBackwards && piece.original is StraightPiece
+        if (isBackwardsRamp) angle += PI
+
         start.sub(piece.interpolate(0.0, tmp).rotateY(angle)) // optional, because all pieces start at 0
 
         result.add(PlacedRailPiece(piece, Vector3d(start), angle))
 
         start.add(piece.interpolate(1.0, tmp).rotateY(angle))
-        angle += if (!isBackwards) piece.angle
-        else 2.0 * piece.angle
+        angle += when {
+            isBackwardsRamp -> 2.0 * piece.angle + PI
+            isBackwards -> 2.0 * piece.angle
+            else -> piece.angle
+        }
     }
 
     return result
@@ -85,6 +94,7 @@ fun createTrain(
         val step = fract * waggonLength
         val indexI = indexPlusStep(index0, step, pieces)
         val idealPosI = idealPos + step
+        assertTrue(idealPosI > lastIdealPos)
         val pt = TrainPoint(
             indexI, idealPosI - lastIdealPos,
             getPointAt(indexI, pieces)

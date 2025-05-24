@@ -8,7 +8,7 @@ val scale = 100f
 val folder = getReference("E:/Assets/Unity/Simple/Trains.unitypackage/Assets/SimpleTrains")
 val vehiclesFolder = folder.getChild("Prefabs/Vehicles")
 
-fun List<String>.mapChildren(folder: FileReference): List<FileReference>{
+fun List<String>.mapChildren(folder: FileReference): List<FileReference> {
     return map { name -> folder.getChild(name) }
 }
 
@@ -108,7 +108,7 @@ val envModels = listOf(
     "SM_Env_Track_Raised_Bridge_End_01.prefab", "SM_Env_Track_Raised_Bridge_Straight_01.prefab",
     "SM_Env_Track_Raised_Bridge_Straight_02.prefab", "SM_Env_Track_Raised_Bridge_Straight_03.prefab",
     "SM_Env_Track_Raised_Corner_01.prefab", "SM_Env_Track_Raised_Straight_01.prefab",
-    "SM_Env_Track_Ramp_01.prefab", "SM_Env_Track_Ridge_Bridge_01.prefab", "SM_Env_Track_Ridge_Corner_01.prefab",
+    "SM_Env_Track_Ridge_Bridge_01.prefab", "SM_Env_Track_Ridge_Corner_01.prefab",
     "SM_Env_Track_Ridge_Straight_01.prefab", "SM_Env_Track_Ridge_Transition_01.prefab",
     "SM_Env_Track_RoadCrossing_01.prefab", "SM_Env_Track_Split_01.prefab",
     "SM_Env_Track_Switch_01.prefab", "SM_Env_Track_Tunnel_01.prefab",
@@ -121,3 +121,4 @@ val straightRail5 = envFolder.getChild("SM_Env_Track_Straight_02.prefab")
 val curvedRail40 = envFolder.getChild("SM_Env_Track_Corner_01.prefab")
 val curvedRail20 = envFolder.getChild("SM_Env_Track_Corner_02.prefab")
 val curvedRail10 = envFolder.getChild("SM_Env_Track_Corner_03.prefab")
+val rampRail40 = envFolder.getChild("SM_Env_Track_Ramp_01.prefab")

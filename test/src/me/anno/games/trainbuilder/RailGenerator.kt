@@ -11,6 +11,7 @@ import me.anno.games.trainbuilder.rail.RailPiece
 import me.anno.games.trainbuilder.rail.RailPieces.curve10
 import me.anno.games.trainbuilder.rail.RailPieces.curve20
 import me.anno.games.trainbuilder.rail.RailPieces.curve40
+import me.anno.games.trainbuilder.rail.RailPieces.ramp40
 import me.anno.games.trainbuilder.rail.RailPieces.straight10
 import me.anno.games.trainbuilder.rail.RailPieces.straight5
 import me.anno.games.trainbuilder.rail.StraightPiece
@@ -55,6 +56,7 @@ fun main() {
 
         straight5,
         straight10,
+        ramp40,
         straight10,
         straight10,
 
@@ -70,6 +72,7 @@ fun main() {
         curve10.reversed,
 
         straight10,
+        ramp40.reversed,
         straight10,
 
         curve40.reversed,
