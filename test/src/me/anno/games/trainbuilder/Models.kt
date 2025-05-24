@@ -1,7 +1,16 @@
 package me.anno.games.trainbuilder
 
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.material.MaterialCache
+import me.anno.gpu.CullMode
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.structures.maps.LazyMap
 
 val scale = 100f
 
@@ -110,11 +119,31 @@ val envModels = listOf(
     "SM_Env_Track_Raised_Corner_01.prefab", "SM_Env_Track_Raised_Straight_01.prefab",
     "SM_Env_Track_Ridge_Bridge_01.prefab", "SM_Env_Track_Ridge_Corner_01.prefab",
     "SM_Env_Track_Ridge_Straight_01.prefab", "SM_Env_Track_Ridge_Transition_01.prefab",
-    "SM_Env_Track_RoadCrossing_01.prefab", "SM_Env_Track_Split_01.prefab",
-    "SM_Env_Track_Switch_01.prefab", "SM_Env_Track_Tunnel_01.prefab",
+    "SM_Env_Track_RoadCrossing_01.prefab",
+    "SM_Env_Track_Tunnel_01.prefab",
     "SM_Env_Tree_01.prefab", "SM_Env_Tree_02.prefab", "SM_Env_Tree_03.prefab", "SM_Env_Tree_04.prefab",
     "SM_Env_UnderpassEntrance_01.prefab"
 )
+
+private val flippedMaterials = LazyMap<FileReference, FileReference> { src ->
+    val original = MaterialCache[src] ?: defaultMaterial
+    val flipped = original.clone() as Material
+    flipped.cullMode = CullMode.BOTH
+    flipped.ref
+}
+
+fun flipX(file: FileReference): FileReference {
+    val original = MeshCache[file]!!
+    val flippedMaterials = original.materials
+        .map { src -> flippedMaterials[src] }
+    // todo why are the normals flipped???
+    return Entity()
+        .setScale(-1f, 1f, 1f)
+        .add(MeshComponent(file).apply {
+            materials = flippedMaterials
+        })
+        .ref
+}
 
 val straightRail10 = envFolder.getChild("SM_Env_Track_Straight_01.prefab")
 val straightRail5 = envFolder.getChild("SM_Env_Track_Straight_02.prefab")
@@ -122,3 +151,10 @@ val curvedRail40 = envFolder.getChild("SM_Env_Track_Corner_01.prefab")
 val curvedRail20 = envFolder.getChild("SM_Env_Track_Corner_02.prefab")
 val curvedRail10 = envFolder.getChild("SM_Env_Track_Corner_03.prefab")
 val rampRail40 = envFolder.getChild("SM_Env_Track_Ramp_01.prefab")
+
+val splitRail30 = envFolder.getChild("SM_Env_Track_Split_01.prefab")
+val splitRail30X = flipX(splitRail30)
+
+val switchRail30 = envFolder.getChild("SM_Env_Track_Switch_01.prefab")
+
+val emptyMesh = Mesh().ref

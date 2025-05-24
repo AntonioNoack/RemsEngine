@@ -4,14 +4,12 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.systems.OnUpdate
 import me.anno.games.trainbuilder.rail.PlacedRailPiece
-import me.anno.games.trainbuilder.rail.RailMap
 import me.anno.games.trainbuilder.rail.RailPiece
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.SegmentLists.segmentStep
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toIntOr
-import org.joml.Vector3d
 import kotlin.math.atan2
 
 class TrainController : Component(), OnUpdate {
@@ -19,8 +17,6 @@ class TrainController : Component(), OnUpdate {
     val pathSegments = ArrayList<PlacedRailPiece>()
     val points = ArrayList<TrainPoint>()
     val segments = ArrayList<TrainSegment>()
-
-    var railMap: RailMap? = null
 
     var speed = 10.0
 
@@ -38,60 +34,38 @@ class TrainController : Component(), OnUpdate {
         }
     }
 
-    private fun eq(a: Vector3d, b: Vector3d): Boolean {
-        return a.distanceSquared(b) < 1.0
-    }
-
-    private fun findNextSegment(): Int {
-        val first = pathSegments.firstOrNull()
-            ?: return 0
-        val anchor = first.start
-        val tolerance = 0.5
-        var next: PlacedRailPiece? = null
-        railMap?.query(Vector3d(anchor).sub(tolerance), Vector3d(anchor).add(tolerance)) { candidate ->
-            if (eq(candidate.start, anchor) && !eq(candidate.end, first.end)) {
-                next = candidate.reversed as PlacedRailPiece
-                true
-            } else false
-        }
-        if (next != null) {
+    private fun addFirstSegment(): Int {
+        val oldFirst = pathSegments.firstOrNull()
+        val newFirst = oldFirst?.prevPiece
+        if (newFirst != null) {
             // insert next element at the start
-            pathSegments.add(0, next)
+            pathSegments.add(0, newFirst)
             // accordingly, increment all indices by 1
             for (i in points.indices) {
                 points[i].index++
             }
         }
-        return (next != null).toInt()
+        return (newFirst != null).toInt()
     }
 
-    private fun findLastSegment(): Int {
-        val first = pathSegments.lastOrNull()
-            ?: return 0
-        val anchor = first.end
-        val tolerance = 0.5
-        var last: PlacedRailPiece? = null
-        railMap?.query(Vector3d(anchor).sub(tolerance), Vector3d(anchor).add(tolerance)) { candidate ->
-            if (eq(candidate.start, anchor) && !eq(candidate.end, first.start)) {
-                last = candidate
-                true
-            } else false
-        }
-        if (last != null) {
+    private fun addLastSegment(): Int {
+        val oldLast = pathSegments.lastOrNull()
+        val newLast: PlacedRailPiece? = oldLast?.nextPiece
+        if (newLast != null) {
             // insert next element at the start
-            pathSegments.add(last)
+            pathSegments.add(newLast)
             // indices can stay the same
         }
-        return (last != null).toInt()
+        return (newLast != null).toInt()
     }
 
     private fun moveIndex(point: TrainPoint, step: Double) {
         point.index = segmentStep(
             point.index, -step, pathSegments, RailPiece::length,
-            ::findNextSegment, ::findLastSegment, true
+            ::addFirstSegment, ::addLastSegment, true
         )
         val railIndex = clamp(point.index.toIntOr(), 0, pathSegments.lastIndex)
-        pathSegments[railIndex].interpolate(point.index - railIndex, point.position)
+        pathSegments[railIndex].getPosition(point.index - railIndex, point.position)
     }
 
     private fun movePoints() {
@@ -109,7 +83,6 @@ class TrainController : Component(), OnUpdate {
                 prev = curr
             }
         } else { // moving backwards
-            // todo bug: there is a weird wiggle and jump at the end
             var last = points.lastOrNull() ?: return
             moveIndex(last, step)
             for (i in points.size - 2 downTo 0) {
@@ -130,8 +103,8 @@ class TrainController : Component(), OnUpdate {
             val rx = atan2(back.y - front.y, front.distanceXZ(back))
             val ry = atan2(front.x - back.x, front.z - back.z)
             val offset = segment.offset
+                .rotateX(rx, tmp)
                 .rotateY(ry, tmp)
-            // .rotateX(rx)
             segment.visuals.setPosition(
                 (front.x + back.x) * 0.5 + offset.x,
                 (front.y + back.y) * 0.5 + offset.y,

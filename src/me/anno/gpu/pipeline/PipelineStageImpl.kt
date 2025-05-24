@@ -26,10 +26,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.buffer16x256
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.buffer.BufferUsage
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
@@ -46,8 +42,8 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.ResetArrayList
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -592,7 +588,8 @@ class PipelineStageImpl(
                 bindSkeletalUniforms(transform, shader, mesh, renderer)
                 bindUtilityUniforms(shader, material, mesh, renderer)
 
-                GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
+                val cullMode = mesh.cullMode * material.cullMode * cullMode
+                GFXState.cullMode.use(cullMode) {
                     mesh.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
                 }
 

@@ -13,6 +13,7 @@ import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.ecs.components.mesh.material.Materials.getMaterialRef
 import me.anno.io.files.FileReference
 import me.anno.utils.algorithms.Recursion
+import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Matrix4x3f
@@ -88,12 +89,14 @@ object StaticMeshJoiner {
     }
 
     fun join1Mesh(mesh: Mesh, transform: Transform?, materials: List<FileReference>): Mesh {
-        // special case: no joining required
         transform?.validate()
+
+        // special case: no joining required
         val matrix = transform?.globalTransform
         val identityTransform = matrix == null || matrix.isIdentity()
         val identityMaterials = materials == mesh.materials
         if (identityTransform && identityMaterials) return mesh
+
         // transform required
         // only needed for position, normal and tangents
         val clone = mesh.clone() as Mesh

@@ -117,7 +117,7 @@ object SegmentLists {
                     if (railIndex == segments.lastIndex) {
                         if (requestEndSegments() == 0) {
                             // reached end point at end
-                            return if (clampOutput) (segments.size + 1).toDouble()
+                            return if (clampOutput) segments.size.toDouble()
                             else stepSimple(index, delta, segmentLength)
                         }
                         // else index is fine, doesn't need to be incremented

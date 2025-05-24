@@ -86,13 +86,13 @@ class SegmentListTests {
     fun testMultiStepForwardClamping() {
         val extra = 20.0
         val delta = (1.0 - start) * len0 + len1 + len2 + extra
-        testSegments(4.0, start, delta, lengths, true)
+        testSegments(3.0, start, delta, lengths, true)
         testSegments(3.0 + extra / len2, start, delta, lengths, false)
 
         // start from beyond the start...
         val extra2 = 10.0
         val delta2 = extra2 + len0 + len1 + len2 + extra
-        testSegments(4.0, -extra2, delta2, lengths, true)
+        testSegments(3.0, -extra2, delta2, lengths, true)
         testSegments(3.0 + extra / len2, -extra2, delta2, lengths, false)
     }
 

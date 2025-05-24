@@ -16,11 +16,16 @@ import me.anno.games.trainbuilder.rail.RailPieces.straight10
 import me.anno.games.trainbuilder.rail.RailPieces.straight5
 import me.anno.games.trainbuilder.rail.StraightPiece
 import me.anno.gpu.buffer.DrawMode
+import me.anno.io.files.FileReference
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
 
 val debugMaterial = Material().apply {
     emissiveBase.set(1f, 5f, 5f)
+}
+
+fun simpleCoalTrain(): List<FileReference> {
+    return listOf(cargoTrainModels.first()) + createList(5, coalCarrierModels.first())
 }
 
 fun debugRailMesh(piece: RailPiece): Mesh {
@@ -32,7 +37,7 @@ fun debugRailMesh(piece: RailPiece): Mesh {
     val scale = 1.0 / scale
     for (i in 0 until n) {
         val t = i / (n - 1.0)
-        piece.interpolate(t, tmp)
+        piece.getPosition(t, tmp)
         tmp.y += 3.0
         tmp.mul(scale)
         tmp.get(positions, i * 3)
@@ -96,10 +101,10 @@ fun main() {
     }
 
     railMap.register(placed)
+    railMap.link()
 
     // spawn train
-    val meshes = listOf(cargoTrainModels.first()) + createList(5, coalCarrierModels.first())
-    createTrain(scene, 0, meshes, placed, railMap)
+    createTrain(scene, 0, simpleCoalTrain(), placed)
 
     testSceneWithUI("Rail", scene)
 }

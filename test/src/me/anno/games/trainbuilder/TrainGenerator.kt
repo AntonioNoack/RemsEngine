@@ -32,10 +32,11 @@ val couplingDistance = 1.0
 /**
  * Merge a sequence of rail pieces into a continuous sequence with positions and rotations.
  * */
-fun placeRail(start: Vector3d, pieces: List<RailPiece>): List<PlacedRailPiece> {
+fun placeRail(start: Vector3d, pieces: List<RailPiece>, angle: Double = 0.0): List<PlacedRailPiece> {
 
+    val position = Vector3d(start)
+    var angle = angle
     val tmp = Vector3d()
-    var angle = 0.0
 
     val result = ArrayList<PlacedRailPiece>()
     for (i in pieces.indices) {
@@ -45,11 +46,11 @@ fun placeRail(start: Vector3d, pieces: List<RailPiece>): List<PlacedRailPiece> {
         val isBackwardsRamp = isBackwards && piece.original is StraightPiece
         if (isBackwardsRamp) angle += PI
 
-        start.sub(piece.interpolate(0.0, tmp).rotateY(angle)) // optional, because all pieces start at 0
+        position.sub(piece.getPosition(0.0, tmp).rotateY(angle)) // optional, because all pieces start at 0
 
-        result.add(PlacedRailPiece(piece, Vector3d(start), angle))
+        result.add(PlacedRailPiece(piece, Vector3d(position), angle))
 
-        start.add(piece.interpolate(1.0, tmp).rotateY(angle))
+        position.add(piece.getPosition(1.0, tmp).rotateY(angle))
         angle += when {
             isBackwardsRamp -> 2.0 * piece.angle + PI
             isBackwards -> 2.0 * piece.angle
@@ -64,7 +65,7 @@ fun getPointAt(index: Double, pieces: List<PlacedRailPiece>): Vector3d {
     val index = clamp(index, 0.0, pieces.size - 0.001)
     val idx = floor(index).toInt()
     val piece = pieces[idx]
-    return piece.interpolate(fract(index), Vector3d())
+    return piece.getPosition(fract(index), Vector3d())
 }
 
 fun indexPlusStep(index: Double, step: Double, pieces: List<RailPiece>): Double {
@@ -77,8 +78,7 @@ fun createTrain(
     scene: Entity, k: Int,
     meshes: List<FileReference>,
     pieces: List<PlacedRailPiece>,
-    railMap: RailMap,
-) {
+): TrainController {
 
     val joined = Entity("Train$k", scene)
 
@@ -87,7 +87,6 @@ fun createTrain(
     var lastIdealPos = 0.0
 
     val controller = TrainController()
-    controller.railMap = railMap
     controller.pathSegments.addAll(pieces)
 
     fun addFractionalPoint(fract: Double, waggonLength: Double): TrainPoint {
@@ -131,6 +130,7 @@ fun createTrain(
     }
 
     joined.add(controller)
+    return controller
 }
 
 fun createRail(scene: Entity, name: String, pieces: List<PlacedRailPiece>) {
@@ -182,7 +182,7 @@ fun main() {
 
     fun createTrain(meshes: List<FileReference>) {
         val rail = generateRail(meshes)
-        createTrain(scene, k, meshes, rail, railMap)
+        createTrain(scene, k, meshes, rail)
         createRail(scene, "Rail$k", rail)
         railMap.register(rail)
         k++
@@ -202,6 +202,8 @@ fun main() {
 
     createTrain(personTrainModels, personCarrierModels)
     createTrain(metroTrains, metroCarriers)
+
+    railMap.link()
 
     testSceneWithUI("Trains", scene)
 }

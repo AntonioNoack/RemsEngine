@@ -20,8 +20,8 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import org.joml.AABBd
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3d
 
 abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
@@ -32,6 +32,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @SerializedProperty
     var receiveShadows = true
 
+    // todo respect this property when rendering shadows
     @SerializedProperty
     var castShadows = true
 

@@ -17,12 +17,6 @@ class LineRenderer : ProceduralMesh() {
             )
     }
 
-    var cullMode: CullMode
-        get() = data.cullMode
-        set(value) {
-            data.cullMode = value
-        }
-
     var points: List<Vector3f> = defaultLine
         set(value) {
             field = value
@@ -60,7 +54,6 @@ class LineRenderer : ProceduralMesh() {
         }
         RectangleTerrainModel.generateQuadIndices(2, points.size, false, mesh)
         mesh.positions = positions
-        mesh.cullMode = cullMode
         mesh.calculateNormals(true)
     }
 }

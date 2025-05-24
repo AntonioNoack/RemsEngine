@@ -7,3 +7,8 @@ package me.anno.games.trainbuilder
 //  - create missions
 //  - fulfill missions
 //  - money
+
+// todo
+//  - switches
+//  - multiple trains without collisions
+//  - "physics" (different speeds) for driving up/down a hill and de/accelerating

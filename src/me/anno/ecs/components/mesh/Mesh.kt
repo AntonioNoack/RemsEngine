@@ -203,7 +203,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         buffer = null
         triBuffer = null
         needsMeshUpdate = true
-        unlinkPrefab()
     }
 
     fun unlinkGeometry() {
@@ -231,6 +230,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         dst.materials = materials
         // mesh data
         dst.vertexAttributes = ArrayList(vertexAttributes)
+        for (i in dst.vertexAttributes.indices) {
+            dst.vertexAttributes[i] = dst.vertexAttributes[i].shallowCopy()
+        }
         dst.indices = indices
         dst.materialIds = materialIds
         // morph targets

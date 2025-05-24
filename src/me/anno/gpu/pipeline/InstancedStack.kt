@@ -296,7 +296,8 @@ open class InstancedStack {
                     shader.bindBuffer(1, buffer)
                 }
 
-                cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                val cullMode = mesh.cullMode * material.cullMode * stage.cullMode
+                GFXState.cullMode.use(cullMode) {
                     mesh.drawInstanced(pipeline, shader, materialIndex, buffer, drawDebugLines)
                 }
 

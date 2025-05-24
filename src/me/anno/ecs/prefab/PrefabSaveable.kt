@@ -273,8 +273,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     open fun clone(): PrefabSaveable {
         try {
-            val clone = this.javaClass.newInstance()
+            val clone = javaClass.newInstance()
             copyInto(clone)
+            clone.unlinkPrefab()
             return clone
         } catch (e: InstantiationException) {
             LOGGER.warn("Cannot clone $className, because empty constructor is missing")

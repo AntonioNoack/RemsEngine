@@ -22,7 +22,8 @@ enum class CullMode {
     @SerializedProperty
     val id get() = ordinal - 1
 
-    operator fun times(mode: CullMode): CullMode {
+    operator fun times(mode: CullMode?): CullMode {
+        if (mode == null) return this
         return entries[(ordinal - 1) * (mode.ordinal - 1) + 1]
     }
 }

@@ -67,7 +67,6 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     clone.color0 = colors
     clone.hasVertexColors = 1
     val material0 = materials[0].clone() as Material
-    material0.unlinkPrefab()
     material0.diffuseBase = Vector4f(1f)
     clone.numMaterials = 1
     clone.materials = listOf(material0.ref)

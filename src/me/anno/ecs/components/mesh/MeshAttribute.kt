@@ -24,8 +24,12 @@ class MeshAttribute(var attribute: Attribute, var data: Any?) : Saveable() {
         }
     }
 
-    fun copyOf(): MeshAttribute {
+    fun deepCopy(): MeshAttribute {
         return MeshAttribute(attribute, copyOf(data))
+    }
+
+    fun shallowCopy(): MeshAttribute {
+        return MeshAttribute(attribute, data)
     }
 
     override val approxSize: Int get() = 200

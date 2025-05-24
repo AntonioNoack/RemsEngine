@@ -95,6 +95,7 @@ open class Material : PrefabSaveable(), Renderable {
 
     @Docs("Most meshes need to be seen from the outside only (FRONT), some need both (BOTH). Some may be reversed (BACK).")
     var cullMode = CullMode.FRONT
+
     val isDoubleSided get() = cullMode == CullMode.BOTH
 
     // base * map
