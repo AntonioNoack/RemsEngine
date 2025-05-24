@@ -26,7 +26,8 @@ class RailSplitController(
         showSplitArrow()
     }
 
-    private fun showSplitArrow() {
+    @DebugAction
+    fun showSplitArrow() {
         val p0 = Vector3d(input.end)
         val p1 = Vector3d((if (input.nextPiece == output0) output0 else output1).end)
         p0.y += 10.0
@@ -35,10 +36,6 @@ class RailSplitController(
     }
 
     fun link(useOutput1: Boolean) {
-        link(input, if (useOutput1) output1 else output0)
-    }
-
-    private fun link(from: PlacedRailPiece, to: PlacedRailPiece) {
-        from.nextPiece = to
+        input.nextPiece = if (useOutput1) output1 else output0
     }
 }

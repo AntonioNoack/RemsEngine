@@ -113,7 +113,7 @@ val envModels = listOf(
     "SM_Env_Hills_05.prefab", "SM_Env_Road_Corner_01.prefab", "SM_Env_Road_Corner_02.prefab",
     "SM_Env_Road_Straight_01.prefab", "SM_Env_Road_Straight_02.prefab", "SM_Env_Stair_Walkway_01.prefab",
     "SM_Env_Station_Platform_01.prefab", "SM_Env_SubwayEntrance_01.prefab", "SM_Env_Tile_Grass_01.prefab",
-    "SM_Env_Track_Cross_01.prefab", "SM_Env_Track_Diagonal_01.prefab", "SM_Env_Track_End_01.prefab",
+    "SM_Env_Track_Diagonal_01.prefab", "SM_Env_Track_End_01.prefab",
     "SM_Env_Track_Raised_Bridge_End_01.prefab", "SM_Env_Track_Raised_Bridge_Straight_01.prefab",
     "SM_Env_Track_Raised_Bridge_Straight_02.prefab", "SM_Env_Track_Raised_Bridge_Straight_03.prefab",
     "SM_Env_Track_Raised_Corner_01.prefab", "SM_Env_Track_Raised_Straight_01.prefab",
@@ -132,11 +132,11 @@ private val flippedMaterials = LazyMap<FileReference, FileReference> { src ->
     flipped.ref
 }
 
-fun flipX(file: FileReference): FileReference {
+fun mirrorX(file: FileReference): FileReference {
     val original = MeshCache[file]!!
     val flippedMaterials = original.materials
         .map { src -> flippedMaterials[src] }
-    // todo why are the normals flipped???
+    // todo why are the normals flipped upside down???
     return Entity()
         .setScale(-1f, 1f, 1f)
         .add(MeshComponent(file).apply {
@@ -153,8 +153,11 @@ val curvedRail10 = envFolder.getChild("SM_Env_Track_Corner_03.prefab")
 val rampRail40 = envFolder.getChild("SM_Env_Track_Ramp_01.prefab")
 
 val splitRail30 = envFolder.getChild("SM_Env_Track_Split_01.prefab")
-val splitRail30X = flipX(splitRail30)
+val splitRail30X = mirrorX(splitRail30)
 
-val switchRail30 = envFolder.getChild("SM_Env_Track_Switch_01.prefab")
+val switchRail40 = envFolder.getChild("SM_Env_Track_Switch_01.prefab")
+val switchRail40X = mirrorX(switchRail40)
+
+val crossRail10 = envFolder.getChild("SM_Env_Track_Cross_01.prefab")
 
 val emptyMesh = Mesh().ref

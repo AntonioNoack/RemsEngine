@@ -164,8 +164,6 @@ fun main() {
     var k = 0
     val random = Random(2634)
 
-    val railMap = RailMap()
-
     fun generateRail(meshes: List<FileReference>): List<PlacedRailPiece> {
         val curve = curve40
         val straight = straight10
@@ -180,11 +178,11 @@ fun main() {
         return placeRail(Vector3d(k * 100.0, 0.0, 0.0), pieces)
     }
 
+    val allRails = ArrayList<PlacedRailPiece>()
     fun createTrain(meshes: List<FileReference>) {
         val rail = generateRail(meshes)
         createTrain(scene, k, meshes, rail)
-        createRail(scene, "Rail$k", rail)
-        railMap.register(rail)
+        allRails.addAll(rail)
         k++
     }
 
@@ -203,7 +201,7 @@ fun main() {
     createTrain(personTrainModels, personCarrierModels)
     createTrain(metroTrains, metroCarriers)
 
-    railMap.link()
+    buildRails(scene, allRails)
 
     testSceneWithUI("Trains", scene)
 }
