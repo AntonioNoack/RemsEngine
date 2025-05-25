@@ -1,12 +1,10 @@
 package me.anno.tests.navmesh
 
 import me.anno.Time
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -105,7 +103,7 @@ fun main() {
         })
 
         val navMeshData = builder.buildData(world) ?: throw IllegalStateException("Failed to build NavMesh")
-        world.add(NavMeshDebugComponent().apply { data = navMeshData.meshData })
+        world.add(NavMeshDebugComponent(navMeshData))
 
         val flagMesh = res.getChild("meshes/Flag.fbx")
         assertNotNull(MeshCache[flagMesh])

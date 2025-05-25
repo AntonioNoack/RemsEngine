@@ -1,14 +1,11 @@
 package me.anno.tests.navmesh
 
-import me.anno.Time
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.WindowRenderFlags
@@ -57,11 +54,10 @@ fun main() {
             })
 
         val navMeshData = builder.buildData(world) ?: throw IllegalStateException("Failed to build NavMesh")
-        val meshData = navMeshData.meshData
-        world.add(NavMeshDebugComponent().apply { data = meshData })
+        world.add(NavMeshDebugComponent(navMeshData))
 
         // visualize navmesh
-        world.add(MeshComponent(toMesh(meshData)!!.apply {
+        world.add(MeshComponent(toMesh(navMeshData.meshData)!!.apply {
             materials = Material().apply {
                 cullMode = CullMode.BOTH
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)

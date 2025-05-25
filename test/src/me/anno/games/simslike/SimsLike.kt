@@ -9,7 +9,13 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.Reference.getReference
+import me.anno.recast.CrowdUpdateComponent
+import me.anno.recast.NavMeshBuilder
+import me.anno.recast.NavMeshData
+import me.anno.recast.NavMeshDebugComponent
+import me.anno.tests.recast.TestAgent
 import me.anno.utils.structures.lists.Lists.wrap
+import org.joml.Vector3f
 
 // todo
 //  - playable characters
@@ -55,31 +61,59 @@ import me.anno.utils.structures.lists.Lists.wrap
 
 // click onto things, and get a menu to select the possible actions
 
+val clickCollision = 1
+val navMeshCollision = 2
+
+fun generateNavMesh(scene: Entity): NavMeshData {
+    // scene is needed as a mesh-lookup
+
+    // setup recast
+    val builder = NavMeshBuilder()
+    builder.agentType.height = 2f
+    builder.cellSize = 0.5f
+    builder.cellHeight = 2f
+    builder.agentType.maxSpeed = 3f
+    builder.agentType.radius = 0.35f
+    builder.agentType.maxStepHeight = 0.2f
+    builder.collisionMask = navMeshCollision
+    builder.edgeMaxError = 1f
+
+    return builder.buildData(scene)!!
+}
+
 fun main() {
     OfficialExtensions.initForTests()
     // todo create world
     // todo create UI
+
     val scene = Entity("Scene")
-    val floor = Entity("Floor", scene)
-    floor.setScale(40f)
-    floor.add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x335533)))
-    floor.add(SimAction().apply {
-        name = "Walk Here"
-    })
-    floor.add(SimAction().apply {
-        name = "Sprint Here"
-    })
-    floor.add(SimAction().apply {
-        name = "Sit Here"
-    })
+    Entity("Floor", scene)
+        .setScale(40f)
+        .add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x335533)).apply {
+            collisionMask = clickCollision or navMeshCollision
+        }).add(SimAction().apply {
+            name = "Walk Here"
+        }).add(SimAction().apply {
+            name = "Sprint Here"
+        }).add(SimAction().apply {
+            name = "Sit Here"
+        })
+
+    val navMeshData = generateNavMesh(scene)
+    scene.add(CrowdUpdateComponent(navMeshData))
+    scene.add(NavMeshDebugComponent(navMeshData))
 
     val sims = Entity("Sims", scene)
     val household = Household()
     val names = listOf("Rem", "Ram", "Emilia", "Satou")
     val animatedMeshSrc = getReference("E:/Assets/Mixamo XBot/Female Locomotion Pack.zip")
     for ((i, nameI) in names.withIndex()) {
+
         Entity(nameI, sims)
+            // todo integrate navigation agent into Sim
             .add(Sim().apply { name = nameI; household.sims.add(this) })
+            // todo why is TestAgent not moving???
+            .add(TestAgent(navMeshData, Vector3f(), Vector3f(0f, 0f, 10f)))
             .add(AnimMeshComponent().apply {
                 meshFile = animatedMeshSrc.getChild("X Bot.fbx")
                 animations = listOf(AnimationState(animatedMeshSrc.getChild("idle.fbx")))

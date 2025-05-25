@@ -90,6 +90,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         // resolve click
         // todo when clicked Sim, select it
         val query = renderView.rayQuery()
+        query.collisionMask = clickCollision
         if (Raycast.raycast(scene, query)) {
             val comp = query.result.component
             var entity = comp?.entity

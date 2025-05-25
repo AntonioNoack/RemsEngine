@@ -127,11 +127,10 @@ class RecastTests {
 
     val navMeshData = createNavMeshData(scene)
 
-    val meshData get() = navMeshData.meshData
     val crowd get() = navMeshData.crowd
 
     init {
-        scene.add(NavMeshDebugComponent().apply { data = meshData })
+        scene.add(NavMeshDebugComponent(navMeshData))
     }
 
     init {

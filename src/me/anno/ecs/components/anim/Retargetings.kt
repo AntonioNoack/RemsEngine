@@ -184,7 +184,6 @@ object Retargetings {
     }
 
     private fun getConfigName(skeleton: FileReference): String {
-        println("getting skeleton '$skeleton'")
         val hash = SkeletonCache[skeleton]!!.bones.joinToString("/") { it.name }.hashCode()
         return Integer.toUnsignedString(hash, 36)
     }

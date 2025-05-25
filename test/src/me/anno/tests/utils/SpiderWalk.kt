@@ -322,10 +322,9 @@ fun main() {
     builder.agentType.maxAcceleration = 50f
 
     val navMeshData = builder.buildData(scene)!!
-    val meshData = navMeshData.meshData
-    scene.add(NavMeshDebugComponent().apply { data = meshData })
+    scene.add(NavMeshDebugComponent(navMeshData))
 
-    if (false) scene.add(MeshComponent(toMesh(meshData)!!.apply {
+    if (false) scene.add(MeshComponent(toMesh(navMeshData.meshData)!!.apply {
         makeLineMesh(true)
         materials = Material().apply {
             cullMode = CullMode.BOTH
