@@ -65,6 +65,7 @@ import kotlin.math.sin
 //  - rotating objects
 //  - object library to choose from
 //  - deleting objects
+// todo bug: placed items move when placing other items :/
 // todo undo, redo
 
 fun createTestTerrain(): MeshComponent {

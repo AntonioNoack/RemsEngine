@@ -162,7 +162,8 @@ class Framebuffer(
         ensure()
 
         if (da != null) {
-            val dtp = (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.depthRenderbuffer?.pointer
+            val dtp = (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null)
+                ?: da.depthRenderbuffer?.pointer
             assertEquals(dtp, depthAttachedPtr)
         }
 

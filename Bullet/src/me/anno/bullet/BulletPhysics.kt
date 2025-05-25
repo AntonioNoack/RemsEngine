@@ -35,7 +35,6 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
@@ -568,9 +567,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return
         val globalTransform = entity.transform.globalTransform
         // todo support scale changes, and adjust Entity.scale then, too
-        val scale = globalTransform.getScale(org.joml.Vector3d())
+        val scale = JomlPools.vec3d.create()
+        globalTransform.getScale(scale)
         val transform = mat4x3ToTransform(globalTransform, scale)
         rigidbody.bulletInstance?.setWorldTransform(transform)
+        JomlPools.vec3d.sub(1)
     }
 
     private fun createBulletWorld(): DiscreteDynamicsWorld {

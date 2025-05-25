@@ -135,12 +135,13 @@ object WindowManagement {
     }
 
     private fun shutdown() {
-        destroyed = true
         val clock = Clock(LOGGER)
         synchronized(openglLock) {
             // wait for the last frame to be finished,
             // before we actually destroy the window and its framebuffer
-            clock.stop("Finishing last frame")
+            destroyed = true
+            GFX.glThread = null // no longer valid after closing all windows
+            clock.stop("Finishing last frame", 0.0)
         }
         synchronized(glfwLock) {
             val size = windows.size
@@ -148,8 +149,7 @@ object WindowManagement {
                 close(windows.getOrNull(index) ?: break)
             }
             windows.clear()
-            GFX.glThread = null // no longer valid after closing all windows
-            clock.stop("Closing $size window(s)")
+            clock.stop("Closing $size window(s)", 0.0)
         }
     }
 
@@ -498,20 +498,20 @@ object WindowManagement {
 
     private fun renderWindow(window: OSWindow) {
         synchronized(openglLock) {
+            if (destroyed) return
             GFX.activeWindow = window
             renderStep(window, true)
         }
         synchronized(glfwLock) {
-            if (!destroyed) {
-                GLFW.glfwWaitEventsTimeout(0.0) // needed?
-                GLFW.glfwSwapBuffers(window.pointer)
-                // works in reducing input latency by 1 frame 😊
-                // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
-                if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
-                    GL46C.glFinish()
-                }
-                window.updateVsync()
+            if (destroyed) return
+            GLFW.glfwWaitEventsTimeout(0.0) // needed?
+            GLFW.glfwSwapBuffers(window.pointer)
+            // works in reducing input latency by 1 frame 😊
+            // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
+            if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
+                GL46C.glFinish()
             }
+            window.updateVsync()
         }
     }
 

@@ -1,25 +1,12 @@
 package me.anno.games.trainbuilder
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.gpu.CullMode
-import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.structures.maps.LazyMap
 
 val scale = 100f
 
 val folder = getReference("E:/Assets/Unity/Simple/Trains.unitypackage/Assets/SimpleTrains")
 val vehiclesFolder = folder.getChild("Prefabs/Vehicles")
-
-fun List<String>.mapChildren(folder: FileReference): List<FileReference> {
-    return map { name -> folder.getChild(name) }
-}
 
 val personTrainModels = listOf(
     "SM_Veh_Bullet_01.prefab",
@@ -124,26 +111,6 @@ val envModels = listOf(
     "SM_Env_Tree_01.prefab", "SM_Env_Tree_02.prefab", "SM_Env_Tree_03.prefab", "SM_Env_Tree_04.prefab",
     "SM_Env_UnderpassEntrance_01.prefab"
 )
-
-private val flippedMaterials = LazyMap<FileReference, FileReference> { src ->
-    val original = MaterialCache[src] ?: defaultMaterial
-    val flipped = original.clone() as Material
-    flipped.cullMode = CullMode.BOTH
-    flipped.ref
-}
-
-fun mirrorX(file: FileReference): FileReference {
-    val original = MeshCache[file]!!
-    val flippedMaterials = original.materials
-        .map { src -> flippedMaterials[src] }
-    // todo why are the normals flipped upside down???
-    return Entity()
-        .setScale(-1f, 1f, 1f)
-        .add(MeshComponent(file).apply {
-            materials = flippedMaterials
-        })
-        .ref
-}
 
 val straightRail10 = envFolder.getChild("SM_Env_Track_Straight_01.prefab")
 val straightRail5 = envFolder.getChild("SM_Env_Track_Straight_02.prefab")

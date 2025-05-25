@@ -176,10 +176,9 @@ class Transform() : Saveable() {
      * Call validateTransform() in-between to make them work.
      * */
     var globalPosition: Vector3d
-        get() = globalTransform.getTranslation(JomlPools.vec3d.create())
+        get() = getGlobalPosition(JomlPools.vec3d.create())
         set(value) {
-            globalTransform.setTranslation(value)
-            invalidateLocal()
+            setGlobalPosition(value)
         }
 
     /**
@@ -187,20 +186,9 @@ class Transform() : Saveable() {
      * Call validateTransform() in-between to make them work.
      * */
     var globalRotation: Quaternionf
-        get() = globalTransform.getUnnormalizedRotation(JomlPools.quat4f.create())
+        get() = getGlobalRotation(JomlPools.quat4f.create())
         set(value) {
-            // we have no correct, direct control over globalRotation,
-            // so we use tricks, and compute an ideal local rotation instead
-            val parent = parent
-            if (parent != null) {
-                // now the rotation is like an inversion to the parent
-                val parentInv = parent.globalRotation.invert() // value is on JomlPool-stack
-                localRotation = parentInv.mul(value) // then apply this afterward
-                JomlPools.quat4f.sub(1) // return value on stack
-            } else {
-                // local = global
-                localRotation = value
-            }
+            setGlobalRotation(value)
         }
 
     /**
@@ -210,20 +198,73 @@ class Transform() : Saveable() {
      * Only works well if object isn't rotated, or you set a uniform scale.
      * */
     var globalScale: Vector3f
-        get() = globalTransform.getScale(JomlPools.vec3f.create())
+        get() = getGlobalScale(JomlPools.vec3f.create())
         set(value) {
-            // we have no correct, direct control over globalScale,
-            // so we use tricks, and compute an ideal local scale instead
-            val parent = parent
-            localScale = if (parent != null) {
-                val m = parent.globalScale // returns a stack-allocated vector
-                m.set(1.0 / m.x, 1.0 / m.y, 1.0 / m.z)
-                // todo rotate, if possible
-                //  only truly possible if localRotation is k * 90°s
-                m.mul(value)
-                m
-            } else value
+            setGlobalScale(value)
         }
+
+    fun getGlobalPosition(dst: Vector3d): Vector3d {
+        return globalTransform.getTranslation(dst)
+    }
+
+    fun getGlobalRotation(dst: Quaternionf): Quaternionf {
+        return globalTransform.getUnnormalizedRotation(dst)
+    }
+
+    fun getGlobalScale(dst: Vector3f): Vector3f {
+        return globalTransform.getScale(dst)
+    }
+
+    /**
+     * WARNING: does not work together with setGlobalRotation/Scale().
+     * Call validateTransform() in-between to make them work.
+     * */
+    fun setGlobalPosition(value: Vector3d): Transform {
+        globalTransform.setTranslation(value)
+        invalidateLocal()
+        return this
+    }
+
+    /**
+     * WARNING: does not work together with setGlobalPosition().
+     * Call validateTransform() in-between to make them work.
+     * */
+    fun setGlobalRotation(value: Quaternionf): Transform {
+        // we have no correct, direct control over globalRotation,
+        // so we use tricks, and compute an ideal local rotation instead
+        val parent = parent
+        if (parent != null) {
+            // now the rotation is like an inversion to the parent
+            val parentInv = parent.globalRotation.invert() // value is on JomlPool-stack
+            localRotation = parentInv.mul(value) // then apply this afterward
+            JomlPools.quat4f.sub(1) // return value on stack
+        } else {
+            // local = global
+            localRotation = value
+        }
+        return this
+    }
+
+    /**
+     * WARNING: does not work together with setGlobalPosition().
+     * Call validateTransform() in-between to make them work;
+     *
+     * Only works well if object isn't rotated, or you set a uniform scale.
+     * */
+    fun setGlobalScale(value: Vector3f): Transform {
+        // we have no correct, direct control over globalScale,
+        // so we use tricks, and compute an ideal local scale instead
+        val parent = parent
+        if (parent == null) localScale = value
+        else {
+            val tmp = parent.getGlobalScale(JomlPools.vec3f.create())
+            // todo rotate, if possible
+            //  only truly possible if localRotation is k * 90°s
+            localScale = value.div(tmp, tmp)
+            JomlPools.vec3f.sub(1)
+        }
+        return this
+    }
 
     fun validate() {
         when (state) {
@@ -366,6 +407,23 @@ class Transform() : Saveable() {
     fun rotateLocalZ(angleRadians: Float): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
         return this
+    }
+
+    @Suppress("unused")
+    fun getGlobalScaleX(): Float {
+        val tmp = JomlPools.vec3f.borrow()
+        return globalTransform.getScale(tmp).x
+    }
+
+    @Suppress("unused")
+    fun getGlobalScaleY(): Float {
+        val tmp = JomlPools.vec3f.borrow()
+        return globalTransform.getScale(tmp).y
+    }
+
+    fun getGlobalScaleZ(): Float {
+        val tmp = JomlPools.vec3f.borrow()
+        return globalTransform.getScale(tmp).z
     }
 
     override fun save(writer: BaseWriter) {

@@ -85,8 +85,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     override fun getShaderV1(): Float = shadowMapPower
     override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
     override fun getShaderV3(): Float {
-        val scaleZ = transform?.globalScale?.z ?: 0f
-        return 1f - 0.5f / scaleZ
+        val transform = transform ?: return 0.5f
+        return 1f - 0.5f / transform.getGlobalScaleZ()
     }
 
     override fun drawShape(pipeline: Pipeline) {

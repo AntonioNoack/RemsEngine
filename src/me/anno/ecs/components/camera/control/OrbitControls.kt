@@ -4,6 +4,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.camera.Camera
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
+import org.joml.Quaternionf
 
 open class OrbitControls : CameraController() {
 
@@ -29,7 +30,7 @@ open class OrbitControls : CameraController() {
         if (useGlobalSpace) {
             baseTransform.globalPosition = baseTransform.globalPosition.add(position)
             position.set(0.0)
-            baseTransform.globalRotation = baseTransform.globalRotation.identity()
+            baseTransform.globalRotation = Quaternionf()
                 .rotateY(rotation.y)
                 .rotateX(rotation.x)
         } else {
