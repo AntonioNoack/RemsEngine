@@ -113,8 +113,9 @@ object RaycastSkeletal {
         val tmpD = result.tmpVector3ds
         val tmpPos = tmpD[0]
         val tmpNor = tmpD[1]
+        val tmpDir = tmpD[2].set(query.direction)
         return Triangles.rayTriangleIntersection(
-            query.start, query.direction, a, b, c,
+            query.start, tmpDir, a, b, c,
             query.radiusAtOrigin, query.radiusPerUnit,
             maxDistance, tmpPos, tmpNor
         )

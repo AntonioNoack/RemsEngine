@@ -22,8 +22,9 @@ object RaycastCollider {
         val interpolation = if ((query.radiusAtOrigin > 0.0 || query.radiusPerUnit > 0.0) && collider.isConvex) {
             localRadiusAtOrigin = 0f
             localRadiusPerUnit = 0f
+            val tmpDir = query.result.tmpVector3ds[0]
             Triangles.computeConeInterpolation(
-                query.start, query.direction,
+                query.start, tmpDir.set(query.direction),
                 localToGlobal.m30, localToGlobal.m31, localToGlobal.m32,
                 query.radiusAtOrigin, query.radiusPerUnit
             ).toFloat()

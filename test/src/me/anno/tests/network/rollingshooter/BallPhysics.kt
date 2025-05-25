@@ -18,6 +18,7 @@ import me.anno.maths.bvh.HitType
 import me.anno.tests.network.Instance
 import me.anno.tests.network.udpProtocol
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -33,7 +34,7 @@ class BallPhysics(
     val jumpTimeout = (0.1 * SECONDS_TO_NANOS).toLong()
     var lastJumpTime = 0L
 
-    private fun findBulletDistance(pos: Vector3d, dir: Vector3d): Double {
+    private fun findBulletDistance(pos: Vector3d, dir: Vector3f): Double {
         val maxDistance = 1e3
         val query = RayQuery(
             pos, dir, maxDistance, Raycast.COLLIDERS,
@@ -48,8 +49,8 @@ class BallPhysics(
         val entity = entity!!
         val pos = Vector3d().add(if (shotLeft) -1.05 else 1.05, 0.0, -0.15)
             .rotateX(rotX.toDouble()).rotateY(rotY.toDouble()).add(entity.position)
-        val dir = Vector3d(0.0, 0.0, -1.0)
-            .rotateX(rotX.toDouble()).rotateY(rotY.toDouble())
+        val dir = Vector3f(0f, 0f, -1f)
+            .rotateX(rotX).rotateY(rotY)
         val distance = findBulletDistance(pos, dir)
         val packet = BulletPacket(onBulletPacket)
         packet.pos.set(pos)

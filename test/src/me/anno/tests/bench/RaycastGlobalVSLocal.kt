@@ -12,11 +12,12 @@ import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNull
 import org.joml.Matrix4x3
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.max
 
 fun main() {
 
-    val query = RayQuery(Vector3d(0f, 0f, -5f), Vector3d(0f, 0f, 1f), 1e3)
+    val query = RayQuery(Vector3d(0f, 0f, -5f), Vector3f(0f, 0f, 1f), 1e3)
     val transform = Matrix4x3()
         .translate(0.1, 0.2, 0.3)
         .rotateXYZ(0.1f, 0.2f, 0.3f)

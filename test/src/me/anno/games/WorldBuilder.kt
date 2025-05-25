@@ -102,7 +102,7 @@ fun main() {
         world.add(createTestTerrain())
 
         val mainFolder = getReference(
-            "E:/Assets/Unity/Polygon_Construction_Unity_Package_2017_4.unitypackage/" +
+            "E:/Assets/Unity/Polygon/Construction.unitypackage/" +
                     "Assets/PolygonConstruction/Prefabs"
         )
 
@@ -297,9 +297,7 @@ fun main() {
 
             fun raycast() {
                 // trace ray onto surface
-                val pos = camEntity.transform.globalPosition
-                val dir = Vector3d(renderView.mouseDirection)
-                val query = RayQuery(pos, dir, 1e6)
+                val query = renderView.rayQuery()
                 val hit = Raycast.raycast(world, query)
                 if (hit) {
                     val result = query.result

@@ -66,7 +66,7 @@ fun main() {
     }
     val bounds = AABBi(0, 0, 0, 127, 31, 127)
 
-    val queries = threadLocal { RayQuery(Vector3d(), Vector3d(), 1e3) }
+    val queries = threadLocal { RayQuery(Vector3d(), Vector3f(), 1e3) }
     val blockGetter = BlockTracing.BlockChecker { x, y, z ->
         if (world.getElementAt(x, y, z).toInt() != 0) SOLID_BLOCK else AIR_BLOCK
     }

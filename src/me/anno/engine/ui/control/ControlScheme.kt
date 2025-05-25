@@ -231,10 +231,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
         val start = Vector3d(renderView.mousePosition)
         val dir = Vector3d(renderView.mouseDirection)
         val maxDistance = renderView.radius * 1e9
-        val query = RayQuery(
-            start, dir, maxDistance, -1, -1,
-            false, emptySet()
-        )
+        val query = renderView.rayQuery(maxDistance)
         val hit = when (world) {
             is Entity -> Raycast.raycast(world, query)
             is CollidingComponent -> world.raycast(query)

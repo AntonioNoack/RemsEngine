@@ -823,7 +823,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun rayQuery(maxDistance: Double = 1e9): RayQuery {
-        return RayQuery(mousePosition, Vector3d(mouseDirection), maxDistance)
+        return RayQuery(mousePosition, mouseDirection, maxDistance)
     }
 
     var fovXRadians = 1f

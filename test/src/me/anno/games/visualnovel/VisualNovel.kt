@@ -93,9 +93,5 @@ fun main() {
     splitter.add(createEditorPanel(stateMachine))
     splitter.add(NovelGamePanel(stateMachine))
 
-    addEvent {
-        showFPS = false
-    }
-
     testUI("Visual Novel", splitter)
 }

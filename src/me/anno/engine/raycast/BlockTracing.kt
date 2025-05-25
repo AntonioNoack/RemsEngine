@@ -47,9 +47,9 @@ object BlockTracing {
         val dir = query.direction
         val localStart = query.start
         // prevent divisions by zero
-        if (abs(dir.x) < 1e-15) dir.x = 1e-15
-        if (abs(dir.y) < 1e-15) dir.y = 1e-15
-        if (abs(dir.z) < 1e-15) dir.z = 1e-15
+        if (abs(dir.x) < 1e-6) dir.x = 1e-6f
+        if (abs(dir.y) < 1e-6) dir.y = 1e-6f
+        if (abs(dir.z) < 1e-6) dir.z = 1e-6f
         val invDirX = 1.0 / dir.x
         val invDirY = 1.0 / dir.y
         val invDirZ = 1.0 / dir.z

@@ -10,6 +10,7 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.SerializedProperty
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 class RaycastTestComponent : Component(), OnUpdate {
 
@@ -37,7 +38,7 @@ class RaycastTestComponent : Component(), OnUpdate {
         val entity = entity!!
         val transform = entity.transform.globalTransform
         val start = transform.transformPosition(Vector3d())
-        val direction = transform.transformDirection(Vector3d(0.0, 0.0, 1.0)).normalize()
+        val direction = transform.transformDirection(Vector3f(0f, 0f, 1f)).normalize()
 
         val query = RayQuery(
             start, direction, maxDistance, radiusAtOrigin, radiusPerUnit,

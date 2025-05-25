@@ -170,7 +170,7 @@ class SpiderLegLogic(
         val floorY = spiderComp.floorY
         if (floorY.isNaN()) {
             val query1 = RayQuery(
-                Vector3d(0.0, up, 0.0).add(target), Vector3d(0.0, -1.0, 0.0), len,
+                Vector3d(0.0, up, 0.0).add(target), Vector3f(0f, -1f, 0f), len,
                 -1, -1, false, setOf(spider)
             )
             if (Raycast.raycast(scene, query1)) {
@@ -360,7 +360,7 @@ fun main() {
             // find proper position
             val start = Vector3d(crowdAgent.currentPosition).add(0.0, 10.0, 0.0)
             val query = RayQuery(
-                start, Vector3d(0.0, -1.0, 0.0), 40.0, Raycast.TRIANGLE_FRONT,
+                start, Vector3f(0f, -1f, 0f), 40.0, Raycast.TRIANGLE_FRONT,
                 -1, false, setOf(spider)
             )
             val hit = Raycast.raycast(scene, query)
@@ -403,7 +403,7 @@ fun main() {
                 if (button == Key.BUTTON_LEFT) {
                     val renderView = sceneView.renderView
                     val rayQuery = RayQuery(
-                        renderView.mousePosition, Vector3d(renderView.mouseDirection), 1e3,
+                        renderView.mousePosition, renderView.mouseDirection, 1e3,
                         -1, -1, false, setOf(spider)
                     )
                     if (Raycast.raycast(scene, rayQuery)) {

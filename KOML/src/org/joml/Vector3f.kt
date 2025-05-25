@@ -106,7 +106,21 @@ open class Vector3f(
         return dst
     }
 
+    fun mulAdd(a: Vector3d, b: Vector3d, dst: Vector3d): Vector3d {
+        dst.x = x * a.x + b.x
+        dst.y = y * a.y + b.y
+        dst.z = z * a.z + b.z
+        return dst
+    }
+
     fun mulAdd(a: Float, b: Vector3f, dst: Vector3f = this): Vector3f {
+        dst.x = x * a + b.x
+        dst.y = y * a + b.y
+        dst.z = z * a + b.z
+        return dst
+    }
+
+    fun mulAdd(a: Double, b: Vector3d, dst: Vector3d): Vector3d {
         dst.x = x * a + b.x
         dst.y = y * a + b.y
         dst.z = z * a + b.z

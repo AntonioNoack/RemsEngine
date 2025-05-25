@@ -8,6 +8,7 @@ import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.joml.AABBi
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import java.util.Random
 
@@ -22,7 +23,7 @@ class BlockTracingTest {
             for (x in xs) {
                 val query = RayQuery(
                     Vector3d(x, y, -1.0),
-                    Vector3d(0.0, 0.0, 1.0),
+                    Vector3f(0f, 0f, 1f),
                     1e3
                 )
                 BlockTracing.blockTrace(query, 10, AABBi()) { _, _, _ ->
@@ -41,7 +42,7 @@ class BlockTracingTest {
             for (x in xs) {
                 val query = RayQuery(
                     Vector3d(x, y, -1.0),
-                    Vector3d(0.0, 0.0, 1.0),
+                    Vector3f(0f, 0f, 1f),
                     1e3
                 )
                 val hit = BlockTracing.blockTrace(
@@ -66,7 +67,7 @@ class BlockTracingTest {
             for (x in xs) {
                 val query = RayQuery(
                     Vector3d(x, y, -1.0),
-                    Vector3d(0.0, 0.0, 1.0),
+                    Vector3f(0f, 0f, 1f),
                     1e3
                 )
                 val hits = x in 0.0..1.0 && y in 0.0..1.0

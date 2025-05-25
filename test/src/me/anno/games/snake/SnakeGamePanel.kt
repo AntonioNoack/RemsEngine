@@ -1,9 +1,8 @@
-package me.anno.games
+package me.anno.games.snake
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.fonts.Font
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.Key
@@ -12,18 +11,10 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelContainer
-import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import java.util.Random
 
-class Snake : Panel(style) {
-
-    // create a simple snake game
-    // personal high score: 22, then it just is way too fast currently xD
-
-    // this was coded in ~ 45 minutes currently ^^
+class SnakeGamePanel : Panel(style) {
 
     val sx = 9
     val sy = 9
@@ -221,13 +212,5 @@ class Snake : Panel(style) {
             }
             else -> super.onKeyTyped(x, y, key)
         }
-    }
-}
-
-fun main() {
-    disableRenderDoc()
-    testUI3("Snake") {
-        // container for layout
-        PanelContainer(Snake(), Padding.Zero, style)
     }
 }

@@ -9,7 +9,7 @@ import org.joml.Vector3f
  * */
 class RayQuery(
     val start: Vector3d,
-    val direction: Vector3d,
+    val direction: Vector3f,
     val end: Vector3d,
     val radiusAtOrigin: Double,
     val radiusPerUnit: Double,
@@ -21,7 +21,7 @@ class RayQuery(
 ) {
 
     constructor(
-        start: Vector3d, direction: Vector3d, maxDistance: Double, radiusAtOrigin: Double, radiusPerUnit: Double,
+        start: Vector3d, direction: Vector3f, maxDistance: Double, radiusAtOrigin: Double, radiusPerUnit: Double,
         typeMask: Int, collisionMask: Int, includeDisabled: Boolean, ignored: Set<PrefabSaveable>
     ) : this(
         start, direction, Vector3d(direction).mul(maxDistance).add(start), radiusAtOrigin,
@@ -29,7 +29,7 @@ class RayQuery(
     )
 
     constructor(
-        start: Vector3d, direction: Vector3d, maxDistance: Double,
+        start: Vector3d, direction: Vector3f, maxDistance: Double,
         typeMask: Int, collisionMask: Int, includeDisabled: Boolean, ignored: Set<PrefabSaveable>
     ) : this(
         start, direction, maxDistance, 0.0, 0.0,
@@ -37,14 +37,14 @@ class RayQuery(
     )
 
     constructor(
-        start: Vector3d, direction: Vector3d, maxDistance: Double,
+        start: Vector3d, direction: Vector3f, maxDistance: Double,
         typeMask: Int, collisionMask: Int
     ) : this(
         start, direction, maxDistance, 0.0, 0.0,
         typeMask, collisionMask, false, emptySet()
     )
 
-    constructor(start: Vector3d, direction: Vector3d, maxDistance: Double) :
+    constructor(start: Vector3d, direction: Vector3f, maxDistance: Double) :
             this(start, direction, maxDistance, -1, -1)
 
     val local = RayQueryLocal(

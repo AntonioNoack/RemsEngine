@@ -241,7 +241,7 @@ fun main() {
 
 
 val radius = 1.0
-val down = Vector3d(0.0, -1.0, 0.0)
+val down = Vector3f(0f, -1f, 0f)
 fun respawn(
     entity: Entity /*= selfPlayerEntity*/,
     staticScene: Entity

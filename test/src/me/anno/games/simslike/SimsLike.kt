@@ -83,13 +83,7 @@ fun main() {
             .add(Sim().apply { name = nameI; household.sims.add(this) })
             .add(AnimMeshComponent().apply {
                 meshFile = animatedMeshSrc.getChild("X Bot.fbx")
-                animations = listOf(
-                    AnimationState(
-                        animatedMeshSrc.getChild("idle.fbx").apply {
-                            assertTrue(exists)
-                        }
-                    )
-                )
+                animations = listOf(AnimationState(animatedMeshSrc.getChild("idle.fbx")))
                 materials = Material.diffuse(0xFFC8AA).ref.wrap()
             })
             .setPosition((i - (names.size - 1) * 0.5) * 5.0, 0.0, 0.0)

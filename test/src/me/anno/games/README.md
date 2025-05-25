@@ -2,7 +2,11 @@
 
 This folder contains a collection of small games / prototypes implemented in Rem's Engine.
 
-## [Snake](Snake.kt)
+## [Snake](snake/SnakeGamePanel.kt)
+
+Pretty much self-explanatory, only uses UI, Input and windowing.
+
+## [Minesweeper](minesweeper/Minesweeper.kt)
 
 Pretty much self-explanatory, only uses UI, Input and windowing.
 

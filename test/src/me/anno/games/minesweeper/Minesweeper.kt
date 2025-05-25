@@ -1,53 +1,16 @@
-package me.anno.games
+package me.anno.games.minesweeper
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.WindowRenderFlags.showFPS
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.texture.Filtering
-import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.ui.Panel
-import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.image.IconPanel
-import me.anno.ui.debug.TestEngine.Companion.testUI3
-import me.anno.utils.Sleep
-import kotlin.math.min
 
 /**
- * Calculates layout for child elements, such that they are grouped together, are all square,
- * all have the same size, same width and height, and are centered
+ * This shows how to code Minesweeper in 200 lines of code
  * */
-class SquareGridLayoutPanel(val sx: Int, val sy: Int, createPanel: (xi: Int, yi: Int) -> Panel) :
-    PanelList(style) {
-
-    init {
-        for (yi in 0 until sy) {
-            for (xi in 0 until sx) {
-                add(createPanel(xi, yi))
-            }
-        }
-    }
-
-    override fun placeChildren(x: Int, y: Int, width: Int, height: Int) {
-        val childSize = min(width / sx, height / sy)
-        val usedWidth = childSize * sx
-        val usedHeight = childSize * sy
-        val paddingX = (width - usedWidth) shr 1
-        val paddingY = (height - usedHeight) shr 1
-        for (yi in 0 until sy) {
-            for (xi in 0 until sx) {
-                val cx = x + paddingX + xi * childSize
-                val cy = y + paddingY + yi * childSize
-                children[xi + sx * yi]
-                    .setPosSize(cx, cy, childSize, childSize)
-            }
-        }
-    }
-}
-
 class Minesweeper(
     val sx: Int, val sy: Int,
     val totalBombs: Int
@@ -169,35 +132,5 @@ class Minesweeper(
             flags[idx] = !flags[idx]
             (it as IconPanel).source = getTileImage(xi, yi)
         }
-    }
-}
-
-/**
- * This shows how to code Minesweeper in 200 lines of code
- * */
-fun main() {
-    disableRenderDoc()
-    testUI3("Minesweeper") {
-
-        showFPS = false // clean up UI a little
-
-        val sx = 10
-        val sy = 10
-        val totalBombs = 10
-
-        val minesweeper = Minesweeper(sx, sy, totalBombs)
-        val atlasSource = getReference( // if this becomes unavailable some day, just replace it
-            "https://raw.githubusercontent.com/Minesweeper-World/MS-Texture/main/png/cells/WinmineXP.png"
-        )
-
-        // load texture atlas asynchronously as long as texture atlases don't have a path
-        Sleep.waitUntilDefined(true, {
-            ImageCache[atlasSource, true]
-        }, { atlasImage ->
-            minesweeper.atlasImages = atlasImage.split(4, 4).map { it.ref }
-            minesweeper.startGame()
-        })
-
-        minesweeper.ui
     }
 }

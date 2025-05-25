@@ -142,7 +142,7 @@ object RaycastMeshTest {
     ) {
 
         val normal = Vector3f()
-        val query = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
+        val query = RayQuery(Vector3d(pos), Vector3f(dir), maxDistance.toDouble())
         query.typeMask = typeMask
         val transform = Transform()
         val hit = RaycastMesh.raycastGlobalMesh(query, transform, mesh)
@@ -151,7 +151,7 @@ object RaycastMeshTest {
         if (expectedNormal != null) assertEquals(expectedNormal, normal)
         assertEquals(min(expectedDistance.toDouble(), 1e38), min(distance, 1e38), 1e-3)
 
-        val query1 = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
+        val query1 = RayQuery(Vector3d(pos), Vector3f(dir), maxDistance.toDouble())
         query1.result.hitType = HitType.ANY
         query1.typeMask = typeMask
         val hit1 = RaycastMesh.raycastGlobalMesh(query1, transform, mesh)

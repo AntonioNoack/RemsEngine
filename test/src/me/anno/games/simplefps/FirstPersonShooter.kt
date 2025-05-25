@@ -24,42 +24,6 @@ import me.anno.utils.Color.toRGB
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3d
 
-class SimpleShootingControls : Component(), CustomEditMode {
-
-    var force = 25.0
-
-    override fun onEditClick(button: Key, long: Boolean): Boolean {
-        if (button == Key.BUTTON_LEFT) {
-
-            val rv = RenderView.currentInstance
-            val scene = rv?.getWorld() as? Entity ?: return false
-
-            // apply impulse onto scene
-            val query = rv.rayQuery()
-            if (Raycast.raycast(scene, query)) {
-                val hitComponent = query.result.component
-                val hitEntity = hitComponent?.entity
-                val hitRigidbody = hitEntity?.getComponent(Rigidbody::class)
-                if (hitRigidbody != null && !hitRigidbody.isStatic) {
-                    val relativePos = query.result.positionWS.sub(hitEntity.transform.globalPosition, Vector3d())
-                    val impulse = Vector3d(query.direction).mul(force)
-                    hitRigidbody.applyImpulse(relativePos, impulse)
-                } else {
-                    DebugShapes.debugArrows.add(
-                        DebugLine(
-                            Vector3d(query.start),
-                            Vector3d(query.result.positionWS),
-                            0x3377ff or black
-                        )
-                    )
-                }
-            }
-
-            return true
-        } else return false
-    }
-}
-
 /**
  * sample on how to write a first-person shooter (FPS) game (very WIP)
  * */

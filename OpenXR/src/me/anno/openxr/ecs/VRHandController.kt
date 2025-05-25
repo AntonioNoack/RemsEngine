@@ -66,7 +66,7 @@ class VRHandController : Component(), OnUpdate {
 
         val query = RayQuery(
             controller.position,
-            controller.rotation.transform(Vector3d(0.0, -1.0, -0.4).normalize()),
+            controller.rotation.transform(Vector3f(0f, -1f, -0.4f).normalize()),
             1e9
         )
 

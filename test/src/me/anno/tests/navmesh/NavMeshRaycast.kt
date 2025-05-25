@@ -28,6 +28,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.res
 import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.recast4j.detour.*
 import kotlin.math.atan
 import kotlin.math.atan2
@@ -49,7 +50,7 @@ class AgentController1a(
     }
 
     private var upDownAngle = 0.0
-    private val raycastDir = Vector3d(0.0, -1.0, 0.0)
+    private val raycastDir = Vector3f(0f, -1f, 0f)
     val random = Random(Time.nanoTime)
 
     override fun onUpdate() {
@@ -72,7 +73,7 @@ class AgentController1a(
         start.y = lp.y + crowdAgent.params.height * 0.5
         val dist = crowdAgent.params.height.toDouble()
         val query = RayQuery(
-            start, raycastDir, start + raycastDir * dist, 0.0, 0.0,
+            start, raycastDir, start + Vector3d(raycastDir) * dist, 0.0, 0.0,
             Raycast.TRIANGLE_FRONT, data.collisionMask, false, emptySet(), RayHit(dist)
         )
         val hr = Raycast.raycast(meshEntity, query)

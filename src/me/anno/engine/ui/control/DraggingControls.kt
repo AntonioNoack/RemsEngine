@@ -846,7 +846,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         var distance = (y0 - camPos.y) / camDir.y
         val world = renderView.getWorld()
         if (world is Entity) {
-            val query = RayQuery(camPos, Vector3d(camDir), 1e9)
+            val query = renderView.rayQuery()
             val hasHit = Raycast.raycast(world, query)
             if (hasHit) distance = query.result.distance
         }

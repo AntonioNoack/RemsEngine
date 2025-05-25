@@ -93,9 +93,10 @@ object RaycastMesh {
         val acceptFront = getCullingFront(typeMask, mesh.cullMode)
         val acceptBack = getCullingBack(typeMask, mesh.cullMode)
         val tmp = query.result.tmpVector3ds
-        mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
+        mesh.forEachTriangle(tmp[3], tmp[4], tmp[5]) { a, b, c ->
             val tmpPos = tmp[0]
             val tmpNor = tmp[1]
+            val tmpDir = tmp[2]
             if (globalTransform != null) {
                 globalTransform.transformPosition(a)
                 globalTransform.transformPosition(b)
@@ -103,7 +104,7 @@ object RaycastMesh {
             }
             val maxDistance = query.result.distance
             val distance = Triangles.rayTriangleIntersection(
-                query.start, query.direction, a, b, c,
+                query.start, tmpDir.set(query.direction), a, b, c,
                 query.radiusAtOrigin, query.radiusPerUnit,
                 maxDistance, tmpPos, tmpNor
             )

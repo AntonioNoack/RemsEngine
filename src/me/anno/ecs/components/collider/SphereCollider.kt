@@ -43,15 +43,15 @@ class SphereCollider : Collider() {
 
     override fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {
         outNormal.set(deltaPos).safeNormalize()
-        return deltaPos.length() - radius.toFloat()
+        return deltaPos.length() - radius
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
-        return deltaPos.length() - radius.toFloat()
+        return deltaPos.length() - radius
     }
 
     override fun raycast(query: RayQuery): Boolean {
-        val radius = radius.toFloat()
+        val radius = radius
         val a = query.direction.lengthSquared()
         val b = 2f * query.start.dot(query.direction)
         val c = query.start.lengthSquared() - radius * radius
@@ -60,7 +60,7 @@ class SphereCollider : Collider() {
     }
 
     override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
-        val radius = radius.toFloat()
+        val radius = radius
         val a = query.direction.lengthSquared()
         val b = 2f * query.start.dot(query.direction)
         val c = query.start.lengthSquared() - radius * radius

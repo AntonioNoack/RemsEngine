@@ -7,6 +7,7 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 import org.joml.Vector3d
+import org.joml.Vector3f
 
 fun main() {
     // first click onto dragon is slow... why???
@@ -20,7 +21,7 @@ fun main() {
     clock.stop("Loading Mesh")
     val query = RayQuery(
         Vector3d(-100.0, 0.0, 0.0),
-        Vector3d(1.0, 0.0, 0.0),
+        Vector3f(1f, 0f, 0f),
         200.0
     )
     comp.raycast(query)

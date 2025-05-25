@@ -365,12 +365,13 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             val vec4f = result.tmpVector4fs
             // compute ray positions in the wild
             val localSrt0 = globalInv.transformPosition(query.start, vec3d[0])
-            val localDir0 = globalInv.transformDirection(query.direction, vec3d[1]).normalize()
+            val localDir0 = globalInv.transformDirection(query.direction, vec3f[4])
+            val localDir1 = vec3d[1].set(localDir0).safeNormalize()
             val localEnd0 = globalInv.transformPosition(query.end, vec3d[2])
             // project start & end onto aabb for better results in single precision
             val maxLocalDistanceSq0 = localSrt0.distanceSquared(localEnd0)
-            val startOffset = projectRayToAABBFront(localSrt0, localDir0, localAABB, dst = localSrt0)
-            projectRayToAABBBack(localEnd0, localDir0, localAABB, dst = localEnd0)
+            val startOffset = projectRayToAABBFront(localSrt0, localDir1, localAABB, dst = localSrt0)
+            projectRayToAABBBack(localEnd0, localDir1, localAABB, dst = localEnd0)
             val localSrt = vec3f[0].set(localSrt0)
             val localDir = vec3f[1].set(localDir0)
             val localEnd = vec3f[2].set(localEnd0)

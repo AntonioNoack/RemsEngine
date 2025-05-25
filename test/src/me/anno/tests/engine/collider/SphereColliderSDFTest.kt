@@ -50,7 +50,7 @@ class SphereColliderSDFTest {
                 tested.raycast(
                     RayQuery(
                         Vector3d(x, y, -2f),
-                        Vector3d(0f, 0f, 1f),
+                        Vector3f(0f, 0f, 1f),
                         1e3
                     )
                 ), x * x + y * y < 1f
