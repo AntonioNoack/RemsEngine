@@ -13,7 +13,7 @@ open class StateNode(
 
     open fun update(): StateNode {
         val graph = graph as? FlowGraph
-        return graph?.executeNodes(outputs) as? StateNode ?: this
+        return graph?.executeAllOutputs(outputs) as? StateNode ?: this
     }
 
     open fun onEnterState(oldState: StateNode?) {}

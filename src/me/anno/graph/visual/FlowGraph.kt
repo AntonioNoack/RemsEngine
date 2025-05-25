@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.control.RecursiveFlowGraphNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeConnector
+import me.anno.graph.visual.node.NodeOutput
 import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.lists.PairArrayList
 
@@ -29,12 +30,12 @@ open class FlowGraph : Graph() {
         // must be non-negative, negative is invalid
         return if (v < 0) {
             validId = 0
-            invalidateSlow()
+            clearAllNodeStates()
             return 0
         } else v
     }
 
-    private fun invalidateSlow() {
+    private fun clearAllNodeStates() {
         for (ni in nodes.indices) {
             nodes[ni].invalidateState()
         }
@@ -72,7 +73,7 @@ open class FlowGraph : Graph() {
             }
 
             val nextNodes = nodeOutput?.others
-            if (nextNodes != null) enqueue(nextNodes)
+            if (nextNodes != null) enqueueNodeInputs(nextNodes)
         }
         clearStack(depth)
         return lastNode
@@ -82,16 +83,19 @@ open class FlowGraph : Graph() {
         nodeStack.elementSize = depth * 2
     }
 
-    private fun enqueue(nextNodes: List<NodeConnector>) {
-        for (ni in nextNodes.indices.reversed()) {
+    private fun enqueueNodeInputs(nextNodes: List<NodeConnector>) {
+        for (ni in nextNodes.lastIndex downTo 0) {
             val nextNode = nextNodes[ni].node as? FlowGraphNode ?: continue
             push(nextNode, null)
         }
     }
 
-    fun executeNodes(nextNodes: List<NodeConnector>): Node? {
+    fun executeAllOutputs(nodeOutputs: List<NodeOutput>): Node? {
         val depth = nodeStack.size
-        enqueue(nextNodes)
+        for (i in nodeOutputs.lastIndex downTo 0) {
+            val nodeOutput = nodeOutputs[i]
+            enqueueNodeInputs(nodeOutput.others)
+        }
         return executeNodesUntilDepth(depth)
     }
 

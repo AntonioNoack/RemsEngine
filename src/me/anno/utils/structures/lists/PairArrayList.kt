@@ -8,6 +8,10 @@ import kotlin.math.max
 class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<First, Second>> {
 
     var array = arrayOfNulls<Any>(max(capacity * 2, 2))
+
+    /**
+     * = size * 2
+     * */
     var elementSize = 0
 
     val size get() = elementSize shr 1

@@ -120,6 +120,13 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
                 backgroundColor, widthLimit, heightLimit,
                 textAlignmentX, textAlignmentY, true
             )
+        } else if (instantTextLoading) {
+            loadTexturesSync.push(true)
+            DrawTexts.drawText(
+                ax, ay, font, textCacheKey, color, backgroundColor,
+                textAlignmentX, textAlignmentY
+            )
+            loadTexturesSync.pop()
         } else {
             DrawTexts.drawTextOrFail(
                 ax, ay, font, textCacheKey, color, backgroundColor,
@@ -216,14 +223,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val inst = instantTextLoading
-        if (inst) loadTexturesSync.push(true)
         val bg = background.color
         background.color = if (isInFocus && enableFocusColor) focusBackgroundColor else background.color
         drawBackground(x0, y0, x1, y1)
         drawText(effectiveTextColor)
         background.color = bg
-        if (inst) loadTexturesSync.pop()
     }
 
     override fun onCopyRequested(x: Float, y: Float): Any? {

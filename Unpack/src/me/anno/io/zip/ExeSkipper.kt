@@ -2,7 +2,6 @@ package me.anno.io.zip
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
 import java.nio.ByteBuffer
@@ -18,11 +17,6 @@ import kotlin.math.max
  * documentation: https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
  * */
 object ExeSkipper {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val src = desktop.getChild("RemsStudio 1.3.2.exe")
-        desktop.getChild("Extracted.zip").writeBytes(getBytesAfterExeSections(src))
-    }
 
     fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
         val bytes = getBytesAfterExeSections(file)

@@ -179,7 +179,7 @@ object DrawTexts {
                 x2 += charWidth * 2
             }
             if (text.length > 1) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-            x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth * text.length
+            // x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth * text.length
         } else {
             val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
             var x2f = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
@@ -623,9 +623,8 @@ object DrawTexts {
             )
         } else {
             val async = !GFX.loadTexturesSync.peek()
-            val tex0 = FontManager.getTexture(key, async)
-            val charByChar = tex0 == null || !tex0.isCreated()
-            if (charByChar) {
+            val texture = FontManager.getTexture(key, async)
+            if (texture == null || !texture.isCreated()) { // char by char
                 return drawTextCharByChar(
                     x, y, font, key.text,
                     color, backgroundColor,
@@ -636,7 +635,6 @@ object DrawTexts {
                 )
             }
 
-            val texture = tex0 ?: return GFXx2D.getSize(0, font.sizeInt)
             return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
         }
     }
@@ -689,16 +687,14 @@ object DrawTexts {
         }
 
         val async = !GFX.loadTexturesSync.peek()
-        val tex0 = FontManager.getTexture(key, async)
-        val charByChar = tex0 == null || !tex0.isCreated()
-        if (charByChar) {
+        val texture = FontManager.getTexture(key, async)
+        if (texture == null || !texture.isCreated()) { // char by char
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,
                 backgroundColor, key.widthLimit, key.heightLimit, alignX, alignY, false
             )
         }
 
-        val texture = tex0 ?: return GFXx2D.getSize(0, FontManager.getAvgFontSize(key.fontSizeIndex()).roundToIntOr())
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
     }
 

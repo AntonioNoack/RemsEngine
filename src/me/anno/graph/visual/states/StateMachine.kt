@@ -21,16 +21,21 @@ class StateMachine : FlowGraph() {
         return next(execute(startNode) as? StateNode)
     }
 
-    fun update(): StateNode? {
-        var oldState = state
-        if (oldState == null) {
-            oldState = findDefaultState() ?: return null
-            if (!"default".equals(oldState.name, true)) {
+    private fun findState(): StateNode? {
+        var state = state
+        if (state == null) {
+            state = findDefaultState() ?: return null
+            if (!"default".equals(state.name, true)) {
                 LOGGER.warn("Missing node with name 'Default' for default state")
             }
-            oldState.onEnterState(null)
+            state.onEnterState(null)
         }
-        return next(oldState.update())
+        return state
+    }
+
+    fun update(): StateNode? {
+        val prevState = findState() ?: return null
+        return next(prevState.update())
     }
 
     private fun findDefaultState(): StateNode? {
