@@ -13,7 +13,6 @@ import me.anno.ecs.components.mesh.TransformMesh.transform
 import me.anno.ecs.components.mesh.material.Materials.getMaterialRef
 import me.anno.io.files.FileReference
 import me.anno.utils.algorithms.Recursion
-import me.anno.utils.assertions.assertNotSame
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Matrix4x3f

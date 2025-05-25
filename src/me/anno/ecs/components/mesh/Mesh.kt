@@ -241,6 +241,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         dst.hasBonesInBuffer = hasBonesInBuffer
         dst.helperMeshes = helperMeshes
         dst.hasHighPrecisionNormals = hasHighPrecisionNormals
+        dst.skeleton = skeleton
         // aabb
         dst.aabb.set(aabb)
         dst.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB

@@ -9,7 +9,6 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.wrap
 
 // todo

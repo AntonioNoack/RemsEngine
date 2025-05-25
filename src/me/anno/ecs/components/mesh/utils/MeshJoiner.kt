@@ -175,6 +175,7 @@ abstract class MeshJoiner<V>(
         dstMesh.color0 = dstColors
         dstMesh.boneWeights = dstBoneWeights
         dstMesh.boneIndices = dstBoneIndices
+        dstMesh.skeleton = firstMesh.skeleton // just a guess
         dstMesh.materialIds = dstMaterialIds
         dstMesh.numMaterials = max(materialToId.size, 1)
 

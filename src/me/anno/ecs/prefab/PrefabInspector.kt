@@ -32,6 +32,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.UIColors
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
@@ -230,7 +231,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         val warningPanel = UpdatingTextPanel(500, style) {
             instances.mapNotNull { it.lastWarning }.joinToString().ifBlank { null }
         }
-        warningPanel.textColor = warningPanel.textColor.mulARGB(0xff3333 or black)
+        warningPanel.textColor = 0xff0000 or black
         warningPanel.tooltip = "Click to hide this warning until the issue reappears."
         warningPanel.addLeftClickListener {
             // "marks" the warning as "read"

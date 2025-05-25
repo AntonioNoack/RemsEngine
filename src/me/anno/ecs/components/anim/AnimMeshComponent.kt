@@ -254,7 +254,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
         val skeleton = SkeletonCache[mesh.skeleton]
         if (skeleton == null) {
-            lastWarning = "Skeleton missing"
+            lastWarning = "Mesh-Skeleton missing"
             return false
         } else if (skeleton.bones.isEmpty()) {
             lastWarning = "Skeleton bones missing"
