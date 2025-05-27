@@ -20,13 +20,13 @@ object NavMeshUtils {
     fun drawPath(navMesh: NavMesh, meshData: MeshData, pathNodes: LongArrayList, color: Int) {
         for (i in 0 until pathNodes.size) {
             val ref = pathNodes[i]
-            val tile = navMesh.getTileByRef(ref)!!
+            val tile = navMesh.getTileByRef(ref)
             val poly = navMesh.getPolyByRef(ref, tile)
             drawPoly(meshData, poly ?: continue, color)
         }
         val centers = (0 until pathNodes.size).mapNotNull {
             val ref = pathNodes[it]
-            val tile = navMesh.getTileByRef(ref)!!
+            val tile = navMesh.getTileByRef(ref)
             val poly = navMesh.getPolyByRef(ref, tile)
             if (poly != null) getPolyCenter(meshData, poly, Vector3d())
             else null

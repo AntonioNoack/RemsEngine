@@ -8,13 +8,13 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.recast.CrowdUpdateComponent
 import me.anno.recast.NavMeshBuilder
 import me.anno.recast.NavMeshData
 import me.anno.recast.NavMeshDebugComponent
-import me.anno.tests.recast.TestAgent
-import me.anno.utils.structures.lists.Lists.wrap
+import me.anno.tests.recast.RecastTests
 import org.joml.Vector3f
 
 // todo
@@ -71,7 +71,7 @@ fun generateNavMesh(scene: Entity): NavMeshData {
     val builder = NavMeshBuilder()
     builder.agentType.height = 2f
     builder.cellSize = 0.5f
-    builder.cellHeight = 2f
+    builder.cellHeight = 0.25f
     builder.agentType.maxSpeed = 3f
     builder.agentType.radius = 0.35f
     builder.agentType.maxStepHeight = 0.2f
@@ -85,6 +85,8 @@ fun main() {
     OfficialExtensions.initForTests()
     // todo create world
     // todo create UI
+
+    // todo bug: why are the sim-animations floating 1.5 above the ground???
 
     val scene = Entity("Scene")
     Entity("Floor", scene)
@@ -103,23 +105,33 @@ fun main() {
     scene.add(CrowdUpdateComponent(navMeshData))
     scene.add(NavMeshDebugComponent(navMeshData))
 
+    RecastTests.enableDrawing = true
+
     val sims = Entity("Sims", scene)
     val household = Household()
     val names = listOf("Rem", "Ram", "Emilia", "Satou")
+    val skinMaterial = Material.diffuse(0xFFC8AA).ref
     val animatedMeshSrc = getReference("E:/Assets/Mixamo XBot/Female Locomotion Pack.zip")
-    for ((i, nameI) in names.withIndex()) {
 
+    fun getAnimation(name: String): FileReference {
+        return animatedMeshSrc.getChild("$name.fbx/animations/mixamo.com/Imported_InPlace.json")
+    }
+
+    for ((i, nameI) in names.withIndex()) {
+        val x = (i - (names.size - 1) * 0.5) * 5.0
         Entity(nameI, sims)
-            // todo integrate navigation agent into Sim
             .add(Sim().apply { name = nameI; household.sims.add(this) })
-            // todo why is TestAgent not moving???
-            .add(TestAgent(navMeshData, Vector3f(), Vector3f(0f, 0f, 10f)))
+            .add(SimNavAgent(navMeshData, Vector3f(x.toFloat(), 0f, 10f)))
             .add(AnimMeshComponent().apply {
                 meshFile = animatedMeshSrc.getChild("X Bot.fbx")
-                animations = listOf(AnimationState(animatedMeshSrc.getChild("idle.fbx")))
-                materials = Material.diffuse(0xFFC8AA).ref.wrap()
+                animations = listOf(
+                    AnimationState(getAnimation("idle"), 1f),
+                    AnimationState(getAnimation("walking"), 0f),
+                    AnimationState(getAnimation("running"), 0f)
+                )
+                materials = listOf(skinMaterial, skinMaterial)
             })
-            .setPosition((i - (names.size - 1) * 0.5) * 5.0, 0.0, 0.0)
+            .setPosition(x, 0.0, 0.0)
     }
 
     testSceneWithUI("SimsLike", scene) {

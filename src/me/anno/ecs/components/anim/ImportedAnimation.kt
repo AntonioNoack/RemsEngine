@@ -5,6 +5,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.Collections.filterIsInstance2
+import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Matrix4x3f
 
 /**
@@ -21,6 +22,9 @@ class ImportedAnimation : Animation() {
         get() = frames.size
 
     override fun getMatrices(frameIndex: Float, dst: List<Matrix4x3f>): List<Matrix4x3f> {
+
+        val frames = frames
+        if (frames.isEmpty()) return dst
 
         // find the correct frames for interpolation and lerp them
         val (fraction, index0, index1) = calculateMonotonousTime(frameIndex, frames.size)
@@ -89,18 +93,14 @@ class ImportedAnimation : Animation() {
 
     private fun splitValues(values: FloatArray): List<Matrix4x3f> {
         val size = values.size / 12
-        val result = ArrayList<Matrix4x3f>(size)
-        for (i in 0 until size) {
+        return createList(size) { i ->
             val j = i * 12
-            result.add(
-                Matrix4x3f(
-                    values[j + 0], values[j + 1], values[j + 2],
-                    values[j + 3], values[j + 4], values[j + 5],
-                    values[j + 6], values[j + 7], values[j + 8],
-                    values[j + 9], values[j + 10], values[j + 11]
-                )
+            Matrix4x3f(
+                values[j + 0], values[j + 1], values[j + 2],
+                values[j + 3], values[j + 4], values[j + 5],
+                values[j + 6], values[j + 7], values[j + 8],
+                values[j + 9], values[j + 10], values[j + 11]
             )
         }
-        return result
     }
 }

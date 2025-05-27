@@ -19,6 +19,7 @@ import me.anno.utils.pooling.Pools
 import me.anno.utils.types.AnyToFloat
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
+import kotlin.math.max
 
 /**
  * skeletal animation base class
@@ -30,6 +31,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         data class FrameIndex(val fraction: Float, val index0: Int, val index1: Int)
 
         fun calculateMonotonousTime(frameIndex: Float, frameCount: Int): FrameIndex {
+            val frameCount = max(frameCount, 1)
 
             val timeF = fract(frameIndex / frameCount) * frameCount
 

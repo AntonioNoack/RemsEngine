@@ -335,6 +335,10 @@ class Transform() : Saveable() {
         if (invalidate) invalidateGlobal()
     }
 
+    fun setLocalPosition(x: Float, y: Float, z: Float): Transform {
+        return setLocalPosition(x.toDouble(), y.toDouble(), z.toDouble())
+    }
+
     fun setLocalPosition(x: Double, y: Double, z: Double): Transform {
         localPosition = localPosition.set(x, y, z)
         return this

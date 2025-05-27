@@ -1,8 +1,9 @@
 package me.anno.mesh.gltf
 
+import me.anno.ecs.components.anim.AnimationConverter.createAnimationPrefabs
+import me.anno.ecs.components.anim.AnimationConverter.createImportedPrefab
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
-import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
@@ -26,7 +27,6 @@ import me.anno.io.json.generic.JsonReader
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.mesh.assimp.AnimatedMeshesLoader.createBoneByBone
 import me.anno.mesh.gltf.GLTFConstants.BINARY_CHUNK_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.FILE_MAGIC
 import me.anno.mesh.gltf.GLTFConstants.GL_BYTE
@@ -473,11 +473,9 @@ class GLTFReader(val src: FileReference) {
             // calculate how many frames we need
             val duration = samplers.maxOfOrNull { it.times?.last() ?: 0f } ?: 0f
             val numFrames = max(samplers.maxOfOrNull { it.times?.size ?: 0 } ?: 0, 1)
-            val dt = if (duration > 0f) duration / numFrames else 0f
 
             val jointNodes = jointNodes[skeletonId]
             val skinningMatrices = (0 until numFrames).map { frameIndex ->
-                time = frameIndex * dt
                 for (i in sortedNodes.indices) {
                     val node = sortedNodes[i]
                     if (i == 0) assertTrue(node.parent == null)
@@ -503,21 +501,11 @@ class GLTFReader(val src: FileReference) {
                 }
             }
 
-            val prefab = Prefab("ImportedAnimation")
-            prefab["skeleton"] = skeletonRef
-            prefab["duration"] = duration
-            prefab["frames"] = skinningMatrices
-
-            val imported = ImportedAnimation()
-            imported.skeleton = skeletonRef
-            imported.duration = duration
-            imported.frames = skinningMatrices
-            val bbbPrefab = createBoneByBone(imported, jointNodes.size, null, null)
-
+            val importedPrefab = createImportedPrefab(skeletonRef, duration, skinningMatrices)
             val name = anim["name"] as? String ?: "Animation"
             val animFolder = InnerFolder(animationFolder, nextName(name, usedNames))
-            animFolder.createPrefabChild("BoneByBone.json", bbbPrefab)
-            animFolder.createPrefabChild("Imported.json", prefab)
+            createAnimationPrefabs(animFolder, importedPrefab, null, null)
+            animFolder
         }
 
         for (skin in skins) {

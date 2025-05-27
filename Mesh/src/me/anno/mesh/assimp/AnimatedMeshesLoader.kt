@@ -3,10 +3,9 @@ package me.anno.mesh.assimp
 import me.anno.animation.LoopingState
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.AnimationConverter.createAnimationPrefabs
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
-import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.BoneWeights
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.utils.MorphTarget
@@ -186,13 +185,7 @@ object AnimatedMeshesLoader {
                 val animations = root.createChild("animations", null) as InnerFolder
                 for ((animName, animation) in animMap) {
                     val folder = animations.createChild(animName, null) as InnerFolder
-                    folder.createPrefabChild("Imported.json", animation)
-                    folder.createLazyPrefabChild("BoneByBone.json", lazy {
-                        createBoneByBone(
-                            animation.getSampleInstance() as ImportedAnimation,
-                            boneList.size, globalTransform, globalInverseTransform,
-                        )
-                    })
+                    createAnimationPrefabs(folder, animation, globalTransform, globalInverseTransform)
                 }
             }
 
@@ -576,28 +569,6 @@ object AnimatedMeshesLoader {
         }
     }
 
-    fun createBoneByBone(
-        imported: ImportedAnimation,
-        numBones: Int,
-        globalTransform: Matrix4x3f?,
-        globalInverseTransform: Matrix4x3f?
-    ): Prefab {
-        val instance = BoneByBoneAnimation(imported)
-        val prefab = Prefab("BoneByBoneAnimation")
-        prefab._sampleInstance = instance
-        prefab["name"] = imported.name
-        prefab["duration"] = imported.duration
-        prefab["skeleton"] = imported.skeleton
-        prefab["frameCount"] = imported.numFrames
-        prefab["boneCount"] = numBones
-        prefab["translations"] = instance.translations
-        prefab["rotations"] = instance.rotations
-        prefab["scales"] = instance.scales
-        if (globalTransform != null) prefab["globalTransform"] = globalTransform
-        if (globalInverseTransform != null) prefab["globalInvTransform"] = globalInverseTransform
-        return prefab
-    }
-
     fun createNodeCache(rootNode: AINode): HashMap<String, AINode> {
         val result = HashMap<String, AINode>()
         createNodeCache(rootNode, result)
@@ -706,12 +677,12 @@ object AnimatedMeshesLoader {
 
             return boneIds to boneWeights
         }
-
         return null
     }
 
     private fun createMeshPrefab(
-        aiMesh: AIMesh, materials: List<FileReference>, boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
+        aiMesh: AIMesh, materials: List<FileReference>,
+        boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
     ): Prefab {
         val prefab = StaticMeshesLoader.createMeshPrefab(aiMesh, materials)
         val boneData = processBones(aiMesh, boneList, boneMap, aiMesh.mNumVertices())

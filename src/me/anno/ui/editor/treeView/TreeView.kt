@@ -268,10 +268,6 @@ abstract class TreeView<V : Any>(
             val children = getChildren(element)
             for (i in children.indices) {
                 val child = children[i]
-                val testParent = getParent(child)
-                if (testParent != element) {
-                    LOGGER.warn("${className}.getParent($child) is incorrect, $testParent != $element")
-                }
                 index = addToTreeList(child, depth + 1, index)
                 if (index > index0 + 1) isIncludedInSearch = true
             }
