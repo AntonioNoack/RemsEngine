@@ -7,8 +7,8 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main(){
     // create tree view
-    // todo hide search
-    // todo make sure it's gone
+    // hide search -> done
+    // make sure it's gone -> yes :)
     disableRenderDoc()
     testUI3("TreeView: HideSearch", ECSTreeView(style).apply {
         searchPanel.hide()

@@ -100,11 +100,7 @@ class CrowdAgent(val idx: Int) {
         val maxDelta = params.maxAcceleration * dt
         val ds = desiredVelAdjusted.distance(actualVelocity)
         actualVelocity.lerp(desiredVelAdjusted, min(maxDelta / ds, 1f))
-
-        // Integrate
-        if (actualVelocity.lengthSquared() > 1e-8f) {
-            actualVelocity.mulAdd(dt, currentPosition, currentPosition)
-        } else actualVelocity.set(0f)
+        actualVelocity.mulAdd(dt, currentPosition, currentPosition)
     }
 
     fun overOffMeshConnection(radius: Float): Boolean {

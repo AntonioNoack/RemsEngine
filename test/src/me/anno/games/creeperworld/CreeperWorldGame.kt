@@ -278,7 +278,7 @@ fun main() {
                     val yi = coordsToWindowY(0f).toInt()
                     val wi = coordsToWindowDirX(texture.width.toDouble()).toInt()
                     val hi = coordsToWindowDirY(texture.height.toDouble()).toInt()
-                    drawTexture(xi, yi, wi, hi, texture)
+                    drawTexture(xi, yi + hi, wi, -hi, texture)
                 }
             }
 

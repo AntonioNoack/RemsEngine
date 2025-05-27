@@ -75,6 +75,7 @@ fun generateNavMesh(scene: Entity): NavMeshData {
     builder.agentType.maxSpeed = 3f
     builder.agentType.radius = 0.35f
     builder.agentType.maxStepHeight = 0.2f
+    builder.agentType.maxAcceleration = 100f
     builder.collisionMask = navMeshCollision
     builder.edgeMaxError = 1f
 

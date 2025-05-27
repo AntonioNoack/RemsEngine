@@ -82,7 +82,8 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
     private var lines = text.split('\n')
         .map { line -> line.cpList() }
 
-    fun String.cpList() = Pair(this,
+    fun String.cpList() = Pair(
+        this,
         codepoints().map { char ->
             TextCacheKey(char.joinChars().toString(), font)
         })
@@ -99,13 +100,13 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
     override fun drawText(color: Int) {
         if (text != this.text) {
-            drawText2(0,0, text.cpList())
+            drawText2(0, 0, text.cpList())
         } else {
             val lines = lines
             val lineOffset = (font.size * (1f + lineSpacing)).roundToIntOr()
             for (index in lines.indices) {
                 val s = lines[index]
-                drawText2(0,index * lineOffset, s)
+                drawText2(0, index * lineOffset, s)
             }
         }
     }
@@ -120,7 +121,8 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         val equalSpaced = useMonospaceCharacters
 
         val time = (Time.gameTime % max(1.0, periodMillis * 1e-3)).toFloat()
-        val shader = (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextGraphicsShader[0]).value
+        val shader =
+            (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextGraphicsShader[0]).value
         shader.use()
 
         var h = font.sizeInt
@@ -159,7 +161,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
                         if (color2.a() > 0) {
                             shader.m4x4("transform", transform)
-                            posSize(shader, x2, y2, texture.width, texture.height)
+                            posSize(shader, x2, y2, texture.width, texture.height, true)
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
                             flat01.draw(shader)
@@ -168,11 +170,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                 }
                 fx += charWidth
             }
-
-            transform.set(backup)
-            JomlPools.mat4f.sub(1)
-
-            GFX.loadTexturesSync.pop()
 
             totalWidth = fx - (x + dxi)
         } else {
@@ -204,7 +201,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                         val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
                         if (color2.a() > 0) {
                             shader.m4x4("transform", transform)
-                            posSize(shader, x2, y2, texture.width.toFloat(), texture.height.toFloat())
+                            posSize(shader, x2, y2 + texture.height, texture.width.toFloat(), -texture.height.toFloat())
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
                             flat01.draw(shader)
