@@ -18,8 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd.debug
 
+import me.anno.maths.Maths.clamp
 import org.joml.Vector3f
-import org.recast4j.Vectors.clamp
 import kotlin.math.max
 import kotlin.math.min
 
@@ -52,7 +52,7 @@ class ObstacleAvoidanceDebugData(capacity: Int) {
         val range = maxValue - minValue
         val scale = if (range > 0.001f) 1f / range else 1f
         for (i in 0 until n) {
-            arr[i] = clamp((arr[i] - minValue) * scale, 0f, 1f)
+            arr[i] = clamp((arr[i] - minValue) * scale)
         }
     }
 

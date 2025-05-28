@@ -18,12 +18,12 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.tilecache.builder
 
+import me.anno.maths.Maths.sq
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.recast4j.Edge
 import org.recast4j.IntArrayList
-import org.recast4j.Vectors.sq
 import org.recast4j.detour.tilecache.TileCacheContour
 import org.recast4j.detour.tilecache.TileCacheContourSet
 import org.recast4j.detour.tilecache.TileCacheLayer

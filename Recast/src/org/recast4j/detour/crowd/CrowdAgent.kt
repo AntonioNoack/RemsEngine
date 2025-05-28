@@ -58,7 +58,7 @@ class CrowdAgent(val idx: Int) {
     val currentPosition = Vector3f()
 
     /** A temporary value used to accumulate agent displacement during iterative collision resolution  */
-    val disp = Vector3f()
+    val tmpDisplacement = Vector3f()
 
     /** The desired velocity of the agent. Based on the current path, calculated from scratch each frame.  */
     val desiredVelocity = Vector3f()

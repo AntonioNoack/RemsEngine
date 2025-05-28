@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j
 
+import me.anno.maths.Maths.sq
 import me.anno.utils.structures.tuples.FloatPair
 import org.joml.AABBi
 import org.joml.Vector3f
@@ -26,14 +27,6 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 object Vectors {
-
-    fun clamp(x: Float, min: Float, max: Float): Float {
-        return if (x < min) min else if (x < max) x else max
-    }
-
-    fun clamp(x: Int, min: Int, max: Int): Int {
-        return if (x < min) min else if (x < max) x else max
-    }
 
     fun min(a: Vector3f, b: FloatArray, i: Int) {
         a.min(b[i], b[i + 1], b[i + 2])
@@ -69,13 +62,6 @@ object Vectors {
         dst.z = vertices[i + 2] - vertices[j + 2]
     }
 
-    fun normalize(v: FloatArray) {
-        val invLength = 1f / sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-        v[0] *= invLength
-        v[1] *= invLength
-        v[2] *= invLength
-    }
-
     fun dot(v1: FloatArray, v2: FloatArray): Float {
         return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
     }
@@ -83,10 +69,10 @@ object Vectors {
     var EPS = 1e-4f
 
     /**
-     * a + b * s
+     * dst = a + b * f
      */
     fun mad(a: Vector3f, b: Vector3f, f: Float, dst: Vector3f) {
-        dst.set(b).mul(f).add(a)
+        b.mulAdd(f, a, dst)
     }
 
     fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
@@ -111,10 +97,6 @@ object Vectors {
             src[srcI + 1].toFloat(),
             src[srcI + 2].toFloat()
         )
-    }
-
-    fun sq(a: Float): Float {
-        return a * a
     }
 
     /**
@@ -196,7 +178,7 @@ object Vectors {
 
     private fun getPtSegT(d: Float, t0: Float): Float {
         var t = t0
-        if (d > 0) {
+        if (d > 0f) {
             t /= d
         }
         if (t < 0) {
@@ -250,7 +232,7 @@ object Vectors {
 
         var u = v1z * v2x - v1x * v2z
         var v = v0x * v2z - v0z * v2x
-        if (denom < 0) {
+        if (denom < 0f) {
             denom = -denom
             u = -u
             v = -v
@@ -324,23 +306,21 @@ object Vectors {
      * All vertices are projected onto the xz-plane, so the y-values are ignored.
      */
     fun overlapPolyPoly2D(polya: FloatArray, npolya: Int, polyb: FloatArray, npolyb: Int, tmp: Vector3f): Boolean {
-        var i = 0
         var j = npolya - 1
-        while (i < npolya) {
+        for (i in 0 until npolya) {
             val va = j * 3
             val vb = i * 3
             overlapRangeSetN(tmp, polya, va, vb)
             if (overlapRangeX(tmp, polya, polyb, npolya, npolyb)) return false
-            j = i++
+            j = i
         }
-        i = 0
         j = npolyb - 1
-        while (i < npolyb) {
+        for (i in 0 until npolyb) {
             val va = j * 3
             val vb = i * 3
             overlapRangeSetN(tmp, polyb, va, vb)
             if (overlapRangeX(tmp, polya, polyb, npolya, npolyb)) return false
-            j = i++
+            j = i
         }
         return true
     }
@@ -374,13 +354,13 @@ object Vectors {
     // Adapted from Graphics Gems article.
     fun randomPointInConvexPoly(pts: FloatArray, npts: Int, areas: FloatArray, s: Float, t: Float): Vector3f {
         // Calc triangle areas
-        var areasum = 0f
+        var areaSum = 0f
         for (i in 2 until npts) {
             areas[i] = triArea2D(pts, 0, (i - 1) * 3, i * 3)
-            areasum += kotlin.math.max(0.001f, areas[i])
+            areaSum += kotlin.math.max(0.001f, areas[i])
         }
         // Find sub triangle weighted by area.
-        val thr = s * areasum
+        val thr = s * areaSum
         var acc = 0f
         var u = 1f
         var tri = npts - 1
@@ -466,21 +446,21 @@ object Vectors {
             val t = normal / dist
             if (dist < 0) {
                 // segment S is entering across this edge
-                if (t > result.tmin) {
-                    result.tmin = t
+                if (t > result.tMin) {
+                    result.tMin = t
                     result.segMin = j
                     // S enters after leaving polygon
-                    if (result.tmin > result.tmax) {
+                    if (result.tMin > result.tMax) {
                         return result
                     }
                 }
             } else {
                 // segment S is leaving across this edge
-                if (t < result.tmax) {
-                    result.tmax = t
+                if (t < result.tMax) {
+                    result.tMax = t
                     result.segMax = j
                     // S leaves before entering polygon
-                    if (result.tmax < result.tmin) {
+                    if (result.tMax < result.tMin) {
                         return result
                     }
                 }
@@ -582,8 +562,8 @@ object Vectors {
 
     class IntersectResult {
         var intersects = false
-        var tmin = 0f
-        var tmax = 1f
+        var tMin = 0f
+        var tMax = 1f
         var segMin = -1
         var segMax = -1
     }

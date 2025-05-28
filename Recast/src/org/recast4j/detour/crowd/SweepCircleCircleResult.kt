@@ -18,4 +18,4 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
-class SweepCircleCircleResult(val htmin: Float, val htmax: Float)
+class SweepCircleCircleResult(val yMin: Float, val yMax: Float)

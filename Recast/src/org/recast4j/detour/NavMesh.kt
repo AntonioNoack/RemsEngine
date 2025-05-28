@@ -18,6 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.IntPair
 import org.joml.AABBf
@@ -170,12 +172,12 @@ class NavMesh(
             // Calculate quantized box
             val qbox = AABBi()
             // dtClamp query box to world box.
-            val minx = Vectors.clamp(queryBounds.minX, tileBounds.minX, tileBounds.maxX) - tileBounds.minX
-            val miny = Vectors.clamp(queryBounds.minY, tileBounds.minY, tileBounds.maxY) - tileBounds.minY
-            val minz = Vectors.clamp(queryBounds.minZ, tileBounds.minZ, tileBounds.maxZ) - tileBounds.minZ
-            val maxx = Vectors.clamp(queryBounds.maxX, tileBounds.minX, tileBounds.maxX) - tileBounds.minX
-            val maxy = Vectors.clamp(queryBounds.maxY, tileBounds.minY, tileBounds.maxY) - tileBounds.minY
-            val maxz = Vectors.clamp(queryBounds.maxZ, tileBounds.minZ, tileBounds.maxZ) - tileBounds.minZ
+            val minx = clamp(queryBounds.minX, tileBounds.minX, tileBounds.maxX) - tileBounds.minX
+            val miny = clamp(queryBounds.minY, tileBounds.minY, tileBounds.maxY) - tileBounds.minY
+            val minz = clamp(queryBounds.minZ, tileBounds.minZ, tileBounds.maxZ) - tileBounds.minZ
+            val maxx = clamp(queryBounds.maxX, tileBounds.minX, tileBounds.maxX) - tileBounds.minX
+            val maxy = clamp(queryBounds.maxY, tileBounds.minY, tileBounds.maxY) - tileBounds.minY
+            val maxz = clamp(queryBounds.maxZ, tileBounds.minZ, tileBounds.maxZ) - tileBounds.minZ
             // Quantize
             qbox.minX = (qfac * minx).toInt() and 0x7ffffffe
             qbox.minY = (qfac * miny).toInt() and 0x7ffffffe
@@ -528,8 +530,8 @@ class NavMesh(
                             tMin = tMax
                             tMax = temp
                         }
-                        link.bmin = round(Vectors.clamp(tMin, 0f, 1f) * 255f).toInt()
-                        link.bmax = round(Vectors.clamp(tMax, 0f, 1f) * 255f).toInt()
+                        link.bmin = round(clamp(tMin, 0f, 1f) * 255f).toInt()
+                        link.bmax = round(clamp(tMax, 0f, 1f) * 255f).toInt()
                     } else if (dir == 2 || dir == 6) {
                         var tMin = ((neia[k * 2] - data.vertices[va])
                                 / (data.vertices[vb] - data.vertices[va]))
@@ -540,8 +542,8 @@ class NavMesh(
                             tMin = tMax
                             tMax = temp
                         }
-                        link.bmin = round(Vectors.clamp(tMin, 0f, 1f) * 255f).toInt()
-                        link.bmax = round(Vectors.clamp(tMax, 0f, 1f) * 255f).toInt()
+                        link.bmin = round(clamp(tMin, 0f, 1f) * 255f).toInt()
+                        link.bmax = round(clamp(tMax, 0f, 1f) * 255f).toInt()
                     }
                 }
             }
@@ -578,7 +580,7 @@ class NavMesh(
             val nearestPt = nearest.nearestPos ?: continue
             // findNearestPoly may return too optimistic results, further check
             // to make sure.
-            if (Vectors.sq(nearestPt.x - p.x) + Vectors.sq(nearestPt.z - p.z) > targetCon.rad * targetCon.rad) {
+            if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > targetCon.rad * targetCon.rad) {
                 continue
             }
             // Make sure the location is on current mesh.
@@ -722,7 +724,7 @@ class NavMesh(
             val nearestPt = nearestPoly.nearestPos ?: continue
             // findNearestPoly may return too optimistic results, further check
             // to make sure.
-            if (Vectors.sq(nearestPt.x - p.x) + Vectors.sq(nearestPt.z - p.z) > Vectors.sq(con.rad)) {
+            if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > sq(con.rad)) {
                 continue
             }
             // Make sure the location is on current mesh.

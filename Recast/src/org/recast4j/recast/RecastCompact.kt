@@ -17,6 +17,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.maths.Maths.clamp
 import org.recast4j.Vectors
 import org.recast4j.recast.RecastCommon.getDirOffsetX
 import org.recast4j.recast.RecastCommon.getDirOffsetY
@@ -76,8 +77,8 @@ object RecastCompact {
                     if (s.area != RC_NULL_AREA) {
                         val bot = s.max
                         val top = s.next?.min ?: MAX_HEIGHT
-                        chf.spans[idx].y = Vectors.clamp(bot, 0, MAX_HEIGHT)
-                        chf.spans[idx].height = Vectors.clamp(top - bot, 0, MAX_HEIGHT)
+                        chf.spans[idx].y = clamp(bot, 0, MAX_HEIGHT)
+                        chf.spans[idx].height = clamp(top - bot, 0, MAX_HEIGHT)
                         chf.areas[idx] = s.area
                         idx++
                         chf.endIndex[c]++

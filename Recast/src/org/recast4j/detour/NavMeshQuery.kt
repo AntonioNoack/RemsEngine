@@ -18,6 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBf
@@ -473,12 +475,12 @@ open class NavMeshQuery(val nav1: NavMesh) {
             val qfac = data.bvQuantizationFactor
             // Calculate quantized box
             // dtClamp query box to world box.
-            val minx = Vectors.clamp(bounds.minX, tb.minX, tb.maxX) - tb.minX
-            val miny = Vectors.clamp(bounds.minY, tb.minY, tb.maxY) - tb.minY
-            val minz = Vectors.clamp(bounds.minZ, tb.minZ, tb.maxZ) - tb.minZ
-            val maxx = Vectors.clamp(bounds.maxX, tb.minX, tb.maxX) - tb.minX
-            val maxy = Vectors.clamp(bounds.maxY, tb.minY, tb.maxY) - tb.minY
-            val maxz = Vectors.clamp(bounds.maxZ, tb.minZ, tb.maxZ) - tb.minZ
+            val minx = clamp(bounds.minX, tb.minX, tb.maxX) - tb.minX
+            val miny = clamp(bounds.minY, tb.minY, tb.maxY) - tb.minY
+            val minz = clamp(bounds.minZ, tb.minZ, tb.maxZ) - tb.minZ
+            val maxx = clamp(bounds.maxX, tb.minX, tb.maxX) - tb.minX
+            val maxy = clamp(bounds.maxY, tb.minY, tb.maxY) - tb.minY
+            val maxz = clamp(bounds.maxZ, tb.minZ, tb.maxZ) - tb.minZ
             // Quantize
             val bmin = AABBi(
                 (qfac * minx).toInt() and 0x7ffffffe,
@@ -690,7 +692,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             // so it is enough to compute it from the first tile.
             val tile = nav1.getTileByRef(startRef)
             val agentRadius = tile!!.data.walkableRadius
-            raycastLimitSqr = Vectors.sq(agentRadius * NavMesh.DT_RAY_CAST_LIMIT_PROPORTIONS)
+            raycastLimitSqr = sq(agentRadius * NavMesh.DT_RAY_CAST_LIMIT_PROPORTIONS)
         }
         if (startRef == endRef) {
             val path = LongArrayList(1)
@@ -945,7 +947,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
             // so it is enough to compute it from the first tile.
             val tile = nav1.getTileByRef(startRef)
             val agentRadius = tile!!.data.walkableRadius
-            queryData.raycastLimitSqr = Vectors.sq(agentRadius * NavMesh.DT_RAY_CAST_LIMIT_PROPORTIONS)
+            queryData.raycastLimitSqr = sq(agentRadius * NavMesh.DT_RAY_CAST_LIMIT_PROPORTIONS)
         }
         if (startRef == endRef) {
             queryData.status = Status.SUCCESS
@@ -1833,7 +1835,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
         var t = 0.5f
         val intersect = Vectors.intersectSegSeg2D(fromPos, toPos, left, right)
         if (intersect != null) {
-            t = Vectors.clamp(intersect.second, 0.1f, 0.9f)
+            t = clamp(intersect.second, 0.1f, 0.9f)
         }
         return left.lerp(right, t)
     }
@@ -1941,8 +1943,8 @@ open class NavMeshQuery(val nav1: NavMesh) {
             hit.hitEdgeIndex = iresult.segMax
 
             // Keep track of furthest t so far.
-            if (iresult.tmax > hit.t) {
-                hit.t = iresult.tmax
+            if (iresult.tMax > hit.t) {
+                hit.t = iresult.tMax
             }
 
             // Store visited polygons.
@@ -2023,7 +2025,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     }
 
                     // Find Z intersection.
-                    val z = startPos.z + (endPos.z - startPos.z) * iresult.tmax
+                    val z = startPos.z + (endPos.z - startPos.z) * iresult.tMax
                     if (z in lmin..lmax) {
                         nextRef = link.neighborRef
                         break
@@ -2040,7 +2042,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     }
 
                     // Find X intersection.
-                    val x = startPos.x + (endPos.x - startPos.x) * iresult.tmax
+                    val x = startPos.x + (endPos.x - startPos.x) * iresult.tMax
                     if (x in lmin..lmax) {
                         nextRef = link.neighborRef
                         break
@@ -2378,7 +2380,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
                     i = bestTile.links[i].indexOfNextLink
                     continue
                 }
-                if (ir.tmin > 1f || ir.tmax < 0f) {
+                if (ir.tMin > 1f || ir.tMax < 0f) {
                     i = bestTile.links[i].indexOfNextLink
                     continue
                 }

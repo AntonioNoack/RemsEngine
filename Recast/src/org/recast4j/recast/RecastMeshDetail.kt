@@ -1,8 +1,8 @@
 package org.recast4j.recast
 
+import me.anno.maths.Maths.clamp
 import org.joml.Vector3f
 import org.recast4j.IntArrayList
-import org.recast4j.Vectors.clamp
 import org.recast4j.recast.DelaunayHull.delaunayHull
 import org.recast4j.recast.RecastCommon.getCon
 import org.recast4j.recast.RecastCommon.getDirForOffset

@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour
 
+import me.anno.maths.Maths.clamp
 import org.joml.AABBf
 import org.recast4j.Vectors
 import kotlin.math.max
@@ -86,7 +87,7 @@ class BVNode {
 
     companion object {
         fun quantitize(bmin: Float, headerMin: Float, quantFactor: Float): Int {
-            return Vectors.clamp(((bmin - headerMin) * quantFactor).toInt(), 0, Int.MAX_VALUE)
+            return clamp(((bmin - headerMin) * quantFactor).toInt(), 0, Int.MAX_VALUE)
         }
     }
 }

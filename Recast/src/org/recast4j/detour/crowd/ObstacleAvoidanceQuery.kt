@@ -18,6 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import org.joml.Vector3f
 import org.recast4j.Vectors
 import org.recast4j.detour.crowd.debug.ObstacleAvoidanceDebugData
@@ -143,7 +145,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
         // Find min time of impact and exit amongst all obstacles.
         var tmin = params.horizTime
         var side = 0f
-        var nside = 0
+        var numSides = 0
 
         val vab = Vector3f()
         for (i in 0 until circleCount) {
@@ -154,21 +156,21 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
             vab.sub(vel).sub(cir.vel)
 
             // Side
-            side += Vectors.clamp(min(Vectors.dot2D(cir.dp, vab) * 0.5f + 0.5f, Vectors.dot2D(cir.np, vab) * 2), 0f, 1f)
-            nside++
-            val sres = sweepCircleCircle(pos, rad, vab, cir.p, cir.rad) ?: continue
-            var htmin = sres.htmin
-            val htmax = sres.htmax
+            side += clamp(min(Vectors.dot2D(cir.dp, vab) * 0.5f + 0.5f, Vectors.dot2D(cir.np, vab) * 2), 0f, 1f)
+            numSides++
+            val circleResult = sweepCircleCircle(pos, rad, vab, cir.p, cir.rad) ?: continue
+            var yMin = circleResult.yMin
+            val yMax = circleResult.yMax
 
             // Handle overlapping obstacles.
-            if (htmin < 0f && htmax > 0f) {
+            if (yMin < 0f && yMax > 0f) {
                 // Avoid more when overlapped.
-                htmin = -htmin * 0.5f
+                yMin = -yMin * 0.5f
             }
-            if (htmin >= 0f) {
+            if (yMin >= 0f) {
                 // The closest obstacle is somewhere ahead of us, keep track of nearest obstacle.
-                if (htmin < tmin) {
-                    tmin = htmin
+                if (yMin < tmin) {
+                    tmin = yMin
                     if (tmin < tThresold) return minPenalty
                 }
             }
@@ -203,7 +205,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
         }
 
         // Normalize side bias, to prevent it dominating too much.
-        if (nside != 0) side /= nside.toFloat()
+        if (numSides != 0) side /= numSides.toFloat()
         val preferredSidePenalty = params.weightSide * side
         val collisionTimePenalty = params.weightToi * (1f / (0.1f + tmin * invHorizTime))
         val penalty = desiredVelocityPenalty + currentVelocityPenalty + preferredSidePenalty + collisionTimePenalty
@@ -272,8 +274,8 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
         val ndivs = params.adaptiveDivs
         val nrings = params.adaptiveRings
         val depth = params.adaptiveDepth
-        val nd: Int = Vectors.clamp(ndivs, 1, DT_MAX_PATTERN_DIVS)
-        val nr: Int = Vectors.clamp(nrings, 1, DT_MAX_PATTERN_RINGS)
+        val nd: Int = clamp(ndivs, 1, DT_MAX_PATTERN_DIVS)
+        val nr: Int = clamp(nrings, 1, DT_MAX_PATTERN_RINGS)
         val da = 1f / nd * DT_PI * 2
         val ca = cos(da)
         val sa = sin(da)
@@ -323,7 +325,7 @@ class ObstacleAvoidanceQuery(maxCircles: Int, maxSegments: Int) {
             val bVel = Vector3f()
             for (i in 0 until npat) {
                 val vcand = Vector3f(res.x + pat[i * 2] * cr, 0f, res.z + pat[i * 2 + 1] * cr)
-                if (Vectors.sq(vcand.x) + Vectors.sq(vcand.z) > Vectors.sq(vmax + 0.001f)) continue
+                if (sq(vcand.x) + sq(vcand.z) > sq(vmax + 0.001f)) continue
                 val penalty = processSample(vcand, cr / 10, pos, rad, vel, dvel, minPenalty, debug)
                 ns++
                 if (penalty < minPenalty) {

@@ -18,6 +18,8 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.detour.crowd
 
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import org.joml.Vector3f
 import org.recast4j.LongArrayList
 import org.recast4j.Vectors
@@ -874,7 +876,7 @@ class Crowd @JvmOverloads constructor(
                     continue
                 }
                 val dist = sqrt(distSqr)
-                val weight = separationWeight * (1f - Vectors.sq(dist * invSeparationDist))
+                val weight = separationWeight * (1f - sq(dist * invSeparationDist))
                 val f = weight / dist
                 dispX += diffX * f
                 dispZ += diffZ * f
@@ -961,7 +963,7 @@ class Crowd @JvmOverloads constructor(
             for (i in agents.indices) {
                 val ag = agents[i]
                 if (ag.state != CrowdAgentState.WALKING) continue
-                ag.currentPosition.add(ag.disp)
+                ag.currentPosition.add(ag.tmpDisplacement)
             }
         }
         telemetry.stop(CrowdTelemetryType.HANDLE_COLLISIONS)
@@ -971,8 +973,8 @@ class Crowd @JvmOverloads constructor(
         if (ag.state != CrowdAgentState.WALKING) return
         val idx0 = ag.idx
 
-        val disp = ag.disp.set(0f)
         var w = 0f
+        val displacement = ag.tmpDisplacement.set(0f)
         for (j in ag.neis.indices) {
             val nei = ag.neis[j].agent
             val idx1 = nei.idx
@@ -982,7 +984,7 @@ class Crowd @JvmOverloads constructor(
             var dz = p0.z - p1.z
 
             var dist = dx * dx + dz * dz
-            if (dist > Vectors.sq(ag.params.radius + nei.params.radius)) {
+            if (dist > sq(ag.params.radius + nei.params.radius)) {
                 continue
             }
 
@@ -1001,12 +1003,12 @@ class Crowd @JvmOverloads constructor(
             } else {
                 (pen * 0.5f) * config.collisionResolveFactor / dist
             }
-            disp.add(dx * pen, 0f, dz * pen)
+            displacement.add(dx * pen, 0f, dz * pen)
             w += 1f
         }
         if (w > 0.0001f) {
             val iw = 1f / w
-            disp.mul(iw)
+            displacement.mul(iw)
         }
     }
 
@@ -1083,7 +1085,7 @@ class Crowd @JvmOverloads constructor(
     }
 
     private fun tween(t: Float, t0: Float, t1: Float): Float {
-        return Vectors.clamp((t - t0) / (t1 - t0), 0f, 1f)
+        return clamp((t - t0) / (t1 - t0), 0f, 1f)
     }
 
     /**

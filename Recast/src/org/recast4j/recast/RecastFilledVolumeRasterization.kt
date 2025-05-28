@@ -17,17 +17,35 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.maths.Maths.clamp
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.recast4j.Vectors
-import org.recast4j.Vectors.clamp
 import java.util.function.Function
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sqrt
 
 object RecastFilledVolumeRasterization {
 
     private const val EPSILON = 0.00001f
-    private val BOX_EDGES = intArrayOf(0, 1, 0, 2, 0, 4, 1, 3, 1, 5, 2, 3, 2, 6, 3, 7, 4, 5, 4, 6, 5, 7, 6, 7)
+    private val BOX_EDGES = intArrayOf(
+        0, 1,
+        0, 2,
+        0, 4,
+        1, 3,
+        1, 5,
+        2, 3,
+        2, 6,
+        3, 7,
+        4, 5,
+        4, 6,
+        5, 7,
+        6, 7
+    )
 
     fun rasterizeSphere(
         hf: Heightfield,
@@ -171,15 +189,18 @@ object RecastFilledVolumeRasterization {
             plane(planes, i, ab, ac, vertices, a)
             plane(planes, i + 1, Vector3f(planes[i]), bc, vertices, b)
             plane(planes, i + 2, Vector3f(planes[i]), ca, vertices, c)
-            var s =
-                1f / (vertices[a] * planes[i + 1][0] + vertices[a + 1] * planes[i + 1][1] + vertices[a + 2] * planes[i + 1][2] - planes[i + 1][3])
+            var s = 1f / (vertices[a] * planes[i + 1][0] +
+                    vertices[a + 1] * planes[i + 1][1] +
+                    vertices[a + 2] * planes[i + 1][2] -
+                    planes[i + 1][3])
             planes[i + 1][0] *= s
             planes[i + 1][1] *= s
             planes[i + 1][2] *= s
             planes[i + 1][3] *= s
-            s =
-                1f / (vertices[b] * planes[i + 2][0] + vertices[b + 1] * planes[i + 2][1] + vertices[b + 2] * planes[i + 2][2]
-                        - planes[i + 2][3])
+            s = 1f / (vertices[b] * planes[i + 2][0] +
+                    vertices[b + 1] * planes[i + 2][1] +
+                    vertices[b + 2] * planes[i + 2][2] -
+                    planes[i + 2][3])
             planes[i + 2][0] *= s
             planes[i + 2][1] *= s
             planes[i + 2][2] *= s
@@ -567,8 +588,8 @@ object RecastFilledVolumeRasterization {
     }
 
     private fun intersectConvex(
-        rectangle: FloatArray, triangles: IntArray, vertices: FloatArray, planes: Array<FloatArray>,
-        triBounds: Array<FloatArray>
+        rectangle: FloatArray, triangles: IntArray, vertices: FloatArray,
+        planes: Array<FloatArray>, triBounds: Array<FloatArray>
     ): FloatArray? {
         var imin = Float.POSITIVE_INFINITY
         var imax = Float.NEGATIVE_INFINITY

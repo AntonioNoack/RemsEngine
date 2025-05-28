@@ -18,9 +18,9 @@ freely, subject to the following restrictions:
 */
 package org.recast4j.recast
 
+import me.anno.maths.Maths.clamp
 import org.joml.AABBf
 import org.recast4j.Vectors
-import org.recast4j.Vectors.clamp
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
