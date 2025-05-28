@@ -473,9 +473,12 @@ class GLTFReader(val src: FileReference) {
             // calculate how many frames we need
             val duration = samplers.maxOfOrNull { it.times?.last() ?: 0f } ?: 0f
             val numFrames = max(samplers.maxOfOrNull { it.times?.size ?: 0 } ?: 0, 1)
+            val dt = if (duration > 0f) duration / numFrames else 0f
 
             val jointNodes = jointNodes[skeletonId]
             val skinningMatrices = (0 until numFrames).map { frameIndex ->
+                @Suppress("AssignedValueIsNeverRead") // it IS read and necessary!!!!
+                time = frameIndex * dt
                 for (i in sortedNodes.indices) {
                     val node = sortedNodes[i]
                     if (i == 0) assertTrue(node.parent == null)

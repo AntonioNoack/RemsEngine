@@ -87,8 +87,6 @@ fun main() {
     // todo create world
     // todo create UI
 
-    // todo bug: why are the sim-animations floating 1.5 above the ground???
-
     val scene = Entity("Scene")
     Entity("Floor", scene)
         .setScale(40f)
@@ -98,6 +96,7 @@ fun main() {
             name = "Walk Here"
         }).add(SimAction().apply {
             name = "Sprint Here"
+            supportRunning = true
         }).add(SimAction().apply {
             name = "Sit Here"
         })
@@ -119,10 +118,9 @@ fun main() {
     }
 
     for ((i, nameI) in names.withIndex()) {
-        val x = (i - (names.size - 1) * 0.5) * 5.0
         Entity(nameI, sims)
             .add(Sim().apply { name = nameI; household.sims.add(this) })
-            .add(SimNavAgent(navMeshData, Vector3f(x.toFloat(), 0f, 10f)))
+            .add(SimNavAgent(navMeshData, Vector3f(0f)).apply { isEnabled = false })
             .add(AnimMeshComponent().apply {
                 meshFile = animatedMeshSrc.getChild("X Bot.fbx")
                 animations = listOf(
@@ -132,7 +130,7 @@ fun main() {
                 )
                 materials = listOf(skinMaterial, skinMaterial)
             })
-            .setPosition(x, 0.0, 0.0)
+            .setPosition((i - (names.size - 1) * 0.5) * 5.0, 0.0, 0.0)
     }
 
     testSceneWithUI("SimsLike", scene) {

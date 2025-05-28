@@ -10,9 +10,9 @@ import org.joml.Vector3f
  * part of a skeleton (for skeletal animations);
  * children are implicit at the moment, via parentId
  * */
-class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
+class Bone(var index: Int, var parentIndex: Int, name: String) : PrefabSaveable() {
 
-    constructor() : this(-1, -1, "")
+    constructor() : this(0, -1, "")
 
     init {
         this.name = name
@@ -85,15 +85,15 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
     }
 
     fun getParent(bones: List<Bone>): Bone? {
-        return bones.getOrNull(parentId)
+        return bones.getOrNull(parentIndex)
     }
 
     override val approxSize get() = 1
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeInt("id", id)
-        writer.writeInt("parentId", parentId, true)
+        writer.writeInt("index", index)
+        writer.writeInt("parentIndex", parentIndex, true)
         writer.writeMatrix4x3f("bindPose", bindPose)
         writer.writeMatrix4x3f("relativeTransform", relativeTransform)
         writer.writeMatrix4x3f("originalTransform", originalTransform)
@@ -101,8 +101,8 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "id" -> id = value as? Int ?: return
-            "parentId" -> parentId = value as? Int ?: return
+            "id", "index" -> index = value as? Int ?: return
+            "parentId", "parentIndex" -> parentIndex = value as? Int ?: return
             "bindPose" -> setBindPose(value as? Matrix4x3f ?: return)
             "relativeTransform" -> relativeTransform.set(value as? Matrix4x3f ?: return)
             "originalTransform" -> originalTransform.set(value as? Matrix4x3f ?: return)
@@ -113,8 +113,8 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is Bone) return
-        dst.id = id
-        dst.parentId = parentId
+        dst.index = index
+        dst.parentIndex = parentIndex
         dst.inverseBindPose.set(inverseBindPose)
         dst.relativeTransform.set(relativeTransform)
         dst.originalTransform.set(originalTransform)

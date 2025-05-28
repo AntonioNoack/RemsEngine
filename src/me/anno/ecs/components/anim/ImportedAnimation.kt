@@ -39,23 +39,23 @@ class ImportedAnimation : Animation() {
         return dst
     }
 
-    override fun getMatrix(frameIndex: Float, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f {
-        val (fraction, index0, index1) = calculateMonotonousTime(frameIndex, frames.size)
-        val dstI = dst[boneId]
-        val frame0 = frames[index0]
-        val frame1 = frames[index1]
-        if (boneId < min(frame0.size, frame1.size)) {
-            frames[index0][boneId].mix(frames[index1][boneId], fraction, dstI)
+    override fun getMatrix(frameIndex: Float, boneIndex: Int, dst: List<Matrix4x3f>): Matrix4x3f {
+        val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frames.size)
+        val dstI = dst[boneIndex]
+        val frame0 = frames[frameIndex0]
+        val frame1 = frames[frameIndex1]
+        if (boneIndex < min(frame0.size, frame1.size)) {
+            frames[frameIndex0][boneIndex].mix(frames[frameIndex1][boneIndex], fraction, dstI)
         }
-        return dst[boneId]
+        return dst[boneIndex]
     }
 
     override fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f> {
         return frames.getOrNull(frameIndex) ?: emptyList()
     }
 
-    override fun getMatrix(frameIndex: Int, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
-        return frames.getOrNull(frameIndex)?.getOrNull(boneId)
+    override fun getMatrix(frameIndex: Int, boneIndex: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
+        return frames.getOrNull(frameIndex)?.getOrNull(boneIndex)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -31,6 +31,14 @@ open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate {
         return true
     }
 
+    override fun onDisable() {
+        super.onDisable()
+        val agent = crowdAgent ?: return
+        data.crowd.removeAgent(agent)
+        agent.actualVelocity.set(0f)
+        crowdAgent = null
+    }
+
     fun teleportTo(position: Vector3f) {
         val crowdAgent = crowdAgent ?: return
         data.crowd.resetMoveTarget(crowdAgent)
@@ -41,11 +49,6 @@ open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate {
     }
 
     fun moveTo(position: Vector3f) {
-
-        if (crowdAgent == null) {
-            println("Missing crowdAgent!")
-        }
-
         val crowdAgent = crowdAgent ?: return
         val nextPoly = data.query.findNearestPoly(position, data.filter)
         if (nextPoly.succeeded()) {
@@ -58,7 +61,7 @@ open class NavMeshAgent(val data: NavMeshData) : Component(), OnUpdate {
         if (crowdAgent == null) init()
     }
 
-    open fun findNextTarget(random: Random) {
+    open fun moveToRandomPoint(random: Random) {
         val crowdAgent = crowdAgent ?: return
         val nextRef = findRandomTarget(data, crowdAgent, Float.POSITIVE_INFINITY, random)
         if (nextRef != null) crowdAgent.setTarget(nextRef.randomRef, nextRef.randomPt)

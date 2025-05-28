@@ -447,6 +447,10 @@ open class Vector3f(
         return acos(cos)
     }
 
+    fun angleY(): Float {
+        return atan2(x, z)
+    }
+
     fun angleSigned(v: Vector3f, n: Vector3f): Float {
         return angleSigned(v.x, v.y, v.z, n.x, n.y, n.z)
     }

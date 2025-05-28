@@ -133,7 +133,7 @@ object Retargetings {
         var ancestor = bone
         var ancestorMap = noBoneMapped
         while (ancestorMap == noBoneMapped) {
-            val parentId = ancestor.parentId
+            val parentId = ancestor.parentIndex
             ancestorMap = dstBoneMapping.getOrNull(parentId) ?: break
             ancestor = dstSkeleton.bones[parentId]
         }

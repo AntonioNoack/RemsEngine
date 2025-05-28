@@ -164,7 +164,7 @@ object AnimationLoader {
         val bone = boneMap[name]
         if (bone != null) {
             val inverseBindPose = bone.inverseBindPose // = bone offset matrix
-            val skinningMatrix = skinningMatrices[bone.id]
+            val skinningMatrix = skinningMatrices[bone.index]
             if (globalTransform == null || globalInverseTransform == null) {
                 localTransform.mul(inverseBindPose, skinningMatrix) // skinning = local * bindPose^-1
             } else {

@@ -7,7 +7,7 @@ import kotlin.math.min
 
 class BoneWeights(val weights: Vector4f, val boneIds: Int) {
 
-    class VertexWeight(var weight: Float, val boneId: Byte)
+    class VertexWeight(var weight: Float, val boneIndex: Byte)
 
     fun mix(other: BoneWeights, f: Float): BoneWeights {
         return mixBoneWeights(this, other, f)
@@ -17,47 +17,50 @@ class BoneWeights(val weights: Vector4f, val boneIds: Int) {
 
         fun joinBoneWeights(
             vertexWeightList: MutableList<VertexWeight>?,
-            boneWeights: FloatArray, boneIds: ByteArray, i: Int
+            boneWeights: FloatArray, boneIndices: ByteArray, vertexIndex: Int
         ) {
             if (vertexWeightList != null) {
                 vertexWeightList.sortByDescending { it.weight }
                 val size = min(vertexWeightList.size, MAX_WEIGHTS)
-                val startIndex = i * MAX_WEIGHTS
+                val startIndex = vertexIndex * MAX_WEIGHTS
                 boneWeights[startIndex] = 1f
                 for (j in 0 until size) {
                     val vw = vertexWeightList[j]
                     boneWeights[startIndex + j] = vw.weight
-                    boneIds[startIndex + j] = vw.boneId
+                    boneIndices[startIndex + j] = vw.boneIndex
                 }
-            } else boneWeights[i * MAX_WEIGHTS] = 1f
+            } else boneWeights[vertexIndex * MAX_WEIGHTS] = 1f
         }
 
-        fun getBoneIds(bytes: ByteArray, i: Int): Int {
-            if (i < 0 || i + 4 >= bytes.size) return 0
-            return argb(bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3])
+        fun getBoneIndices(bytes: ByteArray, byteOffset: Int): Int {
+            if (byteOffset < 0 || byteOffset + 4 >= bytes.size) return 0
+            return argb(
+                bytes[byteOffset], bytes[byteOffset + 1],
+                bytes[byteOffset + 2], bytes[byteOffset + 3]
+            )
         }
 
-        fun getBoneId(boneIds: Int, i: Int): Byte {
-            return boneIds.shr(24 - i * 8).toByte()
+        fun getBoneIndex(boneIndices: Int, slotId: Int): Byte {
+            return boneIndices.shr(24 - slotId * 8).toByte()
         }
 
-        fun addWeight(weights: ArrayList<VertexWeight>, weight: Float, boneId: Byte) {
+        fun addWeight(weights: ArrayList<VertexWeight>, weight: Float, boneIndex: Byte) {
             if (weight == 0f) return
             for (i in weights.indices) {
                 val wei = weights[i]
-                if (wei.boneId == boneId) {
+                if (wei.boneIndex == boneIndex) {
                     wei.weight += weight
                     return
                 }
             }
-            weights.add(VertexWeight(weight, boneId))
+            weights.add(VertexWeight(weight, boneIndex))
         }
 
         fun addWeights(weights: ArrayList<VertexWeight>, a: BoneWeights, factor: Float) {
-            addWeight(weights, a.weights.x * factor, getBoneId(a.boneIds, 0))
-            addWeight(weights, a.weights.y * factor, getBoneId(a.boneIds, 1))
-            addWeight(weights, a.weights.z * factor, getBoneId(a.boneIds, 2))
-            addWeight(weights, a.weights.w * factor, getBoneId(a.boneIds, 3))
+            addWeight(weights, a.weights.x * factor, getBoneIndex(a.boneIds, 0))
+            addWeight(weights, a.weights.y * factor, getBoneIndex(a.boneIds, 1))
+            addWeight(weights, a.weights.z * factor, getBoneIndex(a.boneIds, 2))
+            addWeight(weights, a.weights.w * factor, getBoneIndex(a.boneIds, 3))
         }
 
         fun mixBoneWeights(
@@ -80,7 +83,7 @@ class BoneWeights(val weights: Vector4f, val boneIds: Int) {
                 for (j in 0 until size) {
                     val vw = vertexWeightList[j]
                     dstW[j] = vw.weight
-                    dstI += vw.boneId.toInt().and(255) shl (24 - j * 8)
+                    dstI += vw.boneIndex.toInt().and(255) shl (24 - j * 8)
                 }
             }
             return BoneWeights(dstW, dstI)

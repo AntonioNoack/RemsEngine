@@ -1,8 +1,8 @@
 package me.anno.games.simslike
 
+import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponents
 import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
@@ -15,9 +15,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Floats.toRadians
-import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -39,39 +37,79 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
                 TextButton(NameDesc(sim.name), style)
                     .addLeftClickListener {
                         currentSim = sim
-                        rebuildActionStack()
+                        showActionStack()
                     }
             )
         }
         add(simsSelectBar)
 
-        actionStack.add(TextPanel("Actions", style))
+        showActionStack()
         actionStack.alignmentX = AxisAlignment.MIN
         actionStack.alignmentY = AxisAlignment.MAX
         add(actionStack)
 
-        add(TextButton(NameDesc("Build"), style)
-            .addLeftClickListener {
-                // switch to build mode
-                sceneView.editControls = controls.buildControls
-                controls.buildControls.rotationTargetDegrees.set(rotationTargetDegrees)
-            }
-            .apply {
-                alignmentX = AxisAlignment.MAX
-                alignmentY = AxisAlignment.MAX
-            })
+        add(
+            TextButton(NameDesc("Build"), style)
+                .addLeftClickListener {
+                    // switch to build mode
+                    sceneView.editControls = controls.buildControls
+                    controls.buildControls.rotationTargetDegrees.set(rotationTargetDegrees)
+                }
+                .apply {
+                    alignmentX = AxisAlignment.MAX
+                    alignmentY = AxisAlignment.MAX
+                })
     }
 
-    fun rebuildActionStack() {
-        // todo add action stack
+    override fun onUpdate() {
+        super.onUpdate()
+        if (actionStack.children.size != currentSim.actions.size) {
+            showActionStack()
+        }
     }
 
-    fun onClickedActions(actions: List<SimAction>, hit: RayHit) {
+    fun showActionStack() {
+        actionStack.clear()
+        val actions = currentSim.actions
+        for (i in actions.lastIndex downTo 0) {
+            val action = actions[i]
+            actionStack.add(
+                TextButton(NameDesc(action.name, action.description, ""), style)
+                    .addLeftClickListener {
+                        action.state = ActionState.CANCEL
+                    })
+        }
+    }
+
+    fun onClickedActions(entity: Entity, actions: List<SimAction>, hit: RayHit) {
+        // todo make action cancellable
         // to do group them?
-        Menu.openMenu(windowStack, actions.map {
-            MenuOption(NameDesc(it.name, it.description, "")) {
-                // todo add action to current character
-                // todo character will be active, so add action to UI, too
+        Menu.openMenu(windowStack, actions.map { action0 ->
+            MenuOption(NameDesc(action0.name, action0.description, "")) {
+                // we might need this action multiple times, so clone it!
+                // todo how do we handle, that we might need an action multiple times / in multiple sims, but still need individual data???
+                val action = action0 // .clone() as SimAction
+
+                when {
+                    action.isSimTarget -> {
+                        // todo if is sim action, decide angle for interaction
+                        // todo also register action in other sim, so they can find together
+                    }
+                    action.isObjectTarget -> {
+                        // fine
+                        // todo deny if on fire?
+                    }
+                    else -> {
+                        // walking target
+                        action.offset.set(hit.positionWS)
+                    }
+                }
+
+                action.state = ActionState.READY
+
+                // add action to current character
+                currentSim.actions.add(action)
+                showActionStack()
             }
         })
     }
@@ -97,7 +135,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
             while (entity != null) {
                 val actions = entity.getComponents(SimAction::class)
                 if (actions.isNotEmpty()) {
-                    onClickedActions(actions, query.result)
+                    onClickedActions(entity, actions, query.result)
                     return
                 }
                 entity = entity.parentEntity

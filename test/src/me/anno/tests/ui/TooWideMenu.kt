@@ -10,6 +10,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.utils.ThumbnailPanel
 
 // this was a bug and has been fixed
+// todo menus have a weird padding on the right, again
 fun main() {
     disableRenderDoc()
     testUI3("TooWideMenu", TextButton(NameDesc("Click Me"), style)

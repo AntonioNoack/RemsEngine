@@ -197,8 +197,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         }
         for (boneId in bones.indices) {
             val bone = bones[boneId]
-            if (bone.parentId in bones.indices) {
-                children[baseId + bone.parentId].add(baseId + boneId)
+            if (bone.parentIndex in bones.indices) {
+                children[baseId + bone.parentIndex].add(baseId + boneId)
             } else {
                 roots.add(baseId + boneId)
             }
@@ -1013,8 +1013,8 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
                         val bone = bones[boneId]
                         val global = skinning[boneId].mul(bone.bindPose, result[boneId])
                         global.invert(resultInv[boneId])
-                        if (bone.parentId in bones.indices) {
-                            resultInv[bone.parentId].mul(global, global) // -> local
+                        if (bone.parentIndex in bones.indices) {
+                            resultInv[bone.parentIndex].mul(global, global) // -> local
                         }
                     }
                     result

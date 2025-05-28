@@ -69,5 +69,5 @@ fun printBones(bones: List<Bone>) {
 }
 
 fun printBone(bone: Bone) {
-    println("'${bone.name}': ${bone.parentId}, ${bone.bindPose}")
+    println("'${bone.name}': ${bone.parentIndex}, ${bone.bindPose}")
 }

@@ -40,10 +40,10 @@ object MeshSplitter {
                 boneWeights?.add(a.boneWeights.weights)
                 if (boneIndices != null) {
                     val boneIds = a.boneWeights.boneIds
-                    boneIndices.add(BoneWeights.getBoneId(boneIds, 0))
-                    boneIndices.add(BoneWeights.getBoneId(boneIds, 1))
-                    boneIndices.add(BoneWeights.getBoneId(boneIds, 2))
-                    boneIndices.add(BoneWeights.getBoneId(boneIds, 3))
+                    boneIndices.add(BoneWeights.getBoneIndex(boneIds, 0))
+                    boneIndices.add(BoneWeights.getBoneIndex(boneIds, 1))
+                    boneIndices.add(BoneWeights.getBoneIndex(boneIds, 2))
+                    boneIndices.add(BoneWeights.getBoneIndex(boneIds, 3))
                 }
             }
         }
@@ -101,7 +101,7 @@ object MeshSplitter {
                 return null
             }
             val weights = Vector4f(boneWeights, i)
-            val boneIds = BoneWeights.getBoneIds(boneIndices, i)
+            val boneIds = BoneWeights.getBoneIndices(boneIndices, i)
             return BoneWeights(weights, boneIds)
         }
 

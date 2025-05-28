@@ -293,7 +293,7 @@ object AnimatedMeshesLoader {
         var needsFix = false
         val size = boneList.size
         for (i in 0 until size) {
-            if (i <= boneList[i].parentId) {
+            if (i <= boneList[i].parentIndex) {
                 needsFix = true
                 break
             }
@@ -303,17 +303,17 @@ object AnimatedMeshesLoader {
         }
         // sort the bones based on their parent id
         val original = ArrayList(boneList)
-        boneList.sortByParent { original.getOrNull(it.parentId) }
+        boneList.sortByParent { original.getOrNull(it.parentIndex) }
         // create the correcting id mapping
         val mapping = IntArray(size)
         for (i in 0 until size) {
-            mapping[boneList[i].id] = i
+            mapping[boneList[i].index] = i
         }
         // apply the change to all bones
         for (index in 0 until size) {
             val bone = boneList[index]
-            bone.id = index
-            bone.parentId = if (bone.parentId < 0) -1 else mapping[bone.parentId]
+            bone.index = index
+            bone.parentIndex = if (bone.parentIndex < 0) -1 else mapping[bone.parentIndex]
         }
         // apply the change to all meshes
         for (mesh in meshes) {
@@ -658,8 +658,8 @@ object AnimatedMeshesLoader {
                     aiWeights.get(j, aiWeight)
                     val vertexId = aiWeight.mVertexId()
                     val weight = aiWeight.mWeight()
-                    if (bone.id < 0 || bone.id > MAX_BONE_ID) continue
-                    val vw = BoneWeights.VertexWeight(weight, bone.id.toByte())
+                    if (bone.index < 0 || bone.index > MAX_BONE_ID) continue
+                    val vw = BoneWeights.VertexWeight(weight, bone.index.toByte())
                     var vertexWeightList = weightSet[vertexId]
                     if (vertexWeightList == null) {
                         vertexWeightList = ArrayList(MAX_WEIGHTS)

@@ -73,15 +73,15 @@ fun main() {
     val initialPose = ragdollAnimation.frames[0].map { Matrix4x3f(it) }
     val bonePositions = bones.map {
         val pos = Vector3d(it.bindPosition)
-        initialPose[it.id].transformPosition(pos)
+        initialPose[it.index].transformPosition(pos)
         meshMatrix.transformPosition(pos)
     }
 
     val capsules = ArrayList<CapsuleCollider>()
     for (bone in bones) {
         val parent = bone.getParent(bones) ?: continue
-        val bonePos = bonePositions[bone.id]
-        val parentPos = bonePositions[parent.id]
+        val bonePos = bonePositions[bone.index]
+        val parentPos = bonePositions[parent.index]
         DebugShapes.debugLines.add(DebugLine(bonePos, parentPos, UIColors.gold, 1000f))
     }
 
@@ -97,11 +97,11 @@ fun main() {
     var isRootBone = true
     for (bone in bones) {
 
-        val bonePos = bonePositions[bone.id]
+        val bonePos = bonePositions[bone.index]
 
         fun findParent(bone: Bone): Bone? {
             val parent = bone.getParent(bones) ?: return null
-            return if (bonePositions[parent.id].distance(bonePos) > 0.001) parent
+            return if (bonePositions[parent.index].distance(bonePos) > 0.001) parent
             else findParent(parent)
         }
 
@@ -114,7 +114,7 @@ fun main() {
             continue
         }
 
-        val parentPos = bonePositions[parent.id]
+        val parentPos = bonePositions[parent.index]
         if (isRootBone && parentPos.distance(bonePos) < 0.001) {
             entities.add(null)
             rigidbodies.add(null)
@@ -152,7 +152,7 @@ fun main() {
             .add(collider)
 
         val baseRotation = direction.normalize().normalToQuaternionY()
-        val parentBody = rigidbodies[parent.id]
+        val parentBody = rigidbodies[parent.index]
         if (parentBody != null) {
             if (false) entity.add(ConeTwistConstraint().apply {
                 other = parentBody

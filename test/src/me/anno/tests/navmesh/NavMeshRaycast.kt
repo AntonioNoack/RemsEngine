@@ -39,8 +39,8 @@ class AgentController1a(
     val flag: Entity,
 ) : NavMeshAgent(data) {
 
-    override fun findNextTarget(random: Random) {
-        super.findNextTarget(random)
+    override fun moveToRandomPoint(random: Random) {
+        super.moveToRandomPoint(random)
         val flagTransform = flag.transform
         val crowdAgent = crowdAgent ?: return
         flagTransform.setLocalPosition(crowdAgent.targetPosOrVel)
@@ -61,7 +61,7 @@ class AgentController1a(
         // todo bug in recast: velocity reaches zero for no apparent reason
         val distSq = crowdAgent.actualVelocity.lengthSquared()
         if (distSq == 0f || crowdAgent.targetPosOrVel.distanceSquared(nextPos) < 0.1f) {
-            findNextTarget(random)
+            moveToRandomPoint(random)
         }
 
         // project agent onto surface

@@ -32,8 +32,8 @@ class AgentController1b(
 
     val random = Random(Time.nanoTime)
 
-    override fun findNextTarget(random: Random) {
-        super.findNextTarget(random)
+    override fun moveToRandomPoint(random: Random) {
+        super.moveToRandomPoint(random)
         val crowdAgent = crowdAgent ?: return
         flag.teleportToGlobal(Vector3d(crowdAgent.targetPosOrVel))
     }
@@ -50,7 +50,7 @@ class AgentController1b(
         val nextPos = crowdAgent.currentPosition
         val distSq = crowdAgent.actualVelocity.lengthSquared()
         if (distSq == 0f || crowdAgent.targetPosOrVel.distanceSquared(nextPos) < 1f) {
-            findNextTarget(random)
+            moveToRandomPoint(random)
         }
         // project agent onto surface
         np.set(nextPos)

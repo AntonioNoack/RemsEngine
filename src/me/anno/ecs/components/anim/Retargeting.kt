@@ -185,69 +185,72 @@ class Retargeting : PrefabSaveable(), Renderable {
         val srcBones = srcSkel.associateBy { it.name }
         val dstToSrc = dstBoneIndexToSrcName
         val tmpM = Matrix4x3f()
-        val tmpV = Vector3f()
-        val tmpQ = Quaternionf()
-        val tmpS = Vector3f()
+        val pos = Vector3f()
+        val rot = Quaternionf()
+        val sca = Vector3f()
         // find base skeleton scale each, and then scale all bones
         // todo small skeletons don't work yet
         // val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
         // val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
         // val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
-        for (dstBone in 0 until min(dstSkel.size, dstToSrc.size)) {
-            val srcBone = srcBones[dstToSrc[dstBone]]
+        for (dstBoneIndex in 0 until min(dstSkel.size, dstToSrc.size)) {
+            val srcBone = srcBones[dstToSrc[dstBoneIndex]]
             if (srcBone == null) {
                 // println("Skipping ${dstSkel[dstBone].name}, because it's unmapped")
                 continue
             }
             var srcBone0: Bone? = null
-            var lastValidDst = dstSkel[dstBone].parentId
+            var lastValidDst = dstSkel[dstBoneIndex].parentIndex
             while (lastValidDst >= 0) {
                 // check if this bone is mapped
                 srcBone0 = srcBones[dstToSrc[lastValidDst]]
                 if (srcBone0 != null) break // found valid bone :)
-                lastValidDst = dstSkel[lastValidDst].parentId // next ancestor
+                lastValidDst = dstSkel[lastValidDst].parentIndex // next ancestor
             }
             // println("Mapping ${dstSkel[dstBone].name} to ${srcBone.name}, relative-root: ${srcBone0?.name}")
-            for (frame in 0 until dst.frameCount) {
+            for (frameIndex in 0 until dst.frameCount) {
                 // collect bones from previously mapped parent to this one
                 // to do/warn!: if srcBone0 is not an ancestor of srcBone, the result will be broken;
                 // we'd have to invert the result of srcBone0 to their common root
                 var index = 0
                 fun applyBone(bone: Bone) {
                     // handle parent
-                    if (bone.parentId >= 0) {
-                        val parentBone = srcSkel[bone.parentId]
+                    if (bone.parentIndex >= 0) {
+                        val parentBone = srcSkel[bone.parentIndex]
                         if (parentBone != srcBone0) applyBone(parentBone)
                     }
-                    val srcBone1 = bone.id
+                    val srcBone1 = bone.index
                     if (index == 0) {
-                        src.getTranslation(frame, srcBone1, tmpV)
-                        src.getRotation(frame, srcBone1, tmpQ)
-                        src.getScale(frame, srcBone1, tmpS)
+                        src.getTranslation(frameIndex, srcBone1, pos)
+                        src.getRotation(frameIndex, srcBone1, rot)
+                        src.getScale(frameIndex, srcBone1, sca)
                     } else {
                         if (index == 1) {
-                            tmpM.translationRotateScale(tmpV, tmpQ, tmpS)
+                            tmpM.translationRotateScale(pos, rot, sca)
                         }
-                        src.getTranslation(frame, srcBone1, tmpV)
-                        src.getRotation(frame, srcBone1, tmpQ)
-                        src.getScale(frame, srcBone1, tmpS)
+                        src.getTranslation(frameIndex, srcBone1, pos)
+                        src.getRotation(frameIndex, srcBone1, rot)
+                        src.getScale(frameIndex, srcBone1, sca)
                         // correct order? should be
-                        tmpM.translate(tmpV)
-                        tmpM.rotate(tmpQ)
-                        tmpM.scale(tmpS)
+                        tmpM.translate(pos)
+                        tmpM.rotate(rot)
+                        tmpM.scale(sca)
                     }
                     index++
                 }
                 applyBone(srcBone)
                 if (index > 1) { // we used the matrix, so extract the result
-                    tmpM.getTranslation(tmpV)
-                    tmpM.getUnnormalizedRotation(tmpQ)
-                    tmpM.getScale(tmpS)
+                    tmpM.getTranslation(pos)
+                    tmpM.getUnnormalizedRotation(rot)
+                    tmpM.getScale(sca)
                 }
                 // tmpV.mul(translationScale)
-                dst.setTranslation(frame, dstBone, tmpV)
-                dst.setRotation(frame, dstBone, tmpQ)
-                dst.setScale(frame, dstBone, tmpS)
+                if (frameIndex == 0 && dstBoneIndex == 0) {
+                    println("retargeting setting transform: $pos,$rot,$sca")
+                }
+                dst.setTranslation(frameIndex, dstBoneIndex, pos)
+                dst.setRotation(frameIndex, dstBoneIndex, rot)
+                dst.setScale(frameIndex, dstBoneIndex, sca)
             }
         }
         return dst
@@ -303,7 +306,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                             // when we hover over a bone, highlight that bone in the UI
                             // todo when we open the enum-select-menu, highlight that bone, too (from there somehow)
                             showBoneInUI(i, dstSkeleton.bones, dstColor1)
-                            val srcId = srcSkeleton.bones.firstOrNull { it.name == value.name }?.id
+                            val srcId = srcSkeleton.bones.firstOrNull { it.name == value.name }?.index
                             if (srcId != null) showBoneInUI(srcId, srcSkeleton.bones, srcColor1)
                         }
                     }
@@ -342,11 +345,11 @@ class Retargeting : PrefabSaveable(), Renderable {
         }
     }
 
-    fun showBoneInUI(boneId: Int, bones: List<Bone>, color: Int) {
+    fun showBoneInUI(boneIndex: Int, bones: List<Bone>, color: Int) {
         // todo could be much more efficient
-        val dstBone = bones[boneId]
-        if (dstBone.parentId < 0) return
-        val srcBone = bones[dstBone.parentId]
+        val dstBone = bones[boneIndex]
+        if (dstBone.parentIndex < 0) return
+        val srcBone = bones[dstBone.parentIndex]
         val srcPos = srcBone.bindPosition
         val dstPos = dstBone.bindPosition
         val dirY = Vector3f(dstPos).sub(srcPos)

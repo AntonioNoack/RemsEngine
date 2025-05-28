@@ -33,7 +33,7 @@ fun main() {
 
     // create mesh with skeletal animation
     val mesh = object : MeshJoiner<IndexedValue<Matrix4x3f>>(false, true, true) {
-        override fun getBoneId(element: IndexedValue<Matrix4x3f>): Byte {
+        override fun getBoneIndex(element: IndexedValue<Matrix4x3f>): Byte {
             return element.index.toByte()
         }
 

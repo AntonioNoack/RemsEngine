@@ -51,9 +51,9 @@ fun main() {
 
     for (bone in SkeletonCache[mesh.getMesh()?.skeleton]!!.bones) {
         LOGGER.info(
-            "Bone ${bone.id}: ${bone.name}${" ".repeat(Maths.max(0, 80 - bone.name.length))}" +
-                    "f0: ${animation.getTranslation(0, bone.id, Vector3f())}, " +
-                    "${animation.getRotation(0, bone.id, Quaternionf())}"
+            "Bone ${bone.index}: ${bone.name}${" ".repeat(Maths.max(0, 80 - bone.name.length))}" +
+                    "f0: ${animation.getTranslation(0, bone.index, Vector3f())}, " +
+                    "${animation.getRotation(0, bone.index, Quaternionf())}"
         )
     }
 

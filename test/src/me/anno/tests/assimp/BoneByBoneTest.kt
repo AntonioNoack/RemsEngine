@@ -92,9 +92,8 @@ class BoneByBoneTest {
         val pos = Vector3f()
         val rot = Quaternionf()
         val sca = Vector3f()
-        val inverseBindPose = state.bindPose.invert(Matrix4x3f())
         BoneByBoneAnimation.fromImported(
-            state.bindPose, inverseBindPose,
+            state.bindPose,
             state.skinning, state.parentSkinning,
             Matrix4x3f(), pos, rot, sca
         )

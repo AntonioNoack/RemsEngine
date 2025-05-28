@@ -112,10 +112,10 @@ class CrowdAgent(val idx: Int) {
         return false
     }
 
-    fun getDistanceToGoal(range: Float): Float {
-        val lastCorner = corners.lastOrNull() ?: return range
+    fun getDistanceToGoal(maxDistance: Float = 1e38f): Float {
+        val lastCorner = corners.lastOrNull() ?: return maxDistance
         val endOfPath = lastCorner.flags and NavMeshQuery.DT_STRAIGHTPATH_END != 0
-        return if (endOfPath) min(Vectors.dist2D(currentPosition, lastCorner.pos), range) else range
+        return if (endOfPath) min(Vectors.dist2D(currentPosition, lastCorner.pos), maxDistance) else maxDistance
     }
 
     fun calcSmoothSteerDirection(dst: Vector3f): Vector3f {

@@ -35,7 +35,7 @@ abstract class MeshJoiner<V>(
 
     open fun getMaterials(element: V): List<FileReference> = emptyList()
 
-    open fun getBoneId(element: V): Byte = 0
+    open fun getBoneIndex(element: V): Byte = 0
 
     open fun multiplyColors(element: V): Boolean = false
 
@@ -274,9 +274,9 @@ abstract class MeshJoiner<V>(
             srcWeights?.copyInto(dstBoneWeights, j0, 0, min(dataSize, srcWeights.size))
             srcIndices?.copyInto(dstBoneIndices, j0, 0, min(dataSize, srcIndices.size))
         } else {
-            val boneId = getBoneId(element)
+            val boneIndex = getBoneIndex(element)
             forLoop(0, dataSize, 4) { k ->
-                dstBoneIndices[j0 + k] = boneId
+                dstBoneIndices[j0 + k] = boneIndex
             }
         }
     }

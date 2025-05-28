@@ -68,7 +68,7 @@ private fun findAllBones1(
     allowedNodes: Set<String>,
     boneList: MutableList<Bone>,
     boneMap: MutableMap<String, Bone>,
-    lastBoneId: Int,
+    lastBoneIndex: Int,
 
     nodeTransformParent: Matrix4x3f?
 
@@ -82,19 +82,19 @@ private fun findAllBones1(
 
     val boneId = if (name in allowedNodes) {
         val bone = boneMap.getOrPut(name) {
-            val bone = Bone(boneList.size, lastBoneId, name)
+            val bone = Bone(boneList.size, lastBoneIndex, name)
             boneList.add(bone)
             bone
         }
         bone.setBindPose(localTransform)
         assimpToJoml4x3f(aiNode.mTransformation(), bone.relativeTransform)
-        bone.parentId = lastBoneId
-        bone.id
+        bone.parentIndex = lastBoneIndex
+        bone.index
     } else {
         // loading all bones is no longer showing the skeleton. why? is there alien antenna bones?
         // the root transforms may scale the whole thing, and can have a large effect -> large/huge bones
         // LOGGER.info("missing bone: $name,\n${localTransform.print()}")
-        lastBoneId
+        lastBoneIndex
     }
 
     if (aiNode.mNumChildren() > 0) {

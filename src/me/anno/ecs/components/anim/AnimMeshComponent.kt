@@ -218,7 +218,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     /**
      * gets the animation matrices; thread-unsafe, can only be executed on gfx thread
      * */
-    fun getMatrix(boneId: Int): Matrix4x3f? {
+    fun getMatrix(boneIndex: Int): Matrix4x3f? {
         var matrices: Matrix4x3f? = null
         var sumWeight = 0f
         val animations = animations
@@ -230,9 +230,9 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             val animation = AnimationCache[animSource.source] ?: continue
             val frameIndex = (animSource.progress * animation.numFrames) / animation.duration
             if (matrices == null) {
-                matrices = animation.getMappedMatrixSafely(frameIndex, boneId, tmpMapping0, skeleton)
+                matrices = animation.getMappedMatrixSafely(frameIndex, boneIndex, tmpMapping0, skeleton)
             } else if (relativeWeight > 0f) {
-                val matrix = animation.getMappedMatrixSafely(frameIndex, boneId, tmpMapping1, skeleton)
+                val matrix = animation.getMappedMatrixSafely(frameIndex, boneIndex, tmpMapping1, skeleton)
                 matrices.mix(matrix, relativeWeight)
             }
             sumWeight += max(0f, weight)

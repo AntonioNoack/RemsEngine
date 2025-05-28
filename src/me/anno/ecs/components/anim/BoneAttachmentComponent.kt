@@ -44,7 +44,7 @@ class BoneAttachmentComponent() : Component(), OnUpdate {
         val bone = bone
         val entity = animMeshComponent?.entity
         lastWarning = if (target != null && bone != null && entity != null && entity !== target) {
-            val offsetMatrix = animMeshComponent?.getMatrix(bone.id)
+            val offsetMatrix = animMeshComponent?.getMatrix(bone.index)
             if (target.parent === entity.parent) {
                 // optimization: if they have the same parent, save a matrix-inverse by using setLocal() instead of setGlobal()
                 val tmp = JomlPools.mat4x3m.borrow()

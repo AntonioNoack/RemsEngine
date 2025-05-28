@@ -179,9 +179,9 @@ class Skeleton : PrefabSaveable(), Renderable {
             // todo for all bones without children, add a symbolic bone there...
             for (boneId in bones.indices) {
                 val dstBone = bones[boneId]
-                if (dstBone.parentId < 0) continue
-                val srcBone = bones[dstBone.parentId]
-                val srcPos = bonePositions[dstBone.parentId]
+                if (dstBone.parentIndex < 0) continue
+                val srcBone = bones[dstBone.parentIndex]
+                val srcPos = bonePositions[dstBone.parentIndex]
                 val dstPos = bonePositions[boneId]
                 dirY.set(dstPos).sub(srcPos)
                 val length = dirY.length()
@@ -206,7 +206,7 @@ class Skeleton : PrefabSaveable(), Renderable {
                     }
                     if (boneIndices != null) {
                         val dk = boneMeshVertices.size / 3 * 4
-                        boneIndices.fill(srcBone.id.toByte(), k, k + dk)
+                        boneIndices.fill(srcBone.index.toByte(), k, k + dk)
                         k += dk
                     }
                 }
