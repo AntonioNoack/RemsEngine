@@ -548,7 +548,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 val clazz = javaClass.classLoader.loadClass(type.substring(5, type.length - 1))
                 val values = EnumInput.getEnumConstants(clazz)
                 return EnumInput(
-                    NameDesc(con.name), NameDesc(con.currValue.toString()),
+                    con.nameDesc, NameDesc(con.currValue.toString()),
                     values.map { NameDesc(it.toString()) }, style
                 )
                     .apply { titleView?.hide() }

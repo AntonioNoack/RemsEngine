@@ -1,6 +1,7 @@
 package me.anno.io.saveable
 
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.NameDesc
 import me.anno.utils.InternalAPI
 
 /**
@@ -25,6 +26,8 @@ open class NamedSaveable : Saveable() {
                 onChangeNameDesc()
             }
         }
+
+    val nameDesc get() = NameDesc(name, description, "")
 
     open fun onChangeNameDesc() {}
 

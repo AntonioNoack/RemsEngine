@@ -167,7 +167,7 @@ class ExportMenu(val configFile: FileReference, val presetName: String?) {
                 NameDesc("Preset"),
                 NameDesc(loadedInitially?.name ?: "Please Choose"),
                 listOf(NameDesc("New Preset")) +
-                        presets.map { NameDesc(it.name, it.description, "") }, style
+                        presets.map { it.nameDesc }, style
             ).setChangeListener { _, index, _ ->
                 if (index == 0) {
                     // create a new preset -> ask user for name

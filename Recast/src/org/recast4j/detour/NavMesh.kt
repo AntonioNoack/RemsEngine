@@ -722,8 +722,7 @@ class NavMesh(
             if (ref == 0L) continue
             val p = con.posA // First vertex
             val nearestPt = nearestPoly.nearestPos ?: continue
-            // findNearestPoly may return too optimistic results, further check
-            // to make sure.
+            // findNearestPoly may return too optimistic results, further check to make sure.
             if (sq(nearestPt.x - p.x) + sq(nearestPt.z - p.z) > sq(con.rad)) {
                 continue
             }

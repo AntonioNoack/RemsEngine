@@ -292,7 +292,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 val options = UpdatingList(100) {
                     // filter elements such that only bones below our ancestors are allowed
                     val availableBones = Retargetings.getAllowedBones(bone, srcSkeleton, dstSkeleton, dstBoneMapping)
-                    availableBones.map { NameDesc(it.name) } + listOf(NameDesc(noBoneMapped))
+                    availableBones.map { it.nameDesc } + listOf(NameDesc(noBoneMapped))
                 }
                 // todo create tree-hierarchy for these
                 //  -> padding left by bone depth

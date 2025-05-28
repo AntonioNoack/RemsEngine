@@ -34,7 +34,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         simsSelectBar.alignmentY = AxisAlignment.MAX
         for (sim in household.sims) {
             simsSelectBar.add(
-                TextButton(NameDesc(sim.name), style)
+                TextButton(sim.nameDesc, style)
                     .addLeftClickListener {
                         currentSim = sim
                         showActionStack()
@@ -74,7 +74,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         for (i in actions.lastIndex downTo 0) {
             val action = actions[i]
             actionStack.add(
-                TextButton(NameDesc(action.name, action.description, ""), style)
+                TextButton(action.nameDesc, style)
                     .addLeftClickListener {
                         action.state = ActionState.CANCEL
                     })
@@ -85,7 +85,7 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
         // todo make action cancellable
         // to do group them?
         Menu.openMenu(windowStack, actions.map { action0 ->
-            MenuOption(NameDesc(action0.name, action0.description, "")) {
+            MenuOption(action0.nameDesc) {
                 // we might need this action multiple times, so clone it!
                 // todo how do we handle, that we might need an action multiple times / in multiple sims, but still need individual data???
                 val action = action0 // .clone() as SimAction
@@ -126,7 +126,6 @@ class SimsPlayControls(controls: SimsControls, rv: RenderView) :
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // resolve click
-        // todo when clicked Sim, select it
         val query = renderView.rayQuery()
         query.collisionMask = clickCollision
         if (Raycast.raycast(scene, query)) {
