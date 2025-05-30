@@ -13,7 +13,7 @@ import me.anno.utils.OS.downloads
  * */
 fun main() {
     OfficialExtensions.initForTests()
-    val mesh = (MeshCache[downloads.getChild("3d/bunny.obj")] as Mesh).clone() as Mesh
+    val mesh = (MeshCache[downloads.getChild("3d/bunny.obj")] as Mesh).shallowClone()
     mesh.calculateNormals(true) // clone and recalculating normals, because the bunny file, I have, has flat normals
     val scene = Entity()
     scene.add(FurMeshComponent(mesh))

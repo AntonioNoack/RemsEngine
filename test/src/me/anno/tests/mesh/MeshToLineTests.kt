@@ -16,7 +16,7 @@ object MeshToLineTests {
 
     @Test
     fun testMakeLineMeshUnique() {
-        val lineMesh = flatCube.clone() as Mesh
+        val lineMesh = flatCube.shallowClone()
         lineMesh.makeLineMesh(keepOnlyUniqueLines = true)
 
         val baseLines = LinkedHashSet<Pair<Vector3f,Vector3f>>()
@@ -39,7 +39,7 @@ object MeshToLineTests {
 
     @Test
     fun testMakeLineMeshWithDuplicates() {
-        val lineMesh = flatCube.clone() as Mesh
+        val lineMesh = flatCube.shallowClone()
         lineMesh.makeLineMesh(keepOnlyUniqueLines = false)
 
         val baseLines = ArrayList<Pair<Vector3f,Vector3f>>()

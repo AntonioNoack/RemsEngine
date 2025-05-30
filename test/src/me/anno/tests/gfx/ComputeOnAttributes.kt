@@ -26,7 +26,7 @@ fun main() {
 fun rotatingCube() {
     // modify an attribute / index buffer using Compute Shaders
     val scene = Entity()
-    val mesh = flatCube.front.clone() as Mesh
+    val mesh = flatCube.front.shallowClone()
     mesh.ensureBuffer()
     val shader = ComputeShader(
         "geometry", Vector3i(64, 1, 1), listOf(

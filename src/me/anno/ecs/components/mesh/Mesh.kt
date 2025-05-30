@@ -51,7 +51,6 @@ import me.anno.mesh.MeshUtils.countPrimitives
 import me.anno.utils.InternalAPI
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.structures.lists.Lists.firstOrNull2
-import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Arrays.resize
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -207,8 +206,14 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         // how about material IDs?
     }
 
-    fun deepClone(): Mesh {
+    fun shallowClone(): Mesh {
         val clone = clone() as Mesh
+        clone.unlinkPrefab()
+        return clone
+    }
+
+    fun deepClone(): Mesh {
+        val clone = shallowClone()
         clone.unlinkGPUData()
         clone.unlinkGeometry()
         return clone

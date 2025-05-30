@@ -89,7 +89,7 @@ class CompileTest {
         scene.add(TextureTextComponent("textureText", font, AxisAlignment.CENTER))
         scene.add(SDFTextComponent("sdfText", font, AxisAlignment.CENTER))
         // add an animated mesh, instanced and non-instanced
-        val animatedMesh = flatCube.clone() as Mesh
+        val animatedMesh = flatCube.shallowClone()
         val numPos = animatedMesh.positions!!.size / 3
         animatedMesh.boneIndices = ByteArray(numPos * 4) { (it and 1).toByte() }
         animatedMesh.boneWeights = FloatArray(numPos * 4) { if (it.and(3) == 0) 1f else 0f }

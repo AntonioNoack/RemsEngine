@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 class TestMeshComplete {
     @Test
     fun testHasPositions() {
-        val mesh = flatCube.front.clone() as Mesh
+        val mesh = flatCube.front.shallowClone()
         assertNotNull(mesh.positions)
     }
 }

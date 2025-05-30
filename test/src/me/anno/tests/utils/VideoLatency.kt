@@ -59,7 +59,7 @@ fun main() {
         return stack
     }
 
-    val mesh = Shapes.flatCube.front.clone() as Mesh
+    val mesh = Shapes.flatCube.front.shallowClone()
     mesh.materials = Material.diffuse(mediumAquamarine or Color.black).ref.wrap()
     val vc = VideoCreator(w, h, fps, numFrames, FFMPEGEncodingBalance.M0, FFMPEGEncodingType.DEFAULT, 10, true, dst)
     val vbt = object : VideoBackgroundTask(vc, samples) {

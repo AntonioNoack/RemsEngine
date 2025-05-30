@@ -47,7 +47,7 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     val n = mesh.numMaterials
     if (n < 2) return mesh
     mesh.updateHelperMeshes()
-    val clone = mesh.clone() as Mesh
+    val clone = mesh.shallowClone()
     val materials = (0 until n).map {
         MaterialCache[mesh.materials.getOrNull(it)] ?: Material.defaultMaterial
     }

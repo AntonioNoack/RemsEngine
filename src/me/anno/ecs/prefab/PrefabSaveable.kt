@@ -22,9 +22,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.InternalAPI
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.Hierarchical
-import me.anno.utils.algorithms.Recursion
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Strings.camelCaseToTitle
@@ -123,8 +123,10 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
 
     fun unlinkPrefab() {
-        prefabPath = Path.ROOT_PATH
-        prefab = null
+        forAll { instance ->
+            instance.prefabPath = Path.ROOT_PATH
+            instance.prefab = null
+        }
     }
 
     override fun save(writer: BaseWriter) {
@@ -275,9 +277,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         try {
             val clone = javaClass.newInstance()
             copyInto(clone)
-            clone.unlinkPrefab()
+            // must not unlink prefab, because we need paths, when we clone sample instances in Prefab
             return clone
-        } catch (e: InstantiationException) {
+        } catch (_: InstantiationException) {
             LOGGER.warn("Cannot clone $className, because empty constructor is missing")
             return this
         }

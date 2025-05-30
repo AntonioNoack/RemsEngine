@@ -98,7 +98,7 @@ object StaticMeshJoiner {
 
         // transform required
         // only needed for position, normal and tangents
-        val clone = mesh.clone() as Mesh
+        val clone = mesh.shallowClone()
         clone.materials = materials
         clone.unlinkGPUData()
         if (!identityTransform) {
