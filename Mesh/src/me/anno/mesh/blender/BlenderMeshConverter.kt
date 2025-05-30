@@ -17,6 +17,7 @@ import me.anno.mesh.blender.impl.interfaces.PolyLike
 import me.anno.mesh.blender.impl.interfaces.UVLike
 import me.anno.mesh.blender.impl.mesh.MDeformVert
 import me.anno.mesh.blender.impl.mesh.MLoopUV
+import me.anno.mesh.blender.impl.mesh.MVert
 import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.primitives.BVector2f
 import me.anno.mesh.blender.impl.primitives.BVector3f
@@ -34,15 +35,6 @@ object BlenderMeshConverter {
     private val LOGGER = LogManager.getLogger(BlenderMeshConverter::class)
     var maxNumTriangles = 100_000_000
 
-    private fun flipVertices(positions: FloatArray) {
-        for (i in 0 until positions.size / 3) {
-            val i3 = i * 3
-            val tmp = positions[i3 + 1]
-            positions[i3 + 1] = positions[i3 + 2]
-            positions[i3 + 2] = -tmp
-        }
-    }
-
     private fun getNewPolygons(src: BMesh): List<PolyLike> {
         val polygons0 = src.polyOffsetIndices
 
@@ -54,24 +46,29 @@ object BlenderMeshConverter {
         return if (polygons0 != null) IAPolyList(polygons0, materialIndices0) else emptyList()
     }
 
+    private fun showDebugProperties(src: BMesh) {
+        LOGGER.debug("fdata: {}", src.fData)
+        LOGGER.debug("edata: {}", src.eData)
+        LOGGER.debug("vdata: {}", src.vData)
+        LOGGER.debug("pdata: {}", src.pData)
+        LOGGER.debug("ldata: {}", src.lData)
+    }
+
+    private fun loadNewVertices(src: BMesh): BInstantList<BVector3f>? {
+        @Suppress("UNCHECKED_CAST")
+        return src.vData.layers
+            .firstOrNull { it.name == "position" }
+            ?.data as? BInstantList<BVector3f>
+    }
+
     fun convertBMesh(src: BMesh): Prefab? {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("fdata: {}", src.fData)
-            LOGGER.debug("edata: {}", src.eData)
-            LOGGER.debug("vdata: {}", src.vData)
-            LOGGER.debug("pdata: {}", src.pData)
-            LOGGER.debug("ldata: {}", src.lData)
+            showDebugProperties(src)
         }
 
         val vertices = src.vertices
-
-        val newVertices = if (vertices == null) {
-            @Suppress("UNCHECKED_CAST")
-            src.vData.layers
-                .firstOrNull { it.name == "position" }
-                ?.data as? BInstantList<BVector3f>
-        } else null
+        val newVertices = if (vertices == null) loadNewVertices(src) else null
         if (vertices == null && newVertices == null) {
             LOGGER.warn("${src.id.realName} has no vertices")
             // how can there be meshes without vertices?
@@ -84,6 +81,72 @@ object BlenderMeshConverter {
         val materials: List<BlendData?> = src.materials ?: emptyList()
         val polygons: List<PolyLike> = src.polygons ?: getNewPolygons(src)
 
+        val loopData = loadLoopData(src)
+
+        val prefab = Prefab("Mesh")
+        prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
+        prefab["cullMode"] = CullMode.BOTH
+
+        val normals = loadPositionsAndNormals(vertices, numVertices, positions, newVertices)
+        val uvs = loadUVs(src)
+
+        // todo vertex colors
+        val hasUVs = uvs.any2 { it.u != 0f || it.v != 0f }
+        val triCount0 = polygons.sumOf {
+            when (val size = it.loopSize) {
+                0 -> 0
+                1, 2 -> 1
+                else -> size - 2
+            }.toLong()
+        }
+
+        if (triCount0 < 0 || triCount0 > maxNumTriangles) {
+            LOGGER.warn("Invalid number of triangles in ${src.id.realName}: $triCount0")
+            return null
+        }
+
+        val triCount = triCount0.toInt()
+
+        val boneWeights = src.vertexGroups
+        val materialIndices = if (materials.size > 1) IntArray(triCount) else null
+        val numVertexGroups = boneWeights?.size ?: 0
+        if (hasUVs) {
+            // non-indexed, because we don't support separate uv and position indices
+            joinPositionsAndUVs(
+                triCount * 3,
+                positions, normals,
+                polygons, loopData, uvs,
+                boneWeights, numVertexGroups,
+                materialIndices, prefab
+            )
+        } else {
+            collectIndices(
+                positions, normals,
+                polygons, loopData,
+                boneWeights, numVertexGroups,
+                materialIndices, prefab
+            )
+        }
+        prefab["materialIds"] = materialIndices
+        prefab.sealFromModifications()
+        return prefab
+    }
+
+    private fun loadUVs(src: BMesh): List<UVLike> {
+        @Suppress("UNCHECKED_CAST")
+        val newUVs0 = src.lData.layers
+            .firstOrNull { it.data.firstOrNull() is MLoopUV }
+            ?.data as? BInstantList<MLoopUV>
+
+        @Suppress("UNCHECKED_CAST")
+        val newUVs1 = src.lData.layers
+            .firstOrNull { it.name == "UVMap" && it.data.firstOrNull() is BVector2f }
+            ?.data as? BInstantList<BVector2f>
+
+        return src.loopUVs ?: newUVs0 ?: newUVs1 ?: emptyList()
+    }
+
+    private fun loadLoopData(src: BMesh): List<LoopLike> {
         var loopData: List<LoopLike>? = src.loops
         if (loopData == null) {
             val lData = src.lData
@@ -99,18 +162,22 @@ object BlenderMeshConverter {
                 VEJoinList(vs, es)
             } else emptyList()
         }
+        return loopData
+    }
 
-        val prefab = Prefab("Mesh")
-        prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
-        prefab["cullMode"] = CullMode.BOTH
+    private fun loadPositionsAndNormals(
+        vertices: BInstantList<MVert>?, numVertices: Int, positions: FloatArray,
+        newVertices: BInstantList<BVector3f>?
+    ): FloatArray? {
 
-        val hasNormals = vertices != null && vertices.size > 0 && vertices[0].noOffset >= 0
+        // todo find normals for newer files; no[3] is extinct
+        val hasNormals = vertices != null && vertices.isNotEmpty() && vertices[0].noOffset >= 0
 
         var normals: FloatArray? = null
         if (hasNormals) {
             normals = FloatArray(numVertices * 3)
             for (i in 0 until numVertices) {
-                val v = vertices!![i]
+                val v = vertices[i]
                 val i3 = i * 3
                 positions[i3] = v.x
                 positions[i3 + 1] = v.y
@@ -138,62 +205,10 @@ object BlenderMeshConverter {
             }
         }
 
-        @Suppress("UNCHECKED_CAST")
-        val newUVs0 = src.lData.layers
-            .firstOrNull { it.data.firstOrNull() is MLoopUV }
-            ?.data as? BInstantList<MLoopUV>
-
-        @Suppress("UNCHECKED_CAST")
-        val newUVs1 = src.lData.layers
-            .firstOrNull { it.name == "UVMap" && it.data.firstOrNull() is BVector2f }
-            ?.data as? BInstantList<BVector2f>
-
-        // todo find normals for newer files; no[3] is extinct
-
-        val uvs = src.loopUVs ?: newUVs0 ?: newUVs1 ?: emptyList()
-
-        // todo vertex colors
-        val hasUVs = uvs.any2 { it.u != 0f || it.v != 0f }
-        val triCount0 = polygons.sumOf {
-            when (val size = it.loopSize) {
-                0 -> 0
-                1, 2 -> 1
-                else -> size - 2
-            }.toLong()
-        }
-
-        if (triCount0 < 0 || triCount0 > maxNumTriangles) {
-            LOGGER.warn("Invalid number of triangles in ${src.id.realName}: $triCount0")
-            return null
-        }
-
-        val triCount = triCount0.toInt()
-
-        val boneWeights = src.vertexGroups
-        val materialIndices = if (materials.size > 1) IntArray(triCount) else null
-        val numVertexGroups = boneWeights?.size ?: 0
-        if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
-            joinPositionsAndUVs(
-                triCount * 3,
-                positions, normals,
-                polygons, loopData, uvs,
-                boneWeights, numVertexGroups,
-                materialIndices, prefab
-            )
-        } else {
-            collectIndices(
-                positions, normals,
-                polygons, loopData,
-                boneWeights, numVertexGroups,
-                materialIndices, prefab
-            )
-        }
-        prefab["materialIds"] = materialIndices
-        prefab.sealFromModifications()
-        return prefab
+        return normals
     }
 
-    fun addBoneWeight(gi: Int, gw: Float, bestBones: IntArray, bestWeights: FloatArray) {
+    private fun addBoneWeight(gi: Int, gw: Float, bestBones: IntArray, bestWeights: FloatArray) {
         for (i in 0 until 4) {
             if (gw > bestWeights[i]) {
                 // move all other weights back
@@ -208,7 +223,7 @@ object BlenderMeshConverter {
         }
     }
 
-    fun addBoneWeights(
+    private fun addBoneWeights(
         boneWeights: BInstantList<MDeformVert>, vi: Int,
         bestBones: IntArray, bestWeights: FloatArray,
         numVertexGroups: Int
@@ -222,7 +237,7 @@ object BlenderMeshConverter {
         }
     }
 
-    fun fillInBones(
+    private fun fillInBones(
         boneWeights: BInstantList<MDeformVert>, vi: Int,
         bestBones: IntArray, bestWeights: FloatArray,
         boneIndices2: IntArrayList,
@@ -242,7 +257,7 @@ object BlenderMeshConverter {
         bestBones.fill(0)
     }
 
-    fun joinPositionsAndUVs(
+    private fun joinPositionsAndUVs(
         vertexCount: Int,
         positions: FloatArray,
         normals: FloatArray?,
@@ -410,7 +425,7 @@ object BlenderMeshConverter {
         }
     }
 
-    fun collectIndices(
+    private fun collectIndices(
         positions: FloatArray,
         normals: FloatArray?,
         polygons: List<PolyLike>,
@@ -486,10 +501,7 @@ object BlenderMeshConverter {
             }
         }
         prefab["positions"] = positions
-        if (normals != null) {
-            prefab["normals"] = normals
-            LOGGER.debug("Normals: ${normals.joinToString()}")
-        }
+        if (normals != null) prefab["normals"] = normals
         prefab["indices"] = indices.toIntArray()
         if (boneWeights != null) {
             val vertexCount = positions.size / 3

@@ -20,7 +20,7 @@ import me.anno.utils.types.Strings.isNotBlank2
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class EnumInput(
-    val nameDesc: NameDesc, withTitle: Boolean, startValue: NameDesc,
+    nameDesc: NameDesc, withTitle: Boolean, startValue: NameDesc,
     val options: List<NameDesc>, style: Style
 ) : PanelListX(style), InputPanel<NameDesc>, TextStyleable {
 
@@ -39,6 +39,9 @@ open class EnumInput(
         titleView?.enableHoverColor = true
         inputPanel.enableHoverColor = true
         tooltip = nameDesc.desc
+
+        name = nameDesc.name
+        description = nameDesc.desc
     }
 
     override var isInputAllowed = true

@@ -234,10 +234,10 @@ open class Window(
         val panel = panel
         val radius = DefaultConfig["ui.window.shadowRadius", 12]
         val color = DefaultConfig["ui.window.shadowColor", black.withAlpha(30)]
-        val w0 = panel.lx1 - panel.lx0
-        val h0 = panel.ly1 - panel.ly0
-        val x1 = panel.lx0 - radius
-        val y1 = panel.ly0 - radius
+        val w0 = panel.width
+        val h0 = panel.height
+        val x1 = panel.x - radius
+        val y1 = panel.y - radius
         val w1 = w0 + 2 * radius
         val h1 = h0 + 2 * radius
 
@@ -250,7 +250,7 @@ open class Window(
             min(x1 + w1, fb.width), min(y1 + h1, fb.height)
         ) {
             renderDefault {
-                val shader = shadowShader
+                val shader = windowShadowShader
                 shader.use()
                 posSize(shader, x1, y1, w1, h1)
                 val scale = 0.5f / radius
@@ -291,15 +291,12 @@ open class Window(
         GFX.loadTexturesSync.push(false)
 
         if (buffer.width != x1 - x0 || buffer.height != y1 - y0) {
+            buffer.destroy()
             buffer.width = x1 - x0
             buffer.height = y1 - y0
-            buffer.destroy()
         }
 
-        useFrame(
-            x0, y0, x1 - x0, y1 - y0,
-            buffer, Renderer.colorRenderer
-        ) {
+        useFrame(x0, y0, x1 - x0, y1 - y0, buffer, Renderer.colorRenderer) {
             buffer.clearColor(backgroundColor)
             panel.canBeSeen = true
             panel.draw(x0, y0, x1, y1)
@@ -312,12 +309,12 @@ open class Window(
         // we don't need to draw more than is visible
         val x1 = min(panel.x + panel.width, windowStack.width)
         val y1 = min(panel.y + panel.height, windowStack.height)
-        val tex = buffer.getTexture0()
-        if (!tex.isCreated()) return // shouldn't happen
+        val texture = buffer.getTexture0()
+        if (!texture.isCreated()) return // shouldn't happen
         GFXState.depthMode.use(GFXState.alwaysDepthMode) {
             val blendMode = if (isTransparent) BlendMode.DEFAULT else null
             GFXState.blendMode.use(blendMode) {
-                drawTexture(x0, y0, x1 - x0, y1 - y0, tex, -1, null)
+                drawTexture(x0, y0, x1 - x0, y1 - y0, texture)
             }
         }
     }
@@ -340,8 +337,8 @@ open class Window(
     }
 
     companion object {
-        private val shadowShader = Shader(
-            "shadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
+        private val windowShadowShader = Shader(
+            "WindowShadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V4F, "color"),
                 Variable(GLSLType.V2F, "inner"),
                 Variable(GLSLType.V2F, "outer"),

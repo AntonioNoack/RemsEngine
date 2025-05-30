@@ -101,6 +101,15 @@ fun main() {
             name = "Sit Here"
         })
 
+    Entity("Bookcase", scene)
+        .add(MeshComponent(getReference("E:/Assets/Quaternius/Furniture.zip/Bookcase_Books.fbx")).apply {
+            collisionMask = clickCollision or navMeshCollision
+        })
+        .add(SimObject())
+        .add(SimAction().apply {
+            name = "Read Book"
+        })
+
     val navMeshData = generateNavMesh(scene)
     scene.add(CrowdUpdateComponent(navMeshData))
     scene.add(NavMeshDebugComponent(navMeshData))

@@ -41,7 +41,9 @@ class ExportPlugin : Plugin() {
 
     fun removeExistingExportButton() {
         // remove existing export button from main menu
-        for (window in GFX.windows) {
+        val windows = GFX.windows
+        for (i in windows.indices) {
+            val window = windows[i]
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
                     .firstInstanceOrNull2(OptionBar::class) ?: continue
@@ -53,7 +55,9 @@ class ExportPlugin : Plugin() {
     fun registerExportMenu() {
         removeExistingExportButton()
         // inject export button into main menu
-        for (window in GFX.windows) {
+        val windows = GFX.windows
+        for (i in windows.indices) {
+            val window = windows[i]
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
                     .firstInstanceOrNull2(OptionBar::class) ?: continue

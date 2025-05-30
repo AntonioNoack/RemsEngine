@@ -52,17 +52,16 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
             return if (child is LongScrollable) child.sizeY else child.minH.toLong()
         }
 
-    override val maxScrollPositionY: Long
-        get() = max(0, maxScrollPositionYRaw)
+    override var maxScrollPositionY: Long = 0L
 
-    val maxScrollPositionYRaw: Long
-        get() {
-            val child = child
-            val childH = if (child is LongScrollable) child.sizeY else child.minH.toLong()
-            return childH + padding.height - height
-        }
+    private var hasScrollbarF: Float = 1f
 
-    private val hasScrollbarF: Float get() = clamp(maxScrollPositionYRaw / (scrollbarWidth * 3f) + 1f)
+    fun updateMaxScrollPosition(availableHeight: Int) {
+        val child = child
+        val childH = if (child is LongScrollable) child.sizeY else child.minH.toLong()
+        maxScrollPositionY = childH + padding.height - availableHeight
+        hasScrollbarF = clamp(maxScrollPositionY / (scrollbarWidth * 3f) + 1f)
+    }
 
     override fun scrollY(delta: Double): Double {
         val prev = targetScrollPositionY
@@ -99,9 +98,8 @@ open class ScrollPanelY(child: Panel, padding: Padding, style: Style) :
         val padding = padding
         val paddingX0 = padding.width + scrollbarWidth
         child.calculateSize(w - paddingX0, MAX_LENGTH - padding.height)
-        width = w
-        height = h
-        // these must follow child.calculateSize and this weird early assignment, because they use them as values
+        updateMaxScrollPosition(h)
+        // these must follow child.calculateSize and updateMaxScrollPosition(), because they use their results as values
         val paddingX1 = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
         minW = min(child.minW + paddingX1, w)
         minH = min(child.minH + padding.height, h)

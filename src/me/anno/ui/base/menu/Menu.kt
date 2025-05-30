@@ -89,9 +89,9 @@ object Menu {
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit): Window? {
         val window = openMenu(
             windowStack, question, listOf(
-            MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
-            MenuOption(NameDesc("No", "", "ui.no")) {}
-        ))
+                MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
+                MenuOption(NameDesc("No", "", "ui.no")) {}
+            ))
         window?.drawDirectly = true
         return window
     }
@@ -388,6 +388,24 @@ object Menu {
         return count >= DefaultConfig["ui.search.minItems", 5]
     }
 
+    private class MenuScrollPanel(list: PanelListY, val extraKeyListeners: Map<Char, () -> Boolean>) :
+        ScrollPanelY(list, Padding(1), style) {
+
+        init {
+            alignmentX = AxisAlignment.MIN
+            alignmentY = AxisAlignment.MIN
+        }
+
+        override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+            val window = window
+            val char = codepoint.toChar()
+            val entry = extraKeyListeners[char.lowercaseChar()]
+            if (window in windowStack && entry?.invoke() == true) {
+                close(this)
+            } else super.onCharTyped(x, y, codepoint)
+        }
+    }
+
     fun openMenuByPanels(
         windowStack: WindowStack,
         x: Int, y: Int,
@@ -402,19 +420,7 @@ object Menu {
 
         val style = style.getChild("menu")
         val list = PanelListY(style)
-
-        val container = object : ScrollPanelY(list, Padding(1), style) {
-            override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-                val window = window
-                val char = codepoint.toChar()
-                val entry = extraKeyListeners[char.lowercaseChar()]
-                if (window in windowStack && entry?.invoke() == true) {
-                    close(this)
-                } else super.onCharTyped(x, y, codepoint)
-            }
-        }
-        container.alignmentX = AxisAlignment.MIN
-        container.alignmentY = AxisAlignment.MIN
+        val container = MenuScrollPanel(list, extraKeyListeners)
 
         val window = Window(container, isTransparent = false, isFullscreen = false, windowStack, 1, 1)
 

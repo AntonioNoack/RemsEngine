@@ -1,7 +1,7 @@
 package me.anno.language.translation
 
 /**
- * translatable name and description in one,
+ * Translatable name and description in one,
  * because most times they go together
  * */
 class NameDesc(name: String, description: String, private val dictPath: String) {

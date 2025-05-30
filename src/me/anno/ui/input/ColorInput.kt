@@ -43,7 +43,7 @@ import org.joml.Vector4f
 import kotlin.math.max
 
 open class ColorInput(
-    val nameDesc: NameDesc,
+    nameDesc: NameDesc,
     @Suppress("unused_parameter")
     visibilityKey: String,
     oldValue: Vector4f,
@@ -121,6 +121,8 @@ open class ColorInput(
             setValue(Vector4f(r, g, b, a), mask, true)
         }
         tooltip = nameDesc.desc
+        name = nameDesc.name
+        description = nameDesc.desc
     }
 
     override fun calculateSize(w: Int, h: Int) {

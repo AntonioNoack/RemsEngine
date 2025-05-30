@@ -226,6 +226,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val bg = background.color
         background.color = if (isInFocus && enableFocusColor) focusBackgroundColor else background.color
         drawBackground(x0, y0, x1, y1)
+
+        /*if (text.startsWith("Close Blender Normals")) {
+            println("$width x $height, ${x1 - x0} x ${y1 - y0}")
+        }*/
+
         drawText(effectiveTextColor)
         background.color = bg
     }
