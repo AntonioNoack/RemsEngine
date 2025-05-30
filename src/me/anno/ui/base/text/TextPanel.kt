@@ -26,7 +26,6 @@ import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
 import kotlin.math.max
 import kotlin.math.min
@@ -218,7 +217,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val text = if (text.isBlank2()) "." else text
         calculateSize(w, text)
     }
 
