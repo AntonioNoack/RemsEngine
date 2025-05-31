@@ -21,16 +21,20 @@ open class SimpleCache(val name: String, var timeoutMillis: Long) : Comparable<S
 
     fun clear() {
         LOGGER.warn("Clearing cache {}", name)
-        for (it in cache.values) it.destroy()
-        cache.clear()
+        synchronized(cache) {
+            for (it in cache.values) it.destroy()
+            cache.clear()
+        }
     }
 
     fun remove(filter: (Any?, CacheEntry) -> Boolean): Int {
-        return cache.removeIf { (k, v) ->
-            if (filter(k, v)) {
-                v.destroy()
-                true
-            } else false
+        return synchronized(cache) {
+            cache.removeIf { (k, v) ->
+                if (filter(k, v)) {
+                    v.destroy()
+                    true
+                } else false
+            }
         }
     }
 
@@ -46,10 +50,7 @@ open class SimpleCache(val name: String, var timeoutMillis: Long) : Comparable<S
 
         checkKey(key)
 
-        // new, async cache
-        // only the key needs to be locked, not the whole cache
-
-        val entry = cache.getOrPut(key) { CacheEntry(timeoutMillis) }
+        val entry = synchronized(cache) { cache.getOrPut(key) { CacheEntry(timeoutMillis) } }
         if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
 
         val needsGenerator = entry.needsGenerator
@@ -66,11 +67,13 @@ open class SimpleCache(val name: String, var timeoutMillis: Long) : Comparable<S
 
     fun update() {
         // avoiding allocations for clean memory debugging XD
-        cache.removeIf { (_, value) ->
-            if (nanoTime > value.timeoutNanoTime) {
-                value.destroy()
-                true
-            } else false
+        synchronized(cache) {
+            cache.removeIf { (_, value) ->
+                if (nanoTime > value.timeoutNanoTime) {
+                    value.destroy()
+                    true
+                } else false
+            }
         }
     }
 

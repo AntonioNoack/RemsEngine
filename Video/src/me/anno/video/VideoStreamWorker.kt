@@ -8,7 +8,7 @@ import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.types.Strings.shorten
+import me.anno.utils.structures.lists.Lists.count2
 import me.anno.video.ffmpeg.FFMPEGMetaParser
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.formats.gpu.GPUFrame
@@ -35,7 +35,9 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
                             loadNextFrameMaybe(stream)
                         }
                     }
-                } else LOGGER.debug("${file!!.absolutePath.shorten(200)} cannot be read as image(s) by FFMPEG")
+                } else if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("{} cannot be read as image(s) by FFMPEG", file)
+                }
             } catch (_: OutOfMemoryError) {
                 LOGGER.warn("Engine has run out of memory!!")
             } catch (_: EOFException) {
@@ -68,8 +70,11 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
         synchronized(sortedFrames) {
             if (id == self.workerId.get()) {
                 // remove everything that is too new
-                val tooNew = sortedFrames.count { it.frameIndex >= currentIndex }
-                removeFrames(sortedFrames.subList(sortedFrames.size - tooNew, sortedFrames.size))
+                val tooNew = sortedFrames.count2 { it.frameIndex >= currentIndex }
+                val tooOldIndex = nextReadIndex - self.capacity
+                val tooOld = sortedFrames.count2 { it.frameIndex < tooOldIndex }
+                if (tooNew > 0) removeFrames(sortedFrames.subList(sortedFrames.size - tooNew, sortedFrames.size))
+                if (tooOld > 0) removeFrames(sortedFrames.subList(0, tooOld))
                 // then append the new frame
                 sortedFrames.add(frame)
             } else frame.destroy()
