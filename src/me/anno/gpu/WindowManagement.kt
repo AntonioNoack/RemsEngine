@@ -14,7 +14,6 @@ import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
-import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
 import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
@@ -46,6 +45,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager.getLogger
 import org.lwjgl.Version
+import org.lwjgl.debug.LWJGLDebugCallback
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
@@ -57,7 +57,6 @@ import org.lwjgl.opengl.GL46C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glGetInteger
 import org.lwjgl.opengl.GLCapabilities
-import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
@@ -290,8 +289,10 @@ object WindowManagement {
         capabilities = GL.createCapabilities()
         GFXState.newSession()
         tick?.stop("OpenGL initialization")
-        GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
-        tick?.stop("Debugging Setup")
+        if (isDebug) {
+            LWJGLDebugCallback.setupDebugMessageCallback()
+            tick?.stop("Debugging Setup")
+        }
         // render first frames = render logo
         // the engine will still be loading,
         // so it has to be a still image
