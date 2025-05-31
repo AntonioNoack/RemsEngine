@@ -19,7 +19,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask1Index
@@ -231,14 +230,14 @@ open class RenderDeferredNode : RenderViewNode(
         val prepassDepth = prepassDepthT.texOrNull
         if (prepassDepth != null) {
             GFXState.useFrame(framebuffer, Renderer.copyRenderer) {
-                Blitting.copyColorAndDepth(blackTexture, prepassDepth, prepassDepthT.mask1Index, false)
+                Blitting.copyDepth(prepassDepth, prepassDepthT.mask1Index)
             }
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS
         } else {
             // set depth mode to clear the correct depth value (could be 0 or 1)
             GFXState.depthMode.use(renderView.depthMode) {
-                framebuffer.clearColor(0, depth = true)
+                framebuffer.clearDepth()
             }
         }
     }

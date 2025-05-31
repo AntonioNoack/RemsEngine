@@ -14,6 +14,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureHelper.getNumChannels
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.toInt
+import org.lwjgl.opengl.GL46C.glColorMask
 
 /**
  * Blitting is the process of copying the data from one texture onto another one.
@@ -86,6 +87,29 @@ object Blitting {
         GFX.check()
     }
 
+    /**
+     * Copy depth, retain color
+     * */
+    @JvmStatic
+    fun copyDepth(depth: ITexture2D, depthMask: Int) {
+        Frame.bind()
+        depth.bindTrulyNearest(1)
+        copyDepth(depth.samples, depthMask)
+    }
+
+    /**
+     * Copy depth, retain color
+     * */
+    @JvmStatic
+    fun copyDepth(depthSamples: Int, depthMask: Int) {
+        glColorMask(false, false, false, false)
+        copyColorAndDepth(1, false, depthSamples, depthMask, false)
+        glColorMask(true, true, true, true)
+    }
+
+    /**
+     * Copy color, retain alpha channel
+     * */
     @JvmStatic
     fun copyNoAlpha(buffer: ITexture2D, isSRGB: Boolean) {
         Frame.bind()
@@ -93,6 +117,9 @@ object Blitting {
         copyNoAlpha(buffer.samples, isSRGB)
     }
 
+    /**
+     * Copy color, retain alpha channel
+     * */
     @JvmStatic
     fun copyNoAlpha(samples: Int, isSRGB: Boolean) {
         GFX.check()
