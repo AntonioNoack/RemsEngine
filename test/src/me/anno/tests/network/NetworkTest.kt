@@ -58,7 +58,7 @@ class NetworkTest {
                 try {
                     udpClient.receive(null, tcpClient, PingPacket())
                     udpReceived.add(name)
-                } catch (e: SocketTimeoutException) {
+                } catch (_: SocketTimeoutException) {
                     assertTrue(false, "client $name got no UDP answer")
                 }
                 udpClient.close()

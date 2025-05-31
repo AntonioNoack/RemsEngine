@@ -6,10 +6,10 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.interfaces.Renderable
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -93,8 +93,12 @@ fun main() {
     registerCustomClass(FoxSpeedController())
 
     val scene = Entity()
-    val foxPrefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf")]!!
-    val fox = optimizeEntity(foxPrefab.createInstance() as Entity)
+    val foxFile = downloads.getChild("3d/azeria/scene.gltf")
+
+    val animFile = foxFile.getChild("animations/Walk/Imported.json")
+    val animation = AnimationCache[animFile]
+        ?: throw IllegalStateException("Missing animation $animFile")
+    val duration = animation.duration
 
     val controller = FoxSpeedController()
     scene.add(controller)
@@ -108,29 +112,24 @@ fun main() {
         val radius = i * 2.0 + 1.0
         val count = min(round(radius * 3.0).toInt(), remainingFoxes)
         val ring = Entity("Ring $i", scene)
-        ring.add(object : Component(), OnUpdate {
-            override fun onUpdate() {
-                val progress = (dir * controller.localTime / radius).toFloat()
-                entity!!.setRotation(0f, progress, 0f)
-            }
-        })
-        for (j in 0 until count) {
-            val entity = fox.clone() as Entity
-            val angle = j * TAUf / count
-            entity.setPosition(cos(angle) * radius, 0.08, -sin(angle) * radius)
-            entity.setRotation(0f, if (dir < 0) angle else angle + PIf, 0f)
-            entity.setScale(0.01f)
-            val randomProgress = random.nextFloat() * 100f
-            entity.forAllComponentsInChildren(AnimMeshComponent::class) {
-                for (state in it.animations) {
-                    val duration = AnimationCache[state.source]!!.duration
-                    state.progress = randomProgress * duration
+            .add(object : Component(), OnUpdate {
+                override fun onUpdate() {
+                    val progress = (dir * controller.localTime / radius).toFloat()
+                    entity!!.setRotation(0f, progress, 0f)
                 }
-                // todo this is not supported with motion vectors :(,
-                //  because too many attributes...
-                it.isInstanced = false
-            }
-            ring.add(entity)
+            })
+        for (j in 0 until count) {
+            val angle = j * TAUf / count
+            Entity(ring)
+                .setPosition(cos(angle) * radius, 0.08, -sin(angle) * radius)
+                .setRotation(0f, if (dir < 0) angle else angle + PIf, 0f)
+                .setScale(0.01f)
+                .add(AnimMeshComponent().apply {
+                    meshFile = foxFile
+                    animations = listOf(AnimationState(animFile).apply {
+                        progress = random.nextFloat() * duration
+                    })
+                })
         }
         remainingFoxes -= count
         maxRadius = radius

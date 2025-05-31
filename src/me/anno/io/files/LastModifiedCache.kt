@@ -6,7 +6,6 @@ import me.anno.maths.Maths
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.NoSuchFileException
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.ConcurrentHashMap
 
@@ -34,10 +33,10 @@ object LastModifiedCache {
         init {
             if (exists) {
                 try {
-                    val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java) ?: null
+                    val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
                     lastAccessed = attr?.lastAccessTime()?.toMillis() ?: 0L
                     creationTime = attr?.creationTime()?.toMillis() ?: 0L
-                } catch (_: NoSuchFileException) {
+                } catch (_: Exception) {
                 }
             }
         }

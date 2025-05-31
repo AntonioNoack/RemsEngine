@@ -14,6 +14,7 @@ import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isNotBlank2
 import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
+import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -29,6 +30,7 @@ class CachedReflections private constructor(
 ) {
 
     constructor(clazz: Class<*>) : this(clazz, getMemberProperties(clazz))
+    @Suppress("unused") // it definitely is used!!!
     private constructor(clazz: Class<*>, allProperties: Map<String, CachedProperty>) : this(
         clazz, allProperties,
         getDebugActions(clazz),
@@ -95,8 +97,7 @@ class CachedReflections private constructor(
             val orderAnnotationClass = Order::class.java
             for (method in clazz.methods) {
                 val debugAction = method.getAnnotation(debugAnnotationClass)
-                if (debugAction != null) {
-                    method.isAccessible = true // it's debug, so we're allowed to access it
+                if (debugAction != null && checkIsAccessible(method) != null) {
                     val order = method.getAnnotation(orderAnnotationClass)?.index ?: 0
                     val title = debugAction.title.ifEmpty { method.name.camelCaseToTitle() }
                     val item = DebugActionInstance(method, title, order)
@@ -157,6 +158,16 @@ class CachedReflections private constructor(
             return input.sortedBy { it.name }
         }
 
+        private fun <V : AccessibleObject> checkIsAccessible(reflected: V?): V? {
+            try {
+                reflected?.isAccessible = true
+                return reflected
+            } catch (_: Exception) {
+                // SecurityException | InaccessibleObjectException
+                return null
+            }
+        }
+
         fun getPropertiesByDeclaringClass(
             clazz: Class<*>, allProperties: Map<String, CachedProperty>
         ): List<Pair<Class<*>, List<CachedProperty>>> {
@@ -190,7 +201,7 @@ class CachedReflections private constructor(
                 .filter { Modifier.isPublic(it.modifiers) }
                 .map { it.name }.toSet()
             for (index in properties.indices) {
-                val field = properties[index]
+                val field = checkIsAccessible(properties[index]) ?: continue
                 val annotations = field.annotations.toMutableList()
                 val fieldCap = field.name.titlecase()
                 val getterName = getGetterName(field.name, fieldCap)
@@ -225,7 +236,7 @@ class CachedReflections private constructor(
         ): Map<String, CachedProperty> {
             // this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
             for (index in methods.indices) {
-                val getterMethod = methods[index]
+                val getterMethod = checkIsAccessible(methods[index]) ?: continue
                 val name = getterMethod.name
                 if (getterMethod.parameterCount == 0 &&
                     name.startsWith(getterPrefix) &&
@@ -247,15 +258,13 @@ class CachedReflections private constructor(
                     }
                     if (betterName !in map) {
                         val setterName = setterPrefix + name.substring(getterPrefix.length)
-                        val setterMethod = methods.firstOrNull {
+                        val setterMethod = checkIsAccessible(methods.firstOrNull {
                             it.name == setterName && it.parameterCount == 1 &&
                                     it.parameterTypes[0] == getterMethod.returnType
-                        }
+                        })
                         val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
                         val isPublic = Modifier.isPublic(getterMethod.modifiers)
                         val serialize = (serial != null || (isPublic && notSerial == null)) && setterMethod != null
-                        getterMethod.isAccessible = true
-                        setterMethod?.isAccessible = true
                         map[betterName] = saveField(
                             getterMethod.declaringClass, getterMethod.returnType,
                             betterName, serial, serialize, annotations,
@@ -278,11 +287,10 @@ class CachedReflections private constructor(
             annotations: List<Annotation>
         ): CachedProperty {
             // save the field
-            field.isAccessible = true
             val capName = javaName.titlecase()
             val setterMethod = try {
                 clazz.getMethod(getSetterName(capName), field.type)
-            } catch (e: NoSuchMethodException) {
+            } catch (_: NoSuchMethodException) {
                 null
             }
             if (serialize && setterMethod == null) {
@@ -290,7 +298,7 @@ class CachedReflections private constructor(
             }
             val getterMethod = try {
                 clazz.getMethod(getGetterName(javaName, capName))
-            } catch (e: NoSuchMethodException) {
+            } catch (_: NoSuchMethodException) {
                 null
             }
             return saveField(

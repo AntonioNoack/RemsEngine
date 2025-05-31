@@ -508,7 +508,7 @@ class GLTFReader(val src: FileReference) {
             val name = anim["name"] as? String ?: "Animation"
             val animFolder = InnerFolder(animationFolder, nextName(name, usedNames))
             createAnimationPrefabs(animFolder, importedPrefab, null, null)
-            animFolder
+            animFolder.getChildImpl("Imported.json")
         }
 
         for (skin in skins) {
