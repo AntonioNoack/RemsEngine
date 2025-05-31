@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.Time
 import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.streams.AudioStream
+import me.anno.audio.streams.AudioStream.Companion.byteBufferPool
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.writeBE16
@@ -139,13 +140,14 @@ abstract class AudioCreator(
                 if (streams.size == 1) {
                     // no sum required
                     // write the data to ffmpeg
-                    val buffer = streams[0].getNextBuffer()
+                    val (buffer, byteBuffer) = streams[0].getNextBuffer()
                     for (i in 0 until buffer.capacity()) {
                         audioOutput.writeBE16(buffer[i].toInt())
                     }
+                    byteBufferPool.returnBuffer(byteBuffer)
                 } else {
                     for (j in streams.indices) {
-                        val buffer = streams[j].getNextBuffer()
+                        val (buffer, byteBuffer) = streams[j].getNextBuffer()
                         if (j == 0) {
                             if (intBuffer == null || intBuffer.size != buffer.capacity()) {
                                 intBuffer = IntArray(buffer.capacity())
@@ -158,6 +160,7 @@ abstract class AudioCreator(
                         for (i in 0 until bufferSize) {
                             intBuffer[i] += buffer[i].toInt()
                         }
+                        byteBufferPool.returnBuffer(byteBuffer)
                     }
                     if (intBuffer != null) {
                         val min = Short.MIN_VALUE.toInt()

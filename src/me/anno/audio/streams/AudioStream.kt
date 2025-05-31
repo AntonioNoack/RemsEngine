@@ -3,13 +3,15 @@ package me.anno.audio.streams
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Sleep
+import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.structures.lists.PairArrayList
 import java.lang.Math.floorDiv
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
-import java.util.concurrent.atomic.AtomicInteger
 
 abstract class AudioStream(
     val speed: Double,
@@ -40,21 +42,34 @@ abstract class AudioStream(
         }
     }
 
-    private val filledBuffers = ArrayList<ShortBuffer?>(8)
-    private val gettingIndex = AtomicInteger()
+    private val filledBuffers = PairArrayList<ShortBuffer, ByteBuffer>(8)
 
     /**
-     * waits until a new buffer is available;
-     * whoever calls this function must return the buffer!!
+     * Blocks until a new buffer is available;
+     * Whoever calls this function must return the ByteBuffer to AudioStream.byteBufferPool!!
      * */
-    fun getNextBuffer(): ShortBuffer {
-        val index = gettingIndex.getAndIncrement()
-        Sleep.waitUntil(true) { filledBuffers.size > index }
-        return filledBuffers.set(index, null)!!
+    fun getNextBuffer(): Pair<ShortBuffer, ByteBuffer> {
+        Sleep.waitUntil(true) { filledBuffers.isNotEmpty() }
+        synchronized(filledBuffers) {
+            assertTrue(filledBuffers.isNotEmpty())
+            val stereo = filledBuffers.getFirst(0)
+            val bytes = filledBuffers.getSecond(0)
+            filledBuffers.removeAt(0, keepOrder = true)
+            return stereo to bytes
+        }
     }
 
-    open fun onBufferFilled(stereoBuffer: ShortBuffer, sb0: ByteBuffer, bufferIndex: Long, session: Int): Boolean {
-        filledBuffers.add(stereoBuffer)
+    /**
+     * Returns whether sb0 can be freed immediately after.
+     * */
+    open fun onBufferFilled(
+        stereoBuffer: ShortBuffer, byteBuffer: ByteBuffer,
+        bufferIndex: Long, session: Int
+    ): Boolean {
+        assertNotNull(stereoBuffer)
+        synchronized(filledBuffers) {
+            filledBuffers.add(stereoBuffer, byteBuffer)
+        }
         return false
     }
 

@@ -127,7 +127,7 @@ class AudioFileStreamOpenAL(
 
     var hadFirstBuffer = false
 
-    override fun onBufferFilled(stereoBuffer: ShortBuffer, sb0: ByteBuffer, bufferIndex: Long, session: Int): Boolean {
+    override fun onBufferFilled(stereoBuffer: ShortBuffer, byteBuffer: ByteBuffer, bufferIndex: Long, session: Int): Boolean {
 
         if (!isPlaying) return true
 
@@ -169,7 +169,7 @@ class AudioFileStreamOpenAL(
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
                 soundBuffer.loadRaw16(
-                    stereoBuffer, sb0, playbackSampleRate,
+                    stereoBuffer, byteBuffer, playbackSampleRate,
                     if (stereo) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
                 )
                 soundBuffer.ensureData()

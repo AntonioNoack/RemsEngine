@@ -21,6 +21,9 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
         array.fill(null)
     }
 
+    fun isEmpty(): Boolean = elementSize <= 0
+    fun isNotEmpty(): Boolean = elementSize > 0
+
     @Suppress("unchecked_cast")
     fun getFirst(index: Int): First = array[index * 2] as First
 

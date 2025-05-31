@@ -48,27 +48,6 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
         src.position(0).limit(src.capacity())
     }
 
-    // these cause issues, so always keep the original bytebuffer
-    /* fun returnBuffer(buffer: DoubleBuffer?){
-         buffer ?: return
-         returnBuffer(MemoryUtil.memByteBuffer(buffer))
-     }
-
-     fun returnBuffer(buffer: FloatBuffer?){
-         buffer ?: return
-         returnBuffer(MemoryUtil.memByteBuffer(buffer))
-     }
-
-     fun returnBuffer(buffer: IntBuffer?){
-         buffer ?: return
-         returnBuffer(MemoryUtil.memByteBuffer(buffer))
-     }
-
-     fun returnBuffer(buffer: ShortBuffer?){
-         buffer ?: return
-         returnBuffer(MemoryUtil.memByteBuffer(buffer))
-     }*/
-
     companion object {
 
         /**
