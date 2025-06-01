@@ -112,45 +112,56 @@ object Reference {
         return fileCache.getEntry(path, fileTimeout, true, generator)
     }
 
-    fun sanitizePath(str: String): String {
-        val str2 = if ('\\' in str) str.replace('\\', '/') else str
-        var prefixIdx = str.indexOf("://")
-        prefixIdx = when {
+    private fun getPrefixIdx(str2: String): Int {
+        val prefixIdx = str2.indexOf("://")
+        return when {
             prefixIdx >= 0 -> prefixIdx + 3 // protocol prefix
-            str.length >= 3 && str[1] == ':' && str[2] == '/' -> 3 // drive letter prefix
+            str2.length >= 2 && str2.startsWith("//") -> 2
+            str2.length >= 3 && str2[1] == ':' && str2[2] == '/' -> 2 // drive letter prefix
             else -> 0
         }
-        val str4 = if (
-            "/../" in str2 || str2.endsWith("/..") ||
-            "/./" in str2 || str2.endsWith("/.") || str2.startsWith("./") ||
-            str2.startsWith("/") || str2.endsWith("/") || str2.contains("//")
-        ) {
-            val parts = str2
-                .substring(prefixIdx)
-                .split('/')
-                .toMutableList()
-            var i = 0
-            while (i < parts.size) {
-                val part = parts[i]
-                when (part) {
-                    ".." -> {
-                        if (i > 0 && parts[i - 1] != "..") {
-                            parts.removeAt(i)
-                            parts.removeAt(i - 1)
-                            i--
-                        } else {
-                            LOGGER.warn("../ at the start cannot be sanitized ('$str')")
-                            i++
-                        }
+    }
+
+    private fun needsRelativePathReplacements(str2: String): Boolean {
+        return "/../" in str2 || str2.endsWith("/..") ||
+                "/./" in str2 || str2.endsWith("/.") || str2.startsWith("./") ||
+                str2.startsWith("/") || str2.endsWith("/") || str2.contains("//")
+    }
+
+    private fun replaceRelativePaths(str2: String, prefixIdx: Int): String {
+        val parts = str2
+            .substring(prefixIdx)
+            .split('/')
+            .toMutableList()
+        var i = 0
+        while (i < parts.size) {
+            val part = parts[i]
+            when (part) {
+                ".." -> {
+                    if (i > 0 && parts[i - 1] != "..") {
+                        parts.removeAt(i)
+                        parts.removeAt(i - 1)
+                        i--
+                    } else {
+                        LOGGER.warn("../ at the start cannot be sanitized ('$str2')")
+                        i++
                     }
-                    ".", "" -> parts.removeAt(i)
-                    else -> i++
                 }
+                ".", "" -> parts.removeAt(i)
+                else -> i++
             }
-            val prefix = str2.substring(0, prefixIdx)
-            parts.joinToString("/", prefix)
+        }
+        val prefix = str2.substring(0, prefixIdx)
+        return parts.joinToString("/", prefix)
+    }
+
+    fun sanitizePath(str: String): String {
+        val str2 = if ('\\' in str) str.replace('\\', '/') else str
+        val str3 = if (needsRelativePathReplacements(str2)) {
+            val prefixIdx = getPrefixIdx(str2)
+            replaceRelativePaths(str2, prefixIdx)
         } else str2
-        return str4
+        return str3
     }
 
     @JvmStatic
@@ -183,7 +194,7 @@ object Reference {
         }
 
         if (OS.isWindows) {
-            assertTrue(isWindowsDriveLetterWithoutSlash(absolutePath) || ":/" in absolutePath) {
+            assertTrue(isAllowedWindowsPath(absolutePath)) {
                 "Invalid file ($absolutePath)"
             }
         }
@@ -249,6 +260,16 @@ object Reference {
     fun isWindowsDriveLetterWithoutSlash(absolutePath: String): Boolean {
         return absolutePath.length == 2 && absolutePath[1] == ':' &&
                 (absolutePath[0] in 'A'..'Z' || absolutePath[0] in 'a'..'z')
+    }
+
+    fun isWindowsUNCPath(absolutePath: String): Boolean {
+        return absolutePath.startsWith("//")
+    }
+
+    fun isAllowedWindowsPath(absolutePath: String): Boolean {
+        return isWindowsDriveLetterWithoutSlash(absolutePath) ||
+                isWindowsUNCPath(absolutePath) ||
+                ":/" in absolutePath
     }
 
     private fun createFileFileRef(absolutePath: String): FileFileRef {

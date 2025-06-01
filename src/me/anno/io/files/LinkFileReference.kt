@@ -3,7 +3,7 @@ package me.anno.io.files
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getRealReference
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.isWindowsDriveLetterWithoutSlash
+import me.anno.io.files.Reference.isAllowedWindowsPath
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
@@ -38,7 +38,7 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
     init {
         assertTrue(absolutePath.isNotEmpty())
         if (OS.isWindows) {
-            assertTrue(isWindowsDriveLetterWithoutSlash(absolutePath) || ":/" in absolutePath) {
+            assertTrue(isAllowedWindowsPath(absolutePath)) {
                 "Invalid file ($absolutePath)"
             }
         }

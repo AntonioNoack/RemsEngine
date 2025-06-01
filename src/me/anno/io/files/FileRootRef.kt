@@ -1,8 +1,11 @@
 package me.anno.io.files
 
 import me.anno.io.VoidOutputStream
+import me.anno.io.binary.ByteArrayIO.readLE16
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.OS
 import me.anno.utils.async.Callback
+import me.anno.utils.types.Strings.isNotBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException
@@ -41,7 +44,12 @@ object FileRootRef : FileReference("root") {
 
     override fun listChildren(callback: Callback<List<FileReference>>) {
         thread(name = "$absolutePath.listChildren") { // can be extremely slow
-            callback.ok(File.listRoots().map { getReference(it.absolutePath) })
+            var results = File.listRoots().map { getReference(it.absolutePath) }
+            if (OS.isWindows) {
+                @Suppress("SuspiciousCollectionReassignment")
+                results += findWSLInstances()
+            }
+            callback.ok(results)
         }
     }
 
@@ -61,4 +69,24 @@ object FileRootRef : FileReference("root") {
     override val lastModified: Long get() = 0L
     override val lastAccessed: Long get() = 0L
     override val creationTime: Long get() = 0L
+
+    /**
+     * finds Windows Subsystem for Linux instances
+     * */
+    fun findWSLInstances(): List<FileReference> {
+
+        val process = Runtime.getRuntime().exec("wsl.exe -l -q")
+        val bytes = process.inputStream.readBytes()
+        val chars = CharArray(bytes.size shr 1) {
+            bytes.readLE16(it * 2).toChar()
+        }
+
+        val wslInstanceNames = String(chars).split('\n')
+            .filter { it.isNotBlank2() }.map { it.trim() }
+
+        val prefix = "//wsl.localhost/"
+        return wslInstanceNames.map { wslInstanceName ->
+            getReference("$prefix$wslInstanceName")
+        }
+    }
 }
