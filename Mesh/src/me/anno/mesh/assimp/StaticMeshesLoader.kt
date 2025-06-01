@@ -603,6 +603,12 @@ object StaticMeshesLoader {
         var path0 = path.dataString() ?: return InvalidRef
         if (path0.isBlank2()) return InvalidRef
 
+        var parentFolder = parentFolder
+        while (path0.startsWith("../") || path0.startsWith("..\\")) {
+            path0 = path0.substring(3)
+            parentFolder = parentFolder.getParent().nullIfUndefined() ?: parentFolder
+        }
+
         path0 = sanitizePath(path0)
         if (path0.startsWith('*')) {
             return resolveStarFile(path0, aiScene, loadedTextures)

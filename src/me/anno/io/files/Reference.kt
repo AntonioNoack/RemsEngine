@@ -143,7 +143,8 @@ object Reference {
                         parts.removeAt(i - 1)
                         i--
                     } else {
-                        LOGGER.warn("../ at the start cannot be sanitized ('$str2')")
+                        RuntimeException("../ at the start cannot be sanitized ('$str2')")
+                            .printStackTrace()
                         i++
                     }
                 }

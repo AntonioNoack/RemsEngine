@@ -16,8 +16,6 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
-import me.anno.ecs.systems.Updatable
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -38,10 +36,8 @@ import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Floats.roundToIntOr
-import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
-import kotlin.math.PI
 
 // todo simple car chase game
 // done - car
@@ -62,18 +58,16 @@ import kotlin.math.PI
 val map = documents.getChild("CarChase.glb")
 
 // todo: this probably should be created in the editor; there, we have much better control
-val heistPackage = getReference("E:/Assets/Unity/POLYGON_Heist_Unity_Package_2017_1.unitypackage/Assets/PolygonHeist")
+val heistPackage = getReference("E:/Assets/Unity/Polygon/Heist.unitypackage/Assets/PolygonHeist")
 val carModel = heistPackage.getChild("Model/SM_Veh_Car_Police_Heist_01.fbx")
-val carModelMain = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_01.json")
-val carModelFL = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Wheel_fl.json")
-val carModelSteer = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_SteeringW.json")
-val carModelGlass = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Glass.json")
-val carModelPlates = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Plates.json")
+val carModelMain = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_01-002.json")
+val carModelFL = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Wheel_fl-002.json")
+val carModelSteer = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_SteeringW-002.json")
+val carModelGlass = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Glass-002.json")
+val carModelPlates = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Plates-002.json")
 val carModelMat = heistPackage.getChild("Materials/PolygonHeist_Character_Material_01.mat")
 
 fun createUI(): Panel {
-
-    ECSRegistry.init()
 
     val list = NineTilePanel(style)
 
@@ -230,10 +224,9 @@ fun createUI(): Panel {
     return list
 }
 
-// todo this is currently broken
 fun main() {
-    // todo bug: why are meshes and materials not automatically reloading?
     disableRenderDoc()
     OfficialExtensions.initForTests()
+
     testUI3("CarChase") { createUI() }
 }

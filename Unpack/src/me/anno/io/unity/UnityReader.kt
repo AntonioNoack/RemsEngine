@@ -648,7 +648,7 @@ object UnityReader {
                     if (script != InvalidRef) {
                         val script1 = try {
                             script.readTextSync()
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             script
                         }
                         LOGGER.debug("script for behaviour: {}", script1)

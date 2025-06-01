@@ -201,20 +201,15 @@ object MarchingCubes {
 
             // create triangles based on map
             var triIndex = code * 15
+            val triTable = triTable
             for (i in 0 until 5) {
                 val i0 = triTable[triIndex++].toInt() * 3
                 if (i0 < 0) break
                 val i1 = triTable[triIndex++].toInt() * 3
                 val i2 = triTable[triIndex++].toInt() * 3
-                dst.add(data[i0])
-                dst.add(data[i0 + 1])
-                dst.add(data[i0 + 2])
-                dst.add(data[i1])
-                dst.add(data[i1 + 1])
-                dst.add(data[i1 + 2])
-                dst.add(data[i2])
-                dst.add(data[i2 + 1])
-                dst.add(data[i2 + 2])
+                dst.addAll(data, i0, 3)
+                dst.addAll(data, i1, 3)
+                dst.addAll(data, i2, 3)
             }
 
             edges.clear()
@@ -282,6 +277,7 @@ object MarchingCubes {
         val sy = bounds.deltaY * invY
         val sz = bounds.deltaZ * invZ
 
+        val triTable = triTable
         for (z in 0 until sizeZ - 1) {
             val indexOffset = z * wh
             val pz = z.toFloat()
@@ -300,16 +296,9 @@ object MarchingCubes {
                     val v2 = field[index + wh] - threshold
                     val v7 = field[index + sizeX] - threshold
                     val v6 = field[index + sizeX + wh] - threshold
-                    val b0 = v0 >= 0f
-                    val b1 = v1 >= 0f
-                    val b4 = v4 >= 0f
-                    val b5 = v5 >= 0f
-                    val b3 = v3 >= 0f
-                    val b2 = v2 >= 0f
-                    val b7 = v7 >= 0f
-                    val b6 = v6 >= 0f
-                    val code = b0.toInt(1) + b1.toInt(2) + b2.toInt(4) + b3.toInt(8) +
-                            b4.toInt(16) + b5.toInt(32) + b6.toInt(64) + b7.toInt(128) - 1
+                    val code0 = (toInt(v0, 1) or toInt(v1, 2)) or (toInt(v2, 4) or toInt(v3, 8))
+                    val code1 = (toInt(v4, 16) or toInt(v5, 32)) or (toInt(v6, 64) or toInt(v7, 128))
+                    val code = (code0 or code1) - 1
                     if (code in 0 until 254) {
 
                         var ei = 0
@@ -352,5 +341,9 @@ object MarchingCubes {
                 }
             }
         }
+    }
+
+    private fun toInt(v: Float, i: Int): Int {
+        return if (v >= 0f) i else 0
     }
 }

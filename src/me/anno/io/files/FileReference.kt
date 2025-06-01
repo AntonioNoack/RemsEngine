@@ -90,7 +90,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         isHidden = true
     }
 
-    // @Deprecated(AsyncCacheData.ASYNC_WARNING)
     open fun getChild(name: String): FileReference {
         return getReference(appendPath(absolutePath, name))
     }
@@ -141,9 +140,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract fun getParent(): FileReference
 
     abstract fun renameTo(newName: FileReference): Boolean
-
-    fun getChildOrNull(name: String): FileReference? =
-        getChild(name).nullIfUndefined()
 
     fun getChildImplOrNull(name: String): FileReference? =
         getChildImpl(name).nullIfUndefined()
