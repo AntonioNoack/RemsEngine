@@ -14,10 +14,10 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureHelper.getNumChannels
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.toInt
-import org.lwjgl.opengl.GL46C.glColorMask
 
 /**
  * Blitting is the process of copying the data from one texture onto another one.
+ * There is glBlit, but I don't want to use it, because it's very limited and doesn't exist in DirectX 11.
  * */
 object Blitting {
 
@@ -102,9 +102,9 @@ object Blitting {
      * */
     @JvmStatic
     fun copyDepth(depthSamples: Int, depthMask: Int) {
-        glColorMask(false, false, false, false)
-        copyColorAndDepth(1, false, depthSamples, depthMask, false)
-        glColorMask(true, true, true, true)
+        GFXState.colorMask.use(0) {
+            copyColorAndDepth(1, false, depthSamples, depthMask, false)
+        }
     }
 
     /**
@@ -118,7 +118,8 @@ object Blitting {
     }
 
     /**
-     * Copy color, retain alpha channel
+     * Copy color, retain alpha channel;
+     * could also be implemented with GFXState.colorMask(~COLOR_MASK_A)
      * */
     @JvmStatic
     fun copyNoAlpha(samples: Int, isSRGB: Boolean) {

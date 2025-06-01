@@ -3,7 +3,7 @@ package me.anno.gpu
 import kotlin.reflect.KProperty
 
 /**
- * Lightweight OpenGL objects are not shared, even in shared contexts.
+ * Lightweight OpenGL objects are not shared, even in shared contexts (when rendering multiple OSWindows).
  * This affects VAOs and Framebuffers, so we have to use this in Framebuffers.
  * (and in VAOs if we were to use more than one)
  *

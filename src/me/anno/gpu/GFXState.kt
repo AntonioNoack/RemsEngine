@@ -26,21 +26,21 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4i
-import org.lwjgl.opengl.GL11C.GL_FILL
-import org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK
-import org.lwjgl.opengl.GL11C.GL_LINE
-import org.lwjgl.opengl.GL11C.glPolygonMode
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_BACK
 import org.lwjgl.opengl.GL46C.GL_BLEND
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_CULL_FACE
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
+import org.lwjgl.opengl.GL46C.GL_FILL
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRONT
+import org.lwjgl.opengl.GL46C.GL_FRONT_AND_BACK
+import org.lwjgl.opengl.GL46C.GL_LINE
 import org.lwjgl.opengl.GL46C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL46C.GL_NEGATIVE_ONE_TO_ONE
 import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
@@ -48,7 +48,10 @@ import org.lwjgl.opengl.GL46C.GL_SCISSOR_TEST
 import org.lwjgl.opengl.GL46C.GL_STENCIL_TEST
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL46C.GL_ZERO_TO_ONE
+import org.lwjgl.opengl.GL46C.glBindVertexArray
 import org.lwjgl.opengl.GL46C.glClipControl
+import org.lwjgl.opengl.GL46C.glColorMask
+import org.lwjgl.opengl.GL46C.glCreateVertexArrays
 import org.lwjgl.opengl.GL46C.glCullFace
 import org.lwjgl.opengl.GL46C.glDepthFunc
 import org.lwjgl.opengl.GL46C.glDepthMask
@@ -57,6 +60,7 @@ import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
+import org.lwjgl.opengl.GL46C.glPolygonMode
 import org.lwjgl.opengl.GL46C.glScissor
 
 /**
@@ -77,6 +81,7 @@ object GFXState {
         lastDepthMask = null
         lastCullMode = null
         lastDrawLines = null
+        lastColorMask = -1
     }
 
     private var lastBlendMode: Any? = Unit
@@ -84,6 +89,7 @@ object GFXState {
     private var lastDepthMask: Boolean? = null
     private var lastCullMode: CullMode? = null
     private var lastDrawLines: Boolean? = null
+    private var lastColorMask: Int = -1
 
     private fun bindBlendMode(newValue: Any?) {
         if (newValue == lastBlendMode) return
@@ -140,6 +146,18 @@ object GFXState {
         lastDepthMask = newValue
     }
 
+    fun bindColorMask() {
+        val newValue = colorMask.currentValue and 15
+        if (lastColorMask == newValue) return
+        glColorMask(
+            newValue.hasFlag(COLOR_MASK_R),
+            newValue.hasFlag(COLOR_MASK_G),
+            newValue.hasFlag(COLOR_MASK_B),
+            newValue.hasFlag(COLOR_MASK_A)
+        )
+        lastColorMask = newValue
+    }
+
     private fun bindDrawLines() {
         val newValue = drawLines.currentValue
         if (lastDrawLines == newValue) return
@@ -171,6 +189,7 @@ object GFXState {
         bindBlendMode(blendMode.currentValue)
         bindDepthMode()
         bindDepthMask()
+        bindColorMask()
         bindCullMode()
         bindDrawLines()
     }
@@ -191,8 +210,8 @@ object GFXState {
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
         invalidateState()
-        val vao = GL46C.glCreateVertexArrays()
-        GL46C.glBindVertexArray(vao)
+        val vao = glCreateVertexArrays()
+        glBindVertexArray(vao)
         if (session != 1) {
             clearGPUCaches()
         }
@@ -206,6 +225,9 @@ object GFXState {
         TextureCache.clear()
     }
 
+    /**
+     * how shader pixels are combined with the underlying framebuffer
+     * */
     val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
 
     /**
@@ -218,7 +240,19 @@ object GFXState {
      * */
     val depthMask = SecureStack(true)
 
+    const val COLOR_MASK_R = 8
+    const val COLOR_MASK_G = 4
+    const val COLOR_MASK_B = 2
+    const val COLOR_MASK_A = 1
 
+    /**
+     * whether R=8,G=4,B=2,A=1 shall be stored
+     * */
+    val colorMask = SecureStack(15)
+
+    /**
+     * whether lines should be rendered instead of triangles
+     * */
     val drawLines = SecureStack(false)
 
     /**
@@ -235,8 +269,15 @@ object GFXState {
      * defines how the instanced transform is derived from available attributes (depends on InstancedStack)
      * */
     val instanceData = SecureStack(MeshInstanceData.DEFAULT)
+
+    /**
+     * whether lines/triangles shall be dithered
+     * */
     val ditherMode = SecureStack(DitherMode.DRAW_EVERYTHING)
 
+    /**
+     * whether front/back/or both of triangles shall be drawn
+     * */
     val cullMode = SecureStack(CullMode.BOTH)
 
     @Suppress("unused")

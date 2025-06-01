@@ -3,6 +3,9 @@ package me.anno.input
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 
+/**
+ * Represents copy-paste capabilities (Ctrl+C, Ctrl+V)
+ * */
 object Clipboard {
 
     @InternalAPI

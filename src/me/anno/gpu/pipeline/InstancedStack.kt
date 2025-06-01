@@ -192,9 +192,10 @@ open class InstancedStack {
                     shader.v1b("hasAnimation", useAnimations)
                     shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                     shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
+                    shader.v1i("frameId", Time.frameIndex)
 
                     if (useAnimations) {
-                        (instances as InstancedAnimStack).animTexture!!
+                        instances.animTexture!!
                             .bind(shader, "animTexture", Filtering.TRULY_LINEAR, Clamping.CLAMP)
                     }
                     GFX.check()

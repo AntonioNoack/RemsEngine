@@ -2,7 +2,14 @@ package me.anno.gpu
 
 import org.lwjgl.opengl.GL46C
 
-@Suppress("unused")
+/**
+ * How depth shall be rendered. Typically, you would use CLOSER or FORWARD_CLOSER.
+ * FORWARD modes are used for platforms, which don't support proper backwards depth like OpenGL ES,
+ * and for orthographic rendering / orthographic (directional) lights, like the sun.
+ *
+ * ALWAYS and FORWARD_ALWAYS exist separately, because we need to know whether to clear depth to 0 or 1,
+ * and reading GFXState.depthMode is a great way to do it.
+ * */
 enum class DepthMode(val id: Int) {
 
     // default depth mode is reversed in the engine, because it is superior

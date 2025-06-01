@@ -29,6 +29,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
+import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3
@@ -218,6 +219,14 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             .identity()
             .rotateYXZ(radiansY, radiansX, radiansZ)
         return this
+    }
+
+    fun setRotationDegrees(degreesX: Float, degreesY: Float, degreesZ: Float): Entity {
+        return setRotation(
+            degreesX.toRadians(),
+            degreesY.toRadians(),
+            degreesZ.toRadians()
+        )
     }
 
     fun setScale(sc: Float): Entity {
