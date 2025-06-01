@@ -58,6 +58,7 @@ object LastModifiedCache {
     }
 
     fun invalidate(file: FileReference) {
+        val file = file.resolved()
         if (file is FileFileRef) {
             invalidate(file.file.absolutePath)
         }
@@ -100,11 +101,13 @@ object LastModifiedCache {
     operator fun get(file: File): Result = get(file, file.absolutePath)
 
     fun isDirectory(ref: FileReference): Boolean {
+        // not resolving is fine here
         return if (ref is FileFileRef) this[ref.file.absolutePath].exists
         else ref.isDirectory
     }
 
     fun exists(ref: FileReference): Boolean {
+        // not resolving is fine here
         return if (ref is FileFileRef) this[ref.file.absolutePath].exists
         else ref.exists
     }

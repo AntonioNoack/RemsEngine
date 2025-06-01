@@ -50,8 +50,11 @@ class VideoPlugin : Plugin() {
         MediaMetadata.registerSignatureHandler(100, "video") { file, signature, dst, _ ->
             // only use ffmpeg for ffmpeg files
             if (signature == "gif" || signature == "media" || signature == "dds") {
-                if (OSFeatures.supportsFFMPEG && (file is FileFileRef || file is WebRef)) {
-                    dst.loadFFMPEG()
+                if (OSFeatures.supportsFFMPEG) {
+                    val file = file.resolved()
+                    if (file is FileFileRef || file is WebRef) {
+                        dst.loadFFMPEG()
+                    }
                 }
                 true
             } else false

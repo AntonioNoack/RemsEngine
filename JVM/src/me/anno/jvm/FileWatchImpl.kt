@@ -36,6 +36,7 @@ object FileWatchImpl {
 
     private fun addWatchDog(file: FileReference, original: FileReference) {
         if (Build.isShipped) return // no change will occur, as everything will be internal
+        val file = file.resolved()
         if (file is FileFileRef && file.isDirectory) {
             synchronized(this) {
                 watched.getOrPut(file.absolutePath) {
@@ -57,6 +58,7 @@ object FileWatchImpl {
 
     private fun removeWatchDog(file: FileReference, original: FileReference) {
         if (Build.isShipped || neverDisable) return // no change will occur, as everything will be internal
+        val file = file.resolved()
         if (file is FileFileRef && file.isDirectory) {
             synchronized(this) {
                 val fileList = watched[file.absolutePath]

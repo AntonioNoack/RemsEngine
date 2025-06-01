@@ -19,6 +19,7 @@ object ImageReaderExt {
     }
 
     fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) {
+        val file = file.resolved()
         if (file is FileFileRef) {
             val meta = MediaMetadata.getMeta(file, false)
             if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {

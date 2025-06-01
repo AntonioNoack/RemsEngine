@@ -82,6 +82,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    fun resolved(): FileReference {
+        return if (this is LinkFileReference) original
+        else this
+    }
+
     private val _hashCode = absolutePath.hashCode()
 
     var isHidden = name.startsWith('.')// hidden file in Linux, or file in unity package

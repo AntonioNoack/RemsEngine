@@ -83,7 +83,8 @@ object ClipboardImpl {
             file
         }
         files.mapCallback(
-            { _, src, cb ->
+            { _, src0, cb ->
+                val src = src0.resolved()
                 if (src is FileFileRef) {
                     cb.ok(src.file)
                 } else {

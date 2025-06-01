@@ -38,6 +38,7 @@ class Inner7zFile(
 
         @JvmStatic
         fun fileFromStream7z(file: FileReference, cb: Callback<SevenZFile>) {
+            val file = file.resolved()
             if (file is FileFileRef) {
                 cb.ok(SevenZFile(file.file))
             } else {

@@ -136,6 +136,7 @@ object StaticMeshesLoader {
     }
 
     fun loadFile(file: FileReference, flags: Int, signature: String?, callback: Callback<Pair<AIScene, Boolean>>) {
+
         // obj files should use our custom importer
         if ((signature == "dae" || signature == "xml") && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
@@ -160,6 +161,7 @@ object StaticMeshesLoader {
         }
 
         // glb cannot be loaded from memory properly... (a bug in Assimp)
+        val file = file.resolved()
         if (file !is FileFileRef && (signature == "gltf" || signature == "json")) {
             val tmp = FileFileRef.createTempFile(file.nameWithoutExtension, file.extension)
             tmp.deleteOnExit()
@@ -182,6 +184,7 @@ object StaticMeshesLoader {
         // it only is allowed to be set, if the file is a fbx file
         val isFBXFile = signature == "fbx"
         val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
+        val dataFile = dataFile.resolved()
         if (dataFile is FileFileRef) {
             val aiScene = synchronized(StaticMeshesLoader) {
                 aiSetImportPropertyFloat(aiPropertyStore, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)

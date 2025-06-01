@@ -29,6 +29,7 @@ class InnerRarFile(
 
         @JvmStatic
         fun fileFromStreamRar(file: FileReference, callback: Callback<Archive>) {
+            val file = file.resolved()
             if (file is FileFileRef) {
                 callback.ok(Archive(file.file))
             } else {

@@ -30,13 +30,6 @@ object Reference {
     var fileTimeout = 20_000L
 
     @JvmStatic
-    fun register(ref: FileReference): FileReference {
-        if (ref is FileFileRef) return ref
-        fileCache.override(ref.absolutePath, CacheData(ref), fileTimeout)
-        return ref
-    }
-
-    @JvmStatic
     fun registerStatic(ref: FileReference): FileReference {
         staticReferences[ref.absolutePath] = ref
         return ref

@@ -4,7 +4,6 @@ import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.register
 import me.anno.utils.async.Callback
 import java.io.File
 import java.io.FileOutputStream
@@ -119,6 +118,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun renameTo(newName: FileReference): Boolean {
+        val newName = newName.resolved()
         val response = file.renameTo(
             if (newName is FileFileRef) newName.file
             else File(newName.absolutePath)
@@ -132,7 +132,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun getChildImpl(name: String): FileReference {
         return if (!exists || isDirectory) {
-            register(FileFileRef(File(file, name)))
+            FileFileRef(File(file, name))
         } else zipFileForDirectory?.getChildImpl(name) ?: InvalidRef
     }
 

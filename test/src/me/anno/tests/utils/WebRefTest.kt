@@ -1,6 +1,5 @@
 package me.anno.tests.utils
 
-import me.anno.io.files.LinkFileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.WebRef
 import me.anno.utils.assertions.assertEquals
@@ -13,11 +12,7 @@ class WebRefTest {
     private val LOGGER = LogManager.getLogger(WebRefTest::class)
 
     private fun getWebRef(path: String): WebRef {
-        return when (val file = getReference(path)) {
-            is LinkFileReference -> file.original as WebRef
-            is WebRef -> file
-            else -> throw NotImplementedError(file.javaClass.name)
-        }
+        return getReference(path).resolved() as WebRef
     }
 
     @Test

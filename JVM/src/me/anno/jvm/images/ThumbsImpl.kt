@@ -43,11 +43,12 @@ object ThumbsImpl {
     }
 
     private fun <V> FileReference.useAsFile(process: (File) -> V, callback: Callback<V>) {
-        if (this is FileFileRef) {
-            callback.ok(process(file))
+        val file1 = resolved()
+        if (file1 is FileFileRef) {
+            callback.ok(process(file1.file))
         } else {
             val tmp = File.createTempFile(nameWithoutExtension, extension)
-            readBytes { bytes, exc ->
+            file1.readBytes { bytes, exc ->
                 if (bytes != null) {
                     tmp.writeBytes(bytes)
                     val result = process(tmp)

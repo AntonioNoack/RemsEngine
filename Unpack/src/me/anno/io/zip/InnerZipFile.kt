@@ -74,6 +74,7 @@ class InnerZipFile(
         }
 
         fun zipFileFromFile(file: FileReference, callback: Callback<ZipFile>) {
+            val file = file.resolved()
             if (file is FileFileRef) {
                 callback.ok(ZipFile(file.file))
             } else {
