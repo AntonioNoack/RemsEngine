@@ -113,14 +113,14 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     /**
      * Creates a new texture, which contains the image data of the frame
      * */
-    fun toTexture(): Texture2D {
-        return toTexture(Texture2D("GpuFrame", width, height, 1))
+    fun toTexture(flipY: Boolean = false): Texture2D {
+        return toTexture(Texture2D("GpuFrame", width, height, 1), flipY)
     }
 
     /**
      * Creates a new texture, which contains the image data of the frame
      * */
-    fun toTexture(texture: Texture2D): Texture2D {
+    fun toTexture(texture: Texture2D, flipY: Boolean = false): Texture2D {
         GFX.checkIsGFXThread()
         texture.create(TargetType.UInt8xI[numChannels - 1])
         texture.channels = numChannels
@@ -128,7 +128,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
             GFXState.renderPurely {
                 val shader = get2DShader()
                 shader.use()
-                posSize(shader, 0, 0, texture.width, texture.height)
+                posSize(shader, 0, 0, texture.width, texture.height, flipY)
                 tiling(shader, GFXx2D.noTiling)
                 bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 bindUVCorrection(shader)

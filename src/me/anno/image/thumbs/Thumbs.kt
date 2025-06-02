@@ -46,6 +46,7 @@ import kotlin.math.min
  * creates and caches small versions of image, video and mesh resources
  *
  * todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
+ * todo also sometimes, images get rendered on top of each other, which is weird
  * */
 object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
 

@@ -193,9 +193,9 @@ object GFXx2D {
         flat01.draw(shader)
     }
 
-    fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int, flipped: Boolean = false) {
-        val yi = if (flipped) y + h else y
-        val hi = if (flipped) -h else h
+    fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int, flipY: Boolean = false) {
+        val yi = if (flipY) y + h else y
+        val hi = if (flipY) -h else h
         posSize(shader, x.toFloat(), yi.toFloat(), w.toFloat(), hi.toFloat())
     }
 

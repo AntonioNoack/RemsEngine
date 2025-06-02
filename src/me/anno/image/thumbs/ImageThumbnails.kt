@@ -136,9 +136,8 @@ object ImageThumbnails {
         wantedTime: Double
     ) {
         MediaMetadata.getMetaAsync(srcFile) { meta, err ->
-            if (meta != null) {
-                generateVideoFrame(srcFile, dstFile, size, callback, wantedTime, meta)
-            } else callback.err(err)
+            if (meta != null) generateVideoFrame(srcFile, dstFile, size, callback, wantedTime, meta)
+            else callback.err(err)
         }
     }
 }

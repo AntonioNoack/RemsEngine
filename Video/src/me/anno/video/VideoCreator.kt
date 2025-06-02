@@ -16,17 +16,16 @@ import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.image.Image
 import me.anno.image.raw.GPUImage
-import me.anno.image.raw.IntImage
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.writeBE24
 import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
-import me.anno.utils.types.Booleans.hasFlag
-import me.anno.maths.Maths.min
 import me.anno.jvm.utils.BetterProcessBuilder
+import me.anno.maths.Maths.min
+import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.async.Callback
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.video.Codecs.videoCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
@@ -205,33 +204,15 @@ open class VideoCreator(
 
     fun writeFrame(frame: Image) {
         if (frame.width != width || frame.height != height) throw IllegalArgumentException("Resolution does not match!")
-        if (frame is GPUImage) return writeFrame(frame.asIntImage())
+        val frame = (frame as? GPUImage)?.asIntImage() ?: frame
         val output = videoOut
         synchronized(output) {
-            if (frame is IntImage) {
-                val img = frame.data
-                if (withAlpha) {
-                    for (i in 0 until width * height) {
-                        output.writeBE32(img[i])
-                    }
-                } else {
-                    for (i in 0 until width * height) {
-                        output.writeBE24(img[i])
-                    }
-                }
-            } else {
-                if (withAlpha) {
-                    for (y in 0 until height) {
-                        for (x in 0 until width) {
-                            output.writeBE32(frame.getRGB(x, y))
-                        }
-                    }
-                } else {
-                    for (y in 0 until height) {
-                        for (x in 0 until width) {
-                            output.writeBE24(frame.getRGB(x, y))
-                        }
-                    }
+            val withAlpha = withAlpha
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val color = frame.getRGB(x, y)
+                    if (withAlpha) output.writeBE32(color)
+                    else output.writeBE24(color)
                 }
             }
         }
