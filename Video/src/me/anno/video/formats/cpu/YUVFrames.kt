@@ -106,22 +106,28 @@ object YUVFrames {
         return (a + b + c + d).shr(2)
     }
 
+    private fun createIntArray(size: Int): IntArray {
+        return Pools.intArrayPool[size, false, false]
+    }
+
     // this seems to work, and to be correct
     fun loadI444Frame(w: Int, h: Int, input: InputStream): Image {
 
         val s0 = w * h
 
-        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
-        val uData = input.readNBytes2(s0, Pools.byteBufferPool)
-        val vData = input.readNBytes2(s0, Pools.byteBufferPool)
+        val pool = Pools.byteBufferPool
+        val yData = input.readNBytes2(s0, pool)
+        val uData = input.readNBytes2(s0, pool)
+        val vData = input.readNBytes2(s0, pool)
 
-        val data = IntArray(w * h) {
+        val data = createIntArray(s0)
+        for (it in 0 until s0) {
             yuv2rgb(yData[it], uData[it], vData[it])
         }
 
-        Pools.byteBufferPool.returnBuffer(yData)
-        Pools.byteBufferPool.returnBuffer(uData)
-        Pools.byteBufferPool.returnBuffer(vData)
+        pool.returnBuffer(yData)
+        pool.returnBuffer(uData)
+        pool.returnBuffer(vData)
 
         return IntImage(w, h, data, false)
     }
@@ -130,17 +136,18 @@ object YUVFrames {
 
         val s0 = w * h
 
-        val yData = input.readNBytes2(s0, Pools.byteBufferPool)
+        val pool = Pools.byteBufferPool
+        val yData = input.readNBytes2(s0, pool)
 
         // this is correct, confirmed by example
         val w2 = (w + 1) shr 1
         val h2 = (h + 1) shr 1
 
         val s1 = w2 * h2
-        val uData = input.readNBytes2(s1, Pools.byteBufferPool)
-        val vData = input.readNBytes2(s1, Pools.byteBufferPool)
+        val uData = input.readNBytes2(s1, pool)
+        val vData = input.readNBytes2(s1, pool)
 
-        val result = IntArray(w * h)
+        val result = createIntArray(s0)
         val hx = h + h.and(1) - 1 // same if odd, 1 less else
 
         for (yi in 0 until hx step 2) {
@@ -153,9 +160,9 @@ object YUVFrames {
             xAxisInterpolation(result, w, w2, hx, yData, uData, vData)
         }
 
-        Pools.byteBufferPool.returnBuffer(yData)
-        Pools.byteBufferPool.returnBuffer(uData)
-        Pools.byteBufferPool.returnBuffer(vData)
+        pool.returnBuffer(yData)
+        pool.returnBuffer(uData)
+        pool.returnBuffer(vData)
 
         return IntImage(w, h, result, false)
     }

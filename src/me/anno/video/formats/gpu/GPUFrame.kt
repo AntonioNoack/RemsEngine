@@ -122,8 +122,10 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
      * */
     fun toTexture(texture: Texture2D, flipY: Boolean = false): Texture2D {
         GFX.checkIsGFXThread()
-        texture.create(TargetType.UInt8xI[numChannels - 1])
-        texture.channels = numChannels
+        if (texture.pointer == 0) {
+            texture.create(TargetType.UInt8xI[numChannels - 1])
+            texture.channels = numChannels
+        }
         GFXState.useFrame(texture) {
             GFXState.renderPurely {
                 val shader = get2DShader()
