@@ -25,7 +25,7 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertNotNull
-import me.anno.utils.async.Callback
+import me.anno.utils.async.mapSuccess
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.nextName
 import me.anno.utils.structures.lists.Lists.createList
@@ -129,100 +129,83 @@ object StaticMeshesLoader {
         return 1f / (shininessExponent * 0.01f + 1f)
     }
 
-    fun loadFile(file: FileReference, flags: Int, callback: Callback<Pair<AIScene, Boolean>>) {
-        SignatureCache.getAsync(file) { signature ->
-            loadFile(file, flags, signature?.name, callback)
-        }
+    suspend fun loadFile(file: FileReference, flags: Int): Result<Pair<AIScene, Boolean>> {
+        val signature = SignatureCache.getX(file).await().getOrNull()
+        return loadFile(file, flags, signature?.name)
     }
 
-    fun loadFile(file: FileReference, flags: Int, signature: String?, callback: Callback<Pair<AIScene, Boolean>>) {
+    suspend fun loadFile(file: FileReference, flags: Int, signature: String?): Result<Pair<AIScene, Boolean>> {
 
         // obj files should use our custom importer
         if ((signature == "dae" || signature == "xml") && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)
-            return file.inputStream { str, err ->
-                if (str != null) {
-                    val xml = XMLReader(str.reader()).read()
-                    fun clean(xml: Any): Any {
-                        return if (xml is XMLNode) {
-                            for (i in xml.children.indices) {
-                                xml.children[i] = clean(xml.children[i])
-                            }
-                            xml
-                        } else xml.toString().trim()
-                    }
+            return file.inputStream().mapSuccess { str ->
+                val xml = XMLReader(str.reader()).read()
+                fun clean(xml: Any): Any {
+                    return if (xml is XMLNode) {
+                        for (i in xml.children.indices) {
+                            xml.children[i] = clean(xml.children[i])
+                        }
+                        xml
+                    } else xml.toString().trim()
+                }
 
-                    val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
-                    val tmp = InnerTmpTextFile(better)
-                    loadAIScene(file, tmp, flags, signature, callback)
-                } else callback.err(err)
+                val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
+                val tmp = InnerTmpTextFile(better)
+                loadAIScene(file, tmp, flags, signature)
             }
         }
 
-        // glb cannot be loaded from memory properly... (a bug in Assimp)
-        val file = file.resolved()
-        if (file !is FileFileRef && (signature == "gltf" || signature == "json")) {
-            val tmp = FileFileRef.createTempFile(file.nameWithoutExtension, file.extension)
-            tmp.deleteOnExit()
-            file.copyTo(tmp) {
-                loadAIScene(file, tmp, flags, signature, callback)
-            }
-            return
-        }
-
-        loadAIScene(file, file, flags, signature, callback)
+        return loadAIScene(file, file, flags, signature)
     }
 
-    private fun loadAIScene(
+    private suspend fun loadAIScene(
         srcFile: FileReference,
         dataFile: FileReference, flags: Int, signature: String?,
-        callback: Callback<Pair<AIScene, Boolean>>
-    ) {
+    ): Result<Pair<AIScene, Boolean>> {
         // we could load in parallel,
         // but we'd need to keep track of the scale factor;
         // it only is allowed to be set, if the file is a fbx file
         val isFBXFile = signature == "fbx"
         val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
         val dataFile = dataFile.resolved()
-        if (dataFile is FileFileRef) {
+        return if (dataFile is FileFileRef) {
             val aiScene = synchronized(StaticMeshesLoader) {
                 aiSetImportPropertyFloat(aiPropertyStore, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
                 aiImportFileExWithProperties(dataFile.absolutePath, flags, null, aiPropertyStore)
             }
-            onGotAIScene(srcFile, aiScene, isFBXFile, callback)
+            onGotAIScene(srcFile, aiScene, isFBXFile)
         } else {
-            dataFile.readByteBuffer(true) { byteBuffer, err ->
-                if (byteBuffer != null) loadAIScene(srcFile, isFBXFile, byteBuffer, scale, flags, callback)
-                else callback.err(err)
+            dataFile.readByteBuffer(true).mapSuccess { byteBuffer ->
+                loadAIScene(srcFile, isFBXFile, byteBuffer, scale, flags)
             }
         }
     }
 
     private fun loadAIScene(
-        file0: FileReference, isFBXFile: Boolean, byteBuffer: ByteBuffer, scale: Float, flags: Int,
-        callback: Callback<Pair<AIScene, Boolean>>
-    ) {
+        file0: FileReference, isFBXFile: Boolean, byteBuffer: ByteBuffer, scale: Float, flags: Int
+    ): Result<Pair<AIScene, Boolean>> {
         val aiScene = synchronized(StaticMeshesLoader) {
             aiSetImportPropertyFloat(aiPropertyStore, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
             // the first method threw "bad allocation" somehow 🤷‍♂️
             aiImportFileFromMemoryWithProperties(byteBuffer, flags, null as ByteBuffer?, aiPropertyStore)
         }
-        onGotAIScene(file0, aiScene, isFBXFile, callback)
+        return onGotAIScene(file0, aiScene, isFBXFile)
     }
 
     private fun onGotAIScene(
         srcFile: FileReference, aiScene: AIScene?,
-        isFBXFile: Boolean, callback: Callback<Pair<AIScene, Boolean>>
-    ) {
+        isFBXFile: Boolean
+    ): Result<Pair<AIScene, Boolean>> {
         var error: String? = null
         if (aiScene == null) {
             error = aiGetErrorString()
         }
 
         // should be sync as well
-        if (aiScene != null) callback.ok(Pair(aiScene, isFBXFile))
-        else callback.err(IOException("Error loading model $srcFile, $error"))
+        return if (aiScene != null) Result.success(Pair(aiScene, isFBXFile))
+        else Result.failure(IOException("Error loading model $srcFile, $error"))
     }
 
     fun createScene(aiScene: AIScene, sceneMeshes: List<FileReference>, hasSkeleton: Boolean): Pair<Prefab, Prefab> {

@@ -95,6 +95,7 @@
       <element id="module-output" name="Export" />
       <element id="module-output" name="OpenXR" />
       <element id="module-output" name="Network" />
+      <element id="library" level="project" name="KotlinxCoroutines" />
     </root>
   </artifact>
 </component>

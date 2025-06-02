@@ -18,7 +18,8 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.async.Callback
+import me.anno.utils.async.mapSuccess
+import me.anno.utils.async.mapSuccess2
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Buffers.skip
@@ -169,33 +170,28 @@ class GimpImage {
             return rgba(nr, ng, nb, alpha)
         }
 
-        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-            file.readByteBuffer(false) { it, exc ->
-                if (it != null) {
-                    readAsFolder(file, it, callback)
-                } else callback.err(exc)
+        suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+            return src.readByteBuffer(false).mapSuccess {
+                readAsFolder(src, it)
             }
         }
 
-        fun readAsFolder(file: FileReference, input: ByteBuffer, callback: Callback<InnerFolder>) {
+        private suspend fun readAsFolder(file: FileReference, input: ByteBuffer): Result<InnerFolder> {
             val info = readImage(file, input)
             if (info !is GimpImage) {
-                callback.err(info as? Exception)
-                return
+                return Result.failure(info as? Exception ?: IOException("Failed reading GimpImage"))
             }
-            ImageAsFolder.readAsFolder(file) { folder, exc ->
-                if (folder != null) {
-                    val subFolder = folder.createChild("layers", "layers")
-                    val layers = info.layers
-                    for (i in layers.indices) {
-                        val layer = layers[i]
-                        val image = layer.image
-                        if (image != null) {
-                            subFolder.createImageChild(layer.name + ".png", image)
-                        }
+            return ImageAsFolder.readAsFolder(file).mapSuccess2 { folder ->
+                val subFolder = folder.createChild("layers", "layers")
+                val layers = info.layers
+                for (i in layers.indices) {
+                    val layer = layers[i]
+                    val image = layer.image
+                    if (image != null) {
+                        subFolder.createImageChild(layer.name + ".png", image)
                     }
-                    callback.ok(folder)
-                } else callback.err(exc)
+                }
+                folder
             }
         }
     }

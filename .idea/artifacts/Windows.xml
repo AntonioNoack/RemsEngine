@@ -51,6 +51,7 @@
       <element id="module-output" name="Video" />
       <element id="module-output" name="JVM" />
       <element id="module-output" name="OpenXR" />
+      <element id="library" level="project" name="KotlinxCoroutines" />
     </root>
   </artifact>
 </component>

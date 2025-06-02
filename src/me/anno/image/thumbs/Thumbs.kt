@@ -34,6 +34,7 @@ import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.utils.async.firstPromise
+import me.anno.utils.async.suspendToCallback
 import me.anno.utils.hpc.ProcessingQueue
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
@@ -295,7 +296,9 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
 
     private fun readImage(bytes: ByteSlice): AsyncCacheData<Image> {
         val file = InnerByteSliceFile("", "", InvalidRef, bytes)
-        return ImageAsFolder.readImage(file, true)
+        val data = AsyncCacheData<Image>()
+        suspendToCallback({ ImageAsFolder.readImage(file, true) }, data)
+        return data
     }
 
     private fun shallReturnIfExists(

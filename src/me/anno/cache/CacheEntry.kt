@@ -31,7 +31,7 @@ class CacheEntry private constructor(
         timeoutNanoTime = max(timeoutNanoTime, secondTime)
     }
 
-    var data: ICacheData? = null
+    var data: Any? = null
         set(value) {
             field = value
             hasValueMaybe = true
@@ -93,7 +93,7 @@ class CacheEntry private constructor(
     fun destroy() {
         if (deletingThreadName == null) {
             deletingThreadName = Thread.currentThread().name
-            data?.destroy()
+            (data as? ICacheData)?.destroy()
             data = null
         } else {
             RuntimeException("Cannot destroy things twice! ${this::class.qualifiedName}, by $deletingThreadName from ${Thread.currentThread().name}")

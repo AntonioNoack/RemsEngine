@@ -1,5 +1,9 @@
 package me.anno.cache
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
@@ -10,13 +14,16 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.InternalAPI
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.Result.Companion.failure
 
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
@@ -66,7 +73,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun removeEntry(key: Any): ICacheData? {
+    fun removeEntry(key: Any): Any? {
         return synchronized(cache) {
             val v = cache.remove(key)
             v?.destroy()
@@ -88,6 +95,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun removeFileEntry(file: FileReference) = removeFileEntry(file, file.lastModified)
     fun removeFileEntry(file: FileReference, lastModified: Long) = removeEntry(file, lastModified)
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <R : ICacheData> getFileEntry(
         file: FileReference, allowDirectories: Boolean,
         timeout: Long, asyncGenerator: Boolean,
@@ -97,6 +105,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return getDualEntry(validFile, validFile.lastModified, timeout, asyncGenerator, generator)
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <R : ICacheData> getFileEntryAsync(
         file: FileReference, allowDirectories: Boolean,
         timeout: Long, asyncGenerator: Boolean,
@@ -107,6 +116,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         getDualEntryAsync(validFile, validFile.lastModified, timeout, asyncGenerator, generator, callback)
     }
 
+    fun <R> getFileEntryX(
+        file: FileReference, allowDirectories: Boolean, timeoutMillis: Long,
+        generator: suspend (FileReference, Long) -> Result<R>
+    ): Deferred<Result<R>> {
+        val validFile = getValidFile(file, allowDirectories)
+            ?: return failedFile
+        return getDualEntryX(validFile, validFile.lastModified, timeoutMillis, generator)
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun getValidFile(file: FileReference, allowDirectories: Boolean): FileReference? {
         return when {
             !allowDirectories && file is InnerFolder -> {
@@ -130,7 +149,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getEntryWithoutGenerator(key: Any?, delta: Long = 1L): ICacheData? {
+    fun getEntryWithoutGenerator(key: Any?, delta: Long = 1L): Any? {
         val entry = synchronized(cache) { cache[key] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry.data
@@ -140,7 +159,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * get the value, without generating it if it doesn't exist;
      * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getDualEntryWithoutGenerator(key1: Any, key2: Any, delta: Long = 1L): ICacheData? {
+    fun getDualEntryWithoutGenerator(key1: Any, key2: Any, delta: Long = 1L): Any? {
         val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry.data
@@ -170,7 +189,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean =
         hasDualEntry(key, key.lastModified, delta)
 
-    fun override(key: Any?, newValue: ICacheData?, timeoutMillis: Long) {
+    fun override(key: Any?, newValue: Any?, timeoutMillis: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
             val entry = CacheEntry(timeoutMillis)
@@ -180,7 +199,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         oldValue?.destroy()
     }
 
-    fun overrideDual(key0: Any?, key1: Any?, newValue: ICacheData?, timeoutMillis: Long) {
+    fun overrideDual(key0: Any?, key1: Any?, newValue: Any?, timeoutMillis: Long) {
         checkKey(key0)
         checkKey(key1)
         val oldValue = synchronized(dualCache) {
@@ -257,6 +276,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, W, R : ICacheData> getDualEntryWithIfNotGeneratingCallback(
         key0: V, key1: W,
         timeoutMillis: Long, asyncGenerator: Boolean,
@@ -288,7 +308,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                         entry.data = generateDualSafely(key0, key1, generator)
                         if (entry.hasBeenDestroyed) {
                             LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
-                            entry.data?.destroy()
+                            (entry.data as? ICacheData)?.destroy()
                         }
                     } catch (_: IgnoredException) {
                     }
@@ -304,6 +324,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data as? R
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, R : ICacheData> getEntryWithIfNotGeneratingCallback(
         key: V, timeoutMillis: Long,
         asyncGenerator: Boolean,
@@ -333,7 +354,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     entry.data = generateSafely(key, generator)
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for {}<{}> was directly destroyed", name, key)
-                        entry.data?.destroy()
+                        (entry.data as? ICacheData)?.destroy()
                     }
                     LOGGER.debug("Finished {}", name)
                 }
@@ -348,6 +369,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data as? R
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, R : ICacheData> getEntryAsync(
         key: V, timeoutMillis: Long,
         asyncGenerator: Boolean,
@@ -396,6 +418,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, W, R : ICacheData> getDualEntryAsync(
         key0: V, key1: W, timeoutMillis: Long,
         asyncGenerator: Boolean,
@@ -440,6 +463,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any?, key1: Any?) {
         if (async || entry.hasValue()) return // no need/sense in waiting
         if (entry.waitForValueReturnWhetherIncomplete()) {
@@ -450,14 +474,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     private fun onLongWaitStart(key: Any?, entry: CacheEntry) {
         LOGGER.warn("Waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}")
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     private fun onLongWaitEnd(key: Any?, entry: CacheEntry) {
         LOGGER.warn("Finished waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}")
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, R : ICacheData> getEntryWithIfNotGeneratingCallback(
         key: V, timeoutMillis: Long,
         queue: ProcessingQueue?,
@@ -487,7 +514,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     entry.data = generateSafely(key, generator)
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
-                        entry.data?.destroy()
+                        (entry.data as? ICacheData)?.destroy()
                     }
                 }
             } else {
@@ -502,14 +529,85 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data as? R
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, R : ICacheData> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> R?): R? =
         getEntryWithIfNotGeneratingCallback(key, timeoutMillis, asyncGenerator, generator, null)
 
+    fun <V, R> getEntryX(
+        key: V, timeoutMillis: Long,
+        generator: suspend (V) -> Result<R>
+    ): Deferred<Result<R>> {
+
+        checkKey(key)
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        val entry = synchronized(cache) {
+            val entry = cache.getOrPut(key) {
+                val entry = CacheEntry(timeoutMillis)
+                entry.data = GlobalScope.async { generator(key) }
+                entry
+            }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
+            entry
+        }
+
+        entry.update(timeoutMillis)
+
+        if (entry.hasBeenDestroyed) return destroyedEntry
+
+        @Suppress("UNCHECKED_CAST")
+        return entry.data as Deferred<Result<R>>
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V, W, R : ICacheData> getDualEntry(
         key0: V, key1: W, timeoutMillis: Long, asyncGenerator: Boolean,
         generator: (V, W) -> R?
     ): R? = getDualEntryWithIfNotGeneratingCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
 
+    fun <V, W, R> getDualEntryX(
+        key0: V, key1: W, timeoutMillis: Long,
+        generator: suspend (V, W) -> Result<R>
+    ): Deferred<Result<R>> {
+
+        checkKey(key0)
+        checkKey(key1)
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        val entry = synchronized(dualCache) {
+            val entry = dualCache.getOrPut(key0, key1) { _, _ ->
+                val entry = CacheEntry(timeoutMillis)
+                entry.hasGenerator = true
+                val value: Deferred<Result<R>> = GlobalScope.async { // ok???
+                    generator(key0, key1)
+                }
+                entry.data = value
+                entry.update(timeoutMillis)
+                entry
+            }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
+            entry
+        }
+
+        // todo not thread-safe :/, but when we're destroying items, we shouldn't access the cache, so maybe it's fine
+        if (entry.hasBeenDestroyed) return destroyedEntry
+
+        val data = entry.data
+        // todo remove this once everything uses suspend
+        if (data is AsyncCacheData<*>) {
+            data.waitFor()
+            return CompletableDeferred(Result.success(data.value as R))
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return entry.data as Deferred<Result<R>>
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? =
         getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
 
@@ -542,6 +640,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(CacheSection::class)
+
+        private val failedFile = CompletableDeferred<Result<Nothing>>(failure(IOException("File is invalid")))
+        private val destroyedEntry =
+            CompletableDeferred<Result<Nothing>>(failure(IOException("Value has been destroyed")))
 
         @JvmStatic
         @InternalAPI

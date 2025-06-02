@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="Apache CLI">
+  <library name="ApacheCLI">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/commons-cli-1.4.jar!/" />
     </CLASSES>

@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="LWJGL-323-OpenAL">
+  <library name="LWJGLOpenAL">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-openal-natives-linux-arm32.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-openal-natives-linux-arm64.jar!/" />

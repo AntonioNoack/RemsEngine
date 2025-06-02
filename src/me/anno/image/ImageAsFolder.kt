@@ -1,6 +1,6 @@
 package me.anno.image
 
-import me.anno.cache.AsyncCacheData
+import me.anno.cache.IgnoredException
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingColors
@@ -22,7 +22,7 @@ import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import me.anno.utils.OS
-import me.anno.utils.async.Callback
+import me.anno.utils.async.mapSuccess
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
@@ -37,21 +37,21 @@ object ImageAsFolder {
     private val LOGGER = LogManager.getLogger(ImageAsFolder::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
 
-    var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) -> Unit)? =
+    var tryFFMPEG: (suspend (file: FileReference, signature: String?, forGPU: Boolean) -> Result<Image>)? =
         null
 
     /** returns List<Image> or exception */
     var readIcoLayers: ((InputStream) -> Any)? = null
-    var readJPGThumbnail: ((FileReference, Callback<Image?>) -> Unit)? = null
+    var readJPGThumbnail: (suspend (FileReference) -> Result<Image?>)? = null
 
     @JvmStatic
-    fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
+    suspend fun readAsFolder(file: FileReference): Result<InnerFolder> {
         val folder = InnerFolder(file)
-        readAsFolder(file, folder, callback)
+        return readAsFolder(file, folder)
     }
 
     @JvmStatic
-    fun readAsFolder(file: FileReference, folder: InnerFolder, callback: Callback<InnerFolder>) {
+    suspend fun readAsFolder(file: FileReference, folder: InnerFolder): Result<InnerFolder> {
 
         // add the most common swizzles: r,g,b,a
         createSwizzle(file, folder, "r.png", 'r', false)
@@ -89,41 +89,31 @@ object ImageAsFolder {
 
         val ric = readIcoLayers
         if (file.lcExtension == "ico" && ric != null) {
-            SignatureCache.getAsync(file) { sig ->
-                if (sig == null || sig.name == "ico") {
-                    file.inputStream { it, exc ->
-                        if (it != null) {
-                            val layers = ric(it)
-                            if (layers is List<*>) {
-                                for (index in layers.indices) {
-                                    val layer = layers[index] as? Image ?: break
-                                    folder.createImageChild("layer$index", layer)
-                                }
-                            } else if (layers is Exception) {
-                                layers.printStackTrace()
-                            }
-                            it.close()
-                            callback.ok(folder)
-                        } else {
-                            exc?.printStackTrace()
-                            callback.ok(folder)
+            val sig = SignatureCache.getX(file).await().getOrNull()
+            if (sig == null || sig.name == "ico") {
+                val stream = file.inputStream().getOrNull()
+                if (stream != null) {
+                    val layers = ric(stream)
+                    if (layers is List<*>) {
+                        for (index in layers.indices) {
+                            val layer = layers[index] as? Image ?: break
+                            folder.createImageChild("layer$index", layer)
                         }
+                    } else if (layers is Exception) {
+                        layers.printStackTrace()
                     }
-                } else callback.ok(folder)
+                    stream.close()
+                }
             }
-            return // we're done, don't call callback twice
         }
 
         val rjt = readJPGThumbnail
         if ((file.lcExtension == "jpg" || file.lcExtension == "jpeg") && rjt != null) {
-            rjt.invoke(file) { thumb, _ ->
-                if (thumb != null) folder.createImageChild("thumbnail.jpg", thumb)
-                callback.ok(folder)
-            }
-            return
+            val thumb = rjt.invoke(file).getOrNull()
+            if (thumb != null) folder.createImageChild("thumbnail.jpg", thumb)
         }
 
-        callback.ok(folder)
+        return Result.success(folder)
     }
 
     @JvmStatic
@@ -197,50 +187,45 @@ object ImageAsFolder {
         return signature in shouldIgnoreExt
     }
 
-    fun readImage(file: FileReference, forGPU: Boolean): AsyncCacheData<Image> {
-        val data = AsyncCacheData<Image>()
-        if (file is ImageReadable) {
-            data.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
+    suspend fun readImage(file: FileReference, forGPU: Boolean): Result<Image> {
+        return if (file is ImageReadable) {
+            Result.success(if (forGPU) file.readGPUImage() else file.readCPUImage())
         } else if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly
-            file.readBytes { bytes, exc ->
-                exc?.printStackTrace()
-                if (bytes != null) {
-                    readImage(file, data, bytes, forGPU)
-                } else {
-                    data.value = null
-                    data.hasValue = true
-                }
+            file.readBytes().mapSuccess { bytes ->
+                readImage(file, bytes, forGPU)
             }
-        } else SignatureCache.getAsync(file) { signature ->
-            readImage(file, data, signature?.name, forGPU)
+        } else {
+            val signature = SignatureCache.getX(file).await().getOrNull()
+            return readImage(file, signature?.name, forGPU)
         }
-        return data
     }
 
-    private fun readImage(file: FileReference, data: AsyncCacheData<Image>, bytes: ByteArray, forGPU: Boolean) {
+    private suspend fun readImage(file: FileReference, bytes: ByteArray, forGPU: Boolean): Result<Image> {
         val signature = Signature.findName(bytes)
         val tryFFMPEG = tryFFMPEG
-        if (shouldIgnore(signature)) {
-            data.value = null
+        return if (shouldIgnore(signature)) {
+            Result.failure(IgnoredException())
         } else if (tryFFMPEG != null && shouldUseFFMPEG(signature, file)) {
-            tryFFMPEG(file, signature, forGPU, data)
+            tryFFMPEG(file, signature, forGPU)
         } else {
-            val reader = ImageCache.byteReaders[signature] ?: ImageCache.byteReaders[file.lcExtension]
-            if (reader != null) reader.read(file, bytes, data)
-            else data.value = null
+            val reader = ImageCache.byteReaders[signature]
+                ?: ImageCache.byteReaders[file.lcExtension]
+            reader?.read(file, bytes)
+                ?: Result.failure(IgnoredException())
         }
     }
 
-    private fun readImage(file: FileReference, data: AsyncCacheData<Image>, signature: String?, forGPU: Boolean) {
+    private suspend fun readImage(file: FileReference, signature: String?, forGPU: Boolean): Result<Image> {
         val tryFFMPEG = tryFFMPEG
-        if (shouldIgnore(signature)) {
-            data.value = null
+        return if (shouldIgnore(signature)) {
+            Result.failure(IgnoredException())
         } else if (tryFFMPEG != null && shouldUseFFMPEG(signature, file)) {
-            tryFFMPEG(file, signature, forGPU, data)
+            tryFFMPEG(file, signature, forGPU)
         } else {
-            val reader = ImageCache.fileReaders[signature] ?: ImageCache.fileReaders[file.lcExtension]
-            if (reader != null) reader.read(file, file, data)
-            else data.value = null
+            val reader = ImageCache.fileReaders[signature]
+                ?: ImageCache.fileReaders[file.lcExtension]
+            reader?.read(file, file)
+                ?: Result.failure(IgnoredException())
         }
     }
 }

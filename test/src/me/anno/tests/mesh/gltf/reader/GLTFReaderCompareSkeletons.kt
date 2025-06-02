@@ -1,5 +1,6 @@
 package me.anno.tests.mesh.gltf.reader
 
+import kotlinx.coroutines.runBlocking
 import me.anno.Engine
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.Skeleton
@@ -8,7 +9,6 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.inner.InnerFolder
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.gltf.GLTFReader
@@ -23,17 +23,13 @@ fun main() {
     OfficialExtensions.initForTests()
 
     val clock = Clock("GLTFReader")
-    lateinit var folder: InnerFolder
     val src = OS.downloads.getChild("3d/azeria/scene.gltf")
 
-    src.readBytes { bytes, err ->
-        err?.printStackTrace()
-        GLTFReader(src).readAnyGLTF(bytes!!) { folder1, err2 ->
-            err2?.printStackTrace()
-            folder = folder1!!
-            clock.stop("GLTFReader")
-        }
+    var folder = runBlocking {
+        val bytes = src.readBytes().getOrThrow()
+        GLTFReader(src).readAnyGLTF(bytes).getOrThrow()
     }
+    clock.stop("GLTFReader")
 
     folder.printTree()
 
@@ -42,11 +38,8 @@ fun main() {
     val byReaderBones = JsonStringWriter.toText(byReader.bones, InvalidRef)
 
     clock.start()
-    AnimatedMeshesLoader.readAsFolder(src) { folder1, err2 ->
-        err2?.printStackTrace()
-        folder = folder1!!
-        clock.stop("Assimp")
-    }
+    folder = runBlocking { AnimatedMeshesLoader.readAsFolder(src) }.getOrThrow()
+    clock.stop("Assimp")
 
     folder.printTree()
 

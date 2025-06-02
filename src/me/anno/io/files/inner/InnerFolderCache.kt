@@ -1,6 +1,7 @@
 package me.anno.io.files.inner
 
-import me.anno.cache.AsyncCacheData
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.extensions.FileReaderRegistry
@@ -13,16 +14,18 @@ import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
-import me.anno.utils.async.Callback.Companion.waitFor
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.suspendToCallback
+import me.anno.utils.async.suspendToValue
+import me.anno.utils.async.unpack
+import java.io.IOException
 import kotlin.math.max
 
 object InnerFolderCache : CacheSection("InnerFolderCache"),
-    FileReaderRegistry<InnerFolderReader> by FileReaderRegistryImpl() {
+    FileReaderRegistry<InnerFolderReaderX> by FileReaderRegistryImpl() {
 
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
-    private val generator = { file1: FileReference, _: Long -> generate(file1) }
 
     init {
         // meshes
@@ -37,63 +40,80 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         return data?.value as? InnerFolder
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
         return readAsFolder(file, timeoutMillis, async)
     }
 
-    fun readAsFolder(file: FileReference, async: Boolean, callback: Callback<InnerFolder?>) {
-        return getFileEntryAsync(file, false, timeoutMillis, async, generator, callback.waitFor())
+    @Deprecated(USE_COROUTINES_INSTEAD)
+    fun readAsFolder(file: FileReference, callback: Callback<InnerFolder?>) {
+        if (file is InnerFile && file.folder is InnerFolder) return callback.ok(file.folder as InnerFolder)
+        return suspendToCallback({
+            getFileEntryX(file, false, timeoutMillis) { file1, _ ->
+                generate(file1)
+            }.await()
+        }, callback)
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        val data = getFileEntry(file, false, timeoutMillis, async, generator)
-        if (!async) data?.waitFor()
-        return data?.value
+        return suspendToValue(async) {
+            getFileEntryX(file, false, timeoutMillis) { file1, _ ->
+                generate(file1)
+            }.await()
+        }
     }
 
-    private fun generate(file1: FileReference): AsyncCacheData<InnerFolder?> {
-        val result = AsyncCacheData<InnerFolder?>()
+    fun readAsFolderX(file: FileReference, timeoutMillis: Long = InnerFolderCache.timeoutMillis): Deferred<Result<InnerFile>> {
+        if (file is InnerFile && file.folder != null) {
+            return CompletableDeferred(Result.success(file.folder!!))
+        }
+        return getFileEntryX(file, false, timeoutMillis) { file1, _ ->
+            generate(file1)
+        }
+    }
+
+    private suspend fun generate(file1: FileReference): Result<InnerFolder> {
         if (GFX.glThread != null) {
             // todo can we get this working without introducing a dead-lock for tests?
-            SignatureCache.getAsync(file1) { signature ->
-                generate1(file1, signature, result)
-            }
+            val signature = SignatureCache.getX(file1).await()
+            return generate1(file1, signature.getOrNull())
         } else {
             val signature = SignatureCache[file1, false]
-            generate1(file1, signature, result)
+            return generate1(file1, signature)
         }
-        return result
     }
 
-    private fun generate1(file1: FileReference, signature: Signature?, result: AsyncCacheData<InnerFolder?>) {
+    private suspend fun generate1(file1: FileReference, signature: Signature?): Result<InnerFolder> {
         val ext = file1.lcExtension
         if (signature?.name == "json" && ext == "json") {
-            result.value = null
+            return Result.failure(IOException("Unsupported type: JSON"))
         } else {
             val readers = getReaders(signature, ext)
-            generate(file1, result, readers, 0)
+            return generate(file1, readers, 0)
         }
     }
 
-    private fun generate(
-        file1: FileReference, data: AsyncCacheData<InnerFolder?>,
-        generators: List<InnerFolderReader>, gi: Int
-    ) {
-        if (gi < generators.size) {
+    private suspend fun generate(
+        file1: FileReference,
+        generators: List<InnerFolderReaderX>, gi: Int
+    ): Result<InnerFolder> {
+        for (i in gi until generators.size) {
             val reader = generators[gi]
-            reader(file1) { folder, err ->
-                err?.printStackTrace()
-                if (folder != null) {
-                    if (file1 is InnerFile) {
-                        file1.folder = folder
-                    }
-                    data.value = folder
-                    // todo remove watch dog when unloading it?
-                    FileWatch.addWatchDog(file1)
-                } else generate(file1, data, generators, gi + 1)
+            val result = reader(file1)
+            val (folder, err) = result.unpack()
+            err?.printStackTrace()
+            if (folder != null) {
+                if (file1 is InnerFile) {
+                    file1.folder = folder
+                }
+                // todo remove watch dog when unloading it?
+                FileWatch.addWatchDog(file1)
+                return result
             }
-        } else data.value = null
+        }
+        return Result.failure(IOException("No reader succeeded for readAsFolder('$file1')"))
     }
 
     fun splitParent(name: String): Pair<String, String> {

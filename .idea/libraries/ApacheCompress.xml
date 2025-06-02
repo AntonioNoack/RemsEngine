@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="Apache Compress">
+  <library name="ApacheCompress">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/compress/commons-compress-1.20.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/compress/xz-1.9.jar!/" />

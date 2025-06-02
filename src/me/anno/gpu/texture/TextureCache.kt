@@ -1,5 +1,7 @@
 package me.anno.gpu.texture
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
@@ -12,10 +14,10 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
-import me.anno.utils.OS
-import me.anno.utils.OSFeatures
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
 import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.deferredToValue
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import kotlin.math.sqrt
@@ -30,50 +32,28 @@ object TextureCache : CacheSection("Texture") {
 
     var timeoutMillis = 10_000L
 
-    fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
+    /**
+     * Asynchronously load texture & return whether loading them is complete
+     * */
+    @Deprecated(USE_COROUTINES_INSTEAD)
+    fun loadTextureGetIsFinished(file: FileReference, timeout: Long): Boolean {
         if (file is ImageReadable && file.hasInstantGPUImage()) return true
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
-        val entry = try {
-            getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
-                generateImageData(it)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return true
-        }
-        return when {
-            entry == null -> false
-            entry.hasValue && entry.value == null -> true
-            entry.value?.isCreated() == true -> true
-            else -> false
-        }
+        val entry = getX(file, timeout)
+        return !entry.isActive
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     operator fun get(file: FileReference, asyncGenerator: Boolean): ITexture2D? {
         return get(file, timeoutMillis, asyncGenerator)
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): ITexture2D? {
-        if (file == InvalidRef) return null
-        if (file !is InnerFile) {
-            if (file.isDirectory || !file.exists) return null
-        } else if (file.isDirectory || !file.exists) {
-            LOGGER.warn("Image missing: $file")
-            return null
-        } else if (file is InnerTmpImageFile && file.image is GPUImage) {
-            return file.image.texture // shortcut
-        }
-        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ ->
-            generateImageData(fileI)
-        }
+        val imageData = deferredToValue(getX(file, timeout), asyncGenerator)
         return if (imageData != null) {
-            if (!asyncGenerator && OSFeatures.canSleep) {
-                // the texture was forced to be loaded -> wait for it
-                imageData.waitFor()
-            }
-            val texture = imageData.value
-            if (texture != null && texture.isCreated()) texture else null
+            imageData.createdOrNull()
         } else {
             if (!asyncGenerator) {
                 LOGGER.warn("Couldn't load $file, probably a folder")
@@ -82,8 +62,26 @@ object TextureCache : CacheSection("Texture") {
         }
     }
 
-    private fun generateImageData(file: FileReference) = TextureReader(file)
+    fun getX(file: FileReference, timeout: Long): Deferred<Result<ITexture2D>> {
+        if (file == InvalidRef) return failedDeferred
+        if (file !is InnerFile) {
+            if (file.isDirectory || !file.exists) return failedDeferred
+        } else if (file.isDirectory || !file.exists) {
+            LOGGER.warn("Image missing: $file")
+            return failedDeferred
+        } else if (file is InnerTmpImageFile && file.image is GPUImage) {
+            return CompletableDeferred(Result.success(file.image.texture)) // shortcut
+        }
+        return getFileEntryX(file, false, timeout) { fileI, _ ->
+            generateImageData(fileI)
+        }
+    }
 
+    private val failedDeferred = CompletableDeferred(Result.failure<ITexture2D>(IgnoredException()))
+
+    private suspend fun generateImageData(file: FileReference) = TextureReader.read(file)
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun getLateinitTexture(
         key: Any, timeout: Long, async: Boolean,
         generator: (callback: Callback<ITexture2D>) -> Unit
@@ -98,6 +96,7 @@ object TextureCache : CacheSection("Texture") {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun <V> getLateinitTextureLimited(
         key: V, timeout: Long, async: Boolean, limit: Int,
         generator: (key: V, callback: Callback<ITexture2D>) -> Unit
@@ -120,16 +119,18 @@ object TextureCache : CacheSection("Texture") {
         constructor(file: FileReference, type: V) : this(file, file.lastModified, type)
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun getLUT(file: FileReference, timeoutMillis: Long = TextureCache.timeoutMillis): Texture3D? {
         val key = FileTriple(getReference(file.absolutePath), "LUT")
         val texture = getEntry(key, timeoutMillis, true, TextureCache::generateLUT)
         return texture?.value?.createdOrNull() as? Texture3D
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     private fun generateLUT(key: FileTriple<*>): AsyncCacheData<Texture3D> {
         val file = key.file
         val result = AsyncCacheData<Texture3D>()
-        ImageCache.getAsync(file, timeoutMillis, true, result.map { img ->
+        ImageCache.getAsync(file, timeoutMillis, result.map { img ->
             createLUT(file, img)
         })
         return result
@@ -140,6 +141,7 @@ object TextureCache : CacheSection("Texture") {
         return Texture3D("lut-${file.name}", size, img.height, size).create(img)
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun getTextureArray(
         file: FileReference, numTiles: Vector2i,
         timeoutMillis: Long = TextureCache.timeoutMillis
@@ -149,10 +151,11 @@ object TextureCache : CacheSection("Texture") {
         return texture?.value?.createdOrNull() as? Texture2DArray
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     private fun generateTextureArray(key: FileTriple<Vector2i>): AsyncCacheData<Texture2DArray> {
         val file = key.file
         val result = AsyncCacheData<Texture2DArray>()
-        ImageCache.getAsync(file, timeoutMillis, true, result.map { img ->
+        ImageCache.getAsync(file, timeoutMillis, result.map { img ->
             createTextureArray(file, img, key.type)
         })
         return result

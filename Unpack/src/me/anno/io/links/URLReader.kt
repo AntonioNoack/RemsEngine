@@ -1,14 +1,22 @@
 package me.anno.io.links
 
-import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
+import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.files.LocalFile.toGlobalFile
 import java.io.IOException
 
 object URLReader {
+
+    suspend fun readURLAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readURLAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readURLAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
         file.readLines(1024) { lines, exception ->
             if (lines == null) callback.err(exception)

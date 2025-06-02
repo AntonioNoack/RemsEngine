@@ -1,5 +1,6 @@
 package me.anno.tests.mesh.gltf.writer
 
+import kotlinx.coroutines.runBlocking
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
@@ -13,7 +14,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.DefaultAssets
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.TAUf
 import me.anno.mesh.gltf.GLTFReader
 import me.anno.mesh.gltf.GLTFWriter
@@ -86,10 +86,8 @@ fun main() {
     src.writeBytes(bytes)
 
     // read GLTF
-    lateinit var folder: InnerFolder
-    GLTFReader(src).readAnyGLTF(bytes) { folder1, err ->
-        err?.printStackTrace()
-        folder = folder1!!
+    val folder = runBlocking {
+        GLTFReader(src).readAnyGLTF(bytes).getOrThrow()
     }
 
     val instance = PrefabCache.getPrefabSampleInstance(folder.getChild("Scene.json")) as Entity

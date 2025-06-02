@@ -11,7 +11,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.async.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
+import me.anno.mesh.obj.OBJReader
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -393,6 +396,11 @@ object MayaASCII2015 {
         callback.ok(result)
     }
 
+    suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readAsFolder(source: FileReference, callback: Callback<InnerFolder>) {
 
         // not supported by Assimp

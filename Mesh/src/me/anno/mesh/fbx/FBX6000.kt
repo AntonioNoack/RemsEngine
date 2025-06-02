@@ -11,8 +11,7 @@ import me.anno.io.Streams.readLE64F
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.mapSuccess2
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
@@ -226,27 +225,31 @@ object FBX6000 {
         return meshes
     }
 
-    fun readBinaryFBX6000AsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-        file.inputStream(callback.map { stream ->
-            val meshes = readBinaryFBX6000AsMeshes(stream)
-            val root = InnerFolder(file)
-            val all = Prefab("Entity")
-            for (i in meshes.indices) {
-                val mesh = meshes[i]
-                val meshPrefab = Prefab("Mesh")
-                meshPrefab["positions"] = mesh.positions
-                meshPrefab["indices"] = mesh.indices
-                meshPrefab["normals"] = mesh.normals
-                meshPrefab["uvs"] = mesh.uvs
-                meshPrefab._sampleInstance = mesh
-                val meshFileName = "$i.json"
-                val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
-                val meshComp = all.add(Path.ROOT_PATH, 'c', "MeshComponent", meshFileName)
-                all[meshComp, "isInstanced"] = true
-                all[meshComp, "meshFile"] = meshFile
-            }
-            root.createPrefabChild("Scene.json", all)
-            root
-        })
+    private fun readBinaryFBX6000AsFolder(file: FileReference, stream: InputStream): InnerFolder {
+        val meshes = readBinaryFBX6000AsMeshes(stream)
+        val root = InnerFolder(file)
+        val all = Prefab("Entity")
+        for (i in meshes.indices) {
+            val mesh = meshes[i]
+            val meshPrefab = Prefab("Mesh")
+            meshPrefab["positions"] = mesh.positions
+            meshPrefab["indices"] = mesh.indices
+            meshPrefab["normals"] = mesh.normals
+            meshPrefab["uvs"] = mesh.uvs
+            meshPrefab._sampleInstance = mesh
+            val meshFileName = "$i.json"
+            val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
+            val meshComp = all.add(Path.ROOT_PATH, 'c', "MeshComponent", meshFileName)
+            all[meshComp, "isInstanced"] = true
+            all[meshComp, "meshFile"] = meshFile
+        }
+        root.createPrefabChild("Scene.json", all)
+        return root
+    }
+
+    suspend fun readBinaryFBX6000AsFolder(file: FileReference): Result<InnerFolder> {
+        return file.inputStream().mapSuccess2 { stream ->
+            readBinaryFBX6000AsFolder(file, stream)
+        }
     }
 }

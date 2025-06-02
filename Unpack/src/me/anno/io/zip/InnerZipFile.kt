@@ -12,6 +12,8 @@ import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.zip.internal.ZipHeavyAccess
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -49,6 +51,7 @@ class InnerZipFile(
             }
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun createEntryV2(
             zipFile: FileReference,
             entry: ZipArchiveEntry,
@@ -73,6 +76,7 @@ class InnerZipFile(
             return file
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun zipFileFromFile(file: FileReference, callback: Callback<ZipFile>) {
             val file = file.resolved()
             if (file is FileFileRef) {
@@ -85,21 +89,29 @@ class InnerZipFile(
             }
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun zipFileFromBytes(bytes: ByteArray, callback: Callback<ZipFile>) {
             callback.ok(ZipFile(SeekableInMemoryByteChannel(bytes)))
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun createZipRegistryV2(
             file0: FileReference,
             bytes: ByteArray,
             callback: Callback<InnerFolder>
         ) = createZipRegistryV3(file0, callback) { zipFileFromBytes(bytes, it) }
 
+        suspend fun createZipRegistryV2(src: FileReference): Result<InnerFolder> {
+            return waitForCallback { createZipRegistryV2(src, it) }
+        }
+
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun createZipRegistryV2(
             file0: FileReference,
             callback: Callback<InnerFolder>
         ) = createZipRegistryV3(file0, callback) { zipFileFromFile(file0, it) }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun createZipRegistryV3(
             file0: FileReference,
             callback: Callback<InnerFolder>,

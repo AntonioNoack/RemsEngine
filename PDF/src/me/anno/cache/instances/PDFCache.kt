@@ -11,6 +11,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdfwriter.COSWriter
@@ -68,6 +69,10 @@ object PDFCache : CacheSection("PDFCache") {
         val value = data?.value
         if (borrow) value?.borrow()
         return value
+    }
+
+    suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readAsFolder(src, it) }
     }
 
     fun readAsFolder(src: FileReference, callback: InnerFolderCallback) {

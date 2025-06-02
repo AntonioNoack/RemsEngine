@@ -8,11 +8,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Engine" />
-    <orderEntry type="library" name="LWJGL-323" level="project" />
+    <orderEntry type="library" name="LWJGL" level="project" />
     <orderEntry type="module" module-name="KOML" />
     <orderEntry type="module" module-name="JVM" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="LWJGL-323-TinyEXR" level="project" />
-    <orderEntry type="library" name="Apache Imaging" level="project" />
+    <orderEntry type="library" name="LWJGLTinyEXR" level="project" />
+    <orderEntry type="library" name="ApacheImaging" level="project" />
+    <orderEntry type="library" name="KotlinxCoroutines" level="project" />
   </component>
 </module>

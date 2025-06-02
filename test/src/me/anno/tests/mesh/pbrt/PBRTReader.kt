@@ -6,7 +6,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.ReadLineIterator
 import me.anno.io.files.inner.InnerFolder
+import me.anno.mesh.obj.OBJReader
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank
 import me.anno.utils.types.Strings.isNotBlank2
@@ -22,6 +25,11 @@ object PBRTReader {
 
     private val LOGGER = LogManager.getLogger(PBRTReader::class)
 
+    suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
         file.readLines(256) { lines, err ->
             if (lines != null) {

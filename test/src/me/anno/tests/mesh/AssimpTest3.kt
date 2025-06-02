@@ -1,5 +1,6 @@
 package me.anno.tests.mesh
 
+import kotlinx.coroutines.runBlocking
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.OfficialExtensions
@@ -18,7 +19,9 @@ fun main() {
     val json = JsonFormatter.format(shorten(parseBinaryFBX6000(source.inputStreamSync())))
     desktop.getChild("fbx6100.json").writeText(json)
     println(json)
-    readAsFolder(source) { it, _ -> println(it) }
+    println(runBlocking {
+        readAsFolder(source)
+    }.getOrNull())
     val meshes = readBinaryFBX6000AsMeshes(source.inputStreamSync())
     val entity = Entity()
     for (mesh in meshes) entity.add(MeshComponent(mesh))

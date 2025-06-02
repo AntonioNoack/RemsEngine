@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="Apache Imaging">
+  <library name="WebpImageIO">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/webp-imageio-0.1.6.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

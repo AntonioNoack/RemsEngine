@@ -1,11 +1,17 @@
 package me.anno.image
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.wait
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.deferredToCallback
+import me.anno.utils.async.deferredToValue
+import me.anno.utils.async.mapSuccess
+import me.anno.utils.async.pack
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -34,24 +40,22 @@ object ImageCache : CacheSection("Image") {
     }
 
     fun registerStreamReader(signatures: String, streamReader: AsyncImageReader<InputStream>) {
-        registerReader(signatures, { src, bytes, callback ->
-            streamReader.read(src, ByteArrayInputStream(bytes), callback)
-        }, { src, fileRef, callback ->
-            fileRef.inputStream { input, e ->
-                if (input != null) streamReader.read(src, input, callback)
-                else callback.err(e)
+        registerReader(signatures, { src, bytes ->
+            streamReader.read(src, ByteArrayInputStream(bytes))
+        }, { src, fileRef ->
+            fileRef.inputStream().mapSuccess { input ->
+                streamReader.read(src, input)
             }
         }, streamReader)
     }
 
     fun registerByteArrayReader(signatures: String, byteReader: AsyncImageReader<ByteArray>) {
-        registerReader(signatures, byteReader, { src, fileRef, callback ->
-            fileRef.readBytes { bytes, e ->
-                if (bytes != null) byteReader.read(src, bytes, callback)
-                else callback.err(e)
+        registerReader(signatures, byteReader, { src, fileRef ->
+            fileRef.readBytes().mapSuccess { bytes ->
+                byteReader.read(src, bytes)
             }
-        }, { src, stream, callback ->
-            byteReader.read(src, stream.readBytes(), callback)
+        }, { src, stream ->
+            byteReader.read(src, stream.readBytes())
         })
     }
 
@@ -62,9 +66,9 @@ object ImageCache : CacheSection("Image") {
         signatures: String,
         streamReader: (InputStream) -> Any
     ) {
-        registerStreamReader(signatures) { _, stream, callback ->
+        registerStreamReader(signatures) { _, stream ->
             val result = streamReader(stream)
-            callback.call(result as? Image, result as? Exception)
+            pack(result as? Image, result as? Exception)
         }
     }
 
@@ -75,15 +79,15 @@ object ImageCache : CacheSection("Image") {
         signatures: String,
         streamReader: (FileReference, InputStream) -> Any
     ) {
-        registerStreamReader(signatures) { src, stream, callback ->
+        registerStreamReader(signatures) { src, stream ->
             val result = streamReader(src, stream)
-            callback.call(result as? Image, result as? Exception)
+            pack(result as? Image, result as? Exception)
         }
     }
 
     init {
-        registerStreamReader("hdr") { _, it, callback ->
-            callback.ok(HDRReader.readHDR(it))
+        registerStreamReader("hdr") { _, it ->
+            Result.success(HDRReader.readHDR(it))
         }
     }
 
@@ -98,6 +102,7 @@ object ImageCache : CacheSection("Image") {
     }
 
     @JvmStatic
+    @Deprecated(USE_COROUTINES_INSTEAD)
     operator fun get(source: FileReference, async: Boolean): Image? {
         return get(source, timeoutMillis, async)
     }
@@ -111,24 +116,29 @@ object ImageCache : CacheSection("Image") {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     operator fun get(source: FileReference, timeout: Long, async: Boolean): Image? {
         if (source is ImageReadable && source.hasInstantCPUImage()) {
             return source.readCPUImage()
         }
-        val data = getFileEntry(source, false, timeout, async) { file1, _ ->
-            ImageAsFolder.readImage(file1, false)
-        } ?: return null
-        if (!async) data.waitFor()
-        return data.value
+        return deferredToValue(get(source, timeout), async)
     }
 
-    fun getAsync(source: FileReference, timeout: Long, async: Boolean, callback: Callback<Image>) {
+    @Deprecated(USE_COROUTINES_INSTEAD)
+    fun getAsync(source: FileReference, timeout: Long, callback: Callback<Image>) {
         if (source is ImageReadable && source.hasInstantCPUImage()) {
             callback.ok(source.readCPUImage())
         } else {
-            getFileEntryAsync(source, false, timeout, async, { file1, _ ->
-                ImageAsFolder.readImage(file1, false)
-            }, callback.wait())
+            deferredToCallback(get(source, timeout), callback)
         }
+    }
+
+    operator fun get(source: FileReference, timeout: Long): Deferred<Result<Image>> {
+        if (source is ImageReadable && source.hasInstantCPUImage()) {
+            return CompletableDeferred(Result.success(source.readCPUImage()))
+        }
+        return getFileEntryX(source, false, timeout, { file1, _ ->
+            ImageAsFolder.readImage(file1, false)
+        })
     }
 }

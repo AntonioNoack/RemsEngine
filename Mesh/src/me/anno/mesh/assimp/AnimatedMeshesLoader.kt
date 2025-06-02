@@ -14,7 +14,6 @@ import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
-import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.NamedSaveable
@@ -30,6 +29,7 @@ import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
 import me.anno.mesh.assimp.StaticMeshesLoader.loadTextures
 import me.anno.mesh.assimp.StaticMeshesLoader.processPositions
 import me.anno.mesh.fbx.FBX6000
+import me.anno.utils.async.unpack
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
@@ -96,19 +96,18 @@ object AnimatedMeshesLoader {
         return Matrix3f(rightVec, upVec, forwardVec)
     }
 
-    fun readAsFolder(file: FileReference, callback: InnerFolderCallback) {
+    suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
 
-        var name = file.nameWithoutExtension
-        if (name.equals("scene", true)) name = file.getParent().name
+        var name = src.nameWithoutExtension
+        if (name.equals("scene", true)) name = src.getParent().name
 
-        loadFile(file, DEFAULT_ASSIMP_FLAGS) { result, e ->
-            if (result != null) {
-                val (aiScene1, isFBX1) = result
-                callback.ok(readAsFolder2(file, aiScene1, isFBX1, name))
-            } else if (e?.message?.contains("FBX-DOM unsupported") == true) {
-                FBX6000.readBinaryFBX6000AsFolder(file, callback)
-            } else callback.err(e)
-        }
+        val (result, e) = loadFile(src, DEFAULT_ASSIMP_FLAGS).unpack()
+        return if (result != null) {
+            val (aiScene1, isFBX1) = result
+            Result.success(readAsFolder2(src, aiScene1, isFBX1, name))
+        } else if (e?.message?.contains("FBX-DOM unsupported") == true) {
+            FBX6000.readBinaryFBX6000AsFolder(src)
+        } else Result.failure(e!!)
     }
 
     private fun readAsFolder2(file: FileReference, aiScene: AIScene, isFBX: Boolean, name: String): InnerFolder {
@@ -457,7 +456,7 @@ object AnimatedMeshesLoader {
     }
 
     // using all root nodes together fixes the fox and the robot <3
-    // however, there is still the pilot with the slight scale, and slight rotation...
+// however, there is still the pilot with the slight scale, and slight rotation...
     private fun complexRootTransform(
         name0: String, aiNode: AINode, boneMap: HashMap<String, Bone>, transform: Matrix4x3f
     ): Matrix4x3f {

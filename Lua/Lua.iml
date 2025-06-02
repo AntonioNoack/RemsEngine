@@ -9,7 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Engine" />
-    <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
+    <orderEntry type="library" name="LuaJ-JSE" level="project" />
     <orderEntry type="module" module-name="SDF" />
     <orderEntry type="module" module-name="KOML" />
     <orderEntry type="module" module-name="Mesh" />

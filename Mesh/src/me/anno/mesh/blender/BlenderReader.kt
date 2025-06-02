@@ -31,8 +31,11 @@ import me.anno.mesh.blender.impl.BMesh
 import me.anno.mesh.blender.impl.BObject
 import me.anno.mesh.blender.impl.BObjectType
 import me.anno.mesh.blender.impl.BScene
+import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Clock
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isNotBlank2
@@ -62,6 +65,11 @@ object BlenderReader {
 
     private val LOGGER = LogManager.getLogger(BlenderReader::class)
 
+    suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readAsFolder(ref: FileReference, callback: InnerFolderCallback) {
         ref.readByteBuffer(false) { it, exc ->
             if (it != null) {

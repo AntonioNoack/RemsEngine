@@ -4,7 +4,7 @@ import me.anno.image.Image
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
-import me.anno.utils.async.Callback
+import me.anno.utils.async.mapSuccess2
 import javax.imageio.ImageIO
 
 /**
@@ -18,22 +18,18 @@ import javax.imageio.ImageIO
  * */
 object JPGThumbnails {
 
-    fun readThumbnail(file: FileReference, callback: Callback<Image?>) {
-        extractThumbnail(file) { bytes ->
-            if (bytes != null) {
-                callback.ok(ImageIO.read(bytes.inputStream()).toImage())
-            } else callback.ok(null)
+    suspend fun readThumbnail(file: FileReference): Result<Image?> {
+        return extractThumbnail(file).mapSuccess2 { bytes ->
+            if (bytes != null) ImageIO.read(bytes.inputStream()).toImage()
+            else null
         }
     }
 
-    fun extractThumbnail(file: FileReference, callback: (ByteArray?) -> Unit) {
+    suspend fun extractThumbnail(file: FileReference): Result<ByteArray?> {
         // 65k is the max size for an exif section; plus 4k, where we hopefully find the marker
         val maxSize = 65536 + 4096
-        file.inputStream(maxSize.toLong()) { it, _ ->
-            if (it != null) {
-                val data = it.readNBytes2(maxSize, false)
-                callback(findData(data))
-            } else callback(null)
+        return file.inputStream(maxSize.toLong()).mapSuccess2 { stream ->
+            findData(stream.readNBytes2(maxSize, false))
         }
     }
 

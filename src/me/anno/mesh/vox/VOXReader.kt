@@ -12,6 +12,7 @@ import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.async.Callback
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -366,6 +367,10 @@ class VOXReader {
     }
 
     companion object {
+
+        suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+            return waitForCallback { readAsFolder(src, it) }
+        }
 
         fun readAsFolder(src: FileReference, callback: Callback<InnerFolder>) {
             src.readByteBuffer(false) { bytes, exc ->

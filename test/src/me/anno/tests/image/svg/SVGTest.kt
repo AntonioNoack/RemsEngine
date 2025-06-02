@@ -1,6 +1,6 @@
 package me.anno.tests.image.svg
 
-import me.anno.gpu.texture.TextureReader.Companion.imageTimeout
+import me.anno.gpu.texture.TextureReader.imageTimeout
 import me.anno.image.svg.SVGMeshCache
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh

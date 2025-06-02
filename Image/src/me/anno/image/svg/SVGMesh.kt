@@ -24,6 +24,8 @@ import me.anno.maths.Maths.unmix
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.FloatArrayListUtils.add
 import me.anno.utils.structures.arrays.IntArrayList
@@ -940,8 +942,12 @@ class SVGMesh {
             Attribute("aPadding", 1)
         )
 
+        suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+            return waitForCallback { readAsFolder(src, it) }
+        }
+
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-            // Engine.requestShutdown()
             file.inputStream { str, exc ->
                 if (str != null) {
                     val svg = SVGMesh()

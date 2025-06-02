@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="LWJGL-323-TinyEXR">
+  <library name="LWJGLTinyEXR">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux-arm32.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux-arm64.jar!/" />

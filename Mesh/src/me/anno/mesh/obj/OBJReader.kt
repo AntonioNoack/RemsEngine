@@ -12,7 +12,7 @@ import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.mesh.Triangulation
 import me.anno.utils.algorithms.ForLoop.forLoopSafely
-import me.anno.utils.async.Callback
+import me.anno.utils.async.mapSuccess2
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -266,13 +266,13 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         numNormals++
     }
 
-    private fun readMaterialLib() {
+    private suspend fun readMaterialLib() {
         // mtllib
         if (nextChar() == 't' && nextChar() == 'l' && nextChar() == 'l' && nextChar() == 'i' && nextChar() == 'b') {
             val file2 = readPath(file)
             if (file2.exists && !file2.isDirectory) {
-                val subFolder = MTLReader.readAsFolderSync(file2, materialsFolder) ?: return
-                val subMaterials = subFolder.listChildren()
+                val subFolder = MTLReader.readAsFolder(file2, materialsFolder).getOrNull() ?: return
+                val subMaterials = subFolder.listChildrenX().getOrNull() ?: emptyList()
                 materials.putAll(subMaterials.map {
                     it.nameWithoutExtension to it
                 })
@@ -418,7 +418,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         }
     }
 
-    init {
+    suspend fun read(): InnerFolder {
         try {
             while (true) {
                 // read the line
@@ -457,18 +457,20 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         finishGroup()
         reader.close()
         folder.sealPrefabs()
+        return folder
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(OBJReader::class)
-        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-            file.inputStream { it, exc ->
-                if (it != null) callback.call(OBJReader(it, file).folder, exc)
-                else callback.err(exc)
+
+        suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+            return src.inputStream().mapSuccess2 {
+                OBJReader(it, src).read()
             }
         }
 
-        fun TextFileReader.readPath(parent: FileReference): FileReference {
+        suspend fun TextFileReader.readPath(parent: FileReference): FileReference {
             var path = readUntilNewline()
                 .replace('\\', '/')
                 .replace("//", "/")
@@ -476,7 +478,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             skipLine()
             if (path.startsWith("./")) path = path.substring(2)
             val file = parent.getSibling(path)
-            if (!file.exists) LOGGER.warn("Missing file $file")
+            if (!file.exists()) LOGGER.warn("Missing file $file")
             return file
         }
     }

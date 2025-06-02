@@ -11,6 +11,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
  * this interface represents a typical callback from such a function,
  * and should be used whenever you have such a use-case.
  * */
+@Deprecated(Callback.USE_COROUTINES_INSTEAD)
 fun interface Callback<in V> {
 
     fun call(value: V?, exception: Exception?)
@@ -19,14 +20,19 @@ fun interface Callback<in V> {
 
     companion object {
 
+        const val USE_COROUTINES_INSTEAD = "Please use Coroutines instead"
+
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V> printError(): Callback<V> {
             return onSuccessImpl(null)
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V> onSuccess(callback: (V) -> Unit): Callback<V> {
             return onSuccessImpl(callback)
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun finish(callback: () -> Unit): Callback<Any?> {
             return Callback { v, err ->
                 if (v == null) err?.printStackTrace()
@@ -44,6 +50,7 @@ fun interface Callback<in V> {
         /**
          * returns a callback, this calls the original callback after mapping the value synchronously
          * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V, W> Callback<V>.map(valueMapping: (W) -> V): Callback<W> {
             return Callback { value, err ->
                 call(if (value != null) valueMapping(value) else null, err)
@@ -53,6 +60,7 @@ fun interface Callback<in V> {
         /**
          * returns a callback, this calls the original callback after mapping the value asynchronously
          * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V, W> Callback<V>.mapAsync(then: (W, Callback<V>) -> Unit): Callback<W> {
             return Callback { value, errI ->
                 if (value != null) then(value, this)
@@ -63,6 +71,7 @@ fun interface Callback<in V> {
         /**
          * returns a callback, this calls the original callback after mapping the value synchronously
          * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V> Callback<V>.waitFor(): Callback<AsyncCacheData<V>> {
             val self = this
             return Callback { value, err ->
@@ -71,6 +80,7 @@ fun interface Callback<in V> {
             }
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V> Callback<V>.wait(): Callback<AsyncCacheData<V>> {
             val self = this
             return Callback { value, err ->
@@ -84,6 +94,7 @@ fun interface Callback<in V> {
          * joins all callbacks; starts generator functions serially, but you could easily make them
          * multithreaded by starting a thread for each task in process()
          * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V, W : Any> List<V>.mapCallback(
             process: (Int, V, Callback<W>) -> Unit,
             callback: Callback<List<W>>
@@ -104,6 +115,7 @@ fun interface Callback<in V> {
          * joins all callbacks; starts generator functions serially, but you could easily make them
          * multithreaded by starting a thread for each task in process()
          * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <V, W : Any> Set<V>.mapCallback(
             process: (Int, V, Callback<W>) -> Unit,
             callback: Callback<Set<W>>
@@ -117,6 +129,7 @@ fun interface Callback<in V> {
          * joins all callbacks; starts generator functions serially, but you could easily make them
          * multithreaded by starting a thread for each task in process()
          * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun <K, V, W : Any> Map<K, V>.mapCallback(
             process: (K, V, Callback<W>) -> Unit,
             callback: Callback<Map<K, W>>

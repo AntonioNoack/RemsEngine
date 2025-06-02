@@ -1,5 +1,6 @@
 package me.anno.tests.image.jpg
 
+import kotlinx.coroutines.runBlocking
 import me.anno.image.jpg.JPGThumbnails.extractThumbnail
 import me.anno.tests.LOGGER
 import me.anno.utils.OS.desktop
@@ -11,9 +12,8 @@ fun main() {
     for (file in pictures.listChildren()) {
         if (file.isDirectory) continue
         if (file.lcExtension != "jpg") continue
-        extractThumbnail(file) { data ->
-            if (data != null) desktop.getChild("jpg/" + file.name).writeBytes(data)
-            else LOGGER.info("didn't find thumbs in $file")
-        }
+        val data = runBlocking { extractThumbnail(file) }.getOrNull()
+        if (data != null) desktop.getChild("jpg/" + file.name).writeBytes(data)
+        else LOGGER.info("didn't find thumbs in $file")
     }
 }

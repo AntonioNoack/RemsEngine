@@ -17,6 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.Color
 import me.anno.utils.async.Callback
+import me.anno.utils.async.suspendToCallback
 import me.anno.utils.types.Floats.roundToIntOr
 import net.sf.image4j.codec.ico.ICOReader
 import org.joml.Matrix4fArrayList
@@ -30,13 +31,13 @@ object ImageThumbnailsImpl {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        JPGThumbnails.extractThumbnail(srcFile) { bytes ->
+        suspendToCallback({ JPGThumbnails.extractThumbnail(srcFile) }, { bytes, _ ->
             if (bytes != null) {
                 Thumbs.worker += {
                     generateJPGFrame2(srcFile, dstFile, size, callback, bytes)
                 }
             } else generateImage(srcFile, dstFile, size, callback)
-        }
+        })
     }
 
     private fun generateJPGFrame2(

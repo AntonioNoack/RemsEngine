@@ -51,7 +51,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
         cache.getEntryAsync(key.sizeIndex, 10_000, false, {
             val result = AsyncCacheData<List<IntImage>>()
             val source = res.getChild("textures/ASCIIAtlas.png")
-            ImageCache.getAsync(source, 50, false, result.map { image ->
+            ImageCache.getAsync(source, 50, result.map { image ->
                 image.split(NUM_TILES_X, NUM_TILES_Y).map { tileImage ->
                     tileImage
                         .resized(charSizeX, charSizeY, true)

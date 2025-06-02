@@ -18,6 +18,7 @@ import me.anno.io.zip.Inner7zFile
 import me.anno.io.zip.InnerRarFile
 import me.anno.io.zip.InnerTarFile
 import me.anno.io.zip.InnerZipFile
+import me.anno.utils.async.waitForCallback
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -40,15 +41,19 @@ class UnpackPlugin : Plugin() {
         // compressed folders
         InnerFolderCache.registerSignatures("zip,bz2,lz4,xar,oar", InnerZipFile.Companion::createZipRegistryV2)
         InnerFolderCache.registerSignatures("exe", ExeSkipper::readAsFolder)
-        InnerFolderCache.registerSignatures("7z") { src, callback ->
-            Inner7zFile.createZipRegistry7z(src, callback) { cb ->
-                Inner7zFile.fileFromStream7z(src, cb)
+        InnerFolderCache.registerSignatures("7z") { src ->
+            waitForCallback { callback ->
+                Inner7zFile.createZipRegistry7z(src, callback) { cb ->
+                    Inner7zFile.fileFromStream7z(src, cb)
+                }
             }
         }
-        InnerFolderCache.registerSignatures("rar") { src, callback ->
-            InnerRarFile.fileFromStreamRar(src) { archive, err ->
-                if (archive != null) InnerRarFile.createZipRegistryRar(src, callback, archive)
-                else callback.err(err)
+        InnerFolderCache.registerSignatures("rar") { src ->
+            waitForCallback { callback ->
+                InnerRarFile.fileFromStreamRar(src) { archive, err ->
+                    if (archive != null) InnerRarFile.createZipRegistryRar(src, callback, archive)
+                    else callback.err(err)
+                }
             }
         }
         InnerFolderCache.registerSignatures("gzip", InnerTarFile.Companion::readAsGZip)
@@ -59,9 +64,11 @@ class UnpackPlugin : Plugin() {
         InnerFolderCache.registerSignatures("url", URLReader::readURLAsFolder)
 
         // register yaml generally for unity files?
-        InnerFolderCache.registerFileExtensions(AssetThumbHelper.unityExtensions) { it, c ->
-            val f = UnityReader.readAsFolder(it) as? InnerFolder
-            c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
+        InnerFolderCache.registerFileExtensions(AssetThumbHelper.unityExtensions) { it ->
+           waitForCallback { c ->
+               val f = UnityReader.readAsFolder(it) as? InnerFolder
+               c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
+           }
         }
     }
 

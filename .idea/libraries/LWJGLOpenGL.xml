@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="LWJGL-323-OpenGL">
+  <library name="LWJGLOpenGL">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux-arm32.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-natives-linux-arm64.jar!/" />

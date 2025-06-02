@@ -11,10 +11,13 @@ import me.anno.io.files.Signature
 interface FileReaderRegistry<Value> {
     val readerBySignature: Map<String, List<Value>>
     val readerByFileExtension: Map<String, List<Value>>
+
     fun registerFileExtensions(fileExtensions: String, reader: Value)
     fun registerSignatures(signatures: String, reader: Value)
+
     fun unregisterSignatures(signatures: String)
     fun unregisterFileExtensions(fileExtensions: String)
+
     fun getReaders(signature: Signature?, fileExtension: String): List<Value> {
         val bySig = readerBySignature[signature?.name]
         val byFE = readerByFileExtension[fileExtension]

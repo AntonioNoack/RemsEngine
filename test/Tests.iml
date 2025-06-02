@@ -11,22 +11,22 @@
     <orderEntry type="module" module-name="Engine" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="FABRIK" level="project" />
-    <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
+    <orderEntry type="library" name="LuaJ-JSE" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />
-    <orderEntry type="library" name="Apache Compress" level="project" />
+    <orderEntry type="library" name="ApacheCompress" level="project" />
     <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="module" module-name="PDF" />
-    <orderEntry type="library" name="LWJGL-323" level="project" />
-    <orderEntry type="library" name="LWJGL-323-OpenAL" level="project" />
-    <orderEntry type="library" name="LWJGL-323-OpenGL" level="project" />
-    <orderEntry type="library" name="LWJGL-323-TinyEXR" level="project" />
-    <orderEntry type="library" name="LWJGL-323-Assimp" level="project" />
-    <orderEntry type="library" name="junit.jupiter" level="project" />
+    <orderEntry type="library" name="LWJGL" level="project" />
+    <orderEntry type="library" name="LWJGLOpenAL" level="project" />
+    <orderEntry type="library" name="LWJGLOpenGL" level="project" />
+    <orderEntry type="library" name="LWJGLTinyEXR" level="project" />
+    <orderEntry type="library" name="LWJGLAssimp" level="project" />
+    <orderEntry type="library" name="JUnit" level="project" />
     <orderEntry type="module" module-name="Bullet" />
     <orderEntry type="module" module-name="SDF" />
     <orderEntry type="module" module-name="Lua" />
-    <orderEntry type="library" name="webp-imageio-0.1.6" level="project" />
+    <orderEntry type="library" name="WebpImageIO" level="project" />
     <orderEntry type="library" name="OpenXR" level="project" />
     <orderEntry type="module" module-name="Recast" />
     <orderEntry type="module" module-name="Box2d" />
@@ -37,10 +37,11 @@
     <orderEntry type="module" module-name="Video" />
     <orderEntry type="module" module-name="JVM" />
     <orderEntry type="module" module-name="Export" />
-    <orderEntry type="library" name="Apache Imaging" level="project" />
+    <orderEntry type="library" name="ApacheImaging" level="project" />
     <orderEntry type="module" module-name="OpenXR" />
     <orderEntry type="module" module-name="Network" />
     <orderEntry type="library" name="KotlinReflect" level="project" />
     <orderEntry type="library" name="JTransforms" level="project" />
+    <orderEntry type="library" name="KotlinxCoroutines" level="project" />
   </component>
 </module>

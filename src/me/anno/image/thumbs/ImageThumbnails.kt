@@ -1,5 +1,6 @@
 package me.anno.image.thumbs
 
+import kotlinx.coroutines.runBlocking
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.ImageAsFolder
@@ -50,12 +51,11 @@ object ImageThumbnails {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        ImageAsFolder.readImage(srcFile, true).waitFor { image ->
-            if (image != null) {
-                Thumbs.transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
-            } else {
-                generateIfReadImageFailed(srcFile, dstFile, size, callback)
-            }
+        val image = runBlocking { ImageAsFolder.readImage(srcFile, true) }.getOrNull()
+        if (image != null) {
+            Thumbs.transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+        } else {
+            generateIfReadImageFailed(srcFile, dstFile, size, callback)
         }
     }
 

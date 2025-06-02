@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import kotlinx.coroutines.runBlocking
 import me.anno.Engine
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
@@ -16,8 +17,10 @@ import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
 import me.anno.utils.async.Callback.Companion.map
-import me.anno.utils.async.Callback.Companion.mapAsync
+import me.anno.utils.async.mapSuccess2
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.arrays.ByteArrayList
@@ -171,9 +174,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an input stream;
      * should be buffered for better performance
      * */
+    @Deprecated(USE_COROUTINES_INSTEAD)
     abstract fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>)
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) = inputStream(lengthLimit, true, callback)
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun inputStream(callback: Callback<InputStream>) = inputStream(Long.MAX_VALUE, true, callback)
+
+    // todo make this the standard implementation, not inputStream with callback
+    suspend fun inputStream(lengthLimit: Long = Long.MAX_VALUE): Result<InputStream> {
+        return waitForCallback { inputStream(lengthLimit, false, it) }
+    }
 
     /**
      * give access to an output stream;
@@ -187,6 +200,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun readBytes(callback: Callback<ByteArray>) {
         inputStream(callback.map { it.readBytes() })
+    }
+
+    suspend fun readBytes(): Result<ByteArray> {
+        return waitForCallback(::readBytes)
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
@@ -213,6 +230,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     open fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) {
         readBytes(callback.map { bytes ->
             if (native) {
@@ -221,6 +239,16 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 buffer
             } else ByteBuffer.wrap(bytes)
         })
+    }
+
+    suspend fun readByteBuffer(native: Boolean): Result<ByteBuffer> {
+        return readBytes().mapSuccess2 { bytes ->
+            if (native) {
+                val buffer = ByteBufferPool.allocateDirect(bytes.size)
+                buffer.put(bytes).flip()
+                buffer
+            } else ByteBuffer.wrap(bytes)
+        }
     }
 
     open fun readLines(lineLengthLimit: Int, callback: Callback<ReadLineIterator>) {
@@ -232,12 +260,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return readSync { readLinesImpl(lineLengthLimit, false, it) }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     private fun readLinesImpl(lineLengthLimit: Int, closeStream: Boolean, callback: Callback<ReadLineIterator>) {
         inputStream(Long.MAX_VALUE, closeStream, callback.map { stream ->
             ReadLineIterator(stream.bufferedReader(), lineLengthLimit)
         })
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     open fun writeFile(
         file: FileReference,
         progress: (delta: Long, total: Long) -> Unit,
@@ -261,6 +291,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun writeFile(file: FileReference, callback: (Exception?) -> Unit) {
         writeFile(file, { _, _ -> }, callback)
     }
@@ -340,20 +371,24 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     val zipFileForDirectory: FileReference?
         get() = AsyncCacheData.loadSync(this::zipFileForDirectory)
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun zipFileForDirectory(callback: Callback<FileReference>) {
-        InnerFolderCache.readAsFolder(this, true, callback.mapAsync { zipFile, cb ->
-            if (zipFile != null && !zipFile.isDirectory) {
-                InnerFolderCache.readAsFolder(zipFile, true, cb.map { twice -> twice ?: zipFile })
-            } else cb.call(zipFile, null)
-        })
+        val file = this
+        AsyncCacheData.runOnNonGFXThread("zipFor($file)") {
+            runBlocking {
+                var zipFile = InnerFolderCache.readAsFolderX(file).await().getOrNull()
+                if (zipFile != null && zipFile !== file && !zipFile.isDirectory) {
+                    zipFile = InnerFolderCache.readAsFolderX(zipFile).await().getOrNull() ?: zipFile
+                }
+                callback.call(zipFile, null)
+            }
+        }
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun getSiblingWithExtension(ext: String): FileReference {
         return getParent().getChild("$nameWithoutExtension.$ext")
     }
@@ -396,6 +431,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     abstract val creationTime: Long
 
+    suspend fun isDirectory(): Boolean {
+        return isDirectory
+    }
+
+    suspend fun exists(): Boolean {
+        return exists
+    }
+
     override fun equals(other: Any?): Boolean {
         return other is FileReference &&
                 other._hashCode == _hashCode &&
@@ -415,7 +458,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun listChildren(callback: Callback<List<FileReference>>) {
-        InnerFolderCache.readAsFolder(this, true) { folder, _ ->
+        InnerFolderCache.readAsFolder(this) { folder, _ ->
             if (folder is InnerFolder) folder.listChildren(callback)
             else callback.ok(emptyList())
         }
@@ -424,6 +467,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun listChildren(): List<FileReference> {
         return AsyncCacheData.loadSync(this::listChildren) ?: emptyList()
+    }
+
+    suspend fun listChildrenX(): Result<List<FileReference>> {
+        return waitForCallback { callback -> listChildren(callback) }
     }
 
     fun nullIfUndefined(): FileReference? {

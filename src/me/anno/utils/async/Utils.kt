@@ -2,6 +2,9 @@ package me.anno.utils.async
 
 import me.anno.cache.IgnoredException
 
+const val USE_DEFERRED_INSTEAD = "Please use Deferred instead"
+
+@Deprecated(USE_DEFERRED_INSTEAD)
 inline fun <V : Any> promise(initialize: (Callback<V>) -> Unit): Promise<V> {
     val promise = Promise<V>()
     try {
@@ -16,6 +19,7 @@ inline fun <V : Any> promise(initialize: (Callback<V>) -> Unit): Promise<V> {
 /**
  * find the first sample that succeeds the processing
  * */
+@Deprecated(USE_DEFERRED_INSTEAD)
 fun <K, V : Any> firstPromise(samples: Iterable<K>, process: (K, Callback<V>) -> Unit): Promise<V> {
     return firstPromise(samples.iterator(), process)
 }
@@ -23,6 +27,7 @@ fun <K, V : Any> firstPromise(samples: Iterable<K>, process: (K, Callback<V>) ->
 /**
  * find the first sample that succeeds the processing
  * */
+@Deprecated(USE_DEFERRED_INSTEAD)
 fun <K, V : Any> firstPromise(samples: Iterator<K>, process: (K, Callback<V>) -> Unit): Promise<V> {
     return if (samples.hasNext()) {
         val sample = samples.next()

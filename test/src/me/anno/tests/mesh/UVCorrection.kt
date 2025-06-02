@@ -1,8 +1,9 @@
 package me.anno.tests.mesh
 
-import me.anno.ecs.components.mesh.material.MaterialCache
+import kotlinx.coroutines.runBlocking
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -38,7 +39,8 @@ fun main() {
     val clock = Clock("UVCorrection")
     for (sample in samples) {
         val ref = OS.downloads.getChild(sample)
-        OBJReader.readAsFolder(ref) { folder, _ ->
+        runBlocking {
+            val folder = OBJReader.readAsFolder(ref).getOrNull()
             if (folder != null) {
                 clock.start()
                 UVCorrection.correct(folder)

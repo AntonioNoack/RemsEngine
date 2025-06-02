@@ -3,7 +3,7 @@ package me.anno.utils.async
 import me.anno.cache.IgnoredException
 import me.anno.utils.assertions.assertNull
 
-
+@Deprecated(USE_DEFERRED_INSTEAD)
 open class Promise<V : Any> {
 
     var value: V? = null

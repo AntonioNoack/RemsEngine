@@ -46,9 +46,8 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.algorithms.ForLoop.forLoop
 import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
-import me.anno.utils.async.Callback.Companion.mapCallback
+import me.anno.utils.async.castFailure
+import me.anno.utils.async.mapSuccess
 import me.anno.utils.files.Files.nextName
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
@@ -86,11 +85,9 @@ class GLTFReader(val src: FileReference) {
 
         const val BRIGHTNESS_FACTOR = 5f // looks good
 
-        fun readAsFolder(src: FileReference, callback: Callback<InnerFolder>) {
-            src.readBytes { bytes, err ->
-                if (bytes != null) {
-                    GLTFReader(src).readAnyGLTF(bytes, callback)
-                } else callback.err(err)
+        suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+            return src.readBytes().mapSuccess { bytes ->
+                GLTFReader(src).readAnyGLTF(bytes)
             }
         }
     }
@@ -134,36 +131,33 @@ class GLTFReader(val src: FileReference) {
         }
     }
 
-    fun readTextGLTF(bytes: ByteArray, callback: Callback<InnerFolder>) {
+    suspend fun readTextGLTF(bytes: ByteArray): Result<InnerFolder> {
         val reader = JsonReader(bytes)
         json = reader.readObject()
 
         val error0 = getMissingExtension()
         if (error0 != null) {
-            callback.err(error0)
-            return
+            return Result.failure(error0)
         }
 
-        val bufferFiles =
-            getList(json["buffers"]).map { buffer0 ->
-                val buffer = buffer0 as? Map<*, *> ?: emptyMap<Any?, Any?>()
-                resolveUri(buffer["uri"].toString())
-            }
+        val buffers0 = getList(json["buffers"])
+        buffers.ensureCapacity(buffers0.size)
+        for (buffer0 in buffers0) {
+            val buffer = buffer0 as? Map<*, *> ?: emptyMap<Any?, Any?>()
+            val uri = resolveUri(buffer["uri"].toString())
+            val bytes = uri.readBytes()
+            if (bytes.isFailure) return bytes.castFailure()
+            buffers.add(ByteSlice(bytes.getOrThrow()))
+        }
 
-        bufferFiles.mapCallback({ _, file, cb ->
-            file.readBytes(cb)
-        }, callback.map { buffers1 ->
-            buffers.addAll(buffers1.map { ByteSlice(it) })
-            readCommon()
-            innerFolder
-        })
+        readCommon()
+        return Result.success(innerFolder)
     }
 
-    fun readBinaryGLTF(input: ByteArray, callback: Callback<InnerFolder>) {
+    fun readBinaryGLTF(input: ByteArray): Result<InnerFolder> {
         // confirm magic
         if (input.readLE32(0) != FILE_MAGIC) {
-            callback.err(IOException("Invalid Magic"))
-            return
+            return Result.failure(IOException("Invalid Magic"))
         }
 
         val version = input.readLE32(4)
@@ -177,8 +171,10 @@ class GLTFReader(val src: FileReference) {
         val error0 = getMissingExtension()
         if (error0 == null) {
             readCommon()
-            callback.ok(innerFolder)
-        } else callback.err(error0)
+            return Result.success(innerFolder)
+        } else {
+            return Result.failure(error0)
+        }
     }
 
     private fun readChunks(input: ByteArray, fileSize: Int) {
@@ -200,10 +196,10 @@ class GLTFReader(val src: FileReference) {
         }
     }
 
-    fun readAnyGLTF(input: ByteArray, callback: Callback<InnerFolder>) {
+    suspend fun readAnyGLTF(input: ByteArray): Result<InnerFolder> {
         val firstChar = input.getOrNull(0) ?: 0
-        if (firstChar == 'g'.code.toByte()) readBinaryGLTF(input, callback)
-        else readTextGLTF(input, callback)
+        return if (firstChar == 'g'.code.toByte()) readBinaryGLTF(input)
+        else readTextGLTF(input)
     }
 
     private fun getMissingExtension(): Exception? {

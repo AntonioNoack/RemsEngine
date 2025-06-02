@@ -13,7 +13,8 @@ import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.unity.UnityPackage.unpack
 import me.anno.io.zip.internal.TarHeavyIterator
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -39,7 +40,14 @@ class InnerTarFile(
 
     companion object {
 
-        // assumes tar.gz format
+        suspend fun readAsGZip(parent: FileReference): Result<InnerFolder> {
+            return waitForCallback { readAsGZip(parent, it) }
+        }
+
+        /**
+         * assumes tar.gz format
+         * */
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun readAsGZip(parent: FileReference, callback: InnerFolderCallback) {
             if (parent.lcExtension == "unitypackage") {
                 unpack(parent, callback)
@@ -55,6 +63,7 @@ class InnerTarFile(
             }
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun createTarRegistryArchive(
             zipFileLocation: FileReference,
             callback: Callback<InnerFolder>,
@@ -72,6 +81,7 @@ class InnerTarFile(
             }
         }
 
+        @Deprecated(USE_COROUTINES_INSTEAD)
         fun createEntryArchive(
             zipFile: FileReference,
             entry: ArchiveEntry,

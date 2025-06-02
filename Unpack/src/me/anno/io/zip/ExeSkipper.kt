@@ -4,6 +4,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
@@ -18,11 +20,17 @@ import kotlin.math.max
  * */
 object ExeSkipper {
 
+    suspend fun readAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
         val bytes = getBytesAfterExeSections(file)
         InnerZipFile.createZipRegistryV2(file, bytes, callback)
     }
 
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun getBytesAfterExeSections(src: FileReference): ByteArray {
         val bytes = src.readByteBufferSync(true)
             .order(ByteOrder.LITTLE_ENDIAN)

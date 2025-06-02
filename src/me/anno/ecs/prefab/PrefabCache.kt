@@ -314,7 +314,7 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun loadPrefabFromFolder(file: FileReference, callback: Callback<Saveable>) {
-        InnerFolderCache.readAsFolder(file, true) { folder, err ->
+        InnerFolderCache.readAsFolder(file) { folder, err ->
             if (folder != null) {
                 val scene = folder.getChild("Scene.json") as? PrefabReadable
                 val scene2 = scene ?: folder.listChildren().firstInstanceOrNull(PrefabReadable::class)

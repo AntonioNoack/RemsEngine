@@ -1,6 +1,5 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.image.Image
@@ -18,114 +17,111 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.OSFeatures
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.mapSuccess
+import me.anno.utils.async.waitForCallback
 import me.anno.video.VideoCache
-import org.apache.logging.log4j.LogManager
+import java.io.IOException
 
 @InternalAPI
-class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
+object TextureReader {
 
-    companion object {
+    @JvmStatic
+    val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
-        @JvmStatic
-        val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
+    // injected by ImagePlugin
+    @JvmField
+    var findExifRotation: ((FileReference, Callback<ImageTransform?>) -> Unit)? = null
 
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(TextureReader::class)
-
-        // injected by ImagePlugin
-        @JvmField
-        var findExifRotation: ((FileReference, Callback<ImageTransform?>) -> Unit)? = null
-
-        @JvmStatic
-        fun getRotation(src: FileReference, callback: Callback<ImageTransform?>) {
-            if (src == InvalidRef || src.isDirectory) return callback.ok(null)
-            // which files can contain exif metadata?
-            // according to https://exiftool.org/TagNames/EXIF.html,
-            // JPG, TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XC, AVI and MOV
-            val findRotation = findExifRotation ?: return callback.ok(null)
-            findRotation(src, callback)
-        }
+    @JvmStatic
+    @Deprecated(USE_COROUTINES_INSTEAD)
+    fun getRotation(src: FileReference, callback: Callback<ImageTransform?>) {
+        if (src == InvalidRef || src.isDirectory) return callback.ok(null)
+        // which files can contain exif metadata?
+        // according to https://exiftool.org/TagNames/EXIF.html,
+        // JPG, TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XC, AVI and MOV
+        val findRotation = findExifRotation ?: return callback.ok(null)
+        findRotation(src, callback)
     }
 
-    private fun callback(texture: ITexture2D?, error: Exception?) {
-        if (hasValue) {
-            texture?.destroy()
-            LOGGER.warn("Destroying $texture for $file before it was used")
-        } else {
-            value = texture
-            error?.printStackTrace()
-        }
-    }
-
-    init {
+    suspend fun read(file: FileReference): Result<ITexture2D> {
         if (file is ImageReadable) {
             val texture = Texture2D("i2t/ir/${file.name}", 1024, 1024, 1)
-            texture.create(file.readGPUImage(), true, ::callback)
+            return waitForCallback { callback ->
+                texture.create(file.readGPUImage(), true, callback)
+            }
         } else {
             val cpuImage = ImageCache.getImageWithoutGenerator(file)
-            if (cpuImage != null) {
+            return if (cpuImage != null) {
                 val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
-                cpuImage.createTexture(texture, checkRedundancy = true, ::callback)
-            } else loadTexture()
+                waitForCallback { callback ->
+                    cpuImage.createTexture(texture, checkRedundancy = true, callback)
+                }
+            } else loadTexture(file)
         }
     }
 
-    private fun loadTexture() {
-        if (OSFeatures.fileAccessIsHorriblySlow) { // skip loading the signature
-            loadTexture1()
+    private suspend fun loadTexture(file: FileReference): Result<ITexture2D> {
+        return if (OSFeatures.fileAccessIsHorriblySlow) { // skip loading the signature
+            loadTexture1(file)
         } else {
-            SignatureCache.getAsync(file, ::loadTexture0)
+            val signature = SignatureCache.getX(file).await().getOrNull()
+            loadTexture0(file, signature)
         }
     }
 
-    private fun loadTexture0(signature: Signature?) {
-        when (signature?.name) {
+    private suspend fun loadTexture0(file: FileReference, signature: Signature?): Result<ITexture2D> {
+        return when (signature?.name) {
             "dds", "media" -> tryUsingVideoCache(file)
-            else -> loadTexture1()
+            else -> loadTexture1(file)
         }
     }
 
-    private fun loadTexture1() {
-        ImageAsFolder.readImage(file, true).waitFor(::loadImage)
+    private suspend fun loadTexture1(file: FileReference): Result<ITexture2D> {
+        return ImageAsFolder.readImage(file, true).mapSuccess { image ->
+            loadImage(file, image)
+        }
     }
 
-    private fun loadImage(image: Image?) {
-        when (image) {
+    private suspend fun loadImage(file: FileReference, image: Image?): Result<ITexture2D> {
+        return when (image) {
             is GPUImage -> {
                 val texture = Texture2D("copyOf/${image.texture.name}", image.width, image.height, 1)
                 texture.rotation = (image.texture as? Texture2D)?.rotation
-                texture.create(image, true, ::callback)
+                return waitForCallback { callback ->
+                    texture.create(image, true, callback)
+                }
             }
-            null -> {
-                LOGGER.warn("Failed reading '$file' using ImageReader")
-                value = null
-            }
+            null -> Result.failure(IOException("Failed reading '$file' using ImageReader"))
             else -> {
-                getRotation(file) { rot, _ ->
-                    val texture = Texture2D("i2t/?/$file", image.width, image.height, 1)
-                    texture.rotation = rot
-                    texture.create(image, true, ::callback)
+                return waitForCallback { callback ->
+                    getRotation(file) { rot, _ ->
+                        val texture = Texture2D("i2t/?/$file", image.width, image.height, 1)
+                        texture.rotation = rot
+                        texture.create(image, true, callback)
+                    }
                 }
             }
         }
     }
 
-    private fun tryUsingVideoCache(file: FileReference) {
+    private suspend fun tryUsingVideoCache(file: FileReference): Result<ITexture2D> {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
         val meta = getMeta(file, false)
-        if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-            LOGGER.warn("Cannot load $file using VideoCache")
-            value = null
+        return if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
+            Result.failure(IOException("Cannot load $file using VideoCache"))
         } else {
-            Sleep.waitUntilDefined(true, {
-                val frame = VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, true)
-                if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
-                else null
-            }, { frame ->
-                addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-                    value = frame.toTexture()
-                }
-            })
+            waitForCallback { callback ->
+                Sleep.waitUntilDefined(true, {
+                    val frame = VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, true)
+                    if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
+                    else null
+                }, { frame ->
+                    addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
+                        callback.ok(frame.toTexture())
+                    }
+                })
+            }
         }
     }
 }

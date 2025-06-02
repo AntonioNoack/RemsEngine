@@ -28,6 +28,8 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.algorithms.ForLoop.forLoop
+import me.anno.utils.async.Callback.Companion.USE_COROUTINES_INSTEAD
+import me.anno.utils.async.waitForCallback
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
@@ -92,6 +94,11 @@ object MitsubaReader {
         return version to offsets
     }
 
+    suspend fun readMeshesAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readMeshesAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readMeshesAsFolder(file: FileReference, callback: InnerFolderCallback) {
         file.inputStream { it, exc ->
             if (it != null) {
@@ -644,6 +651,11 @@ object MitsubaReader {
         return innerFolder
     }
 
+    suspend fun readSceneAsFolder(src: FileReference): Result<InnerFolder> {
+        return waitForCallback { readSceneAsFolder(src, it) }
+    }
+
+    @Deprecated(USE_COROUTINES_INSTEAD)
     fun readSceneAsFolder(file: FileReference, callback: InnerFolderCallback) {
         file.inputStream { it, exc ->
             if (it != null) {
