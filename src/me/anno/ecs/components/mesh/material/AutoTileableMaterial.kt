@@ -18,8 +18,8 @@ class AutoTileableMaterial : PlanarMaterialBase() {
     companion object {
         fun lookUp(diffuseMap: FileReference): ITexture2D {
             // get cached LUT, bind LUT
-            val tex = AutoTileableShader.cache.getFileEntry(diffuseMap, false, 10_000L, true) { it, _ ->
-                ImageCache[it, false]?.run {
+            val tex = AutoTileableShader.cache.getFileEntry(diffuseMap, false, 10_000L, true) { key ->
+                ImageCache[key.file, false]?.run {
                     val hist = AutoTileableShader.TileMath.buildYHistogram(this)
                     val lut = AutoTileableShader.TileMath.buildLUT(hist)
                     val tex = Texture2D("auto-tileable-lut", lut.size / 2, 2, 1)

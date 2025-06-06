@@ -3,6 +3,7 @@ package me.anno.cache
 import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference
@@ -91,20 +92,19 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun <R : ICacheData> getFileEntry(
         file: FileReference, allowDirectories: Boolean,
         timeout: Long, asyncGenerator: Boolean,
-        generator: (FileReference, Long) -> R?
+        generator: (FileKey) -> R?
     ): R? {
         val validFile = getValidFile(file, allowDirectories) ?: return null
-        return getDualEntry(validFile, validFile.lastModified, timeout, asyncGenerator, generator)
+        return getEntry(validFile.getFileKey(), timeout, asyncGenerator, generator)
     }
 
     fun <R : ICacheData> getFileEntryAsync(
         file: FileReference, allowDirectories: Boolean,
         timeout: Long, asyncGenerator: Boolean,
-        generator: (FileReference, Long) -> R?,
-        callback: Callback<R>
+        generator: (FileKey) -> R?, callback: Callback<R>
     ) {
         val validFile = getValidFile(file, allowDirectories) ?: return callback.err(null)
-        getDualEntryAsync(validFile, validFile.lastModified, timeout, asyncGenerator, generator, callback)
+        getEntryAsync(validFile.getFileKey(), timeout, asyncGenerator, generator, callback)
     }
 
     fun getValidFile(file: FileReference, allowDirectories: Boolean): FileReference? {
@@ -147,6 +147,14 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     /**
+     * get the value, without generating it if it doesn't exist;
+     * delta is added to its timeout, when necessary, so it stays loaded
+     * */
+    fun getFileEntryWithoutGenerator(key1: FileReference, delta: Long = 1L): ICacheData? {
+        return getEntryWithoutGenerator(key1.getFileKey(), delta)
+    }
+
+    /**
      * returns whether a value is present
      * */
     fun hasEntry(key: Any, delta: Long = 1L): Boolean {
@@ -168,7 +176,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * returns whether a value is present
      * */
     fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean =
-        hasDualEntry(key, key.lastModified, delta)
+        hasDualEntry(key.getFileKey(), delta)
 
     fun override(key: Any?, newValue: ICacheData?, timeoutMillis: Long) {
         checkKey(key)
@@ -192,7 +200,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun overrideFileEntry(key: FileReference, newValue: ICacheData?, timeoutMillis: Long) {
-        overrideDual(key, key.lastModified, newValue, timeoutMillis)
+        override(key.getFileKey(), newValue, timeoutMillis)
     }
 
     private fun <V, W, R : ICacheData> generateDualSafely(key0: V, key1: W, generator: (V, W) -> R?): R? {
@@ -583,13 +591,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
 
         fun invalidateFiles(path: String) {
-            val filter = { file: Any?, _: Any?, _: Any? ->
-                (file is FileReference && file.absolutePath.startsWith(path, true)) ||
-                        (file is String && file.startsWith(path, true))
+            val filter = { key: Any?, _: Any? ->
+                key is FileKey && key.file.absolutePath.startsWith(path, true)
             }
             val removed = ArrayList<IndexedValue<String>>()
             for (cache in caches) {
-                val numRemovedEntries = cache.removeDual(filter)
+                val numRemovedEntries = cache.remove(filter)
                 if (numRemovedEntries > 0) {
                     removed.add(IndexedValue(numRemovedEntries, cache.name))
                 }

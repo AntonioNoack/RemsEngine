@@ -14,7 +14,7 @@ class BGRFrame(w: Int, h: Int) : RGBFrame(w, h) {
             addGPUTask("BGR", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createBGR(data, false)
-                } else warnAlreadyDestroyed()
+                } else warnAlreadyDestroyed(data, null)
                 creationLimiter.release()
             }
         }

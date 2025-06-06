@@ -47,6 +47,13 @@ abstract class BaseWriter(
     val todoPointersSet = HashSet<Saveable>(256)
     val pointers = HashMap<Saveable, Int>(256)
 
+    open fun clear() {
+        resourceMap = emptyMap()
+        todoPointers.clear()
+        todoPointersSet.clear()
+        pointers.clear()
+    }
+
     /**
      * gets the pointer of a know value
      * */

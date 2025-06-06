@@ -485,4 +485,20 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         if (oldName == InvalidRef) return null
         return replacePath(oldName.absolutePath, newName)
     }
+
+    private var lastFileKey: FileKey? = null
+
+    /**
+     * Used for CacheSections; Cached to reduce dynamic allocations
+     * */
+    fun getFileKey(): FileKey {
+        val lm = lastModified
+        val lk = lastFileKey
+        if (lk != null && lk.lastModified == lm) {
+            return lk
+        }
+        val key = FileKey(this, lastModified)
+        lastFileKey = key
+        return key
+    }
 }

@@ -7,12 +7,12 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.raw.GPUImage
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
-import me.anno.utils.OS
 import me.anno.utils.OSFeatures
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
@@ -35,9 +35,7 @@ object TextureCache : CacheSection("Texture") {
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = try {
-            getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
-                generateImageData(it)
-            }
+            getFileEntry(file, false, timeout, asyncGenerator, ::generateImageData)
         } catch (e: Exception) {
             e.printStackTrace()
             return true
@@ -64,9 +62,7 @@ object TextureCache : CacheSection("Texture") {
         } else if (file is InnerTmpImageFile && file.image is GPUImage) {
             return file.image.texture // shortcut
         }
-        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ ->
-            generateImageData(fileI)
-        }
+        val imageData = getFileEntry(file, false, timeout, asyncGenerator, ::generateImageData)
         return if (imageData != null) {
             if (!asyncGenerator && OSFeatures.canSleep) {
                 // the texture was forced to be loaded -> wait for it
@@ -82,7 +78,7 @@ object TextureCache : CacheSection("Texture") {
         }
     }
 
-    private fun generateImageData(file: FileReference) = TextureReader(file)
+    private fun generateImageData(file: FileKey) = TextureReader(file.file)
 
     fun getLateinitTexture(
         key: Any, timeout: Long, async: Boolean,

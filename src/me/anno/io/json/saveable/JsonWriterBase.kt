@@ -44,6 +44,11 @@ abstract class JsonWriterBase(workspace: FileReference) : BaseWriter(workspace, 
     private val tmp16f = FloatArray(16)
     private val tmp16d = DoubleArray(16)
 
+    override fun clear() {
+        super.clear()
+        hasObject = false
+    }
+
     abstract fun append(v: Char)
     abstract fun append(v: String)
     abstract fun append(v: Int)

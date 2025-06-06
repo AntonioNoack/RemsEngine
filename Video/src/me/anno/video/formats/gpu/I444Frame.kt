@@ -56,7 +56,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
                 if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
                     y.createMonochrome(yData, false)
                     uv.createRG(interlaced, false)
-                } else warnAlreadyDestroyed()
+                } else warnAlreadyDestroyed(yData, interlaced)
                 creationLimiter.release()
             }
         }

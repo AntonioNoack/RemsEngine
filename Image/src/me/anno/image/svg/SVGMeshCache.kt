@@ -3,10 +3,10 @@ package me.anno.image.svg
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import me.anno.utils.Warning.unused
 import me.anno.utils.async.Callback
 import java.io.InputStream
 
@@ -22,10 +22,9 @@ object SVGMeshCache : CacheSection("Meshes") {
         return data.value
     }
 
-    private fun loadSVGMeshAsync(file: FileReference, lastModified: Long): AsyncCacheData<StaticBuffer> {
-        unused(lastModified)
+    private fun loadSVGMeshAsync(key: FileKey): AsyncCacheData<StaticBuffer> {
         val data = AsyncCacheData<StaticBuffer>()
-        file.inputStream { input, err ->
+        key.file.inputStream { input, err ->
             err?.printStackTrace()
             data.value = loadSVGMeshSync(input)
         }

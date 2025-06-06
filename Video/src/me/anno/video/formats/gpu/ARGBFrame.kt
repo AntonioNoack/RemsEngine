@@ -30,7 +30,7 @@ class ARGBFrame(w: Int, h: Int) : RGBFrame(w, h, 4) {
             addGPUTask("RGBA", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createRGBA(data, false)
-                } else warnAlreadyDestroyed()
+                } else warnAlreadyDestroyed(data, null)
                 creationLimiter.release()
             }
         }

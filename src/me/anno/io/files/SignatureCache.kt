@@ -2,10 +2,9 @@ package me.anno.io.files
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
-import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.Streams.readNBytes2
-import me.anno.io.files.Signature.Companion.json
 import me.anno.io.files.Signature.Companion.sampleSize
+import me.anno.io.files.SignatureCache.generate
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.async.Callback
 
@@ -16,10 +15,9 @@ object SignatureCache : CacheSection("Signatures") {
 
     var timeoutMillis = 10_000L
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun generate(file: FileReference, modified: Long): AsyncCacheData<Signature?> {
+    private fun generate(key: FileKey): AsyncCacheData<Signature?> {
         val value = AsyncCacheData<Signature?>()
-        generate(file, value)
+        generate(key.file, value)
         return value
     }
 
@@ -47,13 +45,8 @@ object SignatureCache : CacheSection("Signatures") {
     }
 
     fun getAsync(file: FileReference, callback: (Signature?) -> Unit) {
-        // a little more complicated than anticipated
-        val file1 = getValidFile(file, false)
-        if (file1 != null) {
-            getDualEntryAsync(file1, file1.lastModified, timeoutMillis, true, ::generate) { sig, _ ->
-                if (sig != null) sig.waitFor(callback)
-                else callback(null)
-            }
-        } else callback(null)
+        return getFileEntryAsync(file, false, timeoutMillis, true, ::generate) { sig, _ ->
+            callback(sig?.value)
+        }
     }
 }

@@ -20,7 +20,7 @@ open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChanne
             addGPUTask("RGB", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createRGB(data, false)
-                } else warnAlreadyDestroyed()
+                } else warnAlreadyDestroyed(data, null)
                 creationLimiter.release()
             }
         }

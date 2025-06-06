@@ -1,8 +1,8 @@
 package me.anno.ui.debug
 
-import me.anno.engine.WindowRenderFlags
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
+import me.anno.engine.WindowRenderFlags
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -150,7 +150,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                             RemsEngine.openKeymapWindow(it.windowStack)
                         },
                         MenuOption(NameDesc("Toggle VSync"), WindowRenderFlags::toggleVsync),
-                        MenuOption(NameDesc("Run GC"), ::runGC)
+                        MenuOption(NameDesc("Print Memory Report"), RuntimeInfoPanel::printDetailedReport),
+                        MenuOption(NameDesc("Run GC"), ::runGC),
                     )
                 )
             }

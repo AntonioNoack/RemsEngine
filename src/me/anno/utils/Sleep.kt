@@ -55,6 +55,7 @@ object Sleep {
     @JvmStatic
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
+        if (isFinished()) return // avoid getCalleeName()
         waitUntil(getCalleeName(), canBeKilled, isFinished)
     }
 

@@ -3,6 +3,7 @@ package me.anno.lua
 import me.anno.Build
 import me.anno.Engine
 import me.anno.Time
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
@@ -14,6 +15,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.lua.utils.SafeFunction
 import me.anno.lua.utils.WhileTrueYield
 import me.anno.utils.OS
+import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -91,19 +93,20 @@ open class ScriptComponent : Component(), OnUpdate {
 
         @JvmStatic
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
-            val value = luaCache.getFileEntry(source, false, timeout, false) { file, _ ->
+            val value = luaCache.getFileEntry(source, false, timeout, false) { key ->
                 val vm = defineVM()
-                val text = file.readTextSync()
-                val code0 = vm.load(text)
-                val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
-                val code2 = code1.call()
-                LOGGER.debug(text)
+                val result = AsyncCacheData<LuaValue>()
+                key.file.readText(result.map { text ->
+                    LOGGER.debug(text)
+                    val code0 = vm.load(text)
+                    val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
+                    code1.call()
+                })
                 // val code = file.inputStream().use { LuaC.instance.compile(it, "${source.absolutePath}-$date") }
                 // val func = LuaClosure(code, global.get())
-                CacheData(code2)
-            } as? CacheData<*> ?: return null
-            val func = value.value as LuaValue
-            return func.get(name)
+                result
+            } ?: return null
+            return value.waitFor()?.get(name)
         }
 
         @JvmStatic

@@ -104,7 +104,7 @@ object ImageCache : CacheSection("Image") {
 
     fun getImageWithoutGenerator(source: FileReference): Image? {
         if (source is ImageReadable && source.hasInstantCPUImage()) return source.readCPUImage()
-        return when (val data = getDualEntryWithoutGenerator(source, source.lastModified, 0)) {
+        return when (val data = getEntryWithoutGenerator(source.getFileKey(), 0)) {
             is Image -> data
             is CacheData<*> -> data.value as? Image
             else -> null
@@ -115,8 +115,8 @@ object ImageCache : CacheSection("Image") {
         if (source is ImageReadable && source.hasInstantCPUImage()) {
             return source.readCPUImage()
         }
-        val data = getFileEntry(source, false, timeout, async) { file1, _ ->
-            ImageAsFolder.readImage(file1, false)
+        val data = getFileEntry(source, false, timeout, async) { key ->
+            ImageAsFolder.readImage(key.file, false)
         } ?: return null
         if (!async) data.waitFor()
         return data.value
@@ -126,8 +126,8 @@ object ImageCache : CacheSection("Image") {
         if (source is ImageReadable && source.hasInstantCPUImage()) {
             callback.ok(source.readCPUImage())
         } else {
-            getFileEntryAsync(source, false, timeout, async, { file1, _ ->
-                ImageAsFolder.readImage(file1, false)
+            getFileEntryAsync(source, false, timeout, async, { key ->
+                ImageAsFolder.readImage(key.file, false)
             }, callback.wait())
         }
     }

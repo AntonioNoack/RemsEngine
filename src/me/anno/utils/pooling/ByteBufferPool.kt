@@ -22,25 +22,25 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
         buffer.order(ByteOrder.nativeOrder())
     }
 
-    override fun clear(buffer: ByteBuffer, size: Int) {
+    override fun implClear(buffer: ByteBuffer, size: Int) {
         for (j in 0 until size) {
             buffer.put(j, 0)
         }
     }
 
-    override fun getSize(buffer: ByteBuffer): Int {
+    override fun implGetSize(buffer: ByteBuffer): Int {
         return buffer.capacity()
     }
 
-    override fun createBuffer(size: Int): ByteBuffer {
+    override fun implCreateBuffer(size: Int): ByteBuffer {
         return allocateDirect(size)
     }
 
-    override fun destroy(buffer: ByteBuffer) {
+    override fun implDestroy(buffer: ByteBuffer) {
         free(buffer)
     }
 
-    override fun copy(src: ByteBuffer, dst: ByteBuffer, size: Int) {
+    override fun implCopyTo(src: ByteBuffer, dst: ByteBuffer, size: Int) {
         src.position(0).limit(size)
         dst.position(0).limit(size)
         dst.put(src)
@@ -54,16 +54,16 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
          * memory that was allocated on the c side; is not counted by the JVM
          * */
         @JvmStatic
-        fun getAllocated(): Long = allocated.get()
+        fun getNativeAllocated(): Long = nativeAllocated.get()
 
         @JvmStatic
-        private val allocated = AtomicLong(0L)
+        private val nativeAllocated = AtomicLong(0L)
 
         @JvmStatic
         fun allocateDirect(size: Int): ByteBuffer {
             val bytes = MemoryUtil.memAlloc(size)
                 .order(ByteOrder.nativeOrder())
-            allocated.addAndGet(bytes.capacity().toLong())
+            nativeAllocated.addAndGet(bytes.capacity().toLong())
             return bytes
         }
 
@@ -71,28 +71,7 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
         fun free(buffer: ByteBuffer?) {
             buffer ?: return
             MemoryUtil.memFree(buffer)
-            allocated.addAndGet(-buffer.capacity().toLong())
-        }
-
-        @JvmStatic
-        fun free(buffer: ShortBuffer?) {
-            buffer ?: return
-            MemoryUtil.memFree(buffer)
-            allocated.addAndGet(-buffer.capacity().toLong() * 2L)
-        }
-
-        @JvmStatic
-        fun free(buffer: IntBuffer?) {
-            buffer ?: return
-            MemoryUtil.memFree(buffer)
-            allocated.addAndGet(-buffer.capacity().toLong() * 4L)
-        }
-
-        @JvmStatic
-        fun free(buffer: FloatBuffer?) {
-            buffer ?: return
-            MemoryUtil.memFree(buffer)
-            allocated.addAndGet(-buffer.capacity().toLong() * 4L)
+            nativeAllocated.addAndGet(-buffer.capacity().toLong())
         }
     }
 }

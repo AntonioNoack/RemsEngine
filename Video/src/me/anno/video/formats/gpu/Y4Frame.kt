@@ -14,13 +14,12 @@ class Y4Frame(w: Int, h: Int) : GPUFrame(w, h, 1) {
     override fun load(input: InputStream) {
         if (isDestroyed) return
 
-        val s0 = width * height
-        val data = input.readNBytes2(s0, Pools.byteBufferPool)
+        val data = input.readNBytes2(width * height, Pools.byteBufferPool)
         Sleep.acquire(true, creationLimiter) {
             addGPUTask("Y4", width, height) {
                 if (!isDestroyed && !y.isDestroyed) {
                     y.createMonochrome(data, false)
-                } else warnAlreadyDestroyed()
+                } else warnAlreadyDestroyed(data, null)
                 creationLimiter.release()
             }
         }

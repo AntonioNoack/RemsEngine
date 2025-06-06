@@ -5,7 +5,6 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toIntOr
-import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -186,24 +185,37 @@ object Color {
     }
 
     @JvmStatic
-    fun hex8(i: Int) = "${base36[(i shr 4) and 15]}${base36[i and 15]}"
+    fun hexI(value: Long, len: Int, prefix: String = ""): String {
+        val chars = CharArray(len)
+        prefix.toCharArray(chars)
+        val i0 = prefix.length
+        for (i in chars.indices) {
+            val shift = ((len - 1) - i) * 4
+            chars[i0 + i] = base36[(value shr shift).toInt() and 15]
+        }
+        return String(chars)
+    }
 
     @JvmStatic
-    fun hex16(i: Int) = "${hex4(i shr 12)}${hex4(i shr 8)}${hex4(i shr 4)}${hex4(i)}"
+    fun hex8(i: Int) = hexI(i.toLong(), 2)
 
     @JvmStatic
-    fun hex24(i: Int) = "${hex8((i shr 16))}${hex16(i)}"
+    fun hex16(i: Int) = hexI(i.toLong(), 4)
 
     @JvmStatic
-    fun hex32(i: Int) = "${hex16((i shr 16))}${hex16(i)}"
+    fun hex24(i: Int) = hexI(i.toLong(), 6)
+
+    @JvmStatic
+    fun hex32(i: Int) = hexI(i.toLong(), 8)
 
     @JvmStatic
     fun hex8(f: Float) = hex8(clamp((255 * f).roundToIntOr(), 0, 255))
 
     @JvmStatic
     fun Int.toHexColor(): String {
-        return if (this and black == black) "#${hex24(this)}"
-        else "#${hex32(this)}"
+        val value = this.toLong()
+        return if (this and black == black) hexI(value, 6, "#")
+        else hexI(value, 8, "#")
     }
 
     @JvmStatic

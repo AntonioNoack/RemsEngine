@@ -27,6 +27,8 @@ class ObjectPool<V>(
     private val doubleReturnMap = if (checkDoubleReturns) HashSet<V>(initialSize) else null
     private val cachedInstances = ArrayList<V>(initialSize)
 
+    val size get() = cachedInstances.size
+
     fun create(): V {
         return synchronized(this) {
             val element = cachedInstances.removeLastOrNull()

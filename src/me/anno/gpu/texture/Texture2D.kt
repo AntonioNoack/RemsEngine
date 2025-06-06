@@ -46,7 +46,6 @@ import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.Pools
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -253,7 +252,7 @@ open class Texture2D(
 
     fun upload(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?, unbind: Boolean = true) {
         if (data is ByteArray) { // helper
-            val tmp = Pools.byteBufferPool.createBuffer(data.size)
+            val tmp = Pools.byteBufferPool[data.size, false, false]
             tmp.put(data).flip()
             upload(internalFormat, dataFormat, dataType, tmp, unbind)
             Pools.byteBufferPool.returnBuffer(tmp)
@@ -697,7 +696,7 @@ open class Texture2D(
 
     fun createRGBA(data: ByteArray, checkRedundancy: Boolean): Texture2D {
         checkSize(4, data.size)
-        val data2 = if (checkRedundancy) checkRedundancyX4(data) else data
+        val data2: ByteArray = if (checkRedundancy) checkRedundancyX4(data) else data
         val buffer = Pools.byteBufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         return createRGBA(buffer, false)
@@ -922,11 +921,12 @@ open class Texture2D(
                 is IntArray -> glReadPixels(x, y, w, h, format, type, dst)
                 is FloatArray -> glReadPixels(x, y, w, h, format, type, dst)
                 is ByteArray -> {
-                    val tmp = ByteBufferPool.allocateDirect(dst.size)
+                    val tmpPool = Pools.byteBufferPool
+                    val tmp = tmpPool[w * h * 4, false, false]
                     glReadPixels(x, y, w, h, format, type, tmp)
                     tmp.position(0)
                     tmp.get(dst)
-                    ByteBufferPool.free(tmp)
+                    tmpPool.returnBuffer(tmp)
                 }
                 else -> LOGGER.warn("Unknown type ${dst::class}")
             }

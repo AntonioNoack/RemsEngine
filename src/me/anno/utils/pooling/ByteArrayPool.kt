@@ -1,13 +1,13 @@
 package me.anno.utils.pooling
 
 open class ByteArrayPool(size: Int) : BufferPool<ByteArray>(size, 1) {
-    override fun createBuffer(size: Int) = ByteArray(size)
-    override fun getSize(buffer: ByteArray) = buffer.size
-    override fun clear(buffer: ByteArray, size: Int) {
+    override fun implCreateBuffer(size: Int) = ByteArray(size)
+    override fun implGetSize(buffer: ByteArray) = buffer.size
+    override fun implClear(buffer: ByteArray, size: Int) {
         buffer.fill(0, 0, size)
     }
 
-    override fun copy(src: ByteArray, dst: ByteArray, size: Int) {
+    override fun implCopyTo(src: ByteArray, dst: ByteArray, size: Int) {
         src.copyInto(dst, 0, 0, size)
     }
 }

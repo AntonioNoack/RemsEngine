@@ -24,9 +24,9 @@ object HasChildrenCache : CacheSection("FileHasChildren") {
         )?.value
     }
 
-    private val generator = { file: FileReference, lastModified: Long ->
+    private val generator = { key: FileKey ->
         val result = AsyncCacheData<Boolean>()
-        file.listChildren(result.map(List<FileReference>::isNotEmpty))
+        key.file.listChildren(result.map(List<FileReference>::isNotEmpty))
         result
     }
 }

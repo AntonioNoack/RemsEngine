@@ -95,10 +95,11 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     }
 
     fun interlaceReplace(a: ByteBuffer, b: ByteBuffer): ByteBuffer {
-        val dst = Pools.byteBufferPool[a.remaining() * 2, false, false]
+        val pool = Pools.byteBufferPool
+        val dst = pool[a.remaining() * 2, false, false]
         interlace(a, b, dst)
-        Pools.byteBufferPool.returnBuffer(a)
-        Pools.byteBufferPool.returnBuffer(b)
+        pool.returnBuffer(a)
+        pool.returnBuffer(b)
         return dst
     }
 
@@ -142,7 +143,10 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
         return texture
     }
 
-    fun warnAlreadyDestroyed() {
+    fun warnAlreadyDestroyed(data0: ByteBuffer?, data1: ByteBuffer?) {
+        val pool = Pools.byteBufferPool
+        pool.returnBuffer(data0)
+        pool.returnBuffer(data1)
         LogManager.getLogger(this::class)
             .warn("Frame is already destroyed!")
     }

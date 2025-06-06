@@ -17,13 +17,16 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
 
     operator fun get(skeleton: Skeleton) = getTexture(skeleton)
     fun getTexture(skeleton: Skeleton): AnimTexture {
-        return animTexCache.getEntry(skeleton.prefab!!.sourceFile, timeoutMillis, false) { _ ->
+        return animTexCache.getFileEntry(
+            skeleton.prefab!!.sourceFile, true,
+            timeoutMillis, false
+        ) { _ ->
             AnimTexture(skeleton)
         } as AnimTexture
     }
 
     fun invalidate(animation: Animation, skeleton: Skeleton) {
-        (animTexCache.getEntryWithoutGenerator(
+        (animTexCache.getFileEntryWithoutGenerator(
             skeleton.prefab!!.sourceFile,
             timeoutMillis
         ) as? AnimTexture)?.invalidate(animation)
@@ -42,8 +45,8 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
         ) {
             val retargeting = Retargetings.getRetargeting(animation.skeleton, dstSkeleton.ref)
             if (retargeting != null) {
-                val bbb = if (animation is BoneByBoneAnimation) animation
-                else BoneByBoneAnimation(animation as ImportedAnimation)
+                val bbb = animation as? BoneByBoneAnimation
+                    ?: BoneByBoneAnimation(animation as ImportedAnimation)
                 retargeting.map(bbb)
             } else {
                 LOGGER.warn("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")

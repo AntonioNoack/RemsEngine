@@ -9,6 +9,11 @@ open class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : Js
 
     private val data = StringBuilder(initialCapacity)
 
+    override fun clear() {
+        super.clear()
+        data.setLength(0)
+    }
+
     /** you should not use this function
      * if you use it, your file no longer will be readable (probably)
      *

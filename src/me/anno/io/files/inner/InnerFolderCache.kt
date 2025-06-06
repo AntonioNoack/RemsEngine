@@ -7,6 +7,7 @@ import me.anno.extensions.FileReaderRegistry
 import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.gpu.GFX
 import me.anno.image.ImageAsFolder
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
@@ -22,7 +23,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
 
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
-    private val generator = { file1: FileReference, _: Long -> generate(file1) }
+    private val generator = { key: FileKey -> generate(key.file) }
 
     init {
         // meshes

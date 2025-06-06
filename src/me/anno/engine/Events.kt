@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.Build
 import me.anno.Engine
 import me.anno.Time
 import me.anno.gpu.GFX.checkIfGFX
@@ -25,6 +26,7 @@ object Events {
     private val scheduledTasks: Queue<ScheduledTask> = PriorityBlockingQueue(16)
 
     fun getCalleeName(): String {
+        if (!Build.isDebug) return ""
         val trace = Exception().stackTrace
         val entry = trace
             .firstOrNull { it.className != "me.anno.utils.Sleep" && it.methodName != "getCalleeName" }

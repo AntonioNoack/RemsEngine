@@ -13,7 +13,7 @@ class RGBAFrame(width: Int, height: Int) : RGBFrame(width, height, 4) {
         val s0 = width * height
         val data = Pools.byteBufferPool[s0 * 4, false, false]
         data.position(0)
-        for (i in 0 until s0) {
+        repeat(s0) {
             val r = input.read()
             val g = input.read()
             val b = input.read()
@@ -28,11 +28,12 @@ class RGBAFrame(width: Int, height: Int) : RGBFrame(width, height, 4) {
             data.put(a.toByte()) // offset is required
         }
         data.flip()
+
         Sleep.acquire(true, creationLimiter) {
             addGPUTask("RGBA", width, height) {
                 if (!isDestroyed && !rgb.isDestroyed) {
                     rgb.createRGBA(data, false)
-                } else warnAlreadyDestroyed()
+                } else warnAlreadyDestroyed(data, null)
                 creationLimiter.release()
             }
         }

@@ -204,7 +204,7 @@ object Retargetings {
             DualFileKey(srcSkeleton, dstSkeleton),
             timeoutMillis, false
         ) { key ->
-            val prefab = getOrCreatePrefab(key.file0, key.file1)
+            val prefab = getOrCreatePrefab(key.first.file, key.second.file)
             CacheData(prefab?.getSampleInstance() as? Retargeting)
         }?.value
     }

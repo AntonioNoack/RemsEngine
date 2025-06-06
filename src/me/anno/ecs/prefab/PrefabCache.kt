@@ -14,6 +14,7 @@ import me.anno.io.Streams.consumeMagic
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.UnknownClassException
 import me.anno.io.binary.BinaryReader
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
@@ -415,7 +416,8 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    private fun loadPrefabPair(file: FileReference, lastModified: Long): FileReadPrefabData {
+    private fun loadPrefabPair(key: FileKey): FileReadPrefabData {
+        val (file: FileReference, lastModified: Long) = key
         if (debugLoading) LOGGER.debug("Loading {}@{}", file, lastModified)
         LOGGER.info("Loading {}@{}", file, lastModified)
         ensureClasses()
