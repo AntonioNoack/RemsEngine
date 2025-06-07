@@ -15,12 +15,12 @@ class GPUFrameReader(
     finishedCallback: (List<GPUFrame>) -> Unit
 ) : FrameReader<GPUFrame>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
-    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream): GPUFrame? {
+    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: (GPUFrame?) -> Unit) {
         var frame: GPUFrame? = null
         try {
             frame = createGPUFrame(w, h, frameIndex, codec, file)
-            frame.load(input)
-            return frame
+            frame.load(input, callback)
+            return
         } catch (_: EOFException) {
             // e.printStackTrace()
         } catch (e: IOException) {
@@ -30,7 +30,7 @@ class GPUFrameReader(
             e.printStackTrace()
         }
         frame?.destroy()
-        return null
+        return callback(null)
     }
 
     override fun destroy() {

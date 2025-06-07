@@ -77,7 +77,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
 
             override fun destroy() {}
         }.runAsync(
-            key.toString(),
+            "VideoProxy[$sliceIndex,$src]",
             listOf(
                 "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
                 "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time

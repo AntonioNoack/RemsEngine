@@ -60,7 +60,7 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
         assertEquals(h, frame.height)
         frameSizeForSkipping = frame.getByteSize()
         try {
-            frame.load(input)
+            frame.load(input) {}
         } catch (e: Exception) {
             reusableFrames.add(frame)
             throw e

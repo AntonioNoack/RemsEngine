@@ -25,7 +25,6 @@ import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.Semaphore
 
 /**
  * GPU frames are synthetic textures that need a special shader, and might take up multiple texture slots.
@@ -103,7 +102,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
         return dst
     }
 
-    abstract fun load(input: InputStream)
+    abstract fun load(input: InputStream, callback: (GPUFrame?) -> Unit)
 
     open fun bindUVCorrection(shader: Shader) {
         val w = width
@@ -152,8 +151,6 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
     }
 
     companion object {
-        @JvmField
-        val creationLimiter = Semaphore(32)
 
         @JvmField
         val swizzleStage0 = ShaderStage(
@@ -171,6 +168,15 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                 Variable(GLSLType.S2D, "tex"),
                 Variable(GLSLType.V4F, "color", VariableMode.OUT)
             ), "color = getTexture(tex, finalUV).bgra;\n"
+        )
+
+        @JvmField
+        val swizzleStageARGB = ShaderStage(
+            "loadTex", listOf(
+                Variable(GLSLType.V2F, "finalUV"),
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V4F, "color", VariableMode.OUT)
+            ), "color = getTexture(tex, finalUV).argb;\n"
         )
 
         @JvmField

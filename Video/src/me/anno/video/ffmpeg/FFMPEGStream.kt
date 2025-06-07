@@ -10,7 +10,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.Sleep
-import me.anno.utils.hpc.HeavyProcessing.numThreads
+import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
@@ -33,7 +33,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         // to help to keep the memory and cpu-usage below 100%
         // 5 GB = 50 processes, at 6 cores / 12 threads = 4 ratio
         @JvmField
-        val processLimiter = Semaphore(max(2, numThreads), true)
+        val processLimiter = Semaphore(max(2, HeavyProcessing.numThreads), true)
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
@@ -204,6 +204,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var width = 0
     var height = 0
 
+    var isFinished = false
+    var isDestroyed = false
+
     abstract fun process(process: Process, arguments: List<String>, callback: () -> Unit)
 
     abstract fun destroy()
@@ -244,30 +247,43 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     fun runAsync(threadName: String, arguments: List<String>, isLimited: Boolean = isProcessCountLimited) {
         if (isLimited) {
-            Sleep.acquire(true, processLimiter) { // wait for running permission
-                runAsync(threadName, arguments, false)
-            }
+            var acquired = 0
+            Sleep.waitUntil(true, { // wait for running permission
+                if (processLimiter.tryAcquire()) acquired++
+                acquired > 0 || isDestroyed
+            }, {
+                if (isDestroyed) {
+                    processLimiter.release(acquired)
+                } else {
+                    if (acquired > 1) processLimiter.release(acquired - 1)
+                    runAsync(threadName, arguments, false)
+                }
+            })
         } else {
             thread(name = threadName) {
-                LOGGER.info(arguments.joinToString(" "))
-
-                val builder = BetterProcessBuilder(FFMPEG.ffmpeg, arguments.size + 1, true)
-                if (arguments.isNotEmpty()) builder += "-hide_banner"
-                builder.addAll(arguments)
-
-                val process = builder.start()
-                process(process, arguments) {
-                    if (isProcessCountLimited) {
-                        waitForRelease(process)
-                    }
-                }
+                runUnlimited(arguments)
             }
         }
     }
 
-    fun waitForRelease(process: Process) {
+    private fun runUnlimited(arguments: List<String>) {
+        if (isDestroyed) return
+        LOGGER.info(arguments.joinToString(" "))
+
+        val builder = BetterProcessBuilder(FFMPEG.ffmpeg, arguments.size + 1, true)
+        if (arguments.isNotEmpty()) builder += "-hide_banner"
+        builder.addAll(arguments)
+
+        val process = builder.start()
+        process(process, arguments) {
+            if (isProcessCountLimited) {
+                waitForRelease(process)
+            }
+        }
+    }
+
+    private fun waitForRelease(process: Process) {
         if (Engine.shutdown) {
-            LOGGER.warn("Shutting down before child process")
             waitingQueue.stop()
             process.destroyForcibly() // ^^
         } else {

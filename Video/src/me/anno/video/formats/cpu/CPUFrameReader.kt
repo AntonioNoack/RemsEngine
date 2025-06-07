@@ -20,7 +20,7 @@ class CPUFrameReader(
     finishedCallback: (List<Image>) -> Unit
 ) : FrameReader<Image>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
-    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream): Image? {
+    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: (Image?) -> Unit) {
         try {
             val frame = when (codec) {
                 // yuv
@@ -36,17 +36,19 @@ class CPUFrameReader(
                 "Y4", "Y800" -> loadY4Frame(w, h, input) // seems correct, awkward, that it has the same name
                 else -> throw RuntimeException("Unsupported Codec $codec for $file")
             }
-            return frame
+            return callback(frame)
         } catch (_: IOException) {
 
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return null
+        return callback(null)
     }
 
     override fun destroy() {
-        frames.clear()
-        isDestroyed = true
+        synchronized(frames) {
+            frames.clear()
+            isDestroyed = true
+        }
     }
 }

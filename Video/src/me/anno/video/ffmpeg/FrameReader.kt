@@ -2,11 +2,13 @@ package me.anno.video.ffmpeg
 
 import me.anno.cache.IgnoredException
 import me.anno.io.files.FileReference
-import me.anno.utils.types.Strings.shorten
+import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.max
 
 abstract class FrameReader<FrameType>(
     file: FileReference,
@@ -14,7 +16,7 @@ abstract class FrameReader<FrameType>(
     val bufferLength: Int,
     val nextFrameCallback: (FrameType) -> Unit,
     val finishedCallback: (List<FrameType>) -> Unit
-) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
+) : FFMPEGStream(file, isProcessCountLimited = true) {
 
     val frames = ArrayList<FrameType>(bufferLength)
     val parser = FFMPEGMetaParser()
@@ -23,74 +25,62 @@ abstract class FrameReader<FrameType>(
         parseAsync(parser, process.errorStream)
         waitForMetadata(parser) {
             try {
-                val frameCount = bufferLength
                 if (codec.isNotEmpty() && codec != invalidCodec) {
-                    val input = process.inputStream
-                    var frameIndex = frame0
-                    input.use { input1: InputStream ->
-                        readFrame(frameIndex++, input1)
-                        if (!isFinished) {
-                            for (i in 1 until frameCount) {
-                                readFrame(frameIndex++, input1)
-                                if (isFinished) break
-                            }
-                            isFinished = true
+                    process.inputStream.use { stream ->
+                        for (frameIndex in frame0 until frame0 + bufferLength) {
+                            readFrame(frameIndex, stream)
+                            if (isDestroyed) break
                         }
                     }
-                } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
-            } catch (e: OutOfMemoryError) {
+                } else LOGGER.debug("{} cannot be read as image(s) by FFMPEG", file)
+            } catch (_: OutOfMemoryError) {
                 LOGGER.warn("Engine has run out of memory!!")
-            } catch (e: EOFException) {
-                isFinished = true
+            } catch (_: EOFException) {
             } catch (_: IgnoredException) {
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                isFinished = true
             }
             finishedCallback(frames)
             callback()
         }
     }
 
-    // what do we do, if we run out of memory?
-    // - from the start, we reuse memory as well as possible,
-    // - if we're just streaming, use a class like VideoPanel
-    // - if we're out of memory anyway, we'll just be unlucky... memory is cheap today
+    // this limiter shall prevent the CPU reading tons of images before the GPU can process them
+    private val limiter = AtomicInteger(0)
 
     private fun readFrame(frameIndex: Int, input: InputStream) {
-        synchronized(foundCodecs) {
-            if (foundCodecs.add(codec)) {
-                LOGGER.info("Found codec '$codec' in $file")
-            }
-        }
-        if (!isDestroyed && !isFinished) {
-            val frame = readFrame(width, height, frameIndex, input)
+        // load 3 frames concurrently max
+        val limit = max(maxFramesConcurrently, 1)
+        Sleep.waitUntil(true) { limiter.get() < limit || isDestroyed || isFinished }
+        if (isDestroyed || isFinished) return
+
+        limiter.addAndGet(1)
+        readFrame(width, height, frameIndex, input) { frame ->
+            limiter.addAndGet(-1)
             if (frame != null) {
                 synchronized(frames) {
                     frames.add(frame)
                 }
                 nextFrameCallback(frame)
             } else onError()
+            if (isDestroyed) destroy()
         }
-        if (isDestroyed) destroy()
     }
 
-    abstract fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream): FrameType?
+    abstract fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: (FrameType?) -> Unit)
 
     private fun onError() {
         frameCountByFile[file!!] = frames.size + frame0
         isFinished = true
     }
 
-    var isFinished = false
-    var isDestroyed = false
-
     companion object {
-        @JvmStatic
-        private val foundCodecs = HashSet<String>()
+
+        var maxFramesConcurrently = 3
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameReader::class)
-
-        fun String.isFFMPEGOnlyExtension() = equals("webp", true)// || equals("jp2", true)
     }
 }

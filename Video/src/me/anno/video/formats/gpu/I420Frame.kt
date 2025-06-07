@@ -3,7 +3,6 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
-import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
 import me.anno.video.formats.gpu.I444Frame.Companion.yuvStage
 import java.io.InputStream
@@ -23,7 +22,7 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         return imageSize + 2L * halfImageSize
     }
 
-    override fun load(input: InputStream) {
+    override fun load(input: InputStream, callback: (GPUFrame?) -> Unit) {
         if (isDestroyed) return
 
         val yData = input.readNBytes2(imageSize, Pools.byteBufferPool)
@@ -33,14 +32,12 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
         val vData = input.readNBytes2(halfImageSize, Pools.byteBufferPool)
         blankDetector.putChannel(vData, 2)
         val interlaced = interlaceReplace(uData, vData)
-        Sleep.acquire(true, creationLimiter) {
-            addGPUTask("I420-UV", width, height) {
-                if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
-                    y.createMonochrome(yData, false)
-                    uv.createRG(interlaced, false)
-                } else warnAlreadyDestroyed(yData, interlaced)
-                creationLimiter.release()
-            }
+        addGPUTask("I420-UV", width, height) {
+            if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
+                y.createMonochrome(yData, false)
+                uv.createRG(interlaced, false)
+            } else warnAlreadyDestroyed(yData, interlaced)
+            callback(this)
         }
     }
 

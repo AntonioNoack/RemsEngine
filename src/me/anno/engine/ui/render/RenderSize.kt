@@ -24,10 +24,11 @@ class RenderSize {
 
     fun render(width: Int, height: Int, callback: I2U) {
         updateSize(width, height)
-        callback.call(width, height)
+        callback.call(renderWidth, renderHeight)
     }
 
     fun updateSize(width: Int, height: Int) {
+        if (width == renderWidth && height == renderHeight) return
         val time = Time.nanoTime
         if (isSame(width, renderWidth) && isSame(height, renderHeight)) {
             if (time - lastChangeTime > 500 * MILLIS_TO_NANOS) {

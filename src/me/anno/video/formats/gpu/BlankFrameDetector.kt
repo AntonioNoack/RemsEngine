@@ -3,6 +3,7 @@ package me.anno.video.formats.gpu
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
+import me.anno.utils.Color.rgba
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import java.nio.ByteBuffer
@@ -24,6 +25,30 @@ class BlankFrameDetector {
         val size = data.remaining() shr 2
         if (size > 0) for (i in 0 until NUM_SAMPLES) {
             pixels[i] = data.getInt(getRandomIndex(size, i) * 4)
+        }
+    }
+
+    fun putARGB(data: ByteBuffer) {
+        val size = data.remaining() shr 2
+        if (size > 0) for (i in 0 until NUM_SAMPLES) {
+            val idx = getRandomIndex(size, i) * 4
+            pixels[i] = rgba(data.get(idx + 1), data.get(idx + 2), data.get(idx + 3), data.get(idx))
+        }
+    }
+
+    fun putRGB(data: ByteBuffer) {
+        val size = data.remaining() shr 2
+        if (size > 0) for (i in 0 until NUM_SAMPLES) {
+            val idx = getRandomIndex(size, i) * 3
+            pixels[i] = rgba(data.get(idx), data.get(idx + 1), data.get(idx + 2), -1)
+        }
+    }
+
+    fun putR(data: ByteBuffer) {
+        val size = data.remaining() shr 2
+        if (size > 0) for (i in 0 until NUM_SAMPLES) {
+            val color = data.get(getRandomIndex(size, i)).toInt().and(255)
+            pixels[i] = color * 0x10101
         }
     }
 

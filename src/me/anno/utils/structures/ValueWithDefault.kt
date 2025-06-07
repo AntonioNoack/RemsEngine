@@ -1,7 +1,7 @@
 package me.anno.utils.structures
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 
 /**
  * class for values, which have not the typical default value
@@ -11,10 +11,16 @@ import me.anno.io.base.BaseWriter
 @Suppress("unused") // is used lots in Rem's Studio
 class ValueWithDefault<V>(
     private var state: V?,
-    private var default: V
+    default: V
 ) {
 
     constructor(value: V) : this(null, value)
+
+    var default: V = default
+        set(value) {
+            field = value
+            state = null
+        }
 
     var wasSet = false
     val isSet get() = state != null && (state != default || wasSet)
@@ -33,11 +39,6 @@ class ValueWithDefault<V>(
 
     fun reset() {
         wasSet = false
-        state = null
-    }
-
-    fun setDefault(v: V) {
-        default = v
         state = null
     }
 

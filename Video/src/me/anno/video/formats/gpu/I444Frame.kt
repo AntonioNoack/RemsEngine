@@ -9,7 +9,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Streams.readNBytes2
-import me.anno.utils.Sleep
 import me.anno.utils.pooling.Pools
 import java.io.InputStream
 
@@ -37,7 +36,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
     private val y = Texture2D("i444-y-frame", width, height, 1)
     private val uv = Texture2D("i444-uv-frame", width, height, 1)
 
-    override fun load(input: InputStream) {
+    override fun load(input: InputStream, callback: (GPUFrame?) -> Unit) {
         if (isDestroyed) return
 
         val s0 = width * height
@@ -50,15 +49,12 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
 
         // merge the u and v planes
         val interlaced = interlaceReplace(uData, vData)
-
-        Sleep.acquire(true, creationLimiter) {
-            addGPUTask("I444-Y", width, height) {
-                if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
-                    y.createMonochrome(yData, false)
-                    uv.createRG(interlaced, false)
-                } else warnAlreadyDestroyed(yData, interlaced)
-                creationLimiter.release()
-            }
+        addGPUTask("I444-Y", width, height) {
+            if (!isDestroyed && !y.isDestroyed && !uv.isDestroyed) {
+                y.createMonochrome(yData, false)
+                uv.createRG(interlaced, false)
+            } else warnAlreadyDestroyed(yData, interlaced)
+            callback(this)
         }
     }
 
