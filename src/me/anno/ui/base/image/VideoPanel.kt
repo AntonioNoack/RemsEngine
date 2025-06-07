@@ -2,7 +2,6 @@ package me.anno.ui.base.image
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
@@ -127,9 +126,9 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
                     when (key) {
                         Key.KEY_SPACE -> stream.togglePlaying()
                         Key.KEY_PERIOD -> if (stream.isPlaying) stream.togglePlaying()
-                        else stream.skipTo(max(stream.getTime() + 1.0 / meta.videoFPS, 0.0))
+                        else stream.skipTo(max(stream.getLoopingTimeSeconds() + 1.0 / meta.videoFPS, 0.0))
                         Key.KEY_COMMA -> if (stream.isPlaying) stream.togglePlaying()
-                        else stream.skipTo(min(stream.getTime(), meta.videoDuration) - 1.0 / meta.videoFPS)
+                        else stream.skipTo(min(stream.getLoopingTimeSeconds(), meta.videoDuration) - 1.0 / meta.videoFPS)
                         Key.KEY_0, Key.KEY_KP_0 -> resetTransform()
                         else -> super.onKeyTyped(x, y, key)
                     }
@@ -145,7 +144,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
             controls.add(object : Panel(style) {
                 override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                     super.draw(x0, y0, x1, y1)
-                    val xi = (x + width * movie.stream.getTime() / movie.meta.videoDuration).toInt()
+                    val xi = (x + width * movie.stream.getLoopingTimeSeconds() / movie.meta.videoDuration).toInt()
                     DrawRectangles.drawRect(x + 2, y + height / 2 - 1, width - 4, 2, Color.white.withAlpha(127))
                     DrawRectangles.drawRect(xi - 1, y + 3, 3, height - 3, Color.white)
                 }

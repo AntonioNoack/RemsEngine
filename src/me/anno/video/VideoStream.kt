@@ -30,32 +30,33 @@ open class VideoStream(
         private set
 
     var audio: AudioFileStreamOpenAL? = null
+        private set
 
-    private var startTime = 0L
-    private var standTime = 0L
+    private var startTimeNanos = 0L
+    private var pausedTimeNanos = 0L
 
     val sortedFrames = ArrayList<GPUFrame>()
-    var lastRequestedFrame = 0
     val workerId = AtomicInteger(0)
+    var lastRequestedFrame = 0
 
     fun togglePlaying() {
-        val time = getTime()
-        if (isPlaying) {
+        val time = getLoopingTimeSeconds()
+        if (isPlaying) { // regular stop
             stop()
-            skipTo(time)
+            skipTo(time) // reset time just in case
         } else {
-            stop()
-            val isAtEnd = time >= meta.videoDuration * 0.999
+            stop() // kill last worker just in case
+            val isAtEnd = time >= meta.videoDuration * (1.0 - 1e-8)
             start(if (isAtEnd) 0.0 else time)
         }
     }
 
-    fun start(time: Double = getTime()) {
+    fun start(time: Double = getLoopingTimeSeconds()) {
         if (isPlaying) return
         val frameIndex0 = (time * fps).toInt()
         LOGGER.info("Starting $this at #$frameIndex0/${meta.videoFrameCount}")
         isPlaying = true
-        startTime = (Time.nanoTime - time * 1e9).toLong()
+        startTimeNanos = (Time.nanoTime - time * 1e9).toLong()
         lastRequestedFrame = frameIndex0
         startWorker(frameIndex0, meta.videoFrameCount - frameIndex0)
         if (playAudio) {
@@ -72,14 +73,14 @@ open class VideoStream(
         LOGGER.info("Stopping $this at #$lastRequestedFrame")
         workerId.incrementAndGet() // just in case execute this always
         if (!isPlaying) return
-        standTime = (getTime() * 1e9).toLong()
+        pausedTimeNanos = (getLoopingTimeSeconds() * 1e9).toLong()
         isPlaying = false
         stopAudio()
     }
 
     fun startAudio() {
         val audio = AudioFileStreamOpenAL(
-            file, looping, getTime(), false, meta, 1.0,
+            file, looping, getLoopingTimeSeconds(), false, meta, 1.0,
             left = true, center = false, right = true
         )
         this.audio?.stop()
@@ -97,7 +98,7 @@ open class VideoStream(
             stop()
             start(time)
         } else {
-            standTime = (time * 1e9).toLong()
+            pausedTimeNanos = (time * 1e9).toLong()
             // only start worker, if current frame cannot be found
             if (!hasCurrentFrame()) {
                 startWorker(getFrameIndex(), 1)
@@ -112,19 +113,19 @@ open class VideoStream(
         }
     }
 
-    fun getTime(): Double {
-        val time0 = max(
+    fun getLoopingTimeSeconds(): Double {
+        val rawTimeSeconds = max(
             if (isPlaying) {
-                (Time.nanoTime - startTime)
+                (Time.nanoTime - startTimeNanos)
             } else {
-                standTime
+                pausedTimeNanos
             }, 0L
         ) * 1e-9
-        return looping[time0, meta.videoDuration]
+        return looping[rawTimeSeconds, meta.videoDuration]
     }
 
     open fun getFrameIndex(): Int {
-        return looping[(getTime() * fps).toInt(), meta.videoFrameCount - 1]
+        return looping[(getLoopingTimeSeconds() * fps).toInt(), meta.videoFrameCount - 1]
     }
 
     fun getFrame(): GPUFrame? {
@@ -147,11 +148,29 @@ open class VideoStream(
         }
         lastRequestedFrame = max(frameIndex - numExtraImages, 0)
         return synchronized(sortedFrames) {
-            val goodFrames = sortedFrames
-                .filter { it.frameIndex <= frameIndex && it.isCreated }
-                .maxByOrNull { it.frameIndex }
-            goodFrames ?: sortedFrames.firstOrNull { it.isCreated }
+            findBestFrame(frameIndex)
         }
+    }
+
+    private fun findBestFrame(idealFrameIndex: Int): GPUFrame? {
+        val sorted = sortedFrames
+        var bestFrame: GPUFrame? = null
+        // could theoretically be binary search, but that doesn't matter here,
+        // because |sortedFrames| is typically just 7 or 16 or so, so binary search is not worth it
+        for (i in sorted.indices) {
+            val frame = sorted[i]
+            if (!frame.isCreated) continue
+            if (frame.frameIndex <= idealFrameIndex) {
+                bestFrame = frame
+            } else if (bestFrame != null) {
+                // if a frame from the past is available, use it
+                return bestFrame
+            } else {
+                // this is the first frame after that's created -> use it
+                return frame
+            }
+        }
+        return bestFrame
     }
 
     override fun destroy() {
