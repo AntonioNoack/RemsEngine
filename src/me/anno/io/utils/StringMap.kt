@@ -27,7 +27,9 @@ open class StringMap(
         map.putAll(data)
     }
 
-    private var wasChanged = false
+    var wasChanged = false
+        private set
+
     private val map = HashMap<String, Any?>(capacity)
 
     override val className: String get() = "SMap"
@@ -86,13 +88,18 @@ open class StringMap(
         }
     }
 
+    /**
+     * returns whether collection was changed
+     * */
     override operator fun set(propertyName: String, value: Any?): Boolean {
-        synchronized(this) {
+        return synchronized(this) {
             onSyncAccess()
             val old = map.put(propertyName, value)
-            if (old != value) wasChanged = true
+            if (old != value) {
+                wasChanged = true
+                true
+            } else false
         }
-        return true
     }
 
     override fun containsKey(key: String): Boolean {
@@ -211,7 +218,7 @@ open class StringMap(
     operator fun get(key: String, default: Double): Double {
         val value = this[key]
         if (this[key] == null) set(key, default)
-        return AnyToDouble.getDouble(value,default)
+        return AnyToDouble.getDouble(value, default)
     }
 
     operator fun get(key: String, default: Int): Int {
@@ -232,7 +239,10 @@ open class StringMap(
                 "false", "f", "0" -> false
                 else -> default
             }
-            null -> set(key, default) // must be here for proper default
+            null -> {
+                set(key, default) // must be here for proper default
+                return default
+            }
             else -> get(key, default.toLong()) != 0L
         }
     }

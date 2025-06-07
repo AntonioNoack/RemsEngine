@@ -36,7 +36,7 @@ object AnyToDouble {
                 .replace(',', '.')
                 .toDoubleOrNull() ?: defaultValue
             else -> {
-                LOGGER.info("Unknown ${this::class.simpleName}[$index] to Double")
+                LOGGER.warn("Unknown ${this::class.simpleName}[$index] to Double")
                 defaultValue
             }
         }
