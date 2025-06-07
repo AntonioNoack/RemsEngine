@@ -176,7 +176,7 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
                 Variable(GLSLType.V2F, "finalUV"),
                 Variable(GLSLType.S2D, "tex"),
                 Variable(GLSLType.V4F, "color", VariableMode.OUT)
-            ), "color = getTexture(tex, finalUV).argb;\n"
+            ), "color = getTexture(tex, finalUV).gbar;\n" // gbar = rgba-inverted argb
         )
 
         @JvmField
