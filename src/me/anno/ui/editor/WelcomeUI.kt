@@ -349,13 +349,17 @@ interface WelcomeUI {
                 }
                 else -> {}
             }
-            fileInput.tooltip = msg
-            fileInput.uiParent?.tooltip = msg
             if (alreadyExists) {
                 val project = AsyncCacheData.loadSync { loadProjectHeader(file, it) }
-                alreadyExists = project != null
-                if (alreadyExists) state = "open"
+                if (project != null) {
+                    nameInput.setValue(project.name, true)
+                    msg = "Project already exists"
+                    state = "open"
+                } else alreadyExists = false
             }
+
+            fileInput.tooltip = msg
+            fileInput.uiParent?.tooltip = msg
 
             // change colors
             val base = fileInput.base2

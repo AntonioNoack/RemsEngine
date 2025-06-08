@@ -5,12 +5,12 @@ import me.anno.fonts.Codepoints.codepoints
 object XMLWriter {
 
     fun write(xml: XMLNode): String {
-        return write(xml, "  ", false)
+        return write(xml, "  ", closeEmptyTypes = false, withHeader = true)
     }
 
-    fun write(xml: XMLNode, indentation: String?, closeEmptyTypes: Boolean): String {
+    fun write(xml: XMLNode, indentation: String?, closeEmptyTypes: Boolean, withHeader: Boolean): String {
         val builder = StringBuilder(64)
-        builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+        if (withHeader) builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
         if (indentation != null) builder.append("\n")
         write(xml, builder, if (indentation == null) Int.MIN_VALUE else 0, indentation, closeEmptyTypes)
         return builder.toString()

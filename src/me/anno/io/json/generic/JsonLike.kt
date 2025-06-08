@@ -52,7 +52,7 @@ object JsonLike {
         val jsonNode = JsonReader(json).readArray()
         val xmlNode = XML2JSON.toXML(MAIN_NODE_NAME, jsonNode)
         val indentation = if (pretty) "  " else null
-        return XMLWriter.write(xmlNode, indentation, true)
+        return XMLWriter.write(xmlNode, indentation, closeEmptyTypes = true, withHeader = true)
     }
 
     fun jsonLikeToJson(jsonLike: Any?): String {

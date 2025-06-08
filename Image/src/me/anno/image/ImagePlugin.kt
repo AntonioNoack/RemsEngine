@@ -42,8 +42,8 @@ class ImagePlugin : Plugin() {
 
     private fun registerInnerFolder() {
         // image loading with extra details
-        InnerFolderCache.registerSignatures("gimp", GimpImage.Companion::readAsFolder)
-        InnerFolderCache.registerSignatures("svg", SVGMesh.Companion::readAsFolder)
+        InnerFolderCache.registerSignatures("gimp", GimpImage::readAsFolder)
+        InnerFolderCache.registerSignatures("svg", SVGMesh::readAsFolder)
     }
 
     private fun registerMediaMetadata() {

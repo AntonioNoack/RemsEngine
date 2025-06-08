@@ -185,13 +185,14 @@ object Color {
     }
 
     @JvmStatic
-    fun hexI(value: Long, len: Int, prefix: String = ""): String {
-        val chars = CharArray(len)
+    fun hexI(value: Long, numHexDigits: Int, prefix: String = ""): String {
+        val prefixLength = prefix.length
+        val chars = CharArray(prefixLength + numHexDigits)
         prefix.toCharArray(chars)
-        val i0 = prefix.length
-        for (i in chars.indices) {
-            val shift = ((len - 1) - i) * 4
-            chars[i0 + i] = base36[(value shr shift).toInt() and 15]
+        for (i in 0 until numHexDigits) {
+            val shift = ((numHexDigits - 1) - i) * 4
+            val idx = (value shr shift).toInt()
+            chars[prefixLength + i] = base36[idx and 15]
         }
         return String(chars)
     }

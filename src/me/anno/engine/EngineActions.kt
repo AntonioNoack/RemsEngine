@@ -231,17 +231,21 @@ object EngineActions {
         register["TextInputML.backspace.typed", "DeleteBefore"]
 
         // PureTextInputML
-        register["PureTextInputML.delete.typed", "DeleteAfter"]
-        register["PureTextInputML.backspace.typed", "DeleteBefore"]
+        for (name in listOf("PureTextInput", "PureTextInputML")) {
+            register["$name.delete.typed", "DeleteAfter"]
+            register["$name.backspace.typed", "DeleteBefore"]
+            register["$name.delete.typed", "DeleteAfter"]
+            register["$name.backspace.typed", "DeleteBefore"]
 
-        register["PureTextInputML.leftArrow.typed", "MoveLeft"]
-        register["PureTextInputML.rightArrow.typed", "MoveRight"]
-        register["PureTextInputML.upArrow.typed", "MoveUp"]
-        register["PureTextInputML.downArrow.typed", "MoveDown"]
-        register["PureTextInputML.leftArrow.typed.s", "MoveLeft"]
-        register["PureTextInputML.rightArrow.typed.s", "MoveRight"]
-        register["PureTextInputML.upArrow.typed.s", "MoveUp"]
-        register["PureTextInputML.downArrow.typed.s", "MoveDown"]
+            register["$name.leftArrow.typed", "MoveLeft"]
+            register["$name.rightArrow.typed", "MoveRight"]
+            register["$name.upArrow.typed", "MoveUp"]
+            register["$name.downArrow.typed", "MoveDown"]
+            register["$name.leftArrow.typed.s", "MoveLeft"]
+            register["$name.rightArrow.typed.s", "MoveRight"]
+            register["$name.upArrow.typed.s", "MoveUp"]
+            register["$name.downArrow.typed.s", "MoveDown"]
+        }
 
         register["ConsoleInput.upArrow.typed", "MoveUp"]
         register["ConsoleInput.downArrow.typed", "MoveDown"]

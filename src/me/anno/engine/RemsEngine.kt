@@ -51,6 +51,7 @@ import me.anno.ui.editor.config.ConfigType
 import me.anno.utils.OS
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.types.Strings.ifBlank2
 import org.joml.Matrix4f
 
 // to do Unity($)/RemsEngine(research) shader debugger:
@@ -234,11 +235,13 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
     }
 
     override fun loadProjectHeader(folder: FileReference, callback: Callback<ProjectHeader>) {
-        GameEngineProject.read(folder, callback.map { ProjectHeader(it.name, it.location) })
+        GameEngineProject.read(folder, callback.map {
+            ProjectHeader(it.name.ifBlank2(it.location.name), it.location)
+        })
     }
 
     fun loadProjectImpl(project: GameEngineProject): ProjectHeader {
-        val name = project.name
+        val name = project.name.ifBlank2(project.location.name)
         currentProject = project
         project.init()
         val title = "${nameDesc.name} - $name"

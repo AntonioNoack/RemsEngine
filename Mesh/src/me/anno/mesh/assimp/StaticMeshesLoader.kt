@@ -153,7 +153,10 @@ object StaticMeshesLoader {
                         } else xml.toString().trim()
                     }
 
-                    val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
+                    val better = XMLWriter.write(
+                        clean(xml) as XMLNode, indentation = null,
+                        closeEmptyTypes = false, withHeader = true
+                    )
                     val tmp = InnerTmpTextFile(better)
                     loadAIScene(file, tmp, flags, signature, callback)
                 } else callback.err(err)

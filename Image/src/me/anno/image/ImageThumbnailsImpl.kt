@@ -96,7 +96,7 @@ object ImageThumbnailsImpl {
                         val h = (size * bounds.maxY / maxSize).roundToIntOr()
                         if (!(w < 2 || h < 2)) {
                             val transform = Matrix4fArrayList()
-                            transform.scale(bounds.maxY / bounds.maxX, 1f, 1f)
+                            transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
                             ThumbsRendering.renderToImage(
                                 srcFile, false, dstFile, false,
                                 Renderer.colorRenderer, false, callback, w, h
