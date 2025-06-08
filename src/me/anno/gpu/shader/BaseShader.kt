@@ -41,7 +41,7 @@ open class BaseShader(
 
     constructor() : this("", "", emptyList(), "")
 
-    var glslVersion = GPUShader.DefaultGLSLVersion
+    var glslVersion = GPUShader.DEFAULT_GLSL_VERSION
     var textures: List<String>? = null
 
     data class ShaderKey(

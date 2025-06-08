@@ -38,7 +38,7 @@ class ShaderBuilder(val name: String) {
     var disabledLayers: BooleanArrayList? = null
     var useRandomness = true
 
-    var glslVersion = GPUShader.DefaultGLSLVersion
+    var glslVersion = GPUShader.DEFAULT_GLSL_VERSION
 
     fun addVertex(stage: ShaderStage?) {
         vertex.add(stage ?: return)

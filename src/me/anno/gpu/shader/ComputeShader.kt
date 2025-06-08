@@ -21,7 +21,7 @@ class ComputeShader(
     val version: Int,
     val groupSize: Vector3i,
     val source: String
-) : GPUShader(shaderName) {
+) : GPUShader(shaderName, UniformCacheSize) {
 
     constructor(shaderName: String, localSize: Vector3i, variables: List<Variable>, source: String) :
             this(shaderName, 430, localSize, variables, source)

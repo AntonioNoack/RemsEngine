@@ -25,11 +25,26 @@ open class Shader(
     val varyings: List<Variable>,
     val fragmentVariables: List<Variable>,
     val fragmentShader: String
-) : GPUShader(shaderName) {
+) : GPUShader(shaderName, countUniforms(vertexVariables, fragmentVariables)) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Shader::class)
         val builder = StringBuilder(4096) // we only need one, because we compile serially anyway
+
+        private fun countUniforms(vertexVariables: List<Variable>, fragmentVariables: List<Variable>): Int {
+            return countUniforms(vertexVariables) + countUniforms(fragmentVariables)
+        }
+
+        private fun countUniforms(variables: List<Variable>): Int {
+            var count = 0
+            for (i in variables.indices) {
+                val variable = variables[i]
+                if (variable.inOutMode != VariableMode.ATTR) continue
+                if (!variable.type.isSampler) count++
+                // else texture
+            }
+            return count
+        }
     }
 
     constructor(
@@ -185,7 +200,7 @@ open class Shader(
             }
         }
 
-        val base = if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion &&
+        val base = if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DEFAULT_GLSL_VERSION &&
             "gl_FragColor" in fragmentShader && fragmentVariables.none { it.isOutput }// && !OS.isWeb // in WebGL, it is ok; only if version is low enough...
         ) "out vec4 glFragColor;\n" + fragmentShader.replace("gl_FragColor", "glFragColor")
         else fragmentShader

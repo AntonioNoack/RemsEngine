@@ -70,7 +70,7 @@ import java.nio.FloatBuffer
 /**
  * base class for shaders, e.g. for ComputeShader or Shader
  * */
-abstract class GPUShader(val name: String) : ICacheData {
+abstract class GPUShader(val name: String, uniformCacheSize: Int) : ICacheData {
 
     companion object {
 
@@ -83,14 +83,15 @@ abstract class GPUShader(val name: String) : ICacheData {
         val attribute get() = "in" // if(OS.isWeb) "attribute" else "in"
 
         private val matrixBuffer = ByteBufferPool.allocateDirect(16 * 4).asFloatBuffer()
-        private val identity2 = Matrix2f()
-        private val identity3 = Matrix3f()
-        private val identity4 = Matrix4f()
-        private val identity4x3 = Matrix4x3f()
+        private val identity2f = Matrix2f()
+        private val identity3f = Matrix3f()
+        private val identity4f = Matrix4f()
+        private val identity4x3f = Matrix4x3f()
         private val identity4x3m = Matrix4x3()
-        const val DefaultGLSLVersion = 150
+
+        const val DEFAULT_GLSL_VERSION = 150
+
         var UniformCacheSize = 256
-        val UniformCacheSizeX4 get() = UniformCacheSize * 4
         var safeShaderBinding = false
         var lastProgram = -1
         var showUniformWarnings = false
@@ -230,9 +231,15 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
+    private val uniformCache = FloatArray(uniformCacheSize * 4)
+
+    val uniformLocations = BiMap<String, Int>()
+    val uniformTypes = HashMap<String, Variable>()
+    var textureNames: List<String> = emptyList()
+
     var safeShaderBinding = Companion.safeShaderBinding
 
-    var glslVersion = DefaultGLSLVersion
+    var glslVersion = DEFAULT_GLSL_VERSION
 
     var program = 0
     var session = 0
@@ -272,11 +279,6 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
-    val uniformLocations = BiMap<String, Int>()
-    val uniformTypes = HashMap<String, Variable>()
-    private val uniformCache = FloatArray(UniformCacheSizeX4)
-    var textureNames: List<String> = emptyList()
-
     fun checkUniformType(loc: Int, type: GLSLType, isArray: Boolean) {
         if (Build.isDebug && loc >= 0) {
             val present = uniformTypes[uniformLocations.reverse[loc]]
@@ -314,7 +316,7 @@ abstract class GPUShader(val name: String) : ICacheData {
 
     fun compileSetDebugLabel() {
         if (Build.isDebug) {
-            glObjectLabel(GL_PROGRAM, pointer, name)
+            glObjectLabel(GL_PROGRAM, program, name)
         }
     }
 
@@ -325,8 +327,6 @@ abstract class GPUShader(val name: String) : ICacheData {
             GFX.check()
         }
     }
-
-    val pointer get() = program
 
     fun updateSession() {
         session = GFXState.session
@@ -352,7 +352,7 @@ abstract class GPUShader(val name: String) : ICacheData {
 
     fun setTextureIndices(textures: List<String>?): GPUShader {
         if (textures == null) return this
-        if (pointer != 0) {
+        if (program != 0) {
             use()
             textureNames = textures
             for ((index, name) in textures.withIndex()) {
@@ -393,25 +393,18 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v1i(loc: Int, x: Int) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V1I, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform1i(loc, x)
             } else {
-                val xf = x.toFloat()
-                val index0 = loc * 4
-                when {
-                    xf.toInt() != x -> {
-                        // cannot be represented as a float -> cannot currently be cached
-                        uniformCache[index0] = Float.NaN
-                        potentiallyUse()
-                        glUniform1i(loc, x)
-                    }
-                    uniformCache[index0] != xf -> {
-                        // it has changed
-                        uniformCache[index0] = xf
-                        potentiallyUse()
-                        glUniform1i(loc, x)
-                    }
+                val xf = Float.fromBits(x)
+                if (uniformCache[index0] != xf) {
+                    // it has changed
+                    uniformCache[index0] = xf
+                    potentiallyUse()
+                    glUniform1i(loc, x)
                 }
             }
         }
@@ -422,16 +415,15 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v1f(loc: Int, x: Float) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V1F, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform1f(loc, x)
-            } else {
-                val index0 = loc * 4
-                if (uniformCache[index0 + 0] != x) {
-                    uniformCache[index0 + 0] = x
-                    potentiallyUse()
-                    glUniform1f(loc, x)
-                }
+            } else if (uniformCache[index0] != x) {
+                uniformCache[index0] = x
+                potentiallyUse()
+                glUniform1f(loc, x)
             }
         }
     }
@@ -462,20 +454,16 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v2f(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V2F, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform2f(loc, x, y)
-            } else {
-                val index0 = loc * 4
-                if (
-                    uniformCache[index0 + 0] != x ||
-                    uniformCache[index0 + 1] != y
-                ) {
-                    uniformCache[index0 + 0] = x
-                    uniformCache[index0 + 1] = y
-                    potentiallyUse()
-                    glUniform2f(loc, x, y)
-                }
+            } else if (uniformCache[index0 + 0] != x || uniformCache[index0 + 1] != y) {
+                uniformCache[index0 + 0] = x
+                uniformCache[index0 + 1] = y
+                potentiallyUse()
+                glUniform2f(loc, x, y)
             }
         }
     }
@@ -507,28 +495,20 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v2i(loc: Int, x: Int, y: Int = x) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V2I, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform2i(loc, x, y)
             } else {
-                val xf = x.toFloat()
-                val yf = y.toFloat()
-                val i0 = loc * 4
-                when {
-                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf -> {
-                        // cannot be represented as a float -> cannot currently be cached
-                        uniformCache[i0] = Float.NaN
-                        uniformCache[i0 + 1] = Float.NaN
-                        potentiallyUse()
-                        glUniform2i(loc, x, y)
-                    }
-                    uniformCache[i0] != xf -> {
-                        // it has changed
-                        uniformCache[i0] = xf
-                        uniformCache[i0 + 1] = yf
-                        potentiallyUse()
-                        glUniform2i(loc, x, y)
-                    }
+                val xf = Float.fromBits(x)
+                val yf = Float.fromBits(y)
+                if (uniformCache[index0] != xf || uniformCache[index0 + 1] != yf) {
+                    // it has changed
+                    uniformCache[index0] = xf
+                    uniformCache[index0 + 1] = yf
+                    potentiallyUse()
+                    glUniform2i(loc, x, y)
                 }
             }
         }
@@ -538,22 +518,17 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3f(loc: Int, x: Float, y: Float, z: Float) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V3F, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform3f(loc, x, y, z)
-            } else {
-                val index0 = loc * 4
-                if (
-                    uniformCache[index0 + 0] != x ||
-                    uniformCache[index0 + 1] != y ||
-                    uniformCache[index0 + 2] != z
-                ) {
-                    uniformCache[index0 + 0] = x
-                    uniformCache[index0 + 1] = y
-                    uniformCache[index0 + 2] = z
-                    potentiallyUse()
-                    glUniform3f(loc, x, y, z)
-                }
+            } else if (uniformCache[index0] != x || uniformCache[index0 + 1] != y || uniformCache[index0 + 2] != z) {
+                uniformCache[index0] = x
+                uniformCache[index0 + 1] = y
+                uniformCache[index0 + 2] = z
+                potentiallyUse()
+                glUniform3f(loc, x, y, z)
             }
         }
     }
@@ -607,32 +582,22 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3i(loc: Int, x: Int, y: Int, z: Int) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V3I, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform3i(loc, x, y, z)
             } else {
-                val xf = x.toFloat()
-                val yf = y.toFloat()
-                val zf = z.toFloat()
-                val i0 = loc * 4
-                when {
-                    xf.toInt() != x || yf.toInt() != y -> {
-                        // cannot be represented as a float -> cannot currently be cached
-                        uniformCache[i0] = Float.NaN
-                        uniformCache[i0 + 1] = Float.NaN
-                        uniformCache[i0 + 2] = Float.NaN
-                        potentiallyUse()
-                        glUniform3i(loc, x, y, z)
-                    }
-                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf ||
-                            uniformCache[i0 + 2] != zf -> {
-                        // it has changed
-                        uniformCache[i0] = xf
-                        uniformCache[i0 + 1] = yf
-                        uniformCache[i0 + 2] = zf
-                        potentiallyUse()
-                        glUniform3i(loc, x, y, z)
-                    }
+                val xf = Float.fromBits(x)
+                val yf = Float.fromBits(y)
+                val zf = Float.fromBits(z)
+                if (uniformCache[index0] != xf || uniformCache[index0 + 1] != yf || uniformCache[index0 + 2] != zf) {
+                    // it has changed
+                    uniformCache[index0] = xf
+                    uniformCache[index0 + 1] = yf
+                    uniformCache[index0 + 2] = zf
+                    potentiallyUse()
+                    glUniform3i(loc, x, y, z)
                 }
             }
         }
@@ -644,24 +609,21 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v4f(loc: Int, x: Float, y: Float, z: Float, w: Float) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V4F, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform4f(loc, x, y, z, w)
-            } else {
-                val index0 = loc * 4
-                if (
-                    uniformCache[index0 + 0] != x ||
-                    uniformCache[index0 + 1] != y ||
-                    uniformCache[index0 + 2] != z ||
-                    uniformCache[index0 + 3] != w
-                ) {
-                    uniformCache[index0 + 0] = x
-                    uniformCache[index0 + 1] = y
-                    uniformCache[index0 + 2] = z
-                    uniformCache[index0 + 3] = w
-                    potentiallyUse()
-                    glUniform4f(loc, x, y, z, w)
-                }
+            } else if (
+                uniformCache[index0] != x || uniformCache[index0 + 1] != y ||
+                uniformCache[index0 + 2] != z || uniformCache[index0 + 3] != w
+            ) {
+                uniformCache[index0] = x
+                uniformCache[index0 + 1] = y
+                uniformCache[index0 + 2] = z
+                uniformCache[index0 + 3] = w
+                potentiallyUse()
+                glUniform4f(loc, x, y, z, w)
             }
         }
     }
@@ -728,35 +690,26 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v4i(loc: Int, x: Int, y: Int, z: Int, w: Int) {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.V4I, false)
-            if (loc >= UniformCacheSize) {
+            val index0 = loc * 4
+            val uniformCache = uniformCache
+            if (index0 >= uniformCache.size) {
                 potentiallyUse()
                 glUniform4i(loc, x, y, z, w)
             } else {
-                val xf = x.toFloat()
-                val yf = y.toFloat()
-                val zf = z.toFloat()
-                val wf = w.toFloat()
-                val i0 = loc * 4
-                when {
-                    xf.toInt() != x || yf.toInt() != y || zf.toInt() != z || wf.toInt() != w -> {
-                        // cannot be represented as a float -> cannot currently be cached
-                        uniformCache[i0] = Float.NaN
-                        uniformCache[i0 + 1] = Float.NaN
-                        uniformCache[i0 + 2] = Float.NaN
-                        uniformCache[i0 + 3] = Float.NaN
-                        potentiallyUse()
-                        glUniform4i(loc, x, y, z, w)
-                    }
-                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf ||
-                            uniformCache[i0 + 2] != zf || uniformCache[i0 + 3] != wf -> {
-                        // it has changed
-                        uniformCache[i0] = xf
-                        uniformCache[i0 + 1] = yf
-                        uniformCache[i0 + 2] = zf
-                        uniformCache[i0 + 3] = wf
-                        potentiallyUse()
-                        glUniform4i(loc, x, y, z, w)
-                    }
+                val xf = Float.fromBits(x)
+                val yf = Float.fromBits(y)
+                val zf = Float.fromBits(z)
+                val wf = Float.fromBits(w)
+                if (uniformCache[index0] != xf || uniformCache[index0 + 1] != yf ||
+                    uniformCache[index0 + 2] != zf || uniformCache[index0 + 3] != wf
+                ) {
+                    // it has changed
+                    uniformCache[index0] = xf
+                    uniformCache[index0 + 1] = yf
+                    uniformCache[index0 + 2] = zf
+                    uniformCache[index0 + 3] = wf
+                    potentiallyUse()
+                    glUniform4i(loc, x, y, z, w)
                 }
             }
         }
@@ -809,8 +762,9 @@ abstract class GPUShader(val name: String) : ICacheData {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.M2x2, false)
             potentiallyUse()
+            val matrixBuffer = matrixBuffer
             matrixBuffer.position(0).limit(4)
-            (value ?: identity2).putInto(matrixBuffer)
+            (value ?: identity2f).putInto(matrixBuffer)
             matrixBuffer.flip()
             glUniformMatrix2fv(loc, false, matrixBuffer)
         }
@@ -821,8 +775,9 @@ abstract class GPUShader(val name: String) : ICacheData {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.M3x3, false)
             potentiallyUse()
+            val matrixBuffer = matrixBuffer
             matrixBuffer.position(0).limit(9)
-            (value ?: identity3).putInto(matrixBuffer)
+            (value ?: identity3f).putInto(matrixBuffer)
             matrixBuffer.flip()
             glUniformMatrix3fv(loc, false, matrixBuffer)
         }
@@ -833,8 +788,9 @@ abstract class GPUShader(val name: String) : ICacheData {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.M4x3, false)
             potentiallyUse()
+            val matrixBuffer = matrixBuffer
             matrixBuffer.position(0).limit(12)
-            (value ?: identity4x3).putInto(matrixBuffer)
+            (value ?: identity4x3f).putInto(matrixBuffer)
             matrixBuffer.flip()
             glUniformMatrix4x3fv(loc, false, matrixBuffer)
         }
@@ -845,6 +801,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.M4x3, false)
             potentiallyUse()
+            val matrixBuffer = matrixBuffer
             matrixBuffer.position(0).limit(12)
             (value ?: identity4x3m).putInto(matrixBuffer)
             matrixBuffer.flip()
@@ -873,8 +830,9 @@ abstract class GPUShader(val name: String) : ICacheData {
         if (loc > -1) {
             checkUniformType(loc, GLSLType.M4x4, false)
             potentiallyUse()
+            val matrixBuffer = matrixBuffer
             matrixBuffer.position(0).limit(16)
-            (value ?: identity4).putInto(matrixBuffer)
+            (value ?: identity4f).putInto(matrixBuffer)
             matrixBuffer.flip()
             glUniformMatrix4fv(loc, false, matrixBuffer)
         }

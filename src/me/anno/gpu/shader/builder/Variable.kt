@@ -47,9 +47,9 @@ open class Variable(val type: GLSLType, var name: String, var arraySize: Int, va
         GLSLType.V1B -> 5
         GLSLType.V1I -> 7
         GLSLType.V1F -> 10
-        GLSLType.V2I, GLSLType.V2F -> 20
-        GLSLType.V3I, GLSLType.V3F -> 30
-        GLSLType.V4I, GLSLType.V4F -> 40
+        GLSLType.V2B, GLSLType.V2I, GLSLType.V2F -> 20
+        GLSLType.V3B, GLSLType.V3I, GLSLType.V3F -> 30
+        GLSLType.V4B, GLSLType.V4I, GLSLType.V4F -> 40
         GLSLType.M2x2 -> 40
         GLSLType.M3x3 -> 90
         GLSLType.M4x3 -> 120
