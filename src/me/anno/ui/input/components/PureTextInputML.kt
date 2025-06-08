@@ -57,8 +57,14 @@ open class PureTextInputML(style: Style) :
     var lineLimit = Int.MAX_VALUE
     var lengthLimit = Int.MAX_VALUE // todo respect this property
 
-    // todo update all children, when this is overridden
-    var focusTextColor = style.getColor("textColorFocused", -1)
+    var focusTextColor: Int = style.getColor("textColorFocused", -1)
+        set(value) {
+            field = value
+            val children = actualChildren
+            for (i in children.indices) {
+                (children[i] as PureTextInputLine).focusTextColor = value
+            }
+        }
 
     var enableSpellcheck = true
         set(value) {

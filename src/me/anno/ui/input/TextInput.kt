@@ -9,11 +9,11 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
-import me.anno.ui.input.components.PureTextInputML
 
 @Suppress("unused")
 open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellcheck: Boolean, style: Style) :
-    PanelContainer(PureTextInput(style.getChild("deep")), Padding(), style), InputPanel<String>, TextStyleable {
+    PanelContainer(PureTextInput(style.getChild("deep")), Padding(), style),
+    InputPanel<String>, TextStyleable {
 
     constructor(style: Style) : this(NameDesc.EMPTY, "", true, style)
 
@@ -25,7 +25,7 @@ open class TextInput(nameDesc: NameDesc, val visibilityKey: String, enableSpellc
         setValue(value ?: "", false)
     }
 
-    val base: PureTextInputML = child as PureTextInputML
+    val base = child as PureTextInput
     private var isSelectedListener: (() -> Unit)? = null
 
     init {

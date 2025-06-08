@@ -27,7 +27,12 @@ open class NamedSaveable : Saveable() {
             }
         }
 
-    val nameDesc get() = NameDesc(name, description, "")
+    var nameDesc
+        get() = NameDesc(name, description, "")
+        set(value) {
+            this.name = value.name
+            this.description = value.desc
+        }
 
     open fun onChangeNameDesc() {}
 

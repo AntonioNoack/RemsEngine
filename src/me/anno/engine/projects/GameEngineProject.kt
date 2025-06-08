@@ -48,13 +48,24 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?, callback: Callback<GameEngineProject>) {
-            if (location == null || location == InvalidRef) return callback.err(null)
-            val location2 = if (location.exists && !location.isDirectory) location.getParent() else location
-            val configFile = location2.getChild("Project.json")
-
+            val configFile = getConfigFile(location) ?: return callback.err(null)
+            val location2 = configFile.getParent()
             promise { cb -> readProject(location2, configFile, cb) }
                 .then(callback)
                 .catch { callback.ok(createProject(location2, configFile)) }
+        }
+
+        fun read(location: FileReference?, callback: Callback<GameEngineProject>) {
+            val configFile = getConfigFile(location) ?: return callback.err(null)
+            promise { cb -> readProject(configFile.getParent(), configFile, cb) }
+                .then(callback)
+                .catch { callback.err(null) }
+        }
+
+        private fun getConfigFile(location: FileReference?): FileReference? {
+            if (location == null || location == InvalidRef) return null
+            val location2 = if (location.exists && !location.isDirectory) location.getParent() else location
+            return location2.getChild("Project.json").resolved().nullIfUndefined()
         }
 
         private fun readProject(

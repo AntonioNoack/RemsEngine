@@ -12,6 +12,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
+import me.anno.engine.projects.ProjectHeader
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
@@ -228,13 +229,16 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
         callEvent(GameEngineProject.ProjectLoadedEvent(project))
     }
 
-    override fun loadProject(name: String, folder: FileReference, callback: Callback<Pair<String, FileReference>>) {
-        GameEngineProject.readOrCreate(folder, callback.map { project ->
-            loadProjectImpl(name, folder, project)
-        })
+    override fun loadProject(name: String, folder: FileReference, callback: Callback<ProjectHeader>) {
+        GameEngineProject.readOrCreate(folder, callback.map { project -> loadProjectImpl(project) })
     }
 
-    fun loadProjectImpl(name: String, folder: FileReference, project: GameEngineProject): Pair<String, FileReference> {
+    override fun loadProjectHeader(folder: FileReference, callback: Callback<ProjectHeader>) {
+        GameEngineProject.read(folder, callback.map { ProjectHeader(it.name, it.location) })
+    }
+
+    fun loadProjectImpl(project: GameEngineProject): ProjectHeader {
+        val name = project.name
         currentProject = project
         project.init()
         val title = "${nameDesc.name} - $name"
@@ -242,7 +246,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             window.title = title
         }
         EditorState.projectFile = project.location
-        return name to folder
+        return ProjectHeader(name, project.location)
     }
 
     override fun createUI() {

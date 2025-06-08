@@ -10,11 +10,9 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInputML
 
 @Suppress("unused")
-open class TextInputML(nameDesc: NameDesc, style: Style) : PanelContainer(
-    PureTextInputML(
-        style.getChild("deep")
-    ), Padding(2), style.getChild("deep")
-), InputPanel<String>, TextStyleable {
+open class TextInputML(nameDesc: NameDesc, style: Style) :
+    PanelContainer(PureTextInputML(style.getChild("deep")), Padding(2), style.getChild("deep")),
+    InputPanel<String>, TextStyleable {
 
     constructor(style: Style) : this(NameDesc.EMPTY, style)
 

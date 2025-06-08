@@ -1,5 +1,6 @@
 package me.anno.ui.editor
 
+import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
@@ -236,7 +237,9 @@ interface WelcomeUI {
         return recentProjects
     }
 
-    fun loadProject(name: String, folder: FileReference, callback: Callback<Pair<String, FileReference>>)
+    fun loadProject(name: String, folder: FileReference, callback: Callback<ProjectHeader>)
+
+    fun loadProjectHeader(folder: FileReference, callback: Callback<ProjectHeader>)
 
     fun createProjectUI()
 
@@ -287,8 +290,22 @@ interface WelcomeUI {
         val newProject = SettingCategory(NameDesc("New Project", "New Workplace", "ui.project.new"), style)
         newProject.showByDefault()
 
+        val createProjectName = NameDesc("Create Project", "Creates a new project", "ui.createNewProject")
+        val openProjectName = NameDesc("Open Project", "Open an existing project", "ui.openExistingProject")
+        val createButton = TextButton(createProjectName, false, style)
+
+        val nameInput = TextInput(NameDesc("Project Name"), "", Dict["New Project", "ui.newProject.defaultName"], style)
+        nameInput.setEnterListener { loadNewProject(studio, usableFile, nameInput) }
+        Companion.nameInput = nameInput
+
+        var lastName = nameInput.value
+
         // cannot be moved down
-        lateinit var fileInput: FileInput
+        val fileInput = FileInput(
+            NameDesc("Project Location", "", "ui.newProject.location"), style,
+            EngineBase.workspace.getChild(lastName), emptyList(),
+            true
+        )
 
         fun updateFileInputColor() {
 
@@ -311,6 +328,7 @@ interface WelcomeUI {
             val file = fileInput.value
             var state = "ok"
             var msg = ""
+            var alreadyExists = false
             when {
                 !rootIsOk(file) -> {
                     state = "error"
@@ -325,6 +343,7 @@ interface WelcomeUI {
                     msg = translate("Invalid file name \"$invalidName\"", "ui.project.invalidFileName")
                 }
                 file.exists && file.listChildren().isNotEmpty() -> {
+                    alreadyExists = true
                     state = "warning"
                     msg = translate("Folder is not empty!", "ui.project.folderNotEmpty")
                 }
@@ -332,27 +351,32 @@ interface WelcomeUI {
             }
             fileInput.tooltip = msg
             fileInput.uiParent?.tooltip = msg
+            if (alreadyExists) {
+                val project = AsyncCacheData.loadSync { loadProjectHeader(file, it) }
+                alreadyExists = project != null
+                if (alreadyExists) state = "open"
+            }
+
+            // change colors
             val base = fileInput.base2
             base.textColor = when (state) {
                 "warning" -> 0xffff00
                 "error" -> 0xff0000
+                "open" -> 0x77ff77
                 else -> 0x00ff00
             } or black
             usableFile = if (state == "error") {
                 null
             } else file
             base.focusTextColor = base.textColor
+
+            // switch title of button between "Create" and "Open"
+            val nameDesc =
+                if (alreadyExists) openProjectName
+                else createProjectName
+            createButton.text = nameDesc.name
+            createButton.tooltip = nameDesc.desc
         }
-
-        nameInput = TextInput(NameDesc("Project Name"), "", Dict["New Project", "ui.newProject.defaultName"], style)
-        nameInput.setEnterListener { loadNewProject(studio, usableFile, nameInput) }
-
-        var lastName = nameInput.value
-        fileInput = FileInput(
-            NameDesc("Project Location", "", "ui.newProject.location"), style,
-            EngineBase.workspace.getChild(lastName), emptyList(),
-            true
-        )
 
         updateFileInputColor()
 
@@ -371,10 +395,8 @@ interface WelcomeUI {
         }
         newProject += fileInput
 
-        val okButton =
-            TextButton(NameDesc("Create Project", "Creates a new project", "ui.createNewProject"), false, style)
-        okButton.addLeftClickListener { loadNewProject(studio, usableFile, nameInput) }
-        newProject += okButton
+        createButton.addLeftClickListener { loadNewProject(studio, usableFile, nameInput) }
+        newProject += createButton
 
         return newProject
     }

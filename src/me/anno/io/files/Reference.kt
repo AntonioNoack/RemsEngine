@@ -1,7 +1,6 @@
 package me.anno.io.files
 
 import me.anno.Time
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths
@@ -232,6 +231,10 @@ object Reference {
         // check whether it exists -> easy then :)
         if (LastModifiedCache.exists(absolutePath)) {
             return createFileFileRef(absolutePath)
+        }
+
+        if (!LinkFileReference.isValidPath(absolutePath)) {
+            return InvalidRef
         }
 
         return LinkFileReference(absolutePath)

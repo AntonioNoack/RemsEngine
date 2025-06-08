@@ -19,6 +19,13 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(LinkFileReference::class)
+        fun isValidPath(absolutePath: String): Boolean {
+            if(absolutePath.isEmpty()) return false
+            if (OS.isWindows && !isAllowedWindowsPath(absolutePath)) {
+               return false
+            }
+            return true
+        }
     }
 
     val original: FileReference
@@ -34,15 +41,6 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
             }
             return file
         }
-
-    init {
-        assertTrue(absolutePath.isNotEmpty())
-        if (OS.isWindows) {
-            assertTrue(isAllowedWindowsPath(absolutePath)) {
-                "Invalid file ($absolutePath)"
-            }
-        }
-    }
 
     override fun getChildImpl(name: String): FileReference {
         return getReference(appendPath(absolutePath, name))
