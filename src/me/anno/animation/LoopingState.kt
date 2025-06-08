@@ -4,7 +4,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.posMod
 
-enum class LoopingState(val id: Int, val naming: NameDesc) {
+enum class LoopingState(val id: Int, val nameDesc: NameDesc) {
     PLAY_ONCE(0, NameDesc("Once")) {
         override fun get(time: Double, duration: Double): Double {
             return clamp(time, 0.0, duration)

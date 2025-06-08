@@ -90,7 +90,7 @@ object SpellcheckingImpl {
 
     private val requestedDownloads = HashSet<FileReference>()
     private fun getExecutable(language: Language, callback: (FileReference) -> Unit) {
-        LOGGER.info("Requesting executable for language ${language.naming.name}")
+        LOGGER.info("Requesting executable for language ${language.nameDesc.name}")
         var fileName: String? = null
         for ((languages, fileNameMaybe) in libraries) {
             if (language in languages) {

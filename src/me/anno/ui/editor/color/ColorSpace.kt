@@ -15,7 +15,7 @@ import org.joml.Vector4f
 
 // could be used to replace the two color spaces with more
 abstract class ColorSpace(
-    val naming: NameDesc,
+    val nameDesc: NameDesc,
     val serializationName: String,
     // display
     val glsl: Lazy<String>,
@@ -30,7 +30,7 @@ abstract class ColorSpace(
         val oldShader = shaders[type]
         if (oldShader != null) return oldShader
         val newShader = Shader(
-            "${naming.englishName}-${type.naming.englishName}",
+            "${nameDesc.englishName}-${type.nameDesc.englishName}",
             uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V2F, "ringSL"),
                 Variable(GLSLType.V3F, "v0"),

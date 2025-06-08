@@ -56,9 +56,9 @@ enum class Language(prettyName: String, val code: String) {
     Tagalog("Tagalog", "tl-PH"),
     Ukrainian("Ukrainian", "uk-UA");
 
-    val naming = NameDesc(prettyName, "", "lang.$code")
+    val nameDesc = NameDesc(prettyName, "", "lang.$code")
 
-    override fun toString() = naming.name
+    override fun toString() = nameDesc.name
 
     companion object {
         @JvmStatic

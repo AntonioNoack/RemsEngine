@@ -215,8 +215,8 @@ open class EnumInput(
 
         fun enumToNameDesc(instance: Enum<*>): NameDesc {
             val reflections = getReflections(instance)
-            val naming = reflections[instance, "naming"] as? NameDesc
-            if (naming != null) return naming
+            val nameDesc = reflections[instance, "nameDesc"] as? NameDesc
+            if (nameDesc != null) return nameDesc
             val desc0 = reflections[instance, "desc"]
                 ?: reflections[instance, "description"]
             val desc1 = desc0 as? String

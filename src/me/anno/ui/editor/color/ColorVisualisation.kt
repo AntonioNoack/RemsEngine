@@ -24,10 +24,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
-enum class ColorVisualisation(val naming: NameDesc, val ratio: Float, val needsHueChooser: Boolean) {
-    WHEEL(NameDesc("Wheel", "", "ui.input.color.vis.wheel"), 1f, false),
-    CIRCLE(NameDesc("Circle", "", "ui.input.color.vis.circle"), 1f / (1f + circleBarRatio), false),
-    BOX(NameDesc("Box", "", "ui.input.color.vis.box"), 1f / GOLDEN_RATIOf, true);
+enum class ColorVisualisation(val id: Int, val nameDesc: NameDesc, val ratio: Float, val needsHueChooser: Boolean) {
+    WHEEL(0, NameDesc("Wheel", "", "ui.input.color.vis.wheel"), 1f, false),
+    CIRCLE(1, NameDesc("Circle", "", "ui.input.color.vis.circle"), 1f / (1f + circleBarRatio), false),
+    BOX(2, NameDesc("Box", "", "ui.input.color.vis.box"), 1f / GOLDEN_RATIOf, true);
 
     fun setColorByClick(rx: Float, ry: Float, self: ColorChooser) {
         when (this) {

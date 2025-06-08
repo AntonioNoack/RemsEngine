@@ -84,16 +84,16 @@ open class ColorChooser(
             "Color Layout: which colors are where?, e.g. color circle",
             "ui.input.color.colorSpace"
         ),
-        colorSpace.naming,
-        ColorSpace.list.value.map { it.naming }, style
+        colorSpace.nameDesc,
+        ColorSpace.list.value.map { it.nameDesc }, style
     ).setChangeListener { _, index, _ ->
         colorSpace = ColorSpace.list.value[index]
     }
 
     private val styleInput = EnumInput(
         NameDesc("Style"), true,
-        visualisation.naming,
-        ColorVisualisation.entries.map { it.naming },
+        visualisation.nameDesc,
+        ColorVisualisation.entries.map { it.nameDesc },
         style
     ).setChangeListener { _, index, _ ->
         visualisation = ColorVisualisation.entries[index]

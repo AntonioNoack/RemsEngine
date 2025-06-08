@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL46C
 // custom blend modes? only for the engine by programmers;
 // I don't think people in Rem's Studio or otherwise would/could use them well
 class BlendMode(
-    val naming: NameDesc,
+    val nameDesc: NameDesc,
     val id: String
 ) {
 
@@ -70,7 +70,7 @@ class BlendMode(
     }
 
     override fun toString(): String {
-        return naming.name
+        return nameDesc.name
     }
 
     companion object {
