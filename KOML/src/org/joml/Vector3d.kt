@@ -635,6 +635,10 @@ open class Vector3d(
         dst[i + 2] = z
     }
 
+    fun absMax(): Double {
+        return max(max(abs(x), abs(y)), abs(z))
+    }
+
     fun max(): Double {
         return max(max(x, y), z)
     }

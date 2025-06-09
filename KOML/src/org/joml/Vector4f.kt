@@ -491,6 +491,10 @@ open class Vector4f(
         return dst.set(x, y, z, w)
     }
 
+    fun absMax(): Float {
+        return max(max(abs(x), abs(y)), max(abs(z), abs(w)))
+    }
+
     fun max(): Float {
         return max(max(x, y), max(z, w))
     }

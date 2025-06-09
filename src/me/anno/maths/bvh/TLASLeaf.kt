@@ -20,10 +20,6 @@ class TLASLeaf(
     
     override fun maxDepth() = 1
 
-    override fun collectMeshes(result: MutableCollection<BLASNode>) {
-        result.add(blas)
-    }
-
     override fun raycast(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.tlasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {

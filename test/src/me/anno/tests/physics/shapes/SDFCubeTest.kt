@@ -17,7 +17,7 @@ import kotlin.random.Random
 class SDFCubeTest {
 
     private fun createBaseline(marginI: Float): BoxShape {
-        val baseline = BoxCollider().apply { margin = marginI }
+        val baseline = BoxCollider().apply { roundness = marginI }
             .createBulletShape(Vector3d(1.0))
         assertEquals(marginI, baseline.margin.toFloat())
         return baseline

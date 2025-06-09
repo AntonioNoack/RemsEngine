@@ -28,9 +28,6 @@ class CapsuleCollider : Collider() {
     @SerializedProperty
     var radius = 1f
 
-    @SerializedProperty
-    var margin = 0.04f
-
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the two rings, and the top and bottom peak
         val r = radius.toDouble()
@@ -90,6 +87,5 @@ class CapsuleCollider : Collider() {
         dst.axis = axis
         dst.halfHeight = halfHeight
         dst.radius = radius
-        dst.margin = margin
     }
 }

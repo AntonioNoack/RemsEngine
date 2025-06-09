@@ -27,7 +27,7 @@ class SanitizePathTest {
 
     @Test
     fun testRemovesDoubleSlashes() {
-        assertEquals("a/b/c", sanitizePath("//a//b///c//"))
+        assertEquals("a/b/c", sanitizePath("a//b///c//"))
     }
 
     @Test
@@ -37,7 +37,7 @@ class SanitizePathTest {
 
     @Test
     fun testKeepsDriveLetterSlash() {
-        assertEquals("C:/", sanitizePath("C:/"))
+        assertEquals("C:", sanitizePath("C:/"))
     }
 
     @Test

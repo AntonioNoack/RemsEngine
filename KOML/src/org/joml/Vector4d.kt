@@ -510,6 +510,10 @@ open class Vector4d(
         return dst.set(this)
     }
 
+    fun absMax(): Double {
+        return max(max(abs(x), abs(y)), max(abs(z), abs(w)))
+    }
+
     fun max(): Double {
         return max(max(x, y), max(z, w))
     }

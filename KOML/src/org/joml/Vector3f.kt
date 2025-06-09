@@ -609,6 +609,10 @@ open class Vector3f(
         dst[i + 2] = z
     }
 
+    fun absMax(): Float {
+        return max(max(abs(x), abs(y)), abs(z))
+    }
+
     fun max(): Float {
         return max(max(x, y), z)
     }

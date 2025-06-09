@@ -9,6 +9,7 @@ import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.types.Ints.isPowerOf2
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.min
 
 abstract class BufferPool<V>(
     val size: Int,
@@ -61,7 +62,7 @@ abstract class BufferPool<V>(
         val oldSize = implGetSize(buffer)
         return if (oldSize != newSize) {
             val newBuffer = this[newSize, false, true]
-            implCopyTo(buffer, newBuffer, oldSize)
+            implCopyTo(buffer, newBuffer, min(oldSize, newSize))
             returnBuffer(buffer)
             newBuffer
         } else buffer

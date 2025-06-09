@@ -28,7 +28,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
     val sdf get() = entity?.getComponent(SDFComponent::class)
 
     @Docs("Invisible gap between rigidbodies to simplify computations")
-    var margin = 0.04 // CONVEX_DISTANCE_MARGIN
+    var margin = 0.04f // CONVEX_DISTANCE_MARGIN
 
     override var isConvex = true
 

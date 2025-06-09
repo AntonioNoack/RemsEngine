@@ -234,6 +234,10 @@ open class Vector2f(
         return dst
     }
 
+    fun absMax(): Float {
+        return max(abs(x), abs(y))
+    }
+
     fun max(): Float {
         return max(x, y)
     }

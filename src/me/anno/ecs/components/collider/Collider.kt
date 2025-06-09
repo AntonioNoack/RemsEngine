@@ -39,7 +39,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     @Range(0.0, 1.0)
     @SerializedProperty
-    var roundness = 0f
+    var roundness = 0.04f
 
     @Docs("Whether this collider will collide with stuff, or just detect collisions")
     @SerializedProperty

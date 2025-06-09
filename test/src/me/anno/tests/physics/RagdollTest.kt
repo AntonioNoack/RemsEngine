@@ -143,7 +143,7 @@ fun main() {
             axis = Axis.Y
             halfHeight = length.toFloat() * 0.32f
             radius = halfHeight * 0.3f
-            margin = 0.01f
+            roundness = 0.01f
             capsules.add(this)
         }
 

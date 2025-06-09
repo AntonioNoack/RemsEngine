@@ -5,6 +5,7 @@ import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.packets.PingPacket
+import me.anno.tests.network.NetworkTests.nextPort
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -14,7 +15,7 @@ import kotlin.concurrent.thread
 // https://stackoverflow.com/questions/1098897/what-is-the-largest-safe-udp-packet-size-on-the-internet
 // val universalUDPPacketSizeLimit = 512
 
-val port = 12345
+val port = nextPort()
 val limit = 256
 
 fun startDatagramClient(message: String) {

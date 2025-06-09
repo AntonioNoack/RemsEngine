@@ -37,10 +37,10 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     }
 
     override fun getName() = collider.name
-    override fun getMargin() = collider.margin
+    override fun getMargin() = collider.margin.toDouble()
 
     override fun setMargin(margin: Double) {
-        collider.margin = margin
+        collider.margin = margin.toFloat()
     }
 
     override fun localGetSupportingVertex(

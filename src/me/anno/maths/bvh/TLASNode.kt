@@ -4,8 +4,6 @@ import org.joml.AABBf
 
 abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
-    abstract fun collectMeshes(result: MutableCollection<BLASNode>)
-
     /**
      * iterates over each node; order is extremely important!
      * */
@@ -14,6 +12,14 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
         if (this is TLASBranch) {
             n0.forEach(callback)
             n1.forEach(callback)
+        }
+    }
+
+    fun collectMeshes(result: MutableCollection<BLASNode>) {
+        forEach { node ->
+            if (node is TLASLeaf) {
+                result.add(node.blas)
+            }
         }
     }
 

@@ -135,41 +135,37 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 }
 
 fun CapsuleCollider.createBulletShape(scale: Vector3d): CapsuleShape {
-    val self = this
     return when (axis) {
         Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis.id) // x
         Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis.id) // y
         Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis.id) // z
-    }.apply { margin = self.margin.toDouble() }
+    }.apply { margin = roundness.toDouble() }
 }
 
 fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
-    val self = this
     return when (axis) {
         Axis.X -> ConeShapeX(radius * scale.y, height * scale.x)
         Axis.Y -> ConeShape(radius * scale.x, height * scale.y)
         Axis.Z -> ConeShapeZ(radius * scale.x, height * scale.z)
-    }.apply { margin = self.margin.toDouble() }
+    }.apply { margin = roundness.toDouble() }
 }
 
 fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
-    val self = this
     return when (axis) {
         Axis.X -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
         Axis.Y -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
         Axis.Z -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
-    }.apply { margin = self.margin.toDouble() }
+    }.apply { margin = roundness.toDouble() }
 }
 
 fun BoxCollider.createBulletShape(scale: Vector3d): BoxShape {
-    val self = this
     return BoxShape(
         javax.vecmath.Vector3d(
-            (halfExtends.x + margin) * scale.x,
-            (halfExtends.y + margin) * scale.y,
-            (halfExtends.z + margin) * scale.z
+            halfExtends.x * scale.x,
+            halfExtends.y * scale.y,
+            halfExtends.z * scale.z
         )
-    ).apply { margin = self.margin.toDouble() }
+    ).apply { margin = roundness * scale.absMax() }
 }
 
 fun SphereCollider.createBulletShape(scale: Vector3d): SphereShape {

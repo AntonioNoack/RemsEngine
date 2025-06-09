@@ -59,7 +59,7 @@ fun main() {
             .setPosition(0.0, pillarSize.y * 0.5, z)
             .add(BoxCollider().apply {
                 halfExtends.set(pillarSize).mul(0.5f)
-                margin = 0f
+                roundness = 0f
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
             .add(Rigidbody().apply {
@@ -76,7 +76,7 @@ fun main() {
             .setPosition(0.0, height - barSize.y * 0.5, z)
             .add(BoxCollider().apply {
                 halfExtends.set(barSize).mul(0.5f)
-                margin = 0f
+                roundness = 0f
             })
             .add(MeshComponent(barMesh, barMaterial))
             .add(Rigidbody().apply {
@@ -145,7 +145,7 @@ fun main() {
 fun spawnFloor(scene: Entity) {
     Entity("Floor", scene)
         .add(BoxCollider().apply {
-            margin = 0f
+            roundness = 0f
         })
         .add(MeshComponent(flatCube.front))
         .add(Rigidbody().apply { friction = 1.0 })
@@ -164,7 +164,7 @@ fun spawnSampleCubes(scene: Entity) {
         val size = cubeSize(i)
         Entity("Cube[$i]", scene)
             .add(BoxCollider().apply {
-                margin = 0f
+                roundness = 0f
             })
             .add(MeshComponent(cubeMesh, cubeMaterial))
             .setScale(size * 0.5f)

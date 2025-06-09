@@ -6,13 +6,13 @@ import me.anno.io.files.WebRef
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.http.HttpProtocol
+import me.anno.tests.network.NetworkTests.nextPort
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertFalse
 import me.anno.utils.assertions.assertTrue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * test the sample web server
@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class HttpServerUnitTest {
 
     companion object {
-        private val port = AtomicInteger(4123)
         private val files = mapOf("/sample.html" to "this is the test file")
     }
 
@@ -64,7 +63,7 @@ class HttpServerUnitTest {
         Engine.cancelShutdown()
         server.register(TestProtocol("GET")) // for getting content
         server.register(TestProtocol("HEAD")) // for getting metadata only
-        server.start(port.getAndIncrement(), -1)
+        server.start(nextPort(), -1)
     }
 
     @Test

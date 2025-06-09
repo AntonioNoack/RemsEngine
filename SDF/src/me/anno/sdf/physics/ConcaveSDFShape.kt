@@ -45,10 +45,10 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
     }
 
     override fun getName() = collider.name
-    override fun getMargin() = collider.margin
+    override fun getMargin() = collider.margin.toDouble()
 
     override fun setMargin(margin: Double) {
-        collider.margin = margin
+        collider.margin = margin.toFloat()
     }
 
     val fx = 6

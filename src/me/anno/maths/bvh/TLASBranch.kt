@@ -3,6 +3,7 @@ package me.anno.maths.bvh
 import me.anno.engine.raycast.RayHit
 import org.joml.AABBf
 import org.joml.Vector3f
+import kotlin.math.max
 
 // this is just like BLASBranch
 class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABBf) : TLASNode(bounds) {
@@ -11,11 +12,6 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
             this(axis, n0, n1, n0.bounds.union(n1.bounds, AABBf()))
 
     val mask get() = 1 shl axis
-
-    override fun collectMeshes(result: MutableCollection<BLASNode>) {
-        n0.collectMeshes(result)
-        n1.collectMeshes(result)
-    }
 
     override fun raycast(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.tlasCtr++
@@ -30,5 +26,5 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
         } else false
     }
 
-    override fun maxDepth() = 1 + kotlin.math.max(n0.maxDepth(), n1.maxDepth())
+    override fun maxDepth() = 1 + max(n0.maxDepth(), n1.maxDepth())
 }

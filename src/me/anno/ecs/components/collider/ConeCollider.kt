@@ -30,9 +30,6 @@ class ConeCollider : Collider() {
     @SerializedProperty
     var radius = 1f
 
-    @SerializedProperty
-    var margin = 0.04f
-
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the peak and the bottom ring
         val h = height * 0.5
@@ -44,7 +41,7 @@ class ConeCollider : Collider() {
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
 
-        val roundness = roundness.toFloat()
+        val roundness = roundness
         val h = -height + roundness * 2f
         val dist1D = deltaPos[axis.id] + h * 0.5f // centering
         val dist2D = when (axis) {
@@ -85,6 +82,5 @@ class ConeCollider : Collider() {
         dst.axis = axis
         dst.height = height
         dst.radius = radius
-        dst.margin = margin
     }
 }

@@ -268,6 +268,10 @@ open class Vector2d(
         return dst
     }
 
+    fun absMax(): Double {
+        return max(abs(x), abs(y))
+    }
+
     fun max(): Double {
         return max(x, y)
     }

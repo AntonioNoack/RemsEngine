@@ -110,7 +110,12 @@ class CompileTest {
             this.meshFile = animatedMesh.ref
             this.animations = listOf(animState)
         })
-        offset.add(AnimMeshComponent().apply {
+        // todo not supported by MotionVectors...
+        //  when we have the power (Desktop OS), maybe always use shader attributes???
+        // todo we could also combine animation weights and IDs into a single value, probably...
+        //  16-bits ID + 16-bit float
+        // todo or automatically disable instancing???
+        if(false) offset.add(AnimMeshComponent().apply {
             this.meshFile = animatedMesh.ref
             this.animations = listOf(animState)
             this.isInstanced = true

@@ -21,9 +21,6 @@ class BoxCollider : Collider() {
             field.set(value)
         }
 
-    @SerializedProperty
-    var margin = 0.04f
-
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val halfExtends = halfExtends
         unionCube(
@@ -62,7 +59,7 @@ class BoxCollider : Collider() {
         val halfExtends = halfExtends
         val distance = JomlPools.aabbf.borrow()
             .setMin(-halfExtends.x, -halfExtends.y, -halfExtends.z).setMax(halfExtends)
-            .whereIsRayIntersecting(pos, invDir, margin)
+            .whereIsRayIntersecting(pos, invDir, 0f)
         if (distance < max && surfaceNormal != null) {
             val px = pos.x + dir.x * distance
             val py = pos.y + dir.y * distance

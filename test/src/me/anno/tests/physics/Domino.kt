@@ -17,7 +17,6 @@ import me.anno.utils.OS.music
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Floats.toRadians
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 // physics demo: dominos like https://www.youtube.com/watch?v=YZxky260O-4
@@ -27,13 +26,15 @@ import org.joml.Vector3f
 fun main() {
 
     // todo why are all bricks unstable?
+    //  smaller bricks fall faster -> less stable
+    //  no margin -> fake collisions -> rocking/dancing dominos
 
     OfficialExtensions.initForTests()
 
     registerCustomClass(BoxCollider())
     registerCustomClass(AudioComponent())
 
-    val inch = 1f // 2.54e-2f
+    val inch = 0.1f//2.54e-2f
     val width = 17f / 16f * inch
     val height = 35f / 16f * inch
     val thickness = 7f / 16f * inch
@@ -88,14 +89,14 @@ fun main() {
 
         Systems.registerSystem(CollisionListenerPhysics().apply {
             // updateInEditMode = true
-            fixedStep = 1.0 / 10e3
-            maxSubSteps = 1000
-            synchronousPhysics = false // todo remove jitter from async physics...
+            // fixedStep = 1.0 / 240.0
+            synchronousPhysics = false
         })
 
         val density = 1.0
         val mass1 = width * height * thickness * density
 
+        val margin1 = 0.1f * inch
         val halfExtends1 = Vector3f(width * 0.5f, height * 0.5f, thickness * 0.5f)
         val mesh = flatCube.scaled(halfExtends1).front.ref
 
@@ -109,32 +110,32 @@ fun main() {
             })
             domino.add(Rigidbody().apply {
                 mass = mass1
-                friction = 0.9
-                restitution = 0.5
+                friction = 0.3
+                restitution = 0.0
             })
             domino.add(BoxCollider().apply {
                 halfExtends = halfExtends1
-                margin = 0f
+                roundness = margin1
             })
-            domino.setPosition(x.toDouble(), halfExtends1.y.toDouble(), z.toDouble())
+            domino.setPosition(x.toDouble(), (halfExtends1.y + margin1).toDouble(), z.toDouble())
             dominos.add(domino)
             return domino
         }
 
-        val floorHalfSize = 50.0 * inch
+        val floorHalfSize = 10.0 * inch
         val floors = Entity("Floors")
         scene.add(floors)
-        val halfNumFloors = 1
+        val halfNumFloors = 5
         for (z in -halfNumFloors..halfNumFloors) {
             val floor = Entity()
             floor.add(Rigidbody().apply {
                 mass = 0.0
                 friction = 0.9
-                restitution = 0.5
+                restitution = 0.0
             })
             floor.add(BoxCollider().apply {
                 halfExtends.set(floorHalfSize)
-                margin = 0f
+                roundness = margin1
             })
             floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
             floor.setPosition(0.0, -floorHalfSize, 2 * z * floorHalfSize)

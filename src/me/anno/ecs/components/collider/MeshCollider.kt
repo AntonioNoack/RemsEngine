@@ -46,6 +46,7 @@ open class MeshCollider() : Collider() {
     @SerializedProperty
     var enableSimplifications = true
 
+    // todo can we define roundness instead? moving vertices inside by normal; then adding margin on top
     @SerializedProperty
     var margin = 0.04f
 

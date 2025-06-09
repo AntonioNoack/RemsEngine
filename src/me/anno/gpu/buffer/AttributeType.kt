@@ -35,11 +35,6 @@ enum class AttributeType(
     UINT32_NORM(32, 4, true, false, GL_UNSIGNED_INT),
     SINT8_NORM(33, 1, true, true, GL_BYTE),
     SINT16_NORM(34, 2, true, true, GL_SHORT),
-    SINT32_NORM(35, 4, true, true, GL_INT);
+    SINT32_NORM(35, 4, true, true, GL_INT),
 
-    companion object {
-        @JvmStatic
-        fun getById(id: Int) = AttributeType.entries
-            .firstOrNull { it.glslId == id } ?: FLOAT
-    }
 }

@@ -35,7 +35,7 @@ class SDFCylinderTest {
     fun testSDFSupportVector(axisI: Axis, marginI: Float) {
         val baseline = CylinderCollider().apply {
             axis = axisI
-            margin = marginI
+            roundness = marginI
         }.createBulletShape(Vector3d(1.0))
         assertEquals(marginI, baseline.margin.toFloat())
         val tested = ConvexSDFShape(

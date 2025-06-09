@@ -37,7 +37,7 @@ data class Attribute(
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "name" -> this.name = value as? String ?: return
-            "type" -> type = AttributeType.getById(value as? Int ?: return)
+            "type" -> type = AttributeType.entries.firstOrNull { it.id == value } ?: return
             "components" -> numComponents = value as? Int ?: return
             else -> super.setProperty(name, value)
         }
