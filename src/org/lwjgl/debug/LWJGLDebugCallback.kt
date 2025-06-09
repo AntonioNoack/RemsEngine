@@ -1,8 +1,8 @@
 package org.lwjgl.debug
 
+import me.anno.gpu.GFXState.PUSH_DEBUG_GROUP_MAGIC
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import org.lwjgl.opengl.AMDDebugOutput
 import org.lwjgl.opengl.ARBDebugOutput
 import org.lwjgl.opengl.GL
@@ -24,15 +24,19 @@ object LWJGLDebugCallback {
     // ignored message, because it spams my logs
     private val ignoredSequences = listOf(
         "will use VIDEO memory as the source for buffer object operations",
-        "Pixel-path performance warning: Pixel transfer is synchronized with 3D rendering."
+        "Pixel-path performance warning: Pixel transfer is synchronized with 3D rendering.",
+        "is being recompiled based on GL state",
+        "Buffer detailed info: Based on the usage hint and actual usage, buffer object"
     )
 
-    private val LOGGER: Logger = LogManager.getLogger("LWJGL")
+    private val LOGGER = LogManager.getLogger(LWJGLDebugCallback::class)
 
     private fun handleMessage(
         id: Int, source: GLSource, issueType: GLIssueType, severity: GLSeverity,
         length: Int, message: Long
     ) {
+        if (id == PUSH_DEBUG_GROUP_MAGIC) return
+
         val message = GLDebugMessageCallback.getMessage(length, message)
         if (ignoredSequences.any2 { sequence -> message.contains(sequence) }) return
 

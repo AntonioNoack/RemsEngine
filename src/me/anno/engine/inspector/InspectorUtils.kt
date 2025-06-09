@@ -17,6 +17,7 @@ import me.anno.ui.base.groups.PropertyTablePanel
 import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.TablePanel
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.text.UpdatingSimpleTextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.SettingCategory
@@ -116,7 +117,7 @@ object InspectorUtils {
         val list1 = PanelListX(style)
         list1.add(TextPanel("$title:", style))
         val relevantInstances = instances.filter { it::class == instances.first()::class }
-        list1.add(SizeLimitingContainer(UpdatingTextPanel(100L, style) {
+        list1.add(SizeLimitingContainer(UpdatingSimpleTextPanel(100L, style) {
             relevantInstances.joinToString { relevantInstance ->
                 when (val i = getter(relevantInstance)) {
                     is AABBf -> "${i.minX} - ${i.maxX}\n" +

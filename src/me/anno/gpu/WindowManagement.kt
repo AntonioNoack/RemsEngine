@@ -14,9 +14,6 @@ import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GLNames.getErrorTypeName
 import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.RenderStep.renderStep
-import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
-import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
-import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
 import me.anno.gpu.framebuffer.NullFramebuffer.setFrameNullSize
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -57,8 +54,6 @@ import org.lwjgl.opengl.GL46C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glGetInteger
 import org.lwjgl.opengl.GLCapabilities
-import org.lwjgl.opengl.KHRDebug
-import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Queue
@@ -341,37 +336,7 @@ object WindowManagement {
         }
         Logo.destroy()
         tick.stop("Render frame zero")
-        if (isDebug && (LOGGER.isInfoEnabled() || LOGGER.isWarnEnabled())) {
-            setupDebugCallback()
-        }
         init2(tick)
-    }
-
-    private fun setupDebugCallback() {
-        GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, msgPtr: Long, _: Long ->
-            handleDebugCallback(source, type, id, severity, msgPtr)
-        }, 0)
-        glEnable(KHRDebug.GL_DEBUG_OUTPUT)
-    }
-
-    private fun handleDebugCallback(source: Int, type: Int, id: Int, severity: Int, msgPtr: Long) {
-        var msg = if (msgPtr != 0L) MemoryUtil.memUTF8(msgPtr) else null
-        if (msg != null && "will use VIDEO memory as the source for buffer object operations" !in msg &&
-            "detailed info: Based on the usage hint and actual usage," !in msg &&
-            // this could be fixed by creating a shader for each attribute-configuration
-            // todo we want to be able to use our own buffer formats anyway, so somehow implement it that we load/create the shader based on the actually used layout
-            // todo after that's done, disable this check (?)
-            "Program/shader state performance warning: Vertex shader in program" !in msg &&
-            id != GFXState.PUSH_DEBUG_GROUP_MAGIC // spam that we can ignore
-        ) {
-            msg += "" +
-                    ", source: " + getDebugSourceName(source) +
-                    ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
-                    ", id: " + getErrorTypeName(id) +
-                    ", severity: " + getDebugSeverityName(severity)
-            if (type == KHRDebug.GL_DEBUG_TYPE_OTHER) LOGGER.info(msg)
-            else LOGGER.warn(msg)
-        }
     }
 
     @JvmStatic

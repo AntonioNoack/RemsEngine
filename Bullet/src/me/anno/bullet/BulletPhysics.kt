@@ -34,6 +34,7 @@ import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB
+import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
@@ -49,13 +50,16 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.maps.CountMap
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Vector3f
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import kotlin.math.max
+import kotlin.random.Random
 
 open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
 
@@ -298,7 +302,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     override fun step(dt: Long, printSlack: Boolean) {
         // just in case
         if (printSlack) {
-            Stack.printClassUsage()
             Stack.printSizes()
         }
         // Stack.limit = 1024
@@ -386,6 +389,29 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         drawContactPoints()
         drawAABBs()
         drawVehicles()
+        drawIslands()
+    }
+
+    private fun drawIslands() {
+        val transform = Transform()
+        val min = Vector3d()
+        val max = Vector3d()
+        val boundsById = HashMap<Int, AABBd>()
+        val countMap = CountMap<Int>()
+        for (instance in bulletInstance.collisionObjectArray) {
+            val tag = instance.islandTag
+            if (tag < 0) continue
+            instance.getWorldTransform(transform)
+            instance.collisionShape.getAabb(transform, min, max)
+            boundsById.getOrPut(tag) { AABBd() }
+                .union(min.x, min.y, min.z, max.x, max.y, max.z)
+            countMap.incAndGet(tag)
+        }
+        val color = UIColors.dodgerBlue
+        for ((tag, bounds) in boundsById) {
+            if (countMap[tag] == 1) continue
+            drawAABB(bounds, color)
+        }
     }
 
     private fun drawColliders(pipeline: Pipeline) {
@@ -610,7 +636,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         fun createBulletWorld(): DiscreteDynamicsWorld {
             val collisionConfig = DefaultCollisionConfiguration()
             val dispatcher = CollisionDispatcher(collisionConfig)
-            val bp = DbvtBroadphase()
+            val bp = DbvtBroadphase(null)
             val solver = SequentialImpulseConstraintSolver()
             return DiscreteDynamicsWorld(dispatcher, bp, solver, collisionConfig)
         }

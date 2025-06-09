@@ -2,19 +2,18 @@ package me.anno.bullet
 
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
-import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.LineBuffer.vToByte
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import javax.vecmath.Vector3d
 
-object BulletDebugDraw : IDebugDraw() {
+object BulletDebugDraw : IDebugDraw {
 
     private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
 
-    var stack = Matrix4f()
-    var cam = org.joml.Vector3d()
+    val stack = Matrix4f()
+    val cam = org.joml.Vector3d()
 
     /**
     public static final int NO_DEBUG              = 0;

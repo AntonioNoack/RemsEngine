@@ -75,26 +75,16 @@ class AABBd(
         else (if (dim == 1) maxY else maxZ)
 
     fun union(other: AABBd, dst: AABBd = this): AABBd {
-        return dst.setMin(
-            min(minX, other.minX),
-            min(minY, other.minY),
-            min(minZ, other.minZ)
-        ).setMax(
-            max(maxX, other.maxX),
-            max(maxY, other.maxY),
-            max(maxZ, other.maxZ)
+        return union(
+            other.minX, other.minY, other.minZ,
+            other.maxX, other.maxY, other.maxZ, dst
         )
     }
 
     fun union(other: AABBf, dst: AABBd = this): AABBd {
-        return dst.setMin(
-            min(minX, other.minX.toDouble()),
-            min(minY, other.minY.toDouble()),
-            min(minZ, other.minZ.toDouble())
-        ).setMax(
-            max(maxX, other.maxX.toDouble()),
-            max(maxY, other.maxY.toDouble()),
-            max(maxZ, other.maxZ.toDouble())
+        return union(
+            other.minX.toDouble(), other.minY.toDouble(), other.minZ.toDouble(),
+            other.maxX.toDouble(), other.maxY.toDouble(), other.maxZ.toDouble(), dst
         )
     }
 
@@ -111,6 +101,15 @@ class AABBd(
         return dst
             .setMin(min(minX, x), min(minY, y), min(minZ, z))
             .setMax(max(maxX, x), max(maxY, y), max(maxZ, z))
+    }
+
+    fun union(
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double, dst: AABBd = this
+    ): AABBd {
+        return dst
+            .setMin(min(minX, x0), min(minY, y0), min(minZ, z0))
+            .setMax(max(maxX, x1), max(maxY, y1), max(maxZ, z1))
     }
 
     fun testPoint(v: Vector3d): Boolean {
