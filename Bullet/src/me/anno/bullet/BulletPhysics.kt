@@ -400,16 +400,19 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val countMap = CountMap<Int>()
         for (instance in bulletInstance.collisionObjectArray) {
             val tag = instance.islandTag
-            if (tag < 0) continue
+            if (tag < 0) continue // no island available
+            // get transformed bounds
             instance.getWorldTransform(transform)
-            instance.collisionShape.getAabb(transform, min, max)
+            instance.collisionShape!!.getAabb(transform, min, max)
+            // add bounds to island
             boundsById.getOrPut(tag) { AABBd() }
                 .union(min.x, min.y, min.z, max.x, max.y, max.z)
             countMap.incAndGet(tag)
         }
+        // render all islands as AABBs
         val color = UIColors.dodgerBlue
         for ((tag, bounds) in boundsById) {
-            if (countMap[tag] == 1) continue
+            if (countMap[tag] == 1) continue // a not a true island
             drawAABB(bounds, color)
         }
     }
@@ -509,7 +512,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
 
             try {
-                val shape = colObj.collisionShape
+                val shape = colObj.collisionShape!!
                 shape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
                 if (shape is ConvexHullShape) {
                     val p1 = Vector3d()
@@ -630,7 +633,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     companion object {
 
         init {
-            BulletGlobals.setDeactivationTime(1.0)
+            // todo this is a thread-local value, so we need to configure it for every thread!!!
+            BulletGlobals.deactivationTime = 1.0
         }
 
         fun createBulletWorld(): DiscreteDynamicsWorld {

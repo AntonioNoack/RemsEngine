@@ -25,7 +25,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
     }
 
     // might be correct...
-    override fun getShapeType(): BroadphaseNativeType {
+    override val shapeType: BroadphaseNativeType get() {
         return BroadphaseNativeType.FAST_CONCAVE_MESH_PROXYTYPE
     }
 
@@ -44,12 +44,11 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         collider.calculateLocalInertia(mass, inertia)
     }
 
-    override fun getName() = collider.name
-    override fun getMargin() = collider.margin.toDouble()
-
-    override fun setMargin(margin: Double) {
-        collider.margin = margin.toFloat()
-    }
+    override var margin: Double
+        get() = collider.margin.toDouble()
+        set(value) {
+            collider.margin = value.toFloat()
+        }
 
     val fx = 6
     val fy = 6

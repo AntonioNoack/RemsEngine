@@ -38,11 +38,10 @@ fun main() {
             .setPosition(pos)
             .add(Rigidbody().apply {
                 this.mass = mass
-                restitution = 0.2
                 friction = 0.9
             })
             .add(MeshCollider(mesh).apply {
-                margin = 0f
+                margin = 0.1f
                 isConvex = true
             })
             .add(MeshComponent(mesh))

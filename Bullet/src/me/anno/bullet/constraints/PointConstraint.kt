@@ -41,6 +41,7 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
         instance.setting.tau = lerpingSpeed
         instance.setting.damping = damping
         instance.setting.impulseClamp = impulseClamp
+        instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
     }
 

@@ -65,6 +65,7 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
         instance.setLinearUpperLimit(castB(upperLimit))
         instance.setAngularLowerLimit(castB(lowerAngleLimit))
         instance.setAngularUpperLimit(castB(upperAngleLimit))
+        instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
     }
 

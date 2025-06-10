@@ -53,14 +53,12 @@ class ConeTwistConstraint : Constraint<com.bulletphysics.dynamics.constraintsolv
         }
 
     override fun createConstraint(
-        a: RigidBody,
-        b: RigidBody,
-        ta: Transform,
-        tb: Transform,
+        a: RigidBody, b: RigidBody, ta: Transform, tb: Transform,
     ): com.bulletphysics.dynamics.constraintsolver.ConeTwistConstraint {
         val instance = com.bulletphysics.dynamics.constraintsolver.ConeTwistConstraint(a, b, ta, tb)
         instance.setLimit(angleX, angleY, twist, softness, biasFactor, relaxation)
         instance.setAngularOnly(angularOnly)
+        instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
     }
 

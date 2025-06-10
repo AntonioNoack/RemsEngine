@@ -7,45 +7,45 @@ import me.anno.sdf.SDFCollider
 import me.anno.sdf.SDFComponent
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
+import javax.vecmath.Vector3d
 import kotlin.math.abs
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
 
-    override fun getAabb(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
+    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         collider.getAABB(t, aabbMin, aabbMax)
     }
 
     // might be correct...
-    override fun getShapeType(): BroadphaseNativeType {
+    override val shapeType get(): BroadphaseNativeType {
         return BroadphaseNativeType.CONVEX_SHAPE_PROXYTYPE
     }
 
     var maxSteps = 10
-    val localScaling = javax.vecmath.Vector3d(1.0, 1.0, 1.0)
+    val localScaling = Vector3d(1.0, 1.0, 1.0)
 
-    override fun setLocalScaling(scaling: javax.vecmath.Vector3d) {
+    override fun setLocalScaling(scaling: Vector3d) {
         localScaling.set(scaling)
     }
 
-    override fun getLocalScaling(out: javax.vecmath.Vector3d): javax.vecmath.Vector3d {
+    override fun getLocalScaling(out: Vector3d): Vector3d {
         out.set(localScaling)
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: javax.vecmath.Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
         collider.calculateLocalInertia(mass, inertia)
     }
 
-    override fun getName() = collider.name
-    override fun getMargin() = collider.margin.toDouble()
-
-    override fun setMargin(margin: Double) {
-        collider.margin = margin.toFloat()
-    }
+    override var margin: Double
+        get() = collider.margin.toDouble()
+        set(value) {
+            collider.margin = value.toFloat()
+        }
 
     override fun localGetSupportingVertex(
-        dir: javax.vecmath.Vector3d,
-        out: javax.vecmath.Vector3d // = margin * normal
+        dir: Vector3d,
+        out: Vector3d // = margin * normal
     ) = localGetSupportingVertex(dir, out, margin)
 
     private val seeds = IntArrayList(8)
@@ -54,10 +54,10 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
      * return the closest point to that
      * */
     fun localGetSupportingVertex(
-        pos: javax.vecmath.Vector3d,
-        out: javax.vecmath.Vector3d,
+        pos: Vector3d,
+        out: Vector3d,
         margin: Double
-    ): javax.vecmath.Vector3d {
+    ): Vector3d {
 
         val bounds = sdf.localAABB
         val dir2 = JomlPools.vec3f.create().set(pos.x, pos.y, pos.z).normalize()
@@ -80,15 +80,11 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         return out
     }
 
-    override fun localGetSupportingVertexWithoutMargin(
-        dir: javax.vecmath.Vector3d,
-        out: javax.vecmath.Vector3d
-    ) = localGetSupportingVertex(dir, out, 0.0)
+    override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d) =
+        localGetSupportingVertex(dir, out, 0.0)
 
     override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        vectors: Array<out javax.vecmath.Vector3d>,
-        supportVerticesOut: Array<out javax.vecmath.Vector3d>,
-        numVectors: Int
+        vectors: Array<Vector3d>, supportVerticesOut: Array<Vector3d>, numVectors: Int
     ) {
         for (i in 0 until numVectors) {
             localGetSupportingVertex(vectors[i], supportVerticesOut[i], 0.0)
@@ -96,14 +92,14 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
     }
 
     override fun getAabbSlow(
-        t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d
+        t: Transform, aabbMin: Vector3d, aabbMax: Vector3d
     ) {
         // mmh, not really slow...
         collider.getAABB(t, aabbMin, aabbMax)
     }
 
-    override fun getNumPreferredPenetrationDirections() = 0
-    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: javax.vecmath.Vector3d) {
+    override val numPreferredPenetrationDirections get() = 0
+    override fun getPreferredPenetrationDirection(index: Int, penetrationVector: Vector3d) {
         throw InternalError()
     }
 

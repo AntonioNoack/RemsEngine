@@ -98,6 +98,7 @@ fun main() {
         for (j in 0 until numLinks) {
             val link = PointConstraint()
             link.disableCollisionsBetweenLinked = false
+            link.breakingImpulseThreshold = 0.3 // a little fun ^^
             link.other = b.getComponent(Rigidbody::class)
             link.lerpingSpeed = 0.5
             a.add(link)

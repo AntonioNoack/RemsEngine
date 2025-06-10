@@ -14,7 +14,6 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -74,7 +73,7 @@ class SVGThumbnailTest {
         val file0 = createSVGFile(baseline, scale)
         val file = file0.getChild("Scene.json")
         val thumbnail = Thumbs[file, 256, false]!!.createImage(false, false)
-        thumbnail.write(desktop.getChild("svg3.png"))
+        // thumbnail.write(desktop.getChild("svg3.png"))
         baseline.forEachPixel { x, y ->
             val baseColor = baseline.getRGB(x, y)
             val u = (x + 0.5f) / baseline.width

@@ -134,9 +134,9 @@ class HexagonSpherePhysics(
         Triangles.subCross(a, b, c, normal)
         if (normal.dot(velocity) < 0f) return false // backside
 
-        triangle.vertices1[0].set(a.x * scale, a.y * scale, a.z * scale)
-        triangle.vertices1[1].set(b.x * scale, b.y * scale, b.z * scale)
-        triangle.vertices1[2].set(c.x * scale, c.y * scale, c.z * scale)
+        triangle.vertices[0].set(a.x * scale, a.y * scale, a.z * scale)
+        triangle.vertices[1].set(b.x * scale, b.y * scale, b.z * scale)
+        triangle.vertices[2].set(c.x * scale, c.y * scale, c.z * scale)
 
         val nextDepth = measureCollisionDepth(nextTransform)
         if (nextDepth == 0.0) {

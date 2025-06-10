@@ -31,13 +31,7 @@ object BulletDebugDraw : IDebugDraw {
     public static final int MAX_DEBUG_DRAW_MODE   = 1025;
      * */
 
-    var mode = 2047 // all flags
-
-    override fun getDebugMode() = mode
-
-    override fun setDebugMode(debugMode: Int) {
-        mode = debugMode
-    }
+    override var debugMode = 2047 // all flags
 
     override fun reportErrorWarning(warningString: String) {
         LOGGER.warn(warningString)

@@ -1,10 +1,10 @@
 package me.anno.bullet
 
-import com.bulletphysics.collision.dispatch.CollisionObject.ACTIVE_TAG
-import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_DEACTIVATION
-import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_SIMULATION
-import com.bulletphysics.collision.dispatch.CollisionObject.ISLAND_SLEEPING
-import com.bulletphysics.collision.dispatch.CollisionObject.WANTS_DEACTIVATION
+import com.bulletphysics.collision.dispatch.CollisionObject.Companion.ACTIVE_TAG
+import com.bulletphysics.collision.dispatch.CollisionObject.Companion.DISABLE_DEACTIVATION
+import com.bulletphysics.collision.dispatch.CollisionObject.Companion.DISABLE_SIMULATION
+import com.bulletphysics.collision.dispatch.CollisionObject.Companion.ISLAND_SLEEPING
+import com.bulletphysics.collision.dispatch.CollisionObject.Companion.WANTS_DEACTIVATION
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.bullet.BulletPhysics.Companion.castB
@@ -117,7 +117,7 @@ open class Rigidbody : Component(), OnDrawGUI {
                     val bulletInstance = bulletInstance
                     if (bulletInstance != null) {
                         val inertia = javax.vecmath.Vector3d()
-                        bulletInstance.collisionShape.calculateLocalInertia(value, inertia)
+                        bulletInstance.collisionShape!!.calculateLocalInertia(value, inertia)
                         bulletInstance.setMassProps(mass, inertia)
                     }
                 }

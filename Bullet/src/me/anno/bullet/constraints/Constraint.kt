@@ -88,6 +88,12 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
             invalidateConstraint()
         }
 
+    var breakingImpulseThreshold: Double = 1e308
+        set(value) {
+            field = value
+            bulletInstance?.breakingImpulseThreshold = value
+        }
+
     @DebugAction
     fun invalidateConstraint() {
         invalidateRigidbody()
@@ -132,6 +138,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         dst.otherPosition.set(otherPosition)
         dst.otherRotation.set(otherRotation)
         dst.disableCollisionsBetweenLinked = disableCollisionsBetweenLinked
+        dst.breakingImpulseThreshold = breakingImpulseThreshold
     }
 
     companion object {

@@ -79,10 +79,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
         }
 
     override fun createConstraint(
-        a: RigidBody,
-        b: RigidBody,
-        ta: Transform,
-        tb: Transform
+        a: RigidBody, b: RigidBody, ta: Transform, tb: Transform
     ): com.bulletphysics.dynamics.constraintsolver.HingeConstraint {
         val axisA = Vector3d()
         val axisB = Vector3d()
@@ -97,6 +94,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
         instance.angularOnly = angularOnly
         instance.enableAngularMotor(enableMotor, motorVelocity, motorTorque)
         instance.setLimit(lowerLimit, upperLimit, limitSoftness, biasFactor, relaxation)
+        instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
     }
 
