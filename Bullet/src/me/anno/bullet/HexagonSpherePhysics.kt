@@ -4,11 +4,11 @@ import com.bulletphysics.collision.narrowphase.GjkEpaSolver
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.TriangleShape
 import com.bulletphysics.linearmath.Transform
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
 import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.chunks.spherical.HexagonTriangleQuery
-import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
 import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toIntOr
@@ -54,7 +54,7 @@ class HexagonSpherePhysics(
         val steps = max(1, (2f * velocity.length() / sphere.len).toIntOr())
         val dt = dt0 / steps
         val up = JomlPools.vec3f.borrow()
-        for (i in 0 until steps) {
+        repeat(steps) {
 
             // apply gravity
             // hexagon.center must be used instead of position,
@@ -78,11 +78,12 @@ class HexagonSpherePhysics(
     }
 
     private val nullTransform = Transform()
+
     val yMin: Float
     val yMax: Float
 
     init {
-        nullTransform.basis.setIdentity()
+        nullTransform.basis.identity()
         val aabbMin = Vector3d()
         val aabbMax = Vector3d()
         shape.getAabb(nullTransform, aabbMin, aabbMax)
@@ -161,9 +162,12 @@ class HexagonSpherePhysics(
 
     fun showTriangle(a: Vector3f, b: Vector3f, c: Vector3f, color: Int) {
         if (color.a() > 0) {
-            DebugShapes.debugLines.add(DebugLine(org.joml.Vector3d(a), org.joml.Vector3d(b), color, 0f))
-            DebugShapes.debugLines.add(DebugLine(org.joml.Vector3d(b), org.joml.Vector3d(c), color, 0f))
-            DebugShapes.debugLines.add(DebugLine(org.joml.Vector3d(c), org.joml.Vector3d(a), color, 0f))
+            val da = Vector3d(a)
+            val db = Vector3d(b)
+            val dc = Vector3d(c)
+            DebugShapes.debugLines.add(DebugLine(da, db, color, 0f))
+            DebugShapes.debugLines.add(DebugLine(db, dc, color, 0f))
+            DebugShapes.debugLines.add(DebugLine(dc, da, color, 0f))
         }
     }
 
@@ -206,5 +210,4 @@ class HexagonSpherePhysics(
     fun addForce(dx: Float, dy: Float, dz: Float, dt: Float) {
         accelerate(dx, dy, dz, dt / mass)
     }
-
 }

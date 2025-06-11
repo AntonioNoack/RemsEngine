@@ -5,13 +5,9 @@ import com.bulletphysics.collision.shapes.BvhTriangleMeshShape
 import com.bulletphysics.collision.shapes.CapsuleShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConeShape
-import com.bulletphysics.collision.shapes.ConeShapeX
-import com.bulletphysics.collision.shapes.ConeShapeZ
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.collision.shapes.ConvexHullShape3
 import com.bulletphysics.collision.shapes.CylinderShape
-import com.bulletphysics.collision.shapes.CylinderShapeX
-import com.bulletphysics.collision.shapes.CylinderShapeZ
 import com.bulletphysics.collision.shapes.ShapeHull
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.collision.shapes.TriangleIndexVertexArray
@@ -144,17 +140,17 @@ fun CapsuleCollider.createBulletShape(scale: Vector3d): CapsuleShape {
 
 fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
     return when (axis) {
-        Axis.X -> ConeShapeX(radius * scale.y, height * scale.x)
-        Axis.Y -> ConeShape(radius * scale.x, height * scale.y)
-        Axis.Z -> ConeShapeZ(radius * scale.x, height * scale.z)
+        Axis.X -> ConeShape(radius * scale.y, height * scale.x, 0)
+        Axis.Y -> ConeShape(radius * scale.x, height * scale.y, 1)
+        Axis.Z -> ConeShape(radius * scale.x, height * scale.z, 2)
     }.apply { margin = roundness.toDouble() }
 }
 
 fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
     return when (axis) {
-        Axis.X -> CylinderShapeX(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
-        Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
-        Axis.Z -> CylinderShapeZ(Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
+        Axis.X -> CylinderShape(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z), 0)
+        Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z), 1)
+        Axis.Z -> CylinderShape(Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z), 2)
     }.apply { margin = roundness.toDouble() }
 }
 

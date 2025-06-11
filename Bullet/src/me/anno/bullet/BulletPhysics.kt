@@ -19,6 +19,7 @@ import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
+import com.bulletphysics.util.getElement
 import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Entity
@@ -55,7 +56,6 @@ import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
-import vecmath.getElement
 import kotlin.math.max
 
 open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
