@@ -132,7 +132,7 @@ class Crowd @JvmOverloads constructor(
     private val obstacleAvoidanceQuery: ObstacleAvoidanceQuery =
         ObstacleAvoidanceQuery(config.maxObstacleAvoidanceCircles, config.maxObstacleAvoidanceSegments)
     val grid = ProximityGrid(config.maxAgentRadius * 3)
-    val queryExtends = Vector3f(config.maxAgentRadius * 2f, config.maxAgentRadius * 1.5f, config.maxAgentRadius * 2f)
+    val queryExtents = Vector3f(config.maxAgentRadius * 2f, config.maxAgentRadius * 1.5f, config.maxAgentRadius * 2f)
     private val filters = Array(CROWD_MAX_QUERY_FILTER_TYPE) { queryFilterFactory(it) }
     private val obstacleQueryParams = Array(CROWD_MAX_OBSTAVOIDANCE_PARAMS) { ObstacleAvoidanceParams() }
     val pathQueue: PathQueue = PathQueue(config)
@@ -189,7 +189,7 @@ class Crowd @JvmOverloads constructor(
         activeAgents.add(agent)
 
         // Find nearest position on navmesh and place the agent there.
-        val nearestPoly = navQuery.findNearestPoly(pos, queryExtends, filters[agent.params.queryFilterType])
+        val nearestPoly = navQuery.findNearestPoly(pos, queryExtents, filters[agent.params.queryFilterType])
         val nearest = if (nearestPoly.succeeded()) nearestPoly.result!!.nearestPos else pos
         val ref = if (nearestPoly.succeeded()) nearestPoly.result!!.nearestRef else 0L
         agent.corridor.reset(ref, nearest!!)
@@ -348,7 +348,7 @@ class Crowd @JvmOverloads constructor(
             // Current location is not valid, try to reposition.
             // TODO: this can snap agents, how to handle that?
             val nearestPoly = navQuery.findNearestPoly(
-                ag.currentPosition, queryExtends,
+                ag.currentPosition, queryExtents,
                 filters[ag.params.queryFilterType]
             )
             agentRef = if (nearestPoly.succeeded()) nearestPoly.result!!.nearestRef else 0L
@@ -386,7 +386,7 @@ class Crowd @JvmOverloads constructor(
             if (!navQuery.isValidPolyRef(ag.targetRef, filters[ag.params.queryFilterType])) {
                 // Current target is not valid, try to reposition.
                 val fnp = navQuery.findNearestPoly(
-                    ag.targetPosOrVel, queryExtends,
+                    ag.targetPosOrVel, queryExtents,
                     filters[ag.params.queryFilterType]
                 )
                 ag.targetRef = if (fnp.succeeded()) fnp.result!!.nearestRef else 0L

@@ -13,12 +13,12 @@ import kotlin.random.Random
 class SDFSphereTest {
 
     companion object {
-        fun javax.vecmath.Vector3d.toKOML(): Vector3d {
+        fun Vector3d.toKOML(): Vector3d {
             return Vector3d(x, y, z)
         }
 
-        fun Random.nextPos(): javax.vecmath.Vector3d {
-            return javax.vecmath.Vector3d(nextPosI(), nextPosI(), nextPosI())
+        fun Random.nextPos(): Vector3d {
+            return Vector3d(nextPosI(), nextPosI(), nextPosI())
         }
 
         fun Random.nextPosI(): Double {
@@ -41,8 +41,8 @@ class SDFSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 1e-6)
         }
     }

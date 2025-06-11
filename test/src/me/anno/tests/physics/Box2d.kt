@@ -88,7 +88,7 @@ private fun engineTest2d() {
     val groundRB = Rigidbody2d()
     ground.add(groundRB)
     val groundShape = RectCollider()
-    groundShape.halfExtends.set(50f, 5f)
+    groundShape.halfExtents.set(50f, 5f)
     ground.setPosition(0.0, -10.0, 0.0)
     ground.add(groundShape)
     world.add(ground)
@@ -99,7 +99,7 @@ private fun engineTest2d() {
     box.setPosition(0.0, 10.0, 0.0)
     val boxShape = RectCollider()
     boxShape.density = 1f
-    boxShape.halfExtends.set(1f, 1f)
+    boxShape.halfExtents.set(1f, 1f)
     box.add(boxShape)
     world.add(box)
     world.validateTransform()
@@ -136,7 +136,7 @@ fun run2dPhysicsWithUI() {
         val groundRB = Rigidbody2d()
         ground.add(groundRB)
         val groundShape = RectCollider()
-        groundShape.halfExtends.set(500f, strength.toFloat())
+        groundShape.halfExtents.set(500f, strength.toFloat())
         ground.setPosition(
             sin(angle) * width * 0.5,
             cos(angle) * height * 0.5,
@@ -159,7 +159,7 @@ fun run2dPhysicsWithUI() {
         box.setRotation(0f, 0f, random.nextFloat() * PIf)
         val shape = RectCollider()
         shape.density = 1f
-        shape.halfExtends.set(20f, 7f)
+        shape.halfExtents.set(20f, 7f)
         box.add(shape)
         world.add(box)
     }
@@ -297,7 +297,7 @@ fun run2dPhysicsWithUI() {
                         var inside = dist < bestDist
                         when (collider) {
                             is RectCollider -> {
-                                val he = collider.halfExtends
+                                val he = collider.halfExtents
                                 val hx = he.x * scale
                                 val hy = he.y * scale
                                 fun px(p0: Vector2f) = x1i + (hx * p0.x * c - hy * p0.y * s)

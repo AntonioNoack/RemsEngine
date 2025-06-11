@@ -80,8 +80,8 @@ class SDFCylinderTest {
                 }
             }
 
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected.x, actual.x, threshold)
             assertEquals(expected.y, actual.y, threshold)
             assertEquals(expected.z, actual.z, threshold)

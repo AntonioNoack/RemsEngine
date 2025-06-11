@@ -51,8 +51,8 @@ open class SDFBoundingBox : SDFBox() {
         builder.append(trans.posIndex)
         builder.append(',')
         val dynamicSize = dynamicSize || globalDynamic
-        if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
-        else builder.appendVec(halfExtends)
+        if (dynamicSize) builder.appendUniform(uniforms, halfExtents)
+        else builder.appendVec(halfExtents)
         builder.append(',')
         val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
@@ -68,7 +68,7 @@ open class SDFBoundingBox : SDFBox() {
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val thickness = thickness
-        val b = halfExtends
+        val b = halfExtents
         val k = smoothness * thickness
         val bx = b.x - k
         val by = b.y - k

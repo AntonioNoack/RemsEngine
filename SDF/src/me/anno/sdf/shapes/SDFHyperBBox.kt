@@ -56,8 +56,8 @@ class SDFHyperBBox : SDFHyperCube() {
         builder.appendUniform(uniforms, GLSLType.V1F) { w }
         builder.append(',')
         val dynamicSize = dynamicSize || globalDynamic
-        if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
-        else builder.appendVec(halfExtends)
+        if (dynamicSize) builder.appendUniform(uniforms, halfExtents)
+        else builder.appendVec(halfExtents)
         builder.append(',')
         val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
@@ -73,7 +73,7 @@ class SDFHyperBBox : SDFHyperCube() {
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        val b = halfExtends
+        val b = halfExtents
         val k = smoothness * thickness
         val e = thickness - k
         val x = pos.x

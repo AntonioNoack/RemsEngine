@@ -582,7 +582,7 @@ class AABBf(
             val cy0 = centerY - sy
             val cz0 = centerZ - sz
             val dir = Vector3f(dx, dy, dz).normalize()
-            val extends = Vector3f(deltaX, deltaY, deltaZ).mul(0.5f)
+            val extents = Vector3f(deltaX, deltaY, deltaZ).mul(0.5f)
             val ai01 = listOf(Vector3f(), Vector3f())
             for (axis in 0 until 3) {
 
@@ -591,7 +591,7 @@ class AABBf(
                 val y = (axis + 2) % 3
 
                 val cz = if (z == 0) cx0 else if (z == 1) cy0 else cz0
-                val exz = extends[z]
+                val exz = extents[z]
                 val cnz = dir[z] // could be zero
                 if (abs(cnz) < 1e-15f) continue
 
@@ -601,8 +601,8 @@ class AABBf(
                 dir.mul(t0, ai01[0])
                 dir.mul(t1, ai01[1])
 
-                val exx = extends[x]
-                val exy = extends[y]
+                val exx = extents[x]
+                val exy = extents[y]
                 for (closestPoint in ai01) {
                     val cpx = closestPoint[x]
                     val cx = if (x == 0) cx0 else if (x == 1) cy0 else cz0

@@ -4,9 +4,8 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import javax.vecmath.Vector3d
+import org.joml.Vector3d
 import kotlin.math.PI
 
 class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.HingeConstraint>() {
@@ -23,19 +22,19 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
     var motorTorque = 0.0
         set(value) {
             field = value
-            updateMotor()
+            bulletInstance?.maxMotorImpulse = value
         }
 
     var motorVelocity = 0.0
         set(value) {
             field = value
-            updateMotor()
+            bulletInstance?.motorTargetVelocity = value
         }
 
     var enableMotor = false
         set(value) {
             field = value
-            updateMotor()
+            bulletInstance?.enableAngularMotor = value
         }
 
     var angularOnly = false
@@ -47,19 +46,19 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
     var limitSoftness = 0.9
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.limitSoftness = value
         }
 
     var biasFactor = 0.3
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.biasFactor = value
         }
 
     var relaxation = 1.0
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.relaxationFactor = value
         }
 
     @Range(-3.1416, 3.1416)
@@ -67,7 +66,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
     var lowerLimit = 0.0
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.lowerLimit = value
         }
 
     @Range(-3.1416, 3.1416)
@@ -75,7 +74,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
     var upperLimit = PI / 2
         set(value) {
             field = value
-            updateLimits()
+            bulletInstance?.upperLimit = value
         }
 
     override fun createConstraint(
@@ -92,18 +91,16 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
             axisA, axisB
         )
         instance.angularOnly = angularOnly
-        instance.enableAngularMotor(enableMotor, motorVelocity, motorTorque)
-        instance.setLimit(lowerLimit, upperLimit, limitSoftness, biasFactor, relaxation)
+        instance.enableAngularMotor = enableMotor
+        instance.motorTargetVelocity = motorVelocity
+        instance.maxMotorImpulse = motorTorque
+        instance.lowerLimit = lowerLimit
+        instance.upperLimit = upperLimit
+        instance.limitSoftness = limitSoftness
+        instance.biasFactor = biasFactor
+        instance.relaxationFactor = relaxation
         instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
-    }
-
-    private fun updateLimits() {
-        bulletInstance?.setLimit(lowerLimit, upperLimit, limitSoftness, biasFactor, relaxation)
-    }
-
-    private fun updateMotor() {
-        bulletInstance?.enableAngularMotor(enableMotor, motorVelocity, motorTorque)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

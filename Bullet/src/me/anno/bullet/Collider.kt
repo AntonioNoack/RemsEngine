@@ -59,7 +59,7 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
         // calculate convex hull
         // simplify it maybe
         val convex = ConvexHullShape3(positions)
-        convex.setLocalScaling(javax.vecmath.Vector3d(scale.x, scale.y, scale.z))
+        convex.setLocalScaling(Vector3d(scale.x, scale.y, scale.z))
         convex.margin = 0.0
 
         if (positions.size < 30 || !enableSimplifications) {
@@ -152,25 +152,25 @@ fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
 
 fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
     return when (axis) {
-        Axis.X -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
-        Axis.Y -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
-        Axis.Z -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
+        Axis.X -> CylinderShapeX(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
+        Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
+        Axis.Z -> CylinderShapeZ(Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
     }.apply { margin = roundness.toDouble() }
 }
 
 fun BoxCollider.createBulletShape(scale: Vector3d): BoxShape {
     return BoxShape(
-        javax.vecmath.Vector3d(
-            halfExtends.x * scale.x,
-            halfExtends.y * scale.y,
-            halfExtends.z * scale.z
+        Vector3d(
+            halfExtents.x * scale.x,
+            halfExtents.y * scale.y,
+            halfExtents.z * scale.z
         )
     ).apply { margin = roundness * scale.absMax() }
 }
 
 fun SphereCollider.createBulletShape(scale: Vector3d): SphereShape {
     return SphereShape(radius.toDouble()).apply {
-        setLocalScaling(javax.vecmath.Vector3d(scale.x, scale.y, scale.z))
+        setLocalScaling(Vector3d(scale.x, scale.y, scale.z))
     }
 }
 
@@ -185,11 +185,11 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
         is SphereCollider -> collider.createBulletShape(scale)
         is BoxCollider -> collider.createBulletShape(scale)
         /*is RectCollider -> {
-            val halfExtends = collider.halfExtends
+            val halfExtents = collider.halfExtents
             return BoxShape(
-                javax.vecmath.Vector3d(
-                    halfExtends.x * scale.x,
-                    halfExtends.y * scale.y,
+                Vector3d(
+                    halfExtents.x * scale.x,
+                    halfExtents.y * scale.y,
                     scale.z
                 )
             )
@@ -211,4 +211,4 @@ fun createBulletCollider(collider: Collider, base: Entity, scale: Vector3d): Pai
 }
 
 @JvmField
-val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
+val defaultShape = BoxShape(Vector3d(1.0, 1.0, 1.0))

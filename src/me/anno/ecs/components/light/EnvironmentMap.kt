@@ -93,7 +93,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             drawBox(entity)
-            drawCross(entity, crossExtends)
+            drawCross(entity, crossExtents)
         }
     }
 
@@ -171,7 +171,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
     companion object {
 
-        val crossExtends = Vector3d(0.1)
+        val crossExtents = Vector3d(0.1)
 
         val pipeline by lazy {
             val pipeline = Pipeline(DeferredSettings(listOf()))

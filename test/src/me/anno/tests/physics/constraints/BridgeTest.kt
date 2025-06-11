@@ -58,7 +58,7 @@ fun main() {
         val entity = Entity("Pillar[$sign]", scene)
             .setPosition(0.0, pillarSize.y * 0.5, z)
             .add(BoxCollider().apply {
-                halfExtends.set(pillarSize).mul(0.5f)
+                halfExtents.set(pillarSize).mul(0.5f)
                 roundness = 0f
             })
             .add(MeshComponent(pillarMesh, pillarMaterial))
@@ -75,7 +75,7 @@ fun main() {
         val entity = Entity("Bar[$i]", scene)
             .setPosition(0.0, height - barSize.y * 0.5, z)
             .add(BoxCollider().apply {
-                halfExtends.set(barSize).mul(0.5f)
+                halfExtents.set(barSize).mul(0.5f)
                 roundness = 0f
             })
             .add(MeshComponent(barMesh, barMaterial))

@@ -18,14 +18,14 @@ import org.joml.Vector4f
 class SDFStretcher() : PositionMapper() {
 
     constructor(hx: Float, hy: Float, hz: Float) : this() {
-        halfExtends.set(max(0f, hx), max(hy, 0f), max(hz, 0f))
+        halfExtents.set(max(0f, hx), max(hy, 0f), max(hz, 0f))
     }
 
-    constructor(halfExtends: Vector3f) : this() {
-        this.halfExtends = halfExtends
+    constructor(halfExtents: Vector3f) : this() {
+        this.halfExtents = halfExtents
     }
 
-    var dynamicExtends = false
+    var dynamicExtents = false
         set(value) {
             if (field != value) {
                 field = value
@@ -34,9 +34,9 @@ class SDFStretcher() : PositionMapper() {
         }
 
     @Range(0.0, 1e300)
-    var halfExtends = Vector3f()
+    var halfExtents = Vector3f()
         set(value) {
-            if (dynamicExtends || globalDynamic) invalidateBounds()
+            if (dynamicExtents || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
             field.x = max(field.x, 0f)
@@ -64,9 +64,9 @@ class SDFStretcher() : PositionMapper() {
         builder.append("pos").append(posIndex)
         builder.append("-=clamp(pos").append(posIndex)
         builder.append(",")
-        val dynamicExtends = dynamicExtends || globalDynamic
-        if (dynamicExtends) {
-            val uniform = defineUniform(uniforms, halfExtends)
+        val dynamicExtents = dynamicExtents || globalDynamic
+        if (dynamicExtents) {
+            val uniform = defineUniform(uniforms, halfExtents)
             builder.append("-").append(uniform)
             builder.append(",").append(uniform)
             builder.append(");\n")
@@ -81,7 +81,7 @@ class SDFStretcher() : PositionMapper() {
                 name
             } else null
         } else {
-            val h = halfExtends
+            val h = halfExtents
             builder.append("-")
             builder.appendVec(h)
             builder.append(",")
@@ -100,7 +100,7 @@ class SDFStretcher() : PositionMapper() {
     }
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
-        val e = halfExtends
+        val e = halfExtents
         val ex = e.x
         val ey = e.y
         val ez = e.z
@@ -123,7 +123,7 @@ class SDFStretcher() : PositionMapper() {
         val y1 = bounds.maxY
         val z0 = bounds.minZ
         val z1 = bounds.maxZ
-        val e = halfExtends
+        val e = halfExtents
         val ex = e.x
         val ey = e.y
         val ez = e.z
@@ -145,8 +145,8 @@ class SDFStretcher() : PositionMapper() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is SDFStretcher) return
-        dst.dynamicExtends = dynamicExtends
-        dst.halfExtends = halfExtends
+        dst.dynamicExtents = dynamicExtents
+        dst.halfExtents = halfExtents
         dst.accurateInsides = accurateInsides
     }
 }

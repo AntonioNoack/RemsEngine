@@ -16,38 +16,38 @@ class BoxCollider : Collider() {
 
     @SerializedProperty
     @Range(0.0, 1e308)
-    var halfExtends = Vector3f(1f)
+    var halfExtents = Vector3f(1f)
         set(value) {
             field.set(value)
         }
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        val halfExtends = halfExtends
+        val halfExtents = halfExtents
         unionCube(
             globalTransform, aabb, tmp,
-            halfExtends.x.toDouble(), halfExtends.y.toDouble(), halfExtends.z.toDouble()
+            halfExtents.x.toDouble(), halfExtents.y.toDouble(), halfExtents.z.toDouble()
         )
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
-        val halfExtends = halfExtends
+        val halfExtents = halfExtents
         deltaPos.absolute()
-        deltaPos.sub(halfExtends.x, halfExtends.y, halfExtends.z)
+        deltaPos.sub(halfExtents.x, halfExtents.y, halfExtents.z)
         return and3SDFs(deltaPos)
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        val halfExtends = halfExtends
+        val halfExtents = halfExtents
         drawBox(
             entity, getLineColor(hasPhysics),
-            halfExtends.x.toDouble(), halfExtends.y.toDouble(), halfExtends.z.toDouble()
+            halfExtents.x.toDouble(), halfExtents.y.toDouble(), halfExtents.z.toDouble()
         )
     }
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is BoxCollider) return
-        dst.halfExtends.set(halfExtends)
+        dst.halfExtents.set(halfExtents)
     }
 
     override fun raycast(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
@@ -56,9 +56,9 @@ class BoxCollider : Collider() {
         val invDir = JomlPools.vec3f.borrow()
             .set(1f / dir.x, 1f / dir.y, 1f / dir.z)
         val max = query.maxDistance
-        val halfExtends = halfExtends
+        val halfExtents = halfExtents
         val distance = JomlPools.aabbf.borrow()
-            .setMin(-halfExtends.x, -halfExtends.y, -halfExtends.z).setMax(halfExtends)
+            .setMin(-halfExtents.x, -halfExtents.y, -halfExtents.z).setMax(halfExtents)
             .whereIsRayIntersecting(pos, invDir, 0f)
         if (distance < max && surfaceNormal != null) {
             val px = pos.x + dir.x * distance

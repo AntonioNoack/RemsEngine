@@ -2,7 +2,6 @@ package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
-import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -102,15 +101,15 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     fun getTA(): Transform {
         val t = Transform()
-        t.origin.set(castB(selfPosition))
-        t.basis.set(castB(selfRotation))
+        t.origin.set(selfPosition)
+        t.basis.set(selfRotation)
         return t
     }
 
     fun getTB(): Transform {
         val t = Transform()
-        t.origin.set(castB(otherPosition))
-        t.basis.set(castB(otherRotation))
+        t.origin.set(otherPosition)
+        t.basis.set(otherRotation)
         return t
     }
 

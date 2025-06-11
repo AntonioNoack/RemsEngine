@@ -24,7 +24,7 @@ import kotlin.math.sin
  * */
 open class SDFHyperCube : SDFSmoothShape() {
 
-    var halfExtends = Vector4f(1f)
+    var halfExtents = Vector4f(1f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
@@ -59,7 +59,7 @@ open class SDFHyperCube : SDFSmoothShape() {
     var w = 0f
 
     override fun calculateBaseBounds(dst: AABBf) {
-        val h = halfExtends
+        val h = halfExtents
         val s = h.length()
         dst.setMin(-s, -s, -s)
         dst.setMax(+s, +s, +s)
@@ -81,8 +81,8 @@ open class SDFHyperCube : SDFSmoothShape() {
         builder.append("sdBox4(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtends)
-        else builder.appendVec(halfExtends)
+        if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtents)
+        else builder.appendVec(halfExtents)
         builder.append(',')
         builder.appendUniform(uniforms, rotation4di)
         builder.append(',')
@@ -98,7 +98,7 @@ open class SDFHyperCube : SDFSmoothShape() {
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
 
         val c = smoothness
-        val b = halfExtends
+        val b = halfExtents
         val x = pos.x
         val y = pos.y
         val z = pos.z
@@ -121,7 +121,7 @@ open class SDFHyperCube : SDFSmoothShape() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is SDFHyperCube) return
-        dst.halfExtends = halfExtends
+        dst.halfExtents = halfExtents
         dst.rotation4d = rotation4d
         dst.w = w
     }

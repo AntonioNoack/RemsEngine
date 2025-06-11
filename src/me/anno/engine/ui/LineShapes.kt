@@ -137,11 +137,11 @@ object LineShapes {
         }
     }
 
-    fun drawCross(entity: Entity?, halfExtends: Vector3d? = null) {
-        drawCross(entity, defaultColor, halfExtends)
+    fun drawCross(entity: Entity?, halfExtents: Vector3d? = null) {
+        drawCross(entity, defaultColor, halfExtents)
     }
 
-    fun drawCross(entity: Entity?, color: Int = defaultColor, halfExtends: Vector3d? = null) {
+    fun drawCross(entity: Entity?, color: Int = defaultColor, halfExtents: Vector3d? = null) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
@@ -155,7 +155,7 @@ object LineShapes {
 
         for (i in 0 until 6) {
             val position = positions[i]
-            if (halfExtends != null) position.mul(halfExtends)
+            if (halfExtents != null) position.mul(halfExtents)
             transform?.transformPosition(position)
         }
 
@@ -165,14 +165,14 @@ object LineShapes {
     }
 
 
-    fun drawBox(entity: Entity?, halfExtends: Vector3d?) {
-        drawBox(entity, defaultColor, halfExtends)
+    fun drawBox(entity: Entity?, halfExtents: Vector3d?) {
+        drawBox(entity, defaultColor, halfExtents)
     }
 
-    fun drawBox(entity: Entity?, color: Int = defaultColor, halfExtends: Vector3d? = null) {
-        val hx = halfExtends?.x ?: 1.0
-        val hy = halfExtends?.y ?: 1.0
-        val hz = halfExtends?.z ?: 1.0
+    fun drawBox(entity: Entity?, color: Int = defaultColor, halfExtents: Vector3d? = null) {
+        val hx = halfExtents?.x ?: 1.0
+        val hy = halfExtents?.y ?: 1.0
+        val hz = halfExtents?.z ?: 1.0
         drawBox(entity, color, hx, hy, hz)
     }
 
@@ -202,7 +202,7 @@ object LineShapes {
         }
     }
 
-    fun drawXYPlane(entity: Entity?, z: Double, color: Int = defaultColor, halfExtends: Vector3d? = null) {
+    fun drawXYPlane(entity: Entity?, z: Double, color: Int = defaultColor, halfExtents: Vector3d? = null) {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
@@ -214,7 +214,7 @@ object LineShapes {
                 if ((i.and(2) != 0)) -1.0 else +1.0,
                 z
             )
-            if (halfExtends != null) position.mul(halfExtends)
+            if (halfExtents != null) position.mul(halfExtents)
             transform?.transformPosition(position)
         }
 

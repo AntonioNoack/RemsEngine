@@ -21,7 +21,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
 
     companion object {
         @JvmField
-        val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
+        val defaultShape = BoxShape(Vector3d(1.0, 1.0, 1.0))
     }
 
     // could be assigned by hand...
@@ -42,7 +42,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
         }
     }
 
-    fun calculateLocalInertia(mass: Double, inertia: javax.vecmath.Vector3d) {
+    fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
         // inertia of a box, because we have no better idea;
         // we could approximate it, but oh well...
         val sdf = sdf
@@ -53,7 +53,7 @@ class SDFCollider : Collider(), CustomBulletCollider {
             val y2 = sq(bounds.deltaY)
             val z2 = sq(bounds.deltaZ)
             inertia.set(y2 + z2, z2 + x2, x2 + y2)
-            inertia.scale(base)
+            inertia.mul(base)
         } else inertia.set(base, base, base)
     }
 

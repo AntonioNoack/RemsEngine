@@ -7,7 +7,6 @@ import com.bulletphysics.collision.dispatch.CollisionObject.Companion.ISLAND_SLE
 import com.bulletphysics.collision.dispatch.CollisionObject.Companion.WANTS_DEACTIVATION
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
-import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
 import me.anno.ecs.EntityPhysics.getPhysics
@@ -77,7 +76,7 @@ open class Rigidbody : Component(), OnDrawGUI {
     fun activate() {
         val bi = bulletInstance
         if (bi == null) invalidatePhysics()
-        else bi.applyCentralImpulse(javax.vecmath.Vector3d(0.0, 10.0 * mass, 0.0))
+        else bi.applyCentralImpulse(Vector3d(0.0, 10.0 * mass, 0.0))
     }
 
     @Group("Movement")
@@ -90,7 +89,7 @@ open class Rigidbody : Component(), OnDrawGUI {
         set(value) {
             field = value
             if (value) {
-                bulletInstance?.setGravity(castB(gravity))
+                bulletInstance?.setGravity(gravity)
             } else {
                 invalidateRigidbody() // it's complicated ^^
             }
@@ -102,7 +101,7 @@ open class Rigidbody : Component(), OnDrawGUI {
         set(value) {
             field.set(value)
             if (overrideGravity)
-                bulletInstance?.setGravity(castB(value))
+                bulletInstance?.setGravity(value)
         }
 
     @Group("Mass")
@@ -116,7 +115,7 @@ open class Rigidbody : Component(), OnDrawGUI {
                 } else {
                     val bulletInstance = bulletInstance
                     if (bulletInstance != null) {
-                        val inertia = javax.vecmath.Vector3d()
+                        val inertia = Vector3d()
                         bulletInstance.collisionShape!!.calculateLocalInertia(value, inertia)
                         bulletInstance.setMassProps(mass, inertia)
                     }

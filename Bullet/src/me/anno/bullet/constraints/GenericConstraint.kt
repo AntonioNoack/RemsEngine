@@ -3,7 +3,6 @@ package me.anno.bullet.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
 import com.bulletphysics.linearmath.Transform
-import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
@@ -29,7 +28,7 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
     var lowerLimit = Vector3d()
         set(value) {
             field.set(value)
-            bulletInstance?.setLinearLowerLimit(castB(value))
+            bulletInstance?.linearLimits?.lowerLimit?.set(value)
         }
 
     @Docs(
@@ -40,7 +39,7 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
     var upperLimit = Vector3d()
         set(value) {
             field.set(value)
-            bulletInstance?.setLinearUpperLimit(castB(value))
+            bulletInstance?.linearLimits?.upperLimit?.set(value)
         }
 
     // yz only have half pi as range!
@@ -48,7 +47,12 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
     var lowerAngleLimit = Vector3d()
         set(value) {
             field.set(value)
-            bulletInstance?.setAngularLowerLimit(castB(value))
+            val limits = bulletInstance?.angularLimits
+            if (limits != null) {
+                limits[0].lowerLimit = value.x
+                limits[1].lowerLimit = value.y
+                limits[2].lowerLimit = value.z
+            }
         }
 
     // yz only have half pi as range!
@@ -56,15 +60,24 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
     var upperAngleLimit = Vector3d()
         set(value) {
             field.set(value)
-            bulletInstance?.setAngularUpperLimit(castB(value))
+            val limits = bulletInstance?.angularLimits
+            if (limits != null) {
+                limits[0].upperLimit = value.x
+                limits[1].upperLimit = value.y
+                limits[2].upperLimit = value.z
+            }
         }
 
     override fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): Generic6DofConstraint {
         val instance = Generic6DofConstraint(a, b, ta, tb, linearLimitsAreInASpaceNotBSpace)
-        instance.setLinearLowerLimit(castB(lowerLimit))
-        instance.setLinearUpperLimit(castB(upperLimit))
-        instance.setAngularLowerLimit(castB(lowerAngleLimit))
-        instance.setAngularUpperLimit(castB(upperAngleLimit))
+        instance.linearLimits.lowerLimit.set(lowerLimit)
+        instance.linearLimits.upperLimit.set(upperLimit)
+        instance.angularLimits[0].lowerLimit = lowerAngleLimit.x
+        instance.angularLimits[1].lowerLimit = lowerAngleLimit.y
+        instance.angularLimits[2].lowerLimit = lowerAngleLimit.z
+        instance.angularLimits[0].upperLimit = upperAngleLimit.x
+        instance.angularLimits[1].upperLimit = upperAngleLimit.y
+        instance.angularLimits[2].upperLimit = upperAngleLimit.z
         instance.breakingImpulseThreshold = breakingImpulseThreshold
         return instance
     }

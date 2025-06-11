@@ -25,7 +25,7 @@ class SDFDoor : SDF2DShape() {
         }
 
     @Range(0.0, 1e38)
-    var bottomExtends: Float
+    var bottomExtents: Float
         get() = params.y
         set(value) {
             if (params.y != value) {
@@ -37,7 +37,7 @@ class SDFDoor : SDF2DShape() {
 
     override fun calculateBaseBounds2d(dst: AABBf) {
         val w = 1f
-        val h = bottomExtends
+        val h = bottomExtents
         dst.setMin(-w, -h, 0f)
         dst.setMax(+w, +w, 0f)
     }

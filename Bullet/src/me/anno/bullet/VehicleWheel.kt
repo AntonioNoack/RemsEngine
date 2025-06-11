@@ -14,7 +14,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
-import javax.vecmath.Vector3d
+import org.joml.Vector3d
 import kotlin.math.abs
 
 class VehicleWheel : Component(), OnDrawGUI {
@@ -131,7 +131,7 @@ class VehicleWheel : Component(), OnDrawGUI {
     fun createBulletInstance(entity: Entity, vehicle: RaycastVehicle): WheelInfo {
         val transform = this.entity!!.fromLocalToOtherLocal(entity)
         // +w
-        val position = Vector3d(transform.m30, transform.m31, transform.m32)
+        val position = transform.getTranslation(Vector3d())
         // raycast direction, e.g. down, so -y
         val wheelDirection = Vector3d(-transform.m10.toDouble(), -transform.m11.toDouble(), -transform.m12.toDouble())
         val scale = abs(transform.getScaleLength() / Maths.SQRT3)
@@ -139,7 +139,7 @@ class VehicleWheel : Component(), OnDrawGUI {
         // wheel axis, e.g. x axis, so +x
         val wheelAxle = Vector3d(-transform.m00.toDouble(), -transform.m01.toDouble(), -transform.m02.toDouble())
         val tuning = VehicleTuning()
-        tuning.frictionSlip = tuning.frictionSlip
+        tuning.frictionSlip = frictionSlip
         tuning.suspensionDamping = suspensionDampingRelaxation
         tuning.suspensionStiffness = suspensionStiffness
         tuning.suspensionCompression = suspensionDampingCompression

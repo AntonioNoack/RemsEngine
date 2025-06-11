@@ -1428,7 +1428,7 @@ PROP_OFFSETS (essential)
   PROP_OFFSETS gives the coordinates of the upper left corner of the layer
   relative to the upper left corner of the canvas.
   The coordinates can be negative; this corresponds to a layer that
-  extends to the left of or above the canvas boundary.
+  extents to the left of or above the canvas boundary.
 
   When reading old XCF files that lack this property, assume (0,0).
 

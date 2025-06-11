@@ -71,7 +71,7 @@ fun main() {
                 addChild(SDFRandomUV())
                 addChild(SDFBox().apply {
                     smoothness = 0.2f
-                    halfExtends.set(5f, 1f, 2.5f)
+                    halfExtents.set(5f, 1f, 2.5f)
                 })
                 addChild(SDFGroup().apply {
                     position.set(0f, 1f, 0f)

@@ -14,10 +14,10 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Vectors.normalToQuaternionY
+import org.joml.Quaterniond
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.joml.Vector3f
-import javax.vecmath.Quat4f
-import javax.vecmath.Vector3d
 import kotlin.math.max
 
 class HexagonSpherePhysics(
@@ -119,12 +119,13 @@ class HexagonSpherePhysics(
 
     val normal = Vector3f()
     val tmpQ1 = Quaternionf()
-    val tmpQ2 = Quat4f()
+    val tmpQ2 = Quaterniond()
 
     fun defineLocalTransform(pos: Vector3f, transform: Transform) {
         // define a local transform for the shape :)
         pos.normalToQuaternionY(tmpQ1)
-        tmpQ2.set(-tmpQ1.x, -tmpQ1.y, -tmpQ1.z, tmpQ1.w)
+        tmpQ2.set(tmpQ1)
+        tmpQ2.conjugate()
         transform.basis.set(tmpQ2)
         transform.origin.set(pos.x * scale, pos.y * scale, pos.z * scale)
     }

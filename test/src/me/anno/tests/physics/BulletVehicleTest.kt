@@ -45,7 +45,7 @@ class BulletVehicleTest {
         val vehicle = Entity("Vehicle")
             .setPosition(0.0, 0.3, 0.0)
             .add(Vehicle().apply { mass = 1500.0 })
-            .add(BoxCollider().apply { halfExtends.set(1.2, 0.4, 2.2) })
+            .add(BoxCollider().apply { halfExtents.set(1.2, 0.4, 2.2) })
             .add(
                 Entity("VehicleMesh")
                     .add(MeshComponent(flatCube, DefaultAssets.goldenMaterial))
@@ -86,7 +86,7 @@ class BulletVehicleTest {
         val floor = Entity("Floor")
             .setPosition(0.0, -scale.y, 0.0)
             .add(Rigidbody().apply { mass = 0.0 })
-            .add(BoxCollider().apply { halfExtends.set(scale) })
+            .add(BoxCollider().apply { halfExtents.set(scale) })
             .add(
                 Entity("FloorMesh")
                     .add(MeshComponent(flatCube, floorMaterial))
@@ -204,10 +204,10 @@ class BulletVehicleTest {
         val physics = initPhysics()
         val world = Entity("World")
         val angle = (5.0f).toRadians()
-        val rampHalfExtends = 40.0
-        val z0 = -rampHalfExtends + 3.0
+        val rampHalfExtents = 40.0
+        val z0 = -rampHalfExtents + 3.0
         val y0 = 1.06 - angle * z0
-        val floor = defineFlatFloor(Vector3d(3.0, 5.0, rampHalfExtends))
+        val floor = defineFlatFloor(Vector3d(3.0, 5.0, rampHalfExtents))
         floor.setRotation(angle, 0f, 0f)
         // define vehicle on a hill
         val vehicle = defineVehicle()
@@ -241,10 +241,10 @@ class BulletVehicleTest {
         val physics = initPhysics()
         val world = Entity("World")
         val angle = (5.0f).toRadians()
-        val rampHalfExtends = 40.0
-        val z0 = -rampHalfExtends + 3.0
+        val rampHalfExtents = 40.0
+        val z0 = -rampHalfExtents + 3.0
         val y0 = 1.06 - angle * z0
-        val floor = defineFlatFloor(Vector3d(3.0, 5.0, rampHalfExtends))
+        val floor = defineFlatFloor(Vector3d(3.0, 5.0, rampHalfExtents))
         floor.setRotation(angle, 0.0f, 0.0f)
         // define vehicle on a hill
         val vehicle = defineVehicle()

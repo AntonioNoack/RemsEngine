@@ -41,9 +41,9 @@ class CapsuleCollider : Collider() {
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         // roundness is ignored, because a capsule is already perfectly round
-        val halfExtends = halfHeight
+        val halfExtents = halfHeight
         deltaPos.absolute()
-        deltaPos.setComponent(axis.id, max(deltaPos[axis.id] - halfExtends, 0f))
+        deltaPos.setComponent(axis.id, max(deltaPos[axis.id] - halfExtents, 0f))
         return deltaPos.length() - radius
     }
 

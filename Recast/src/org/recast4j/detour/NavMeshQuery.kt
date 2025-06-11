@@ -1868,7 +1868,7 @@ open class NavMeshQuery(val nav1: NavMesh) {
      * places significant limits on how it can be used. For example:
      *
      * Consider a scene where there is a main floor with a second floor balcony
-     * that hangs over the main floor. So the first floor mesh extends below the
+     * that hangs over the main floor. So the first floor mesh extents below the
      * balcony mesh. The start position is somewhere on the first floor. The end
      * position is on the balcony.
      *

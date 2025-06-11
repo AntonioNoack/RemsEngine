@@ -33,7 +33,6 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState.cameraMatrix
@@ -54,12 +53,10 @@ import me.anno.utils.structures.maps.CountMap
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3
-import org.joml.Quaterniond
+import org.joml.Vector3d
 import org.joml.Vector3f
-import javax.vecmath.Quat4d
-import javax.vecmath.Vector3d
+import vecmath.getElement
 import kotlin.math.max
-import kotlin.random.Random
 
 open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
 
@@ -123,7 +120,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // convert the center of mass to a usable transform
         val com0 = rigidBody.centerOfMass
         val com1 = Transform()
-        com1.basis.setIdentity()
+        com1.basis.identity()
         com1.origin.set(com0.x, com0.y, com0.z)
 
         val motionState = DefaultMotionState(transform1, com1)
@@ -141,8 +138,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val tmp = Stack.borrowVec()
         rb.ccdSweptSphereRadius = collider.getBoundingSphere(tmp)
         if (mass > 0.0) { // else not supported
-            rb.setLinearVelocity(castB(rigidBody.linearVelocity, tmp))
-            rb.setAngularVelocity(castB(rigidBody.angularVelocity, tmp))
+            rb.setLinearVelocity(rigidBody.linearVelocity)
+            rb.setAngularVelocity(rigidBody.angularVelocity)
         }
         Stack.subVec(1)
 
@@ -199,7 +196,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // must be done after adding the body to the world,
         // because it is overridden by World.addRigidbody()
         if (rigidbody.overrideGravity) {
-            body.setGravity(castB(rigidbody.gravity))
+            body.setGravity(rigidbody.gravity)
         }
 
         rigidBodies[entity] = bodyWithScale
@@ -340,7 +337,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         bulletInstance.removeRigidBody(rigidbody)
     }
 
-    override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3) {
+    override fun convertTransformMatrix(rigidbody: RigidBody, scale: Vector3d, dstTransform: Matrix4x3) {
         val tmpTransform = Stack.borrowTrans()
         rigidbody.getWorldTransform(tmpTransform)
         transformToMat4x3(tmpTransform, scale, dstTransform)
@@ -398,7 +395,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val max = Vector3d()
         val boundsById = HashMap<Int, AABBd>()
         val countMap = CountMap<Int>()
-        for (instance in bulletInstance.collisionObjectArray) {
+        for (instance in bulletInstance.collisionObjects) {
             val tag = instance.islandTag
             if (tag < 0) continue // no island available
             // get transformed bounds
@@ -448,7 +445,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val numManifolds = dispatcher.numManifolds
         for (i in 0 until numManifolds) {
             val contactManifold = dispatcher.getManifoldByIndexInternal(i)
-            drawContactManifold(contactManifold ?: break)
+            drawContactManifold(contactManifold)
         }
     }
 
@@ -493,12 +490,12 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val minAabb = Stack.newVec()
         val maxAabb = Stack.newVec()
 
-        val collisionObjects = bulletInstance.collisionObjectArray
+        val collisionObjects = bulletInstance.collisionObjects
 
         val bounds = JomlPools.aabbd.create()
         for (i in 0 until collisionObjects.size) {
 
-            val colObj = collisionObjects[i] ?: break
+            val colObj = collisionObjects[i]
             val color = when (colObj.activationState) {
                 CollisionObject.ACTIVE_TAG -> -1
                 CollisionObject.ISLAND_SLEEPING -> 0x00ff00
@@ -526,7 +523,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 e.printStackTrace()
             }
 
-            DrawAABB.drawAABB(
+            drawAABB(
                 bounds
                     .setMin(minAabb.x, minAabb.y, minAabb.z)
                     .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
@@ -565,7 +562,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val tmp = Stack.newVec()
 
         for (i in 0 until vehicles.size) {
-            val vehicle = vehicles[i] ?: break
+            val vehicle = vehicles[i]
             for (v in 0 until vehicle.numWheels) {
                 val wheelInfo = vehicle.getWheelInfo(v)
                 val wheelColor = (if (wheelInfo.raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
@@ -647,58 +644,19 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
 
-        fun castB(src: org.joml.Vector3d): Vector3d {
-            val v = Stack.borrowVec()
-            return castB(src, v)
-        }
-
-        fun castB(src: org.joml.Vector3d, dst: Vector3d): Vector3d {
-            dst.set(src.x, src.y, src.z)
-            return dst
-        }
-
-        fun castB(s: Quaterniond): Quat4d {
-            val v = Stack.borrowQuat()
-            v.set(s.x, s.y, s.z, s.z)
-            return v
-        }
-
-        fun mat4x3ToTransform(ourTransform: Matrix4x3, scale: org.joml.Vector3d): Transform {
+        fun mat4x3ToTransform(ourTransform: Matrix4x3, scale: Vector3d): Transform {
+            val transform = Transform()
             // bullet does not support scale -> we always need to correct it
-            val sx = 1.0 / scale.x
-            val sy = 1.0 / scale.y
-            val sz = 1.0 / scale.z
-            val t = Transform()
-            val b = t.basis
-            // bullet/javax uses normal ij indexing, while joml uses ji indexing
-            b.m00 = ourTransform.m00 * sx
-            b.m10 = ourTransform.m01 * sx
-            b.m20 = ourTransform.m02 * sx
-            b.m01 = ourTransform.m10 * sy
-            b.m11 = ourTransform.m11 * sy
-            b.m21 = ourTransform.m12 * sy
-            b.m02 = ourTransform.m20 * sz
-            b.m12 = ourTransform.m21 * sz
-            b.m22 = ourTransform.m22 * sz
-            t.origin.set(ourTransform.m30, ourTransform.m31, ourTransform.m32)
-            return t
+            transform.basis.set(ourTransform).scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z)
+            transform.origin.set(ourTransform.m30, ourTransform.m31, ourTransform.m32)
+            return transform
         }
 
-        fun transformToMat4x3(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3) {
-
-            val basis = worldTransform.basis
-            val origin = worldTransform.origin
-            val sx = scale.x
-            val sy = scale.y
-            val sz = scale.z
-
-            // bullet/javax uses normal ij indexing, while joml uses ji indexing
-            dstTransform.set(
-                (basis.m00 * sx).toFloat(), (basis.m10 * sy).toFloat(), (basis.m20 * sz).toFloat(),
-                (basis.m01 * sx).toFloat(), (basis.m11 * sy).toFloat(), (basis.m21 * sz).toFloat(),
-                (basis.m02 * sx).toFloat(), (basis.m12 * sy).toFloat(), (basis.m22 * sz).toFloat(),
-                origin.x, origin.y, origin.z
-            )
+        fun transformToMat4x3(worldTransform: Transform, scale: Vector3d, dstTransform: Matrix4x3) {
+            // bullet does not support scale -> we always need to correct it
+            dstTransform.set(worldTransform.basis)
+                .scale(scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
+                .setTranslation(worldTransform.origin)
         }
     }
 }

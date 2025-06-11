@@ -31,7 +31,7 @@ fun main() {
     val box0 = Entity("Door", scene)
     box0.add(MeshComponent(flatCube.scaled(Vector3f(0.45f, 1.0f, 0.04f)).front))
     box0.add(BoxCollider().apply {
-        halfExtends.set(0.45, 1.0, 0.04)
+        halfExtents.set(0.45, 1.0, 0.04)
     })
     box0.setPosition(0.0, 2.3, 0.0)
     val body0 = Rigidbody()
@@ -43,7 +43,7 @@ fun main() {
 
     val box1 = Entity("Pillar", scene)
     box1.add(MeshComponent(flatCube.scaled(Vector3f(0.1f, 1.0f, 0.1f)).front))
-    box1.add(BoxCollider().apply { halfExtends.set(0.1f, 1f, 0.1f) })
+    box1.add(BoxCollider().apply { halfExtents.set(0.1f, 1f, 0.1f) })
     box1.setRotation(5f.toRadians(), 0f, 0f)
     val body1 = Rigidbody()
     box1.add(body1)

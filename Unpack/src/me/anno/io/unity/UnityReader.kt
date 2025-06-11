@@ -400,7 +400,7 @@ object UnityReader {
             prefab.clazzName = "BoxCollider"
             ROOT_PATH
         }
-        if (size != null) prefab[path, "halfExtends"] = size
+        if (size != null) prefab[path, "halfExtents"] = size
         // todo this is not known/supported...
         // val isTrigger = node.getBool("IsTrigger")
         // if (isTrigger != null) prefab.set(path, "isTrigger", isTrigger) // mmh...

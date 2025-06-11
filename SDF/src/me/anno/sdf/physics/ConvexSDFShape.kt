@@ -7,7 +7,7 @@ import me.anno.sdf.SDFCollider
 import me.anno.sdf.SDFComponent
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
-import javax.vecmath.Vector3d
+import org.joml.Vector3d
 import kotlin.math.abs
 
 class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexShape() {
@@ -84,10 +84,10 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         localGetSupportingVertex(dir, out, 0.0)
 
     override fun batchedUnitVectorGetSupportingVertexWithoutMargin(
-        vectors: Array<Vector3d>, supportVerticesOut: Array<Vector3d>, numVectors: Int
+        dirs: Array<Vector3d>, outs: Array<Vector3d>, numVectors: Int
     ) {
         for (i in 0 until numVectors) {
-            localGetSupportingVertex(vectors[i], supportVerticesOut[i], 0.0)
+            localGetSupportingVertex(dirs[i], outs[i], 0.0)
         }
     }
 

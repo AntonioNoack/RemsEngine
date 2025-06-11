@@ -6,14 +6,14 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.LineBuffer.vToByte
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import javax.vecmath.Vector3d
+import org.joml.Vector3d
 
 object BulletDebugDraw : IDebugDraw {
 
     private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
 
     val stack = Matrix4f()
-    val cam = org.joml.Vector3d()
+    val cam = Vector3d()
 
     /**
     public static final int NO_DEBUG              = 0;
@@ -41,8 +41,7 @@ object BulletDebugDraw : IDebugDraw {
         // is not being used by discrete dynamics world
     }
 
-    private val tmpA = org.joml.Vector3d()
-    private val tmpB = org.joml.Vector3d()
+    private val tmpB = Vector3d()
 
     override fun drawContactPoint(
         position: Vector3d,
@@ -52,9 +51,8 @@ object BulletDebugDraw : IDebugDraw {
         color: Vector3d
     ) {
         // instead of a line, draw a shape with arrow
-        val p0 = tmpA.set(position.x, position.y, position.z)
-        val p1 = tmpB.set(normal.x, normal.y, normal.z).add(p0)
-        LineShapes.drawArrowZ(p0, p1)
+        val p1 = normal.add(position, tmpB)
+        LineShapes.drawArrowZ(position, p1)
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {

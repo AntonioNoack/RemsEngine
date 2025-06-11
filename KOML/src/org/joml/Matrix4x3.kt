@@ -254,6 +254,22 @@ open class Matrix4x3 : Matrix<Matrix4x3, Vector3d, Vector4d> {
         return determineProperties()
     }
 
+    fun set(mat: Matrix3d): Matrix4x3 {
+        m00 = mat.m00.toFloat()
+        m01 = mat.m01.toFloat()
+        m02 = mat.m02.toFloat()
+        m10 = mat.m10.toFloat()
+        m11 = mat.m11.toFloat()
+        m12 = mat.m12.toFloat()
+        m20 = mat.m20.toFloat()
+        m21 = mat.m21.toFloat()
+        m22 = mat.m22.toFloat()
+        m30 = 0.0
+        m31 = 0.0
+        m32 = 0.0
+        return determineProperties()
+    }
+
     fun set(axisAngle: AxisAngle4f): Matrix4x3 {
         var x = axisAngle.x
         var y = axisAngle.y

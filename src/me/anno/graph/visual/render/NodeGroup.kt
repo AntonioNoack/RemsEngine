@@ -15,7 +15,7 @@ class NodeGroup : PrefabSaveable() {
     val position = Vector3d()
 
     @SerializedProperty
-    val extends = Vector3d()
+    val extents = Vector3d()
 
     @SerializedProperty
     val members = ArrayList<Node>()
@@ -24,7 +24,7 @@ class NodeGroup : PrefabSaveable() {
         super.save(writer)
         writer.writeColor("color", color)
         writer.writeVector3d("position", position)
-        writer.writeVector3d("extends", extends)
+        writer.writeVector3d("extents", extents)
         writer.writeObjectList(null, "members", members)
     }
 
@@ -32,7 +32,7 @@ class NodeGroup : PrefabSaveable() {
         when (name) {
             "color" -> color = value as? Int ?: return
             "position" -> position.set(value as? Vector3d ?: return)
-            "extends" -> extends.set(value as? Vector3d ?: return)
+            "extents" -> extents.set(value as? Vector3d ?: return)
             "members" -> {
                 val values = value as? List<*> ?: return
                 members.clear()

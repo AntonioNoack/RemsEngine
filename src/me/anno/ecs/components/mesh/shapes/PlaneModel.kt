@@ -14,12 +14,12 @@ object PlaneModel {
 
     fun createPlaneXZ(
         tilesU: Int, tilesV: Int,
-        halfExtends: Vector2f,
+        halfExtents: Vector2f,
     ): Mesh = createPlane(
         tilesU, tilesV,
         Vector3f(),
-        Vector3f(halfExtends.x, 0f, 0f),
-        Vector3f(0f, 0f, halfExtends.y)
+        Vector3f(halfExtents.x, 0f, 0f),
+        Vector3f(0f, 0f, halfExtents.y)
     )
 
     fun createPlane(

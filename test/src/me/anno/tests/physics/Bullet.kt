@@ -11,7 +11,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.systems.Systems
 import me.anno.maths.Maths
-import javax.vecmath.Vector3d
+import org.joml.Vector3d
 
 fun main() {
     libraryTest3d()
@@ -32,7 +32,7 @@ private fun libraryTest3d() {
                     Transform()
                         .apply {
                             origin.set(0.0, -10.0, 0.0)
-                            basis.setIdentity()
+                            basis.identity()
                         }),
                 BoxShape(Vector3d(50.0, 5.0, 50.0)),
                 Vector3d()
@@ -46,7 +46,7 @@ private fun libraryTest3d() {
             DefaultMotionState(Transform()
                 .apply {
                     origin.set(0.0, +10.0, 0.0)
-                    basis.setIdentity()
+                    basis.identity()
                 }),
             BoxShape(Vector3d(1.0, 1.0, 1.0)),
             Vector3d()
@@ -54,7 +54,7 @@ private fun libraryTest3d() {
     )
     world.addRigidBody(boxBody)
 
-    for (i in 0 until 10) {
+    repeat(10) {
         println(boxBody.getWorldTransform(Transform()).origin)
         world.stepSimulation(1.0, 10, 0.1)
     }
@@ -72,7 +72,7 @@ private fun engineTest3d() {
     val groundRB = Rigidbody()
     ground.add(groundRB)
     val groundShape = BoxCollider()
-    groundShape.halfExtends.set(50.0, 5.0, 50.0)
+    groundShape.halfExtents.set(50.0, 5.0, 50.0)
     ground.setPosition(0.0, -10.0, 0.0)
     ground.add(groundShape)
     world.add(ground)
@@ -84,7 +84,7 @@ private fun engineTest3d() {
     box.setPosition(0.0, 10.0, 0.0)
     val boxShape = BoxCollider()
     boxRB.mass = 1.0
-    boxShape.halfExtends.set(1.0)
+    boxShape.halfExtents.set(1.0)
     box.add(boxShape)
     world.add(box)
     world.validateTransform()

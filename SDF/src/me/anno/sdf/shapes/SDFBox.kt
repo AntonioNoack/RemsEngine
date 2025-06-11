@@ -18,7 +18,7 @@ import kotlin.math.abs
  * */
 open class SDFBox : SDFSmoothShape() {
 
-    var halfExtends = Vector3f(1f)
+    var halfExtents = Vector3f(1f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
@@ -34,7 +34,7 @@ open class SDFBox : SDFSmoothShape() {
         }
 
     override fun calculateBaseBounds(dst: AABBf) {
-        val h = halfExtends
+        val h = halfExtents
         dst.setMin(-h.x, -h.y, -h.z)
         dst.setMax(+h.x, +h.y, +h.z)
     }
@@ -57,8 +57,8 @@ open class SDFBox : SDFSmoothShape() {
             builder.append("sddBox(pos").append(trans.posIndex).append(",dir").append(trans.posIndex)
         }
         builder.append(',')
-        if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtends)
-        else builder.appendVec(halfExtends)
+        if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtents)
+        else builder.appendVec(halfExtents)
         if (dynamicSmoothness || globalDynamic || smoothness > 0f) {
             builder.append(',').appendUniform(uniforms, GLSLType.V1F) { smoothness }
         }
@@ -68,7 +68,7 @@ open class SDFBox : SDFSmoothShape() {
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val r = smoothness
-        val b = halfExtends
+        val b = halfExtents
         val qx = abs(pos.x) - b.x + r
         val qy = abs(pos.y) - b.y + r
         val qz = abs(pos.z) - b.z + r
@@ -80,7 +80,7 @@ open class SDFBox : SDFSmoothShape() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is SDFBox) return
-        dst.halfExtends.set(halfExtends)
+        dst.halfExtents.set(halfExtents)
     }
 
     companion object {

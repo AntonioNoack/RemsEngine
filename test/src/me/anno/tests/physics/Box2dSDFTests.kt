@@ -20,7 +20,7 @@ class Box2dSDFTests {
     @Test
     fun testRectColliderSDF() {
         val r = RectCollider()
-        r.halfExtends.set(1f, 2f)
+        r.halfExtents.set(1f, 2f)
         assertEquals(0f, r.getSignedDistance(Vector3f(1f, 2f, 0f)))
         assertEquals(-1f, r.getSignedDistance(Vector3f(0f)))
         assertEquals(1f, r.getSignedDistance(Vector3f(2f, 2f, 0f)))

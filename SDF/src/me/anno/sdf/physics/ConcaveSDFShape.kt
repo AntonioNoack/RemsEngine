@@ -11,6 +11,7 @@ import me.anno.sdf.SDFComponent
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min
 
@@ -20,7 +21,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         private val LOGGER = LogManager.getLogger(ConcaveSDFShape::class)
     }
 
-    override fun getAabb(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
+    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
         collider.getAABB(t, aabbMin, aabbMax)
     }
 
@@ -29,18 +30,18 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         return BroadphaseNativeType.FAST_CONCAVE_MESH_PROXYTYPE
     }
 
-    val localScaling = javax.vecmath.Vector3d(1.0, 1.0, 1.0)
+    val localScaling = Vector3d(1.0, 1.0, 1.0)
 
-    override fun setLocalScaling(scaling: javax.vecmath.Vector3d) {
+    override fun setLocalScaling(scaling: Vector3d) {
         localScaling.set(scaling)
     }
 
-    override fun getLocalScaling(out: javax.vecmath.Vector3d): javax.vecmath.Vector3d {
+    override fun getLocalScaling(out: Vector3d): Vector3d {
         out.set(localScaling)
         return out
     }
 
-    override fun calculateLocalInertia(mass: Double, inertia: javax.vecmath.Vector3d) {
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
         collider.calculateLocalInertia(mass, inertia)
     }
 
@@ -55,15 +56,15 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
     val fz = 6
     val field = FloatArray(fx * fy * fz)
 
-    val min2 = javax.vecmath.Vector3d()
-    val max2 = javax.vecmath.Vector3d()
+    val min2 = Vector3d()
+    val max2 = Vector3d()
 
     private val seeds = IntArrayList(8)
 
     override fun processAllTriangles(
         callback: TriangleCallback,
-        aabbMin: javax.vecmath.Vector3d, // bounds that need to be included
-        aabbMax: javax.vecmath.Vector3d
+        aabbMin: Vector3d, // bounds that need to be included
+        aabbMax: Vector3d
     ) {
 
         LOGGER.debug("Requesting ConcaveSDFShape.processAllTriangles({}, {})", aabbMin, aabbMax)
@@ -115,7 +116,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             bounds1.setMin(min2.x.toFloat(), min2.y.toFloat(), min2.z.toFloat())
             bounds1.setMax(max2.x.toFloat(), max2.y.toFloat(), max2.z.toFloat())
 
-            val triangle = Array(3) { javax.vecmath.Vector3d() } // must be array
+            val triangle = Array(3) { Vector3d() } // must be array
             var ctr = 0
             MarchingCubes.march(fx, fy, fz, field, 0f, bounds1, false) { a, b, c ->
                 // is the order correct? (front/back sides)

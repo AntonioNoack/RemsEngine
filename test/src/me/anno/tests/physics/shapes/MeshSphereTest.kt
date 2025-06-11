@@ -29,8 +29,8 @@ class MeshSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 0.17) // error comes from low poly approximation
         }
     }
@@ -50,8 +50,8 @@ class MeshSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 0.30) // error comes from low poly approximation
         }
     }
@@ -70,8 +70,8 @@ class MeshSphereTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 0.17) // error comes from low poly approximation
         }
     }

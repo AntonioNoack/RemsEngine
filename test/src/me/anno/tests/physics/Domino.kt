@@ -97,8 +97,8 @@ fun main() {
         val mass1 = width * height * thickness * density
 
         val margin1 = 0.1f * inch
-        val halfExtends1 = Vector3f(width * 0.5f, height * 0.5f, thickness * 0.5f)
-        val mesh = flatCube.scaled(halfExtends1).front.ref
+        val halfExtents1 = Vector3f(width * 0.5f, height * 0.5f, thickness * 0.5f)
+        val mesh = flatCube.scaled(halfExtents1).front.ref
 
         val dominos = Entity("Dominos")
         scene.add(dominos)
@@ -114,10 +114,10 @@ fun main() {
                 restitution = 0.0
             })
             domino.add(BoxCollider().apply {
-                halfExtends = halfExtends1
+                halfExtents = halfExtents1
                 roundness = margin1
             })
-            domino.setPosition(x.toDouble(), (halfExtends1.y + margin1).toDouble(), z.toDouble())
+            domino.setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
             dominos.add(domino)
             return domino
         }
@@ -134,7 +134,7 @@ fun main() {
                 restitution = 0.0
             })
             floor.add(BoxCollider().apply {
-                halfExtends.set(floorHalfSize)
+                halfExtents.set(floorHalfSize)
                 roundness = margin1
             })
             floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))

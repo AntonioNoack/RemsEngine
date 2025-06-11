@@ -48,7 +48,7 @@ class ChunkyTriMesh(vertices: FloatArray, indices: IntArray, numTris: Int, trisP
         }
     }
 
-    private fun calcExtends(items: Array<Node>, startIndex: Int, endIndex: Int, dst: Node) {
+    private fun calcExtents(items: Array<Node>, startIndex: Int, endIndex: Int, dst: Node) {
         var n = items[startIndex]
         dst.minX = n.minX
         dst.minY = n.minY
@@ -81,7 +81,7 @@ class ChunkyTriMesh(vertices: FloatArray, indices: IntArray, numTris: Int, trisP
         if (length <= trisPerChunk) {
 
             // Leaf
-            calcExtends(items, startIndex, endIndex, node)
+            calcExtents(items, startIndex, endIndex, node)
 
             // Copy triangles.
             node.i = nodes.size
@@ -96,7 +96,7 @@ class ChunkyTriMesh(vertices: FloatArray, indices: IntArray, numTris: Int, trisP
         } else {
 
             // Split
-            calcExtends(items, startIndex, endIndex, node)
+            calcExtents(items, startIndex, endIndex, node)
             val axis = longestAxis(node.maxX - node.minX, node.maxY - node.minY)
             if (axis == 0) {
                 Arrays.sort(items, startIndex, endIndex, CompareItemX)

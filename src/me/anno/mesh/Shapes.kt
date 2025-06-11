@@ -142,7 +142,7 @@ object Shapes {
     ).withUVs()
 
     /**
-     * cube with halfExtends = 1, full extends = 2;
+     * cube with halfExtents = 1, full extents = 2;
      * smoothly shaded
      * */
     val smoothCube = FBBMesh(
@@ -168,7 +168,7 @@ object Shapes {
     val flatCube = FBBMesh("flatCube", unpack(smoothCube.front), null)
 
     /**
-     * cube with half extends 1, full extends 2; front only
+     * cube with half extents 1, full extents 2; front only
      * */
     val cube11Smooth = smoothCube.front
 
@@ -179,13 +179,13 @@ object Shapes {
     // and a tetrahedron (8t, 6p) has 6.9 m³ -> use the tetrahedron
 
     /**
-     * cube with half extends 0.5, full extends 1;
+     * cube with half extents 0.5, full extents 1;
      * shaded smoothly
      * */
     val cube05Smooth = FBBMesh("cube05Smooth", smoothCube, 0.5f)
 
     /**
-     * cube with half extends 0.5, full extends 1;
+     * cube with half extents 0.5, full extents 1;
      * shaded flat
      * */
     val cube05Flat = FBBMesh("cube05Flat", flatCube, 0.5f)

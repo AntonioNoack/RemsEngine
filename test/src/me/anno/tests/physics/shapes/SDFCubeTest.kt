@@ -44,8 +44,8 @@ class SDFCubeTest {
         val random = Random(1234)
         for (i in 0 until 20) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 1.0) // error is a little large...
         }
     }
@@ -55,13 +55,13 @@ class SDFCubeTest {
         val baseline = createBaseline(0f)
         val tested = createTested(0f)
         for (i in 0 until 8) {
-            val pos = javax.vecmath.Vector3d(
+            val pos = Vector3d(
                 if (i.hasFlag(1)) 1.0 else -1.0,
                 if (i.hasFlag(2)) 1.0 else -1.0,
                 if (i.hasFlag(4)) 1.0 else -1.0,
             )
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 1e-7)
         }
     }
@@ -73,8 +73,8 @@ class SDFCubeTest {
         val random = Random(1234)
         for (i in 0 until 100) {
             val pos = random.nextPos()
-            val expected = baseline.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
-            val actual = tested.localGetSupportingVertex(pos, javax.vecmath.Vector3d()).toKOML()
+            val expected = baseline.localGetSupportingVertex(pos, Vector3d()).toKOML()
+            val actual = tested.localGetSupportingVertex(pos, Vector3d()).toKOML()
             assertEquals(expected, actual, 2.0, "$pos") // error is a little large...
         }
     }

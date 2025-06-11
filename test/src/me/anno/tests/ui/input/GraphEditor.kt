@@ -16,7 +16,7 @@ fun main() {
     val group = NodeGroup()
     group.name = "Sample Group"
     group.members.addAll(graph.nodes.subList(0, 2))
-    group.extends.set(700.0, 300.0, 0.0)
+    group.extents.set(700.0, 300.0, 0.0)
     group.position.set(250.0, -40.0, 0.0)
     group.color = UIColors.darkOrange.withAlpha(0.5f)
     graph.groups.add(group)

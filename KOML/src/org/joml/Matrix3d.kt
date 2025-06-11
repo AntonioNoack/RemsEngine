@@ -141,6 +141,14 @@ open class Matrix3d : Matrix<Matrix3d, Vector3d, Vector3d> {
         )
     }
 
+    fun set(m: Matrix4x3): Matrix3d {
+        return set(
+            m.m00.toDouble(), m.m01.toDouble(), m.m02.toDouble(),
+            m.m10.toDouble(), m.m11.toDouble(), m.m12.toDouble(),
+            m.m20.toDouble(), m.m21.toDouble(), m.m22.toDouble()
+        )
+    }
+
     fun set(mat: Matrix4d): Matrix3d {
         m00 = mat.m00
         m01 = mat.m01

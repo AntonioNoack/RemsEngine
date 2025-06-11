@@ -84,8 +84,8 @@ object Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                 }
                 is RectCollider -> {
                     val shape = PolygonShape()
-                    val halfExtends = collider.halfExtends
-                    shape.setAsBox(halfExtends.x, halfExtends.y)
+                    val halfExtents = collider.halfExtents
+                    shape.setAsBox(halfExtents.x, halfExtents.y)
                     shape
                 }
                 else -> {

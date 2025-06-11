@@ -62,7 +62,7 @@ fun main() {
 
         val random = Random(1234L)
         val samples = createList(64) {
-            javax.vecmath.Vector3d(random.nextGaussian(), random.nextGaussian(), random.nextGaussian())
+            Vector3d(random.nextGaussian(), random.nextGaussian(), random.nextGaussian())
         }
 
         println(samples)
@@ -73,21 +73,21 @@ fun main() {
             // todo scaled convex shapes don't work correctly, looks as if it wasn't scaled
 
             println("${shape.isConvex}, ${shape.isConvex}, ${shape.isCompound}, ${shape.isPolyhedral}, ${shape.isInfinite}")
-            val min = javax.vecmath.Vector3d()
-            val max = javax.vecmath.Vector3d()
+            val min = Vector3d()
+            val max = Vector3d()
             val tr = Transform()
             tr.setIdentity()
             shape.getAabb(tr, min, max)
             println("$min - $max")
             println(shape.margin)
             println(shape.shapeType)
-            println(shape.getBoundingSphere(javax.vecmath.Vector3d()))
+            println(shape.getBoundingSphere(Vector3d()))
             shape as ConvexShape
             println("${shape.numPreferredPenetrationDirections}") // only used for hull building
-            println(samples.map { shape.localGetSupportingVertex(it, javax.vecmath.Vector3d()) })
-            println(samples.map { shape.localGetSupportingVertexWithoutMargin(it, javax.vecmath.Vector3d()) })
+            println(samples.map { shape.localGetSupportingVertex(it, Vector3d()) })
+            println(samples.map { shape.localGetSupportingVertexWithoutMargin(it, Vector3d()) })
             println(samples.map {
-                val out = arrayOf(javax.vecmath.Vector3d())
+                val out = arrayOf(Vector3d())
                 shape.batchedUnitVectorGetSupportingVertexWithoutMargin(
                     arrayOf(it),
                     out,

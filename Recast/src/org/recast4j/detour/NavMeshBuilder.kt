@@ -33,7 +33,7 @@ object NavMeshBuilder {
     private val LOGGER = LogManager.getLogger(NavMeshBuilder::class)
     const val MESH_NULL_IDX = 0xffff
 
-    private fun calcExtends(nodes: Array<BVNode>, startIndex: Int, endIndex: Int, dst: BVNode) {
+    private fun calcExtents(nodes: Array<BVNode>, startIndex: Int, endIndex: Int, dst: BVNode) {
         nodes[startIndex].copyBoundsInto(dst)
         for (i in startIndex + 1 until endIndex) {
             dst.union(nodes[i])
@@ -60,7 +60,7 @@ object NavMeshBuilder {
             srcNodes[iMin].copyInto(n)
         } else {
             // Split
-            calcExtends(srcNodes, iMin, imax, n)
+            calcExtents(srcNodes, iMin, imax, n)
             val maxAxis = longestAxis(n.maxX - n.minX, n.maxY - n.minY, n.maxZ - n.minZ)
             val sorter = when (maxAxis) {
                 0 -> CompareItemX

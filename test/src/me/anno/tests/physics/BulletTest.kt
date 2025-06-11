@@ -223,7 +223,7 @@ class BulletTest {
                 friction = floorFriction.toDouble()
             })
             .add(BoxCollider().apply {
-                halfExtends.set(30.0, 10.0, 30.0)
+                halfExtents.set(30.0, 10.0, 30.0)
             })
         world.add(floor)
 
@@ -291,7 +291,7 @@ class BulletTest {
                 friction = 0.5
             })
             .add(BoxCollider().apply {
-                halfExtends.set(30.0, 10.0, 30.0)
+                halfExtents.set(30.0, 10.0, 30.0)
             })
         world.add(floor)
 
@@ -340,7 +340,7 @@ class BulletTest {
                 friction = 0.9
             })
             .add(BoxCollider().apply {
-                halfExtends.set(30.0, 10.0, 30.0)
+                halfExtents.set(30.0, 10.0, 30.0)
             })
         world.add(floor)
 
@@ -354,7 +354,7 @@ class BulletTest {
                 mass = 1.0
             })
             .add(BoxCollider().apply {
-                halfExtends.set(1.0)
+                halfExtents.set(1.0)
             })
         world.add(sphere)
 

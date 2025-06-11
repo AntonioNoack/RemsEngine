@@ -5,7 +5,7 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.downloads
-import javax.vecmath.Vector3f
+import org.joml.Vector3f
 
 fun main() {
     val folder = downloads.getChild("ogldev-source/crytek_sponza/textures")
@@ -37,8 +37,7 @@ fun convert(src: FileReference, dst: FileReference) {
         val dx = (get(x + 1, y) - get(x - 1, y)) * 0.5f
         val dy = (get(x, y + 1) - get(x, y - 1)) * 0.5f
         v.set(dx, dy, maxExpectedGradient)
-        v.normalize()
-        v.scale(0.5f)
+        v.normalize(0.5f)
         val color = rgba(v.x + 0.5f, v.y + 0.5f, v.z + 0.5f, 1f)
         dstImage.setRGB(x, y, color)
     }

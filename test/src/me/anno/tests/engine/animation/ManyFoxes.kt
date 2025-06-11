@@ -137,8 +137,8 @@ fun main() {
     }
 
     // add floor
-    val floorHalfExtends = maxRadius.toFloat() * 1.1f
-    val floorMesh = PlaneModel.createPlaneXZ(2, 2, Vector2f(floorHalfExtends))
+    val floorHalfExtents = maxRadius.toFloat() * 1.1f
+    val floorMesh = PlaneModel.createPlaneXZ(2, 2, Vector2f(floorHalfExtents))
     scene.add(MeshComponent(floorMesh))
 
     // run scene

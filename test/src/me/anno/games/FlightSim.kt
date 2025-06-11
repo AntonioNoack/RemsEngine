@@ -214,7 +214,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
         sub.position = sub.position.set(pos)
         sub.rotation = sub.rotation.rotateX(rx.toRadians())
         val box = BoxCollider()
-        box.halfExtends.set(halfExt)
+        box.halfExtents.set(halfExt)
         sub.add(box)
         plane.add(sub)
     }

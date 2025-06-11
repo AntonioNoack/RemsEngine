@@ -3,10 +3,11 @@ package me.anno.sdf.physics
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.sdf.SDFCollider
+import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.math.min
 
-fun SDFCollider.getAABB(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
+fun SDFCollider.getAABB(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
 
     val sdf = sdf ?: return
     val bounds = sdf.globalAABB

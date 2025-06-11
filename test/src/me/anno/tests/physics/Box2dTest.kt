@@ -283,7 +283,7 @@ class Box2dTest {
             .add(Rigidbody2d())
             .add(RectCollider().apply {
                 friction = floorFriction
-                halfExtends.set(30f, 10f)
+                halfExtents.set(30f, 10f)
             })
         world.add(floor)
 
@@ -347,7 +347,7 @@ class Box2dTest {
             .add(Rigidbody2d())
             .add(RectCollider().apply {
                 friction = 0.5f
-                halfExtends.set(30f, 10f)
+                halfExtents.set(30f, 10f)
             })
         world.add(floor)
 
@@ -392,7 +392,7 @@ class Box2dTest {
             .add(Rigidbody2d())
             .add(RectCollider().apply {
                 friction = 0.9f
-                halfExtends.set(30f, 10f)
+                halfExtents.set(30f, 10f)
             })
         world.add(floor)
 
@@ -403,7 +403,7 @@ class Box2dTest {
             .setRotation(0f, 0f, angle)
             .add(underTest)
             .add(RectCollider().apply {
-                halfExtends.set(1f)
+                halfExtents.set(1f)
                 friction = 0.9f
                 density = 1f
             })

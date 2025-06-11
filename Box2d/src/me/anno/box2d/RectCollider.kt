@@ -17,7 +17,7 @@ import kotlin.math.min
 
 class RectCollider : Collider2d() {
 
-    var halfExtends = Vector2f(1f)
+    var halfExtents = Vector2f(1f)
         set(value) {
             field.set(value)
             (box2dInstance?.shape as? PolygonShape)?.setAsBox(value.x, value.y)
@@ -25,7 +25,7 @@ class RectCollider : Collider2d() {
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         // from SDFBox()
-        val b = halfExtends
+        val b = halfExtents
         val qx = abs(deltaPos.x) - b.x
         val qy = abs(deltaPos.y) - b.y
         val outer = Maths.length(max(0f, qx), max(0f, qy))
@@ -34,9 +34,9 @@ class RectCollider : Collider2d() {
     }
 
     override fun drawShape(pipeline: Pipeline) {
-        val halfExtends = halfExtends
-        val x = halfExtends.x
-        val y = halfExtends.y
+        val halfExtents = halfExtents
+        val x = halfExtents.x
+        val y = halfExtents.y
         val v3 = JomlPools.vec3f
         val p0 = v3.create().set(+x, +y, 0f)
         val p1 = v3.create().set(+x, -y, 0f)
@@ -47,13 +47,13 @@ class RectCollider : Collider2d() {
     }
 
     override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        val halfExtends = halfExtends
-        unionCube(globalTransform, aabb, tmp, halfExtends.x.toDouble(), halfExtends.y.toDouble(), 1.0)
+        val halfExtents = halfExtents
+        unionCube(globalTransform, aabb, tmp, halfExtents.x.toDouble(), halfExtents.y.toDouble(), 1.0)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         if (dst !is RectCollider) return
-        dst.halfExtends.set(halfExtends)
+        dst.halfExtents.set(halfExtents)
     }
 }
