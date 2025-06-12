@@ -27,7 +27,7 @@ object ContactConstraint {
 
     @JvmField
     val resolveSingleFriction: ContactSolverFunc = ContactSolverFunc { a, b, c, d ->
-        resolveSingleFriction(a, b, c, d)
+        resolveSingleFriction(a, b, c)
     }
 
     @JvmField
@@ -75,7 +75,7 @@ object ContactConstraint {
         val mat2 = body2.getCenterOfMassTransform(Stack.newTrans()).basis
         mat2.transpose()
 
-        val jac: JacobianEntry = jacobiansPool.get()!!
+        val jac: JacobianEntry = jacobiansPool.get()
         jac.init(
             mat1, mat2,
             relPos1, relPos2, normal,
@@ -176,19 +176,18 @@ object ContactConstraint {
     fun resolveSingleFriction(
         body1: RigidBody,
         body2: RigidBody,
-        contactPoint: ManifoldPoint,
-        solverInfo: ContactSolverInfo?
+        contactPoint: ManifoldPoint
     ): Double {
         val tmpVec = Stack.newVec()
 
         val pos1 = contactPoint.getPositionWorldOnA(Stack.newVec())
         val pos2 = contactPoint.getPositionWorldOnB(Stack.newVec())
 
-        val rel_pos1 = Stack.newVec()
-        rel_pos1.setSub(pos1, body1.getCenterOfMassPosition(tmpVec))
+        val relPos1 = Stack.newVec()
+        relPos1.setSub(pos1, body1.getCenterOfMassPosition(tmpVec))
 
-        val rel_pos2 = Stack.newVec()
-        rel_pos2.setSub(pos2, body2.getCenterOfMassPosition(tmpVec))
+        val relPos2 = Stack.newVec()
+        relPos2.setSub(pos2, body2.getCenterOfMassPosition(tmpVec))
 
         val cpd: ConstraintPersistentData? = checkNotNull(contactPoint.userPersistentData as ConstraintPersistentData?)
         val combinedFriction = cpd!!.friction
@@ -202,10 +201,10 @@ object ContactConstraint {
             // 1st tangent
 
             val vel1 = Stack.newVec()
-            body1.getVelocityInLocalPoint(rel_pos1, vel1)
+            body1.getVelocityInLocalPoint(relPos1, vel1)
 
             val vel2 = Stack.newVec()
-            body2.getVelocityInLocalPoint(rel_pos2, vel2)
+            body2.getVelocityInLocalPoint(relPos2, vel2)
 
             val vel = Stack.newVec()
             vel.setSub(vel1, vel2)
@@ -274,25 +273,25 @@ object ContactConstraint {
         contactPoint: ManifoldPoint,
         solverInfo: ContactSolverInfo
     ): Double {
-        val tmpVec = Stack.newVec()
 
-        val pos1 = contactPoint.getPositionWorldOnA(Stack.newVec())
-        val pos2 = contactPoint.getPositionWorldOnB(Stack.newVec())
+        val pos1 = contactPoint.positionWorldOnA
+        val pos2 = contactPoint.positionWorldOnB
         val normal = contactPoint.normalWorldOnB
 
-        val rel_pos1 = Stack.newVec()
-        rel_pos1.setSub(pos1, body1.getCenterOfMassPosition(tmpVec))
+        val tmpVec = Stack.newVec()
+        val relPos1 = Stack.newVec()
+        relPos1.setSub(pos1, body1.getCenterOfMassPosition(tmpVec))
 
-        val rel_pos2 = Stack.newVec()
-        rel_pos2.setSub(pos2, body2.getCenterOfMassPosition(tmpVec))
+        val relPos2 = Stack.newVec()
+        relPos2.setSub(pos2, body2.getCenterOfMassPosition(tmpVec))
 
-        val vel1 = body1.getVelocityInLocalPoint(rel_pos1, Stack.newVec())
-        val vel2 = body2.getVelocityInLocalPoint(rel_pos2, Stack.newVec())
+        val vel1 = body1.getVelocityInLocalPoint(relPos1, Stack.newVec())
+        val vel2 = body2.getVelocityInLocalPoint(relPos2, Stack.newVec())
         val vel = Stack.newVec()
         vel.setSub(vel1, vel2)
 
-        var rel_vel: Double
-        rel_vel = normal.dot(vel)
+        var relVel: Double
+        relVel = normal.dot(vel)
 
         val Kfps = 1.0 / solverInfo.timeStep
 
@@ -303,7 +302,7 @@ object ContactConstraint {
         val cpd: ConstraintPersistentData? = checkNotNull(contactPoint.userPersistentData as ConstraintPersistentData?)
         val distance = cpd!!.penetration
         val positionalError = Kcor * -distance
-        val velocityError = cpd.restitution - rel_vel // * damping;
+        val velocityError = cpd.restitution - relVel // * damping;
 
         val penetrationImpulse = positionalError * cpd.jacDiagABInv
 
@@ -336,53 +335,59 @@ object ContactConstraint {
         //#endif //USE_INTERNAL_APPLY_IMPULSE
         run {
             //friction
-            body1.getVelocityInLocalPoint(rel_pos1, vel1)
-            body2.getVelocityInLocalPoint(rel_pos2, vel2)
+            body1.getVelocityInLocalPoint(relPos1, vel1)
+            body2.getVelocityInLocalPoint(relPos2, vel2)
             vel.setSub(vel1, vel2)
 
-            rel_vel = normal.dot(vel)
+            relVel = normal.dot(vel)
 
-            tmp.setScale(rel_vel, normal)
-            val lat_vel = Stack.newVec()
-            lat_vel.setSub(vel, tmp)
-            val lat_rel_vel = lat_vel.length()
+            tmp.setScale(relVel, normal)
+            val latVel = Stack.newVec()
+            latVel.setSub(vel, tmp)
+            val latRelVel = latVel.length()
 
             val combinedFriction = cpd.friction
             if (cpd.appliedImpulse > 0) {
-                if (lat_rel_vel > BulletGlobals.FLT_EPSILON) {
-                    lat_vel.mul(1.0 / lat_rel_vel)
+                if (latRelVel > BulletGlobals.FLT_EPSILON) {
+                    latVel.mul(1.0 / latRelVel)
 
                     val temp1 = Stack.newVec()
-                    temp1.setCross(rel_pos1, lat_vel)
-                    body1.getInvInertiaTensorWorld(Stack.newMat()).transform(temp1)
+                    temp1.setCross(relPos1, latVel)
+                    body1.invInertiaTensorWorld.transform(temp1)
 
                     val temp2 = Stack.newVec()
-                    temp2.setCross(rel_pos2, lat_vel)
-                    body2.getInvInertiaTensorWorld(Stack.newMat()).transform(temp2)
+                    temp2.setCross(relPos2, latVel)
+                    body2.invInertiaTensorWorld.transform(temp2)
 
                     val javaTmp1 = Stack.newVec()
-                    javaTmp1.setCross(temp1, rel_pos1)
+                    javaTmp1.setCross(temp1, relPos1)
 
                     val javaTmp2 = Stack.newVec()
-                    javaTmp2.setCross(temp2, rel_pos2)
+                    javaTmp2.setCross(temp2, relPos2)
 
                     tmp.setAdd(javaTmp1, javaTmp2)
 
-                    var frictionImpulse = lat_rel_vel /
-                            (body1.inverseMass + body2.inverseMass + lat_vel.dot(tmp))
+                    var frictionImpulse = latRelVel /
+                            (body1.inverseMass + body2.inverseMass + latVel.dot(tmp))
                     val normalImpulse1 = cpd.appliedImpulse * combinedFriction
 
                     frictionImpulse = min(frictionImpulse, normalImpulse1)
                     frictionImpulse = max(frictionImpulse, -normalImpulse1)
 
-                    tmp.setScale(-frictionImpulse, lat_vel)
-                    body1.applyImpulse(tmp, rel_pos1)
+                    tmp.setScale(-frictionImpulse, latVel)
+                    body1.applyImpulse(tmp, relPos1)
 
-                    tmp.setScale(frictionImpulse, lat_vel)
-                    body2.applyImpulse(tmp, rel_pos2)
+                    tmp.setScale(frictionImpulse, latVel)
+                    body2.applyImpulse(tmp, relPos2)
+
+                    Stack.subVec(4)
                 }
             }
+
+            Stack.subVec(1) // latVel
         }
+
+        Stack.subVec(6)
 
         return normalImpulse
     }

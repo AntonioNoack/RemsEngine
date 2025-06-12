@@ -4,12 +4,11 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
 import com.bulletphysics.linearmath.MatrixUtil.invert
 import com.bulletphysics.linearmath.QuaternionUtil.getAngle
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setScaleAdd
-import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -91,19 +90,22 @@ object TransformUtil {
     }
 
     @JvmStatic
-    fun calculateVelocity(
-        transform0: Transform,
-        transform1: Transform,
-        timeStep: Double,
-        linVel: Vector3d,
-        angVel: Vector3d
-    ) {
-        linVel.setSub(transform1.origin, transform0.origin)
-        linVel.mul(1.0 / timeStep)
-
+    fun calculateAngularVelocity(transform0: Transform, transform1: Transform, timeStep: Double, angVel: Vector3d) {
         val axis = Stack.newVec()
         val angle = calculateDiffAxisAngle(transform0, transform1, axis)
         angVel.setScale(angle / timeStep, axis)
+        Stack.subVec(1)
+    }
+
+    @JvmStatic
+    fun calculateVelocity(transform0: Transform, transform1: Transform, timeStep: Double, linVel: Vector3d): Double {
+        calculateLinearVelocity(transform0, transform1, timeStep, linVel)
+        return calculateDiffAxisAngle(transform0, transform1) / timeStep
+    }
+
+    @JvmStatic
+    fun calculateLinearVelocity(transform0: Transform, transform1: Transform, timeStep: Double, linVel: Vector3d) {
+        transform1.origin.sub(transform0.origin, linVel).mul(1.0 / timeStep)
     }
 
     fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform, axis: Vector3d): Double {
@@ -130,6 +132,28 @@ object TransformUtil {
         } else {
             axis.mul(1.0 / sqrt(len))
         }
+
+        Stack.subMat(2)
+        Stack.subQuat(1)
+
+        return result
+    }
+
+    fun calculateDiffAxisAngle(transform0: Transform, transform1: Transform): Double {
+        val tmp = Stack.newMat()
+        tmp.set(transform0.basis)
+        invert(tmp)
+
+        val dmat = Stack.newMat()
+        dmat.setMul(transform1.basis, tmp)
+
+        val dorn = Stack.newQuat()
+        getRotation(dmat, dorn)
+
+        // floating point inaccuracy can lead to w component > 1..., which breaks
+        dorn.normalize()
+
+        val result = getAngle(dorn)
 
         Stack.subMat(2)
         Stack.subQuat(1)

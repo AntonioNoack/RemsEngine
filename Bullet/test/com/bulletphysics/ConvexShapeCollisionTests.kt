@@ -16,12 +16,12 @@ class ConvexShapeCollisionTests {
         BoxShape(Vector3d(0.5, 0.5, 0.5)),
         SphereShape(0.5),
         CapsuleShape(0.3, 1.0),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5)),
-        CylinderShapeX(Vector3d(0.5, 0.5, 0.5)),
-        CylinderShapeZ(Vector3d(0.5, 0.5, 0.5)),
-        ConeShape(0.5, 1.0),
-        ConeShapeX(0.5, 1.0),
-        ConeShapeZ(0.5, 1.0),
+        CylinderShape(Vector3d(0.5, 0.5, 0.5), 0),
+        CylinderShape(Vector3d(0.5, 0.5, 0.5), 1),
+        CylinderShape(Vector3d(0.5, 0.5, 0.5), 2),
+        ConeShape(0.5, 1.0, 0),
+        ConeShape(0.5, 1.0, 1),
+        ConeShape(0.5, 1.0, 2),
     )
 
     @Test
@@ -78,7 +78,7 @@ class ConvexShapeCollisionTests {
 
         // Add dynamic convex shape body slightly above the mesh
         var y = 0.8f
-        if (convexShape is ConeShapeZ) y = 0f
+        if (convexShape is ConeShape && convexShape.upAxis == 2) y = 0f
         val bodyB: RigidBody = StackOfBoxesTest.Companion.createRigidBody(1f, Vector3d(0f, y, 0f), convexShape)
         world.addRigidBody(bodyB)
 

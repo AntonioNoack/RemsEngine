@@ -593,13 +593,13 @@ class HullLibrary {
         center.z = dz * 0.5 + bmin.z
 
         if (dx < EPSILON || dy < EPSILON || dz < EPSILON || svcount < 3) {
-            var len = Float.Companion.MAX_VALUE.toDouble()
+            var len = Double.MAX_VALUE
 
             if (dx > EPSILON && dx < len) len = dx
             if (dy > EPSILON && dy < len) len = dy
             if (dz > EPSILON && dz < len) len = dz
 
-            if (len == Float.Companion.MAX_VALUE.toDouble()) {
+            if (len == Double.MAX_VALUE) {
                 dz = 0.01
                 dy = dz
                 dx = dy // one centimeter
@@ -720,13 +720,13 @@ class HullLibrary {
                 val cy = dy * 0.5 + bmin.y
                 val cz = dz * 0.5 + bmin.z
 
-                var len = Float.Companion.MAX_VALUE.toDouble()
+                var len = Double.MAX_VALUE
 
                 if (dx >= EPSILON && dx < len) len = dx
                 if (dy >= EPSILON && dy < len) len = dy
                 if (dz >= EPSILON && dz < len) len = dz
 
-                if (len == Float.Companion.MAX_VALUE.toDouble()) {
+                if (len == Double.MAX_VALUE) {
                     dz = 0.01
                     dy = dz
                     dx = dy // one centimeter

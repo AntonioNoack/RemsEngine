@@ -10,6 +10,7 @@ import com.bulletphysics.collision.shapes.ConvexHullShape3
 import com.bulletphysics.collision.shapes.CylinderShape
 import com.bulletphysics.collision.shapes.ShapeHull
 import com.bulletphysics.collision.shapes.SphereShape
+import com.bulletphysics.collision.shapes.StaticPlaneShape
 import com.bulletphysics.collision.shapes.TriangleIndexVertexArray
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
@@ -24,6 +25,7 @@ import me.anno.ecs.components.collider.ConvexCollider
 import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.utils.algorithms.ForLoop.forLoop
@@ -35,7 +37,7 @@ import java.nio.ByteOrder
 
 private val LOGGER = LogManager.getLogger("Collider")
 
-fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
+fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
 
     val mesh = mesh as? Mesh ?: return defaultShape
 
@@ -130,7 +132,7 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
     }
 }
 
-fun CapsuleCollider.createBulletShape(scale: Vector3d): CapsuleShape {
+fun CapsuleCollider.createBulletCapsuleShape(scale: Vector3d): CapsuleShape {
     return when (axis) {
         Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis.id) // x
         Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis.id) // y
@@ -138,7 +140,7 @@ fun CapsuleCollider.createBulletShape(scale: Vector3d): CapsuleShape {
     }.apply { margin = roundness.toDouble() }
 }
 
-fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
+fun ConeCollider.createBulletConeShape(scale: Vector3d): ConeShape {
     return when (axis) {
         Axis.X -> ConeShape(radius * scale.y, height * scale.x, 0)
         Axis.Y -> ConeShape(radius * scale.x, height * scale.y, 1)
@@ -146,7 +148,7 @@ fun ConeCollider.createBulletShape(scale: Vector3d): ConeShape {
     }.apply { margin = roundness.toDouble() }
 }
 
-fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
+fun CylinderCollider.createBulletCylinderShape(scale: Vector3d): CylinderShape {
     return when (axis) {
         Axis.X -> CylinderShape(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z), 0)
         Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z), 1)
@@ -154,7 +156,7 @@ fun CylinderCollider.createBulletShape(scale: Vector3d): CylinderShape {
     }.apply { margin = roundness.toDouble() }
 }
 
-fun BoxCollider.createBulletShape(scale: Vector3d): BoxShape {
+fun BoxCollider.createBulletBoxShape(scale: Vector3d): BoxShape {
     return BoxShape(
         Vector3d(
             halfExtents.x * scale.x,
@@ -164,7 +166,7 @@ fun BoxCollider.createBulletShape(scale: Vector3d): BoxShape {
     ).apply { margin = roundness * scale.absMax() }
 }
 
-fun SphereCollider.createBulletShape(scale: Vector3d): SphereShape {
+fun SphereCollider.createBulletSphereShape(scale: Vector3d): SphereShape {
     return SphereShape(radius.toDouble()).apply {
         setLocalScaling(Vector3d(scale.x, scale.y, scale.z))
     }
@@ -172,14 +174,15 @@ fun SphereCollider.createBulletShape(scale: Vector3d): SphereShape {
 
 fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
     return when (collider) {
-        is MeshCollider -> collider.createBulletShape(scale)
-        is CapsuleCollider -> collider.createBulletShape(scale)
-        is ConeCollider -> collider.createBulletShape(scale)
+        is MeshCollider -> collider.createBulletMeshShape(scale)
+        is CapsuleCollider -> collider.createBulletCapsuleShape(scale)
+        is ConeCollider -> collider.createBulletConeShape(scale)
         is ConvexCollider -> ConvexHullShape3(collider.points!!)
-        is CylinderCollider -> collider.createBulletShape(scale)
+        is CylinderCollider -> collider.createBulletCylinderShape(scale)
         // is CircleCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
-        is SphereCollider -> collider.createBulletShape(scale)
-        is BoxCollider -> collider.createBulletShape(scale)
+        is SphereCollider -> collider.createBulletSphereShape(scale)
+        is BoxCollider -> collider.createBulletBoxShape(scale)
+        is InfinitePlaneCollider -> StaticPlaneShape(Vector3d(0.0, 1.0, 0.0), 0.0)
         /*is RectCollider -> {
             val halfExtents = collider.halfExtents
             return BoxShape(

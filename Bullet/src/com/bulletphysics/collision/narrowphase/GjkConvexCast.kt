@@ -27,10 +27,8 @@ class GjkConvexCast : ConvexCast {
     }
 
     override fun calcTimeOfImpact(
-        fromA: Transform,
-        toA: Transform,
-        fromB: Transform,
-        toB: Transform,
+        fromA: Transform, toA: Transform,
+        fromB: Transform, toB: Transform,
         result: CastResult
     ): Boolean {
         simplexSolver.reset()

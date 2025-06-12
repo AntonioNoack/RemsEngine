@@ -1,6 +1,6 @@
 package me.anno.tests.physics.shapes
 
-import me.anno.bullet.createBulletShape
+import me.anno.bullet.createBulletSphereShape
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.physics.ConvexSDFShape
@@ -28,7 +28,7 @@ class SDFSphereTest {
 
     @Test
     fun testSDFSupportVector() {
-        val baseline = SphereCollider().createBulletShape(Vector3d(1.0))
+        val baseline = SphereCollider().createBulletSphereShape(Vector3d(1.0))
         assertEquals(1.0, baseline.margin)
         val tested = ConvexSDFShape(
             SDFSphere().apply {

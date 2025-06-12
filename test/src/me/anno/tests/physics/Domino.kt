@@ -5,6 +5,7 @@ import me.anno.bullet.Rigidbody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
@@ -12,6 +13,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.maths.Maths.clamp
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.music
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -61,18 +63,17 @@ fun main() {
         }
 
         class CollisionListenerPhysics : BulletPhysics() {
-            // make domino sound on every contact :3
+            // make clack sound on every contact :3
             val contacts = KeyPairMap<Any, Any, Unit>()
             override fun step(dt: Long, printSlack: Boolean) {
                 super.step(dt, printSlack)
-                /*
-                    val dispatcher = bulletInstance?.dispatcher ?: return
-                    val numManifolds = dispatcher.numManifolds
-                    for (i in 0 until numManifolds) {
-                        val contactManifold = dispatcher.getManifoldByIndexInternal(i) ?: break
+                if (false) {
+                    val dispatcher = bulletInstance.dispatcher
+                    for (i in 0 until dispatcher.numManifolds) {
+                        val contactManifold = dispatcher.getManifoldByIndexInternal(i)
                         if (contactManifold.numContacts < 1) continue
-                        val a = contactManifold.body0
-                        val b = contactManifold.body1
+                        val a = contactManifold.body0!!
+                        val b = contactManifold.body1!!
                         contacts.getOrPut(a, b) { _, _ ->
                             val audio = audios[(audioIndex++) % (audios.size - 1)]
                             audio.stop()
@@ -83,14 +84,15 @@ fun main() {
                             audio.start()
                         }
                     }
-                */
+                }
             }
         }
 
         Systems.registerSystem(CollisionListenerPhysics().apply {
             // updateInEditMode = true
-            // fixedStep = 1.0 / 240.0
+            fixedStep = 1.0 / 60.0
             synchronousPhysics = false
+            maxSubSteps = 2
         })
 
         val density = 1.0
@@ -100,56 +102,57 @@ fun main() {
         val halfExtents1 = Vector3f(width * 0.5f, height * 0.5f, thickness * 0.5f)
         val mesh = flatCube.scaled(halfExtents1).front.ref
 
+        // todo spawn dominos as inactive?
+
         val dominos = Entity("Dominos")
         scene.add(dominos)
         fun add(x: Float, z: Float): Entity {
             // todo why are smaller bricks unstable?
-            val domino = Entity()
-            domino.add(MeshComponent(mesh).apply {
-                isInstanced = true
-            })
-            domino.add(Rigidbody().apply {
-                mass = mass1
-                friction = 0.3
-                restitution = 0.0
-            })
-            domino.add(BoxCollider().apply {
-                halfExtents = halfExtents1
-                roundness = margin1
-            })
-            domino.setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
-            dominos.add(domino)
-            return domino
+            return Entity(dominos)
+                .setPosition(x.toDouble(), (halfExtents1.y + margin1).toDouble(), z.toDouble())
+                .add(MeshComponent(mesh))
+                .add(Rigidbody().apply {
+                    mass = mass1
+                    friction = 0.3
+                    restitution = 0.0
+                })
+                .add(BoxCollider().apply {
+                    halfExtents = halfExtents1
+                    roundness = margin1
+                })
         }
 
         val floorHalfSize = 10.0 * inch
-        val floors = Entity("Floors")
-        scene.add(floors)
         val halfNumFloors = 5
-        for (z in -halfNumFloors..halfNumFloors) {
-            val floor = Entity()
-            floor.add(Rigidbody().apply {
+
+        Entity("Floor", scene)
+            .add(InfinitePlaneCollider())
+            .add(Rigidbody().apply {
                 mass = 0.0
                 friction = 0.9
                 restitution = 0.0
             })
-            floor.add(BoxCollider().apply {
-                halfExtents.set(floorHalfSize)
-                roundness = margin1
-            })
-            floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
-            floor.setPosition(0.0, -floorHalfSize, 2 * z * floorHalfSize)
-            floors.add(floor)
-        }
+        Entity("Floor Visuals", scene)
+            .add(MeshComponent(flatCube.front))
+            .setPosition(0.0, -floorHalfSize, 0.0)
+            .setScale(
+                floorHalfSize.toFloat(), floorHalfSize.toFloat(),
+                floorHalfSize.toFloat() * (halfNumFloors * 2 + 1)
+            )
 
-        // todo starting structure, and image support like in video
+        // todo image support like in video
 
-        val spacing = height * 0.7f
-        val di = ((floorHalfSize * (halfNumFloors * 2 + 1)) / spacing - 2).toInt()
+        val spacingZ = height * 0.7f
+        val spacingX = width * 1.2f
+        val di = ((floorHalfSize * (halfNumFloors * 2 + 1)) / spacingZ - 2).toInt()
         for (i in -di until di) {
-            add(0f, spacing * i)
+            val k = clamp(-(i - di), 1, 15)
+            val offsetX = (k - 1) * 0.5f * spacingX
+            for (j in 0 until k) {
+                add(j * spacingX - offsetX, spacingZ * i)
+            }
         }
-        add(0f, spacing * di).apply {
+        add(0f, spacingZ * di).apply {
             rotation = rotation.rotateX((-20f).toRadians())
         }
     }

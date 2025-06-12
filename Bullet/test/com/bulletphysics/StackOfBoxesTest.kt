@@ -174,7 +174,7 @@ class StackOfBoxesTest {
             val worldAabbMax = Vector3d(1000.0, 1000.0, 1000.0)
             val broadphase = AxisSweep3(worldAabbMin, worldAabbMax)
             val solver = SequentialImpulseConstraintSolver()
-            val world = DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig)
+            val world = DiscreteDynamicsWorld(dispatcher, broadphase, solver)
 
             world.setGravity(Vector3d(0.0, -10.0, 0.0))
             return world

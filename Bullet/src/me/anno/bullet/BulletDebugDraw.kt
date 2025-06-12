@@ -1,5 +1,6 @@
 package me.anno.bullet
 
+import com.bulletphysics.linearmath.DebugDrawModes.NO_DEACTIVATION
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.buffer.LineBuffer
@@ -31,7 +32,8 @@ object BulletDebugDraw : IDebugDraw {
     public static final int MAX_DEBUG_DRAW_MODE   = 1025;
      * */
 
-    override var debugMode = 2047 // all flags
+    // all flags except deactivation
+    override val debugMode = 2047.and(NO_DEACTIVATION.inv())
 
     override fun reportErrorWarning(warningString: String) {
         LOGGER.warn(warningString)

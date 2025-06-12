@@ -152,8 +152,8 @@ class ConstraintTest {
         simulate(world, 60)
 
         // Check whether constraint has been removed
-        val broken = world.numConstraints == 0
-        println("Constraint broken: " + broken)
+        val broken = world.constraints.isEmpty()
+        println("Constraint broken: $broken")
 
         Assertions.assertTrue(broken, "The constraint should break under strong impulse.")
         Assertions.assertTrue(constraint.isBroken)

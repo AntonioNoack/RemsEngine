@@ -2,13 +2,13 @@ package com.bulletphysics.collision.narrowphase
 
 import com.bulletphysics.linearmath.VectorUtil.add
 import com.bulletphysics.util.ObjectPool
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * VoronoiSimplexSolver is an implementation of the closest point distance algorithm
@@ -139,14 +139,15 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
 
                     closestPtPointTriangle(p, a, b, c, cachedBC)
 
-                    tmp1.setScale(cachedBC.barycentricCoords[0], simplexPointsP[0])
-                    tmp2.setScale(cachedBC.barycentricCoords[1], simplexPointsP[1])
-                    tmp3.setScale(cachedBC.barycentricCoords[2], simplexPointsP[2])
+                    val bary = cachedBC.barycentricCoords
+                    tmp1.setScale(bary[0], simplexPointsP[0])
+                    tmp2.setScale(bary[1], simplexPointsP[1])
+                    tmp3.setScale(bary[2], simplexPointsP[2])
                     add(cachedP1, tmp1, tmp2, tmp3)
 
-                    tmp1.setScale(cachedBC.barycentricCoords[0], simplexPointsQ[0])
-                    tmp2.setScale(cachedBC.barycentricCoords[1], simplexPointsQ[1])
-                    tmp3.setScale(cachedBC.barycentricCoords[2], simplexPointsQ[2])
+                    tmp1.setScale(bary[0], simplexPointsQ[0])
+                    tmp2.setScale(bary[1], simplexPointsQ[1])
+                    tmp3.setScale(bary[2], simplexPointsQ[2])
                     add(cachedP2, tmp1, tmp2, tmp3)
 
                     cachedV.setSub(cachedP1, cachedP2)
@@ -156,10 +157,11 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
                     Stack.subVec(4)
                 }
                 4 -> {
-                    val a = simplexVectorW[0]
-                    val b = simplexVectorW[1]
-                    val c = simplexVectorW[2]
-                    val d = simplexVectorW[3]
+                    val w = simplexVectorW
+                    val a = w[0]
+                    val b = w[1]
+                    val c = w[2]
+                    val d = w[3]
 
                     val p = Stack.newVec()
                     p.set(0.0, 0.0, 0.0)
@@ -171,16 +173,19 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
                         val tmp2 = Stack.newVec()
                         val tmp3 = Stack.newVec()
                         val tmp4 = Stack.newVec()
-                        tmp1.setScale(cachedBC.barycentricCoords[0], simplexPointsP[0])
-                        tmp2.setScale(cachedBC.barycentricCoords[1], simplexPointsP[1])
-                        tmp3.setScale(cachedBC.barycentricCoords[2], simplexPointsP[2])
-                        tmp4.setScale(cachedBC.barycentricCoords[3], simplexPointsP[3])
+                        val bary = cachedBC.barycentricCoords
+                        val p = simplexPointsP
+                        tmp1.setScale(bary[0], p[0])
+                        tmp2.setScale(bary[1], p[1])
+                        tmp3.setScale(bary[2], p[2])
+                        tmp4.setScale(bary[3], p[3])
                         add(cachedP1, tmp1, tmp2, tmp3, tmp4)
 
-                        tmp1.setScale(cachedBC.barycentricCoords[0], simplexPointsQ[0])
-                        tmp2.setScale(cachedBC.barycentricCoords[1], simplexPointsQ[1])
-                        tmp3.setScale(cachedBC.barycentricCoords[2], simplexPointsQ[2])
-                        tmp4.setScale(cachedBC.barycentricCoords[3], simplexPointsQ[3])
+                        val q = simplexPointsQ
+                        tmp1.setScale(bary[0], q[0])
+                        tmp2.setScale(bary[1], q[1])
+                        tmp3.setScale(bary[2], q[2])
+                        tmp4.setScale(bary[3], q[3])
                         add(cachedP2, tmp1, tmp2, tmp3, tmp4)
 
                         cachedV.setSub(cachedP1, cachedP2)
@@ -210,8 +215,8 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
     fun closestPtPointTriangle(
         p: Vector3d, a: Vector3d, b: Vector3d, c: Vector3d,
         result: SubSimplexClosestResult
-    ): Boolean {
-        result.usedVertices.reset()
+    ) {
+        result.usedVertices.allFalse()
 
         // Check if P in vertex region outside A
         val ab = Stack.newVec()
@@ -231,7 +236,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
             result.usedVertices.usedVertexA = true
             result.setBarycentricCoordinates(1.0, 0.0, 0.0, 0.0)
             Stack.subVec(3)
-            return true // a; // barycentric coordinates (1,0,0)
+            return // a; // barycentric coordinates (1,0,0)
         }
 
         // Check if P in vertex region outside B
@@ -246,7 +251,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
             result.usedVertices.usedVertexB = true
             result.setBarycentricCoordinates(0.0, 1.0, 0.0, 0.0)
             Stack.subVec(4)
-            return true // b; // barycentric coordinates (0,1,0)
+            return // b; // barycentric coordinates (0,1,0)
         }
 
         // Check if P in edge region of AB, if so return projection of P onto AB
@@ -258,7 +263,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
             result.usedVertices.usedVertexB = true
             result.setBarycentricCoordinates(1.0 - v, v, 0.0, 0.0)
             Stack.subVec(4)
-            return true
+            return
             //return a + v * ab; // barycentric coordinates (1-v,v,0)
         }
 
@@ -274,7 +279,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
             result.usedVertices.usedVertexC = true
             result.setBarycentricCoordinates(0.0, 0.0, 1.0, 0.0)
             Stack.subVec(5)
-            return true //c; // barycentric coordinates (0,0,1)
+            return //c; // barycentric coordinates (0,0,1)
         }
 
         // Check if P in edge region of AC, if so return projection of P onto AC
@@ -286,7 +291,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
             result.usedVertices.usedVertexC = true
             result.setBarycentricCoordinates(1.0 - w, 0.0, w, 0.0)
             Stack.subVec(5)
-            return true
+            return
             //return a + w * ac; // barycentric coordinates (1-w,0,w)
         }
 
@@ -296,27 +301,27 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
             val w = (d4 - d3) / ((d4 - d3) + (d5 - d6))
 
             val tmp = Stack.newVec()
-            tmp.setSub(c, b)
+            c.sub(b, tmp)
             result.closestPointOnSimplex.setScaleAdd(w, tmp, b)
 
             result.usedVertices.usedVertexB = true
             result.usedVertices.usedVertexC = true
             result.setBarycentricCoordinates(0.0, 1.0 - w, w, 0.0)
             Stack.subVec(6)
-            return true
+            return
             // return b + w * (c - b); // barycentric coordinates (0,1-w,w)
         }
 
         // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
-        val denom = 1.0 / (va + vb + vc)
-        val v = vb * denom
-        val w = vc * denom
+        val denominator = 1.0 / (va + vb + vc)
+        val v = vb * denominator
+        val w = vc * denominator
 
         val tmp1 = Stack.newVec()
         val tmp2 = Stack.newVec()
 
-        tmp1.setScale(v, ab)
-        tmp2.setScale(w, ac)
+        ab.mul(v, tmp1)
+        ac.mul(w, ac)
         add(result.closestPointOnSimplex, a, tmp1, tmp2)
         result.usedVertices.usedVertexA = true
         result.usedVertices.usedVertexB = true
@@ -324,68 +329,66 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         result.setBarycentricCoordinates(1.0 - v - w, v, w, 0.0)
         Stack.subVec(7)
 
-        return true
+        return
         //	return a + ab * v + ac * w; // = u*a + v*b + w*c, u = va * denom = btScalar(1.0) - v - w
     }
 
     fun closestPtPointTetrahedron(
         p: Vector3d,
-        a: Vector3d,
-        b: Vector3d,
-        c: Vector3d,
-        d: Vector3d,
-        finalResult: SubSimplexClosestResult
+        a: Vector3d, b: Vector3d, c: Vector3d, d: Vector3d,
+        result: SubSimplexClosestResult
     ): Boolean {
-        val tempResult = subsimplexResultsPool.get()!!
-        tempResult.reset()
+        val tmpRes = subsimplexResultsPool.get()
+        val tmpVs = tmpRes.usedVertices
+        val tmpBary = tmpRes.barycentricCoords
+        tmpRes.reset()
         try {
-            val tmp = Stack.newVec()
+            // Start out assuming point inside all halfspaces, so closest to itself
+            result.closestPointOnSimplex.set(p)
+            val resultVs = result.usedVertices
+            resultVs.usedVertexA = true
+            resultVs.usedVertexB = true
+            resultVs.usedVertexC = true
+            resultVs.usedVertexD = true
+
+            val outsideABC = ptOutsideOfPlane(p, a, b, c, d)
+            val outsideACD = ptOutsideOfPlane(p, a, c, d, b)
+            val outsideADB = ptOutsideOfPlane(p, a, d, b, c)
+            val outsideBDC = ptOutsideOfPlane(p, b, d, c, a)
+
+            if (outsideABC < 0 || outsideACD < 0 || outsideADB < 0 || outsideBDC < 0) {
+                result.degenerate = true
+                return false
+            }
+
+            if (outsideABC + outsideACD + outsideADB + outsideBDC == 0) {
+                return false
+            }
+
+            val tmpVec = Stack.newVec()
             val q = Stack.newVec()
 
-            // Start out assuming point inside all halfspaces, so closest to itself
-            finalResult.closestPointOnSimplex.set(p)
-            finalResult.usedVertices.reset()
-            finalResult.usedVertices.usedVertexA = true
-            finalResult.usedVertices.usedVertexB = true
-            finalResult.usedVertices.usedVertexC = true
-            finalResult.usedVertices.usedVertexD = true
-
-            val pointOutsideABC: Int = pointOutsideOfPlane(p, a, b, c, d)
-            val pointOutsideACD: Int = pointOutsideOfPlane(p, a, c, d, b)
-            val pointOutsideADB: Int = pointOutsideOfPlane(p, a, d, b, c)
-            val pointOutsideBDC: Int = pointOutsideOfPlane(p, b, d, c, a)
-
-            if (pointOutsideABC < 0 || pointOutsideACD < 0 || pointOutsideADB < 0 || pointOutsideBDC < 0) {
-                finalResult.degenerate = true
-                return false
-            }
-
-            if (pointOutsideABC == 0 && pointOutsideACD == 0 && pointOutsideADB == 0 && pointOutsideBDC == 0) {
-                return false
-            }
-
-
-            var bestSqDist = Float.Companion.MAX_VALUE.toDouble()
+            var bestSqDist = Double.MAX_VALUE
             // If point outside face abc then compute closest point on abc
-            if (pointOutsideABC != 0) {
-                closestPtPointTriangle(p, a, b, c, tempResult)
-                q.set(tempResult.closestPointOnSimplex)
+            if (outsideABC != 0) {
+                closestPtPointTriangle(p, a, b, c, tmpRes)
+                q.set(tmpRes.closestPointOnSimplex)
 
-                tmp.setSub(q, p)
-                val sqDist = tmp.dot(tmp)
+                tmpVec.setSub(q, p)
+                val sqDist = tmpVec.dot(tmpVec)
                 // Update best closest point if (squared) distance is less than current best
                 if (sqDist < bestSqDist) {
                     bestSqDist = sqDist
-                    finalResult.closestPointOnSimplex.set(q)
+                    result.closestPointOnSimplex.set(q)
                     //convert result bitmask!
-                    finalResult.usedVertices.reset()
-                    finalResult.usedVertices.usedVertexA = tempResult.usedVertices.usedVertexA
-                    finalResult.usedVertices.usedVertexB = tempResult.usedVertices.usedVertexB
-                    finalResult.usedVertices.usedVertexC = tempResult.usedVertices.usedVertexC
-                    finalResult.setBarycentricCoordinates(
-                        tempResult.barycentricCoords[VERTEX_A],
-                        tempResult.barycentricCoords[VERTEX_B],
-                        tempResult.barycentricCoords[VERTEX_C],
+                    resultVs.usedVertexA = tmpVs.usedVertexA
+                    resultVs.usedVertexB = tmpVs.usedVertexB
+                    resultVs.usedVertexC = tmpVs.usedVertexC
+                    resultVs.usedVertexD = false
+                    result.setBarycentricCoordinates(
+                        tmpBary[VERTEX_A],
+                        tmpBary[VERTEX_B],
+                        tmpBary[VERTEX_C],
                         0.0
                     )
                 }
@@ -393,94 +396,92 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
 
 
             // Repeat test for face acd
-            if (pointOutsideACD != 0) {
-                closestPtPointTriangle(p, a, c, d, tempResult)
-                q.set(tempResult.closestPointOnSimplex)
+            if (outsideACD != 0) {
+                closestPtPointTriangle(p, a, c, d, tmpRes)
+                q.set(tmpRes.closestPointOnSimplex)
 
                 //convert result bitmask!
-                tmp.setSub(q, p)
-                val sqDist = tmp.dot(tmp)
+                tmpVec.setSub(q, p)
+                val sqDist = tmpVec.dot(tmpVec)
                 if (sqDist < bestSqDist) {
                     bestSqDist = sqDist
-                    finalResult.closestPointOnSimplex.set(q)
-                    finalResult.usedVertices.reset()
-                    finalResult.usedVertices.usedVertexA = tempResult.usedVertices.usedVertexA
-
-                    finalResult.usedVertices.usedVertexC = tempResult.usedVertices.usedVertexB
-                    finalResult.usedVertices.usedVertexD = tempResult.usedVertices.usedVertexC
-                    finalResult.setBarycentricCoordinates(
-                        tempResult.barycentricCoords[VERTEX_A],
+                    result.closestPointOnSimplex.set(q)
+                    resultVs.usedVertexA = tmpVs.usedVertexA
+                    resultVs.usedVertexB = false
+                    resultVs.usedVertexC = tmpVs.usedVertexB
+                    resultVs.usedVertexD = tmpVs.usedVertexC
+                    result.setBarycentricCoordinates(
+                        tmpBary[VERTEX_A],
                         0.0,
-                        tempResult.barycentricCoords[VERTEX_B],
-                        tempResult.barycentricCoords[VERTEX_C]
+                        tmpBary[VERTEX_B],
+                        tmpBary[VERTEX_C]
                     )
                 }
             }
-
 
             // Repeat test for face adb
-            if (pointOutsideADB != 0) {
-                closestPtPointTriangle(p, a, d, b, tempResult)
-                q.set(tempResult.closestPointOnSimplex)
+            if (outsideADB != 0) {
+                closestPtPointTriangle(p, a, d, b, tmpRes)
+                q.set(tmpRes.closestPointOnSimplex)
 
                 //convert result bitmask!
-                tmp.setSub(q, p)
-                val sqDist = tmp.dot(tmp)
+                tmpVec.setSub(q, p)
+                val sqDist = tmpVec.dot(tmpVec)
                 if (sqDist < bestSqDist) {
                     bestSqDist = sqDist
-                    finalResult.closestPointOnSimplex.set(q)
-                    finalResult.usedVertices.reset()
-                    finalResult.usedVertices.usedVertexA = tempResult.usedVertices.usedVertexA
-                    finalResult.usedVertices.usedVertexB = tempResult.usedVertices.usedVertexC
-
-                    finalResult.usedVertices.usedVertexD = tempResult.usedVertices.usedVertexB
-                    finalResult.setBarycentricCoordinates(
-                        tempResult.barycentricCoords[VERTEX_A],
-                        tempResult.barycentricCoords[VERTEX_C],
+                    result.closestPointOnSimplex.set(q)
+                    resultVs.usedVertexA = tmpVs.usedVertexA
+                    resultVs.usedVertexB = tmpVs.usedVertexC
+                    resultVs.usedVertexC = false
+                    resultVs.usedVertexD = tmpVs.usedVertexB
+                    result.setBarycentricCoordinates(
+                        tmpBary[VERTEX_A],
+                        tmpBary[VERTEX_C],
                         0.0,
-                        tempResult.barycentricCoords[VERTEX_B]
+                        tmpBary[VERTEX_B]
                     )
                 }
             }
-
 
             // Repeat test for face bdc
-            if (pointOutsideBDC != 0) {
-                closestPtPointTriangle(p, b, d, c, tempResult)
-                q.set(tempResult.closestPointOnSimplex)
+            if (outsideBDC != 0) {
+                closestPtPointTriangle(p, b, d, c, tmpRes)
+                q.set(tmpRes.closestPointOnSimplex)
                 //convert result bitmask!
-                tmp.setSub(q, p)
-                val sqDist = tmp.dot(tmp)
+                tmpVec.setSub(q, p)
+                val sqDist = tmpVec.dot(tmpVec)
                 if (sqDist < bestSqDist) {
-                    bestSqDist = sqDist
-                    finalResult.closestPointOnSimplex.set(q)
-                    finalResult.usedVertices.reset()
+                    // bestSqDist = sqDist
+                    result.closestPointOnSimplex.set(q)
                     //
-                    finalResult.usedVertices.usedVertexB = tempResult.usedVertices.usedVertexA
-                    finalResult.usedVertices.usedVertexC = tempResult.usedVertices.usedVertexC
-                    finalResult.usedVertices.usedVertexD = tempResult.usedVertices.usedVertexB
+                    resultVs.usedVertexA = false
+                    resultVs.usedVertexB = tmpVs.usedVertexA
+                    resultVs.usedVertexC = tmpVs.usedVertexC
+                    resultVs.usedVertexD = tmpVs.usedVertexB
 
-                    finalResult.setBarycentricCoordinates(
+                    result.setBarycentricCoordinates(
                         0.0,
-                        tempResult.barycentricCoords[VERTEX_A],
-                        tempResult.barycentricCoords[VERTEX_C],
-                        tempResult.barycentricCoords[VERTEX_B]
+                        tmpBary[VERTEX_A],
+                        tmpBary[VERTEX_C],
+                        tmpBary[VERTEX_B]
                     )
                 }
             }
 
+            Stack.subVec(2)
+
             //help! we ended up full !
-            if (finalResult.usedVertices.usedVertexA &&
-                finalResult.usedVertices.usedVertexB &&
-                finalResult.usedVertices.usedVertexC &&
-                finalResult.usedVertices.usedVertexD
+            if (resultVs.usedVertexA &&
+                resultVs.usedVertexB &&
+                resultVs.usedVertexC &&
+                resultVs.usedVertexD
             ) {
                 return true
             }
 
             return true
         } finally {
-            subsimplexResultsPool.release(tempResult)
+            subsimplexResultsPool.release(tmpRes)
         }
     }
 
@@ -500,8 +501,8 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         needsUpdate = true
 
         simplexVectorW[numVertices].set(w)
-        simplexPointsP[numVertices]!!.set(p)
-        simplexPointsQ[numVertices]!!.set(q)
+        simplexPointsP[numVertices].set(p)
+        simplexPointsQ[numVertices].set(q)
 
         numVertices++
     }
@@ -546,14 +547,14 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         //w is in the current (reduced) simplex
 
         for (i in 0 until numVertices()) {
-            if (simplexVectorW[i].equals(w)) {
+            if (simplexVectorW[i] == w) {
                 found = true
                 break
             }
         }
 
         //check in case lastW is already removed
-        if (w.equals(lastW)) {
+        if (w == lastW) {
             return true
         }
 
@@ -580,12 +581,12 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
 
     /**///////////////////////////////////////////////////////////////////////// */
     class UsageBitfield {
-        var usedVertexA: Boolean = false
-        var usedVertexB: Boolean = false
-        var usedVertexC: Boolean = false
-        var usedVertexD: Boolean = false
+        var usedVertexA = false
+        var usedVertexB = false
+        var usedVertexC = false
+        var usedVertexD = false
 
-        fun reset() {
+        fun allFalse() {
             usedVertexA = false
             usedVertexB = false
             usedVertexC = false
@@ -599,14 +600,14 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         //MASK for m_usedVertices
         //stores the simplex vertex-usage, using the MASK,
         // if m_usedVertices & MASK then the related vertex is used
-        val usedVertices: UsageBitfield = UsageBitfield()
-        val barycentricCoords: DoubleArray = DoubleArray(4)
-        var degenerate: Boolean = false
+        val usedVertices = UsageBitfield()
+        val barycentricCoords = DoubleArray(4)
+        var degenerate = false
 
         fun reset() {
             degenerate = false
             setBarycentricCoordinates(0.0, 0.0, 0.0, 0.0)
-            usedVertices.reset()
+            usedVertices.allFalse()
         }
 
         val isValid: Boolean
@@ -633,7 +634,7 @@ class VoronoiSimplexSolver : SimplexSolverInterface {
         /**
          * Test if point p and d lie on opposite sides of plane through abc
          */
-        fun pointOutsideOfPlane(p: Vector3d, a: Vector3d, b: Vector3d, c: Vector3d, d: Vector3d): Int {
+        fun ptOutsideOfPlane(p: Vector3d, a: Vector3d, b: Vector3d, c: Vector3d, d: Vector3d): Int {
             val tmp = Stack.newVec()
             val normal = Stack.newVec()
             normal.setSub(b, a)

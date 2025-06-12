@@ -15,26 +15,37 @@ import org.joml.Vector3d
 open class CollisionObject() {
 
     @JvmField
-    var worldTransform: Transform = Transform()
+    var worldTransform = Transform()
 
-    /** m_interpolationWorldTransform is used for CCD and interpolation
+    /** used for CCD and interpolation
      * it can be either previous or future (predicted) transform */
     @JvmField
-    val interpolationWorldTransform: Transform = Transform()
+    val interpolationWorldTransform = Transform()
 
     /**
      * those two are experimental: just added for bullet time effect, so you can still apply impulses (directly modifying velocities)
      * without destroying the continuous interpolated motion (which uses this interpolation velocities)
      */
     @JvmField
-    val interpolationLinearVelocity: Vector3d = Vector3d()
+    val interpolationLinearVelocity = Vector3d()
 
     @JvmField
-    val interpolationAngularVelocity: Vector3d = Vector3d()
+    val interpolationAngularVelocity = Vector3d()
+
+    /**
+     * bounds including linear and angular motion,
+     * based on ccdSweptSphereRadius
+     * */
+    @JvmField
+    val collisionAabbMin = Vector3d()
+
+    @JvmField
+    val collisionAabbMax = Vector3d()
 
     @JvmField
     var broadphaseHandle: BroadphaseProxy? = null
 
+    @JvmField
     var collisionShape: CollisionShape? = null
 
     @JvmField
@@ -46,7 +57,8 @@ open class CollisionObject() {
     @JvmField
     var companionId: Int = -1
 
-    var activationState: Int = 1
+    @JvmField
+    var activationState = ActivationState.ACTIVE
 
     @JvmField
     var deactivationTime: Double = 0.0
@@ -58,11 +70,6 @@ open class CollisionObject() {
     var restitution: Double = 0.0
 
     /**
-     * users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
-     */
-    var userObjectPointer: Any? = null
-
-    /**
      * time of impact calculation
      */
     @JvmField
@@ -70,6 +77,7 @@ open class CollisionObject() {
 
     /**
      * Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
+     * CCD = convex collision detection
      */
     @JvmField
     var ccdSweptSphereRadius: Double = 0.0
@@ -77,6 +85,7 @@ open class CollisionObject() {
     /**
      * Don't do continuous collision detection if the motion (in one step) is less then ccdMotionThreshold
      */
+    @JvmField
     var ccdMotionThreshold: Double = 0.0
 
     /**
@@ -115,27 +124,27 @@ open class CollisionObject() {
         this.collisionShape = collisionShape
     }
 
-    fun setActivationStateMaybe(newState: Int) {
-        if ((activationState != DISABLE_DEACTIVATION) && (activationState != DISABLE_SIMULATION)) {
-            this.activationState = newState
+    fun setActivationStateMaybe(newState: ActivationState) {
+        if (activationState != ActivationState.DISABLE_DEACTIVATION && activationState != ActivationState.DISABLE_SIMULATION) {
+            activationState = newState
         }
     }
 
     @Suppress("unused")
-    fun forceActivationState(newState: Int) {
+    fun forceActivationState(newState: ActivationState) {
         this.activationState = newState
     }
 
     @JvmOverloads
     fun activate(forceActivation: Boolean = false) {
         if (forceActivation || (collisionFlags and (CollisionFlags.STATIC_OBJECT or CollisionFlags.KINEMATIC_OBJECT)) == 0) {
-            setActivationStateMaybe(ACTIVE_TAG)
+            setActivationStateMaybe(ActivationState.ACTIVE)
             deactivationTime = 0.0
         }
     }
 
     val isActive: Boolean
-        get() = (activationState != ISLAND_SLEEPING && activationState != DISABLE_SIMULATION)
+        get() = (activationState != ActivationState.SLEEPING && activationState != ActivationState.DISABLE_SIMULATION)
 
     fun getWorldTransform(out: Transform): Transform {
         out.set(worldTransform)
@@ -165,16 +174,6 @@ open class CollisionObject() {
         interpolationAngularVelocity.set(angvel)
     }
 
-    fun getInterpolationLinearVelocity(out: Vector3d): Vector3d {
-        out.set(interpolationLinearVelocity)
-        return out
-    }
-
-    fun getInterpolationAngularVelocity(out: Vector3d): Vector3d {
-        out.set(interpolationAngularVelocity)
-        return out
-    }
-
     val ccdSquareMotionThreshold: Double
         get() = ccdMotionThreshold * ccdMotionThreshold
 
@@ -183,14 +182,5 @@ open class CollisionObject() {
             return checkCollideWithOverride(co)
         }
         return true
-    }
-
-    companion object {
-        // island management, m_activationState1
-        const val ACTIVE_TAG: Int = 1
-        const val ISLAND_SLEEPING: Int = 2
-        const val WANTS_DEACTIVATION: Int = 3
-        const val DISABLE_DEACTIVATION: Int = 4
-        const val DISABLE_SIMULATION: Int = 5
     }
 }

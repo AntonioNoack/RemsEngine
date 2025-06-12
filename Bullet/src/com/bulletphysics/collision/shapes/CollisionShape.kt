@@ -3,11 +3,13 @@ package com.bulletphysics.collision.shapes
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * CollisionShape class provides an interface for collision shapes that can be
@@ -16,9 +18,6 @@ import com.bulletphysics.util.setSub
  * @author jezek2
  */
 abstract class CollisionShape {
-
-    // optional user data pointer
-    var userPointer: Any? = null
 
     /**getAabb returns the axis aligned bounding box in the coordinate frame of the given transform t. */
     abstract fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d)
@@ -34,7 +33,7 @@ abstract class CollisionShape {
         getAabb(tr, aabbMin, aabbMax)
 
         tmp.setSub(aabbMax, aabbMin)
-        val dst = tmp.length() * 0.5
+        val dst = tmp.length() * 0.5 // halfExtents.length()
 
         tmp.setAdd(aabbMin, aabbMax)
         center.setScale(0.5, tmp)
@@ -45,8 +44,8 @@ abstract class CollisionShape {
         return dst
     }
 
-    val angularMotionDisc: Double
-        /**getAngularMotionDisc returns the maximus radius needed for Conservative Advancement to handle time-of-impact with rotations. */
+    /**getAngularMotionDisc returns the maximus radius needed for Conservative Advancement to handle time-of-impact with rotations. */
+    open val angularMotionDisc: Double
         get() {
             val center = Stack.newVec()
             var dst = getBoundingSphere(center)
@@ -55,57 +54,39 @@ abstract class CollisionShape {
             return dst
         }
 
-    /**calculateTemporalAabb calculates the enclosing aabb for the moving object over interval [0..timeStep)
-     * result is conservative */
+    /**
+     * calculates the enclosing aabb for the moving object over interval [0, timeStep]
+     * result is conservative
+     * */
     fun calculateTemporalAabb(
         curTrans: Transform,
         linVel: Vector3d,
-        angVel: Vector3d,
+        angVelLength: Double,
         timeStep: Double,
-        temporalAabbMin: Vector3d,
-        temporalAabbMax: Vector3d
+        dstAabbMin: Vector3d,
+        dstAabbMax: Vector3d
     ) {
-        //start with static aabb
-        getAabb(curTrans, temporalAabbMin, temporalAabbMax)
+        // get static aabb
+        getAabb(curTrans, dstAabbMin, dstAabbMax)
 
-        var temporalAabbMaxx = temporalAabbMax.x
-        var temporalAabbMaxy = temporalAabbMax.y
-        var temporalAabbMaxz = temporalAabbMax.z
-        var temporalAabbMinx = temporalAabbMin.x
-        var temporalAabbMiny = temporalAabbMin.y
-        var temporalAabbMinz = temporalAabbMin.z
+        val stepX = linVel.x * timeStep
+        val stepY = linVel.y * timeStep
+        val stepZ = linVel.z * timeStep
 
-        // add linear motion
-        val linMotion = Stack.newVec(linVel)
-        linMotion.mul(timeStep)
+        // add conservative angular motion
+        val angularMotion = angVelLength * angularMotionDisc * timeStep
 
-        //todo: simd would have a vector max/min operation, instead of per-element access
-        if (linMotion.x > 0.0) {
-            temporalAabbMaxx += linMotion.x
-        } else {
-            temporalAabbMinx += linMotion.x
-        }
-        if (linMotion.y > 0.0) {
-            temporalAabbMaxy += linMotion.y
-        } else {
-            temporalAabbMiny += linMotion.y
-        }
-        if (linMotion.z > 0.0) {
-            temporalAabbMaxz += linMotion.z
-        } else {
-            temporalAabbMinz += linMotion.z
-        }
-
-        //add conservative angular motion
-        val angularMotion = angVel.length() * this.angularMotionDisc * timeStep
-        val angularMotion3d = Stack.newVec()
-        angularMotion3d.set(angularMotion, angularMotion, angularMotion)
-        temporalAabbMin.set(temporalAabbMinx, temporalAabbMiny, temporalAabbMinz)
-        temporalAabbMax.set(temporalAabbMaxx, temporalAabbMaxy, temporalAabbMaxz)
-
-        temporalAabbMin.sub(angularMotion3d)
-        temporalAabbMax.add(angularMotion3d)
-        Stack.subVec(1)
+        // only add if < 0 | > 0
+        dstAabbMin.add(
+            min(stepX, 0.0) - angularMotion,
+            min(stepY, 0.0) - angularMotion,
+            min(stepZ, 0.0) - angularMotion
+        )
+        dstAabbMax.add(
+            max(stepX, 0.0) + angularMotion,
+            max(stepY, 0.0) + angularMotion,
+            max(stepZ, 0.0) + angularMotion
+        )
     }
 
     val isPolyhedral: Boolean

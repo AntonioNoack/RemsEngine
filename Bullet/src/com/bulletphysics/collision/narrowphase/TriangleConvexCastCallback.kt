@@ -44,11 +44,8 @@ abstract class TriangleConvexCastCallback(
         val castResult = Stack.newCastResult()
         castResult.fraction = 1.0
         if (convexCaster.calcTimeOfImpact(
-                convexShapeFrom,
-                convexShapeTo,
-                triangleToWorld,
-                triangleToWorld,
-                castResult
+                convexShapeFrom, convexShapeTo,
+                triangleToWorld, triangleToWorld, castResult
             )
         ) {
             // add hit

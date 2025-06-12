@@ -17,7 +17,7 @@ interface ConstraintSolver {
         manifold: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
         constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
         info: ContactSolverInfo, debugDrawer: IDebugDraw?, dispatcher: Dispatcher
-    ): Double
+    )
 
     /**
      * Clear internal cached data and reset random seed.

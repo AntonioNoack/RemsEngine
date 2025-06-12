@@ -22,17 +22,13 @@ class SimulationIslandManager {
     }
 
     fun findUnions(world: CollisionWorld) {
-        val pairPtr = world.pairCache.overlappingPairArray
-        for (i in pairPtr.indices) {
-            val collisionPair = pairPtr[i]!!
-
-            val colObj0 = collisionPair.proxy0?.clientObject as CollisionObject?
-            val colObj1 = collisionPair.proxy1?.clientObject as CollisionObject?
-
-            if (((colObj0 != null) && ((colObj0).mergesSimulationIslands())) &&
-                ((colObj1 != null) && ((colObj1).mergesSimulationIslands()))
-            ) {
-                unionFind.combineIslands((colObj0).islandTag, (colObj1).islandTag)
+        val pairs = world.pairCache.overlappingPairArray
+        for (i in pairs.indices) {
+            val pair = pairs[i] ?: continue
+            val col0 = pair.proxy0?.clientObject as CollisionObject? ?: continue
+            val col1 = pair.proxy1?.clientObject as CollisionObject? ?: continue
+            if (col0.mergesSimulationIslands() && col1.mergesSimulationIslands()) {
+                unionFind.combineIslands(col0.islandTag, col1.islandTag)
             }
         }
     }
@@ -43,10 +39,10 @@ class SimulationIslandManager {
 
         // put the index into m_controllers into m_tag
         for (i in 0 until objects.size) {
-            val collisionObject = objects[i]
-            collisionObject.islandTag = i
-            collisionObject.companionId = -1
-            collisionObject.hitFraction = 1.0
+            val objI = objects[i]
+            objI.islandTag = i
+            objI.companionId = -1
+            objI.hitFraction = 1.0
         }
 
         // do the union find
@@ -102,10 +98,10 @@ class SimulationIslandManager {
 
                     assert((colObj0.islandTag == islandId) || (colObj0.islandTag == -1))
                     if (colObj0.islandTag == islandId) {
-                        if (colObj0.activationState == CollisionObject.ACTIVE_TAG) {
+                        if (colObj0.activationState == ActivationState.ACTIVE) {
                             allSleeping = false
                         }
-                        if (colObj0.activationState == CollisionObject.DISABLE_DEACTIVATION) {
+                        if (colObj0.activationState == ActivationState.DISABLE_DEACTIVATION) {
                             allSleeping = false
                         }
                     }
@@ -123,7 +119,7 @@ class SimulationIslandManager {
                         assert((colObj0.islandTag == islandId) || (colObj0.islandTag == -1))
 
                         if (colObj0.islandTag == islandId) {
-                            colObj0.setActivationStateMaybe(CollisionObject.ISLAND_SLEEPING)
+                            colObj0.setActivationStateMaybe(ActivationState.SLEEPING)
                         }
                         idx++
                     }
@@ -138,8 +134,8 @@ class SimulationIslandManager {
 
                         assert((colObj0.islandTag == islandId) || (colObj0.islandTag == -1))
                         if (colObj0.islandTag == islandId) {
-                            if (colObj0.activationState == CollisionObject.ISLAND_SLEEPING) {
-                                colObj0.setActivationStateMaybe(CollisionObject.WANTS_DEACTIVATION)
+                            if (colObj0.activationState == ActivationState.SLEEPING) {
+                                colObj0.setActivationStateMaybe(ActivationState.WANTS_DEACTIVATION)
                             }
                         }
                         idx++
@@ -168,15 +164,15 @@ class SimulationIslandManager {
                 }
 
                 // todo: check sleeping conditions!
-                if (colObj0.activationState != CollisionObject.ISLAND_SLEEPING ||
-                    colObj1.activationState != CollisionObject.ISLAND_SLEEPING
+                if (colObj0.activationState != ActivationState.SLEEPING ||
+                    colObj1.activationState != ActivationState.SLEEPING
                 ) {
                     // kinematic objects don't merge islands, but wake up all connected objects
 
-                    if (colObj0.isKinematicObject && colObj0.activationState != CollisionObject.ISLAND_SLEEPING) {
+                    if (colObj0.isKinematicObject && colObj0.activationState != ActivationState.SLEEPING) {
                         colObj1.activate()
                     }
-                    if (colObj1.isKinematicObject && colObj1.activationState != CollisionObject.ISLAND_SLEEPING) {
+                    if (colObj1.isKinematicObject && colObj1.activationState != ActivationState.SLEEPING) {
                         colObj0.activate()
                     }
                     //filtering for response

@@ -274,7 +274,7 @@ object NormalCalculator {
         val maxDV1 = sqrt(maxDV2)
         min.set(a).sub(maxDV1, maxDV1, maxDV1)
         max.set(a).add(maxDV1, maxDV1, maxDV1)
-        if (!map.query(min, max) { k ->
+        if (null == map.query(min, max) { k ->
                 // identical
                 val found = k.first.distanceSquared(a) <= maxDV2 &&
                         Maths.sq(k.second.dot(normal)) > 0.99f * (normal.lengthSquared() * k.second.lengthSquared())

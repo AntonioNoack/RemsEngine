@@ -32,7 +32,7 @@ object BulletStats {
     var findPairCalls: Int = 0
 
     @JvmField
-    val profileClock: Clock = Clock()
+    val profileClock = Clock()
 
     // DiscreteDynamicsWorld:
     @JvmField
@@ -48,11 +48,6 @@ object BulletStats {
     @JvmStatic
     fun profileGetTicks(): Long {
         return profileClock.timeNanos
-    }
-
-    @JvmStatic
-    fun profileGetTickRate(): Double {
-        return 1e6
     }
 
     /**

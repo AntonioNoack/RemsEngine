@@ -3,12 +3,24 @@ package com.bulletphysics.collision.dispatch
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.BulletStats.popProfile
 import com.bulletphysics.BulletStats.pushProfile
-import com.bulletphysics.collision.broadphase.*
+import com.bulletphysics.collision.broadphase.BroadphaseInterface
+import com.bulletphysics.collision.broadphase.BroadphaseNativeType
+import com.bulletphysics.collision.broadphase.BroadphaseProxy
+import com.bulletphysics.collision.broadphase.CollisionFilterGroups
+import com.bulletphysics.collision.broadphase.Dispatcher
+import com.bulletphysics.collision.broadphase.DispatcherInfo
+import com.bulletphysics.collision.broadphase.OverlappingPairCache
 import com.bulletphysics.collision.narrowphase.ConvexCast
 import com.bulletphysics.collision.narrowphase.SubSimplexConvexCast
 import com.bulletphysics.collision.narrowphase.TriangleConvexCastCallback
 import com.bulletphysics.collision.narrowphase.TriangleRaycastCallback
-import com.bulletphysics.collision.shapes.*
+import com.bulletphysics.collision.shapes.BvhTriangleMeshShape
+import com.bulletphysics.collision.shapes.CollisionShape
+import com.bulletphysics.collision.shapes.CompoundShape
+import com.bulletphysics.collision.shapes.ConcaveShape
+import com.bulletphysics.collision.shapes.ConvexShape
+import com.bulletphysics.collision.shapes.SphereShape
+import com.bulletphysics.collision.shapes.TriangleMeshShape
 import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.IDebugDraw
 import com.bulletphysics.linearmath.Transform
@@ -17,19 +29,16 @@ import com.bulletphysics.linearmath.VectorUtil.setInterpolate3
 import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.ListUtils.swapRemove
+import com.bulletphysics.util.setMul
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import com.bulletphysics.util.setMul
 
 /**
  * CollisionWorld is interface and container for the collision detection.
  *
  * @author jezek2
  */
-open class CollisionWorld(
-    val dispatcher: Dispatcher,
-    val broadphase: BroadphaseInterface
-) {
+open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: BroadphaseInterface) {
 
     val collisionObjects = ArrayList<CollisionObject>()
     val dispatchInfo = DispatcherInfo()
@@ -41,15 +50,10 @@ open class CollisionWorld(
         // clean up remaining objects
         for (i in collisionObjects.indices) {
             val collisionObject = collisionObjects[i]
-
-            val bp = collisionObject.broadphaseHandle
-            if (bp != null) {
-                //
-                // only clear the cached algorithms
-                //
-                broadphase.overlappingPairCache.cleanProxyFromPairs(bp, dispatcher)
-                broadphase.destroyProxy(bp, dispatcher)
-            }
+            val bp = collisionObject.broadphaseHandle ?: continue
+            // only clear the cached algorithms
+            broadphase.overlappingPairCache.cleanProxyFromPairs(bp, dispatcher)
+            broadphase.destroyProxy(bp, dispatcher)
         }
     }
 
@@ -65,49 +69,35 @@ open class CollisionWorld(
         collisionObjects.add(collisionObject)
 
         // calculate new AABB
-        // TODO: check if it's overwritten or not
-        val trans = collisionObject.getWorldTransform(Stack.newTrans())
-
         val minAabb = Stack.newVec()
         val maxAabb = Stack.newVec()
-        collisionObject.collisionShape!!.getAabb(trans, minAabb, maxAabb)
+        collisionObject.collisionShape!!.getAabb(collisionObject.worldTransform, minAabb, maxAabb)
 
         val type = collisionObject.collisionShape!!.shapeType
-        collisionObject.broadphaseHandle = this.broadphase.createProxy(
+        collisionObject.broadphaseHandle = broadphase.createProxy(
             minAabb, maxAabb, type,
             collisionObject, collisionFilterGroup, collisionFilterMask,
-            this.dispatcher, null
+            dispatcher, null
         )
 
-        Stack.subTrans(1)
         Stack.subVec(2)
     }
 
     fun performDiscreteCollisionDetection() {
         pushProfile("performDiscreteCollisionDetection")
         try {
-            //DispatcherInfo dispatchInfo = getDispatchInfo();
-
             updateAabbs()
-
             pushProfile("calculateOverlappingPairs")
             try {
-                broadphase.calculateOverlappingPairs(this.dispatcher)
+                broadphase.calculateOverlappingPairs(dispatcher)
             } finally {
                 popProfile()
             }
-
-            val dispatcher = this.dispatcher
-            run {
-                pushProfile("dispatchAllCollisionPairs")
-                try {
-                    dispatcher.dispatchAllCollisionPairs(
-                        broadphase.overlappingPairCache, dispatchInfo,
-                        this.dispatcher
-                    )
-                } finally {
-                    popProfile()
-                }
+            pushProfile("dispatchAllCollisionPairs")
+            try {
+                dispatcher.dispatchAllCollisionPairs(broadphase.overlappingPairCache, dispatchInfo, dispatcher)
+            } finally {
+                popProfile()
             }
         } finally {
             popProfile()
@@ -148,23 +138,24 @@ open class CollisionWorld(
         minAabb.sub(contactThreshold)
         maxAabb.add(contactThreshold)
 
-        val bp = this.broadphase
-
         // moving objects should be moderately sized, probably something wrong if not
-        maxAabb.sub(minAabb, tmp) // TODO: optimize
+        maxAabb.sub(minAabb, tmp)
+
+        // TODO: optimize
         if (colObj.isStaticObject || (tmp.lengthSquared() < 1e12f)) {
-            bp.setAabb(colObj.broadphaseHandle!!, minAabb, maxAabb, this.dispatcher)
+            broadphase.setAabb(colObj.broadphaseHandle!!, minAabb, maxAabb, dispatcher)
         } else {
             // something went wrong, investigate
             // this assert is unwanted in 3D modelers (danger of loosing work)
-            colObj.setActivationStateMaybe(CollisionObject.DISABLE_SIMULATION)
+            colObj.setActivationStateMaybe(ActivationState.DISABLE_SIMULATION)
 
-            if (updateAabbs_reportMe && debugDrawer != null) {
-                updateAabbs_reportMe = false
-                debugDrawer!!.reportErrorWarning("Overflow in AABB, object removed from simulation")
-                debugDrawer!!.reportErrorWarning("If you can reproduce this, please email bugs@continuousphysics.com\n")
-                debugDrawer!!.reportErrorWarning("Please include above information, your Platform, version of OS.\n")
-                debugDrawer!!.reportErrorWarning("Thanks.\n")
+            val debugDrawer = debugDrawer
+            if (updateAabbsReportMe && debugDrawer != null) {
+                updateAabbsReportMe = false
+                debugDrawer.reportErrorWarning("Overflow in AABB, object removed from simulation")
+                debugDrawer.reportErrorWarning("If you can reproduce this, please email bugs@continuousphysics.com\n")
+                debugDrawer.reportErrorWarning("Please include above information, your Platform, version of OS.\n")
+                debugDrawer.reportErrorWarning("Thanks.\n")
             }
         }
         Stack.subVec(4)
@@ -188,9 +179,6 @@ open class CollisionWorld(
             popProfile()
         }
     }
-
-    val numCollisionObjects: Int
-        get() = collisionObjects.size
 
     private class BridgeTriangleConvexCastCallback(
         castShape: ConvexShape, from: Transform, to: Transform,
@@ -291,75 +279,16 @@ open class CollisionWorld(
      * This allows for several queries: first hit, all hits, any hit, dependent on the value return by the callback.
      */
     fun convexSweepTest(
-        castShape: ConvexShape,
+        selfShape: ConvexShape,
         convexFromWorld: Transform,
         convexToWorld: Transform,
         resultCallback: ConvexResultCallback
     ) {
-        val convexFromTrans = Stack.newTrans()
-        val convexToTrans = Stack.newTrans()
-
-        convexFromTrans.set(convexFromWorld)
-        convexToTrans.set(convexToWorld)
-
-        val castShapeAabbMin = Stack.newVec()
-        val castShapeAabbMax = Stack.newVec()
-
-        // Compute AABB that encompasses angular movement
-        run {
-            val linVel = Stack.newVec()
-            val angVel = Stack.newVec()
-            TransformUtil.calculateVelocity(convexFromTrans, convexToTrans, 1.0, linVel, angVel)
-            val R = Stack.newTrans()
-            R.setIdentity()
-            R.setRotation(convexFromTrans.getRotation(Stack.newQuat()))
-            castShape.calculateTemporalAabb(R, linVel, angVel, 1.0, castShapeAabbMin, castShapeAabbMax)
-        }
-
-        val tmpTrans = Stack.newTrans()
-        val collisionObjectAabbMin = Stack.newVec()
-        val collisionObjectAabbMax = Stack.newVec()
-        val hitLambda = Stack.newDoublePtr()
-
-        // go over all objects, and if the ray intersects their aabb + cast shape aabb,
-        // do a ray-shape query using convexCaster (CCD)
-        val hitNormal = Stack.newVec()
-        var stackPos: IntArray? = null
-        for (i in collisionObjects.indices) {
-            val collisionObject = collisionObjects[i]
-            // only perform raycast if filterMask matches
-            if (resultCallback.needsCollision(collisionObject.broadphaseHandle!!)) {
-                stackPos = Stack.getPosition(stackPos)
-                collisionObject.getWorldTransform(tmpTrans)
-                collisionObject.collisionShape!!.getAabb(tmpTrans, collisionObjectAabbMin, collisionObjectAabbMax)
-                AabbUtil.aabbExpand(collisionObjectAabbMin, collisionObjectAabbMax, castShapeAabbMin, castShapeAabbMax)
-                hitLambda[0] = 1.0 // could use resultCallback.closestHitFraction, but needs testing
-                if (AabbUtil.rayAabb(
-                        convexFromWorld.origin,
-                        convexToWorld.origin,
-                        collisionObjectAabbMin,
-                        collisionObjectAabbMax,
-                        hitLambda,
-                        hitNormal
-                    )
-                ) {
-                    objectQuerySingle(
-                        castShape, convexFromTrans, convexToTrans,
-                        collisionObject,
-                        collisionObject.collisionShape!!,
-                        tmpTrans,
-                        resultCallback,
-                        this.dispatchInfo.allowedCcdPenetration
-                    )
-                }
-                Stack.reset(stackPos)
-            }
-        }
-
-        Stack.subDoublePtr(1)
-        Stack.subVec(7)
-        Stack.subTrans(4)
-        Stack.subQuat(1)
+        convexSweepTest(
+            selfShape, convexFromWorld, convexToWorld,
+            resultCallback, dispatchInfo.allowedCcdPenetration,
+            collisionObjects
+        )
     }
 
     /**
@@ -556,9 +485,87 @@ open class CollisionWorld(
     }
 
     companion object {
-        private var updateAabbs_reportMe = true
 
-        // TODO
+        private var updateAabbsReportMe = true
+
+        fun calculateTemporalBounds(
+            selfShape: ConvexShape,
+            convexFromWorld: Transform,
+            convexToWorld: Transform,
+            selfAabbMin: Vector3d,
+            selfAabbMax: Vector3d
+        ) {
+
+            val linVel = Stack.newVec()
+            val angVel = TransformUtil.calculateVelocity(convexFromWorld, convexToWorld, 1.0, linVel)
+            val R = Stack.newTrans()
+            R.setIdentity()
+            R.setRotation(convexFromWorld.getRotation(Stack.newQuat()))
+            selfShape.calculateTemporalAabb(R, linVel, angVel, 1.0, selfAabbMin, selfAabbMax)
+
+            Stack.subVec(1)
+            Stack.subQuat(1)
+            Stack.subTrans(1)
+        }
+
+        /**
+         * convexTest performs a swept convex cast on all objects in the [CollisionWorld], and calls the resultCallback
+         * This allows for several queries: first hit, all hits, any hit, dependent on the value return by the callback.
+         */
+        fun convexSweepTest(
+            selfShape: ConvexShape,
+            convexFromWorld: Transform,
+            convexToWorld: Transform,
+            resultCallback: ConvexResultCallback,
+            allowedPenetration: Double,
+            otherObjects: List<CollisionObject>
+        ) {
+            val selfAabbMin = Stack.newVec()
+            val selfAabbMax = Stack.newVec()
+
+            // Compute AABB that encompasses angular movement
+            calculateTemporalBounds(selfShape, convexFromWorld, convexToWorld, selfAabbMin, selfAabbMax)
+
+            val otherAabbMin = Stack.newVec()
+            val otherAabbMax = Stack.newVec()
+            val hitLambda = Stack.newDoublePtr()
+
+            // go over all objects, and if the ray intersects their aabb + cast shape aabb,
+            // do a ray-shape query using convexCaster (CCD)
+            val hitNormal = Stack.newVec()
+            var stackPos: IntArray? = null
+            for (i in otherObjects.indices) {
+                val other = otherObjects[i]
+                // only perform raycast if filterMask matches
+                if (resultCallback.needsCollision(other.broadphaseHandle!!)) {
+                    stackPos = Stack.getPosition(stackPos)
+
+                    val otherShape = other.collisionShape!!
+                    otherShape.getAabb(other.worldTransform, otherAabbMin, otherAabbMax)
+                    AabbUtil.aabbExpand(otherAabbMin, otherAabbMax, selfAabbMin, selfAabbMax) // minkowski sum
+                    hitLambda[0] = 1.0 // could use resultCallback.closestHitFraction, but needs testing
+                    if (AabbUtil.rayAabb(
+                            convexFromWorld.origin,
+                            convexToWorld.origin,
+                            otherAabbMin, otherAabbMax,
+                            hitLambda, hitNormal
+                        )
+                    ) {
+                        objectQuerySingle(
+                            selfShape, convexFromWorld, convexToWorld,
+                            other, otherShape,
+                            other.worldTransform,
+                            resultCallback, allowedPenetration
+                        )
+                    }
+                    Stack.reset(stackPos)
+                }
+            }
+
+            Stack.subDoublePtr(1)
+            Stack.subVec(4)
+        }
+
         @JvmStatic
         fun rayTestSingle(
             rayFromTrans: Transform, rayToTrans: Transform,
@@ -586,11 +593,8 @@ open class CollisionWorld(
                 //btContinuousConvexCollision convexCaster(castShape,convexShape,&simplexSolver,0);
                 //#endif //#USE_SUBSIMPLEX_CONVEX_CAST
                 if (convexCaster.calcTimeOfImpact(
-                        rayFromTrans,
-                        rayToTrans,
-                        colObjWorldTransform,
-                        colObjWorldTransform,
-                        castResult
+                        rayFromTrans, rayToTrans,
+                        colObjWorldTransform, colObjWorldTransform, castResult
                     )
                 ) {
                     //add hit
@@ -837,9 +841,9 @@ open class CollisionWorld(
                         // replace collision shape so that callback can determine the triangle
                         val saveCollisionShape = collisionObject.collisionShape
                         collisionObject.internalSetTemporaryCollisionShape(childCollisionShape)
-                        Companion.objectQuerySingle(
+                        objectQuerySingle(
                             castShape, convexFromTrans, convexToTrans,
-                            collisionObject, childCollisionShape!!, childWorldTrans,
+                            collisionObject, childCollisionShape, childWorldTrans,
                             resultCallback, allowedPenetration
                         )
                         // restore

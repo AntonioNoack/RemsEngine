@@ -85,7 +85,7 @@ object BulletGlobals {
         var contactBreakingThreshold = 0.02
 
         // RigidBody
-        var deactivationTime = 2.0
+        var deactivationTime = 0.1
         var disableDeactivation = false
     }
 }

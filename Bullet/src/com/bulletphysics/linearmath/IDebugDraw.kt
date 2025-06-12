@@ -39,7 +39,7 @@ interface IDebugDraw {
 
     fun draw3dText(location: Vector3d, textString: String)
 
-    var debugMode: Int
+    val debugMode: Int
 
     fun drawAabb(from: Vector3d, to: Vector3d, color: Vector3d) {
         val halfExtents = Stack.newVec(to)

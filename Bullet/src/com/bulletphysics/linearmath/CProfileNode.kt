@@ -1,7 +1,6 @@
 package com.bulletphysics.linearmath
 
 import com.bulletphysics.BulletStats
-import com.bulletphysics.BulletStats.profileGetTickRate
 import com.bulletphysics.BulletStats.profileGetTicks
 
 /***************************************************************************************************
@@ -20,8 +19,9 @@ import com.bulletphysics.BulletStats.profileGetTicks
  * @author jezek2
  */
 class CProfileNode(var name: String?, val parent: CProfileNode?) {
+
     var totalCalls: Int = 0
-    var totalTime: Double = 0.0
+    var totalTimeSeconds: Double = 0.0
 
     private var startTime: Long = 0
     private var recursionCounter = 0
@@ -59,7 +59,7 @@ class CProfileNode(var name: String?, val parent: CProfileNode?) {
 
     fun reset() {
         totalCalls = 0
-        totalTime = 0.0
+        totalTimeSeconds = 0.0
         BulletStats.profileClock.reset()
 
         if (child != null) {
@@ -77,10 +77,10 @@ class CProfileNode(var name: String?, val parent: CProfileNode?) {
         }
     }
 
-    fun Return(): Boolean {
+    fun end(): Boolean {
         if (--recursionCounter == 0 && totalCalls != 0) {
             val time = profileGetTicks() - startTime
-            totalTime += time.toDouble() / profileGetTickRate()
+            totalTimeSeconds += time * 1e-9
         }
         return (recursionCounter == 0)
     }

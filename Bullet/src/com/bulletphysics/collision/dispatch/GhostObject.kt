@@ -5,9 +5,7 @@ import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.dispatch.CollisionWorld.ConvexResultCallback
 import com.bulletphysics.collision.dispatch.CollisionWorld.RayResultCallback
 import com.bulletphysics.collision.shapes.ConvexShape
-import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.TransformUtil
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 
@@ -51,72 +49,17 @@ open class GhostObject : CollisionObject() {
     }
 
     fun convexSweepTest(
-        castShape: ConvexShape,
+        selfShape: ConvexShape,
         convexFromWorld: Transform,
         convexToWorld: Transform,
         resultCallback: ConvexResultCallback,
         allowedCcdPenetration: Double
     ) {
-        val convexFromTrans = Stack.newTrans()
-        val convexToTrans = Stack.newTrans()
-
-        convexFromTrans.set(convexFromWorld)
-        convexToTrans.set(convexToWorld)
-
-        val castShapeAabbMin = Stack.newVec()
-        val castShapeAabbMax = Stack.newVec()
-
-        // compute AABB that encompasses angular movement
-        run {
-            val linVel = Stack.newVec()
-            val angVel = Stack.newVec()
-            TransformUtil.calculateVelocity(convexFromTrans, convexToTrans, 1.0, linVel, angVel)
-            val R = Stack.newTrans()
-            R.setIdentity()
-            R.setRotation(convexFromTrans.getRotation(Stack.newQuat()))
-            castShape.calculateTemporalAabb(R, linVel, angVel, 1.0, castShapeAabbMin, castShapeAabbMax)
-        }
-
-        val tmpTrans = Stack.newTrans()
-
-        // go over all objects, and if the ray intersects their aabb + cast shape aabb,
-        // do a ray-shape query using convexCaster (CCD)
-        for (i in 0 until overlappingPairs.size) {
-            val collisionObject = overlappingPairs[i]
-
-            // only perform raycast if filterMask matches
-            if (resultCallback.needsCollision(collisionObject.broadphaseHandle!!)) {
-                //RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
-                val collisionObjectAabbMin = Stack.newVec()
-                val collisionObjectAabbMax = Stack.newVec()
-                collisionObject.collisionShape!!.getAabb(
-                    collisionObject.getWorldTransform(tmpTrans),
-                    collisionObjectAabbMin,
-                    collisionObjectAabbMax
-                )
-                AabbUtil.aabbExpand(collisionObjectAabbMin, collisionObjectAabbMax, castShapeAabbMin, castShapeAabbMax)
-                val hitLambda = doubleArrayOf(1.0) // could use resultCallback.closestHitFraction, but needs testing
-                val hitNormal = Stack.newVec()
-                if (AabbUtil.rayAabb(
-                        convexFromWorld.origin,
-                        convexToWorld.origin,
-                        collisionObjectAabbMin,
-                        collisionObjectAabbMax,
-                        hitLambda,
-                        hitNormal
-                    )
-                ) {
-                    CollisionWorld.objectQuerySingle(
-                        castShape, convexFromTrans, convexToTrans,
-                        collisionObject,
-                        collisionObject.collisionShape!!,
-                        collisionObject.getWorldTransform(tmpTrans),
-                        resultCallback,
-                        allowedCcdPenetration
-                    )
-                }
-            }
-        }
+        CollisionWorld.convexSweepTest(
+            selfShape, convexFromWorld, convexToWorld,
+            resultCallback, allowedCcdPenetration,
+            overlappingPairs
+        )
     }
 
     @Suppress("unused")

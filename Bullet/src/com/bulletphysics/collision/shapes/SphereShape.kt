@@ -2,7 +2,6 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
-import cz.advel.stack.Stack
 import org.joml.Vector3d
 
 /**
@@ -16,7 +15,14 @@ class SphereShape(radius: Double) : ConvexInternalShape() {
         margin = radius
     }
 
-    val radius get() = margin
+    var radius: Double
+        get() = margin
+        set(value) {
+            margin = value
+        }
+
+    // center.length + halfExtents
+    override val angularMotionDisc: Double get() = margin
 
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
         out.set(0.0, 0.0, 0.0)

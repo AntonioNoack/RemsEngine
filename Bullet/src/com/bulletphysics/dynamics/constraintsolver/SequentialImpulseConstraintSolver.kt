@@ -19,12 +19,13 @@ import com.bulletphysics.util.ObjectPool
 import com.bulletphysics.util.Packing.pack
 import com.bulletphysics.util.Packing.unpackHigh
 import com.bulletphysics.util.Packing.unpackLow
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setNegate
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import me.anno.utils.types.Booleans.hasFlag
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -228,7 +229,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         appliedNormalImpulse: Double
     ) {
         val combinedFriction = contactConstraint.friction
-
         val limit = appliedNormalImpulse * combinedFriction
 
         if (appliedNormalImpulse > 0.0) { //friction
@@ -290,14 +290,13 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         solverConstraint.penetration = 0.0
 
         val ftorqueAxis1 = Stack.newVec()
-        val tmpMat = Stack.newMat()
 
 
         ftorqueAxis1.setCross(relPos1, solverConstraint.contactNormal)
         solverConstraint.relPos1CrossNormal.set(ftorqueAxis1)
         if (body0 != null) {
             solverConstraint.angularComponentA.set(ftorqueAxis1)
-            body0.getInvInertiaTensorWorld(tmpMat).transform(solverConstraint.angularComponentA)
+            body0.invInertiaTensorWorld.transform(solverConstraint.angularComponentA)
         } else {
             solverConstraint.angularComponentA.set(0.0, 0.0, 0.0)
         }
@@ -307,11 +306,10 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         solverConstraint.relPos2CrossNormal.set(ftorqueAxis1)
         if (body1 != null) {
             solverConstraint.angularComponentB.set(ftorqueAxis1)
-            body1.getInvInertiaTensorWorld(tmpMat).transform(solverConstraint.angularComponentB)
+            body1.invInertiaTensorWorld.transform(solverConstraint.angularComponentB)
         } else {
             solverConstraint.angularComponentB.set(0.0, 0.0, 0.0)
         }
-
 
         val vec = Stack.newVec()
         var denom0 = 0.0
@@ -328,366 +326,21 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         solverConstraint.jacDiagABInv = relaxation / (denom0 + denom1)
 
         Stack.subVec(2)
-        Stack.subMat(1)
     }
 
-    @Suppress("SameReturnValue")
     fun solveGroupCacheFriendlySetup(
         manifoldPtr: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
         constraints: List<TypedConstraint>?, constraintsOffset: Int,
         numConstraints: Int, infoGlobal: ContactSolverInfo
-    ): Double {
+    ) {
+        if (numConstraints + numManifolds == 0) return
         pushProfile("solveGroupCacheFriendlySetup")
         try {
-            if ((numConstraints + numManifolds) == 0) {
-                return 0.0
-            }
-            var manifold: PersistentManifold
-            var colObj0: CollisionObject
-            var colObj1: CollisionObject
-
-            val tmpTrans = Stack.newTrans()
-
-            val relPos1 = Stack.newVec()
-            val relPos2 = Stack.newVec()
-
-            val pos1 = Stack.newVec()
-            val pos2 = Stack.newVec()
-            val vel = Stack.newVec()
-            val torqueAxis0 = Stack.newVec()
-            val torqueAxis1 = Stack.newVec()
-            val vel1 = Stack.newVec()
-            val vel2 = Stack.newVec()
-            val vec = Stack.newVec()
-            val tmp = Stack.newVec()
-
-            val tmpMat = Stack.newMat()
 
             for (i in 0 until numManifolds) {
-                manifold = manifoldPtr[manifoldOffset + i]
-                colObj0 = manifold.getBody0() as CollisionObject
-                colObj1 = manifold.getBody1() as CollisionObject
-
-                var solverBodyIdA = -1
-                var solverBodyIdB = -1
-
-                if (manifold.numContacts != 0) {
-                    if (colObj0.islandTag >= 0) {
-                        if (colObj0.companionId >= 0) {
-                            // body has already been converted
-                            solverBodyIdA = colObj0.companionId
-                        } else {
-                            solverBodyIdA = tmpSolverBodyPool.size
-                            val solverBody = bodiesPool.get()
-                            tmpSolverBodyPool.add(solverBody)
-                            initSolverBody(solverBody, colObj0)
-                            colObj0.companionId = solverBodyIdA
-                        }
-                    } else {
-                        // create a static body
-                        solverBodyIdA = tmpSolverBodyPool.size
-                        val solverBody = bodiesPool.get()
-                        tmpSolverBodyPool.add(solverBody)
-                        initSolverBody(solverBody, colObj0)
-                    }
-
-                    if (colObj1.islandTag >= 0) {
-                        if (colObj1.companionId >= 0) {
-                            solverBodyIdB = colObj1.companionId
-                        } else {
-                            solverBodyIdB = tmpSolverBodyPool.size
-                            val solverBody = bodiesPool.get()
-                            tmpSolverBodyPool.add(solverBody)
-                            initSolverBody(solverBody, colObj1)
-                            colObj1.companionId = solverBodyIdB
-                        }
-                    } else {
-                        // create a static body
-                        solverBodyIdB = tmpSolverBodyPool.size
-                        val solverBody = bodiesPool.get()
-                        tmpSolverBodyPool.add(solverBody)
-                        initSolverBody(solverBody, colObj1)
-                    }
-                }
-
-                var relaxation: Double
-
-                for (j in 0 until manifold.numContacts) {
-                    val cp = manifold.getContactPoint(j)
-
-                    if (cp.distance <= 0.0) {
-                        cp.getPositionWorldOnA(pos1)
-                        cp.getPositionWorldOnB(pos2)
-
-                        relPos1.setSub(pos1, colObj0.getWorldTransform(tmpTrans).origin)
-                        relPos2.setSub(pos2, colObj1.getWorldTransform(tmpTrans).origin)
-
-                        relaxation = 1.0
-
-                        val frictionIndex = tmpSolverConstraintPool.size
-
-                        run {
-                            val solverConstraint = constraintsPool.get()
-                            tmpSolverConstraintPool.add(solverConstraint)
-                            val rb0 = RigidBody.upcast(colObj0)
-                            val rb1 = RigidBody.upcast(colObj1)
-
-                            solverConstraint.solverBodyIdA = solverBodyIdA
-                            solverConstraint.solverBodyIdB = solverBodyIdB
-                            solverConstraint.constraintType = SolverConstraintType.SOLVER_CONTACT_1D
-
-                            solverConstraint.originalContactPoint = cp
-
-                            torqueAxis0.setCross(relPos1, cp.normalWorldOnB)
-
-                            if (rb0 != null) {
-                                solverConstraint.angularComponentA.set(torqueAxis0)
-                                rb0.getInvInertiaTensorWorld(tmpMat).transform(solverConstraint.angularComponentA)
-                            } else {
-                                solverConstraint.angularComponentA.set(0.0, 0.0, 0.0)
-                            }
-
-                            torqueAxis1.setCross(relPos2, cp.normalWorldOnB)
-
-                            if (rb1 != null) {
-                                solverConstraint.angularComponentB.set(torqueAxis1)
-                                rb1.getInvInertiaTensorWorld(tmpMat).transform(solverConstraint.angularComponentB)
-                            } else {
-                                solverConstraint.angularComponentB.set(0.0, 0.0, 0.0)
-                            }
-
-                            run {
-                                //#ifdef COMPUTE_IMPULSE_DENOM
-                                //btScalar denom0 = rb0->computeImpulseDenominator(pos1,cp.m_normalWorldOnB);
-                                //btScalar denom1 = rb1->computeImpulseDenominator(pos2,cp.m_normalWorldOnB);
-                                //#else
-                                var denom0 = 0.0
-                                var denom1 = 0.0
-                                if (rb0 != null) {
-                                    vec.setCross(solverConstraint.angularComponentA, relPos1)
-                                    denom0 = rb0.inverseMass + cp.normalWorldOnB.dot(vec)
-                                }
-                                if (rb1 != null) {
-                                    vec.setCross(solverConstraint.angularComponentB, relPos2)
-                                    denom1 = rb1.inverseMass + cp.normalWorldOnB.dot(vec)
-                                }
-
-                                //#endif //COMPUTE_IMPULSE_DENOM
-                                solverConstraint.jacDiagABInv = relaxation / (denom0 + denom1)
-                            }
-
-                            solverConstraint.contactNormal.set(cp.normalWorldOnB)
-                            solverConstraint.relPos1CrossNormal.setCross(relPos1, cp.normalWorldOnB)
-                            solverConstraint.relPos2CrossNormal.setCross(relPos2, cp.normalWorldOnB)
-
-                            if (rb0 != null) {
-                                rb0.getVelocityInLocalPoint(relPos1, vel1)
-                            } else {
-                                vel1.set(0.0, 0.0, 0.0)
-                            }
-
-                            if (rb1 != null) {
-                                rb1.getVelocityInLocalPoint(relPos2, vel2)
-                            } else {
-                                vel2.set(0.0, 0.0, 0.0)
-                            }
-
-                            vel.setSub(vel1, vel2)
-
-                            val relVel = cp.normalWorldOnB.dot(vel)
-
-                            solverConstraint.penetration = min(cp.distance + infoGlobal.linearSlop, 0.0)
-
-                            //solverConstraint.m_penetration = cp.getDistance();
-                            solverConstraint.friction = cp.combinedFriction
-                            solverConstraint.restitution = restitutionCurve(relVel, cp.combinedRestitution)
-                            if (solverConstraint.restitution <= 0.0) {
-                                solverConstraint.restitution = 0.0
-                            }
-
-                            val penVel = -solverConstraint.penetration / infoGlobal.timeStep
-
-                            if (solverConstraint.restitution > penVel) {
-                                solverConstraint.penetration = 0.0
-                            }
-
-                            // warm starting (or zero if disabled)
-                            if ((infoGlobal.solverMode and SolverMode.SOLVER_USE_WARMSTARTING) != 0) {
-                                solverConstraint.appliedImpulse = cp.appliedImpulse * infoGlobal.warmstartingFactor
-                                if (rb0 != null) {
-                                    tmp.setScale(rb0.inverseMass, solverConstraint.contactNormal)
-                                    tmpSolverBodyPool[solverConstraint.solverBodyIdA]
-                                        .internalApplyImpulse(
-                                            tmp,
-                                            solverConstraint.angularComponentA,
-                                            solverConstraint.appliedImpulse
-                                        )
-                                }
-                                if (rb1 != null) {
-                                    tmp.setScale(rb1.inverseMass, solverConstraint.contactNormal)
-                                    tmpSolverBodyPool[solverConstraint.solverBodyIdB]
-                                        .internalApplyImpulse(
-                                            tmp,
-                                            solverConstraint.angularComponentB,
-                                            -solverConstraint.appliedImpulse
-                                        )
-                                }
-                            } else {
-                                solverConstraint.appliedImpulse = 0.0
-                            }
-
-                            solverConstraint.appliedPushImpulse = 0.0
-
-                            solverConstraint.frictionIndex = tmpSolverFrictionConstraintPool.size
-                            if (!cp.lateralFrictionInitialized) {
-                                cp.lateralFrictionDir1.setScale(relVel, cp.normalWorldOnB)
-                                cp.lateralFrictionDir1.setSub(vel, cp.lateralFrictionDir1)
-
-                                val latRelVel = cp.lateralFrictionDir1.lengthSquared()
-                                if (latRelVel > BulletGlobals.FLT_EPSILON)  //0.0)
-                                {
-                                    cp.lateralFrictionDir1.mul(1.0 / sqrt(latRelVel))
-                                    addFrictionConstraint(
-                                        cp.lateralFrictionDir1,
-                                        solverBodyIdA,
-                                        solverBodyIdB,
-                                        frictionIndex,
-                                        cp,
-                                        relPos1,
-                                        relPos2,
-                                        colObj0,
-                                        colObj1,
-                                        relaxation
-                                    )
-                                    cp.lateralFrictionDir2.setCross(cp.lateralFrictionDir1, cp.normalWorldOnB)
-                                    cp.lateralFrictionDir2.normalize() //??
-                                    addFrictionConstraint(
-                                        cp.lateralFrictionDir2,
-                                        solverBodyIdA,
-                                        solverBodyIdB,
-                                        frictionIndex,
-                                        cp,
-                                        relPos1,
-                                        relPos2,
-                                        colObj0,
-                                        colObj1,
-                                        relaxation
-                                    )
-                                } else {
-                                    // re-calculate friction direction every frame, todo: check if this is really needed
-
-                                    planeSpace1(cp.normalWorldOnB, cp.lateralFrictionDir1, cp.lateralFrictionDir2)
-                                    addFrictionConstraint(
-                                        cp.lateralFrictionDir1,
-                                        solverBodyIdA,
-                                        solverBodyIdB,
-                                        frictionIndex,
-                                        cp,
-                                        relPos1,
-                                        relPos2,
-                                        colObj0,
-                                        colObj1,
-                                        relaxation
-                                    )
-                                    addFrictionConstraint(
-                                        cp.lateralFrictionDir2,
-                                        solverBodyIdA,
-                                        solverBodyIdB,
-                                        frictionIndex,
-                                        cp,
-                                        relPos1,
-                                        relPos2,
-                                        colObj0,
-                                        colObj1,
-                                        relaxation
-                                    )
-                                }
-                                cp.lateralFrictionInitialized = true
-                            } else {
-                                addFrictionConstraint(
-                                    cp.lateralFrictionDir1,
-                                    solverBodyIdA,
-                                    solverBodyIdB,
-                                    frictionIndex,
-                                    cp,
-                                    relPos1,
-                                    relPos2,
-                                    colObj0,
-                                    colObj1,
-                                    relaxation
-                                )
-                                addFrictionConstraint(
-                                    cp.lateralFrictionDir2,
-                                    solverBodyIdA,
-                                    solverBodyIdB,
-                                    frictionIndex,
-                                    cp,
-                                    relPos1,
-                                    relPos2,
-                                    colObj0,
-                                    colObj1,
-                                    relaxation
-                                )
-                            }
-
-                            run {
-                                val frictionConstraint1 =
-                                    tmpSolverFrictionConstraintPool[solverConstraint.frictionIndex]
-                                if ((infoGlobal.solverMode and SolverMode.SOLVER_USE_WARMSTARTING) != 0) {
-                                    frictionConstraint1.appliedImpulse =
-                                        cp.appliedImpulseLateral1 * infoGlobal.warmstartingFactor
-                                    if (rb0 != null) {
-                                        tmp.setScale(rb0.inverseMass, frictionConstraint1.contactNormal)
-                                        tmpSolverBodyPool[solverConstraint.solverBodyIdA]
-                                            .internalApplyImpulse(
-                                                tmp,
-                                                frictionConstraint1.angularComponentA,
-                                                frictionConstraint1.appliedImpulse
-                                            )
-                                    }
-                                    if (rb1 != null) {
-                                        tmp.setScale(rb1.inverseMass, frictionConstraint1.contactNormal)
-                                        tmpSolverBodyPool[solverConstraint.solverBodyIdB]
-                                            .internalApplyImpulse(
-                                                tmp,
-                                                frictionConstraint1.angularComponentB,
-                                                -frictionConstraint1.appliedImpulse
-                                            )
-                                    }
-                                } else {
-                                    frictionConstraint1.appliedImpulse = 0.0
-                                }
-                            }
-                            run {
-                                val frictionConstraint2 =
-                                    tmpSolverFrictionConstraintPool[solverConstraint.frictionIndex + 1]
-                                if ((infoGlobal.solverMode and SolverMode.SOLVER_USE_WARMSTARTING) != 0) {
-                                    frictionConstraint2.appliedImpulse =
-                                        cp.appliedImpulseLateral2 * infoGlobal.warmstartingFactor
-                                    if (rb0 != null) {
-                                        tmp.setScale(rb0.inverseMass, frictionConstraint2.contactNormal)
-                                        tmpSolverBodyPool[solverConstraint.solverBodyIdA]
-                                            .internalApplyImpulse(
-                                                tmp,
-                                                frictionConstraint2.angularComponentA,
-                                                frictionConstraint2.appliedImpulse
-                                            )
-                                    }
-                                    if (rb1 != null) {
-                                        tmp.setScale(rb1.inverseMass, frictionConstraint2.contactNormal)
-                                        tmpSolverBodyPool[solverConstraint.solverBodyIdB]
-                                            .internalApplyImpulse(
-                                                tmp,
-                                                frictionConstraint2.angularComponentB,
-                                                -frictionConstraint2.appliedImpulse
-                                            )
-                                    }
-                                } else {
-                                    frictionConstraint2.appliedImpulse = 0.0
-                                }
-                            }
-                        }
-                    }
+                val manifold = manifoldPtr[manifoldOffset + i]
+                if (manifold.numContacts > 0) {
+                    setupManifold(manifold, infoGlobal)
                 }
             }
 
@@ -697,141 +350,390 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                 }
             }
 
-            val numConstraintPool = tmpSolverConstraintPool.size
-            val numFrictionPool = tmpSolverFrictionConstraintPool.size
-
-            resize(orderTmpConstraintPool, numConstraintPool, 0)
-            resize(orderFrictionConstraintPool, numFrictionPool, 0)
-
-            for (j in 0 until numConstraintPool) {
-                orderTmpConstraintPool.set(j, j)
-            }
-            for (j in 0 until numFrictionPool) {
-                orderFrictionConstraintPool.set(j, j)
-            }
-
-            Stack.subTrans(1)
-            Stack.subMat(1)
-            Stack.subVec(11)
-
-            return 0.0
+            preparePools()
         } finally {
             popProfile()
+        }
+    }
+
+    private fun setupManifold(manifold: PersistentManifold, infoGlobal: ContactSolverInfo) {
+
+        val colObj0 = manifold.getBody0() as CollisionObject
+        val colObj1 = manifold.getBody1() as CollisionObject
+
+        val solverBodyIdA = defineSolverBody(colObj0)
+        val solverBodyIdB = defineSolverBody(colObj1)
+
+        for (j in 0 until manifold.numContacts) {
+            val cp = manifold.getContactPoint(j)
+            if (cp.distance <= 0.0) {
+                setupContact(cp, colObj0, colObj1, solverBodyIdA, solverBodyIdB, infoGlobal)
+            }
+        }
+    }
+
+    private fun defineSolverBody(colObj: CollisionObject): Int {
+        if (colObj.islandTag >= 0) {
+            if (colObj.companionId >= 0) {
+                // body has already been converted
+                return colObj.companionId
+            } else {
+                val solverBodyId = tmpSolverBodyPool.size
+                val solverBody = bodiesPool.get()
+                tmpSolverBodyPool.add(solverBody)
+                initSolverBody(solverBody, colObj)
+                colObj.companionId = solverBodyId
+                return solverBodyId
+            }
+        } else {
+            // create a static body
+            val solverBodyId = tmpSolverBodyPool.size
+            val solverBody = bodiesPool.get()
+            tmpSolverBodyPool.add(solverBody)
+            initSolverBody(solverBody, colObj)
+            return solverBodyId
+        }
+    }
+
+    private fun calculateAngularComponent(
+        cp: ManifoldPoint, relPos: Vector3d,
+        rigidBody: RigidBody?, dst: Vector3d
+    ) {
+        if (rigidBody != null) {
+            relPos.cross(cp.normalWorldOnB, dst) // torqueAxis
+            rigidBody.invInertiaTensorWorld.transform(dst)
+        } else {
+            dst.set(0.0, 0.0, 0.0)
+        }
+    }
+
+    private fun calculateJacobianDiagonal(
+        cp: ManifoldPoint,
+        relPos1: Vector3d, relPos2: Vector3d,
+        rb0: RigidBody?, rb1: RigidBody?,
+        solverConstraint: SolverConstraint,
+        relaxation: Double
+    ) {
+        //#ifdef COMPUTE_IMPULSE_DENOM
+        //btScalar denom0 = rb0->computeImpulseDenominator(pos1,cp.m_normalWorldOnB);
+        //btScalar denom1 = rb1->computeImpulseDenominator(pos2,cp.m_normalWorldOnB);
+        //#else
+        val tmp = Stack.newVec()
+        var denominator0 = 0.0
+        var denominator1 = 0.0
+        if (rb0 != null) {
+            tmp.setCross(solverConstraint.angularComponentA, relPos1)
+            denominator0 = rb0.inverseMass + cp.normalWorldOnB.dot(tmp)
+        }
+        if (rb1 != null) {
+            tmp.setCross(solverConstraint.angularComponentB, relPos2)
+            denominator1 = rb1.inverseMass + cp.normalWorldOnB.dot(tmp)
+        }
+
+        //#endif //COMPUTE_IMPULSE_DENOM
+        solverConstraint.jacDiagABInv = relaxation / (denominator0 + denominator1)
+        Stack.subVec(1)
+    }
+
+    private fun calculateVelocity(relPos: Vector3d, rigidBody: RigidBody?, dst: Vector3d) {
+        if (rigidBody != null) {
+            rigidBody.getVelocityInLocalPoint(relPos, dst)
+        } else {
+            dst.set(0.0, 0.0, 0.0)
+        }
+    }
+
+    private fun calculateVelocity(
+        relPos1: Vector3d, relPos2: Vector3d,
+        rb1: RigidBody?, rb2: RigidBody?, dst: Vector3d
+    ) {
+        val vel1 = Stack.newVec()
+        val vel2 = Stack.newVec()
+        calculateVelocity(relPos1, rb1, vel1)
+        calculateVelocity(relPos2, rb2, vel2)
+        vel1.sub(vel2, dst)
+        Stack.subVec(2)
+    }
+
+    private fun warmstarting(
+        solverConstraint: SolverConstraint, solverBodyId: Int,
+        rigidBody: RigidBody, first: Boolean, tmp: Vector3d
+    ) {
+        tmp.setScale(rigidBody.inverseMass, solverConstraint.contactNormal)
+        tmpSolverBodyPool[solverBodyId]
+            .internalApplyImpulse(
+                tmp,
+                if (first) solverConstraint.angularComponentA else solverConstraint.angularComponentB,
+                if (first) solverConstraint.appliedImpulse else -solverConstraint.appliedImpulse
+            )
+    }
+
+    private fun warmstarting(
+        baseImpulse: Double,
+        solverConstraint: SolverConstraint,
+        frictionConstraint: SolverConstraint,
+        rb1: RigidBody?, rb2: RigidBody?,
+        infoGlobal: ContactSolverInfo, tmp: Vector3d,
+    ) {
+        if (infoGlobal.solverMode.hasFlag(SolverMode.SOLVER_USE_WARMSTARTING)) {
+            frictionConstraint.appliedImpulse = baseImpulse * infoGlobal.warmstartingFactor
+            if (rb1 != null) warmstarting(frictionConstraint, solverConstraint.solverBodyIdA, rb1, true, tmp)
+            if (rb2 != null) warmstarting(frictionConstraint, solverConstraint.solverBodyIdB, rb2, false, tmp)
+        } else {
+            frictionConstraint.appliedImpulse = 0.0
+        }
+    }
+
+    private fun defineLateralFriction(
+        cp: ManifoldPoint, relVel: Double, vel: Vector3d,
+        solverConstraint: SolverConstraint, frictionIndex: Int,
+        solverBodyIdA: Int, solverBodyIdB: Int,
+        relPos1: Vector3d, relPos2: Vector3d, colObj1: CollisionObject, colObj2: CollisionObject,
+        relaxation: Double
+    ) {
+        solverConstraint.frictionIndex = tmpSolverFrictionConstraintPool.size
+        if (!cp.lateralFrictionInitialized) {
+            cp.lateralFrictionDir1.setScale(relVel, cp.normalWorldOnB)
+            cp.lateralFrictionDir1.setSub(vel, cp.lateralFrictionDir1)
+
+            val latRelVel = cp.lateralFrictionDir1.lengthSquared()
+            if (latRelVel > BulletGlobals.FLT_EPSILON) {
+
+                cp.lateralFrictionDir1.mul(1.0 / sqrt(latRelVel))
+                addFrictionConstraint(
+                    cp.lateralFrictionDir1,
+                    solverBodyIdA, solverBodyIdB, frictionIndex, cp,
+                    relPos1, relPos2, colObj1, colObj2, relaxation
+                )
+                cp.lateralFrictionDir2.setCross(cp.lateralFrictionDir1, cp.normalWorldOnB)
+                cp.lateralFrictionDir2.normalize() //??
+                addFrictionConstraint(
+                    cp.lateralFrictionDir2,
+                    solverBodyIdA, solverBodyIdB, frictionIndex, cp,
+                    relPos1, relPos2, colObj1, colObj2, relaxation
+                )
+            } else {
+                // re-calculate friction direction every frame, todo: check if this is really needed
+
+                planeSpace1(cp.normalWorldOnB, cp.lateralFrictionDir1, cp.lateralFrictionDir2)
+                addFrictionConstraint(
+                    cp.lateralFrictionDir1,
+                    solverBodyIdA, solverBodyIdB, frictionIndex, cp,
+                    relPos1, relPos2, colObj1, colObj2, relaxation
+                )
+                addFrictionConstraint(
+                    cp.lateralFrictionDir2,
+                    solverBodyIdA, solverBodyIdB, frictionIndex, cp,
+                    relPos1, relPos2, colObj1, colObj2, relaxation
+                )
+            }
+            cp.lateralFrictionInitialized = true
+        } else {
+            addFrictionConstraint(
+                cp.lateralFrictionDir1,
+                solverBodyIdA, solverBodyIdB, frictionIndex, cp,
+                relPos1, relPos2, colObj1, colObj2, relaxation
+            )
+            addFrictionConstraint(
+                cp.lateralFrictionDir2,
+                solverBodyIdA, solverBodyIdB, frictionIndex, cp,
+                relPos1, relPos2, colObj1, colObj2, relaxation
+            )
+        }
+    }
+
+    private fun setupContact(
+        cp: ManifoldPoint, colObj1: CollisionObject, colObj2: CollisionObject,
+        solverBodyIdA: Int, solverBodyIdB: Int, infoGlobal: ContactSolverInfo
+    ) {
+
+        val tmp = Stack.newVec()
+
+        val relPos1 = cp.positionWorldOnA.sub(colObj1.worldTransform.origin, Stack.newVec())
+        val relPos2 = cp.positionWorldOnB.sub(colObj2.worldTransform.origin, Stack.newVec())
+
+        val relaxation = 1.0
+        val frictionIndex = tmpSolverConstraintPool.size
+        val solverConstraint = constraintsPool.get()
+        tmpSolverConstraintPool.add(solverConstraint)
+
+        val rb1 = colObj1 as? RigidBody
+        val rb2 = colObj2 as? RigidBody
+
+        solverConstraint.solverBodyIdA = solverBodyIdA
+        solverConstraint.solverBodyIdB = solverBodyIdB
+        solverConstraint.constraintType = SolverConstraintType.SOLVER_CONTACT_1D
+        solverConstraint.originalContactPoint = cp
+
+        calculateAngularComponent(cp, relPos1, rb1, solverConstraint.angularComponentA)
+        calculateAngularComponent(cp, relPos2, rb2, solverConstraint.angularComponentB)
+
+        calculateJacobianDiagonal(cp, relPos1, relPos2, rb1, rb2, solverConstraint, relaxation)
+
+        solverConstraint.contactNormal.set(cp.normalWorldOnB)
+        solverConstraint.relPos1CrossNormal.setCross(relPos1, cp.normalWorldOnB)
+        solverConstraint.relPos2CrossNormal.setCross(relPos2, cp.normalWorldOnB)
+
+        val vel = Stack.newVec()
+        calculateVelocity(relPos1, relPos2, rb1, rb2, vel)
+        val relVel = cp.normalWorldOnB.dot(vel)
+
+        solverConstraint.penetration = min(cp.distance + infoGlobal.linearSlop, 0.0)
+
+        //solverConstraint.m_penetration = cp.getDistance();
+        solverConstraint.friction = cp.combinedFriction
+        solverConstraint.restitution = restitutionCurve(relVel, cp.combinedRestitution)
+        if (solverConstraint.restitution <= 0.0) {
+            solverConstraint.restitution = 0.0
+        }
+
+        val penetrationVelocity = -solverConstraint.penetration / infoGlobal.timeStep
+        if (solverConstraint.restitution > penetrationVelocity) {
+            solverConstraint.penetration = 0.0
+        }
+
+        // warm starting (or zero if disabled)
+        warmstarting(cp.appliedImpulse, solverConstraint, solverConstraint, rb1, rb2, infoGlobal, tmp)
+        solverConstraint.appliedPushImpulse = 0.0
+
+        defineLateralFriction(
+            cp, relVel, vel, solverConstraint, frictionIndex,
+            solverBodyIdA, solverBodyIdB, relPos1, relPos2, colObj1, colObj2, relaxation
+        )
+
+        val frictionConstraint1 = tmpSolverFrictionConstraintPool[solverConstraint.frictionIndex]
+        val frictionConstraint2 = tmpSolverFrictionConstraintPool[solverConstraint.frictionIndex + 1]
+        warmstarting(cp.appliedImpulseLateral1, solverConstraint, frictionConstraint1, rb1, rb2, infoGlobal, tmp)
+        warmstarting(cp.appliedImpulseLateral2, solverConstraint, frictionConstraint2, rb1, rb2, infoGlobal, tmp)
+
+        Stack.subVec(4)
+    }
+
+    private fun preparePools() {
+        val numConstraintPool = tmpSolverConstraintPool.size
+        val numFrictionPool = tmpSolverFrictionConstraintPool.size
+
+        resize(orderTmpConstraintPool, numConstraintPool, 0)
+        resize(orderFrictionConstraintPool, numFrictionPool, 0)
+
+        for (j in 0 until numConstraintPool) {
+            orderTmpConstraintPool.set(j, j)
+        }
+        for (j in 0 until numFrictionPool) {
+            orderFrictionConstraintPool.set(j, j)
         }
     }
 
     fun solveGroupCacheFriendlyIterations(
         constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
         infoGlobal: ContactSolverInfo
-    ): Double {
+    ) {
         pushProfile("solveGroupCacheFriendlyIterations")
         try {
+
             val numConstraintPool = tmpSolverConstraintPool.size
             val numFrictionPool = tmpSolverFrictionConstraintPool.size
 
             // should traverse the contacts random order...
-            var iteration: Int
-            var stackPos: IntArray? = null
-            iteration = 0
-            while (iteration < infoGlobal.numIterations) {
-                var j: Int
-                if ((infoGlobal.solverMode and SolverMode.SOLVER_RANDOMIZE_ORDER) != 0) {
-                    if ((iteration and 7) == 0) {
-                        j = 0
-                        while (j < numConstraintPool) {
-                            val tmp = orderTmpConstraintPool.get(j)
-                            val swapi = randInt2(j + 1)
-                            orderTmpConstraintPool.set(j, orderTmpConstraintPool.get(swapi))
-                            orderTmpConstraintPool.set(swapi, tmp)
-                            ++j
-                        }
+            for (iteration in 0 until infoGlobal.numIterations) {
 
-                        j = 0
-                        while (j < numFrictionPool) {
-                            val tmp = orderFrictionConstraintPool.get(j)
-                            val swapi = randInt2(j + 1)
-                            orderFrictionConstraintPool.set(j, orderFrictionConstraintPool.get(swapi))
-                            orderFrictionConstraintPool.set(swapi, tmp)
-                            ++j
-                        }
-                    }
-                }
+                if (infoGlobal.solverMode.hasFlag(SolverMode.SOLVER_RANDOMIZE_ORDER) &&
+                    (iteration and 7) == 0
+                ) randomizeOrder(numConstraintPool, numFrictionPool)
 
                 if (constraints != null) {
-                    for (k in 0 until numConstraints) {
-                        stackPos = Stack.getPosition(stackPos)
-                        val constraint = constraints[constraintsOffset + k]
-
-                        // todo: use solver bodies, so we don't need to copy from/to btRigidBody
-                        if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
-                            tmpSolverBodyPool[constraint.rigidBodyA.companionId].writebackVelocity()
-                        }
-                        if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.companionId >= 0)) {
-                            tmpSolverBodyPool[constraint.rigidBodyB.companionId].writebackVelocity()
-                        }
-
-                        constraint.solveConstraint(infoGlobal.timeStep)
-
-                        if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
-                            tmpSolverBodyPool[constraint.rigidBodyA.companionId].readVelocity()
-                        }
-                        if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.companionId >= 0)) {
-                            tmpSolverBodyPool[constraint.rigidBodyB.companionId].readVelocity()
-                        }
-                        Stack.reset(stackPos)
-                    }
+                    solveConstraints(constraints, constraintsOffset, numConstraints, infoGlobal)
                 }
 
-
-                val numPoolConstraints = tmpSolverConstraintPool.size
-                for (k in 0 until numPoolConstraints) {
-                    stackPos = Stack.getPosition(stackPos)
-                    val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool.get(k)]
-                    resolveSingleCollisionCombinedCacheFriendly(
-                        tmpSolverBodyPool[solveManifold.solverBodyIdA],
-                        tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold, infoGlobal
-                    )
-                    Stack.reset(stackPos)
-                }
-
-                val numFrictionPoolConstraints = tmpSolverFrictionConstraintPool.size
-                for (k in 0 until numFrictionPoolConstraints) {
-                    stackPos = Stack.getPosition(stackPos)
-                    val solveManifold = tmpSolverFrictionConstraintPool[orderFrictionConstraintPool.get(k)]
-
-                    val totalImpulse = tmpSolverConstraintPool[solveManifold.frictionIndex].appliedImpulse +
-                            tmpSolverConstraintPool[solveManifold.frictionIndex].appliedPushImpulse
-
-                    resolveSingleFrictionCacheFriendly(
-                        tmpSolverBodyPool[solveManifold.solverBodyIdA],
-                        tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold,
-                        totalImpulse
-                    )
-                    Stack.reset(stackPos)
-                }
-                iteration++
+                solvePoolConstraints(infoGlobal)
+                solveFrictionConstraints()
             }
 
             if (infoGlobal.splitImpulse) {
-                iteration = 0
-                while (iteration < infoGlobal.numIterations) {
-                    val numPoolConstraints = tmpSolverConstraintPool.size
-                    for (j in 0 until numPoolConstraints) {
-                        stackPos = Stack.getPosition(stackPos)
-                        val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool.get(j)]
-                        resolveSplitPenetrationImpulseCacheFriendly(
-                            tmpSolverBodyPool[solveManifold.solverBodyIdA],
-                            tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold, infoGlobal
-                        )
-                        Stack.reset(stackPos)
-                    }
-                    iteration++
+                repeat(infoGlobal.numIterations) {
+                    splitImpulse(infoGlobal)
                 }
             }
-
-            return 0.0
         } finally {
             popProfile()
+        }
+    }
+
+    private fun randomizeOrder(numConstraintPool: Int, numFrictionPool: Int) {
+        for (j in 0 until numConstraintPool) {
+            val tmp = orderTmpConstraintPool.get(j)
+            val swapi = randInt2(j + 1)
+            orderTmpConstraintPool.set(j, orderTmpConstraintPool.get(swapi))
+            orderTmpConstraintPool.set(swapi, tmp)
+        }
+
+        for (j in 0 until numFrictionPool) {
+            val tmp = orderFrictionConstraintPool.get(j)
+            val swapi = randInt2(j + 1)
+            orderFrictionConstraintPool.set(j, orderFrictionConstraintPool.get(swapi))
+            orderFrictionConstraintPool.set(swapi, tmp)
+        }
+    }
+
+    private fun solveConstraints(
+        constraints: List<TypedConstraint>, constraintsOffset: Int, numConstraints: Int,
+        infoGlobal: ContactSolverInfo
+    ) {
+        for (k in 0 until numConstraints) {
+            val constraint = constraints[constraintsOffset + k]
+
+            // todo: use solver bodies, so we don't need to copy from/to btRigidBody
+            if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyA.companionId].writebackVelocity()
+            }
+            if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.companionId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyB.companionId].writebackVelocity()
+            }
+
+            constraint.solveConstraint(infoGlobal.timeStep)
+
+            if ((constraint.rigidBodyA.islandTag >= 0) && (constraint.rigidBodyA.companionId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyA.companionId].readVelocity()
+            }
+            if ((constraint.rigidBodyB.islandTag >= 0) && (constraint.rigidBodyB.companionId >= 0)) {
+                tmpSolverBodyPool[constraint.rigidBodyB.companionId].readVelocity()
+            }
+        }
+    }
+
+    private fun solvePoolConstraints(infoGlobal: ContactSolverInfo) {
+        for (k in 0 until tmpSolverConstraintPool.size) {
+            val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool.get(k)]
+            resolveSingleCollisionCombinedCacheFriendly(
+                tmpSolverBodyPool[solveManifold.solverBodyIdA],
+                tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold, infoGlobal
+            )
+        }
+    }
+
+    private fun solveFrictionConstraints() {
+        for (k in 0 until tmpSolverFrictionConstraintPool.size) {
+
+            val solveManifold = tmpSolverFrictionConstraintPool[orderFrictionConstraintPool.get(k)]
+            val totalImpulse = tmpSolverConstraintPool[solveManifold.frictionIndex].appliedImpulse +
+                    tmpSolverConstraintPool[solveManifold.frictionIndex].appliedPushImpulse
+
+            resolveSingleFrictionCacheFriendly(
+                tmpSolverBodyPool[solveManifold.solverBodyIdA],
+                tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold,
+                totalImpulse
+            )
+        }
+    }
+
+    private fun splitImpulse(infoGlobal: ContactSolverInfo) {
+        val numPoolConstraints = tmpSolverConstraintPool.size
+        for (j in 0 until numPoolConstraints) {
+            val solveManifold = tmpSolverConstraintPool[orderTmpConstraintPool.get(j)]
+            resolveSplitPenetrationImpulseCacheFriendly(
+                tmpSolverBodyPool[solveManifold.solverBodyIdA],
+                tmpSolverBodyPool[solveManifold.solverBodyIdB], solveManifold, infoGlobal
+            )
         }
     }
 
@@ -839,7 +741,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         manifoldPtr: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
         constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
         infoGlobal: ContactSolverInfo
-    ): Double {
+    ) {
         solveGroupCacheFriendlySetup(
             manifoldPtr, manifoldOffset, numManifolds,
             constraints, constraintsOffset, numConstraints,
@@ -852,11 +754,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             val solveManifold = tmpSolverConstraintPool[j]
             val pt = checkNotNull(solveManifold.originalContactPoint as ManifoldPoint?)
             pt.appliedImpulse = solveManifold.appliedImpulse
-            pt.appliedImpulseLateral1 =
-                tmpSolverFrictionConstraintPool[solveManifold.frictionIndex].appliedImpulse
-            pt.appliedImpulseLateral2 =
-                tmpSolverFrictionConstraintPool[solveManifold.frictionIndex + 1].appliedImpulse
-
+            pt.appliedImpulseLateral1 = tmpSolverFrictionConstraintPool[solveManifold.frictionIndex].appliedImpulse
+            pt.appliedImpulseLateral2 = tmpSolverFrictionConstraintPool[solveManifold.frictionIndex + 1].appliedImpulse
             // do a callback here?
         }
 
@@ -882,8 +781,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             constraintsPool.release(tmpSolverFrictionConstraintPool[i])
         }
         tmpSolverFrictionConstraintPool.clear()
-
-        return 0.0
     }
 
     /**
@@ -894,7 +791,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
         manifold: List<PersistentManifold>, manifoldOffset: Int, numManifolds: Int,
         constraints: List<TypedConstraint>?, constraintsOffset: Int, numConstraints: Int,
         info: ContactSolverInfo, debugDrawer: IDebugDraw?, dispatcher: Dispatcher
-    ): Double {
+    ) {
         pushProfile("solveGroup")
         try {
             // TODO: solver cache friendly
@@ -971,7 +868,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
                     )
                 }
             }
-            return 0.0
         } finally {
             popProfile()
         }
@@ -992,7 +888,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
         val tmpVec = Stack.newVec()
         val tmpVec1 = Stack.newVec()
-        val tmpMat3 = Stack.newMat()
 
         val pos1 = Stack.newVec()
         val pos2 = Stack.newVec()
@@ -1124,33 +1019,31 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
                 torqueAxis0.setCross(relPos1, cp.normalWorldOnB)
                 cpd.angularComponentA.set(torqueAxis0)
-                body0.getInvInertiaTensorWorld(tmpMat3).transform(cpd.angularComponentA)
+                body0.invInertiaTensorWorld.transform(cpd.angularComponentA)
 
                 torqueAxis1.setCross(relPos2, cp.normalWorldOnB)
                 cpd.angularComponentB.set(torqueAxis1)
-                body1.getInvInertiaTensorWorld(tmpMat3).transform(cpd.angularComponentB)
+                body1.invInertiaTensorWorld.transform(cpd.angularComponentB)
 
 
                 ftorqueAxis0.setCross(relPos1, cpd.frictionWorldTangential0)
                 cpd.frictionAngularComponent0A.set(ftorqueAxis0)
-                body0.getInvInertiaTensorWorld(tmpMat3).transform(cpd.frictionAngularComponent0A)
+                body0.invInertiaTensorWorld.transform(cpd.frictionAngularComponent0A)
 
 
                 ftorqueAxis1.setCross(relPos1, cpd.frictionWorldTangential1)
                 cpd.frictionAngularComponent1A.set(ftorqueAxis1)
-                body0.getInvInertiaTensorWorld(tmpMat3).transform(cpd.frictionAngularComponent1A)
+                body0.invInertiaTensorWorld.transform(cpd.frictionAngularComponent1A)
 
 
                 ftorqueAxis0.setCross(relPos2, cpd.frictionWorldTangential0)
                 cpd.frictionAngularComponent0B.set(ftorqueAxis0)
-                body1.getInvInertiaTensorWorld(tmpMat3).transform(cpd.frictionAngularComponent0B)
+                body1.invInertiaTensorWorld.transform(cpd.frictionAngularComponent0B)
 
 
                 ftorqueAxis1.setCross(relPos2, cpd.frictionWorldTangential1)
                 cpd.frictionAngularComponent1B.set(ftorqueAxis1)
-                body1.getInvInertiaTensorWorld(tmpMat3).transform(cpd.frictionAngularComponent1B)
-
-                /** */
+                body1.invInertiaTensorWorld.transform(cpd.frictionAngularComponent1B)
 
                 // apply previous frames impulse on both bodies
                 body0.applyImpulse(totalImpulse, relPos1)
@@ -1162,7 +1055,6 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
         Stack.subVec(14)
         Stack.subTrans(2)
-        Stack.subMat(1)
     }
 
     @Suppress("unused")
@@ -1185,8 +1077,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
     fun solve(body0: RigidBody, body1: RigidBody, cp: ManifoldPoint, info: ContactSolverInfo): Double {
         var maxImpulse = 0.0
         if (cp.distance <= 0.0) {
-            val cpd = cp.userPersistentData as ConstraintPersistentData?
-            val impulse = cpd!!.contactSolverFunc!!.resolveContact(body0, body1, cp, info)
+            val cpd = cp.userPersistentData as ConstraintPersistentData
+            val impulse = cpd.contactSolverFunc!!.resolveContact(body0, body1, cp, info)
             if (maxImpulse < impulse) {
                 maxImpulse = impulse
             }
@@ -1196,8 +1088,8 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
 
     fun solveFriction(body0: RigidBody, body1: RigidBody, cp: ManifoldPoint, info: ContactSolverInfo): Double {
         if (cp.distance <= 0.0) {
-            val cpd = cp.userPersistentData as ConstraintPersistentData?
-            cpd!!.frictionSolverFunc!!.resolveContact(body0, body1, cp, info)
+            val cpd = cp.userPersistentData as ConstraintPersistentData
+            cpd.frictionSolverFunc!!.resolveContact(body0, body1, cp, info)
         }
         return 0.0
     }

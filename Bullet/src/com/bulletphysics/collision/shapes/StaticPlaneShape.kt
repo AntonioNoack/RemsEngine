@@ -4,20 +4,23 @@ import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.TransformUtil
 import com.bulletphysics.linearmath.VectorUtil
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
 
 /**
  * StaticPlaneShape simulates an infinite non-moving (static) collision plane.
  *
  * @author jezek2
  */
-class StaticPlaneShape(planeNormal: Vector3d, var planeConstant: Double) : ConcaveShape() {
+class StaticPlaneShape(val planeNormal: Vector3d, var planeConstant: Double) : ConcaveShape() {
 
-    val planeNormal = Vector3d(planeNormal).normalize()
+    init {
+        planeNormal.normalize()
+    }
+
     val localScaling = Vector3d(0.0, 0.0, 0.0)
 
     fun getPlaneNormal(out: Vector3d): Vector3d {

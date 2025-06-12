@@ -2,6 +2,7 @@ package com.bulletphysics.dynamics
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
+import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionFlags
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.shapes.CollisionShape
@@ -12,16 +13,17 @@ import com.bulletphysics.linearmath.MatrixUtil.transposeTransform
 import com.bulletphysics.linearmath.MiscUtil.GEN_clamped
 import com.bulletphysics.linearmath.MotionState
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.TransformUtil.calculateVelocity
+import com.bulletphysics.linearmath.TransformUtil.calculateAngularVelocity
+import com.bulletphysics.linearmath.TransformUtil.calculateLinearVelocity
 import com.bulletphysics.linearmath.TransformUtil.integrateTransform
-import cz.advel.stack.Stack
-import org.joml.Quaterniond
-import org.joml.Matrix3d
-import org.joml.Vector3d
-import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setCross
+import com.bulletphysics.util.setMul
 import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Matrix3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import kotlin.math.pow
 
 /**
@@ -49,14 +51,16 @@ import kotlin.math.pow
  * @author jezek2
  */
 class RigidBody : CollisionObject {
-    private val invInertiaTensorWorld = Matrix3d()
+
+    val invInertiaTensorWorld = Matrix3d()
     private val linearVelocity = Vector3d()
     private val angularVelocity = Vector3d()
+
     var inverseMass: Double = 0.0
 
     var angularFactor: Double = 0.0
 
-    val gravity: Vector3d = Vector3d()
+    val gravity = Vector3d()
     private val invInertiaLocal = Vector3d()
     private val totalForce = Vector3d()
     private val totalTorque = Vector3d()
@@ -75,6 +79,8 @@ class RigidBody : CollisionObject {
 
     // optionalMotionState allows to automatically synchronize the world transform for active objects
     private var optionalMotionState: MotionState? = null
+
+    val predictedTransform = Transform()
 
     // keep track of typed constraints referencing this rigid body
     val constraintRefs = ArrayList<TypedConstraint>()
@@ -160,14 +166,20 @@ class RigidBody : CollisionObject {
 
     fun saveKinematicState(timeStep: Double) {
         //todo: clamp to some (user definable) safe minimum timestep, to limit maximum angular/linear velocities
-        if (timeStep != 0.0) {
-            //if we use motionstate to synchronize world transforms, get the new kinematic/animated world transform
-            motionState?.getWorldTransform(worldTransform)
-            calculateVelocity(interpolationWorldTransform, worldTransform, timeStep, linearVelocity, angularVelocity)
-            interpolationLinearVelocity.set(linearVelocity)
-            interpolationAngularVelocity.set(angularVelocity)
-            interpolationWorldTransform.set(worldTransform)
-        }
+        if (timeStep == 0.0) return
+        //if we use motionState to synchronize world transforms, get the new kinematic/animated world transform
+        motionState?.getWorldTransform(worldTransform)
+
+        // linear
+        calculateLinearVelocity(interpolationWorldTransform, worldTransform, timeStep, linearVelocity)
+        interpolationLinearVelocity.set(linearVelocity)
+
+        // angular
+        calculateAngularVelocity(interpolationWorldTransform, worldTransform, timeStep, angularVelocity)
+        interpolationAngularVelocity.set(angularVelocity)
+
+        // save world transform as previous transform
+        interpolationWorldTransform.set(worldTransform)
     }
 
     fun applyGravity() {
@@ -256,11 +268,6 @@ class RigidBody : CollisionObject {
         )
     }
 
-    fun getInvInertiaTensorWorld(out: Matrix3d): Matrix3d {
-        out.set(invInertiaTensorWorld)
-        return out
-    }
-
     fun integrateVelocities(step: Double) {
         if (isStaticOrKinematicObject) {
             return
@@ -285,8 +292,8 @@ class RigidBody : CollisionObject {
         } else {
             interpolationWorldTransform.set(xform)
         }
-        getLinearVelocity(interpolationLinearVelocity)
-        getAngularVelocity(interpolationAngularVelocity)
+        interpolationLinearVelocity.set(linearVelocity)
+        interpolationAngularVelocity.set(angularVelocity)
         worldTransform.set(xform)
         updateInertiaTensor()
     }
@@ -443,41 +450,39 @@ class RigidBody : CollisionObject {
         r0.setSub(pos, getCenterOfMassPosition(Stack.newVec()))
 
         val c0 = Stack.newVec()
-        c0.setCross(r0, normal)
+        r0.cross(normal, c0)
 
-        val tmp = Stack.newVec()
-        transposeTransform(tmp, c0, getInvInertiaTensorWorld(Stack.newMat()))
+        invInertiaTensorWorld.transformTranspose(c0)
 
-        val vec = Stack.newVec()
-        vec.setCross(tmp, r0)
-
-        return inverseMass + normal.dot(vec)
+        val answer = inverseMass + normal.dot(c0.cross(r0))
+        Stack.subVec(3)
+        return answer
     }
 
     fun computeAngularImpulseDenominator(axis: Vector3d): Double {
-        val vec = Stack.newVec()
-        transposeTransform(vec, axis, getInvInertiaTensorWorld(Stack.newMat()))
+        val vec = Stack.borrowVec()
+        invInertiaTensorWorld.transformTranspose(axis, vec)
         return axis.dot(vec)
     }
 
     fun updateDeactivation(timeStep: Double) {
-        if ((activationState == ISLAND_SLEEPING) || (activationState == DISABLE_DEACTIVATION)) {
+        if ((activationState == ActivationState.SLEEPING) || (activationState == ActivationState.DISABLE_DEACTIVATION)) {
             return
         }
 
-        val tmp = Stack.borrowVec()
-        if ((getLinearVelocity(tmp).lengthSquared() < linearSleepingThreshold * linearSleepingThreshold) &&
-            (getAngularVelocity(tmp).lengthSquared() < angularSleepingThreshold * angularSleepingThreshold)
+        if (linearVelocity.lengthSquared() < linearSleepingThreshold * linearSleepingThreshold &&
+            angularVelocity.lengthSquared() < angularSleepingThreshold * angularSleepingThreshold
         ) {
             deactivationTime += timeStep
         } else {
             deactivationTime = 0.0
-            setActivationStateMaybe(0)
+            setActivationStateMaybe(ActivationState.ACTIVE)
         }
     }
 
     fun wantsSleeping(): Boolean {
-        if (activationState == DISABLE_DEACTIVATION) {
+        val state = activationState
+        if (state == ActivationState.DISABLE_DEACTIVATION) {
             return false
         }
 
@@ -486,7 +491,7 @@ class RigidBody : CollisionObject {
             return false
         }
 
-        if ((activationState == ISLAND_SLEEPING) || (activationState == WANTS_DEACTIVATION)) {
+        if (state == ActivationState.SLEEPING || state == ActivationState.WANTS_DEACTIVATION) {
             return true
         }
 

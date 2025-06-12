@@ -1,10 +1,10 @@
 package me.anno.bullet
 
-import com.bulletphysics.collision.dispatch.CollisionObject.Companion.ACTIVE_TAG
-import com.bulletphysics.collision.dispatch.CollisionObject.Companion.DISABLE_DEACTIVATION
-import com.bulletphysics.collision.dispatch.CollisionObject.Companion.DISABLE_SIMULATION
-import com.bulletphysics.collision.dispatch.CollisionObject.Companion.ISLAND_SLEEPING
-import com.bulletphysics.collision.dispatch.CollisionObject.Companion.WANTS_DEACTIVATION
+import com.bulletphysics.collision.dispatch.ActivationState.ACTIVE
+import com.bulletphysics.collision.dispatch.ActivationState.DISABLE_DEACTIVATION
+import com.bulletphysics.collision.dispatch.ActivationState.DISABLE_SIMULATION
+import com.bulletphysics.collision.dispatch.ActivationState.SLEEPING
+import com.bulletphysics.collision.dispatch.ActivationState.WANTS_DEACTIVATION
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
@@ -55,8 +55,8 @@ open class Rigidbody : Component(), OnDrawGUI {
     @NotSerializedProperty
     val bulletState: String
         get() = when (val s = bulletInstance?.activationState ?: -1) {
-            ACTIVE_TAG -> "Active"
-            ISLAND_SLEEPING -> "Island Sleeping"
+            ACTIVE -> "Active"
+            SLEEPING -> "Island Sleeping"
             WANTS_DEACTIVATION -> "Wants Deactivation"
             DISABLE_DEACTIVATION -> "Disable Deactivation"
             DISABLE_SIMULATION -> "Disable Simulation"
@@ -151,7 +151,7 @@ open class Rigidbody : Component(), OnDrawGUI {
     @Group("Movement")
     @Docs("Minimum velocity to count as standing still")
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var linearSleepingThreshold = 1.0
+    var linearSleepingThreshold = 0.01
         set(value) {
             field = value
             bulletInstance?.setSleepingThresholds(value, angularSleepingThreshold)
@@ -160,18 +160,10 @@ open class Rigidbody : Component(), OnDrawGUI {
     @Group("Rotation")
     @Docs("Minimum angular velocity to count as standing still")
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var angularSleepingThreshold = 0.8
+    var angularSleepingThreshold = 0.01
         set(value) {
             field = value
             bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
-        }
-
-    @Docs("Minimum time after which an object is marked as sleeping")
-    @Range(0.0, Double.POSITIVE_INFINITY)
-    var sleepingTimeThreshold = 0.0 // 4.0
-        set(value) {
-            field = value
-            bulletInstance?.deactivationTime = value
         }
 
     @Group("Movement")
@@ -446,7 +438,6 @@ open class Rigidbody : Component(), OnDrawGUI {
         dst.angularDamping = angularDamping
         dst.friction = friction
         dst.mass = mass
-        dst.sleepingTimeThreshold = sleepingTimeThreshold
         dst.angularSleepingThreshold = angularSleepingThreshold
         dst.linearSleepingThreshold = linearSleepingThreshold
         dst.restitution = restitution

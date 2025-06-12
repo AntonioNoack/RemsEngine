@@ -1,7 +1,7 @@
 package me.anno.tests.physics.shapes
 
 import com.bulletphysics.collision.shapes.BoxShape
-import me.anno.bullet.createBulletShape
+import me.anno.bullet.createBulletBoxShape
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.physics.ConvexSDFShape
@@ -18,7 +18,7 @@ class SDFCubeTest {
 
     private fun createBaseline(marginI: Float): BoxShape {
         val baseline = BoxCollider().apply { roundness = marginI }
-            .createBulletShape(Vector3d(1.0))
+            .createBulletBoxShape(Vector3d(1.0))
         assertEquals(marginI, baseline.margin.toFloat())
         return baseline
     }

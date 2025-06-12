@@ -46,10 +46,9 @@ class PersistentManifold {
      * these two body pointers can point to the physics rigidbody class.
      */
     var body0: CollisionObject? = null
-    private var body1: CollisionObject? = null
-    var numContacts: Int = 0
-        private set
+    var body1: CollisionObject? = null
 
+    var numContacts: Int = 0
     var index1a: Int = 0
 
     fun init(body0: CollisionObject?, body1: CollisionObject?) {

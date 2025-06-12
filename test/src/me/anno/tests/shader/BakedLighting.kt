@@ -108,7 +108,6 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.round
 import kotlin.random.Random
 
 // bake lighting:
@@ -308,7 +307,7 @@ fun buildTLAS(
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
             if (blas != null) {
                 mesh.raycaster = blas
-                objects.add(createTLASLeaf(mesh, blas, comp.transform!!, comp, cameraPosition))
+                objects.add(createTLASLeaf(mesh, blas, comp.transform!!, comp))
             }
         }
     }

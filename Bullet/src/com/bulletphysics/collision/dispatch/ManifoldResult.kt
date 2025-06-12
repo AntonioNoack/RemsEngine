@@ -6,9 +6,11 @@ import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.util.ObjectPool
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setScaleAdd
+import cz.advel.stack.Stack
+import me.anno.maths.Maths.clamp
+import me.anno.utils.types.Booleans.hasFlag
+import org.joml.Vector3d
 
 /**
  * ManifoldResult is helper class to manage contact results.
@@ -62,15 +64,13 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
     }
 
     override fun addContactPoint(normalOnBInWorld: Vector3d, pointInWorld: Vector3d, depth: Double) {
-        val manifold = checkNotNull(manifold)
-
-        //order in manifold needs to match
-        if (depth > manifold.contactBreakingThreshold) {
+        val manifold = manifold
+        // order in manifold needs to match
+        if (manifold == null || depth > manifold.contactBreakingThreshold) {
             return
         }
 
         val isSwapped = manifold.body0 !== body0
-
         val pointA = Stack.newVec()
         pointA.setScaleAdd(depth, normalOnBInWorld, pointInWorld)
 
@@ -93,8 +93,10 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
 
         var insertIndex = manifold.getCacheEntry(newPt)
 
-        newPt.combinedFriction = calculateCombinedFriction(body0!!, body1!!)
-        newPt.combinedRestitution = calculateCombinedRestitution(body0!!, body1!!)
+        val body0 = body0!!
+        val body1 = body1!!
+        newPt.combinedFriction = calculateCombinedFriction(body0, body1)
+        newPt.combinedRestitution = calculateCombinedRestitution(body0, body1)
 
         // BP mod, store contact triangles.
         newPt.partId0 = partId0
@@ -110,20 +112,20 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
             insertIndex = manifold.addManifoldPoint(newPt)
         }
 
-        val body0 = body0!!
-        val body1 = body1!!
         // User can override friction and/or restitution
-        if (  // and if either of the two bodies requires custom material
-            ((body0.collisionFlags and CollisionFlags.CUSTOM_MATERIAL_CALLBACK) != 0 ||
-                    (body1.collisionFlags and CollisionFlags.CUSTOM_MATERIAL_CALLBACK) != 0)
-        ) {
+        // and if either of the two bodies requires custom material
+        if ((body0.collisionFlags or body1.collisionFlags).hasFlag(CollisionFlags.CUSTOM_MATERIAL_CALLBACK)) {
             //experimental feature info, for per-triangle material etc.
             val obj0 = if (isSwapped) body1 else body0
             val obj1 = if (isSwapped) body0 else body1
-            BulletGlobals.contactAddedCallback
-                ?.contactAdded(manifold.getContactPoint(insertIndex), obj0, partId0, index0, obj1, partId1, index1)
+            BulletGlobals.contactAddedCallback?.contactAdded(
+                manifold.getContactPoint(insertIndex),
+                obj0, partId0, index0,
+                obj1, partId1, index1
+            )
         }
 
+        Stack.subVec(3)
         pointsPool.release(newPt)
     }
 
@@ -133,9 +135,8 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
             return
         }
 
-        val isSwapped = manifold.body0 !== body0
-
-        if (isSwapped) {
+        val swapped = manifold.body0 !== body0
+        if (swapped) {
             manifold.refreshContactPoints(rootTransB, rootTransA)
         } else {
             manifold.refreshContactPoints(rootTransA, rootTransB)
@@ -143,18 +144,12 @@ class ManifoldResult : DiscreteCollisionDetectorInterface.Result {
     }
 
     companion object {
-        // User can override this material combiner by implementing gContactAddedCallback and setting body0->m_collisionFlags |= btCollisionObject::customMaterialCallback;
-        private fun calculateCombinedFriction(body0: CollisionObject, body1: CollisionObject): Double {
-            var friction = body0.friction * body1.friction
+        private const val MAX_FRICTION = 10.0
 
-            val MAX_FRICTION = 10.0
-            if (friction < -MAX_FRICTION) {
-                friction = -MAX_FRICTION
-            }
-            if (friction > MAX_FRICTION) {
-                friction = MAX_FRICTION
-            }
-            return friction
+        // User can override this material combiner by implementing contactAddedCallback and setting body0->m_collisionFlags |= btCollisionObject::customMaterialCallback;
+        private fun calculateCombinedFriction(body0: CollisionObject, body1: CollisionObject): Double {
+            val combined = body0.friction * body1.friction
+            return clamp(combined, -MAX_FRICTION, MAX_FRICTION)
         }
 
         private fun calculateCombinedRestitution(body0: CollisionObject, body1: CollisionObject): Double {

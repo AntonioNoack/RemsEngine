@@ -5,18 +5,17 @@ import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.MatrixUtil
 import com.bulletphysics.linearmath.QuaternionUtil.setRotation
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.linearmath.VectorUtil
 import com.bulletphysics.util.ArrayPool
 import com.bulletphysics.util.ObjectStackList
-import cz.advel.stack.Stack
-import org.joml.Matrix3d
-import org.joml.Vector3d
 import com.bulletphysics.util.setCross
 import com.bulletphysics.util.setNegate
 import com.bulletphysics.util.setNormalize
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Matrix3d
+import org.joml.Vector3d
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -440,7 +439,7 @@ class GjkEpaSolver {
         var root: Face? = null
         var nfaces: Int = 0
         var iterations: Int = 0
-        val features: Array<Array<Vector3d>> = Array(2) { Array(3) { Vector3d() } }
+        val features = Array(6) { Vector3d() }
         val nearest /*[2]*/ = arrayOf(Vector3d(), Vector3d())
         val normal: Vector3d = Vector3d()
         var depth: Double = 0.0
@@ -594,7 +593,7 @@ class GjkEpaSolver {
                     cf[0] = nf
                     ne = 1
                 } else {
-                    val e2: Int = mod3[e + 2]
+                    val e2 = mod3[e + 2]
                     detach(f)
                     f.mark = markId
                     ne += buildHorizon(markId, w, f.children[e1]!!, f.e[e1], cf, ff)
@@ -609,8 +608,8 @@ class GjkEpaSolver {
             pushStack()
             val tmp = Stack.newVec()
             try {
-                var bestface: Face? = null
-                var markid = 1
+                var bestFace: Face? = null
+                var markId = 1
                 depth = -INFINITY
                 normal.set(0.0, 0.0, 0.0)
                 root = null
@@ -619,16 +618,13 @@ class GjkEpaSolver {
                 failed = false
                 /* Prepare hull */
                 if (gjk.encloseOrigin()) {
-                    var faceIndices: Array<IntArray>? = null
-                    var faceIndex = 0
+                    lateinit var faceIndices: Array<IntArray>
                     var numFaceIndices = 0
 
-                    var edgeIndices: Array<IntArray>? = null
+                    lateinit var edgeIndices: Array<IntArray>
                     var edgeIndex = 0
                     var numEdgeIndices = 0
 
-                    val basemkv = arrayOfNulls<VertexAndRay>(5)
-                    val baseFaces = arrayOfNulls<Face>(6)
                     when (gjk.order) {
                         3 -> {
                             faceIndices = tetrahedronFaceIndices
@@ -643,23 +639,23 @@ class GjkEpaSolver {
                             numEdgeIndices = 9
                         }
                     }
-                    for (i in 0..gjk.order) {
-                        basemkv[i] = VertexAndRay()
-                        basemkv[i]!!.set(gjk.simplex[i])
+                    val baseMkv = Array(gjk.order+1) { i->
+                        VertexAndRay().apply {
+                            set(gjk.simplex[i])
+                        }
                     }
-                    for (i in 0 until numFaceIndices) {
-                        baseFaces[i] = newFace(
-                            basemkv[faceIndices!![faceIndex][0]]!!,
-                            basemkv[faceIndices[faceIndex][1]]!!,
-                            basemkv[faceIndices[faceIndex][2]]!!
+                    val baseFaces = Array(numFaceIndices) { faceIndex ->
+                        newFace(
+                            baseMkv[faceIndices[faceIndex][0]],
+                            baseMkv[faceIndices[faceIndex][1]],
+                            baseMkv[faceIndices[faceIndex][2]]
                         )
-                        faceIndex++
                     }
                     repeat(numEdgeIndices) {
                         link(
-                            baseFaces[edgeIndices!![edgeIndex][0]]!!,
+                            baseFaces[edgeIndices[edgeIndex][0]],
                             edgeIndices[edgeIndex][1],
-                            baseFaces[edgeIndices[edgeIndex][2]]!!,
+                            baseFaces[edgeIndices[edgeIndex][2]],
                             edgeIndices[edgeIndex][3]
                         )
                         edgeIndex++
@@ -668,22 +664,22 @@ class GjkEpaSolver {
                 if (0 == nfaces) {
                     return depth
                 }
-                /* Expand hull		*/
+                /* Expand hull */
                 while (iterations < EPA_MAX_ITERATIONS) {
                     val bf = findBestFace()
                     if (bf != null) {
                         tmp.setNegate(bf.n)
                         val w = support(tmp)
                         val d = bf.n.dot(w.w) + bf.d
-                        bestface = bf
+                        bestFace = bf
                         if (d < -accuracy) {
                             val cf = arrayOf<Face?>(null)
                             val ff = arrayOf<Face?>(null)
                             var nf = 0
                             detach(bf)
-                            bf.mark = ++markid
+                            bf.mark = ++markId
                             for (i in 0..2) {
-                                nf += buildHorizon(markid, w, bf.children[i]!!, bf.e[i], cf, ff)
+                                nf += buildHorizon(markId, w, bf.children[i]!!, bf.e[i], cf, ff)
                             }
                             if (nf <= 2) {
                                 break
@@ -698,32 +694,21 @@ class GjkEpaSolver {
                     ++iterations
                 }
                 /* Extract contact	*/
-                if (bestface != null) {
-                    val b = getCoordinates(bestface, Stack.newVec())
-                    normal.set(bestface.n)
-                    depth = max(0.0, bestface.d)
+                if (bestFace != null) {
+                    val bary = getCoordinates(bestFace, Stack.newVec())
+                    normal.set(bestFace.n)
+                    depth = max(0.0, bestFace.d)
                     for (i in 0..1) {
                         val s = if (i != 0) -1.0 else 1.0
                         for (j in 0..2) {
-                            tmp.setScale(s, bestface.vertices[j]!!.r)
-                            gjk.localSupport(tmp, i, features[i][j])
+                            tmp.setScale(s, bestFace.vertices[j]!!.r)
+                            gjk.localSupport(tmp, i, features[i * 3 + j])
                         }
                     }
 
-                    val tmp1 = Stack.newVec()
-                    val tmp2 = Stack.newVec()
-                    val tmp3 = Stack.newVec()
-
-                    tmp1.setScale(b.x, features[0][0])
-                    tmp2.setScale(b.y, features[0][1])
-                    tmp3.setScale(b.z, features[0][2])
-                    VectorUtil.add(nearest[0], tmp1, tmp2, tmp3)
-
-                    tmp1.setScale(b.x, features[1][0])
-                    tmp2.setScale(b.y, features[1][1])
-                    tmp3.setScale(b.z, features[1][2])
-                    VectorUtil.add(nearest[1], tmp1, tmp2, tmp3)
-                    Stack.subVec(4)
+                    barycentricInterpolation(nearest[0], features[0], features[1], features[2], bary)
+                    barycentricInterpolation(nearest[1], features[3], features[4], features[5], bary)
+                    Stack.subVec(1)
                 } else {
                     failed = true
                 }
@@ -733,6 +718,12 @@ class GjkEpaSolver {
                 Stack.subVec(1)
             }
         }
+    }
+
+    private fun barycentricInterpolation(dst: Vector3d, a: Vector3d, b: Vector3d, c: Vector3d, bary: Vector3d) {
+        dst.x = bary.dot(a.x, b.x, c.x)
+        dst.y = bary.dot(a.y, b.y, c.y)
+        dst.z = bary.dot(a.z, b.z, c.z)
     }
 
     /**///////////////////////////////////////////////////////////////////////// */
@@ -805,14 +796,14 @@ class GjkEpaSolver {
 
         private val mod3 = intArrayOf(0, 1, 2, 0, 1)
 
-        private val tetrahedronFaceIndices /*[4][3]*/ = arrayOf(
+        private val tetrahedronFaceIndices = arrayOf(
             intArrayOf(2, 1, 0),
             intArrayOf(3, 0, 1),
             intArrayOf(3, 1, 2),
             intArrayOf(3, 2, 0)
         )
 
-        private val tetrahedronEdgeIndices /*[6][4]*/ = arrayOf(
+        private val tetrahedronEdgeIndices = arrayOf(
             intArrayOf(0, 0, 2, 1),
             intArrayOf(0, 1, 1, 1),
             intArrayOf(0, 2, 3, 1),
@@ -821,7 +812,7 @@ class GjkEpaSolver {
             intArrayOf(3, 0, 2, 2)
         )
 
-        private val hexahedronFaceIndices /*[6][3]*/ = arrayOf(
+        private val hexahedronFaceIndices = arrayOf(
             intArrayOf(2, 0, 4),
             intArrayOf(4, 1, 2),
             intArrayOf(1, 4, 0),
@@ -829,7 +820,7 @@ class GjkEpaSolver {
             intArrayOf(0, 2, 3),
             intArrayOf(1, 3, 2)
         )
-        private val hexahedronEdgeIndices /*[9][4]*/ = arrayOf(
+        private val hexahedronEdgeIndices = arrayOf(
             intArrayOf(0, 0, 4, 0),
             intArrayOf(0, 1, 2, 1),
             intArrayOf(0, 2, 1, 2),

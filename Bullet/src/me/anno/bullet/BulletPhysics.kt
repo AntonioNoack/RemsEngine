@@ -2,8 +2,8 @@ package me.anno.bullet
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
+import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
-import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
 import com.bulletphysics.collision.narrowphase.ManifoldPoint
 import com.bulletphysics.collision.narrowphase.PersistentManifold
@@ -75,7 +75,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     // s
 
     @NotSerializedProperty
-    private var bulletInstance: DiscreteDynamicsWorld = createBulletWorldWithGravity()
+    var bulletInstance: DiscreteDynamicsWorld = createBulletWorldWithGravity()
 
     @NotSerializedProperty
     private val raycastVehicles = HashMap<Entity, RaycastVehicle>()
@@ -133,7 +133,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         rbInfo.angularSleepingThreshold = rigidBody.angularSleepingThreshold
 
         val rb = RigidBody(rbInfo)
-        rb.deactivationTime = rigidBody.sleepingTimeThreshold
         rb.ccdMotionThreshold = 1e-7
         val tmp = Stack.borrowVec()
         rb.ccdSweptSphereRadius = collider.getBoundingSphere(tmp)
@@ -167,7 +166,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // vehicle.currentSpeedKmHour
         // vehicle.applyEngineForce()
         world.addVehicle(vehicle)
-        body.activationState = CollisionObject.DISABLE_DEACTIVATION
+        body.activationState = ActivationState.DISABLE_DEACTIVATION
         raycastVehicles[entity] = vehicle
     }
 
@@ -185,7 +184,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         }
 
         // activate
-        if (rigidbody.activeByDefault) body.activationState = CollisionObject.ACTIVE_TAG
+        if (rigidbody.activeByDefault) body.activationState = ActivationState.ACTIVE
 
         bulletInstance.addRigidBody(
             body, // todo re-activate / correct groups and masks
@@ -315,10 +314,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             bulletInstance.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
         } catch (e: Exception) {
             warnCrash(e)
-        } catch (e: IllegalArgumentException) {
-            warnCrash(e)
-        } catch (e: IndexOutOfBoundsException) {
-            warnCrash(e)
         } catch (e: OutOfMemoryError) {
             warnCrash(e)
         }
@@ -442,10 +437,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
     private fun drawContactPoints() {
         val dispatcher = bulletInstance.dispatcher
-        val numManifolds = dispatcher.numManifolds
-        for (i in 0 until numManifolds) {
-            val contactManifold = dispatcher.getManifoldByIndexInternal(i)
-            drawContactManifold(contactManifold)
+        var i = 0
+        while (i < dispatcher.numManifolds) {
+            val contact = dispatcher.getManifoldByIndexInternal(i)
+            drawContactManifold(contact)
+            i++
         }
     }
 
@@ -497,12 +493,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
             val colObj = collisionObjects[i]
             val color = when (colObj.activationState) {
-                CollisionObject.ACTIVE_TAG -> -1
-                CollisionObject.ISLAND_SLEEPING -> 0x00ff00
-                CollisionObject.WANTS_DEACTIVATION -> 0x00ffff
-                CollisionObject.DISABLE_DEACTIVATION -> 0xff0000
-                CollisionObject.DISABLE_SIMULATION -> 0xffff00
-                else -> 0xff0000
+                ActivationState.ACTIVE -> 0xffffff
+                ActivationState.SLEEPING -> 0x333333
+                ActivationState.WANTS_DEACTIVATION -> 0x00ffff
+                ActivationState.DISABLE_DEACTIVATION -> 0xff0000
+                ActivationState.DISABLE_SIMULATION -> 0xffff00
             }.withAlpha(255)
 
             // todo draw the local coordinate arrows
@@ -639,7 +634,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
             val dispatcher = CollisionDispatcher(collisionConfig)
             val bp = DbvtBroadphase(null)
             val solver = SequentialImpulseConstraintSolver()
-            return DiscreteDynamicsWorld(dispatcher, bp, solver, collisionConfig)
+            return DiscreteDynamicsWorld(dispatcher, bp, solver)
         }
 
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)

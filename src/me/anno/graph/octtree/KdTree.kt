@@ -1,5 +1,6 @@
 package me.anno.graph.octtree
 
+import me.anno.utils.algorithms.Recursion
 import me.anno.utils.assertions.assertNull
 import me.anno.utils.structures.Iterators.then
 import java.util.Collections.emptyIterator
@@ -48,6 +49,7 @@ abstract class KdTree<Point, Data>(
     abstract fun get(p: Point, axis: Int): Double
     abstract fun min(a: Point, b: Point): Point
     abstract fun max(a: Point, b: Point): Point
+
     open fun createChild(
         children: ArrayList<Data>,
         min: Point,
@@ -143,46 +145,80 @@ abstract class KdTree<Point, Data>(
         size++
     }
 
-    fun query(min: Point, max: Point, hasFound: (Data) -> Boolean): Boolean {
-        val left = left
-        val minV = get(min, axis)
-        val maxV = get(max, axis)
-        if (left != null && get(left.max, axis) >= minV) {
-            if (left.query(min, max, hasFound)) return true
-        }
-        val right = right
-        if (right != null && get(right.min, axis) <= maxV) {
-            if (right.query(min, max, hasFound)) return true
-        }
-        val children = children
-        if (children != null) {
-            for (i in children.indices) {
-                val d = children.getOrNull(i) ?: break
-                val minI = getMin(d)
-                val maxI = getMax(d)
-                if (overlaps(min, max, minI, maxI)) {
-                    if (hasFound(d)) return true
+    /**
+     * Calls callback on all overlapping children until true is returned by it.
+     * Returns the first (any) child to return true.
+     * */
+    fun query(min: Point, max: Point, hasFound: (Data) -> Boolean): Data? {
+        return Recursion.findRecursive(this) { node, remaining ->
+            val left = node.left
+            if (left != null && node.get(left.max, axis) >= node.get(min, node.axis)) {
+                remaining.add(left)
+            }
+            val right = node.right
+            if (right != null && get(right.min, axis) <= node.get(max, node.axis)) {
+                remaining.add(right)
+            }
+            var found: Data? = null
+            val values = node.children
+            if (values != null) {
+                for (i in values.indices) {
+                    val value = values.getOrNull(i) ?: break
+                    val minI = node.getMin(value)
+                    val maxI = node.getMax(value)
+                    if (overlaps(min, max, minI, maxI)) {
+                        if (hasFound(value)) {
+                            found = value
+                            break
+                        }
+                    }
                 }
             }
+            found
         }
-        return false
     }
 
-    fun queryLists(min: Point, max: Point, hasFound: (List<Data>) -> Boolean): Boolean {
-        val left = left
-        val minV = get(min, axis)
-        val maxV = get(max, axis)
-        if (left != null && get(left.max, axis) >= minV) {
-            if (left.queryLists(min, max, hasFound)) return true
+    /**
+     * Calls callback on all overlapping children-lists (and root) until true is returned by it.
+     * Returns the first (any) child to return true.
+     * */
+    fun queryLists(min: Point, max: Point, hasFound: (List<Data>) -> Boolean): List<Data>? {
+        return Recursion.findRecursive(this) { node, remaining ->
+            val left = node.left
+            if (left != null && node.get(left.max, axis) >= node.get(min, node.axis)) {
+                remaining.add(left)
+            }
+            val right = node.right
+            if (right != null && get(right.min, axis) <= node.get(max, node.axis)) {
+                remaining.add(right)
+            }
+            val values = node.children
+            if (values != null && hasFound(values)) values else null
         }
-        val right = right
-        if (right != null && get(right.min, axis) <= maxV) {
-            if (right.queryLists(min, max, hasFound)) return true
+    }
+
+    /**
+     * Calls callback on all overlapping pairs until true is returned by it.
+     * Returns whether true was ever returned
+     *
+     * todo this could be optimized:
+     *  we already know the leaf we're starting on,
+     *  so just use it, and later ignore it
+     * */
+    fun queryPairs(min: Point, max: Point, hasFound: (Data, Data) -> Boolean): Boolean {
+        var first: Data? = null // avoid allocations by creating the callback now
+        val subCallback = { newMin: Point, newMax: Point ->
+            query(newMin, newMax) { second ->
+                @Suppress("UNCHECKED_CAST")
+                hasFound(first as Data, second)
+            }
         }
-        val children = children
-        return if (children != null) {
-            hasFound(children)
-        } else false
+        return query(min, max) { a ->
+            val newMin = getMin(a)
+            val newMax = getMax(a)
+            first = a
+            subCallback(newMin, newMax) != null
+        } != null
     }
 
     fun find(hasFound: (Data) -> Boolean): Boolean {

@@ -7,7 +7,7 @@ package com.bulletphysics.linearmath
  */
 class Clock {
 
-    private var startTime: Long = 0
+    private var startTimeNanos = 0L
 
     /**
      * Creates a new clock and resets it.
@@ -20,12 +20,12 @@ class Clock {
      * Resets clock by setting start time to current.
      */
     fun reset() {
-        startTime = System.nanoTime()
+        startTimeNanos = System.nanoTime()
     }
 
     /**
      * Returns the time in nanoseconds since the last call to reset or since the Clock was created.
      */
     val timeNanos: Long
-        get() = System.nanoTime() - startTime
+        get() = System.nanoTime() - startTimeNanos
 }

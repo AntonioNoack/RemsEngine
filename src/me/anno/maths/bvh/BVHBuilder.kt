@@ -26,10 +26,7 @@ object BVHBuilder {
 
     private val LOGGER = LogManager.getLogger(BVHBuilder::class)
 
-    fun createTLASLeaf(
-        mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?,
-        cameraPosition: Vector3d,
-    ): TLASLeaf {
+    fun createTLASLeaf(mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?): TLASLeaf {
         val drawMatrix = transform.getDrawMatrix()
         val localToWorld = Matrix4x3f().set4x3delta(drawMatrix)
         val worldToLocal = Matrix4x3f()
@@ -62,7 +59,7 @@ object BVHBuilder {
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize) ?: continue
             mesh.raycaster = blas
             val transform = dri.transform
-            objects += createTLASLeaf(mesh, blas, transform, dri.component, cameraPosition)
+            objects += createTLASLeaf(mesh, blas, transform, dri.component)
         }
         // add all instanced objects
         scene.instanced.data.forEach { mesh, _, _, stack ->
@@ -72,7 +69,7 @@ object BVHBuilder {
                     mesh.raycaster = blas
                     for (i in 0 until stack.size) {
                         val transform = stack.transforms[i] as Transform
-                        objects += createTLASLeaf(mesh, blas, transform, null, cameraPosition)
+                        objects += createTLASLeaf(mesh, blas, transform, null)
                     }
                 }
             }

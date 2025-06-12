@@ -10,9 +10,9 @@ import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.narrowphase.SimplexSolverInterface
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.SphereShape
+import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.util.ObjectPool
 import cz.advel.stack.Stack
-import com.bulletphysics.util.setSub
 
 /**
  * ConvexConvexAlgorithm collision algorithm implements time of impact, convex
@@ -93,36 +93,22 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
     }
 
     override fun calculateTimeOfImpact(
-        col0: CollisionObject,
-        col1: CollisionObject,
-        dispatchInfo: DispatcherInfo,
-        resultOut: ManifoldResult
+        body0: CollisionObject, body1: CollisionObject,
+        dispatchInfo: DispatcherInfo, resultOut: ManifoldResult
     ): Double {
-        val tmp = Stack.newVec()
 
-        val tmpTrans1 = Stack.newTrans()
-        val tmpTrans2 = Stack.newTrans()
-
-        // Rather then checking ALL pairs, only calculate TOI when motion exceeds threshold
+        // Rather than checking ALL pairs, only calculate TOI when motion exceeds threshold
 
         // Linear motion for one of objects needs to exceed m_ccdSquareMotionThreshold
         // col0->m_worldTransform,
+
+        val squareMot0 = body0.interpolationWorldTransform.origin.distanceSquared(body0.worldTransform.origin)
+        val squareMot1 = body1.interpolationWorldTransform.origin.distanceSquared(body1.worldTransform.origin)
+
         var resultFraction = 1.0
-
-        tmp.setSub(col0.getInterpolationWorldTransform(tmpTrans1).origin, col0.getWorldTransform(tmpTrans2).origin)
-        val squareMot0 = tmp.lengthSquared()
-
-        tmp.setSub(col1.getInterpolationWorldTransform(tmpTrans1).origin, col1.getWorldTransform(tmpTrans2).origin)
-        val squareMot1 = tmp.lengthSquared()
-
-        if (squareMot0 < col0.ccdSquareMotionThreshold &&
-            squareMot1 < col1.ccdSquareMotionThreshold
-        ) {
-            return resultFraction
-        }
-
-        val tmpTrans3 = Stack.newTrans()
-        val tmpTrans4 = Stack.newTrans()
+        if (squareMot0 < body0.ccdSquareMotionThreshold &&
+            squareMot1 < body1.ccdSquareMotionThreshold
+        ) return resultFraction
 
         // An adhoc way of testing the Continuous Collision Detection algorithms
         // One object is approximated as a sphere, to simplify things
@@ -131,71 +117,56 @@ class ConvexConvexAlgorithm : CollisionAlgorithm() {
         // also the mainloop of the physics should have a kind of toi queue (something like Brian Mirtich's application of Timewarp for Rigidbodies)
 
         // Convex0 against sphere for Convex1
-        run {
-            val convex0 = col0.collisionShape as ConvexShape?
-            // todo: allow non-zero sphere sizes, for better approximation
-            val sphere1 = SphereShape(col1.ccdSweptSphereRadius)
-            val result = Stack.newCastResult()
-            //SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
-            /**Simplification, one object is simplified as a sphere */
-            val ccd1 = Stack.newGjkCC(convex0, sphere1)
-            //ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
-            if (ccd1.calcTimeOfImpact(
-                    col0.getWorldTransform(tmpTrans1), col0.getInterpolationWorldTransform(tmpTrans2),
-                    col1.getWorldTransform(tmpTrans3), col1.getInterpolationWorldTransform(tmpTrans4), result
-                )
-            ) {
-                // store result.m_fraction in both bodies
-
-                if (col0.hitFraction > result.fraction) {
-                    col0.hitFraction = result.fraction
-                }
-
-                if (col1.hitFraction > result.fraction) {
-                    col1.hitFraction = result.fraction
-                }
-
-                if (resultFraction > result.fraction) {
-                    resultFraction = result.fraction
-                }
-            }
-            Stack.subCastResult(1)
-            Stack.subGjkCC(1)
-        }
+        val convex0 = body0.collisionShape as ConvexShape?
+        val sphere1 = createSphere(body1.ccdSweptSphereRadius)
+        resultFraction = calculateTimeOfImpactI(body0, body1, convex0, sphere1, resultFraction)
 
         // Sphere (for convex0) against Convex1
-        run {
-            val convex1 = col1.collisionShape as ConvexShape?
-            val sphere0 =
-                SphereShape(col0.ccdSweptSphereRadius) // todo: allow non-zero sphere sizes, for better approximation
-            val result = Stack.newCastResult()
-            //SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
-            /**Simplification, one object is simplified as a sphere */
-            val ccd1 = Stack.newGjkCC(sphere0, convex1)
-            //ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
-            if (ccd1.calcTimeOfImpact(
-                    col0.getWorldTransform(tmpTrans1), col0.getInterpolationWorldTransform(tmpTrans2),
-                    col1.getWorldTransform(tmpTrans3), col1.getInterpolationWorldTransform(tmpTrans4), result
-                )
-            ) {
-                //store result.m_fraction in both bodies
+        val convex1 = body1.collisionShape as ConvexShape?
+        val sphere0 = createSphere(body0.ccdSweptSphereRadius)
+        return calculateTimeOfImpactI(body0, body1, sphere0, convex1, resultFraction)
+    }
 
-                if (col0.hitFraction > result.fraction) {
-                    col0.hitFraction = result.fraction
-                }
+    private fun createSphere(radius: Double): SphereShape {
+        val sphere = DiscreteDynamicsWorld.tmpSphere.get()
+        sphere.radius = radius
+        return sphere
+    }
 
-                if (col1.hitFraction > result.fraction) {
-                    col1.hitFraction = result.fraction
-                }
+    private fun calculateTimeOfImpactI(
+        body0: CollisionObject, body1: CollisionObject,
+        convex0: ConvexShape?, sphere1: ConvexShape?,
+        resultFraction: Double
+    ): Double {
 
-                if (resultFraction > result.fraction) {
-                    resultFraction = result.fraction
-                }
+        // todo: allow non-zero sphere sizes, for better approximation
+        val result = Stack.newCastResult()
+        //SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
+        /**Simplification, one object is simplified as a sphere */
+        val ccd1 = Stack.newGjkCC(convex0, sphere1)
+        //ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
+        var resultFraction = resultFraction
+        if (ccd1.calcTimeOfImpact(
+                body0.worldTransform, body0.interpolationWorldTransform,
+                body1.worldTransform, body1.interpolationWorldTransform, result
+            )
+        ) {
+            // store result.m_fraction in both bodies
+
+            if (body0.hitFraction > result.fraction) {
+                body0.hitFraction = result.fraction
             }
-            Stack.subCastResult(1)
-            Stack.subGjkCC(1)
-        }
 
+            if (body1.hitFraction > result.fraction) {
+                body1.hitFraction = result.fraction
+            }
+
+            if (resultFraction > result.fraction) {
+                resultFraction = result.fraction
+            }
+        }
+        Stack.subCastResult(1)
+        Stack.subGjkCC(1)
         return resultFraction
     }
 

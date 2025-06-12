@@ -2,10 +2,11 @@ package com.bulletphysics.linearmath
 
 import com.bulletphysics.linearmath.VectorUtil.getCoord
 import com.bulletphysics.linearmath.VectorUtil.setCoord
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import org.joml.Vector3d
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -125,32 +126,23 @@ object AabbUtil {
         halfExtents: Vector3d, margin: Double, t: Transform,
         aabbMinOut: Vector3d, aabbMaxOut: Vector3d
     ) {
-        val halfExtentsWithMargin = Stack.newVec()
-        halfExtentsWithMargin.x = halfExtents.x + margin
-        halfExtentsWithMargin.y = halfExtents.y + margin
-        halfExtentsWithMargin.z = halfExtents.z + margin
-
-        val globalAxis = Stack.newVec()
-        val extent = Stack.newVec()
+        val ex = halfExtents.x + margin
+        val ey = halfExtents.y + margin
+        val ez = halfExtents.z + margin
 
         val basis = t.basis
-        basis.getRow(0, globalAxis)
-        globalAxis.absolute()
-        extent.x = globalAxis.dot(halfExtentsWithMargin)
-
-        basis.getRow(1, globalAxis)
-        globalAxis.absolute()
-        extent.y = globalAxis.dot(halfExtentsWithMargin)
-
-        basis.getRow(2, globalAxis)
-        globalAxis.absolute()
-        extent.z = globalAxis.dot(halfExtentsWithMargin)
+        val dx = absDot(basis.m00, basis.m10, basis.m20, ex, ey, ez)
+        val dy = absDot(basis.m01, basis.m11, basis.m21, ex, ey, ez)
+        val dz = absDot(basis.m02, basis.m12, basis.m22, ex, ey, ez)
 
         val center = t.origin
-        center.sub(extent, aabbMinOut)
-        center.add(extent, aabbMaxOut)
+        center.sub(dx, dy, dz, aabbMinOut)
+        center.add(dx, dy, dz, aabbMaxOut)
+    }
 
-        Stack.subVec(3)
+    @JvmStatic
+    private fun absDot(ax: Double, ay: Double, az: Double, bx: Double, by: Double, bz: Double): Double {
+        return abs(ax) * bx + abs(ay) * by + abs(az) * bz
     }
 
     fun transformAabb(
@@ -163,34 +155,23 @@ object AabbUtil {
         assert(localAabbMin.y <= localAabbMax.y)
         assert(localAabbMin.z <= localAabbMax.z)
 
-        val localHalfExtents = Stack.newVec()
-        localHalfExtents.setSub(localAabbMax, localAabbMin)
-        localHalfExtents.mul(0.5).add(margin)
-
         val center = Stack.newVec()
         center.setAdd(localAabbMax, localAabbMin)
         center.mul(0.5)
         trans.transform(center)
 
-        val extent = Stack.newVec()
-        val globalAxis = Stack.newVec()
+        val ex = ((localAabbMax.x - localAabbMin.x) * 0.5) + margin
+        val ey = ((localAabbMax.y - localAabbMin.y) * 0.5) + margin
+        val ez = ((localAabbMax.z - localAabbMin.z) * 0.5) + margin
 
         val basis = trans.basis
-        basis.getRow(0, globalAxis)
-        globalAxis.absolute()
-        extent.x = globalAxis.dot(localHalfExtents)
+        val dx = absDot(basis.m00, basis.m10, basis.m20, ex, ey, ez)
+        val dy = absDot(basis.m01, basis.m11, basis.m21, ex, ey, ez)
+        val dz = absDot(basis.m02, basis.m12, basis.m22, ex, ey, ez)
 
-        basis.getRow(1, globalAxis)
-        globalAxis.absolute()
-        extent.y = globalAxis.dot(localHalfExtents)
+        center.sub(dx, dy, dz, aabbMinOut)
+        center.add(dx, dy, dz, aabbMaxOut)
 
-        basis.getRow(2, globalAxis)
-        globalAxis.absolute()
-        extent.z = globalAxis.dot(localHalfExtents)
-
-        center.sub(extent, aabbMinOut)
-        center.add(extent, aabbMaxOut)
-
-        Stack.subVec(4)
+        Stack.subVec(1)
     }
 }

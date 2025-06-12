@@ -1,6 +1,6 @@
 package me.anno.tests.physics.shapes
 
-import me.anno.bullet.createBulletShape
+import me.anno.bullet.createBulletCylinderShape
 import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.CylinderCollider
 import me.anno.maths.Maths.TAU
@@ -36,7 +36,7 @@ class SDFCylinderTest {
         val baseline = CylinderCollider().apply {
             axis = axisI
             roundness = marginI
-        }.createBulletShape(Vector3d(1.0))
+        }.createBulletCylinderShape(Vector3d(1.0))
         assertEquals(marginI, baseline.margin.toFloat())
         val tested = ConvexSDFShape(
             SDFCylinder().apply {
