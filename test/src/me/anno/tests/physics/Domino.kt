@@ -115,6 +115,8 @@ fun main() {
                     mass = mass1
                     friction = 0.3
                     restitution = 0.0
+                    linearSleepingThreshold = 0.0
+                    angularSleepingThreshold = 0.0
                 })
                 .add(BoxCollider().apply {
                     halfExtents = halfExtents1

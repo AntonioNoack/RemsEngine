@@ -1,4 +1,4 @@
-package me.anno.games
+package me.anno.games.carchase
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
@@ -19,7 +19,6 @@ import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.CullMode
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -28,7 +27,6 @@ import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
-import me.anno.tests.physics.TestVehicleController
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
@@ -122,8 +120,7 @@ fun createUI(): Panel {
             .setScale(car1.scale)
             .add(MeshCollider(carModelMain))
     )
-    val controller = TestVehicleController()
-    controller.controls = "wasd"
+    val controller = VehicleController()
     car0.add(controller)
 
     val steeringWheel = Entity()
@@ -175,7 +172,6 @@ fun createUI(): Panel {
     EditorState.prefabSource = world.ref
     val sceneView = SceneView(PlayMode.PLAYING, style)
     val renderView = sceneView.renderView
-    renderView.renderMode = RenderMode.PHYSICS
     renderView.localPlayer = player
     sceneView.weight = 1f
     list.add(sceneView)

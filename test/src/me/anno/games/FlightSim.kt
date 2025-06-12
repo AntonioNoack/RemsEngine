@@ -41,7 +41,9 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
 
-// inspired by Vazgriz, https://www.youtube.com/watch?v=7vAHo2B1zLc
+/**
+ * inspired by Vazgriz, https://www.youtube.com/watch?v=7vAHo2B1zLc
+ * */
 fun main() {
 
     RenderDoc.forceLoadRenderDoc()

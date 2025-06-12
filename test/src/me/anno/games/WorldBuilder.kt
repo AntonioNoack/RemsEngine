@@ -17,7 +17,6 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.WindowRenderFlags
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -355,8 +354,8 @@ fun main() {
 
             fun findHitEntityForDeleting(result: RayHit) {
                 var hitEntity = result.component?.entity
-                while (hitEntity != null && hitEntity!!.parentEntity?.parentEntity != world) {
-                    hitEntity = hitEntity!!.parentEntity ?: break
+                while (hitEntity != null && hitEntity.parentEntity?.parentEntity != world) {
+                    hitEntity = hitEntity.parentEntity ?: break
                 }
                 this.hitEntity = hitEntity
             }

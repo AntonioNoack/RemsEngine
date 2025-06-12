@@ -12,8 +12,14 @@ import kotlin.math.min
 /**
  * turns any image into an image without alpha channel
  * */
-open class OpaqueImage(val src: Image) :
-    Image(src.width, src.height, min(3, src.numChannels), false, src.offset, src.stride) {
+open class OpaqueImage(val src: Image) : Image(
+    src.width, src.height, min(3, src.numChannels),
+    false, src.offset, src.stride
+) {
+
+    override fun getIndex(x: Int, y: Int): Int {
+        return src.getIndex(x, y)
+    }
 
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
 

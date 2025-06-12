@@ -1,5 +1,6 @@
 package me.anno.io.saveable
 
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.utils.InternalAPI
@@ -27,6 +28,7 @@ open class NamedSaveable : Saveable() {
             }
         }
 
+    @NotSerializedProperty
     var nameDesc
         get() = NameDesc(name, description, "")
         set(value) {

@@ -43,7 +43,7 @@ fun main() {
         }
     }
     framebuffer.getTexture0()
-        .createImage(flipY = true, withAlpha = false)
+        .createImage(flipY = false, withAlpha = false)
         .ref.getChild("grayscale.png")
         .copyTo(desktop.getChild("ASCIIAtlas.png"))
     Engine.requestShutdown()

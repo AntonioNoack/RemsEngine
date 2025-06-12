@@ -17,8 +17,10 @@ import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 /**
  * the easiest check whether an image has R and B channels inverted: if so, this will look correct
  * */
-class BGRAImage(val src: Image) :
-    Image(src.width, src.height, src.numChannels, src.hasAlphaChannel) {
+class BGRAImage(val src: Image) : Image(
+    src.width, src.height, src.numChannels,
+    src.hasAlphaChannel, src.offset, src.stride
+) {
 
     override var width: Int
         get() = src.width
@@ -31,6 +33,10 @@ class BGRAImage(val src: Image) :
         set(value) {
             src.height = value
         }
+
+    override fun getIndex(x: Int, y: Int): Int {
+        return src.getIndex(x, y)
+    }
 
     override fun getRGB(index: Int): Int {
         // argb -> abgr

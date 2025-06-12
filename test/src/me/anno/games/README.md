@@ -10,7 +10,7 @@ Pretty much self-explanatory, only uses UI, Input and windowing.
 
 Pretty much self-explanatory, only uses UI, Input and windowing.
 
-## [Car Chase Prototype in 3d](CarChase.kt)
+## [Car Chase Prototype in 3d](carchase/CarChase.kt)
 
 Driving a 3d car in a 3d world with WASD controls.
 More isn't implemented yet.

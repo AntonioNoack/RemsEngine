@@ -4,6 +4,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths.clamp
+import me.anno.utils.Logging.hash32
 import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools.byteBufferPool
 import java.nio.ByteBuffer
@@ -19,6 +20,10 @@ open class ByteImage(
 
     constructor(width: Int, height: Int, format: ByteImageFormat, data: ByteArray) :
             this(width, height, format, data, 0, format.numChannels * width)
+
+    override fun toString(): String {
+        return "${this.javaClass.simpleName}@${hash32(this)}[$width x $height x $format]"
+    }
 
     override fun getIndex(x: Int, y: Int): Int {
         val xi = clamp(x, 0, width - 1)

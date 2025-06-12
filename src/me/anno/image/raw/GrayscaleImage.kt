@@ -9,8 +9,14 @@ import me.anno.utils.async.Callback
 import me.anno.utils.pooling.Pools.byteBufferPool
 import org.joml.Vector4f
 
-open class GrayscaleImage(val src: Image) :
-    Image(src.width, src.height, 1, false, src.offset, src.stride) {
+open class GrayscaleImage(val src: Image) : Image(
+    src.width, src.height, 1,
+    false, src.offset, src.stride
+) {
+
+    override fun getIndex(x: Int, y: Int): Int {
+        return src.getIndex(x, y)
+    }
 
     override fun getRGB(index: Int): Int = (getLuminance(src.getRGB(index)) * 0x10101) or black
 
