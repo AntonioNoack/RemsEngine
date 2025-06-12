@@ -101,7 +101,7 @@ class SimulationIslandManager {
                         if (colObj0.activationState == ActivationState.ACTIVE) {
                             allSleeping = false
                         }
-                        if (colObj0.activationState == ActivationState.DISABLE_DEACTIVATION) {
+                        if (colObj0.activationState == ActivationState.ALWAYS_ACTIVE) {
                             allSleeping = false
                         }
                     }

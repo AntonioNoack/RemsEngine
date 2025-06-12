@@ -9,7 +9,6 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.constraintsolver.TypedConstraint
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
 import com.bulletphysics.linearmath.MatrixUtil.scale
-import com.bulletphysics.linearmath.MatrixUtil.transposeTransform
 import com.bulletphysics.linearmath.MiscUtil.GEN_clamped
 import com.bulletphysics.linearmath.MotionState
 import com.bulletphysics.linearmath.Transform
@@ -466,7 +465,7 @@ class RigidBody : CollisionObject {
     }
 
     fun updateDeactivation(timeStep: Double) {
-        if ((activationState == ActivationState.SLEEPING) || (activationState == ActivationState.DISABLE_DEACTIVATION)) {
+        if ((activationState == ActivationState.SLEEPING) || (activationState == ActivationState.ALWAYS_ACTIVE)) {
             return
         }
 
@@ -482,7 +481,7 @@ class RigidBody : CollisionObject {
 
     fun wantsSleeping(): Boolean {
         val state = activationState
-        if (state == ActivationState.DISABLE_DEACTIVATION) {
+        if (state == ActivationState.ALWAYS_ACTIVE) {
             return false
         }
 

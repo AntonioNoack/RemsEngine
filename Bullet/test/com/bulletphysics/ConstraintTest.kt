@@ -1,5 +1,6 @@
 package com.bulletphysics
 
+import com.bulletphysics.collision.dispatch.ActivationState
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.dynamics.DynamicsWorld
@@ -89,11 +90,12 @@ class ConstraintTest {
         val sliderConstraint = SliderConstraint(base, slider, frameInA, frameInB, true)
         world.addConstraint(sliderConstraint, true)
 
+        slider.activationState = ActivationState.ALWAYS_ACTIVE
         slider.applyCentralForce(Vector3d(20.0, 20.0, 20.0)) // Slide forward
 
         simulate(world, 240)
 
-        val pos = slider.getCenterOfMassPosition(Vector3d())
+        val pos = slider.worldTransform.origin
         Assertions.assertTrue(abs(pos.y) < 1e-9)
         Assertions.assertTrue(abs(pos.z) < 1e-9)
         Assertions.assertTrue(pos.x > 0.5f, "Slider should move along Z axis")
@@ -118,6 +120,7 @@ class ConstraintTest {
         dof.linearLimits.upperLimit.set(1.0, 0.0, 0.0) // Only X axis movement allowed
         world.addConstraint(dof, true)
 
+        body.activationState = ActivationState.ALWAYS_ACTIVE
         body.applyCentralForce(Vector3d(20.0, 0.0, 20.0))
 
         simulate(world, 240)

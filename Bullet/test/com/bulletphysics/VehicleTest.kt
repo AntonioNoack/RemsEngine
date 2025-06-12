@@ -1,7 +1,6 @@
 package com.bulletphysics
 
 import com.bulletphysics.collision.dispatch.ActivationState
-import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.StaticPlaneShape
@@ -33,7 +32,7 @@ class VehicleTest {
 
         val raycaster = DefaultVehicleRaycaster(world)
         val vehicle = RaycastVehicle(tuning, chassis, raycaster)
-        chassis.setActivationStateMaybe(ActivationState.DISABLE_DEACTIVATION)
+        chassis.setActivationStateMaybe(ActivationState.ALWAYS_ACTIVE)
 
         world.addVehicle(vehicle)
 

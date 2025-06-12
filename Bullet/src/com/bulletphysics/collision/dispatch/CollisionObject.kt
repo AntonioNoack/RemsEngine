@@ -125,7 +125,7 @@ open class CollisionObject() {
     }
 
     fun setActivationStateMaybe(newState: ActivationState) {
-        if (activationState != ActivationState.DISABLE_DEACTIVATION && activationState != ActivationState.DISABLE_SIMULATION) {
+        if (activationState != ActivationState.ALWAYS_ACTIVE && activationState != ActivationState.DISABLE_SIMULATION) {
             activationState = newState
         }
     }

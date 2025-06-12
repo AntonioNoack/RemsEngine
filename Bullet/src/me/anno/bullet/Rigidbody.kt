@@ -1,7 +1,7 @@
 package me.anno.bullet
 
 import com.bulletphysics.collision.dispatch.ActivationState.ACTIVE
-import com.bulletphysics.collision.dispatch.ActivationState.DISABLE_DEACTIVATION
+import com.bulletphysics.collision.dispatch.ActivationState.ALWAYS_ACTIVE
 import com.bulletphysics.collision.dispatch.ActivationState.DISABLE_SIMULATION
 import com.bulletphysics.collision.dispatch.ActivationState.SLEEPING
 import com.bulletphysics.collision.dispatch.ActivationState.WANTS_DEACTIVATION
@@ -58,7 +58,7 @@ open class Rigidbody : Component(), OnDrawGUI {
             ACTIVE -> "Active"
             SLEEPING -> "Island Sleeping"
             WANTS_DEACTIVATION -> "Wants Deactivation"
-            DISABLE_DEACTIVATION -> "Disable Deactivation"
+            ALWAYS_ACTIVE -> "Disable Deactivation"
             DISABLE_SIMULATION -> "Disable Simulation"
             -1 -> "null"
             else -> s.toString()

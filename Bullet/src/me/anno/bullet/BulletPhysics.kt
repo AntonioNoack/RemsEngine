@@ -166,7 +166,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         // vehicle.currentSpeedKmHour
         // vehicle.applyEngineForce()
         world.addVehicle(vehicle)
-        body.activationState = ActivationState.DISABLE_DEACTIVATION
+        body.activationState = ActivationState.ALWAYS_ACTIVE
         raycastVehicles[entity] = vehicle
     }
 
@@ -496,7 +496,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 ActivationState.ACTIVE -> 0xffffff
                 ActivationState.SLEEPING -> 0x333333
                 ActivationState.WANTS_DEACTIVATION -> 0x00ffff
-                ActivationState.DISABLE_DEACTIVATION -> 0xff0000
+                ActivationState.ALWAYS_ACTIVE -> 0xff0000
                 ActivationState.DISABLE_SIMULATION -> 0xffff00
             }.withAlpha(255)
 

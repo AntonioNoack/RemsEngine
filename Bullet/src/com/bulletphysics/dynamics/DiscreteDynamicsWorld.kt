@@ -330,7 +330,7 @@ class DiscreteDynamicsWorld(
                             }
                         }
                     } else {
-                        if (body.activationState != ActivationState.DISABLE_DEACTIVATION) {
+                        if (body.activationState != ActivationState.ALWAYS_ACTIVE) {
                             body.setActivationStateMaybe(ActivationState.ACTIVE)
                         }
                     }
