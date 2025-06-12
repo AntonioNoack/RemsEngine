@@ -34,12 +34,13 @@ fun main() {
     // todo test performance debugging
     BulletStats.isProfileEnabled = true
 
-    for (n in listOf(256)) {
+    for (n in listOf(16, 32, 64, 128, 256, 512, 1024)) {
         clock.start()
         runDominoTest(n, numSteps)
         clock.stop("$n Dominos", n * numSteps)
     }
 
+    // just prints the last simulation step
     printProfiling()
 
     Engine.requestShutdown()
