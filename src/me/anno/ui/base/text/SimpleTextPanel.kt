@@ -5,10 +5,15 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.GFXx2D.getSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.callbacks.I2U
+import me.anno.utils.types.Floats.toIntOr
 import kotlin.math.max
 
 open class SimpleTextPanel(style: Style) : Panel(style) {
@@ -17,34 +22,38 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
-    override val canDrawOverBorders: Boolean
-        get() = true
+    var textAlignmentX = AxisAlignment.MIN
+    var textAlignmentY = AxisAlignment.CENTER
+
+    override val canDrawOverBorders: Boolean get() = true
 
     override fun calculateSize(w: Int, h: Int) {
         // calculate max line length & line count
-        var lineCount = 0
-        var maxLineLength = 0
-        forEachLine { i0, i1 ->
-            lineCount++
-            maxLineLength = max(maxLineLength, i1 - i0)
-        }
+        val lineStats = getLineStats()
         val font = monospaceFont
-        minW = font.sampleWidth * maxLineLength + 4
-        minH = font.sampleHeight * lineCount + 4
+        minW = font.sampleWidth * getSizeX(lineStats) + 4
+        minH = font.sampleHeight * getSizeY(lineStats) + 4
     }
 
     private var loadTextSync = false
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         GFX.loadTexturesSync.push(loadTextSync)
-        val text = text
-        val x = alignmentX.getAnchor(x, width)
-        var y = y + 2
+
         val font = monospaceFont
-        val dy = font.sampleHeight
+        val lineStats = getLineStats()
+        val usedWidth = font.sampleWidth * getSizeX(lineStats)
+        val usedHeight = font.sampleHeight * getSizeY(lineStats)
+
+        val x = x + textAlignmentX.getOffset(width - 4, usedWidth) + 2
+        var y = y + textAlignmentY.getOffset(height - 4, usedHeight) + 2
+
+        y += (font.sampleHeight * 0.69f).toIntOr() // baseline offset
+
+        val text = text
         forEachLine { i0, i1 ->
             drawLine(text.subSequence(i0, i1), x, y)
-            y += dy
+            y += font.sampleHeight
         }
         GFX.loadTexturesSync.pop()
     }
@@ -63,11 +72,21 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         }
     }
 
+    fun getLineStats(): Int {
+        var lineCount = 0
+        var maxLineLength = 0
+        forEachLine { i0, i1 ->
+            lineCount++
+            maxLineLength = max(maxLineLength, i1 - i0)
+        }
+        return getSize(maxLineLength, lineCount)
+    }
+
     open fun drawLine(text: CharSequence, x: Int, y: Int) {
         DrawTexts.drawSimpleTextCharByChar(
             x, y, 2,
             text, textColor, backgroundColor.withAlpha(0),
-            alignmentX
+            textAlignmentX, textAlignmentY
         )
     }
 

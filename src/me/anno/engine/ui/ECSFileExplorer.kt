@@ -18,7 +18,6 @@ import me.anno.engine.ui.ECSTreeView.Companion.optionToMenu
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
@@ -391,9 +390,15 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                     file.writeBytes(encoding.encode(prefab, workspace))
                 }
             }
+
+            val deepCopyImport = FileExplorerOption(NameDesc("Deep-Copy Import")) { fe, files ->
+                deepCopyImport(files.first().getParent(), files, fe as FileExplorer?)
+            }
+
             fileOptions.add(openAsScene)
             fileOptions.add(extendPrefab)
             fileOptions.add(assignMaterialToMeshes)
+            fileOptions.add(deepCopyImport)
             fileOptions.add(clearHistory)
             folderOptions.add(openAsScene)
             // todo create shader (MaterialGraph), post-processing (ShaderGraph), render mode (RenderGraph),

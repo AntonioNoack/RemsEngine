@@ -9,6 +9,7 @@ import me.anno.image.ImageReadable
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.ImportType.MESH
+import me.anno.io.files.ImportType.METADATA
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.SignatureCache
@@ -49,8 +50,8 @@ object AssetImport {
     fun deepCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
         val progress = GFX.someWindow.addProgressBar("Deep Copy", "", files.size.toDouble())
         val mapping = HashMap<FileReference, FileReference>()
-        for (src in files) {
-            deepCopyAssets(src, dst, mapping)
+        for (i in files.indices) {
+            deepCopyAssets(files[i], dst, mapping)
             progress.total += 1.0
         }
         onCopyFinished(dst, fe)
@@ -73,7 +74,8 @@ object AssetImport {
 
     fun getPureTypeOrNull(file: FileReference): String? {
         val importType = getImportType(file) ?: return null
-        return if (importType == MESH) null else importType
+        return if (importType == MESH || importType == METADATA) null
+        else importType
     }
 
     private fun generalCopyAssets(
@@ -82,40 +84,61 @@ object AssetImport {
         copier: PrefabCopier
     ) {
         // if asset is pure (png,jpg,...), just copy or link it
-        if (getPureTypeOrNull(srcFolder) != null) {
+        val pureType = getPureTypeOrNull(srcFolder)
+        if (pureType != null) {
             val dstFile = if (dstFolder.isDirectory) {
                 dstFolder.getChild(srcFolder.name)
             } else dstFolder
             dstFile.writeFile(srcFolder) {}
         } else {
-            for (srcFile in srcFolder.listChildren()) {
-                val type = getPureTypeOrNull(srcFile)
-                if (type != null) {
-                    copyPureFile(srcFile, getDstFolder(dstFolder, dstFolder0, type), prefabMapping)
-                } else if (srcFile.isDirectory) {
-                    val dstFolder2 = dstFolder.getChild(srcFile.name)
-                    if (!dstFolder2.exists) dstFolder2.tryMkdirs()
-                    if (dstFolder2.isDirectory) {
-                        generalCopyAssets(srcFile, dstFolder2, dstFolder0, prefabMapping, depth + 1, copier)
-                    } else LOGGER.warn("Could not create directory $dstFolder2 for $srcFile/${srcFile.name}")
-                } else {
-
-                    // read as inner folder
-                    // rename its inner "Scene.json" into src.nameWithoutExtension + .json
-                    // import all other inner files into their respective files
-                    // if content is identical, we could merge them
-
-                    // it may not be necessarily a prefab, it could be a saveable
-                    val prefab = loadPrefab(srcFile)
-                    if (prefab != null) {
-                        val name = findName(srcFile, prefab, dstFolder == dstFolder0)
-                        val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth)
-                        val dstFile = savePrefab(dstFolder, name, newPrefab)
-                        newPrefab.sourceFile = dstFile
-                        prefabMapping[srcFile] = dstFile
-                    } else LOGGER.warn("Skipped $srcFile, because it was not a prefab")
+            val children = srcFolder.listChildren()
+            if (children.isNotEmpty()) {
+                for (srcFile in children) {
+                    generalCopyAssetsI(
+                        srcFile, dstFolder, dstFolder0,
+                        prefabMapping, depth, copier
+                    )
                 }
+            } else {
+                generalCopyAssetsI(
+                    srcFolder, dstFolder, dstFolder0,
+                    prefabMapping, depth, copier
+                )
             }
+        }
+    }
+
+    private fun generalCopyAssetsI(
+        srcFile: FileReference, dstFolder: FileReference, dstFolder0: FileReference,
+        prefabMapping: HashMap<FileReference, FileReference>, depth: Int,
+        copier: PrefabCopier
+    ) {
+        // if asset is pure (png,jpg,...), just copy or link it
+        val type = getPureTypeOrNull(srcFile)
+        if (type != null) {
+            copyPureFile(srcFile, getDstFolder(dstFolder, dstFolder0, type), prefabMapping)
+        } else if (srcFile.isDirectory) {
+            val dstFolder2 = dstFolder.getChild(srcFile.name)
+            if (!dstFolder2.exists) dstFolder2.tryMkdirs()
+            if (dstFolder2.isDirectory) {
+                generalCopyAssets(srcFile, dstFolder2, dstFolder0, prefabMapping, depth + 1, copier)
+            } else LOGGER.warn("Could not create directory $dstFolder2 for $srcFile/${srcFile.name}")
+        } else {
+
+            // read as inner folder
+            // rename its inner "Scene.json" into src.nameWithoutExtension + .json
+            // import all other inner files into their respective files
+            // if content is identical, we could merge them
+
+            // it may not be necessarily a prefab, it could be a saveable
+            val prefab = loadPrefab(srcFile)
+            if (prefab != null) {
+                val name = findName(srcFile, prefab, dstFolder == dstFolder0)
+                val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth)
+                val dstFile = savePrefab(dstFolder, name, newPrefab)
+                newPrefab.sourceFile = dstFile
+                prefabMapping[srcFile] = dstFile
+            } else LOGGER.warn("Skipped $srcFile, because it was not a prefab")
         }
     }
 

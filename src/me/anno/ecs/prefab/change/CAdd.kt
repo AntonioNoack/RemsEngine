@@ -39,6 +39,10 @@ class CAdd() : Change() {
         return path.added(nameId, index, type)
     }
 
+    fun getSetterPath(path: Path, index: Int): Path {
+        return path.added(nameId, index, type)
+    }
+
     var type = ' '
     var clazzName = ""
     var nameId = ""

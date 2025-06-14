@@ -444,19 +444,31 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction("Center XZ, on Floor")
     fun centerXZonY() {
         val bounds = getBounds()
-        val dx = -bounds.centerX
-        val dy = -bounds.minY
-        val dz = -bounds.centerZ
-        move(dx, dy, dz)
+        move(-bounds.centerX, -bounds.minY, -bounds.centerZ)
+    }
+
+    @DebugAction
+    fun centerX() {
+        val bounds = getBounds()
+        move(-bounds.centerX, 0f, 0f)
+    }
+
+    @DebugAction
+    fun centerY() {
+        val bounds = getBounds()
+        move(0f, -bounds.centerY, 0f)
+    }
+
+    @DebugAction
+    fun centerZ() {
+        val bounds = getBounds()
+        move(0f, 0f, -bounds.centerZ)
     }
 
     @DebugAction("Center XYZ")
     fun centerXYZ() {
         val bounds = getBounds()
-        val dx = -bounds.centerX
-        val dy = -bounds.centerY
-        val dz = -bounds.centerZ
-        move(dx, dy, dz)
+        move(-bounds.centerX, -bounds.centerY, -bounds.centerZ)
     }
 
     @DebugAction

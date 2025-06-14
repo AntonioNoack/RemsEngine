@@ -176,12 +176,14 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             Dict["Enter search terms, or paste a path, press enter to go there", "ui.fileExplorer.searchTerm.desc"]
         searchBar.weight = 1f
         searchBar.addChangeListener { invalidate() }
-        searchBar.setEnterListener {
-            val child = folder.getChild(it)
+        searchBar.setEnterListener { name ->
+            var name = name
+            if (name.endsWith('/')) name = name.substring(0, name.lastIndex)
+            val child = folder.getChild(name)
             if (child.exists) {
                 switchTo(child)
-            } else if (it.length > 3) {
-                val ref = getReference(it)
+            } else if (name.length > 3) {
+                val ref = getReference(name)
                 if (ref.exists) {
                     switchTo(ref)
                     searchBar.setValue("", true)

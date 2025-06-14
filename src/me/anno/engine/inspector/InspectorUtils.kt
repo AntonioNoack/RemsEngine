@@ -114,10 +114,11 @@ object InspectorUtils {
     ) {
         val title = property.name.camelCaseToTitle()
         val getter = property.getter
-        val list1 = PanelListX(style)
-        list1.add(TextPanel("$title:", style))
+        val xList = PanelListX(style)
+        xList.add(TextPanel("$title:", style))
         val relevantInstances = instances.filter { it::class == instances.first()::class }
-        list1.add(SizeLimitingContainer(UpdatingSimpleTextPanel(100L, style) {
+        // todo bug: why is text floating at the top???
+        val limiter = SizeLimitingContainer(UpdatingSimpleTextPanel(100L, style) {
             relevantInstances.joinToString { relevantInstance ->
                 when (val i = getter(relevantInstance)) {
                     is AABBf -> "${i.minX} - ${i.maxX}\n" +
@@ -129,9 +130,10 @@ object InspectorUtils {
                     else -> i.toString().shorten2Way(200)
                 }
             }
-        }, 350, 250, style))
-        list.add(list1)
-        createTrackingButton(list, list1, relevantInstances, property, style)
+        }, 350, 250, style)
+        xList.add(limiter)
+        list.add(xList)
+        createTrackingButton(list, xList, relevantInstances, property, style)
     }
 
     fun showPropertyI(
