@@ -372,9 +372,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         val view = RenderView.currentInstance
         if (view?.renderMode != RenderMode.PHYSICS) return
-        // define camera transform
-        BulletDebugDraw.stack.set(cameraMatrix)
-        BulletDebugDraw.cam.set(cameraPosition)
         // draw stuff
         drawConstraints(pipeline)
         drawColliders(pipeline)

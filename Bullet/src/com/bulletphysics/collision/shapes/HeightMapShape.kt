@@ -19,11 +19,9 @@ import com.bulletphysics.linearmath.AabbUtil
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.ecs.components.collider.Axis
-import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector3d
-import org.joml.Vector3i
 import kotlin.math.max
 import kotlin.math.min
 
@@ -31,6 +29,13 @@ import kotlin.math.min
  *
  * */
 class HeightMapShape : ConcaveShape() {
+
+    enum class TrianglePattern {
+        NORMAL,
+        FLIPPED,
+        ZIGZAG,
+        DIAMOND
+    }
 
     var width = 2 // > 1
     var length = 2 // > 1
@@ -46,10 +51,7 @@ class HeightMapShape : ConcaveShape() {
     var upAxis = Axis.Y
 
     // var hdt = 0.1 // height type aka Floats/Shorts/...
-    var flipQuadEdges = false // todo what is that???
-
-    var useDiamondSubdivision = false
-    var useZigzagSubdivision = false
+    var pattern = TrianglePattern.NORMAL
 
     val localScaling = Vector3d(1.0)
 
@@ -125,26 +127,6 @@ class HeightMapShape : ConcaveShape() {
         dst.mul(localScaling)
     }
 
-    private fun getQuantized(x: Double): Int {
-        val value = if (x < 0.0) x - 0.5 else x + 0.5
-        return value.toIntOr()
-    }
-
-    /**
-     * This routine is basically determining the gridpoint indices for a given
-     * input vector, answering the question: "which gridpoint is closest to the
-     * provided point?".
-     *
-     * "with clamp" means that we restrict the point to be in the heightfield's
-     * axis-aligned bounding box.
-     */
-    private fun quantizeWithClamp(dst: Vector3i, point: Vector3d) {
-        val vx = clamp(point.x, localAabbMin.x, localAabbMax.x)
-        val vy = clamp(point.y, localAabbMin.y, localAabbMax.y)
-        val vz = clamp(point.z, localAabbMin.z, localAabbMax.z)
-        dst.set(getQuantized(vx), getQuantized(vy), getQuantized(vz))
-    }
-
     /**
      * process all triangles within the provided axis-aligned bounding box
      * basic algorithm:
@@ -161,40 +143,29 @@ class HeightMapShape : ConcaveShape() {
         localAabbMin.add(localOrigin)
         localAabbMax.add(localOrigin)
 
-        // quantize the aabbMin and aabbMax, and adjust the start/end ranges
-        val quantizedAabbMin = Vector3i()
-        val quantizedAabbMax = Vector3i()
-        quantizeWithClamp(quantizedAabbMin, localAabbMin)
-        quantizeWithClamp(quantizedAabbMax, localAabbMax)
-
-        // expand the min/max quantized values
-        // this is to catch the case where the input aabb falls between grid points!
-        quantizedAabbMin.sub(1, 1, 1)
-        quantizedAabbMax.add(1, 1, 1)
-
         var startX = 0
-        var endX = width - 1
+        var endX = width - 2 // -1 for max allowed index, -1 because of points vs quads
         var startJ = 0
-        var endJ = length - 1
+        var endJ = length - 2
 
         when (upAxis) {
             Axis.X -> {
-                startX = max(startX, quantizedAabbMin.y)
-                endX = min(endX, quantizedAabbMax.y)
-                startJ = max(startJ, quantizedAabbMin.z)
-                endJ = min(endJ, quantizedAabbMax.z)
+                startX = max(startX, localAabbMin.y.toIntOr())
+                endX = min(endX, localAabbMax.y.toIntOr())
+                startJ = max(startJ, localAabbMin.z.toIntOr())
+                endJ = min(endJ, localAabbMax.z.toIntOr())
             }
             Axis.Y -> {
-                startX = max(startX, quantizedAabbMin.x)
-                endX = min(endX, quantizedAabbMax.x)
-                startJ = max(startJ, quantizedAabbMin.z)
-                endJ = min(endJ, quantizedAabbMax.z)
+                startX = max(startX, localAabbMin.x.toIntOr())
+                endX = min(endX, localAabbMax.x.toIntOr())
+                startJ = max(startJ, localAabbMin.z.toIntOr())
+                endJ = min(endJ, localAabbMax.z.toIntOr())
             }
             Axis.Z -> {
-                startX = max(startX, quantizedAabbMin.x)
-                endX = min(endX, quantizedAabbMax.x)
-                startJ = max(startJ, quantizedAabbMin.y)
-                endJ = min(endJ, quantizedAabbMax.y)
+                startX = max(startX, localAabbMin.x.toIntOr())
+                endX = min(endX, localAabbMax.x.toIntOr())
+                startJ = max(startJ, localAabbMin.y.toIntOr())
+                endJ = min(endJ, localAabbMax.y.toIntOr())
             }
         }
 
@@ -202,12 +173,9 @@ class HeightMapShape : ConcaveShape() {
         val vertex1 = Stack.newVec()
         val vertex2 = Stack.newVec()
         val triangle = arrayOf(vertex0, vertex1, vertex2)
-        for (j in startJ until endJ) {
-            for (x in startX until endX) {
-                if (flipQuadEdges ||
-                    (useDiamondSubdivision && ((j + x) and 1) == 0) ||
-                    (useZigzagSubdivision && (j and 1) == 0)
-                ) {
+        for (j in startJ..endJ) {
+            for (x in startX..endX) {
+                if (flipTriangle(x, j)) {
                     // first triangle
                     getVertex(x, j, vertex0)
                     getVertex(x + 1, j, vertex1)
@@ -231,6 +199,17 @@ class HeightMapShape : ConcaveShape() {
                     callback.processTriangle(triangle, x, j)
                 }
             }
+        }
+
+        Stack.subVec(5)
+    }
+
+    private fun flipTriangle(x: Int, j: Int): Boolean {
+        return when (pattern) {
+            TrianglePattern.NORMAL -> false
+            TrianglePattern.FLIPPED -> true
+            TrianglePattern.ZIGZAG -> (j and 1) == 0
+            TrianglePattern.DIAMOND -> ((j + x) and 1) == 0
         }
     }
 

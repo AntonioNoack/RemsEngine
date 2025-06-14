@@ -83,31 +83,23 @@ internal class ConvexTriangleCallback(
         val ob = triBody
 
         // debug drawing of the overlapping triangles
-        if (dispatchInfoPtr != null && dispatchInfoPtr!!.debugDraw != null && dispatchInfoPtr!!.debugDraw!!.debugMode > 0) {
-            val color = Stack.newVec()
-            color.set(255.0, 255.0, 0.0)
-            val tr = ob.getWorldTransform(Stack.newTrans())
+        val debugDraw = dispatchInfoPtr?.debugDraw
+        if (debugDraw != null && debugDraw.debugMode != 0) {
+            val color = Stack.newVec().set(255.0, 255.0, 0.0)
+            val tr = ob.worldTransform
 
             val tmp1 = Stack.newVec()
             val tmp2 = Stack.newVec()
+            val tmp3 = Stack.newVec()
 
-            tmp1.set(triangle[0])
-            tr.transform(tmp1)
-            tmp2.set(triangle[1])
-            tr.transform(tmp2)
-            dispatchInfoPtr!!.debugDraw!!.drawLine(tmp1, tmp2, color)
+            tr.transform(triangle[0], tmp1)
+            tr.transform(triangle[1], tmp2)
+            tr.transform(triangle[2], tmp3)
+            debugDraw.drawLine(tmp1, tmp2, color)
+            debugDraw.drawLine(tmp2, tmp3, color)
+            debugDraw.drawLine(tmp3, tmp1, color)
 
-            tmp1.set(triangle[1])
-            tr.transform(tmp1)
-            tmp2.set(triangle[2])
-            tr.transform(tmp2)
-            dispatchInfoPtr!!.debugDraw!!.drawLine(tmp1, tmp2, color)
-
-            tmp1.set(triangle[2])
-            tr.transform(tmp1)
-            tmp2.set(triangle[0])
-            tr.transform(tmp2)
-            dispatchInfoPtr!!.debugDraw!!.drawLine(tmp1, tmp2, color)
+            Stack.subVec(3)
         }
 
         val convexShape = convexBody.collisionShape

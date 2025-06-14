@@ -4,8 +4,6 @@ import com.bulletphysics.collision.shapes.HeightMapShape
 import me.anno.ecs.components.collider.Axis
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.CustomBulletCollider
-import me.anno.engine.debug.DebugShapes
-import me.anno.engine.debug.DebugTriangle
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.UIColors

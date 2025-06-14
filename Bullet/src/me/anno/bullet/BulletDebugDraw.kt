@@ -4,17 +4,13 @@ import com.bulletphysics.linearmath.DebugDrawModes.NO_DEACTIVATION
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.buffer.LineBuffer.vToByte
+import me.anno.utils.Color.rgb
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
 import org.joml.Vector3d
 
 object BulletDebugDraw : IDebugDraw {
 
     private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
-
-    val stack = Matrix4f()
-    val cam = Vector3d()
 
     /**
     public static final int NO_DEBUG              = 0;
@@ -58,9 +54,6 @@ object BulletDebugDraw : IDebugDraw {
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
-        LineBuffer.putRelativeLine(
-            from.x, from.y, from.z, to.x, to.y, to.z, cam,
-            vToByte(color.x), vToByte(color.y), vToByte(color.z), -1
-        )
+        LineBuffer.putRelativeLine(from, to, rgb(color.x.toInt(), color.y.toInt(), color.z.toInt()))
     }
 }

@@ -2,12 +2,12 @@ package com.bulletphysics.linearmath
 
 import com.bulletphysics.linearmath.MatrixUtil.getRotation
 import com.bulletphysics.linearmath.MatrixUtil.setRotation
+import com.bulletphysics.util.setMul
+import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import com.bulletphysics.util.setMul
-import com.bulletphysics.util.setSub
 
 /**
  * Transform represents translation and rotation (rigid transform). Scaling and
@@ -54,6 +54,10 @@ class Transform {
     fun transform(v: Vector3d) {
         basis.transform(v)
         v.add(origin)
+    }
+
+    fun transform(src: Vector3d, dst: Vector3d) {
+        basis.transform(src, dst).add(origin)
     }
 
     fun setIdentity() {
