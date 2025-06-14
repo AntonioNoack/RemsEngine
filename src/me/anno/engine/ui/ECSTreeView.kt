@@ -27,6 +27,7 @@ import me.anno.ecs.systems.Systems
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.input.Clipboard
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.saveable.NamedSaveable
@@ -35,13 +36,13 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.Search
 import me.anno.ui.base.menu.ComplexMenuEntry
 import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.ComplexMenuOption
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openComplexMenu
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.base.Search
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.Color.black
@@ -196,7 +197,13 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                     LOGGER.info("SrcPrefab added original, oldRoot: '$oldRoot'")
                     val isRoot = oldRoot == Path.ROOT_PATH
                     val selfAdd = if (isRoot) listOf(
-                        CAdd(Path.ROOT_PATH, 'e', original.className, Path.generateRandomId(), srcPrefab.parentPrefabFile)
+                        CAdd(
+                            Path.ROOT_PATH,
+                            'e',
+                            original.className,
+                            Path.generateRandomId(),
+                            srcPrefab.parentPrefabFile
+                        )
                     ) else emptyList()
                     val prefix = (if (isRoot) {
                         // todo find correct index
@@ -513,6 +520,9 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                 ComplexMenuOption(NameDesc("Reset changes excl. transform"), prefab != null) {
                     LogManager.enableLogger("Hierarchy")
                     Hierarchy.resetPrefabExceptTransform(prefab!!, parent.prefabPath, true)
+                },
+                ComplexMenuOption(NameDesc("Copy path"), prefab != null) {
+                    Clipboard.setClipboardContent(parent.prefabPath.toString())
                 }
             )
             val types = parent.listChildTypes()

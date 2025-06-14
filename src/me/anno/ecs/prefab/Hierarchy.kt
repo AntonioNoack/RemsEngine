@@ -137,6 +137,11 @@ object Hierarchy {
         )
     }
 
+    fun getInstanceAt(instance0: PrefabSaveable, path: String): PrefabSaveable? {
+        val pathI = Path.fromString(path) ?: return null
+        return getInstanceAt(instance0, pathI)
+    }
+
     fun getInstanceAt(instance0: PrefabSaveable, path: Path): PrefabSaveable? {
 
         if (path == Path.ROOT_PATH) return instance0

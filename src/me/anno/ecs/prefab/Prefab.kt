@@ -11,6 +11,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.saveable.Saveable
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
@@ -79,6 +80,12 @@ class Prefab : Saveable {
     val listeners = HashSet<Prefab>()
 
     val instanceName get() = sets[ROOT_PATH, "name"] as? String
+
+    fun getTmpRef(): FileReference {
+        if (sourceFile != InvalidRef) return sourceFile
+        sourceFile = InnerTmpPrefabFile(this)
+        return sourceFile
+    }
 
     // for the game runtime, we could save the prefab instance here
     // or maybe even just add the changes, and merge them
