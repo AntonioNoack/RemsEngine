@@ -27,6 +27,10 @@ class VehicleWheel : Component(), OnDrawGUI {
     @SerializedProperty
     var wheelAxle = org.joml.Vector3d(-1.0, 0.0, 0.0)*/
 
+    @NotSerializedProperty
+    val rotation: Double
+        get() = bulletInstance?.rotation ?: 0.0
+
     @SerializedProperty
     var suspensionRestLength = 1.0
         set(value) {
@@ -63,10 +67,10 @@ class VehicleWheel : Component(), OnDrawGUI {
         }
 
     @SerializedProperty
-    var maxSuspensionTravelCm = 500.0
+    var maxSuspensionTravel = 5.0
         set(value) {
             field = value
-            bulletInstance?.maxSuspensionTravelCm = value
+            bulletInstance?.maxSuspensionTravel = value
         }
 
     @SerializedProperty
@@ -116,6 +120,9 @@ class VehicleWheel : Component(), OnDrawGUI {
             bulletInstance?.rollInfluence = value
         }
 
+    /**
+     * How much friction each wheel has. 1.0 = full friction, 0.0 = sliding.
+     * */
     @DebugProperty
     @NotSerializedProperty
     val skidInfo: Double get() = bulletInstance?.skidInfo ?: 0.0
@@ -143,11 +150,10 @@ class VehicleWheel : Component(), OnDrawGUI {
         tuning.suspensionDamping = suspensionDampingRelaxation
         tuning.suspensionStiffness = suspensionStiffness
         tuning.suspensionCompression = suspensionDampingCompression
-        tuning.maxSuspensionTravelCm = maxSuspensionTravelCm
+        tuning.maxSuspensionTravel = maxSuspensionTravel
         val wheel = vehicle.addWheel(
             position, wheelDirection, wheelAxle,
-            suspensionRestLength, actualWheelRadius,
-            tuning, false // isFrontWheel does nothing
+            suspensionRestLength, actualWheelRadius, tuning
         )
         wheel.brake = brakeForce
         wheel.engineForce = engineForce
@@ -168,7 +174,7 @@ class VehicleWheel : Component(), OnDrawGUI {
         dst.suspensionStiffness = suspensionStiffness
         dst.suspensionRestLength = suspensionRestLength
         dst.suspensionDampingCompression = suspensionDampingCompression
-        dst.maxSuspensionTravelCm = maxSuspensionTravelCm
+        dst.maxSuspensionTravel = maxSuspensionTravel
         dst.steeringMultiplier = steeringMultiplier
         dst.engineForceMultiplier = engineForceMultiplier
         dst.brakeForceMultiplier = brakeForceMultiplier

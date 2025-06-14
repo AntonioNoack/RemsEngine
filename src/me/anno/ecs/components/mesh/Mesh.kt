@@ -20,6 +20,7 @@ import me.anno.ecs.components.mesh.MeshAttributes.uvsType
 import me.anno.ecs.components.mesh.MeshBufferUtils.createMeshBufferImpl
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.TransformMesh.rotateX90DegreesImpl
+import me.anno.ecs.components.mesh.TransformMesh.rotateY90DegreesImpl
 import me.anno.ecs.components.mesh.TransformMesh.scale
 import me.anno.ecs.components.mesh.utils.IndexGenerator.generateIndices
 import me.anno.ecs.components.mesh.utils.MorphTarget
@@ -500,6 +501,11 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction("Rotate X90°/SwapYZ")
     fun rotateX90Degrees() {
         rotateX90DegreesImpl()
+    }
+
+    @DebugAction("Rotate Y90°/SwapXZ")
+    fun rotateY90Degrees() {
+        rotateY90DegreesImpl()
     }
 
     @DebugAction

@@ -36,28 +36,10 @@ fun main() {
 
     val scene = Entity("Scene")
 
-    val mesh = RectangleTerrainModel.generateRegularQuadHeightMesh(
-        width, length,
-        false, cellSize, Mesh(), { x, y ->
-            perlin[x.toFloat(), y.toFloat()]
-        })
-
-    val heightData = ShortArray(width * length)
-    val heightScale = 65535f / (maxHeight - minHeight)
-    for (y in 0 until length) {
-        for (x in 0 until width) {
-            val value = (perlin[x.toFloat(), y.toFloat()] - minHeight) * heightScale
-            heightData[x + y * width] = clamp(value.toIntOr(), 0, 65535).toShort()
-        }
-    }
-
     val physics = BulletPhysics()
     registerSystem(physics)
 
-    Entity("Terrain", scene)
-        .add(MeshComponent(mesh))
-        .add(Rigidbody().apply { mass = 0.0 })
-        .add(TerrainCollider(width, length, minHeight, maxHeight, heightData))
+    createTerrain(width, length, cellSize, perlin, scene)
 
     val balls = Entity("Balls", scene)
     val ballMesh = DefaultAssets.icoSphere
@@ -76,4 +58,30 @@ fun main() {
     }
 
     testSceneWithUI("RoadCraft", scene)
+}
+
+fun createTerrain(
+    width: Int, length: Int, cellSize: Float,
+    perlin: PerlinNoise, parent: Entity
+) {
+
+    val mesh = RectangleTerrainModel.generateRegularQuadHeightMesh(
+        width, length,
+        false, cellSize, Mesh(), { x, y ->
+            perlin[x * cellSize, y * cellSize]
+        })
+
+    val heightData = ShortArray(width * length)
+    val heightScale = 65535f / (perlin.max - perlin.min)
+    for (y in 0 until length) {
+        for (x in 0 until width) {
+            val value = (perlin[x * cellSize, y * cellSize] - perlin.min) * heightScale
+            heightData[x + y * width] = clamp(value.toIntOr(), 0, 65535).toShort()
+        }
+    }
+
+    Entity("Terrain", parent)
+        .add(MeshComponent(mesh))
+        .add(Rigidbody().apply { mass = 0.0 })
+        .add(TerrainCollider(width, length, perlin.min, perlin.max, heightData))
 }

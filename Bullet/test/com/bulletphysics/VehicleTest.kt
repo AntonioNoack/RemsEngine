@@ -28,7 +28,7 @@ class VehicleTest {
         tuning.suspensionDamping = 2.3
         tuning.suspensionCompression = 4.4
         tuning.frictionSlip = 1000.0
-        tuning.maxSuspensionTravelCm = 500.0
+        tuning.maxSuspensionTravel = 5.0
 
         val raycaster = DefaultVehicleRaycaster(world)
         val vehicle = RaycastVehicle(tuning, chassis, raycaster)

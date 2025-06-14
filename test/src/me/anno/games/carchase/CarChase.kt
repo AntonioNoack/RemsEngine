@@ -144,7 +144,7 @@ fun createUI(): Panel {
                 suspensionRestLength = 0.1
                 suspensionStiffness = 50.0
                 suspensionDampingRelaxation = 0.95
-                maxSuspensionTravelCm = 20.0
+                maxSuspensionTravel = 0.2
                 brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
                 radius = 0.42678
             }

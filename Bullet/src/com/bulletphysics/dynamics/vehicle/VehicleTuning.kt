@@ -7,17 +7,17 @@ package com.bulletphysics.dynamics.vehicle
  */
 class VehicleTuning {
     @JvmField
-    var suspensionStiffness: Double = 5.88
+    var suspensionStiffness = 5.88
 
     @JvmField
-    var suspensionCompression: Double = 0.83
+    var suspensionCompression = 0.83
 
     @JvmField
-    var suspensionDamping: Double = 0.88
+    var suspensionDamping = 0.88
 
     @JvmField
-    var maxSuspensionTravelCm: Double = 500.0
+    var maxSuspensionTravel = 5.0
 
     @JvmField
-    var frictionSlip: Double = 10.5
+    var frictionSlip = 10.5
 }

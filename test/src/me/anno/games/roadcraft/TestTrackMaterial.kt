@@ -1,14 +1,22 @@
 package me.anno.games.roadcraft
 
 import me.anno.Time
+import me.anno.bullet.BulletPhysics
+import me.anno.bullet.Rigidbody
+import me.anno.bullet.Vehicle
+import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.Hierarchy.getInstanceAt
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Systems.registerSystem
+import me.anno.engine.DefaultAssets.plane
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib.getReflectivity
@@ -23,11 +31,12 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.fract
+import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toFloat
-import org.joml.Vector2f
-import org.joml.Vector3f
+import org.joml.Vector2d
+import org.joml.Vector4f
 
 object TrackShader : ECSMeshShader("Track") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
@@ -52,11 +61,14 @@ object TrackShader : ECSMeshShader("Track") {
 class TrackVehicleControls : Component(), OnUpdate {
 
     var speed = 2f
-    var visualScale = 1.95f * 1.3f // 1.95 is about perfect, *1.3 is for friction-loss
-    val trackPosition = Vector2f()
+    val trackPosition = Vector2d()
+
+    var strength = 4000.0
+    var turnStrength = 400.0
 
     override fun onUpdate() {
-        val transform = transform ?: return
+
+        val vehicle = getComponent(Vehicle::class) ?: return
 
         val dt = Time.deltaTime.toFloat()
 
@@ -69,17 +81,30 @@ class TrackVehicleControls : Component(), OnUpdate {
         val left = (w + a - s - d) * dt
         val right = (w - a - s + d) * dt
 
-        val trackDistance = 2f
+        val isTurning = left != right && w + a + s + d > 0f
 
-        trackPosition.x = fract(trackPosition.x + left * visualScale)
-        trackPosition.y = fract(trackPosition.y + right * visualScale)
+        var actualRight = 0.0
+        var actualLeft = 0.0
+        for (wheel in vehicle.wheels) {
+            val isRight = wheel.steeringMultiplier > 0.0
+            val control = if (isRight) right else left
+            wheel.steering = 0.0
+            wheel.engineForce = strength * control
+            wheel.brakeForce = if (control == 0f && !isTurning) strength else 0.0
+            wheel.frictionSlip = if (isTurning) 0.01 else 0.5
+            if (isRight) actualRight += wheel.rotation
+            else actualLeft += wheel.rotation
+        }
 
-        transform.localRotation = transform.localRotation
-            .rotateY((left - right) * speed / trackDistance)
+        // wheel aren't strong enough to turn the bulldozer :/
+        // todo test whether additional invisible wheels help
+        if (isTurning) {
+            // todo do this in physics-update
+            vehicle.applyTorque(0.0, turnStrength * (left - right) / dt, 0.0)
+        }
 
-        val forward = transform.getLocalForward(1f, Vector3f())
-        transform.localPosition = transform.localPosition
-            .add(forward * ((left + right) * speed))
+        trackPosition.x = actualLeft
+        trackPosition.y = actualRight
 
         invalidateAABB()
     }
@@ -90,11 +115,56 @@ fun main() {
     val project = documents.getChild("RemsEngine/Construction")
     workspace = project
 
-    val meshFile = project.getChild("Vehicles/SM_Veh_Bulldozer_01.json")
-    val instance = PrefabCache[meshFile]!!.createInstance() as Entity
+    val physics = BulletPhysics()
+    physics.updateInEditMode = true
+    registerSystem(physics)
 
-    val trackL = getInstanceAt(instance, "e7,SM_Veh_Bulldozer_01_Track_l/e1,MeshFilter") as MeshComponent
-    val trackR = getInstanceAt(instance, "e8,SM_Veh_Bulldozer_01_Track_r/e1,MeshFilter") as MeshComponent
+    val scene = Entity("Scene")
+    if (true) {
+        Entity("Floor", scene)
+            .add(MeshComponent(plane))
+            .add(InfinitePlaneCollider())
+            .add(Rigidbody().apply { mass = 0.0 })
+            .setScale(20f)
+    } else {
+        val perlin = PerlinNoise(
+            1324, 5, 0.5f,
+            -3f, 3f, Vector4f(0.1f)
+        )
+        createTerrain(100, 100, 1f, perlin, scene)
+    }
+
+    val meshFile = project.getChild("Vehicles/SM_Veh_Bulldozer_01.json")
+    val bulldozer = PrefabCache[meshFile]!!.createInstance() as Entity
+    // todo add collision and rigidbody
+    bulldozer.add(Vehicle().apply { mass = 100.0 })
+    bulldozer.setPosition(0.0, 0.2, 0.0)
+    scene.add(bulldozer)
+
+    fun defineWheel(path: String, s: Double) {
+        val wheel = getInstanceAt(bulldozer, path) as Entity
+        wheel.add(VehicleWheel().apply {
+            radius = 0.8
+            steeringMultiplier = s
+            engineForce = 1.0
+            suspensionRestLength = 0.0
+            maxSuspensionTravel = 5.0
+            frictionSlip = 0.5 // max impulse / suspension force until the vehicle slips
+            suspensionStiffness = 100.0
+            // todo why does it start jumping when we rotate it using torque???
+            // suspensionDampingRelaxation = 0.5
+            // suspensionDampingCompression = 0.5
+            rollInfluence = 0.25
+        })
+    }
+
+    defineWheel("e9,SM_Veh_Bulldozer_01_Track_Wheel_fl", 1.0)
+    defineWheel("e10,SM_Veh_Bulldozer_01_Track_Wheel_fr", -1.0)
+    defineWheel("e12,SM_Veh_Bulldozer_01_Track_Wheel_rl", 1.0)
+    defineWheel("e13,SM_Veh_Bulldozer_01_Track_Wheel_rr", -1.0)
+
+    val trackL = getInstanceAt(bulldozer, "e7,SM_Veh_Bulldozer_01_Track_l/e1,MeshFilter") as MeshComponent
+    val trackR = getInstanceAt(bulldozer, "e8,SM_Veh_Bulldozer_01_Track_r/e1,MeshFilter") as MeshComponent
 
     fun createMaterial(trackPosition: () -> Float): FileReference {
         val baseMaterial = project.getChild("Vehicles/materials/PolygonConstruction_Mat_Track.json")
@@ -106,9 +176,9 @@ fun main() {
     }
 
     val controls = TrackVehicleControls()
-    trackL.materials = listOf(createMaterial { controls.trackPosition.x })
-    trackR.materials = listOf(createMaterial { controls.trackPosition.y })
-    instance.add(controls)
+    trackL.materials = listOf(createMaterial { fract(controls.trackPosition.x).toFloat() })
+    trackR.materials = listOf(createMaterial { fract(controls.trackPosition.y).toFloat() })
+    bulldozer.add(controls)
 
-    testSceneWithUI("Tracks", instance)
+    testSceneWithUI("Tracks", scene)
 }

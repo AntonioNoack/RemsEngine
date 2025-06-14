@@ -14,81 +14,79 @@ import com.bulletphysics.util.setSub
  */
 class WheelInfo(ci: WheelInfoConstructionInfo) {
     @JvmField
-    val raycastInfo: RaycastInfo = RaycastInfo()
+    val raycastInfo = RaycastInfo()
 
     @JvmField
-    val worldTransform: Transform = Transform()
+    val worldTransform = Transform()
 
     @JvmField
-    val chassisConnectionPointCS: Vector3d = Vector3d()
+    val chassisConnectionPointCS = Vector3d()
 
     @JvmField
-    val wheelDirectionCS: Vector3d = Vector3d()
+    val wheelDirectionCS = Vector3d()
 
     @JvmField
-    val wheelAxleCS: Vector3d = Vector3d() // const or modified by steering
+    val wheelAxleCS = Vector3d() // const or modified by steering
 
     @JvmField
-    var suspensionRestLength: Double = ci.suspensionRestLength
+    var suspensionRestLength = ci.suspensionRestLength
 
     @JvmField
-    var maxSuspensionTravelCm: Double = ci.maxSuspensionTravelCm
+    var maxSuspensionTravel = ci.maxSuspensionTravel
 
     @JvmField
-    var wheelRadius: Double = ci.wheelRadius
+    var wheelRadius = ci.wheelRadius
 
     @JvmField
-    var suspensionStiffness: Double = ci.suspensionStiffness
+    var suspensionStiffness = ci.suspensionStiffness
 
     @JvmField
-    var wheelDampingCompression: Double = ci.wheelsDampingCompression
+    var wheelDampingCompression = ci.wheelsDampingCompression
 
     @JvmField
-    var wheelDampingRelaxation: Double = ci.wheelsDampingRelaxation
+    var wheelDampingRelaxation = ci.wheelsDampingRelaxation
 
     @JvmField
-    var frictionSlip: Double = ci.frictionSlip
+    var frictionSlip = ci.frictionSlip
 
     @JvmField
-    var steering: Double = 0.0
+    var steering = 0.0
 
     @JvmField
-    var rotation: Double = 0.0
+    var rotation = 0.0
 
     @JvmField
-    var deltaRotation: Double = 0.0
+    var deltaRotation = 0.0
 
     @JvmField
-    var rollInfluence: Double = 0.1
+    var rollInfluence = 0.1
 
     @JvmField
-    var engineForce: Double = 0.0
+    var engineForce = 0.0
 
     @JvmField
-    var brake: Double = 0.0
+    var brake = 0.0
 
-    var bIsFrontWheel: Boolean
-
+    // set to me.anno.bullet.VehicleWheel
     var clientInfo: Any? = null // can be used to store pointer to sync transforms...
 
     @JvmField
-    var clippedInvContactDotSuspension: Double = 0.0
+    var clippedInvContactDotSuspension = 0.0
 
     @JvmField
-    var suspensionRelativeVelocity: Double = 0.0
+    var suspensionRelativeVelocity = 0.0
 
     // calculated by suspension
     @JvmField
-    var wheelsSuspensionForce: Double = 0.0
+    var wheelsSuspensionForce = 0.0
 
     @JvmField
-    var skidInfo: Double = 0.0
+    var skidInfo = 0.0
 
     init {
         chassisConnectionPointCS.set(ci.chassisConnectionCS)
         wheelDirectionCS.set(ci.wheelDirectionCS)
         wheelAxleCS.set(ci.wheelAxleCS)
-        bIsFrontWheel = ci.bIsFrontWheel
     }
 
     @Suppress("unused")
@@ -120,25 +118,25 @@ class WheelInfo(ci: WheelInfoConstructionInfo) {
     class RaycastInfo {
         // set by raycaster
         @JvmField
-        val contactNormalWS: Vector3d = Vector3d() // contactnormal
+        val contactNormalWS = Vector3d()
 
         @JvmField
-        val contactPointWS: Vector3d = Vector3d() // raycast hitpoint
+        val contactPointWS = Vector3d() // raycast hit point
 
         @JvmField
         var suspensionLength: Double = 0.0
 
         @JvmField
-        val hardPointWS: Vector3d = Vector3d() // raycast starting point
+        val hardPointWS = Vector3d() // raycast starting point
 
         @JvmField
-        val wheelDirectionWS: Vector3d = Vector3d() // direction in worldspace
+        val wheelDirectionWS = Vector3d() // direction in worldSpace
 
         @JvmField
-        val wheelAxleWS: Vector3d = Vector3d() // axle in worldspace
+        val wheelAxleWS = Vector3d() // axle in worldSpace
 
         @JvmField
-        var isInContact: Boolean = false
+        var isInContact = false
 
         @JvmField
         var groundObject: RigidBody? = null

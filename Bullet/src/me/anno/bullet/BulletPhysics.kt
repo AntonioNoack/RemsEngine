@@ -36,7 +36,6 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
@@ -152,7 +151,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         tuning.suspensionDamping = vehicleComp.suspensionDamping
         tuning.suspensionStiffness = vehicleComp.suspensionStiffness
         tuning.suspensionCompression = vehicleComp.suspensionCompression
-        tuning.maxSuspensionTravelCm = vehicleComp.maxSuspensionTravelCm
+        tuning.maxSuspensionTravel = vehicleComp.maxSuspensionTravelCm
         val world = bulletInstance
         val raycaster = DefaultVehicleRaycaster(world)
         val vehicle = RaycastVehicle(tuning, body, raycaster)
@@ -354,14 +353,15 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val scale = JomlPools.vec3d.create()
         scale.set(1.0)
         for ((_, v) in raycastVehicles) {
-            val wheelInfos = v.wheelInfo
+            val wheelInfos = v.wheels
             for (i in wheelInfos.indices) {
-                val wheel = v.getWheelInfo(i).clientInfo as? VehicleWheel ?: continue
+                val wheelInfo = wheelInfos[i]
+                val wheel = wheelInfo.clientInfo as? VehicleWheel ?: continue
                 val entity = wheel.entity ?: continue
                 val dst = entity.transform
                 val dstTransform = dst.globalTransform
                 // todo use correct scale
-                val tr = wheelInfos[i].worldTransform
+                val tr = wheelInfo.worldTransform
                 transformToMat4x3(tr, scale, dstTransform)
                 dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
             }

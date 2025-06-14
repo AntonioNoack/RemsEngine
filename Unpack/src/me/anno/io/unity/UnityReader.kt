@@ -610,12 +610,12 @@ object UnityReader {
         }
 
         var nodeCount = 0
-        var firstNode: FileReference? = null
+        lateinit var lastNode: FileReference
 
         // first the members all need to be registered as files
         forAllUnityObjects(root) { fileId, node ->
             nodeCount++
-            firstNode = folder.getOrPut(fileId) {
+            lastNode = folder.getOrPut(fileId) {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
                 file.hide()
@@ -652,8 +652,9 @@ object UnityReader {
         val sceneFile = folder.getOrPut("Scene.json") {
             val absolutePath = folder.absolutePath + "/Scene.json"
             if (nodeCount == 1) {
-                InnerLinkFile(absolutePath, "Scene.json", folder, firstNode!!)
+                InnerLinkFile(absolutePath, "Scene.json", folder, lastNode)
             } else {
+                // children will be added later
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(absolutePath, "Scene.json", folder, prefab)
                 prefab.sourceFile = file

@@ -57,6 +57,15 @@ object TransformMesh {
         return this
     }
 
+    fun Mesh.rotateY90DegreesImpl(): Mesh {
+        unlinkPositionsAndNormals()
+        rotateY90Degrees(positions, 3)
+        rotateY90Degrees(normals, 3)
+        rotateY90Degrees(tangents, 4)
+        invalidateGeometry()
+        return this
+    }
+
     fun rotateX90Degrees(src: FloatArray?, stride: Int) {
         src ?: return
         forLoopSafely(src.size, stride) { i ->
@@ -64,6 +73,16 @@ object TransformMesh {
             val z = src[i + 2]
             src[i + 1] = -z
             src[i + 2] = y
+        }
+    }
+
+    fun rotateY90Degrees(src: FloatArray?, stride: Int) {
+        src ?: return
+        forLoopSafely(src.size, stride) { i ->
+            val x = src[i]
+            val z = src[i + 2]
+            src[i] = z
+            src[i + 2] = -x
         }
     }
 
