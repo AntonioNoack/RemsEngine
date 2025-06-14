@@ -89,21 +89,8 @@ abstract class CollisionShape {
         )
     }
 
-    val isPolyhedral: Boolean
-        get() = this.shapeType.isPolyhedral
-
-    val isConvex: Boolean
-        get() = this.shapeType.isConvex
-
-    val isConcave: Boolean
-        get() = this.shapeType.isConcave
-
     val isCompound: Boolean
-        get() = this.shapeType.isCompound
-
-    /**isInfinite is used to catch simulation error (aabb check) */
-    val isInfinite: Boolean
-        get() = this.shapeType.isInfinite
+        get() = shapeType.isCompound
 
     abstract val shapeType: BroadphaseNativeType
 

@@ -1,0 +1,252 @@
+/*
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+*/
+package com.bulletphysics.collision.shapes
+
+import com.bulletphysics.collision.broadphase.BroadphaseNativeType
+import com.bulletphysics.linearmath.AabbUtil
+import com.bulletphysics.linearmath.Transform
+import cz.advel.stack.Stack
+import me.anno.ecs.components.collider.Axis
+import me.anno.maths.Maths.clamp
+import me.anno.utils.assertions.assertTrue
+import me.anno.utils.types.Floats.toIntOr
+import org.joml.Vector3d
+import org.joml.Vector3i
+import kotlin.math.max
+import kotlin.math.min
+
+/**
+ *
+ * */
+class HeightMapShape : ConcaveShape() {
+
+    var width = 2 // > 1
+    var length = 2 // > 1
+
+    // FloatArray|ShortArray
+    lateinit var heightData: Any
+
+    var minHeight = 0.0
+    var maxHeight = 1.0
+
+    var heightScale = 1.0
+
+    var upAxis = Axis.Y
+
+    // var hdt = 0.1 // height type aka Floats/Shorts/...
+    var flipQuadEdges = false // todo what is that???
+
+    var useDiamondSubdivision = false
+    var useZigzagSubdivision = false
+
+    val localScaling = Vector3d(1.0)
+
+    val localAabbMin = Vector3d()
+    val localAabbMax = Vector3d()
+
+    // center
+    val localOrigin = Vector3d()
+
+    fun defineBounds() {
+        heightScale = (maxHeight - minHeight) / 65535.0
+        when (upAxis) {
+            Axis.X -> {
+                localAabbMin.set(minHeight, 0.0, 0.0)
+                localAabbMax.set(maxHeight, width.toDouble(), length.toDouble())
+            }
+            Axis.Y -> {
+                localAabbMin.set(0.0, minHeight, 0.0)
+                localAabbMax.set(width.toDouble(), maxHeight, length.toDouble())
+            }
+            Axis.Z -> {
+                localAabbMin.set(0.0, 0.0, minHeight)
+                localAabbMax.set(width.toDouble(), length.toDouble(), maxHeight)
+            }
+        }
+        localAabbMax.add(localAabbMin, localOrigin).mul(0.5)
+    }
+
+    override fun getAabb(t: Transform, aabbMin: Vector3d, aabbMax: Vector3d) {
+        val localMin = Stack.newVec()
+        val localMax = Stack.newVec()
+
+        localAabbMin.sub(localOrigin, localMin).mul(localScaling)
+        localAabbMax.sub(localOrigin, localMax).mul(localScaling)
+
+        AabbUtil.transformAabb(
+            localMin, localMax,
+            margin, t, aabbMin, aabbMax
+        )
+
+        Stack.subVec(2)
+    }
+
+    /**
+     * This returns the "raw" (user's initial) height, not the actual height.
+     * The actual height needs to be adjusted to be relative to the center of the heightfield's AABB.
+     * */
+    fun getRawHeightFieldValue(x: Int, y: Int): Double {
+        // float wouldn't need heightScale
+        val index = y * width + x
+        val heightData = heightData
+        return when (heightData) {
+            is FloatArray -> heightData[index].toDouble()
+            is ShortArray -> heightData[index].toInt().and(0xffff) * heightScale + minHeight
+            else -> throw NotImplementedError()
+        }
+    }
+
+    /**
+     * returns the vertex in bullet-local coordinates
+     * */
+    private fun getVertex(x: Int, y: Int, dst: Vector3d) {
+        assertTrue(x in 0 until width)
+        assertTrue(y in 0 until length)
+        val xf = x - width * 0.5
+        val yf = y - length * 0.5
+        val hf = getRawHeightFieldValue(x, y)
+        when (upAxis) {
+            Axis.X -> dst.set(hf, xf, yf)
+            Axis.Y -> dst.set(xf, hf, yf)
+            Axis.Z -> dst.set(xf, yf, hf)
+        }
+        dst.mul(localScaling)
+    }
+
+    private fun getQuantized(x: Double): Int {
+        val value = if (x < 0.0) x - 0.5 else x + 0.5
+        return value.toIntOr()
+    }
+
+    /**
+     * This routine is basically determining the gridpoint indices for a given
+     * input vector, answering the question: "which gridpoint is closest to the
+     * provided point?".
+     *
+     * "with clamp" means that we restrict the point to be in the heightfield's
+     * axis-aligned bounding box.
+     */
+    private fun quantizeWithClamp(dst: Vector3i, point: Vector3d) {
+        val vx = clamp(point.x, localAabbMin.x, localAabbMax.x)
+        val vy = clamp(point.y, localAabbMin.y, localAabbMax.y)
+        val vz = clamp(point.z, localAabbMin.z, localAabbMax.z)
+        dst.set(getQuantized(vx), getQuantized(vy), getQuantized(vz))
+    }
+
+    /**
+     * process all triangles within the provided axis-aligned bounding box
+     * basic algorithm:
+     * - convert input aabb to local coordinates (scale down and shift for local origin)
+     * - convert input aabb to a range of heightfield grid points (quantize)
+     * - iterate over all triangles in that subset of the grid
+     */
+    override fun processAllTriangles(callback: TriangleCallback, aabbMin: Vector3d, aabbMax: Vector3d) {
+        // scale down the input aabb's so they are in local (non-scaled) coordinates
+        val localAabbMin = aabbMin.div(localScaling, Stack.newVec())
+        val localAabbMax = aabbMax.div(localScaling, Stack.newVec())
+
+        // account for local origin
+        localAabbMin.add(localOrigin)
+        localAabbMax.add(localOrigin)
+
+        // quantize the aabbMin and aabbMax, and adjust the start/end ranges
+        val quantizedAabbMin = Vector3i()
+        val quantizedAabbMax = Vector3i()
+        quantizeWithClamp(quantizedAabbMin, localAabbMin)
+        quantizeWithClamp(quantizedAabbMax, localAabbMax)
+
+        // expand the min/max quantized values
+        // this is to catch the case where the input aabb falls between grid points!
+        quantizedAabbMin.sub(1, 1, 1)
+        quantizedAabbMax.add(1, 1, 1)
+
+        var startX = 0
+        var endX = width - 1
+        var startJ = 0
+        var endJ = length - 1
+
+        when (upAxis) {
+            Axis.X -> {
+                startX = max(startX, quantizedAabbMin.y)
+                endX = min(endX, quantizedAabbMax.y)
+                startJ = max(startJ, quantizedAabbMin.z)
+                endJ = min(endJ, quantizedAabbMax.z)
+            }
+            Axis.Y -> {
+                startX = max(startX, quantizedAabbMin.x)
+                endX = min(endX, quantizedAabbMax.x)
+                startJ = max(startJ, quantizedAabbMin.z)
+                endJ = min(endJ, quantizedAabbMax.z)
+            }
+            Axis.Z -> {
+                startX = max(startX, quantizedAabbMin.x)
+                endX = min(endX, quantizedAabbMax.x)
+                startJ = max(startJ, quantizedAabbMin.y)
+                endJ = min(endJ, quantizedAabbMax.y)
+            }
+        }
+
+        val vertex0 = Stack.newVec()
+        val vertex1 = Stack.newVec()
+        val vertex2 = Stack.newVec()
+        val triangle = arrayOf(vertex0, vertex1, vertex2)
+        for (j in startJ until endJ) {
+            for (x in startX until endX) {
+                if (flipQuadEdges ||
+                    (useDiamondSubdivision && ((j + x) and 1) == 0) ||
+                    (useZigzagSubdivision && (j and 1) == 0)
+                ) {
+                    // first triangle
+                    getVertex(x, j, vertex0)
+                    getVertex(x + 1, j, vertex1)
+                    getVertex(x + 1, j + 1, vertex2)
+                    callback.processTriangle(triangle, x, j)
+                    // second triangle
+                    // getVertex(x, j, vertex0) // stays the same, thanks to Danny Chapman
+                    getVertex(x + 1, j + 1, vertex1)
+                    getVertex(x, j + 1, vertex2)
+                    callback.processTriangle(triangle, x, j)
+                } else {
+                    // first triangle
+                    getVertex(x, j, vertex0)
+                    getVertex(x, j + 1, vertex1)
+                    getVertex(x + 1, j, vertex2)
+                    callback.processTriangle(triangle, x, j)
+                    // second triangle
+                    getVertex(x + 1, j, vertex0)
+                    // getVertex(x , j + 1, vertex1) // stays the same
+                    getVertex(x + 1, j + 1, vertex2)
+                    callback.processTriangle(triangle, x, j)
+                }
+            }
+        }
+    }
+
+    override fun calculateLocalInertia(mass: Double, inertia: Vector3d) {
+        // moving concave objects not supported
+        inertia.set(0.0)
+    }
+
+    override fun getLocalScaling(out: Vector3d): Vector3d {
+        return out.set(localScaling)
+    }
+
+    override fun setLocalScaling(scaling: Vector3d) {
+        localScaling.set(scaling)
+    }
+
+    override val shapeType: BroadphaseNativeType
+        get() = BroadphaseNativeType.TERRAIN_SHAPE_PROXYTYPE
+}

@@ -6,6 +6,7 @@ import com.bulletphysics.collision.broadphase.DispatcherInfo
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.narrowphase.SubSimplexConvexCast
 import com.bulletphysics.collision.shapes.ConcaveShape
+import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.collision.shapes.TriangleShape
@@ -13,9 +14,9 @@ import com.bulletphysics.linearmath.Transform
 import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
 import com.bulletphysics.util.ObjectPool
+import com.bulletphysics.util.setSub
 import cz.advel.stack.Stack
 import org.joml.Vector3d
-import com.bulletphysics.util.setSub
 
 /**
  * ConvexConcaveCollisionAlgorithm supports collision between convex shapes
@@ -24,21 +25,22 @@ import com.bulletphysics.util.setSub
  * @author jezek2
  */
 class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
+
     private var isSwapped = false
-    private var btConvexTriangleCallback: ConvexTriangleCallback? = null
+    private var triangleCallback: ConvexTriangleCallback? = null
 
     fun init(
         ci: CollisionAlgorithmConstructionInfo,
-        body0: CollisionObject, body1: CollisionObject, 
+        body0: CollisionObject, body1: CollisionObject,
         isSwapped: Boolean
     ) {
         super.init(ci)
         this.isSwapped = isSwapped
-        this.btConvexTriangleCallback = ConvexTriangleCallback(dispatcher!!, body0, body1, isSwapped)
+        this.triangleCallback = ConvexTriangleCallback(dispatcher!!, body0, body1, isSwapped)
     }
 
     override fun destroy() {
-        btConvexTriangleCallback!!.destroy()
+        triangleCallback!!.destroy()
     }
 
     override fun processCollision(
@@ -50,27 +52,26 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         val convexBody = if (isSwapped) body1 else body0
         val triBody = if (isSwapped) body0 else body1
 
-        if (triBody.collisionShape!!.isConcave) {
-            val concaveShape = triBody.collisionShape as ConcaveShape?
+        val concaveShape = triBody.collisionShape as? ConcaveShape ?: return
+        val callback = triangleCallback ?: return
+        if (convexBody.collisionShape is ConvexShape) {
 
-            if (convexBody.collisionShape!!.isConvex) {
-                val collisionMarginTriangle = concaveShape!!.margin
+            val collisionMarginTriangle = concaveShape.margin
 
-                resultOut.persistentManifold = btConvexTriangleCallback!!.manifoldPtr
-                btConvexTriangleCallback!!.setTimeStepAndCounters(collisionMarginTriangle, dispatchInfo, resultOut)
+            resultOut.persistentManifold = callback.manifoldPtr
+            callback.setTimeStepAndCounters(collisionMarginTriangle, dispatchInfo, resultOut)
 
-                // Disable persistency. previously, some older algorithm calculated all contacts in one go, so you can clear it here.
-                //m_dispatcher->clearManifold(m_btConvexTriangleCallback.m_manifoldPtr);
-                btConvexTriangleCallback!!.manifoldPtr.setBodies(convexBody, triBody)
+            // Disable persistency. previously, some older algorithm calculated all contacts in one go, so you can clear it here.
+            //m_dispatcher->clearManifold(m_btConvexTriangleCallback.m_manifoldPtr);
+            callback.manifoldPtr.setBodies(convexBody, triBody)
 
-                concaveShape.processAllTriangles(
-                    btConvexTriangleCallback!!,
-                    btConvexTriangleCallback!!.getAabbMin(Stack.newVec()),
-                    btConvexTriangleCallback!!.getAabbMax(Stack.newVec())
-                )
+            concaveShape.processAllTriangles(
+                callback,
+                callback.getAabbMin(Stack.newVec()),
+                callback.getAabbMax(Stack.newVec())
+            )
 
-                resultOut.refreshContactPoints()
-            }
+            resultOut.refreshContactPoints()
         }
     }
 
@@ -82,19 +83,19 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
     ): Double {
         val tmp = Stack.newVec()
 
-        val convexbody = if (isSwapped) body1 else body0
-        val triBody = if (isSwapped) body0 else body1
+        val convexBody = if (isSwapped) body1 else body0
+        val concaveBody = if (isSwapped) body0 else body1
 
         // quick approximation using raycast, todo: hook up to the continuous collision detection (one of the btConvexCast)
 
         // only perform CCD above a certain threshold, this prevents blocking on the long run
         // because object in a blocked ccd state (hitfraction<1) get their linear velocity halved each frame...
         tmp.setSub(
-            convexbody.getInterpolationWorldTransform(Stack.newTrans()).origin,
-            convexbody.getWorldTransform(Stack.newTrans()).origin
+            convexBody.getInterpolationWorldTransform(Stack.newTrans()).origin,
+            convexBody.getWorldTransform(Stack.newTrans()).origin
         )
         val squareMot0 = tmp.lengthSquared()
-        if (squareMot0 < convexbody.ccdSquareMotionThreshold) {
+        if (squareMot0 < convexBody.ccdSquareMotionThreshold) {
             return 1.0
         }
 
@@ -103,23 +104,24 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         //const btVector3& from = convexbody->m_worldTransform.getOrigin();
         //btVector3 to = convexbody->m_interpolationWorldTransform.getOrigin();
         //todo: only do if the motion exceeds the 'radius'
-        val triInv = triBody.getWorldTransform(Stack.newTrans())
+        val triInv = concaveBody.getWorldTransform(Stack.newTrans())
         triInv.inverse()
 
         val convexFromLocal = Stack.newTrans()
-        convexFromLocal.mul(triInv, convexbody.getWorldTransform(tmpTrans))
+        convexFromLocal.mul(triInv, convexBody.getWorldTransform(tmpTrans))
 
         val convexToLocal = Stack.newTrans()
-        convexToLocal.mul(triInv, convexbody.getInterpolationWorldTransform(tmpTrans))
+        convexToLocal.mul(triInv, convexBody.getInterpolationWorldTransform(tmpTrans))
 
-        if (triBody.collisionShape!!.isConcave) {
+        val concaveShape = concaveBody.collisionShape
+        if (concaveShape is ConcaveShape) {
             val rayAabbMin = Stack.newVec(convexFromLocal.origin)
             setMin(rayAabbMin, convexToLocal.origin)
 
             val rayAabbMax = Stack.newVec(convexFromLocal.origin)
             setMax(rayAabbMax, convexToLocal.origin)
 
-            val ccdRadius0 = convexbody.ccdSweptSphereRadius
+            val ccdRadius0 = convexBody.ccdSweptSphereRadius
 
             tmp.set(ccdRadius0, ccdRadius0, ccdRadius0)
             rayAabbMin.sub(tmp)
@@ -128,19 +130,15 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
             val curHitFraction = 1.0 // is this available?
             val raycastCallback = LocalTriangleSphereCastCallback(
                 convexFromLocal, convexToLocal,
-                convexbody.ccdSweptSphereRadius, curHitFraction
+                convexBody.ccdSweptSphereRadius, curHitFraction
             )
 
-            raycastCallback.hitFraction = convexbody.hitFraction
+            raycastCallback.hitFraction = convexBody.hitFraction
 
-            val triangleMesh = triBody.collisionShape as ConcaveShape?
+            concaveShape.processAllTriangles(raycastCallback, rayAabbMin, rayAabbMax)
 
-            if (triangleMesh != null) {
-                triangleMesh.processAllTriangles(raycastCallback, rayAabbMin, rayAabbMax)
-            }
-
-            if (raycastCallback.hitFraction < convexbody.hitFraction) {
-                convexbody.hitFraction = raycastCallback.hitFraction
+            if (raycastCallback.hitFraction < convexBody.hitFraction) {
+                convexBody.hitFraction = raycastCallback.hitFraction
                 return raycastCallback.hitFraction
             }
         }
@@ -149,11 +147,11 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
     }
 
     override fun getAllContactManifolds(manifoldArray: ArrayList<PersistentManifold>) {
-        manifoldArray.add(btConvexTriangleCallback!!.manifoldPtr)
+        manifoldArray.add(triangleCallback!!.manifoldPtr)
     }
 
     fun clearCache() {
-        btConvexTriangleCallback!!.clearCache()
+        triangleCallback!!.clearCache()
     }
 
     /** ///////////////////////////////////////////////////////////////////////// */

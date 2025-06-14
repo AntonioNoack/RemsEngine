@@ -577,16 +577,15 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             val pointShape = SphereShape(0.0)
             pointShape.margin = 0.0
 
-            if (collisionShape.isConvex) {
+            if (collisionShape is ConvexShape) {
                 val castResult = Stack.newCastResult()
                 castResult.fraction = resultCallback.closestHitFraction
 
-                val convexShape = collisionShape as ConvexShape
                 val simplexSolver = Stack.newVSS()
 
                 //#define USE_SUBSIMPLEX_CONVEX_CAST 1
                 //#ifdef USE_SUBSIMPLEX_CONVEX_CAST
-                val convexCaster = SubSimplexConvexCast(pointShape, convexShape, simplexSolver)
+                val convexCaster = SubSimplexConvexCast(pointShape, collisionShape, simplexSolver)
 
                 //#else
                 //btGjkConvexCast	convexCaster(castShape,convexShape,&simplexSolver);
@@ -622,7 +621,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 Stack.subVSS(1)
                 Stack.subCastResult(1)
             } else {
-                if (collisionShape.isConcave) {
+                if (collisionShape is ConcaveShape) {
                     if (collisionShape.shapeType == BroadphaseNativeType.TRIANGLE_MESH_SHAPE_PROXYTYPE) {
                         // optimized version for BvhTriangleMeshShape
                         val triangleMesh = collisionShape as BvhTriangleMeshShape
@@ -675,13 +674,12 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     }
                 } else {
                     // todo: use AABB tree or other BVH acceleration structure!
-                    if (collisionShape.isCompound) {
-                        val compoundShape = collisionShape as CompoundShape
+                    if (collisionShape is CompoundShape) {
                         val childTrans = Stack.newTrans()
                         val childWorldTrans = Stack.newTrans()
-                        for (i in 0 until compoundShape.numChildShapes) {
-                            compoundShape.getChildTransform(i, childTrans)
-                            val childCollisionShape = compoundShape.getChildShape(i)
+                        for (i in 0 until collisionShape.numChildShapes) {
+                            collisionShape.getChildTransform(i, childTrans)
+                            val childCollisionShape = collisionShape.getChildShape(i)
                             childWorldTrans.mul(colObjWorldTransform, childTrans)
                             // replace collision shape so that callback can determine the triangle
                             val saveCollisionShape = collisionObject.collisionShape
@@ -716,7 +714,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
             resultCallback: ConvexResultCallback,
             allowedPenetration: Double
         ) {
-            if (collisionShape.isConvex) {
+            if (collisionShape is ConvexShape) {
                 val castResult = Stack.newCastResult()
                 castResult.allowedPenetration = allowedPenetration
                 castResult.fraction = 1.0 // ??
@@ -724,7 +722,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 // JAVA TODO: should be convexCaster1
                 //ContinuousConvexCollision convexCaster1(castShape,convexShape,&simplexSolver,&gjkEpaPenetrationSolver);
                 //btSubsimplexConvexCast convexCaster3(castShape,convexShape,&simplexSolver);
-                val castPtr: ConvexCast = Stack.newGjkCC(castShape, collisionShape as ConvexShape)
+                val castPtr: ConvexCast = Stack.newGjkCC(castShape, collisionShape)
                 if (castPtr.calcTimeOfImpact(
                         convexFromTrans,
                         convexToTrans,
@@ -750,7 +748,7 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 }
                 Stack.subCastResult(1)
                 Stack.subGjkCC(1)
-            } else if (collisionShape.isConcave) {
+            } else if (collisionShape is ConcaveShape) {
                 if (collisionShape.shapeType == BroadphaseNativeType.TRIANGLE_MESH_SHAPE_PROXYTYPE) {
                     val triangleMesh = collisionShape as BvhTriangleMeshShape
                     val worldToCollisionObject = Stack.newTrans()
@@ -828,15 +826,14 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 }
             } else {
                 // todo: use AABB tree or other BVH acceleration structure!
-                if (collisionShape.isCompound) {
-                    val compoundShape = collisionShape as CompoundShape
+                if (collisionShape is CompoundShape) {
                     val childWorldTrans = Stack.newTrans()
                     val childTrans = Stack.newTrans()
                     var i = 0
-                    val len = compoundShape.numChildShapes
+                    val len = collisionShape.numChildShapes
                     while (i < len) {
-                        compoundShape.getChildTransform(i, childTrans)
-                        val childCollisionShape = compoundShape.getChildShape(i)
+                        collisionShape.getChildTransform(i, childTrans)
+                        val childCollisionShape = collisionShape.getChildShape(i)
                         childWorldTrans.mul(colObjWorldTransform, childTrans)
                         // replace collision shape so that callback can determine the triangle
                         val saveCollisionShape = collisionObject.collisionShape

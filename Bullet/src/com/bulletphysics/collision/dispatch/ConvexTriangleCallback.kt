@@ -3,6 +3,7 @@ package com.bulletphysics.collision.dispatch
 import com.bulletphysics.collision.broadphase.CollisionAlgorithmConstructionInfo
 import com.bulletphysics.collision.broadphase.Dispatcher
 import com.bulletphysics.collision.broadphase.DispatcherInfo
+import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.collision.shapes.TriangleShape
 import cz.advel.stack.Stack
@@ -109,8 +110,9 @@ internal class ConvexTriangleCallback(
             dispatchInfoPtr!!.debugDraw!!.drawLine(tmp1, tmp2, color)
         }
 
-        if (convexBody.collisionShape!!.isConvex) {
-            tm.init(triangle[0]!!, triangle[1]!!, triangle[2]!!)
+        val convexShape = convexBody.collisionShape
+        if (convexShape is ConvexShape) {
+            tm.init(triangle[0], triangle[1], triangle[2])
             tm.margin = collisionMarginTriangle
 
             val tmpShape = ob.collisionShape

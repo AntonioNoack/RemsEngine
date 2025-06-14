@@ -101,28 +101,28 @@ class AABB {
         center.setAdd(max, min)
         center.mul(0.5)
 
-        val extents_ = Stack.newVec()
-        extents_.setSub(max, center)
+        val extents = Stack.newVec()
+        extents.setSub(max, center)
 
         // Compute new center
         trans.transform(center)
 
-        val textents = Stack.newVec()
+        val transformedExtents = Stack.newVec()
 
         trans.basis.getRow(0, tmp)
         tmp.absolute()
-        textents.x = extents_.dot(tmp)
+        transformedExtents.x = extents.dot(tmp)
 
         trans.basis.getRow(1, tmp)
         tmp.absolute()
-        textents.y = extents_.dot(tmp)
+        transformedExtents.y = extents.dot(tmp)
 
         trans.basis.getRow(2, tmp)
         tmp.absolute()
-        textents.z = extents_.dot(tmp)
+        transformedExtents.z = extents.dot(tmp)
 
-        min.setSub(center, textents)
-        max.setAdd(center, textents)
+        min.setSub(center, transformedExtents)
+        max.setAdd(center, transformedExtents)
 
         Stack.subVec(4)
     }

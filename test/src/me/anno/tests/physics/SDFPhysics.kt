@@ -72,7 +72,6 @@ fun main() {
             // convex sdf collisions shapes look quite good now :)
             // todo scaled convex shapes don't work correctly, looks as if it wasn't scaled
 
-            println("${shape.isConvex}, ${shape.isConvex}, ${shape.isCompound}, ${shape.isPolyhedral}, ${shape.isInfinite}")
             val min = Vector3d()
             val max = Vector3d()
             val tr = Transform()

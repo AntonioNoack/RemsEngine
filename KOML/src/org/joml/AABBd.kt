@@ -11,9 +11,18 @@ class AABBd(
     var maxX: Double, var maxY: Double, var maxZ: Double
 ) : Vector {
 
-    constructor(base: AABBd) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
-    constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
-    constructor() : this(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
+    constructor(base: AABBd) :
+            this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
+
+    constructor(min: Double, max: Double) :
+            this(min, min, min, max, max, max)
+
+    constructor(min: Vector3d, max: Vector3d) :
+            this(min.x, min.y, min.z, max.x, max.y, max.z)
+
+    constructor() :
+            this(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
+
     constructor(base: AABBf) : this() {
         set(base)
     }

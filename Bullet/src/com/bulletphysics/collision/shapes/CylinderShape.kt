@@ -7,6 +7,7 @@ import com.bulletphysics.linearmath.VectorUtil
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import com.bulletphysics.util.setScaleAdd
+import me.anno.ecs.components.collider.Axis
 import kotlin.math.sqrt
 
 /**
@@ -15,7 +16,7 @@ import kotlin.math.sqrt
  *
  * @author jezek2
  */
-open class CylinderShape(halfExtents: Vector3d, var upAxis: Int) : BoxShape(halfExtents) {
+open class CylinderShape(halfExtents: Vector3d, val upAxis: Axis) : BoxShape(halfExtents) {
 
     init {
         recalculateLocalAabb()
@@ -106,7 +107,7 @@ open class CylinderShape(halfExtents: Vector3d, var upAxis: Int) : BoxShape(half
         get() {
             val tmp = Stack.newVec()
             getHalfExtentsWithMargin(tmp)
-            val r = if (upAxis != 0) tmp.x else tmp.y
+            val r = if (upAxis != Axis.X) tmp.x else tmp.y
             Stack.subVec(1)
             return r
         }

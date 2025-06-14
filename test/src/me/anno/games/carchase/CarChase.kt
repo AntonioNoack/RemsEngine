@@ -10,7 +10,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.collider.MeshCollider
-import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.player.LocalPlayer
@@ -67,20 +66,17 @@ val carModelMat = heistPackage.getChild("Materials/PolygonHeist_Character_Materi
 
 fun createUI(): Panel {
 
-    val list = NineTilePanel(style)
-
-    val world = Entity()
-    world.add(Skybox())
-    val physics = BulletPhysics()
-    physics.updateInEditMode = true
-    physics.synchronousPhysics = true
+    val physics = BulletPhysics().apply {
+        updateInEditMode = true
+        synchronousPhysics = true
+    }
     Systems.registerSystem(physics)
 
-    val floor = Entity()
-    floor.add(MeshComponent(map))
-    floor.add(MeshCollider(map).apply { isConvex = false })
-    floor.add(Rigidbody().apply { mass = 0.0 })
-    world.add(floor)
+    val world = Entity()
+    Entity("Floor", world)
+        .add(MeshComponent(map))
+        .add(MeshCollider(map).apply { isConvex = false })
+        .add(Rigidbody().apply { mass = 0.0 })
 
     val car0 = Entity()
     val car1 = Entity()
@@ -144,16 +140,17 @@ fun createUI(): Panel {
     // add four wheels :)
     for (x in listOf(-1, +1)) {
         for (z in listOf(-1, +1)) {
+            val wheel = VehicleWheel().apply {
+                suspensionRestLength = 0.1
+                suspensionStiffness = 50.0
+                suspensionDampingRelaxation = 0.95
+                maxSuspensionTravelCm = 20.0
+                brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
+                radius = 0.42678
+            }
             val wheelObj = Entity()
-            val wheel = VehicleWheel()
-            wheel.suspensionRestLength = 0.1
-            wheel.suspensionStiffness = 50.0
-            wheel.suspensionDampingRelaxation = 0.95
-            wheel.maxSuspensionTravelCm = 20.0
-            wheel.brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
-            wheelObj.add(wheel)
-            wheel.radius = 0.42678
-            wheelObj.setPosition(x * 0.9, -0.3, if (z > 0) 1.58 else -1.48)
+                .add(wheel)
+                .setPosition(x * 0.9, -0.3, if (z > 0) 1.58 else -1.48)
             val wheelMesh = Entity()
             wheelMesh.add(MeshComponent(carModelFL).apply { materials = materialList })
             if (x > 0) {
@@ -174,25 +171,24 @@ fun createUI(): Panel {
     val renderView = sceneView.renderView
     renderView.localPlayer = player
     sceneView.weight = 1f
+
+    val list = NineTilePanel(style)
     list.add(sceneView)
 
     val camEntity = Entity()
-    val camBase = Entity()
     val camera = Camera()
-    camera.use()
-    camera.use()
-
     // orbit controls for the camera around the car :)
     camEntity.add(camera)
+        .setRotation(0f, PIf, 0f)
     val orbitControls = object : OrbitControls(), OnUpdate {
         override fun onUpdate() {
             if (Input.isKeyDown('R')) {
                 // reset car
                 // todo not working: can we rotate the car towards upwards? :)
-                /*val tr = vehicle.transform!!
-                tr.globalRotation = tr.globalRotation.identity()
-                tr.globalPosition = tr.globalPosition.set(0.0, 1.0, 0.0)
-                vehicle.invalidatePhysics()*/
+                val tr = vehicle.transform!!
+                tr.localRotation = tr.localRotation.identity()
+                tr.localPosition = tr.localPosition.set(0.0, 1.0, 0.0)
+                vehicle.invalidatePhysics()
             }
         }
     }
@@ -201,10 +197,10 @@ fun createUI(): Panel {
     orbitControls.movementSpeed = 0.0
     orbitControls.camera = camera
     orbitControls.useGlobalSpace = true // less nauseating, when car is rotated
-    camBase.add(orbitControls)
-    camEntity.setRotation(0f, PIf, 0f)
-    camBase.setPosition(0.4, 0.57, 0.15)
-    camBase.add(camEntity)
+    val camBase = Entity()
+        .add(orbitControls)
+        .setPosition(0.4, 0.57, 0.15)
+        .add(camEntity)
     car0.add(camBase)
 
     val speedometer = UpdatingTextPanel(100, style) {

@@ -14,6 +14,7 @@ import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.SimulationIslandManager
 import com.bulletphysics.collision.dispatch.SimulationIslandManager.IslandCallback
 import com.bulletphysics.collision.narrowphase.PersistentManifold
+import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.SphereShape
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver
 import com.bulletphysics.dynamics.constraintsolver.ContactSolverInfo
@@ -535,7 +536,7 @@ class DiscreteDynamicsWorld(
             val squareMotion = predictedTrans.origin.distanceSquared(self.worldTransform.origin)
             if (self.ccdSquareMotionThreshold != 0.0 &&
                 self.ccdSquareMotionThreshold < squareMotion &&
-                self.collisionShape!!.isConvex
+                self.collisionShape is ConvexShape
             ) {
 
                 BulletStats.numClampedCcdMotions++

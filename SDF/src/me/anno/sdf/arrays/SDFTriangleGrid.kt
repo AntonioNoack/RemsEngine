@@ -107,15 +107,15 @@ class SDFTriangleGrid : PositionMapper() {
 
     override fun applyTransform(bounds: AABBf) {
         // to do apply with proper count limit
-        if (dims.flags.hasFlag(1)) {
+        if (dims.hasX) {
             bounds.minX = Float.NEGATIVE_INFINITY
             bounds.maxX = Float.POSITIVE_INFINITY
         }
-        if (dims.flags.hasFlag(2)) {
+        if (dims.hasY) {
             bounds.minY = Float.NEGATIVE_INFINITY
             bounds.maxY = Float.POSITIVE_INFINITY
         }
-        if (dims.flags.hasFlag(4)) {
+        if (dims.hasZ) {
             bounds.minZ = Float.NEGATIVE_INFINITY
             bounds.maxZ = Float.POSITIVE_INFINITY
         }

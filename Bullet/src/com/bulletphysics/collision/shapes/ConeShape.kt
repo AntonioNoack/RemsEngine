@@ -7,6 +7,7 @@ import com.bulletphysics.linearmath.VectorUtil.setCoord
 import cz.advel.stack.Stack
 import org.joml.Vector3d
 import com.bulletphysics.util.setScaleAdd
+import me.anno.ecs.components.collider.Axis
 import kotlin.math.sqrt
 
 /**
@@ -15,30 +16,33 @@ import kotlin.math.sqrt
  *
  * @author jezek2
  */
-open class ConeShape(val radius: Double, val height: Double, upAxis: Int) : ConvexInternalShape() {
+open class ConeShape(val radius: Double, val height: Double, val upAxis: Axis) : ConvexInternalShape() {
 
     private val sinAngle: Double = (radius / sqrt(this.radius * this.radius + this.height * this.height))
-    private val coneIndices = IntArray(3)
+
+    val upAxisId get() = upAxis.id
+    val secondary get() = upAxis.secondary
+    val tertiary get() = upAxis.tertiary
 
     private fun coneLocalSupport(v: Vector3d, out: Vector3d): Vector3d {
         val halfHeight = height * 0.5
-        if (getCoord(v, coneIndices[1]) > v.length() * sinAngle) {
-            setCoord(out, coneIndices[0], 0.0)
-            setCoord(out, coneIndices[1], halfHeight)
-            setCoord(out, coneIndices[2], 0.0)
+        if (getCoord(v, upAxisId) > v.length() * sinAngle) {
+            setCoord(out, secondary, 0.0)
+            setCoord(out, upAxisId, halfHeight)
+            setCoord(out, tertiary, 0.0)
         } else {
-            val v0 = getCoord(v, coneIndices[0])
-            val v2 = getCoord(v, coneIndices[2])
+            val v0 = getCoord(v, secondary)
+            val v2 = getCoord(v, tertiary)
             val s = sqrt(v0 * v0 + v2 * v2)
             if (s > BulletGlobals.FLT_EPSILON) {
                 val d = radius / s
-                setCoord(out, coneIndices[0], getCoord(v, coneIndices[0]) * d)
-                setCoord(out, coneIndices[1], -halfHeight)
-                setCoord(out, coneIndices[2], getCoord(v, coneIndices[2]) * d)
+                setCoord(out, secondary, getCoord(v, secondary) * d)
+                setCoord(out, upAxisId, -halfHeight)
+                setCoord(out, tertiary, getCoord(v, tertiary) * d)
             } else {
-                setCoord(out, coneIndices[0], 0.0)
-                setCoord(out, coneIndices[1], -halfHeight)
-                setCoord(out, coneIndices[2], 0.0)
+                setCoord(out, secondary, 0.0)
+                setCoord(out, upAxisId, -halfHeight)
+                setCoord(out, tertiary, 0.0)
             }
         }
         return out
@@ -98,31 +102,5 @@ open class ConeShape(val radius: Double, val height: Double, upAxis: Int) : Conv
 
         Stack.subVec(3)
         Stack.subTrans(1)
-    }
-
-    var upAxis: Int
-        get() = coneIndices[1]
-        set(upIndex) {
-            when (upIndex) {
-                0 -> {
-                    coneIndices[0] = 1
-                    coneIndices[1] = 0
-                    coneIndices[2] = 2
-                }
-                1 -> {
-                    coneIndices[0] = 0
-                    coneIndices[1] = 1
-                    coneIndices[2] = 2
-                }
-                else -> {
-                    coneIndices[0] = 0
-                    coneIndices[1] = 2
-                    coneIndices[2] = 1
-                }
-            }
-        }
-
-    init {
-        this.upAxis = upAxis
     }
 }

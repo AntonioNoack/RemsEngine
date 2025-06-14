@@ -58,9 +58,6 @@ enum class BroadphaseNativeType {
 
     MAX_BROADPHASE_COLLISION_TYPES;
 
-    val isPolyhedral: Boolean
-        get() = (ordinal < IMPLICIT_CONVEX_SHAPES_START_HERE.ordinal)
-
     val isConvex: Boolean
         get() = (ordinal < CONCAVE_SHAPES_START_HERE.ordinal)
 
@@ -70,9 +67,6 @@ enum class BroadphaseNativeType {
 
     val isCompound: Boolean
         get() = (ordinal == COMPOUND_SHAPE_PROXYTYPE.ordinal)
-
-    val isInfinite: Boolean
-        get() = (ordinal == STATIC_PLANE_PROXYTYPE.ordinal)
 
     companion object {
         fun forValue(value: Int): BroadphaseNativeType {

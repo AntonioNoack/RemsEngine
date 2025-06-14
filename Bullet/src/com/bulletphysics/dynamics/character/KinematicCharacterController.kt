@@ -3,20 +3,24 @@ package com.bulletphysics.dynamics.character
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.CollisionWorld
-import com.bulletphysics.collision.dispatch.CollisionWorld.*
+import com.bulletphysics.collision.dispatch.CollisionWorld.ClosestConvexResultCallback
+import com.bulletphysics.collision.dispatch.CollisionWorld.ClosestRayResultCallback
+import com.bulletphysics.collision.dispatch.CollisionWorld.LocalConvexResult
+import com.bulletphysics.collision.dispatch.CollisionWorld.LocalRayResult
 import com.bulletphysics.collision.dispatch.PairCachingGhostObject
 import com.bulletphysics.collision.narrowphase.PersistentManifold
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.linearmath.IDebugDraw
-import cz.advel.stack.Stack
-import org.joml.Vector3d
 import com.bulletphysics.util.revTransform
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setInterpolate
 import com.bulletphysics.util.setScale
 import com.bulletphysics.util.setScaleAdd
 import com.bulletphysics.util.setSub
+import cz.advel.stack.Stack
+import me.anno.ecs.components.collider.Axis
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
@@ -37,7 +41,7 @@ class KinematicCharacterController(
     private val ghostObject: PairCachingGhostObject,
     private val convexShape: ConvexShape,
     var stepHeight: Double,
-    var upAxis: Int
+    var upAxis: Axis
 ) : ActionInterface {
 
     // is also in ghostObject, but it needs to be convex, so we store it here
@@ -91,14 +95,6 @@ class KinematicCharacterController(
     private var useWalkDirection: Boolean = true
     private var velocityTimeInterval: Double = 1.0
 
-    @Suppress("unused")
-    constructor(ghostObject: PairCachingGhostObject, convexShape: ConvexShape, stepHeight: Double) : this(
-        ghostObject,
-        convexShape,
-        stepHeight,
-        1
-    )
-
     var maxSlope: Double
         get() = maxSlopeRadians
         set(slopeRadians) {
@@ -111,9 +107,9 @@ class KinematicCharacterController(
     }
 
     // ActionInterface interface
-    override fun updateAction(collisionWorld: CollisionWorld, deltaTime: Double) {
+    override fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Double) {
         preStep(collisionWorld)
-        playerStep(collisionWorld, deltaTime)
+        playerStep(collisionWorld, deltaTimeStep)
     }
 
     // ActionInterface interface
@@ -349,22 +345,24 @@ class KinematicCharacterController(
         return penetration
     }
 
+    private val upAxisValue get() = upAxisDirection[upAxis.id]
+
     fun stepUp(world: CollisionWorld) {
         // phase 1: up
         val start = Stack.newTrans()
         val end = Stack.newTrans()
-        targetPosition.setScaleAdd(stepHeight + max(verticalOffset, 0.0), upAxisDirection[upAxis], currentPosition)
+        targetPosition.setScaleAdd(stepHeight + max(verticalOffset, 0.0), upAxisValue, currentPosition)
 
         start.setIdentity()
         end.setIdentity()
 
         /* FIXME: Handle penetration properly */
-        start.origin.setScaleAdd(convexShape.margin + addedMargin, upAxisDirection[upAxis], currentPosition)
+        start.origin.setScaleAdd(convexShape.margin + addedMargin, upAxisValue, currentPosition)
         end.setTranslation(targetPosition)
 
         // Find only sloped/flat surface hits, avoid wall and ceiling hits...
         val up = Stack.newVec()
-        up.setScale(-1.0, upAxisDirection[upAxis])
+        up.setScale(-1.0, upAxisValue)
         val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, up, 0.0)
         callback.collisionFilterGroup = this.ghostObject.broadphaseHandle!!.collisionFilterGroup
         callback.collisionFilterMask = this.ghostObject.broadphaseHandle!!.collisionFilterMask
@@ -458,7 +456,7 @@ class KinematicCharacterController(
             start.setTranslation(currentPosition)
             end.setTranslation(targetPosition)
 
-            val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisDirection[upAxis], -1.0)
+            val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisValue, -1.0)
             callback.collisionFilterGroup = this.ghostObject.broadphaseHandle!!.collisionFilterGroup
             callback.collisionFilterMask = this.ghostObject.broadphaseHandle!!.collisionFilterMask
 
@@ -523,10 +521,10 @@ class KinematicCharacterController(
         // phase 3: down
         val additionalDownStep = if (wasOnGround /*&& !onGround()*/) stepHeight else 0.0
         val stepDrop = Stack.newVec()
-        stepDrop.setScale(currentStepOffset + additionalDownStep, upAxisDirection[upAxis])
+        stepDrop.setScale(currentStepOffset + additionalDownStep, upAxisValue)
         val downVelocity = (if (additionalDownStep == 0.0 && verticalVelocity < 0.0) -verticalVelocity else 0.0) * dt
         val gravityDrop = Stack.newVec()
-        gravityDrop.setScale(downVelocity, upAxisDirection[upAxis])
+        gravityDrop.setScale(downVelocity, upAxisValue)
         targetPosition.sub(stepDrop)
         targetPosition.sub(gravityDrop)
 
@@ -536,7 +534,7 @@ class KinematicCharacterController(
         start.setTranslation(currentPosition)
         end.setTranslation(targetPosition)
 
-        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisDirection[upAxis], maxSlopeCosine)
+        val callback = KinematicClosestNotMeConvexResultCallback(ghostObject, upAxisValue, maxSlopeCosine)
         callback.collisionFilterGroup = this.ghostObject.broadphaseHandle!!.collisionFilterGroup
         callback.collisionFilterMask = this.ghostObject.broadphaseHandle!!.collisionFilterMask
 

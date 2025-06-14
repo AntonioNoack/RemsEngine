@@ -50,8 +50,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
 
     var rightAxis: Int = 0
         private set
+
     var upAxis: Int = 2
         private set
+
     var forwardAxis: Int = 1
         private set
 

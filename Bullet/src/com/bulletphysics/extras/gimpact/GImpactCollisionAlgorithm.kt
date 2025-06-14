@@ -216,31 +216,28 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
         //#ifdef GIMPACT_VS_PLANE_COLLISION
         if (shape0.gImpactShapeType == ShapeType.TRIMESH_SHAPE_PART &&
-            shape1.shapeType == BroadphaseNativeType.STATIC_PLANE_PROXYTYPE
+            shape1 is StaticPlaneShape
         ) {
-            val shapepart = shape0 as GImpactMeshShapePart
-            val planeshape = shape1 as StaticPlaneShape
-            triMeshPartVsPlaneCollision(body0, body1, shapepart, planeshape, swapped)
+            val shapePart = shape0 as GImpactMeshShapePart
+            triMeshPartVsPlaneCollision(body0, body1, shapePart, shape1, swapped)
             return
         }
 
         //#endif
-        if (shape1.isCompound) {
-            val compoundshape = shape1 as CompoundShape
-            gimpact_vs_compoundshape(body0, body1, shape0, compoundshape, swapped)
+        if (shape1 is CompoundShape) {
+            gimpactVsCompoundShape(body0, body1, shape0, shape1, swapped)
             return
-        } else if (shape1.isConcave) {
-            val concaveshape = shape1 as ConcaveShape
-            gimpact_vs_concave(body0, body1, shape0, concaveshape, swapped)
+        } else if (shape1 is ConcaveShape) {
+            gimpactVsConcave(body0, body1, shape0, shape1, swapped)
             return
         }
 
-        val orgtrans0 = body0.getWorldTransform(Stack.newTrans())
-        val orgtrans1 = body1.getWorldTransform(Stack.newTrans())
+        val orgTrans0 = body0.getWorldTransform(Stack.newTrans())
+        val orgTrans1 = body1.getWorldTransform(Stack.newTrans())
 
         val collidedResults = IntArrayList()
 
-        gimpactVsShapeFindPairs(orgtrans0, orgtrans1, shape0, shape1, collidedResults)
+        gimpactVsShapeFindPairs(orgTrans0, orgTrans1, shape0, shape1, collidedResults)
 
         if (collidedResults.size() == 0) {
             return
@@ -265,7 +262,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             val colshape0 = retriever0.getChildShape(childIndex)
 
             if (childHasTransform0) {
-                tmpTrans.mul(orgtrans0, shape0.getChildTransform(childIndex))
+                tmpTrans.mul(orgTrans0, shape0.getChildTransform(childIndex))
                 body0.setWorldTransform(tmpTrans)
             }
 
@@ -278,14 +275,14 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
 
             // restore transforms
             if (childHasTransform0) {
-                body0.setWorldTransform(orgtrans0)
+                body0.setWorldTransform(orgTrans0)
             }
         }
 
         shape0.unlockChildShapes()
     }
 
-    fun gimpact_vs_compoundshape(
+    fun gimpactVsCompoundShape(
         body0: CollisionObject,
         body1: CollisionObject,
         shape0: GImpactShapeInterface,
@@ -314,7 +311,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         }
     }
 
-    fun gimpact_vs_concave(
+    fun gimpactVsConcave(
         body0: CollisionObject,
         body1: CollisionObject,
         shape0: GImpactShapeInterface,

@@ -11,6 +11,7 @@ import cz.advel.stack.Stack
 import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setScale
+import me.anno.ecs.components.collider.Axis
 import kotlin.math.sqrt
 
 /**
@@ -25,16 +26,16 @@ import kotlin.math.sqrt
  *
  * @author jezek2
  */
-open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : ConvexInternalShape() {
+open class CapsuleShape(radius: Double, height: Double, val upAxis: Axis) : ConvexInternalShape() {
 
     init {
-        implicitShapeDimensions.set(radius, radius, radius)
-        setCoord(implicitShapeDimensions, upAxis, 0.5 * height)
+        implicitShapeDimensions.set(radius)
+        setCoord(implicitShapeDimensions, upAxis.id, 0.5 * height)
     }
 
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
-        val supVec = out
-        supVec.set(0.0, 0.0, 0.0)
+
+        out.set(0.0, 0.0, 0.0)
 
         var maxDot = -1e308
 
@@ -58,7 +59,7 @@ open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : C
 
         run {
             pos.set(0.0, 0.0, 0.0)
-            setCoord(pos, this.upAxis, this.halfHeight)
+            setCoord(pos, upAxis.id, this.halfHeight)
 
             mul(tmp1, vec, localScaling)
             tmp1.mul(radius)
@@ -68,13 +69,13 @@ open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : C
             newDot = vec.dot(vtx)
             if (newDot > maxDot) {
                 maxDot = newDot
-                supVec.set(vtx)
+                out.set(vtx)
             }
         }
 
         run {
             pos.set(0.0, 0.0, 0.0)
-            setCoord(pos, this.upAxis, -this.halfHeight)
+            setCoord(pos, upAxis.id, -this.halfHeight)
 
             mul(tmp1, vec, localScaling)
             tmp1.mul(radius)
@@ -83,8 +84,8 @@ open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : C
             vtx.sub(tmp2)
             newDot = vec.dot(vtx)
             if (newDot > maxDot) {
-                maxDot = newDot
-                supVec.set(vtx)
+                // maxDot = newDot
+                out.set(vtx)
             }
         }
 
@@ -110,7 +111,7 @@ open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : C
 
         val halfExtents = Stack.newVec()
         halfExtents.set(radius, radius, radius)
-        setCoord(halfExtents, this.upAxis, radius + this.halfHeight)
+        setCoord(halfExtents, upAxis.id, radius + this.halfHeight)
 
         val margin = BulletGlobals.CONVEX_DISTANCE_MARGIN
 
@@ -137,7 +138,7 @@ open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : C
         val radius = radius
         val halfExtents = Stack.newVec()
         halfExtents.set(radius)
-        setCoord(halfExtents, upAxis, radius + halfHeight)
+        setCoord(halfExtents, upAxis.id, radius + halfHeight)
 
         AabbUtil.transformAabb(halfExtents, margin, t, aabbMin, aabbMax)
         Stack.subVec(1)
@@ -145,12 +146,12 @@ open class CapsuleShape(radius: Double, height: Double, var upAxis: Int = 0) : C
 
     val radius: Double
         get() {
-            val radiusAxis = (upAxis + 2) % 3
+            val radiusAxis = (upAxis.id + 2) % 3
             return getCoord(implicitShapeDimensions, radiusAxis)
         }
 
     val halfHeight: Double
-        get() = getCoord(implicitShapeDimensions, upAxis)
+        get() = getCoord(implicitShapeDimensions, upAxis.id)
 
     companion object {
         private const val INV_12 = 1.0 / 12.0

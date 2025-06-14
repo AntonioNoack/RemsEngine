@@ -23,9 +23,9 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.ConeCollider
 import me.anno.ecs.components.collider.ConvexCollider
 import me.anno.ecs.components.collider.CylinderCollider
+import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
-import me.anno.ecs.components.collider.InfinitePlaneCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.utils.algorithms.ForLoop.forLoop
@@ -134,25 +134,27 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
 
 fun CapsuleCollider.createBulletCapsuleShape(scale: Vector3d): CapsuleShape {
     return when (axis) {
-        Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis.id) // x
-        Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis.id) // y
-        Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis.id) // z
+        Axis.X -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis) // x
+        Axis.Y -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis) // y
+        Axis.Z -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
     }.apply { margin = roundness.toDouble() }
 }
 
 fun ConeCollider.createBulletConeShape(scale: Vector3d): ConeShape {
+    val axis = axis
     return when (axis) {
-        Axis.X -> ConeShape(radius * scale.y, height * scale.x, 0)
-        Axis.Y -> ConeShape(radius * scale.x, height * scale.y, 1)
-        Axis.Z -> ConeShape(radius * scale.x, height * scale.z, 2)
+        Axis.X -> ConeShape(radius * scale.y, height * scale.x, axis)
+        Axis.Y -> ConeShape(radius * scale.x, height * scale.y, axis)
+        Axis.Z -> ConeShape(radius * scale.x, height * scale.z, axis)
     }.apply { margin = roundness.toDouble() }
 }
 
 fun CylinderCollider.createBulletCylinderShape(scale: Vector3d): CylinderShape {
+    val axis = axis
     return when (axis) {
-        Axis.X -> CylinderShape(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z), 0)
-        Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z), 1)
-        Axis.Z -> CylinderShape(Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z), 2)
+        Axis.X -> CylinderShape(Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z), axis)
+        Axis.Y -> CylinderShape(Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z), axis)
+        Axis.Z -> CylinderShape(Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z), axis)
     }.apply { margin = roundness.toDouble() }
 }
 
