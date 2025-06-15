@@ -275,15 +275,15 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     }
 
     private fun waitForRelease(process: Process) {
-        Sleep.waitUntil(false) {
+        Sleep.waitUntil(false, {
             if (process.waitFor(0, TimeUnit.MILLISECONDS)) {
-                processLimiter.release() // normal shutdown
                 true
             } else if (Engine.shutdown) {
                 process.destroyForcibly() // forced shutdown
-                processLimiter.release()
                 true
             } else false // continue waiting
-        }
+        }, {
+            processLimiter.release()
+        })
     }
 }
