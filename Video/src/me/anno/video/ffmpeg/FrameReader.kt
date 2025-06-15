@@ -72,7 +72,6 @@ abstract class FrameReader<FrameType>(
     abstract fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream, callback: (FrameType?) -> Unit)
 
     private fun onError() {
-        frameCountByFile[file!!] = frames.size + frame0
         isFinished = true
     }
 

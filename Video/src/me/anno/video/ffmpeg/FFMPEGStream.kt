@@ -11,7 +11,6 @@ import me.anno.io.files.FileReference
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing
-import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader
@@ -29,20 +28,14 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     companion object {
 
+        @JvmStatic
+        private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
+
         // could be limited by memory as well...
         // to help to keep the memory and cpu-usage below 100%
         // 5 GB = 50 processes, at 6 cores / 12 threads = 4 ratio
         @JvmField
         val processLimiter = Semaphore(max(2, HeavyProcessing.numThreads), true)
-
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
-
-        @JvmField
-        val frameCountByFile = HashMap<FileReference, Int>()
-
-        @JvmField
-        val waitingQueue = ProcessingQueue("WaitingQueue")
 
         @JvmStatic
         fun getImageSequenceCPU(
@@ -282,17 +275,15 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     }
 
     private fun waitForRelease(process: Process) {
-        if (Engine.shutdown) {
-            waitingQueue.stop()
-            process.destroyForcibly() // ^^
-        } else {
-            waitingQueue += {
-                if (process.waitFor(1, TimeUnit.MILLISECONDS)) {
-                    processLimiter.release()
-                } else {
-                    waitForRelease(process)
-                }
-            }
+        Sleep.waitUntil(false) {
+            if (process.waitFor(0, TimeUnit.MILLISECONDS)) {
+                processLimiter.release() // normal shutdown
+                true
+            } else if (Engine.shutdown) {
+                process.destroyForcibly() // forced shutdown
+                processLimiter.release()
+                true
+            } else false // continue waiting
         }
     }
 }
