@@ -51,6 +51,17 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
         }
     }
 
+    override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
+        return super.createVertexStages(key) + listOf(
+            ShaderStage( // tangent is calculated from local UV
+                "uvTangent", listOf(
+                    Variable(GLSLType.M4x3, "localTransform"),
+                    Variable(GLSLType.V3F, "uvTangent", VariableMode.OUT),
+                ), "uvTangent = matMul(localTransform, vec4(1.0,0.0,0.0,0.0));\n"
+            )
+        )
+    }
+
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val settings = key.renderer.deferredSettings
         val availableSemantic = settings?.semanticLayers?.toSet() ?: emptySet()
@@ -61,6 +72,7 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
             listOf(
                 Variable(GLSLType.S2D, "depth_in0"),
                 Variable(GLSLType.M4x3, "invLocalTransform"),
+                Variable(GLSLType.V3F, "uvTangent"),
                 Variable(GLSLType.V2F, "windowSize"),
                 Variable(GLSLType.V3F, "decalSharpness"),
                 Variable(GLSLType.V2F, "uv", VariableMode.OUT),
@@ -99,10 +111,11 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
                         } +
                         "uv = gl_FragCoord.xy/windowSize;\n" +
                         "finalPosition = rawDepthToPosition(uv, texelFetch(depth_in0, uvz, 0).x);\n" +
+                        // todo this is broken in forward-rendering :(
                         (if (DeferredLayerType.NORMAL !in availableLayerTypes) "" +
                                 // reconstruct finalNormal_in2 from depth_in0
                                 // we could save a bit here by first subtracting, and then applying the camera rotation
-                                // todo why is normal applied by 100% everywhere? (in NORMAL-debug mode)
+                                // todo why is blending disabled in NORMAL-debug mode?
                                 "vec3 pos0 = finalPosition;\n" +
                                 "vec3 posU = rawDepthToPosition(uv+vec2(1.0/windowSize.x,0.0), texelFetch(depth_in0, uvz+ivec2(1,0), 0).x);\n" +
                                 "vec3 posV = rawDepthToPosition(uv+vec2(0.0,1.0/windowSize.y), texelFetch(depth_in0, uvz+ivec2(0,1), 0).x);\n" +
@@ -114,14 +127,9 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
                         "if(alphaMultiplier < 0.5/255.0) discard;\n" +
                         "uv = localPosition.xy * 0.5 + 0.5;\n" +
                         // prepare pseudo-vertex outputs for original stage
-                        "normal = -finalNormal_in2;\n" +
-                        // calculate tangent based on uv and normal
-                        // is this correct? looks like it is, based on rotating an example a bit
-                        "vec3 tan3 = dFdx(uv.x) * dFdx(finalPosition) + dFdx(uv.y) * dFdy(finalPosition);\n" +
-                        "tan3 -= dot(tan3, normal) * normal;\n" +
-                        "tangent = vec4(-normalize(tan3), 1.0);\n" +
-                        // fix for sometimes tangent being NaN on the edge
-                        "if(any(isnan(tangent.xyz))) tangent = vec4(0,1,0,0);\n"
+                        "normal = finalNormal_in2;\n" +
+                        // tangent is calculated from local UV
+                        "tangent = vec4(uvTangent, 1.0);\n"
             ).add(quatRot).add(rawToDepth).add(depthToPosition).add(ShaderLib.octNormalPacking),
         ) + originalStage + listOf(
             ShaderStage(

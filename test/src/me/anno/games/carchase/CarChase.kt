@@ -204,7 +204,7 @@ fun createUI(): Panel {
 
     val speedometer = UpdatingTextPanel(100, style) {
         // calculate velocity along forward axis
-        "${(vehicle.localLinearVelocityZ * 3.6).roundToIntOr()}|${vehicle.localLinearVelocity.z*3.6} km/h"
+        "${(vehicle.localLinearVelocityZ * 3.6).roundToIntOr()} km/h"
     }
     speedometer.alignmentX = AxisAlignment.CENTER
     speedometer.alignmentY = AxisAlignment.MAX

@@ -5,9 +5,9 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.DecalMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.DefaultAssets
+import me.anno.engine.DefaultAssets.flatCube
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.mesh.Shapes.flatCube
 
 /**
  * create a street, and place decal markings onto it
@@ -28,13 +28,13 @@ fun main() {
         .add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x66BF67)))
         .setScale(100.0f)
     Entity("Street", scene)
-        .add(MeshComponent(flatCube.front, Material.diffuse(0x222222)))
+        .add(MeshComponent(flatCube, Material.diffuse(0x222222)))
         .setScale(4f, 0.1f, 100f)
 
     val markings = Entity("Markings", scene)
     fun addMarking(x: Double, dx: Double) {
         Entity("Edge Marking", markings)
-            .add(MeshComponent(flatCube.front, decalMaterial))
+            .add(MeshComponent(flatCube, decalMaterial))
             .setPosition(x, 0.1, 0.0)
             .setScale(dx.toFloat(), 0.1f, 100f)
     }
@@ -45,7 +45,7 @@ fun main() {
     val middle = Entity("Middle", markings)
     for (i in -20..20) {
         Entity("Middle Marking $i", middle)
-            .add(MeshComponent(flatCube.front, decalMaterial))
+            .add(MeshComponent(flatCube, decalMaterial))
             .setPosition(0.0, 0.1, i * 100.0 / 20.5)
             .setScale(0.1f, 0.1f, 1.2f)
     }
