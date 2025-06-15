@@ -21,7 +21,7 @@ fun main() {
     mat.writeColor = false
     mat.writeNormal = true
     mat.normalMap =
-        if (true) tracksDecalFile
+        if (false) tracksDecalFile
         else pictures.getChild("BricksNormal.png")
     mat.normalStrength = 0.5f
     mat.decalSharpness.set(5f)

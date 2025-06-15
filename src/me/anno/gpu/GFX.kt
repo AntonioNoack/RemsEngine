@@ -245,19 +245,24 @@ object GFX {
         // assumes that the first access is indeed from the OpenGL thread
         if (isDebug) {
             checkIsGFXThread()
-            while (true) {
-                val error = glGetError()
-                if (error != 0) {
-                    LOGGER.warn("GLException by $name: ${getErrorTypeName(error)}")
-                } else break
-            }
+            checkWithoutCrashingImpl(name)
+        }
+    }
+
+    @JvmStatic
+    fun checkWithoutCrashingImpl(name: String) {
+        for (i in 0 until 10) {
+            val error = glGetError()
+            if (error != 0) {
+                LOGGER.warn("GLException by $name: ${getErrorTypeName(error)}")
+            } else break
         }
     }
 
     @JvmStatic
     fun checkIfGFX(name: String) {
         if (isDebug && isGFXThread()) {
-            check(name)
+            checkWithoutCrashingImpl(name)
         }
     }
 }

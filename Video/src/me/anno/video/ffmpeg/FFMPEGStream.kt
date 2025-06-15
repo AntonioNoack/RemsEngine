@@ -226,9 +226,8 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()
             }
-            // todo why are we not allowed to work here???
-            //  working causes the engine to hang a long time
-        }, { thread(name = toString(), block = callback) }, mightWork = false)
+            // we disabled working here in the past... seems fine now, so I re-enabled it...
+        }, { thread(name = toString(), block = callback) }, mightWork = true)
     }
 
     fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
