@@ -17,6 +17,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.RectangleTerrainModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
@@ -155,12 +156,13 @@ fun createPlane(player: LocalPlayer): List<Entity> {
 
     val body = Rigidbody()
     val rotor = plane.children.first { it.name.startsWith("SM_Veh_Plane_American_01_Prop") }
-    rotor.add(object : Component(), OnUpdate {
+    rotor.add(object : Component(), OnPhysicsUpdate {
         var position = 0.0
         var speed = 0.0
         val tmp = Vector3d()
-        override fun onUpdate() {
-            val dt = Time.deltaTime
+        override fun onPhysicsUpdate(dt: Double) {
+            // todo why is the plane turning upside-down???
+
             val transform = transform!!
             val lv = body.localLinearVelocity
             val dir = (Input.isShiftDown || Input.isKeyDown(Key.KEY_W)).toInt() - (Input.isKeyDown(Key.KEY_S)).toInt()
@@ -174,9 +176,9 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             // add opposing force against localVelocityZ
             val rudder = Input.isKeyDown(Key.KEY_ARROW_UP).toInt() - Input.isKeyDown(Key.KEY_ARROW_DOWN).toInt() // tilt
             val lift = 1.0 * length(lv.y, lv.z)
-            val airFriction = 20.0 * dt
-            val engineForce = 1000.0 * dt * (speed - 0.3 * lv.z)
-            body.applyImpulse(
+            val airFriction = 20.0
+            val engineForce = 1000.0 * (speed - 0.3 * lv.z)
+            body.applyForce(
                 l2g.transform(
                     tmp.set(
                         -airFriction * lv.x * abs(lv.x),
@@ -192,7 +194,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             body.applyTorque(
                 l2g.transform(
                     tmp.set(
-                        -body.localVelocityX * 10.0 + 20000.0 * rudder,
+                        -body.localLinearVelocityX * 10.0 + 20000.0 * rudder,
                         steering * lv.z * 1000.0,
                         rolling * lv.z * 1000.0
                     )/*.add(

@@ -11,6 +11,9 @@ import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
 import me.anno.ecs.EntityPhysics.getPhysics
 import me.anno.ecs.EntityQuery.hasComponent
+import me.anno.ecs.EntityTransform.getLocalXAxis
+import me.anno.ecs.EntityTransform.getLocalYAxis
+import me.anno.ecs.EntityTransform.getLocalZAxis
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
@@ -25,7 +28,6 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.pow
-import org.joml.Matrix4x3
 import org.joml.Vector3d
 import kotlin.math.abs
 
@@ -166,100 +168,83 @@ open class Rigidbody : Component(), OnDrawGUI {
             bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
         }
 
+    // getter not needed, is updated automatically from BulletPhysics.kt
     @Group("Movement")
-    @Docs("velocity in global space")
-    @DebugProperty
-    var linearVelocity = Vector3d()
+    var globalLinearVelocity: Vector3d = Vector3d()
         set(value) {
             field.set(value)
-            val bi = bulletInstance
-            if (bi != null && mass > 0.0) {
-                val tmp = Stack.borrowVec()
-                tmp.set(value.x, value.y, value.z)
-                bulletInstance?.setLinearVelocity(tmp)
-            }
+            bulletInstance?.setLinearVelocity(value)
         }
 
     @Group("Movement")
-    @DebugProperty
-    var localLinearVelocity = Vector3d()
+    var localLinearVelocity: Vector3d = Vector3d()
         get() {
-            val bi = bulletInstance
-            val tr = transform
-            if (bi != null && tr != null && mass > 0.0) {
-                tr.globalTransform
-                    .transformDirection(linearVelocity, field)
-            }
+            transform?.globalTransform?.transformDirectionInverse(globalLinearVelocity, field)
             return field
         }
         set(value) {
             field.set(value)
             val bi = bulletInstance
             val tr = transform
-            if (tr != null && mass > 0.0) { // not yet tested, and inverse might be costly
-                tr.globalTransform.invert(Matrix4x3())
-                    .transformDirection(field)
-                if (bi != null && !isStatic) {
-                    val tmp = Stack.borrowVec()
-                    tmp.set(field.x, field.y, field.z)
-                    bulletInstance?.setLinearVelocity(tmp)
-                }
+            if (tr != null && mass > 0.0 && bi != null && !isStatic) {
+                val global = tr.globalTransform.transformDirection(field, Vector3d())
+                bi.setLinearVelocity(global)
             }
         }
 
-    @Group("Movement")
-    val localVelocityX: Double
-        get() {
-            val tr = transform
-            val bi = bulletInstance
-            return if (tr != null && bi != null && mass > 0.0) {
-                val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
-                bulletInstance?.getLinearVelocity(tmp)
-                t.m00 * tmp.x + t.m01 * tmp.y + t.m02 * tmp.z
-            } else 0.0
-        }
-
-    @Group("Movement")
-    val localVelocityY: Double
-        get() {
-            val tr = transform
-            val bi = bulletInstance
-            return if (tr != null && bi != null && mass > 0.0) {
-                val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
-                bulletInstance?.getLinearVelocity(tmp)
-                t.m10 * tmp.x + t.m11 * tmp.y + t.m12 * tmp.z
-            } else 0.0
-        }
-
-    @Group("Movement")
-    val localVelocityZ: Double
-        get() {
-            val tr = transform
-            val bi = bulletInstance
-            return if (tr != null && bi != null && mass > 0.0) {
-                val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
-                bulletInstance?.getLinearVelocity(tmp)
-                t.m20 * tmp.x + t.m21 * tmp.y + t.m22 * tmp.z
-            } else 0.0
-        }
-
-
-    @Group("Rotation")
-    @Docs("Angular velocity in global space")
     @DebugProperty
-    var angularVelocity = Vector3d()
+    @Group("Movement")
+    val localLinearVelocityX: Double
+        get() = globalLinearVelocity.dot(getLocalXAxis())
+
+    @DebugProperty
+    @Group("Movement")
+    val localLinearVelocityY: Double
+        get() = globalLinearVelocity.dot(getLocalYAxis())
+
+    @DebugProperty
+    @Group("Movement")
+    val localLinearVelocityZ: Double
+        get() = globalLinearVelocity.dot(getLocalZAxis())
+
+    // getter not needed, is updated automatically from BulletPhysics.kt
+    @Group("Rotation")
+    var globalAngularVelocity: Vector3d = Vector3d()
+        set(value) {
+            field.set(value)
+            bulletInstance?.setAngularVelocity(value)
+        }
+
+    @Group("Movement")
+    var localAngularVelocity: Vector3d = Vector3d()
+        get() {
+            transform?.globalTransform?.transformDirectionInverse(globalAngularVelocity, field)
+            return field
+        }
         set(value) {
             field.set(value)
             val bi = bulletInstance
-            if (bi != null && mass > 0.0) {
-                val tmp = Stack.borrowVec()
-                tmp.set(value.x, value.y, value.z)
-                bulletInstance?.setAngularVelocity(tmp)
+            val tr = transform
+            if (tr != null && mass > 0.0 && bi != null && !isStatic) {
+                val global = tr.globalTransform.transformDirection(field, Vector3d())
+                bi.setAngularVelocity(global)
             }
         }
+
+    @DebugProperty
+    @Group("Rotation")
+    val localAngularVelocityX: Double
+        get() = globalAngularVelocity.dot(getLocalXAxis())
+
+    @DebugProperty
+    @Group("Rotation")
+    val localAngularVelocityY: Double
+        get() = globalAngularVelocity.dot(getLocalYAxis())
+
+    @DebugProperty
+    @Group("Rotation")
+    val localAngularVelocityZ: Double
+        get() = globalAngularVelocity.dot(getLocalZAxis())
 
     fun invalidatePhysics() {
         val entity = entity ?: return
@@ -268,7 +253,7 @@ open class Rigidbody : Component(), OnDrawGUI {
     }
 
     /**
-     * slowing down on contact
+     * Slowing down on contact. 1.0 = high traction, 0.0 = like on black ice
      * */
     @Group("Movement")
     @Range(0.0, 1.0)

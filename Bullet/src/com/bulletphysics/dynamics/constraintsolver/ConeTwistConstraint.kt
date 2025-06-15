@@ -313,8 +313,8 @@ class ConeTwistConstraint : TypedConstraint {
 
         run {
             // solve angular part
-            val angVelA = rigidBodyA.getAngularVelocity(Stack.newVec())
-            val angVelB = rigidBodyB.getAngularVelocity(Stack.newVec())
+            val angVelA = rigidBodyA.angularVelocity
+            val angVelB = rigidBodyB.angularVelocity
             val impulse = Stack.newVec()
 
             // solve swing limit
@@ -365,7 +365,7 @@ class ConeTwistConstraint : TypedConstraint {
             Stack.subVec(3)
         }
 
-        Stack.subVec(5)
+        Stack.subVec(3)
         Stack.subTrans(1)
     }
 

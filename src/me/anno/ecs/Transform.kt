@@ -430,6 +430,24 @@ class Transform() : Saveable() {
         return globalTransform.getScale(tmp).z
     }
 
+    fun getLocalXAxis(dst: Vector3d): Vector3d {
+        return globalTransform.run {
+            dst.set(m00, m01, m02)
+        }.safeNormalize()
+    }
+
+    fun getLocalYAxis(dst: Vector3d): Vector3d {
+        return globalTransform.run {
+            dst.set(m10, m11, m12)
+        }.safeNormalize()
+    }
+
+    fun getLocalZAxis(dst: Vector3d): Vector3d {
+        return globalTransform.run {
+            dst.set(m20, m21, m22)
+        }.safeNormalize()
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // global doesn't need to be saved, because it can be reconstructed

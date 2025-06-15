@@ -119,8 +119,8 @@ fun main() {
             val rb = player.getComponent(Rigidbody::class)!!
             player.position = player.position.set(p.position)
             player.rotation = player.rotation.set(p.rotation)
-            rb.linearVelocity = rb.linearVelocity.set(p.linearVelocity)
-            rb.angularVelocity = rb.angularVelocity.set(p.angularVelocity)
+            rb.globalLinearVelocity = rb.globalLinearVelocity.set(p.linearVelocity)
+            rb.globalAngularVelocity = rb.globalAngularVelocity.set(p.angularVelocity)
         }
         Unit
     }
@@ -264,8 +264,8 @@ fun respawn(
             newPosition.y += radius - query.result.distance
             entity.position = newPosition
             val rb = entity.getComponent(Rigidbody::class)!!
-            rb.linearVelocity = Vector3d()
-            rb.angularVelocity = Vector3d()
+            rb.globalLinearVelocity = Vector3d()
+            rb.globalAngularVelocity = Vector3d()
             break
         }
     } while (true)

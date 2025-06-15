@@ -419,8 +419,8 @@ class HingeConstraint : TypedConstraint {
             rbBFrame.basis.getColumn(2, axisB)
             centerOfMassB.basis.transform(axisB)
 
-            val angVelA = rigidBodyA.getAngularVelocity(Stack.newVec())
-            val angVelB = rigidBodyB.getAngularVelocity(Stack.newVec())
+            val angVelA = rigidBodyA.angularVelocity
+            val angVelB = rigidBodyB.angularVelocity
 
             val angVelAroundHingeAxisA = Stack.newVec()
             angVelAroundHingeAxisA.setScale(axisA.dot(angVelA), axisA)
@@ -536,7 +536,7 @@ class HingeConstraint : TypedConstraint {
                     Stack.subVec(3) // angularLimit, velrel, motorImp
                 }
             }
-            Stack.subVec(9)
+            Stack.subVec(7)
         }
 
         Stack.subVec(5)

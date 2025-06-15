@@ -108,10 +108,10 @@ class ConvexConcaveCollisionAlgorithm : CollisionAlgorithm() {
         triInv.inverse()
 
         val convexFromLocal = Stack.newTrans()
-        convexFromLocal.mul(triInv, convexBody.getWorldTransform(tmpTrans))
+        convexFromLocal.setMul(triInv, convexBody.getWorldTransform(tmpTrans))
 
         val convexToLocal = Stack.newTrans()
-        convexToLocal.mul(triInv, convexBody.getInterpolationWorldTransform(tmpTrans))
+        convexToLocal.setMul(triInv, convexBody.getInterpolationWorldTransform(tmpTrans))
 
         val concaveShape = concaveBody.collisionShape
         if (concaveShape is ConcaveShape) {

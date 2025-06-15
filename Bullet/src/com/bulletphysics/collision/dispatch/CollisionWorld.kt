@@ -675,15 +675,15 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                 } else {
                     // todo: use AABB tree or other BVH acceleration structure!
                     if (collisionShape is CompoundShape) {
-                        val childTrans = Stack.newTrans()
                         val childWorldTrans = Stack.newTrans()
-                        for (i in 0 until collisionShape.numChildShapes) {
-                            collisionShape.getChildTransform(i, childTrans)
-                            val childCollisionShape = collisionShape.getChildShape(i)
-                            childWorldTrans.mul(colObjWorldTransform, childTrans)
+                        val children = collisionShape.children
+                        for (i in children.indices) {
+                            val child = children[i]
+                            val childCollisionShape = child.childShape
+                            childWorldTrans.setMul(colObjWorldTransform, child.transform)
                             // replace collision shape so that callback can determine the triangle
                             val saveCollisionShape = collisionObject.collisionShape
-                            collisionObject.internalSetTemporaryCollisionShape(childCollisionShape)
+                            collisionObject.collisionShape = (childCollisionShape)
                             rayTestSingle(
                                 rayFromTrans, rayToTrans,
                                 collisionObject,
@@ -692,9 +692,9 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                                 resultCallback
                             )
                             // restore
-                            collisionObject.internalSetTemporaryCollisionShape(saveCollisionShape)
+                            collisionObject.collisionShape = (saveCollisionShape)
                         }
-                        Stack.subTrans(2)
+                        Stack.subTrans(1)
                     }
                 }
             }
@@ -834,17 +834,17 @@ open class CollisionWorld(val dispatcher: Dispatcher, val broadphase: Broadphase
                     while (i < len) {
                         collisionShape.getChildTransform(i, childTrans)
                         val childCollisionShape = collisionShape.getChildShape(i)
-                        childWorldTrans.mul(colObjWorldTransform, childTrans)
+                        childWorldTrans.setMul(colObjWorldTransform, childTrans)
                         // replace collision shape so that callback can determine the triangle
                         val saveCollisionShape = collisionObject.collisionShape
-                        collisionObject.internalSetTemporaryCollisionShape(childCollisionShape)
+                        collisionObject.collisionShape = (childCollisionShape)
                         objectQuerySingle(
                             castShape, convexFromTrans, convexToTrans,
                             collisionObject, childCollisionShape, childWorldTrans,
                             resultCallback, allowedPenetration
                         )
                         // restore
-                        collisionObject.internalSetTemporaryCollisionShape(saveCollisionShape)
+                        collisionObject.collisionShape = (saveCollisionShape)
                         i++
                     }
                     Stack.subTrans(2)

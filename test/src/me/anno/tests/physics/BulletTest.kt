@@ -68,7 +68,7 @@ class BulletTest {
         for (i in 0 until 200) {
 
             val actualPosition = sphere.position.y
-            val actualVelocity = rigidbody.linearVelocity.y
+            val actualVelocity = rigidbody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -125,7 +125,7 @@ class BulletTest {
             sphere.setContains(collider, hasCollider)
 
             val actualPosition = sphere.position.y
-            val actualVelocity = rigidbody.linearVelocity.y
+            val actualVelocity = rigidbody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -187,7 +187,7 @@ class BulletTest {
         for (i in 0 until 20) {
 
             val actualPosition = sphere.position.y
-            val actualVelocity = rigidbody.linearVelocity.y
+            val actualVelocity = rigidbody.globalLinearVelocity.y
             assertEquals(expectedPosition, actualPosition)
             assertEquals(expectedVelocity, actualVelocity)
 
@@ -228,7 +228,7 @@ class BulletTest {
         world.add(floor)
 
         val underTest = Rigidbody()
-        underTest.angularVelocity.z = 1.0
+        underTest.globalAngularVelocity.z = 1.0
         val sphere = Entity()
             .setPosition(0.0, 1.0 + 1.0 / 8.0, 0.0)
             .add(underTest.apply {
@@ -243,8 +243,8 @@ class BulletTest {
         Systems.world = world
 
         assertEquals(Vector3d(0.0, 1.125, 0.0), sphere.position)
-        assertEquals(Vector3d(0.0), underTest.linearVelocity)
-        assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.angularVelocity)
+        assertEquals(Vector3d(0.0), underTest.globalLinearVelocity)
+        assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.globalAngularVelocity)
 
         val dt = 1f / 8f
         physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
@@ -260,13 +260,13 @@ class BulletTest {
 
         if (floorFriction > 0f && circleFriction > 0f) {
             assertTrue(sphere.position.x < 0f)
-            assertEquals(-0.362, underTest.linearVelocity.x, 0.01)
-            assertEquals(0.0, underTest.linearVelocity.y, 0.08) // todo why is there y-movement??
-            assertEquals(Vector3d(0.0, 0.0, 0.365), underTest.angularVelocity, 0.01)
+            assertEquals(-0.362, underTest.globalLinearVelocity.x, 0.01)
+            assertEquals(0.0, underTest.globalLinearVelocity.y, 0.08) // todo why is there y-movement??
+            assertEquals(Vector3d(0.0, 0.0, 0.365), underTest.globalAngularVelocity, 0.01)
         } else {
             assertEquals(Vector3d(0.0, 1.0, 0.0), sphere.position, 0.15)
-            assertEquals(Vector3d(0.0, 0.03, 0.0), underTest.linearVelocity, 0.05) // todo why is there y-movement??
-            assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.angularVelocity, 0.06)
+            assertEquals(Vector3d(0.0, 0.03, 0.0), underTest.globalLinearVelocity, 0.05) // todo why is there y-movement??
+            assertEquals(Vector3d(0.0, 0.0, 1.0), underTest.globalAngularVelocity, 0.06)
         }
     }
 
@@ -315,8 +315,8 @@ class BulletTest {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
         }
 
-        assertEquals(Vector3d(-0.82, -0.07, 0.0), underTest.linearVelocity, 0.04)
-        assertEquals(Vector3d(0.0, 0.0, 0.814), underTest.angularVelocity, 0.04)
+        assertEquals(Vector3d(-0.82, -0.07, 0.0), underTest.globalLinearVelocity, 0.04)
+        assertEquals(Vector3d(0.0, 0.0, 0.814), underTest.globalAngularVelocity, 0.04)
     }
 
     /**
@@ -363,7 +363,7 @@ class BulletTest {
         val dt = 1f / 8f
         for (i in 0 until 8) {
             physics.step((dt * SECONDS_TO_NANOS).toLong(), false)
-            println("${sphere.position} += ${underTest.linearVelocity}/${underTest.angularVelocity}")
+            println("${sphere.position} += ${underTest.globalLinearVelocity}/${underTest.globalAngularVelocity}")
         }
     }
 
@@ -401,7 +401,7 @@ class BulletTest {
         }
 
         fun resetShape(entity: Entity, body: Rigidbody, x: Double, dx: Double, collider: Collider) {
-            body.linearVelocity = Vector3d(dx, 0.0, 0.0)
+            body.globalLinearVelocity = Vector3d(dx, 0.0, 0.0)
             entity.setPosition(x, 0.0, 0.0)
             entity.remove(entity.components[1] as Collider)
             entity.add(collider)
@@ -430,8 +430,8 @@ class BulletTest {
 
             // check that all impulse has been transferred perfectly
             assertEquals(Vector3d(-2.25, 0.0, 0.0), s0.position, 0.3)
-            assertEquals(Vector3d(0.0), b0.linearVelocity, 0.15)
-            assertEquals(Vector3d(1.0, 0.0, 0.0), b1.linearVelocity, 0.15)
+            assertEquals(Vector3d(0.0), b0.globalLinearVelocity, 0.15)
+            assertEquals(Vector3d(1.0, 0.0, 0.0), b1.globalLinearVelocity, 0.15)
         }
     }
 
@@ -480,7 +480,7 @@ class BulletTest {
 
                 fun createShape(x: Double, dx: Double, collider: Collider): Pair<Entity, Rigidbody> {
                     val body = Rigidbody()
-                    body.linearVelocity = Vector3d(dx, 0.0, 0.0)
+                    body.globalLinearVelocity = Vector3d(dx, 0.0, 0.0)
                     val entity = Entity()
                         .setPosition(x, 0.0, 0.0)
                         .setRotation(0f, 0f, 0f)
@@ -509,13 +509,13 @@ class BulletTest {
                 try {
                     // check that all impulse has been transferred perfectly
                     assertNotEquals(Vector3d(0.0), s1.position)
-                    assertNotEquals(Vector3d(0.0), b1.linearVelocity)
+                    assertNotEquals(Vector3d(0.0), b1.globalLinearVelocity)
 
                     assertNotEquals(Vector3d(-2.5, 0.0, 0.0), s0.position)
-                    assertNotEquals(Vector3d(1.0, 0.0, 0.0), b0.linearVelocity)
+                    assertNotEquals(Vector3d(1.0, 0.0, 0.0), b0.globalLinearVelocity)
 
                     // check impulse sum
-                    assertEquals(Vector3d(1.0, 0.0, 0.0), b0.linearVelocity + b1.linearVelocity, 0.01)
+                    assertEquals(Vector3d(1.0, 0.0, 0.0), b0.globalLinearVelocity + b1.globalLinearVelocity, 0.01)
                     good++
                 } catch (e: Exception) {
                     LOGGER.warn("Failed ${shape1.toShortString()} vs ${shape2.toShortString()}")

@@ -10,14 +10,12 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.pow
 import me.anno.tests.network.Instance
 import me.anno.tests.network.udpProtocol
-import kotlin.math.PI
 
 class BallCamera(
     val cameraArm: Entity,
@@ -52,8 +50,8 @@ class BallCamera(
         instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
             val rot = selfPlayerEntity.rotation
             val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
-            val vel = rb.linearVelocity
-            val ang = rb.angularVelocity
+            val vel = rb.globalLinearVelocity
+            val ang = rb.globalAngularVelocity
             position.set(pos)
             rotation.set(rot)
             linearVelocity.set(vel)

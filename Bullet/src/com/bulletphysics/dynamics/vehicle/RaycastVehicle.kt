@@ -174,10 +174,10 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         chassisTrans.transform(wheel.raycastInfo.hardPointWS)
 
         wheel.raycastInfo.wheelDirectionWS.set(wheel.wheelDirectionCS)
-        chassisTrans.basis.transform(wheel.raycastInfo.wheelDirectionWS)
+        chassisTrans.transformDirection(wheel.raycastInfo.wheelDirectionWS)
 
         wheel.raycastInfo.wheelAxleWS.set(wheel.wheelAxleCS)
-        chassisTrans.basis.transform(wheel.raycastInfo.wheelAxleWS)
+        chassisTrans.transformDirection(wheel.raycastInfo.wheelAxleWS)
         Stack.subTrans(1)
     }
 
@@ -274,21 +274,19 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
             updateWheelTransform(i, false)
         }
 
-        val tmp = Stack.newVec()
-
-        this.currentSpeedKmHour = 3.6f * this.rigidBody.getLinearVelocity(tmp).length()
+        currentSpeedKmHour = 3.6f * rigidBody.linearVelocity.length()
 
         val forwardW = Stack.newVec()
         val chassisTrans = getChassisWorldTransform(Stack.newTrans())
         forwardW.set(
-            chassisTrans.basis.getElement(0, this.forwardAxis),
-            chassisTrans.basis.getElement(1, this.forwardAxis),
-            chassisTrans.basis.getElement(2, this.forwardAxis)
+            chassisTrans.basis.getElement(0, forwardAxis),
+            chassisTrans.basis.getElement(1, forwardAxis),
+            chassisTrans.basis.getElement(2, forwardAxis)
         )
         Stack.subTrans(1) // chassisTrans
 
-        if (forwardW.dot(this.rigidBody.getLinearVelocity(tmp)) < 0.0) {
-            this.currentSpeedKmHour *= -1.0
+        if (forwardW.dot(rigidBody.linearVelocity) < 0.0) {
+            currentSpeedKmHour *= -1.0
         }
 
         //
@@ -299,6 +297,8 @@ class RaycastVehicle(tuning: VehicleTuning?, val rigidBody: RigidBody, private v
         }
 
         updateSuspension(step)
+
+        val tmp = Stack.newVec()
 
         for (i in wheels.indices) {
             // apply suspension force

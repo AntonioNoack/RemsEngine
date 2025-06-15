@@ -170,11 +170,13 @@ class SliderConstraint : TypedConstraint {
 
     override fun solveConstraint(timeStep: Double) {
         this.timeStep = timeStep
+        val stackPos = Stack.getPosition(null)
         if (useLinearReferenceFrameA) {
             solveConstraintInt(rigidBodyA, rigidBodyB)
         } else {
             solveConstraintInt(rigidBodyB, rigidBodyA)
         }
+        Stack.reset(stackPos)
     }
 
     fun buildJacobianInt(rbA: RigidBody, rbB: RigidBody, frameInA: Transform, frameInB: Transform) {
@@ -185,8 +187,8 @@ class SliderConstraint : TypedConstraint {
         val tmp2 = Stack.newVec()
 
         // calculate transforms
-        calculatedTransformA.mul(rbA.getCenterOfMassTransform(tmpTrans), frameInA)
-        calculatedTransformB.mul(rbB.getCenterOfMassTransform(tmpTrans), frameInB)
+        calculatedTransformA.setMul(rbA.getCenterOfMassTransform(tmpTrans), frameInA)
+        calculatedTransformB.setMul(rbB.getCenterOfMassTransform(tmpTrans), frameInB)
         realPivotAInW.set(calculatedTransformA.origin)
         realPivotBInW.set(calculatedTransformB.origin)
         calculatedTransformA.basis.getColumn(0, tmp)
@@ -235,6 +237,7 @@ class SliderConstraint : TypedConstraint {
     }
 
     fun solveConstraintInt(rbA: RigidBody, rbB: RigidBody) {
+        // todo the stack isn't cleaned here
         val tmp = Stack.newVec()
 
         // linear
@@ -303,8 +306,8 @@ class SliderConstraint : TypedConstraint {
         val axisB = Stack.newVec()
         calculatedTransformB.basis.getColumn(0, axisB)
 
-        val angVelA = rbA.getAngularVelocity(Stack.newVec())
-        val angVelB = rbB.getAngularVelocity(Stack.newVec())
+        val angVelA = rbA.angularVelocity
+        val angVelB = rbB.angularVelocity
 
         val angVelAroundAxisA = Stack.newVec()
         angVelAroundAxisA.setScale(axisA.dot(angVelA), axisA)
@@ -393,11 +396,8 @@ class SliderConstraint : TypedConstraint {
                     newAcc = maxAngularMotorForce
                 }
                 val del = newAcc - accumulatedAngMotorImpulse
-                if (angImpulse < 0.0) {
-                    angImpulse = -del
-                } else {
-                    angImpulse = del
-                }
+                angImpulse = if (angImpulse < 0.0) -del else del
+
                 accumulatedAngMotorImpulse = newAcc
 
                 // apply clamped impulse
@@ -452,8 +452,8 @@ class SliderConstraint : TypedConstraint {
     }
 
     companion object {
-        const val SLIDER_CONSTRAINT_DEF_SOFTNESS: Double = 1.0
-        const val SLIDER_CONSTRAINT_DEF_DAMPING: Double = 1.0
-        const val SLIDER_CONSTRAINT_DEF_RESTITUTION: Double = 0.7
+        const val SLIDER_CONSTRAINT_DEF_SOFTNESS = 1.0
+        const val SLIDER_CONSTRAINT_DEF_DAMPING = 1.0
+        const val SLIDER_CONSTRAINT_DEF_RESTITUTION = 0.7
     }
 }

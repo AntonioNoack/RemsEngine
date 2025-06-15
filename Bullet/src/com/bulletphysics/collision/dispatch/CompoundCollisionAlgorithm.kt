@@ -39,9 +39,9 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
         for (i in 0 until numChildren) {
             val tmpShape = colObj.collisionShape
             val childShape = compoundShape.getChildShape(i)
-            colObj.internalSetTemporaryCollisionShape(childShape)
+            colObj.collisionShape = (childShape)
             childCollisionAlgorithms.add(ci.dispatcher1!!.findAlgorithm(colObj, otherObj))
-            colObj.internalSetTemporaryCollisionShape(tmpShape)
+            colObj.collisionShape = (tmpShape)
         }
     }
 
@@ -88,17 +88,17 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
             colObj.getInterpolationWorldTransform(orgInterpolationTrans)
 
             compoundShape.getChildTransform(i, childTrans)
-            newChildWorldTrans.mul(orgTrans, childTrans)
+            newChildWorldTrans.setMul(orgTrans, childTrans)
             colObj.setWorldTransform(newChildWorldTrans)
             colObj.setInterpolationWorldTransform(newChildWorldTrans)
 
 
             // the contactpoint is still projected back using the original inverted worldtrans
             val tmpShape = colObj.collisionShape
-            colObj.internalSetTemporaryCollisionShape(childShape)
+            colObj.collisionShape = (childShape)
             childCollisionAlgorithms[i]!!.processCollision(colObj, otherObj, dispatchInfo, resultOut)
             // revert back
-            colObj.internalSetTemporaryCollisionShape(tmpShape)
+            colObj.collisionShape = (tmpShape)
             colObj.setWorldTransform(orgTrans)
             colObj.setInterpolationWorldTransform(orgInterpolationTrans)
         }
@@ -143,14 +143,14 @@ class CompoundCollisionAlgorithm : CollisionAlgorithm() {
             colObj.setWorldTransform(tmpTrans)
 
             val tmpShape = colObj.collisionShape
-            colObj.internalSetTemporaryCollisionShape(childShape)
+            colObj.collisionShape = (childShape)
             val frac = childCollisionAlgorithms[i]!!
                 .calculateTimeOfImpact(colObj, otherObj, dispatchInfo, resultOut)
             if (frac < hitFraction) {
                 hitFraction = frac
             }
             // revert back
-            colObj.internalSetTemporaryCollisionShape(tmpShape)
+            colObj.collisionShape = (tmpShape)
             colObj.setWorldTransform(orgTrans)
         }
         return hitFraction

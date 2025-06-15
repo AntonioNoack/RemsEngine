@@ -17,9 +17,9 @@ import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSo
 import com.bulletphysics.dynamics.vehicle.DefaultVehicleRaycaster
 import com.bulletphysics.dynamics.vehicle.RaycastVehicle
 import com.bulletphysics.dynamics.vehicle.VehicleTuning
+import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
-import com.bulletphysics.util.getElement
 import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Entity
@@ -41,6 +41,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths
 import me.anno.ui.Style
 import me.anno.ui.UIColors
 import me.anno.ui.base.groups.PanelListY
@@ -55,6 +56,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.abs
 import kotlin.math.max
 
 open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
@@ -136,8 +138,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val tmp = Stack.borrowVec()
         rb.ccdSweptSphereRadius = collider.getBoundingSphere(tmp)
         if (mass > 0.0) { // else not supported
-            rb.setLinearVelocity(rigidBody.linearVelocity)
-            rb.setAngularVelocity(rigidBody.angularVelocity)
+            rb.setLinearVelocity(rigidBody.globalLinearVelocity)
+            rb.setAngularVelocity(rigidBody.globalAngularVelocity)
         }
         Stack.subVec(1)
 
@@ -157,8 +159,9 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val vehicle = RaycastVehicle(tuning, body, raycaster)
         vehicle.setCoordinateSystem(0, 1, 2)
         val wheels = vehicleComp.wheels
-        for (wheel in wheels) {
-            val info = wheel.createBulletInstance(entity, vehicle)
+        for (i in wheels.indices) {
+            val wheel = wheels[i]
+            val info = createWheelInfo(wheel, entity, vehicle)
             info.clientInfo = wheel
             wheel.bulletInstance = info
         }
@@ -167,6 +170,33 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         world.addVehicle(vehicle)
         body.activationState = ActivationState.ALWAYS_ACTIVE
         raycastVehicles[entity] = vehicle
+    }
+
+    private fun createWheelInfo(wheel: VehicleWheel, vehicleEntity: Entity, bulletVehicle: RaycastVehicle): WheelInfo {
+        val transform = wheel.entity!!.fromLocalToOtherLocal(vehicleEntity, wheel.lockedTransform)
+        // +w
+        val position = transform.getTranslation(Vector3d())
+        // raycast direction, e.g. down, so -y
+        val wheelDirection = Vector3d(-transform.m10.toDouble(), -transform.m11.toDouble(), -transform.m12.toDouble())
+        val scale = abs(transform.getScaleLength() / Maths.SQRT3)
+        val actualWheelRadius = wheel.radius * scale
+        // wheel axis, e.g. x axis, so +x
+        val wheelAxle = Vector3d(-transform.m00.toDouble(), -transform.m01.toDouble(), -transform.m02.toDouble())
+        val tuning = VehicleTuning()
+        tuning.frictionSlip = wheel.frictionSlip
+        tuning.suspensionDamping = wheel.suspensionDampingRelaxation
+        tuning.suspensionStiffness = wheel.suspensionStiffness
+        tuning.suspensionCompression = wheel.suspensionDampingCompression
+        tuning.maxSuspensionTravel = wheel.maxSuspensionTravel
+        val wheelInfo = bulletVehicle.addWheel(
+            position, wheelDirection, wheelAxle,
+            wheel.suspensionRestLength, actualWheelRadius, tuning
+        )
+        wheelInfo.brake = wheel.brakeForce
+        wheelInfo.engineForce = wheel.engineForce
+        wheelInfo.steering = wheel.steering
+        wheelInfo.rollInfluence = wheel.rollInfluence
+        return wheelInfo
     }
 
     override fun onCreateRigidbody(
@@ -255,6 +285,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
 
     override fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         super.remove(entity, fallenOutOfWorld)
+
         val world = bulletInstance
         entity.forAllComponents(Constraint::class) {
             val bi = it.bulletInstance
@@ -264,6 +295,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 // LOGGER.debug("- ${it.prefabPath}")
             }
         }
+
         val rigidbody = entity.getComponent(Rigidbody::class, false)
         if (rigidbody != null) {
             rigidbody.activeColliders.clear()
@@ -276,8 +308,27 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 }
             }
         }
-        val vehicle = raycastVehicles.remove(entity) ?: return
-        world.removeVehicle(vehicle)
+
+        val vehicle = raycastVehicles.remove(entity)
+        if (vehicle != null) {
+            // restore wheel transforms
+            val wheels = vehicle.wheels
+            for (i in wheels.indices) {
+                val wheel = wheels[i]
+                val wheelI = wheel.clientInfo as VehicleWheel
+                val wheelE = wheelI.entity ?: continue
+                wheelE.transform.setGlobal(
+                    wheelI.lockedTransform.mul(
+                        entity.transform.globalTransform,
+                        wheelE.transform.globalTransform
+                    )
+                )
+                // transform * entity
+                wheelI
+            }
+            world.removeVehicle(vehicle)
+        }
+
         entity.isPhysicsControlled = false
         if (fallenOutOfWorld) {
             if (rigidbody != null) {
@@ -340,12 +391,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
     override fun updateNonStaticRigidBody(entity: Entity, rigidbodyWithScale: BodyWithScale<Rigidbody, RigidBody>) {
         super.updateNonStaticRigidBody(entity, rigidbodyWithScale)
         val (dst, src) = rigidbodyWithScale
-        val tmp = Stack.newVec()
-        src.getLinearVelocity(tmp)
-        dst.linearVelocity.set(tmp.x, tmp.y, tmp.z)
-        src.getAngularVelocity(tmp)
-        dst.angularVelocity.set(tmp.x, tmp.y, tmp.z)
-        Stack.subVec(1)
+        dst.globalLinearVelocity.set(src.linearVelocity)
+        dst.globalAngularVelocity.set(src.angularVelocity)
     }
 
     override fun updateWheels() {
@@ -549,29 +596,36 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
         val world = bulletInstance
         val vehicles = world.vehicles
 
-        val wheelPosWS = Stack.newVec()
-        val axle = Stack.newVec()
         val tmp = Stack.newVec()
+        val mat = Stack.newTrans()
 
         for (i in 0 until vehicles.size) {
             val vehicle = vehicles[i]
-            for (v in 0 until vehicle.numWheels) {
-                val wheelInfo = vehicle.getWheelInfo(v)
-                val wheelColor = (if (wheelInfo.raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
+            val wheels = vehicle.wheels
+            for (j in wheels.indices) {
 
-                wheelPosWS.set(wheelInfo.worldTransform.origin)
-                val basis = wheelInfo.worldTransform.basis
-                val rightAxis = vehicle.rightAxis
-                axle.set(basis.getElement(0, rightAxis), basis.getElement(1, rightAxis), basis.getElement(2, rightAxis))
+                val wheel = wheels[j]
+                val wheelColor = (if (wheel.raycastInfo.isInContact) 0x0000ff else 0xff0000) or black
 
-                tmp.add(wheelPosWS, axle)
+                vehicle.getChassisWorldTransform(mat).inverse()
+
+                val wheelPosWS = wheel.worldTransform.origin
+
+                mat.transformDirection(wheel.wheelAxleCS, tmp)
+                tmp.add(wheelPosWS)
                 drawLine(wheelPosWS, tmp, wheelColor)
-                val contact = wheelInfo.raycastInfo.contactPointWS
+
+                mat.transformDirection(wheel.wheelDirectionCS, tmp)
+                tmp.add(wheelPosWS)
+                drawLine(wheelPosWS, tmp, wheelColor)
+
+                val contact = wheel.raycastInfo.contactPointWS
                 drawLine(wheelPosWS, contact, wheelColor)
             }
         }
 
-        Stack.subVec(3)
+        Stack.subVec(1)
+        Stack.subTrans(1)
 
         val actions = world.actions
         for (i in 0 until actions.size) {

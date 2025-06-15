@@ -113,7 +113,7 @@ class SequentialImpulseConstraintSolver : ConstraintSolver {
             solverBody.centerOfMassPosition.set(collisionObject.getWorldTransform(Stack.newTrans()).origin)
             solverBody.friction = collisionObject.friction
             solverBody.invMass = rb.inverseMass
-            rb.getLinearVelocity(solverBody.linearVelocity)
+            solverBody.linearVelocity.set(rb.linearVelocity)
             solverBody.originalBody = rb
             solverBody.angularFactor = rb.angularFactor
         } else {

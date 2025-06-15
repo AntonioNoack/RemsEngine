@@ -166,12 +166,12 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             val colShape1 = retriever1.getChildShape(this.face1)
 
             if (childHasTransform0) {
-                tmpTrans.mul(orgtrans0, shape0.getChildTransform(this.face0))
+                tmpTrans.setMul(orgtrans0, shape0.getChildTransform(this.face0))
                 body0.setWorldTransform(tmpTrans)
             }
 
             if (childHasTransform1) {
-                tmpTrans.mul(orgtrans1, shape1.getChildTransform(this.face1))
+                tmpTrans.setMul(orgtrans1, shape1.getChildTransform(this.face1))
                 body1.setWorldTransform(tmpTrans)
             }
 
@@ -262,7 +262,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
             val colshape0 = retriever0.getChildShape(childIndex)
 
             if (childHasTransform0) {
-                tmpTrans.mul(orgTrans0, shape0.getChildTransform(childIndex))
+                tmpTrans.setMul(orgTrans0, shape0.getChildTransform(childIndex))
                 body0.setWorldTransform(tmpTrans)
             }
 
@@ -296,7 +296,7 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         var i = shape1.numChildShapes
         while ((i--) != 0) {
             val colshape1 = shape1.getChildShape(i)
-            childtrans1.mul(orgtrans1, shape1.getChildTransform(i, tmpTrans))
+            childtrans1.setMul(orgtrans1, shape1.getChildTransform(i, tmpTrans))
 
             body1.setWorldTransform(childtrans1)
 
@@ -491,8 +491,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val tmpShape0 = body0.collisionShape
         val tmpShape1 = body1.collisionShape
 
-        body0.internalSetTemporaryCollisionShape(shape0)
-        body1.internalSetTemporaryCollisionShape(shape1)
+        body0.collisionShape = (shape0)
+        body1.collisionShape = (shape1)
 
         val algor = newAlgorithm(body0, body1)
 
@@ -504,8 +504,8 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         //algor.destroy();
         dispatcher!!.freeCollisionAlgorithm(algor)
 
-        body0.internalSetTemporaryCollisionShape(tmpShape0)
-        body1.internalSetTemporaryCollisionShape(tmpShape1)
+        body0.collisionShape = (tmpShape0)
+        body1.collisionShape = (tmpShape1)
     }
 
     fun convexVsConvexCollision(
@@ -517,16 +517,16 @@ class GImpactCollisionAlgorithm : CollisionAlgorithm() {
         val tmpShape0 = body0.collisionShape
         val tmpShape1 = body1.collisionShape
 
-        body0.internalSetTemporaryCollisionShape(shape0)
-        body1.internalSetTemporaryCollisionShape(shape1)
+        body0.collisionShape = (shape0)
+        body1.collisionShape = (shape1)
 
         resultOut!!.setShapeIdentifiers(part0, this.face0, part1, this.face1)
 
         checkConvexAlgorithm(body0, body1)
         convexAlgorithm!!.processCollision(body0, body1, dispatchInfo!!, resultOut!!)
 
-        body0.internalSetTemporaryCollisionShape(tmpShape0)
-        body1.internalSetTemporaryCollisionShape(tmpShape1)
+        body0.collisionShape = (tmpShape0)
+        body1.collisionShape = (tmpShape1)
     }
 
     fun gimpactVsGimpactFindPairs(

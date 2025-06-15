@@ -52,8 +52,8 @@ import kotlin.math.pow
 class RigidBody : CollisionObject {
 
     val invInertiaTensorWorld = Matrix3d()
-    private val linearVelocity = Vector3d()
-    private val angularVelocity = Vector3d()
+    val linearVelocity = Vector3d()
+    val angularVelocity = Vector3d()
 
     var inverseMass: Double = 0.0
 
@@ -285,15 +285,15 @@ class RigidBody : CollisionObject {
         }
     }
 
-    fun setCenterOfMassTransform(xform: Transform) {
+    fun setCenterOfMassTransform(value: Transform) {
         if (isStaticOrKinematicObject) {
             interpolationWorldTransform.set(worldTransform)
         } else {
-            interpolationWorldTransform.set(xform)
+            interpolationWorldTransform.set(value)
         }
         interpolationLinearVelocity.set(linearVelocity)
         interpolationAngularVelocity.set(angularVelocity)
-        worldTransform.set(xform)
+        worldTransform.set(value)
         updateInertiaTensor()
     }
 
@@ -402,11 +402,6 @@ class RigidBody : CollisionObject {
 
     fun getCenterOfMassTransform(out: Transform): Transform {
         out.set(worldTransform)
-        return out
-    }
-
-    fun getLinearVelocity(out: Vector3d): Vector3d {
-        out.set(linearVelocity)
         return out
     }
 

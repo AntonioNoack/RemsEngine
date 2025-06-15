@@ -20,7 +20,6 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.CullMode
-import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.input.Input
 import me.anno.io.files.FileReference
@@ -42,15 +41,13 @@ import org.joml.Vector3d
 // done - proper car-centric camera
 // done - drive
 // todo - ai drives
-// todo - minimap
+// done - minimap
 // todo - navigation
 // todo - police cars chasing you
 // todo - goals, like destroying things
 // todo - shooting to destroy stuff :)
 // todo - health bars
 // todo - exiting the car, and walking
-
-// controls: TFGH, space, just like in the test vehicle controller
 
 val map = documents.getChild("CarChase.glb")
 
@@ -177,6 +174,9 @@ fun createUI(): Panel {
 
     val camEntity = Entity()
     val camera = Camera()
+    camera.use()
+    camera.use()
+
     // orbit controls for the camera around the car :)
     camEntity.add(camera)
         .setRotation(0f, PIf, 0f)
@@ -184,7 +184,6 @@ fun createUI(): Panel {
         override fun onUpdate() {
             if (Input.isKeyDown('R')) {
                 // reset car
-                // todo not working: can we rotate the car towards upwards? :)
                 val tr = vehicle.transform!!
                 tr.localRotation = tr.localRotation.identity()
                 tr.localPosition = tr.localPosition.set(0.0, 1.0, 0.0)
@@ -205,11 +204,16 @@ fun createUI(): Panel {
 
     val speedometer = UpdatingTextPanel(100, style) {
         // calculate velocity along forward axis
-        "${(vehicle.localVelocityZ * 3.6).roundToIntOr(-42)} km/h"
+        "${(vehicle.localLinearVelocityZ * 3.6).roundToIntOr()}|${vehicle.localLinearVelocity.z*3.6} km/h"
     }
     speedometer.alignmentX = AxisAlignment.CENTER
     speedometer.alignmentY = AxisAlignment.MAX
     list.add(speedometer)
+
+    val minimap = MinimapPanel()
+    minimap.alignmentX = AxisAlignment.MIN
+    minimap.alignmentY = AxisAlignment.MAX
+    list.add(minimap)
 
     world.validateTransform()
 
@@ -217,8 +221,6 @@ fun createUI(): Panel {
 }
 
 fun main() {
-    disableRenderDoc()
     OfficialExtensions.initForTests()
-
     testUI3("CarChase") { createUI() }
 }

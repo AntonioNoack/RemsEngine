@@ -41,7 +41,6 @@ class VehicleTest {
         val wheelAxle = Vector3d(-1.0, 0.0, 0.0)
         val suspensionRestLength = 0.6f
         val wheelRadius = 0.5f
-        val isFront = true
 
         // Positions relative to chassis
         vehicle.addWheel(
@@ -51,7 +50,6 @@ class VehicleTest {
             suspensionRestLength.toDouble(),
             wheelRadius.toDouble(),
             tuning,
-            isFront
         )
         vehicle.addWheel(
             Vector3d(-1.0, -0.5, 2.0),
@@ -60,7 +58,6 @@ class VehicleTest {
             suspensionRestLength.toDouble(),
             wheelRadius.toDouble(),
             tuning,
-            isFront
         )
         vehicle.addWheel(
             Vector3d(1.0, -0.5, -2.0),
@@ -69,7 +66,6 @@ class VehicleTest {
             suspensionRestLength.toDouble(),
             wheelRadius.toDouble(),
             tuning,
-            false
         )
         vehicle.addWheel(
             Vector3d(-1.0, -0.5, -2.0),
@@ -78,7 +74,6 @@ class VehicleTest {
             suspensionRestLength.toDouble(),
             wheelRadius.toDouble(),
             tuning,
-            false
         )
 
         return vehicle

@@ -128,16 +128,29 @@ object Maths {
      * if you want good smoothing depending on timeStep/dt, use this function
      * @param x time (seconds) times speed factor (1.0 up to 25.0 is reasonable)
      * @return interpolation factor for a call to lerp() or mix()
+     * Small values are mapped to ~0.
      * */
     @JvmStatic
     fun dtTo01(x: Float) = 1f - dtTo10(x)
 
+    /**
+     * if you want good smoothing depending on timeStep/dt, use this function
+     * Small values are mapped to ~1.
+     * */
     @JvmStatic
     fun dtTo10(x: Float) = exp(-x)
 
+    /**
+     * Used for lerping correctly based on delta-time.
+     * Small values are mapped to ~0.
+     * */
     @JvmStatic
     fun dtTo01(x: Double) = 1.0 - dtTo10(x)
 
+    /**
+     * Used for lerping correctly based on delta-time.
+     * Small values are mapped to ~1.
+     * */
     @JvmStatic
     fun dtTo10(x: Double) = exp(-x)
 

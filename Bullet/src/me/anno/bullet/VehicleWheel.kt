@@ -1,10 +1,7 @@
 package me.anno.bullet
 
-import com.bulletphysics.dynamics.vehicle.RaycastVehicle
-import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
@@ -13,9 +10,8 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.maths.Maths
-import org.joml.Vector3d
-import kotlin.math.abs
+import org.joml.AABBd
+import org.joml.Matrix4x3
 
 class VehicleWheel : Component(), OnDrawGUI {
 
@@ -125,7 +121,10 @@ class VehicleWheel : Component(), OnDrawGUI {
      * */
     @DebugProperty
     @NotSerializedProperty
-    val skidInfo: Double get() = bulletInstance?.skidInfo ?: 0.0
+    val skidInfo: Double get() = bulletInstance?.skidInfo ?: 1.0
+
+    @DebugProperty
+    val hasBulletInstance: Boolean get() = bulletInstance != null
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         // todo draw steering and power, brake and such for debugging
@@ -135,31 +134,16 @@ class VehicleWheel : Component(), OnDrawGUI {
     @NotSerializedProperty
     var bulletInstance: WheelInfo? = null
 
-    fun createBulletInstance(entity: Entity, vehicle: RaycastVehicle): WheelInfo {
-        val transform = this.entity!!.fromLocalToOtherLocal(entity)
-        // +w
-        val position = transform.getTranslation(Vector3d())
-        // raycast direction, e.g. down, so -y
-        val wheelDirection = Vector3d(-transform.m10.toDouble(), -transform.m11.toDouble(), -transform.m12.toDouble())
-        val scale = abs(transform.getScaleLength() / Maths.SQRT3)
-        val actualWheelRadius = radius * scale
-        // wheel axis, e.g. x axis, so +x
-        val wheelAxle = Vector3d(-transform.m00.toDouble(), -transform.m01.toDouble(), -transform.m02.toDouble())
-        val tuning = VehicleTuning()
-        tuning.frictionSlip = frictionSlip
-        tuning.suspensionDamping = suspensionDampingRelaxation
-        tuning.suspensionStiffness = suspensionStiffness
-        tuning.suspensionCompression = suspensionDampingCompression
-        tuning.maxSuspensionTravel = maxSuspensionTravel
-        val wheel = vehicle.addWheel(
-            position, wheelDirection, wheelAxle,
-            suspensionRestLength, actualWheelRadius, tuning
-        )
-        wheel.brake = brakeForce
-        wheel.engineForce = engineForce
-        wheel.steering = steering
-        wheel.rollInfluence = rollInfluence
-        return wheel
+    @NotSerializedProperty
+    val lockedTransform = Matrix4x3()
+
+    override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
+        val tmp = AABBd()
+        val r = radius
+        tmp.setMin(0.0, -r, -r)
+        tmp.setMax(0.0, +r, +r)
+        tmp.transformUnion(globalTransform, dstUnion)
+        return true
     }
 
     override fun copyInto(dst: PrefabSaveable) {

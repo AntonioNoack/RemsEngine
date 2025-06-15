@@ -3,6 +3,7 @@ package com.bulletphysics.collision.dispatch
 import com.bulletphysics.collision.broadphase.BroadphaseProxy
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 
 /**
@@ -104,24 +105,16 @@ open class CollisionObject() {
     }
 
     val isStaticObject: Boolean
-        get() = (collisionFlags and CollisionFlags.STATIC_OBJECT) != 0
+        get() = collisionFlags.hasFlag(CollisionFlags.STATIC_OBJECT)
 
     val isKinematicObject: Boolean
-        get() = (collisionFlags and CollisionFlags.KINEMATIC_OBJECT) != 0
+        get() = collisionFlags.hasFlag(CollisionFlags.KINEMATIC_OBJECT)
 
     val isStaticOrKinematicObject: Boolean
         get() = (collisionFlags and (CollisionFlags.KINEMATIC_OBJECT or CollisionFlags.STATIC_OBJECT)) != 0
 
     fun hasContactResponse(): Boolean {
-        return (collisionFlags and CollisionFlags.NO_CONTACT_RESPONSE) == 0
-    }
-
-    /**
-     * Avoid using this internal API call.
-     * internalSetTemporaryCollisionShape is used to temporarily replace the actual collision shape by a child collision shape.
-     */
-    fun internalSetTemporaryCollisionShape(collisionShape: CollisionShape?) {
-        this.collisionShape = collisionShape
+        return !collisionFlags.hasFlag(CollisionFlags.NO_CONTACT_RESPONSE)
     }
 
     fun setActivationStateMaybe(newState: ActivationState) {

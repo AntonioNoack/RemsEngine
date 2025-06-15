@@ -625,14 +625,16 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    fun fromOtherLocalToLocal(other: Entity): Matrix4x3 {
+    fun fromOtherLocalToLocal(other: Entity, dst: Matrix4x3 = Matrix4x3()): Matrix4x3 {
         // converts the point from the local coordinates of the other one to our local coordinates
-        return other.fromLocalToOtherLocal(this)
+        return other.fromLocalToOtherLocal(this, dst)
     }
 
-    fun fromLocalToOtherLocal(other: Entity): Matrix4x3 {
+    fun fromLocalToOtherLocal(other: Entity, dst: Matrix4x3 = Matrix4x3()): Matrix4x3 {
         // converts the point from our local coordinates of the local coordinates of the other one
-        return Matrix4x3(other.transform.globalTransform).invert().mul(transform.globalTransform)
+        return other.transform.globalTransform
+            .invert(dst)
+            .mul(transform.globalTransform)
     }
 
     override fun fill(pipeline: Pipeline, transform: Transform) {

@@ -121,7 +121,7 @@ class RotationalLimitMotor {
         // current velocity difference
         val velocityDifference = body0.getAngularVelocity(Stack.newVec())
         if (body1 != null) {
-            velocityDifference.sub(body1.getAngularVelocity(Stack.newVec()))
+            velocityDifference.sub(body1.angularVelocity)
         }
 
         val relativeVelocity = axis.dot(velocityDifference)
@@ -130,7 +130,7 @@ class RotationalLimitMotor {
         val motorRelativeVelocity = limitSoftness * (targetVelocity - damping * relativeVelocity)
 
         if (motorRelativeVelocity < BulletGlobals.FLT_EPSILON && motorRelativeVelocity > -BulletGlobals.FLT_EPSILON) {
-            Stack.subVec(2)
+            Stack.subVec(1)
             return 0.0 // no need for applying force
         }
 
@@ -138,7 +138,7 @@ class RotationalLimitMotor {
         val unclippedMotorImpulse = (1 + bounce) * motorRelativeVelocity * jacDiagABInv
         if (abs(unclippedMotorImpulse) > constraint.breakingImpulseThreshold) {
             constraint.isBroken = true
-            Stack.subVec(2)
+            Stack.subVec(1)
             return 0.0
         }
 
@@ -168,7 +168,7 @@ class RotationalLimitMotor {
             body1.applyTorqueImpulse(motorImp)
         }
 
-        Stack.subVec(3)
+        Stack.subVec(2)
         return clippedMotorImpulse
     }
 }

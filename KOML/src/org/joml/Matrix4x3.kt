@@ -1581,6 +1581,29 @@ open class Matrix4x3 : Matrix<Matrix4x3, Vector3d, Vector4d> {
         return v.mulDirection(this, dst)
     }
 
+    /**
+     * inverts this matrix without saving the result, and then transforming v as a direction
+     * */
+    fun transformDirectionInverse(v: Vector3d, dst: Vector3d = v): Vector3d {
+        val a = m00 * m11 - m01 * m10
+        val b = m02 * m10 - m00 * m12
+        val c = m01 * m12 - m02 * m11
+        val nm00 = (m11 * m22 - m21 * m12)
+        val nm01 = (m21 * m02 - m01 * m22)
+        val nm02 = c
+        val nm10 = (m20 * m12 - m10 * m22)
+        val nm11 = (m00 * m22 - m20 * m02)
+        val nm12 = b
+        val nm20 = (m10 * m21 - m20 * m11)
+        val nm21 = (m20 * m01 - m00 * m21)
+        val nm22 = a
+        val s = 1.0 / (a * m22 + b * m21 + c * m20)
+        val rx = v.dot(nm00, nm10, nm20) * s
+        val ry = v.dot(nm01, nm11, nm21) * s
+        val rz = v.dot(nm02, nm12, nm22) * s
+        return dst.set(rx, ry, rz)
+    }
+
     fun scale(xyz: Vector3f, dst: Matrix4x3): Matrix4x3 {
         return scale(xyz.x, xyz.y, xyz.z, dst)
     }

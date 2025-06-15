@@ -51,13 +51,12 @@ class Transform {
         origin.set(0.0, 0.0, 0.0)
     }
 
-    fun transform(v: Vector3d) {
-        basis.transform(v)
-        v.add(origin)
+    fun transform(src: Vector3d, dst: Vector3d = src) {
+        basis.transform(src, dst).add(origin)
     }
 
-    fun transform(src: Vector3d, dst: Vector3d) {
-        basis.transform(src, dst).add(origin)
+    fun transformDirection(src: Vector3d, dst: Vector3d = src) {
+        basis.transform(src, dst)
     }
 
     fun setIdentity() {
@@ -83,7 +82,7 @@ class Transform {
         origin.set(vec)
     }
 
-    fun mul(tr1: Transform, tr2: Transform) {
+    fun setMul(tr1: Transform, tr2: Transform) {
         val vec = Stack.borrowVec(tr2.origin)
         tr1.transform(vec)
         basis.setMul(tr1.basis, tr2.basis)

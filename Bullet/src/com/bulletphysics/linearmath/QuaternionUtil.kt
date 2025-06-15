@@ -5,8 +5,6 @@ import cz.advel.stack.Stack
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import kotlin.math.acos
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -23,10 +21,7 @@ object QuaternionUtil {
 
     @JvmStatic
     fun setRotation(q: Quaterniond, axis: Vector3d, angle: Double) {
-        val d = axis.length()
-        assert(d != 0.0)
-        val s = sin(angle * 0.5) / d
-        q.set(axis.x * s, axis.y * s, axis.z * s, cos(angle * 0.5))
+        q.setAngleAxis(angle, axis)
     }
 
     // Game Programming Gems 2.10. make sure v0,v1 are normalized

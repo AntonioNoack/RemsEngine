@@ -14,6 +14,7 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.Hierarchy.getInstanceAt
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.ecs.systems.OnUpdate
 import me.anno.ecs.systems.Systems.registerSystem
 import me.anno.engine.DefaultAssets.plane
@@ -30,13 +31,17 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.dtTo10
 import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toFloat
 import org.joml.Vector2d
 import org.joml.Vector4f
+import kotlin.math.abs
 
 object TrackShader : ECSMeshShader("Track") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
@@ -58,19 +63,20 @@ object TrackShader : ECSMeshShader("Track") {
     }
 }
 
-class TrackVehicleControls : Component(), OnUpdate {
+class TrackVehicleControls : Component(), OnUpdate, OnPhysicsUpdate {
 
     var speed = 2f
     val trackPosition = Vector2d()
 
-    var strength = 4000.0
-    var turnStrength = 400.0
+    var strength = 300.0
+    var turnStrength = 300.0
+
+    var targetTorque = 0.0
+    var torque = 0.0
 
     override fun onUpdate() {
 
         val vehicle = getComponent(Vehicle::class) ?: return
-
-        val dt = Time.deltaTime.toFloat()
 
         // pure track controls are weird
         val w = Input.isKeyDown(Key.KEY_U).toFloat()
@@ -78,8 +84,8 @@ class TrackVehicleControls : Component(), OnUpdate {
         val s = Input.isKeyDown(Key.KEY_J).toFloat()
         val d = Input.isKeyDown(Key.KEY_K).toFloat()
 
-        val left = (w + a - s - d) * dt
-        val right = (w - a - s + d) * dt
+        val left = (w + a - s - d)
+        val right = (w - a - s + d)
 
         val isTurning = left != right && w + a + s + d > 0f
 
@@ -98,15 +104,21 @@ class TrackVehicleControls : Component(), OnUpdate {
 
         // wheel aren't strong enough to turn the bulldozer :/
         // todo test whether additional invisible wheels help
-        if (isTurning) {
-            // todo do this in physics-update
-            vehicle.applyTorque(0.0, turnStrength * (left - right) / dt, 0.0)
-        }
+        targetTorque = if (isTurning) {
+            turnStrength * (left - right)
+        } else 0.0
 
         trackPosition.x = actualLeft
         trackPosition.y = actualRight
 
         invalidateAABB()
+    }
+
+    override fun onPhysicsUpdate(dt: Double) {
+        val vehicle = getComponent(Vehicle::class) ?: return
+        val effectiveness = 1.0 / (1.0 + 5.0 * sq(vehicle.globalAngularVelocity.y))
+        torque = mix(torque, targetTorque * effectiveness, dtTo10(dt))
+        vehicle.applyTorque(0.0, torque, 0.0)
     }
 }
 
@@ -148,12 +160,12 @@ fun main() {
             steeringMultiplier = s
             engineForce = 1.0
             suspensionRestLength = 0.0
-            maxSuspensionTravel = 5.0
+            maxSuspensionTravel = 0.5
             frictionSlip = 0.5 // max impulse / suspension force until the vehicle slips
             suspensionStiffness = 100.0
-            // todo why does it start jumping when we rotate it using torque???
-            // suspensionDampingRelaxation = 0.5
-            // suspensionDampingCompression = 0.5
+            // todo why does it start jumping when it's looking 90° rotated to the right???
+            suspensionDampingRelaxation = 5.0
+            suspensionDampingCompression = 5.0
             rollInfluence = 0.25
         })
     }
@@ -162,6 +174,7 @@ fun main() {
     defineWheel("e10,SM_Veh_Bulldozer_01_Track_Wheel_fr", -1.0)
     defineWheel("e12,SM_Veh_Bulldozer_01_Track_Wheel_rl", 1.0)
     defineWheel("e13,SM_Veh_Bulldozer_01_Track_Wheel_rr", -1.0)
+
 
     val trackL = getInstanceAt(bulldozer, "e7,SM_Veh_Bulldozer_01_Track_l/e1,MeshFilter") as MeshComponent
     val trackR = getInstanceAt(bulldozer, "e8,SM_Veh_Bulldozer_01_Track_r/e1,MeshFilter") as MeshComponent

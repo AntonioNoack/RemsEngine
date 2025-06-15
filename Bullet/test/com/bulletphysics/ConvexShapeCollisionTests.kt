@@ -13,6 +13,7 @@ import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.extras.gimpact.GImpactCollisionAlgorithm.Companion.registerAlgorithm
 import com.bulletphysics.extras.gimpact.GImpactMeshShape
+import me.anno.ecs.components.collider.Axis
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -22,13 +23,15 @@ class ConvexShapeCollisionTests {
     var shapes: Array<CollisionShape> = arrayOf(
         BoxShape(Vector3d(0.5, 0.5, 0.5)),
         SphereShape(0.5),
-        CapsuleShape(0.3, 1.0),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5), 0),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5), 1),
-        CylinderShape(Vector3d(0.5, 0.5, 0.5), 2),
-        ConeShape(0.5, 1.0, 0),
-        ConeShape(0.5, 1.0, 1),
-        ConeShape(0.5, 1.0, 2),
+        CapsuleShape(0.3, 1.0, Axis.X),
+        CapsuleShape(0.3, 1.0, Axis.Y),
+        CapsuleShape(0.3, 1.0, Axis.Z),
+        CylinderShape(Vector3d(0.5, 0.5, 0.5), Axis.X),
+        CylinderShape(Vector3d(0.5, 0.5, 0.5), Axis.Y),
+        CylinderShape(Vector3d(0.5, 0.5, 0.5), Axis.Z),
+        ConeShape(0.5, 1.0, Axis.X),
+        ConeShape(0.5, 1.0, Axis.Y),
+        ConeShape(0.5, 1.0, Axis.Z),
     )
 
     @Test
@@ -85,7 +88,7 @@ class ConvexShapeCollisionTests {
 
         // Add dynamic convex shape body slightly above the mesh
         var y = 0.8f
-        if (convexShape is ConeShape && convexShape.upAxis == 2) y = 0f
+        if (convexShape is ConeShape && convexShape.upAxis == Axis.Z) y = 0f
         val bodyB = StackOfBoxesTest.createRigidBody(1f, Vector3d(0f, y, 0f), convexShape)
         world.addRigidBody(bodyB)
 

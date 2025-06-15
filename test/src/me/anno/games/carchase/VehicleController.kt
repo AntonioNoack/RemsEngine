@@ -46,7 +46,7 @@ class VehicleController : Component(), InputListener, OnPhysicsUpdate {
         var brake = 0.0
         if (Input.isKeyDown(Key.KEY_SPACE)) brake += brakeStrength
         val vehicle = getComponent(Vehicle::class)
-        if (vehicle != null && forceSum * vehicle.localVelocityZ < 0.0) {
+        if (vehicle != null && forceSum * vehicle.localLinearVelocityZ < 0.0) {
             brake += brakeStrength
         }
 

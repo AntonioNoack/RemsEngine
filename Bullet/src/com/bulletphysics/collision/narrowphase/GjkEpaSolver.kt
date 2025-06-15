@@ -366,17 +366,19 @@ class GjkEpaSolver {
                     b[1].setCross(ab, b[1])
                     b[2].setCross(ab, b[2])
 
-                    val m = doubleArrayOf(b[0].lengthSquared(), b[1].lengthSquared(), b[2].lengthSquared())
+                    val m0 = b[0].lengthSquared()
+                    val m1 = b[1].lengthSquared()
+                    val m2 = b[2].lengthSquared()
 
                     val tmpQuat = Stack.newQuat()
                     tmp.setNormalize(ab)
-                    setRotation(tmpQuat, tmp, TAU / 3f)
+                    tmpQuat.setAngleAxis(TAU / 3.0, tmp)
 
                     val r = Stack.newMat()
                     MatrixUtil.setRotation(r, tmpQuat)
 
                     val w = Stack.newVec()
-                    w.set(b[if (m[0] > m[1]) if (m[0] > m[2]) 0 else 2 else if (m[1] > m[2]) 1 else 2])
+                    w.set(b[if (m0 > m1) if (m0 > m2) 0 else 2 else if (m1 > m2) 1 else 2])
 
                     tmp.setNormalize(w)
                     support(tmp, simplex[4])
