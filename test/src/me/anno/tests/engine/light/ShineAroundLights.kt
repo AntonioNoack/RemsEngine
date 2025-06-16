@@ -74,7 +74,7 @@ object ShineAroundLightsShader : ECSMeshShader("ShineAroundLights") {
 
 val spotLightMaterial = Material().apply {
     pipelineStage = PipelineStage.TRANSPARENT
-    diffuseBase.set(1f, 1f, 1f, 0.03f)
+    diffuseBase.set(1f, 1f, 1f, 0.5f)
     emissiveBase.set(1f)
     indexOfRefraction = 1f
     shader = ShineAroundLightsShader

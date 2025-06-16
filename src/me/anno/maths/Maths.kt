@@ -615,6 +615,12 @@ object Maths {
     @JvmStatic
     fun fract(d: Double) = d - floor(d)
 
+    @JvmStatic
+    fun fract(f: Float, maxSize: Float) = fract(f / maxSize) * maxSize
+
+    @JvmStatic
+    fun fract(d: Double, maxSize: Double) = fract(d / maxSize) * maxSize
+
     // fract, but in [-0.5, +0.5]
     @JvmStatic
     fun roundFract(d: Float): Float {

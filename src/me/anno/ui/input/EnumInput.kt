@@ -124,8 +124,8 @@ open class EnumInput(
         return this
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-        if (isInputAllowed) openMenu(
+    fun openSelectionMenu() {
+        openMenu(
             windowStack, this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
                 .with("%1", nameDesc.name.ifBlank2("Value")),
@@ -134,6 +134,11 @@ open class EnumInput(
                     setValue1(option, index)
                 }
             })
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        if (isInputAllowed && button == Key.BUTTON_LEFT) openSelectionMenu()
+        else super.onMouseClicked(x, y, button, long)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

@@ -118,12 +118,11 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                     OPAQUE_PASS.id -> defaultStage
                     TRANSPARENT_PASS.id -> PipelineStageImpl(
                         "transparent", RenderView.MAX_FORWARD_LIGHTS, BlendMode.DEFAULT,
-                        DepthMode.CLOSE, false, CullMode.BOTH, pbrModelShader
+                        DepthMode.CLOSE, false, CullMode.FRONT, pbrModelShader
                     )
                     DECAL_PASS.id -> PipelineStageImpl(
                         "decal", RenderView.MAX_FORWARD_LIGHTS, null,
-                        if (GFX.supportsClipControl) DepthMode.FARTHER
-                        else DepthMode.FORWARD_FARTHER,
+                        if (GFX.supportsClipControl) DepthMode.FARTHER else DepthMode.FORWARD_FARTHER,
                         false, CullMode.BACK, pbrModelShader
                     )
                     else -> defaultStage.clone()

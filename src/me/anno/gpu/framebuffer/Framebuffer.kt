@@ -423,6 +423,7 @@ class Framebuffer(
     }
 
     fun destroyExceptTextures(deleteDepth: Boolean) {
+        GFX.checkIsGFXThread()
         if (ssBuffer != null) {
             ssBuffer.destroyExceptTextures(deleteDepth)
             destroy()
@@ -435,6 +436,7 @@ class Framebuffer(
 
     fun destroyFramebuffer() {
         if (pointer != 0) {
+            GFX.checkIsGFXThread()
             bindFramebuffer(GL_FRAMEBUFFER, 0)
             glDeleteFramebuffers(pointer)
             Frame.invalidate()

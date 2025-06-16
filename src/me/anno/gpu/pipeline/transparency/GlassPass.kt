@@ -90,18 +90,18 @@ class GlassPass : TransparentPass() {
                                 RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
                                 RendererLib.combineLightCode +
                                 RendererLib.skyMapCode +
-                                colorToSRGB +
                                 "float milkiness = 0.5 * finalRoughness;\n" +
                                 "float iorValue = gl_FrontFacing ? 1.0 / IOR : IOR;\n" +
                                 "float fresnel = 0.04;\n" + // we don't have SSR for glass, so this is the best we can do visually
                                 "float newAlpha = mix(fresnel, 1.0, milkiness);\n" +
                                 // alpha is used for opacity and shadow... find a solution, where shadow is separate:
+                                "   finalReflections = finalColor;\n" + // color from sky, linear space
                                 "#ifdef MODULATE_ALPHA\n" +
                                 "   finalAlpha *= newAlpha;\n" +
+                                "   finalReflections *= finalAlpha;\n" +
                                 "#else\n" +
                                 "   finalAlpha = newAlpha;\n" +
                                 "#endif\n" +
-                                "finalReflections = finalColor * finalAlpha;\n" + // color from sky
                                 "finalTinting = -log(max(finalColor0, 1e-6)) * finalAlpha;\n" + // actual color
                                 "finalRefraction = IOR == 1.0 ? 0.0 : -log(IOR) * finalAlpha;\n" +
                                 "finalNormal2D = IOR == 1.0 ? vec2(0.0) : vec2(dot(finalNormal,dirX), dot(finalNormal,dirY)) * finalAlpha;\n"
@@ -139,7 +139,7 @@ class GlassPass : TransparentPass() {
                         "       result = getTex(diffuseSrcTex);\n" +
                         "   } else {\n" +
                         "       vec4 emissiveData = getTex(emissiveGlassTex);\n" +
-                        "       float tr = clamp(diffuseData.a,0.0,1.0);\n" +
+                        "       float tr = min(diffuseData.a,1.0);\n" +
                         "       vec3 tint = exp(-diffuseData.rgb);\n" +
                         "       vec4 surface = getTex(surfaceGlassTex);\n" +
                         "       float normFactor = 0.5 / (diffuseData.a + 0.01);\n" +
@@ -151,10 +151,11 @@ class GlassPass : TransparentPass() {
                         "           getTexD(diffuseSrcTex, refractUV * 570.0).g," +
                         "           getTexD(diffuseSrcTex, refractUV * 580.0).b" +
                         "       );\n" +
-                        // todo mix in linear space
-                        "       result = vec4(diffuse * tint * (1.0-tr) +\n" +
-                        "           tint * tr +\n" +
-                        "           emissiveData.rgb * normFactor, 1.0);\n" +
+                        // todo sum in linear space, too...
+                        // mix in linear space
+                        "       vec3 gamma = vec3(2.0);\n" +
+                        "       diffuse = mix(pow(diffuse * tint,gamma), tint * tint + emissiveData.rgb * normFactor, tr);\n" +
+                        "       result = vec4(sqrt(max(diffuse, vec3(0.0))), 1.0);\n" +
                         "   }\n" +
                         "}\n"
             )

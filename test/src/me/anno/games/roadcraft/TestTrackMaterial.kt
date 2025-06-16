@@ -1,6 +1,5 @@
 package me.anno.games.roadcraft
 
-import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.bullet.Vehicle
@@ -41,7 +40,6 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toFloat
 import org.joml.Vector2d
 import org.joml.Vector4f
-import kotlin.math.abs
 
 object TrackShader : ECSMeshShader("Track") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {

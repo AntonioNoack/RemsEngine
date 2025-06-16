@@ -40,23 +40,13 @@ class MeshVertexData(
             listOf(
                 ShaderStage(
                     "def-col", listOf(
-                        // todo attr/uniform depends
                         Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "colors1"),
-                        Variable(GLSLType.V4F, "colors2"),
-                        Variable(GLSLType.V4F, "colors3"),
                         Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT),
-                        Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT),
-                        Variable(GLSLType.V4F, "vertexColor2", VariableMode.OUT),
-                        Variable(GLSLType.V4F, "vertexColor3", VariableMode.OUT),
                         Variable(GLSLType.V1I, "hasVertexColors"),
                         Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
                         Variable(GLSLType.V2F, "uv", VariableMode.OUT),
                     ), "" +
                             "vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
-                            "vertexColor1 = (hasVertexColors & 2) != 0 ? colors1 : vec4(1.0);\n" +
-                            "vertexColor2 = (hasVertexColors & 4) != 0 ? colors2 : vec4(1.0);\n" +
-                            "vertexColor3 = (hasVertexColors & 8) != 0 ? colors3 : vec4(1.0);\n" +
                             "uv = uvs;\n"
                 )
             ),
@@ -97,16 +87,10 @@ class MeshVertexData(
         val noColors = ShaderStage(
             "no-col", listOf(
                 Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT),
-                Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT),
-                Variable(GLSLType.V4F, "vertexColor2", VariableMode.OUT),
-                Variable(GLSLType.V4F, "vertexColor3", VariableMode.OUT),
                 Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
                 Variable(GLSLType.V2F, "uv", VariableMode.OUT),
             ), "" +
                     "vertexColor0 = vec4(1.0);\n" +
-                    "vertexColor1 = vec4(1.0);\n" +
-                    "vertexColor2 = vec4(1.0);\n" +
-                    "vertexColor3 = vec4(1.0);\n" +
                     "uv = uvs;\n"
         )
     }

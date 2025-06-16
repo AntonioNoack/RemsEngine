@@ -5,8 +5,14 @@ object ShaderFuncLib {
     val randomGLSL = "" +
             "#ifndef RANDOM_GLSL\n" +
             "#define RANDOM_GLSL\n" +
+            "float random(float co){\n" +
+            "    return fract(sin(co) * 43758.5453);\n" +
+            "}\n" +
             "float random(vec2 co){\n" +
-            "    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);\n" +
+            "    return random(dot(co, vec2(12.9898,78.233)));\n" +
+            "}\n" +
+            "float random(vec3 co){\n" +
+            "    return random(dot(co, vec3(12.9898,78.233,45.164)));\n" +
             "}\n" +
             "#endif\n"
 

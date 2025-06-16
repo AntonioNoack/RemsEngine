@@ -67,6 +67,7 @@ import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.EnumInput.Companion.enumToNameDesc
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.InputPanel
@@ -311,9 +312,13 @@ object ComponentUI {
                 }
             }
             is Enum<*> -> {
-                val input = EnumInput.createInput(title.name, value, style)
                 val values = EnumInput.getEnumConstants(value.javaClass)
+                val input = EnumInput.createInput(title.name, value, style)
                 input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
+                input.askForReset(property) { resetValue ->
+                    val nameDesc = enumToNameDesc(resetValue as Enum<*>)
+                    input.setValue(nameDesc, false)
+                }
                 return input
             }
             is Saveable -> return createISaveableInput(title, value, style, property)
@@ -330,6 +335,10 @@ object ComponentUI {
         val values = value.values
         val input = EnumInput(nameDesc, value.nameDesc, values.map { it.nameDesc }, style)
         input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
+        input.askForReset(property) { resetValue ->
+            val resetNameDesc = (resetValue as ExtendableEnum).nameDesc
+            input.setValue(resetNameDesc, false)
+        }
         return input
     }
 
