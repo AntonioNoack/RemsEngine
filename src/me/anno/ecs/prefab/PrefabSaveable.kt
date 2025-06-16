@@ -48,7 +48,6 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             flags = flags.withFlag(DISABLE_FLAG, !value)
         }
 
-    @EditorField
     @NotSerializedProperty
     override var isCollapsed: Boolean
         get() = !flags.hasFlag(NOT_COLLAPSED_FLAG)

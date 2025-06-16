@@ -4,11 +4,10 @@ package me.anno.gpu.buffer
  * Attributes packed together create a struct.
  * Once bound, every attribute has a fixed alignment (offset & stride).
  * */
-class AttributeLayout
-private constructor(
+class AttributeLayout(
     val names: List<String>,
     val types: List<AttributeType>,
-    val numComponents: IntArray,
+    val numComponents: ByteArray,
     val offsets: IntArray,
     val stride: Int
 ) {
@@ -17,13 +16,12 @@ private constructor(
     fun name(i: Int): String = names[i]
     fun type(i: Int): AttributeType = types[i]
     fun offset(i: Int): Int = offsets[i]
-    fun components(i: Int): Int = numComponents[i]
-    fun byteSize(i: Int): Int = numComponents[i] * types[i].byteSize
+    fun components(i: Int): Int = numComponents[i].toInt()
 
     fun equals(i: Int, attribute: Attribute): Boolean {
         return names[i] == attribute.name &&
                 types[i] == attribute.type &&
-                numComponents[i] == attribute.numComponents
+                numComponents[i].toInt() == attribute.numComponents
     }
 
     fun indexOf(name: String): Int = names.indexOf(name)
@@ -36,7 +34,7 @@ private constructor(
         val stride = stride + additional.sumOf { it.byteSize }
         val types = types + additional.map { it.type }
         val names = names + additional.map { it.name }
-        val components = numComponents + IntArray(additional.size) { additional[it].numComponents }
+        val components = numComponents + ByteArray(additional.size) { additional[it].numComponents.toByte() }
         val offsets = calculateOffsets(this, additional)
         return AttributeLayout(names, types, components, offsets, stride)
     }
@@ -57,7 +55,7 @@ private constructor(
             val stride = attributes.sumOf { it.byteSize }
             val types = attributes.map { it.type }
             val names = attributes.map { it.name }
-            val components = IntArray(attributes.size) { attributes[it].numComponents }
+            val components = ByteArray(attributes.size) { attributes[it].numComponents.toByte() }
             val offsets = calculateOffsets(attributes)
             return AttributeLayout(names, types, components, offsets, stride)
         }

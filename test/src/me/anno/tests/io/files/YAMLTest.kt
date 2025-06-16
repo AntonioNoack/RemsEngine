@@ -2,6 +2,8 @@ package me.anno.tests.io.files
 
 import me.anno.Engine
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshAttribute
+import me.anno.gpu.buffer.Attribute
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.saveable.Saveable
@@ -18,6 +20,8 @@ class YAMLTest {
     @Test
     fun testYAMLReaderAndWriter() {
         registerCustomClass(Mesh())
+        registerCustomClass(Attribute())
+        registerCustomClass(MeshAttribute())
         testReaderAndWriter(flatCube.front)
     }
 

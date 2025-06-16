@@ -14,6 +14,9 @@ class DefaultNormalMap(
     width: Int, height: Int,
 ) : NormalMap {
 
+    constructor(heightMap: HeightMap, cellSize: Float, flip: Boolean):
+            this(heightMap, cellSize, flip, 0, 0)
+
     val widthM1 = width - 1
     val heightM1 = height - 1
     val normalizeY = (if (flip) -1f else +1f) * cellSize

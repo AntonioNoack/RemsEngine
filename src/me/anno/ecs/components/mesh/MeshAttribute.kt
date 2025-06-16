@@ -32,6 +32,9 @@ class MeshAttribute(var attribute: Attribute, var data: Any?) : Saveable() {
         return MeshAttribute(attribute, data)
     }
 
+    operator fun component1() = attribute
+    operator fun component2() = data
+
     override val approxSize: Int get() = 200
 
     companion object {

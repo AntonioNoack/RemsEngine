@@ -3,15 +3,7 @@ package me.anno.tests.engine.animation
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBufferUtils.addNormalAttribute
-import me.anno.ecs.components.mesh.MeshBufferUtils.addUVAttributes
-import me.anno.ecs.components.mesh.MeshBufferUtils.putNormal
-import me.anno.ecs.components.mesh.MeshBufferUtils.putPosition
-import me.anno.ecs.components.mesh.MeshBufferUtils.putTangent
-import me.anno.ecs.components.mesh.MeshBufferUtils.putUVs
-import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
@@ -24,6 +16,7 @@ import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -34,7 +27,6 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 // todo morph-targets probably should be implemented using textures like skeletal animations, so they are supported on all devices,
 //  and be limited to four at a time, too
@@ -68,14 +60,14 @@ val morphVertexData = MeshVertexData(
         ShaderStage(
             "morph-lp", listOf(
                 Variable(GLSLType.V3F, "positions", VariableMode.ATTR),
-                Variable(GLSLType.V3F, "coords0", VariableMode.ATTR),
-                Variable(GLSLType.V3F, "coords1", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "positions0", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "positions1", VariableMode.ATTR),
                 Variable(GLSLType.V2F, "morph"),
                 Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
             ), "localPosition =\n" +
                     "positions * (1.0-(morph.x+morph.y)) +\n" +
-                    "coords0 * morph.x +\n" +
-                    "coords1 * morph.y;\n"
+                    "positions0 * morph.x +\n" +
+                    "positions1 * morph.y;\n"
         )
     ),
     listOf(flatNormalsNorTan),
@@ -87,73 +79,19 @@ val morphVertexData = MeshVertexData(
 class MorphMesh : Mesh() {
     override val vertexData: MeshVertexData
         get() = morphVertexData
-
-    override fun createMeshBuffer() {
-        createMeshBufferImpl1()
-    }
 }
 
-fun Mesh.createMeshBufferImpl1() {
-    needsMeshUpdate = false
 
-    // not the safest, but well...
-    val positions = positions ?: return
-    if (positions.isEmpty()) return
+private val pos0Type = Attribute("positions0", AttributeType.FLOAT, 3)
+private val pos1Type = Attribute("positions1", AttributeType.FLOAT, 3)
 
-    val morphs = morphTargets.map { it.positions }
+var Mesh.positions0: FloatArray?
+    get() = getAttr("positions0", FloatArray::class)
+    set(value) = setAttr("positions0", value, pos0Type)
 
-    ensureNorTanUVs()
-
-    val normals = normals!!
-    val tangents = tangents
-
-    val uvs = uvs
-    val hasUVs = hasUVs
-
-    val vertexCount = min(positions.size, normals.size) / 3
-    val indices = indices
-    hasBonesInBuffer = false
-    hasVertexColors = 0
-
-    val hasHighPrecisionNormals = hasHighPrecisionNormals
-
-    val attributes = ArrayList<Attribute>()
-    attributes += Attribute("positions", 3)
-    for (i in morphs.indices) {
-        attributes += Attribute("coords$i", 3)
-    }
-    addNormalAttribute(attributes, hasHighPrecisionNormals)
-    if (hasUVs) addUVAttributes(attributes)
-
-    val name = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }
-    val buffer = replaceBuffer(name, attributes, vertexCount, buffer)
-    buffer.drawMode = drawMode
-    this.buffer = buffer
-
-    triBuffer = replaceBuffer(buffer, indices, triBuffer)
-    triBuffer?.drawMode = drawMode
-
-    for (i in 0 until vertexCount) {
-
-        // upload all data of one vertex
-
-        val i3 = i * 3
-        val i4 = i * 4
-
-        putPosition(buffer, positions, i3)
-        for (mi in morphs.indices) {
-            putPosition(buffer, morphs[mi], i3)
-        }
-        putNormal(buffer, normals, i3, hasHighPrecisionNormals)
-
-        if (hasUVs) {
-            putUVs(buffer, uvs, i * 2)
-            putTangent(buffer, tangents, i4)
-        }
-    }
-
-    updateHelperMeshes()
-}
+var Mesh.positions1: FloatArray?
+    get() = getAttr("positions1", FloatArray::class)
+    set(value) = setAttr("positions1", value, pos1Type)
 
 /**
  * demonstrate how mesh morphing could be implemented on GPU
@@ -167,10 +105,8 @@ fun main() {
     IcosahedronModel.createIcosphere(4, 1f, mesh)
     mesh.materials = listOf(material.ref)
 
-    mesh.morphTargets = listOf(
-        sphereToCube(mesh),
-        sphereToCylinder(mesh)
-    )
+    mesh.positions0 = sphereToCube(mesh).positions
+    mesh.positions1 = sphereToCylinder(mesh).positions
 
     val scene = Entity()
         .add(MeshComponent(mesh))

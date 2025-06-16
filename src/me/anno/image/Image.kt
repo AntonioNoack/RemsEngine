@@ -177,6 +177,10 @@ abstract class Image(
         return ImageResizing.resized(this, dstWidth, dstHeight, allowUpscaling)
     }
 
+    fun resampled(dstWidth: Int, dstHeight: Int): Image {
+        return ResampledImage(this, dstWidth, dstHeight)
+    }
+
     open fun write(dst: FileReference, quality: Float = 0.9f) {
         val format = dst.lcExtension
         dst.outputStream().use { out -> write(out, format, quality) }

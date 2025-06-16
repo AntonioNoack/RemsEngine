@@ -22,6 +22,7 @@ data class Attribute(
     constructor(name: String, components: Int) : this(name, AttributeType.FLOAT, components)
 
     val byteSize get() = numComponents * type.byteSize
+    val alignment get() = (if (numComponents == 3) 4 else numComponents) * type.byteSize
 
     override fun toString(): String {
         return "Attribute($name,$type,$numComponents)"

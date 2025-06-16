@@ -11,3 +11,6 @@ package me.anno.games.roadcraft
 //  - there's cranes, which can lift/tow stuff
 //  - there's controllable arms on drivable vehicles
 //  - show tire tracks (normal-decals) on all surfaces except grass and smooth tarmac
+
+// todo prioritize a demo over it being scalable...
+//  e.g. just use 1k x 1k for the terrain...

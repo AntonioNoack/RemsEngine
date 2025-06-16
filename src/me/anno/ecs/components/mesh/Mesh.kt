@@ -264,7 +264,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             "positions" -> positions = value as? FloatArray ?: return
             "normals" -> normals = value as? FloatArray ?: return
             "uvs" -> uvs = value as? FloatArray ?: return
-            "color0" -> color0 = value as? IntArray ?: return
+            "color0", "colors0" -> color0 = value as? IntArray ?: return
             "boneWeights" -> boneWeights = value as? FloatArray ?: return
             "boneIndices" -> {
                 boneIndices = if (value is IntArray) {
@@ -350,13 +350,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
      * */
     override fun ensureBuffer() {
         synchronized(this) {
-            if (needsMeshUpdate) createMeshBuffer()
+            if (needsMeshUpdate) createMeshBufferImpl()
             if (GFX.isGFXThread()) buffer?.ensureBuffer()
         }
-    }
-
-    open fun createMeshBuffer() {
-        createMeshBufferImpl()
     }
 
     fun ensureNorTanUVs() {
@@ -514,7 +510,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             warnIsImmutable()
         } else {
             color0 = null
-            prefab?.set("color0", null)
+            prefab?.set("colors0", null)
             invalidateGeometry()
         }
     }

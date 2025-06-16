@@ -37,4 +37,14 @@ enum class AttributeType(
     SINT16_NORM(34, 2, true, true, GL_SHORT),
     SINT32_NORM(35, 4, true, true, GL_INT),
 
+    ;
+
+    fun size(numComponents: Int): Int {
+        return numComponents * byteSize
+    }
+
+    fun alignment(numComponents: Int): Int {
+        val alignC = if (numComponents == 3) 4 else numComponents
+        return alignC * byteSize
+    }
 }

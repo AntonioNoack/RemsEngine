@@ -792,7 +792,7 @@ object StaticMeshesLoader {
         for (i in 0 until aiMesh.mColors().remaining()) {
             val colorI = processVertexColors(aiMesh, i, vertexCount)
             if (colorI != null && colorI.any { it != -1 }) {
-                prefab[if (i == 0) "color0" else "color$i"] = colorI
+                prefab[if (i == 0) "colors0" else "colors$i"] = colorI
             }
         }
 

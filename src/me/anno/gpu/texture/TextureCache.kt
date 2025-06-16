@@ -16,6 +16,7 @@ import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.utils.OSFeatures
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
+import me.anno.utils.async.Callback.Companion.mapCallback
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import kotlin.math.sqrt
@@ -145,11 +146,38 @@ object TextureCache : CacheSection("Texture") {
         return texture?.value?.createdOrNull() as? Texture2DArray
     }
 
+    private data class ArrayKey(val files: List<FileReference>, val width: Int, val height: Int) {
+        override fun toString(): String {
+            return "Array[${files.map { it.nameWithoutExtension }},$width x $height]"
+        }
+    }
+
+    fun getTextureArray(
+        file: List<FileReference>, width: Int, height: Int,
+        timeoutMillis: Long = TextureCache.timeoutMillis
+    ): Texture2DArray? {
+        val key = ArrayKey(file, width, height)
+        val texture = getEntry(key, timeoutMillis, true, TextureCache::generateTextureArray)
+        return texture?.value?.createdOrNull() as? Texture2DArray
+    }
+
     private fun generateTextureArray(key: FileTriple<Vector2i>): AsyncCacheData<Texture2DArray> {
         val file = key.file
         val result = AsyncCacheData<Texture2DArray>()
         ImageCache.getAsync(file, timeoutMillis, true, result.map { img ->
             createTextureArray(file, img, key.type)
+        })
+        return result
+    }
+
+    private fun generateTextureArray(key: ArrayKey): AsyncCacheData<Texture2DArray> {
+        val result = AsyncCacheData<Texture2DArray>()
+        key.files.mapCallback({ _, file, cb ->
+            ImageCache.getAsync(file, timeoutMillis, true, cb)
+        }, result.map { images ->
+            val images2 = images.map { image -> image.resampled(key.width, key.height) }
+            val texture = Texture2DArray("spite-$key", key.width, key.height, images2.size)
+            texture.create(images2, false)
         })
         return result
     }

@@ -890,10 +890,10 @@ class GLTFReader(val src: FileReference) {
                                 prefab["uvs"] = uvs
                             }
                         }
-                        "COLOR_0" -> prefab["color0"] = loadColorArray(id)
-                        "COLOR_1" -> prefab["color1"] = loadColorArray(id)
-                        "COLOR_2" -> prefab["color2"] = loadColorArray(id)
-                        "COLOR_3" -> prefab["color3"] = loadColorArray(id)
+                        "COLOR_0" -> prefab["colors0"] = loadColorArray(id)
+                        "COLOR_1" -> prefab["colors1"] = loadColorArray(id)
+                        "COLOR_2" -> prefab["colors2"] = loadColorArray(id)
+                        "COLOR_3" -> prefab["colors3"] = loadColorArray(id)
                         "JOINTS_0" -> {
                             val indices = loadIntArray(id, 4)
                             if (indices != null) {

@@ -951,7 +951,7 @@ class SVGMesh {
                         val folder = InnerFolder(file)
                         val prefab = Prefab("Mesh")
                         prefab["positions"] = mesh.positions
-                        prefab["color0"] = mesh.color0
+                        prefab["colors0"] = mesh.color0
                         prefab._sampleInstance = mesh
                         folder.createPrefabChild("Scene.json", prefab)
                         // todo create Images folder, where the svg is interpreted as an image :)
