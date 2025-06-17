@@ -34,12 +34,20 @@ fun Vector3d.setNegate(src: Vector3d) {
     z = -src.z
 }
 
-fun Vector3d.setCross(var1: Vector3d, var2: Vector3d) {
-    val var3 = var1.y * var2.z - var1.z * var2.y
-    val var5 = var2.x * var1.z - var2.z * var1.x
-    this.z = var1.x * var2.y - var1.y * var2.x
-    this.x = var3
-    this.y = var5
+fun Vector3d.setCross(a: Vector3d, b: Vector3d) {
+    val nx = a.y * b.z - a.z * b.y
+    val ny = b.x * a.z - b.z * a.x
+    this.z = a.x * b.y - a.y * b.x
+    this.x = nx
+    this.y = ny
+}
+
+fun Vector3d.setCrossY(a: Vector3d) {
+    set(-a.z, 0.0, a.x)
+}
+
+fun Vector3d.setCrossZ(a: Vector3d) {
+    set(a.y, -a.x, 0.0)
 }
 
 fun Vector3d.setNormalize(v: Vector3d) {

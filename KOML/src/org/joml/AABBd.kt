@@ -1,6 +1,7 @@
 package org.joml
 
 import org.joml.JomlMath.hash
+import org.joml.Vector3d.Companion.length
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -185,6 +186,7 @@ class AABBd(
     val deltaZ: Double get() = maxZ - minZ
     val maxDelta: Double get() = max(deltaX, max(deltaY, deltaZ))
     val volume: Double get() = deltaX * deltaY * deltaZ
+    val diagonal: Double get() = length(deltaX, deltaY, deltaZ)
 
     fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 

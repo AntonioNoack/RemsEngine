@@ -24,7 +24,7 @@ object BulletGlobals {
     const val SIMD_HALF_PI: Double = SIMD_TAU * 0.25
     const val SIMD_RADS_PER_DEG: Double = SIMD_TAU / 360.0
     const val SIMD_DEGS_PER_RAD: Double = 360.0 / SIMD_TAU
-    const val SIMD_INFINITY: Double = Double.Companion.MAX_VALUE
+    const val SIMD_INFINITY: Double = Double.MAX_VALUE
 
     /** ///////////////////////////////////////////////////////////////////////// */
     private val INSTANCES = ThreadLocal.withInitial { Globals() }

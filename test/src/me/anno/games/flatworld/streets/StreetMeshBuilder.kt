@@ -90,7 +90,7 @@ object StreetMeshBuilder {
 
     private fun List<Vector3d>.leftRight(): List<Vector3d> {
         val result = ArrayList<Vector3d>(size * 2)
-        for (i in indices) {
+        for (i in this@leftRight.indices) {
             leftRightStep(result, i)
         }
         return result

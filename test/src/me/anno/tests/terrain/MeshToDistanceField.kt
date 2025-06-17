@@ -189,7 +189,7 @@ fun List<Vector3f>.flatten(fieldSize: Vector3i, bounds: AABBf): FloatArray {
     val dz = bounds.deltaZ / max(fieldSize.z - 1, 1)
     val positions = FloatArray(size * 3)
     var k = 0
-    for (i in indices) {
+    for (i in this@flatten.indices) {
         val value = this[i]
         positions[k++] = value.x * dx + x0
         positions[k++] = value.y * dy + y0

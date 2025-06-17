@@ -49,6 +49,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.CountMap
 import org.apache.logging.log4j.LogManager
@@ -551,11 +552,10 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDr
                 val shape = colObj.collisionShape!!
                 shape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
                 if (shape is ConvexHullShape) {
-                    val p1 = Vector3d()
-                    for (p in shape.points) {
-                        p1.set(p)
+                    forLoopSafely(shape.points.size, 3) { idx ->
+                        val p1 = Vector3d(shape.points, idx)
                         tmpTrans.transform(p1)
-                        DebugShapes.debugPoints.add(DebugPoint(org.joml.Vector3d(p1.x, p1.y, p1.z), -1, 0f))
+                        DebugShapes.debugPoints.add(DebugPoint(p1, -1, 0f))
                     }
                 }
             } catch (e: Exception) {

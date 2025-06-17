@@ -63,7 +63,7 @@ fun main() {
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
             }.ref.wrap()
             positions!!.apply {
-                for (i in indices step 3) {
+                for (i in this.indices step 3) {
                     this[i + 1] += 0.03f
                 }
             }

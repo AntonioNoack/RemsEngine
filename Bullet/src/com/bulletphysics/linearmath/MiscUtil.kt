@@ -16,17 +16,14 @@ object MiscUtil {
 
     /**
      * Resizes list to exact size, filling with given value when expanding.
-     * todo could be optimized
      */
     @JvmStatic
     fun resize(list: IntArrayList, size: Int, value: Int) {
+        // todo could be optimized
         while (list.size() < size) {
             list.add(value)
         }
-
-        while (list.size() > size) {
-            list.remove(list.size() - 1)
-        }
+        list.size = size
     }
 
     /**

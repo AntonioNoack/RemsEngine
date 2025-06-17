@@ -2,6 +2,9 @@ package org.joml
 
 import org.joml.JomlMath.hash
 
+/**
+ * Plane with mixed precision
+ * */
 open class Plane(
     @JvmField var dirX: Float,
     @JvmField var dirY: Float,

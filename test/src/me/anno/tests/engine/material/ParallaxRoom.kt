@@ -185,7 +185,7 @@ fun main() {
         Vector3f(1f, 0f, 0f), Vector3f(0f, -ph, 0f)
     )
     window.uvs!!.apply { // scale u's
-        for (i in indices step 2) {
+        for (i in this.indices step 2) {
             this[i + 1] *= yi.toFloat()
         }
     }

@@ -6,7 +6,6 @@ import com.bulletphysics.collision.shapes.CapsuleShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConeShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
-import com.bulletphysics.collision.shapes.ConvexHullShape3
 import com.bulletphysics.collision.shapes.CylinderShape
 import com.bulletphysics.collision.shapes.ShapeHull
 import com.bulletphysics.collision.shapes.SphereShape
@@ -56,7 +55,7 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
     if (isConvex) {
         // calculate convex hull
         // simplify it maybe
-        val convex = ConvexHullShape3(positions)
+        val convex = ConvexHullShape(positions)
         convex.setLocalScaling(Vector3d(scale.x, scale.y, scale.z))
         convex.margin = 0.0
 
@@ -66,9 +65,8 @@ fun MeshCollider.createBulletMeshShape(scale: Vector3d): CollisionShape {
         }
 
         val hull = ShapeHull(convex)
-        hull.buildHull(margin.toDouble())
-        val shape = ConvexHullShape(hull.vertexPointer)
-        shape.margin = 0.0
+        val shape = ConvexHullShape(hull.verticesToFloatArray())
+        shape.margin = margin.toDouble()
         return shape
     } else {
 
@@ -179,7 +177,7 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
         is MeshCollider -> collider.createBulletMeshShape(scale)
         is CapsuleCollider -> collider.createBulletCapsuleShape(scale)
         is ConeCollider -> collider.createBulletConeShape(scale)
-        is ConvexCollider -> ConvexHullShape3(collider.points!!)
+        is ConvexCollider -> ConvexHullShape(collider.points!!)
         is CylinderCollider -> collider.createBulletCylinderShape(scale)
         // is CircleCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
         is SphereCollider -> collider.createBulletSphereShape(scale)

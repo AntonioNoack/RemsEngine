@@ -236,7 +236,8 @@ object Maths {
     fun log(base: Float) = ln(base)
 
     /**
-     * calculates log2().toInt() much quicker than usual
+     * calculates log2().toInt() much quicker than usual;
+     * incorrect for denormalized values
      * */
     @JvmStatic
     fun Float.log2i(): Int {
@@ -246,7 +247,8 @@ object Maths {
     }
 
     /**
-     * calculates log2().toInt() much quicker than usual
+     * calculates log2().toInt() much quicker than usual;
+     * incorrect for denormalized values
      * */
     @JvmStatic
     fun Double.log2i(): Int {

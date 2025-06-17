@@ -42,7 +42,7 @@ class ConvexHull3DTest {
 
         for (p in pts) {
             val found = vertices.any { v -> v == p }
-            Assertions.assertTrue(found, "Hull should contain original point " + p)
+            Assertions.assertTrue(found, "Hull should contain original point $p")
         }
     }
 

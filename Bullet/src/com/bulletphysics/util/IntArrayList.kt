@@ -7,7 +7,7 @@ import kotlin.math.max
  */
 class IntArrayList(capacity: Int = 16) {
     private var array = IntArray(max(capacity, 16))
-    private var size = 0
+    var size = 0
 
     fun add(value: Int) {
         if (size == array.size) {

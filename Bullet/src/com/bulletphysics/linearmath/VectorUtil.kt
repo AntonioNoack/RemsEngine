@@ -43,7 +43,7 @@ object VectorUtil {
         w = abs(w)
 
         var maxIndex = -1
-        var maxVal = Double.Companion.NEGATIVE_INFINITY
+        var maxVal = Double.NEGATIVE_INFINITY
         if (x > maxVal) {
             maxIndex = 0
             maxVal = x

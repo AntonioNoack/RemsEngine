@@ -502,12 +502,20 @@ open class Vector3d(
         )
     }
 
+    fun min(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(min(x, vx), min(y, vy), min(z, vz))
+    }
+
+    fun max(vx: Double, vy: Double, vz: Double, dst: Vector3d = this): Vector3d {
+        return dst.set(max(x, vx), max(y, vy), max(z, vz))
+    }
+
     fun min(v: Vector3d, dst: Vector3d = this): Vector3d {
-        return dst.set(min(x, v.x), min(y, v.y), min(z, v.z))
+        return min(v.x, v.y, v.z, dst)
     }
 
     fun max(v: Vector3d, dst: Vector3d = this): Vector3d {
-        return dst.set(max(x, v.x), max(y, v.y), max(z, v.z))
+        return max(v.x, v.y, v.z, dst)
     }
 
     fun zero(): Vector3d = set(0.0, 0.0, 0.0)

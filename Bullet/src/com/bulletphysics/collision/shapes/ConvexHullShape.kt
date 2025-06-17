@@ -2,30 +2,22 @@ package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
-import com.bulletphysics.linearmath.VectorUtil
-import cz.advel.stack.Stack
-import java.util.*
-import org.joml.Vector3d
 import com.bulletphysics.util.setScaleAdd
-import kotlin.math.sqrt
+import cz.advel.stack.Stack
+import org.joml.Vector3d
+import java.util.Arrays
 
 /**
  * ConvexHullShape implements an implicit convex hull of an array of vertices.
  * Bullet provides a general and fast collision detector for convex shapes based
  * on GJK and EPA using localGetSupportingVertex.
  *
- * @author jezek2
+ * @author Antonio, jezek2
  */
-class ConvexHullShape(points: MutableList<Vector3d>) : PolyhedralConvexShape() {
+class ConvexHullShape(val points: FloatArray) : PolyhedralConvexShape() {
 
-    val points = ArrayList(points)
+    val numPoints: Int = points.size / 3
 
-    /**
-     * This constructor takes in a pointer to points. Each point is assumed to be 3 consecutive double (x,y,z),
-     * the striding defines the number of bytes between each point, in memory.
-     * It is easier to not pass any points in the constructor, and just add one point at a time, using addPoint.
-     * ConvexHullShape make an internal copy of the points.
-     */
     init {
         recalculateLocalAabb()
     }
@@ -35,40 +27,21 @@ class ConvexHullShape(points: MutableList<Vector3d>) : PolyhedralConvexShape() {
         recalculateLocalAabb()
     }
 
-    @Suppress("unused")
-    fun addPoint(point: Vector3d) {
-        points.add(Vector3d(point))
-        recalculateLocalAabb()
-    }
-
-    @get:Suppress("unused")
-    val numPoints: Int
-        get() = points.size
-
     override fun localGetSupportingVertexWithoutMargin(dir: Vector3d, out: Vector3d): Vector3d {
         out.set(0.0, 0.0, 0.0)
-        var newDot: Double
-        var maxDot = -1e308
-
-        val vec = Stack.newVec(dir)
-        val lenSqr = vec.lengthSquared()
-        if (lenSqr < 0.0001f) {
-            vec.set(1.0, 0.0, 0.0)
-        } else {
-            val rlen = 1.0 / sqrt(lenSqr)
-            vec.mul(rlen)
-        }
-
-
-        val vtx = Stack.newVec()
-        for (i in points.indices) {
-            VectorUtil.mul(vtx, points[i]!!, localScaling)
-
-            newDot = vec.dot(vtx)
+        var maxDot = Double.NEGATIVE_INFINITY
+        var i = 0
+        val l = points.size
+        while (i < l) {
+            val x = points[i] * localScaling.x
+            val y = points[i + 1] * localScaling.y
+            val z = points[i + 2] * localScaling.z
+            val newDot = dir.dot(x, y, z)
             if (newDot > maxDot) {
                 maxDot = newDot
-                out.set(vtx)
+                out.set(x, y, z)
             }
+            i += 3
         }
         return out
     }
@@ -80,32 +53,34 @@ class ConvexHullShape(points: MutableList<Vector3d>) : PolyhedralConvexShape() {
 
         // JAVA NOTE: rewritten as code used W coord for temporary usage in Vector3
         // TODO: optimize it
-        val wcoords = DoubleArray(numVectors)
+        val wCoords = DoubleArray(numVectors)
 
         // use 'w' component of supportVerticesOut?
-        Arrays.fill(wcoords, -1e308)
+        Arrays.fill(wCoords, Double.NEGATIVE_INFINITY)
 
-        val vtx = Stack.newVec()
-        for (i in points.indices) {
-            VectorUtil.mul(vtx, points[i], localScaling)
+        var i = 0
+        val l = points.size
+        while (i < l) {
+            val x = points[i] * localScaling.x
+            val y = points[i + 1] * localScaling.y
+            val z = points[i + 2] * localScaling.z
 
             for (j in 0 until numVectors) {
                 val vec = dirs[j]
-
-                newDot = vec.dot(vtx)
-                //if (newDot > supportVerticesOut[j][3])
-                if (newDot > wcoords[j]) {
+                newDot = vec.x * x + vec.y * y + vec.z * z
+                if (newDot > wCoords[j]) {
                     // WARNING: don't swap next lines, the w component would get overwritten!
-                    outs[j].set(vtx)
-                    //supportVerticesOut[j][3] = newDot;
-                    wcoords[j] = newDot
+                    outs[j].set(x, y, z)
+                    wCoords[j] = newDot
                 }
             }
+            i += 3
         }
     }
 
     override fun localGetSupportingVertex(dir: Vector3d, out: Vector3d): Vector3d {
         val supVertex = localGetSupportingVertexWithoutMargin(dir, out)
+
         if (margin != 0.0) {
             val vecNorm = Stack.newVec(dir)
             if (vecNorm.lengthSquared() < (BulletGlobals.FLT_EPSILON * BulletGlobals.FLT_EPSILON)) {
@@ -118,25 +93,25 @@ class ConvexHullShape(points: MutableList<Vector3d>) : PolyhedralConvexShape() {
         return out
     }
 
+    override val numVertices get(): Int = numPoints
+    override val numEdges get(): Int = numPoints
+
     /**
      * Currently just for debugging (drawing), perhaps future support for algebraic continuous collision detection.
      * Please note that you can debug-draw ConvexHullShape with the Raytracer Demo.
      */
-    override val numVertices get(): Int = points.size
-    override val numEdges get(): Int = points.size
-
     override fun getEdge(i: Int, pa: Vector3d, pb: Vector3d) {
-        val index0 = i % points.size
-        val index1 = (i + 1) % points.size
-        VectorUtil.mul(pa, points[index0], localScaling)
-        VectorUtil.mul(pb, points[index1], localScaling)
+        val index0 = (i % this.numPoints) * 3
+        val index1 = ((i + 1) % this.numPoints) * 3
+        pa.set(points, index0).mul(localScaling)
+        pb.set(points, index1).mul(localScaling)
     }
 
     override fun getVertex(i: Int, vtx: Vector3d) {
-        VectorUtil.mul(vtx, points[i], localScaling)
+        vtx.set(points, i * 3).mul(localScaling)
     }
 
-    override val numPlanes get() = 0
+    override val numPlanes get(): Int = 0
 
     override fun getPlane(planeNormal: Vector3d, planeSupport: Vector3d, i: Int) {
         throw NotImplementedError()

@@ -1,12 +1,9 @@
 package com.bulletphysics.collision.shapes
 
-import com.bulletphysics.linearmath.MiscUtil
 import com.bulletphysics.linearmath.convexhull.HullDesc
 import com.bulletphysics.linearmath.convexhull.HullFlags
 import com.bulletphysics.linearmath.convexhull.HullLibrary
 import com.bulletphysics.linearmath.convexhull.HullResult
-import com.bulletphysics.util.IntArrayList
-import cz.advel.stack.Stack
 import org.joml.Vector3d
 
 /**
@@ -15,93 +12,55 @@ import org.joml.Vector3d
  *
  * @author jezek2
  */
-class ShapeHull(var shape: ConvexShape) {
+class ShapeHull(val shape: ConvexShape) {
 
-    var numIndices: Int
-    val vertexPointer = ArrayList<Vector3d>()
-    val indexPointer = IntArrayList()
-    val unitSpherePoints = ArrayList<Vector3d>()
+    private var vertices: List<Vector3d> = emptyList()
 
-    fun buildHull(margin: Double): Boolean {
-        val norm = Stack.newVec()
+    fun verticesToFloatArray(): FloatArray {
+        val dst = FloatArray(vertices.size * 3)
+        for (i in vertices.indices) {
+            vertices[i].get(dst, i * 3)
+        }
+        return dst
+    }
 
-        var numSampleDirections = NUM_UNIT_SPHERE_POINTS
-        for (i in 0 until shape.numPreferredPenetrationDirections) {
-            shape.getPreferredPenetrationDirection(i, norm)
-            unitSpherePoints[numSampleDirections++].set(norm)
+    val isValid = buildHull()
+
+    private fun buildHull(): Boolean {
+
+        val directions = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS + shape.numPreferredPenetrationDirections)
+        for (v in constUnitSpherePoints) {
+            directions.add(v)
         }
 
-        val supportPoints = ArrayList<Vector3d>()
-        MiscUtil.resize(
-            supportPoints,
-            NUM_UNIT_SPHERE_POINTS + ConvexShape.MAX_PREFERRED_PENETRATION_DIRECTIONS * 2,
-            Vector3d::class.java
-        )
+        for (i in 0 until shape.numPreferredPenetrationDirections) {
+            val extraDirection = Vector3d()
+            shape.getPreferredPenetrationDirection(i, extraDirection)
+            directions.add(extraDirection)
+        }
 
-        for (i in 0 until numSampleDirections) {
-            shape.localGetSupportingVertex(unitSpherePoints[i], supportPoints[i])
+        val supportPoints = directions.map { v ->
+            val support = Vector3d()
+            shape.localGetSupportingVertex(v, support)
+            support
         }
 
         val hullDesc = HullDesc()
         hullDesc.flags = HullFlags.TRIANGLES
-        hullDesc.vcount = numSampleDirections
-
-        //#ifdef BT_USE_DOUBLE_PRECISION
-        //hd.mVertices = &supportPoints[0];
-        //hd.mVertexStride = sizeof(btVector3);
-        //#else
+        hullDesc.vcount = directions.size
         hullDesc.vertices = supportPoints
 
-        //hd.vertexStride = 3 * 4;
-        //#endif
         val hullLibrary = HullLibrary()
         val hullResult = HullResult()
         if (!hullLibrary.createConvexHull(hullDesc, hullResult)) {
             return false
         }
 
-        MiscUtil.resize(this.vertexPointer, hullResult.numOutputVertices, Vector3d::class.java)
-
-        for (i in 0 until hullResult.numOutputVertices) {
-            vertexPointer[i].set(hullResult.outputVertices[i])
-        }
-        numIndices = hullResult.numIndices
-        MiscUtil.resize(this.indexPointer, numIndices, 0)
-        for (i in 0 until numIndices) {
-            indexPointer.set(i, hullResult.indices.get(i))
-        }
-
-        // free temporary hull result that we just copied
-        hullLibrary.releaseResult(hullResult)
+        val dstVertices = hullResult.outputVertices
+        vertices = dstVertices
+        dstVertices.subList(hullResult.numOutputVertices, dstVertices.size).clear()
 
         return true
-    }
-
-    fun numTriangles(): Int {
-        return numIndices / 3
-    }
-
-    fun numVertices(): Int {
-        return vertexPointer.size
-    }
-
-    fun numIndices(): Int {
-        return numIndices
-    }
-
-    init {
-        this.vertexPointer.clear()
-        this.indexPointer.clear()
-        this.numIndices = 0
-
-        MiscUtil.resize(
-            unitSpherePoints,
-            NUM_UNIT_SPHERE_POINTS + ConvexShape.MAX_PREFERRED_PENETRATION_DIRECTIONS * 2,
-            Vector3d::class.java
-        )
-        for (i in constUnitSpherePoints.indices) {
-            unitSpherePoints[i].set(constUnitSpherePoints[i])
-        }
     }
 
     companion object {

@@ -145,7 +145,7 @@ fun LongArray.getOrZero(i: Int, condition: Boolean): Long {
 }
 
 fun LongArray.getOrZero(i: Int): Long {
-    return if (i in indices) this[i] else 0L
+    return if (i in this@getOrZero.indices) this[i] else 0L
 }
 
 fun isConnectedBitMasks(fieldI: LongArray, reachedI: LongArray, sx: Int, sy: Int, stack: IntArrayList): Boolean {
