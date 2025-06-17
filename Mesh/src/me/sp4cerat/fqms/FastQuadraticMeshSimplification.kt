@@ -73,7 +73,7 @@ class FastQuadraticMeshSimplification {
 
                     // Compute vertex to collapse to
                     val p = tmp
-                    calculateError(i0, i1, p)
+                    calculateError(v0, v1, p)
                     deleted0.ensureSize(v0.numTriangles)
                     deleted1.ensureSize(v1.numTriangles)
 
@@ -252,10 +252,15 @@ class FastQuadraticMeshSimplification {
     }
 
     private fun calculateTriangleError(t: Triangle, tmp: Vector3d) {
-        t.errors[0] = calculateError(t.vertexIds[0], t.vertexIds[1], tmp)
-        t.errors[1] = calculateError(t.vertexIds[1], t.vertexIds[2], tmp)
-        t.errors[2] = calculateError(t.vertexIds[2], t.vertexIds[0], tmp)
-        t.errors[3] = min(t.errors[0], min(t.errors[1], t.errors[2]))
+        val errors = t.errors
+        val vertexIds = t.vertexIds
+        val v0 = vertices[vertexIds[0]]
+        val v1 = vertices[vertexIds[1]]
+        val v2 = vertices[vertexIds[2]]
+        errors[0] = calculateError(v0, v1, tmp)
+        errors[1] = calculateError(v1, v2, tmp)
+        errors[2] = calculateError(v2, v0, tmp)
+        errors[3] = min(errors[0], min(errors[1], errors[2]))
     }
 
     private fun identifyBoundary() {
@@ -411,6 +416,7 @@ class FastQuadraticMeshSimplification {
      * Error between vertex and Quadric
      * */
     private fun vertexError(q: SymmetricMatrix, x: Double, y: Double, z: Double): Double {
+        val q = q.m
         return (q[0] * x * x + 2 * q[1] * x * y + 2 * q[2] * x * z + 2 * q[3] * x +
                 q[4] * y * y + 2 * q[5] * y * z + 2 * q[6] * y +
                 q[7] * z * z + 2 * q[8] * z + q[9])
@@ -421,11 +427,9 @@ class FastQuadraticMeshSimplification {
     /**
      * Error for one edge
      * */
-    private fun calculateError(vi: Int, vj: Int, dst: Vector3d): Double {
-        val v1 = vertices[vi]
-        val v2 = vertices[vj]
-        val q = v1.q.add(v2.q, tmpSum)
-        val border = v1.border and v2.border
+    private fun calculateError(va: Vertex, vb: Vertex, dst: Vector3d): Double {
+        val q = va.q.add(vb.q, tmpSum)
+        val border = va.border and vb.border
         val det = q.det(0, 1, 2, 1, 4, 5, 2, 5, 7)
         if (abs(det) > 1e-38 && !border) {
             val invDet = 1.0 / det
@@ -436,8 +440,8 @@ class FastQuadraticMeshSimplification {
             return vertexError(q, dst.x, dst.y, dst.z)
         } else {
             // det = 0 -> try to find best result
-            val p1 = vertices[vi].p
-            val p2 = vertices[vj].p
+            val p1 = va.p
+            val p2 = vb.p
             val p3x = (p1.x + p2.x) * 0.5
             val p3y = (p1.y + p2.y) * 0.5
             val p3z = (p1.z + p2.z) * 0.5

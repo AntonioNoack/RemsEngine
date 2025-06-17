@@ -63,7 +63,7 @@ fun main() {
 fun createTerrain(
     width: Int, length: Int, cellSize: Float,
     perlin: PerlinNoise, parent: Entity
-) {
+): Mesh {
 
     val mesh = RectangleTerrainModel.generateRegularQuadHeightMesh(
         width, length,
@@ -84,4 +84,6 @@ fun createTerrain(
         .add(MeshComponent(mesh))
         .add(Rigidbody().apply { mass = 0.0 })
         .add(TerrainCollider(width, length, perlin.min, perlin.max, heightData))
+
+    return mesh
 }

@@ -8,6 +8,7 @@ class SymmetricMatrix() {
      * Define a plane
      * */
     fun set(nx: Double, ny: Double, nz: Double, nw: Double) {
+        val m = m
         m[0] = nx * nx
         m[1] = nx * ny
         m[2] = nx * nz
@@ -21,21 +22,21 @@ class SymmetricMatrix() {
     }
 
     operator fun plusAssign(other: SymmetricMatrix) {
+        val m = m
+        val om = other.m
         for (i in m.indices) {
-            m[i] += other.m[i]
+            m[i] += om[i]
         }
-    }
-
-    operator fun get(idx: Int): Double {
-        return m[idx]
     }
 
     fun add(other: SymmetricMatrix, dst: SymmetricMatrix): SymmetricMatrix {
-        val sum = dst
+        val m = m
+        val om = other.m
+        val dstM = dst.m
         for (i in m.indices) {
-            sum.m[i] = m[i] + other.m[i]
+            dstM[i] = m[i] + om[i]
         }
-        return sum
+        return dst
     }
 
     fun det(

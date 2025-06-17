@@ -13,22 +13,21 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val mesh = MeshCache[downloads.getChild("3d/lucy.obj")] as Mesh
-
-    val simplified = simplifyMesh(mesh, 0.2f, 8)
-    val simplified2 = simplifyMesh(mesh, 0.01f, 8)
+    val mesh0 = MeshCache[downloads.getChild("3d/lucy.obj")] as Mesh
+    val mesh1 = simplifyMesh(mesh0, 0.2f, 5)
+    val mesh2 = simplifyMesh(mesh1, 0.05f, 5)
 
     val scene = Entity()
     Entity("1%", scene)
-        .add(MeshComponent(simplified2))
-        .setPosition(-mesh.getBounds().deltaX * 1.5, 0.0, 0.0)
+        .add(MeshComponent(mesh2))
+        .setPosition(-mesh0.getBounds().deltaX * 1.5, 0.0, 0.0)
 
     Entity("20%", scene)
-        .add(MeshComponent(simplified))
+        .add(MeshComponent(mesh1))
 
     Entity("Original", scene)
-        .add(MeshComponent(mesh))
-        .setPosition(mesh.getBounds().deltaX * 1.5, 0.0, 0.0)
+        .add(MeshComponent(mesh0))
+        .setPosition(mesh0.getBounds().deltaX * 1.5, 0.0, 0.0)
 
     testSceneWithUI("Mesh Simplification2", scene, RenderMode.LINES_MSAA)
 }

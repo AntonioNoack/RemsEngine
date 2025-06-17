@@ -2,7 +2,6 @@ package me.anno.tests.gfx
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.WindowRenderFlags
@@ -42,7 +41,7 @@ fun rotatingCube() {
                 "void main() {\n" +
                 "   uint index = gl_GlobalInvocationID.x;\n" +
                 "   if(index < uint(size)){\n" +
-                "       setVertexCoords(index, matMul(rotation, getVertexCoords(index)));\n" +
+                "       setVertexPositions(index, matMul(rotation, getVertexPositions(index)));\n" +
                 "       setVertexNormals(index, normalize(matMul(rotation, getVertexNormals(index))));\n" +
                 "   }\n" +
                 "}\n"

@@ -50,12 +50,11 @@ object BufferCompute {
 
     fun createAccessors(
         given: AttributeLayout,
-        wanted: List<Attribute>,
+        wantedList: List<Attribute>,
         name: String, binding: Int,
         setters: Boolean
     ): String {
-        if (wanted.isEmpty()) return ""
-        var pos = 0
+        if (wantedList.isEmpty()) return ""
         val result = StringBuilder()
         result.append(
             // 430 = compact
@@ -65,215 +64,205 @@ object BufferCompute {
         )
         val stride4 = given.stride shr 2
         for (attr in 0 until given.size) {
+            val pos = given.offset(attr)
             val offset4 = pos shr 2
             val attrName = given.name(attr)
             val name1 = attrName.titlecase()
-            val reqType = wanted.firstOrNull { it.name == attrName }
+            val wanted = wantedList.firstOrNull { it.name == attrName } ?: continue
             val numAttrComponents = given.components(attr)
-            if (reqType != null) {
-                when (given.type(attr)) {
-                    AttributeType.FLOAT -> {
-                        val type = floatType(numAttrComponents)
-                        val alignment = floatAlignment(numAttrComponents)
-                        val size = numAttrComponents * 4
-                        if (pos % alignment != 0) {
-                            throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
-                        }
+            when (given.type(attr)) {
+                AttributeType.FLOAT -> {
+                    val type = floatType(numAttrComponents)
+                    val alignment = floatAlignment(numAttrComponents)
+                    if (pos % alignment != 0) {
+                        throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
+                    }
+                    result.append(
+                        "$type get$name$name1(uint index){\n" +
+                                "   uint idx = index*${stride4}+$offset4;\n" +
+                                when (numAttrComponents) {
+                                    1 -> "return uintBitsToFloat($name.data[idx]);\n"
+                                    2 -> "return vec2(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]));\n"
+                                    3 -> "return vec3(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]));\n"
+                                    4 -> "return vec4(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]),uintBitsToFloat($name.data[idx+3]));\n"
+                                    else -> throw NotImplementedError()
+                                } +
+                                "}\n"
+                    )
+                    if (setters) {
                         result.append(
-                            "$type get$name$name1(uint index){\n" +
+                            "void set$name$name1(uint index, $type value){\n" +
                                     "   uint idx = index*${stride4}+$offset4;\n" +
-                                    when (numAttrComponents) {
-                                        1 -> "return uintBitsToFloat($name.data[idx]);\n"
-                                        2 -> "return vec2(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]));\n"
-                                        3 -> "return vec3(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]));\n"
-                                        4 -> "return vec4(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]),uintBitsToFloat($name.data[idx+3]));\n"
-                                        else -> throw NotImplementedError()
+                                    (0 until numAttrComponents).joinToString("") {
+                                        "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]});\n"
                                     } +
                                     "}\n"
                         )
-                        if (setters) {
-                            result.append(
-                                "void set$name$name1(uint index, $type value){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        (0 until numAttrComponents).joinToString("") {
-                                            "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]});\n"
-                                        } +
-                                        "}\n"
-                            )
-                        }
-                        pos += size
                     }
-                    AttributeType.UINT32 -> {
-                        val type = uintType(numAttrComponents)
-                        val alignment = floatAlignment(numAttrComponents)
-                        val size = numAttrComponents * 4
-                        if (pos % alignment != 0) {
-                            throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
-                        }
-                        result.append(
-                            "$type get$name$name1(uint index){\n" +
-                                    "   uint idx = index*${stride4}+$offset4;\n" +
-                                    when (numAttrComponents) {
-                                        1 -> "return ($name.data[idx]);\n"
-                                        2 -> "return uvec2(($name.data[idx]),($name.data[idx+1]));\n"
-                                        3 -> "return uvec3(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]));\n"
-                                        4 -> "return uvec4(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]),($name.data[idx+3]));\n"
-                                        else -> throw NotImplementedError()
-                                    } +
-                                    "}\n"
-                        )
-                        if (setters) {
-                            result.append(
-                                "void set$name$name1(uint index, $type value){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        (0 until numAttrComponents).joinToString("") {
-                                            "$name.data[idx+$it] = (value.${"xyzw"[it]})\n"
-                                        } +
-                                        "}\n"
-                            )
-                        }
-                        pos += size
-                    }
-                    AttributeType.SINT32 -> {
-                        val type = sintType(numAttrComponents)
-                        val alignment = floatAlignment(numAttrComponents)
-                        val size = numAttrComponents * 4
-                        if (pos % alignment != 0) {
-                            throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
-                        }
-                        result.append(
-                            "$type get$name$name1(uint index){\n" +
-                                    "   uint idx = index*${stride4}+$offset4;\n" +
-                                    when (numAttrComponents) {
-                                        1 -> "return int($name.data[idx]);\n"
-                                        2 -> "return ivec2(int($name.data[idx]),int($name.data[idx+1]));\n"
-                                        3 -> "return ivec3(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]));\n"
-                                        4 -> "return ivec4(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]),int($name.data[idx+3]));\n"
-                                        else -> throw NotImplementedError()
-                                    } +
-                                    "}\n"
-                        )
-                        if (setters) {
-                            result.append(
-                                "void set$name$name1(uint index, $type value){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        (0 until numAttrComponents).joinToString("") {
-                                            "$name.data[idx+$it] = uint(value.${"xyzw"[it]})\n"
-                                        } +
-                                        "}\n"
-                            )
-                        }
-                        pos += size
-                    }
-                    AttributeType.SINT8_NORM -> {
-                        if (numAttrComponents != 4) throw NotImplementedError()
-                        val alignment = 4
-                        if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std140")
-                        val c = reqType.numComponents
-                        when (c) {
-                            1 -> result.append(
-                                "float get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   int value = int($name.data[idx]);\n" +
-                                        "   return float((value<<24)>>24) / 127.0;\n" +
-                                        "}\n"
-                            )
-                            2 -> result.append(
-                                "vec2 get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   int value = int($name.data[idx]);\n" +
-                                        "   return vec2((value<<24)>>24, (value<<16)>>24) / 127.0;\n" +
-                                        "}\n"
-                            )
-                            3 -> result.append(
-                                "vec3 get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   int value = int($name.data[idx]);\n" +
-                                        "   return vec3((value<<24)>>24, (value<<16)>>24, (value<<8)>>24) / 127.0;\n" +
-                                        "}\n"
-                            )
-                            4 -> result.append(
-                                "vec4 get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   int value = int($name.data[idx]);\n" +
-                                        "   return vec4((value<<24)>>24, (value<<16)>>24, (value<<8)>>24, value>>24) / 127.0;\n" +
-                                        "}\n"
-                            )
-                            else -> throw NotImplementedError()
-                        }
-                        if (setters) {
-                            result.append(
-                                "void set$name$name1(uint index, ${floatType(c)} value){\n" +
-                                        "   int sum = int(round(clamp(value.x,-1.0,1.0)*127.0))&255;\n" +
-                                        "   sum |= (int(round(clamp(value.y,-1.0,1.0)*127.0))&255)<<8;\n".iff(c > 1) +
-                                        "   sum |= (int(round(clamp(value.z,-1.0,1.0)*127.0))&255)<<16;\n".iff(c > 2) +
-                                        "   sum |= (int(round(clamp(value.w,-1.0,1.0)*127.0)))<<24;\n".iff(c > 3) +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   $name.data[idx] = uint(sum);\n" +
-                                        "}\n"
-                            )
-                        }
-                        val size = numAttrComponents
-                        pos += size
-                    }
-                    AttributeType.UINT8_NORM -> {
-                        if (numAttrComponents != 4) throw NotImplementedError()
-                        val alignment = 4
-                        if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std430")
-                        val c = reqType.numComponents
-                        when (c) {
-                            1 -> result.append(
-                                "float get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   uint value = $name.data[idx];\n" +
-                                        "   return float(value & 255) / 255.0;\n" +
-                                        "}\n"
-                            )
-                            2 -> result.append(
-                                "vec2 get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   uint value = $name.data[idx];\n" +
-                                        "   return vec2((value<<24)>>24, (value<<16)>>24) / 255.0;\n" +
-                                        "}\n"
-                            )
-                            3 -> result.append(
-                                "vec3 get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   uint value = $name.data[idx];\n" +
-                                        "   return vec3((value<<24)>>24, (value<<16)>>24, (value<<8)>>24) / 255.0;\n" +
-                                        "}\n"
-                            )
-                            4 -> result.append(
-                                "vec4 get$name$name1(uint index){\n" +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   uint value = $name.data[idx];\n" +
-                                        "   return vec4((value<<24)>>24, (value<<16)>>24, (value<<8)>>24, value>>24) / 255.0;\n" +
-                                        "}\n"
-                            )
-                            else -> throw NotImplementedError()
-                        }
-                        if (setters) {
-                            result.append(
-                                "void set$name$name1(uint index, ${floatType(c)} value){\n" +
-                                        "   uint sum = uint(round(clamp(value.x,0.0,1.0)*255.0))&255;\n" +
-                                        "   sum |= (uint(round(clamp(value.y,0.0,1.0)*255.0))&255)<<8;\n".iff(c > 1) +
-                                        "   sum |= (uint(round(clamp(value.z,0.0,1.0)*255.0))&255)<<16;\n".iff(c > 2) +
-                                        "   sum |= (uint(round(clamp(value.w,0.0,1.0)*255.0)))<<24;\n".iff(c > 3) +
-                                        "   uint idx = index*${stride4}+$offset4;\n" +
-                                        "   $name.data[idx] = sum;\n" +
-                                        "}\n"
-                            )
-                        }
-                        val size = numAttrComponents
-                        pos += size
-                    }
-                    else -> throw NotImplementedError(attr.toString())
                 }
+                AttributeType.UINT32 -> {
+                    val type = uintType(numAttrComponents)
+                    val alignment = floatAlignment(numAttrComponents)
+                    if (pos % alignment != 0) {
+                        throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
+                    }
+                    result.append(
+                        "$type get$name$name1(uint index){\n" +
+                                "   uint idx = index*${stride4}+$offset4;\n" +
+                                when (numAttrComponents) {
+                                    1 -> "return ($name.data[idx]);\n"
+                                    2 -> "return uvec2(($name.data[idx]),($name.data[idx+1]));\n"
+                                    3 -> "return uvec3(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]));\n"
+                                    4 -> "return uvec4(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]),($name.data[idx+3]));\n"
+                                    else -> throw NotImplementedError()
+                                } +
+                                "}\n"
+                    )
+                    if (setters) {
+                        result.append(
+                            "void set$name$name1(uint index, $type value){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    (0 until numAttrComponents).joinToString("") {
+                                        "$name.data[idx+$it] = (value.${"xyzw"[it]})\n"
+                                    } +
+                                    "}\n"
+                        )
+                    }
+                }
+                AttributeType.SINT32 -> {
+                    val type = sintType(numAttrComponents)
+                    val alignment = floatAlignment(numAttrComponents)
+                    if (pos % alignment != 0) {
+                        throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
+                    }
+                    result.append(
+                        "$type get$name$name1(uint index){\n" +
+                                "   uint idx = index*${stride4}+$offset4;\n" +
+                                when (numAttrComponents) {
+                                    1 -> "return int($name.data[idx]);\n"
+                                    2 -> "return ivec2(int($name.data[idx]),int($name.data[idx+1]));\n"
+                                    3 -> "return ivec3(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]));\n"
+                                    4 -> "return ivec4(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]),int($name.data[idx+3]));\n"
+                                    else -> throw NotImplementedError()
+                                } +
+                                "}\n"
+                    )
+                    if (setters) {
+                        result.append(
+                            "void set$name$name1(uint index, $type value){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    (0 until numAttrComponents).joinToString("") {
+                                        "$name.data[idx+$it] = uint(value.${"xyzw"[it]})\n"
+                                    } +
+                                    "}\n"
+                        )
+                    }
+                }
+                AttributeType.SINT8_NORM -> {
+                    if (pos.and(3) != 0) {
+                        throw NotImplementedError("Unsupported offset $pos for ${given.type(attr)} -> $wanted")
+                    }
+                    val alignment = 4
+                    if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std140")
+                    val c = wanted.numComponents
+                    when (c) {
+                        1 -> result.append(
+                            "float get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   return float($name.data[idx] & 255u) / 127.0;\n" +
+                                    "}\n"
+                        )
+                        2 -> result.append(
+                            "vec2 get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   int value = int($name.data[idx]);\n" +
+                                    "   return vec2((value<<24)>>24, (value<<16)>>24) / 127.0;\n" +
+                                    "}\n"
+                        )
+                        3 -> result.append(
+                            "vec3 get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   int value = int($name.data[idx]);\n" +
+                                    "   return vec3((value<<24)>>24, (value<<16)>>24, (value<<8)>>24) / 127.0;\n" +
+                                    "}\n"
+                        )
+                        4 -> result.append(
+                            "vec4 get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   int value = int($name.data[idx]);\n" +
+                                    "   return vec4((value<<24)>>24, (value<<16)>>24, (value<<8)>>24, value>>24) / 127.0;\n" +
+                                    "}\n"
+                        )
+                        else -> throw NotImplementedError()
+                    }
+                    if (setters) {
+                        result.append(
+                            "void set$name$name1(uint index, ${floatType(c)} value){\n" +
+                                    "   int sum = int(round(clamp(value.x,-1.0,1.0)*127.0))&255;\n" +
+                                    "   sum |= (int(round(clamp(value.y,-1.0,1.0)*127.0))&255)<<8;\n".iff(c > 1) +
+                                    "   sum |= (int(round(clamp(value.z,-1.0,1.0)*127.0))&255)<<16;\n".iff(c > 2) +
+                                    "   sum |= (int(round(clamp(value.w,-1.0,1.0)*127.0)))<<24;\n".iff(c > 3) +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   $name.data[idx] = uint(sum);\n" +
+                                    "}\n"
+                        )
+                    }
+                }
+                AttributeType.UINT8_NORM -> {
+                    if (numAttrComponents != 4) throw NotImplementedError()
+                    val alignment = 4
+                    if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std430")
+                    val c = wanted.numComponents
+                    when (c) {
+                        1 -> result.append(
+                            "float get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   uint value = $name.data[idx];\n" +
+                                    "   return float(value & 255) / 255.0;\n" +
+                                    "}\n"
+                        )
+                        2 -> result.append(
+                            "vec2 get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   uint value = $name.data[idx];\n" +
+                                    "   return vec2((value<<24)>>24, (value<<16)>>24) / 255.0;\n" +
+                                    "}\n"
+                        )
+                        3 -> result.append(
+                            "vec3 get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   uint value = $name.data[idx];\n" +
+                                    "   return vec3((value<<24)>>24, (value<<16)>>24, (value<<8)>>24) / 255.0;\n" +
+                                    "}\n"
+                        )
+                        4 -> result.append(
+                            "vec4 get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   uint value = $name.data[idx];\n" +
+                                    "   return vec4((value<<24)>>24, (value<<16)>>24, (value<<8)>>24, value>>24) / 255.0;\n" +
+                                    "}\n"
+                        )
+                        else -> throw NotImplementedError()
+                    }
+                    if (setters) {
+                        result.append(
+                            "void set$name$name1(uint index, ${floatType(c)} value){\n" +
+                                    "   uint sum = uint(round(clamp(value.x,0.0,1.0)*255.0))&255;\n" +
+                                    "   sum |= (uint(round(clamp(value.y,0.0,1.0)*255.0))&255)<<8;\n".iff(c > 1) +
+                                    "   sum |= (uint(round(clamp(value.z,0.0,1.0)*255.0))&255)<<16;\n".iff(c > 2) +
+                                    "   sum |= (uint(round(clamp(value.w,0.0,1.0)*255.0)))<<24;\n".iff(c > 3) +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    "   $name.data[idx] = sum;\n" +
+                                    "}\n"
+                        )
+                    }
+                }
+                else -> throw NotImplementedError(attr.toString())
             }
         }
         // append missing attributes as 0 or (0,0,0,0)
-        for (i in wanted.indices) {
-            val attr = wanted[i]
+        for (i in wantedList.indices) {
+            val attr = wantedList[i]
             if (given.indexOf(attr.name) < 0) {
                 val name1 = attr.name.titlecase()
                 val type = floatType(attr.numComponents)

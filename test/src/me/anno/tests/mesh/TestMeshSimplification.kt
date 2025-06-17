@@ -90,21 +90,21 @@ fun createTestMesh(w: Int, h: Int): Mesh {
 
 fun main() {
 
-    val mesh = createTestMesh(20, 20)
-    val simplified = simplifyMesh(mesh, 0.2f, 5)
-    val simplified2 = simplifyMesh(mesh, 0.01f, 5)
+    val mesh0 = createTestMesh(20, 20)
+    val mesh1 = simplifyMesh(mesh0, 0.2f, 5)
+    val mesh2 = simplifyMesh(mesh1, 0.05f, 5)
 
     val scene = Entity()
     Entity(scene)
-        .add(MeshComponent(simplified))
+        .add(MeshComponent(mesh1))
 
     Entity(scene)
-        .add(MeshComponent(simplified2))
-        .setPosition(-mesh.getBounds().deltaX * 1.5, 0.0, 0.0)
+        .add(MeshComponent(mesh2))
+        .setPosition(-mesh0.getBounds().deltaX * 1.5, 0.0, 0.0)
 
     Entity(scene)
-        .add(MeshComponent(mesh))
-        .setPosition(mesh.getBounds().deltaX * 1.5, 0.0, 0.0)
+        .add(MeshComponent(mesh0))
+        .setPosition(mesh0.getBounds().deltaX * 1.5, 0.0, 0.0)
 
     testSceneWithUI("Mesh Simplification", scene, RenderMode.LINES_MSAA)
 }
