@@ -634,13 +634,6 @@ object Maths {
     }
 
     @JvmStatic
-    fun nonNegativeModulo(x: Int, div: Int): Int {
-        var y = x % div
-        if (y < 0) y += div
-        return y
-    }
-
-    @JvmStatic
     fun ceilDiv(a: Int, b: Int) = (a + b - 1) / b
 
     @JvmStatic
