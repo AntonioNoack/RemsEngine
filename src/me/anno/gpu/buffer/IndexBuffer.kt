@@ -4,7 +4,7 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.Buffer.Companion.findClickIdAttr
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline

@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.engine.ui.render.RenderState.cameraPosition
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -57,7 +57,7 @@ object LineBuffer {
         drawMode = DrawMode.LINES
     }
 
-    val bytesPerLine: Int = 2 * buffer.stride
+    val bytesPerLine: Int = 2 * attributes.stride
 
     fun hasLinesToDraw(): Boolean {
         val nioBuffer = buffer.nioBuffer

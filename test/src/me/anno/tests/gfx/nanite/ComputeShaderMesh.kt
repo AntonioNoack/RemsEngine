@@ -11,8 +11,8 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -108,7 +108,7 @@ class ComputeShaderMesh(val mesh: Mesh) : IMesh {
         val key = ComputeShaderKey(
             shader, deferredSettings,
             mesh.buffer!!.attributes,
-            instanceData?.attributes ?: AttributeLayout.EMPTY,
+            instanceData?.attributes ?: CompactAttributeLayout.EMPTY,
             triBuffer?.elementsType,
             if (drawLines) DrawMode.LINES else mesh.drawMode
         )

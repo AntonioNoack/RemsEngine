@@ -2,7 +2,7 @@ package me.anno.maths.bvh
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.maths.bvh.TLASTexture.putBounds
 

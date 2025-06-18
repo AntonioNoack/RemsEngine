@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshAttributes.color0
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.SVGTransform.applyTransform
 import me.anno.image.svg.gradient.Formula

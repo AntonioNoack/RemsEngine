@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.AttributeLayout
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.EMPTY
 import me.anno.gpu.buffer.AttributeReadWrite.appendAccessorsHeader
 import me.anno.gpu.buffer.AttributeReadWrite.appendDataAccessor
 import me.anno.gpu.buffer.AttributeReadWrite.appendVoidValue
@@ -304,29 +305,37 @@ class MainStage {
         val main = StringBuilder()
 
         val meshLayout = key.meshLayout
-        val instLayout = key.instLayout
         if (meshLayout != null) {
+            val instLayout = key.instLayout ?: EMPTY
             main.append("// loading baked attributes\n")
             appendAccessorsHeader(meshBufferName, 0, code)
             appendAccessorsHeader(instBufferName, 1, code)
 
             for (i in attributes.indices) {
                 val attr = attributes[i]
+
+                // check mesh attributes
                 val meshAttrIndex = meshLayout.indexOf(attr.name)
                 if (meshAttrIndex >= 0) {
                     appendAttribute(
                         attr, meshBufferName, "gl_VertexID",
                         meshLayout, meshAttrIndex, code, main
                     )
-                } else if (instLayout != null) {
-                    val instAttrIndex = instLayout.indexOf(attr.name)
-                    if (instAttrIndex >= 0) {
-                        appendAttribute(
-                            attr, instBufferName, "gl_InstanceID",
-                            instLayout, instAttrIndex, code, main
-                        )
-                    } else appendAttributeZero(code, attr)
-                } else appendAttributeZero(code, attr)
+                    continue
+                }
+
+                // check instanced attributes
+                val instAttrIndex = instLayout.indexOf(attr.name)
+                if (instAttrIndex >= 0) {
+                    appendAttribute(
+                        attr, instBufferName, "gl_InstanceID",
+                        instLayout, instAttrIndex, code, main
+                    )
+                    continue
+                }
+
+                // missing -> define it as zero
+                appendAttributeZero(code, attr)
             }
             main.append("// loaded baked attributes\n")
             attributes.clear()
@@ -502,7 +511,7 @@ class MainStage {
                             if (i > 0) code.append(',')
                             code.append(lastOutputs[i].name)
                         }
-                        for (i in outputSum until 4) {
+                        repeat(4 - outputSum) {
                             code.append(",1.0")
                         }
                         code.append(");\n")

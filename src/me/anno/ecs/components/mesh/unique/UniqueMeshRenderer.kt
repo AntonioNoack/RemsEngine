@@ -9,9 +9,9 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.BufferUsage
+import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
@@ -39,7 +39,7 @@ import java.nio.IntBuffer
  * todo somehow use indexed meshes (less load on the vertex shader)
  * */
 abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
-    val attributes: AttributeLayout,
+    val attributes: CompactAttributeLayout,
     override val vertexData: MeshVertexData,
     val drawMode: DrawMode
 ) : MeshSpawner(), IMesh, ICacheData, AllocationManager<MeshEntry<Mesh>, StaticBuffer> {
@@ -68,7 +68,7 @@ abstract class UniqueMeshRenderer<Key, Mesh : IMesh>(
     private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
     private var buffer1 = StaticBuffer("umr1", attributes, 0, BufferUsage.DYNAMIC)
 
-    val stride get() = buffer0.stride
+    val stride get() = attributes.stride
 
     @DebugProperty
     @NotSerializedProperty

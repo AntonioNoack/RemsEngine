@@ -23,7 +23,7 @@ abstract class Batch(name: String, val base: StaticBuffer, val attributes: Attri
 
     val data by lazy {
         buffer.apply {
-            getOrCreateNioBuffer().position(batchSize * stride)
+            getOrCreateNioBuffer().position(attributes.totalSize(batchSize))
             ensureBuffer() // maximum size :)
         }.getOrCreateNioBuffer()
     }

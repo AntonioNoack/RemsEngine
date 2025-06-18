@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer

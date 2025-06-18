@@ -13,7 +13,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.DrawMode

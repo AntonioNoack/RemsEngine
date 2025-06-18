@@ -1,6 +1,6 @@
 package me.anno.gpu.buffer
 
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -53,7 +53,7 @@ object TriangleBuffer {
     )
 
     private val buffer = StaticBuffer("triangles", attributes, 65536, BufferUsage.STREAM)
-    private val bytesPerTriangle: Int = 3 * buffer.stride
+    private val bytesPerTriangle: Int = 3 * attributes.stride
 
     fun hasTrianglesToDraw(): Boolean {
         val nioBuffer = buffer.nioBuffer

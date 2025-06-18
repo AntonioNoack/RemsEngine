@@ -16,7 +16,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer

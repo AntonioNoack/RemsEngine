@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL46C
@@ -66,7 +66,7 @@ open class StaticBuffer(
     }
 
     final override fun createNioBuffer(): ByteBuffer {
-        val byteSize = vertexCount * stride
+        val byteSize = attributes.totalSize(vertexCount)
         return ByteBufferPool.allocateDirect(byteSize)
             .order(ByteOrder.nativeOrder())
     }

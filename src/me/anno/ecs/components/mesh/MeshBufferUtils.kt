@@ -10,8 +10,10 @@ import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.BufferUsage
+import me.anno.gpu.buffer.CompactAttributeLayout
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.buffer.StridedAttributeLayout
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.indexOfFirst2
@@ -60,9 +62,12 @@ object MeshBufferUtils {
         else pos
     }
 
-    private fun Mesh.findVertexAttributes(): Pair<List<VertexAttr>, AttributeLayout> {
+    /**
+     * Easier to join two buffers together.
+     * */
+    private fun Mesh.defineCompactLayout(): Pair<List<VertexAttr>, CompactAttributeLayout> {
 
-        val srcAttributes = this.vertexAttributes
+        val srcAttributes = vertexAttributes
             .sortedByDescending { it.attribute.alignment }
 
         val numAttributes = srcAttributes.size
@@ -111,7 +116,56 @@ object MeshBufferUtils {
         val maxAlignment = srcAttributes.first().attribute.alignment
         val stride = align(pos, maxAlignment)
 
-        return vertexAttributes to AttributeLayout(names, types, numComponents, offsets, stride)
+        return vertexAttributes to CompactAttributeLayout(names, types, numComponents, offsets, stride)
+    }
+
+    /**
+     * Theoretically better cache-locality, if only a subset of properties is used.
+     * When using AttributeReadWrite-shader-logic, RenderDoc only shows this properly as a very long table with a single row.
+     * */
+    @Suppress("unused")
+    private fun Mesh.defineStridedLayout(): Pair<List<VertexAttr>, StridedAttributeLayout> {
+
+        val numVertices = numVertices
+        val srcAttributes = vertexAttributes
+            .sortedByDescending { it.attribute.alignment }
+
+        val numAttributes = srcAttributes.size
+        val vertexAttributes = ArrayList<VertexAttr>(numAttributes)
+        val offsets = IntArray(numAttributes)
+        val numComponents = ByteArray(numAttributes)
+        val strides = IntArray(numAttributes)
+        val names = ArrayList<String>(numAttributes)
+        val types = ArrayList<AttributeType>(numAttributes)
+
+        var pos = 0
+        for (i in srcAttributes.indices) {
+
+            val (attr, data) = srcAttributes[i]
+            val alignment = attr.alignment
+            assertTrue(alignment.isPowerOf2())
+
+            names.add(attr.name)
+            types.add(attr.type)
+            numComponents[i] = attr.numComponents.toByte()
+
+            // find a good start position
+            pos = align(pos, alignment)
+
+            // write current position
+            offsets[i] = pos
+            strides[i] = alignment
+
+            // advance buffer
+            pos += numVertices * alignment
+
+            vertexAttributes.add(VertexAttr.map(attr, data))
+        }
+
+        return vertexAttributes to StridedAttributeLayout(
+            names, types, numComponents, offsets,
+            numVertices, pos, strides
+        )
     }
 
     private fun Mesh.bufferName() = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }
@@ -143,7 +197,7 @@ object MeshBufferUtils {
 
     private fun Mesh.createVertexBuffer(attributes: AttributeLayout): StaticBuffer {
         val name = bufferName()
-        val buffer = replaceBuffer(name, attributes, vertexCount, buffer)
+        val buffer = replaceBuffer(name, attributes, numVertices, buffer)
         buffer.drawMode = drawMode
         this.buffer = buffer
         return buffer
@@ -154,7 +208,7 @@ object MeshBufferUtils {
         triBuffer?.drawMode = drawMode
     }
 
-    private val Mesh.vertexCount get() = min(positions!!.size, normals!!.size) / 3
+    private val Mesh.numVertices get() = min(positions!!.size, normals!!.size) / 3
 
     fun Mesh.fillVertexData(
         attributes: List<VertexAttr>,
@@ -162,23 +216,35 @@ object MeshBufferUtils {
         buffer: Buffer
     ) {
         val nio = buffer.getOrCreateNioBuffer()
-        val stride = layout.stride
-        val vertexCount = vertexCount
-        for (vertexIndex in 0 until vertexCount) {
+        val numVertices = numVertices
+        if (layout is StridedAttributeLayout) {
             for (i in attributes.indices) {
                 val attr = attributes[i]
                 val offset = layout.offset(i)
-                nio.position(vertexIndex * stride + offset)
-                attr.fill(vertexIndex, nio)
+                val stride = layout.stride(i)
+                for (vertexIndex in 0 until numVertices) {
+                    nio.position(vertexIndex * stride + offset)
+                    attr.fill(vertexIndex, nio)
+                }
+            }
+        } else {
+            for (vertexIndex in 0 until numVertices) {
+                for (i in attributes.indices) {
+                    val attr = attributes[i]
+                    val offset = layout.offset(i)
+                    val stride = layout.stride(i)
+                    nio.position(vertexIndex * stride + offset)
+                    attr.fill(vertexIndex, nio)
+                }
             }
         }
-        nio.position(vertexCount * stride)
+        nio.position(layout.totalSize(numVertices))
         buffer.isUpToDate = false
     }
 
     fun Mesh.createMeshBufferImpl() {
         createMeshBufferSetup()
-        val (attributes, layout) = findVertexAttributes()
+        val (attributes, layout) = defineCompactLayout()
         val buffer = createVertexBuffer(layout)
         fillVertexData(attributes, layout, buffer)
         createAndFillIndexBuffer(buffer)

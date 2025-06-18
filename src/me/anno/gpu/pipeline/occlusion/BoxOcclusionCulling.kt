@@ -6,10 +6,10 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeLayout
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.BufferUsage
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
@@ -321,8 +321,8 @@ class BoxOcclusionCulling : AttachedDepthPass() {
     ): Buffer {
         indirectBuffer.ensureBuffer()
         val layout = instanceBuffer.attributes
-        assertTrue(layout.offset(clickIdAttribute) % 4 == 0)
-        assertTrue(layout.stride % 4 == 0)
+        assertTrue(layout.offset(clickIdAttribute).and(3) == 0)
+        assertTrue(layout.stride(clickIdAttribute).and(3) == 0)
 
         val mappedInstances = getMappedInstanceBuffer(instanceBuffer)
         val shader = compactingNShader
@@ -333,7 +333,7 @@ class BoxOcclusionCulling : AttachedDepthPass() {
         // uniform sizes, so we don't write OOB
         shader.v1i("numInstances", instanceBuffer.elementCount)
         shader.v1i("clickIdIndex", layout.offset(clickIdAttribute).shr(2))
-        shader.v1i("numAttributes", layout.stride.shr(2))
+        shader.v1i("numAttributes", layout.stride(clickIdAttribute).shr(2))
 
         shader.bindBuffer(0, indirectBuffer)
         shader.bindBuffer(1, visibilityBuffer)

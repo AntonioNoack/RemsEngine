@@ -4,7 +4,7 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GPUTasks.addGPUTask
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
@@ -184,20 +184,25 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
         }
 
         @JvmStatic
-        fun bindAttribute(shader: Shader, attr: AttributeLayout, i: Int, instanced: Boolean): Boolean {
+        fun bindAttribute(shader: Shader, layout: AttributeLayout, i: Int, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
-            val index = shader.getAttributeLocation(attr.name(i))
+            val index = shader.getAttributeLocation(layout.name(i))
             return if (index in 0 until GFX.maxAttributes) {
-                val type = attr.type(i)
+                val type = layout.type(i)
+                val numComponents = layout.components(i)
+                val stride = layout.stride(i)
+                val offset = layout.offset(i).toLong() and 0xffffffffL
+                val typeId = type.glslId
                 if (shader.isAttributeNative(index)) {
+                    // defined as integer and to be used as integer
                     glVertexAttribIPointer(
-                        index, attr.components(i), type.glslId,
-                        attr.stride, attr.offset(i).toLong()
+                        index, numComponents, typeId,
+                        stride, offset
                     )
                 } else {
                     glVertexAttribPointer(
-                        index, attr.components(i), type.glslId,
-                        type.normalized, attr.stride, attr.offset(i).toLong()
+                        index, numComponents, typeId,
+                        type.normalized, stride, offset
                     )
                 }
                 glVertexAttribDivisor(index, instanceDivisor)

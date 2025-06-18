@@ -6,7 +6,7 @@ import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01

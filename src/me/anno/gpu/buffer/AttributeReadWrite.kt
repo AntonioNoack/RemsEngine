@@ -63,7 +63,10 @@ object AttributeReadWrite {
     }
 
     private fun StringBuilder.appendIdx(stride: Int, offset: Int): StringBuilder {
-        append("uint idx = index*").append(stride).append('+').append(offset).append(";\n")
+        append("uint idx = index")
+        if (stride != 1) append('*').append(stride)
+        if (offset != 0) append('+').append(offset)
+        append(";\n")
         return this
     }
 
@@ -102,7 +105,7 @@ object AttributeReadWrite {
         given: AttributeLayout, givenIndex: Int,
         setters: Boolean, result: StringBuilder
     ) {
-        val stride1 = given.stride
+        val stride1 = given.stride(givenIndex)
         val stride2 = stride1 shr 1
         val stride4 = stride1 shr 2
         val offset1 = given.offset(givenIndex)

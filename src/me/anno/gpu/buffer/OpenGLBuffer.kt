@@ -12,6 +12,8 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertIs
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.roundToIntOr
@@ -38,7 +40,11 @@ abstract class OpenGLBuffer(
     val usage: BufferUsage
 ) : ICacheData {
 
-    val stride get() = attributes.stride
+    /**
+     * if attributes is StridedAttributeLayout, you probably shouldn't access this property
+     * */
+    val stride: Int
+        get() = (attributes as? CompactAttributeLayout)?.stride ?: 1
 
     var nioBuffer: ByteBuffer? = null
 
@@ -120,6 +126,7 @@ abstract class OpenGLBuffer(
         elementCount = max(elementCount, newLimit / stride)
         nio.position(0)
         nio.limit(elementCount * stride)
+
         if (!keepBuffer(allowResize, newLimit, keepLarge)) {
             glBufferStorage(type, newLimit.toLong(), GL_DYNAMIC_STORAGE_BIT or GL_MAP_WRITE_BIT)
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
@@ -164,9 +171,10 @@ abstract class OpenGLBuffer(
 
     fun copyElementsTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {
         if (size == 0L) return
-        if (stride != toBuffer.stride) {
-            throw IllegalArgumentException("Buffers have mismatched strides")
-        }
+        val fromLayout = assertIs(CompactAttributeLayout::class, attributes)
+        val toLayout = assertIs(CompactAttributeLayout::class, toBuffer.attributes)
+        assertEquals(fromLayout.stride, toLayout.stride)
+        val stride = toLayout.stride
         copyBytesTo(toBuffer, from * stride, to * stride, size * stride)
     }
 

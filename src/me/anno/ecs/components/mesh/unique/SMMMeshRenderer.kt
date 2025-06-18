@@ -172,8 +172,9 @@ class SMMMeshRenderer(material: Material) :
     override fun getData(key: SMMKey, mesh: Mesh): StaticBuffer? {
         val data = getData0(key, mesh) ?: return null
         val dataBuffer = data.getOrCreateNioBuffer()
-        assertEquals(data.vertexCount * data.stride, dataBuffer.position()) {
-            "${data.vertexCount} * ${data.stride} != ${dataBuffer.position()}"
+        val stride = attributes.stride
+        assertEquals(data.vertexCount * stride, dataBuffer.position()) {
+            "${data.vertexCount} * $stride != ${dataBuffer.position()}"
         }
         data.isUpToDate = false
         return data

@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer

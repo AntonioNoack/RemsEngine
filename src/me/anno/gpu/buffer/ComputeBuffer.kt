@@ -14,7 +14,7 @@ class ComputeBuffer(name: String, attr: AttributeLayout, elementCount: Int, type
     }
 
     override fun createNioBuffer(): ByteBuffer {
-        val byteSize = elementCount * attributes.stride
+        val byteSize = attributes.totalSize(elementCount)
         return ByteBufferPool.allocateDirect(byteSize)
     }
 

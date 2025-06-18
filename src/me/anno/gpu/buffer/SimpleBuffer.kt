@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow

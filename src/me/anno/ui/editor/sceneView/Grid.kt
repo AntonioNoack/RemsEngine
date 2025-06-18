@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeLayout.Companion.bind
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline

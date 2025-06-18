@@ -152,6 +152,7 @@ open class InstancedStack {
                 // todo useAttributeLayout in non-instanced meshes, too (?)
                 // todo test with lots and lots of attributes
                 //  (whether we still fail before this)
+                // todo test this on Android and WebGL!!!
                 val useAttributeLayout = false && (mesh is Mesh && mesh.helperMeshes == null &&
                         !Mesh.drawDebugLines && mesh.buffer != null) // && Input.isShiftDown
 
@@ -265,7 +266,7 @@ open class InstancedStack {
                 st23 += t3 - t2
 
                 val drawCallId = drawCallId++
-                val endIndex = Maths.min(instanceCount, baseIndex + batchSize)
+                val endIndex = min(instanceCount, baseIndex + batchSize)
                 if (highPerformanceMode) {
                     val cx = cameraPosition.x
                     val cy = cameraPosition.y
