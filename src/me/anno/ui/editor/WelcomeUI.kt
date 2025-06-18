@@ -147,7 +147,6 @@ interface WelcomeUI {
         windowStack.push(createBackground(style))
 
         val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
-        mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
             if (it == Key.BUTTON_LEFT) {
                 loadLastProject(studio, usableFile, nameInput, recent)

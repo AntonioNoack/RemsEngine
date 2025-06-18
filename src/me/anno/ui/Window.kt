@@ -69,13 +69,6 @@ open class Window(
             }
         }
 
-    var canBeClosedByUser = true
-
-    fun cannotClose(): Window {
-        canBeClosedByUser = false
-        return this
-    }
-
     var width = -1
     var height = -1
 
@@ -111,10 +104,6 @@ open class Window(
         panel.setPosSize(px, py, width1, height1)
     }
 
-    fun setAcceptsClickAway(boolean: Boolean) {
-        acceptsClickAway = { boolean }
-    }
-
     val closingListeners = ArrayList<() -> Unit>()
 
     fun addClosingListener(listener: () -> Unit): Window {
@@ -126,8 +115,7 @@ open class Window(
      * returns whether the window can be closed, when that button was clicked outside this window's domain;
      * can be used as a listener for this event
      * */
-    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
-    var acceptsClickAway = { mouseButton: Key -> canBeClosedByUser }
+    var acceptsClickAway: (mouseButton: Key) -> Boolean = defaultClickAway
 
     open fun destroy() {
         buffer.destroy()
@@ -337,6 +325,9 @@ open class Window(
     }
 
     companion object {
+
+        private val defaultClickAway: (mouseButton: Key) -> Boolean = { true }
+
         private val windowShadowShader = Shader(
             "WindowShadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V4F, "color"),

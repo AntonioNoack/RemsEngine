@@ -209,7 +209,7 @@ object Input {
             Key.KEY_ESCAPE -> {
                 if (ws.size > 1) {
                     val window2 = ws.last()
-                    if (window2.canBeClosedByUser) {
+                    if (window2.acceptsClickAway(key)) {
                         ws.pop().destroy()
                     } else inFocus0?.onEscapeKey(mouseX, mouseY)
                 } else inFocus0?.onEscapeKey(mouseX, mouseY)
