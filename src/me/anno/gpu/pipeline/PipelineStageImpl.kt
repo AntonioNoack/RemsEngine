@@ -421,7 +421,7 @@ class PipelineStageImpl(
                 instances.all2 { it.isEmpty() }
     }
 
-    val instanced = InstancedStack.Impl()
+    val instanced = InstancedStackImpl()
     val instancedTRS = InstancedTRSStack()
     val instancedStatic = InstancedStaticStack()
 

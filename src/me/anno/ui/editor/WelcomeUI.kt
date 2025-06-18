@@ -277,7 +277,7 @@ interface WelcomeUI {
         } else {
             Menu.msg(
                 NameDesc(
-                    "Please choose a ${dirNameEn}!",
+                    "Please choose a directory!",
                     "", "ui.newProject.pleaseChooseDir"
                 )
             )
@@ -331,11 +331,11 @@ interface WelcomeUI {
             when {
                 !rootIsOk(file) -> {
                     state = "error"
-                    msg = translate("Root $dirNameEn does not exist!", "ui.project.rootMissing")
+                    msg = translate("Root directory does not exist!", "ui.project.rootMissing")
                 }
                 !file.getParent().exists -> {
                     state = "warning"
-                    msg = translate("Parent $dirNameEn does not exist!", "ui.project.parentMissing")
+                    msg = translate("Parent directory does not exist!", "ui.project.parentMissing")
                 }
                 !fileNameIsOk(file) -> {
                     state = "error"
@@ -405,8 +405,6 @@ interface WelcomeUI {
     }
 
     companion object {
-
-        const val dirNameEn = "directory" // vs folder
 
         lateinit var nameInput: TextInput
         var usableFile: FileReference? = null

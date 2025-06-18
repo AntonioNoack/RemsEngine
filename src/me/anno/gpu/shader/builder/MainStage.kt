@@ -266,7 +266,7 @@ class MainStage {
     }
 
     private fun appendAssignmentStart(attr: Variable, main: StringBuilder) {
-        main.append(attr.type.glslName).append(' ').append(attr.name).append(" = ")
+        main.append(attr.name).append(" = ")
     }
 
     private fun appendAttribute(
@@ -303,11 +303,20 @@ class MainStage {
         val main = StringBuilder()
 
         val meshLayout = key.meshLayout
-        if (meshLayout != null) {
+        if (!isFragmentStage && meshLayout != null) {
+
+            for (i in attributes.indices) {
+                val attr = attributes[i]
+                main.append(attr.type.glslName).append(' ').append(attr.name).append(";\n")
+            }
+
             val instLayout = key.instLayout ?: EMPTY
-            main.append("// loading baked attributes\n")
+            main.append("{ // loading baked attributes\n")
             appendAccessorsHeader(MESH_BUFFER_NAME, 0, false, code)
             appendAccessorsHeader(INST_BUFFER_NAME, 1, false, code)
+
+            main.append("uint vertexId = uint(gl_VertexID);\n")
+            main.append("uint instanceId = uint(gl_InstanceID);\n")
 
             for (i in attributes.indices) {
                 val attr = attributes[i]
@@ -316,7 +325,7 @@ class MainStage {
                 val meshAttrIndex = meshLayout.indexOf(attr.name)
                 if (meshAttrIndex >= 0) {
                     appendAttribute(
-                        attr, MESH_BUFFER_NAME, "gl_VertexID",
+                        attr, MESH_BUFFER_NAME, "vertexId",
                         meshLayout, meshAttrIndex, code, main
                     )
                     continue
@@ -326,16 +335,16 @@ class MainStage {
                 val instAttrIndex = instLayout.indexOf(attr.name)
                 if (instAttrIndex >= 0) {
                     appendAttribute(
-                        attr, INST_BUFFER_NAME, "gl_InstanceID",
+                        attr, INST_BUFFER_NAME, "instanceId",
                         instLayout, instAttrIndex, code, main
                     )
                     continue
                 }
 
                 // missing -> define it as zero
-                appendAttributeZero(code, attr)
+                appendAttributeZero(main, attr)
             }
-            main.append("// loaded baked attributes\n")
+            main.append("}\n")
             attributes.clear()
         }
 

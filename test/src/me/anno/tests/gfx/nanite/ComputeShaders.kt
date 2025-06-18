@@ -330,7 +330,7 @@ object ComputeShaders {
                         "layout(rgba32f, binding = ${idx + 1}) uniform image2D ${layer.name}Tex;\n"
                     } +
                     (if (indexed != null) {
-                        "layout(std430, set = 0, binding = 2) buffer IndexBuffer {\n" +
+                        "layout(std430, binding = 2) buffer IndexBuffer {\n" +
                                 "    uint data[];\n" +
                                 "} Indices;\n"
                     } else "") +

@@ -64,8 +64,8 @@ object AttributeReadWrite {
 
     private fun StringBuilder.appendIdx(stride: Int, offset: Int): StringBuilder {
         append("uint idx = index")
-        if (stride != 1) append('*').append(stride)
-        if (offset != 0) append('+').append(offset)
+        if (stride != 1) append('*').append(stride).append('u')
+        if (offset != 0) append('+').append(offset).append('u')
         append(";\n")
         return this
     }
@@ -95,7 +95,7 @@ object AttributeReadWrite {
 
     fun appendAccessorsHeader(name: String, binding: Int, setters: Boolean, result: StringBuilder) {
         // 430 = compact; doesn't matter for uint[]
-        result.append("layout(std430, set = 0, binding = ").append(binding).append(") ")
+        result.append("layout(std430, binding = ").append(binding).append(") ")
         if (!setters) result.append("readonly ")
         result.append("buffer Buffer").append(name).append(" { uint data[]; } ").append(name).append(";\n")
     }
@@ -121,19 +121,16 @@ object AttributeReadWrite {
                     throw IllegalStateException("Alignment breaks std430: $given, $offset1 % $alignment")
                 }
                 result.appendGetterHeader(type, name, name1).appendIdx(stride4, offset4)
-                result.append(
-                    when (c) {
-                        1 -> "return uintBitsToFloat($name.data[idx]);\n"
-                        2 -> "return vec2(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]));\n"
-                        3 -> "return vec3(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]));\n"
-                        4 -> "return vec4(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]),uintBitsToFloat($name.data[idx+3]));\n"
-                        else -> throw NotImplementedError()
-                    }
-                ).append("}\n")
+                result.append("return ").append(type).append("(")
+                result.append("uintBitsToFloat($name.data[idx])")
+                if (c > 1) result.append(", uintBitsToFloat($name.data[idx+1u])")
+                if (c > 2) result.append(", uintBitsToFloat($name.data[idx+2u])")
+                if (c > 3) result.append(", uintBitsToFloat($name.data[idx+3u])")
+                result.append("); }\n")
                 if (setters) {
                     result.appendSetterHeader(type, name, name1).appendIdx(stride4, offset4)
                     for (i in 0 until c) {
-                        result.append(name).append(".data[idx+$i] = floatBitsToUint(value")
+                        result.append(name).append(".data[idx+").append(i).append("u] = floatBitsToUint(value")
                             .append(mask(c, i)).append(");\n")
                     }
                     result.append("}\n")
@@ -300,9 +297,9 @@ object AttributeReadWrite {
         createInt16Helper(result, joined)
         result.appendGetterHeader(type, name, name1).appendIdx(stride, offset)
         result.append("return ").append(type).append("getU16").append(joined).append("(idx)")
-        if (c > 1) result.append(", ").append("getU16").append(joined).append("(idx+1)")
-        if (c > 2) result.append(", ").append("getU16").append(joined).append("(idx+2)")
-        if (c > 3) result.append(", ").append("getU16").append(joined).append("(idx+3)")
+        if (c > 1) result.append(", ").append("getU16").append(joined).append("(idx+1u)")
+        if (c > 2) result.append(", ").append("getU16").append(joined).append("(idx+2u)")
+        if (c > 3) result.append(", ").append("getU16").append(joined).append("(idx+3u)")
         result.append(")")
         if (normalized) result.append("*").append(if (unsigned) INV65535 else INV32767)
         result.append(";\n}\n")
@@ -351,14 +348,15 @@ object AttributeReadWrite {
         result.appendGetterHeader(type, name, name1).appendIdx(stride4, offset4)
         result.append("return ").append(type).append('(')
         result.append(name).append(".data[idx]")
-        if (c > 1) result.append(", ").append(name).append(".data[idx+1]")
-        if (c > 2) result.append(", ").append(name).append(".data[idx+2]")
-        if (c > 3) result.append(", ").append(name).append(".data[idx+3]")
+        if (c > 1) result.append(", ").append(name).append(".data[idx+1u]")
+        if (c > 2) result.append(", ").append(name).append(".data[idx+2u]")
+        if (c > 3) result.append(", ").append(name).append(".data[idx+3u]")
         result.append("); }\n")
         if (setters) {
             result.appendSetterHeader(type, name, name1).appendIdx(stride4, offset4)
             for (i in 0 until c) {
-                result.append(name).append(".data[idx+$i] = uint(value").append(mask(c, i)).append(");\n")
+                result.append(name).append(".data[idx+").append(i).append("u] = uint(value")
+                    .append(mask(c, i)).append(");\n")
             }
             result.append("}\n")
         }
