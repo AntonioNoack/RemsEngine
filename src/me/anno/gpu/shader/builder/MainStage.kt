@@ -4,10 +4,10 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.AttributeLayout
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.EMPTY
 import me.anno.gpu.buffer.AttributeReadWrite.appendAccessorsHeader
 import me.anno.gpu.buffer.AttributeReadWrite.appendDataAccessor
 import me.anno.gpu.buffer.AttributeReadWrite.appendVoidValue
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.EMPTY
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.BaseShader
@@ -22,9 +22,7 @@ import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Strings.ifBlank2
 import me.anno.utils.types.Strings.titlecase
-import org.apache.logging.log4j.LogManager
 
 class MainStage {
 
@@ -44,9 +42,9 @@ class MainStage {
                 attributes.add(attr)
             }
         }
-        defineFunction(Function(randomGLSL))
+        uniqueFunctions.add(randomGLSL)
         for (function in stage.functions) {
-            defineFunction(function)
+            uniqueFunctions.add(function.body)
         }
     }
 
@@ -308,8 +306,8 @@ class MainStage {
         if (meshLayout != null) {
             val instLayout = key.instLayout ?: EMPTY
             main.append("// loading baked attributes\n")
-            appendAccessorsHeader(meshBufferName, 0, code)
-            appendAccessorsHeader(instBufferName, 1, code)
+            appendAccessorsHeader(MESH_BUFFER_NAME, 0, false, code)
+            appendAccessorsHeader(INST_BUFFER_NAME, 1, false, code)
 
             for (i in attributes.indices) {
                 val attr = attributes[i]
@@ -318,7 +316,7 @@ class MainStage {
                 val meshAttrIndex = meshLayout.indexOf(attr.name)
                 if (meshAttrIndex >= 0) {
                     appendAttribute(
-                        attr, meshBufferName, "gl_VertexID",
+                        attr, MESH_BUFFER_NAME, "gl_VertexID",
                         meshLayout, meshAttrIndex, code, main
                     )
                     continue
@@ -328,7 +326,7 @@ class MainStage {
                 val instAttrIndex = instLayout.indexOf(attr.name)
                 if (instAttrIndex >= 0) {
                     appendAttribute(
-                        attr, instBufferName, "gl_InstanceID",
+                        attr, INST_BUFFER_NAME, "gl_InstanceID",
                         instLayout, instAttrIndex, code, main
                     )
                     continue
@@ -393,15 +391,15 @@ class MainStage {
         // work-around: like in C, declare the function header, and then GLSL will find the dependency by itself :)
         if (isFragmentStage) {
             if (settings != null) {
-                functions2.add(ShaderLib.octNormalPacking)
+                uniqueFunctions.add(ShaderLib.octNormalPacking)
             }
             if (ditherMode == DitherMode.DITHER2X2) {
-                functions2.add(ShaderLib.dither2x2)
+                uniqueFunctions.add(ShaderLib.dither2x2)
             }
         }
 
-        for (func in functions2) code.append(func)
-        if (functions2.isNotEmpty()) code.append('\n')
+        for (func in uniqueFunctions) code.append(func)
+        if (uniqueFunctions.isNotEmpty()) code.append('\n')
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
@@ -551,23 +549,10 @@ class MainStage {
         return code.toString()
     }
 
-    val functions1 = HashSet<String>()
-    val functions2 = LinkedHashSet<String>()
-
-    private fun defineFunction(function: Function) {
-        val key = function.header.ifBlank2(function.body)
-        val previous = key in functions1
-        if (previous) {
-            if (function.body !in functions2)
-                LOGGER.warn("Overriding shader function! $key")
-            return
-        }
-        functions2.add(function.body)
-    }
+    private val uniqueFunctions = LinkedHashSet<String>()
 
     companion object {
-        private val LOGGER = LogManager.getLogger(MainStage::class)
-        val meshBufferName = "iMeshBuffer"
-        val instBufferName = "iInstBuffer"
+        private const val MESH_BUFFER_NAME = "iMeshBuffer"
+        private const val INST_BUFFER_NAME = "iInstBuffer"
     }
 }

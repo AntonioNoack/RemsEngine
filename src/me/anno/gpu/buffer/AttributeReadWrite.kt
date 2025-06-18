@@ -78,7 +78,7 @@ object AttributeReadWrite {
     ): String {
         if (wantedList.isEmpty()) return ""
         val result = StringBuilder()
-        appendAccessorsHeader(name, binding, result)
+        appendAccessorsHeader(name, binding, setters, result)
         // append missing attributes as 0 or (0,0,0,0)
         for (i in wantedList.indices) {
             val wantedI = wantedList[i]
@@ -93,11 +93,11 @@ object AttributeReadWrite {
         return result.toString()
     }
 
-    fun appendAccessorsHeader(name: String, binding: Int, result: StringBuilder) {
-        result.append(
-            // 430 = compact; doesn't matter for uint[]
-            "layout(std430, set = 0, binding = $binding) buffer Buffer$name { uint data[]; } "
-        ).append(name).append(";\n")
+    fun appendAccessorsHeader(name: String, binding: Int, setters: Boolean, result: StringBuilder) {
+        // 430 = compact; doesn't matter for uint[]
+        result.append("layout(std430, set = 0, binding = ").append(binding).append(") ")
+        if (!setters) result.append("readonly ")
+        result.append("buffer Buffer").append(name).append(" { uint data[]; } ").append(name).append(";\n")
     }
 
     fun appendDataAccessor(
