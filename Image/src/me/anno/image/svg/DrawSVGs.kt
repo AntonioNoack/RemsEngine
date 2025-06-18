@@ -2,7 +2,6 @@ package me.anno.image.svg
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -15,7 +14,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -125,7 +123,7 @@ object DrawSVGs {
 
 
     fun draw3DSVG(
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: ITexture2D, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: SVGBuffer, texture: ITexture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
         val shader = init(stack, texture, color, filtering, clamping)
@@ -144,13 +142,13 @@ object DrawSVGs {
     }
 
     fun draw(
-        stack: Matrix4fArrayList, buffer: StaticBuffer,
+        stack: Matrix4fArrayList, buffer: SVGBuffer,
         clamping: Clamping, tiling: Vector4f?,
         shader: Shader
     ) {
 
         // normalized on y-axis, width unknown
-        val bounds = buffer.bounds!!
+        val bounds = buffer.bounds
         val sx = bounds.minX / bounds.minY
         val sy = 1f
         if (tiling == null) {
@@ -159,7 +157,7 @@ object DrawSVGs {
             // x2 just for security...
             shader.v4f("uvLimits", -2f * sx, -2f, 2f * sx, 2f)
             GFX.check()
-            buffer.draw(shader)
+            buffer.buffer.draw(shader)
             GFX.check()
         } else {
 
@@ -226,7 +224,7 @@ object DrawSVGs {
                         }
 
                         shader.v4f("uvLimits", sx * a0, b0, sx * a1, b1)
-                        buffer.draw(shader)
+                        buffer.buffer.draw(shader)
                         GFX.check()
 
                     }

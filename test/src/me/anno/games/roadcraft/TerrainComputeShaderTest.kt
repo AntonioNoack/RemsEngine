@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.shader.BufferCompute.createAccessors
+import me.anno.gpu.buffer.AttributeReadWrite.createAccessors
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable

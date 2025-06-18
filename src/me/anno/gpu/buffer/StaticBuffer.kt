@@ -4,7 +4,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.AttributeLayout.Companion.bind
 import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
-import org.joml.AABBf
 import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -29,22 +28,6 @@ open class StaticBuffer(
     constructor(name: String, floats: FloatArray, attributes: List<Attribute>) :
             this(name, bind(attributes), floats.size / attributes.sumOf { it.numComponents }, BufferUsage.STATIC) {
         put(floats)
-    }
-
-    // data for SVGs, might be removed in the future
-    var bounds: AABBf? = null
-
-    /**
-     * copies all information over
-     * */
-    fun put(src: StaticBuffer) {
-        val dstBuffer = getOrCreateNioBuffer()
-        val srcBuffer = src.getOrCreateNioBuffer()
-        val srcPosition = srcBuffer.position()
-        val srcLimit = srcBuffer.limit()
-        srcBuffer.position(0).limit(srcPosition)
-        dstBuffer.put(srcBuffer)
-        srcBuffer.limit(srcLimit).position(srcPosition)
     }
 
     open fun clear() {
@@ -116,18 +99,6 @@ open class StaticBuffer(
                 GL46C.glDrawArraysInstanced(mode.id, 0, baseLength, length)
                 unbind(shader)
             }
-        }
-
-        fun join(
-            buffers: List<StaticBuffer>,
-            newName: String = buffers.joinToString("-") { it.name }
-        ): StaticBuffer? {
-            if (buffers.isEmpty()) return null
-            val vertexCount = buffers.sumOf { it.vertexCount }
-            val sample = buffers.first()
-            val joint = StaticBuffer(newName, sample.attributes, vertexCount)
-            for (buffer in buffers) joint.put(buffer)
-            return joint
         }
     }
 }

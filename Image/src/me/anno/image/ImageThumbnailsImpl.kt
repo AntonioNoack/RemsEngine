@@ -17,6 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.Color
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapAsync
 import me.anno.utils.types.Floats.roundToIntOr
 import net.sf.image4j.codec.ico.ICOReader
 import org.joml.Matrix4fArrayList
@@ -85,33 +86,28 @@ object ImageThumbnailsImpl {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout) { bufferI, err ->
-            if (bufferI != null) {
-                bufferI.waitFor {
-                    val buffer = bufferI.value
-                    if (buffer != null) {
-                        val bounds = buffer.bounds!!
-                        val maxSize = max(bounds.maxX, bounds.maxY)
-                        val w = (size * bounds.maxX / maxSize).roundToIntOr()
-                        val h = (size * bounds.maxY / maxSize).roundToIntOr()
-                        if (!(w < 2 || h < 2)) {
-                            val transform = Matrix4fArrayList()
-                            transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
-                            ThumbsRendering.renderToImage(
-                                srcFile, false, dstFile, false,
-                                Renderer.colorRenderer, false, callback, w, h
-                            ) {
-                                DrawSVGs.draw3DSVG(
-                                    transform, buffer,
-                                    TextureLib.whiteTexture, Color.white4,
-                                    Filtering.NEAREST, TextureLib.whiteTexture.clamping,
-                                    null
-                                )
-                            }
-                        } else callback.err(null)
-                    } else callback.err(null)
-                }
-            } else callback.err(err)
-        }
+        SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout, callback.mapAsync { bufferI, cb2 ->
+            bufferI.waitFor(cb2.mapAsync { buffer, cb1 ->
+                val bounds = buffer.bounds
+                val maxSize = max(bounds.maxX, bounds.maxY)
+                val w = (size * bounds.maxX / maxSize).roundToIntOr()
+                val h = (size * bounds.maxY / maxSize).roundToIntOr()
+                if (w >= 2 && h >= 2) {
+                    ThumbsRendering.renderToImage(
+                        srcFile, false, dstFile, false,
+                        Renderer.colorRenderer, false, cb1, w, h
+                    ) {
+                        val transform = Matrix4fArrayList()
+                        transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
+                        DrawSVGs.draw3DSVG(
+                            transform, buffer,
+                            TextureLib.whiteTexture, Color.white4,
+                            Filtering.NEAREST, TextureLib.whiteTexture.clamping,
+                            null
+                        )
+                    }
+                } else callback.err(null)
+            })
+        })
     }
 }

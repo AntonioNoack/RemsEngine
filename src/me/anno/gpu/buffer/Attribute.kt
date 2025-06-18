@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.shader.GLSLType
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 
@@ -23,6 +24,7 @@ data class Attribute(
 
     val byteSize get() = numComponents * type.byteSize
     val alignment get() = (if (numComponents == 3) 4 else numComponents) * type.byteSize
+    val glslType: GLSLType get() = type.toGLSLType(numComponents)
 
     override fun toString(): String {
         return "Attribute($name,$type,$numComponents)"

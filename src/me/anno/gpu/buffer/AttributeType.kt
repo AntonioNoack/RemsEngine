@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.shader.GLSLType
 import org.lwjgl.opengl.GL46C.GL_BYTE
 import org.lwjgl.opengl.GL46C.GL_DOUBLE
 import org.lwjgl.opengl.GL46C.GL_FLOAT
@@ -38,6 +39,14 @@ enum class AttributeType(
     SINT32_NORM(35, 4, true, true, GL_INT),
 
     ;
+
+    fun toGLSLType(numComponents: Int): GLSLType {
+        return when (this) {
+            UINT8, UINT16, UINT32,
+            SINT8, SINT16, SINT32 -> GLSLType.floats
+            else -> GLSLType.integers
+        }[numComponents]
+    }
 
     fun size(numComponents: Int): Int {
         return numComponents * byteSize

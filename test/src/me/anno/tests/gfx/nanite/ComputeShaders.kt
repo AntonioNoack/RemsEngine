@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.AttributeLayout
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.shader.BufferCompute.createAccessors
+import me.anno.gpu.buffer.AttributeReadWrite.createAccessors
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader

@@ -3,8 +3,10 @@ package me.anno.gpu.shader.builder
 import me.anno.config.DefaultConfig
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.AttributeLoading.appendAttributeLoader
-import me.anno.gpu.buffer.AttributeLoading.appendAttributeZero
+import me.anno.gpu.buffer.AttributeLayout
+import me.anno.gpu.buffer.AttributeReadWrite.appendAccessorsHeader
+import me.anno.gpu.buffer.AttributeReadWrite.appendDataAccessor
+import me.anno.gpu.buffer.AttributeReadWrite.appendVoidValue
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.BaseShader
@@ -20,6 +22,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.ifBlank2
+import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
 
 class MainStage {
@@ -263,8 +266,24 @@ class MainStage {
         code.append("}\n")
     }
 
-    fun appendBuffer(code: StringBuilder, binding: Int, name: String) {
-        code.append("layout(std430, binding = $binding) buffer i$name { int $name[]; };\n")
+    private fun appendAssignmentStart(attr: Variable, main: StringBuilder) {
+        main.append(attr.type.glslName).append(' ').append(attr.name).append(" = ")
+    }
+
+    private fun appendAttribute(
+        attr: Variable, bufferName: String, indexName: String, layout: AttributeLayout, layoutIndex: Int,
+        code: StringBuilder, main: StringBuilder
+    ) {
+        val name1 = attr.name.titlecase()
+        appendDataAccessor(bufferName, name1, layout, layoutIndex, false, code)
+        appendAssignmentStart(attr, main)
+        main.append("get").append(bufferName).append(name1).append('(').append(indexName).append(");\n")
+    }
+
+    private fun appendAttributeZero(main: StringBuilder, attr: Variable) {
+        appendAssignmentStart(attr, main)
+        appendVoidValue(attr.type, main)
+        main.append(";\n")
     }
 
     fun createCode(
@@ -287,27 +306,29 @@ class MainStage {
         val meshLayout = key.meshLayout
         val instLayout = key.instLayout
         if (meshLayout != null) {
-            main.append("{ // loading baked attributes\n")
-
-            // append buffers
-            // to do only when used
-            appendBuffer(code, 0, meshBufferName)
-            appendBuffer(code, 1, instBufferName)
+            main.append("// loading baked attributes\n")
+            appendAccessorsHeader(meshBufferName, 0, code)
+            appendAccessorsHeader(instBufferName, 1, code)
 
             for (i in attributes.indices) {
                 val attr = attributes[i]
-                val byMesh = meshLayout.indexOf(attr.name)
-                if (byMesh >= 0) {
-                    appendAttributeLoader(code, main, meshLayout, byMesh, attr, false)
+                val meshAttrIndex = meshLayout.indexOf(attr.name)
+                if (meshAttrIndex >= 0) {
+                    appendAttribute(
+                        attr, meshBufferName, "gl_VertexID",
+                        meshLayout, meshAttrIndex, code, main
+                    )
                 } else if (instLayout != null) {
-                    val byInst = instLayout.indexOf(attr.name)
-                    if (byInst >= 0) {
-                        appendAttributeLoader(code, main, instLayout, byInst, attr, true)
+                    val instAttrIndex = instLayout.indexOf(attr.name)
+                    if (instAttrIndex >= 0) {
+                        appendAttribute(
+                            attr, instBufferName, "gl_InstanceID",
+                            instLayout, instAttrIndex, code, main
+                        )
                     } else appendAttributeZero(code, attr)
                 } else appendAttributeZero(code, attr)
             }
-            // including instanced attributes
-            main.append("}\n")
+            main.append("// loaded baked attributes\n")
             attributes.clear()
         }
 
