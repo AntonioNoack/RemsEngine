@@ -1,12 +1,13 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.AsyncCacheData
-import me.anno.io.saveable.Saveable
+import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
+import me.anno.io.saveable.Saveable
 
-class FileReadPrefabData(val reference: FileReference) : AsyncCacheData<Saveable>() {
+class PrefabPair(val reference: FileReference) : ICacheData {
 
+    var value: Saveable? = null
     val prefab get() = value as? Prefab
     val instance
         get(): Saveable? {

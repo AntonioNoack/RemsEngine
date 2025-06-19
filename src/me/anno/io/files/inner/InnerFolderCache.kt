@@ -1,11 +1,12 @@
 package me.anno.io.files.inner
 
 import me.anno.cache.AsyncCacheData
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.FileCacheSection.getFileEntryAsync
+import me.anno.cache.FileCacheSection.getFileEntryWithoutGenerator
 import me.anno.extensions.FileReaderRegistry
 import me.anno.extensions.FileReaderRegistryImpl
-import me.anno.gpu.GFX
 import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
@@ -14,16 +15,14 @@ import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
-import me.anno.utils.async.Callback.Companion.waitFor
 import kotlin.math.max
 
-object InnerFolderCache : CacheSection("InnerFolderCache"),
+object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache"),
     FileReaderRegistry<InnerFolderReader> by FileReaderRegistryImpl() {
 
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
-    private val generator = { key: FileKey -> generate(key.file) }
+    private val generator = { key: FileKey, result: AsyncCacheData<InnerFolder> -> generate(key.file, result) }
 
     init {
         // meshes
@@ -34,8 +33,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {
-        val data = getEntryWithoutGenerator(file) as? CacheData<*>
-        return data?.value as? InnerFolder
+        return getFileEntryWithoutGenerator(file)?.value
     }
 
     fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
@@ -43,31 +41,22 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     }
 
     fun readAsFolder(file: FileReference, async: Boolean, callback: Callback<InnerFolder?>) {
-        return getFileEntryAsync(file, false, timeoutMillis, async, generator, callback.waitFor())
+        return getFileEntryAsync(file, false, timeoutMillis, async, generator, callback)
     }
 
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        val data = getFileEntry(file, false, timeoutMillis, async, generator)
-        if (!async) data?.waitFor()
-        return data?.value
+        return getFileEntry(file, false, timeoutMillis, async, generator)
+            .waitFor(async)
     }
 
-    private fun generate(file1: FileReference): AsyncCacheData<InnerFolder?> {
-        val result = AsyncCacheData<InnerFolder?>()
-        if (GFX.glThread != null) {
-            // todo can we get this working without introducing a dead-lock for tests?
-            SignatureCache.getAsync(file1) { signature ->
-                generate1(file1, signature, result)
-            }
-        } else {
-            val signature = SignatureCache[file1, false]
+    private fun generate(file1: FileReference, result: AsyncCacheData<InnerFolder>) {
+        SignatureCache[file1, true].waitFor { signature ->
             generate1(file1, signature, result)
         }
-        return result
     }
 
-    private fun generate1(file1: FileReference, signature: Signature?, result: AsyncCacheData<InnerFolder?>) {
+    private fun generate1(file1: FileReference, signature: Signature?, result: AsyncCacheData<InnerFolder>) {
         val ext = file1.lcExtension
         if (signature?.name == "json" && ext == "json") {
             result.value = null
@@ -78,7 +67,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     }
 
     private fun generate(
-        file1: FileReference, data: AsyncCacheData<InnerFolder?>,
+        file1: FileReference, data: AsyncCacheData<InnerFolder>,
         generators: List<InnerFolderReader>, gi: Int
     ) {
         if (gi < generators.size) {

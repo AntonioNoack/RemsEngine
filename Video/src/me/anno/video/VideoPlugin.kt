@@ -36,9 +36,8 @@ class VideoPlugin : Plugin() {
     }
 
     private fun registerAudioStream() {
-        AudioCache.getAudioSequence = { file, startTime, duration, sampleRate ->
-            // why is it not possible to assign directly???
-            FFMPEGStream.getAudioSequence(file, startTime, duration, sampleRate)
+        AudioCache.getAudioSequence = { file, startTime, duration, sampleRate, result ->
+            FFMPEGStream.getAudioSequence(file, startTime, duration, sampleRate, result)
         }
     }
 

@@ -1,6 +1,5 @@
 package me.anno.tests.map
 
-import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HierarchicalDatabase
@@ -23,7 +22,7 @@ import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.round
 
-object OSMMapCache : CacheSection("OSMMapData") {
+object OSMMapCache : CacheSection<OSMMapCache.OSMChunkKey, OSMap>("OSMMapData") {
 
     data class OSMChunkKey(val xi: Long, val yi: Long, val level: Int)
 
@@ -47,8 +46,7 @@ object OSMMapCache : CacheSection("OSMMapData") {
                 "node(${bounds.minY},${bounds.minX},${bounds.maxY},${bounds.maxX});\n" +
                 "relation(${bounds.minY},${bounds.minX},${bounds.maxY},${bounds.maxX});\n" +
                 "out geom;"
-        val result = getEntry(key, 10_000, async) { key1 ->
-            val result = AsyncCacheData<OSMap>()
+        return getEntry(key, 10_000, async) { key1, result ->
             val path = listOf(key1.xi.toString(), key1.yi.toString(), key1.level.toString())
             val hash = query.hashCode().toLong().and(0xffffffff)
             hdb.get(path, hash) { bytes, _ ->
@@ -58,10 +56,7 @@ object OSMMapCache : CacheSection("OSMMapData") {
                     startDownloading(query, path, hash)
                 }
             }
-            result
-        }
-        if (!async && result != null) result.waitFor()
-        return result?.value
+        }.waitFor(async)
     }
 
     private fun startDownloading(query: String, path: List<String>, hash: Long): OSMap? {

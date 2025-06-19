@@ -122,7 +122,7 @@ class ListAlignmentTest {
     }
 
     private fun setupPanelList2D(isY: Boolean, listAlignment: ListAlignment): PanelList2D {
-        val list = PanelList2D(isY, null, style)
+        val list = PanelList2D(isY, style)
         list.childWidth = 50
         list.childHeight = 70
         list.listAlignmentX = listAlignment

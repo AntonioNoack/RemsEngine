@@ -5,7 +5,6 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.utils.algorithms.Sorting.sortWith2
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
@@ -15,11 +14,11 @@ import kotlin.math.min
  * Related Classes:
  *  - Android: GridLayout
  * */
-open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
+open class PanelList2D(var isY: Boolean, style: Style) : PanelList2(style) {
 
-    constructor(style: Style) : this(true, null, style)
+    constructor(style: Style) : this(true, style)
 
-    constructor(base: PanelList2D) : this(true, base.sorter, base.style) {
+    constructor(base: PanelList2D) : this(true, base.style) {
         base.copyInto(this)
     }
 
@@ -131,10 +130,6 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
     override fun calculateSize(w: Int, h: Int) {
 
         val children = children
-        if (sorter != null) {
-            children.sortWith2(sorter)
-        }
-
         val wi = w - padding.width
         val hi = h - padding.height
         val numChildren = children.count2 { it.isVisible }

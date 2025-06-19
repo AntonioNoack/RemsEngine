@@ -97,7 +97,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     var folderSorting = FolderSorting.FIRST
         set(value) {
             if (field != value) {
-                content2d.invalidateSorting()
+                invalidate()
                 field = value
             }
         }
@@ -105,15 +105,15 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     var fileSorting = FileSorting.NAME
         set(value) {
             if (field != value) {
-                content2d.invalidateSorting()
+                invalidate()
                 field = value
             }
         }
 
-    var ascendingSorting = true
+    var ascendingSorting: Boolean = true
         set(value) {
             if (field != value) {
-                content2d.invalidateSorting()
+                invalidate()
                 field = value
             }
         }
@@ -207,8 +207,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         }
     }
 
-    val uContent = PanelListX(style)
-    val content2d: PanelList2D = PanelList2D(isY, { p0, p1 ->
+    // todo call this, when the folder is changed and when sorting changes
+    val sorter = Comparator<Panel> { p0, p1 ->
 
         p0 as FileExplorerEntry
         p1 as FileExplorerEntry
@@ -226,16 +226,19 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             else -> {
                 val a = p0.file
                 val b = p1.file
-                val base = clamp(fileSorting.compare(a, b), -1, +1) * (if (ascendingSorting) +1 else -1)
+                var base = fileSorting.compare(a, b)
+                if (!ascendingSorting) base = -base
                 if (folderSorting == FolderSorting.MIXED) base
-                else base + p0.isDirectory.compareTo(p1.isDirectory) * folderSorting.weight
+                else clamp(base, -1, 1) + p0.isDirectory.compareTo(p1.isDirectory) * folderSorting.weight
             }
         }
-    }, style)
+    }
+
+    val uContent = PanelListX(style)
+    val content2d: PanelList2D = PanelList2D(isY, style)
 
     var lastFiles = emptyList<String>()
     var lastSearch: Search? = null
-    var calcIndex = 0
 
     val favourites = PanelListY(style)
 
@@ -433,7 +436,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 else folder.getChild(fileName)
             panelToScrollTo = null // first must be created
         }
-        if (isValid <= 0f) {
+        if (isValid < 0f) {
             isValid = Float.POSITIVE_INFINITY
             pathPanel.file = folder
             pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
@@ -636,14 +639,17 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     private fun switchToImpl(folder: FileReference) {
-        if (folder == InvalidRef) return
-        if (!canSensiblyEnter(folder)) {
-            switchTo(folder.getParent())
-        } else {
-            addEvent {
-                history.add(folder)
-                searchBar.setValue("", true)
-                invalidate(true)
+        var folder = folder
+        while (true) {
+            if (folder == InvalidRef) return
+            if (!canSensiblyEnter(folder)) {
+                folder = folder.getParent()
+            } else {
+                addEvent {
+                    history.add(folder)
+                    searchBar.setValue("", true)
+                    invalidate(true)
+                }
             }
         }
     }

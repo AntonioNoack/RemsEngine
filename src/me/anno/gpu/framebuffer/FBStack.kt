@@ -7,9 +7,19 @@ import me.anno.gpu.deferred.BufferQuality
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
-object FBStack : SimpleCache("FBStack", 2100L) {
+object FBStack {
+
+    private val cache1 = SimpleCache<FBKey1, FBStackData>("FBStack1", 2100L)
+    private val cache2 = SimpleCache<FBKey2, FBStackData>("FBStack2", 2100L)
+    private val cache3 = SimpleCache<FBKey3, FBStackData>("FBStack3", 2100L)
 
     private val LOGGER = LogManager.getLogger(FBStack::class)
+
+    fun clear() {
+        cache1.clear()
+        cache2.clear()
+        cache3.clear()
+    }
 
     private abstract class FBStackData(
         val width: Int,
@@ -59,11 +69,11 @@ object FBStack : SimpleCache("FBStack", 2100L) {
                     // link depth texture to make things easier
                     when (framebuffer) {
                         is MultiFramebuffer -> {
-                            framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
+                            framebuffer.depthTexture = framebuffer.targetsI.last().textures.last()
                             framebuffer.depthMask = 0
                         }
                         is Framebuffer -> {
-                            framebuffer.depthTexture = framebuffer.textures!!.last()
+                            framebuffer.depthTexture = framebuffer.textures.last()
                             framebuffer.depthMask = 0
                         }
                     }
@@ -101,7 +111,10 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         ) {
         override fun printDestroyed(size: Int) {
             val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
-            LOGGER.debug("Freed $fs of size ${key.width} x ${key.height}, samples: ${key.samples}, quality: ${key.quality}")
+            LOGGER.debug(
+                "Freed {} of size {} x {}, samples: {}, quality: {}",
+                fs, key.width, key.height, key.samples, key.quality
+            )
         }
     }
 
@@ -143,7 +156,7 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey1(width, height, channels, quality, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, ::FBStackData1)!!
+        return cache1.getEntry(key) { key, result -> result.value = FBStackData1(key) }.waitFor()!!
     }
 
     private fun getValue(
@@ -151,7 +164,7 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey2(width, height, targetType, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, ::FBStackData2)!!
+        return cache2.getEntry(key) { key, result -> result.value = FBStackData2(key) }.waitFor()!!
     }
 
     private fun getValue(
@@ -159,7 +172,7 @@ object FBStack : SimpleCache("FBStack", 2100L) {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey3(w, h, targetTypes, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, ::FBStackData3)!!
+        return cache3.getEntry(key) { key, result -> result.value = FBStackData3(key) }.waitFor()!!
     }
 
     operator fun get(
@@ -213,9 +226,15 @@ object FBStack : SimpleCache("FBStack", 2100L) {
     }
 
     fun reset(w: Int, h: Int) {
+        reset(w, h, cache1)
+        reset(w, h, cache2)
+        reset(w, h, cache3)
+    }
+
+    private fun reset(w: Int, h: Int, cache: SimpleCache<*, FBStackData>) {
         synchronized(cache) {
-            for (value in cache.values) {
-                val data = value.data
+            for ((_, value) in cache.values) {
+                val data = value.value
                 if (data is FBStackData && data.width == w && data.height == h) {
                     data.nextIndex = 0
                 }
@@ -228,9 +247,16 @@ object FBStack : SimpleCache("FBStack", 2100L) {
     }
 
     private fun resetFBStack() {
+        resetFBStack(cache1)
+        resetFBStack(cache2)
+        resetFBStack(cache3)
+    }
+
+
+    private fun resetFBStack(cache: SimpleCache<*, FBStackData>) {
         synchronized(cache) {
-            for (v in cache.values) {
-                val data = v.data
+            for ((_, v) in cache.values) {
+                val data = v.value
                 if (data is FBStackData) {
                     data.nextIndex = 0
                 }

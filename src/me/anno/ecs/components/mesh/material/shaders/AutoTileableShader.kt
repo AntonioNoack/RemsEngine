@@ -10,7 +10,9 @@ import me.anno.gpu.shader.YUVHelper.rgb2yuv
 import me.anno.gpu.shader.YUVHelper.yuv2rgb
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.io.files.FileKey
 import me.anno.maths.Maths
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -24,8 +26,6 @@ import kotlin.math.sin
  * "Histogram-preserving Blending for Randomized Texture Tiling"
  * */
 object AutoTileableShader : ECSMeshShader("auto-tileable") {
-
-    val cache = CacheSection("auto-tileable")
 
     // for triangle pattern
     val latToWorld = Matrix2f(cos(Maths.PIf / 3f), sin(Maths.PIf / 3f), 1f, 0f).scale(0.25f)

@@ -1,6 +1,7 @@
 package me.anno.io.unity
 
-import me.anno.cache.CacheData
+import me.anno.cache.AsyncCacheData
+import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
@@ -58,7 +59,7 @@ object UnityReader {
     const val zeroAssetName = "0$assetExtension"
 
     private val FileReference.isSomeKindOfDirectory get() = isDirectory || isPacked
-    private val FileReference.isPacked get() = !isDirectory && isSerializedFolder()
+    private val FileReference.isPacked get() = !isDirectory && AsyncCacheData.loadSync { isSerializedFolder(it) } == true
 
     fun getUnityProjectByRoot(root: FileReference, async: Boolean = false): UnityProject? {
         if (root.isSomeKindOfDirectory) {
@@ -68,9 +69,11 @@ object UnityReader {
                         .any { c -> c.lcExtension == "meta" }
                     else false
                 }) {
-                return UnityProjectCache.getEntry(
-                    root, unityProjectTimeout, async, UnityReader::loadUnityProject
-                )?.value
+                return UnityProjectCache.getFileEntry(
+                    root, true, unityProjectTimeout, async
+                ) { key, result ->
+                    result.value = loadUnityProject(key.file)
+                }.value
             }// else invalid project
         }
         return null
@@ -80,20 +83,20 @@ object UnityReader {
         if (file.isDirectory) {
             val children = file.listChildren()
             if (children.any { it.lcExtension == "meta" }) {
-                return UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
-                    val root = file.getParent()
-                    loadUnityProject(root)
+                return UnityProjectCache.getFileEntry(file, true, unityProjectTimeout, async) { key, result ->
+                    val root = key.file.getParent() // why the parent?
+                    result.value = loadUnityProject(root)
                 }?.value
             }// else invalid project
         }
         return null
     }
 
-    private fun loadUnityProject(root: FileReference): CacheData<UnityProject> {
+    private fun loadUnityProject(root: FileReference): UnityProject {
         return if (root is UnityPackageFolder) {
             // LOGGER.info("Fastest indexing ever <3")
             // fastest indexing ever <3
-            CacheData(root.project)
+            root.project
         } else {
             LOGGER.info("Indexing files $root")
             val project = UnityProject(root)
@@ -106,7 +109,7 @@ object UnityReader {
                 }
             }
             project.clock.total("Loading project ${root.name}")
-            CacheData(project)
+            project
         }
     }
 

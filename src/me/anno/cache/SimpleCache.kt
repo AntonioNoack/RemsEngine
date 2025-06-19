@@ -11,30 +11,26 @@ import org.apache.logging.log4j.LogManager
 /**
  * Single-Threaded access only
  * */
-open class SimpleCache(val name: String, var timeoutMillis: Long) : Comparable<SimpleCache> {
+open class SimpleCache<K, V: Any>(val name: String, var timeoutMillis: Long) : Comparable<SimpleCache<*, *>> {
 
-    val cache = HashMap<Any?, CacheEntry>(512)
+    val values = HashMap<K, AsyncCacheData<V>>(512)
 
-    override fun compareTo(other: SimpleCache): Int {
+    override fun compareTo(other: SimpleCache<*, *>): Int {
         return name.compareTo(other.name)
     }
 
     fun clear() {
         LOGGER.warn("Clearing cache {}", name)
-        synchronized(cache) {
-            for (it in cache.values) it.destroy()
-            cache.clear()
-        }
+        for (it in values.values) it.destroy()
+        values.clear()
     }
 
-    fun remove(filter: (Any?, CacheEntry) -> Boolean): Int {
-        return synchronized(cache) {
-            cache.removeIf { (k, v) ->
-                if (filter(k, v)) {
-                    v.destroy()
-                    true
-                } else false
-            }
+    fun remove(filter: (K, AsyncCacheData<V>) -> Boolean): Int {
+        return values.removeIf { (k, v) ->
+            if (filter(k, v)) {
+                v.destroy()
+                true
+            } else false
         }
     }
 
@@ -46,34 +42,33 @@ open class SimpleCache(val name: String, var timeoutMillis: Long) : Comparable<S
         }// else we assume that it's fine
     }
 
-    fun <V, R : ICacheData> getEntry(key: V, generator: (V) -> R?): R? {
+    fun getEntry(key: K, generator: (K, AsyncCacheData<V>) -> Unit): AsyncCacheData<V> {
 
         checkKey(key)
 
-        val entry = synchronized(cache) { cache.getOrPut(key) { CacheEntry(timeoutMillis) } }
-        if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
-
-        val needsGenerator = entry.needsGenerator
-        entry.update(timeoutMillis)
-
-        if (needsGenerator) {
-            entry.hasGenerator = true
-            entry.data = generateSafely(key, generator)
+        var entry = values[key]
+        val isGenerating = entry == null || entry.hasBeenDestroyed
+        if (isGenerating) {
+            entry = AsyncCacheData()
+            values[key] = entry
         }
 
-        @Suppress("UNCHECKED_CAST")
-        return if (entry.hasBeenDestroyed) null else entry.data as? R
+        entry.update(timeoutMillis)
+
+        if (isGenerating) {
+            generateSafely(key, entry, generator)
+        }
+
+        return entry
     }
 
     fun update() {
         // avoiding allocations for clean memory debugging XD
-        synchronized(cache) {
-            cache.removeIf { (_, value) ->
-                if (nanoTime > value.timeoutNanoTime) {
-                    value.destroy()
-                    true
-                } else false
-            }
+        values.removeIf { (_, value) ->
+            if (nanoTime > value.timeoutNanoTime) {
+                value.destroy()
+                true
+            } else false
         }
     }
 

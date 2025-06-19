@@ -1,6 +1,5 @@
 package me.anno.fonts
 
-import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Codepoints.countCodepoints
@@ -16,7 +15,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.OS.res
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
-import me.anno.utils.async.Callback.Companion.wait
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.min
 
@@ -29,7 +27,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
     companion object {
         private const val NUM_TILES_X = 16
         private const val NUM_TILES_Y = 6
-        private val cache = CacheSection("FallbackFontGenerator")
+        private val cache = CacheSection<Int, List<IntImage>>("FallbackFontGenerator")
     }
 
     private val fontSize = FontManager.getAvgFontSize(key.sizeIndex)
@@ -47,9 +45,8 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
         return GFXx2D.getSize(width, height)
     }
 
-    private fun getImageStack(callback: (Callback<List<IntImage>>)) {
-        cache.getEntryAsync(key.sizeIndex, 10_000, false, {
-            val result = AsyncCacheData<List<IntImage>>()
+    private fun getImageStack(callback: Callback<List<IntImage>>) {
+        cache.getEntryAsync(key.sizeIndex, 10_000, false, { sizeIndex, result ->
             val source = res.getChild("textures/ASCIIAtlas.png")
             ImageCache.getAsync(source, 50, false, result.map { image ->
                 image.split(NUM_TILES_X, NUM_TILES_Y).map { tileImage ->
@@ -58,8 +55,7 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
                         .asIntImage()
                 }
             })
-            result
-        }, callback.wait())
+        }, callback)
     }
 
     private fun getIndex(codepoint: Int): Int {

@@ -11,15 +11,14 @@ import kotlin.math.min
  * Related Classes:
  *  - Android: LinearLayout, orientation=horizontal
  * */
-open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
-    constructor(style: Style) : this(null, style)
+open class PanelListX(style: Style) : PanelList2(style) {
 
     private var sumConst = 0
     private var sumConstWW = 0
     private var sumWeight = 0f
 
     override fun clone(): PanelListX {
-        val clone = PanelListX(sorter, style)
+        val clone = PanelListX(style)
         copyInto(clone)
         return clone
     }

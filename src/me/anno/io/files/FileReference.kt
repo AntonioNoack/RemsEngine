@@ -84,7 +84,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         else this
     }
 
-    var isHidden = name.startsWith('.')// hidden file in Linux, or file in unity package
+    /**
+     * hidden file in Linux, or file in unity package
+     * */
+    var isHidden = name.startsWith('.') || name == "desktop.ini"
 
     fun hide() {
         isHidden = true
@@ -371,11 +374,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         copyTo(dst) {}
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    open fun isSerializedFolder(): Boolean {
+    open fun isSerializedFolder(callback: Callback<Boolean>) {
         // only read the first bytes
-        val signature = SignatureCache[this, false]
-        return InnerFolderCache.getReaders(signature, lcExtension).isNotEmpty()
+        SignatureCache[this,false].waitFor { signature ->
+            val answer = InnerFolderCache.getReaders(signature, lcExtension).isNotEmpty()
+            callback.ok(answer)
+        }
     }
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)

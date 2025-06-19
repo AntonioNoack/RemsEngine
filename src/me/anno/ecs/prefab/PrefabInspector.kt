@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.cache.FileCacheSection.removeFileEntry
 import me.anno.ecs.Entity
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
@@ -32,7 +33,6 @@ import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.UIColors
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
@@ -46,7 +46,6 @@ import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
-import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.structures.Collections.filterIsInstance2
@@ -481,7 +480,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         prefab.wasModified = false // kind of needs to happen in-between...
 
         PrefabCache.removeFileEntry(sourceFile, oldLastModified)
-        val data = FileReadPrefabData(sourceFile)
+        val data = PrefabPair(sourceFile)
         data.value = prefab
         PrefabCache.setPrefabPair(sourceFile, data, PrefabCache.timeoutMillis)
         FileWatch.stopIgnoring(sourceFile)

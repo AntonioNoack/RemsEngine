@@ -1,18 +1,18 @@
 package me.anno.ecs.components.anim
 
-import me.anno.cache.CacheData
-import me.anno.cache.CacheSection
+import me.anno.cache.DualCacheSection
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color
@@ -42,7 +42,7 @@ object Retargetings {
     val srcMat = Material.diffuse(srcColor)
     val dstMat = Material.diffuse(dstColor)
 
-    private val cache = CacheSection("Retargeting")
+    private val cache = DualCacheSection<FileKey, FileKey, Retargeting>("Retargeting")
     private const val timeoutMillis = 500_000L
 
     fun openUI(anim: AnimMeshComponent) {
@@ -65,7 +65,8 @@ object Retargetings {
             0 -> LOGGER.warn("All skeletons were identical, so no retargeting required")
             1 -> openUI(srcSkeletons1.first(), dstSkeleton, anim)
             else -> {
-                Menu.openMenu(window.windowStack, NameDesc("Choose skeleton to edit"),
+                Menu.openMenu(
+                    window.windowStack, NameDesc("Choose skeleton to edit"),
                     srcSkeletons1.map { srcSkeleton ->
                         MenuOption(NameDesc(srcSkeleton.second.toLocalPath())) {
                             openUI(srcSkeleton, dstSkeleton, anim)
@@ -200,12 +201,12 @@ object Retargetings {
 
     fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
         if (srcSkeleton == dstSkeleton) return null
-        return cache.getEntry(
-            DualFileKey(srcSkeleton, dstSkeleton),
+        return cache.getDualEntry(
+            srcSkeleton.getFileKey(), dstSkeleton.getFileKey(),
             timeoutMillis, false
-        ) { key ->
-            val prefab = getOrCreatePrefab(key.first.file, key.second.file)
-            CacheData(prefab?.getSampleInstance() as? Retargeting)
-        }?.value
+        ) { key1, key2, result ->
+            val prefab = getOrCreatePrefab(key1.file, key2.file)
+            result.value = prefab?.getSampleInstance() as? Retargeting
+        }.waitFor()
     }
 }

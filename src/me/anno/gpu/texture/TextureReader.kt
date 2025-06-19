@@ -22,7 +22,7 @@ import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 
 @InternalAPI
-class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
+class TextureReader(val file: FileReference, val callback: AsyncCacheData<ITexture2D>) {
 
     companion object {
 
@@ -48,11 +48,11 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
     }
 
     private fun callback(texture: ITexture2D?, error: Exception?) {
-        if (hasValue) {
+        if (callback.hasValue) {
             texture?.destroy()
             LOGGER.warn("Destroying $texture for $file before it was used")
         } else {
-            value = texture
+            callback.value = texture
             error?.printStackTrace()
         }
     }
@@ -98,7 +98,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
             }
             null -> {
                 LOGGER.warn("Failed reading '$file' using ImageReader")
-                value = null
+                callback.value = null
             }
             else -> {
                 getRotation(file) { rot, _ ->
@@ -115,7 +115,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
         val meta = getMeta(file, false)
         if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
             LOGGER.warn("Cannot load $file using VideoCache")
-            value = null
+            callback.value = null
         } else {
             Sleep.waitUntilDefined(true, {
                 val frame = VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, true)
@@ -123,7 +123,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
                 else null
             }, { frame ->
                 addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-                    value = frame.toTexture()
+                    callback.value = frame.toTexture()
                 }
             })
         }

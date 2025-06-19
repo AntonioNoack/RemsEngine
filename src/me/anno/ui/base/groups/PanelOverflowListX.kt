@@ -1,13 +1,11 @@
 package me.anno.ui.base.groups
 
-import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.max
 
-open class PanelOverflowListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
-    constructor(style: Style) : this(null, style)
+open class PanelOverflowListX(style: Style) : PanelList2(style) {
 
     // todo implement all children have same size as an optimization for thousands of entries
 
@@ -102,7 +100,7 @@ open class PanelOverflowListX(sorter: Comparator<Panel>?, style: Style) : PanelL
     }
 
     override fun clone(): PanelOverflowListX {
-        val clone = PanelOverflowListX(sorter, style)
+        val clone = PanelOverflowListX(style)
         copyInto(clone)
         return clone
     }

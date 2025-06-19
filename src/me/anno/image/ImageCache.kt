@@ -1,15 +1,16 @@
 package me.anno.image
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.image.hdr.HDRReader
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.wait
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
-object ImageCache : CacheSection("Image") {
+object ImageCache : CacheSection<FileKey, Image>("Image") {
 
     var timeoutMillis = 10_000L
 
@@ -104,19 +105,15 @@ object ImageCache : CacheSection("Image") {
 
     fun getImageWithoutGenerator(source: FileReference): Image? {
         if (source is ImageReadable && source.hasInstantCPUImage()) return source.readCPUImage()
-        return when (val data = getEntryWithoutGenerator(source.getFileKey(), 0)) {
-            is Image -> data
-            is CacheData<*> -> data.value as? Image
-            else -> null
-        }
+        return getEntryWithoutGenerator(source.getFileKey(), 0)?.value
     }
 
     operator fun get(source: FileReference, timeout: Long, async: Boolean): Image? {
         if (source is ImageReadable && source.hasInstantCPUImage()) {
             return source.readCPUImage()
         }
-        val data = getFileEntry(source, false, timeout, async) { key ->
-            ImageAsFolder.readImage(key.file, false)
+        val data = getFileEntry(source, false, timeout, async) { key, result ->
+            ImageAsFolder.readImage(key.file, false, result)
         } ?: return null
         if (!async) data.waitFor()
         return data.value
@@ -126,9 +123,9 @@ object ImageCache : CacheSection("Image") {
         if (source is ImageReadable && source.hasInstantCPUImage()) {
             callback.ok(source.readCPUImage())
         } else {
-            getFileEntryAsync(source, false, timeout, async, { key ->
-                ImageAsFolder.readImage(key.file, false)
-            }, callback.wait())
+            getFileEntryAsync(source, false, timeout, async, { key, result ->
+                ImageAsFolder.readImage(key.file, false, result)
+            }, callback)
         }
     }
 }

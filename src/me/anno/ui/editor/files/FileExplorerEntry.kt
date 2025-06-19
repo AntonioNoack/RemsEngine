@@ -106,7 +106,7 @@ import kotlin.math.sign
 
 open class FileExplorerEntry(
     private val explorer: FileExplorer?,
-    val isParent: Boolean, file: FileReference, style: Style
+    val isParent: Boolean, var file: FileReference, style: Style
 ) : Panel(style.getChild("fileEntry")) {
 
     constructor(file: FileReference, style: Style) :
@@ -116,7 +116,6 @@ open class FileExplorerEntry(
 
     val path = file.absolutePath
     val fileName = file.name
-    val file get() = getReference(path)
 
     private var startTime = 0L
 

@@ -199,25 +199,29 @@ object ImageAsFolder {
 
     fun readImage(file: FileReference, forGPU: Boolean): AsyncCacheData<Image> {
         val data = AsyncCacheData<Image>()
+        readImage(file, forGPU, data)
+        return data
+    }
+
+    fun readImage(file: FileReference, forGPU: Boolean, result: AsyncCacheData<Image>) {
         if (file is ImageReadable) {
-            data.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
+            result.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
         } else if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly
             file.readBytes { bytes, exc ->
                 exc?.printStackTrace()
                 if (bytes != null) {
-                    readImage(file, data, bytes, forGPU)
+                    readImageFromBytes(file, result, bytes, forGPU)
                 } else {
-                    data.value = null
-                    data.hasValue = true
+                    result.value = null
+                    result.hasValue = true
                 }
             }
         } else SignatureCache.getAsync(file) { signature ->
-            readImage(file, data, signature?.name, forGPU)
+            readImageWithSignature(file, result, signature?.name, forGPU)
         }
-        return data
     }
 
-    private fun readImage(file: FileReference, data: AsyncCacheData<Image>, bytes: ByteArray, forGPU: Boolean) {
+    private fun readImageFromBytes(file: FileReference, data: AsyncCacheData<Image>, bytes: ByteArray, forGPU: Boolean) {
         val signature = Signature.findName(bytes)
         val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
@@ -231,7 +235,7 @@ object ImageAsFolder {
         }
     }
 
-    private fun readImage(file: FileReference, data: AsyncCacheData<Image>, signature: String?, forGPU: Boolean) {
+    private fun readImageWithSignature(file: FileReference, data: AsyncCacheData<Image>, signature: String?, forGPU: Boolean) {
         val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
             data.value = null

@@ -1,7 +1,7 @@
 package me.anno.ui.editor.code
 
 import me.anno.cache.AsyncCacheData
-import me.anno.cache.CacheSection
+import me.anno.cache.DualCacheSection
 import me.anno.fonts.Font
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -11,6 +11,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.ceilDiv
@@ -424,7 +425,8 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         private const val BUFFER_SIZE = 16 shl 10
         private const val timeout = 5_000L
-        private val cache = CacheSection("ByteSections")
+
+        private val cache = DualCacheSection<FileKey, Long, ByteArray>("ByteSections")
 
         val displayedBytes = createArrayList(256, ".")
 
@@ -450,14 +452,12 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         @Deprecated("Only async should be used")
         private fun getByteSlice(file: FileReference, index: Long, async: Boolean): ByteArray? {
-            val data = cache.getEntry(Pair(file.getFileKey(), index), timeout, async) { (key, index1) ->
-                val data = AsyncCacheData<ByteArray>()
-                key.file.inputStream { it, err ->
-                    data.value = it?.skipN(index1 * BUFFER_SIZE)
+            val data = cache.getDualEntry(file.getFileKey(), index, timeout, async) { k1, k2, data ->
+                k1.file.inputStream { it, err ->
+                    data.value = it?.skipN(k2 * BUFFER_SIZE)
                         ?.readNBytes2(BUFFER_SIZE, ByteArray(BUFFER_SIZE), false)
                     err?.printStackTrace()
                 }
-                data
             } as? AsyncCacheData<*>
             if (!async) data?.waitFor()
             return data?.value as? ByteArray

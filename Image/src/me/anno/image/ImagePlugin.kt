@@ -50,14 +50,14 @@ class ImagePlugin : Plugin() {
         MediaMetadata.registerSignatureHandler(100, "gimp") { file, signature, dst, _ ->
             if (signature == "gimp") {
                 // Gimp files are a special case, which is not covered by FFMPEG
-                dst.ready = false
+                dst.isReady = false
                 file.inputStream { it, exc ->
                     if (it != null) {
                         val size = GimpImage.findSize(it)
                         if (size is IntPair) dst.setImageSize(size)
                         else (size as? Exception)?.printStackTrace()
                     } else exc?.printStackTrace()
-                    dst.ready = true
+                    dst.isReady = true
                 }
                 true
             } else false
@@ -88,7 +88,7 @@ class ImagePlugin : Plugin() {
         MediaMetadata.registerSignatureHandler(100, "svg") { file, signature, dst, _ ->
             if ((signature == "xml" && file.lcExtension == "svg") || signature == "svg") {
                 // find out size from first XML node
-                dst.ready = false
+                dst.isReady = false
                 file.inputStream { stream, err ->
                     if (stream != null) {
                         val xml = XMLReader(stream.reader()).read()
@@ -99,7 +99,7 @@ class ImagePlugin : Plugin() {
                             dst.setImageSize(width, height)
                         }
                     } else err?.printStackTrace()
-                    dst.ready = true
+                    dst.isReady = true
                 }
                 true
             } else false

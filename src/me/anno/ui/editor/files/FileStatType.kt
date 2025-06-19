@@ -29,12 +29,12 @@ enum class FileStatType(val alignment: AxisAlignment) {
     },
     SIGNATURE(AxisAlignment.CENTER) {
         override fun getValue(file: FileReference): String {
-            return SignatureCache[file, true]?.name ?: ""
+            return SignatureCache[file, true]?.waitFor()?.name ?: ""
         }
     },
     IMPORT_TYPE(AxisAlignment.CENTER) {
         override fun getValue(file: FileReference): String {
-            return SignatureCache[file, true]?.importType ?: ""
+            return SignatureCache[file, true]?.waitFor()?.importType ?: ""
         }
     },
     CREATED(AxisAlignment.MIN) {

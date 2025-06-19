@@ -2,19 +2,14 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
-import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.Strings.isBlank2
 
-open class TitledListY(val title: NameDesc, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
-    PanelListY(sorter, style), TextStyleable {
-
-    constructor(style: Style) : this(NameDesc.EMPTY, "", null, style)
-
-    constructor(title: NameDesc, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
+open class TitledListY(val title: NameDesc, val visibilityKey: String, style: Style) :
+    PanelListY(style), TextStyleable {
 
     val titleView = if (title.name.isBlank2()) null else TitlePanel(title, this, style)
 
@@ -58,7 +53,7 @@ open class TitledListY(val title: NameDesc, val visibilityKey: String, sorter: C
     }
 
     override fun clone(): TitledListY {
-        val clone = TitledListY(title, visibilityKey, sorter, style)
+        val clone = TitledListY(title, visibilityKey, style)
         copyInto(clone)
         return clone
     }

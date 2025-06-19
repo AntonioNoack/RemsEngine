@@ -1,7 +1,6 @@
 package me.anno.jvm
 
 import me.anno.Engine
-import me.anno.cache.CacheData
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
@@ -40,13 +39,11 @@ object SpellcheckingImpl {
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
-        val value = Spellchecking.getDualEntry(sentence2, language, timeout, async) { seq, lang ->
-            val answer = CacheData<List<Suggestion>?>(null)
+        val value = Spellchecking.getDualEntry(sentence2, language, timeout, async) { seq, lang, answer ->
             getValue(seq, lang) { rawSuggestions ->
                 answer.value = rawSuggestions
             }
-            answer
-        }?.value ?: return null
+        }.waitFor(async) ?: return null
 
         return if (sentence != sentence2) {
             val offset = sentence

@@ -126,13 +126,13 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun getAudioSequence(
-            input: FileReference,
-            startTime: Double,
-            duration: Double,
-            sampleRate: Int
-        ): AsyncCacheData<SoundBuffer> {
-            val loader = FFMPEGAudio(input, MediaMetadata.getMeta(input, false)!!.audioChannels, sampleRate, duration)
-            loader.runAsync(
+            input: FileReference, startTime: Double, duration: Double, sampleRate: Int,
+            result: AsyncCacheData<SoundBuffer>
+        ) {
+            FFMPEGAudio(
+                input, MediaMetadata.getMeta(input, false)!!.audioChannels,
+                sampleRate, duration, result
+            ).runAsync(
                 "$input/$startTime/$duration/$sampleRate", listOf(
                     "-ss", "$startTime", // important!!!
                     "-i", input.absolutePath,
@@ -150,7 +150,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                     // "pipe:1" // 1 = stdout, 2 = stdout
                 )
             )
-            return loader.result
         }
 
         @JvmStatic

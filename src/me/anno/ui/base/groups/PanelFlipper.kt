@@ -20,9 +20,7 @@ import kotlin.math.min
 import kotlin.math.round
 
 // like ViewFlipper in Android
-open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
-
-    constructor(style: Style) : this(null, style)
+open class PanelFlipper(style: Style) : PanelList(style) {
 
     enum class TransitionType(val swipeXAxis: Boolean, val swipeYAxis: Boolean) {
         INSTANT(true, true),
@@ -178,7 +176,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     }
 
     override fun clone(): PanelFlipper {
-        val clone = PanelFlipper(sorter, style)
+        val clone = PanelFlipper(style)
         copyInto(clone)
         return clone
     }

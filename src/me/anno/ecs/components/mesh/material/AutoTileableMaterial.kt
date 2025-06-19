@@ -1,5 +1,7 @@
 package me.anno.ecs.components.mesh.material
 
+import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader
 import me.anno.ecs.prefab.PrefabSaveable
@@ -11,24 +13,31 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.ImageCache
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 
 class AutoTileableMaterial : PlanarMaterialBase() {
 
     companion object {
+
+        val cache = CacheSection<FileKey, Texture2D>("auto-tileable")
+
         fun lookUp(diffuseMap: FileReference): ITexture2D {
             // get cached LUT, bind LUT
-            val tex = AutoTileableShader.cache.getFileEntry(diffuseMap, false, 10_000L, true) { key ->
-                ImageCache[key.file, false]?.run {
-                    val hist = AutoTileableShader.TileMath.buildYHistogram(this)
+            val texFromCache = cache.getFileEntry(diffuseMap, false, 10_000L, true) { srcFile, result ->
+                val image = ImageCache[srcFile.file, false]
+                if (image != null) {
+                    val hist = AutoTileableShader.TileMath.buildYHistogram(image)
                     val lut = AutoTileableShader.TileMath.buildLUT(hist)
                     val tex = Texture2D("auto-tileable-lut", lut.size / 2, 2, 1)
-                    addGPUTask("auto-tileable-lut", 1) { tex.createMonochrome(lut, false) }
-                    tex
-                }
-            }
+                    addGPUTask("auto-tileable-lut", 1) {
+                        tex.createMonochrome(lut, false)
+                        result.value = tex
+                    }
+                } else result.value = null
+            }.value
             // if LUT is unknown (async), load alternative gradient texture
-            return if (tex is Texture2D && tex.wasCreated) tex else TextureLib.gradientXTex
+            return texFromCache?.createdOrNull() as? Texture2D ?: TextureLib.gradientXTex
         }
     }
 

@@ -8,9 +8,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.SDFCharKey
-import me.anno.fonts.signeddistfields.TextSDF
-import me.anno.fonts.signeddistfields.TextSDFGroup.Companion.queue
-import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
+import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.FinalRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.Perspective
@@ -19,7 +17,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.ui.base.components.AxisAlignment
@@ -33,7 +30,6 @@ import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Strings.joinChars
 import org.joml.AABBd
 import org.joml.Matrix4x3
 import org.junit.jupiter.api.Test
@@ -62,14 +58,8 @@ class SignedDistanceFontsTests {
         val font = Font("Verdana", 40f)
         val roundCorners = false
         val codepoint = 83
-        val sdfTimeout = 10_000L
-        val key = SDFCharKey(font, codepoint, roundCorners)
         Sleep.waitUntilDefined(true) {
-            val textSDF = TextureCache.getEntry(key, sdfTimeout, queue) { key2 ->
-                val charAsText = key2.codePoint.joinChars()
-                SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
-            } as? TextSDF
-            Sleep.work(true)
+            val textSDF = TextSDFGroup.getTextSDF(font, codepoint, roundCorners)
             textSDF?.texture?.createdOrNull()
         }
     }
@@ -138,9 +128,9 @@ class SignedDistanceFontsTests {
         pipeline.frustum.setToEverything(RenderState.cameraPosition, RenderState.cameraRotation)
 
         while (true) {
-           val missing = FinalRendering.runFinalRendering {
-               pipeline.clear()
-               pipeline.fill(component)
+            val missing = FinalRendering.runFinalRendering {
+                pipeline.clear()
+                pipeline.fill(component)
             }
             if (missing == null) {
                 break

@@ -2,6 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.FinalRendering.isFinalRendering
@@ -11,7 +12,7 @@ import org.joml.Matrix4x3
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-object TextShapes : CacheSection("TextShapes") {
+object TextShapes : CacheSection<String, Mesh>("TextShapes") {
 
     private val font by lazy { DefaultConfig.defaultFont }
 
@@ -23,10 +24,9 @@ object TextShapes : CacheSection("TextShapes") {
         scale: Double,
         transform: Matrix4x3?
     ) {
-        val mesh = getEntry(text, 10000, true) {
-            TextMeshGroup(font, text, 0f, false)
-                .getOrCreateMesh()
-        }
+        val mesh = getEntry(text, 10000, true) { text, result ->
+            result.value = TextMeshGroup(font, text, 0f, false).getOrCreateMesh()
+        }.value
         if (mesh != null) {
             val matrix = MovingGrid.init()
             if (transform != null) matrix.mul(transform)

@@ -1,6 +1,7 @@
 package me.anno.image.thumbs
 
 import me.anno.cache.AsyncCacheData
+import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.extensions.FileReaderRegistry
@@ -61,6 +62,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     )
 
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
+    private val textures = CacheSection<ThumbnailKey, ITexture2D>("Thumbs")
 
     private const val timeout = 5000L
 
@@ -70,9 +72,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     fun invalidate(file: FileReference, neededSize: Int) {
         if (file == InvalidRef) return
         val size = getSize(neededSize)
-        TextureCache.remove { key, _ ->
-            key is ThumbnailKey && key.file == file && key.size == size
-        }
+        textures.remove { key, _ -> key.file == file && key.size == size }
         // invalidate database, too
         file.getFileHash { hash ->
             hdb.remove(getCacheKey(file, hash, size))
@@ -82,9 +82,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     @JvmStatic
     fun invalidate(file: FileReference) {
         if (file == InvalidRef) return
-        TextureCache.remove { key, _ ->
-            key is ThumbnailKey && key.file == file
-        }
+        textures.remove { key, _ -> key.file == file }
         // invalidate database, too
         file.getFileHash { hash ->
             for (size in sizes) {
@@ -111,7 +109,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         val lastModified = file.lastModified
         val key = ThumbnailKey(file, lastModified, size)
 
-        val async1 = TextureCache.getLateinitTextureLimited(key, timeout, async, 4, ::generate0)
+        val async1 = textures.getEntryLimited(key, timeout, async, 4, ::generate0)
         if (!async) async1?.waitFor()
         val texture = async1?.value
         if (!async && texture != null && !texture.isCreated()) {
@@ -126,8 +124,8 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         for (i in sizes.indexOf(size) - 1 downTo 0) {
             val size1 = sizes[i]
             val key1 = ThumbnailKey(file, lastModified, size1)
-            val gen = TextureCache.getEntryWithoutGenerator(key1, 50) as? AsyncCacheData<*>
-            val tex = gen?.value as? ITexture2D
+            val gen = textures.getEntryWithoutGenerator(key1, 50)
+            val tex = gen?.value
             if (tex != null) return tex
         }
         return null
@@ -142,8 +140,8 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         for (i in idx until sizes.size) {
             val sizeI = sizes[i]
             val keyI = ThumbnailKey(key.file, key.lastModified, sizeI)
-            val gen = TextureCache.getEntryWithoutGenerator(keyI, 500) as? AsyncCacheData<*>
-            val tex = gen?.value as? ITexture2D
+            val gen = textures.getEntryWithoutGenerator(keyI, 500)
+            val tex = gen?.value
             if (tex != null && tex.isCreated()) {
                 LOGGER.info("Copying texture for $key")
                 copyTexIfPossible(srcFile, size, tex, callback)

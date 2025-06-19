@@ -1,10 +1,9 @@
 package me.anno.ui.base.groups
 
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.ui.Panel
 import me.anno.ui.Style
 
-abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
+abstract class PanelList2(style: Style) : PanelList(style) {
 
     open val visibleIndex0: Int get() = 0
     open val visibleIndex1: Int get() = children.size
@@ -27,10 +26,4 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
         }
         return null
     }
-
-    @NotSerializedProperty
-    private var lpx = 0
-
-    @NotSerializedProperty
-    private var lpy = Int.MAX_VALUE
 }

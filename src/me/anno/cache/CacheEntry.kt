@@ -12,7 +12,7 @@ class CacheEntry private constructor(
     var generatorThread: Thread
 ) {
     companion object {
-        private val defaultTimeoutNanos = 60 * SECONDS_TO_NANOS
+        private const val DEFAULT_TIMEOUT_NANOS = 60 * SECONDS_TO_NANOS
     }
 
     constructor(timeoutMillis: Long) : this(nanoTime + timeoutMillis * MILLIS_TO_NANOS, Thread.currentThread())
@@ -43,7 +43,7 @@ class CacheEntry private constructor(
     var hasGenerator = false
 
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    fun waitForValueOrThrow(key: Any?, limitNanos: Long = defaultTimeoutNanos) {
+    fun waitForValueOrThrow(key: Any?, limitNanos: Long = DEFAULT_TIMEOUT_NANOS) {
         Sleep.waitUntilOrThrow(true, limitNanos, key) {
             update(500) // ensure that it stays loaded; 500 is a little high,
             // but we need the image to stay loaded for addGPUTask() afterward in some places
@@ -56,7 +56,7 @@ class CacheEntry private constructor(
                 || hasBeenDestroyed
     }
 
-    fun <R> waitForValueOrTimeout(callback: Callback<R>, limitNanos: Long = defaultTimeoutNanos) {
+    fun <R> waitForValueOrTimeout(callback: Callback<R>, limitNanos: Long = DEFAULT_TIMEOUT_NANOS) {
         val timeLimit = nanoTime + limitNanos
         Sleep.waitUntil(true, {
             update(500) // ensure that it stays loaded; 500 is a little high,

@@ -2,6 +2,8 @@ package me.anno.image.svg
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
@@ -9,25 +11,23 @@ import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.async.Callback
 import java.io.InputStream
 
-object SVGMeshCache : CacheSection("Meshes") {
+object SVGMeshCache : CacheSection<FileKey, SVGBuffer>("Meshes") {
 
-    fun getAsync(file: FileReference, timeout: Long, callback: Callback<AsyncCacheData<SVGBuffer>>) {
+    fun getAsync(file: FileReference, timeout: Long, callback: Callback<SVGBuffer>) {
         getFileEntryAsync(file, false, timeout, true, ::loadSVGMeshAsync, callback)
     }
 
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): SVGBuffer? {
-        val data = getFileEntry(file, false, timeout, asyncGenerator, ::loadSVGMeshAsync) ?: return null
+        val data = getFileEntry(file, false, timeout, asyncGenerator, ::loadSVGMeshAsync)
         if (!asyncGenerator) data.waitFor()
         return data.value
     }
 
-    private fun loadSVGMeshAsync(key: FileKey): AsyncCacheData<SVGBuffer> {
-        val data = AsyncCacheData<SVGBuffer>()
+    private fun loadSVGMeshAsync(key: FileKey, result: AsyncCacheData<SVGBuffer>) {
         key.file.inputStream { input, err ->
             err?.printStackTrace()
-            data.value = loadSVGMeshSync(input)
+            result.value = loadSVGMeshSync(input)
         }
-        return data
     }
 
     private fun loadSVGMeshSync(input: InputStream?): SVGBuffer? {

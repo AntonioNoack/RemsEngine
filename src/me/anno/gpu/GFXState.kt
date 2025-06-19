@@ -3,7 +3,7 @@ package me.anno.gpu
 import me.anno.Build
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
-import me.anno.fonts.FontManager.TextCache
+import me.anno.fonts.FontManager.textAtlasCache
 import me.anno.gpu.GPUTasks.gpuTasks
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.AttributeLayout
@@ -220,7 +220,7 @@ object GFXState {
     private fun clearGPUCaches() {
         // clear all caches, which contain gpu data
         FBStack.clear()
-        TextCache.clear()
+        textAtlasCache.clear()
         VideoCache.clear()
         TextureCache.clear()
     }

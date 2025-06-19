@@ -3,13 +3,14 @@ package me.anno.lua
 import me.anno.Build
 import me.anno.Engine
 import me.anno.Time
-import me.anno.cache.AsyncCacheData
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.DualCacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.ecs.Component
 import me.anno.ecs.EntityQuery
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.lua.utils.SafeFunction
@@ -71,10 +72,13 @@ open class ScriptComponent : Component(), OnUpdate {
         val global = threadLocal { defineVM() }
 
         @JvmField
-        val luaCache = CacheSection("Lua")
+        val luaCache = CacheSection<FileKey, LuaValue>("Lua")
 
         @JvmField
-        val timeout = 20_000L
+        val functionCache = DualCacheSection<String, Any?, Pair<Globals, LuaValue>>("LuaFunctions")
+
+        @JvmField
+        val timeoutMillis = 20_000L
 
         val luaThreads = WeakHashMap<LuaThread, Unit>()
 
@@ -93,9 +97,8 @@ open class ScriptComponent : Component(), OnUpdate {
 
         @JvmStatic
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
-            val value = luaCache.getFileEntry(source, false, timeout, false) { key ->
+            return luaCache.getFileEntry(source, false, timeoutMillis, false) { key, result ->
                 val vm = defineVM()
-                val result = AsyncCacheData<LuaValue>()
                 key.file.readText(result.map { text ->
                     LOGGER.debug(text)
                     val code0 = vm.load(text)
@@ -104,9 +107,7 @@ open class ScriptComponent : Component(), OnUpdate {
                 })
                 // val code = file.inputStream().use { LuaC.instance.compile(it, "${source.absolutePath}-$date") }
                 // val func = LuaClosure(code, global.get())
-                result
-            } ?: return null
-            return value.waitFor()?.get(name)
+            }.waitFor()?.get(name)
         }
 
         @JvmStatic
@@ -159,19 +160,16 @@ open class ScriptComponent : Component(), OnUpdate {
         @JvmStatic
         @Suppress("unchecked_cast")
         fun getRawScopeAndFunction(code: String): Pair<Globals, Any>? {
-            val funcObj = luaCache.getEntry(code, timeout, false) { code1 ->
+            return functionCache.getDualEntry(code, null, timeoutMillis, false) { code1, _, result ->
                 val vm = global.get()
-                val fn = try {
-                    vm.load(code1)
+                try {
+                    val fn = vm.load(code1)
+                    result.value = vm to fn
                 } catch (error: LuaError) {
                     LOGGER.warn(error)
-                    error
+                    result.value = null
                 }
-                CacheData(Pair(vm, fn))
-            }
-            if (funcObj !is CacheData<*> || funcObj.value == null)
-                return null
-            return funcObj.value as Pair<Globals, LuaValue>
+            }.waitFor()
         }
 
         @JvmStatic
@@ -194,19 +192,18 @@ open class ScriptComponent : Component(), OnUpdate {
         @Suppress("unchecked_cast")
         fun getFunction(code: String, key: Any?, init: (scope: LuaValue) -> Unit): Pair<Globals, LuaValue>? {
             if (code.isBlank2()) return null
-            val funcObj = luaCache.getDualEntry(code, key, timeout, false) { code1, _ ->
+            return functionCache.getDualEntry(code, key, timeoutMillis, false) { code1, _, result ->
                 val vm = global.get()
-                val func = try {
+                try {
                     val func = vm.load(code1)
                     init(vm)
                     wrapIntoLimited(func, vm, 10_000)
+                    result.value = Pair(vm, func)
                 } catch (error: LuaError) {
                     LOGGER.warn(error)
-                    error
+                    result.value = null
                 }
-                CacheData(Pair(vm, func))
-            }
-            return (funcObj as? CacheData<*>)?.value as? Pair<Globals, LuaValue>
+            }.waitFor()
         }
 
         @JvmStatic

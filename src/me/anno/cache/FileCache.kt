@@ -14,11 +14,11 @@ import kotlin.math.abs
 /**
  * a cache, which writes files to remember values
  * */
-abstract class FileCache<Key, Value>(
+abstract class FileCache<Key, Value : Any>(
     val configFileName: String,
     val configFolderName: String,
     cacheName: String
-) : CacheSection(cacheName) {
+) : CacheSection<Key, Value>(cacheName) {
 
     // create a metadata file, where last used (Rem's Studio starting time) is written
     lateinit var info: StringMap
@@ -41,14 +41,13 @@ abstract class FileCache<Key, Value>(
 
     fun getFile(uniqueFileName: String) = cacheFolder.getChild(uniqueFileName)
 
-    fun generateFile(key: Key): AsyncCacheData<Value?> {
+    fun generateFile(key: Key, result: AsyncCacheData<Value>) {
         init()
 
-        val data = AsyncCacheData<Value?>()
         val uuid = getUniqueFilename(key)
         if (uuid == null) {
-            data.value = null
-            return data
+            result.value = null
+            return
         }
 
         val dst = getFile(uuid)
@@ -59,16 +58,15 @@ abstract class FileCache<Key, Value>(
             )
             fillFileContents(key, tmp, {
                 renameTmpToDst(uuid, tmp, dst)
-                data.value = load(key, dst)
+                result.value = load(key, dst)
             }, {
                 it?.printStackTrace()
-                data.value = load(key, InvalidRef)
+                result.value = load(key, InvalidRef)
             })
         } else {
             markUsed(uuid)
-            data.value = load(key, dst)
+            result.value = load(key, dst)
         }
-        return data
     }
 
     fun markUsed(uuid: String) {

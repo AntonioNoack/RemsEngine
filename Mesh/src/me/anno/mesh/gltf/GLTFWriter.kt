@@ -733,7 +733,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
         src.inputStreamSync().copyTo(binary) // must be sync, or we'd need to unpack this loop
         val pos1 = binary.size()
         bufferViews.add(BufferView(pos0, pos1 - pos0, 0, 0))
-        val ext = when (SignatureCache[src, false]?.name) {
+        val ext = when (SignatureCache[src, false]?.waitFor()?.name) {
             "png" -> "image/png"
             "jpg" -> "image/jpeg"
             else -> null

@@ -1,11 +1,12 @@
 package me.anno.cache.instances
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.ICacheData
 import me.anno.gpu.GPUTasks.addGPUTask
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
@@ -20,15 +21,18 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 import kotlin.math.max
 
-object PDFCache : CacheSection("PDFCache") {
+object PDFCache {
+
+    private val documents = CacheSection<FileKey, AtomicCountedDocument>("PDF-Documents")
+    private val images = CacheSection<Any, Image>("PDF-Images")
+    private val textures = CacheSection<TexKey, Texture2D>("PDF-Textures")
 
     // because this library isn't thread safe in the slightest :(
     private object Synchronizer
 
-    class AtomicCountedDocument(val doc: PDDocument) {
+    class AtomicCountedDocument(val doc: PDDocument) : ICacheData {
 
         private val counter = AtomicInteger(1)
 
@@ -41,31 +45,29 @@ object PDFCache : CacheSection("PDFCache") {
                 doc.close()
             }
         }
+
+        override fun destroy() {
+            returnInstance()
+        }
     }
 
     fun getDocumentRef(
-        src: FileReference,
-        input: InputStream,
-        borrow: Boolean,
-        async: Boolean
+        src: FileReference, input: InputStream,
+        borrow: Boolean, async: Boolean
     ): AtomicCountedDocument? {
-        val data = getEntry(src, TIMEOUT, async) {
-            val doc = AtomicCountedDocument(
+        val value = documents.getFileEntry(src, false, TIMEOUT_MILLIS, async) { key, result ->
+            result.value = AtomicCountedDocument(
                 try {
                     PDDocument.load(input)
                 } catch (e: Exception) {
                     LOGGER.error(e.message ?: "Error loading PDF", e)
                     PDDocument()
+                } finally {
+                    // todo what??? why do we close it here???
+                    if (!async) input.close()
                 }
             )
-            object : CacheData<AtomicCountedDocument>(doc) {
-                override fun destroy() {
-                    value.returnInstance()
-                }
-            }
-        }
-        if (!async) input.close()
-        val value = data?.value
+        }.waitFor(async)
         if (borrow) value?.borrow()
         return value
     }
@@ -112,22 +114,22 @@ object PDFCache : CacheSection("PDFCache") {
         }
     }
 
+    data class TexKey(val file: FileKey, val qualityInt: Int, val pageNumber: Int)
+
     @Suppress("unused")
     fun getTexture(src: FileReference, doc: PDDocument, quality: Float, pageNumber: Int): Texture2D? {
         val qualityInt = max(1, (quality * 2f).roundToIntOr())
         val qualityFloat = qualityInt * 0.5f
-        val tex = TextureCache.getLateinitTexture(
-            Triple(src, qualityInt, pageNumber),
+        val tex = textures.getEntry(
+            TexKey(src.getFileKey(), qualityInt, pageNumber),
             20_000L, false
-        ) { callback ->
-            thread(name = "PDFCache::getTexture") {
-                val image = getImage(doc, qualityFloat, pageNumber)
-                addGPUTask("PDFCache.getTexture()", image.width, image.height) {
-                    callback.ok(Texture2D(src.name, image, true))
-                }
+        ) { key, result ->
+            val image = getImage(doc, qualityFloat, pageNumber)
+            addGPUTask("PDFCache.getTexture()", image.width, image.height) {
+                result.value = Texture2D(src.name, image, true)
             }
-        }?.value as? Texture2D
-        return if (tex?.wasCreated == true) tex else null
+        }.waitFor()
+        return tex?.createdOrNull() as? Texture2D
     }
 
     data class Key(val doc: PDDocument, val dpi: Float, val pageNumber: Int)
@@ -136,22 +138,22 @@ object PDFCache : CacheSection("PDFCache") {
 
     @Suppress("unused")
     fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): Image? {
-        return getEntry(Key(doc, dpi, pageNumber), 10_000, false) {
-            CacheData(getImage(doc, dpi, pageNumber))
-        }?.value
+        return images.getEntry(Key(doc, dpi, pageNumber), 10_000, false) { key, result ->
+            result.value = getImage(key.doc, key.dpi, key.pageNumber)
+        }.waitFor()
     }
 
     fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): Image? {
-        return getEntry(SizeKey(doc, size, pageNumber), 10_000, false) { (doc, size, pageNumber) ->
-            CacheData(getImageBySize(doc, size, pageNumber))
-        }?.value
+        return images.getEntry(SizeKey(doc, size, pageNumber), 10_000, false) { key, result ->
+            result.value = getImageBySize(key.doc, key.size, key.pageNumber)
+        }.waitFor()
     }
 
     @Suppress("unused")
     fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image? {
-        return getEntry(HeightKey(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
-            CacheData(getImageByHeight(doc, height, pageNumber))
-        }?.value
+        return images.getEntry(HeightKey(doc, height, pageNumber), 10_000, false) { key, result ->
+            result.value = getImageByHeight(key.doc, key.height, key.pageNumber)
+        }.waitFor()
     }
 
     fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): Image {
@@ -194,6 +196,6 @@ object PDFCache : CacheSection("PDFCache") {
         )
     }
 
-    private const val TIMEOUT = 20_000L
+    private const val TIMEOUT_MILLIS = 20_000L
     private val LOGGER = LogManager.getLogger(PDFCache::class)
 }

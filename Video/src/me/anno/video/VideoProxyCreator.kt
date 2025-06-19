@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.cache.CacheData
 import me.anno.cache.FileCache
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -10,6 +9,7 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.VideoCache.framesPerSlice
 import me.anno.video.VideoCache.minSize
 import me.anno.video.VideoCache.scale
+import me.anno.video.VideoProxyCreator.getEntry
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
 
@@ -25,9 +25,8 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     override fun load(key: Key, src: FileReference?): FileReference = src ?: InvalidRef
 
     fun getProxyFileDontUpdate(src: FileReference, sliceIndex: Int): FileReference? {
-        init()
-        val data = getEntryWithoutGenerator(getKey(src, sliceIndex)) as? CacheData<*>
-        return data?.value as? FileReference
+        init() // needed here?
+        return getEntryWithoutGenerator(getKey(src, sliceIndex))?.value
     }
 
     fun getProxyFile(src: FileReference, sliceIndex: Int, async: Boolean = true): FileReference? {

@@ -1,13 +1,10 @@
 package me.anno.ui.base.groups
 
-import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelContainer.Companion.setPosSizeWithPadding
 import kotlin.math.max
 
-open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
-
-    constructor(style: Style) : this(null, style)
+open class PanelStack( style: Style) : PanelList(style) {
 
     override fun calculateSize(w: Int, h: Int) {
         var neededW = 0
@@ -42,7 +39,7 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     }
 
     override fun clone(): PanelStack {
-        val clone = PanelStack(sorter, style)
+        val clone = PanelStack(style)
         copyInto(clone)
         return clone
     }

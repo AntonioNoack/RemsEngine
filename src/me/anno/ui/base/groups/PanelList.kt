@@ -5,9 +5,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 
-abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style) {
-
-    constructor(style: Style) : this(null, style)
+abstract class PanelList(style: Style) : PanelGroup(style) {
 
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacer.width", 0)
@@ -18,9 +16,6 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     open fun clear() {
         children.clear()
-    }
-
-    fun invalidateSorting() {
     }
 
     fun isEmpty() = children.isEmpty()
@@ -55,11 +50,6 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         children += child
         child.parent = this
         return this
-    }
-
-    override fun calculateSize(w: Int, h: Int) {
-        if (sorter != null) children.sortWith(sorter)
-        super.calculateSize(w, h)
     }
 
     fun selectNext(di: Int = 1): Boolean {

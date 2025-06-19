@@ -2,28 +2,23 @@ package me.anno.io.files
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.Signature.Companion.sampleSize
-import me.anno.io.files.SignatureCache.generate
 import me.anno.io.files.inner.SignatureFile
-import me.anno.utils.async.Callback
 
 /**
  * cache for signatures, so files don't have to be read all the time
  * */
-object SignatureCache : CacheSection("Signatures") {
+object SignatureCache : CacheSection<FileKey, Signature>("Signatures") {
 
     var timeoutMillis = 10_000L
 
-    private fun generate(key: FileKey): AsyncCacheData<Signature?> {
-        val value = AsyncCacheData<Signature?>()
-        generate(key.file, value)
-        return value
-    }
-
-    private fun generate(file: FileReference, callback: Callback<Signature?>) {
-        return when (file) {
-            is SignatureFile -> callback.ok(file.signature)
+    private val generate: (key: FileKey, result: AsyncCacheData<Signature>) -> Unit = { key, result ->
+        val file = key.file
+        when (file) {
+            is SignatureFile -> result.value = file.signature
             else -> {
                 // reads the bytes, or 255 if at end of file
                 // how much do we read? 🤔
@@ -33,20 +28,24 @@ object SignatureCache : CacheSection("Signatures") {
                     if (input != null) {
                         val bytes = input.readNBytes2(sampleSize, false)
                         val sign = Signature.find(bytes)
-                        callback.ok(sign)
-                    } else callback.err(err)
+                        result.value = sign
+                    } else {
+                        result.value = null
+                        // todo can we store the exception somehow?
+                        // result.err(err)
+                    }
                 }
             }
         }
     }
 
-    operator fun get(file: FileReference, async: Boolean): Signature? {
-        return getFileEntry(file, false, timeoutMillis, async, ::generate)?.value
+    operator fun get(file: FileReference, async: Boolean): AsyncCacheData<Signature> {
+        return getFileEntry(file, false, timeoutMillis, async, generate)
     }
 
     fun getAsync(file: FileReference, callback: (Signature?) -> Unit) {
-        return getFileEntryAsync(file, false, timeoutMillis, true, ::generate) { sig, _ ->
-            callback(sig?.value)
+        return getFileEntryAsync(file, false, timeoutMillis, true, generate) { sig, _ ->
+            callback(sig)
         }
     }
 }

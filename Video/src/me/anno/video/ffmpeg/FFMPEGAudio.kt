@@ -20,8 +20,10 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 
-class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, val duration: Double) :
-    FFMPEGStream(file, false) {
+class FFMPEGAudio(
+    file: FileReference?, val channels: Int, val sampleRate: Int, val duration: Double,
+    val result: AsyncCacheData<SoundBuffer>
+) : FFMPEGStream(file, false) {
     // audio should be fast -> not limited
 
     companion object {
@@ -70,8 +72,6 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
             callback()
         }
     }
-
-    val result = AsyncCacheData<SoundBuffer>()
 
     fun readRAW(input: InputStream, channels: Int, frameCount: Int): Triple<ByteBuffer, ShortBuffer, Boolean> {
         val sampleCount = frameCount * channels

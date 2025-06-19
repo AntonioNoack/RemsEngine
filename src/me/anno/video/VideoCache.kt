@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
@@ -10,7 +11,7 @@ import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
 
-object VideoCache : CacheSection("Videos") {
+object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
 
     const val framesPerSlice = 512
     const val scale = 4
@@ -20,13 +21,13 @@ object VideoCache : CacheSection("Videos") {
 
     var getProxyFile: ((file: FileReference, sliceIndex: Int, async: Boolean) -> FileReference?)? = null
     var getProxyFileDontUpdate: ((file: FileReference, sliceIndex: Int) -> FileReference?)? = null
-    var generateVideoFrames: ((key: VideoFramesKey) -> VideoSlice)? = null
+    var generateVideoFrames: ((key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) -> Unit)? = null
 
     private fun getVideoFramesWithoutGenerator(
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int, fps: Double
     ): VideoSlice? {
-        return getEntryWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps)) as? VideoSlice
+        return getEntryWithoutGenerator(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps))?.value
     }
 
     private fun getVideoFrames(
@@ -40,6 +41,7 @@ object VideoCache : CacheSection("Videos") {
         val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
         val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
         return getEntryLimited(key, timeout, async, videoGenLimit, generateVideoFrames ?: return null)
+            ?.waitFor(async)
     }
 
     fun getVideoFrame(

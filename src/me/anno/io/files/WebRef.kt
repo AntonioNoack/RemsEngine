@@ -1,6 +1,6 @@
 package me.anno.io.files
 
-import me.anno.cache.CacheData
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.io.Streams.readText
@@ -62,16 +62,16 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     override val exists: Boolean
         get() {
             val headers = headers
-            val responseCode = headers?.get(RESPONSE_CODE_KEY)?.firstOrNull()?.toIntOrNull()
-            return headers != null &&
+            val responseCode = headers.waitFor()?.get(RESPONSE_CODE_KEY)?.firstOrNull()?.toIntOrNull()
+            return headers.value != null &&
                     (responseCode == null || responseCode in 200 until 400)
         }
 
     override val lastModified: Long
-        get() = headers?.get("Last-Modified").toString().parseLastModified()
+        get() = (headers.waitFor()?.get("Last-Modified")).toString().parseLastModified()
 
     val responseCode: Int // HTTP/1.1 200 OK
-        get() = headers?.get(null)?.first().run {
+        get() = headers.waitFor()?.get(null)?.first().run {
             if (this == null) 404
             else {
                 val i0 = indexOf(' ') + 1
@@ -125,7 +125,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     val headers get() = getHeaders(toURL(), valueTimeout, false)
 
     override fun length(): Long {
-        val headers = headers ?: return -1
+        val headers = headers.waitFor() ?: return -1
         return headers["content-length"]?.first().toLongOrDefault(-1L)
     }
 
@@ -157,7 +157,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
         private val LOGGER = LogManager.getLogger(WebRef::class)
         private const val RESPONSE_CODE_KEY = "ResponseCode"
-        val webCache = CacheSection("Web")
+        val webCache = CacheSection<URL, WebCacheValue>("Web")
 
         private fun String.parseLastModified(): Long {
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
@@ -170,10 +170,10 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             }
         }
 
-        private fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {
-            val data = webCache.getEntry(url, timeout, async) {
+        private fun getHeaders(url: URL, timeout: Long, async: Boolean): AsyncCacheData<WebCacheValue> {
+            return webCache.getEntry(url, timeout, async) { url, result ->
                 var conn: URLConnection? = null
-                val data: Map<String?, List<String>> = try {
+                result.value = try {
                     conn = url.openConnection()
                     if (conn is HttpURLConnection) {
                         conn.requestMethod = "HEAD"
@@ -188,10 +188,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                         conn.disconnect()
                     }
                 }
-                CacheData(data)
-            } as? CacheData<*>
-            @Suppress("unchecked_cast")
-            return data?.value as? Map<String?, List<String>>
+            }
         }
 
         private fun formatAccessURL(url: String, args: Map<Any?, Any?>): String {

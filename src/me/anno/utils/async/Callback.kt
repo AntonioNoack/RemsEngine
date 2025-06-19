@@ -63,7 +63,7 @@ fun interface Callback<in V> {
         /**
          * returns a callback, this calls the original callback after mapping the value synchronously
          * */
-        fun <V> Callback<V>.waitFor(): Callback<AsyncCacheData<V>> {
+        fun <V: Any> Callback<V>.waitFor(): Callback<AsyncCacheData<V>> {
             val self = this
             return Callback { value, err ->
                 if (value != null) value.waitFor(self)
@@ -71,7 +71,7 @@ fun interface Callback<in V> {
             }
         }
 
-        fun <V> Callback<V>.wait(): Callback<AsyncCacheData<V>> {
+        fun <V: Any> Callback<V>.wait(): Callback<AsyncCacheData<V>> {
             val self = this
             return Callback { value, err ->
                 if (value != null) {

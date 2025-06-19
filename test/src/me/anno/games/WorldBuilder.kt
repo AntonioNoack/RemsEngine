@@ -117,7 +117,7 @@ fun main() {
             }
         }
 
-        val buildMenu = PanelList2D(false, null, style)
+        val buildMenu = PanelList2D(false, style)
         val bmWrapper = ScrollPanelX(buildMenu, style)
         bmWrapper.alwaysScroll = true
 

@@ -1,6 +1,5 @@
 package me.anno.maths.chunks.cartesian
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.maths.chunks.PlayerLocation
@@ -16,42 +15,34 @@ import kotlin.math.min
  * general chunk system,
  * LODs can be generated e.g., with OctTree
  * */
-abstract class ChunkSystem<Chunk, Element>(
+abstract class ChunkSystem<Chunk : Any, Element>(
     val bitsX: Int,
     val bitsY: Int,
     val bitsZ: Int
 ) : Component() {
 
     var timeoutMillis = 10_000L
-    val chunks = CacheSection("Chunks")
+    val chunks = CacheSection<Vector3i, Chunk>("Chunks")
 
     fun getOrPut(key: Vector3i, put: (Vector3i) -> Chunk): Chunk {
-        val data = chunks.getEntry(key, timeoutMillis, false) {
-            CacheData(put(it))
-        } as CacheData<*>
-        @Suppress("UNCHECKED_CAST")
-        return data.value as Chunk
+        return chunks.getEntry(key, timeoutMillis, false) { k, result ->
+            result.value = put(k)
+        }.waitFor()!!
     }
 
     fun get(key: Vector3i): Chunk? {
-        val data = chunks.getEntryWithoutGenerator(key) as? CacheData<*> ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return data.value as Chunk
+        return chunks.getEntryWithoutGenerator(key)?.value
     }
 
     fun remove(key: Vector3i): Chunk? {
-        val data = chunks.removeEntry(key) as? CacheData<*> ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return data.value as Chunk
+        return chunks.removeEntry(key)?.value
     }
 
     fun removeIf(condition: (key: Vector3i, value: Chunk) -> Boolean) {
         chunks.remove { key, value ->
             val key1 = key as? Vector3i
-            val value1 = value.data as CacheData<*>
-
             @Suppress("UNCHECKED_CAST")
-            val value2 = value1.value as? Chunk
+            val value2 = value.value
             key1 != null && value2 != null && condition(key1, value2)
         }
     }

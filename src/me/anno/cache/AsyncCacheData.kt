@@ -1,11 +1,18 @@
 package me.anno.cache
 
+import me.anno.Time.nanoTime
 import me.anno.gpu.GFX
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
+import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
+import kotlin.math.max
 
-open class AsyncCacheData<V> : ICacheData, Callback<V> {
+open class AsyncCacheData<V : Any> : ICacheData, Callback<V> {
+
+    var timeoutNanoTime: Long = 0
+    var generatorThread: Thread = Thread.currentThread()
 
     var hasValue = false
     var hasBeenDestroyed = false
@@ -19,10 +26,33 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
             hasValue = true
         }
 
+    fun reset(timeoutMillis: Long) {
+        timeoutNanoTime = nanoTime + timeoutMillis * MILLIS_TO_NANOS
+        generatorThread = Thread.currentThread()
+    }
+
+    fun update(timeoutMillis: Long) {
+        val secondTime = nanoTime + max(0L, timeoutMillis) * MILLIS_TO_NANOS
+        timeoutNanoTime = max(timeoutNanoTime, secondTime)
+    }
+
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
+        warnRecursive()
         Sleep.waitUntil(true) { hasValue }
         return value
+    }
+
+    @Deprecated(message = ASYNC_WARNING)
+    fun waitFor(async: Boolean): V? {
+        if (!async) waitFor()
+        return value
+    }
+
+    private fun warnRecursive() {
+        if (generatorThread == Thread.currentThread()) {
+            LOGGER.warn("Recursive dependency?")
+        }
     }
 
     fun waitFor(callback: (V?) -> Unit) {
@@ -62,10 +92,11 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(AsyncCacheData::class)
         const val ASYNC_WARNING = "Avoid blocking, it's also not supported in browsers"
 
         @Deprecated(message = ASYNC_WARNING)
-        inline fun <V> loadSync(loadAsync: (Callback<V>) -> Unit): V? {
+        inline fun <V : Any> loadSync(loadAsync: (Callback<V>) -> Unit): V? {
             val wrapper = AsyncCacheData<V>()
             loadAsync(wrapper)
             wrapper.waitFor()

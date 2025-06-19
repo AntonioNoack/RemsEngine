@@ -7,11 +7,11 @@ import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.streams.AudioFileStream
 import me.anno.audio.streams.AudioStreamRaw
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
-import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.assertions.assertNotEquals
@@ -24,7 +24,10 @@ import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
 
-object AudioFXCache : CacheSection("AudioFX0") {
+object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioData>("AudioFX0") {
+
+    private val audioDataCache = CacheSection<PipelineKey, AudioData>("AudioDataCache")
+    private val rangeCache = CacheSection<RangeKey, ShortData>("AudioFXRanges")
 
     // limit the number of requests for performance,
     // and accumulating many for the future is useless,
@@ -34,7 +37,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     val SPLITS = 256
 
     data class PipelineKey(
-        val file: FileReference,
+        val file: FileKey,
         val time0: Double,
         val time1: Double,
         val bufferSize: Int,
@@ -90,11 +93,11 @@ object AudioFXCache : CacheSection("AudioFX0") {
         assertNotEquals(0, meta.audioSampleRate, "Cannot load audio without sample rate")
         // we cannot simply return null from this function, so getEntryLimited isn't an option
         acquire(true, rawDataLimiter)
-        val entry = getEntry(key to "", timeoutMillis, false) { (it, _) ->
-            val stream = AudioStreamRaw(it.file, it.repeat, meta, it.time0, it.time1)
+        val entry = getEntry(key, timeoutMillis, false) { it, result ->
+            val stream = AudioStreamRaw(it.file.file, it.repeat, meta, it.time0, it.time1)
             val pair = stream.getBuffer(it.bufferSize, it.time0, it.time1)
-            AudioData(it, pair.first, pair.second)
-        }!!
+            result.value = AudioData(it, pair.first, pair.second)
+        }.waitFor()!!
         rawDataLimiter.release()
         return entry
     }
@@ -104,16 +107,16 @@ object AudioFXCache : CacheSection("AudioFX0") {
         pipelineKey: PipelineKey,
         async: Boolean
     ): AudioData? {
-        return getEntry(pipelineKey, timeoutMillis, async) { key ->
-            getRawData(meta, key)
-        }
+        return audioDataCache.getEntry(pipelineKey, timeoutMillis, async) { key, result ->
+            result.value = getRawData(meta, key)
+        }.waitFor(async)
     }
 
     fun getBuffer1(
         pipelineKey: PipelineKey,
         async: Boolean
     ): AudioData? {
-        val meta = getMeta(pipelineKey.file, async) ?: return null
+        val meta = getMeta(pipelineKey.file.file, async) ?: return null
         return getBuffer0(meta, pipelineKey, async)
     }
 
@@ -151,13 +154,12 @@ object AudioFXCache : CacheSection("AudioFX0") {
             return other.i0 == i0 && other.i1 == i1 && other.identifier == identifier
         }
 
-        private val _hashCode = 31 * (31 * i0.hashCode() + i1.hashCode()) + identifier.hashCode()
         override fun hashCode(): Int {
-            return _hashCode
+            return 31 * (31 * i0.hashCode() + i1.hashCode()) + identifier.hashCode()
         }
     }
 
-    class ShortData : AsyncCacheData<ShortArray>() {
+    class ShortData(val value: ShortArray): ICacheData {
         override fun destroy() {
             SAPool.returnBuffer(value)
         }
@@ -198,8 +200,12 @@ object AudioFXCache : CacheSection("AudioFX0") {
     ): ShortArray? {
         if (!bufferSize.isPowerOf2()) return null
         val queue = if (async) rangingProcessing2 else null
-        val entry = getEntryLimited(RangeKey(index0, index1, identifier), 10000, queue, rangeRequestLimit) {
-            val data = ShortData()
+        val entry = rangeCache.getEntryLimited(
+            RangeKey(index0, index1, identifier),
+            10000,
+            queue,
+            rangeRequestLimit
+        ) { key, result ->
             rangingProcessing += {
                 val splits = SPLITS
                 val values = SAPool[splits * 2, false, true]
@@ -209,11 +215,9 @@ object AudioFXCache : CacheSection("AudioFX0") {
                     // :(
                     e.printStackTrace()
                 }
-                data.value = values
+                result.value = ShortData(values)
             }
-            data
-        } ?: return null
-        if (!async) entry.waitFor()
+        }?.waitFor(async) ?: return null
         return entry.value
     }
 
@@ -264,7 +268,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
         file: FileReference,
         time0: Double, time1: Double, bufferSize: Int,
         repeat: LoopingState
-    ) = PipelineKey(file, time0, time1, bufferSize, repeat)
+    ) = PipelineKey(file.getFileKey(), time0, time1, bufferSize, repeat)
 
     fun getIndex(time: Double, bufferSize: Int, sampleRate: Int): Double {
         return time * sampleRate.toDouble() / bufferSize

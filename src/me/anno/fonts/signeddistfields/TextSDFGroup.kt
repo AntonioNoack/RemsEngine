@@ -1,11 +1,11 @@
 package me.anno.fonts.signeddistfields
 
+import me.anno.cache.CacheSection
 import me.anno.fonts.Font
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.FinalRendering.isFinalRendering
 import me.anno.gpu.FinalRendering.onMissingResource
-import me.anno.gpu.texture.TextureCache
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
 
@@ -49,7 +49,7 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
         for (index in startIndex until endIndex) {
             val codepoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
-            val textSDF = getTextSDF(codepoint, font, roundCorners)
+            val textSDF = getTextSDF(font, codepoint, roundCorners)
             if (textSDF == TextSDF.empty) continue
             if (isTextureValid(textSDF)) {
                 drawBuffer.draw(null, textSDF, offset)
@@ -64,19 +64,22 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
         private const val SDF_TIMEOUT_MILLIS = 30_000L
         val queue = ProcessingQueue("SDFText")
 
+        private val sdfStringTex = CacheSection<SDFStringKey, TextSDF>("SDFStringTex")
+        private val sdfCharTex = CacheSection<SDFCharKey, TextSDF>("SDFCharTex")
+
         fun getTextSDF(font: Font, text: CharSequence, roundCorners: Boolean): TextSDF? {
             val key = SDFStringKey(font, text, roundCorners)
-            return TextureCache.getEntry(key, SDF_TIMEOUT_MILLIS, queue) {
-                SignedDistanceField.createTexture(font, text, roundCorners)
-            } as? TextSDF
+            return sdfStringTex.getEntry(key, SDF_TIMEOUT_MILLIS, queue) { key2, result ->
+                result.value = SignedDistanceField.createTexture(key2.font, key2.text, key2.roundCorners)
+            }.waitFor()
         }
 
-        fun getTextSDF(codepoint: Int, font: Font, roundCorners: Boolean): TextSDF? {
+        fun getTextSDF(font: Font, codepoint: Int, roundCorners: Boolean): TextSDF? {
             val key = SDFCharKey(font, codepoint, roundCorners)
-            return TextureCache.getEntry(key, SDF_TIMEOUT_MILLIS, queue) { key2 ->
+            return sdfCharTex.getEntry(key, SDF_TIMEOUT_MILLIS, queue) { key2, result ->
                 val charAsText = key2.codePoint.joinChars()
-                SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
-            } as? TextSDF
+                result.value = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
+            }.waitFor()
         }
     }
 }

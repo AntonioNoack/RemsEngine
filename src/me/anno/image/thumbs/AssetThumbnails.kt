@@ -1,5 +1,6 @@
 package me.anno.image.thumbs
 
+import me.anno.cache.FileCacheSection.hasFileEntry
 import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
@@ -163,7 +164,7 @@ object AssetThumbnails {
                 }
             } && textureFiles.all { textureFile ->
                 TextureCache[textureFile, async] != null ||
-                        TextureCache.hasFileEntry(textureFile, delta)
+                        TextureCache.hasImageOrCrashed(textureFile, delta, true)
             }
         }) {
             addGPUTask("loadAssets", 1000) {

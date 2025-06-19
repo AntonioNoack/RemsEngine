@@ -194,8 +194,4 @@ object Files {
     private fun limited(sum: Long): Long {
         return if (sum < 0) Long.MAX_VALUE else sum
     }
-
-    fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren().filter {
-        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles)
-    }
 }

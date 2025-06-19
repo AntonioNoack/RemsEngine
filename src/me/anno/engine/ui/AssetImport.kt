@@ -69,7 +69,7 @@ object AssetImport {
     fun getImportType(file: FileReference): String? {
         val alias = (file as? InnerFolder)?.alias
         if (alias != null) return getPureTypeOrNull(alias)
-        return SignatureCache[file, false]?.importType
+        return SignatureCache[file, false]?.waitFor()?.importType
     }
 
     fun getPureTypeOrNull(file: FileReference): String? {

@@ -44,11 +44,10 @@ fun main() {
     println("Ideal parallel: ${idealParallelTime / 1e6} ms")
 
     val clock = Clock("ParallelProcessing")
-    val cache = CacheSection("Tested")
+    val cache = CacheSection<Vector3i, Int>("Tested")
 
-    fun runTask(): ICacheData {
+    fun runTask() {
         Thread.sleep(workerTime / MILLIS_TO_NANOS, (workerTime % MILLIS_TO_NANOS).toInt())
-        return CacheData(1)
     }
 
     val testAsync = true
@@ -58,17 +57,20 @@ fun main() {
         if (true) {
             simple.getOrPut(ComparableKey(i.x, i.y, i.z)) {
                 runTask()
+                CacheData(1)
             }
             callback()
         } else if (testAsync) {
-            cache.getEntryAsync(i, timeout, false, {
+            cache.getEntryAsync(i, timeout, false, { _, result ->
                 runTask()
+                result.value = 1
             }, { _, _ ->
                 callback()
             })
         } else {
-            cache.getEntry(i, timeout, false) {
+            cache.getEntry(i, timeout, false) { _, result ->
                 runTask()
+                result.value = 1
             }
             callback()
         }

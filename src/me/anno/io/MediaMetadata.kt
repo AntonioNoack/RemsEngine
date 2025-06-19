@@ -1,7 +1,10 @@
 package me.anno.io
 
 import me.anno.audio.AudioReadable
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileKey
@@ -39,7 +42,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
     var videoHeight = 0
     var videoFrameCount = 0
 
-    var ready = true
+    var isReady = true
 
     override fun toString(): String {
         return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: ${
@@ -64,7 +67,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
             }
         }
         // signature handlers
-        val signature1 = signature ?: SignatureCache[file, false]?.name
+        val signature1 = signature ?: SignatureCache[file, false].waitFor()?.name
         for (shi in signatureHandlers.indices) {
             if (currReaderIndex++ < nextReaderIndex) continue
             val sh = signatureHandlers[shi]
@@ -91,7 +94,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
     }
 
     fun setImageByStream(callback: (InputStream) -> Any, nextReaderIndex: Int): Boolean {
-        ready = false
+        isReady = false
         file.inputStream { it, exc ->
             if (it != null) {
                 val size = callback(it)
@@ -102,7 +105,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
                     else size.printStackTrace()
                 } // else unknown case...
             } else exc?.printStackTrace()
-            ready = true
+            isReady = true
         }
         return true
     }
@@ -151,11 +154,14 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         private val LOGGER = LogManager.getLogger(MediaMetadata::class)
 
         @JvmStatic
-        private val metadataCache = CacheSection("Metadata")
+        private val metadataCache = CacheSection<FileKey, MediaMetadata>("Metadata")
 
         @JvmStatic
-        private val createMetadata: (FileKey) -> MediaMetadata = { key ->
-            MediaMetadata(key.file, null, 0)
+        private val createMetadata: (FileKey, AsyncCacheData<MediaMetadata>) -> Unit = { key, result ->
+            val meta = MediaMetadata(key.file, null, 0)
+            Sleep.waitUntil(true, { meta.isReady }) {
+                result.value = meta
+            }
         }
 
         @JvmStatic
@@ -165,12 +171,10 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
 
         @JvmStatic
         fun getMeta(file: FileReference, async: Boolean): MediaMetadata? {
-            val meta = metadataCache.getFileEntry(
+            return metadataCache.getFileEntry(
                 file, false, timeoutMillis,
                 async, createMetadata
-            ) ?: return null
-            if (!async) Sleep.waitUntil(true) { meta.ready }
-            return meta
+            ).waitFor(async)
         }
 
         @JvmStatic
@@ -184,11 +188,12 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
 
         @JvmStatic
         fun getMeta(file: FileReference, signature: String?, async: Boolean): MediaMetadata? {
-            val meta = metadataCache.getFileEntry(file, false, timeoutMillis, async) { key ->
-                createMetadata(key.file, signature)
-            } ?: return null
-            if (!async) Sleep.waitUntil(true) { meta.ready }
-            return meta
+            return metadataCache.getFileEntry(file, false, timeoutMillis, async) { key, result ->
+                val meta = createMetadata(key.file, signature)
+                Sleep.waitUntil(true, { meta.isReady }) {
+                    result.value = meta
+                }
+            }.waitFor(async)
         }
 
         init {

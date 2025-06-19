@@ -86,28 +86,26 @@ object ImageThumbnailsImpl {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout, callback.mapAsync { bufferI, cb2 ->
-            bufferI.waitFor(cb2.mapAsync { buffer, cb1 ->
-                val bounds = buffer.bounds
-                val maxSize = max(bounds.maxX, bounds.maxY)
-                val w = (size * bounds.maxX / maxSize).roundToIntOr()
-                val h = (size * bounds.maxY / maxSize).roundToIntOr()
-                if (w >= 2 && h >= 2) {
-                    ThumbsRendering.renderToImage(
-                        srcFile, false, dstFile, false,
-                        Renderer.colorRenderer, false, cb1, w, h
-                    ) {
-                        val transform = Matrix4fArrayList()
-                        transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
-                        DrawSVGs.draw3DSVG(
-                            transform, buffer,
-                            TextureLib.whiteTexture, Color.white4,
-                            Filtering.NEAREST, TextureLib.whiteTexture.clamping,
-                            null
-                        )
-                    }
-                } else callback.err(null)
-            })
+        SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout, callback.mapAsync { buffer, cb1 ->
+            val bounds = buffer.bounds
+            val maxSize = max(bounds.maxX, bounds.maxY)
+            val w = (size * bounds.maxX / maxSize).roundToIntOr()
+            val h = (size * bounds.maxY / maxSize).roundToIntOr()
+            if (w >= 2 && h >= 2) {
+                ThumbsRendering.renderToImage(
+                    srcFile, false, dstFile, false,
+                    Renderer.colorRenderer, false, cb1, w, h
+                ) {
+                    val transform = Matrix4fArrayList()
+                    transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
+                    DrawSVGs.draw3DSVG(
+                        transform, buffer,
+                        TextureLib.whiteTexture, Color.white4,
+                        Filtering.NEAREST, TextureLib.whiteTexture.clamping,
+                        null
+                    )
+                }
+            } else callback.err(null)
         })
     }
 }

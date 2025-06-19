@@ -15,7 +15,6 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
-import me.anno.utils.async.Callback.Companion.waitFor
 import me.anno.utils.async.UnitCallback
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
@@ -39,7 +38,7 @@ class HierarchicalDatabase(
     val dataExtension: String = "bin",
 ) {
 
-    private val cache = CacheSection("HDB-$name")
+    private val cache = CacheSection<Int, ByteArray>("HDB-$name")
 
     private val root = Folder("")
     private val storageFiles = HashMap<Int, StorageFile>()
@@ -235,14 +234,11 @@ class HierarchicalDatabase(
     }
 
     private fun getDataAsync(sf: StorageFile, callback: Callback<ByteArray>) {
-        val key = sf.index
-        cache.getEntryAsync(key, cacheTimeoutMillis, true, { keyI ->
+        cache.getEntryAsync(sf.index, cacheTimeoutMillis, true, { keyI,result ->
             val file = getFile(keyI)
-            val result = AsyncCacheData<ByteArray>()
             if (file.exists) file.readBytes(result)
             else result.value = null
-            result
-        }, callback.waitFor())
+        }, callback)
     }
 
     private fun getDataFromCacheOnly(sf: StorageFile): ByteArray? {
@@ -312,9 +308,7 @@ class HierarchicalDatabase(
         val file1 = getFile(sf.index)
         sf.size = data.size
 
-        val forCache = AsyncCacheData<ByteArray>()
-        forCache.value = data
-        cache.override(sf.index, forCache, cacheTimeoutMillis)
+        cache.override(sf.index, data, cacheTimeoutMillis)
 
         if (type == ReplaceType.InsertInto && file1.exists) {
             val writer = RandomAccessFile(file1.absolutePath, "rw")

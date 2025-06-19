@@ -1,12 +1,15 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCacheSection.getFileEntry
+import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.cache.ICacheData
 import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
-import me.anno.ecs.prefab.PrefabCache.getPrefabSampleInstance
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstanceAsync
+import me.anno.ecs.prefab.PrefabCache.getPrefabSampleInstance
 import me.anno.engine.ECSRegistry
+import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
@@ -19,7 +22,8 @@ import kotlin.reflect.safeCast
 /**
  * base class for caches of types saved in Prefabs like Entities, Components, Materials, Skeletons, Animations and such
  * */
-abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: String) : CacheSection(name) {
+abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: String) :
+    CacheSection<FileKey, V>(name) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(PrefabByFileCache::class)
@@ -34,13 +38,14 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
     operator fun get(ref: FileReference?) = get(ref, false)
     operator fun get(ref: FileReference?, default: V) = get(ref, false) ?: default
 
-    val lru = LRUCache<FileReference, V>(16).register()
+    val lru = LRUCache<FileKey, V>(16).register()
     var timeoutMillis = 10_000L
     var allowDirectories = false
 
     operator fun get(ref: FileReference?, async: Boolean): V? {
         if (ref == null || ref == InvalidRef) return null
-        val i0 = lru[ref]
+        val fileKey = ref.getFileKey()
+        val i0 = lru[fileKey]
         if (i0 !== Unit) {
             return clazz.safeCast(i0)
         }
@@ -51,11 +56,11 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         }
         val instance = getPrefabSampleInstance(ref, maxPrefabDepth, async)
         val value = if (instance != null) {
-            getFileEntry(ref, allowDirectories, timeoutMillis, async) { key ->
-                castInstance(instance, key.file) // may be heavy -> must be cached
-            }
+            getFileEntry(ref, allowDirectories, timeoutMillis, async) { key, result ->
+                result.value = castInstance(instance, key.file) // may be heavy -> must be cached
+            }?.waitFor(async)
         } else null
-        if (value != null || !async) lru[ref] = value
+        if (value != null || !async) lru[fileKey] = value
         return value
     }
 
@@ -64,7 +69,8 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             callback.ok(null)
             return
         }
-        val i0 = lru[ref]
+        val fileKey = ref.getFileKey()
+        val i0 = lru[fileKey]
         if (i0 !== Unit) {
             callback.ok(clazz.safeCast(i0))
             return
@@ -72,11 +78,11 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         ensureClasses()
         getPrefabInstanceAsync(ref, maxPrefabDepth) { instance, err0 ->
             if (instance != null) {
-                getFileEntryAsync(ref, allowDirectories, timeoutMillis, true, { key ->
-                    castInstance(instance, key.file) // may be heavy -> must be cached
+                getFileEntryAsync(ref, allowDirectories, timeoutMillis, true, { key, result ->
+                    result.value = castInstance(instance, key.file) // may be heavy -> must be cached
                 }, { value, err1 ->
                     if (value != null) {
-                        lru[ref] = value
+                        lru[ref.getFileKey()] = value
                         callback.ok(value)
                     } else callback.err(err1)
                 })

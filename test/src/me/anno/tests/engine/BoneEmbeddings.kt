@@ -1,6 +1,5 @@
 package me.anno.tests.engine
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.tests.language.WordEmbedding
@@ -12,8 +11,9 @@ object BoneEmbeddings {
 
     @JvmStatic
     val helperWE = WordEmbedding()
+
     @JvmStatic
-    private val helperWECache = CacheSection("RetargetingWordEmbeddings")
+    private val helperWECache = CacheSection<Skeleton, List<FloatArray?>>("RetargetingWordEmbeddings")
 
     init {
 
@@ -116,17 +116,13 @@ object BoneEmbeddings {
             normalize()
 
         }
-
     }
 
     @JvmStatic
     fun getWEs(skeleton: Skeleton): List<FloatArray?> {
-        val data = helperWECache.getEntry(skeleton, 10_000L, false) {
-            CacheData(skeleton.bones.map { calcWE(it.name) })
-        } as CacheData<*>
-        val value = data.value
-        @Suppress("unchecked_cast")
-        return value as List<FloatArray?>
+        return helperWECache.getEntry(skeleton, 10_000L, false) { skeleton, result ->
+            result.value = skeleton.bones.map { calcWE(it.name) }
+        }.waitFor()!!
     }
 
     @JvmStatic
@@ -147,5 +143,4 @@ object BoneEmbeddings {
         }
         return embedding
     }
-
 }

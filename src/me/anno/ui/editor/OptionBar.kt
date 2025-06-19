@@ -11,7 +11,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 
-class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
+class OptionBar(style: Style) : PanelListX(style.getChild("options")) {
 
     init {
         spacing = style.getSize("fontSize", 12) / 2

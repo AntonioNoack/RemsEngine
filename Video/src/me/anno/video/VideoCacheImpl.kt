@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.cache.AsyncCacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.files.SignatureCache
 import me.anno.maths.Maths
@@ -11,12 +12,17 @@ object VideoCacheImpl {
 
     private val LOGGER = LogManager.getLogger(VideoCacheImpl::class)
 
-    fun generateVideoFrames(key: VideoFramesKey): VideoSlice {
+    fun generateVideoFrames(key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) {
         val file = key.file
         val scale = key.scale
-        val signature = SignatureCache[file, false]?.name
+        val signature = SignatureCache[file, false]?.waitFor()?.name
         val meta = MediaMetadata.getMeta(file, signature, false)
-            ?: throw RuntimeException("Meta was not found for $key!")
+        if (meta == null) {
+            RuntimeException("Meta was not found for $key!").printStackTrace()
+            result.value = null
+            return
+        }
+
         val data = VideoSlice(
             key, meta.videoWidth / scale, meta.videoHeight / scale,
             meta.videoWidth, meta.videoFPS, meta.videoFrameCount
@@ -41,6 +47,6 @@ object VideoCacheImpl {
                 data.finished = true
             }
         )
-        return data
+        result.value = data
     }
 }

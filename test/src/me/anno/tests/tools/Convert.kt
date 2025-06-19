@@ -1,5 +1,6 @@
 package me.anno.tests.tools
 
+import me.anno.cache.FileCacheSection.removeFileEntry
 import me.anno.image.ImageCache
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS.desktop

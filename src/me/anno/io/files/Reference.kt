@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.InternalAPI
@@ -22,7 +23,7 @@ object Reference {
     private val staticReferences = HashMap<String, FileReference>()
 
     @JvmStatic
-    private val fileCache = CacheSection("Files")
+    private val fileCache = CacheSection<String, FileReference>("Files")
 
     @JvmField
     var fileTimeout = 20_000L
@@ -76,10 +77,12 @@ object Reference {
     @JvmStatic
     fun getRealReference(path: String): FileReference {
         return fileCache.getEntry(path, fileTimeout, false, generator)
-            ?: createReference(path)
+            .waitFor() ?: createReference(path)
     }
 
-    private val generator = { path: String -> createReference(path) }
+    private val generator = { path: String, result: AsyncCacheData<FileReference> ->
+        result.value = createReference(path)
+    }
     private val linkRefCache = ConcurrentHashMap<String, LinkFileReference>()
 
     @JvmStatic
@@ -97,7 +100,7 @@ object Reference {
     private fun needsRelativePathReplacements(str2: String): Boolean {
         return "/../" in str2 || str2.endsWith("/..") ||
                 "/./" in str2 || str2.endsWith("/.") || str2.startsWith("./") ||
-                str2.startsWith("/") || str2.endsWith("/") || str2.contains("//")
+                "//" in str2 || str2.startsWith("/") || str2.endsWith("/")
     }
 
     @JvmStatic
