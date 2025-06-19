@@ -21,14 +21,14 @@ fun main() {
     ImageCache.timeoutMillis = 10
     PrefabCache.timeoutMillis = 10
     val src = downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg/b.png")
-    assertNotNull(TextureCache[src, false])
+    assertNotNull(TextureCache[src].waitFor())
     val waitTime = (TextureCache.timeoutMillis + 20) * MILLIS_TO_NANOS
     val endWaitTime = Time.nanoTime + waitTime
     Sleep.waitUntil(true, {
         Time.nanoTime > endWaitTime
     }, {
         CacheSection.updateAll()
-        val image = assertNotNull(ImageCache[src, false])
+        val image = assertNotNull(ImageCache[src].waitFor())
         val asIntImage = image.asIntImage()
         assertEquals(image.width, asIntImage.width)
         Engine.requestShutdown()

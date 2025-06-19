@@ -47,7 +47,7 @@ class BMPDecoderTest {
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
         val src = createBmpFile()
-        val meta = getMeta(src, false)!!
+        val meta = getMeta(src).waitFor()!!
         assertEquals(3, meta.videoWidth)
         assertEquals(2, meta.videoHeight)
         assertEquals(1, meta.videoFrameCount)
@@ -58,7 +58,7 @@ class BMPDecoderTest {
     fun testImageContent() {
         // todo this isn't using the standard BMP decoder, but the built-in one from ImageIO
         //  -> replace BMPDecoderClass?
-        val image = ImageCache[createBmpFile(), false]!!
+        val image = ImageCache[createBmpFile()].waitFor()!!
         baseline.forEachPixel { x, y ->
             assertEquals(baseline.getRGB(x, y), image.getRGB(x, y), "Mismatch at ($x $y)")
         }

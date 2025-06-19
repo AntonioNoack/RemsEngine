@@ -116,7 +116,7 @@ fun main() {
     // best: -1014821, 1, -3, -3, 3, 3
 
     val s = 0.025f
-    val img = ImageCache[desktop.getChild("20220306_091338.jpg"), false]!!
+    val img = ImageCache[desktop.getChild("20220306_091338.jpg")].waitFor()!!
     // todo scale it down for faster computations?
     // todo find the polynomial of degree 2/4/6 that best fits a black & white image
     // 1 + x^2 + x^4 + x^6

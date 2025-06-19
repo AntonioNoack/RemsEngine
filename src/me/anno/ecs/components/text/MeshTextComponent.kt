@@ -30,7 +30,9 @@ class MeshTextComponent : TextComponentImpl {
         val meshGroup = TextMeshGroup(font, text, 0f, false)
         meshGroup.createJoinedMesh(mesh)
 
-        val size = FontManager.getSize(font, text, -1, -1, false)
+        val size = FontManager.getSize(font, text, -1, -1)
+            .waitFor() ?: font.sizeInt
+
         val baselineY = FontManager.getBaselineY(font)
         val sx = getSx(getSizeX(size), baselineY)
         val sy = getSy(getSizeY(size), baselineY)

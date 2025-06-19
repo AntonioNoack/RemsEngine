@@ -8,7 +8,7 @@ import me.anno.utils.OS.downloads
 
 fun main() {
     OfficialExtensions.initForTests()
-    ImageCache[downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg"), false]!!.write(desktop.getChild("base.png"))
-    ImageCache[downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg/b.png"), false]!!.write(desktop.getChild("comp.png"))
+    ImageCache[downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg")].waitFor()!!.write(desktop.getChild("base.png"))
+    ImageCache[downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg/b.png")].waitFor()!!.write(desktop.getChild("comp.png"))
     Engine.requestShutdown()
 }

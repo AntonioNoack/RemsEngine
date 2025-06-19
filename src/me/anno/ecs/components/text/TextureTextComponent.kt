@@ -77,7 +77,7 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        val size = FontManager.getSize(key, false)
+        val size = FontManager.getSize(key).waitFor() ?: 0
         mesh.indices = Shapes.flat11.indices
         val pos = mesh.positions.resize(Shapes.flat11.positions.size)
         val baselineY = FontManager.getBaselineY(font)
@@ -105,8 +105,8 @@ class TextureTextComponent : TextComponentImpl, OnUpdate {
     }
 
     fun getTexture(): ITexture2D? {
-        val srcTexture = FontManager.getTexture(key, true) // keep it loaded
-        val texture = TextureCache[material.diffuseMap, true]?.createdOrNull()
+        val srcTexture = FontManager.getTexture(key).value // keep it loaded
+        val texture = TextureCache[material.diffuseMap].value?.createdOrNull()
         if (texture == null && srcTexture is Texture2D && srcTexture.isCreated()) {
             material.diffuseMap = srcTexture.ref
             material.clamping = Clamping.CLAMP

@@ -165,7 +165,7 @@ object BakedLightingShader : ECSMeshShader("BakedLighting") {
     val tex = pictures.getChild("4k.jpg")
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
-        val light = bakedIllumTex ?: TextureCache[tex, true] ?: whiteTexture
+        val light = bakedIllumTex ?: TextureCache[tex].value ?: whiteTexture
         light.bind(shader, "bakedIllumTex", Filtering.LINEAR, Clamping.CLAMP)
     }
 }
@@ -393,8 +393,8 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val materials = createList(mesh.numMaterials) {
         val src = Materials.getMaterial(component.materials, mesh.materials, it)
         SimpleMaterial(
-            ImageCache[src.diffuseMap, false] ?: whiteImage, Vector3f(src.diffuseBase),
-            ImageCache[src.emissiveMap, false] ?: whiteImage, src.emissiveBase,
+            ImageCache[src.diffuseMap].waitFor() ?: whiteImage, Vector3f(src.diffuseBase),
+            ImageCache[src.emissiveMap].waitFor() ?: whiteImage, src.emissiveBase,
             if (src.linearFiltering) Filtering.TRULY_LINEAR else Filtering.TRULY_NEAREST,
             src.clamping
         )

@@ -3,7 +3,6 @@ package me.anno.ecs.prefab
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.cache.FileCacheSection.overrideFileEntry
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
@@ -262,7 +261,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
             return
         }
         ECSRegistry.init()
-        SignatureCache.getAsync(file) { signature0 ->
+        SignatureCache[file].waitFor { signature0 ->
             when (val signature = signature0?.name) {
                 "rem" -> readBinRE(file, callback)
                 "xml-re" -> readXMLRE(file, callback)
@@ -343,10 +342,10 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
                 result
             }
             source.exists && !source.isDirectory -> {
-                val entry = getFileEntry(source, false, timeout, async, ::loadPrefabPair)
-                entry?.waitFor(async)
+                val entry = getFileEntry(source, false, timeout, ::loadPrefabPair)
+                entry.waitFor(async)
                 warnLoadFailedMaybe(source, entry)
-                return entry?.value
+                return entry.value
             }
             else -> null
         }
@@ -389,10 +388,10 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
                 callback.ok(result)
             }
             resource.exists && !resource.isDirectory -> {
-                getFileEntryAsync(
+                getFileEntry(
                     resource, false,
-                    timeout, true, ::loadPrefabPair
-                ) { entry, err ->
+                    timeout, ::loadPrefabPair
+                ).waitFor { entry, err ->
                     if (entry == null) LOGGER.warn("Could not load $resource as prefab")
                     callback.call(entry, err)
                 }

@@ -14,7 +14,7 @@ fun main() {
 
     val font = Font("Verdana", 20f)
     fun test(text: String) {
-        val texture = FontManager.getTexture(font, text, -1, -1, false)!!
+        val texture = FontManager.getTexture(font, text, -1, -1)!!
         println("'$text': $texture")
     }
 

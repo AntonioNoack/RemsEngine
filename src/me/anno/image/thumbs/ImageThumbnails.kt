@@ -9,6 +9,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapAsync
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.video.VideoCache
@@ -116,26 +117,22 @@ object ImageThumbnails {
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = max(min((time * fps).roundToIntOr(), meta.videoFrameCount - 1), 0)
 
-        VideoCache.getVideoFrameAsync(srcFile, scale, index, 1, fps, 1000L) { frame, err ->
-            if (frame != null) {
+        VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L)
+            .waitFor(callback.mapAsync { frame, cb2 ->
                 val texture = frame.toTexture()
                 if (Thumbs.useCacheFolder) {
                     val dst = texture.createImage(flipY = false, withAlpha = true)
-                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
-                } else callback.ok(texture)
-            } else callback.err(err)
-        }
+                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, cb2)
+                } else cb2.ok(texture)
+            })
     }
 
     @JvmStatic
     fun generateVideoFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
-        callback: Callback<ITexture2D>,
-        wantedTime: Double
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: Callback<ITexture2D>, wantedTime: Double
     ) {
-        MediaMetadata.getMetaAsync(srcFile) { meta, err ->
+        MediaMetadata.getMeta(srcFile).waitFor { meta, err ->
             if (meta != null) generateVideoFrame(srcFile, dstFile, size, callback, wantedTime, meta)
             else callback.err(err)
         }

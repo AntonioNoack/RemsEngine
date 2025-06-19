@@ -16,7 +16,7 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
     val fileReference = OS.pictures.getChild("4k.jpg")
-    val image = TextureCache[fileReference, false]!!
+    val image = TextureCache[fileReference].waitFor()!!
     LogManager.getLogger("Reduction").info(Reduction.reduce(image, Reduction.AVG).toHexColor())
     Engine.requestShutdown()
 }

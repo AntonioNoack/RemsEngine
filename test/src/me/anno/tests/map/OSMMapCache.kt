@@ -46,7 +46,7 @@ object OSMMapCache : CacheSection<OSMMapCache.OSMChunkKey, OSMap>("OSMMapData") 
                 "node(${bounds.minY},${bounds.minX},${bounds.maxY},${bounds.maxX});\n" +
                 "relation(${bounds.minY},${bounds.minX},${bounds.maxY},${bounds.maxX});\n" +
                 "out geom;"
-        return getEntry(key, 10_000, async) { key1, result ->
+        return getEntry(key, 10_000) { key1, result ->
             val path = listOf(key1.xi.toString(), key1.yi.toString(), key1.level.toString())
             val hash = query.hashCode().toLong().and(0xffffffff)
             hdb.get(path, hash) { bytes, _ ->

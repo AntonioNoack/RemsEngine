@@ -10,7 +10,7 @@ import me.anno.utils.OS.pictures
 fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
-    TextureCache[pictures.getChild("fav128.png"), false]!!
+    TextureCache[pictures.getChild("fav128.png")].waitFor()!!
         .write(desktop.getChild("fav128.png"))
     Engine.requestShutdown()
 }

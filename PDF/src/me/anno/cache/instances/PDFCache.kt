@@ -55,7 +55,7 @@ object PDFCache {
         src: FileReference, input: InputStream,
         borrow: Boolean, async: Boolean
     ): AtomicCountedDocument? {
-        val value = documents.getFileEntry(src, false, TIMEOUT_MILLIS, async) { key, result ->
+        val value = documents.getFileEntry(src, false, TIMEOUT_MILLIS) { key, result ->
             result.value = AtomicCountedDocument(
                 try {
                     PDDocument.load(input)
@@ -122,7 +122,7 @@ object PDFCache {
         val qualityFloat = qualityInt * 0.5f
         val tex = textures.getEntry(
             TexKey(src.getFileKey(), qualityInt, pageNumber),
-            20_000L, false
+            20_000L
         ) { key, result ->
             val image = getImage(doc, qualityFloat, pageNumber)
             addGPUTask("PDFCache.getTexture()", image.width, image.height) {
@@ -138,20 +138,20 @@ object PDFCache {
 
     @Suppress("unused")
     fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): Image? {
-        return images.getEntry(Key(doc, dpi, pageNumber), 10_000, false) { key, result ->
+        return images.getEntry(Key(doc, dpi, pageNumber), 10_000) { key, result ->
             result.value = getImage(key.doc, key.dpi, key.pageNumber)
         }.waitFor()
     }
 
     fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): Image? {
-        return images.getEntry(SizeKey(doc, size, pageNumber), 10_000, false) { key, result ->
+        return images.getEntry(SizeKey(doc, size, pageNumber), 10_000) { key, result ->
             result.value = getImageBySize(key.doc, key.size, key.pageNumber)
         }.waitFor()
     }
 
     @Suppress("unused")
     fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image? {
-        return images.getEntry(HeightKey(doc, height, pageNumber), 10_000, false) { key, result ->
+        return images.getEntry(HeightKey(doc, height, pageNumber), 10_000) { key, result ->
             result.value = getImageByHeight(key.doc, key.height, key.pageNumber)
         }.waitFor()
     }

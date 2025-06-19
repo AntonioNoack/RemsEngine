@@ -12,7 +12,7 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 
 fun main() {
     val source = documents.getChild("RemsStudio/Example Project/Scenes/Bad Apple.webm")
-    val meta = getMeta(source, false)!!
+    val meta = getMeta(source).waitFor()!!
     val w = 16
     val h = 16
     val c = 64

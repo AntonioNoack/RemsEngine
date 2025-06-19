@@ -16,7 +16,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.lua.utils.SafeFunction
 import me.anno.lua.utils.WhileTrueYield
 import me.anno.utils.OS
-import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -97,9 +96,9 @@ open class ScriptComponent : Component(), OnUpdate {
 
         @JvmStatic
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
-            return luaCache.getFileEntry(source, false, timeoutMillis, false) { key, result ->
+            return luaCache.getFileEntry(source, false, timeoutMillis) { key, result ->
                 val vm = defineVM()
-                key.file.readText(result.map { text ->
+                key.file.readText(result.mapNext { text ->
                     LOGGER.debug(text)
                     val code0 = vm.load(text)
                     val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
@@ -160,7 +159,7 @@ open class ScriptComponent : Component(), OnUpdate {
         @JvmStatic
         @Suppress("unchecked_cast")
         fun getRawScopeAndFunction(code: String): Pair<Globals, Any>? {
-            return functionCache.getDualEntry(code, null, timeoutMillis, false) { code1, _, result ->
+            return functionCache.getDualEntry(code, null, timeoutMillis) { code1, _, result ->
                 val vm = global.get()
                 try {
                     val fn = vm.load(code1)
@@ -192,7 +191,7 @@ open class ScriptComponent : Component(), OnUpdate {
         @Suppress("unchecked_cast")
         fun getFunction(code: String, key: Any?, init: (scope: LuaValue) -> Unit): Pair<Globals, LuaValue>? {
             if (code.isBlank2()) return null
-            return functionCache.getDualEntry(code, key, timeoutMillis, false) { code1, _, result ->
+            return functionCache.getDualEntry(code, key, timeoutMillis) { code1, _, result ->
                 val vm = global.get()
                 try {
                     val func = vm.load(code1)

@@ -36,6 +36,7 @@ import me.anno.utils.OS
 import me.anno.utils.OS.res
 import me.anno.utils.OSFeatures
 import me.anno.utils.assertions.assertNotEquals
+import me.anno.utils.async.Callback.Companion.waitFor
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
@@ -618,7 +619,7 @@ object WindowManagement {
     @JvmStatic
     fun setIcon(instance: OSWindow) {
         val src = res.getChild("icon.png")
-        val srcImage = ImageCache[src, false]
+        val srcImage = ImageCache[src].waitFor()
         if (srcImage != null) {
             setIcon(instance.pointer, srcImage)
         }

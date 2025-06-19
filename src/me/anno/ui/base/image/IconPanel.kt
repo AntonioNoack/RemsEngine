@@ -11,7 +11,7 @@ open class IconPanel(var source: FileReference, style: Style) : ImagePanel(style
     @Suppress("unused")
     constructor(style: Style) : this(InvalidRef, style)
 
-    override fun getTexture() = TextureCache[source, true]
+    override fun getTexture() = TextureCache[source].value
 
     override fun clone(): IconPanel {
         val clone = IconPanel(source, style)

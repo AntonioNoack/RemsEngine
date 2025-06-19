@@ -158,7 +158,7 @@ class ImageTests {
     fun testCreateTextureByRef() {
         HiddenOpenGLContext.createOpenGL()
         val image = createSampleImage(true)
-        val texture = TextureCache[image.ref, false]
+        val texture = TextureCache[image.ref].waitFor()
         val clonedImage = assertNotNull(texture).createImage(false, withAlpha = true).asIntImage()
         assertNotSame(clonedImage, image)
         assertContentEquals(clonedImage.data, image.data)

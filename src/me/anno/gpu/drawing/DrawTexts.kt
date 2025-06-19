@@ -1,5 +1,6 @@
 package me.anno.gpu.drawing
 
+import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
@@ -9,8 +10,8 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawCurves.putRGBA
 import me.anno.gpu.drawing.GFXx2D.posSize
@@ -311,7 +312,7 @@ object DrawTexts {
             fun getTexture(char: Int): ITexture2D? {
                 return if (char > 0xffff || !char.toChar().isWhitespace()) {
                     val txt = char.joinChars().toString()
-                    FontManager.getTexture(font, txt, -1, -1, false)
+                    FontManager.getTexture(font, txt, -1, -1).waitFor()
                 } else null
             }
 
@@ -373,7 +374,8 @@ object DrawTexts {
                     val o1 = offsets[index].toInt()
                     val fx = x + dxi + o0
                     val w = o1 - o0
-                    val texture = FontManager.getTexture(font, txt, -1, -1, false)
+                    val texture = FontManager.getTexture(font, txt, -1, -1)
+                        .waitFor()
                     if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                         val x2 = fx + (w - texture.width).shr(1)
@@ -435,10 +437,14 @@ object DrawTexts {
         equalSpaced: Boolean
     ): Int {
 
-        if (key.text.isEmpty())
+        if (key.text.isEmpty()) {
             return GFXx2D.getSize(0, font.sizeInt)
-        if (key.text.isBlank2())
-            return FontManager.getSize(key, false)
+        }
+
+        if (key.text.isBlank2()) {
+            return FontManager.getSize(key).waitFor()
+                ?: GFXx2D.getSize(0, font.sizeInt)
+        }
 
         GFX.check()
 
@@ -457,8 +463,8 @@ object DrawTexts {
 
             val txt = key.text.toString()
 
-            val texture = FontManager.getTexture(key, false)
-            if (texture != null) {
+            val texture = FontManager.getTexture(key).waitFor()
+            if (texture != null && texture.isCreated()) {
                 draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt, true)
             }
 
@@ -481,8 +487,8 @@ object DrawTexts {
             val fx = x + dxi + o0
             val w = o1 - o0
 
-            val texture = FontManager.getTexture(key, false)
-            if (texture != null) {
+            val texture = FontManager.getTexture(key).waitFor()
+            if (texture != null && texture.isCreated()) {
                 draw(shader, texture, fx + (w - texture.width).shr(1), y2, text, true)
             }
 
@@ -538,7 +544,8 @@ object DrawTexts {
         GFX.check()
 
         val async = !GFX.loadTexturesSync.peek()
-        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit, async)
+        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
+            .waitFor(async)
 
         val charByChar = (tex0 == null || !tex0.isCreated()) && text.length > 1
         return if (charByChar) {
@@ -560,7 +567,7 @@ object DrawTexts {
         alignY: AxisAlignment = AxisAlignment.MIN
     ): Boolean {
         if (text.isEmpty()) return false
-        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit, true)
+        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit).value
         return if (tex0 != null && tex0.isCreated()) {
             drawText(x, y, color, backgroundColor, tex0, alignX, alignY)
             false
@@ -623,7 +630,8 @@ object DrawTexts {
             )
         } else {
             val async = !GFX.loadTexturesSync.peek()
-            val texture = FontManager.getTexture(key, async)
+            val texture = FontManager.getTexture(key)
+                .waitFor(async)
             if (texture == null || !texture.isCreated()) { // char by char
                 return drawTextCharByChar(
                     x, y, font, key.text,
@@ -659,7 +667,7 @@ object DrawTexts {
             )
             return false
         } else {
-            val texture = FontManager.getTexture(key, true)
+            val texture = FontManager.getTexture(key).value
             return if (texture != null && texture.isCreated()) {
                 drawText(x, y, color, backgroundColor, texture, alignX, alignY)
                 false
@@ -687,7 +695,8 @@ object DrawTexts {
         }
 
         val async = !GFX.loadTexturesSync.peek()
-        val texture = FontManager.getTexture(key, async)
+        val texture = FontManager.getTexture(key)
+            .waitFor(async)
         if (texture == null || !texture.isCreated()) { // char by char
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,
@@ -698,11 +707,11 @@ object DrawTexts {
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
     }
 
-    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean): Int =
-        GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit, async))
+    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> =
+        getTextSize(font, text, widthLimit, heightLimit).mapNext { GFXx2D.getSizeX(it) }
 
-    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean): Int =
-        FontManager.getSize(font, text, widthLimit, heightLimit, async)
+    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> =
+        FontManager.getSize(font, text, widthLimit, heightLimit)
 
-    fun getTextSize(key: TextCacheKey, async: Boolean): Int = FontManager.getSize(key, async)
+    fun getTextSize(key: TextCacheKey): AsyncCacheData<Int> = FontManager.getSize(key)
 }

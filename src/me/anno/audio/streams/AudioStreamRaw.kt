@@ -116,7 +116,7 @@ class AudioStreamRaw(
                     val key = AudioSliceKey(file, sliceIndex)
                     val timeout = (sliceDuration * 2 * 1000).toLongOr()
                     val sliceTime = sliceIndex * sliceDuration
-                    val sequence = AudioCache.getEntry(key, timeout, false) { key, result ->
+                    val sequence = AudioCache.getEntry(key, timeout) { key, result ->
                         getAudioSequence!!(file, sliceTime, sliceDuration, sampleRate, result)
                     }.waitFor()
                     val soundBuffer = sequence!!

@@ -59,7 +59,7 @@ class PDFTests {
         OfficialExtensions.initForTests()
 
         val testFile = InnerTmpTextFile(samplePDF)
-        val px = ImageCache[testFile.getChild("256px.png"), false]!!
+        val px = ImageCache[testFile.getChild("256px.png")].waitFor()!!
         assertEquals(256, px.width)
         assertEquals(12 * 256 / 23, px.height) // 12 x 23 is the dimensions of the media box
         checkColors(px)

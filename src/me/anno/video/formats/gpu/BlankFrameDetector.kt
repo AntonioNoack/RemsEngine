@@ -123,7 +123,8 @@ class BlankFrameDetector {
             threshold: Float = 1f
         ): GPUFrame? {
             return getFrame(threshold) { delta ->
-                VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, async)
+                VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta)
+                    .waitFor(async)
             }
         }
 

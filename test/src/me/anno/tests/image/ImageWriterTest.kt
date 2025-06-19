@@ -17,10 +17,10 @@ class ImageWriterTest {
     fun testImageWriter() {
         OfficialExtensions.initForTests()
         val src = res.getChild("textures/Pacman.png")
-        val srcImage = ImageCache[src, false]!!
+        val srcImage = ImageCache[src].waitFor()!!
         val tmp = FileFileRef.createTempFile(src.nameWithoutExtension, src.lcExtension)
         srcImage.write(tmp)
-        val cloneImage = ImageCache[tmp, false]!!
+        val cloneImage = ImageCache[tmp].waitFor()!!
         assertEquals(srcImage.width, cloneImage.width)
         assertEquals(srcImage.height, cloneImage.height)
         srcImage.forEachPixel { x, y ->
@@ -44,7 +44,7 @@ class ImageWriterTest {
         )
         val tmp = FileFileRef.createTempFile("img", "hdr")
         srcImage.write(tmp)
-        val cloneImage = ImageCache[tmp, false] as FloatImage
+        val cloneImage = ImageCache[tmp].waitFor() as FloatImage
         assertEquals(srcImage.width, cloneImage.width)
         assertEquals(srcImage.height, cloneImage.height)
         srcImage.forEachPixel { x, y ->

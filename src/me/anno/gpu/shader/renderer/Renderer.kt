@@ -161,7 +161,7 @@ open class Renderer(val nameDesc: NameDesc, val deferredSettings: DeferredSettin
             private val uvCheckerSource = res.getChild("textures/UVChecker.png")
             override fun bind(shader: Shader) {
                 super.bind(shader)
-                val checkerTex = TextureCache[uvCheckerSource, true] ?: TextureLib.whiteTexture
+                val checkerTex = TextureCache[uvCheckerSource].value ?: TextureLib.whiteTexture
                 checkerTex.bind(shader, "checkerTex", Filtering.LINEAR, Clamping.REPEAT)
             }
         }

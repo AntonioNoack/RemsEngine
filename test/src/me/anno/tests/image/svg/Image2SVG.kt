@@ -48,7 +48,7 @@ val maxColorDiffSq = sq(10f / 255f)
 fun main() {
     OfficialExtensions.initForTests()
     val src = getReference("C:\\Users\\Antonio\\Documents\\IdeaProjects\\RemsEngine\\progress/rem-face-500.png")
-    val png = ImageCache[src, false]!!
+    val png = ImageCache[src].waitFor()!!
     val seg = segmentation(png.asIntImage())
     mapRandomly(seg.indices).write(desktop.getChild("segments.png"))
     val segmentBySize = seg.weights.withIndex()

@@ -131,7 +131,7 @@ fun indexMaybe(file: FileReference, depth: Int): Vector3i? {
         else -> {
             if (file.isDirectory) return null
             try {
-                when (SignatureCache[file, false]?.waitFor()?.importType) {
+                when (SignatureCache[file].waitFor()?.importType) {
                     CONTAINER -> {
                         if (depth > 0) indexDir(file, depth)
                         else Vector3i(0, 0, -1)
@@ -139,7 +139,7 @@ fun indexMaybe(file: FileReference, depth: Int): Vector3i? {
                     else -> {
                         if (file.length() > 100_000) return null
                         try {
-                            if (SignatureCache[file, false] == null) {
+                            if (SignatureCache[file].waitFor() == null) {
                                 val data = index(file)
                                 Vector3i(data.x, data.y, 1)
                             } else null

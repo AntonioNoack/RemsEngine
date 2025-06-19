@@ -39,13 +39,7 @@ object SignatureCache : CacheSection<FileKey, Signature>("Signatures") {
         }
     }
 
-    operator fun get(file: FileReference, async: Boolean): AsyncCacheData<Signature> {
-        return getFileEntry(file, false, timeoutMillis, async, generate)
-    }
-
-    fun getAsync(file: FileReference, callback: (Signature?) -> Unit) {
-        return getFileEntryAsync(file, false, timeoutMillis, true, generate) { sig, _ ->
-            callback(sig)
-        }
+    operator fun get(file: FileReference): AsyncCacheData<Signature> {
+        return getFileEntry(file, false, timeoutMillis, generate)
     }
 }

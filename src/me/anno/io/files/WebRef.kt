@@ -171,7 +171,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         }
 
         private fun getHeaders(url: URL, timeout: Long, async: Boolean): AsyncCacheData<WebCacheValue> {
-            return webCache.getEntry(url, timeout, async) { url, result ->
+            return webCache.getEntry(url, timeout) { url, result ->
                 var conn: URLConnection? = null
                 result.value = try {
                     conn = url.openConnection()

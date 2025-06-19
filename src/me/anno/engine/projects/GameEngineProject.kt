@@ -255,7 +255,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
 
     private fun indexResource(file: FileReference) {
         if (file.isDirectory) return
-        SignatureCache.getAsync(file) { signature ->
+        SignatureCache[file].waitFor { signature ->
             when (signature?.name) {
                 "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> {
                     addToAssetIndex(file, "Image") // cpu-side name

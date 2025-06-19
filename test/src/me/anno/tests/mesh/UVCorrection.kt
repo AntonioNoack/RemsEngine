@@ -67,7 +67,7 @@ object UVCorrection {
             val pos = mesh.positions
             val uvs = mesh.uvs
             val materials = mesh.materials.mapNotNull { MaterialCache[it] }
-            val textures = materials.mapNotNull { ImageCache[it.diffuseMap, false] }
+            val textures = materials.mapNotNull { ImageCache[it.diffuseMap].waitFor() }
             if (pos != null && uvs != null && textures.isNotEmpty()) {
                 val image = textures.maxByOrNull { it.width * it.height }!!
                 val w = image.width

@@ -29,9 +29,10 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         val font = gp.font
         val ex = group.extents.x
         val ey = group.extents.y
+        val size = FontManager.getSize(font, group.name, -1, -1).waitFor() ?: 0
         minW = max(
             // enough width for title
-            baseTextSizeI4 + GFXx2D.getSizeX(FontManager.getSize(font, group.name, -1, -1, false)),
+            baseTextSizeI4 + GFXx2D.getSizeX(size),
             gp.coordsToWindowDirX(ex).toInt()
         )
         minH = max(

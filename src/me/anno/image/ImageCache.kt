@@ -1,12 +1,11 @@
 package me.anno.image
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
-import me.anno.utils.async.Callback
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -99,8 +98,8 @@ object ImageCache : CacheSection<FileKey, Image>("Image") {
     }
 
     @JvmStatic
-    operator fun get(source: FileReference, async: Boolean): Image? {
-        return get(source, timeoutMillis, async)
+    operator fun get(source: FileReference): AsyncCacheData<Image> {
+        return get(source, timeoutMillis)
     }
 
     fun getImageWithoutGenerator(source: FileReference): Image? {
@@ -108,24 +107,13 @@ object ImageCache : CacheSection<FileKey, Image>("Image") {
         return getEntryWithoutGenerator(source.getFileKey(), 0)?.value
     }
 
-    operator fun get(source: FileReference, timeout: Long, async: Boolean): Image? {
-        if (source is ImageReadable && source.hasInstantCPUImage()) {
-            return source.readCPUImage()
-        }
-        val data = getFileEntry(source, false, timeout, async) { key, result ->
-            ImageAsFolder.readImage(key.file, false, result)
-        } ?: return null
-        if (!async) data.waitFor()
-        return data.value
-    }
-
-    fun getAsync(source: FileReference, timeout: Long, async: Boolean, callback: Callback<Image>) {
-        if (source is ImageReadable && source.hasInstantCPUImage()) {
-            callback.ok(source.readCPUImage())
+    operator fun get(source: FileReference, timeout: Long): AsyncCacheData<Image> {
+        return if (source is ImageReadable && source.hasInstantCPUImage()) {
+            AsyncCacheData(source.readCPUImage())
         } else {
-            getFileEntryAsync(source, false, timeout, async, { key, result ->
+            getFileEntry(source, false, timeout) { key, result ->
                 ImageAsFolder.readImage(key.file, false, result)
-            }, callback)
+            }
         }
     }
 }

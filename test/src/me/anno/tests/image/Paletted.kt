@@ -33,7 +33,8 @@ fun main() {
 
     val maxNumClusters = 15
     val useYUV = true
-    val image = ImageCache[desktop.getChild("seal.png"), false]!!.asIntImage()
+    val image = ImageCache[desktop.getChild("seal.png")]
+        .waitFor()!!.asIntImage()
 
     if (useYUV) {
         val data = image.data

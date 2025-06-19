@@ -2,7 +2,6 @@ package me.anno.ecs.prefab
 
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.cache.ICacheData
 import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
@@ -56,9 +55,9 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         }
         val instance = getPrefabSampleInstance(ref, maxPrefabDepth, async)
         val value = if (instance != null) {
-            getFileEntry(ref, allowDirectories, timeoutMillis, async) { key, result ->
+            getFileEntry(ref, allowDirectories, timeoutMillis) { key, result ->
                 result.value = castInstance(instance, key.file) // may be heavy -> must be cached
-            }?.waitFor(async)
+            }.waitFor(async)
         } else null
         if (value != null || !async) lru[fileKey] = value
         return value
@@ -78,14 +77,14 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
         ensureClasses()
         getPrefabInstanceAsync(ref, maxPrefabDepth) { instance, err0 ->
             if (instance != null) {
-                getFileEntryAsync(ref, allowDirectories, timeoutMillis, true, { key, result ->
+                getFileEntry(ref, allowDirectories, timeoutMillis, { key, result ->
                     result.value = castInstance(instance, key.file) // may be heavy -> must be cached
-                }, { value, err1 ->
+                }).waitFor { value, err1 ->
                     if (value != null) {
                         lru[ref.getFileKey()] = value
                         callback.ok(value)
                     } else callback.err(err1)
-                })
+                }
             } else callback.err(err0)
         }
     }

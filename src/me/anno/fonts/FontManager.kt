@@ -3,6 +3,7 @@ package me.anno.fonts
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.LRUCache
+import me.anno.cache.NullCacheData
 import me.anno.fonts.FontStats.getTextGenerator
 import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.keys.FontKey
@@ -44,7 +45,7 @@ object FontManager {
     ): Int {
         return if (widthLimit < 0 || widthLimit >= GFX.maxTextureSize || font.size < 1f) GFX.maxTextureSize
         else {
-            val size0 = getSize(font, text, GFX.maxTextureSize, heightLimit, false)
+            val size0 = getSize(font, text, GFX.maxTextureSize, heightLimit).waitFor() ?: 0
             val w = GFXx2D.getSizeX(size0)
             if (w <= widthLimit) return size0
             val step = max(1, font.size.toInt())
@@ -62,27 +63,25 @@ object FontManager {
     fun limitHeight(font: Font, text: CharSequence, widthLimit2: Int, heightLimit: Int): Int {
         return if (heightLimit < 0 || heightLimit >= GFX.maxTextureSize) GFX.maxTextureSize
         else {
-            val size0 = getSize(font, text, widthLimit2, GFX.maxTextureSize, false)
+            val size0 = getSize(font, text, widthLimit2, GFX.maxTextureSize)
+                .waitFor() ?: font.sizeInt
             val h = GFXx2D.getSizeY(size0)
             limitHeight(font, min(h, heightLimit))
         }
     }
 
-    fun getSize(key: TextCacheKey, async: Boolean): Int {
-        return textSizeCache.getEntry(key, 100_000, async) { keyI, result ->
+    fun getSize(key: TextCacheKey): AsyncCacheData<Int> {
+        return textSizeCache.getEntry(key, 100_000) { keyI, result ->
             val awtFont = getFont(keyI)
             val wl = if (keyI.widthLimit < 0) GFX.maxTextureSize else min(keyI.widthLimit, GFX.maxTextureSize)
             val hl = if (keyI.heightLimit < 0) GFX.maxTextureSize else min(keyI.heightLimit, GFX.maxTextureSize)
             result.value = awtFont.calculateSize(keyI.text, wl, hl)
-        }.waitFor() ?: -1
+        }
     }
 
-    fun getSize(
-        font: Font, text: CharSequence,
-        widthLimit: Int, heightLimit: Int, async: Boolean
-    ): Int {
-        if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
-        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false), async)
+    fun getSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> {
+        if (text.isEmpty()) return font.emptySize
+        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false))
     }
 
     fun getBaselineY(font: Font): Float {
@@ -116,22 +115,19 @@ object FontManager {
         return TextCacheKey(text, fontName, sub, wl2, hl2)
     }
 
-    fun getTexture(
-        font: Font, text: String,
-        widthLimit: Int, heightLimit: Int, async: Boolean
-    ): ITexture2D? {
-        return getTexture(font, text, widthLimit, heightLimit, textureTimeout, async)
+    fun getTexture(font: Font, text: String, widthLimit: Int, heightLimit: Int): AsyncCacheData<ITexture2D> {
+        return getTexture(font, text, widthLimit, heightLimit, textureTimeout)
     }
 
     fun getTexture(
         font: Font, text: String,
         widthLimit: Int, heightLimit: Int,
-        timeoutMillis: Long, async: Boolean
-    ): ITexture2D? {
+        timeoutMillis: Long
+    ): AsyncCacheData<ITexture2D> {
         val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
         val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
-        val key = getTextCacheKey(font, text, wl, hl) ?: return null
-        return getTexture(key, timeoutMillis, async)
+        val key = getTextCacheKey(font, text, wl, hl) ?: return NullCacheData.get()
+        return getTexture(key, timeoutMillis)
     }
 
     private val asciiTexLRU = LRUCache<Font, Texture2DArray>(16)
@@ -143,7 +139,7 @@ object FontManager {
                 return prev
             }
         }
-        val entry = textAtlasCache.getEntry(font, textureTimeout, false) { key, result ->
+        val entry = textAtlasCache.getEntry(font, textureTimeout) { key, result ->
             getFont(key).generateASCIITexture(false, result)
         } as AsyncCacheData<*>
         // todo it would be nice if we could prioritize loading our task
@@ -153,21 +149,21 @@ object FontManager {
         return curr
     }
 
-    fun getTexture(cacheKey: TextCacheKey, async: Boolean): ITexture2D? {
-        return getTexture(cacheKey, textureTimeout, async)
+    fun getTexture(cacheKey: TextCacheKey): AsyncCacheData<ITexture2D> {
+        return getTexture(cacheKey, textureTimeout)
     }
 
-    fun getTexture(cacheKey: TextCacheKey, timeoutMillis: Long, async: Boolean): ITexture2D? {
+    fun getTexture(cacheKey: TextCacheKey, timeoutMillis: Long): AsyncCacheData<ITexture2D> {
         // must be sync:
         // - textures need to be available
         // - Java/Windows is not thread-safe
-        if (cacheKey.text.isBlank2()) return null
-        return textTextureCache.getEntry(cacheKey, timeoutMillis, async) { key, result ->
+        if (cacheKey.text.isBlank2()) return NullCacheData.get()
+        return textTextureCache.getEntry(cacheKey, timeoutMillis) { key, result ->
             val font2 = getFont(key)
             val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
             val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
             font2.generateTexture(key.text, wl, hl, key.isGrayscale(), result)
-        }.waitFor(async)
+        }
     }
 
     fun getFont(key: TextCacheKey): TextGenerator =

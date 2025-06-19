@@ -134,7 +134,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
             startTime = Time.nanoTime - (startTime0 * 1e9).toLongOr()
             this as AudioComponent
             // todo wait for meta async
-            val meta = MediaMetadata.getMeta(source, false)
+            val meta = MediaMetadata.getMeta(source).waitFor()
             if (meta != null && meta.hasAudio) {
                 updateGlobalDistanceModel()
                 // todo loop is not working :/

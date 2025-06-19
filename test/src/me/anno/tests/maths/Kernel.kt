@@ -288,7 +288,7 @@ fun main() {
     }
     dstImage.write(dst.getChild("poissonTest.png"))
 
-    val src = ImageCache[pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg"), false]!!
+    val src = ImageCache[pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")].waitFor()!!
     Kernel(2, 1, doubleArrayOf(-1.0, 1.0)).mul(Kernel(src))
         .write(dst.getChild("dxTest.png"))
 

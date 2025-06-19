@@ -24,7 +24,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
     fun getTexture(skeleton: Skeleton): AnimTexture {
         return animTexCache.getFileEntry(
             skeleton.prefab!!.sourceFile, true,
-            timeoutMillis, false
+            timeoutMillis
         ) { skeletonFile, result ->
             result.value = AnimTexture(skeleton)
         }!!.waitFor()!!
@@ -46,7 +46,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
         val s1 = dstSkeleton.ref
         return mappedAnimCache.getDualEntry(
             s0.getFileKey(), s1.getFileKey(),
-            timeoutMillis, false
+            timeoutMillis
         ) { k1, k2, result ->
             val retargeting = Retargetings.getRetargeting(k1.file, k2.file)
             result.value = if (retargeting != null) {

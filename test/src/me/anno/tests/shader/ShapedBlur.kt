@@ -81,7 +81,7 @@ fun singleTest() {
     HiddenOpenGLContext.createOpenGL()
     val source = OS.pictures.getChild("blurTest.png")
     val (shader, stages) = decompress(tmp.inputStreamSync())
-    val src = TextureCache[source, false]!!
+    val src = TextureCache[source].waitFor()!!
     applyFilter(src, shader, stages, TargetType.Float16x3, 1f, gamma.toFloat())
         .write(OS.desktop.getChild("heart.png"))
 }

@@ -79,7 +79,7 @@ object ShowKeys {
         val rgbMask = 0xffffff
         val alphaMask = clamp(alpha * 255, 0f, 255f).toInt().shl(24) or rgbMask
         val color = textColor and alphaMask
-        val w0 = getSizeX(getTextSize(font, text, -1, -1, false))
+        val w0 = getSizeX(getTextSize(font, text, -1, -1).waitFor() ?: 0)
         drawRect(x0 + 5, hmy - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
 
         // text

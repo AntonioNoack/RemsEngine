@@ -3,24 +3,17 @@ package me.anno.image.svg
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import me.anno.utils.async.Callback
 import java.io.InputStream
 
 object SVGMeshCache : CacheSection<FileKey, SVGBuffer>("Meshes") {
 
-    fun getAsync(file: FileReference, timeout: Long, callback: Callback<SVGBuffer>) {
-        getFileEntryAsync(file, false, timeout, true, ::loadSVGMeshAsync, callback)
-    }
-
-    operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): SVGBuffer? {
-        val data = getFileEntry(file, false, timeout, asyncGenerator, ::loadSVGMeshAsync)
-        if (!asyncGenerator) data.waitFor()
-        return data.value
+    operator fun get(file: FileReference, timeout: Long): AsyncCacheData<SVGBuffer> {
+        val data = getFileEntry(file, false, timeout, ::loadSVGMeshAsync)
+        return data
     }
 
     private fun loadSVGMeshAsync(key: FileKey, result: AsyncCacheData<SVGBuffer>) {

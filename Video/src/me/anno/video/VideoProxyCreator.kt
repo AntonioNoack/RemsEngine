@@ -9,7 +9,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.VideoCache.framesPerSlice
 import me.anno.video.VideoCache.minSize
 import me.anno.video.VideoCache.scale
-import me.anno.video.VideoProxyCreator.getEntry
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
 
@@ -31,7 +30,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
 
     fun getProxyFile(src: FileReference, sliceIndex: Int, async: Boolean = true): FileReference? {
         init()
-        val cacheValue = getEntry(getKey(src, sliceIndex), 10_000, async, ::generateFile)
+        val cacheValue = getEntry(getKey(src, sliceIndex), 10_000, ::generateFile)
         if (!async && cacheValue != null) cacheValue.waitFor()
         return cacheValue?.value
     }
@@ -42,7 +41,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     override fun fillFileContents(key: Key, dst: FileReference, onSuccess: () -> Unit, onError: (Exception?) -> Unit) {
         init()
         val (src, _, sliceIndex) = key
-        val meta = MediaMetadata.getMeta(src, false)
+        val meta = MediaMetadata.getMeta(src).waitFor()
         if (meta == null) {
             LOGGER.warn("Meta is null")
             onError(null)

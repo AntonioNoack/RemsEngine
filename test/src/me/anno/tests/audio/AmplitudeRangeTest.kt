@@ -41,8 +41,8 @@ class AmplitudeRangeTest {
         createAudioInRange(file, -1f, 1f)
         val range = AudioFXCache.getRange(
             file, 4096, 0, numSamples(duration).toLong(), LoopingState.PLAY_ONCE,
-            "x", false
-        )!!
+            "x"
+        ).waitFor()!!.value
         assertEquals(SPLITS * 2, range.size)
         val threshold = 2 * (AudioReaderTest.scale / SPLITS).toInt()
         for (i in 0 until SPLITS) {

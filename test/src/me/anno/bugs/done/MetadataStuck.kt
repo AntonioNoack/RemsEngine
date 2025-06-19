@@ -12,6 +12,6 @@ fun main() {
     OfficialExtensions.initForTests()
     LogManager.logAll()
     val file = videos.getChild("2022-12-08 11-22-55.mkv")
-    println(getMeta(file, false))
+    println(getMeta(file).waitFor())
     Engine.requestShutdown()
 }

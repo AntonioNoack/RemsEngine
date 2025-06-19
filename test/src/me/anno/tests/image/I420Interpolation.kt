@@ -108,7 +108,7 @@ fun main() {
         }
     }
 
-    ImageCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false]!!
+    ImageCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp")].waitFor()!!
         .write(OS.desktop.getChild("anime.png"))
 
     Engine.requestShutdown()

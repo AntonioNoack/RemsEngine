@@ -40,7 +40,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        val icon0 = TextureCache[crossPath, 360_000L, true]
+        val icon0 = TextureCache[crossPath, 360_000L].value
         val icon = icon0 ?: whiteTexture
         val x2 = x + width - (crossSize + 2)
         val y2 = y + 2

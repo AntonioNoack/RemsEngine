@@ -77,7 +77,7 @@ object FileExplorerIcons {
                     "documents", "dokumente", "my documents", "meine dokumente" -> documentFolderPath
                     "images", "pictures", "bilder" -> imageFolderPath
                     "downloads" -> downloadsPath
-                    else -> if (HasChildrenCache.hasChildren(file, true) ?: true)
+                    else -> if (HasChildrenCache.hasChildren(file).value ?: true)
                         folderPath else emptyFolderPath
                 }
             }

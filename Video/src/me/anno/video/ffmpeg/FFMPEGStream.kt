@@ -130,7 +130,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             result: AsyncCacheData<SoundBuffer>
         ) {
             FFMPEGAudio(
-                input, MediaMetadata.getMeta(input, false)!!.audioChannels,
+                input, MediaMetadata.getMeta(input).waitFor()!!.audioChannels,
                 sampleRate, duration, result
             ).runAsync(
                 "$input/$startTime/$duration/$sampleRate", listOf(

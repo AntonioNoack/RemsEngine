@@ -4,14 +4,12 @@ import me.anno.audio.AudioReadable
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
 import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.SignatureCache
 import me.anno.utils.Sleep
-import me.anno.utils.async.Callback
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.shorten
@@ -67,7 +65,7 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
             }
         }
         // signature handlers
-        val signature1 = signature ?: SignatureCache[file, false].waitFor()?.name
+        val signature1 = signature ?: SignatureCache[file].waitFor()?.name
         for (shi in signatureHandlers.indices) {
             if (currReaderIndex++ < nextReaderIndex) continue
             val sh = signatureHandlers[shi]
@@ -170,30 +168,21 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         }
 
         @JvmStatic
-        fun getMeta(file: FileReference, async: Boolean): MediaMetadata? {
+        fun getMeta(file: FileReference): AsyncCacheData<MediaMetadata> {
             return metadataCache.getFileEntry(
                 file, false, timeoutMillis,
-                async, createMetadata
-            ).waitFor(async)
-        }
-
-        @JvmStatic
-        fun getMetaAsync(file: FileReference, callback: Callback<MediaMetadata>) {
-            metadataCache.getFileEntryAsync(
-                file, false, timeoutMillis,
-                true, createMetadata,
-                callback
+                createMetadata
             )
         }
 
         @JvmStatic
-        fun getMeta(file: FileReference, signature: String?, async: Boolean): MediaMetadata? {
-            return metadataCache.getFileEntry(file, false, timeoutMillis, async) { key, result ->
+        fun getMeta(file: FileReference, signature: String?): AsyncCacheData<MediaMetadata> {
+            return metadataCache.getFileEntry(file, false, timeoutMillis) { key, result ->
                 val meta = createMetadata(key.file, signature)
                 Sleep.waitUntil(true, { meta.isReady }) {
                     result.value = meta
                 }
-            }.waitFor(async)
+            }
         }
 
         init {

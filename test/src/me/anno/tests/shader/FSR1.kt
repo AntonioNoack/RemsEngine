@@ -19,7 +19,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     val src = pictures.getChild("Anime/90940211_p0_master1200.jpg")
-    val texture = TextureCache[src, 10000, false]!!
+    val texture = TextureCache[src, 10000].waitFor()!!
 
     val size = 3
 

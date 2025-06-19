@@ -319,7 +319,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         for ((file, data) in textures) {
             val (name, linear) = data
             typeValues[name] = TypeValueV2(GLSLType.S2D) {
-                val tex = TextureCache[file, true]
+                val tex = TextureCache[file].value
                 if (tex != null) filter(currentShader, name, tex, linear)
                 else TextureLib.missingTexture
             }
@@ -347,7 +347,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
 
     private fun getMovieTexture(node: MovieNode, name: String, linear: Boolean): ITexture2D {
         val file = node.file
-        val meta = MediaMetadata.getMeta(file, true)
+        val meta = MediaMetadata.getMeta(file).value
         return if (meta != null && meta.hasVideo) {
             getMovieTexture(node, name, linear, meta)
         } else TextureLib.blackTexture
@@ -371,13 +371,13 @@ abstract class GraphCompiler(val g: FlowGraph) {
         for (di in -2..2) {
             if (di != 0) VideoCache.getVideoFrame(
                 file, 1, (frameIndex + bufferLength * di) % frameCount,
-                bufferLength, fps, timeout, meta, true
+                bufferLength, fps, timeout, meta
             )
         }
         val tex = VideoCache.getVideoFrame(
             file, 1, frameIndex,
-            bufferLength, fps, timeout, meta, true
-        )
+            bufferLength, fps, timeout, meta
+        ).value
         // to do implement other types, too??
         return if (tex != null && tex.getShaderStage() == GPUFrame.swizzleStageMono) {
             val tex2 = tex.getTextures()[0]

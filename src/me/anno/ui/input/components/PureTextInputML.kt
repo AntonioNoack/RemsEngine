@@ -216,12 +216,18 @@ open class PureTextInputML(style: Style) :
             val panel1 = children[cursor1.y] as TextPanel
             val line1 = lines[cursor1.y]
             val cursor1Text = line1.joinChars(0, cursor1.x)
-            val cursorX1 = if (cursor1.x == 0) 0 else getTextSizeX(font, cursor1Text, -1, -1, false) - 1
+            val cursorX1 = if (cursor1.x == 0) 0 else {
+                val sx = getTextSizeX(font, cursor1Text, -1, -1).waitFor() ?: 0
+                sx - 1
+            }
             if (cursor1 != cursor2) {
                 val panel2 = children[cursor2.y] as TextPanel
                 val line2 = lines[cursor2.y]
                 val cursor2Text = line2.joinChars(0, cursor2.x)
-                val cursorX2 = if (cursor2.x == 0) 0 else getTextSizeX(font, cursor2Text, -1, -1, false) - 1
+                val cursorX2 = if (cursor2.x == 0) 0 else {
+                    val sx = getTextSizeX(font, cursor2Text, -1, -1).waitFor() ?: 0
+                    sx - 1
+                }
                 val minCursor = min(cursor1, cursor2)
                 val maxCursor = max(cursor1, cursor2)
                 val minPanel = children[minCursor.y] as TextPanel

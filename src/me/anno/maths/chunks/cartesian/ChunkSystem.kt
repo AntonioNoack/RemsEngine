@@ -25,7 +25,7 @@ abstract class ChunkSystem<Chunk : Any, Element>(
     val chunks = CacheSection<Vector3i, Chunk>("Chunks")
 
     fun getOrPut(key: Vector3i, put: (Vector3i) -> Chunk): Chunk {
-        return chunks.getEntry(key, timeoutMillis, false) { k, result ->
+        return chunks.getEntry(key, timeoutMillis) { k, result ->
             result.value = put(k)
         }.waitFor()!!
     }

@@ -232,14 +232,14 @@ object AssetThumbHelper {
     private fun hasLoadedAllTextures(textureSources: Collection<FileReference>): Boolean {
         // all images should be requested every time, so we can load them in parallel
         return textureSources.all { src ->
-            TextureCache.hasImageOrCrashed(src, TEXTURE_TIMEOUT, true)
+            TextureCache.hasImageOrCrashed(src, TEXTURE_TIMEOUT)
         }
     }
 
     private fun warnMissingTextures(textureSources: Collection<FileReference>) {
         val timeout = TEXTURE_TIMEOUT
         for (src in textureSources) {
-            if (!TextureCache.hasImageOrCrashed(src, timeout, true)) {
+            if (!TextureCache.hasImageOrCrashed(src, timeout)) {
                 LOGGER.warn("Missing texture $src")
             }
         }

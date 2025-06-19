@@ -42,13 +42,13 @@ fun main() {
     }
 
     val clock = Clock("FFTTest")
-    val src = ImageCache[desktop.getChild("Moire.jpg"), false]!!
+    val src = ImageCache[desktop.getChild("Moire.jpg")].waitFor()!!
     clock.stop("Load Image")
 
     val w = nextPowerOfTwo(src.width)
     val h = nextPowerOfTwo(src.height)
 
-    val mask = ImageCache[desktop.getChild("MoireMask.png"), false]!!
+    val mask = ImageCache[desktop.getChild("MoireMask.png")].waitFor()!!
         .resized(w, h, true)
     clock.stop("Load Mask")
 

@@ -82,7 +82,7 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
         val hasText = shownText.isNotBlank2()
 
         // draw background
-        val bgImage = TextureCache[VisualNovelState.background, true]
+        val bgImage = TextureCache[VisualNovelState.background].value
         if (bgImage != null) {
             // to do can/should we blur the background a little?
             // to do maybe foreground, too, based on cursor?
@@ -93,8 +93,8 @@ class NovelGamePanel(val stateMachine: StateMachine) : PanelList(DefaultConfig.s
 
         val charWidth = (0.38f * max(width, height)).toInt()
 
-        val right = TextureCache[secondary, true]
-        val left = TextureCache[primary, true]
+        val right = TextureCache[secondary].value
+        val left = TextureCache[primary].value
         when {
             left != null && right != null -> {
                 drawChar(right, 75, hasText, charWidth)

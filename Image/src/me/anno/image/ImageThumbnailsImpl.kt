@@ -86,7 +86,7 @@ object ImageThumbnailsImpl {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout, callback.mapAsync { buffer, cb1 ->
+        SVGMeshCache[srcFile, TextureReader.imageTimeout].waitFor(callback.mapAsync { buffer, cb1 ->
             val bounds = buffer.bounds
             val maxSize = max(bounds.maxX, bounds.maxY)
             val w = (size * bounds.maxX / maxSize).roundToIntOr()

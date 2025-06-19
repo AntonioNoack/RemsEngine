@@ -24,7 +24,7 @@ fun main() {
 fun createHeightMesh() {
 
     val file = getReference("C:/XAMPP/htdocs/DigitalCampus/images/map/h750.png")
-    val image = ImageCache[file, false]!!
+    val image = ImageCache[file].waitFor()!!
 
     val w = image.width
     val h = image.height

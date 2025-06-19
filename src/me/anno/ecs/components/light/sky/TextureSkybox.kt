@@ -35,7 +35,7 @@ abstract class TextureSkybox : SkyboxBase() {
             applyInverseTonemapping
         }
         material.shaderOverrides["skyTexture"] = TypeValueV2(GLSLType.S2D) {
-            val texture = TextureCache[imageFile, true] ?: TextureLib.whiteTexture
+            val texture = TextureCache[imageFile].value ?: TextureLib.whiteTexture
             val shader = shader?.value
             if (shader != null) {
                 // ensure proper filtering

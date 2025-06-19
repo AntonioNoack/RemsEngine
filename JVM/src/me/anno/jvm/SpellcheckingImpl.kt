@@ -39,7 +39,7 @@ object SpellcheckingImpl {
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
-        val value = Spellchecking.getDualEntry(sentence2, language, timeout, async) { seq, lang, answer ->
+        val value = Spellchecking.getDualEntry(sentence2, language, timeout) { seq, lang, answer ->
             getValue(seq, lang) { rawSuggestions ->
                 answer.value = rawSuggestions
             }

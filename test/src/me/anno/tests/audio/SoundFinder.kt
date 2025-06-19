@@ -17,7 +17,7 @@ fun main() {
     val sourceFile = downloads.getChild("gtav_mirrorworld.m4a")
     val findStart = 16 * 60 + 53.0
     val findEnd = 16 * 60 + 56.0
-    val meta = getMeta(sourceFile, false)!!
+    val meta = getMeta(sourceFile).waitFor()!!
 
     val sampleRate = 16000
 

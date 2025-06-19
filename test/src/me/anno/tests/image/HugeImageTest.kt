@@ -14,7 +14,7 @@ fun main() {
     val source = downloads.getChild("Abbeanum_new.glb/textures/0.jpg")
     HiddenOpenGLContext.createOpenGL()
     thread {
-        println(TextureCache[source, false]!!)
+        println(TextureCache[source].waitFor()!!)
         Engine.requestShutdown()
     }
     workGPUTasksUntilShutdown()

@@ -26,7 +26,7 @@ import kotlin.math.min
 open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boolean, style: Style) :
     ImagePanelBase(style) {
 
-    val meta = MediaMetadata.getMeta(source, false)!!
+    val meta = MediaMetadata.getMeta(source).waitFor()!!
 
     var looping: LoopingState
         get() = stream.looping
@@ -71,7 +71,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
 
     private fun reload() {
         stream.destroy()
-        val meta = MediaMetadata.getMeta(source, false)!!
+        val meta = MediaMetadata.getMeta(source).waitFor()!!
         stream = VideoStream(source, meta, playAudio, looping, meta.videoFPS, max(width, height))
     }
 
@@ -120,7 +120,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         fun createSimpleVideoPlayer(source: FileReference, style: Style): Panel {
             val list = PanelListY(style)
             val controls = PanelListX(style)
-            val meta = MediaMetadata.getMeta(source, false)!!
+            val meta = MediaMetadata.getMeta(source).waitFor()!!
             val movie = object : VideoPanel(source, meta, true, style) {
 
                 override fun onKeyTyped(x: Float, y: Float, key: Key) {

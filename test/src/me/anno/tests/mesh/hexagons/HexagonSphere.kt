@@ -42,8 +42,8 @@ import kotlin.math.sqrt
 
 fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
 
-    val texture = ImageCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
-    val height = ImageCache[downloads.getChild("earth-height.png"), false]!!
+    val texture = ImageCache[getReference("E:/Pictures/earth_flat_map.jpg")].waitFor()!!
+    val height = ImageCache[downloads.getChild("earth-height.png")].waitFor()!!
     val h0 = height.getRGB(0).r01() * 1.5f
 
     val dx1 = texture.width * 0.5f
@@ -72,7 +72,6 @@ fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
             ).r01() - h0, 0f
         ) * 0.03f
     }
-
 }
 
 fun createNiceMesh0(
@@ -344,11 +343,12 @@ fun main() {
         val main = SceneView(PlayMode.EDITING, style)
         main.weight = 1f
         val controls = PanelListY(style)
-        controls.add(IntInput(NameDesc("n"), "", n, NumberType.LONG_PLUS, style)
-            .setChangeListener {
-                n = it.toInt()
-                validate()
-            })
+        controls.add(
+            IntInput(NameDesc("n"), "", n, NumberType.LONG_PLUS, style)
+                .setChangeListener {
+                    n = it.toInt()
+                    validate()
+                })
         listOf(main, controls)
     }
 }

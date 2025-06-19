@@ -24,7 +24,7 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
         scale: Double,
         transform: Matrix4x3?
     ) {
-        val mesh = getEntry(text, 10000, true) { text, result ->
+        val mesh = getEntry(text, 10000) { text, result ->
             result.value = TextMeshGroup(font, text, 0f, false).getOrCreateMesh()
         }.value
         if (mesh != null) {

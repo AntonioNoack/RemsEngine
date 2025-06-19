@@ -176,7 +176,7 @@ fun main() {
     // spawn a few pixels and agents
     // todo spawn an agent with an actual image,
     //  and then use some key to reposition it (drag?), and let's see how it moves :3
-    val chopperImage = ImageCache[res.getChild("textures/Chopper.png"), false]!!
+    val chopperImage = ImageCache[res.getChild("textures/Chopper.png")].waitFor()!!
     val chopper = Cannon(chopperImage, world.fluidTypes.creeper.data)
     chopper.position.set(10, 10)
     world.agents.add(chopper)
@@ -184,7 +184,7 @@ fun main() {
     val samplePixel = AgentPixel(IntArray(world.size) { it }, 0x00ff00.withAlpha(255), chopper)
     world.add(samplePixel)
 
-    val multiplierImage = ImageCache[res.getChild("textures/Multiplier.png"), false]!!
+    val multiplierImage = ImageCache[res.getChild("textures/Multiplier.png")].waitFor()!!
     val multiplier = Multiplier(
         multiplierImage, 2f, 2,
         listOf(world.fluidTypes.creeper.data, world.fluidTypes.antiCreeper.data)

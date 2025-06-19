@@ -3,6 +3,7 @@ package me.anno.tests.audio
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.AudioFXCache
+import me.anno.cache.AsyncCacheData
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -45,7 +46,7 @@ class AudioReaderTest {
         createWavFile(file, duration)
 
         // play
-        val (left, right) = loadWavFile(file, duration)
+        val (left, right) = loadWavFile(file, duration).waitFor()!!
         val numSamples = numSamples(duration)
         assertEquals(numSamples, left.size)
         assertEquals(numSamples, right.size)
@@ -55,8 +56,8 @@ class AudioReaderTest {
         }
     }
 
-    fun loadWavFile(src: FileReference, duration: Double): Pair<ShortArray, ShortArray> {
-        return AudioFXCache.getBuffer(src, 0.0, duration, numSamples(duration), LoopingState.PLAY_ONCE, false)!!
+    fun loadWavFile(src: FileReference, duration: Double): AsyncCacheData<Pair<ShortArray, ShortArray>> {
+        return AudioFXCache.getBuffer(src, 0.0, duration, numSamples(duration), LoopingState.PLAY_ONCE)
     }
 
     fun createWavFile(dst: FileReference, duration: Double) {

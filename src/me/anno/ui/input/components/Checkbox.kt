@@ -26,7 +26,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     }
 
     open fun getImage(isChecked: Boolean): ITexture2D? =
-        TextureCache[if (isChecked) checked else unchecked, true]
+        TextureCache[if (isChecked) checked else unchecked].value
 
     open fun getColor(): Int {
         return white.withAlpha((if (isInputAllowed) if (isHovered) 200 else 255 else 127))

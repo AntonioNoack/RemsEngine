@@ -20,7 +20,7 @@ fun convertAllPNGToJPG() {
     for (child in src.listChildren()) {
         if (child.lcExtension == "png") {
             val jpgPath = dst.getChild(child.nameWithoutExtension + ".jpg")
-            ImageCache[child, 0L, false]!!
+            ImageCache[child, 0L].waitFor()!!
                 .write(jpgPath)
             jpgPath.renameTo(dst.getChild(child.name)) // rename to PNG, so I can still use the mesh files
             ImageCache.removeFileEntry(child) // free memory
@@ -37,7 +37,7 @@ fun scaleDownImages() {
     dst.tryMkdirs()
     for (child in src.listChildren()) {
         if (child.isDirectory) continue
-        val image = ImageCache[child, false] ?: continue
+        val image = ImageCache[child].waitFor() ?: continue
         image
             .resized(image.width / 3, image.height / 3, false)
             .write(dst.getChild(child.name))

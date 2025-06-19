@@ -12,7 +12,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val largeImage = createUVCheckerImage().scaleUp(6, 6) // 700x6 ~ 4200
     testTexture("MipmapGen", false) {
-        val texture = TextureCache[largeImage.ref, false] as Texture2D
+        val texture = TextureCache[largeImage.ref].waitFor() as Texture2D
         // lies to force regeneration to test its performance
         texture.hasMipmap = false
         texture.filtering = Filtering.TRULY_NEAREST

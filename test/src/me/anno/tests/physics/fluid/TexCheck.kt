@@ -5,5 +5,5 @@ import me.anno.utils.OS
 
 fun main() {
     val source = OS.pictures.getChild("atlas.webp")
-    println(ImageCache[source, false])
+    println(ImageCache[source].waitFor())
 }

@@ -23,7 +23,7 @@ fun main() {
 
 fun convert(src: FileReference, dst: FileReference) {
 
-    val image = ImageCache[src, false]!!
+    val image = ImageCache[src].waitFor()!!
     fun get(x: Int, y: Int): Int {
         val xi = (x + image.width) % image.width
         val yi = (y + image.height) % image.height

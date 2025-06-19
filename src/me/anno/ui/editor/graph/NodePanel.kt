@@ -19,8 +19,8 @@ import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.language.translation.NameDesc
 import me.anno.language.translation.DefaultNames
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -83,7 +83,8 @@ class NodePanel(
         val font = gp.font
 
         // enough width for title
-        minW = baseTextSizeI4 + GFXx2D.getSizeX(FontManager.getSize(font, node.name, -1, -1, false))
+        val titleLength = DrawTexts.getTextSizeX(font, node.name, -1, -1).value ?: 0
+        minW = baseTextSizeI4 + titleLength
         // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
@@ -99,23 +100,24 @@ class NodePanel(
                     inputFields[con] = newField
                 } else inputFields.remove(con)
             }
-            val newFieldW = GFXx2D.getSizeX(FontManager.getSize(font, con.name, -1, -1, false)) + baseTextSizeI4
+            val size1 = DrawTexts.getTextSizeX(font, con.name, -1, -1).value ?: 0
+            val newFieldW = size1 + baseTextSizeI4
             minW = if (newField != null) {
                 newField.calculateSize(w, minH)
                 val extra = if (i < outputs.size) {
-                    GFXx2D.getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+                    DrawTexts.getTextSizeX(font, outputs[i].name, -1, -1).value ?: 0
                 } else 0
                 max(minW, newFieldW + newField.minW + extra)
             } else {
                 val extra = if (i < outputs.size) {
-                    GFXx2D.getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+                    DrawTexts.getTextSizeX(font, outputs[i].name, -1, -1).value ?: 0
                 } else 0
                 max(minW, newFieldW + extra)
             }
         }
 
         for (i in inputs.size until outputs.size) {
-            val extra = GFXx2D.getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+            val extra = DrawTexts.getTextSizeX(font, outputs[i].name, -1, -1).value ?: 0
             minW = max(minW, baseTextSizeI4 + extra)
         }
 

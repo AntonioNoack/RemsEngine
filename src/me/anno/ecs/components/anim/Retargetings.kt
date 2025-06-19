@@ -203,7 +203,7 @@ object Retargetings {
         if (srcSkeleton == dstSkeleton) return null
         return cache.getDualEntry(
             srcSkeleton.getFileKey(), dstSkeleton.getFileKey(),
-            timeoutMillis, false
+            timeoutMillis
         ) { key1, key2, result ->
             val prefab = getOrCreatePrefab(key1.file, key2.file)
             result.value = prefab?.getSampleInstance() as? Retargeting

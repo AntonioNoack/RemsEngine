@@ -24,7 +24,7 @@ fun main() {
 
         // load texture atlas asynchronously as long as texture atlases don't have a path
         Sleep.waitUntilDefined(true, {
-            ImageCache[atlasSource, true]
+            ImageCache[atlasSource].value
         }, { atlasImage ->
             minesweeper.atlasImages = atlasImage.split(4, 4).map { it.ref }
             minesweeper.startGame()

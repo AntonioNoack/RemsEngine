@@ -7,8 +7,10 @@ import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.streams.AudioFileStream
 import me.anno.audio.streams.AudioStreamRaw
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.cache.NullCacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileKey
@@ -76,12 +78,10 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
         }
     }
 
-    fun getBuffer(
-        pipelineKey: PipelineKey,
-        async: Boolean
-    ): Pair<ShortArray, ShortArray>? {
-        val buffer = getBuffer1(pipelineKey, async) ?: return null
-        return Pair(buffer.timeLeft, buffer.timeRight)
+    fun getBuffer(pipelineKey: PipelineKey): AsyncCacheData<Pair<ShortArray, ShortArray>> {
+        return getBuffer1(pipelineKey).mapNext { buffer ->
+            Pair(buffer.timeLeft, buffer.timeRight)
+        }
     }
 
     // limit the calls to this function, at max 32 simultaneously
@@ -89,54 +89,44 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     // I don't know where these problems came from... in Release 1.1.2, they were fine
     private val rawDataLimiter = Semaphore(32)
 
-    fun getRawData(meta: MediaMetadata, key: PipelineKey): AudioData {
+    fun getRawData(meta: MediaMetadata, key: PipelineKey): AsyncCacheData<AudioData> {
         assertNotEquals(0, meta.audioSampleRate, "Cannot load audio without sample rate")
         // we cannot simply return null from this function, so getEntryLimited isn't an option
-        acquire(true, rawDataLimiter)
-        val entry = getEntry(key, timeoutMillis, false) { it, result ->
-            val stream = AudioStreamRaw(it.file.file, it.repeat, meta, it.time0, it.time1)
-            val pair = stream.getBuffer(it.bufferSize, it.time0, it.time1)
-            result.value = AudioData(it, pair.first, pair.second)
-        }.waitFor()!!
-        rawDataLimiter.release()
-        return entry
+        val result = AsyncCacheData<AudioData>()
+        acquire(true, rawDataLimiter) {
+            getEntry(key, timeoutMillis) { it, result ->
+                val stream = AudioStreamRaw(it.file.file, it.repeat, meta, it.time0, it.time1)
+                val pair = stream.getBuffer(it.bufferSize, it.time0, it.time1)
+                result.value = AudioData(it, pair.first, pair.second)
+            }.waitFor { value ->
+                rawDataLimiter.release()
+                result.value = value
+            }
+        }
+        return result
     }
 
-    fun getBuffer0(
-        meta: MediaMetadata,
-        pipelineKey: PipelineKey,
-        async: Boolean
-    ): AudioData? {
-        return audioDataCache.getEntry(pipelineKey, timeoutMillis, async) { key, result ->
-            result.value = getRawData(meta, key)
-        }.waitFor(async)
+    fun getBuffer0(meta: MediaMetadata, pipelineKey: PipelineKey): AsyncCacheData<AudioData> {
+        return audioDataCache.getEntry(pipelineKey, timeoutMillis) { key, result ->
+            getRawData(meta, key).waitFor(result)
+        }
     }
 
-    fun getBuffer1(
-        pipelineKey: PipelineKey,
-        async: Boolean
-    ): AudioData? {
-        val meta = getMeta(pipelineKey.file.file, async) ?: return null
-        return getBuffer0(meta, pipelineKey, async)
+    fun getBuffer1(pipelineKey: PipelineKey): AsyncCacheData<AudioData> {
+        return getMeta(pipelineKey.file.file).map2 { meta ->
+            getBuffer0(meta, pipelineKey)
+        }
     }
 
     fun getBuffer(
-        file: FileReference,
-        time0: Double,
-        time1: Double,
-        bufferSize: Int,
-        repeat: LoopingState,
-        async: Boolean
-    ) = getBuffer(getKey(file, time0, time1, bufferSize, repeat), async)
+        file: FileReference, time0: Double, time1: Double,
+        bufferSize: Int, repeat: LoopingState
+    ) = getBuffer(getKey(file, time0, time1, bufferSize, repeat))
 
-    fun getBuffer(
-        index: Long,
-        stream: AudioFileStream,
-        async: Boolean
-    ): Pair<ShortArray, ShortArray>? {
+    fun getBuffer(index: Long, stream: AudioFileStream): AsyncCacheData<Pair<ShortArray, ShortArray>> {
         val t0 = stream.frameIndexToTime(index)
         val t1 = stream.frameIndexToTime(index + 1)
-        return getBuffer(stream.file, t0, t1, bufferSize, stream.repeat, async)
+        return getBuffer(stream.file, t0, t1, bufferSize, stream.repeat)
     }
 
     private fun getTime(index: Long): Double {
@@ -159,7 +149,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
         }
     }
 
-    class ShortData(val value: ShortArray): ICacheData {
+    class ShortData(val value: ShortArray) : ICacheData {
         override fun destroy() {
             SAPool.returnBuffer(value)
         }
@@ -170,19 +160,14 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
      * result: (left.min,right.min,left.max,right.max)^(numSamples/256)
      * */
     fun getRange(
-        file: FileReference,
-        bufferSize: Int,
-        t0: Double,
-        t1: Double,
-        repeat: LoopingState,
-        identifier: String,
-        async: Boolean = true
-    ): ShortArray? {
+        file: FileReference, bufferSize: Int, t0: Double, t1: Double,
+        repeat: LoopingState, identifier: String
+    ): AsyncCacheData<ShortData> {
         val index0 = (t0 * playbackSampleRate).roundToLongOr()// and (bufferSize-1).inv().toLong()
         var index1 = (t1 * playbackSampleRate).roundToLongOr()
         index1 = max(index1, index0 + SPLITS)
         // what if dt is too large, because we are viewing it from a distance -> approximate
-        return getRange(file, bufferSize, index0, index1, repeat, identifier, async)
+        return getRange(file, bufferSize, index0, index1, repeat, identifier)
     }
 
     /**
@@ -190,21 +175,14 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
      * result: (left.min,right.min,left.max,right.max)^(numSamples/256)
      * */
     fun getRange(
-        file: FileReference,
-        bufferSize: Int,
-        index0: Long,
-        index1: Long,
-        repeat: LoopingState,
-        identifier: String,
-        async: Boolean = true
-    ): ShortArray? {
-        if (!bufferSize.isPowerOf2()) return null
-        val queue = if (async) rangingProcessing2 else null
-        val entry = rangeCache.getEntryLimited(
+        file: FileReference, bufferSize: Int, index0: Long, index1: Long,
+        repeat: LoopingState, identifier: String
+    ): AsyncCacheData<ShortData> {
+        if (!bufferSize.isPowerOf2()) return NullCacheData.get()
+        val queue = rangingProcessing2
+        return rangeCache.getEntryLimitedWithRetry(
             RangeKey(index0, index1, identifier),
-            10000,
-            queue,
-            rangeRequestLimit
+            10000, queue, rangeRequestLimit
         ) { key, result ->
             rangingProcessing += {
                 val splits = SPLITS
@@ -217,8 +195,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
                 }
                 result.value = ShortData(values)
             }
-        }?.waitFor(async) ?: return null
-        return entry.value
+        }
     }
 
     private fun fillRange(
@@ -247,7 +224,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
                 if (i == index0 || lastBufferIndex != bufferIndex) {
                     val time0 = getTime(bufferIndex)
                     val time1 = getTime(bufferIndex + 1)
-                    buffer = getBuffer(file, time0, time1, bufferSize, repeat, false)!!
+                    buffer = getBuffer(file, time0, time1, bufferSize, repeat).waitFor()!!
                     lastBufferIndex = bufferIndex
                 }
 

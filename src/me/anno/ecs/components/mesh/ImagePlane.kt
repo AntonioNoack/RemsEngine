@@ -52,7 +52,7 @@ class ImagePlane() : ProceduralMesh(), OnUpdate {
     override fun generateMesh(mesh: Mesh) {
         var sx = 1f
         var sy = 1f
-        val meta = getMeta(source, async)
+        val meta = getMeta(source).waitFor()
         if (meta != null && meta.videoWidth > 0 && meta.videoHeight > 0) {
             val max = max(meta.videoWidth, meta.videoHeight).toFloat()
             sx = meta.videoWidth / max

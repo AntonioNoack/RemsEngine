@@ -35,7 +35,7 @@ fun testVideo(image: FileReference) {
     val tmp1 = desktop.getChild("x/tmp1.mp4")
     var loadSum = 0L
     var storeSum = 0L
-    val meta = getMeta(image, false)!!
+    val meta = getMeta(image).waitFor()!!
     val w = meta.videoWidth
     val h = meta.videoHeight
     val dst1 = Framebuffer("dst", w, h, TargetType.UInt8x4, DepthBufferType.NONE)
@@ -44,8 +44,8 @@ fun testVideo(image: FileReference) {
         TextureCache.clear()
         val t0 = Time.nanoTime
         VideoCache.clear()
-        val gpu = VideoCache.getVideoFrame(src, 1, 0, 0, 1, 1.0, 50_000L, false, needsToBeCreated = true)
-            ?: throw NullPointerException("Missing $src")
+        val gpu = VideoCache.getVideoFrame(src, 1, 0, 0, 1, 1.0, 50_000L,  needsToBeCreated = true)
+            .waitFor() ?: throw NullPointerException("Missing $src")
         if (gpu.width != w || gpu.height != h) throw IllegalStateException()
         useFrame(dst1) {
             dst1.clearColor(0)
@@ -61,12 +61,12 @@ fun testVideo(image: FileReference) {
         storeSum += t2 - t0
     }
     process(image, tmp0)
-    // ImageCPUCache[tmp0, false]!!.write(tmp0.getSibling("tmp0.png"))
+    // ImageCPUCache[tmp0].waitFor()!!.write(tmp0.getSibling("tmp0.png"))
     for (i in 0 until 50) {
         process(tmp0, tmp1)
         process(tmp1, tmp0)
     }
-    // ImageCPUCache[tmp0, false]!!.write(tmp0.getSibling("tmp2.png"))
+    // ImageCPUCache[tmp0].waitFor()!!.write(tmp0.getSibling("tmp2.png"))
     println(loadSum)
     println(storeSum)
     Engine.requestShutdown()
@@ -81,7 +81,7 @@ fun testImage(image: FileReference) {
     fun process(src: FileReference, dst: FileReference) {
         TextureCache.clear()
         val t0 = Time.nanoTime
-        val gpu = TextureCache[src, false]!!
+        val gpu = TextureCache[src].waitFor()!!
         val t1 = Time.nanoTime
         gpu.write(dst)
         val t2 = Time.nanoTime

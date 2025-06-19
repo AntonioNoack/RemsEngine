@@ -32,7 +32,7 @@ class TgaImageReaderTest {
     @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
-        val meta = getMeta(res.getChild("files/gimp-3x3.tga"), false)!!
+        val meta = getMeta(res.getChild("files/gimp-3x3.tga")).waitFor()!!
         assertEquals(3, meta.videoWidth)
         assertEquals(2, meta.videoHeight)
         assertEquals(1, meta.videoFrameCount)
@@ -42,7 +42,7 @@ class TgaImageReaderTest {
     @FlakyTest
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize2() {
-        val meta = getMeta(res.getChild("files/gimp-3x3-fy.tga"), false)!!
+        val meta = getMeta(res.getChild("files/gimp-3x3-fy.tga")).waitFor()!!
         assertEquals(3, meta.videoWidth)
         assertEquals(2, meta.videoHeight)
         assertEquals(1, meta.videoFrameCount)
@@ -51,7 +51,7 @@ class TgaImageReaderTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
-        val image = ImageCache[res.getChild("files/gimp-3x3.tga"), false]!!
+        val image = ImageCache[res.getChild("files/gimp-3x3.tga")].waitFor()!!
         baseline.forEachPixel { x, y ->
             assertEquals(baseline.getRGB(x, y), image.getRGB(x, y), "Mismatch at ($x $y)")
         }
@@ -60,7 +60,7 @@ class TgaImageReaderTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent2() {
-        val image = ImageCache[res.getChild("files/gimp-3x3-fy.tga"), false]!!
+        val image = ImageCache[res.getChild("files/gimp-3x3-fy.tga")].waitFor()!!
         baseline.forEachPixel { x, y ->
             assertEquals(baseline.getRGB(x, y), image.getRGB(x, y), "Mismatch at ($x $y)")
         }

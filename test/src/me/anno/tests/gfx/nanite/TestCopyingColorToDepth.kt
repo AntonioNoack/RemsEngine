@@ -23,7 +23,7 @@ fun testCopyColorToDepth() {
     val depthDst = Framebuffer("dd", w, h, 1, emptyList(), DepthBufferType.TEXTURE)
     val colorDst = Framebuffer("cd", w, h, TargetType.UInt8x4, DepthBufferType.NONE)
     testDrawing("Copy Depth") {
-        val depthSrc = TextureCache[res.getChild("icon.png"), false]
+        val depthSrc = TextureCache[res.getChild("icon.png")].waitFor()
         if (depthSrc != null) {
             useFrame(depthDst) {
                 depthDst.clearColor(0, true)

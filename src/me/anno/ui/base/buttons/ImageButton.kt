@@ -25,10 +25,10 @@ open class ImageButton(
 
     var guiScale = 1f
 
-    private val icon get() = TextureCache[path, 10_000, true]
+    private val icon get() = TextureCache[path, 10_000].value
 
     override fun calculateSize(w: Int, h: Int) {
-        val icon = TextureCache[path, 10_000, false]
+        val icon = TextureCache[path, 10_000].waitFor()
         minW = ((size + padding.width) * guiScale).toInt()
         minH = if (icon != null && !isSquare) {
             ((icon.height * size / icon.width) * guiScale + padding.height).toInt()
@@ -42,7 +42,7 @@ open class ImageButton(
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
-        val icon = TextureCache[path, 10_000, false] ?: return
+        val icon = icon ?: return
         renderDefault {
             icon.bind(0, Filtering.LINEAR, Clamping.CLAMP)
             val scale = ((width - padding.width).toFloat() / max(icon.width, icon.height))

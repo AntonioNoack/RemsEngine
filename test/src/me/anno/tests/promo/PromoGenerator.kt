@@ -146,7 +146,7 @@ fun renderScene(renderMode: RenderMode) {
 
     if (renderMode == RenderMode.UV) {
         // ensure UVs texture is valid
-        TextureCache[res.getChild("textures/UVChecker.png"), false]
+        TextureCache[res.getChild("textures/UVChecker.png")].waitFor()
     }
 
     for (i in 0 until times) {

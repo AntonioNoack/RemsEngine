@@ -18,6 +18,7 @@ import me.anno.ui.editor.graph.GraphPanel
 import me.anno.ui.input.FileInput
 import me.anno.utils.Color.black4
 import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.async.Callback.Companion.waitFor
 import org.joml.Vector2f
 import org.joml.Vector4f
 
@@ -47,7 +48,7 @@ class TextureNode : CalculationNode(
     override fun calculate(): Vector4f {
         val file = file
         val uv = getInput(0) as Vector2f
-        val image = ImageCache[file, false]
+        val image = ImageCache[file].waitFor()
         return if (image != null) {
             val linear = if (getBoolInput(1)) Filtering.LINEAR else Filtering.NEAREST
             val clamping = when (getIntInput(2)) {

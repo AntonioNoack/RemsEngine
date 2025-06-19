@@ -13,7 +13,7 @@ import me.anno.utils.OS.pictures
 
 fun main() {
     OfficialExtensions.initForTests()
-    val image = ImageCache[pictures.getChild("Anime/90940211_p0_master1200.jpg"), false]!!
+    val image = ImageCache[pictures.getChild("Anime/90940211_p0_master1200.jpg")].waitFor()!!
     val w = image.width
     val h = image.height
     val fi1 = FloatImage(w, h, 1)

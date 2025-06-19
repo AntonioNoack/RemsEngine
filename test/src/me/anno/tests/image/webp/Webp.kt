@@ -11,7 +11,7 @@ fun main() {
     val src = pictures.getChild("Anime/64bb3b17c22af131d67f11a1a1adb258.webp")
     val name = src.nameWithoutExtension
     HiddenOpenGLContext.createOpenGL()
-    ImageCache[src, false]!!.write(desktop.getChild("$name-cpu.png"))
-    TextureCache[src, false]!!.write(desktop.getChild("$name-gpu.png"))
+    ImageCache[src].waitFor()!!.write(desktop.getChild("$name-cpu.png"))
+    TextureCache[src].waitFor()!!.write(desktop.getChild("$name-gpu.png"))
     Engine.requestShutdown()
 }

@@ -70,7 +70,7 @@ object UnityReader {
                     else false
                 }) {
                 return UnityProjectCache.getFileEntry(
-                    root, true, unityProjectTimeout, async
+                    root, true, unityProjectTimeout
                 ) { key, result ->
                     result.value = loadUnityProject(key.file)
                 }.value
@@ -83,7 +83,7 @@ object UnityReader {
         if (file.isDirectory) {
             val children = file.listChildren()
             if (children.any { it.lcExtension == "meta" }) {
-                return UnityProjectCache.getFileEntry(file, true, unityProjectTimeout, async) { key, result ->
+                return UnityProjectCache.getFileEntry(file, true, unityProjectTimeout) { key, result ->
                     val root = key.file.getParent() // why the parent?
                     result.value = loadUnityProject(root)
                 }?.value

@@ -41,17 +41,17 @@ object InnerFolderCache : CacheSection<FileKey, InnerFolder>("InnerFolderCache")
     }
 
     fun readAsFolder(file: FileReference, async: Boolean, callback: Callback<InnerFolder?>) {
-        return getFileEntryAsync(file, false, timeoutMillis, async, generator, callback)
+        return getFileEntryAsync(file, false, timeoutMillis, generator, callback)
     }
 
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        return getFileEntry(file, false, timeoutMillis, async, generator)
+        return getFileEntry(file, false, timeoutMillis, generator)
             .waitFor(async)
     }
 
     private fun generate(file1: FileReference, result: AsyncCacheData<InnerFolder>) {
-        SignatureCache[file1, true].waitFor { signature ->
+        SignatureCache[file1].waitFor { signature ->
             generate1(file1, signature, result)
         }
     }

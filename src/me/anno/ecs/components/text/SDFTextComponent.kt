@@ -24,6 +24,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.mesh.Shapes
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.utils.async.Callback.Companion.waitFor
 import org.joml.AABBd
 import org.joml.Matrix4x3
 
@@ -73,7 +74,7 @@ class SDFTextComponent(
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
 
         // effectively just the same code as TextureTextComponent
-        val size = FontManager.getSize(font, text, -1, -1, false)
+        val size = FontManager.getSize(font, text, -1, -1).waitFor() ?: 0
         val baselineY = FontManager.getBaselineY(font)
         val sx = getSx(getSizeX(size), baselineY)
         val sy = getSy(getSizeY(size), baselineY)

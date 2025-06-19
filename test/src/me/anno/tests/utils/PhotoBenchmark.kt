@@ -40,7 +40,7 @@ fun main() {
     // -> the sensor indeed is real
 
     HiddenOpenGLContext.createOpenGL()
-    val source = TextureCache[desktop.getChild("papa/me/IMG_20220522_180047.jpg"), false]!!
+    val source = TextureCache[desktop.getChild("papa/me/IMG_20220522_180047.jpg")].waitFor()!!
 
     val steps = 100
     val scale0 = 1f

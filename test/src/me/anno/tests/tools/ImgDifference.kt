@@ -15,8 +15,8 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val i0 = ImageCache[screenshots.getChild("i0.png"), false]!!
-    val i1 = ImageCache[screenshots.getChild("i1.png"), false]!!
+    val i0 = ImageCache[screenshots.getChild("i0.png")].waitFor()!!
+    val i1 = ImageCache[screenshots.getChild("i1.png")].waitFor()!!
 
     val w = Maths.min(i0.width, i1.width)
     val h = Maths.min(i0.height, i1.height)

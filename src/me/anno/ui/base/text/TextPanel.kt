@@ -148,7 +148,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val index = min(charIndex, text.length)
         var answer = xOffsets[index]
         if (answer == Int.MIN_VALUE) {
-            answer = getTextSizeX(font, text.substring(0, index), -1, -1, false) - 1
+            val sx = getTextSizeX(font, text.substring(0, index), -1, -1).waitFor() ?: 0
+            answer = sx - 1
             xOffsets[charIndex] = answer
         }
         return answer
@@ -180,7 +181,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         } else {
             val inst = instantTextLoading
             if (inst) loadTexturesSync.push(true)
-            val size = getTextSize(textCacheKey, !inst)
+            val size = getTextSize(textCacheKey).waitFor() ?: 0
             if (size == -1) {
                 calculateSizeMono()
             } else {
@@ -202,7 +203,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int) {
-        val textSize = getTextSize(font, text, -1, -1, false)
+        val textSize = getTextSize(font, text, -1, -1).waitFor() ?: 0
         val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
         val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
         underline(i0, i1, color, thickness, dx, dy)
@@ -211,8 +212,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top + font.sizeInt * 10 / 8
-        val x0 = x + getTextSizeX(font, text.subSequence(0, i0), -1, -1, false)
-        val x1 = x + getTextSizeX(font, text.subSequence(0, i1), -1, -1, false)
+        val x0 = x + (getTextSizeX(font, text.subSequence(0, i0), -1, -1).value ?: 0)
+        val x1 = x + (getTextSizeX(font, text.subSequence(0, i1), -1, -1).value ?: 0)
         DrawRectangles.drawRect(x0, y, x1 - x0, thickness, color)
     }
 

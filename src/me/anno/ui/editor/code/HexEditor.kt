@@ -452,7 +452,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         @Deprecated("Only async should be used")
         private fun getByteSlice(file: FileReference, index: Long, async: Boolean): ByteArray? {
-            val data = cache.getDualEntry(file.getFileKey(), index, timeout, async) { k1, k2, data ->
+            val data = cache.getDualEntry(file.getFileKey(), index, timeout) { k1, k2, data ->
                 k1.file.inputStream { it, err ->
                     data.value = it?.skipN(k2 * BUFFER_SIZE)
                         ?.readNBytes2(BUFFER_SIZE, ByteArray(BUFFER_SIZE), false)

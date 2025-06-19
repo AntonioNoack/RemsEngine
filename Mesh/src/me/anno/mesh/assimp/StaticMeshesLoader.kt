@@ -130,7 +130,7 @@ object StaticMeshesLoader {
     }
 
     fun loadFile(file: FileReference, flags: Int, callback: Callback<Pair<AIScene, Boolean>>) {
-        SignatureCache.getAsync(file) { signature ->
+        SignatureCache[file].waitFor { signature ->
             loadFile(file, flags, signature?.name, callback)
         }
     }

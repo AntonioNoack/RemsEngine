@@ -18,7 +18,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val src = OS.downloads.getChild("2d/black frames sample.mp4")
     val dst = src.getSibling(src.nameWithoutExtension + "-result." + src.extension)
-    val meta = MediaMetadata.getMeta(src, false)!!
+    val meta = MediaMetadata.getMeta(src).waitFor()!!
     val delta = 5
     val start = 2 * 60 + 59 - delta // 2:59
     val end = start + 2 * delta

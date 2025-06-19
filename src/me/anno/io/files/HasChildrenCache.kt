@@ -3,26 +3,14 @@ package me.anno.io.files
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.FileCacheSection.getFileEntryAsync
-import me.anno.utils.async.Callback
 import me.anno.utils.async.Callback.Companion.map
 
 object HasChildrenCache : CacheSection<FileKey, Boolean>("FileHasChildren") {
 
     private val TIMEOUT_MILLIS = 3600_000L // pretty much never
 
-    fun hasChildren(file: FileReference, async: Boolean, callback: Callback<Boolean>) {
-        getFileEntryAsync(
-            file, true, TIMEOUT_MILLIS,
-            async, generator, callback
-        )
-    }
-
-    fun hasChildren(file: FileReference, async: Boolean): Boolean? {
-        return getFileEntry(
-            file, true, TIMEOUT_MILLIS,
-            async, generator
-        )?.value
+    fun hasChildren(file: FileReference): AsyncCacheData<Boolean> {
+        return getFileEntry(file, true, TIMEOUT_MILLIS, generator)
     }
 
     private val generator = { key: FileKey, result: AsyncCacheData<Boolean> ->

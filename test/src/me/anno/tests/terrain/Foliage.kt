@@ -134,7 +134,7 @@ class FoliageShader(
 
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
-        val density = TextureCache[densitySource, false] ?: blackTexture
+        val density = TextureCache[densitySource].waitFor() ?: blackTexture
         terrainTexture.value.bind(shader, "terrainTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
         density.bind(shader, "densityTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
         shader.v2f("time", Time.gameTime.toFloat(), (Time.gameTime - Time.deltaTime).toFloat())

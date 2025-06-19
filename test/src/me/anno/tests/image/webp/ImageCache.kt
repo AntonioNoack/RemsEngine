@@ -7,6 +7,6 @@ import me.anno.utils.OS.pictures
 
 fun main() {
     OfficialExtensions.initForTests()
-    ImageCache[pictures.getChild("Anime/gplus-1899045053.webp"), false]!!
+    ImageCache[pictures.getChild("Anime/gplus-1899045053.webp")].waitFor()!!
     Engine.requestShutdown()
 }

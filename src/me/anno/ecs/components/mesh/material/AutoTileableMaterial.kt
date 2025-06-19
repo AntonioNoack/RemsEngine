@@ -24,9 +24,8 @@ class AutoTileableMaterial : PlanarMaterialBase() {
 
         fun lookUp(diffuseMap: FileReference): ITexture2D {
             // get cached LUT, bind LUT
-            val texFromCache = cache.getFileEntry(diffuseMap, false, 10_000L, true) { srcFile, result ->
-                val image = ImageCache[srcFile.file, false]
-                if (image != null) {
+            val texFromCache = cache.getFileEntry(diffuseMap, false, 10_000L) { srcFile, result ->
+                ImageCache[srcFile.file].onSuccess(result) { image->
                     val hist = AutoTileableShader.TileMath.buildYHistogram(image)
                     val lut = AutoTileableShader.TileMath.buildLUT(hist)
                     val tex = Texture2D("auto-tileable-lut", lut.size / 2, 2, 1)
@@ -34,7 +33,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
                         tex.createMonochrome(lut, false)
                         result.value = tex
                     }
-                } else result.value = null
+                }
             }.value
             // if LUT is unknown (async), load alternative gradient texture
             return texFromCache?.createdOrNull() as? Texture2D ?: TextureLib.gradientXTex

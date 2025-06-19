@@ -44,7 +44,7 @@ class JPGReader {
                     for (child in file.listChildren()) {
                         convert(child)
                     }
-                } else if (SignatureCache[file, false]?.waitFor()?.name == "jpg") {
+                } else if (SignatureCache[file].waitFor()?.name == "jpg") {
                     try {
                         val input = file.inputStreamSync()
                         JPGReader().read(input)

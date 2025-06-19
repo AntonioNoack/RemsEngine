@@ -16,13 +16,12 @@ import me.anno.io.files.Signature
 import me.anno.io.files.SignatureCache
 import me.anno.utils.InternalAPI
 import me.anno.utils.OSFeatures
-import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 
 @InternalAPI
-class TextureReader(val file: FileReference, val callback: AsyncCacheData<ITexture2D>) {
+class TextureReader(val file: FileReference, val result: AsyncCacheData<ITexture2D>) {
 
     companion object {
 
@@ -48,11 +47,11 @@ class TextureReader(val file: FileReference, val callback: AsyncCacheData<ITextu
     }
 
     private fun callback(texture: ITexture2D?, error: Exception?) {
-        if (callback.hasValue) {
+        if (result.hasValue) {
             texture?.destroy()
             LOGGER.warn("Destroying $texture for $file before it was used")
         } else {
-            callback.value = texture
+            result.value = texture
             error?.printStackTrace()
         }
     }
@@ -74,7 +73,7 @@ class TextureReader(val file: FileReference, val callback: AsyncCacheData<ITextu
         if (OSFeatures.fileAccessIsHorriblySlow) { // skip loading the signature
             loadTexture1()
         } else {
-            SignatureCache.getAsync(file, ::loadTexture0)
+            SignatureCache[file].waitFor(::loadTexture0)
         }
     }
 
@@ -98,7 +97,7 @@ class TextureReader(val file: FileReference, val callback: AsyncCacheData<ITextu
             }
             null -> {
                 LOGGER.warn("Failed reading '$file' using ImageReader")
-                callback.value = null
+                result.value = null
             }
             else -> {
                 getRotation(file) { rot, _ ->
@@ -112,20 +111,22 @@ class TextureReader(val file: FileReference, val callback: AsyncCacheData<ITextu
 
     private fun tryUsingVideoCache(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
-        val meta = getMeta(file, false)
-        if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-            LOGGER.warn("Cannot load $file using VideoCache")
-            callback.value = null
-        } else {
-            Sleep.waitUntilDefined(true, {
-                val frame = VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, true)
-                if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
-                else null
-            }, { frame ->
-                addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-                    callback.value = frame.toTexture()
-                }
-            })
+        getMeta(file).waitFor { meta ->
+            if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
+                LOGGER.warn("Cannot load $file using VideoCache")
+                result.value = null
+            } else {
+                VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout)
+                    .waitFor({ frame ->
+                        frame == null || frame.isCreated || frame.isDestroyed
+                    }) { frame ->
+                        if (frame != null) {
+                            addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
+                                result.value = frame.toTexture()
+                            }
+                        } else result.value = null
+                    }
+            }
         }
     }
 }

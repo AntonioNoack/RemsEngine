@@ -23,9 +23,9 @@ fun main() {
         folder?.printTree(1, 10)
     }
     if (false) {
-        ImageCache[file.getChild("textures/Test Image.png"), false]!!
+        ImageCache[file.getChild("textures/Test Image.png")].waitFor()!!
             .write(desktop.getChild("Test Image.png"))
-        ImageCache[pictures.getChild("Cracked Normals2.webp"), false]!!
+        ImageCache[pictures.getChild("Cracked Normals2.webp")].waitFor()!!
             .write(desktop.getChild("Cracked.png"))
     }
     if (true) {

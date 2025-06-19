@@ -29,7 +29,7 @@ fun main() {
     // val src = downloads.getChild("2d/caveTilesetOpenGameArt-3.png") // 16x16
     val tileW = 16
     val tileH = 16
-    val tileAtlas = ImageCache[src, false]!!
+    val tileAtlas = ImageCache[src].waitFor()!!
     for (yi in 0 until tileAtlas.height step tileH) {
         for (xi in 0 until tileAtlas.width step tileW) {
             val pixels = IntArray(tileW * tileH)

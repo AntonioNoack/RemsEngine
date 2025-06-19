@@ -205,7 +205,7 @@ fun main() {
 
     return*/
 
-    ImageCache[projectPath.getChild("Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false]!!
+    ImageCache[projectPath.getChild("Assets/PolygonSciFiCity/Textures/LineTex 4.png")].waitFor()!!
         .write(OS.desktop.getChild("LineTex4.png"))
 
     // circular sample

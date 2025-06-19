@@ -120,7 +120,7 @@ object BoneEmbeddings {
 
     @JvmStatic
     fun getWEs(skeleton: Skeleton): List<FloatArray?> {
-        return helperWECache.getEntry(skeleton, 10_000L, false) { skeleton, result ->
+        return helperWECache.getEntry(skeleton, 10_000L) { skeleton, result ->
             result.value = skeleton.bones.map { calcWE(it.name) }
         }.waitFor()!!
     }

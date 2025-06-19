@@ -79,7 +79,7 @@ object Packer {
     private fun packImage(resource: FileReference): ByteArray? {
         // don't save it as bmp, use png instead
         // if the original was a jpg, we should use jpg
-        val image = ImageCache[resource, false]
+        val image = ImageCache[resource].waitFor()
         return if (image != null) {
             val extension = when {
                 image is IFloatImage -> "hdr"
@@ -103,7 +103,7 @@ object Packer {
     }
 
     fun isMaybePrefab(resource: FileReference): Boolean {
-        return when (SignatureCache[resource, false]?.waitFor()?.importType) {
+        return when (SignatureCache[resource].waitFor()?.importType) {
             MESH, METADATA -> true
             else -> false
         }
@@ -142,7 +142,7 @@ object Packer {
         for (i in resourceList.indices) {
             val (srcFile, dstFile) = resourceList[i]
             try {
-                val importType = SignatureCache[srcFile, false]?.waitFor()?.importType
+                val importType = SignatureCache[srcFile].waitFor()?.importType
                 val bytes = when (importType) {
                     IMAGE, CUBEMAP_EQU -> packImage(srcFile)
                     VIDEO -> packVideo(srcFile)
@@ -179,7 +179,7 @@ object Packer {
 
         fun nextName(src: FileReference): FileReference {
             return nextName(src.lcExtension.ifEmpty {
-                SignatureCache[src, false]?.waitFor()?.name // mmmh...
+                SignatureCache[src].waitFor()?.name // mmmh...
             } ?: "bin")
         }
 

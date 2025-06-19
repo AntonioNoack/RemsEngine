@@ -14,7 +14,6 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.OS.res
 import me.anno.utils.async.Callback
-import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.min
 
@@ -46,16 +45,16 @@ class AtlasFontGenerator(val key: FontKey) : TextGenerator {
     }
 
     private fun getImageStack(callback: Callback<List<IntImage>>) {
-        cache.getEntryAsync(key.sizeIndex, 10_000, false, { sizeIndex, result ->
+        cache.getEntry(key.sizeIndex, 10_000) { sizeIndex, result ->
             val source = res.getChild("textures/ASCIIAtlas.png")
-            ImageCache.getAsync(source, 50, false, result.map { image ->
+            ImageCache[source, 50].mapResult(result) { image ->
                 image.split(NUM_TILES_X, NUM_TILES_Y).map { tileImage ->
                     tileImage
                         .resized(charSizeX, charSizeY, true)
                         .asIntImage()
                 }
-            })
-        }, callback)
+            }
+        }.waitFor(callback)
     }
 
     private fun getIndex(codepoint: Int): Int {

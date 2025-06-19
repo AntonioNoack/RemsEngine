@@ -28,7 +28,7 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
     }
 
     override fun getTexture(): ITexture2D? {
-        return TextureCache[file, true]?.createdOrNull()
+        return TextureCache[file].value?.createdOrNull()
             ?: Thumbs[file, max(width, height), true]
     }
 
@@ -51,7 +51,7 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
         val padding = 10
         val widthLimit = width
         val radius = padding.toFloat()
-        val textSize = getTextSize(font, file.name, widthLimit, -1, true)
+        val textSize = getTextSize(font, file.name, widthLimit, -1).waitFor() ?: 0
         val textWidth = getSizeX(textSize) + padding
         val textHeight = getSizeY(textSize) + padding.shr(1)
         drawRoundedRect(

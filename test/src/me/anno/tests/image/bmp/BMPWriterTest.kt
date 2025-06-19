@@ -29,7 +29,7 @@ class BMPWriterTest {
         val bmpBytes = BMPWriter.createBMP(original)
         assertEquals(bmpBytes.size.toLong(), BMPWriter.calculateSize(original))
         val tmpBmp = InnerTmpByteFile(bmpBytes)
-        val clone = ImageCache[tmpBmp, false]!!
+        val clone = ImageCache[tmpBmp].waitFor()!!
         assertEquals(original.width, clone.width)
         assertEquals(original.height, clone.height)
         assertEquals(original.hasAlphaChannel, clone.hasAlphaChannel)

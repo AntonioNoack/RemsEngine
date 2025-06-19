@@ -23,7 +23,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
 
     val texture by lazy {
         val source = pictures.getChild("textures/atlas.webp")
-        val image = ImageCache[source, false]
+        val image = ImageCache[source].waitFor()
         if (image == null) {
             LOGGER.warn("Missing $source")
             whiteTex2da

@@ -24,7 +24,7 @@ class GimpImageReaderTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     fun testSize() {
-        val meta = getMeta(res.getChild("files/gimp-3x3.xcf"), false)!!
+        val meta = getMeta(res.getChild("files/gimp-3x3.xcf")).waitFor()!!
         assertEquals(3, meta.videoWidth)
         assertEquals(2, meta.videoHeight)
         assertEquals(1, meta.videoFrameCount)
@@ -33,7 +33,7 @@ class GimpImageReaderTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     fun testImageContent() {
-        val image = ImageCache[res.getChild("files/gimp-3x3.xcf"), false]!!
+        val image = ImageCache[res.getChild("files/gimp-3x3.xcf")].waitFor()!!
         val baseline = IntImage(
             3, 2, intArrayOf(
                 0xffffff, 0xff0000, 0x000000,
@@ -53,7 +53,7 @@ class GimpImageReaderTest {
         assertEquals(1, layers.listChildren().size)
         val layerFile = layers.getChild("Background.png")
         assertTrue(layerFile.exists)
-        val image = ImageCache[layerFile, false]!!
+        val image = ImageCache[layerFile].waitFor()!!
         assertEquals(3, image.width)
         assertEquals(3, image.height)
         val baseline = IntImage(

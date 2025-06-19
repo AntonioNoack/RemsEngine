@@ -37,7 +37,7 @@ class GPUFrameTest {
     }
 
     private fun loadImage(): Image {
-        return ImageCache[iconTexture, false]!!
+        return ImageCache[iconTexture].waitFor()!!
     }
 
     private fun createBytes(image: Image, bytesPerPixel: Int): ByteArray {

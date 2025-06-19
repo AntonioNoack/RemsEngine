@@ -83,17 +83,17 @@ class FlatPacmanGame : Panel(style) {
             drawTex(pos, i0, i1, i0, i1, texture)
         }
 
-        val collectibleTexture = TextureCache[gemPath, true] ?: missingTexture
+        val collectibleTexture = TextureCache[gemPath].value ?: missingTexture
         for (collectible in game.collectables) {
             drawTex(collectible, 0.3f, collectibleTexture)
         }
 
-        val enemyTexture = TextureCache[enemyPath, true] ?: missingTexture
+        val enemyTexture = TextureCache[enemyPath].value ?: missingTexture
         for (enemy in game.enemies) {
             drawTex(enemy.currPosition, 0.2f, enemyTexture)
         }
 
-        val playerTexture = TextureCache[playerPath, true] ?: missingTexture
+        val playerTexture = TextureCache[playerPath].value ?: missingTexture
         val lookLeft = game.player.lookLeft
         drawTex(
             game.player.currPosition, if (lookLeft) 0.8f else 0.2f, if (lookLeft) 0.2f else 0.8f,

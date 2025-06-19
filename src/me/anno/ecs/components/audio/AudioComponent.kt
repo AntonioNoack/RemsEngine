@@ -37,7 +37,7 @@ class AudioComponent : AudioComponentBase() {
 
     private fun keepInMemory() {
         // calculate number of buffers
-        val meta = MediaMetadata.getMeta(source, true) ?: return
+        val meta = MediaMetadata.getMeta(source).value ?: return
         val duration = meta.duration
         val numBuffers = ceil(duration * meta.audioSampleRate / bufferSize).toInt()
         for (i in 0 until numBuffers) {
@@ -53,12 +53,12 @@ class AudioComponent : AudioComponentBase() {
             source, time0, time1, bufferSize, when (playMode) {
                 PlayMode.LOOP -> LoopingState.PLAY_LOOP
                 else -> LoopingState.PLAY_ONCE
-            }, false
-        ) != null
+            }
+        ).value != null
     }
 
     fun isFullyLoaded(): Boolean {
-        val meta = MediaMetadata.getMeta(source, true) ?: return false
+        val meta = MediaMetadata.getMeta(source).value ?: return false
         val duration = meta.duration
         val numBuffers = ceil(duration * meta.audioSampleRate / bufferSize).toInt()
         for (i in 0 until numBuffers) {

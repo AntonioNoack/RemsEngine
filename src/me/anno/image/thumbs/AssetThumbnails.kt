@@ -163,8 +163,8 @@ object AssetThumbnails {
                     textureFiles.addAll(material.listTextures().filter { it.exists })
                 }
             } && textureFiles.all { textureFile ->
-                TextureCache[textureFile, async] != null ||
-                        TextureCache.hasImageOrCrashed(textureFile, delta, true)
+                TextureCache[textureFile].value != null ||
+                        TextureCache.hasImageOrCrashed(textureFile, delta)
             }
         }) {
             addGPUTask("loadAssets", 1000) {

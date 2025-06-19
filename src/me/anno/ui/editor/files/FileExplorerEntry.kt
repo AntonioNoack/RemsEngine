@@ -51,7 +51,6 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.IsDirectoryCache
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
@@ -192,7 +191,7 @@ open class FileExplorerEntry(
     private fun updatePlaybackTime() {
         when (importType) {
             "Video", "Audio" -> {
-                val meta = getMeta(file, true)
+                val meta = getMeta(file).value
                 this.meta = meta
                 if (meta != null) {
                     val w = max(width, 1)
@@ -228,7 +227,7 @@ open class FileExplorerEntry(
     }
 
     private fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val image = TextureCache[iconPath, true] ?: whiteTexture
+        val image = TextureCache[iconPath].value ?: whiteTexture
         drawTexture(x0, y0, x1, y1, image)
     }
 
@@ -251,11 +250,11 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun getDefaultIcon() = TextureCache[iconPath, true]
+    private fun getDefaultIcon() = TextureCache[iconPath].value
 
     private fun getImage(): ITexture2D? {
-        val isDirectory = IsDirectoryCache.isDirectory(file, true)
-        if (isDirectory == null) return null
+        val isDirectory = IsDirectoryCache.isDirectory(file)
+        if (isDirectory.value == null) return null
         val thumb = Thumbs[file, width, true]
         return thumb?.createdOrNull() ?: getDefaultIcon()?.createdOrNull()
     }
@@ -514,7 +513,7 @@ open class FileExplorerEntry(
                         val ttt = StringBuilder()
                         ttt.append(file.name).append('\n')
                         ttt.append(file.length().formatFileSize())
-                        val meta = getMeta(ref, true)
+                        val meta = getMeta(ref).value
                         if (meta != null) {
                             appendMetaTTT(file, ttt, meta)
                         } else {

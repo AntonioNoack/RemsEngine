@@ -90,7 +90,7 @@ class GeneralFileEncodingTest {
         println("Wrote ${bytes.decodeToString()}")
         assertTrue(tmpFile.exists)
 
-        val signature = SignatureCache[tmpFile, false]?.waitFor()?.name
+        val signature = SignatureCache[tmpFile].waitFor()?.name
         assertEquals(expectedSignature, signature)
 
         val prefab = PrefabCache[tmpFile]!!

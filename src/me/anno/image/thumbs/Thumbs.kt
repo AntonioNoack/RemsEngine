@@ -97,7 +97,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         if (neededSize < 1) return null
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
-            return TextureCache[file, timeout, async]
+            return TextureCache[file, timeout].waitFor(async)
         }
 
         // currently not supported
@@ -109,7 +109,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         val lastModified = file.lastModified
         val key = ThumbnailKey(file, lastModified, size)
 
-        val async1 = textures.getEntryLimited(key, timeout, async, 4, ::generate0)
+        val async1 = textures.getEntryLimited(key, timeout, 4, ::generate0)
         if (!async) async1?.waitFor()
         val texture = async1?.value
         if (!async && texture != null && !texture.isCreated()) {
@@ -504,7 +504,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
             }
             is PrefabReadable -> AssetThumbnails.generateAssetFrame(srcFile, dstFile, size, callback)
-            else -> SignatureCache.getAsync(srcFile) { signature ->
+            else -> SignatureCache[srcFile].waitFor { signature ->
                 generate(srcFile, dstFile, size, signature, callback)
             }
         }

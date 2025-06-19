@@ -13,7 +13,7 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
     val source = pictures.getChild("textures/atlas.webp")
-    val image = ImageCache[source, false]!!
+    val image = ImageCache[source].waitFor()!!
     val images = image.split(2, 2)
     val texture = Texture2DArray("tex", 1, 1, 1)
     texture.create(images, false)

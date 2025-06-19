@@ -7,9 +7,14 @@ import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
 
-open class AsyncCacheData<V : Any> : ICacheData, Callback<V> {
+open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
+
+    constructor(value: V?) : this() {
+        this.value = value
+    }
 
     var timeoutNanoTime: Long = 0
     var generatorThread: Thread = Thread.currentThread()
@@ -26,6 +31,21 @@ open class AsyncCacheData<V : Any> : ICacheData, Callback<V> {
             hasValue = true
         }
 
+    var lastRetry = 0L
+    var retryCallback: (() -> Unit)? = null
+
+    fun retryHasValue(): Boolean {
+        // todo if this has been destroyed, undo the destruction
+        //  but also somehow register this for future destruction...
+        if (hasValue || hasBeenDestroyed) return true
+        val time = nanoTime
+        if (abs(time - lastRetry) >= RETRY_PERIOD_NANOS) {
+            retryCallback?.invoke()
+            lastRetry = time
+        }
+        return hasValue
+    }
+
     fun reset(timeoutMillis: Long) {
         timeoutNanoTime = nanoTime + timeoutMillis * MILLIS_TO_NANOS
         generatorThread = Thread.currentThread()
@@ -39,7 +59,7 @@ open class AsyncCacheData<V : Any> : ICacheData, Callback<V> {
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
         warnRecursive()
-        Sleep.waitUntil(true) { hasValue }
+        Sleep.waitUntil(true) { retryHasValue() }
         return value
     }
 
@@ -56,13 +76,29 @@ open class AsyncCacheData<V : Any> : ICacheData, Callback<V> {
     }
 
     fun waitFor(callback: (V?) -> Unit) {
-        Sleep.waitUntil(true, { hasValue }) {
+        Sleep.waitUntil(true, { retryHasValue() }) {
             callback(value)
         }
     }
 
+    fun waitFor(extraCondition: (V?) -> Boolean, callback: (V?) -> Unit) {
+        Sleep.waitUntil(true, { retryHasValue() && extraCondition(value) }) {
+            callback(value)
+        }
+    }
+
+    fun <W> waitUntilDefined(valueMapper: (V) -> W?, callback: (W) -> Unit) {
+        Sleep.waitUntilDefined(true, {
+            if (retryHasValue()) {
+                val value = value
+                if (value != null && !hasBeenDestroyed) valueMapper(value)
+                else null
+            } else null
+        }, callback)
+    }
+
     fun waitFor(callback: Callback<V>) {
-        Sleep.waitUntil(true, { hasValue }) {
+        Sleep.waitUntil(true, { retryHasValue() }) {
             val value = value
             if (value != null) callback.ok(value)
             else callback.err(null)
@@ -90,10 +126,43 @@ open class AsyncCacheData<V : Any> : ICacheData, Callback<V> {
         }
     }
 
+    fun <W : Any> mapNext(mapping: (V) -> W): AsyncCacheData<W> {
+        val result = AsyncCacheData<W>()
+        waitFor { v ->
+            result.value = if (v != null) mapping(v) else null
+        }
+        return result
+    }
+
+    fun <W : Any> mapResult(result: AsyncCacheData<W>, mapping: (V) -> W) {
+        waitFor { v ->
+            result.value = if (v != null) mapping(v) else null
+        }
+    }
+
+    fun <W : Any> onSuccess(result: AsyncCacheData<*>, mapping: (V) -> W) {
+        waitFor { v ->
+            if (v != null) mapping(v)
+            else result.value = null
+        }
+    }
+
+    fun <W : Any> map2(mapping: (V) -> AsyncCacheData<W>): AsyncCacheData<W> {
+        val result = AsyncCacheData<W>()
+        waitFor { v ->
+            if (v != null) {
+                mapping(v).waitFor(result)
+            } else result.value = null
+        }
+        return result
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(AsyncCacheData::class)
         const val ASYNC_WARNING = "Avoid blocking, it's also not supported in browsers"
+
+        private const val RETRY_PERIOD_NANOS = 50 * MILLIS_TO_NANOS
 
         @Deprecated(message = ASYNC_WARNING)
         inline fun <V : Any> loadSync(loadAsync: (Callback<V>) -> Unit): V? {

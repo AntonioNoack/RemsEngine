@@ -5,7 +5,6 @@ import me.anno.cache.CacheSection.Companion.checkKey
 import me.anno.cache.CacheSection.Companion.registerCache
 import me.anno.cache.CacheSection.Companion.runAsync
 import me.anno.utils.InternalAPI
-import me.anno.utils.async.Callback
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
@@ -73,8 +72,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
     }
 
     fun <K1S : K1, K2S : K2> getDualEntryWithIfNotGeneratingCallback(
-        key1: K1S, key2: K2S,
-        timeoutMillis: Long, asyncGenerator: Boolean,
+        key1: K1S, key2: K2S, timeoutMillis: Long,
         generator: (key1: K1S, key2: K2S, dst: AsyncCacheData<V>) -> Unit,
         ifNotGenerating: (() -> Unit)?
     ): AsyncCacheData<V> {
@@ -107,21 +105,10 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         return entry
     }
 
-    fun getDualEntryAsync(
-        key1: K1, key2: K2, timeoutMillis: Long,
-        asyncGenerator: Boolean,
-        generator: (K1, K2, AsyncCacheData<V>) -> Unit,
-        resultCallback: Callback<V>
-    ) {
-        getDualEntry(key1, key2, timeoutMillis, asyncGenerator, generator)
-            .waitFor(resultCallback)
-    }
-
     fun <K1S : K1, K2S : K2> getDualEntry(
-        key1: K1S, key2: K2S, timeoutMillis: Long, asyncGenerator: Boolean,
+        key1: K1S, key2: K2S, timeoutMillis: Long,
         generator: (K1S, K2S, AsyncCacheData<V>) -> Unit
-    ): AsyncCacheData<V> =
-        getDualEntryWithIfNotGeneratingCallback(key1, key2, timeoutMillis, asyncGenerator, generator, null)
+    ): AsyncCacheData<V> = getDualEntryWithIfNotGeneratingCallback(key1, key2, timeoutMillis, generator, null)
 
     fun update() {
         synchronized(dualCache) {

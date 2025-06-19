@@ -127,7 +127,7 @@ class VideoStreamWorker(file: FileReference, frameIndex0: Int, val id: Int, val 
         ) {
             val file = self.file
             val meta = self.meta
-            SignatureCache.getAsync(file) { signature ->
+            SignatureCache[file].waitFor { signature ->
                 // scale video as needed
                 val scale = clamp(maxSize.toDouble() / max(meta.videoWidth, meta.videoHeight).toDouble())
                 val w0 = max((scale * meta.videoWidth).toInt(), 2)

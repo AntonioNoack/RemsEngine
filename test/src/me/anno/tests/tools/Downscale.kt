@@ -16,7 +16,7 @@ fun main() {
     dst.mkdirs()
     val ext = listOf("png", "jpg", "webp")
     for (child in src.listChildren()) {
-        val image = ImageCache[child, false] ?: continue
+        val image = ImageCache[child].waitFor() ?: continue
         val (w, h) = scaleMax(image.width, image.height, 384)
         if (w < image.width && h < image.height) {
             val downScaled = image.resized(w, h, false)

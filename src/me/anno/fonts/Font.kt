@@ -1,12 +1,12 @@
 package me.anno.fonts
 
+import me.anno.cache.AsyncCacheData
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 import me.anno.utils.types.Floats.roundToIntOr
-import kotlin.math.roundToInt
 
 class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Saveable() {
 
@@ -20,7 +20,7 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
             this(name, size.toFloat(), isBold, isItalic)
 
     class SampleSize(font: Font) {
-        val size = DrawTexts.getTextSize(font, "x", -1, -1, false)
+        val size = DrawTexts.getTextSize(font, "x", -1, -1).waitFor() ?: 0
         val width = GFXx2D.getSizeX(size)
         val height = GFXx2D.getSizeY(size)
     }
@@ -59,6 +59,8 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
 
     val sizeInt get() = size.roundToIntOr()
     val sizeIndex get() = FontManager.getFontSizeIndex(size)
+
+    val emptySize = AsyncCacheData(GFXx2D.getSize(0, sizeInt))
 
     var sample = lazy { SampleSize(this) }
     val sampleWidth get() = sample.value.width

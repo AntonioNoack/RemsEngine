@@ -376,7 +376,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun isSerializedFolder(callback: Callback<Boolean>) {
         // only read the first bytes
-        SignatureCache[this,false].waitFor { signature ->
+        SignatureCache[this].waitFor { signature ->
             val answer = InnerFolderCache.getReaders(signature, lcExtension).isNotEmpty()
             callback.ok(answer)
         }

@@ -10,6 +10,6 @@ fun main() {
     // done: this hang
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
-    ImageCache[music.getChild("Lost In Space.mp3/rgb.png"), false]!!
+    ImageCache[music.getChild("Lost In Space.mp3/rgb.png")].waitFor()!!
     Engine.requestShutdown()
 }

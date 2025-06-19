@@ -15,7 +15,7 @@ object ImageTracing {
     // to do set the test size for meshes to 120 instead of 20-ish
     @JvmStatic
     fun main(args: Array<String>) {
-        val image = ImageCache[OS.documents.getChild("test-text.png"), false]!!
+        val image = ImageCache[OS.documents.getChild("test-text.png")].waitFor()!!
         val pixels = (image as IntImage).data
         val black = -0x1000000
         var i = 0

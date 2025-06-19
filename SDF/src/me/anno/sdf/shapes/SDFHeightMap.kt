@@ -117,7 +117,7 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         smartMinBegin(builder, dstIndex)
         val tex = defineUniform(uniforms, GLSLType.S2D) {
-            val img = TextureCache[source, true]
+            val img = TextureCache[source].value
             if (img != null && (img.filtering != Filtering.LINEAR || img.clamping != Clamping.CLAMP)) {
                 img.bind(GFX.maxBoundTextures - 1, Filtering.LINEAR, Clamping.CLAMP)
             }
@@ -128,7 +128,7 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
             img ?: whiteTexture
         }
         val scale = defineUniform(uniforms, GLSLType.V3F) {
-            val img = TextureCache[source, true]
+            val img = TextureCache[source].value
             if (img != null) Vector3f(
                 max(1f, img.height.toFloat() / img.width.toFloat()),
                 max(1f, img.width.toFloat() / img.height.toFloat()),
@@ -163,7 +163,7 @@ class SDFHeightMap : SDFShape(), OnDrawGUI {
 
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
 
-        val img = ImageCache[source, true] ?: return
+        val img = ImageCache[source].value ?: return
         val scale = Vector3f(
             max(1f, img.height.toFloat() / img.width.toFloat()),
             1f / maxHeight,

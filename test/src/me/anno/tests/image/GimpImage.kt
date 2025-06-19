@@ -15,10 +15,10 @@ fun main() {
     )) {
         if (!file.exists) throw IllegalStateException("Missing $file")
         val name = file.nameWithoutExtension
-        ImageCache[file, false]!!
+        ImageCache[file].waitFor()!!
             .write(dst.getChild("$name.png"))
         for (it in file.listChildren()) {
-            ImageCache[it, false]!!
+            ImageCache[it].waitFor()!!
                 .write(dst.getChild("$name.${it.nameWithoutExtension}.png"))
         }
     }

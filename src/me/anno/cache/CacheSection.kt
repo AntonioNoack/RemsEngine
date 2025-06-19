@@ -82,21 +82,35 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
 
     private val limiter = AtomicInteger()
     fun <K1S : K1> getEntryLimited(
-        key: K1S, timeout: Long, asyncGenerator: Boolean,
+        key: K1S, timeout: Long,
         limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V>? {
         val accessTry = limiter.getAndIncrement()
         return if (accessTry < limit) {
             // we're good to go, and can make our request
-            getEntryWithIfNotGeneratingCallback(key, timeout, asyncGenerator, { k, e ->
+            getEntryWithIfNotGeneratingCallback(key, timeout, { k, e ->
                 generateSafely(k, e, generator)
                 e.waitFor { limiter.decrementAndGet() }
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
             // get the value without generator
-            @Suppress("UNCHECKED_CAST")
             getEntryWithoutGenerator(key, 1L)
+        }
+    }
+
+    fun <K1S : K1> getEntryLimitedWithRetry(
+        key: K1S, timeout: Long,
+        limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
+    ): AsyncCacheData<V> {
+        return getEntryLimited(key, timeout, limit, generator) ?: run {
+            // register this as a retry-mechanism
+            val result = AsyncCacheData<V>()
+            result.retryCallback = {
+                getEntryLimited(key, timeout, limit, generator)
+                    ?.waitFor(result)
+            }
+            result
         }
     }
 
@@ -114,14 +128,27 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         } else {
             limiter.decrementAndGet()
             // get the value without generator
-            @Suppress("UNCHECKED_CAST")
             getEntryWithoutGenerator(key, 1L)
+        }
+    }
+
+    fun <K1S : K1> getEntryLimitedWithRetry(
+        key: K1S, timeout: Long, queue: ProcessingQueue?,
+        limit: Int, generator: (K1S, AsyncCacheData<V>) -> Unit
+    ): AsyncCacheData<V> {
+        return getEntryLimited(key, timeout, queue, limit, generator) ?: run {
+            // register this as a retry-mechanism
+            val result = AsyncCacheData<V>()
+            result.retryCallback = {
+                getEntryLimited(key, timeout, queue, limit, generator)
+                    ?.waitFor(result)
+            }
+            result
         }
     }
 
     fun <K1S : K1> getEntryWithIfNotGeneratingCallback(
         key: K1S, timeoutMillis: Long,
-        asyncGenerator: Boolean,
         generator: (K1S, AsyncCacheData<V>) -> Unit,
         ifNotGenerating: (() -> Unit)?
     ): AsyncCacheData<V> {
@@ -130,11 +157,10 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
 
     fun getEntryAsync(
         key: K1, timeoutMillis: Long,
-        asyncGenerator: Boolean,
         generator: (K1, AsyncCacheData<V>) -> Unit,
         resultCallback: Callback<V>
     ) {
-        getEntry(key, timeoutMillis, asyncGenerator, generator)
+        getEntry(key, timeoutMillis, generator)
             .waitFor(resultCallback)
     }
 
@@ -177,18 +203,14 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
     }
 
     fun <K1S : K1> getEntry(
-        key: K1S, timeoutMillis: Long, asyncGenerator: Boolean,
+        key: K1S, timeoutMillis: Long,
         generator: (K1S, AsyncCacheData<V>) -> Unit
-    ): AsyncCacheData<V> =
-        getEntryWithIfNotGeneratingCallback(key, timeoutMillis, asyncGenerator, generator, null)
+    ): AsyncCacheData<V> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, generator, null)
 
     fun <K1S : K1> getEntry(
-        key: K1S,
-        timeoutMillis: Long,
-        queue: ProcessingQueue?,
-        generator: (K1S, AsyncCacheData<V>) -> Unit
-    ): AsyncCacheData<V> =
-        getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
+        key: K1S, timeoutMillis: Long,
+        queue: ProcessingQueue?, generator: (K1S, AsyncCacheData<V>) -> Unit
+    ): AsyncCacheData<V> = getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {
         synchronized(cache) {

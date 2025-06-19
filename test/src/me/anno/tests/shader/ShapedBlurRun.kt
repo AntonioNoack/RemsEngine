@@ -31,7 +31,7 @@ fun main() {
             }
         }
     }
-    node.setInput(1, TextureCache[testImage.ref, false]!!)
+    node.setInput(1, TextureCache[testImage.ref].waitFor()!!)
     node.setInput(3, 4f) // gamma high, so small pixels can be blown up
     node.executeAction()
     (node.getOutput(1) as Texture).tex

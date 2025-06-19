@@ -23,6 +23,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
+import me.anno.utils.async.Callback.Companion.waitFor
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
@@ -139,7 +140,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         if (equalSpaced) {
 
             val text1 = text.second
-            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit, false)
+            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit).waitFor() ?: 0
             val textWidth = charWidth * text1.size
 
             val dxi = DrawTexts.getOffset(textWidth, alignX)
@@ -150,10 +151,10 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
             for (index in text1.indices) {
                 val key = text1[index]
-                val size = FontManager.getSize(key, false)
+                val size = FontManager.getSize(key).waitFor() ?: 0
                 h = GFXx2D.getSizeY(size)
                 if (!key.text.isBlank2()) {
-                    val texture = FontManager.getTexture(key, false)
+                    val texture = FontManager.getTexture(key).waitFor()
                     if (texture != null && texture.wasCreated) {
                         texture.bindTrulyNearest(0)
                         val x2 = fx + (charWidth - texture.width) / 2
@@ -186,14 +187,14 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             val text1 = text.second
             for (index in text1.indices) {
                 val txt = text1[index]
-                val size = FontManager.getSize(txt, false)
+                val size = FontManager.getSize(txt).waitFor() ?: 0
                 val o0 = group.offsets[index].toFloat()
                 val o1 = group.offsets[index + 1].toFloat()
                 val fx = x + dxi + o0
                 val w = o1 - o0
                 h = GFXx2D.getSizeY(size)
                 if (!txt.text.isBlank2()) {
-                    val texture = FontManager.getTexture(txt, false)
+                    val texture = FontManager.getTexture(txt).waitFor()
                     if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
                         val x2 = fx + (w - texture.width) / 2

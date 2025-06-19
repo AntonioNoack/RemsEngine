@@ -89,7 +89,7 @@ object ImageAsFolder {
 
         val ric = readIcoLayers
         if (file.lcExtension == "ico" && ric != null) {
-            SignatureCache.getAsync(file) { sig ->
+            SignatureCache[file].waitFor { sig ->
                 if (sig == null || sig.name == "ico") {
                     file.inputStream { it, exc ->
                         if (it != null) {
@@ -130,11 +130,11 @@ object ImageAsFolder {
     private fun createSwizzle(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
             // CPU: calculated lazily
-            val srcImage = warnIfMissing(ImageCache[file, false], missingImage, file)
+            val srcImage = warnIfMissing(ImageCache[file].waitFor(), missingImage, file)
             createImage(srcImage)
         }, {
             // GPU: calculated whenever needed
-            val srcTexture = warnIfMissing(TextureCache[file, false], missingTexture, file)
+            val srcTexture = warnIfMissing(TextureCache[file].waitFor(), missingTexture, file)
             createImage(GPUImage(srcTexture))
         })
     }
@@ -216,7 +216,7 @@ object ImageAsFolder {
                     result.hasValue = true
                 }
             }
-        } else SignatureCache.getAsync(file) { signature ->
+        } else SignatureCache[file].waitFor { signature ->
             readImageWithSignature(file, result, signature?.name, forGPU)
         }
     }

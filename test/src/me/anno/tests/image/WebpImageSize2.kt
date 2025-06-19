@@ -12,7 +12,7 @@ fun main() {
     OfficialExtensions.initForTests()
     for (file in pictures.getChild("Anime").listChildren()) {
         if (file.lcExtension != "webp") continue
-        val meta = MediaMetadata.getMeta(file, false)!!
+        val meta = MediaMetadata.getMeta(file).waitFor()!!
         println("${file.nameWithoutExtension}: ${meta.videoWidth} x ${meta.videoHeight}")
     }
     Engine.requestShutdown()

@@ -23,7 +23,7 @@ class TypeValueTex(
     override fun bind(shader: GPUShader, location: Int) {
         when (type) {
             GLSLType.S2D -> {
-                val texture = TextureCache[source, false] ?: whileMissing
+                val texture = TextureCache[source].value ?: whileMissing
                 texture.bind(location, filtering, clamping)
             }
             else -> LOGGER.warn("$type isn't yet supported")

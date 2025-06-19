@@ -11,33 +11,25 @@ object FileCacheSection {
 
     private val LOGGER = LogManager.getLogger(FileCacheSection::class)
 
-    private val nothingCacheData = AsyncCacheData<Any>().apply {
-        value = null
-    }
-
     fun <V : Any> CacheSection<FileKey, V>.removeFileEntry(file: FileReference) = removeEntry(file.getFileKey())
     fun <V : Any> CacheSection<FileKey, V>.removeFileEntry(file: FileReference, lastModified: Long) =
         removeEntry(FileKey(file, lastModified))
 
     fun <V : Any> CacheSection<FileKey, V>.getFileEntry(
-        file: FileReference, allowDirectories: Boolean,
-        timeout: Long, asyncGenerator: Boolean,
+        file: FileReference, allowDirectories: Boolean, timeoutMillis: Long,
         generator: (FileKey, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> {
         val validFile = getValidFile(file, allowDirectories)
-        if (validFile == null) {
-            @Suppress("UNCHECKED_CAST")
-            return nothingCacheData as AsyncCacheData<V>
-        }
-        return getEntry(validFile.getFileKey(), timeout, asyncGenerator, generator)
+        if (validFile == null) return NullCacheData.get()
+        return getEntry(validFile.getFileKey(), timeoutMillis, generator)
     }
 
+    @Deprecated("Please get rid of all -Async functions, we don't need them")
     fun <V : Any> CacheSection<FileKey, V>.getFileEntryAsync(
         file: FileReference, allowDirectories: Boolean,
-        timeout: Long, asyncGenerator: Boolean,
-        generator: (FileKey, AsyncCacheData<V>) -> Unit, callback: Callback<V>
+        timeoutMillis: Long, generator: (FileKey, AsyncCacheData<V>) -> Unit, callback: Callback<V>
     ) {
-        getFileEntry(file, allowDirectories, timeout, asyncGenerator, generator)
+        getFileEntry(file, allowDirectories, timeoutMillis, generator)
             .waitFor(callback)
     }
 

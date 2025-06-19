@@ -35,7 +35,7 @@ fun main() {
 
     // tests... not as good as first one
 
-    val img0 = ImageCache[desktop.getChild("20220306_091338.jpg"), false]!!
+    val img0 = ImageCache[desktop.getChild("20220306_091338.jpg")].waitFor()!!
     val img = img0// .createBImage(img0.width/5, img0.height/5)
 
     val bestPolynomials = createArrayList(3) { Polynomial() }

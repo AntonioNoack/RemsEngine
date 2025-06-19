@@ -15,8 +15,8 @@ object VideoCacheImpl {
     fun generateVideoFrames(key: VideoFramesKey, result: AsyncCacheData<VideoSlice>) {
         val file = key.file
         val scale = key.scale
-        val signature = SignatureCache[file, false]?.waitFor()?.name
-        val meta = MediaMetadata.getMeta(file, signature, false)
+        val signature = SignatureCache[file].waitFor()?.name
+        val meta = MediaMetadata.getMeta(file, signature).waitFor()
         if (meta == null) {
             RuntimeException("Meta was not found for $key!").printStackTrace()
             result.value = null

@@ -69,7 +69,7 @@ fun main() {
                         mesh.draw(null, shader, 0, Mesh.drawDebugLines)
                     } else {
                         // old method, uses specialized shader
-                        val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!
+                        val buffer = SVGMeshCache[srcFile, imageTimeout].waitFor()!!
                         val white = TextureLib.whiteTexture
                         DrawSVGs.draw3DSVG(
                             transform, buffer, white,

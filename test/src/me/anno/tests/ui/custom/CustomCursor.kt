@@ -8,7 +8,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.res
 
 fun main() {
-    val image = ImageCache[res.getChild("icon.png"), false]!!
+    val image = ImageCache[res.getChild("icon.png")].waitFor()!!
     val cursor = Cursor(image.resized(32, 32, true))
     val ui = object : Panel(style) {
         override fun getCursor() = cursor

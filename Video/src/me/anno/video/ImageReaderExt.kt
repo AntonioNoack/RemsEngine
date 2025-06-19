@@ -21,34 +21,35 @@ object ImageReaderExt {
     fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) {
         val file = file.resolved()
         if (file is FileFileRef) {
-            val meta = MediaMetadata.getMeta(file, false)
-            if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-                callback.err(IOException("Meta for $file is missing video"))
-            } else if (forGPU) {
-                FFMPEGStream.getImageSequenceGPU(
-                    file, signature, meta.videoWidth, meta.videoHeight,
-                    frameIndex(meta), 1, meta.videoFPS,
-                    meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
-                        val frame = frames.firstOrNull()
-                        if (frame != null) {
-                            Sleep.waitUntil(true, { frame.isCreated || frame.isDestroyed }, {
-                                val image = GPUFrameImage(frame)
-                                image.flipY()
-                                callback.call(image, null)
-                            })
-                        } else callback.err(IOException("No frame was found"))
-                    }
-                )
-            } else {
-                FFMPEGStream.getImageSequenceCPU(
-                    file, signature, meta.videoWidth, meta.videoHeight,
-                    frameIndex(meta), 1, meta.videoFPS,
-                    meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
-                        val frame = frames.firstOrNull()
-                        if (frame != null) callback.call(frame, null)
-                        else callback.err(IOException("No frame was found"))
-                    }
-                )
+            MediaMetadata.getMeta(file).waitFor { meta ->
+                if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
+                    callback.err(IOException("Meta for $file is missing video"))
+                } else if (forGPU) {
+                    FFMPEGStream.getImageSequenceGPU(
+                        file, signature, meta.videoWidth, meta.videoHeight,
+                        frameIndex(meta), 1, meta.videoFPS,
+                        meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
+                            val frame = frames.firstOrNull()
+                            if (frame != null) {
+                                Sleep.waitUntil(true, { frame.isCreated || frame.isDestroyed }, {
+                                    val image = GPUFrameImage(frame)
+                                    image.flipY()
+                                    callback.call(image, null)
+                                })
+                            } else callback.err(IOException("No frame was found"))
+                        }
+                    )
+                } else {
+                    FFMPEGStream.getImageSequenceCPU(
+                        file, signature, meta.videoWidth, meta.videoHeight,
+                        frameIndex(meta), 1, meta.videoFPS,
+                        meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
+                            val frame = frames.firstOrNull()
+                            if (frame != null) callback.call(frame, null)
+                            else callback.err(IOException("No frame was found"))
+                        }
+                    )
+                }
             }
         } else {
             // todo when we have native ffmpeg, don't copy the file

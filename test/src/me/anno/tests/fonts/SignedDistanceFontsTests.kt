@@ -7,7 +7,6 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.signeddistfields.SDFCharKey
 import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.FinalRendering
 import me.anno.gpu.GFXState.useFrame
@@ -75,7 +74,7 @@ class SignedDistanceFontsTests {
         val text = "SDF Test"
         val font = Font("Verdana", 40f) // -> 181 x 50px
         // generate texture
-        val baseTexture = FontManager.getTexture(font, text, -1, -1, false)!!
+        val baseTexture = FontManager.getTexture(font, text, -1, -1).waitFor()!!
         val baseImage = baseTexture.createImage(flipY = false, withAlpha = false)
         val sdfTextMesh = SDFTextComponent(text, font, AxisAlignment.CENTER)
         sdfTextMesh.fillSpace(Matrix4x3(), AABBd())

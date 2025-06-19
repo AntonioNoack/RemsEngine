@@ -12,7 +12,7 @@ fun main() {
     dst.tryMkdirs()
     for (file in src.listChildren()) {
         if (file.lcExtension == "webp") {
-            println(getMeta(file, false))
+            println(getMeta(file).waitFor())
             val image = ImageIO.read(file.inputStreamSync())
             dst.getChild(file.nameWithoutExtension + ".png")
                 .outputStream().use {
@@ -20,5 +20,5 @@ fun main() {
                 }
         }
     }
-    println(getMeta(downloads.getChild("2d/animated-webp.webp"), false))
+    println(getMeta(downloads.getChild("2d/animated-webp.webp")).waitFor())
 }

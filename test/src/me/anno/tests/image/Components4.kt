@@ -11,7 +11,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     val src = pictures.getChild("Anime/90940211_p0_master1200.jpg/000a.png")
     val dst = desktop.getChild(src.name)
-    val image = ImageCache[src, false]!!
+    val image = ImageCache[src].waitFor()!!
     println(image)
     image.write(dst)
 }

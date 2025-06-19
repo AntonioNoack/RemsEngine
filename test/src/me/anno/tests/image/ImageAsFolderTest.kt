@@ -30,7 +30,7 @@ class ImageAsFolderTest {
     val base = IntImage(1, 4, intArrayOf(red, green, blue, white), true)
 
     fun expectImage(colors: IntArray, file: FileReference, expectedClass: KClass<*>) {
-        val loadedImage = ImageCache[file, false]
+        val loadedImage = ImageCache[file].waitFor()
         assertNotNull(loadedImage)
         assertIs(expectedClass, loadedImage)
         assertEquals(colors, loadedImage!!.asIntImage().data)

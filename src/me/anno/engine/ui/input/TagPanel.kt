@@ -12,7 +12,7 @@ import me.anno.utils.types.Floats.toIntOr
 
 class TagPanel(name: String, style: Style) : TextPanel(name, style) {
 
-    private val texture get() = TextureCache[res.getChild("textures/Cross.png"), true]
+    private val texture get() = TextureCache[res.getChild("textures/Cross.png")].value
     private val tagsPanel get() = parent?.parent as? TagsPanel
 
     override fun calculateSize(w: Int, h: Int) {

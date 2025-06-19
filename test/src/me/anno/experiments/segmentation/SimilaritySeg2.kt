@@ -19,7 +19,7 @@ import kotlin.math.min
 fun main(){
 
     val maxError = 0.1f
-    val image = ImageCache[OS.pictures.getChild("Anime/img (3).webp"), false]!!
+    val image = ImageCache[OS.pictures.getChild("Anime/img (3).webp")].waitFor()!!
         .asIntImage()
 
     val transformIntoYuv = false // true makes things even worse, idk why...

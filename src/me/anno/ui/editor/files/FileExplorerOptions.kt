@@ -1,12 +1,7 @@
 package me.anno.ui.editor.files
 
-import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.thumbs.Thumbs
 import me.anno.input.Clipboard.setClipboardContent
-import me.anno.input.Key
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -19,7 +14,6 @@ import me.anno.ui.base.image.ImagePanel
 import me.anno.ui.base.image.VideoPanel
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.files.OpenFileExternally
-import kotlin.math.max
 
 object FileExplorerOptions {
 
@@ -143,9 +137,8 @@ object FileExplorerOptions {
     }
 
 
-
     fun openImageViewerImpl(windowStack: WindowStack, files: List<FileReference>, style: Style) {
-        val nullMeta = getMeta(files.first(), false)
+        val nullMeta = getMeta(files.first()).waitFor()
         val deep = style.getChild("deep")
         val imagePanel = if (nullMeta != null && nullMeta.hasVideo && nullMeta.videoFrameCount > 1) {
             // todo switch between videos
@@ -155,14 +148,15 @@ object FileExplorerOptions {
         }
         val stack = PanelStack(deep)
         stack.add(imagePanel)
-        stack.add(TextButton(NameDesc("Close"), style)
-            .addLeftClickListener(Menu::close)
-            .apply {
-                alignmentX = AxisAlignment.MIN
-                alignmentY =
-                    if (imagePanel is ImagePanel) AxisAlignment.MAX
-                    else AxisAlignment.MIN
-            })
+        stack.add(
+            TextButton(NameDesc("Close"), style)
+                .addLeftClickListener(Menu::close)
+                .apply {
+                    alignmentX = AxisAlignment.MIN
+                    alignmentY =
+                        if (imagePanel is ImagePanel) AxisAlignment.MAX
+                        else AxisAlignment.MIN
+                })
         windowStack.push(stack)
         imagePanel.requestFocus()
     }

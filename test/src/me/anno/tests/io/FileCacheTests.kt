@@ -21,7 +21,7 @@ class FileCacheTests {
     ) {
 
         fun getValue(src: String, async: Boolean): String? {
-            val cacheValue = getEntry(src, TIMEOUT_MILLIS, async, ::generateFile)
+            val cacheValue = getEntry(src, TIMEOUT_MILLIS, ::generateFile)
             if (!async && cacheValue != null) cacheValue.waitFor()
             return cacheValue?.value
         }

@@ -14,7 +14,7 @@ import me.anno.utils.OS.res
 fun createUVCheckerImage(): IntImage {
 
     // load texture with numbers
-    val numbers = ImageCache[res.getChild("textures/dig8.png"), false]!!
+    val numbers = ImageCache[res.getChild("textures/dig8.png")].waitFor()!!
     val cw = 27 // character size in <numbers>
     val ch = 37
     val co = 17 // character offset from top, ~ch/2
