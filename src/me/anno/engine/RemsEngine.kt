@@ -150,7 +150,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
 
         val bottom = CustomList(false, style).apply { weight = 0.3f }
         bottom.add(CustomContainer(ECSFileExplorer(projectFile, style), library, style))
-        bottom.add(CustomContainer(ECSFileExplorer(OS.documents, style), library, style))
+        // bottom.add(CustomContainer(ECSFileExplorer(OS.documents, style), library, style))
         customUI.add(bottom)
 
         ECSSceneTabs.currentTab?.applyRadius(sceneView.renderView)

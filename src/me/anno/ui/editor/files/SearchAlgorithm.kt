@@ -1,22 +1,23 @@
 package me.anno.ui.editor.files
 
 import me.anno.cache.AsyncCacheData
+import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.engine.Events.addEvent
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.ui.base.Search
-import me.anno.utils.assertions.assertTrue
+import me.anno.utils.Sleep
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 
 object SearchAlgorithm {
 
     private class ResultSet(
         val self: FileExplorer, val id: Int,
-        val newFiles: List<String>, val newSearch: Search
+        val newFiles: List<String>, val newSearch: Search,
+        val whenDone: () -> Unit
     ) {
 
-        val refreshThreshold = 64
-        var numShownFiles = 0
+        val refreshThreshold = 4
         val toBeShown = ArrayList<FileReference>(refreshThreshold)
         var isFirstCall = true
 
@@ -32,28 +33,20 @@ object SearchAlgorithm {
             return self.searchTask.id.get() == id
         }
 
-        fun removeOldFiles() {
-            addEventIfActive {
-                self.removeOldFiles()
-                assertTrue(self.content2d.children.isEmpty())
-                val parent = self.folder.getParent()
-                if (self.shouldShowFile(parent)) {
-                    // option to go up a folder
-                    self.content2d += self.createEntry(true, parent)
-                }
-            }
-        }
-
         fun add(file: FileReference?) {
             if (isFirstCall) {
-                removeOldFiles()
+                addEventIfActive {
+                    self.removeOldFiles()
+                }
+                val root = self.folder.getParent()
+                if (root != InvalidRef) toBeShown.add(root)
                 isFirstCall = false
             }
-            if (file != null) {
+            if (file != null && self.shouldShowFile(file)) {
                 toBeShown.add(file)
             }
-            if (file == null || toBeShown.size >= numShownFiles + refreshThreshold) {
-                if (pushed.incrementAndGet() == 1) {
+            if (file == null || toBeShown.size >= self.content2d.children.size + refreshThreshold) {
+                if (file == null || pushed.incrementAndGet() == 1) {
                     pushResults(file == null)
                 }
             }
@@ -61,36 +54,34 @@ object SearchAlgorithm {
 
         private val pushed = AtomicInteger()
 
-        fun pushResults(wasLastFile: Boolean) {
-            addEventIfActive {
+        private fun pushResults(wasLastFile: Boolean) {
+            addEvent {
                 pushed.decrementAndGet()
-                // check if the folder is still the same
-                synchronized(this) {
-                    val endIndex = toBeShown.size
-                    for (idx in numShownFiles until endIndex) {
-                        val fileI = toBeShown[idx]
-                        if (self.shouldShowFile(fileI)) {
-                            val entry = self.createEntry(false, fileI)
-                            self.content2d += entry
+                if (isActive()) {
+                    // check if the folder is still the same
+                    synchronized(this) {
+                        val endIndex = toBeShown.size
+                        for (idx in self.content2d.children.size until endIndex) {
+                            val fileI = toBeShown[idx]
+                            if (idx == self.content2d.children.size) {
+                                val isParent = idx == 0 && fileI == self.folder.getParent()
+                                self.content2d += self.createEntry(isParent, fileI)
+                            }
                         }
                     }
-                    numShownFiles = endIndex
-                    // sortEntries(self)
+                    if (wasLastFile) {
+                        self.lastFiles = newFiles
+                        self.lastSearch = newSearch
+                    }
                 }
                 if (wasLastFile) {
-                    self.lastFiles = newFiles
-                    self.lastSearch = newSearch
+                    whenDone(self, whenDone)
                 }
             }
         }
 
-        fun finish(whenDone: () -> Unit) {
+        fun finish() {
             add(null)
-            addEvent {
-                thread(name = "Search-Sorting") {
-                    whenDone(self, whenDone)
-                }
-            }
         }
     }
 
@@ -138,11 +129,19 @@ object SearchAlgorithm {
 
     private fun createResultsImpl(self: FileExplorer, id: Int, whenDone: () -> Unit) {
         val childrenResult = AsyncCacheData<List<FileReference>>()
-        val folder = self.folder
-        folder.listChildren(childrenResult)
-        childrenResult.waitFor { children ->
-            val children2 = children?.filter { !it.isHidden } ?: emptyList()
-            createResultImpl2(self, children2, id, whenDone)
+        self.folder.listChildren(childrenResult)
+        Sleep.waitUntil(true, {
+            childrenResult.retryHasValue() || id != self.searchTask.id.get()
+        }) {
+            if (id != self.searchTask.id.get()) {
+                // calculation after us wants to continue;
+                // we shouldn't block it
+                whenDone()
+            } else {
+                val children1 = childrenResult.value
+                val children2 = children1?.filter { !it.isHidden } ?: emptyList()
+                createResultImpl2(self, children2, id, whenDone)
+            }
         }
     }
 
@@ -153,13 +152,14 @@ object SearchAlgorithm {
         val lastSearch = self.lastSearch
 
         if (self.lastFiles != newFiles || lastSearch == null || !lastSearch.containsAllResultsOf(newSearch)) {
-            val resultSet = ResultSet(self, id, newFiles, newSearch)
+            val resultSet = ResultSet(self, id, newFiles, newSearch, whenDone)
             if (newSearch.matchesEverything()) {
-                addEverything(resultSet, childFiles, self, whenDone)
+                addEverything(resultSet, childFiles)
             } else {
                 // this may be expensive
-                thread(name = "SearchResults") {
-                    addSearching(resultSet, childFiles, self, newSearch, whenDone)
+                runOnNonGFXThread("SearchResults") {
+                    addSearching(resultSet, childFiles, newSearch)
+                    println("finished async $id")
                 }
             }
         } else {
@@ -167,28 +167,22 @@ object SearchAlgorithm {
         }
     }
 
-    private fun addEverything(
-        resultSet: ResultSet, childFiles: List<FileReference>, self: FileExplorer,
-        whenDone: () -> Unit
-    ) {
+    private fun addEverything(resultSet: ResultSet, childFiles: List<FileReference>) {
         for (i in childFiles.indices) {
             resultSet.add(childFiles[i])
         }
-        resultSet.finish(whenDone)
+        resultSet.finish()
     }
 
-    private fun addSearching(
-        resultSet: ResultSet, childFiles: List<FileReference>, self: FileExplorer,
-        newSearch: Search, whenDone: () -> Unit
-    ) {
+    private fun addSearching(resultSet: ResultSet, childFiles: List<FileReference>, newSearch: Search) {
         for (i in childFiles.indices) {
             val file = childFiles[i]
             if (newSearch.matches(file.name)) {
                 resultSet.add(file)
             }
         }
-        indexRecursively(childFiles, self.searchDepth, newSearch, resultSet)
-        resultSet.finish(whenDone)
+        indexRecursively(childFiles, resultSet.self.searchDepth, newSearch, resultSet)
+        resultSet.finish()
     }
 
     private fun filterExistingFiles(self: FileExplorer, newSearch: Search, whenDone: () -> Unit) {
@@ -200,13 +194,7 @@ object SearchAlgorithm {
         whenDone(self, whenDone)
     }
 
-    private fun sortEntries(self: FileExplorer) {
-        // sorting outside main thread is more performant, but could be dangerous
-        self.content2d.children.sortWith(self.sorter)
-    }
-
     fun whenDone(self: FileExplorer, whenDone: () -> Unit) {
-        sortEntries(self)
 
         // reset query time
         self.isValid = 5f

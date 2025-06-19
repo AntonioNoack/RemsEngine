@@ -23,7 +23,10 @@ class StorageFile(val index: Int) {
     fun rebuildSortedFiles() {
         sortedFiles.clear()
         for (folder in folders) {
-            sortedFiles.addAll(folder.files.values)
+            val files = folder.files
+            synchronized(files) {
+                sortedFiles.addAll(files.values)
+            }
         }
         sortedFiles.sortBy { it.range.first }
     }

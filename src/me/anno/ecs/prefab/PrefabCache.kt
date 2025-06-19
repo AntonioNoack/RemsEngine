@@ -333,12 +333,14 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
     }
 
     private fun notifyLink(resource: InnerLinkFile) {
-        LOGGER.debug("[link] {} -> {}", resource, resource.link)
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("[Link] {} -> {}", resource, resource.link)
+        }
     }
 
     private fun loadPrefabPair(key: FileKey, result: AsyncCacheData<PrefabPair>) {
         val (file: FileReference, lastModified: Long) = key
-        LOGGER.info("Loading {}@{}", file, lastModified)
+        // LOGGER.info("Loading {}@{}", file, lastModified)
         ensureClasses()
         loadPrefab4(file) { loaded, e ->
             val pair = PrefabPair(file)

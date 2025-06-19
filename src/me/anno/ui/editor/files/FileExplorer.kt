@@ -207,8 +207,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         }
     }
 
-    // todo call this, when the folder is changed and when sorting changes
-    val sorter = Comparator<Panel> { p0, p1 ->
+    private val sorter = Comparator<Panel> { p0, p1 ->
 
         p0 as FileExplorerEntry
         p1 as FileExplorerEntry
@@ -427,6 +426,9 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     override fun onUpdate() {
         super.onUpdate()
+
+        content2d.children.sortWith(sorter)
+
         if (folder != lastFolder) {
             saveClosestFile()
             lastFolder = folder
@@ -644,13 +646,12 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             if (folder == InvalidRef) return
             if (!canSensiblyEnter(folder)) {
                 folder = folder.getParent()
-            } else {
-                addEvent {
-                    history.add(folder)
-                    searchBar.setValue("", true)
-                    invalidate(true)
-                }
-            }
+            } else break
+        }
+        addEvent {
+            history.add(folder)
+            searchBar.setValue("", true)
+            invalidate(true)
         }
     }
 

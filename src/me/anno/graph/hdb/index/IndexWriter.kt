@@ -27,9 +27,12 @@ class IndexWriter(stream: Writer) : JsonWriter(stream) {
         write(sf.index)
         attr("f")
         writeObject {
-            for ((hash, file) in folder.files) {
-                attr(hash.toString())
-                writeFile(file)
+            val files = folder.files
+            synchronized(files) {
+                for ((hash, file) in files) {
+                    attr(hash.toString())
+                    writeFile(file)
+                }
             }
         }
     }

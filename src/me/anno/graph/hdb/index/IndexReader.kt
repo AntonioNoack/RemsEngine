@@ -15,7 +15,10 @@ class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> S
             when (name) {
                 "f" -> scanObject { key ->
                     val hash = key.toLongOrDefault(-1L)
-                    folder.files[hash] = readFile()
+                    val files = folder.files
+                    synchronized(files) {
+                        files[hash] = readFile()
+                    }
                 }
                 "c" -> scanArray {
                     val child = Folder("?")
@@ -33,7 +36,11 @@ class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> S
         }
         val sf = folder.storageFile
         if (sf != null) {
-            sf.size = max(sf.size, folder.files.values.maxOfOrNull { it.range.last + 1 } ?: 0)
+            val files = folder.files
+            val maxBytePosition = synchronized(files) {
+                files.values.maxOfOrNull { it.range.last } ?: -1
+            }
+            sf.size = max(sf.size, maxBytePosition + 1)
         }
     }
 

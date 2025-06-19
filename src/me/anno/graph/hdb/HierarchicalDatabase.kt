@@ -78,9 +78,9 @@ class HierarchicalDatabase(
     }
 
     fun storeIndex() {
-        synchronized(this) {
-            indexFile.outputStream(false).use { stream ->
-                stream.writer().use { writer ->
+        indexFile.outputStream(false).use { stream ->
+            stream.writer().use { writer ->
+                synchronized(this) {
                     IndexWriter(writer).writeFolder(root)
                 }
             }
@@ -142,8 +142,11 @@ class HierarchicalDatabase(
         }
         // clean up
         val numFilesRemoved = if (useTimeout) {
-            folder.files.removeIf { (_, file) ->
-                file.lastAccessedMillis < lastValidTime
+            val files = folder.files
+            synchronized(files) {
+                files.removeIf { (_, file) ->
+                    file.lastAccessedMillis < lastValidTime
+                }
             }
         } else 0
         val numChildrenRemoved = folder.children.removeIf { (_, child) ->
@@ -295,7 +298,8 @@ class HierarchicalDatabase(
             deleteBecauseCorrupted(sf)
         }
 
-        folder.files.remove(hash)
+        val files = folder.files
+        synchronized(files) { files.remove(hash) }
         val file = File(System.currentTimeMillis(), value.range)
 
         val (type, data) = FileAllocation.insert(
@@ -303,7 +307,7 @@ class HierarchicalDatabase(
             value.bytes, value.range,
             oldData.size, oldData, true
         )
-        folder.files[hash] = file
+        synchronized(files) { folder.files[hash] = file }
 
         val file1 = getFile(sf.index)
         sf.size = data.size
@@ -324,7 +328,10 @@ class HierarchicalDatabase(
     private fun deleteBecauseCorrupted(sf: StorageFile) {
         synchronized(sf) {
             for (folder in sf.folders) {
-                folder.files.removeIf { (_, file) -> !file.range.isEmpty() }
+                val files = folder.files
+                synchronized(files) {
+                    files.removeIf { (_, file) -> !file.range.isEmpty() }
+                }
             }
             sf.sortedFiles.clear()
             sf.sortedRanges.clear()
@@ -384,7 +391,9 @@ class HierarchicalDatabase(
             for (i in path.indices) {
                 folder = folder.children[path[i]] ?: return false
             }
-            return if (folder.files.remove(hash) != null) {
+            val files = folder.files
+            val changed = synchronized(files) { files.remove(hash) != null }
+            return if (changed) {
                 optimizeStorage(folder)
                 true
             } else false
