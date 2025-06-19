@@ -8,11 +8,14 @@ import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.Reference
 import me.anno.io.files.inner.InnerLinkFile
+import me.anno.io.files.inner.InnerPrefabFile
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.mesh.Shapes
 import me.anno.utils.Color.white
 import me.anno.utils.InternalAPI
@@ -44,8 +47,8 @@ object DefaultAssets {
     // materials
     val whiteMaterial = Material().noVertexColors()
     val mirrorMaterial = Material.metallic(white, 0f).noVertexColors()
-    val silverMaterial =  Material.metallic(0xe5e5e5, 0f).noVertexColors()
-    val steelMaterial =  Material.metallic(0x4c4c4c, 0.2f).noVertexColors()
+    val silverMaterial = Material.metallic(0xe5e5e5, 0f).noVertexColors()
+    val steelMaterial = Material.metallic(0x4c4c4c, 0.2f).noVertexColors()
     val goldenMaterial = Material.metallic(0xf5ba6c, 0.2f).noVertexColors()
     val glassMaterial = Material.metallic(white, 0f).noVertexColors().apply {
         diffuseBase.w = 0.5f
@@ -64,25 +67,25 @@ object DefaultAssets {
     }
 
     private fun registerMeshes() {
-        register("meshes/Cube.json", "Mesh", flatCube.ref)
-        register("meshes/SmoothCube.json", "Mesh", smoothCube.ref)
-        register("meshes/CylinderY.json", "Mesh", cylinderY11.ref)
-        register("meshes/UVSphere.json", "Mesh", uvSphere.ref)
-        register("meshes/IcoSphere.json", "Mesh", icoSphere.ref)
-        register("meshes/PlaneY.json", "Mesh", plane.ref)
+        register("meshes/Cube.json", "Mesh", flatCube)
+        register("meshes/SmoothCube.json", "Mesh", smoothCube)
+        register("meshes/CylinderY.json", "Mesh", cylinderY11)
+        register("meshes/UVSphere.json", "Mesh", uvSphere)
+        register("meshes/IcoSphere.json", "Mesh", icoSphere)
+        register("meshes/PlaneY.json", "Mesh", plane)
     }
 
     private fun registerMaterials() {
-        register("materials/Default.json", "Material", defaultMaterial.ref)
-        register("materials/White.json", "Material", whiteMaterial.ref)
-        register("materials/Mirror.json", "Material", mirrorMaterial.ref)
-        register("materials/Golden.json", "Material", goldenMaterial.ref)
-        register("materials/Silver.json", "Material", silverMaterial.ref)
-        register("materials/Steel.json", "Material", steelMaterial.ref)
-        register("materials/Glass.json", "Material", glassMaterial.ref)
-        register("materials/Black.json", "Material", blackMaterial.ref)
-        register("materials/Emissive.json", "Material", emissiveMaterial.ref)
-        register("materials/UVDebug.json", "Material", uvDebugMaterial.ref)
+        register("materials/Default.json", "Material", defaultMaterial)
+        register("materials/White.json", "Material", whiteMaterial)
+        register("materials/Mirror.json", "Material", mirrorMaterial)
+        register("materials/Golden.json", "Material", goldenMaterial)
+        register("materials/Silver.json", "Material", silverMaterial)
+        register("materials/Steel.json", "Material", steelMaterial)
+        register("materials/Glass.json", "Material", glassMaterial)
+        register("materials/Black.json", "Material", blackMaterial)
+        register("materials/Emissive.json", "Material", emissiveMaterial)
+        register("materials/UVDebug.json", "Material", uvDebugMaterial)
     }
 
     private fun registerTextures() {
@@ -92,6 +95,16 @@ object DefaultAssets {
 
     fun register(name: String, type: String, file: FileReference) {
         val file1 = Reference.registerStatic(InnerLinkFile(name, name, FileRootRef, file))
-        assets.getOrPut(type) { HashSet() }.add(file1)
+        assets.getOrPut(type, ::HashSet).add(file1)
+    }
+
+    fun register(name: String, type: String, value: PrefabSaveable) {
+        val file = value.ref
+        if (file is InnerTmpPrefabFile) {
+            // replace the link in favor of us always using the proper static path in the future
+            val prefab = file.prefab
+            val newFile = Reference.registerStatic(InnerPrefabFile(name, name, FileRootRef, prefab))
+            prefab.sourceFile = newFile // just in case, not strictly needed
+        } else register(name, type, file)
     }
 }

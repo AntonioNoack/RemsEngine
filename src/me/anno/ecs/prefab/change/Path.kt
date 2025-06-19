@@ -2,10 +2,10 @@ package me.anno.ecs.prefab.change
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
+import me.anno.maths.Maths
 import me.anno.utils.types.NumberFormatter.reverse
 import me.anno.utils.types.Strings.toInt
 import org.apache.logging.log4j.LogManager
-import java.util.concurrent.ThreadLocalRandom
 
 /**
  * marks where a change (add or set) shall be applied;
@@ -245,16 +245,21 @@ class Path(
             return builder.toString()
         }
 
-        private const val randomIdChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz--"
+        private const val randomIdChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz=-"
         fun generateRandomId(): String {
-            var value = ThreadLocalRandom.current().nextLong()
+            return generateId(Maths.randomLong())
+        }
+
+        // you probably shouldn't use this function
+        fun generateId(value: Long): String {
+            var value = value
             val result = CharArray(11)
             result[0] = '#'
             for (i in 1 until result.size) {
                 result[i] = randomIdChars[(value and 63).toInt()]
                 value = value ushr 6
             }
-            return result.concatToString()
+            return String(result)
         }
 
         fun parseInt(str: String, startIndex: Int, endIndex: Int): Int {

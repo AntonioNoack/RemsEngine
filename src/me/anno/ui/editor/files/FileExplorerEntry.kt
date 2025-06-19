@@ -3,7 +3,6 @@ package me.anno.ui.editor.files
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
-import me.anno.cache.AsyncCacheData
 import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
@@ -51,6 +50,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.IsDirectoryCache
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.utils.TrashManager.moveToTrash
@@ -255,24 +255,10 @@ open class FileExplorerEntry(
     private fun getDefaultIcon() = TextureCache[iconPath, true]
 
     private fun getImage(): ITexture2D? {
+        val isDirectory = IsDirectoryCache.isDirectory(file, true)
+        if (isDirectory == null) return null
         val thumb = Thumbs[file, width, true]
         return thumb?.createdOrNull() ?: getDefaultIcon()?.createdOrNull()
-    }
-
-    fun getTexKey(): Any? {
-        return when (importType) {
-            "Video", "Audio" -> {
-                val meta = meta
-                if (meta != null) {
-                    if (meta.videoWidth > 0) {
-                        if (time == 0.0) { // not playing
-                            getImage()
-                        } else time
-                    } else getDefaultIcon()
-                } else getDefaultIcon()
-            }
-            else -> getImage()
-        }
     }
 
     private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
