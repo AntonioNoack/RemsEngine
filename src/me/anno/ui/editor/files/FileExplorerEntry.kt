@@ -52,8 +52,6 @@ import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.getReferenceAsync
-import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
@@ -96,7 +94,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.log10
@@ -118,10 +115,8 @@ open class FileExplorerEntry(
     // todo small file type (signature) icons
 
     val path = file.absolutePath
-    val ref1 get() = getReferenceAsync(path)
-
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    val ref1s get() = getReference(path)
+    val fileName = file.name
+    val file get() = getReference(path)
 
     private var startTime = 0L
 
@@ -139,7 +134,7 @@ open class FileExplorerEntry(
     var darkerBackgroundColor = mixARGB(black, background.originalColor, 0.7f)
 
     private val importType = getImportTypeByExtension(file.lcExtension)
-    private val iconPath get() = getDefaultIconPath(isParent, ref1 ?: InvalidRef, importType)
+    private val iconPath get() = getDefaultIconPath(isParent, file, importType)
 
     val isDirectory = isParent || file.isDirectory
 
@@ -180,10 +175,10 @@ open class FileExplorerEntry(
         titlePanel.canBeSeen = canBeSeen
 
         // needs to be disabled in the future, I think
-        isVisible = ref1?.isHidden != true
+        isVisible = !file.isHidden
 
         background.color = when {
-            isInFocus || ref1 in rightClickedFiles -> darkerBackgroundColor
+            isInFocus || file in rightClickedFiles -> darkerBackgroundColor
             isHovered -> hoverBackgroundColor
             else -> background.originalColor
         }
@@ -198,7 +193,7 @@ open class FileExplorerEntry(
     private fun updatePlaybackTime() {
         when (importType) {
             "Video", "Audio" -> {
-                val meta = getMeta(path, true)
+                val meta = getMeta(file, true)
                 this.meta = meta
                 if (meta != null) {
                     val w = max(width, 1)
@@ -209,7 +204,7 @@ open class FileExplorerEntry(
                     frameIndex = if (isHovered && supportsPlayback && GFX.activeWindow == GFX.focusedWindow) {
                         if (startTime == 0L) {
                             startTime = Time.nanoTime
-                            val file = getReferenceOrTimeout(path)
+                            val file = file
                             stopAnyPlayback()
                             val maxSize = min(
                                 max(meta.videoWidth, meta.videoHeight),
@@ -224,7 +219,6 @@ open class FileExplorerEntry(
                         }
                     } else {
                         startTime = 0
-                        val file = getReferenceOrTimeout(path)
                         stopPlayback(file)
                         0
                     } % maxFrameIndex
@@ -261,8 +255,7 @@ open class FileExplorerEntry(
     private fun getDefaultIcon() = TextureCache[iconPath, true]
 
     private fun getImage(): ITexture2D? {
-        val ref1 = ref1 ?: return null
-        val thumb = Thumbs[ref1, width, true]
+        val thumb = Thumbs[file, width, true]
         return thumb?.createdOrNull() ?: getDefaultIcon()?.createdOrNull()
     }
 
@@ -286,7 +279,7 @@ open class FileExplorerEntry(
         val w = x1 - x0
         val h = y1 - y0
         if (isHovered) {
-            val file = ref1 ?: InvalidRef
+            val file = file
             // todo reset time when not hovered
             val animSample = try {
                 if (when (file.lcExtension) {
@@ -506,8 +499,7 @@ open class FileExplorerEntry(
         if (isInFocus && siblings.count2 { (it.isInFocus && it is FileExplorerEntry) || it === this } > 1) {
             val files = siblings
                 .filter { it.isInFocus || it === this }
-                .mapNotNull { (it as? FileExplorerEntry)?.path }
-                .mapNotNull { getReferenceAsync(it) }
+                .mapNotNull { (it as? FileExplorerEntry)?.file }
             tooltip = "${files.count2 { it.isDirectory }} folders + ${files.count2 { !it.isDirectory }} files\n" +
                     files.sumOf { it.length() }.formatFileSize()
         } else {
@@ -537,7 +529,7 @@ open class FileExplorerEntry(
                         val ttt = StringBuilder()
                         ttt.append(file.name).append('\n')
                         ttt.append(file.length().formatFileSize())
-                        val meta = getMeta(path, true)
+                        val meta = getMeta(ref, true)
                         if (meta != null) {
                             appendMetaTTT(file, ttt, meta)
                         } else {
@@ -551,8 +543,7 @@ open class FileExplorerEntry(
                 }
             }
 
-            val ref1 = ref1
-            tooltip = if (ref1 != null) getTooltip(ref1) else "Loading..."
+            tooltip = getTooltip(file)
         }
     }
 
@@ -583,7 +574,7 @@ open class FileExplorerEntry(
 
         val t2 = System.nanoTime()
         if (t2 - t0 > 50 * MILLIS_TO_NANOS) {
-            IllegalStateException("Waiting too long (${(t1 - t0) / 1e6f} + ${(t2 - t1) / 1e6f}) for $ref1s")
+            IllegalStateException("Waiting too long (${(t1 - t0) / 1e6f} + ${(t2 - t1) / 1e6f}) for $file")
                 .printStackTrace()
         }
     }
@@ -616,7 +607,7 @@ open class FileExplorerEntry(
             val weightSum = fileStatColumns.sumOf { it.weight.toDouble() }
             val invW = available / weightSum + spacing
             val xi = x + imgSize + 3 * spacing
-            val ref1s = ref1s
+            val ref1s = file
             var sumW = 0f
             for (i in fileStatColumns.indices) {
                 val column = fileStatColumns[i]
@@ -704,7 +695,7 @@ open class FileExplorerEntry(
                 val selectedFiles = siblings
                     .filterIsInstance<FileExplorerEntry>()
                     .filter { it.isInFocus || it === this }
-                    .map { getReferenceOrTimeout(it.path) }
+                    .map { it.file }
                 val title = selectedFiles.joinToString("\n") { it.nameWithoutExtension }
                 val stringContent = selectedFiles.joinToString("\n") { it.toString() }
                 val original: Any = if (selectedFiles.size == 1) selectedFiles[0] else selectedFiles
@@ -712,7 +703,7 @@ open class FileExplorerEntry(
             }
             "Enter" -> {
                 if (explorer != null) {
-                    val file = getReferenceOrTimeout(path)
+                    val file = file
                     if (explorer.canSensiblyEnter(file)) {
                         explorer.switchTo(file)
                     } else return false
@@ -731,17 +722,17 @@ open class FileExplorerEntry(
 
     fun findInFocusReferences(): List<FileReference> {
         val hits = ArrayList<FileReference>()
-        hits.add(getReferenceOrTimeout(path))
+        hits.add(file)
         for (sibling in siblings) {
             if (sibling !== this && sibling is FileExplorerEntry && sibling.isInFocus) {
-                hits.add(getReferenceOrTimeout(sibling.path))
+                hits.add(sibling.file)
             }
         }
         return hits
     }
 
     private fun tryEntering(explorer: FileExplorer) {
-        val file = getReferenceOrTimeout(path)
+        val file = file
         if (explorer.canSensiblyEnter(file)) {
             LOGGER.info("Can enter ${file.name}? Yes!")
             explorer.switchTo(file)
@@ -771,14 +762,14 @@ open class FileExplorerEntry(
         val files = if (isInFocus) {// multiple files maybe
             siblings.filterIsInstance<FileExplorerEntry>()
                 .filter { it.isInFocus }
-                .map { getReferenceOrTimeout(it.path) }
-        } else listOf(getReferenceOrTimeout(path))
+                .map { it.file }
+        } else listOf(file)
         Clipboard.copyFiles(files)
         return null
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        val thisFile = ref1s
+        val thisFile = file
         val canPasteInto = thisFile.isDirectory
         val canReplace = files.size == 1 && !canPasteInto
         when {
@@ -810,7 +801,7 @@ open class FileExplorerEntry(
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
         if (path.isNotBlank2()) {
-            println("${Strings.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
+            println("${Strings.spaces(tabDepth * 2 + 2)} $fileName")
         }
     }
 

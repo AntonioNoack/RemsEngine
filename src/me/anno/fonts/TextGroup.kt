@@ -15,19 +15,18 @@ open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double
 
     init {
 
-        fun getOffset(previous: Int, current: Int) =
-            offsetCache.getOffset(previous, current)
-
-        var firstCodePoint = codepoints[0]
-        if (firstCodePoint == '\t'.code || firstCodePoint == '\n'.code) firstCodePoint = ' '.code
-        for (index in 1 until codepoints.size) {
-            var secondCodePoint = codepoints[index]
-            if (secondCodePoint == '\t'.code || secondCodePoint == '\n'.code) secondCodePoint = ' '.code
-            offsets[index] = charSpacing + getOffset(firstCodePoint, secondCodePoint)
-            firstCodePoint = secondCodePoint
+        if (codepoints.isNotEmpty()) {
+            var firstCodePoint = codepoints[0]
+            if (firstCodePoint == '\t'.code || firstCodePoint == '\n'.code) firstCodePoint = ' '.code
+            for (index in 1 until codepoints.size) {
+                var secondCodePoint = codepoints[index]
+                if (secondCodePoint == '\t'.code || secondCodePoint == '\n'.code) secondCodePoint = ' '.code
+                offsets[index] = charSpacing + offsetCache.getOffset(firstCodePoint, secondCodePoint)
+                firstCodePoint = secondCodePoint
+            }
+            offsets[codepoints.size] = offsetCache.getOffset(codepoints.last(), 32)
+            offsets.accumulate()
         }
-        offsets[codepoints.size] = getOffset(codepoints.last(), 32)
-        offsets.accumulate()
 
         bounds.minX = 0f
         bounds.maxX = 0f

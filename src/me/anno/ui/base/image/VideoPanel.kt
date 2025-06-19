@@ -122,16 +122,27 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
             val controls = PanelListX(style)
             val meta = MediaMetadata.getMeta(source, false)!!
             val movie = object : VideoPanel(source, meta, true, style) {
+
                 override fun onKeyTyped(x: Float, y: Float, key: Key) {
                     when (key) {
                         Key.KEY_SPACE -> stream.togglePlaying()
                         Key.KEY_PERIOD -> if (stream.isPlaying) stream.togglePlaying()
                         else stream.skipTo(max(stream.getLoopingTimeSeconds() + 1.0 / meta.videoFPS, 0.0))
                         Key.KEY_COMMA -> if (stream.isPlaying) stream.togglePlaying()
-                        else stream.skipTo(min(stream.getLoopingTimeSeconds(), meta.videoDuration) - 1.0 / meta.videoFPS)
+                        else stream.skipTo(
+                            min(
+                                stream.getLoopingTimeSeconds(),
+                                meta.videoDuration
+                            ) - 1.0 / meta.videoFPS
+                        )
                         Key.KEY_0, Key.KEY_KP_0 -> resetTransform()
                         else -> super.onKeyTyped(x, y, key)
                     }
+                }
+
+                override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+                    if (button == Key.BUTTON_LEFT) stream.togglePlaying()
+                    else super.onMouseClicked(x, y, button, long)
                 }
             }
             movie.looping = LoopingState.PLAY_LOOP

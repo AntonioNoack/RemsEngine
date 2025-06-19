@@ -3,9 +3,6 @@ package me.anno.io.files
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getRealReference
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.isAllowedWindowsPath
-import me.anno.utils.OS
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -19,13 +16,6 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(LinkFileReference::class)
-        fun isValidPath(absolutePath: String): Boolean {
-            if(absolutePath.isEmpty()) return false
-            if (OS.isWindows && !isAllowedWindowsPath(absolutePath)) {
-               return false
-            }
-            return true
-        }
     }
 
     val original: FileReference
@@ -49,20 +39,6 @@ class LinkFileReference(absolutePath: String) : FileReference(absolutePath) {
     override fun length(): Long = original.length()
     override fun delete(): Boolean = original.delete()
     override fun mkdirs(): Boolean = original.mkdirs()
-
-    override fun getParent(): FileReference {
-        if (absolutePath == BundledRef.PREFIX) return FileRootRef
-        var index = absolutePath.lastIndexOf('/')
-        val parent = if (index < 0) {
-            if (absolutePath == FileRootRef.name) InvalidRef
-            else FileRootRef
-        } else {
-            assertTrue(index != absolutePath.lastIndex, absolutePath)
-            if (index >= 2 && absolutePath[index - 1] == '/' && absolutePath[index - 2] == ':') index++
-            getReference(absolutePath.substring(0, index))
-        }
-        return parent
-    }
 
     override fun listChildren(callback: Callback<List<FileReference>>) = original.listChildren(callback)
 

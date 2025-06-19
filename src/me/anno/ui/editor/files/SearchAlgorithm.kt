@@ -2,7 +2,6 @@ package me.anno.ui.editor.files
 
 import me.anno.engine.Events.addEvent
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.ui.base.Search
 import me.anno.utils.files.Files.listFiles2
 
@@ -166,7 +165,7 @@ object SearchAlgorithm {
             val entries = self.content2d.children
             for (i in entries.indices) {
                 val entry = entries[i] as? FileExplorerEntry ?: continue
-                entry.isVisible = entry.isParent || newSearch.matches(getReferenceOrTimeout(entry.path).name)
+                entry.isVisible = entry.isParent || newSearch.matches(entry.fileName)
             }
         }
 

@@ -6,8 +6,6 @@ import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.getReferenceAsync
 import me.anno.io.files.SignatureCache
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
@@ -163,14 +161,6 @@ class MediaMetadata(val file: FileReference, val signature: String?, ri: Int) : 
         @JvmStatic
         private fun createMetadata(file: FileReference, signature: String?): MediaMetadata {
             return MediaMetadata(file, signature ?: "", 0)
-        }
-
-        @JvmStatic
-        fun getMeta(path: String, async: Boolean): MediaMetadata? {
-            val reference =
-                if (async) getReferenceAsync(path) ?: return null
-                else getReference(path)
-            return getMeta(reference, async)
         }
 
         @JvmStatic

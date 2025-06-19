@@ -13,7 +13,6 @@ import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.utils.LinkCreator
 import me.anno.language.translation.Dict
@@ -225,8 +224,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             p0.isParent -> -1
             p1.isParent -> +1
             else -> {
-                val a = p0.ref1 ?: InvalidRef
-                val b = p1.ref1 ?: InvalidRef
+                val a = p0.file
+                val b = p1.file
                 val base = clamp(fileSorting.compare(a, b), -1, +1) * (if (ascendingSorting) +1 else -1)
                 if (folderSorting == FolderSorting.MIXED) base
                 else base + p0.isDirectory.compareTo(p1.isDirectory) * folderSorting.weight
@@ -417,7 +416,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     private fun saveClosestFile() {
         // save preferred file by lastFolder
         val closestEntry = getClosestPanel()
-        val preferredFile = closestEntry?.ref1s
+        val preferredFile = closestEntry?.file
         if (preferredFile != null) {
             DefaultConfig[getClosestFileKey(lastFolder)] = preferredFile.name
         }
@@ -763,7 +762,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             Reference.invalidateListeners += { absolutePath ->
                 // go over all file explorers, and invalidate them, if they contain it, or are inside
                 // a little unspecific; works anyway
-                val parent = getReferenceOrTimeout(absolutePath).getParent()
+                val parent = getReference(absolutePath).getParent()
                 if (parent != InvalidRef) invalidate(parent)
             }
         }

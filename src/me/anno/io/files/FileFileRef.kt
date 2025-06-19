@@ -111,12 +111,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         }
     }
 
-    override fun getParent(): FileReference {
-        val parentFile = file.parentFile ?: return FileRootRef
-        return getReference(parentFile.absolutePath)
-            .ifUndefined(FileRootRef)
-    }
-
     override fun renameTo(newName: FileReference): Boolean {
         val newName = newName.resolved()
         val response = file.renameTo(

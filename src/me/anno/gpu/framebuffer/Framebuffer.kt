@@ -146,6 +146,15 @@ class Framebuffer(
         bind()
     }
 
+    private fun getDepthPointer(da: Framebuffer?): Int {
+        da ?: return -1
+        val depTex = da.depthTexture
+        if (depTex != null && GFX.supportsDepthTextures) return depTex.pointer
+        val depBuf = da.depthRenderbuffer
+        if (depBuf != null) return depBuf.pointer
+        return -1
+    }
+
     fun bind() {
 
         needsBlit = -1
@@ -153,7 +162,7 @@ class Framebuffer(
         // if the depth-attachment base changed, we need to recreate this texture
         val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
         if (da != null) {
-            val dtp = da.depthTexture?.pointer ?: da.depthRenderbuffer
+            val dtp = getDepthPointer(da)
             if (dtp != depthAttachedPtr) destroy()
             assertEquals(width, da.width)
             assertEquals(height, da.height)
@@ -162,9 +171,7 @@ class Framebuffer(
         ensure()
 
         if (da != null) {
-            val dtp = (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null)
-                ?: da.depthRenderbuffer?.pointer
-            assertEquals(dtp, depthAttachedPtr)
+            assertEquals(getDepthPointer(da), depthAttachedPtr)
         }
 
         bindFramebuffer(GL_FRAMEBUFFER, pointer)

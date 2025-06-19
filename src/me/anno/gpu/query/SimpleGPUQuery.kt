@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.maths.Maths
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Arrays.resize
 import org.lwjgl.opengl.GL46C
 import kotlin.math.max
@@ -16,7 +17,7 @@ open class SimpleGPUQuery(
     companion object {
         private const val cap = 4
         private const val capM1 = cap - 1
-        private val isTimerActive = HashSet<Int>()
+        private val isTimerActive = IntArrayList()
     }
 
     private var ids: IntArray? = null // could be inlined into four integers
@@ -40,12 +41,15 @@ open class SimpleGPUQuery(
             ids = queryIds
         }
         GL46C.glBeginQuery(target, queryIds[writeSlot.and(capM1)])
-        return isTimerActive.add(target)
+        val idx = isTimerActive.indexOf(target)
+        if (idx < 0) isTimerActive.add(target)
+        return idx < 0
     }
 
     fun stop(hasBeenActive: Boolean) {
         if (hasBeenActive && session == GFXState.session) {
-            isTimerActive.remove(target)
+            val idx = isTimerActive.indexOf(target)
+            if (idx >= 0) isTimerActive.removeAt(idx)
             GL46C.glEndQuery(target)
             update()
             writeSlot++

@@ -1,15 +1,14 @@
 package me.anno.io.files
 
-import me.anno.Time
 import me.anno.cache.CacheSection
 import me.anno.io.files.inner.temporary.InnerTmpFile
-import me.anno.maths.Maths
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 object Reference {
 
@@ -65,10 +64,11 @@ object Reference {
 
     @JvmStatic
     fun getReference(rawPath: String?): FileReference {
-        // invalid
+        // handling a few special cases:
         if (rawPath == null || rawPath.isBlank2()) return InvalidRef
-        // root
         if (rawPath == "root") return FileRootRef
+        if (rawPath == BundledRef.PREFIX) return BundledRef.origin
+        // proper resolution
         val path = sanitizePath(rawPath)
         return createQuickReference(path)
     }
@@ -80,30 +80,9 @@ object Reference {
     }
 
     private val generator = { path: String -> createReference(path) }
+    private val linkRefCache = ConcurrentHashMap<String, LinkFileReference>()
 
     @JvmStatic
-    fun getReferenceOrTimeout(str: String?, timeoutMillis: Long = 10_000): FileReference {
-        if (str == null || str.isBlank2()) return InvalidRef
-        val t1 = Time.nanoTime + timeoutMillis * Maths.MILLIS_TO_NANOS
-        while (Time.nanoTime < t1) {
-            val ref = getReferenceAsync(str)
-            if (ref != null) return ref
-        }
-        return createReference(str)
-    }
-
-    @JvmStatic
-    fun getReferenceAsync(rawPath: String?): FileReference? {
-        // invalid
-        if (rawPath == null || rawPath.isBlank2()) return InvalidRef
-        // root
-        if (rawPath == "root") return FileRootRef
-        val path = sanitizePath(rawPath)
-        val bundledRef = BundledRef.parse(path) // is cached, so it's fine to be here
-        if (bundledRef != null) return bundledRef
-        return fileCache.getEntry(path, fileTimeout, true, generator)
-    }
-
     private fun getPrefixIdx(str2: String): Int {
         val prefixIdx = str2.indexOf("://")
         return when {
@@ -114,12 +93,14 @@ object Reference {
         }
     }
 
+    @JvmStatic
     private fun needsRelativePathReplacements(str2: String): Boolean {
         return "/../" in str2 || str2.endsWith("/..") ||
                 "/./" in str2 || str2.endsWith("/.") || str2.startsWith("./") ||
                 str2.startsWith("/") || str2.endsWith("/") || str2.contains("//")
     }
 
+    @JvmStatic
     private fun replaceRelativePaths(str2: String, prefixIdx: Int): String {
         val parts = str2
             .substring(prefixIdx)
@@ -148,13 +129,15 @@ object Reference {
         return parts.joinToString("/", prefix)
     }
 
+    @JvmStatic
     fun sanitizePath(str: String): String {
         val str2 = if ('\\' in str) str.replace('\\', '/') else str
-        val str3 = if (needsRelativePathReplacements(str2)) {
-            val prefixIdx = getPrefixIdx(str2)
-            replaceRelativePaths(str2, prefixIdx)
-        } else str2
-        return str3
+        val str3 = str2.trim() // is this creating a new string if nothing needs to be done?
+        val str4 = if (needsRelativePathReplacements(str3)) {
+            val prefixIdx = getPrefixIdx(str3)
+            replaceRelativePaths(str3, prefixIdx)
+        } else str3
+        return str4
     }
 
     @JvmStatic
@@ -166,7 +149,7 @@ object Reference {
 
         // web resource
         if (isWebResource(absolutePath)) {
-            return WebRef(absolutePath, emptyMap())
+            return createWebRef(absolutePath)
         }
 
         // runtime-only resource
@@ -175,10 +158,8 @@ object Reference {
         }
 
         // resource, which is defined by always-existing object
-        val static = staticReferences[absolutePath]
-        if (static != null) {
-            return static
-        }
+        val staticRef = staticReferences[absolutePath]
+        if (staticRef != null) return staticRef
 
         // real or compressed files
         // check whether it exists -> easy then :)
@@ -192,14 +173,24 @@ object Reference {
             }
         }
 
+        return createReferenceOnLastExistingFile(absolutePath)
+    }
+
+    @JvmStatic
+    private fun createWebRef(absolutePath: String): FileReference {
+        return WebRef(absolutePath, emptyMap())
+    }
+
+    @JvmStatic
+    private fun createReferenceOnLastExistingFile(absolutePath: String): FileReference {
         // split by /, and check when we need to enter a zip file
-        val parts = absolutePath.trim().split('/', '\\')
+        val parts = absolutePath.split('/')
         val builder = StringBuilder(absolutePath)
         for (i in parts.lastIndex downTo 0) {
             val substr = builder.toString()
             if (i < parts.lastIndex && LastModifiedCache.exists(substr)) {
                 // great :), now go into that file
-                return appendPath(File(substr), i + 1, parts)
+                return appendPath(substr, i + 1, parts)
             }
             if (i > 0) {
                 var newLength = builder.length - (parts[i].length + 1)
@@ -209,6 +200,16 @@ object Reference {
             } // else builder no longer needed
         }
 
+        return createFallbackReference(absolutePath)
+    }
+
+    @JvmStatic
+    private fun appendPath(substr: String, i: Int, parts: List<String>): FileReference {
+        return appendPath(File(substr), i, parts)
+    }
+
+    @JvmStatic
+    private fun createFallbackReference(absolutePath: String): FileReference {
         // somehow, we could not find the correct file
         // it probably just is new
         LOGGER.warn("Could not find correct sub file for $absolutePath")
@@ -227,49 +228,48 @@ object Reference {
         val static = staticReferences[absolutePath]
         if (static != null) return static
 
-        // real or compressed files
-        // check whether it exists -> easy then :)
-        if (LastModifiedCache.exists(absolutePath)) {
-            return createFileFileRef(absolutePath)
+        return linkRefCache.getOrPut(absolutePath) {
+            LinkFileReference(absolutePath)
         }
-
-        if (!LinkFileReference.isValidPath(absolutePath)) {
-            return InvalidRef
-        }
-
-        return LinkFileReference(absolutePath)
     }
 
+    @JvmStatic
     private fun isWebResource(absolutePath: String): Boolean {
         return absolutePath.startsWith("http://", true) || absolutePath.startsWith("https://", true)
     }
 
+    @JvmStatic
     private fun isTemporaryFile(absolutePath: String): Boolean {
         return absolutePath.startsWith(InnerTmpFile.PREFIX)
     }
 
+    @JvmStatic
     private fun resolveTemporaryFile(absolutePath: String): FileReference {
         val tmp = InnerTmpFile.find(absolutePath)
         if (tmp == null) LOGGER.warn("$absolutePath could not be found, maybe it was created in another session, or GCed")
         return tmp ?: InvalidRef
     }
 
+    @JvmStatic
     fun isWindowsDriveLetterWithoutSlash(absolutePath: String): Boolean {
         return absolutePath.length == 2 && absolutePath[1] == ':' &&
                 (absolutePath[0] in 'A'..'Z' || absolutePath[0] in 'a'..'z')
     }
 
+    @JvmStatic
     fun isWindowsUNCPath(absolutePath: String): Boolean {
         return absolutePath.startsWith("//")
     }
 
+    @JvmStatic
     fun isAllowedWindowsPath(absolutePath: String): Boolean {
         return isWindowsDriveLetterWithoutSlash(absolutePath) ||
                 isWindowsUNCPath(absolutePath) ||
                 ":/" in absolutePath
     }
 
-    private fun createFileFileRef(absolutePath: String): FileFileRef {
+    @JvmStatic
+    private fun createFileFileRef(absolutePath: String): FileReference {
         val pathname = if (isWindowsDriveLetterWithoutSlash(absolutePath)) "$absolutePath/" else absolutePath
         return FileFileRef(File(pathname))
     }
@@ -298,6 +298,19 @@ object Reference {
             pe && ne -> "${parent.substring(0, parent.lastIndex)}$name"
             pe || ne -> "$parent$name"
             else -> "$parent/$name"
+        }
+    }
+
+    fun getParent(absolutePath: String): FileReference {
+        if (absolutePath.endsWith("://")) return FileRootRef
+        var index = absolutePath.lastIndexOf('/')
+        return if (index < 0) {
+            if (absolutePath == FileRootRef.name) InvalidRef
+            else FileRootRef
+        } else {
+            assertTrue(index != absolutePath.lastIndex, absolutePath)
+            if (index >= 2 && absolutePath[index - 1] == '/' && absolutePath[index - 2] == ':') index++
+            getReference(absolutePath.substring(0, index))
         }
     }
 }

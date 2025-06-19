@@ -136,7 +136,7 @@ object FileChooser {
                 super.onUpdate()
                 val selectedList = filterFiles(content2d.children
                     .filterIsInstance<FileExplorerEntry>()
-                    .filter { it.isInFocus }.map { it.ref1s },
+                    .filter { it.isInFocus }.map { it.file },
                     allowFiles, allowFolders, allowMultiples
                 )
                 if (selectedList.isNotEmpty() && selectedList != selected) {

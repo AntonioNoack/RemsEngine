@@ -148,7 +148,7 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
         values[size++] = value
     }
 
-    fun contains(element: Int): Boolean {
+    operator fun contains(element: Int): Boolean {
         return indexOf(element) >= 0
     }
 

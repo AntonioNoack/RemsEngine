@@ -84,8 +84,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         else this
     }
 
-    private val _hashCode = absolutePath.hashCode()
-
     var isHidden = name.startsWith('.')// hidden file in Linux, or file in unity package
 
     fun hide() {
@@ -139,7 +137,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     abstract fun mkdirs(): Boolean
 
-    abstract fun getParent(): FileReference
+    open fun getParent(): FileReference {
+        return Reference.getParent(absolutePath)
+    }
 
     abstract fun renameTo(newName: FileReference): Boolean
 
@@ -394,13 +394,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract val creationTime: Long
 
     override fun equals(other: Any?): Boolean {
-        return other is FileReference &&
-                other._hashCode == _hashCode &&
-                other.absolutePath == absolutePath
+        return other is FileReference && other.absolutePath == absolutePath
     }
 
     override fun hashCode(): Int {
-        return _hashCode
+        return absolutePath.hashCode()
     }
 
     override fun toString(): String {
