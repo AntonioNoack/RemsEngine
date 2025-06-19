@@ -73,7 +73,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
             LOGGER.warn("Missing Skeleton $dstSkeleton for retargeting")
             return null
         }
-        return AnimationCache.getMappedAnimation(this, dstSkel)
+        return AnimationCache.getMappedAnimation(this, dstSkel).waitFor()
     }
 
     fun getMappedMatrices(

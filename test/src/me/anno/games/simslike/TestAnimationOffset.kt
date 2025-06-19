@@ -28,7 +28,7 @@ fun main() {
     val dstSkeleton = SkeletonCache[mesh.skeleton]!!
     val importedAnim = AnimationCache[animFolder.getChild("Imported.json")] as ImportedAnimation
     val boneByBoneAnim = AnimationCache[animFolder.getChild("BoneByBone.json")] as BoneByBoneAnimation
-    val mappedAnimation = AnimationCache.getMappedAnimation(importedAnim, dstSkeleton)!!
+    val mappedAnimation = AnimationCache.getMappedAnimation(importedAnim, dstSkeleton).waitFor()!!
     val imported = importedAnim.getMatrix(frameIndex, boneIndex, listOf(Matrix4x3f()))
     val boneByBone = boneByBoneAnim.getMatrix(frameIndex, boneIndex, listOf(Matrix4x3f()))
     println("imported: $imported") // looks good

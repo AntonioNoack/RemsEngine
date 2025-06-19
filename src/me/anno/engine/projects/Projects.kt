@@ -37,7 +37,7 @@ object Projects {
                             LOGGER.debug("Reading {}", configFile)
                             val config = JsonStringReader.readFirstOrNull(
                                 configFile, folder, GameEngineProject::class, true
-                            )
+                            ).waitFor()
                             if (config != null) {
                                 projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
                                 usedFiles += folder

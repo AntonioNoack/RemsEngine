@@ -23,7 +23,6 @@ object EditorState {
     var projectFile: FileReference = InvalidRef
     var prefabSource: FileReference = InvalidRef
     val prefab get() = PrefabCache[prefabSource]
-    val prefabAsync get() = PrefabCache[prefabSource, true]
 
     // todo box selecting with shift
 

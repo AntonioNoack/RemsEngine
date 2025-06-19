@@ -126,32 +126,34 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         }
     }
 
-    fun <W : Any> mapNext(mapping: (V) -> W): AsyncCacheData<W> {
+    fun <W : Any> mapNext(mapping: (V) -> W?): AsyncCacheData<W> {
         val result = AsyncCacheData<W>()
-        waitFor { v ->
-            result.value = if (v != null) mapping(v) else null
-        }
+        mapResult(result, mapping)
         return result
     }
 
-    fun <W : Any> mapResult(result: AsyncCacheData<W>, mapping: (V) -> W) {
-        waitFor { v ->
-            result.value = if (v != null) mapping(v) else null
-        }
+    fun <W : Any> mapNextNullable(mapping: (V?) -> W?): AsyncCacheData<W> {
+        val result = AsyncCacheData<W>()
+        waitFor { ownValue -> result.value = mapping(ownValue) }
+        return result
+    }
+
+    fun <W : Any> mapResult(result: AsyncCacheData<W>, mapping: (V) -> W?) {
+        waitFor { ownValue -> result.value = if (ownValue != null) mapping(ownValue) else null }
     }
 
     fun <W : Any> onSuccess(result: AsyncCacheData<*>, mapping: (V) -> W) {
-        waitFor { v ->
-            if (v != null) mapping(v)
+        waitFor { ownValue ->
+            if (ownValue != null) mapping(ownValue)
             else result.value = null
         }
     }
 
-    fun <W : Any> map2(mapping: (V) -> AsyncCacheData<W>): AsyncCacheData<W> {
+    fun <W : Any> mapNext2(mapping: (V) -> AsyncCacheData<W>): AsyncCacheData<W> {
         val result = AsyncCacheData<W>()
-        waitFor { v ->
-            if (v != null) {
-                mapping(v).waitFor(result)
+        waitFor { value ->
+            if (value != null) {
+                mapping(value).waitFor(result)
             } else result.value = null
         }
         return result

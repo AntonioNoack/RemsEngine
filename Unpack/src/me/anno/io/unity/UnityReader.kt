@@ -45,9 +45,8 @@ object UnityReader {
 
     fun loadUnityFile(resource: FileReference, callback: Callback<Saveable>) {
         readAsAsset(resource) { json, e ->
-            if (json != null) {
-                callback.call(PrefabCache.loadJson(json), null)
-            } else callback.err(e)
+            if (json != null) PrefabCache.loadJson(json).waitFor(callback)
+            else callback.err(e)
         }
     }
 

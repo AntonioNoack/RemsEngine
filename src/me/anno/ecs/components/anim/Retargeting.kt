@@ -109,7 +109,7 @@ class Retargeting : PrefabSaveable(), Renderable {
             this.srcPreviewData = srcPreviewData
             fillSkeletonAnimated(pipeline, transform, srcPreviewData)
             val mappedAnimation = mappedAnimations.firstOrNull { it.first == sa }?.second
-                ?: getMappedAnimation(sa, dstSkeleton1)
+                ?: getMappedAnimation(sa, dstSkeleton1).waitFor()
             if (mappedAnimation != null) {
                 if (dstPreviewData == null) dstPreviewData = Animation.PreviewData(
                     dstSkeleton1, mappedAnimation

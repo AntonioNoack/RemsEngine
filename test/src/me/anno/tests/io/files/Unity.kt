@@ -46,7 +46,7 @@ fun FileReference.printTree(depth: Int, maxDepth: Int) {
 }
 
 fun testRendering(file: FileReference, size: Int = 512, index: Int) {
-    val prefab = PrefabCache[file]!!
+    val prefab = PrefabCache[file].waitFor()!!
     LOGGER.debug(JsonFormatter.format(prefab.toString()))
     val sample = prefab.createInstance()
     LOGGER.debug(sample)

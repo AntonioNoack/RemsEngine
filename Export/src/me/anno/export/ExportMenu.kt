@@ -41,7 +41,8 @@ class ExportMenu(val configFile: FileReference, val presetName: String?) {
 
     fun loadPresets(): List<ExportSettings> {
         return try {
-            JsonStringReader.read(configFile, workspace, true)
+            (JsonStringReader.read(configFile, workspace, true)
+                .waitFor() ?: emptyList())
                 .filterIsInstance2(ExportSettings::class)
                 .sortedByDescending { it.lastUsed }
         } catch (e: IOException) {

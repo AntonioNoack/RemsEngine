@@ -93,7 +93,7 @@ class GeneralFileEncodingTest {
         val signature = SignatureCache[tmpFile].waitFor()?.name
         assertEquals(expectedSignature, signature)
 
-        val prefab = PrefabCache[tmpFile]!!
+        val prefab = PrefabCache[tmpFile].waitFor()!!
         val sample = prefab.getSampleInstance()
         assertIs(Entity::class, sample)
         assertEquals("RemsEngine", sample.name)

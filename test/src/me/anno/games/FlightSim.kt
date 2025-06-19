@@ -141,7 +141,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
 
     val folder = "E:/Assets/Sources/POLYGON_War_Pack_Source_Files.zip"
     val meshFile = getReference("$folder/FBX/SM_Veh_Plane_American_01.fbx")
-    val plane0 = PrefabCache[meshFile, false]!!.createInstance() as Entity // "RootNode"
+    val plane0 = PrefabCache[meshFile].waitFor()!!.createInstance() as Entity // "RootNode"
     val plane = plane0.children.first()
 
     val meshTex = getReference("$folder/Textures/American_Fighter_Texture.png")

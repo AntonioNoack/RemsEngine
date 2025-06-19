@@ -138,7 +138,7 @@ fun main() {
         }
 
         fun loadSampleInstance() {
-            prefab = PrefabCache[tmpFile] ?: prefab
+            prefab = PrefabCache[tmpFile].waitFor() ?: prefab
             refreshSampleInstance()
         }
         loadSampleInstance()

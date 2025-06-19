@@ -29,7 +29,7 @@ fun main() {
     //  -> if they are fine, their retargeted versions shouldn't have any translations either
     // -> solution: we did need scales in our implementation
     for ((i, anim1f) in animFiles1.withIndex()) {
-        val instance = PrefabCache[animFiles]!!.createInstance() as Entity
+        val instance = PrefabCache[animFiles].waitFor()!!.createInstance() as Entity
         instance.name = anim1f.nameWithoutExtension
         instance.setPosition(i * 2.0, 0.0, 0.0)
         instance.forAllComponentsInChildren(AnimMeshComponent::class) {

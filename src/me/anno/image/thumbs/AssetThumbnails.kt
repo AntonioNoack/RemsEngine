@@ -483,7 +483,7 @@ object AssetThumbnails {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        PrefabCache.getPrefabInstanceAsync(srcFile) { prefab, err ->
+        PrefabCache[srcFile].waitFor { prefab, err ->
             if (prefab != null) generateAssetFrame(prefab, srcFile, dstFile, size, callback)
             else callback.err(err)
         }

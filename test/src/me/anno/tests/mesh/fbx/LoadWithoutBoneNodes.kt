@@ -8,7 +8,7 @@ import me.anno.utils.OS
 fun main() {
     OfficialExtensions.initForTests()
     val src = OS.downloads.getChild("3d/Talking On Phone.fbx")
-    println(PrefabCache.getPrefabSampleInstance(src, false)!!)
-    println(PrefabCache.getPrefabSampleInstance(src.getChild("FlatScene.json"), false)!!)
+    println(PrefabCache.getPrefabSampleInstance(src).waitFor()!!)
+    println(PrefabCache.getPrefabSampleInstance(src.getChild("FlatScene.json")).waitFor()!!)
     Engine.requestShutdown()
 }

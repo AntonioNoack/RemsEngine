@@ -12,7 +12,7 @@ fun main() {
     OfficialExtensions.initForTests()
     // we load the file using Assimp
     val src = downloads.getChild("3d/azeria/scene.gltf")
-    val source = PrefabCache.getPrefabSampleInstance(src)!!
+    val source = PrefabCache.getPrefabSampleInstance(src).waitFor()!!
     // then save it ourselves using our GLTFWriter
     val tmp = desktop.getChild("Azeria.glb")
     GLTFWriter().write(source, tmp, Callback.onSuccess {

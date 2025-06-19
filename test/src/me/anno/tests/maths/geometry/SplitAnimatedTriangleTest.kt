@@ -26,7 +26,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val plane = Planef(0f, 0f, 1f, 0f)
 
-    val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf/Scene.json")]!!
+    val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf/Scene.json")].waitFor()!!
     val sceneInstance = prefab.getSampleInstance() as Entity
     val srcAnimMesh = sceneInstance.getComponentInChildren(AnimMeshComponent::class)!!
 

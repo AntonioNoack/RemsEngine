@@ -1,6 +1,8 @@
 package me.anno.ecs.components.anim
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.DualCacheSection
+import me.anno.cache.NullCacheData
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -105,7 +107,7 @@ object Retargetings {
 
     private fun getOrCreatePrefab(srcSkeleton: FileReference, dstSkeleton: FileReference): Prefab? {
         val configReference = getConfigFile(srcSkeleton, dstSkeleton)
-        var prefab = PrefabCache[configReference]
+        var prefab = PrefabCache[configReference].waitFor()
         if (prefab == null) {
             // create new file
             prefab = Prefab("Retargeting")
@@ -199,14 +201,14 @@ object Retargetings {
         return workspace.getChild(config)
     }
 
-    fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
-        if (srcSkeleton == dstSkeleton) return null
+    fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): AsyncCacheData<Retargeting> {
+        if (srcSkeleton == dstSkeleton) return NullCacheData.get()
         return cache.getDualEntry(
             srcSkeleton.getFileKey(), dstSkeleton.getFileKey(),
             timeoutMillis
         ) { key1, key2, result ->
             val prefab = getOrCreatePrefab(key1.file, key2.file)
             result.value = prefab?.getSampleInstance() as? Retargeting
-        }.waitFor()
+        }
     }
 }

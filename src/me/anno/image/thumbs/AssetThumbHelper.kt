@@ -184,7 +184,7 @@ object AssetThumbHelper {
 
     fun listTextures(matRef: FileReference?, callback: Callback<List<FileReference>>) {
         if (matRef == null || matRef == InvalidRef) return callback.ok(emptyList())
-        MaterialCache.getAsync(matRef) { material, err ->
+        MaterialCache.get1(matRef).waitFor { material, err ->
             callback.ok(material?.listTextures() ?: emptyList())
             err?.printStackTrace()
         }

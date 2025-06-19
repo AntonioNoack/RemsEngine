@@ -10,7 +10,7 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
     val src = desktop.getChild("0.json")
-    val prefab = PrefabCache[src, false]!!
+    val prefab = PrefabCache[src].waitFor()!!
     println(prefab)
     Engine.requestShutdown()
 }

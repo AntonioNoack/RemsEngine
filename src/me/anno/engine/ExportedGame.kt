@@ -26,7 +26,7 @@ class ExportedGame(val config: StringMap) : EngineBase(
 ) {
     override fun createUI() {
         workspace = res // ok so?
-        val loaded = PrefabCache[config["firstScenePath", InvalidRef]]
+        val loaded = PrefabCache[config["firstScenePath", InvalidRef]].waitFor()
         val prefab = assertNotNull(loaded, "Missing first scene")
         val scene = prefab.createInstance()
         val windowStack = GFX.someWindow.windowStack

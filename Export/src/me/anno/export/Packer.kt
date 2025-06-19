@@ -110,7 +110,7 @@ object Packer {
     }
 
     private fun packPrefab(resource: FileReference, resourceMap: Map<FileReference, FileReference>): ByteArray? {
-        val prefab = PrefabCache[resource] ?: return null
+        val prefab = PrefabCache[resource].waitFor() ?: return null
         val encoding = FileEncoding.BINARY
         val history = prefab.history
         // to do clone the prefab before unlinking history and deleting collapsed-data??
@@ -200,7 +200,7 @@ object Packer {
         while (remaining.isNotEmpty()) {
             val source = remaining.removeLast()
             if (!isMaybePrefab(source)) continue
-            val prefab = PrefabCache[source] ?: continue
+            val prefab = PrefabCache[source].waitFor() ?: continue
             resources[source] = nextName("json")
 
             // find all references

@@ -7,6 +7,6 @@ import me.anno.utils.OS.downloads
 
 fun main() {
     OfficialExtensions.initForTests()
-    PrefabCache[downloads.getChild("3d/bunny.obj")]!!
+    PrefabCache[downloads.getChild("3d/bunny.obj")].waitFor()!!
     Engine.requestShutdown()
 }

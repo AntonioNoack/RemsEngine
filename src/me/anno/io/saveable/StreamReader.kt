@@ -2,6 +2,7 @@ package me.anno.io.saveable
 
 import me.anno.cache.AsyncCacheData
 import me.anno.io.files.FileReference
+import me.anno.utils.async.Callback.Companion.map
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -31,24 +32,23 @@ interface StreamReader {
         return reader.allInstances
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
-    fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<Saveable> {
-        // buffered is very important and delivers an improvement of 5x
-        return file.inputStreamSync().use { input: InputStream ->
+    fun read(file: FileReference, workspace: FileReference, safely: Boolean): AsyncCacheData<List<Saveable>> {
+        val result = AsyncCacheData<List<Saveable>>()
+        file.inputStream(result.map { input ->
             read(input, workspace, file.absolutePath, safely)
-        }
+        })
+        return result
     }
 
     fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<Saveable> {
         return read(data, workspace, "", safely)
     }
 
-    @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun <Type : Saveable> readFirstOrNull(
         data: FileReference, workspace: FileReference,
         clazz: KClass<Type>, safely: Boolean = true
-    ): Type? {
+    ): AsyncCacheData<Type> {
         return read(data, workspace, safely)
-            .firstInstanceOrNull2(clazz)
+            .mapNext { it.firstInstanceOrNull2(clazz) }
     }
 }

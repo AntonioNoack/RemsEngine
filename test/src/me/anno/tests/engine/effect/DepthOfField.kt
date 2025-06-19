@@ -24,7 +24,7 @@ fun main() {
     //  can be seen by setting Scale to 5-10
     OfficialExtensions.initForTests()
     val scene = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
-    val scene1 = PrefabCache[scene]!!.getSampleInstance()
+    val scene1 = PrefabCache[scene].waitFor()!!.getSampleInstance()
     testUI3("Depth Of Field") {
         EditorState.prefabSource = scene
         val sceneView = SceneView(RenderView1(PlayMode.EDITING, scene1, style), style)

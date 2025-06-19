@@ -831,7 +831,7 @@ object ComponentUI {
                         quickEditButton.setTooltip("Quick-Edit")
                         quickEditButton.addLeftClickListener {
                             val source = (property.get() as? FileReference)?.nullIfUndefined()
-                            val prefab = PrefabCache[source]
+                            val prefab = PrefabCache[source].waitFor()
                             if (prefab != null) {
                                 // todo pressing save shouldn't necessarily close the window
                                 EditorState.selectForeignPrefab(prefab)

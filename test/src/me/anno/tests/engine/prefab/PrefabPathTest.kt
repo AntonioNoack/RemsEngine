@@ -13,7 +13,7 @@ import me.anno.utils.OS.documents
 import me.anno.utils.assertions.assertEquals
 
 fun printTree(file: FileReference) {
-    val prefab = PrefabCache[file]!!
+    val prefab = PrefabCache[file].waitFor()!!
     val instance = prefab.createInstance()
     printTree(file, instance, 0)
 }

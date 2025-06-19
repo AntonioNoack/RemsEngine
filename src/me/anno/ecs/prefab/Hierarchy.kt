@@ -34,7 +34,7 @@ object Hierarchy {
             LOGGER.warn("Too many iterations for findAdd()")
             return null
         }
-        val prefab1 = PrefabCache[prefab.parentPrefabFile]
+        val prefab1 = PrefabCache[prefab.parentPrefabFile].waitFor()
         if (prefab1 != null) {
             val className = findAdd(prefab1, srcSetPath, newRecursionDepth)
             if (className != null) return className
@@ -44,7 +44,7 @@ object Hierarchy {
             for (add in adds) {
                 val prefabPath = add.prefab
                 if (prefabPath != InvalidRef) {
-                    val prefab2 = PrefabCache[prefabPath]
+                    val prefab2 = PrefabCache[prefabPath].waitFor()
                     if (prefab2 != null) {
                         val addPath = add.getSetterPath(0)
                         val newSearchPath = srcSetPath.startsWithGetRest(addPath)
@@ -98,7 +98,7 @@ object Hierarchy {
                                 dstPrefab.add(startsWithPath.parent!!, add.type, add.clazzName, add.nameId, add.prefab)
                             }// else done: this was already added via Prefab(className)
                         } else if (add.prefab != InvalidRef) {
-                            val prefab2 = PrefabCache[add.prefab]
+                            val prefab2 = PrefabCache[add.prefab].waitFor()
                             if (prefab2 != null) {
                                 val startsWithPath2 = srcPath.startsWithGetRest(herePath)
                                 if (startsWithPath2 != null) {

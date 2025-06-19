@@ -113,7 +113,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
     }
 
     fun getBuffer1(pipelineKey: PipelineKey): AsyncCacheData<AudioData> {
-        return getMeta(pipelineKey.file.file).map2 { meta ->
+        return getMeta(pipelineKey.file.file).mapNext2 { meta ->
             getBuffer0(meta, pipelineKey)
         }
     }

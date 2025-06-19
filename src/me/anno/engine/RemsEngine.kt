@@ -310,7 +310,7 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             if (selection !is List<Any?>) return
             // restore the current selection
             // reloaded prefab; must not be accessed before clearAll
-            PrefabCache.getPrefabAsync(EditorState.prefabSource) { prefab, err ->
+            PrefabCache[EditorState.prefabSource].waitFor { prefab, err ->
                 err?.printStackTrace()
                 val sample = prefab?.getSampleInstance()
                 if (prefab != null && sample != null) {

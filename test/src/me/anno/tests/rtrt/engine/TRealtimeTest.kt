@@ -61,7 +61,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
         ECSShaderLib.pbrModelShader
     )
 
-    val prefab = PrefabCache[source] ?: throw IllegalStateException("Missing $source")
+    val prefab = PrefabCache[source].waitFor() ?: throw IllegalStateException("Missing $source")
     val scene = prefab.createInstance() as Entity
     clock.stop("Loading Mesh")
 

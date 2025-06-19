@@ -267,7 +267,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
                 "ttf", "woff1", "woff2" -> addToAssetIndex(file, "Font")
                 else -> {
                     val timeout = 0L // because we don't really need it
-                    val prefab = PrefabCache[file, Prefab.maxPrefabDepth, timeout, false]
+                    val prefab = PrefabCache[file, Prefab.maxPrefabDepth, timeout].waitFor()
                     if (prefab != null) {
                         addToAssetIndex(file, prefab.clazzName)
                         setDependencies(file, prefab.dependencies)

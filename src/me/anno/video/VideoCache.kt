@@ -34,7 +34,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long,
     ): AsyncCacheData<VideoSlice> {
-        return MediaMetadata.getMeta(file).map2 { meta ->
+        return MediaMetadata.getMeta(file).mapNext2 { meta ->
             val bufferLength2 = Maths.clamp(bufferLength, 1, max(1, meta.videoFrameCount))
             val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
             val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)

@@ -218,7 +218,7 @@ class ECSSceneTab(
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when (button) {
             Key.BUTTON_LEFT -> {
-                PrefabCache.getPrefabAsync(file) { _, err ->
+                PrefabCache[file].waitFor { _, err ->
                     err?.printStackTrace()
                     try {
                         ECSSceneTabs.open(this, true)
@@ -299,7 +299,7 @@ class ECSSceneTab(
             onStart()
         }
         if (ECSSceneTabs.currentTab == this) {
-            val prefab = PrefabCache[file, true]
+            val prefab = PrefabCache[file].value
             val needsStar = prefab != null &&
                     prefab.wasModified && prefab.isWritable &&
                     prefab.sourceFile !is InnerTmpFile

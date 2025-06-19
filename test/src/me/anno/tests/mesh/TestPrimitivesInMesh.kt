@@ -13,7 +13,7 @@ import me.anno.utils.OS.downloads
 fun main() {
     OfficialExtensions.initForTests()
     val file = downloads.getChild("3d/blender_chan.glb")
-    val obj = PrefabCache[file] ?: throw IllegalStateException("Missing $file")
+    val obj = PrefabCache[file].waitFor() ?: throw IllegalStateException("Missing $file")
     val entity = obj.getSampleInstance() as Entity
     val totalNumPrimitives = entity.sumComponentsInChildren(MeshComponent::class) { comp ->
         MeshCache[comp.meshFile]!!.numPrimitives

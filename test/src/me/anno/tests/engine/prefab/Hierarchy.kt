@@ -183,7 +183,7 @@ class HierarchyTests {
         OfficialExtensions.register()
         ExtensionLoader.load()
         val scene = Prefab("Entity")
-        val added = PrefabCache[res.getChild("meshes/CuteGhost.fbx")]!!
+        val added = PrefabCache[res.getChild("meshes/CuteGhost.fbx")].waitFor()!!
         val ca = scene.adds.values.sumOf { it.size }
         val cs = scene.sets.size
         Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')

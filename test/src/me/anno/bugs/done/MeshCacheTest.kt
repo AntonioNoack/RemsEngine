@@ -22,7 +22,7 @@ fun main() {
         .add(MeshComponent(meshFile, redMaterial))
         .setScale(2f)
     val scaledFile = meshEntity.ref
-    val scaledPrefab = PrefabCache[scaledFile]!!
+    val scaledPrefab = PrefabCache[scaledFile].waitFor()!!
     val scaledEntity = scaledPrefab.createInstance() as Entity
     scaledEntity.name = "Scaled"
     val scaledMesh = MeshCache[scaledFile] as Mesh

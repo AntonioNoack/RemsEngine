@@ -86,7 +86,7 @@ class CAdd() : Change() {
         assertFalse(prefab != InvalidRef && depth < 0) { "Circular reference on $prefab" }
 
         val clazzName = clazzName
-        val loadedPrefab = PrefabCache[prefab, depth]
+        val loadedPrefab = PrefabCache[prefab, depth].waitFor()
         val newInstance = if (loadedPrefab != null) {
             synchronized(loadedPrefab.listeners) {
                 loadedPrefab.listeners.add(prefab0)

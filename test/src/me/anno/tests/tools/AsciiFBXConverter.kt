@@ -22,6 +22,6 @@ fun main() {
     )
     assertTrue(src.exists, "$src must be a valid file ")
     val dst = desktop.getChild(src.name).getSiblingWithExtension("glb")
-    val scene = PrefabCache[src]!!.getSampleInstance() as Entity
+    val scene = PrefabCache[src].waitFor()!!.getSampleInstance() as Entity
     GLTFWriter().write(scene, dst, Callback.finish { Engine.requestShutdown() })
 }

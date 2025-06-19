@@ -21,14 +21,14 @@ fun main() {
     // find two human meshes with different skeletons
     val meshFile = EngineBase.workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
     val animFile = EngineBase.workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")
-    val scene = PrefabCache[meshFile]!!.createInstance() as Entity
+    val scene = PrefabCache[meshFile].waitFor()!!.createInstance() as Entity
     val animation = animFile.getChild("animations/mixamo.com/BoneByBone.json")
     lateinit var testedComponent: AnimMeshComponent
     scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->
         mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
         testedComponent = mesh
     }
-    val retargeting = Retargetings.getRetargeting(AnimationCache[animation]!!.skeleton, testedComponent.getMesh()!!.skeleton)!!
+    val retargeting = Retargetings.getRetargeting(AnimationCache[animation]!!.skeleton, testedComponent.getMesh()!!.skeleton).waitFor()!!
     Retargetings.sampleModel = testedComponent
     Retargetings.sampleAnimation = animation
     SceneView.testSceneWithUI("Retargeting", retargeting)

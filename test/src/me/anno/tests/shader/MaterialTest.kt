@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager
 
 fun main() {
     OfficialExtensions.initForTests()
-    val prefab = PrefabCache[OS.documents.getChild("cube bricks.glb")]!!
+    val prefab = PrefabCache[OS.documents.getChild("cube bricks.glb")].waitFor()!!
     val logger = LogManager.getLogger(Material::class)
     for (change in prefab.adds) {
         logger.info(change)

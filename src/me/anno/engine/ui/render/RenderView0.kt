@@ -8,7 +8,7 @@ import me.anno.ui.Style
 class RenderView0(playMode: PlayMode, style: Style) : RenderView(playMode, style) {
     override fun getWorld(): PrefabSaveable? {
         return try {
-            EditorState.prefabAsync?.getSampleInstance()
+            EditorState.prefab.value?.getSampleInstance()
         } catch (e: Exception) {
             e.printStackTrace()
             flatCube

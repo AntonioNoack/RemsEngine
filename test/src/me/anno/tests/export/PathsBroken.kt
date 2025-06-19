@@ -10,7 +10,7 @@ fun main() {
     // -> it was an old data error, no longer happens
     OfficialExtensions.initForTests()
     val source = desktop.getChild("TestGame.jar/res/0.json")
-    val prefab = PrefabCache[source]!!
+    val prefab = PrefabCache[source].waitFor()!!
     for (add in prefab.adds.keys) {
         println("add: $add")
     }

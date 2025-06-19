@@ -81,7 +81,8 @@ class AnimGraphController : Component(), OnUpdate {
     fun loadGraph(): StateMachine? {
         if (lastGraphSource == graphSource) return graphInstance
         val graph = graphSource
-        val prefab = PrefabCache[graph, asyncLoading] ?: return null // wait
+        val prefab = PrefabCache[graph]
+            .waitFor(asyncLoading) ?: return null // wait
         lastGraphSource = graph
         graphInstance = prefab.createInstance() as? StateMachine
         return graphInstance
