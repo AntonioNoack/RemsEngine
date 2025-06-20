@@ -37,7 +37,7 @@ class AutoRefTest {
         val asText = scene.ref.readTextSync()
         val asFile = InnerTmpTextFile(asText, "json")
 
-        val prefab = PrefabCache[asFile].waitFor()!!
+        val prefab = PrefabCache[asFile].waitFor()!!.prefab!!
 
         if (false) {
             println(asText)
@@ -50,7 +50,7 @@ class AutoRefTest {
         }
 
         prefab.invalidateInstance()
-        compare(scene, prefab.createInstance() as Entity)
+        compare(scene, prefab.newInstance() as Entity)
 
         Engine.requestShutdown()
     }

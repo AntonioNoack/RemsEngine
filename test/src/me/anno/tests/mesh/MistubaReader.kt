@@ -11,7 +11,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.downloads
 
 fun loadScenePrefab(file: FileReference): Prefab {
-    val prefab = PrefabCache[file, maxPrefabDepth].waitFor()
+    val prefab = PrefabCache[file, maxPrefabDepth].waitFor()?.prefab
         ?: Prefab("Entity").apply { this.parentPrefabFile = ScenePrefab }
     prefab.sourceFile = file
     return prefab
@@ -23,6 +23,6 @@ fun main() {
         val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")
         val name = "veach-lamp"
         val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
-        SceneView.testScene(loadScenePrefab(sceneMain).createInstance())
+        SceneView.testScene(loadScenePrefab(sceneMain).newInstance())
     }
 }

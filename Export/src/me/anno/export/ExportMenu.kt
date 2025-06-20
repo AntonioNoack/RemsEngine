@@ -130,7 +130,7 @@ class ExportMenu(val configFile: FileReference, val presetName: String?) {
                     askName(
                         ui.windowStack, NameDesc("Preset Name"), preset.name,
                         NameDesc("Save"), { -1 }) { newName0 ->
-                        val newPreset = preset.clone()
+                        val newPreset = preset.clone() as ExportSettings
                         val newName = newName0.trim()
                         newPreset.name = newName
                         newPreset.lastUsed = System.currentTimeMillis()

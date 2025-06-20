@@ -38,7 +38,7 @@ fun main() {
     folder.printTree()
 
     val byReader =
-        (folder.getChild("skeletons/Skeleton.json") as PrefabReadable).readPrefab().createInstance() as Skeleton
+        (folder.getChild("skeletons/Skeleton.json") as PrefabReadable).readPrefab().newInstance() as Skeleton
     val byReaderBones = JsonStringWriter.toText(byReader.bones, InvalidRef)
 
     clock.start()

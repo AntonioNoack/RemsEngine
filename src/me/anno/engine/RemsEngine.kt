@@ -312,8 +312,8 @@ open class RemsEngine : EngineBase(NameDesc("Rem's Engine"), "RemsEngine", 1, tr
             // reloaded prefab; must not be accessed before clearAll
             PrefabCache[EditorState.prefabSource].waitFor { prefab, err ->
                 err?.printStackTrace()
-                val sample = prefab?.getSampleInstance()
-                if (prefab != null && sample != null) {
+                val sample = prefab?.sample
+                if (sample is PrefabSaveable) {
                     EditorState.selection = selection
                         .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
                         .filterIsInstance<Inspectable>()

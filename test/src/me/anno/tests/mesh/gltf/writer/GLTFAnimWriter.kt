@@ -1,5 +1,6 @@
 package me.anno.tests.mesh.gltf.writer
 
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -12,7 +13,7 @@ fun main() {
     OfficialExtensions.initForTests()
     // we load the file using Assimp
     val src = downloads.getChild("3d/azeria/scene.gltf")
-    val source = PrefabCache.getPrefabSampleInstance(src).waitFor()!!
+    val source = PrefabCache[src].waitFor()!!.sample as Entity
     // then save it ourselves using our GLTFWriter
     val tmp = desktop.getChild("Azeria.glb")
     GLTFWriter().write(source, tmp, Callback.onSuccess {

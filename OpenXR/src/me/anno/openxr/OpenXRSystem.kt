@@ -76,7 +76,7 @@ class OpenXRSystem(val window: Long) {
         return result
     }
 
-    private fun createInstance(): XrInstance {
+    private fun newInstance(): XrInstance {
         val version = EngineBase.instance?.versionNumber ?: 1
         val appInfo = XrApplicationInfo.calloc()
             .apiVersion(XR_CURRENT_API_VERSION)
@@ -98,7 +98,7 @@ class OpenXRSystem(val window: Long) {
         return XrInstance(ptr[0], instanceCreateInfo)
     }
 
-    val instance = createInstance()
+    val instance = newInstance()
 
     init {
         xrInstance = instance

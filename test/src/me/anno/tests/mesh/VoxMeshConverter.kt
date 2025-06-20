@@ -2,7 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.PrefabCache.getPrefabSampleInstance
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.OfficialExtensions
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
@@ -22,7 +22,7 @@ fun main() {
     source.listChildren()
         .filter { it.lcExtension == "vox" }
         .mapCallback({ _, file, cb ->
-            val scene = getPrefabSampleInstance(file) as Entity
+            val scene = PrefabCache[file].waitFor()?.sample as Entity
             GLTFWriter().write(scene, destination.getChild("${file.nameWithoutExtension}.glb"), cb)
         }, { _, err ->
             err?.printStackTrace()

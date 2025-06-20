@@ -76,8 +76,12 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     fun waitFor(callback: (V?) -> Unit) {
-        Sleep.waitUntil(true, { retryHasValue() }) {
+        if (hasValue) {
             callback(value)
+        } else {
+            Sleep.waitUntil(true, { retryHasValue() }) {
+                callback(value)
+            }
         }
     }
 

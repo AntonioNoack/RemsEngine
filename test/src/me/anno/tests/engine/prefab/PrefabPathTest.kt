@@ -14,7 +14,7 @@ import me.anno.utils.assertions.assertEquals
 
 fun printTree(file: FileReference) {
     val prefab = PrefabCache[file].waitFor()!!
-    val instance = prefab.createInstance()
+    val instance = prefab.newInstance(PrefabSaveable::class)!!
     printTree(file, instance, 0)
 }
 
@@ -36,6 +36,6 @@ fun main() {
     printTree(meshFile)
     val child = Prefab("Entity")
     child.add(CAdd(Path.ROOT_PATH, 'e', "Entity", "NameID", meshFile), 0)
-    child.createInstance()
+    child.newInstance()
     printTree(InnerTmpPrefabFile(child))
 }

@@ -59,7 +59,4 @@ class SaveableArray() : Saveable(), MutableList<Saveable> {
 
     override fun subList(fromIndex: Int, toIndex: Int) = values.subList(fromIndex, toIndex)
 
-    fun clone(): SaveableArray {
-        return JsonStringReader.clone(this)
-    }
 }

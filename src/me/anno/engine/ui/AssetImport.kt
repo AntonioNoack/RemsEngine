@@ -32,7 +32,7 @@ object AssetImport {
     fun shallowCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
         val progress = GFX.someWindow.addProgressBar("Shallow Copy", "", files.size.toDouble())
         for (src in files) {
-            val srcPrefab = PrefabCache[src].waitFor()
+            val srcPrefab = PrefabCache[src].waitFor()?.prefab
             if (srcPrefab == null) {
                 LOGGER.warn("Cannot read $src as prefab")
                 continue
@@ -270,7 +270,7 @@ object AssetImport {
             throw IllegalStateException("Requesting prefab for binary file??? $srcFile")
         }
         return try {
-            PrefabCache[srcFile].waitFor()
+            PrefabCache[srcFile].waitFor()?.prefab
         } catch (e: Exception) {
             e.printStackTrace()
             null

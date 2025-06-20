@@ -99,10 +99,6 @@ class ExportSettings : NamedSaveable() {
         }
     }
 
-    fun clone(): ExportSettings {
-        return JsonStringReader.clone(this)
-    }
-
     fun createInspector(
         list: PanelListY, style: Style,
         getGroup: (nameDesc: NameDesc, parent: PanelList) -> PanelList,

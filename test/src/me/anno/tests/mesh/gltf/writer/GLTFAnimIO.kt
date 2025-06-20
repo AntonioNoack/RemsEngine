@@ -92,7 +92,7 @@ fun main() {
         folder = folder1!!
     }
 
-    val instance = PrefabCache.getPrefabSampleInstance(folder.getChild("Scene.json")) as Entity
+    val instance = PrefabCache[folder.getChild("Scene.json")].waitFor()?.sample as Entity
     println(instance)
     val animComp2 = instance.getComponentInChildren(AnimMeshComponent::class)!!
     println(animComp2)

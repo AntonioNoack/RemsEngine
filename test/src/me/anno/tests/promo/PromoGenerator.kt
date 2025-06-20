@@ -72,7 +72,7 @@ fun main() {
         Entity()
             .setPosition(1.2, -0.2, 0.0)
             .setScale(0.5f)
-            .add(PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")].waitFor()!!.createInstance() as Entity)
+            .add(PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")].waitFor()!!.newInstance() as Entity)
     )
     scene.add(
         Entity()

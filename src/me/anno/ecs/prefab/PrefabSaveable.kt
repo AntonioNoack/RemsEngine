@@ -102,6 +102,11 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @NotSerializedProperty
     var prefab: Prefab? = null
 
+    fun getOrCreatePrefab(): Prefab {
+        if (prefab == null) ref
+        return prefab!!
+    }
+
     /**
      * while loading, stores the path within the original prefab;
      *
@@ -272,7 +277,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     open fun getValidTypesForChild(child: PrefabSaveable): String = ""
 
-    open fun clone(): PrefabSaveable {
+    override fun clone(): PrefabSaveable {
         try {
             val clone = javaClass.newInstance()
             copyInto(clone)

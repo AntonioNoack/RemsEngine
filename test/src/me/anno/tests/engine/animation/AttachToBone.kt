@@ -25,7 +25,7 @@ fun main() {
     val scene = Entity("Scene")
 
     // this mesh, including animation is from Mixamo
-    val character = PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")].waitFor()?.createInstance() as Entity
+    val character = PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")].waitFor()?.newInstance() as Entity
     scene.add(character)
 
     // a floor for decoration

@@ -27,7 +27,7 @@ abstract class Change : Saveable() {
     /**
      * shallow copy
      * */
-    abstract fun clone(): Change
+    abstract override fun clone(): Change
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

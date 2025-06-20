@@ -270,7 +270,7 @@ open class FileExplorerEntry(
                         "json", "gltf", "fbx" -> true
                         else -> false
                     }
-                ) PrefabCache.getPrefabSampleInstance(file).value else null
+                ) PrefabCache[file].value?.sample else null
             } catch (_: Exception) {
                 null // just not an animation
             }
@@ -517,7 +517,7 @@ open class FileExplorerEntry(
                         if (meta != null) {
                             appendMetaTTT(file, ttt, meta)
                         } else {
-                            val prefab = PrefabCache[file].value
+                            val prefab = PrefabCache[file].value?.prefab
                             if (prefab != null) {
                                 appendPrefabTTT(ttt, prefab)
                             }
@@ -929,7 +929,7 @@ open class FileExplorerEntry(
         }
 
         private fun replaceDependencies(prefabFile: FileReference, oldName: FileReference, newName: FileReference) {
-            val prefab = PrefabCache[prefabFile].waitFor() ?: return
+            val prefab = PrefabCache[prefabFile].waitFor()?.prefab ?: return
             prefab.replaceReferences(oldName, newName)
             GameEngineProject.save(prefabFile, prefab)
         }

@@ -69,7 +69,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     val inspector get() = currentInspector!!
 
     override fun listRoots(): List<Saveable> {
-        val world = EditorState.prefab.waitFor()?.getSampleInstance()
+        val world = EditorState.prefab.waitFor()?.sample
         return Systems.wrapWith(world)
     }
 
@@ -624,7 +624,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         return when (val element = JsonStringReader.read(data, EngineBase.workspace, true).firstOrNull()) {
             is Prefab -> {
                 val prefab = EditorState.prefab.waitFor()
-                val root = prefab?.getSampleInstance() ?: return false
+                val root = prefab?.sample ?: return false
                 addChild(root, element, ' ', -1)
                 true
             }

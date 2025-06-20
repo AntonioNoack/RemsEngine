@@ -14,6 +14,8 @@ import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.CompactAttributeLayout.Companion.bind
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawCurves.putRGBA
+import me.anno.gpu.drawing.GFXx2D.getSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.posSizeDraw
 import me.anno.gpu.drawing.GFXx2D.transform
@@ -707,11 +709,24 @@ object DrawTexts {
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
     }
 
-    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> =
-        getTextSize(font, text, widthLimit, heightLimit).mapNext { GFXx2D.getSizeX(it) }
+    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
+        val size = getTextSize(font, text, widthLimit, heightLimit).value
+            ?: return text.length * font.sampleWidth
+        return getSizeX(size)
+    }
+
+    fun getTextSizeX(font: Font, text: CharSequence): Int {
+        return getTextSizeX(font, text, -1, -1)
+    }
 
     fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): AsyncCacheData<Int> =
         FontManager.getSize(font, text, widthLimit, heightLimit)
+
+    fun getTextSizeOr(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
+        val exact = getTextSize(font, text, widthLimit, heightLimit).value
+        if (exact != null) return exact
+        return getSize(font.sampleWidth * text.length, font.sizeInt)
+    }
 
     fun getTextSize(key: TextCacheKey): AsyncCacheData<Int> = FontManager.getSize(key)
 }

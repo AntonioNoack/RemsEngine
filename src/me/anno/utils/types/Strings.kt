@@ -2,7 +2,6 @@ package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Font
-import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonWriterBase
@@ -75,11 +74,8 @@ object Strings {
     fun getLineWidth(line: List<Int>, endIndex: Int, font: Font): Float {
         return if (endIndex == 0) 0f
         else {
-            loadTexturesSync.push(true)
             val stringValue = line.joinChars(0, min(endIndex, line.size))
-            val width = getTextSizeX(font, stringValue, -1, -1).waitFor() ?: 0
-            loadTexturesSync.pop()
-            width.toFloat()
+            getTextSizeX(font, stringValue).toFloat()
         }
     }
 

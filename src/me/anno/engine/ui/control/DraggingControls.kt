@@ -157,9 +157,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
                     // to do another solution would be to add it temporarily to the hierarchy, and remove it if it is cancelled
 
-                    val prefab = PrefabCache[file].waitFor() ?: continue
                     // todo sdf component, mesh component, light components and colliders would be fine as well
-                    val sample = prefab.createInstance() // a little waste of allocations...
+                    val sample = PrefabCache.newInstance(file).waitFor() ?: continue // a little waste of allocations...
 
                     // find where to draw it
                     findDropPosition(dropPosition)
@@ -696,7 +695,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         hovEntity: Entity?, hovComponent: Component?,
         dropPosition: Vector3d, results: ArrayList<PrefabSaveable>
     ) {
-        val prefab = PrefabCache[file].waitFor() ?: return
+        val prefab = PrefabCache[file].waitFor()?.prefab ?: return
         when (val sampleInstance = prefab.getSampleInstance()) {
             is Material -> {
                 onPasteMaterial(file, hovComponent, sampleInstance)

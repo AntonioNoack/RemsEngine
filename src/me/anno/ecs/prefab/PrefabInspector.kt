@@ -64,7 +64,7 @@ class PrefabInspector(var prefabSource: FileReference) {
     val prefab: Prefab
         get() {
             val prefab = PrefabCache[prefabSource]
-                .waitFor() ?: throw NullPointerException("Missing prefab of $prefabSource, ${prefabSource::class.simpleName}")
+                .waitFor()?.prefab ?: throw NullPointerException("Missing prefab of $prefabSource, ${prefabSource::class.simpleName}")
             val history = prefab.history ?: ChangeHistory()
             if (history.currentState.isEmpty()) {
                 history.put(serialize(prefab))
@@ -480,8 +480,7 @@ class PrefabInspector(var prefabSource: FileReference) {
         prefab.wasModified = false // kind of needs to happen in-between...
 
         PrefabCache.removeFileEntry(sourceFile, oldLastModified)
-        val data = PrefabPair(sourceFile)
-        data.value = prefab
+        val data = PrefabPair(sourceFile, prefab)
         PrefabCache.setPrefabPair(sourceFile, data, PrefabCache.timeoutMillis)
         FileWatch.stopIgnoring(sourceFile)
 

@@ -595,7 +595,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             }
             else -> {
                 // clone, but remove all external connections
-                val cloned = SaveableArray(focussedNodes).clone()
+                val cloned = SaveableArray(focussedNodes).clone() as SaveableArray
                 val containedNodes = HashSet<Saveable?>(cloned)
                 for (node in cloned) {
                     node as Node

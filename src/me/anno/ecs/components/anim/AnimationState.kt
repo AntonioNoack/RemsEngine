@@ -69,7 +69,7 @@ class AnimationState(
         }
     }
 
-    fun clone(): AnimationState {
+    override fun clone(): AnimationState {
         return AnimationState(source, weight, progress, speed, repeat)
     }
 }

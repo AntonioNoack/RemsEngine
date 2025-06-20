@@ -3,6 +3,7 @@ package me.anno.tests.io
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.projects.FileEncoding
 import me.anno.io.binary.BinaryReader
@@ -94,7 +95,7 @@ class GeneralFileEncodingTest {
         assertEquals(expectedSignature, signature)
 
         val prefab = PrefabCache[tmpFile].waitFor()!!
-        val sample = prefab.getSampleInstance()
+        val sample = prefab.sample as PrefabSaveable
         assertIs(Entity::class, sample)
         assertEquals("RemsEngine", sample.name)
     }

@@ -46,12 +46,12 @@ fun FileReference.printTree(depth: Int, maxDepth: Int) {
 }
 
 fun testRendering(file: FileReference, size: Int = 512, index: Int) {
-    val prefab = PrefabCache[file].waitFor()!!
+    val prefab = PrefabCache[file].waitFor()!!.prefab!!
     LOGGER.debug(JsonFormatter.format(prefab.toString()))
-    val sample = prefab.createInstance()
+    val sample = prefab.newInstance()
     LOGGER.debug(sample)
     AssetThumbnails.generateAssetFrame(
-        prefab, file,
+        sample, file,
         InvalidKey, size
     ) { result, exc ->
         if (result is Texture2D) {
@@ -194,7 +194,7 @@ fun main() {
     for (file in listOf(meshComponent, colliderComponent, entityOfComponent)) {
         val prefab = PrefabCache.loadPrefab(file)!!
         LOGGER.debug(JsonFormatter.format(prefab.toString()))
-        val sample = prefab.createInstance()
+        val sample = prefab.newInstance()
         LOGGER.debug(sample)
         Thumbs.generateSomething(prefab, file,
             desktop.getChild(sample::class.simpleName + ".png"), 512

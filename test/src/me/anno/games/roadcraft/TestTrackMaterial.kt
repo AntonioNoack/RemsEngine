@@ -145,7 +145,7 @@ fun main() {
     }
 
     val meshFile = project.getChild("Vehicles/SM_Veh_Bulldozer_01.json")
-    val bulldozer = PrefabCache[meshFile].waitFor()!!.createInstance() as Entity
+    val bulldozer = PrefabCache[meshFile].waitFor()!!.newInstance() as Entity
     // todo add collision and rigidbody
     bulldozer.add(Vehicle().apply { mass = 100.0 })
     bulldozer.setPosition(0.0, 0.2, 0.0)

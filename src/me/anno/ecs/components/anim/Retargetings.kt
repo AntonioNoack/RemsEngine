@@ -107,7 +107,7 @@ object Retargetings {
 
     private fun getOrCreatePrefab(srcSkeleton: FileReference, dstSkeleton: FileReference): Prefab? {
         val configReference = getConfigFile(srcSkeleton, dstSkeleton)
-        var prefab = PrefabCache[configReference].waitFor()
+        var prefab = PrefabCache[configReference].waitFor()?.prefab
         if (prefab == null) {
             // create new file
             prefab = Prefab("Retargeting")

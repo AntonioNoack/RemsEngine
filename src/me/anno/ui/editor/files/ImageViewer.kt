@@ -4,6 +4,8 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
 import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.DrawTexts.getTextSizeOr
+import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.texture.Filtering
@@ -51,7 +53,8 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
         val padding = 10
         val widthLimit = width
         val radius = padding.toFloat()
-        val textSize = getTextSize(font, file.name, widthLimit, -1).waitFor() ?: 0
+        val title = file.name
+        val textSize = getTextSizeOr(font, title, widthLimit, -1)
         val textWidth = getSizeX(textSize) + padding
         val textHeight = getSizeY(textSize) + padding.shr(1)
         drawRoundedRect(
@@ -60,7 +63,7 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
             backgroundColor.withAlpha(0), 1f
         )
         drawTextOrFail( // draw file name at bottom center
-            x + width / 2, y + height - padding.shr(1), font, file.name,
+            x + width / 2, y + height - padding.shr(1), font, title,
             textColor, backgroundColor, widthLimit, -1,
             AxisAlignment.CENTER, AxisAlignment.MAX
         )

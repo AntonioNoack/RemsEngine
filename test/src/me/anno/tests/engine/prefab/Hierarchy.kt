@@ -42,10 +42,10 @@ class HierarchyTests {
         // test
         val prefab = Prefab("Entity", ScenePrefab)
         prefab.sourceFile = InnerTmpTextFile("")
-        val sample0 = prefab.createInstance() as Entity
+        val sample0 = prefab.newInstance() as Entity
         val size0 = sample0.sizeOfHierarchy
         val added = Hierarchy.add(prefab, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'e')!!
-        val sample1 = prefab.createInstance() as Entity
+        val sample1 = prefab.newInstance() as Entity
         val size1 = sample1.sizeOfHierarchy
         if (size0 * 2 != size1) {
             println(prefab.adds)
@@ -55,7 +55,7 @@ class HierarchyTests {
             throw RuntimeException("Sizes don't match: $size0*2 vs $size1")
         }
         Hierarchy.removePathFromPrefab(prefab, added, "Entity")
-        val sample2 = prefab.createInstance() as Entity
+        val sample2 = prefab.newInstance() as Entity
         val size2 = sample2.sizeOfHierarchy
         if (size0 != size2) {
             println(sample0)
@@ -183,7 +183,7 @@ class HierarchyTests {
         OfficialExtensions.register()
         ExtensionLoader.load()
         val scene = Prefab("Entity")
-        val added = PrefabCache[res.getChild("meshes/CuteGhost.fbx")].waitFor()!!
+        val added = PrefabCache[res.getChild("meshes/CuteGhost.fbx")].waitFor()!!.prefab!!
         val ca = scene.adds.values.sumOf { it.size }
         val cs = scene.sets.size
         Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')
@@ -191,7 +191,7 @@ class HierarchyTests {
         val ncs = scene.sets.size
         assertEquals(nca, ca + 1)
         assertEquals(ncs, cs)
-        scene.createInstance()
+        scene.newInstance()
         // to do check there were no warnings
     }
 }

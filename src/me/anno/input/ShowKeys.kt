@@ -6,8 +6,7 @@ import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
-import me.anno.gpu.drawing.DrawTexts.getTextSize
-import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
@@ -79,7 +78,7 @@ object ShowKeys {
         val rgbMask = 0xffffff
         val alphaMask = clamp(alpha * 255, 0f, 255f).toInt().shl(24) or rgbMask
         val color = textColor and alphaMask
-        val w0 = getSizeX(getTextSize(font, text, -1, -1).waitFor() ?: 0)
+        val w0 = getTextSizeX(font, text)
         drawRect(x0 + 5, hmy - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
 
         // text

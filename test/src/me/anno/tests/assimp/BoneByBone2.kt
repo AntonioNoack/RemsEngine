@@ -36,7 +36,7 @@ fun main() {
     var animFile = meshFile.getChild("animations")
     if (animFile.listChildren().first().isDirectory) animFile = animFile.listChildren().first()
     animFile = animFile.getChild("BoneByBone.json")
-    val animation = PrefabCache.getPrefabSampleInstance(animFile).run {
+    val animation = PrefabCache[animFile].waitFor()!!.sample.run {
         if (this is ImportedAnimation) BoneByBoneAnimation(this)
         else this as BoneByBoneAnimation
     }

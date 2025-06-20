@@ -15,9 +15,9 @@ fun main() {
     // -> usable slowdown :)
     Build.isShipped = true // 20% faster, because validation of duplicate names is skipped
     val clock = Clock("PrefabVsClone")
-    val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf")].waitFor()!!
+    val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf")].waitFor()?.prefab!!
     clock.benchmark(50, 10000, "Prefab.clone") { // this is 7x faster, 11µs/instance
-        prefab.createInstance() // calls sampleInstance.clone() internally
+        prefab.newInstance() // calls sampleInstance.clone() internally
     }
     clock.benchmark(50, 10000, "Prefab.getSampleInstance()") {
         prefab.invalidateInstance()

@@ -133,12 +133,12 @@ fun main() {
         var prefab = Prefab("Entity")
         fun refreshSampleInstance() {
             world.remove(sampleInstance)
-            sampleInstance = prefab.createInstance() as Entity
+            sampleInstance = prefab.newInstance() as Entity
             world.add(sampleInstance)
         }
 
         fun loadSampleInstance() {
-            prefab = PrefabCache[tmpFile].waitFor() ?: prefab
+            prefab = PrefabCache[tmpFile].waitFor()?.prefab ?: prefab
             refreshSampleInstance()
         }
         loadSampleInstance()

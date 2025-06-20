@@ -113,7 +113,7 @@ class Prefab : Saveable {
         if (byThis != null) {
             // find subPath != ROOT, go down that prefab
             if (subPath != ROOT_PATH) {
-                val prefab1 = PrefabCache[byThis.prefab].waitFor()
+                val prefab1 = PrefabCache[byThis.prefab].waitFor()?.prefab
                 if (prefab1 != null) {
                     return prefab1.findPrefabSourceRecursively(subPath, ROOT_PATH)
                 }
@@ -159,14 +159,14 @@ class Prefab : Saveable {
         var sum = adds.size + sets.size
         if (depth > 0) {
             if (parentPrefabFile != InvalidRef) {
-                val prefab = PrefabCache[parentPrefabFile].waitFor(async)
+                val prefab = PrefabCache[parentPrefabFile].waitFor(async)?.prefab
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
             for ((_, addI) in adds) {
                 for (change in addI) {
                     val childPrefab = change.prefab
                     if (childPrefab != InvalidRef) {
-                        val prefab = PrefabCache[childPrefab].waitFor(async)
+                        val prefab = PrefabCache[childPrefab].waitFor(async)?.prefab
                         if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
                     }
                 }
@@ -192,12 +192,12 @@ class Prefab : Saveable {
             if (parentPath != null) {
                 for (add in adds[parentPath] ?: emptyList()) {
                     // todo we would need a .subpath and .startsWith
-                    val prefab = PrefabCache[add.prefab].waitFor()
+                    val prefab = PrefabCache[add.prefab].waitFor()?.prefab
                     if (prefab != null) return prefab[ROOT_PATH, property, depth - 1]
                     break
                 }
             }
-            val prefab = PrefabCache[parentPrefabFile].waitFor()
+            val prefab = PrefabCache[parentPrefabFile].waitFor()?.prefab
             if (prefab != null) return prefab[path, property, depth - 1]
         }
         return null
@@ -286,7 +286,7 @@ class Prefab : Saveable {
             val key = Pair(change.path, change.nameId)
             if (addedPaths?.contains(key) == true) return false
             // todo check branched prefabs for adds as well
-            val sourcePrefab = PrefabCache[parentPrefabFile].waitFor()
+            val sourcePrefab = PrefabCache[parentPrefabFile].waitFor()?.prefab
             return sourcePrefab?.canAdd(change) ?: true
         } else {
             val addsI = adds[change.path] ?: return true
@@ -302,7 +302,7 @@ class Prefab : Saveable {
                 "Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}"
             }
             // todo check branched prefabs for adds as well
-            val sourcePrefab = PrefabCache[parentPrefabFile].waitFor()
+            val sourcePrefab = PrefabCache[parentPrefabFile].waitFor()?.prefab
             if (sourcePrefab != null) {
                 assertNotEquals(true, sourcePrefab.addedPaths?.contains(key)) {
                     "Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}"
@@ -491,7 +491,7 @@ class Prefab : Saveable {
         return instance
     }
 
-    fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
+    fun newInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
         val newInstance = getSampleInstance(depth).clone()
         newInstance.prefab = null // make mutable
         return newInstance

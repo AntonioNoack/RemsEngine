@@ -83,7 +83,7 @@ class NodePanel(
         val font = gp.font
 
         // enough width for title
-        val titleLength = DrawTexts.getTextSizeX(font, node.name, -1, -1).value ?: 0
+        val titleLength = DrawTexts.getTextSizeX(font, node.name)
         minW = baseTextSizeI4 + titleLength
         // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
@@ -100,24 +100,23 @@ class NodePanel(
                     inputFields[con] = newField
                 } else inputFields.remove(con)
             }
-            val size1 = DrawTexts.getTextSizeX(font, con.name, -1, -1).value ?: 0
-            val newFieldW = size1 + baseTextSizeI4
+            val newFieldW = DrawTexts.getTextSizeX(font, con.name) + baseTextSizeI4
             minW = if (newField != null) {
                 newField.calculateSize(w, minH)
                 val extra = if (i < outputs.size) {
-                    DrawTexts.getTextSizeX(font, outputs[i].name, -1, -1).value ?: 0
+                    DrawTexts.getTextSizeX(font, outputs[i].name)
                 } else 0
                 max(minW, newFieldW + newField.minW + extra)
             } else {
                 val extra = if (i < outputs.size) {
-                    DrawTexts.getTextSizeX(font, outputs[i].name, -1, -1).value ?: 0
+                    DrawTexts.getTextSizeX(font, outputs[i].name)
                 } else 0
                 max(minW, newFieldW + extra)
             }
         }
 
         for (i in inputs.size until outputs.size) {
-            val extra = DrawTexts.getTextSizeX(font, outputs[i].name, -1, -1).value ?: 0
+            val extra = DrawTexts.getTextSizeX(font, outputs[i].name)
             minW = max(minW, baseTextSizeI4 + extra)
         }
 

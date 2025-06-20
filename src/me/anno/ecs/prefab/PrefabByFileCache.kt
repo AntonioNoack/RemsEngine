@@ -7,7 +7,6 @@ import me.anno.cache.ICacheData
 import me.anno.cache.LRUCache
 import me.anno.cache.NullCacheData
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
-import me.anno.ecs.prefab.PrefabCache.getPrefabSampleInstance
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileKey
 import me.anno.io.files.FileReference
@@ -55,7 +54,7 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
             if (safeCast != null) return safeCast
         }
-        val instance = getPrefabSampleInstance(ref, maxPrefabDepth).waitFor()
+        val instance = PrefabCache[ref, maxPrefabDepth].waitFor()?.sample
         val value = if (instance != null) {
             getFileEntry(ref, allowDirectories, timeoutMillis) { key, result ->
                 result.value = castInstance(instance, key.file) // may be heavy -> must be cached
@@ -78,10 +77,13 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
             if (safeCast != null) return AsyncCacheData(safeCast)
         }
-        val value = getPrefabSampleInstance(ref, maxPrefabDepth).mapNext2 { instance ->
-            getFileEntry(ref, allowDirectories, timeoutMillis) { key, result ->
-                result.value = castInstance(instance, key.file) // may be heavy -> must be cached
-            }
+        val value = PrefabCache[ref, maxPrefabDepth].mapNext2 { pair ->
+            val instance = pair.sample
+            if (instance != null) {
+                getFileEntry(ref, allowDirectories, timeoutMillis) { key, result ->
+                    result.value = castInstance(instance, key.file) // may be heavy -> must be cached
+                }
+            } else NullCacheData.get()
         }
         lru1[fileKey] = value
         return value

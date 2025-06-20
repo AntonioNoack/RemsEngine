@@ -1,5 +1,6 @@
 package me.anno.engine.ui
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
@@ -14,8 +15,6 @@ import org.joml.Vector3d
 
 object TextShapes : CacheSection<String, Mesh>("TextShapes") {
 
-    private val font by lazy { DefaultConfig.defaultFont }
-
     fun drawTextMesh(
         pipeline: Pipeline,
         text: String,
@@ -24,9 +23,7 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
         scale: Double,
         transform: Matrix4x3?
     ) {
-        val mesh = getEntry(text, 10000) { text, result ->
-            result.value = TextMeshGroup(font, text, 0f, false).getOrCreateMesh()
-        }.value
+        val mesh = getEntry(text, 10000, meshGenerator).value
         if (mesh != null) {
             val matrix = MovingGrid.init()
             if (transform != null) matrix.mul(transform)
@@ -37,5 +34,10 @@ object TextShapes : CacheSection<String, Mesh>("TextShapes") {
         } else if (isFinalRendering) {
             onMissingResource("TextMesh", text)
         }
+    }
+
+    private val font = lazy { DefaultConfig.defaultFont }
+    private val meshGenerator = { text: String, result: AsyncCacheData<Mesh> ->
+        result.value = TextMeshGroup(font.value, text, 0f, false).getOrCreateMesh()
     }
 }

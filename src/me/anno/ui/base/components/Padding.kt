@@ -17,5 +17,5 @@ class Padding(l: Int, t: Int, r: Int, b: Int) : LTRB(l, t, r, b) {
         bottom += s.bottom
     }
 
-    fun clone(): Padding = Padding(left, top, right, bottom)
+    override fun clone(): Padding = Padding(left, top, right, bottom)
 }

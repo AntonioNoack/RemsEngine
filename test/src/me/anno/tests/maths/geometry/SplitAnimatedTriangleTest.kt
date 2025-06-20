@@ -27,7 +27,7 @@ fun main() {
     val plane = Planef(0f, 0f, 1f, 0f)
 
     val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf/Scene.json")].waitFor()!!
-    val sceneInstance = prefab.getSampleInstance() as Entity
+    val sceneInstance = prefab.sample as Entity
     val srcAnimMesh = sceneInstance.getComponentInChildren(AnimMeshComponent::class)!!
 
     val mesh = MeshCache[downloads.getChild("3d/azeria/scene.gltf")] as Mesh

@@ -3,6 +3,7 @@ package me.anno.tests.engine.effect
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -24,7 +25,7 @@ fun main() {
     //  can be seen by setting Scale to 5-10
     OfficialExtensions.initForTests()
     val scene = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
-    val scene1 = PrefabCache[scene].waitFor()!!.getSampleInstance()
+    val scene1 = PrefabCache[scene].waitFor()!!.sample as PrefabSaveable
     testUI3("Depth Of Field") {
         EditorState.prefabSource = scene
         val sceneView = SceneView(RenderView1(PlayMode.EDITING, scene1, style), style)

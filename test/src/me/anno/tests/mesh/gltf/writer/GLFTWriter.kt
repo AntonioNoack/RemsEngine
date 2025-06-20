@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.gltf.writer
 
 import me.anno.Engine
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
@@ -21,20 +22,20 @@ fun main() {
         val name = "sponza"
         val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
         GLTFWriter().write(
-            PrefabCache[sceneMain].waitFor()!!, desktop.getChild("$name.glb"),
-            callback
+            PrefabCache[sceneMain].waitFor()!!.sample as Entity,
+            desktop.getChild("$name.glb"), callback
         )
     } else if (false) {
         // test for non-packed references
         GLTFWriter().write(
-            PrefabCache[documents.getChild("cube bricks.fbx")].waitFor()!!, desktop.getChild("bricks.glb"),
-            callback
+            PrefabCache[documents.getChild("cube bricks.fbx")].waitFor()!!.sample as Entity,
+            desktop.getChild("bricks.glb"), callback
         )
     } else {
         // test for vertex colors
         GLTFWriter().write(
-            PrefabCache[downloads.getChild("3d/seal gltf/scene.gltf")].waitFor()!!, desktop.getChild("seal.glb"),
-            callback
+            PrefabCache[downloads.getChild("3d/seal gltf/scene.gltf")].waitFor()!!.sample as Entity,
+            desktop.getChild("seal.glb"), callback
         )
     }
 }

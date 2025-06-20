@@ -5,6 +5,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 /**
  * reads objects from strings
@@ -63,8 +64,9 @@ interface StringReader {
     }
 
     fun <V : Saveable> clone(element: V): V {
-        val clone = read(toText(element, InvalidRef), InvalidRef, true).getOrNull(0)
-        @Suppress("unchecked_cast")
-        return clone as V
+        val workspace = InvalidRef
+        val serialized = toText(element, workspace)
+        val cloned = read(serialized, workspace, true).getOrNull(0)
+        return element::class.safeCast(cloned)!!
     }
 }

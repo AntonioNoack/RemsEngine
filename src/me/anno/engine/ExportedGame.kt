@@ -2,6 +2,7 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView1
@@ -16,7 +17,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelStack
 import me.anno.utils.OS.res
-import me.anno.utils.assertions.assertNotNull
+import me.anno.utils.assertions.assertIs
 
 class ExportedGame(val config: StringMap) : EngineBase(
     NameDesc(config["gameTitle", "Rem's Engine"]),
@@ -26,9 +27,8 @@ class ExportedGame(val config: StringMap) : EngineBase(
 ) {
     override fun createUI() {
         workspace = res // ok so?
-        val loaded = PrefabCache[config["firstScenePath", InvalidRef]].waitFor()
-        val prefab = assertNotNull(loaded, "Missing first scene")
-        val scene = prefab.createInstance()
+        val loaded = PrefabCache.newInstance(config["firstScenePath", InvalidRef]).waitFor()
+        val scene = assertIs(PrefabSaveable::class, loaded)
         val windowStack = GFX.someWindow.windowStack
         val stack = PanelStack(style)
         val renderView = RenderView1(PlayMode.PLAYING, scene, style)

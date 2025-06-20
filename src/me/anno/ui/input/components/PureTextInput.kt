@@ -186,18 +186,12 @@ open class PureTextInput(style: Style) :
             val panel1 = content as TextPanel
             val line1 = line
             val cursor1Text = line1.joinChars(0, cursor1.x)
-            val cursorX1 = if (cursor1.x == 0) 0 else {
-                val sx = getTextSizeX(font, cursor1Text, -1, -1).waitFor() ?: 0
-                sx - 1
-            }
+            val cursorX1 = if (cursor1.x == 0) 0 else getTextSizeX(font, cursor1Text) - 1
             if (cursor1 != cursor2) {
                 val panel2 = content as TextPanel
                 val line2 = line
                 val cursor2Text = line2.joinChars(0, cursor2.x)
-                val cursorX2 = if (cursor2.x == 0) 0 else {
-                    val sx = getTextSizeX(font, cursor2Text, -1, -1).waitFor() ?: 0
-                    sx - 1
-                }
+                val cursorX2 = if (cursor2.x == 0) 0 else getTextSizeX(font, cursor2Text) - 1
                 val minCursorX = kotlin.math.min(cursorX1, cursorX2)
                 val maxCursorX = kotlin.math.max(cursorX1, cursorX2)
 

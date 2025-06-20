@@ -51,7 +51,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
         // open the file
         PrefabCache[file].waitFor { prefab, err ->
             err?.printStackTrace()
-            addEvent { onDoubleClick1(file, prefab) }
+            addEvent { onDoubleClick1(file, prefab?.prefab) }
         }
     }
 
@@ -286,7 +286,8 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
             ) { p, files ->
                 val defaultExtension = GameEngineProject.encoding.extension
                 files.mapCallback({ _, src, cb ->
-                    PrefabCache[src].waitFor { prefab, err ->
+                    PrefabCache[src].waitFor { pair, err ->
+                        val prefab = pair?.prefab
                         if (prefab != null) {
                             askRename(
                                 p.windowStack, NameDesc("Extend ${prefab.clazzName} \"${src.name}\""),
@@ -330,7 +331,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                 }
                 for (file in files) {
                     if (file.isDirectory) continue
-                    val prefab = PrefabCache[file].waitFor() ?: continue
+                    val prefab = PrefabCache[file].waitFor()?.prefab ?: continue
                     when (prefab.clazzName) {
                         "Entity" -> {
                             // iterate through, find MeshComponents, extract their mesh, and associated materials
@@ -338,7 +339,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                             val sample = prefab.getSampleInstance() as Entity
                             sample.forAllComponentsInChildren(MeshComponent::class) {
                                 val meshFile = it.meshFile
-                                val prefab1 = PrefabCache[meshFile].waitFor()
+                                val prefab1 = PrefabCache[meshFile].waitFor()?.prefab
                                 if (prefab1 != null && prefab1.clazzName == "Mesh") {
                                     processMesh(meshFile, prefab1)
                                     addedAny = true
@@ -384,7 +385,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
 
             val clearHistory = FileExplorerOption(NameDesc("Clear History")) { _, files ->
                 for (file in flattenFiles(files)) {
-                    val prefab = PrefabCache[file].waitFor() ?: continue
+                    val prefab = PrefabCache[file].waitFor()?.prefab ?: continue
                     prefab.history = null
                     val encoding = GameEngineProject.encoding.getForExtension(file)
                     file.writeBytes(encoding.encode(prefab, workspace))

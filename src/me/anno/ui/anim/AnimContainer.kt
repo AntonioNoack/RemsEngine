@@ -127,6 +127,6 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         super.copyInto(dst)
         if (dst !is AnimContainer) return
         dst.speed = speed
-        dst.animations.addAll(animations.map { it.clone() })
+        dst.animations.addAll(animations.map { it.clone() as UIAnimation })
     }
 }

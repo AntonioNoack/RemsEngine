@@ -10,13 +10,13 @@ fun main() {
     // -> it was an old data error, no longer happens
     OfficialExtensions.initForTests()
     val source = desktop.getChild("TestGame.jar/res/0.json")
-    val prefab = PrefabCache[source].waitFor()!!
+    val prefab = PrefabCache[source].waitFor()!!.prefab!!
     for (add in prefab.adds.keys) {
         println("add: $add")
     }
     prefab.sets.forEach { k1, k2, v ->
         println("'$k1'.'$k2' = $v")
     }
-    prefab.createInstance()
+    prefab.newInstance()
     Engine.requestShutdown()
 }

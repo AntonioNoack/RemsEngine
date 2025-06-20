@@ -16,8 +16,8 @@ fun main() {
     val fbxPath = OS.downloads.getChild("3d/trooper fbx/silly_dancing.fbx")
     val glbPath = OS.downloads.getChild("3d/trooper gltf/scene.gltf")
 
-    val fbx = PrefabCache[fbxPath].waitFor()!!.getSampleInstance()
-    val glb = PrefabCache[glbPath].waitFor()!!.getSampleInstance()
+    val fbx = PrefabCache[fbxPath].waitFor()!!.sample
+    val glb = PrefabCache[glbPath].waitFor()!!.sample
 
     /*fbx.bones.forEachIndexed { index,it ->
         LOGGER.info("$index ${it.name}")

@@ -483,8 +483,9 @@ object AssetThumbnails {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        PrefabCache[srcFile].waitFor { prefab, err ->
-            if (prefab != null) generateAssetFrame(prefab, srcFile, dstFile, size, callback)
+        PrefabCache[srcFile].waitFor { pair, err ->
+            val sample = pair?.sample
+            if (sample != null) generateAssetFrame(sample, srcFile, dstFile, size, callback)
             else callback.err(err)
         }
     }

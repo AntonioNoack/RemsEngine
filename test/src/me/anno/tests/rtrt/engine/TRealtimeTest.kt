@@ -62,7 +62,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     )
 
     val prefab = PrefabCache[source].waitFor() ?: throw IllegalStateException("Missing $source")
-    val scene = prefab.createInstance() as Entity
+    val scene = prefab.newInstance() as Entity
     clock.stop("Loading Mesh")
 
     scene.validateTransform()
@@ -82,7 +82,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
         for (i in 0 until 5) {
             for (j in 0 until 5) {
                 if (i + j > 0) {
-                    val scene2 = prefab.createInstance() as Entity
+                    val scene2 = prefab.newInstance() as Entity
                     // clone object to test mesh duplication
                     scene2.transform
                         .translateLocal(dx * i, dy, dz * j)

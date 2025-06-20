@@ -82,7 +82,7 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
         }
 
         fun testSceneWithUI(title: String, prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
-            testSceneWithUI(title, prefab.createInstance(), init)
+            testSceneWithUI(title, prefab.newInstance(), init)
         }
 
         fun testSceneWithUI(title: String, source: FileReference, renderMode: RenderMode) {

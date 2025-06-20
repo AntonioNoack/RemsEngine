@@ -6,8 +6,9 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentHashMap
@@ -83,7 +84,7 @@ open class Saveable {
     }
 
     fun getReflections(): CachedReflections {
-        return Companion.getReflections(this)
+        return getReflections(this)
     }
 
     open operator fun get(propertyName: String): Any? {
@@ -97,6 +98,12 @@ open class Saveable {
 
     override fun toString(): String {
         return JsonStringWriter.toText(this, EngineBase.workspace)
+    }
+
+    open fun clone(): Saveable {
+        val workspace = InvalidRef
+        val asText = JsonStringWriter.toText(this, workspace)
+        return JsonStringReader.readFirst(asText, workspace, this::class, safely = true)
     }
 
     companion object {

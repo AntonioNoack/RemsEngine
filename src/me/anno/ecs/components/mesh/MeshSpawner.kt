@@ -243,12 +243,12 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         mesh: IMesh,
         material: Material,
         clazz: KClass<V>,
-        createInstance: () -> V = { clazz.createInstance() }
+        newInstance: () -> V = { clazz.createInstance() }
     ): InstancedI32Stack.Data {
         val stage = pipeline.findStage(material)
         var list = stage.instances.firstOrNull2 { clazz.isInstance(it) } as? InstancedI32Stack
         if (list == null) {
-            list = createInstance()
+            list = newInstance()
             stage.instances.add(list)
         }
         return list.data.getOrPut(mesh, material) { _, _ -> InstancedI32Stack.Data() }

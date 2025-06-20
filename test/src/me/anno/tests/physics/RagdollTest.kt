@@ -48,7 +48,7 @@ fun main() {
     val totalMass = 10.0
 
     // val source = OS.downloads.getChild("3d/Talking On Phone.fbx")
-    val meshScene = PrefabCache.newPrefabInstance(source)!! as Entity
+    val meshScene = PrefabCache[source].waitFor()!!.newInstance() as Entity
     val meshComponents = meshScene.getComponentsInChildren(AnimMeshComponent::class)
     val sampleComponent = meshComponents.first()
 

@@ -299,7 +299,7 @@ class ECSSceneTab(
             onStart()
         }
         if (ECSSceneTabs.currentTab == this) {
-            val prefab = PrefabCache[file].value
+            val prefab = PrefabCache[file].value?.prefab
             val needsStar = prefab != null &&
                     prefab.wasModified && prefab.isWritable &&
                     prefab.sourceFile !is InnerTmpFile

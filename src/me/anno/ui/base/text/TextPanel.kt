@@ -14,7 +14,9 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeCharByChar
+import me.anno.gpu.drawing.DrawTexts.getTextSizeOr
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.io.base.BaseWriter
@@ -148,8 +150,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val index = min(charIndex, text.length)
         var answer = xOffsets[index]
         if (answer == Int.MIN_VALUE) {
-            val sx = getTextSizeX(font, text.substring(0, index), -1, -1).waitFor() ?: 0
-            answer = sx - 1
+            answer = getTextSizeX(font, text.substring(0, index)) - 1
             xOffsets[charIndex] = answer
         }
         return answer
@@ -203,7 +204,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int) {
-        val textSize = getTextSize(font, text, -1, -1).waitFor() ?: 0
+        val textSize = getTextSizeOr(font, text, -1, -1)
         val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
         val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
         underline(i0, i1, color, thickness, dx, dy)
@@ -212,8 +213,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top + font.sizeInt * 10 / 8
-        val x0 = x + (getTextSizeX(font, text.subSequence(0, i0), -1, -1).value ?: 0)
-        val x1 = x + (getTextSizeX(font, text.subSequence(0, i1), -1, -1).value ?: 0)
+        val x0 = x + getTextSizeX(font, text.subSequence(0, i0))
+        val x1 = x + getTextSizeX(font, text.subSequence(0, i1))
         DrawRectangles.drawRect(x0, y, x1 - x0, thickness, color)
     }
 

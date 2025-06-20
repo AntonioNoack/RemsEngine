@@ -140,7 +140,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         if (equalSpaced) {
 
             val text1 = text.second
-            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit).waitFor() ?: 0
+            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit)
             val textWidth = charWidth * text1.size
 
             val dxi = DrawTexts.getOffset(textWidth, alignX)

@@ -21,7 +21,7 @@ fun main() {
     // find two human meshes with different skeletons
     val meshFile = EngineBase.workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
     val animFile = EngineBase.workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")
-    val scene = PrefabCache[meshFile].waitFor()!!.createInstance() as Entity
+    val scene = PrefabCache[meshFile].waitFor()!!.newInstance() as Entity
     val animation = animFile.getChild("animations/mixamo.com/BoneByBone.json")
     lateinit var testedComponent: AnimMeshComponent
     scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->

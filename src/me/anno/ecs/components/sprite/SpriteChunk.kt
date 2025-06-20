@@ -24,7 +24,7 @@ class SpriteChunk(val key: Vector2i, var values: IntArray) : Saveable() {
         }
     }
 
-    fun clone(): SpriteChunk {
+    override fun clone(): SpriteChunk {
         return SpriteChunk(key, values.copyOf())
     }
 }
