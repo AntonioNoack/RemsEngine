@@ -534,11 +534,8 @@ open class FileExplorerEntry(
     private var lines = 0
     private var padding = 0
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val t0 = System.nanoTime()
 
         drawBackground(x0, y0, x1, y1)
-
-        val t1 = System.nanoTime()
 
         val w = width
         val h = height
@@ -554,12 +551,6 @@ open class FileExplorerEntry(
             drawListMode(x0, y0, x1, y1, x, y, w, h)
         } else {
             drawTileMode(x0, y0, x1, y1, x, y, w, h, remainingW, remainingH)
-        }
-
-        val t2 = System.nanoTime()
-        if (t2 - t0 > 50 * MILLIS_TO_NANOS) {
-            IllegalStateException("Waiting too long (${(t1 - t0) / 1e6f} + ${(t2 - t1) / 1e6f}) for $file")
-                .printStackTrace()
         }
     }
 
@@ -655,7 +646,7 @@ open class FileExplorerEntry(
 
         val t3 = System.nanoTime()
         if (t3 - t0 > 30 * MILLIS_TO_NANOS) {
-            LOGGER.warn("Slow paint! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f}")
+            LOGGER.warn("Drawing too slowly! ${(t1 - t0) / 1e6f}, ${(t2 - t1) / 1e6f}, ${(t3 - t2) / 1e6f} for $fileName")
         }
     }
 
@@ -787,6 +778,10 @@ open class FileExplorerEntry(
         if (path.isNotBlank2()) {
             println("${Strings.spaces(tabDepth * 2 + 2)} $fileName")
         }
+    }
+
+    override fun clone(): Panel {
+        return FileExplorerEntry(explorer, isParent, file, style)
     }
 
     companion object {

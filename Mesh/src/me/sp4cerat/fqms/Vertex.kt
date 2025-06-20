@@ -4,8 +4,8 @@ import org.joml.Vector3d
 
 class Vertex {
 
-    val p = Vector3d()
-    val q = SymmetricMatrix()
+    val position = Vector3d()
+    val normalMatrix = SymmetricMatrix()
 
     var firstRefIndex = 0
     var numTriangles = 0

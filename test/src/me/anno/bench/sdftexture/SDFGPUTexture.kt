@@ -1,6 +1,7 @@
 package me.anno.bench.sdftexture
 
 import me.anno.Engine
+import me.anno.bench.sdftexture.ContourOptimizer.optimizeContours
 import me.anno.engine.OfficialExtensions
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.Contour
@@ -29,7 +30,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.raw.FloatImage
 import me.anno.jvm.HiddenOpenGLContext
-import me.anno.tests.bench.sdftexture.ContourOptimizer.optimizeContours
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.structures.Collections.filterIsInstance2

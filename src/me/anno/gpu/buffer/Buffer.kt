@@ -49,6 +49,7 @@ abstract class Buffer(name: String, attributes: AttributeLayout, usage: BufferUs
         shader: Shader, instancedAttributes: AttributeLayout,
         nonInstancedAttributes: AttributeLayout?
     ) {
+        GFX.check()
         val declaredAttributes = shader.attributes
         for (i in declaredAttributes.indices) {
             val attr = declaredAttributes[i]

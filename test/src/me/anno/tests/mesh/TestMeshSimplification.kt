@@ -32,7 +32,7 @@ fun simplifyMesh(mesh: Mesh, ratio: Float, level: Int): Mesh {
     val helper = FastQuadraticMeshSimplification()
     forLoopSafely(positions.size, 3) { idx ->
         val v = Vertex()
-        v.p.set(positions, idx)
+        v.position.set(positions, idx)
         helper.vertices.add(v)
     }
     mesh.forEachTriangleIndex { ai, bi, ci ->
@@ -51,9 +51,9 @@ fun simplifyMesh(mesh: Mesh, ratio: Float, level: Int): Mesh {
     val newPositions = FloatArray(helper.vertices.size * 3)
     for (i in helper.vertices.indices) {
         val v = helper.vertices[i]
-        v.p.get(newPositions, i * 3)
+        v.position.get(newPositions, i * 3)
         if (v.border && showBorders) {
-            DebugShapes.debugPoints.add(DebugPoint(v.p, UIColors.fireBrick, 1e3f))
+            DebugShapes.debugPoints.add(DebugPoint(v.position, UIColors.fireBrick, 1e3f))
         }
     }
 

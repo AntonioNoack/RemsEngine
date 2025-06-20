@@ -1,6 +1,7 @@
 package me.anno.bench.sdftexture
 
 import me.anno.Engine
+import me.anno.bench.sdftexture.ContourOptimizer.optimizeContours
 import me.anno.engine.OfficialExtensions
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.Contour
@@ -10,7 +11,6 @@ import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
-import me.anno.tests.bench.sdftexture.ContourOptimizer.optimizeContours
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop

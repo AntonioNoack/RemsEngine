@@ -87,8 +87,8 @@ class FastQuadraticMeshSimplification {
                     }
 
                     // not flipped, so remove edge
-                    v0.p.set(p)
-                    v0.q += v1.q
+                    v0.position.set(p)
+                    v0.normalMatrix += v1.normalMatrix
 
                     val tstart = refs.size
                     updateTriangles(i0, v0, tmp, deleted0, deletedTriangles)
@@ -108,8 +108,11 @@ class FastQuadraticMeshSimplification {
                     v0.numTriangles = tcount
                     break
                 }
+
                 // done?
-                if (deletedTriangles[0] >= deleteTarget) break
+                if (deletedTriangles[0] >= deleteTarget) {
+                    break
+                }
             }
         }
         compactMesh()
@@ -132,9 +135,9 @@ class FastQuadraticMeshSimplification {
             val t = triangles[r.triangleId()]
             if (t.deleted || deleted[k]) continue
 
-            val p1 = vertices[t.vertexIds[0]].p
-            val p2 = vertices[t.vertexIds[1]].p
-            val p3 = vertices[t.vertexIds[2]].p
+            val p1 = vertices[t.vertexIds[0]].position
+            val p2 = vertices[t.vertexIds[1]].position
+            val p3 = vertices[t.vertexIds[2]].position
             interpolate(p, p1, p2, p3, t.uvs, t.uvs[r.vertex0To3()])
         }
     }
@@ -222,15 +225,15 @@ class FastQuadraticMeshSimplification {
         // recomputing during the simplification is not required,
         // but mostly improves the result for closed meshes
         for (i in vertices.indices) {
-            vertices[i].q.m.fill(0.0)
+            vertices[i].normalMatrix.m.fill(0.0)
         }
 
         val added = SymmetricMatrix()
         for (i in triangles.indices) {
             val t = triangles[i]
-            val p0 = vertices[t.vertexIds[0]].p
-            val p1 = vertices[t.vertexIds[1]].p
-            val p2 = vertices[t.vertexIds[2]].p
+            val p0 = vertices[t.vertexIds[0]].position
+            val p1 = vertices[t.vertexIds[1]].position
+            val p2 = vertices[t.vertexIds[2]].position
             val n = t.normal
             Triangles.subCross(p0, p1, p2, n)
             val lenSq = n.lengthSquared()
@@ -238,7 +241,7 @@ class FastQuadraticMeshSimplification {
                 n.mul(1.0 / sqrt(lenSq))
                 added.set(n.x, n.y, n.z, -n.dot(p0))
                 for (j in 0 until 3) {
-                    vertices[t.vertexIds[j]].q += added
+                    vertices[t.vertexIds[j]].normalMatrix += added
                 }
             }
         }
@@ -360,7 +363,7 @@ class FastQuadraticMeshSimplification {
             }
             v.firstRefIndex = dst // store new index into firstRefIndex
             val w = vertices[dst]
-            w.p.set(v.p)
+            w.position.set(v.position)
             w.border = v.border
             dst++
         }
@@ -401,8 +404,8 @@ class FastQuadraticMeshSimplification {
                 continue
             }
 
-            val d1 = (vertices[id1].p.sub(p, tmp0)).safeNormalize()
-            val d2 = (vertices[id2].p.sub(p, tmp1)).safeNormalize()
+            val d1 = (vertices[id1].position.sub(p, tmp0)).safeNormalize()
+            val d2 = (vertices[id2].position.sub(p, tmp1)).safeNormalize()
             if (abs(d1.dot(d2)) > 0.999) return true // vertices are parallel
 
             val n = d1.cross(d2).safeNormalize()
@@ -428,7 +431,7 @@ class FastQuadraticMeshSimplification {
      * Error for one edge
      * */
     private fun calculateError(va: Vertex, vb: Vertex, dst: Vector3d): Double {
-        val q = va.q.add(vb.q, tmpSum)
+        val q = va.normalMatrix.add(vb.normalMatrix, tmpSum)
         val border = va.border and vb.border
         val det = q.det(0, 1, 2, 1, 4, 5, 2, 5, 7)
         if (abs(det) > 1e-38 && !border) {
@@ -440,8 +443,8 @@ class FastQuadraticMeshSimplification {
             return vertexError(q, dst.x, dst.y, dst.z)
         } else {
             // det = 0 -> try to find best result
-            val p1 = va.p
-            val p2 = vb.p
+            val p1 = va.position
+            val p2 = vb.position
             val p3x = (p1.x + p2.x) * 0.5
             val p3y = (p1.y + p2.y) * 0.5
             val p3z = (p1.z + p2.z) * 0.5
