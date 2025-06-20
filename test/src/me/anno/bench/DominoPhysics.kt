@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import com.bulletphysics.BulletStats
 import com.bulletphysics.linearmath.CProfileManager

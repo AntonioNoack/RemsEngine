@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.maths.Maths.factorial
 import me.anno.tests.graph.visual.FlowGraphTest.createFactorialGraph

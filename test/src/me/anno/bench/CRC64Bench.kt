@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.utils.Clock
 import net.boeckling.crc.CRC64

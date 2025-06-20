@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock

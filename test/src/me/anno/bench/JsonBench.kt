@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 // import com.fasterxml.jackson.databind.ObjectMapper
 import me.anno.io.files.InvalidRef

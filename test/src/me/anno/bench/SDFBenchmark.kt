@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions

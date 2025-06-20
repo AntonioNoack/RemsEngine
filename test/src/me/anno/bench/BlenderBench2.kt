@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabReadable

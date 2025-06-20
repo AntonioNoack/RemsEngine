@@ -1,4 +1,4 @@
-package me.anno.tests.bench.sdftexture
+package me.anno.bench.sdftexture
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions

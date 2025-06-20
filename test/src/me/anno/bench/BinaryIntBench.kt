@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryReader

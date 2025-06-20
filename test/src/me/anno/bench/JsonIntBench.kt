@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader

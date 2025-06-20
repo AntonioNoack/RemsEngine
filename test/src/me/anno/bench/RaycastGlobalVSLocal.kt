@@ -1,4 +1,4 @@
-package me.anno.tests.bench
+package me.anno.bench
 
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.DefaultAssets.flatCube
