@@ -202,9 +202,7 @@ object GFX {
      * */
     @JvmStatic
     fun isGFXThread(): Boolean {
-        if (glThread == null) return false
-        val currentThread = Thread.currentThread()
-        return currentThread == glThread
+        return Thread.currentThread() == glThread
     }
 
     /**

@@ -27,6 +27,12 @@ object Sleep {
 
     private val LOGGER = LogManager.getLogger(Sleep::class)
 
+    enum class ShallWork {
+        DONT_WORK,
+        WORK_IF_IDLE,
+        WORK_IF_POSSIBLE
+    }
+
     var debugSleepingOnMainThread = false
 
     @JvmStatic
@@ -67,7 +73,7 @@ object Sleep {
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntil(name: String, canBeKilled: Boolean, isFinished: () -> Boolean) {
         var lastTime = Time.nanoTime
-        val mustWork = mustWorkTasks(true)
+        val mustWork = mustWorkTasks(ShallWork.WORK_IF_POSSIBLE)
         while (!isFinished() && shouldContinueWaiting(canBeKilled)) {
             if (mustWork) {
                 work(canBeKilled)
@@ -96,7 +102,7 @@ object Sleep {
     @Deprecated(AsyncCacheData.ASYNC_WARNING)
     fun waitUntilReturnWhetherIncomplete(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val timeLimit = Time.nanoTime + timeoutNanos
-        val mustWork = mustWorkTasks(true)
+        val mustWork = mustWorkTasks(ShallWork.WORK_IF_POSSIBLE)
         while (!isFinished()) {
             if (!shouldContinueWaiting(canBeKilled)) return true
             if (Time.nanoTime > timeLimit) return true
@@ -118,9 +124,18 @@ object Sleep {
     }
 
     @JvmStatic
-    private fun mustWorkTasks(isSync: Boolean): Boolean {
-        return (workingThread == null || (isSync && workingThread == Thread.currentThread())) &&
-                (GFX.isGFXThread() || GFX.glThread == null)
+    private fun mustWorkTasks(shallWork: ShallWork): Boolean {
+        if (shallWork == ShallWork.DONT_WORK) return false
+        return canWorkOnCurrentThread() &&
+                (isIdle() || (shallWork == ShallWork.WORK_IF_POSSIBLE && workingThread == Thread.currentThread()))
+    }
+
+    private fun isIdle(): Boolean {
+        return workingThread == null
+    }
+
+    private fun canWorkOnCurrentThread(): Boolean {
+        return GFX.isGFXThread() || GFX.glThread == null
     }
 
     @JvmStatic
@@ -134,7 +149,8 @@ object Sleep {
         name: String, canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit,
         mightWork: Boolean = true
     ) {
-        if (mightWork && mustWorkTasks(false)) {
+        val mode = if (mightWork) ShallWork.WORK_IF_IDLE else ShallWork.DONT_WORK
+        if (mustWorkTasks(mode)) {
             this.waitUntil(name, canBeKilled, isFinished)
             callback()
         } else {

@@ -1,3 +1,3 @@
 package me.anno.engine
 
-class NamedTask(val name: String, val runnable: () -> Unit)
+open class NamedTask(val name: String, val runnable: () -> Unit)

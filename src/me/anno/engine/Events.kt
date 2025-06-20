@@ -15,13 +15,6 @@ import java.util.concurrent.PriorityBlockingQueue
  * */
 object Events {
 
-    private class ScheduledTask(val name: String, val time: Long, val runnable: () -> Unit) :
-        Comparable<ScheduledTask> {
-        override fun compareTo(other: ScheduledTask): Int {
-            return time.compareTo(other.time)
-        }
-    }
-
     private val eventTasks: Queue<NamedTask> = ConcurrentLinkedQueue()
     private val scheduledTasks: Queue<ScheduledTask> = PriorityBlockingQueue(16)
 
@@ -60,8 +53,9 @@ object Events {
     }
 
     fun workTasks(tasks: Queue<NamedTask>) {
-        while (tasks.isNotEmpty()) {
-            val task = tasks.poll()!!
+        // limit exists to prevent an infinite loop, when inside addEvent another event is added
+        for (i in 0 until tasks.size) {
+            val task = tasks.poll() ?: break
             try {
                 task.runnable()
             } catch (e: Throwable) {
