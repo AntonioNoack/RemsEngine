@@ -19,11 +19,11 @@ import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
 import me.anno.gpu.pipeline.InstancedTRSStack
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.getStack
 import me.anno.maths.bvh.HitType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
-import me.anno.utils.structures.maps.KeyTripleMap
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3
@@ -256,19 +256,5 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(MeshSpawner::class)
-
-        fun KeyTripleMap<IMesh, Material, Int, InstancedStack>.getStack(
-            mesh: IMesh, material: Material, matIndex: Int
-        ): InstancedStack {
-            return getOrPut(mesh, material, matIndex) { meshI, _, _ -> createStack(meshI.hasBonesInBuffer) }
-        }
-
-        fun createStack(animated: Boolean): InstancedStack {
-            return if (animated) {
-                InstancedStack.newAnimStack()
-            } else {
-                InstancedStack.newInstStack()
-            }
-        }
     }
 }

@@ -9,7 +9,6 @@ import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.MeshSpawner.Companion.getStack
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.ECSMeshShaderLight.Companion.canUseLightShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -40,6 +39,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.ResetArrayList
+import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3
@@ -73,6 +73,20 @@ class PipelineStageImpl(
         private val tmp4x3 = Matrix4x3f()
 
         val tmpAABBd = AABBd()
+
+        fun KeyTripleMap<IMesh, Material, Int, InstancedStack>.getStack(
+            mesh: IMesh, material: Material, matIndex: Int
+        ): InstancedStack {
+            return getOrPut(mesh, material, matIndex, stackCreator)
+        }
+
+        private val stackCreator = { meshI: IMesh, _: Material, _: Int ->
+            if (meshI.hasBonesInBuffer) {
+                InstancedStack.newAnimStack()
+            } else {
+                InstancedStack.newInstStack()
+            }
+        }
 
         fun bindTransformUniforms(shader: GPUShader, transform: Transform?) {
             if (transform != null) {
@@ -642,10 +656,7 @@ class PipelineStageImpl(
     }
 
     fun addToStack(stack: InstancedStack, component: Component, transform: Transform, mesh: IMesh) {
-        if (stack is InstancedAnimStack &&
-            component is AnimMeshComponent &&
-            component.updateAnimState()
-        ) {
+        if (stack is InstancedAnimStack && component is AnimMeshComponent && component.updateAnimState()) {
             val texture = component.getAnimTexture(mesh)
             stack.add(
                 transform, component.gfxId, texture,

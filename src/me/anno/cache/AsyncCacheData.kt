@@ -59,9 +59,12 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
         warnRecursive()
-        Sleep.waitUntil(true) { retryHasValue() }
+        Sleep.waitUntil(true, hasValueCondition)
         return value
     }
+
+    // prevent dynamic allocations a little
+    private val hasValueCondition = { retryHasValue() }
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(async: Boolean): V? {
@@ -79,7 +82,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
         if (hasValue) {
             callback(value)
         } else {
-            Sleep.waitUntil(true, { retryHasValue() }) {
+            Sleep.waitUntil(true, hasValueCondition) {
                 callback(value)
             }
         }
@@ -102,7 +105,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     fun waitFor(callback: Callback<V>) {
-        Sleep.waitUntil(true, { retryHasValue() }) {
+        Sleep.waitUntil(true, hasValueCondition) {
             val value = value
             if (value != null) callback.ok(value)
             else callback.err(null)

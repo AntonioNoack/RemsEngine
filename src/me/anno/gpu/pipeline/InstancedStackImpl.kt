@@ -344,9 +344,10 @@ class InstancedStackImpl(capacity: Int = 512) : DrawableStack(MeshInstanceData.D
 
     override fun clear() {
         for (stack in data.values.values) {
-            for (i in stack.indices) {
-                val (_, _, instancedStack) = stack[i]
+            for (i in 0 until stack.size) {
+                val instancedStack = stack.getThird(i)
                 instancedStack.clear()
+                InstancedStack.returnStack(instancedStack)
             }
             stack.clear()
         }

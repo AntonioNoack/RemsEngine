@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.Transform
 import me.anno.maths.Maths.min
+import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.pooling.Pools
 
 /**
@@ -10,15 +11,26 @@ import me.anno.utils.pooling.Pools
 open class InstancedStack {
 
     companion object {
+
+        private val instStackPool = ObjectPool(InstancedStack::class.java)
+        private val animStackPool = ObjectPool(InstancedAnimStack::class.java)
+
         fun newInstStack(): InstancedStack {
-            return InstancedStack()
+            return instStackPool.create()
         }
 
         fun newAnimStack(): InstancedAnimStack {
-            return InstancedAnimStack()
+            return animStackPool.create()
         }
 
-        const val CLEAR_SIZE = 16
+        fun returnStack(value: InstancedStack) {
+            when (value::class) {
+                InstancedStack::class -> instStackPool.destroy(value)
+                InstancedAnimStack::class -> animStackPool.destroy(value as InstancedAnimStack)
+            }
+        }
+
+        const val CLEAR_SIZE = 64
     }
 
     var transforms = Pools.arrayPool[CLEAR_SIZE, false, false]

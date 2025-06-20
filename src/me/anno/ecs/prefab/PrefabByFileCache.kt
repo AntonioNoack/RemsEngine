@@ -54,12 +54,7 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
             if (safeCast != null) return safeCast
         }
-        val instance = PrefabCache[ref, maxPrefabDepth].waitFor()?.sample
-        val value = if (instance != null) {
-            getFileEntry(ref, allowDirectories, timeoutMillis) { key, result ->
-                result.value = castInstance(instance, key.file) // may be heavy -> must be cached
-            }.waitFor(async)
-        } else null
+        val value = getFileEntry(ref, allowDirectories, timeoutMillis, generator).waitFor(async)
         if (value != null || !async) lru[fileKey] = value
         return value
     }
@@ -77,16 +72,16 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
             if (safeCast != null) return AsyncCacheData(safeCast)
         }
-        val value = PrefabCache[ref, maxPrefabDepth].mapNext2 { pair ->
-            val instance = pair.sample
-            if (instance != null) {
-                getFileEntry(ref, allowDirectories, timeoutMillis) { key, result ->
-                    result.value = castInstance(instance, key.file) // may be heavy -> must be cached
-                }
-            } else NullCacheData.get()
-        }
+        val value = getFileEntry(ref, allowDirectories, timeoutMillis, generator)
         lru1[fileKey] = value
         return value
+    }
+
+    // cached to avoid dynamic allocations
+    private val generator = { key: FileKey, result: AsyncCacheData<V> ->
+        PrefabCache[key.file, maxPrefabDepth].waitFor { pair ->
+            result.value = castInstance(pair?.sample, key.file)
+        }
     }
 
     open fun castInstance(instance: Saveable?, ref: FileReference): V? {

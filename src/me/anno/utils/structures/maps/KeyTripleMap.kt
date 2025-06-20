@@ -1,44 +1,42 @@
 package me.anno.utils.structures.maps
 
-import me.anno.utils.structures.tuples.MutableTriple
+import me.anno.utils.structures.lists.TripleArrayList
 
 /**
  * map, where each key is a triple
  * */
 open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 16) :
-    Iterable<List<MutableTriple<KFewOnly, KFewOnly2, Value>>> {
+    Iterable<TripleArrayList<KFewOnly, KFewOnly2, Value>> {
 
-    val values = HashMap<KManifold, MutableList<MutableTriple<KFewOnly, KFewOnly2, Value>>>(capacity)
+    val values = HashMap<KManifold, TripleArrayList<KFewOnly, KFewOnly2, Value>>(capacity)
 
     operator fun get(k1: KManifold, k2: KFewOnly, k3: KFewOnly2): Value? {
         return values[k1]?.firstOrNull { it.first == k2 && it.second == k3 }?.third
     }
 
     operator fun set(k1: KManifold, k2: KFewOnly, k3: KFewOnly2, v: Value) {
-        val list = values.getOrPut(k1) { ArrayList(8) }
-        for (pairIndex in list.indices) {
-            val pair = list[pairIndex]
-            if (pair.first == k2 && pair.second == k3) {
-                pair.third = v
+        val list = values.getOrPut(k1) { TripleArrayList(8) }
+        for (i in 0 until list.size) {
+            if (list.getFirst(i) == k2 && list.getSecond(i) == k3) {
+                list.setThird(i, v)
                 return
             }
         }
-        list.add(MutableTriple(k2, k3, v))
+        list.add(k2, k3, v)
     }
 
     fun getOrPut(
         k1: KManifold, k2: KFewOnly, k3: KFewOnly2,
         v: (k1: KManifold, k2: KFewOnly, k3: KFewOnly2) -> Value
     ): Value {
-        val list = values.getOrPut(k1) { ArrayList(8) }
-        for (pairIndex in list.indices) {
-            val pair = list[pairIndex]
-            if (pair.first == k2 && pair.second == k3) {
-                return pair.third
+        val list = values.getOrPut(k1) { TripleArrayList(8) }
+        for (i in 0 until list.size) {
+            if (list.getFirst(i) == k2 && list.getSecond(i) == k3) {
+                return list.getThird(i)
             }
         }
         val value = v(k1, k2, k3)
-        list.add(MutableTriple(k2, k3, value))
+        list.add(k2, k3, value)
         return value
     }
 
@@ -50,7 +48,5 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
         }
     }
 
-    override fun iterator(): Iterator<List<MutableTriple<KFewOnly, KFewOnly2, Value>>> {
-        return values.values.iterator()
-    }
+    override fun iterator() = values.values.iterator()
 }
