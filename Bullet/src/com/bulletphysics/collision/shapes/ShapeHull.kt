@@ -1,9 +1,7 @@
 package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.HullFlags
 import com.bulletphysics.linearmath.convexhull.HullLibrary
-import com.bulletphysics.linearmath.convexhull.HullResult
 import org.joml.Vector3d
 
 /**
@@ -30,7 +28,7 @@ class ShapeHull(val shape: ConvexShape) {
 
         val directions = ArrayList<Vector3d>(NUM_UNIT_SPHERE_POINTS + shape.numPreferredPenetrationDirections)
         for (v in constUnitSpherePoints) {
-            directions.add(v)
+            directions.add(Vector3d(v))
         }
 
         for (i in 0 until shape.numPreferredPenetrationDirections) {
@@ -39,27 +37,18 @@ class ShapeHull(val shape: ConvexShape) {
             directions.add(extraDirection)
         }
 
-        val supportPoints = directions.map { v ->
-            val support = Vector3d()
-            shape.localGetSupportingVertex(v, support)
-            support
+        for (i in directions.indices) {
+            val v = directions[i]
+            shape.localGetSupportingVertex(v, v)
         }
 
-        val hullDesc = HullDesc()
-        hullDesc.flags = HullFlags.TRIANGLES
-        hullDesc.vcount = directions.size
-        hullDesc.vertices = supportPoints
-
-        val hullLibrary = HullLibrary()
-        val hullResult = HullResult()
-        if (!hullLibrary.createConvexHull(hullDesc, hullResult)) {
+        val hullDesc = HullDesc(directions)
+        val hullResult = HullLibrary.createConvexHull(hullDesc)
+        if (hullResult == null) {
             return false
         }
 
-        val dstVertices = hullResult.outputVertices
-        vertices = dstVertices
-        dstVertices.subList(hullResult.numOutputVertices, dstVertices.size).clear()
-
+        vertices = hullResult.vertices
         return true
     }
 

@@ -8,14 +8,15 @@ package com.bulletphysics.linearmath
  */
 @Suppress("unused")
 class DefaultMotionState : MotionState {
+
     /** Current interpolated world transform, used to draw object.  */
-    val graphicsWorldTrans: Transform = Transform()
+    val graphicsWorldTrans = Transform()
 
     /** Center of mass offset transform, used to adjust graphics world transform.  */
-    val centerOfMassOffset: Transform = Transform()
+    val centerOfMassOffset = Transform()
 
     /** Initial world transform.  */
-    val startWorldTrans: Transform = Transform()
+    val startWorldTrans = Transform()
 
     /**
      * Creates a new DefaultMotionState with all transforms set to identity.
@@ -52,8 +53,8 @@ class DefaultMotionState : MotionState {
         return out
     }
 
-    override fun setWorldTransform(centerOfMassWorldTrans: Transform) {
-        graphicsWorldTrans.set(centerOfMassWorldTrans)
+    override fun setWorldTransform(worldTrans: Transform) {
+        graphicsWorldTrans.set(worldTrans)
         graphicsWorldTrans.mul(centerOfMassOffset)
     }
 }

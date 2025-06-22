@@ -6,6 +6,7 @@ import com.bulletphysics.collision.dispatch.ActivationState.DISABLE_SIMULATION
 import com.bulletphysics.collision.dispatch.ActivationState.SLEEPING
 import com.bulletphysics.collision.dispatch.ActivationState.WANTS_DEACTIVATION
 import com.bulletphysics.dynamics.RigidBody
+import com.bulletphysics.linearmath.DefaultMotionState
 import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
@@ -257,23 +258,23 @@ open class Rigidbody : Component(), OnDrawGUI {
      * */
     @Group("Movement")
     @Range(0.0, 1.0)
-    var friction = 0.5
+    var friction: Double = 0.5
         set(value) {
             field = value
             bulletInstance?.friction = friction
         }
 
+    // todo apply this on the collider-building-level (?),
+    //  and get rid of DefaultMotionState
     @Group("Mass")
     @SerializedProperty
-    var centerOfMass = Vector3d()
+    var centerOfMass: Vector3d = Vector3d()
         set(value) {
             field.set(value)
             val bi = bulletInstance
             if (bi != null) {
-                val trans = Stack.borrowTrans()
-                trans.setIdentity()
+                val trans = (bi.motionState as DefaultMotionState).centerOfMassOffset
                 trans.origin.set(value.x, value.y, value.z)
-                bi.setCenterOfMassTransform(trans)
             }
         }
 

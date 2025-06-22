@@ -1,9 +1,10 @@
 package com.bulletphysics.linearmath.convexhull
 
+import me.anno.utils.assertions.assertNotNull
+import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.joml.Vector3d
-import java.util.*
+import java.util.Random
 import java.util.function.ToDoubleFunction
 import kotlin.math.abs
 
@@ -17,14 +18,9 @@ class ConvexHull3DTest {
         val vertices: List<Vector3d>
 
         init {
-            val desc = HullDesc()
-            desc.vertices = ArrayList<Vector3d>(pts)
-            desc.maxVertices = pts.size
-            desc.vcount = pts.size
-
-            val result = HullResult()
-            Assertions.assertTrue(HullLibrary().createConvexHull(desc, result))
-            this.vertices = result.outputVertices
+            val desc = HullDesc(pts, pts.size)
+            val result = assertNotNull(HullLibrary.createConvexHull(desc))
+            this.vertices = result.vertices
         }
     }
 
@@ -125,5 +121,4 @@ class ConvexHull3DTest {
         val dz = z - v.z
         return abs(dx) <= delta && abs(dy) <= delta && abs(dz) <= delta
     }
-
 }

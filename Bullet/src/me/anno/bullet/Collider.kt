@@ -177,7 +177,12 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
         is MeshCollider -> collider.createBulletMeshShape(scale)
         is CapsuleCollider -> collider.createBulletCapsuleShape(scale)
         is ConeCollider -> collider.createBulletConeShape(scale)
-        is ConvexCollider -> ConvexHullShape(collider.points!!)
+        is ConvexCollider -> {
+            val shape = ConvexHullShape(collider.points!!)
+            shape.setLocalScaling(scale)
+            shape.margin = collider.roundness * scale.absMax()
+            shape
+        }
         is CylinderCollider -> collider.createBulletCylinderShape(scale)
         // is CircleCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
         is SphereCollider -> collider.createBulletSphereShape(scale)

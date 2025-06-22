@@ -238,6 +238,25 @@ open class IntArrayList(initCapacity: Int = 16, val pool: IntArrayPool? = null) 
         return sum
     }
 
+    fun sort() {
+        values.sort(0, size)
+    }
+
+    fun removeDuplicatesSorted() {
+        if (size < 2) return // already unique
+        var writeIndex = 1
+        val values = values
+        var lastValue = values[0]
+        for (readIndex in 1 until size) {
+            val v = values[readIndex]
+            if (v != lastValue) {
+                values[writeIndex++] = v
+                lastValue = v
+            }
+        }
+        size = writeIndex
+    }
+
     override fun destroy() {
         pool?.returnBuffer(values)
         size = 0
