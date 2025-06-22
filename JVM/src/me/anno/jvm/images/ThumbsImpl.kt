@@ -5,7 +5,7 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.utils.async.Callback
 import java.awt.image.BufferedImage
 import java.io.File
@@ -37,7 +37,7 @@ object ThumbsImpl {
                 icon.paintIcon(null, gfx, 1, 1)
                 gfx.dispose()
                 // respect the size
-                Thumbs.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
+                ThumbnailCache.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
             } else exc?.printStackTrace()
         })
     }

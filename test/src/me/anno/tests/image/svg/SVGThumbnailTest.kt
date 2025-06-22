@@ -3,7 +3,7 @@ package me.anno.tests.image.svg
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.io.xml.generic.XMLNode
@@ -54,7 +54,8 @@ class SVGThumbnailTest {
         HiddenOpenGLContext.createOpenGL()
         val scale = 8
         val file = createSVGFile(baseline, scale)
-        val thumbnail = Thumbs[file, baseline.width * scale, false]!!.createImage(false, false)
+        val thumbnail = ThumbnailCache.getEntry(file, baseline.width * scale).waitFor()!!
+            .createImage(flipY = false, withAlpha = false)
         baseline.forEachPixel { x, y ->
             val baseColor = baseline.getRGB(x, y)
             val thumbColor = thumbnail.getRGB(
@@ -72,7 +73,8 @@ class SVGThumbnailTest {
         val scale = 8
         val file0 = createSVGFile(baseline, scale)
         val file = file0.getChild("Scene.json")
-        val thumbnail = Thumbs[file, 256, false]!!.createImage(false, false)
+        val thumbnail = ThumbnailCache.getEntry(file, 256).waitFor()!!
+            .createImage(flipY = false, withAlpha = false)
         // thumbnail.write(desktop.getChild("svg3.png"))
         baseline.forEachPixel { x, y ->
             val baseColor = baseline.getRGB(x, y)

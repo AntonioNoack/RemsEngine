@@ -20,7 +20,7 @@ object FileCacheSection {
         generator: (FileKey, AsyncCacheData<V>) -> Unit
     ): AsyncCacheData<V> {
         val validFile = getValidFile(file, allowDirectories)
-        if (validFile == null) return NullCacheData.get()
+        if (validFile == null) return AsyncCacheData.empty()
         return getEntry(validFile.getFileKey(), timeoutMillis, generator)
     }
 

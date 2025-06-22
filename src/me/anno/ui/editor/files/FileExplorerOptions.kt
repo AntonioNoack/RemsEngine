@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
@@ -119,7 +119,7 @@ object FileExplorerOptions {
         )
     ) { _, files ->
         for (file in files) {
-            Thumbs.invalidate(file)
+            ThumbnailCache.invalidate(file)
         }
     }
     val delete = FileExplorerOption(deleteDesc) { p, files ->

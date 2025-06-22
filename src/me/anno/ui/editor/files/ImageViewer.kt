@@ -3,15 +3,13 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultStyle
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.gpu.drawing.DrawTexts.drawTextOrFail
-import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeOr
-import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.max
@@ -31,7 +29,7 @@ class ImageViewer(val files: List<FileReference>, style: Style) : ImagePanel(sty
 
     override fun getTexture(): ITexture2D? {
         return TextureCache[file].value?.createdOrNull()
-            ?: Thumbs[file, max(width, height), true]
+            ?: ThumbnailCache[file, max(width, height)]
     }
 
     override fun onUpdate() {

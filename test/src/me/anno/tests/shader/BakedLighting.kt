@@ -56,6 +56,7 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
@@ -347,7 +348,8 @@ fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolut
     val pos = mesh.positions ?: return
     val nor = mesh.normals ?: return
     val uvs = mesh.uvs ?: return // todo if missing, calculate single pixel-value for it
-    val region = MaterialCache[component.materials[0]]!!.shaderOverrides["bakedRect"]!!.value as Vector4f
+    val region = MaterialCache.getEntry(component.materials[0]).waitFor()!!
+        .shaderOverrides["bakedRect"]!!.value as Vector4f
 
     // we could find UV-AABB, and unproject it to remove fract() from shader, and make spheres work out of the box
     val uvBounds = AABBf()
@@ -744,7 +746,8 @@ fun bakeIllumination(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) 
     val blasNodes = createBLASTexture(meshes, 2 * 3)
     val tlasNodes = createTLASTexture(bvh, 9) { node, data ->
         val bakedRect = if (node is TLASLeaf) {
-            val material = MaterialCache[(node.component as? MeshComponent)?.materials?.getOrNull(0)]
+            val materialRef = (node.component as? MeshComponent)?.materials?.getOrNull(0)
+            val material = MaterialCache.getEntry(materialRef ?: InvalidRef).waitFor()
             material?.shaderOverrides?.get("bakedRect")?.value as? Vector4f
         } else null
         if (bakedRect != null) {
@@ -867,12 +870,13 @@ fun splitRegion(entries: List<WeightedValue>, remainingRegion: AABBi, resolution
         if (comp.materials.isEmpty()) {
             comp.materials = comp.getMesh()!!.materials
             for (mat in comp.materials) {
-                val matI = MaterialCache[mat] ?: continue
+                val matI = MaterialCache.getEntry(mat).waitFor() ?: continue
                 matI.shader = BakedLightingShader
             }
         }
         for (mat in comp.materials) {
-            MaterialCache[mat]!!.shaderOverrides["bakedRect"] = TypeValue(GLSLType.V4F, value)
+            MaterialCache.getEntry(mat).waitFor()!!
+                .shaderOverrides["bakedRect"] = TypeValue(GLSLType.V4F, value)
         }
     } else {
         val left = ArrayList<WeightedValue>(entries.size)

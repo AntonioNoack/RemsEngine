@@ -4,7 +4,6 @@ import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
 import me.anno.cache.FileCacheSection.overrideFileEntry
-import me.anno.cache.NullCacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
@@ -66,7 +65,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
         get(resource, maxDepth, timeoutMillis)
 
     operator fun get(resource: FileReference?, maxDepth: Int, timeoutMillis: Long): AsyncCacheData<PrefabPair> {
-        var source = resource ?: return NullCacheData.get()
+        var source = resource ?: return AsyncCacheData.empty()
         while (source is InnerLinkFile) {
             notifyLink(source)
             source = source.link
@@ -124,7 +123,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
     fun createSuperInstance(prefab: FileReference, depth: Int, clazzName: String): AsyncCacheData<PrefabSaveable> {
         if (depth < 0) {
             LOGGER.warn("Circular dependency in $prefab, ${printDependencyGraph(prefab)}")
-            return NullCacheData.get()
+            return AsyncCacheData.empty()
         }
         val depth1 = depth - 1
         return PrefabCache[prefab, depth1].mapNextNullable { pair ->
@@ -140,7 +139,7 @@ object PrefabCache : CacheSection<FileKey, PrefabPair>("Prefab") {
 
     fun loadJson(resource: FileReference?): AsyncCacheData<Saveable> {
         return when (resource) {
-            InvalidRef, null -> NullCacheData.get()
+            InvalidRef, null -> AsyncCacheData.empty()
             is PrefabReadable -> AsyncCacheData(resource.readPrefab())
             else -> JsonStringReader.read(resource, EngineBase.workspace, true).mapNext { read ->
                 val prefab = read.firstOrNull()

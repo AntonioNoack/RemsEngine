@@ -22,10 +22,10 @@ fun main() {
     OfficialExtensions.initForTests() // Mesh loaders
     val clock = Clock(LOGGER)
     var easy = true
-    val mesh = MeshCache[
+    val mesh = MeshCache.getEntry(
         if (easy) res.getChild("meshes/CuteGhost.fbx")
         else downloads.getChild("3d/dragon.obj")
-    ] as Mesh
+    ).waitFor() as Mesh
     if (mesh.indices == null) {
         // todo bug/issue: generateIndicesV2 is very slow
         mesh.generateIndices()

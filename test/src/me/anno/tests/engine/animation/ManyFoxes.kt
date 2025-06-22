@@ -96,7 +96,7 @@ fun main() {
     val foxFile = downloads.getChild("3d/azeria/scene.gltf")
 
     val animFile = foxFile.getChild("animations/Walk/Imported.json")
-    val animation = AnimationCache[animFile]
+    val animation = AnimationCache.getEntry(animFile).waitFor()
         ?: throw IllegalStateException("Missing animation $animFile")
     val duration = animation.duration
 

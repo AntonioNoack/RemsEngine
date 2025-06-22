@@ -103,7 +103,7 @@ fun main() {
         world.add(Skybox())
 
         val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
-        val agentMesh = MeshCache[agentMeshRef, false] as Mesh
+        val agentMesh = MeshCache.getEntry(agentMeshRef).waitFor() as Mesh
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
         val agentScale = 1f

@@ -13,7 +13,7 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val mesh0 = MeshCache[downloads.getChild("3d/lucy.obj")] as Mesh
+    val mesh0 = MeshCache.getEntry(downloads.getChild("3d/lucy.obj")).waitFor() as Mesh
     val mesh1 = simplifyMesh(mesh0, 0.2f, 5)
     val mesh2 = simplifyMesh(mesh1, 0.05f, 5)
 

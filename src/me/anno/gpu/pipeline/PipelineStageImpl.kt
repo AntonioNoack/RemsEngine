@@ -558,7 +558,7 @@ class PipelineStageImpl(
         val oc = (renderer as? MeshComponentBase)?.occlusionQuery
         if (oc != null && oqp && !oc.wasVisible) return
 
-        val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation(true, mesh) ?: false
+        val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation(mesh) ?: false
         GFXState.animated.use(hasAnimation) {
             GFXState.vertexData.use(mesh.vertexData) {
 

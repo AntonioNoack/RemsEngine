@@ -63,7 +63,7 @@ fun main() {
                         shader.use()
                         shader.m4x3("localTransform", null as Matrix4x3?)
                         shader.m4x4("transform", transform)
-                        val mesh = MeshCache[srcFile, false]!!
+                        val mesh = MeshCache.getEntry(srcFile).waitFor()!!
                         defaultMaterial.bind(shader)
                         shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         mesh.draw(null, shader, 0, Mesh.drawDebugLines)

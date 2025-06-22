@@ -33,8 +33,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createArrayList
-import org.joml.Matrix4x3f
 import org.joml.Matrix4x3
+import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -77,7 +77,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     }
 
     open fun onAnimFinished(anim: AnimationState) {
-        val instance = AnimationCache[anim.source]
+        val instance = AnimationCache.getEntry(anim.source).waitFor()
         if (instance != null) {
             val duration = instance.duration
             anim.progress = anim.repeat[anim.progress, duration]
@@ -89,13 +89,13 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         val dt = Time.deltaTime.toFloat()
         for (index in animations.indices) {
             val anim = animations[index]
-            anim.update(this, dt, true)
+            anim.update(this, dt)
         }
         updateAnimState()
     }
 
-    override fun hasAnimation(async: Boolean, mesh: IMesh): Boolean {
-        val skeleton = SkeletonCache[mesh.skeleton, async]
+    override fun hasAnimation(mesh: IMesh): Boolean {
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton).value
         return skeleton != null && (useDefaultAnimation || animations.isNotEmpty())
     }
 
@@ -115,7 +115,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     override fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
 
-        val skeleton = SkeletonCache[mesh.skeleton]
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()
         if (skeleton == null) {
             lastWarning = "Skeleton missing"
             return false
@@ -200,7 +200,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             val animSource = animations[index]
             val weight = animSource.weight
             val relativeWeight = weight / (sumWeight + weight)
-            val animation = AnimationCache[animSource.source] ?: continue
+            val animation = AnimationCache.getEntry(animSource.source).waitFor() ?: continue
             val frameIndex = (animSource.progress * animation.numFrames) / animation.duration
             if (matrices == null) {
                 matrices = animation.getMappedMatricesSafely(frameIndex, tmpMapping0, skeleton)
@@ -227,7 +227,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             val animSource = animations[index]
             val weight = animSource.weight
             val relativeWeight = weight / (sumWeight + weight)
-            val animation = AnimationCache[animSource.source] ?: continue
+            val animation = AnimationCache.getEntry(animSource.source).waitFor() ?: continue
             val frameIndex = (animSource.progress * animation.numFrames) / animation.duration
             if (matrices == null) {
                 matrices = animation.getMappedMatrixSafely(frameIndex, boneIndex, tmpMapping0, skeleton)
@@ -241,7 +241,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     }
 
     open fun getAnimTexture(mesh: IMesh): ITexture2D? {
-        val skeleton = SkeletonCache[mesh.skeleton] ?: return null
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor() ?: return null
         if (skeleton.bones.isEmpty()) return null
         return AnimationCache[skeleton].texture
     }
@@ -252,7 +252,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         mesh: IMesh
     ): Boolean {
 
-        val skeleton = SkeletonCache[mesh.skeleton]
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()
         if (skeleton == null) {
             lastWarning = "Mesh-Skeleton missing"
             return false
@@ -288,7 +288,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             val animState = animations[index]
             val weight = animState.weight
             if (abs(weight) > abs(dstWeights.min())) {
-                val animation = AnimationCache[animState.source] ?: continue
+                val animation = AnimationCache.getEntry(animState.source).waitFor() ?: continue
                 val frameIndex = animState.progress / animation.duration * animation.numFrames
                 val internalIndex = animTexture.getIndex(animation, frameIndex)
                 if (writeIndex < 4) {
@@ -325,7 +325,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
     override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             // draw animated skeleton as debug mesh
-            val skeleton = SkeletonCache[getMesh()?.skeleton ?: InvalidRef] ?: return
+            val skeleton = SkeletonCache.getEntry(getMesh()?.skeleton ?: InvalidRef).waitFor() ?: return
             drawAnimatedSkeleton(pipeline, this, skeleton, transform?.getDrawMatrix(), true)
         }
     }

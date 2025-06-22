@@ -29,21 +29,20 @@ class AnimationState(
     constructor(source: FileReference, weight: Float = 1f) : this(source, weight, 0f, 1f, LoopingState.PLAY_LOOP)
 
     private var lastTime = 0L
-    fun update(ar: AnimMeshComponent?, dt: Float, async: Boolean) {
+    fun update(ar: AnimMeshComponent?, dt: Float) {
         val time = Time.gameTimeN
         if (lastTime != time) {
             lastTime = time
-            val instance = AnimationCache[source, async] ?: return
             progress += speed * dt
-            val duration = instance.duration
-            if (progress < 0f || progress >= duration) {
+            val instance = AnimationCache.getEntry(source).value ?: return
+            if (progress < 0f || progress >= instance.duration) {
                 ar?.onAnimFinished(this)
             }
         }
     }
 
-    fun set(time: Float, async: Boolean) {
-        val instance = AnimationCache[source, async]
+    fun setTime(time: Float) {
+        val instance = AnimationCache.getEntry(source).value
         if (instance != null) {
             progress = repeat[time, instance.duration]
         }

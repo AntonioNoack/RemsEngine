@@ -3,7 +3,6 @@ package me.anno.fonts
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.LRUCache
-import me.anno.cache.NullCacheData
 import me.anno.fonts.FontStats.getTextGenerator
 import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.keys.FontKey
@@ -126,7 +125,7 @@ object FontManager {
     ): AsyncCacheData<ITexture2D> {
         val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
         val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
-        val key = getTextCacheKey(font, text, wl, hl) ?: return NullCacheData.get()
+        val key = getTextCacheKey(font, text, wl, hl) ?: return AsyncCacheData.empty()
         return getTexture(key, timeoutMillis)
     }
 
@@ -158,7 +157,7 @@ object FontManager {
         // must be sync:
         // - textures need to be available
         // - Java/Windows is not thread-safe
-        if (cacheKey.text.isBlank2()) return NullCacheData.get()
+        if (cacheKey.text.isBlank2()) return AsyncCacheData.empty()
         return textTextureCache.getEntry(cacheKey, timeoutMillis, generateTexture)
     }
 

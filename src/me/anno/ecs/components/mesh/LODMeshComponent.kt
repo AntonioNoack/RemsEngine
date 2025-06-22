@@ -55,12 +55,12 @@ class LODMeshComponent() : MeshComponentBase() {
         if (aabbIndex < 0) {
             fillSpaceStart()
             for (index in meshes.indices) {
-                fillSpaceAdd(MeshCache[meshes[index]] ?: continue)
+                fillSpaceAdd(MeshCache.getEntry(meshes[index]).waitFor() ?: continue)
             }
             fillSpaceEnd(globalTransform, dstUnion)
         } else {
             val index = clamp(aabbIndex, 0, meshes.lastIndex)
-            val mesh = MeshCache[meshes[index]]
+            val mesh = MeshCache.getEntry(meshes[index]).waitFor()
             if (mesh != null) fillSpaceSet(mesh, globalTransform, dstUnion)
         }
         return true
@@ -75,7 +75,7 @@ class LODMeshComponent() : MeshComponentBase() {
             // globalAABB should be filled
             globalAABB.distanceSquared(pos)
         } else {
-            val mesh = MeshCache[meshes.firstOrNull()] ?: return 0 // maybe should use aabbIndex
+            val mesh = MeshCache.getEntry(meshes.firstOrNull() ?: InvalidRef).waitFor() ?: return 0 // maybe should use aabbIndex
             mesh.getBounds().distanceSquared(pos)
         }
         val relDistSq = distSq / (lod1Dist * lod1Dist)
@@ -88,8 +88,8 @@ class LODMeshComponent() : MeshComponentBase() {
         return meshes.getOrNull(index) ?: InvalidRef
     }
 
-    override fun getMeshOrNull(): IMesh? = MeshCache[getLODMeshRef(), true]
-    override fun getMesh(): IMesh? = MeshCache[getLODMeshRef(), false]
+    override fun getMeshOrNull(): IMesh? = MeshCache[getLODMeshRef()]
+    override fun getMesh(): IMesh? = MeshCache.getEntry(getLODMeshRef()).waitFor()
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

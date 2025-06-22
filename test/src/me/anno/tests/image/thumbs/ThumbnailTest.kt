@@ -2,7 +2,7 @@ package me.anno.tests.image.thumbs
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.Reference.getReference
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.OS.desktop
@@ -20,6 +20,7 @@ fun main() {
     val source = getReference("E:/Assets/Megascans/junkyard_high.zip/wcvodcw/wcvodcw_4K_Cavity.jpg")
     assertTrue(source.exists)
     assertTrue(source.length() > 0)
-    Thumbs[source, 256, false]!!.write(desktop.getChild(source.name))
+    ThumbnailCache.getEntry(source, 256).waitFor()!!
+        .write(desktop.getChild(source.name))
     Engine.requestShutdown()
 }

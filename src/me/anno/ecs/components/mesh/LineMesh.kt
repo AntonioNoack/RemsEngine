@@ -23,7 +23,7 @@ class LineMesh(var meshFile: FileReference) : PrefabSaveable(), IMesh {
 
     var materialOverrides: List<FileReference>? = null
 
-    val mesh get() = MeshCache[meshFile] ?: DefaultAssets.flatCube
+    val mesh get() = MeshCache.getEntry(meshFile).waitFor() ?: DefaultAssets.flatCube
 
     override val numPrimitives: Long
         get() = mesh.numPrimitives // actual number is a little more complicated...

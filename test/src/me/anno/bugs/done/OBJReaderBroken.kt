@@ -8,6 +8,6 @@ import me.anno.utils.OS.downloads
 fun main() {
     // the issue was that I broke TextFileReader.readInt() for negative numbers
     OfficialExtensions.initForTests()
-    MeshCache[downloads.getChild("3d/dragon.obj")]
+    MeshCache.getEntry(downloads.getChild("3d/dragon.obj")).waitFor()
     Engine.requestShutdown()
 }

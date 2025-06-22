@@ -204,11 +204,11 @@ fun main() {
 
     val scene = Entity("Scene")
     val ducks = Entity("Ducks", scene)
-    val materials = MeshCache[duckModel]!!.materials
+    val materials = MeshCache.getEntry(duckModel).waitFor()!!.materials
     val shader = ParticleShader(sim)
     val newMaterials = materials.map {
-        println(MaterialCache[it]!!.run { "$name: $diffuseBase, $this" })
-        val material = MaterialCache[it]!!.clone() as Material
+        println(MaterialCache.getEntry(it).waitFor()!!.run { "$name: $diffuseBase, $this" })
+        val material = MaterialCache.getEntry(it).waitFor()!!.clone() as Material
         material.shader = shader
         material.ref
     }

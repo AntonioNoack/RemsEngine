@@ -3,7 +3,7 @@ package me.anno.tests.pdf
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.toVecRGBA
@@ -72,7 +72,7 @@ class PDFTests {
         HiddenOpenGLContext.createOpenGL()
 
         val testFile = InnerTmpTextFile(samplePDF)
-        val tex = Thumbs[testFile.getChild("256px.png"), 256, false]!!
+        val tex = ThumbnailCache.getEntry(testFile.getChild("256px.png"), 256).waitFor()!!
         assertEquals(256, tex.width)
         assertEquals(12 * 256 / 23, tex.height) // 12 x 23 is the dimensions of the media box
 

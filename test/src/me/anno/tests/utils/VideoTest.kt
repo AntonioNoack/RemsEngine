@@ -57,7 +57,7 @@ fun main() {
 
     initWithGFX()
 
-    val mesh = MeshCache[src] as Mesh
+    val mesh = MeshCache.getEntry(src).waitFor() as Mesh
     val cameraMatrix = createCameraMatrix(1f).rotateZ(PIf)
 
     fun createModelMatrix(frameIndex: Float): Matrix4x3f {

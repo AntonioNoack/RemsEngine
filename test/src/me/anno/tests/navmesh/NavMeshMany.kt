@@ -81,7 +81,7 @@ fun main() {
         val world = Entity("World")
 
         val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
-        val agentMesh = MeshCache[agentMeshRef] as Mesh
+        val agentMesh = MeshCache.getEntry(agentMeshRef).waitFor() as Mesh
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
         val agentScale = 1f
@@ -94,7 +94,7 @@ fun main() {
         builder.collisionMask = mask
 
         val navMeshSrc = res.getChild("meshes/NavMesh.fbx")
-        assertNotNull(MeshCache[navMeshSrc])
+        assertNotNull(MeshCache.getEntry(navMeshSrc).waitFor())
         world.add(Entity().apply {
             add(MeshComponent(navMeshSrc).apply {
                 collisionMask = mask
@@ -106,7 +106,7 @@ fun main() {
         world.add(NavMeshDebugComponent(navMeshData))
 
         val flagMesh = res.getChild("meshes/Flag.fbx")
-        assertNotNull(MeshCache[flagMesh])
+        assertNotNull(MeshCache.getEntry(flagMesh).waitFor())
 
         for (i in 0 until 2500) {
             val flag = Entity("Flag", world)

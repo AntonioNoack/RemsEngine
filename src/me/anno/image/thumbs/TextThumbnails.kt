@@ -14,7 +14,6 @@ import me.anno.io.files.ReadLineIterator
 import me.anno.maths.Maths
 import me.anno.utils.Color
 import me.anno.utils.InternalAPI
-import me.anno.utils.Sleep
 import me.anno.utils.Warning
 import me.anno.utils.async.Callback
 import me.anno.utils.structures.Iterators.subList
@@ -25,8 +24,8 @@ object TextThumbnails {
     @JvmStatic
     @InternalAPI
     fun register() {
-        Thumbs.registerSignatures("ttf,woff1,woff2", TextThumbnails::generateFontPreview)
-        Thumbs.registerFileExtensions("txt,html,md", TextThumbnails::generateTextImage)
+        ThumbnailCache.registerSignatures("ttf,woff1,woff2", TextThumbnails::generateFontPreview)
+        ThumbnailCache.registerFileExtensions("txt,html,md", TextThumbnails::generateTextImage)
     }
 
     @JvmStatic

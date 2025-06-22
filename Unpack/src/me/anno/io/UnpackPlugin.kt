@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.extensions.plugins.Plugin
 import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
@@ -66,20 +66,20 @@ class UnpackPlugin : Plugin() {
     }
 
     private fun registerThumbnails() {
-        Thumbs.registerFileExtensions("lnk") { srcFile, dstFile, size, callback ->
+        ThumbnailCache.registerFileExtensions("lnk") { srcFile, dstFile, size, callback ->
             WindowsShortcut.get(srcFile) { link, exc ->
                 if (link != null) {
                     val iconFile = link.iconPath ?: link.absolutePath
-                    Thumbs.generate(getReference(iconFile), dstFile, size, callback)
+                    ThumbnailCache.generate(getReference(iconFile), dstFile, size, callback)
                 } else callback.err(exc)
             }
         }
         // try as an asset
-        Thumbs.registerFileExtensions(AssetThumbHelper.unityExtensions, AssetThumbnails::generateAssetFrame)
-        Thumbs.registerFileExtensions("ods,odt") { srcFile, dstFile, size, callback ->
+        ThumbnailCache.registerFileExtensions(AssetThumbHelper.unityExtensions, AssetThumbnails::generateAssetFrame)
+        ThumbnailCache.registerFileExtensions("ods,odt") { srcFile, dstFile, size, callback ->
             val srcFile1 = srcFile.getChild("Thumbnails/thumbnail.png")
             if (srcFile1.exists) {
-                Thumbs.generate(srcFile1, dstFile, size, callback)
+                ThumbnailCache.generate(srcFile1, dstFile, size, callback)
             } else callback.err(FileNotFoundException("Missing Thumbnails/thumbnail.png"))
         }
     }

@@ -176,7 +176,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     override fun getMatrices(frameIndex: Float, dst: List<Matrix4x3f>): List<Matrix4x3f>? {
-        val skeleton = SkeletonCache[skeleton] ?: return null
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return null
         val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.create()
@@ -196,7 +196,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     override fun getMatrix(frameIndex: Float, boneIndex: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
-        val skeleton = SkeletonCache[skeleton] ?: return null
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return null
         val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
         val pos = JomlPools.vec3f.create()
@@ -219,7 +219,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     override fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f>? {
-        val skeleton = SkeletonCache[skeleton] ?: return null
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return null
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.create()
         val tmpSca = JomlPools.vec3f.create()
@@ -236,7 +236,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     override fun getMatrix(frameIndex: Int, boneIndex: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
-        val skeleton = SkeletonCache[skeleton] ?: return null
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return null
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.create()
         val tmpSca = JomlPools.vec3f.create()
@@ -274,7 +274,7 @@ class BoneByBoneAnimation() : Animation() {
 
     fun fromImported(src: ImportedAnimation, frameList: List<Int>?): BoneByBoneAnimation {
         skeleton = src.skeleton
-        val skeleton = SkeletonCache[skeleton]!!
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor()!!
         boneCount = skeleton.bones.size
         frameCount = frameList?.size ?: src.frames.size
         initFloatArrays()
@@ -339,7 +339,7 @@ class BoneByBoneAnimation() : Animation() {
     @Suppress("unused")
     fun toImported(dst: ImportedAnimation = ImportedAnimation()): ImportedAnimation {
         dst.skeleton = skeleton
-        val skel = SkeletonCache[skeleton]!!
+        val skel = SkeletonCache.getEntry(skeleton).waitFor()!!
         val tmpPos = JomlPools.vec3f.create()
         val tmpSca = JomlPools.vec3f.create()
         val tmpRot = JomlPools.quat4f.create()

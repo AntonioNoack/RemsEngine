@@ -10,7 +10,6 @@ import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
-import me.anno.cache.NullCacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileKey
@@ -178,7 +177,7 @@ object AudioFXCache : CacheSection<AudioFXCache.PipelineKey, AudioFXCache.AudioD
         file: FileReference, bufferSize: Int, index0: Long, index1: Long,
         repeat: LoopingState, identifier: String
     ): AsyncCacheData<ShortData> {
-        if (!bufferSize.isPowerOf2()) return NullCacheData.get()
+        if (!bufferSize.isPowerOf2()) return AsyncCacheData.empty()
         val queue = rangingProcessing2
         return rangeCache.getEntryLimitedWithRetry(
             RangeKey(index0, index1, identifier),

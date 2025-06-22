@@ -28,6 +28,7 @@ class Clock(
 
     @Suppress("unused")
     val timeSinceStart get() = (Time.nanoTime - firstTime) * 1e-9
+    val timeSinceStop get() = (Time.nanoTime - lastTime) * 1e-9
 
     fun start() {
         lastTime = Time.nanoTime

@@ -90,7 +90,7 @@ object Gizmos {
         pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, rotation: Quaternionf, scale: Float,
         clickId: Int, chosenId: Int, mouseDirection: Vector3f, ref: FileReference
     ): Int {
-        val mesh = MeshCache[ref, true] as? Mesh ?: return 0
+        val mesh = MeshCache.getEntry(ref).value as? Mesh ?: return 0
         var result = 0
         val tmp = rotations[3]
         for (i in 0 until 3) {

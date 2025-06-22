@@ -92,7 +92,7 @@ fun main() {
     val clock = Clock("BRealtimeTest")
     forceLoadRenderDoc()
     val meshSource = documents.getChild("monkey.obj")
-    val mesh = MeshCache[meshSource] as Mesh
+    val mesh = MeshCache.getEntry(meshSource).waitFor() as Mesh
     clock.stop("Loading mesh")
     val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 8)!!
     clock.stop("Building BLAS")

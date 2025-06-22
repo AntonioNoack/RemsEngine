@@ -16,7 +16,7 @@ fun main() {
     val obj = PrefabCache[file].waitFor()?.sample ?: throw IllegalStateException("Missing $file")
     val entity = obj as Entity
     val totalNumPrimitives = entity.sumComponentsInChildren(MeshComponent::class) { comp ->
-        MeshCache[comp.meshFile]!!.numPrimitives
+        MeshCache.getEntry(comp.meshFile).waitFor()!!.numPrimitives
     }
     LOGGER.info("Primitives: $totalNumPrimitives")
     Engine.requestShutdown()

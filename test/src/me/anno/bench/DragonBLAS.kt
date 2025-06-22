@@ -18,7 +18,7 @@ fun main() {
     val clock = Clock(logger)
     OfficialExtensions.initForTests()
     clock.stop("Loading Extensions")
-    val mesh = MeshCache[downloads.getChild("3d/dragon.obj")] as Mesh
+    val mesh = MeshCache.getEntry(downloads.getChild("3d/dragon.obj")).waitFor() as Mesh
     clock.stop("Loading Mesh")
     // 180ms/e, 230ms first time
     // optimized using multi-threading and pivot-reusing down to 42ms/e

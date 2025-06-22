@@ -32,7 +32,6 @@ import me.anno.io.files.SignatureCache
 import me.anno.io.files.inner.InnerByteSliceFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
-import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
 import me.anno.utils.async.firstPromise
 import me.anno.utils.hpc.ProcessingQueue
@@ -49,9 +48,9 @@ import kotlin.math.min
  * todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
  * todo also sometimes, images get rendered on top of each other, which is weird
  * */
-object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
+object ThumbnailCache : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
 
-    private val LOGGER = LogManager.getLogger(Thumbs::class)
+    private val LOGGER = LogManager.getLogger(ThumbnailCache::class)
 
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
     val worker = ProcessingQueue("Thumbnails")
@@ -92,31 +91,29 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     }
 
     @JvmStatic
-    operator fun get(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
-
-        if (neededSize < 1) return null
-        if (file == InvalidRef) return null
-        if (file is ImageReadable) {
-            return TextureCache[file, timeout].waitFor(async)
+    fun getEntry(file: FileReference, neededSize: Int): AsyncCacheData<ITexture2D> {
+        return when {
+            neededSize < 1 -> AsyncCacheData.empty()
+            file == InvalidRef -> AsyncCacheData.empty()
+            file is ImageReadable -> TextureCache[file, timeout]
+            file.isDirectory || !file.exists -> AsyncCacheData.empty()
+            else -> {
+                val size = getSize(neededSize)
+                val lastModified = file.lastModified
+                val key = ThumbnailKey(file, lastModified, size)
+                textures.getEntryLimitedWithRetry(key, timeout, 4, generator)
+            }
         }
+    }
 
-        // currently not supported
-        if (file.isDirectory) return null
-        // was deleted
-        if (!file.exists) return null
-
-        val size = getSize(neededSize)
-        val lastModified = file.lastModified
-        val key = ThumbnailKey(file, lastModified, size)
-
-        val async1 = textures.getEntryLimited(key, timeout, 4, ::generate0)
-        if (!async) async1?.waitFor()
-        val texture = async1?.value
-        if (!async && texture != null && !texture.isCreated()) {
-            Sleep.waitUntil(true) { texture.isCreated() || texture.isDestroyed }
+    @JvmStatic
+    operator fun get(file: FileReference, neededSize: Int): ITexture2D? {
+        val value = getEntry(file, neededSize)
+        return value.value?.createdOrNull() ?: run {
+            val size = getSize(neededSize)
+            val lastModified = file.lastModified
+            findSmallerThumbnail(size, file, lastModified)
         }
-        return if (texture != null && texture.isCreated()) texture
-        else findSmallerThumbnail(size, file, lastModified)
     }
 
     private fun findSmallerThumbnail(size: Int, file: FileReference, lastModified: Long): ITexture2D? {
@@ -132,11 +129,12 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     }
 
     @JvmStatic
-    private fun generate0(key: ThumbnailKey, callback: Callback<ITexture2D>) {
+    private val generator = { key: ThumbnailKey, callback: AsyncCacheData<ITexture2D> ->
         val srcFile = key.file
         val size = key.size
         // if larger texture exists in cache, use it and scale it down
         val idx = sizes.indexOf(size) + 1
+        var done = false
         for (i in idx until sizes.size) {
             val sizeI = sizes[i]
             val keyI = ThumbnailKey(key.file, key.lastModified, sizeI)
@@ -145,16 +143,17 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
             if (tex != null && tex.isCreated()) {
                 LOGGER.info("Copying texture for $key")
                 copyTexIfPossible(srcFile, size, tex, callback)
-                return
+                done = true
+                break
             }
         }
-        generate(srcFile, size, callback)
+        if (!done) {
+            generate(srcFile, size, callback)
+        }
     }
 
     private fun copyTexIfPossible(
-        srcFile: FileReference,
-        size: Int,
-        tex: ITexture2D,
+        srcFile: FileReference, size: Int, tex: ITexture2D,
         callback: Callback<ITexture2D>
     ) {
         val (w, h) = scaleMax(tex.width, tex.height, size)

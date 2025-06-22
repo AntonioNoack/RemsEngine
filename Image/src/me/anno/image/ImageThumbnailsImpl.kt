@@ -11,7 +11,7 @@ import me.anno.image.svg.DrawSVGs
 import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tga.TGAReader
 import me.anno.image.thumbs.ImageThumbnails.generateImage
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.image.thumbs.ThumbsRendering
 import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
@@ -33,7 +33,7 @@ object ImageThumbnailsImpl {
     ) {
         JPGThumbnails.extractThumbnail(srcFile) { bytes ->
             if (bytes != null) {
-                Thumbs.worker += {
+                ThumbnailCache.worker += {
                     generateJPGFrame2(srcFile, dstFile, size, callback, bytes)
                 }
             } else generateImage(srcFile, dstFile, size, callback)
@@ -46,7 +46,7 @@ object ImageThumbnailsImpl {
     ) {
         try {
             val image = ImageIO.read(ByteArrayInputStream(bytes))
-            Thumbs.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
+            ThumbnailCache.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
         } catch (_: Exception) {
             generateImage(srcFile, dstFile, size, callback)
         }
@@ -60,8 +60,8 @@ object ImageThumbnailsImpl {
             if (it != null) {
                 val src = it.use { TGAReader.read(it, false) }
                 if (src is Image) {
-                    Thumbs.findScale(src, srcFile, size, callback) { dst ->
-                        Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
+                    ThumbnailCache.findScale(src, srcFile, size, callback) { dst ->
+                        ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, callback)
                     }
                 } else callback.err(src as? Exception)
             }
@@ -76,7 +76,7 @@ object ImageThumbnailsImpl {
         srcFile.inputStream { it, exc ->
             if (it != null) {
                 val image = it.use { ICOReader.read(it, size) }
-                if (image is Image) Thumbs.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                if (image is Image) ThumbnailCache.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
                 else callback.err(image as? Exception)
             } else exc?.printStackTrace()
         }
@@ -86,26 +86,27 @@ object ImageThumbnailsImpl {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        SVGMeshCache[srcFile, TextureReader.imageTimeout].waitFor(callback.mapAsync { buffer, cb1 ->
-            val bounds = buffer.bounds
-            val maxSize = max(bounds.maxX, bounds.maxY)
-            val w = (size * bounds.maxX / maxSize).roundToIntOr()
-            val h = (size * bounds.maxY / maxSize).roundToIntOr()
-            if (w >= 2 && h >= 2) {
-                ThumbsRendering.renderToImage(
-                    srcFile, false, dstFile, false,
-                    Renderer.colorRenderer, false, cb1, w, h
-                ) {
-                    val transform = Matrix4fArrayList()
-                    transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
-                    DrawSVGs.draw3DSVG(
-                        transform, buffer,
-                        TextureLib.whiteTexture, Color.white4,
-                        Filtering.NEAREST, TextureLib.whiteTexture.clamping,
-                        null
-                    )
-                }
-            } else callback.err(null)
-        })
+        SVGMeshCache[srcFile, TextureReader.imageTimeout]
+            .waitFor(callback.mapAsync { buffer, cb1 ->
+                val bounds = buffer.bounds
+                val maxSize = max(bounds.maxX, bounds.maxY)
+                val w = (size * bounds.maxX / maxSize).roundToIntOr()
+                val h = (size * bounds.maxY / maxSize).roundToIntOr()
+                if (w >= 2 && h >= 2) {
+                    ThumbsRendering.renderToImage(
+                        srcFile, false, dstFile, false,
+                        Renderer.colorRenderer, false, cb1, w, h
+                    ) {
+                        val transform = Matrix4fArrayList()
+                        transform.scale(bounds.maxY / bounds.maxX, -1f, 1f)
+                        DrawSVGs.draw3DSVG(
+                            transform, buffer,
+                            TextureLib.whiteTexture, Color.white4,
+                            Filtering.NEAREST, TextureLib.whiteTexture.clamping,
+                            null
+                        )
+                    }
+                } else callback.err(null)
+            })
     }
 }

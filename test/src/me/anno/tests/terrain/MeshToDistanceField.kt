@@ -42,17 +42,19 @@ fun main() {
         IcosahedronModel.createIcosphere(5)
     } else {
         val base = IcosahedronModel.createIcosphere(3)
-        MeshCache[Entity()
-            .add(
-                Entity()
-                    .setPosition(+0.5, 0.0, 0.0)
-                    .add(MeshComponent(base))
-            )
-            .add(
-                Entity()
-                    .setPosition(-0.5, 0.0, 0.0)
-                    .add(MeshComponent(base))
-            ).ref] as Mesh
+        MeshCache.getEntry(
+            Entity()
+                .add(
+                    Entity()
+                        .setPosition(+0.5, 0.0, 0.0)
+                        .add(MeshComponent(base))
+                )
+                .add(
+                    Entity()
+                        .setPosition(-0.5, 0.0, 0.0)
+                        .add(MeshComponent(base))
+                ).ref
+        ).waitFor() as Mesh
     }
     val fieldSize = Vector3i(64)
     val s = 0.9f

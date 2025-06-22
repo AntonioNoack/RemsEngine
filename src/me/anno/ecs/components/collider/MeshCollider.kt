@@ -13,6 +13,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLine
+import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -65,11 +66,12 @@ open class MeshCollider() : Collider() {
     val mesh: IMesh?
         get() {
             if (meshFile == InvalidRef) {
-                val mesh = entity?.getComponentInChildren(MeshComponentBase::class, false)
+                val mesh = entity
+                    ?.getComponentInChildren(MeshComponentBase::class, false)
                     ?.getMeshOrNull() as? Mesh
                 meshFile = mesh?.ref ?: InvalidRef
             }
-            return MeshCache[meshFile]
+            return MeshCache.getEntry(meshFile).waitFor()
         }
 
     /**
@@ -194,10 +196,11 @@ open class MeshCollider() : Collider() {
     override fun drawShape(pipeline: Pipeline) {
         val mesh = mesh as? Mesh ?: return
         val color = getLineColor(hasPhysics)
+        val transform = getDrawMatrix(entity)
         mesh.forEachTriangle { a, b, c ->
-            drawLine(entity, a, b, color)
-            drawLine(entity, b, c, color)
-            drawLine(entity, c, a, color)
+            drawLine(transform, a, b, color)
+            drawLine(transform, b, c, color)
+            drawLine(transform, c, a, color)
             false
         }
     }

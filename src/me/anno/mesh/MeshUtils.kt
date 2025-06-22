@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.gpu.buffer.DrawMode
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -173,5 +174,16 @@ object MeshUtils {
         return if (size <= 0) baseLength.toLong()
         else if (baseLength > 0) baseLength.toLong() * size
         else numPrimitivesByType(size, drawMode).toLong()
+    }
+
+    fun Mesh.countPoints(): Int {
+        return positions!!.size / 3
+    }
+
+    fun Mesh.countTriangles(): Long {
+        return when (drawMode) {
+            DrawMode.POINTS, DrawMode.LINES, DrawMode.LINE_STRIP -> 0
+            else -> countPrimitives()
+        }
     }
 }

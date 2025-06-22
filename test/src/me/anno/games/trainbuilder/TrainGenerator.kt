@@ -6,7 +6,6 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.games.trainbuilder.rail.PlacedRailPiece
-import me.anno.games.trainbuilder.rail.RailMap
 import me.anno.games.trainbuilder.rail.RailPiece
 import me.anno.games.trainbuilder.rail.RailPieces.curve40
 import me.anno.games.trainbuilder.rail.RailPieces.straight10
@@ -104,7 +103,7 @@ fun createTrain(
     }
 
     fun addPart(name: String, file: FileReference, end: Boolean) {
-        val bounds = MeshCache[file]!!.getBounds()
+        val bounds = MeshCache.getEntry(file).waitFor()!!.getBounds()
         val length = bounds.deltaZ * scale.toDouble()
 
         val p0 = addFractionalPoint(0.2, length)
@@ -148,7 +147,7 @@ fun createRail(scene: Entity, name: String, pieces: List<PlacedRailPiece>) {
 
 fun calculateTrainLength(meshes: List<FileReference>): Double {
     return meshes.sumOf {
-        MeshCache[it]!!.getBounds().deltaZ.toDouble()
+        MeshCache.getEntry(it).waitFor()!!.getBounds().deltaZ.toDouble()
     } * scale + couplingDistance * max(meshes.size - 1, 0)
 }
 

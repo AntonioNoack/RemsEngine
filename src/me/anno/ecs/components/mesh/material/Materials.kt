@@ -21,8 +21,11 @@ object Materials {
         materials: List<FileReference>, index: Int
     ): Material {
         val ref = getMaterialRef(materialOverrides, materials, index)
-        val async = !FinalRendering.isFinalRendering
-        return MaterialCache[ref, async] ?: defaultMaterial
+        return if (FinalRendering.isFinalRendering) {
+            MaterialCache.getEntry(ref).waitFor()
+        } else {
+            MaterialCache[ref]
+        } ?: defaultMaterial
     }
 
     fun getMaterial(

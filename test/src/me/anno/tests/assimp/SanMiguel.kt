@@ -3,10 +3,9 @@ package me.anno.tests.assimp
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.jvm.HiddenOpenGLContext
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
@@ -18,7 +17,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     ECSRegistry.init()
-    Thumbs.useCacheFolder = true
+    ThumbnailCache.useCacheFolder = true
 
     val clock = Clock(LOGGER)
 
@@ -69,6 +68,6 @@ fun main() {
     PrefabCache[file]
     clock.stop("assimp")
 
-    val result = Thumbs[file, 512, false]!!
+    val result = ThumbnailCache.getEntry(file, 512).waitFor()!!
     if (result is Texture2D) GPUImage(result).write(desktop.getChild("miguel.png"))
 }

@@ -45,4 +45,8 @@ class IntArrayList(capacity: Int = 16) {
     fun clear() {
         size = 0
     }
+
+    fun toIntArray(): IntArray {
+        return array.copyOf(size)
+    }
 }

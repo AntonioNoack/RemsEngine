@@ -95,7 +95,7 @@ class ECSSceneTab(
                 resetCamera(bounds)
             }
             is Animation -> {
-                val skeleton = SkeletonCache[root.skeleton] ?: return
+                val skeleton = SkeletonCache.getEntry(root.skeleton).waitFor() ?: return
                 val aabb = skeletalBounds(skeleton)
                 // widen bounds by motion
                 val motionBounds = AABBf()
@@ -128,8 +128,8 @@ class ECSSceneTab(
             }
             is Retargeting -> {
                 val bounds = AABBd()
-                val srcSkeleton = SkeletonCache[root.srcSkeleton]
-                val dstSkeleton = SkeletonCache[root.dstSkeleton]
+                val srcSkeleton = SkeletonCache.getEntry(root.srcSkeleton).waitFor()
+                val dstSkeleton = SkeletonCache.getEntry(root.dstSkeleton).waitFor()
                 if (srcSkeleton != null) bounds.set(skeletalBounds(srcSkeleton))
                 if (dstSkeleton != null) bounds.union(skeletalBounds(dstSkeleton))
                 resetCamera(bounds)

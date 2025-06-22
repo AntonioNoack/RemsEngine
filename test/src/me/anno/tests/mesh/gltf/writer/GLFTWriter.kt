@@ -4,16 +4,17 @@ import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.async.Callback
 
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
     val callback = Callback.finish {
         Engine.requestShutdown()
     }
@@ -31,11 +32,19 @@ fun main() {
             PrefabCache[documents.getChild("cube bricks.fbx")].waitFor()!!.sample as Entity,
             desktop.getChild("bricks.glb"), callback
         )
-    } else {
+    } else if (false) {
         // test for vertex colors
         GLTFWriter().write(
             PrefabCache[downloads.getChild("3d/seal gltf/scene.gltf")].waitFor()!!.sample as Entity,
             desktop.getChild("seal.glb"), callback
+        )
+    } else {
+        val project = documents.getChild("RemsEngine/Construction")
+        workspace = project
+        val source = project.getChild("Vehicles/SM_Veh_Excavator_01.json")
+        GLTFWriter().write(
+            PrefabCache[source].waitFor()!!.sample as Entity,
+            desktop.getChild("Excavator.glb"), callback
         )
     }
 }

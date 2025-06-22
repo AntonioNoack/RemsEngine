@@ -2,7 +2,7 @@ package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
@@ -225,7 +225,7 @@ open class FileInput(
         val stdSize = 64
         val size = stdSize - stdSize / 20 // 1/20th is padding
         val file = value
-        Thumbs[file, size, true] ?: return null
+        ThumbnailCache[file, size] ?: return null
         // could be cached...
         val entry = object : FileExplorerEntry(file, style) {
             override fun calculateSize(w: Int, h: Int) {

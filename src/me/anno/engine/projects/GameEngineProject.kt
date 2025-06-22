@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.events.Event
 import me.anno.gpu.GFX
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -115,7 +115,7 @@ class GameEngineProject() : NamedSaveable(), Inspectable {
             } else sourceFiles
             for (dependency in fileDependencies) {
                 println("Invalidating dependency $dependency")
-                Thumbs.invalidate(dependency)
+                ThumbnailCache.invalidate(dependency)
             }
         }
     }

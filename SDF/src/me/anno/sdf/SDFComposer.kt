@@ -139,7 +139,7 @@ object SDFComposer {
         val shapeDependentShader = StringBuilder()
         tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, ArrayList())
 
-        val materials = tree.sdfMaterials.map { MaterialCache[it] }
+        val materials = tree.sdfMaterials.map { MaterialCache.getEntry(it).waitFor() }
         val materialCode = buildMaterialCode(tree, materials, uniforms)
 
         val shader = object : SDFShader(tree) {

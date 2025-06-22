@@ -269,7 +269,7 @@ fun main() {
             val placingCenter = Vector3d()
             val placingTransform = Transform()
             override fun fill(pipeline: Pipeline, transform: Transform) {
-                val mesh = MeshCache[file]
+                val mesh = MeshCache.getEntry(file).waitFor()
                 if (mesh != null) pipeline.addMesh(mesh, this, placingTransform)
             }
 
@@ -313,7 +313,7 @@ fun main() {
 
                 val sample = placingTransform
                 val normal = result.geometryNormalWS.safeNormalize()
-                val newSample = MeshCache[file, true]
+                val newSample = MeshCache.getEntry(file).value
                 if (newSample != null) {
                     val bounds = newSample.getBounds()
                     val placingOnWall = abs(normal.y) <= 0.1f

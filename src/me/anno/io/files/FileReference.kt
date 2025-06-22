@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
@@ -158,7 +158,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         isValid = false
         // if this has inner folders, replace all of their children as well
         InnerFolderCache.wasReadAsFolder(this)?.invalidate()
-        Thumbs.invalidate(this)
+        ThumbnailCache.invalidate(this)
         LastModifiedCache.invalidate(this)
     }
 

@@ -115,7 +115,7 @@ fun main() {
         val player = playerMap[p.name]
         if (player != null && p.name != selfName) {
             val mesh = player.getComponent(MeshComponent::class)!!
-            (p.color or black).toVecRGBA(MaterialCache[mesh.materials[0]]!!.diffuseBase)
+            (p.color or black).toVecRGBA(MaterialCache.getEntry(mesh.materials[0]).waitFor()!!.diffuseBase)
             val rb = player.getComponent(Rigidbody::class)!!
             player.position = player.position.set(p.position)
             player.rotation = player.rotation.set(p.rotation)

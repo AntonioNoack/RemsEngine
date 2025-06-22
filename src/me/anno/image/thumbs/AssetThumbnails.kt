@@ -50,6 +50,7 @@ import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Warning
 import me.anno.utils.async.Callback
+import me.anno.utils.async.Callback.Companion.mapAsync
 import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.Pools
@@ -73,8 +74,8 @@ object AssetThumbnails {
     private val renderer get() = Renderers.previewRenderer
 
     fun register() {
-        Thumbs.registerFileExtensions("json", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("vox,maya,xml-re,yaml-re,bin-re", AssetThumbnails::generateAssetFrame)
+        ThumbnailCache.registerFileExtensions("json", AssetThumbnails::generateAssetFrame)
+        ThumbnailCache.registerSignatures("vox,maya,xml-re,yaml-re,bin-re", AssetThumbnails::generateAssetFrame)
     }
 
     // exclude lights from AABB calculations for thumbnails
@@ -173,7 +174,6 @@ object AssetThumbnails {
         }
     }
 
-    private val async = true
     private val delta = 50L
 
     private fun <V : ICacheData> checkAsset(
@@ -181,7 +181,7 @@ object AssetThumbnails {
         mapFileOnce: HashSet<FileReference>,
         addChildFiles: (V) -> Unit,
     ): Boolean {
-        val mesh = cache[file, async]
+        val mesh = cache.getEntry(file).value
         if (mesh != null && mapFileOnce.add(file)) {
             addChildFiles(mesh)
         }
@@ -378,7 +378,17 @@ object AssetThumbnails {
         animation: Animation, size: Int,
         callback: Callback<ITexture2D>
     ) {
-        val skeleton = SkeletonCache[animation.skeleton] ?: return
+        SkeletonCache.getEntry(animation.skeleton).waitFor(callback.mapAsync { skeleton, cb1 ->
+            generateAnimationFrame(srcFile, dstFile, animation, size, skeleton, cb1)
+        })
+    }
+
+    @JvmStatic
+    private fun generateAnimationFrame(
+        srcFile: FileReference, dstFile: HDBKey,
+        animation: Animation, size: Int,
+        skeleton: Skeleton, callback: Callback<ITexture2D>
+    ) {
         val mesh = Mesh()
         val duration = animation.duration
         val hasMotion = duration > 0.0
@@ -430,7 +440,7 @@ object AssetThumbnails {
         aspect: Float
     ) {
         // todo center on bounds by all frames combined
-        val skeleton = SkeletonCache[animation.skeleton] ?: return
+        val skeleton = SkeletonCache.getEntry(animation.skeleton).waitFor() ?: return
         val (skinningMatrices, _) = threadLocalBoneMatrices.get()
         // generate the matrices
         animation.getMatrices(frameIndex, skinningMatrices)

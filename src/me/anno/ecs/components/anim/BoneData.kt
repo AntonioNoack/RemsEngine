@@ -22,7 +22,7 @@ object BoneData {
     ): List<Matrix4x3f>? {
         val location = shader.getUniformLocation("jointTransforms")
         if (location < 0) return null
-        val skeleton = SkeletonCache[animation.skeleton] ?: return null
+        val skeleton = SkeletonCache.getEntry(animation.skeleton).waitFor() ?: return null
         val boneCount = min(skeleton.bones.size, maxBones)
         val matrices = tmpMatrices
         animation.getMatrices(time.toFloat(), matrices)

@@ -24,10 +24,10 @@ fun main() {
     val folder = getReference("E:/Assets/Mixamo XBot/Female Locomotion Pack.zip")
     val meshFile = folder.getChild("X Bot.fbx")
     val animFolder = folder.getChild("idle.fbx/animations/mixamo.com")
-    val mesh = MeshCache[meshFile] as Mesh
-    val dstSkeleton = SkeletonCache[mesh.skeleton]!!
-    val importedAnim = AnimationCache[animFolder.getChild("Imported.json")] as ImportedAnimation
-    val boneByBoneAnim = AnimationCache[animFolder.getChild("BoneByBone.json")] as BoneByBoneAnimation
+    val mesh = MeshCache.getEntry(meshFile).waitFor() as Mesh
+    val dstSkeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()!!
+    val importedAnim = AnimationCache.getEntry(animFolder.getChild("Imported.json")).waitFor() as ImportedAnimation
+    val boneByBoneAnim = AnimationCache.getEntry(animFolder.getChild("BoneByBone.json")).waitFor() as BoneByBoneAnimation
     val mappedAnimation = AnimationCache.getMappedAnimation(importedAnim, dstSkeleton).waitFor()!!
     val imported = importedAnim.getMatrix(frameIndex, boneIndex, listOf(Matrix4x3f()))
     val boneByBone = boneByBoneAnim.getMatrix(frameIndex, boneIndex, listOf(Matrix4x3f()))

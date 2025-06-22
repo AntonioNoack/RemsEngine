@@ -8,10 +8,9 @@ import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Retargetings
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.ui.render.SceneView
 import me.anno.utils.OS
 
 fun main() {
@@ -28,7 +27,10 @@ fun main() {
         mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
         testedComponent = mesh
     }
-    val retargeting = Retargetings.getRetargeting(AnimationCache[animation]!!.skeleton, testedComponent.getMesh()!!.skeleton).waitFor()!!
+    val retargeting = Retargetings.getRetargeting(
+        AnimationCache.getEntry(animation).waitFor()!!.skeleton,
+        testedComponent.getMesh()!!.skeleton
+    ).waitFor()!!
     Retargetings.sampleModel = testedComponent
     Retargetings.sampleAnimation = animation
     SceneView.testSceneWithUI("Retargeting", retargeting)

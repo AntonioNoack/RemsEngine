@@ -66,14 +66,14 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     abstract fun getMatrix(frameIndex: Float, boneIndex: Int, dst: List<Matrix4x3f>): Matrix4x3f?
     abstract fun getMatrix(frameIndex: Int, boneIndex: Int, dst: List<Matrix4x3f>): Matrix4x3f?
 
-    fun getMappedAnimation(dstSkeleton: FileReference): Animation? {
-        if (dstSkeleton == skeleton) return this
-        val dstSkel = SkeletonCache[dstSkeleton]
-        if (dstSkel == null) {
-            LOGGER.warn("Missing Skeleton $dstSkeleton for retargeting")
+    fun getMappedAnimation(dstSkeletonSrc: FileReference): Animation? {
+        if (dstSkeletonSrc == skeleton) return this
+        val dstSkeleton = SkeletonCache.getEntry(dstSkeletonSrc).waitFor()
+        if (dstSkeleton == null) {
+            LOGGER.warn("Missing Skeleton $dstSkeletonSrc for retargeting")
             return null
         }
-        return AnimationCache.getMappedAnimation(this, dstSkel).waitFor()
+        return AnimationCache.getMappedAnimation(this, dstSkeleton).waitFor()
     }
 
     fun getMappedMatrices(
@@ -172,11 +172,11 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     private var previewData: PreviewData? = null
 
     override fun fill(pipeline: Pipeline, transform: Transform) {
-        val skeleton = SkeletonCache[skeleton] ?: return
+        val skeleton = SkeletonCache.getEntry(skeleton).waitFor() ?: return
         if (previewData == null) previewData = PreviewData(skeleton, this)
         return previewData!!.run {
             if (renderer.prevTime != Time.gameTimeN) {
-                state.update(renderer, Time.deltaTime.toFloat(), false)
+                state.update(renderer, Time.deltaTime.toFloat())
                 renderer.updateAnimState()
             }
             renderer.fill(pipeline, transform)

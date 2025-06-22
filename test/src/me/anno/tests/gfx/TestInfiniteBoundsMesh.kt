@@ -39,7 +39,7 @@ fun main() {
     //  I'd expect 10^38, not 10^150
     // -> length() used by ECSSceneTab didn't handle 1e38 well
 
-    val hugeMesh = MeshCache[tmpScene.ref] as Mesh
+    val hugeMesh = MeshCache.getEntry(tmpScene.ref).waitFor() as Mesh
     // testSceneWithUI("HugeMesh", Entity().add(MeshComponent(hugeMesh)))
     testSceneWithUI("HugeMesh", hugeMesh)
 }

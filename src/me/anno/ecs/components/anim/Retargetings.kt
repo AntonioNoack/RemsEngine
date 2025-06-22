@@ -2,7 +2,6 @@ package me.anno.ecs.components.anim
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.DualCacheSection
-import me.anno.cache.NullCacheData
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -33,7 +32,7 @@ object Retargetings {
 
     var sampleModel: AnimMeshComponent? = null
 
-    var sampleAnimation: FileReference? = null
+    var sampleAnimation: FileReference = InvalidRef
 
     val srcColor = 0xa95555 or Color.black
     val dstColor = 0x00a7f2 or Color.black
@@ -52,13 +51,13 @@ object Retargetings {
         val window = GFX.someWindow
         val states = anim.animations
         val dstSkeleton = anim.getMesh()?.skeleton ?: InvalidRef
-        val baseSkeletonCheck = SkeletonCache[dstSkeleton]
+        val baseSkeletonCheck = SkeletonCache.getEntry(dstSkeleton).waitFor()
         if (baseSkeletonCheck == null) {
             LOGGER.warn("Base skeleton is null")
         }
         val srcSkeletons = states
-            .map { it to (AnimationCache[it.source]?.skeleton ?: InvalidRef) }
-            .filter { SkeletonCache[it.second] != null }
+            .map { it to (AnimationCache.getEntry(it.source).waitFor()?.skeleton ?: InvalidRef) }
+            .filter { SkeletonCache.getEntry(it.second).waitFor() != null }
         if (srcSkeletons.isEmpty()) {
             LOGGER.warn("No skeletons could be found in animation states")
         }
@@ -115,8 +114,8 @@ object Retargetings {
             prefab["srcSkeleton"] = srcSkeleton
             prefab["dstSkeleton"] = dstSkeleton
             defineDefaultMapping(
-                SkeletonCache[srcSkeleton]!!,
-                SkeletonCache[dstSkeleton]!!, prefab
+                SkeletonCache.getEntry(srcSkeleton).waitFor()!!,
+                SkeletonCache.getEntry(dstSkeleton).waitFor()!!, prefab
             )
             configReference.getParent().tryMkdirs()
             configReference.writeText(JsonStringWriter.toText(prefab, workspace))
@@ -187,7 +186,8 @@ object Retargetings {
     }
 
     private fun getConfigName(skeleton: FileReference): String {
-        val hash = SkeletonCache[skeleton]!!.bones.joinToString("/") { it.name }.hashCode()
+        val hash = SkeletonCache.getEntry(skeleton).waitFor()!!
+            .bones.joinToString("/") { it.name }.hashCode()
         return Integer.toUnsignedString(hash, 36)
     }
 
@@ -202,7 +202,7 @@ object Retargetings {
     }
 
     fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): AsyncCacheData<Retargeting> {
-        if (srcSkeleton == dstSkeleton) return NullCacheData.get()
+        if (srcSkeleton == dstSkeleton) return AsyncCacheData.empty()
         return cache.getDualEntry(
             srcSkeleton.getFileKey(), dstSkeleton.getFileKey(),
             timeoutMillis

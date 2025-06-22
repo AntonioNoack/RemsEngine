@@ -32,6 +32,10 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
         stop()
     }
 
+    fun clear() {
+        tasks.clear()
+    }
+
     fun workUntil(condition: () -> Boolean) {
         while (!condition()) {
             if (!workItem()) {

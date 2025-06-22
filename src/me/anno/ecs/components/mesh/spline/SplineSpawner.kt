@@ -89,7 +89,7 @@ class SplineSpawner : MeshSpawner() {
     override fun forEachMesh(callback: (IMesh, Material?, Transform) -> Boolean) {
 
         val entity = entity ?: return
-        val material = MaterialCache[materialOverride]
+        val material = MaterialCache.getEntry(materialOverride).waitFor()
         if (spacing <= 0.0) return
 
         val meshFiles = meshFiles
@@ -122,7 +122,7 @@ class SplineSpawner : MeshSpawner() {
         for (i in 0 until numPoints) {
             if (spawnChance < random.nextFloat()) continue
             val meshIdx = random.nextInt(meshFiles.size)
-            val mesh = MeshCache[meshFiles[meshIdx]] ?: continue
+            val mesh = MeshCache.getEntry(meshFiles[meshIdx]).waitFor() ?: continue
 
             val transform = getTransform(transformId++)
             val addedRotation = if (randomRotations) random.nextFloat() * TAU else rotation

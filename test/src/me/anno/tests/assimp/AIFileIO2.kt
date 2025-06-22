@@ -23,7 +23,7 @@ fun main() {
         val data = ref.readBytesSync()
         val folder = InnerFolder(InvalidRef)
         val intFile = InnerByteFile(folder, ref.name, data)
-        MeshCache[intFile]!!
+        MeshCache.getEntry(intFile).waitFor()!!
         LOGGER.info("done :)")
     }
 }

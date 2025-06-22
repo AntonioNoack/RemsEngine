@@ -20,7 +20,7 @@ fun main() {
     )
 
     for (file in files) {
-        val bounds = MeshCache[file, false]!!.getBounds()
+        val bounds = MeshCache.getEntry(file).waitFor()!!.getBounds()
         if (bounds.volume > pow(50f, 3f)) {
             LOGGER.warn("$file is incorrect: $bounds")
         }

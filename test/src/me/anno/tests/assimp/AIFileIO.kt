@@ -16,7 +16,7 @@ fun main() {
         "3d/azeria/scene.gltf",
         "3d/azeria/azeria.zip/scene.gltf"
     )) {
-        MeshCache[downloads.getChild(file)]!!
+        MeshCache.getEntry(downloads.getChild(file))!!
         LOGGER.info("done :)")
     }
 }

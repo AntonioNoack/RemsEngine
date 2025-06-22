@@ -15,7 +15,7 @@ fun main() {
     // check that material IDs are working -> yes :D
     OfficialExtensions.initForTests()
     LogManager.define("BlenderMeshConverter", Level.DEBUG)
-    val mesh = MeshCache[documents.getChild("Blender/GlassMaterialTest.blend"), false] as Mesh
+    val mesh = MeshCache.getEntry(documents.getChild("Blender/GlassMaterialTest.blend")).waitFor() as Mesh
     testSceneWithUI("Blender Glass", mesh)
     Engine.requestShutdown()
 }

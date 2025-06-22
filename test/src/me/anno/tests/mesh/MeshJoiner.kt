@@ -11,5 +11,5 @@ fun main() {
     OfficialExtensions.initForTests()
     workspace = documents.getChild("RemsEngine/YandereSim")
     // the source file isn't a Mesh yet, so it has to be joined
-    testSceneWithUI("MeshCache/MeshJoiner", MeshCache[workspace.getChild("School.json")] as Mesh)
+    testSceneWithUI("MeshCache/MeshJoiner", MeshCache.getEntry(workspace.getChild("School.json")).waitFor() as Mesh)
 }

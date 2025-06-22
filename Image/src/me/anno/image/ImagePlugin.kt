@@ -10,7 +10,7 @@ import me.anno.image.qoi.QOIReader
 import me.anno.image.svg.SVGMesh
 import me.anno.image.tga.TGAReader
 import me.anno.image.thumbs.ImageThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.xml.generic.XMLNode
@@ -113,13 +113,13 @@ class ImagePlugin : Plugin() {
     }
 
     private fun registerThumbnails() {
-        Thumbs.registerSignatures("qoi", ImageThumbnails::generateImage)
-        Thumbs.registerSignatures("jpg", ImageThumbnailsImpl::generateJPGFrame)
-        Thumbs.registerSignatures("ico", ImageThumbnailsImpl::generateICOFrame)
-        Thumbs.registerSignatures("xml", ImageThumbnailsImpl::generateSVGFrame)
-        Thumbs.registerFileExtensions("tga", ImageThumbnailsImpl::generateTGAFrame)
-        Thumbs.registerFileExtensions("ico", ImageThumbnailsImpl::generateICOFrame)
-        Thumbs.registerFileExtensions("svg", ImageThumbnailsImpl::generateSVGFrame)
+        ThumbnailCache.registerSignatures("qoi", ImageThumbnails::generateImage)
+        ThumbnailCache.registerSignatures("jpg", ImageThumbnailsImpl::generateJPGFrame)
+        ThumbnailCache.registerSignatures("ico", ImageThumbnailsImpl::generateICOFrame)
+        ThumbnailCache.registerSignatures("xml", ImageThumbnailsImpl::generateSVGFrame)
+        ThumbnailCache.registerFileExtensions("tga", ImageThumbnailsImpl::generateTGAFrame)
+        ThumbnailCache.registerFileExtensions("ico", ImageThumbnailsImpl::generateICOFrame)
+        ThumbnailCache.registerFileExtensions("svg", ImageThumbnailsImpl::generateSVGFrame)
         ImageAsFolder.readIcoLayers = ICOReader::readAllLayers
         ImageAsFolder.readJPGThumbnail = JPGThumbnails::readThumbnail
     }
@@ -133,8 +133,8 @@ class ImagePlugin : Plugin() {
         super.onDisable()
         ImageCache.unregister("tga,gimp,exr,qoi,ico")
         InnerFolderCache.unregisterSignatures("gimp,svg")
-        Thumbs.unregisterSignatures("qoi,jpg,ico")
-        Thumbs.unregisterFileExtensions("tga,ico,tga,ico")
+        ThumbnailCache.unregisterSignatures("qoi,jpg,ico")
+        ThumbnailCache.unregisterFileExtensions("tga,ico,tga,ico")
         MediaMetadata.unregister("gimp,qoi,ico,gimp")
         TextureReader.findExifRotation = null
     }

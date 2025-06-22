@@ -24,7 +24,7 @@ fun main() {
             scene.forAllComponentsInChildren(MeshComponent::class) {
                 val matRef = it.getMeshOrNull()!!.materials.firstOrNull()
                 if (matRef != null && matCache.add(matRef)) {
-                    val mat = MaterialCache[matRef]
+                    val mat = MaterialCache.getEntry(matRef).waitFor()
                     val diffuse = mat?.diffuseMap
                     println("${it.name} -> $matRef -> $diffuse")
                 }

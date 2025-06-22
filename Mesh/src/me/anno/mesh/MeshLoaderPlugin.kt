@@ -5,7 +5,7 @@ import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.readAsFolder
@@ -37,12 +37,12 @@ class MeshLoaderPlugin : Plugin() {
         InnerFolderCache.registerSignatures("mitsuba-scene", MitsubaReader::readSceneAsFolder)
 
         // thumbnails
-        Thumbs.registerSignatures(
+        ThumbnailCache.registerSignatures(
             "blend,mitsuba-scene,mitsuba-meshes,maya,obj,fbx,gltf,json,glb,dae,ply,md2,md5mesh",
             AssetThumbnails::generateAssetFrame
         )
-        Thumbs.registerFileExtensions("mtl", ::generateMTLThumbnail)
-        Thumbs.registerFileExtensions("obj", AssetThumbnails::generateAssetFrame)
+        ThumbnailCache.registerFileExtensions("mtl", ::generateMTLThumbnail)
+        ThumbnailCache.registerFileExtensions("obj", AssetThumbnails::generateAssetFrame)
     }
 
     private fun generateMTLThumbnail(

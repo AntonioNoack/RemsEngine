@@ -168,7 +168,11 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         else dst.union(bounds)
     }
 
-    open fun hasAnimation(async: Boolean, mesh: IMesh): Boolean = false
+    /**
+     * Checks if the mesh has an animation;
+     * Is loading asynchronously to prevent lag.
+     * */
+    open fun hasAnimation(mesh: IMesh): Boolean = false
 
     open fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
         return false

@@ -17,7 +17,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     }
 
     var timeoutNanoTime: Long = 0
-    var generatorThread: Thread = Thread.currentThread()
 
     var hasValue = false
     var hasBeenDestroyed = false
@@ -48,7 +47,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     fun reset(timeoutMillis: Long) {
         timeoutNanoTime = nanoTime + timeoutMillis * MILLIS_TO_NANOS
-        generatorThread = Thread.currentThread()
     }
 
     fun update(timeoutMillis: Long) {
@@ -58,7 +56,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     @Deprecated(message = ASYNC_WARNING)
     fun waitFor(): V? {
-        warnRecursive()
         Sleep.waitUntil(true, hasValueCondition)
         return value
     }
@@ -70,12 +67,6 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
     fun waitFor(async: Boolean): V? {
         if (!async) waitFor()
         return value
-    }
-
-    private fun warnRecursive() {
-        if (generatorThread == Thread.currentThread()) {
-            LOGGER.warn("Recursive dependency?")
-        }
     }
 
     fun waitFor(callback: (V?) -> Unit) {
@@ -168,10 +159,16 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(AsyncCacheData::class)
         const val ASYNC_WARNING = "Avoid blocking, it's also not supported in browsers"
 
         private const val RETRY_PERIOD_NANOS = 50 * MILLIS_TO_NANOS
+
+        private val nothingCacheData = AsyncCacheData<Any>(null)
+
+        fun <V : Any> empty(): AsyncCacheData<V> {
+            @Suppress("UNCHECKED_CAST")
+            return nothingCacheData as AsyncCacheData<V>
+        }
 
         @Deprecated(message = ASYNC_WARNING)
         inline fun <V : Any> loadSync(loadAsync: (Callback<V>) -> Unit): V? {

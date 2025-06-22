@@ -24,7 +24,7 @@ fun main() {
     val scaledFile = meshEntity.ref
     val scaledEntity = PrefabCache[scaledFile].waitFor()!!.newInstance() as Entity
     scaledEntity.name = "Scaled"
-    val scaledMesh = MeshCache[scaledFile] as Mesh
+    val scaledMesh = MeshCache.getEntry(scaledFile).waitFor() as Mesh
     // fixed scene is incorrect: both shown meshes should be the same size
     //  one is 2x bigger, the other is 2²x bigger
     val scene = Entity("Scene")

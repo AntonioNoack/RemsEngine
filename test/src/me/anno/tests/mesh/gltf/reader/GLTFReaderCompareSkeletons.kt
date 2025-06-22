@@ -50,7 +50,7 @@ fun main() {
 
     folder.printTree()
 
-    val byAssimp = SkeletonCache[folder.getChild("skeletons/Skeleton.json"), false]!!
+    val byAssimp = SkeletonCache.getEntry(folder.getChild("skeletons/Skeleton.json")).waitFor()!!
     val byAssimpBones = JsonStringWriter.toText(byAssimp.bones, InvalidRef)
 
     assertNotSame(byReader, byAssimp)

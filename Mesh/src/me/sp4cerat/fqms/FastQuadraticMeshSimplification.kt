@@ -231,18 +231,19 @@ class FastQuadraticMeshSimplification {
         val added = SymmetricMatrix()
         for (i in triangles.indices) {
             val t = triangles[i]
-            val p0 = vertices[t.vertexIds[0]].position
-            val p1 = vertices[t.vertexIds[1]].position
-            val p2 = vertices[t.vertexIds[2]].position
+            val vertexIds = t.vertexIds
+            val p0 = vertices[vertexIds[0]]
+            val p1 = vertices[vertexIds[1]]
+            val p2 = vertices[vertexIds[2]]
             val n = t.normal
-            Triangles.subCross(p0, p1, p2, n)
+            Triangles.subCross(p0.position, p1.position, p2.position, n)
             val lenSq = n.lengthSquared()
             if (lenSq > 1e-300) {
                 n.mul(1.0 / sqrt(lenSq))
-                added.set(n.x, n.y, n.z, -n.dot(p0))
-                for (j in 0 until 3) {
-                    vertices[t.vertexIds[j]].normalMatrix += added
-                }
+                added.set(n.x, n.y, n.z, -n.dot(p0.position))
+                p0.normalMatrix += added
+                p1.normalMatrix += added
+                p2.normalMatrix += added
             }
         }
 
@@ -332,10 +333,10 @@ class FastQuadraticMeshSimplification {
         refs.size = numRefs
 
         for (i in triangles.indices) {
-            val t = triangles[i]
+            val vertexIds = triangles[i].vertexIds
             for (j in 0 until 3) {
-                val v = vertices[t.vertexIds[j]]
-                refs[v.firstRefIndex + v.numTriangles] = Ref(i, j)
+                val v = vertices[vertexIds[j]]
+                refs[v.firstRefIndex + v.numTriangles] = ref(i, j)
                 v.numTriangles++
             }
         }
@@ -382,7 +383,7 @@ class FastQuadraticMeshSimplification {
 
     private fun Int.vertex0To3(): Int = this and 3
     private fun Int.triangleId(): Int = this ushr 2
-    private fun Ref(triangleId: Int, vertex0To3: Int): Int {
+    private fun ref(triangleId: Int, vertex0To3: Int): Int {
         assertTrue(vertex0To3 in 0 until 3)
         assertTrue(triangleId >= 0 && triangleId < 1 shl 30)
         return triangleId.shl(2) + vertex0To3
@@ -451,11 +452,11 @@ class FastQuadraticMeshSimplification {
             val error1 = vertexError(q, p1.x, p1.y, p1.z)
             val error2 = vertexError(q, p2.x, p2.y, p2.z)
             val error3 = vertexError(q, p3x, p3y, p3z)
-            val error = min(error1, min(error2, error3))
-            if (error1 == error) dst.set(p1)
-            if (error2 == error) dst.set(p2)
-            if (error3 == error) dst.set(p3x, p3y, p3z)
-            return error
+            val minError = min(error1, min(error2, error3))
+            if (error1 == minError) dst.set(p1)
+            if (error2 == minError) dst.set(p2)
+            if (error3 == minError) dst.set(p3x, p3y, p3z)
+            return minError
         }
     }
 }

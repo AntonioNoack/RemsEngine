@@ -31,7 +31,7 @@ fun main() {
     if (true) {
         ECSRegistry.init()
         if (false) {
-            val mesh = MeshCache[file, false] as? Mesh
+            val mesh = MeshCache.getEntry(file).waitFor() as? Mesh
             println(mesh?.uvs)
             println(mesh?.normals)
             println(mesh?.positions)

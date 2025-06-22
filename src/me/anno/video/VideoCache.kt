@@ -2,7 +2,6 @@ package me.anno.video
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.NullCacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -40,7 +39,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
             val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
             val generator = generateVideoFrames
             if (generator != null) getEntryLimitedWithRetry(key, timeout, videoGenLimit, generator)
-            else NullCacheData.get()
+            else AsyncCacheData.empty()
         }
     }
 
@@ -79,7 +78,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         bufferLength0: Int, fps: Double, timeout: Long,
         meta: MediaMetadata
     ): AsyncCacheData<GPUFrame> {
-        if (index < 0 || scale < 1) return NullCacheData.get()
+        if (index < 0 || scale < 1) return AsyncCacheData.empty()
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         val getProxyFile = getProxyFile
@@ -142,7 +141,7 @@ object VideoCache : CacheSection<VideoFramesKey, VideoSlice>("Videos") {
         file: FileReference, scale: Int, index: Int,
         bufferLength0: Int, fps: Double, timeout: Long
     ): AsyncCacheData<GPUFrame> {
-        if (index < 0 || scale < 1) return NullCacheData.get()
+        if (index < 0 || scale < 1) return AsyncCacheData.empty()
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
         val getProxyFile = getProxyFile
         if (getProxyFile != null && useProxy(scale, bufferLength0, MediaMetadata.getMeta(file).waitFor())) {

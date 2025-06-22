@@ -95,9 +95,9 @@ class Retargeting : PrefabSaveable(), Renderable {
         // todo show mapping clearer, maybe connecting lines
         // todo apply transform onto one of them, so we can check their matches better
         val sm = sampleModel
-        val sa = AnimationCache[sampleAnimation]
-        val srcSkeleton1 = SkeletonCache[srcSkeleton]
-        val dstSkeleton1 = SkeletonCache[dstSkeleton]
+        val sa = AnimationCache.getEntry(sampleAnimation).waitFor()
+        val srcSkeleton1 = SkeletonCache.getEntry(srcSkeleton).waitFor()
+        val dstSkeleton1 = SkeletonCache.getEntry(dstSkeleton).waitFor()
         val transformI = transform.getDrawMatrix()
         if (showSampleAnimation && sa != null && sm != null && srcSkeleton1 != null && dstSkeleton1 != null) {
             if (showSampleMesh) {
@@ -132,7 +132,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         pipeline: Pipeline, transform: Transform,
         previewData: Animation.PreviewData,
     ) {
-        previewData.state.set(Time.gameTime.toFloat(), false)
+        previewData.state.setTime(Time.gameTime.toFloat())
         previewData.renderer.updateAnimState()
         previewData.renderer.fill(pipeline, transform)
     }
@@ -161,8 +161,8 @@ class Retargeting : PrefabSaveable(), Renderable {
     }
 
     fun recalculate(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
-        val srcSkel = SkeletonCache[srcSkeleton]?.bones
-        val dstSkel = SkeletonCache[dstSkeleton]?.bones
+        val srcSkel = SkeletonCache.getEntry(srcSkeleton).waitFor()?.bones
+        val dstSkel = SkeletonCache.getEntry(dstSkeleton).waitFor()?.bones
 
         if (srcSkel == null || dstSkel == null) {
             LOGGER.warn(
@@ -260,8 +260,8 @@ class Retargeting : PrefabSaveable(), Renderable {
     fun defineDefaultMapping() {
         val prefab = prefab ?: return
         Retargetings.defineDefaultMapping(
-            SkeletonCache[srcSkeleton]!!,
-            SkeletonCache[dstSkeleton]!!,
+            SkeletonCache.getEntry(srcSkeleton).waitFor()!!,
+            SkeletonCache.getEntry(dstSkeleton).waitFor()!!,
             prefab
         )
         invalidate()
@@ -274,8 +274,8 @@ class Retargeting : PrefabSaveable(), Renderable {
         super.createInspector(listOf(this), list, style, getGroup)
         // todo value / UI for scale change preview?
         // todo register change, so we can save/reset it
-        val srcSkeleton = SkeletonCache[srcSkeleton]
-        val dstSkeleton = SkeletonCache[dstSkeleton]
+        val srcSkeleton = SkeletonCache.getEntry(srcSkeleton).waitFor()
+        val dstSkeleton = SkeletonCache.getEntry(dstSkeleton).waitFor()
         if (srcSkeleton != null && dstSkeleton != null) {
             val dstBoneMapping = dstBoneIndexToSrcName
             while (dstBoneMapping.size < dstSkeleton.bones.size) {

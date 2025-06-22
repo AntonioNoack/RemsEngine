@@ -49,7 +49,8 @@ fun mergeMaterials(mesh: Mesh): Mesh {
     mesh.updateHelperMeshes()
     val clone = mesh.shallowClone()
     val materials = (0 until n).map {
-        MaterialCache[mesh.materials.getOrNull(it)] ?: Material.defaultMaterial
+        MaterialCache.getEntry(mesh.materials.getOrNull(it))
+            .waitFor() ?: Material.defaultMaterial
     }
     val materialToTint = materials.map { it.diffuseBase }
     val colors = IntArray(mesh.positions!!.size / 3)
@@ -115,7 +116,7 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val testProfileMesh = MeshCache[res.getChild("meshes/StreetProfile.glb")] as Mesh
+    val testProfileMesh = MeshCache.getEntry(res.getChild("meshes/StreetProfile.glb")).waitFor() as Mesh
     val testProfileMesh1 = mergeMaterials(testProfileMesh)
     val testProfiles = meshToPathProfile(testProfileMesh1)[0]
 

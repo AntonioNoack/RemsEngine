@@ -3,7 +3,7 @@ package me.anno.tests.image
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorer
@@ -20,7 +20,8 @@ fun main() {
     } else {
         HiddenOpenGLContext.createOpenGL()
         val src = ori.getChild("r.png")
-        Thumbs[src, 512, false]!!.write(desktop.getChild("icon-thumbs.png"))
+        ThumbnailCache.getEntry(src, 512).waitFor()!!
+            .write(desktop.getChild("icon-thumbs.png"))
         Engine.requestShutdown()
     }
 }

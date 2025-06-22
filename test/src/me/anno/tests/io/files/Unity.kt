@@ -10,7 +10,7 @@ import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
@@ -74,7 +74,7 @@ fun smallRenderTest() {
 
     ECSRegistry.init()
 
-    Thumbs.useCacheFolder = true
+    ThumbnailCache.useCacheFolder = true
     for ((index, file) in listOf(meshComponent, colliderComponent, entityOfComponent, bbox).withIndex()) {
         testRendering(file, 512, index)
     }
@@ -128,7 +128,7 @@ m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
     HiddenOpenGLContext.createOpenGL()
     ECSRegistry.init()
 
-    Thumbs.useCacheFolder = true
+    ThumbnailCache.useCacheFolder = true
     for ((index, file) in listOf(scene).withIndex()) {
         testRendering(file, 1024, index)
     }

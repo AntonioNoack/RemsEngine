@@ -268,7 +268,7 @@ fun main() {
     // color, normal?, material type / roughness / metallic
     // time limit: 1s
     val file = downloads.getChild("3d/DamagedHelmet.glb")
-    val mesh = MeshCache[file] as Mesh
+    val mesh = MeshCache.getEntry(file).waitFor() as Mesh
 
     val bounds = AABBf(mesh.getBounds())
     val resolution = 512

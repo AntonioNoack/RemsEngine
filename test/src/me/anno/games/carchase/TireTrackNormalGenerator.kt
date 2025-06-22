@@ -21,6 +21,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.ImageScale
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.maths.Maths.PIf
@@ -54,7 +55,7 @@ fun main() {
     val project = getReference("C:/Users/Antonio/Documents/RemsEngine/Construction")
     workspace = project
     val source = project.getChild("Vehicles/meshes/SM_Veh_Roller_01_Wheel_rl-002.json")
-    val mesh = MeshCache[source] as Mesh
+    val mesh = MeshCache.getEntry(source).waitFor() as Mesh
     val (p0, _, p1, _) = MeshSplitter.split(mesh) { it.z }
     val parts = listOf(p0, p1)
     for (part in parts) unroll(part)
@@ -100,7 +101,8 @@ fun main() {
                 for (part in parts) {
                     shader.v1i("hasVertexColors", part.hasVertexColors)
                     for (materialId in 0 until part.numMaterials) {
-                        val material = MaterialCache[part.materials.getOrNull(materialId)] ?: defaultMaterial
+                        val materialRef = part.materials.getOrNull(materialId) ?: InvalidRef
+                        val material = MaterialCache.getEntry(materialRef).waitFor() ?: defaultMaterial
                         material.bind(shader)
                         part.draw(null, shader, materialId)
                     }

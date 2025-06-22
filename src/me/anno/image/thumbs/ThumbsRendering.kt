@@ -65,7 +65,7 @@ object ThumbsRendering {
         GFX.check()
 
         val depthType = if (withDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
-        val renderTarget = if (GFX.maxSamples > 1 && Thumbs.useCacheFolder) {
+        val renderTarget = if (GFX.maxSamples > 1 && ThumbnailCache.useCacheFolder) {
             FBStack[srcFile.name, w, h, 4, false, 4, depthType] as Framebuffer
         } else {
             Framebuffer(srcFile.name, w, h, 1, TargetType.UInt8x4, depthType)
@@ -93,9 +93,9 @@ object ThumbsRendering {
 
         GFX.check()
 
-        if (Thumbs.useCacheFolder) {
+        if (ThumbnailCache.useCacheFolder) {
             val dst = renderTarget.createImage(flipY, true)
-            if (dst != null) Thumbs.saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
+            if (dst != null) ThumbnailCache.saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
             else callback.err(IllegalStateException("renderTarget.createImage failed"))
         } else {// more efficient path, without useless GPU->CPU->GPU data transfer
             val newBuffer = if (renderTarget.samples > 1) {

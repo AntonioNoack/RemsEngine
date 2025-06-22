@@ -174,14 +174,14 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun defineSkin(comp: AnimMeshComponent, mesh: IMesh, childIndices: IntArrayList) {
-        val skeleton = SkeletonCache[mesh.skeleton]
+        val skeleton = SkeletonCache.getEntry(mesh.skeleton).waitFor()
         if (skeleton != null) {
             // add bone/skeleton hierarchy
             val baseId = nodes.size
             defineBoneHierarchy(skeleton.bones, childIndices)
             meshCompToSkin[comp] = skins.nextId(SkinData(skeleton, baseId until nodes.size))
             for (state in comp.animations) {
-                val animation = AnimationCache[state.source] ?: continue
+                val animation = AnimationCache.getEntry(state.source).waitFor() ?: continue
                 animations.add(AnimationData(skeleton, animation, baseId))
             }
         }
@@ -842,7 +842,7 @@ class GLTFWriter private constructor(private val json: ByteArrayOutputStream) :
     }
 
     private fun getMeshData(scene: MeshComponentBase, mesh: Mesh): MeshData {
-        val animations = if (scene is AnimMeshComponent && SkeletonCache[mesh.skeleton] != null) {
+        val animations = if (scene is AnimMeshComponent && SkeletonCache.getEntry(mesh.skeleton) != null) {
             scene.animations.map { it.source }.filter { it.exists }
         } else emptyList()
         return MeshData(mesh, scene.materials, animations)

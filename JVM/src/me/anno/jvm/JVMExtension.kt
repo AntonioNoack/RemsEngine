@@ -7,7 +7,7 @@ import me.anno.extensions.events.GameLoopStartEvent
 import me.anno.extensions.plugins.Plugin
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.gpu.GFX
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.MediaMetadata
 import me.anno.io.utils.LinkCreator
 import me.anno.io.utils.TrashManager
@@ -67,7 +67,7 @@ class JVMExtension : Plugin() {
             12 -> TrashManager.moveToTrashImpl = TrashManagerImpl::moveToTrash
             13 -> LinkCreator.createLink = FileExplorerImpl::createLink
             14 -> DefaultStyle.initDefaults() // reload default font size
-            15 -> Thumbs.registerSignatures("exe", ThumbsImpl::generateSystemIcon)
+            15 -> ThumbnailCache.registerSignatures("exe", ThumbsImpl::generateSystemIcon)
             16 -> LoggerOverride.setup()
             else -> return true
         }

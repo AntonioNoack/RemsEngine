@@ -45,7 +45,7 @@ class Skeleton : PrefabSaveable(), Renderable {
     override fun listChildTypes() = "ca"
     override fun getChildListByType(type: Char): List<PrefabSaveable> {
         return if (type == 'c') bones
-        else animations.values.mapNotNull { AnimationCache[it] }
+        else animations.values.mapNotNull { AnimationCache.getEntry(it).waitFor() }
     }
 
     override val children get() = bones

@@ -16,14 +16,14 @@ fun List<String>.mapChildren(folder: FileReference): List<FileReference> {
 }
 
 private val flippedMaterials = LazyMap<FileReference, FileReference> { src ->
-    val original = MaterialCache[src] ?: defaultMaterial
+    val original = MaterialCache.getEntry(src).waitFor() ?: defaultMaterial
     val flipped = original.clone() as Material
     flipped.cullMode = CullMode.BACK
     flipped.ref
 }
 
 fun mirrorX(file: FileReference): FileReference {
-    val original = MeshCache[file]!!
+    val original = MeshCache.getEntry(file).waitFor()!!
     val flippedMaterials = (0 until original.numMaterials)
         .map { idx -> flippedMaterials[original.materials.getOrNull(idx) ?: InvalidRef] }
     // todo why are the normals flipped upside down???

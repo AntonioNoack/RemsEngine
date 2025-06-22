@@ -86,7 +86,7 @@ object ShaderToyExport {
         uniforms["maxSteps"] = TypeValue(GLSLType.V1I, tree.maxSteps)
         uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0.01f, 1000f))
 
-        val materials = tree.sdfMaterials.map { MaterialCache[it] }
+        val materials = tree.sdfMaterials.map { MaterialCache.getEntry(it).waitFor() }
         val builder = StringBuilder(max(1, materials.size) * 128)
 
         val needsSwitch = materials.size > 1

@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.assimp.findAllBones
@@ -47,7 +47,7 @@ fun main() {
 
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
-    Thumbs.useCacheFolder = true
+    ThumbnailCache.useCacheFolder = true
 
     val size = 512
 

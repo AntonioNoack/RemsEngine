@@ -80,7 +80,7 @@ object RandomVehicle {
     fun createRandomVehicle(world: FlatWorld, route: List<StreetSegment>): Entity {
         val entity = Entity()
         val (meshName, matName) = carFiles.random()
-        val mesh = MeshCache[carsMeshes.getChild(meshName)] as? Mesh
+        val mesh = MeshCache.getEntry(carsMeshes.getChild(meshName)).waitFor() as? Mesh
         val meshComponent = MeshComponent(mesh ?: flatCube.front)
         if (mesh != null && matName.isNotBlank2()) {
             meshComponent.materials = mesh.materials.map { ref ->

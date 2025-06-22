@@ -56,7 +56,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     fun getDuration(): Float {
         val source = getInput(SOURCE) as FileReference
-        val anim = AnimationCache[source, false] ?: return 10f
+        val anim = AnimationCache.getEntry(source).waitFor() ?: return 10f
         return anim.duration
     }
 
@@ -110,7 +110,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
             val anim = animations[i]
             val targetWeight = if (anim === selfAnimation) 1f else 0f
             anim.weight = mix(anim.weight, targetWeight, fade01)
-            anim.update(null, dt, true)
+            anim.update(null, dt)
             if (targetWeight == 0f && anim.weight < minWeight) needsRemoval = true
         }
 

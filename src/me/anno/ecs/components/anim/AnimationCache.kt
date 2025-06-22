@@ -36,7 +36,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
     }
 
     fun invalidate(animation: Animation, skeleton: FileReference = animation.skeleton) {
-        invalidate(animation, SkeletonCache[skeleton] ?: return)
+        invalidate(animation, SkeletonCache.getEntry(skeleton).waitFor() ?: return)
     }
 
     fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): AsyncCacheData<BoneByBoneAnimation> {

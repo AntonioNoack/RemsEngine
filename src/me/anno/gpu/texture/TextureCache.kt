@@ -3,7 +3,6 @@ package me.anno.gpu.texture
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.FileCacheSection.getFileEntry
-import me.anno.cache.NullCacheData
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
@@ -63,12 +62,12 @@ object TextureCache {
     }
 
     operator fun get(file: FileReference, timeout: Long): AsyncCacheData<ITexture2D> {
-        if (file == InvalidRef) return NullCacheData.get()
+        if (file == InvalidRef) return AsyncCacheData.empty()
         if (file !is InnerFile) {
-            if (file.isDirectory || !file.exists) return NullCacheData.get()
+            if (file.isDirectory || !file.exists) return AsyncCacheData.empty()
         } else if (file.isDirectory || !file.exists) {
             LOGGER.warn("Image missing: $file")
-            return NullCacheData.get()
+            return AsyncCacheData.empty()
         } else if (file is InnerTmpImageFile && file.image is GPUImage) {
             return AsyncCacheData(file.image.texture) // shortcut
         }

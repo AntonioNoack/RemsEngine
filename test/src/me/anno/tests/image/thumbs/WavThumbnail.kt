@@ -2,7 +2,7 @@ package me.anno.tests.image.thumbs
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.Reference.getReference
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.OS.desktop
@@ -17,7 +17,7 @@ fun main() {
                 "TheWorkRoom Audio Post - Human Presence In Quiet Rooms/QR001 Human Presence Large Room Busy 5.1.wav"
     )
     assertTrue(ref.exists)
-    val texture = Thumbs[ref, 512, false]!!
-    texture.write(desktop.getChild("ImageFromWav.jpg"))
+    ThumbnailCache.getEntry(ref, 512).waitFor()!!
+        .write(desktop.getChild("ImageFromWav.jpg"))
     Engine.requestShutdown()
 }

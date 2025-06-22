@@ -20,7 +20,7 @@ fun main() {
     val folder = documents.getChild("Blender")
     val src = folder.getChild("GlassMaterialTest.blend")
     InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
-    val sample = MeshCache[src, false] as? Mesh
+    val sample = MeshCache.getEntry(src).waitFor() as? Mesh
     println(sample)
     if (sample != null) {
         loadSync { GLTFWriter().write(sample, desktop.getChild(src.nameWithoutExtension + ".glb"), it) }

@@ -6,7 +6,7 @@ import me.anno.engine.EngineBase
 import me.anno.engine.projects.GameEngineProject
 import me.anno.gpu.GFX
 import me.anno.image.ImageReadable
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.ImportType.MESH
 import me.anno.io.files.ImportType.METADATA
@@ -62,8 +62,8 @@ object AssetImport {
         fe?.invalidate()
         LastModifiedCache.invalidate(dst)
         // update icon of current folder... hopefully this works
-        Thumbs.invalidate(dst)
-        Thumbs.invalidate(dst.getParent())
+        ThumbnailCache.invalidate(dst)
+        ThumbnailCache.invalidate(dst.getParent())
     }
 
     fun getImportType(file: FileReference): String? {

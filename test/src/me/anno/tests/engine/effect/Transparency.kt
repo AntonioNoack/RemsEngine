@@ -47,7 +47,7 @@ fun main() {
     scene.add(Skybox())
     scene.forAllComponentsInChildren(MeshComponent::class) { comp ->
         val mesh = comp.getMeshOrNull()
-        val material = MaterialCache[mesh?.materials?.firstOrNull()]
+        val material = MaterialCache.getEntry(mesh?.materials?.firstOrNull()).waitFor()
         if (material != null) {
             println(material.name)
             when (material.name) {

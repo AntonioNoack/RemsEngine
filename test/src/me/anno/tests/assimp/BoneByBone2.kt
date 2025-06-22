@@ -49,7 +49,7 @@ fun main() {
     mesh.meshFile = meshFile
     scene.add(mesh)
 
-    for (bone in SkeletonCache[mesh.getMesh()?.skeleton]!!.bones) {
+    for (bone in SkeletonCache.getEntry(mesh.getMesh()?.skeleton).waitFor()!!.bones) {
         LOGGER.info(
             "Bone ${bone.index}: ${bone.name}${" ".repeat(Maths.max(0, 80 - bone.name.length))}" +
                     "f0: ${animation.getTranslation(0, bone.index, Vector3f())}, " +

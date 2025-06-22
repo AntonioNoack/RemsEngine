@@ -43,7 +43,7 @@ import me.anno.image.ImageReadable
 import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbnailCache
 import me.anno.input.Clipboard
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
@@ -255,8 +255,8 @@ open class FileExplorerEntry(
     private fun getImage(): ITexture2D? {
         val isDirectory = IsDirectoryCache.isDirectory(file)
         if (isDirectory.value == null) return null
-        val thumb = Thumbs[file, width, true]
-        return thumb?.createdOrNull() ?: getDefaultIcon()?.createdOrNull()
+        return ThumbnailCache[file, width]
+            ?: getDefaultIcon()?.createdOrNull()
     }
 
     private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {

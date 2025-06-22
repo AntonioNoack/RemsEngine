@@ -26,10 +26,10 @@ object ImageThumbnails {
     @JvmStatic
     @InternalAPI
     fun register() {
-        Thumbs.registerSignatures("png,bmp,psd", ::generateImage)
-        Thumbs.registerSignatures("dds,media", ::generateVideoFrame)
-        Thumbs.registerFileExtensions("dds,webp", ::generateVideoFrame)
-        Thumbs.registerSignatures("hdr", ::generateHDRImage)
+        ThumbnailCache.registerSignatures("png,bmp,psd", ::generateImage)
+        ThumbnailCache.registerSignatures("dds,media", ::generateVideoFrame)
+        ThumbnailCache.registerFileExtensions("dds,webp", ::generateVideoFrame)
+        ThumbnailCache.registerSignatures("hdr", ::generateHDRImage)
     }
 
     private fun generateHDRImage(
@@ -39,8 +39,8 @@ object ImageThumbnails {
         srcFile.inputStream { stream, exc ->
             if (stream != null) {
                 val image = stream.use(HDRReader::readHDR)
-                Thumbs.findScale(image, srcFile, size, callback) { dst ->
-                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
+                ThumbnailCache.findScale(image, srcFile, size, callback) { dst ->
+                    ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, callback)
                 }
             } else callback.err(exc)
         }
@@ -53,7 +53,7 @@ object ImageThumbnails {
     ) {
         ImageAsFolder.readImage(srcFile, true).waitFor { image ->
             if (image != null) {
-                Thumbs.transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
+                ThumbnailCache.transformNSaveNUpload(srcFile, true, image, dstFile, size, callback)
             } else {
                 generateIfReadImageFailed(srcFile, dstFile, size, callback)
             }
@@ -102,7 +102,7 @@ object ImageThumbnails {
         if (mx < size) {
             var sizeI = size shr 1
             while (mx < sizeI) sizeI = sizeI shr 1
-            return Thumbs.generate(srcFile, sizeI, callback)
+            return ThumbnailCache.generate(srcFile, sizeI, callback)
         }
 
         val scale = floor(max(meta.videoWidth, meta.videoHeight).toFloat() / size).toInt()
@@ -120,9 +120,9 @@ object ImageThumbnails {
         VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L)
             .waitFor(callback.mapAsync { frame, cb2 ->
                 val texture = frame.toTexture()
-                if (Thumbs.useCacheFolder) {
+                if (ThumbnailCache.useCacheFolder) {
                     val dst = texture.createImage(flipY = false, withAlpha = true)
-                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, cb2)
+                    ThumbnailCache.saveNUpload(srcFile, false, dstFile, dst, cb2)
                 } else cb2.ok(texture)
             })
     }
