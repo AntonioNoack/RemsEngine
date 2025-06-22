@@ -5,8 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import me.anno.utils.async.Callback
-import org.apache.logging.log4j.LogManager
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -180,9 +178,7 @@ open class AsyncCacheData<V : Any>() : ICacheData, Callback<V> {
 
         fun runOnNonGFXThread(threadName: String, runnable: () -> Unit) {
             if (GFX.isGFXThread()) {
-                thread(name = threadName) {
-                    runnable()
-                }
+                ThreadPool.start(threadName, runnable)
             } else {
                 runnable()
             }

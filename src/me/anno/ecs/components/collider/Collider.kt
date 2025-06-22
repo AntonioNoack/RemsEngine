@@ -15,7 +15,6 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
-import me.anno.maths.Maths.SQRT1_2
 import me.anno.maths.bvh.HitType
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
@@ -70,7 +69,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     override fun fillSpace(globalTransform: Matrix4x3, dstUnion: AABBd): Boolean {
         val tmp = JomlPools.vec3d.create()
-        union(globalTransform, dstUnion, tmp, false)
+        union(globalTransform, dstUnion, tmp)
         JomlPools.vec3d.sub(1)
         return true
     }
@@ -83,37 +82,6 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     }
 
     fun unionRing(
-        globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d,
-        axis: Axis, r: Double, h: Double, preferExact: Boolean
-    ) {
-        if (preferExact) {
-            // approximate the circle as 8 points, and their outer circle
-            val r1 = SQRT1_2 * r
-            when (axis) {
-                Axis.X -> {
-                    union(globalTransform, aabb, tmp, h, +r, 0.0)
-                    union(globalTransform, aabb, tmp, h, -r, 0.0)
-                    union(globalTransform, aabb, tmp, h, 0.0, +r)
-                    union(globalTransform, aabb, tmp, h, 0.0, -r)
-                }
-                Axis.Y -> {
-                    union(globalTransform, aabb, tmp, +r, h, 0.0)
-                    union(globalTransform, aabb, tmp, -r, h, 0.0)
-                    union(globalTransform, aabb, tmp, 0.0, h, +r)
-                    union(globalTransform, aabb, tmp, 0.0, h, -r)
-                }
-                Axis.Z -> {
-                    union(globalTransform, aabb, tmp, +r, 0.0, h)
-                    union(globalTransform, aabb, tmp, -r, 0.0, h)
-                    union(globalTransform, aabb, tmp, 0.0, +r, h)
-                    union(globalTransform, aabb, tmp, 0.0, -r, h)
-                }
-            }
-            unionRingQuad(globalTransform, aabb, tmp, axis, r1, h)
-        } else unionRingQuad(globalTransform, aabb, tmp, axis, r, h)
-    }
-
-    private fun unionRingQuad(
         globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d,
         axis: Axis, r: Double, h: Double
     ) {
@@ -140,32 +108,25 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
         }
     }
 
-    fun unionCube(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
+    fun unionCube(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d, hx: Double, hy: Double, hz: Double) {
         // union the most typical layout: a sphere
         // 001,010,100,-001,-010,-100
-        union(globalTransform, aabb, tmp, +hx, +hy, +hz)
-        union(globalTransform, aabb, tmp, +hx, +hy, -hz)
-        union(globalTransform, aabb, tmp, +hx, -hy, +hz)
-        union(globalTransform, aabb, tmp, +hx, -hy, +hz)
-        union(globalTransform, aabb, tmp, -hx, +hy, +hz)
-        union(globalTransform, aabb, tmp, -hx, +hy, -hz)
-        union(globalTransform, aabb, tmp, -hx, -hy, +hz)
-        union(globalTransform, aabb, tmp, -hx, -hy, +hz)
+        union(globalTransform, dstUnion, tmp, +hx, +hy, +hz)
+        union(globalTransform, dstUnion, tmp, +hx, +hy, -hz)
+        union(globalTransform, dstUnion, tmp, +hx, -hy, +hz)
+        union(globalTransform, dstUnion, tmp, +hx, -hy, +hz)
+        union(globalTransform, dstUnion, tmp, -hx, +hy, +hz)
+        union(globalTransform, dstUnion, tmp, -hx, +hy, -hz)
+        union(globalTransform, dstUnion, tmp, -hx, -hy, +hz)
+        union(globalTransform, dstUnion, tmp, -hx, -hy, +hz)
     }
 
-    fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
-        aabb.union(globalTransform.transformPosition(tmp.set(x, y, z)))
+    fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d, x: Double, y: Double, z: Double) {
+        dstUnion.union(globalTransform.transformPosition(tmp.set(x, y, z)))
     }
 
-    open fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        // union a sample layout
-        // 001,010,100,-001,-010,-100
-        union(globalTransform, aabb, tmp, +1.0, 0.0, 0.0)
-        union(globalTransform, aabb, tmp, -1.0, 0.0, 0.0)
-        union(globalTransform, aabb, tmp, 0.0, +1.0, 0.0)
-        union(globalTransform, aabb, tmp, 0.0, -1.0, 0.0)
-        union(globalTransform, aabb, tmp, 0.0, 0.0, +1.0)
-        union(globalTransform, aabb, tmp, 0.0, 0.0, -1.0)
+    open fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
+        cubeAABB.transformUnion(globalTransform, dstUnion)
     }
 
     fun and2SDFs(deltaPos: Vector3f, roundness: Float = this.roundness): Float {
@@ -288,6 +249,7 @@ abstract class Collider : CollidingComponent(), OnDrawGUI {
     companion object {
 
         private val sampleEntity = Entity()
+        private val cubeAABB = AABBd(-1.0, 1.0)
 
         fun getLineColor(hasPhysics: Boolean): Int {
             return if (hasPhysics) 0x77ffff or black

@@ -28,9 +28,9 @@ class CircleCollider : Collider2d() {
         LineShapes.drawCircle(entity, radius.toDouble(), 0, 1, 0.0, null, getLineColor(hasPhysics))
     }
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val r = radius.toDouble()
-        unionCube(globalTransform, aabb, tmp, r, r, 1.0)
+        unionCube(globalTransform, dstUnion, tmp, r, r, 1.0)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

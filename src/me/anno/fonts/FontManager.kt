@@ -12,6 +12,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.maths.Maths.ceilDiv
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
@@ -27,7 +28,10 @@ object FontManager {
     val textTextureCache = CacheSection<TextCacheKey, ITexture2D>("TextTexture")
     val textSizeCache = CacheSection<TextCacheKey, Int>("TextSize")
 
+    private val fontQueue = ProcessingQueue("FontManager")
+
     private const val textureTimeoutMillis = 10_000L
+    private const val textSizeTimeoutMillis = 100_000L
 
     private val fonts = HashMap<FontKey, TextGenerator>()
 
@@ -70,7 +74,7 @@ object FontManager {
     }
 
     fun getSize(key: TextCacheKey): AsyncCacheData<Int> {
-        return textSizeCache.getEntry(key, 100_000) { keyI, result ->
+        return textSizeCache.getEntry(key, textSizeTimeoutMillis, fontQueue) { keyI, result ->
             val awtFont = getFont(keyI)
             val wl = if (keyI.widthLimit < 0) GFX.maxTextureSize else min(keyI.widthLimit, GFX.maxTextureSize)
             val hl = if (keyI.heightLimit < 0) GFX.maxTextureSize else min(keyI.heightLimit, GFX.maxTextureSize)
@@ -158,7 +162,7 @@ object FontManager {
         // - textures need to be available
         // - Java/Windows is not thread-safe
         if (cacheKey.text.isBlank2()) return AsyncCacheData.empty()
-        return textTextureCache.getEntry(cacheKey, timeoutMillis, generateTexture)
+        return textTextureCache.getEntry(cacheKey, timeoutMillis, fontQueue, generateTexture)
     }
 
     private val generateTexture = { key: TextCacheKey, result: AsyncCacheData<ITexture2D> ->

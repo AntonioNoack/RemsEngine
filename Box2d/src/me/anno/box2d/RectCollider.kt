@@ -46,9 +46,9 @@ class RectCollider : Collider2d() {
         v3.sub(4)
     }
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val halfExtents = halfExtents
-        unionCube(globalTransform, aabb, tmp, halfExtents.x.toDouble(), halfExtents.y.toDouble(), 1.0)
+        unionCube(globalTransform, dstUnion, tmp, halfExtents.x.toDouble(), halfExtents.y.toDouble(), 1.0)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

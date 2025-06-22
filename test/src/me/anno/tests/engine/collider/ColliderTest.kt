@@ -15,17 +15,17 @@ class ColliderTest : Collider() {
     fun testUnionRingSimple() {
         val m = Matrix4x3()
         val b = AABBd()
-        for (exact in listOf(true, false)) {
-            b.clear()
-            unionRing(m, b, Vector3d(), Axis.X, 1.0, 3.0, exact)
-            assertEquals(AABBd(3.0, -1.0, -1.0, 3.0, 1.0, 1.0), b)
-            b.clear()
-            unionRing(m, b, Vector3d(), Axis.Y, 1.0, 3.0, exact)
-            assertEquals(AABBd(-1.0, 3.0, -1.0, 1.0, 3.0, 1.0), b)
-            b.clear()
-            unionRing(m, b, Vector3d(), Axis.Z, 1.0, 3.0, exact)
-            assertEquals(AABBd(-1.0, -1.0, 3.0, 1.0, 1.0, 3.0), b)
-        }
+        b.clear()
+        unionRing(m, b, Vector3d(), Axis.X, 1.0, 3.0)
+        assertEquals(AABBd(3.0, -1.0, -1.0, 3.0, 1.0, 1.0), b)
+
+        b.clear()
+        unionRing(m, b, Vector3d(), Axis.Y, 1.0, 3.0)
+        assertEquals(AABBd(-1.0, 3.0, -1.0, 1.0, 3.0, 1.0), b)
+
+        b.clear()
+        unionRing(m, b, Vector3d(), Axis.Z, 1.0, 3.0)
+        assertEquals(AABBd(-1.0, -1.0, 3.0, 1.0, 1.0, 3.0), b)
     }
 
     @Test

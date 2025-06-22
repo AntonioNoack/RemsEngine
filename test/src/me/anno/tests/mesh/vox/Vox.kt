@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.vox
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry

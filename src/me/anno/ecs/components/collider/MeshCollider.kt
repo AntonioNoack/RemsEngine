@@ -7,12 +7,11 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.ui.LineShapes.drawLine
+import me.anno.engine.ui.LineShapes.drawLineTriangle
 import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
@@ -198,21 +197,14 @@ open class MeshCollider() : Collider() {
         val color = getLineColor(hasPhysics)
         val transform = getDrawMatrix(entity)
         mesh.forEachTriangle { a, b, c ->
-            drawLine(transform, a, b, color)
-            drawLine(transform, b, c, color)
-            drawLine(transform, c, a, color)
+            drawLineTriangle(transform, a, b, c, color)
             false
         }
     }
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        val mesh = mesh as? Mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
-        mesh.forEachPoint(preferExact) { x, y, z ->
-            tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
-            globalTransform.transformPosition(tmp)
-            aabb.union(tmp)
-            false
-        }
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
+        val mesh = mesh ?: return super.union(globalTransform, dstUnion, tmp)
+        mesh.getBounds().transformUnion(globalTransform, dstUnion)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

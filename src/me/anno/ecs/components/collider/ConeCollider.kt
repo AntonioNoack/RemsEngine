@@ -30,13 +30,13 @@ class ConeCollider : Collider() {
     @SerializedProperty
     var radius = 1f
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         // union the peak and the bottom ring
         val h = height * 0.5
         val r = radius.toDouble()
-        unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
+        unionRing(globalTransform, dstUnion, tmp, axis, r, -h)
         tmp[axis.id] = +h
-        aabb.union(globalTransform.transformPosition(tmp))
+        dstUnion.union(globalTransform.transformPosition(tmp))
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {

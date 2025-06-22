@@ -18,11 +18,11 @@ class ConvexCollider : Collider() {
     @SerializedProperty
     var points: FloatArray? = null
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val points = points ?: return
         forLoopSafely(points.size, 3) { i ->
             tmp.set(points, i)
-            aabb.union(globalTransform.transformPosition(tmp))
+            dstUnion.union(globalTransform.transformPosition(tmp))
         }
     }
 

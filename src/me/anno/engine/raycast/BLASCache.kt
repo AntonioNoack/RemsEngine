@@ -24,15 +24,8 @@ object BLASCache : CacheSection<Mesh, Nothing>("BLASCache") {
     fun getBLAS(mesh: Mesh): BLASNode? {
         if (disableBLASCache) return null
         val result = mesh.raycaster
-        if (result != null) return result // quickpath
+        if (result != null) return result // quick-path
         getEntry(mesh, timeoutMillis, generator)
         return mesh.raycaster
-    }
-
-    @Suppress("unused")
-    fun getBLASAsync(mesh: Mesh, callback: Callback<BLASNode?>) {
-        return getEntryAsync(
-            mesh, timeoutMillis, generator,
-            callback.map { mesh.raycaster })
     }
 }

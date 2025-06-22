@@ -15,8 +15,8 @@ import kotlin.math.sign
  * */
 class InfinitePlaneCollider : Collider() {
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        aabb.all()
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
+        dstUnion.all()
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {

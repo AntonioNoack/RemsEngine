@@ -23,22 +23,9 @@ class SphereCollider : Collider() {
         dst.radius = radius
     }
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        // otherwise just use a cube and its 8 sides
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val r = radius.toDouble()
-        if (preferExact) {
-            // if prefer exact, then use multiple outer-sphere points
-            // outer ring != outer sphere, increase the radius once more!
-            // val rEstimate = 1.13174 * r // estimated / visualized in Blender, approximated,
-            // and then accurately calculated
-            val rExact = OUTER_SPHERE_RADIUS_X8 * COSINE_22_5 * r // 1.1315167192268571
-            unionRing(globalTransform, aabb, tmp, Axis.X, rExact, 0.0, true)
-            unionRing(globalTransform, aabb, tmp, Axis.Y, rExact, 0.0, true)
-            unionRing(globalTransform, aabb, tmp, Axis.Z, rExact, 0.0, true)
-            // we could create a better approximation by picking points ourselves, and calculating their outer radius
-        } else {
-            unionCube(globalTransform, aabb, tmp, r, r, r)
-        }
+        unionCube(globalTransform, dstUnion, tmp, r, r, r)
     }
 
     override fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {

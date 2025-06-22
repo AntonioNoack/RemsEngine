@@ -4,8 +4,10 @@ import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.cache.AsyncCacheData.Companion.runOnNonGFXThread
 import me.anno.io.files.FileKey
+import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
 import me.anno.utils.InternalAPI
+import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertFail
 import me.anno.utils.async.Callback
 import me.anno.utils.hpc.ProcessingQueue
@@ -192,7 +194,7 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
         if (isGenerating) {
             if (queue != null) {
                 queue += { generateSafely(key, entry, generator) }
-            } else runAsync("$name<$key>") {
+            } else runAsync(getTaskName(name, key)) {
                 generateSafely(key, entry, generator)
             }
         } else {
@@ -243,6 +245,20 @@ open class CacheSection<K1, V : Any>(val name: String) : Comparable<CacheSection
 
         @JvmStatic
         private val clearListeners = ArrayList<() -> Unit>()
+
+        fun getKeyName(key: Any?): String {
+            return when (key) {
+                is FileReference -> key.name
+                is String -> if (key.length > 16) key.substring(0, 16) else key
+                // what else should we support?... should we do this at all?
+                else -> hash32(key)
+            }
+        }
+
+        fun getTaskName(name: String, key: Any?): String {
+            return if (Build.isDebug) "$name<${getKeyName(key)}>"
+            else name
+        }
 
         @JvmStatic
         fun updateAll() {

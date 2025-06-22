@@ -57,17 +57,17 @@ class SDFCollider : Collider(), CustomBulletCollider {
         } else inertia.set(base, base, base)
     }
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val sdf = sdf ?: return
         sdf.localAABB.apply {
-            union(globalTransform, aabb, tmp, minX, minY, minZ)
-            union(globalTransform, aabb, tmp, minX, minY, maxZ)
-            union(globalTransform, aabb, tmp, minX, maxY, minZ)
-            union(globalTransform, aabb, tmp, minX, maxY, maxZ)
-            union(globalTransform, aabb, tmp, maxX, minY, minZ)
-            union(globalTransform, aabb, tmp, maxX, minY, maxZ)
-            union(globalTransform, aabb, tmp, maxX, maxY, minZ)
-            union(globalTransform, aabb, tmp, maxX, maxY, maxZ)
+            union(globalTransform, dstUnion, tmp, minX, minY, minZ)
+            union(globalTransform, dstUnion, tmp, minX, minY, maxZ)
+            union(globalTransform, dstUnion, tmp, minX, maxY, minZ)
+            union(globalTransform, dstUnion, tmp, minX, maxY, maxZ)
+            union(globalTransform, dstUnion, tmp, maxX, minY, minZ)
+            union(globalTransform, dstUnion, tmp, maxX, minY, maxZ)
+            union(globalTransform, dstUnion, tmp, maxX, maxY, minZ)
+            union(globalTransform, dstUnion, tmp, maxX, maxY, maxZ)
         }
     }
 

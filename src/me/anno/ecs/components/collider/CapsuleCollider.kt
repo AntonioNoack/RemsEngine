@@ -28,15 +28,15 @@ class CapsuleCollider : Collider() {
     @SerializedProperty
     var radius = 1f
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         // union the two rings, and the top and bottom peak
         val r = radius.toDouble()
         val h = halfHeight.toDouble()
-        unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
-        unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
+        unionRing(globalTransform, dstUnion, tmp, axis, r, +h)
+        unionRing(globalTransform, dstUnion, tmp, axis, r, -h)
         val s = h + r
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, +s)))
-        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, -s)))
+        dstUnion.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, +s)))
+        dstUnion.union(globalTransform.transformPosition(tmp.set(0.0).setComponent(axis.id, -s)))
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {

@@ -2,7 +2,8 @@ package me.anno.recast
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ui.LineShapes.drawLine
+import me.anno.engine.ui.LineShapes.drawLineTriangle
+import me.anno.engine.ui.LineShapes.getDrawMatrix
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -51,10 +52,9 @@ object NavMeshDebug {
 
     fun drawNavMesh(entity: Entity?, data: MeshData?) {
         val color = debugColor
+        val transform = getDrawMatrix(entity)
         forEachTriangle(data) { a, b, c ->
-            drawLine(entity, a, b, color)
-            drawLine(entity, b, c, color)
-            drawLine(entity, c, a, color)
+            drawLineTriangle(transform, a, b, c, color)
         }
     }
 

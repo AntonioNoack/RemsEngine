@@ -27,7 +27,7 @@ class MeshColliderTests {
         val collider = MeshCollider(sphere3)
         collider.enableSimplifications = false
         val random = Random(1324)
-        for (i in 0 until 100) {
+        repeat(100) {
             val x = (random.nextFloat() - 0.5f) * 3f
             val y = (random.nextFloat() - 0.5f) * 3f
             val z = (random.nextFloat() - 0.5f) * 3f
@@ -41,7 +41,7 @@ class MeshColliderTests {
     fun testSignedDistanceWithNormal() {
         val collider = MeshCollider(sphere3)
         val random = Random(1324)
-        for (i in 0 until 100) {
+        repeat(100) {
             val x = (random.nextFloat() - 0.5f) * 3f
             val y = (random.nextFloat() - 0.5f) * 3f
             val z = (random.nextFloat() - 0.5f) * 3f
@@ -59,7 +59,7 @@ class MeshColliderTests {
     fun testUnion() {
         val collider = MeshCollider(sphere3)
         val bounds = AABBd()
-        collider.union(Matrix4x3(), bounds, Vector3d(), false)
+        collider.union(Matrix4x3(), bounds, Vector3d())
         assertEquals(sphere3.getBounds(), AABBf(bounds))
     }
 
@@ -67,7 +67,7 @@ class MeshColliderTests {
     fun testRaycast() {
         val collider = MeshCollider(sphere3)
         val random = Random(1324)
-        for (i in 0 until 100) {
+        repeat(100) {
             val x = (random.nextFloat() - 0.5f) * 3f
             val y = (random.nextFloat() - 0.5f) * 3f
             val normal = Vector3f()

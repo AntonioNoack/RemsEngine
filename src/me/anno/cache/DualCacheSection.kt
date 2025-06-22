@@ -1,7 +1,9 @@
 package me.anno.cache
 
+import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.cache.CacheSection.Companion.checkKey
+import me.anno.cache.CacheSection.Companion.getKeyName
 import me.anno.cache.CacheSection.Companion.registerCache
 import me.anno.cache.CacheSection.Companion.runAsync
 import me.anno.utils.InternalAPI
@@ -97,7 +99,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         entry.update(timeoutMillis)
 
         if (isGenerating) {
-            runAsync("$name<$key1,$key2>") {
+            runAsync(getTaskName(name, key1, key2)) {
                 generateDualSafely(key1, key2, entry, generator)
             }
         } else ifNotGenerating?.invoke()
@@ -135,7 +137,7 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
         @InternalAPI
         val caches = ConcurrentSkipListSet<DualCacheSection<*, *, *>>()
 
-        fun <K1, K2, V: Any> generateDualSafely(
+        fun <K1, K2, V : Any> generateDualSafely(
             key1: K1, key2: K2, entry: AsyncCacheData<V>,
             generator: (K1, K2, AsyncCacheData<V>) -> Unit
         ) {
@@ -148,6 +150,12 @@ open class DualCacheSection<K1, K2, V : Any>(val name: String) : Comparable<Dual
                 LOGGER.warn(e)
             }
         }
+
+        fun getTaskName(name: String, key1: Any?, key2: Any?): String {
+            return if (Build.isDebug) "$name<${getKeyName(key1)},${getKeyName(key2)}>"
+            else name
+        }
+
 
         private fun warnFileMissing(e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: {}", e.message)

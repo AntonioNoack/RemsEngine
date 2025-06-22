@@ -43,8 +43,8 @@ import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
 import me.anno.sdf.modifiers.SDFNoise.Companion.perlinNoise
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import me.anno.utils.structures.lists.Lists.wrap
 import org.joml.AABBd
 import org.joml.Matrix4x3
@@ -210,8 +210,8 @@ fun main() {
     // done partially - gpu culling
 
     val densitySource = pictures.getChild("Maps/GardeningFloorPlan.png")
-    val mesh0 = (MeshCache.getEntry(documents.getChild("GrassBlade0.obj")).waitFor() as Mesh).shallowClone()
-    val mesh1 = (MeshCache.getEntry(documents.getChild("GrassBlade1.obj")).waitFor() as Mesh).shallowClone()
+    val mesh0 = (MeshCache.getEntry(res.getChild("meshes/GrassBlade0.obj")).waitFor() as Mesh).shallowClone()
+    val mesh1 = (MeshCache.getEntry(res.getChild("meshes/GrassBlade1.obj")).waitFor() as Mesh).shallowClone()
 
     val size = 1000
     // 50k detailed meshes + 10M just-triangles 😃

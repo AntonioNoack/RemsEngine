@@ -326,14 +326,32 @@ object LineShapes {
         color: Int = defaultColor
     ) {
         val positions = tmpVec3d
-        positions[0].set(p0)
-        positions[1].set(p1)
+        val c0 = positions[0].set(p0)
+        val c1 = positions[1].set(p1)
         if (transform != null) {
-            for (i in 0 until 2) {
-                transform.transformPosition(positions[i])
-            }
+            transform.transformPosition(c0)
+            transform.transformPosition(c1)
         }
-        putRelativeLine(positions[0], positions[1], color)
+        putRelativeLine(c0, c1, color)
+    }
+
+    fun drawLineTriangle(
+        transform: Matrix4x3?,
+        a: Vector3f, b: Vector3f, c: Vector3f,
+        color: Int = defaultColor
+    ) {
+        val positions = tmpVec3d
+        val c0 = positions[0].set(a)
+        val c1 = positions[1].set(b)
+        val c2 = positions[2].set(c)
+        if (transform != null) {
+            transform.transformPosition(c0)
+            transform.transformPosition(c1)
+            transform.transformPosition(c2)
+        }
+        putRelativeLine(c0, c1, color)
+        putRelativeLine(c1, c2, color)
+        putRelativeLine(c2, c0, color)
     }
 
     fun drawLine(

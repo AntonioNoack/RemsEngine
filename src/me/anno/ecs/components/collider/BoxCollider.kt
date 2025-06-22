@@ -21,10 +21,10 @@ class BoxCollider : Collider() {
             field.set(value)
         }
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         val halfExtents = halfExtents
         unionCube(
-            globalTransform, aabb, tmp,
+            globalTransform, dstUnion, tmp,
             halfExtents.x.toDouble(), halfExtents.y.toDouble(), halfExtents.z.toDouble()
         )
     }

@@ -27,12 +27,12 @@ class CylinderCollider : Collider() {
     @SerializedProperty
     var radius = 1f
 
-    override fun union(globalTransform: Matrix4x3, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+    override fun union(globalTransform: Matrix4x3, dstUnion: AABBd, tmp: Vector3d) {
         // union the two rings
         val h = halfHeight.toDouble()
         val r = radius.toDouble()
-        unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
-        unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
+        unionRing(globalTransform, dstUnion, tmp, axis, r, +h)
+        unionRing(globalTransform, dstUnion, tmp, axis, r, -h)
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
