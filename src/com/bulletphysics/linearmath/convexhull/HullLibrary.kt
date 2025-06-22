@@ -1,23 +1,28 @@
 package com.bulletphysics.linearmath.convexhull
 
+import com.bulletphysics.linearmath.convexhull.PackedNormalsCompressor.compressVertices
+import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector4i
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
- * HullLibrary class can create a convex hull from a collection of vertices, using
- * the ComputeHull method. The [com.bulletphysics.collision.shapes.ShapeHull] class uses this HullLibrary to create
- * a approximate convex mesh given a general (non-polyhedral) convex shape.
+ * HullLibrary class can create a convex hull from a collection of vertices, using the ComputeHull method.
+ * The ShapeHull class uses this HullLibrary to create an approximate convex mesh given a general (non-polyhedral) convex shape.
  *
  * Includes modifications/improvements by John Ratcliff, see BringOutYourDead(compressVertices) below.
+ * Unless you're using the native version, your vertices might be filtered first for much better performance.
  *
  * @author jezek2
  */
@@ -55,7 +60,7 @@ class HullLibrary {
         }
         subVec(1)
 
-        val triangles = calcHull(cleanVertices, desc.maxVertices)
+        val triangles = calcHull(cleanVertices, desc.maxNumVertices)
             ?: return null
 
         // re-index triangle mesh so it refers to only used vertices, rebuild a new vertex table.
@@ -128,13 +133,11 @@ class HullLibrary {
         if (rc == 0) return null
         val ts = IntArrayList()
         for (i in 0 until tris.size) {
-            val tri = tris[i]
-            if (tri != null) {
-                ts.add((tri).x)
-                ts.add((tri).y)
-                ts.add((tri).y)
-                deAllocateTriangle(tri)
-            }
+            val tri = tris[i] ?: continue
+            ts.add(tri.x)
+            ts.add(tri.y)
+            ts.add(tri.y)
+            deAllocateTriangle(tri)
         }
         tris.clear()
         return ts
@@ -190,6 +193,7 @@ class HullLibrary {
 
         val n = newVec()
 
+        // todo this is O(n²), but could be optimized probably by nearest neighbors...
         for (j in 0 until tris.size) {
             val t = checkNotNull(tris[j])
             assert(t.maxValue < 0)
@@ -198,9 +202,11 @@ class HullLibrary {
             vertices[t.maxValue].sub(vertices[t.x], tmp)
             t.rise = n.dot(tmp)
         }
+
         var te: Triangle? = null
         numRemainingVertices -= 4
         while (numRemainingVertices > 0 && ((extrudable(epsilon).also { te = it }) != null)) {
+
             val v = te!!.maxValue
             assert(v != -1)
             assert(isExtreme[v] == 0) // wtf we've already done this vertex
@@ -217,6 +223,7 @@ class HullLibrary {
                     extrude(tri, v)
                 }
             }
+
             // now check for those degenerate cases where we have a flipped triangle or a really skinny triangle
             j = tris.size
             while ((j--) != 0) {
@@ -238,6 +245,7 @@ class HullLibrary {
                     j = tris.size
                 }
             }
+
             j = tris.size
             while ((j--) != 0) {
                 val t = tris[j]
@@ -327,7 +335,7 @@ class HullLibrary {
         return Vector4i(p0, p1, p2, p3)
     }
 
-    private fun extrude(t0: Triangle, v: Int) {
+    private fun extrude(t0: Triangle, v: Int) { // O(1)
 
         val tx = t0.x
         val ty = t0.y
@@ -567,8 +575,16 @@ class HullLibrary {
         private const val EPSILON = 0.000001
         private const val RADS_PER_DEG: Double = Math.PI * 180.0
 
-        fun createConvexHull(desc: HullDesc): ConvexHull? {
+        fun createConvexHullNaive(desc: HullDesc): ConvexHull? {
             return HullLibrary().createConvexHullImpl(desc)
+        }
+
+        fun createConvexHull(desc: HullDesc): ConvexHull? {
+            var gridSize = ceil(4 * sqrt(desc.maxNumVertices.toFloat())).toIntOr()
+            gridSize = clamp(gridSize, 16, 64) // 64² = 4096 is the standard maximum output size
+
+            desc.vertices = compressVertices(desc.vertices, gridSize)
+            return createConvexHullNaive(desc)
         }
 
         /** ///////////////////////////////////////////////////////////////////////// */

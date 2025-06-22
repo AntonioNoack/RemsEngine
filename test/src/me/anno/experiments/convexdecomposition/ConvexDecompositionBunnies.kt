@@ -1,5 +1,6 @@
 package me.anno.experiments.convexdecomposition
 
+import com.bulletphysics.linearmath.convexhull.ConvexHull
 import me.anno.Engine
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
@@ -25,28 +26,7 @@ import me.anno.utils.algorithms.ForLoop.forLoopSafely
 import kotlin.math.cos
 import kotlin.math.sin
 
-/**
- * todo implement approximate convex decomposition like V-HACD,
- *  just faster and easier
- * todo idea:
- *  - recursive splits
- *  - try different axes
- *  - try N cuts on each axis
- *  - choose the lowest total AABB volume
- * */
-fun main() {
-
-    OfficialExtensions.initForTests()
-    val bunnyFile = downloads.getChild("3d/bunny.obj")
-    val mesh = MeshCache.getEntry(bunnyFile).waitFor() as Mesh
-
-    // calculate decomposition
-    val hulls = ConvexDecomposition().splitMesh(mesh)
-    println("Created ${hulls.size} hulls")
-
-    // todo calculate convex hulls, and display it on them...
-
-    // visualize it
+fun visualizeHulls(hulls: List<ConvexHull>) {
     for (i in hulls.indices) {
         val hull = hulls[i]
         val vertices = hull.vertices
@@ -66,6 +46,17 @@ fun main() {
             DebugShapes.debugPoints.add(DebugPoint(v, color, 1e3f))
         }
     }
+}
+
+fun main() {
+
+    OfficialExtensions.initForTests()
+    val bunnyFile = downloads.getChild("3d/bunny.obj")
+    val mesh = MeshCache.getEntry(bunnyFile).waitFor() as Mesh
+
+    // calculate decomposition
+    val hulls = ConvexDecomposition().splitMesh(mesh)
+    visualizeHulls(hulls)
 
     val physics = BulletPhysics()
     registerSystem(physics)
@@ -121,6 +112,4 @@ fun main() {
     }
 
     testSceneWithUI("Bunny Decomposition", scene)
-
-    Engine.requestShutdown()
 }

@@ -8,7 +8,7 @@ import org.joml.Vector3d
  * @author jezek2
  */
 class HullDesc(
-    val vertices: List<Vector3d>,
-    var maxVertices: Int = 4096,
+    var vertices: List<Vector3d>,
+    var maxNumVertices: Int = 4096,
     var normalEpsilon: Double = 0.001
 )

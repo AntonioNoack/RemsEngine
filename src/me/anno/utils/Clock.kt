@@ -134,12 +134,27 @@ class Clock(
         }
     }
 
+    /**
+     * Runs a test repeatedly to find the average performance.
+     * Prints the result to the console. Returns the average time taken in seconds.
+     * Always use warmup-runs! They make sure that all code is loaded, and maybe even optimized.
+     * */
     fun benchmark(warmupRuns: Int, measuredRuns: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Double =
         benchmark(warmupRuns, measuredRuns, 1, usedFor, benchmarkRun)
 
+    /**
+     * Runs a test repeatedly to find the average performance per element.
+     * Prints the result to the console. Returns the average time taken per element in seconds.
+     * Always use warmup-runs! They make sure that all code is loaded, and maybe even optimized.
+     * */
     fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Int, usedFor: String, benchmarkRun: (Int) -> Unit): Double =
         benchmark(warmupRuns, measuredRuns, numElements.toLong(), usedFor, benchmarkRun)
 
+    /**
+     * Runs a test repeatedly to find the average performance per element.
+     * Prints the result to the console. Returns the average time taken per element in seconds.
+     * Always use warmup-runs! They make sure that all code is loaded, and maybe even optimized.
+     * */
     fun benchmark(warmupRuns: Int, measuredRuns: Int, numElements: Long, usedFor: String, benchmarkRun: (Int) -> Unit): Double {
         for (i in 0 until warmupRuns) {
             benchmarkRun(i - warmupRuns)

@@ -14,6 +14,20 @@ import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * implement approximate convex decomposition like V-HACD,
+ *  just faster and easier
+ * idea:
+ *  - recursive splits
+ *  - try different axes
+ *  - try N cuts on each axis
+ *  - choose the lowest total AABB volume
+ *
+ *  to do test whether we can replace the AABB approximation with proper convex hulls,
+ *   how much slower it is, and how much better
+ *
+ *  to do subdivide the ideal split position? slightly optimize its angle?
+ * */
 class ConvexDecomposition(
     val splitsPerAxis: Int,
     val maxRecursiveDepth: Int,
@@ -40,28 +54,32 @@ class ConvexDecomposition(
 
     private class Group(val triangles: ArrayList<Triangle>, val bounds: AABBf)
 
-    fun splitMesh(mesh: Mesh): List<ConvexHull> {
-        val positions = mesh.positions ?: return emptyList()
-        val triangles = meshToTriangles(positions, mesh)
-        val result = ArrayList<ConvexHull>()
-        fun split(triangles: ArrayList<Triangle>, depth: Int) {
-            // to do stop if volume ratio isn't good enough??
-            if (depth <= 0 || triangles.size < 16) {
-                val hull = createHull(positions, triangles)
-                if (hull != null) result.add(hull)
-            } else {
-                val depth1 = depth - 1
-                val (left, right) = findBestSplit(triangles, axes)
-                split(left, depth1)
-                split(right, depth1)
-            }
+    private val result = ArrayList<ConvexHull>()
+    private lateinit var positions: FloatArray
+
+    private fun split(triangles: ArrayList<Triangle>, depth: Int) {
+        // to do stop if volume ratio isn't good enough??
+        if (depth <= 0 || triangles.size < 16) {
+            val hull = createHull(triangles)
+            if (hull != null) result.add(hull)
+        } else {
+            val depth1 = depth - 1
+            val (left, right) = findBestSplit(triangles, axes)
+            split(left, depth1)
+            split(right, depth1)
         }
+    }
+
+    fun splitMesh(mesh: Mesh): List<ConvexHull> {
+        positions = mesh.positions ?: return emptyList()
+        val triangles = meshToTriangles(positions, mesh)
         split(triangles, maxRecursiveDepth)
         return result
     }
 
-    private fun createHull(positions: FloatArray, triangles: List<Triangle>): ConvexHull? {
+    private fun createHull(triangles: List<Triangle>): ConvexHull? {
         val points = ArrayList<Vector3d>(triangles.size * 3)
+        val positions = positions
         for (i in triangles.indices) {
             val tri = triangles[i]
             points.add(Vector3d(positions, tri.ai * 3))
