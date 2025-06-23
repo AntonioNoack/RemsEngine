@@ -28,9 +28,9 @@ import com.bulletphysics.linearmath.TransformUtil
 import com.bulletphysics.linearmath.VectorUtil.setInterpolate3
 import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
-import com.bulletphysics.util.ListUtils.swapRemove
 import com.bulletphysics.util.setMul
 import cz.advel.stack.Stack
+import me.anno.utils.structures.lists.Lists.swapRemove
 import org.joml.Vector3d
 
 /**

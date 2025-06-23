@@ -1,17 +1,16 @@
 package me.anno.bench
 
 import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.HullLibrary
+import com.bulletphysics.linearmath.convexhull.ConvexHulls
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
-private val LOGGER = LogManager.getLogger("ConvexHullBench")
+private val LOGGER = LogManager.getLogger("ConvexHullBenchNaive")
 
 /**
- * find algorithmic complexity of convex hull calculation...
- * -> O(n²) or worse
+ * improve algorithmic complexity of convex hull calculation...
  * */
 fun main() {
     val clock = Clock(LOGGER)
@@ -31,6 +30,6 @@ fun convexHullSphere2(points: List<Vector3d>, n: Int) {
 
 fun convexHullSphereLimited2(points: List<Vector3d>, n: Int, limit: Int) {
     val vertices = if (n == points.size) points else points.subList(0, n)
-    val hull = HullLibrary.createConvexHullNaive(HullDesc(vertices, limit))
+    val hull = ConvexHulls.calculateConvexHullNaive(HullDesc(vertices, limit))
     assertNotNull(hull)
 }

@@ -1,11 +1,11 @@
 package com.bulletphysics.collision.shapes
 
 import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.HullLibrary
+import com.bulletphysics.linearmath.convexhull.ConvexHulls
 import org.joml.Vector3d
 
 /**
- * ShapeHull takes a [ConvexShape], builds the convex hull using [HullLibrary]
+ * ShapeHull takes a [ConvexShape], builds the convex hull using [ConvexHulls]
  * and provides triangle indices and vertices.
  *
  * @author jezek2
@@ -43,7 +43,7 @@ class ShapeHull(val shape: ConvexShape) {
         }
 
         val hullDesc = HullDesc(directions)
-        val hullResult = HullLibrary.createConvexHull(hullDesc)
+        val hullResult = ConvexHulls.calculateConvexHull(hullDesc)
         if (hullResult == null) {
             return false
         }

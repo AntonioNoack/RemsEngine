@@ -2,7 +2,7 @@ package me.anno.experiments.convexdecomposition
 
 import com.bulletphysics.linearmath.convexhull.ConvexHull
 import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.HullLibrary
+import com.bulletphysics.linearmath.convexhull.ConvexHulls
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.utils.pooling.JomlPools
@@ -86,7 +86,7 @@ class ConvexDecomposition(
             points.add(Vector3d(positions, tri.bi * 3))
             points.add(Vector3d(positions, tri.ci * 3))
         }
-        return HullLibrary.createConvexHull(HullDesc(points, maxVerticesPerHull))
+        return ConvexHulls.calculateConvexHull(HullDesc(points, maxVerticesPerHull))
     }
 
     private fun meshToTriangles(positions: FloatArray, mesh: Mesh): ArrayList<Triangle> {

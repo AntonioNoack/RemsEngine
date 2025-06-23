@@ -3,7 +3,6 @@ package com.bulletphysics.linearmath
 import com.bulletphysics.extras.gimpact.IntPairList
 import com.bulletphysics.util.DoubleArrayList
 import com.bulletphysics.util.IntArrayList
-import com.bulletphysics.util.ListUtils.swapRemove
 import com.bulletphysics.util.ObjectArrayList
 import kotlin.math.min
 
@@ -47,12 +46,17 @@ object MiscUtil {
      */
     @JvmStatic
     fun <T> resize(list: MutableList<T>, size: Int, valueCls: Class<T>) {
+        if (size <= 0) {
+            list.clear()
+            return
+        }
+
         while (list.size < size) {
             list.add(valueCls.newInstance())
         }
 
         while (list.size > size) {
-            list.swapRemove(list.lastIndex)
+            list.removeLast()
         }
     }
 

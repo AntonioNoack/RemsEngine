@@ -10,12 +10,12 @@ import com.bulletphysics.linearmath.VectorUtil.maxAxis
 import com.bulletphysics.linearmath.VectorUtil.mul
 import com.bulletphysics.linearmath.VectorUtil.setMax
 import com.bulletphysics.linearmath.VectorUtil.setMin
-import com.bulletphysics.util.ListUtils.swap
 import cz.advel.stack.Stack
 import java.io.Serializable
 import org.joml.Vector3d
 import com.bulletphysics.util.setAdd
 import com.bulletphysics.util.setSub
+import me.anno.utils.structures.lists.Lists.swap
 import kotlin.math.max
 import kotlin.math.min
 

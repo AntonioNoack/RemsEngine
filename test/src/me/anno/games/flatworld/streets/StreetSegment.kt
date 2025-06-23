@@ -121,7 +121,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
 
     val bounds by lazy {
         val bounds = AABBd()
-        for (s in splits) bounds.union(s)
+        bounds.union(splits)
         bounds.addMargin(3.0) // street radius
         bounds
     }

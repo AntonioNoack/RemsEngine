@@ -243,7 +243,7 @@ fun main() {
             if (node == null || isOnEdge(agent.lastPos, agent.position, node.min, node.max)) {
                 // using remove+add, or clearing and re-inserting everything has roughly the same performance
                 if (Input.isAltDown) {
-                    quadTree.remove(agent, agent.lastPos)
+                    quadTree.remove(agent, agent.lastPos, agent.lastPos)
                     quadTree.add(agent)
                 } else {
                     quadTree.update(agent, agent.lastPos)

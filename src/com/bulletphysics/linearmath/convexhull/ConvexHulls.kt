@@ -24,10 +24,11 @@ import kotlin.math.sqrt
  *
  * Includes modifications/improvements by John Ratcliff, see BringOutYourDead(compressVertices) below.
  * Unless you're using the native version, your vertices might be filtered first for much better performance.
+ * This naive algorithm is roughly O(n log n), taking 1700ns/vertex, the filtered version takes as little as 30ns/vertex (128k -> 32).
  *
- * @author jezek2
+ * @author Antonio Noack O(n log n), jezek2 O(n² log n)
  */
-class HullLibrary {
+class ConvexHulls {
 
     private val triangles = ArrayList<Triangle?>()
 
@@ -42,7 +43,7 @@ class HullLibrary {
         // normalize point cloud, remove duplicates, restore!
         // originally was O(n²), now is O(n log n) (Java HashMap becomes O(n log n) if over capacity)
         val cleanVertices = cleanupVertices(desc.vertices, desc.normalEpsilon)
-        if (cleanVertices.isEmpty()) return null
+        if (cleanVertices == null) return null
 
         val ok = calculateConvexHull(cleanVertices, desc.maxNumVertices)
         if (!ok) return null
@@ -127,7 +128,10 @@ class HullLibrary {
         return vertexIds
     }
 
-    private fun calculateConvexHull(vertices: List<Vector3d>, vertexLimit: Int): Boolean {
+    private val mip = MaximumInnerProduct()
+    private lateinit var vertexToIndex: HashMap<Vector3d, Int>
+
+    private fun calculateConvexHull(vertices: ArrayList<Vector3d>, vertexLimit: Int): Boolean {
         var numRemainingVertices = vertexLimit
         if (vertices.size < 4) return false
 
@@ -135,16 +139,17 @@ class HullLibrary {
         val tmp1 = newVec()
         val tmp2 = newVec()
 
-        val isExtreme = IntArray(vertices.size)
-        val predicate = IntArray(vertices.size)
-        predicate.fill(1)
+        mip.addAll(vertices)
+
+        val isExtreme = BooleanArray(vertices.size)
+        val isUsed = BooleanArray(vertices.size)
 
         val bounds = JomlPools.aabbd.borrow()
         calculateBounds(vertices, bounds)
         val epsilon = bounds.diagonal * 0.001
         assert(epsilon != 0.0)
 
-        val p = findSimplex(vertices, predicate)
+        val p = findSimplex(vertices, isUsed)
         if (p == null) { // simplex failed
             subVec(3)
             return false // a valid interior point
@@ -153,7 +158,7 @@ class HullLibrary {
         val center = newVec()
         vertices[p.x].add(vertices[p.y], center)
             .add(vertices[p.z]).add(vertices[p.w])
-        center.mul(1.0 / 4f)
+        center.mul(0.25)
 
         // mark first simplex as extreme
         val t0 = allocateTriangle(p.z, p.w, p.y)
@@ -165,26 +170,25 @@ class HullLibrary {
         val t3 = allocateTriangle(p.y, p.x, p.z)
         t3.n.set(1, 0, 2)
 
-        isExtreme[p.x] = 1
-        isExtreme[p.y] = 1
-        isExtreme[p.z] = 1
-        isExtreme[p.w] = 1
+        isExtreme[p.x] = true
+        isExtreme[p.y] = true
+        isExtreme[p.z] = true
+        isExtreme[p.w] = true
 
         checkIt(t0)
         checkIt(t1)
         checkIt(t2)
         checkIt(t3)
 
-        val n = newVec()
+        val dir = newVec()
 
-        // todo this is O(n²), but could be optimized probably by nearest neighbors...
-        for (j in 0 until triangles.size) {
-            val t = checkNotNull(triangles[j])
-            assert(t.maxValue < 0)
-            triNormal(vertices[t.x], vertices[t.y], vertices[t.z], n)
-            t.maxValue = findMaxInDirForSimplex(vertices, n, predicate)
-            vertices[t.maxValue].sub(vertices[t.x], tmp)
-            t.rise = n.dot(tmp)
+        for (j in triangles.indices) {
+            val triangle = checkNotNull(triangles[j])
+            assert(triangle.maxValue < 0)
+            triNormal(vertices[triangle.x], vertices[triangle.y], vertices[triangle.z], dir)
+            triangle.maxValue = findVertexForSimplex(vertices, dir, isUsed)
+            vertices[triangle.maxValue].sub(vertices[triangle.x], tmp)
+            triangle.rise = dir.dot(tmp)
         }
 
         numRemainingVertices -= 4
@@ -192,8 +196,8 @@ class HullLibrary {
             val te = findExtrudableTriangle(epsilon) ?: break
             val v = te.maxValue
             assert(v != -1)
-            assert(isExtreme[v] == 0) // wtf we've already done this vertex
-            isExtreme[v] = 1
+            assert(!isExtreme[v]) // wtf we've already done this vertex
+            isExtreme[v] = true
             //if(v==p0 || v==p1 || v==p2 || v==p3) continue; // done these already
 
             for (j in triangles.lastIndex downTo 0) {
@@ -225,13 +229,13 @@ class HullLibrary {
                 val triangle = triangles[j] ?: continue
                 if (triangle.maxValue >= 0) break
 
-                triNormal(vertices[triangle.x], vertices[triangle.y], vertices[triangle.z], n)
-                triangle.maxValue = findMaxInDirForSimplex(vertices, n, predicate)
-                if (isExtreme[triangle.maxValue] != 0) {
+                triNormal(vertices[triangle.x], vertices[triangle.y], vertices[triangle.z], dir)
+                triangle.maxValue = findVertexForSimplex(vertices, dir, isUsed)
+                if (isExtreme[triangle.maxValue]) {
                     triangle.maxValue = -1 // already done that vertex - algorithm needs to be able to terminate.
                 } else {
                     vertices[triangle.maxValue].sub(vertices[triangle.x], tmp)
-                    triangle.rise = n.dot(tmp)
+                    triangle.rise = dir.dot(tmp)
                 }
             }
             numRemainingVertices--
@@ -240,7 +244,8 @@ class HullLibrary {
         return true
     }
 
-    private fun findSimplex(vertices: List<Vector3d>, predicate: IntArray): Vector4i? {
+    private fun findSimplex(vertices: List<Vector3d>, isUsed: BooleanArray): Vector4i? {
+
         val tmp = newVec()
         val tmp1 = newVec()
         val tmp2 = newVec()
@@ -250,9 +255,9 @@ class HullLibrary {
         val basisZ = newVec()
 
         basisX.set(0.01, 0.02, 1.0)
-        val p0 = findMaxInDirForSimplex(vertices, basisX, predicate)
+        val p0 = findVertexForSimplex(vertices, basisX, isUsed)
         basisX.negate(tmp)
-        val p1 = findMaxInDirForSimplex(vertices, tmp, predicate)
+        val p1 = findVertexForSimplex(vertices, tmp, isUsed)
         vertices[p0].sub(vertices[p1], basisX)
         if (p0 == p1 || (basisX.x == 0.0 && basisX.y == 0.0 && basisX.z == 0.0)) {
             subVec(6)
@@ -268,10 +273,10 @@ class HullLibrary {
             basisY.normalize()
         }
 
-        var p2 = findMaxInDirForSimplex(vertices, basisY, predicate)
+        var p2 = findVertexForSimplex(vertices, basisY, isUsed)
         if (p2 == p0 || p2 == p1) {
             basisY.negate(tmp)
-            p2 = findMaxInDirForSimplex(vertices, tmp, predicate)
+            p2 = findVertexForSimplex(vertices, tmp, isUsed)
         }
         if (p2 == p0 || p2 == p1) {
             subVec(6)
@@ -281,10 +286,10 @@ class HullLibrary {
         vertices[p2].sub(vertices[p0], basisY)
         basisY.cross(basisX, basisZ)
         basisZ.normalize()
-        var p3 = findMaxInDirForSimplex(vertices, basisZ, predicate)
+        var p3 = findVertexForSimplex(vertices, basisZ, isUsed)
         if (p3 == p0 || p3 == p1 || p3 == p2) {
             basisZ.negate(tmp)
-            p3 = findMaxInDirForSimplex(vertices, tmp, predicate)
+            p3 = findVertexForSimplex(vertices, tmp, isUsed)
         }
         if (p3 == p0 || p3 == p1 || p3 == p2) {
             subVec(6)
@@ -376,11 +381,9 @@ class HullLibrary {
         return numResultVertices
     }
 
-    private fun cleanupVertices(inputVertices: List<Vector3d>, normalEpsilon: Double): List<Vector3d> {
+    private fun cleanupVertices(inputVertices: List<Vector3d>, normalEpsilon: Double): ArrayList<Vector3d>? {
 
-        if (inputVertices.isEmpty()) {
-            return inputVertices
-        }
+        if (inputVertices.isEmpty()) return null
 
         val bounds = AABBd()
         calculateBounds(inputVertices, bounds)
@@ -463,23 +466,22 @@ class HullLibrary {
 
         if (dx < EPSILON || dy < EPSILON || dz < EPSILON || cleanVertices.size < 3) {
             bounds.getCenter(center)
-            defineSmallBox(center, dx, dy, dz)
+            return defineSmallBox(center, dx, dy, dz)
         }
 
+        this.vertexToIndex = vertexToIndex
         return cleanVertices
     }
 
     private fun calculateBounds(vertices: List<Vector3d>, bounds: AABBd) {
         bounds.clear()
-        for (i in vertices.indices) {
-            bounds.union(vertices[i])
-        }
+        bounds.union(vertices)
     }
 
     private fun defineSmallBox(
         center: Vector3d,
         dx: Double, dy: Double, dz: Double
-    ): List<Vector3d> {
+    ): ArrayList<Vector3d> {
 
         var len = Double.MAX_VALUE
         var dx = dx
@@ -500,14 +502,6 @@ class HullLibrary {
             if (dz < EPSILON) dz = len * 0.05
         }
 
-        return defineBox(center, dx, dy, dz)
-    }
-
-    private fun defineBox(
-        center: Vector3d,
-        dx: Double, dy: Double, dz: Double
-    ): List<Vector3d> {
-
         val x1 = center.x - dx
         val x2 = center.x + dx
 
@@ -526,7 +520,73 @@ class HullLibrary {
         result.add(Vector3d(x2, y1, z2))
         result.add(Vector3d(x2, y2, z2))
         result.add(Vector3d(x1, y2, z2))
+
+        val map = HashMap<Vector3d, Int>(16)
+        for (i in result.indices) {
+            map[result[i]] = i
+        }
+        vertexToIndex = map
         return result
+    }
+
+    private fun findVertexWithMaxDotProduct(dir: Vector3d): Int {
+        val bestVertex = mip.findBiggestDotProduct(dir)!!
+        return vertexToIndex[bestVertex]!!
+    }
+
+    private fun findVertexForSimplex(vertices: List<Vector3d>, dir: Vector3d, isUsed: BooleanArray): Int {
+
+        val tmp = newVec()
+        val u = newVec()
+        val v = newVec()
+
+        while (true) {
+            val m = findVertexWithMaxDotProduct(dir)
+            if (isUsed[m]) { // if is already in use, return it
+                subVec(3)
+                return m
+            }
+
+            findOrthogonalVector(dir, u)
+            u.cross(dir, v)
+
+            var ma = -1
+            var angle0 = 0.0
+            while (angle0 <= 360.0) {
+
+                setTmpFromDir(angle0, dir, tmp, v, u)
+
+                val mb = findVertexWithMaxDotProduct(tmp)
+                if (ma == m && mb == m) {
+                    isUsed[m] = true // mark as in use
+                    subVec(3)
+                    return m
+                }
+
+                if (ma != -1 && mb != -1) { // "Yuck"
+                    var mc = ma
+                    var angle1 = angle0 - 40.0
+                    while (angle1 <= angle0) {
+
+                        setTmpFromDir(angle1, dir, tmp, v, u)
+
+                        val md = findVertexWithMaxDotProduct(tmp)
+                        if (mc == m && md == m) {
+                            isUsed[m] = true // mark as in use
+                            subVec(3)
+                            return m
+                        }
+                        mc = md
+                        angle1 += 5.0
+                    }
+                }
+                ma = mb
+                angle0 += 45.0
+            }
+
+            // "delete" that point
+            assertTrue(mip.remove(vertices[m]))
+        }
     }
 
     companion object {
@@ -534,16 +594,30 @@ class HullLibrary {
         private const val EPSILON = 0.000001
         private const val RADS_PER_DEG: Double = Math.PI * 180.0
 
-        fun createConvexHullNaive(desc: HullDesc): ConvexHull? {
-            return HullLibrary().createConvexHullImpl(desc)
+        /**
+         * Finds the convex hull without filtering vertices.
+         * Runs in ~1700ns/element on my Ryzen 9 7950X3D.
+         *
+         * Returns null if too few unique vertices are provided.
+         * Vertices are considered equal, if their direction matches by normalEpsilon.
+         * */
+        fun calculateConvexHullNaive(desc: HullDesc): ConvexHull? {
+            return ConvexHulls().createConvexHullImpl(desc)
         }
 
-        fun createConvexHull(desc: HullDesc): ConvexHull? {
+        /**
+         * Finds the convex hull with filtering for better performance.
+         * Runs in ~30ns/element on my Ryzen 9 7950X3D under optimal conditions, 128k input vertices, 32 output vertices.
+         *
+         * Returns null if too few unique vertices are provided.
+         * Vertices are considered equal, if their direction matches by normalEpsilon.
+         * */
+        fun calculateConvexHull(desc: HullDesc): ConvexHull? {
             var gridSize = ceil(4 * sqrt(desc.maxNumVertices.toFloat())).toIntOr()
             gridSize = clamp(gridSize, 16, 64) // 64² = 4096 is the standard maximum output size
 
             desc.vertices = compressVertices(desc.vertices, gridSize)
-            return createConvexHullNaive(desc)
+            return calculateConvexHullNaive(desc)
         }
 
         /** ///////////////////////////////////////////////////////////////////////// */
@@ -559,91 +633,19 @@ class HullLibrary {
             }
         }
 
-        private fun findMaxInDirFiltered(
-            vertices: List<Vector3d>,
-            dir: Vector3d, predicate: IntArray
-        ): Int {
-            var bestVertexId = -1
-            var bestScore = Double.NEGATIVE_INFINITY
-            for (i in vertices.indices) {
-                if (predicate[i] != 0) {
-                    val score = vertices[i].dot(dir)
-                    if (bestVertexId == -1 || score > bestScore) {
-                        bestVertexId = i
-                        bestScore = score
-                    }
-                }
-            }
-            assert(bestVertexId != -1)
-            return bestVertexId
-        }
+        private fun setTmpFromDir(
+            angleDegrees: Double, dir: Vector3d, tmp: Vector3d,
+            v: Vector3d, u: Vector3d
+        ) {
+            val angleRadians = RADS_PER_DEG * angleDegrees
+            val s = 0.025 * sin(angleRadians)
+            val c = 0.025 * cos(angleRadians)
 
-        private fun findMaxInDirForSimplex(
-            vertices: List<Vector3d>,
-            dir: Vector3d, predicate: IntArray
-        ): Int {
-
-            val tmp = newVec()
-            val u = newVec()
-            val v = newVec()
-
-            while (true) {
-                val m = findMaxInDirFiltered(vertices, dir, predicate)
-                if (predicate[m] == 3) {
-                    subVec(3)
-                    return m
-                }
-
-                findOrthogonalVector(dir, u)
-                u.cross(dir, v)
-
-                var ma = -1
-                var angle0 = 0.0
-                while (angle0 <= 360.0) {
-                    val s = 0.025 * sin(RADS_PER_DEG * angle0)
-                    val c = 0.025 * cos(RADS_PER_DEG * angle0)
-
-                    tmp.set(
-                        c * v.x + s * u.x + dir.x,
-                        c * v.y + s * u.y + dir.y,
-                        c * v.z + s * u.z + dir.z
-                    )
-
-                    val mb = findMaxInDirFiltered(vertices, tmp, predicate)
-                    if (ma == m && mb == m) {
-                        predicate[m] = 3
-                        subVec(3)
-                        return m
-                    }
-
-                    if (ma != -1 && mb != -1) { // "Yuck"
-                        var mc = ma
-                        var angle1 = angle0 - 40.0
-                        while (angle1 <= angle0) {
-                            val s = 0.025 * sin(RADS_PER_DEG * angle1)
-                            val c = 0.025 * cos(RADS_PER_DEG * angle1)
-
-                            tmp.set(
-                                c * v.x + s * u.x + dir.x,
-                                c * v.y + s * u.y + dir.y,
-                                c * v.z + s * u.z + dir.z
-                            )
-
-                            val md = findMaxInDirFiltered(vertices, tmp, predicate)
-                            if (mc == m && md == m) {
-                                predicate[m] = 3
-                                subVec(3)
-                                return m
-                            }
-                            mc = md
-                            angle1 += 5.0
-                        }
-                    }
-                    ma = mb
-                    angle0 += 45.0
-                }
-                predicate[m] = 0
-            }
+            tmp.set(
+                c * v.x + s * u.x + dir.x,
+                c * v.y + s * u.y + dir.y,
+                c * v.z + s * u.z + dir.z
+            )
         }
 
         private fun triNormal(v0: Vector3d, v1: Vector3d, v2: Vector3d, out: Vector3d): Vector3d {

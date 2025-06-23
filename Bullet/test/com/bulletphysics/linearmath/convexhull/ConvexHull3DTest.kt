@@ -19,7 +19,7 @@ class ConvexHull3DTest {
 
         init {
             val desc = HullDesc(pts, pts.size)
-            val result = assertNotNull(HullLibrary.createConvexHull(desc))
+            val result = assertNotNull(ConvexHulls.calculateConvexHull(desc))
             this.vertices = result.vertices
         }
     }

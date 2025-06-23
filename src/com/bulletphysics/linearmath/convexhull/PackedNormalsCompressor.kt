@@ -29,9 +29,7 @@ object PackedNormalsCompressor {
         }
 
         val bounds = AABBd()
-        for (i in vertices.indices) {
-            bounds.union(vertices[i])
-        }
+        bounds.union(vertices)
         bounds.addMargin(1e-6) // add a small margin to avoid division by zero
 
         val cx = bounds.centerX

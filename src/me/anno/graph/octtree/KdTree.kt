@@ -16,13 +16,13 @@ import java.util.Collections.emptyIterator
  *
  * modifications must be in order, queries can be multithreaded
  * */
-abstract class KdTree<Point, Data>(
+abstract class KdTree<Point, Value>(
     val maxNumChildren: Int,
     var min: Point, var max: Point
-) : Iterable<Data> {
+) : Iterable<Value> {
 
     var axis = 0
-    val parent: KdTree<Point, Data>? = null
+    val parent: KdTree<Point, Value>? = null
 
     override fun toString(): String {
         val bld = StringBuilder()
@@ -31,7 +31,7 @@ abstract class KdTree<Point, Data>(
     }
 
     open fun append(depth: Int, dst: StringBuilder) {
-        for (i in 0 until depth) dst.append(' ')
+        repeat(depth) { dst.append(' ') }
         if (left != null) {
             dst.append("[$min, $max] | $axis:\n")
             left?.append(depth + 1, dst)
@@ -42,114 +42,159 @@ abstract class KdTree<Point, Data>(
     abstract fun chooseSplitDimension(min: Point, max: Point): Int
     abstract fun overlaps(min0: Point, max0: Point, min1: Point, max1: Point): Boolean
 
-    open fun getPoint(data: Data): Point = getMin(data)
-    open fun getMin(data: Data): Point = getPoint(data)
-    open fun getMax(data: Data): Point = getPoint(data)
+    open fun getPoint(data: Value): Point = getMin(data)
+    open fun getMin(data: Value): Point = getPoint(data)
+    open fun getMax(data: Value): Point = getPoint(data)
 
     abstract fun get(p: Point, axis: Int): Double
     abstract fun min(a: Point, b: Point): Point
     abstract fun max(a: Point, b: Point): Point
 
     open fun createChild(
-        children: ArrayList<Data>,
-        min: Point,
-        max: Point
-    ): KdTree<Point, Data> {
+        children: ArrayList<Value>,
+        min: Point, max: Point
+    ): KdTree<Point, Value> {
         val child = createChild()
         child.children = children
+        child.size = children.size
         child.min = min
         child.max = max
         return child
     }
 
-    abstract fun createChild(): KdTree<Point, Data>
+    abstract fun createChild(): KdTree<Point, Value>
 
-    var left: KdTree<Point, Data>? = null
-    var right: KdTree<Point, Data>? = null
+    var left: KdTree<Point, Value>? = null
+    var right: KdTree<Point, Value>? = null
     var size = 0
 
-    var children: ArrayList<Data>? = null
+    var children: ArrayList<Value>? = null
 
-    fun add(d: Data) {
+    fun add(value: Value) {
+        var node = this
+        val minI = node.getMin(value)
+        val maxI = node.getMax(value)
+        while (true) {
 
-        val minI = getMin(d)
-        val maxI = getMax(d)
-        val px = get(minI, axis)
+            node.min = min(node.min, minI)
+            node.max = max(node.max, maxI)
+            node.size++
 
-        min = min(min, minI)
-        max = max(max, maxI)
-
-        // if already has children, add it to them...
-        if (left != null) {
-            val left = left!!
-            val right = right!!
-            if (px <= get(left.max, axis)) {
-                // add to left
-                left.add(d)
-            } else if (px >= get(right.min, axis)) {
-                // add to right
-                right.add(d)
+            // if already has children, add it to them...
+            if (node.left != null) {
+                val px = node.get(minI, node.axis)
+                node = node.findBestSideForPoint(px)
             } else {
-                // add to which has fewer children
-                if (left.size < right.size) {
-                    left.add(d)
+                val children = node.ensureChildren()
+                if (children.size >= node.maxNumChildren) {
+                    node.split(children)
+                    val px = node.get(minI, node.axis)
+                    node = node.findBestSideForPoint(px)
                 } else {
-                    right.add(d)
+                    // finally done :)
+                    children.add(value)
+                    return
+                }
+            }
+        }
+    }
+
+    fun addAll(values: List<Value>) {
+        if (size > 0) {
+            val children = children
+            if (children != null) {
+                children.addAll(values)
+                size = children.size
+                recalculateBoundsChildren()
+                splitIfTooBig()
+            } else {
+                // cannot optimize that easily -> use the trivial algorithm
+                for (i in values.indices) {
+                    add(values[i])
                 }
             }
         } else {
+            // optimized variant :)
+            children = ArrayList(values)
+            size = values.size
+            recalculateBoundsChildren()
+            splitIfTooBig()
+        }
+    }
 
-            if (children == null) children = ArrayList(maxNumChildren)
-            val children = children!!
+    private fun splitIfTooBig() {
+        if (size > maxNumChildren) {
+            split(children!!)
+            left!!.splitIfTooBig()
+            right!!.splitIfTooBig()
+        }
+    }
 
-            // split: evenly partition children into left/self/right
-            if (children.size >= maxNumChildren) {
+    private fun ensureChildren(): ArrayList<Value> {
+        var children = children
+        if (children == null) {
+            children = ArrayList(maxNumChildren)
+            this.children = children
+        }
+        return children
+    }
 
-                this.children = null
-                val axis = chooseSplitDimension(min, max)
-                children.sortBy { get(getPoint(it), axis) }
-                this.axis = axis
+    private fun findBestSideForPoint(px: Double): KdTree<Point, Value> {
+        val left = left!!
+        val right = right!!
+        return when {
+            px <= get(left.max, axis) -> left
+            px >= get(right.min, axis) -> right
+            // add to which has fewer children
+            left.size < right.size -> left
+            else -> right
+        }
+    }
 
-                val median = (children.size - 1) / 2
-                val leftMax = children[median]
-                val rightMin = children[median + 1]
+    /**
+     * evenly partition children into left/self/right
+     * */
+    private fun split(children: ArrayList<Value>) {
 
-                var lMin = getMin(leftMax)
-                var lMax = getMax(leftMax)
+        this.children = null
+        val axis = chooseSplitDimension(min, max)
+        children.sortBy { get(getPoint(it), axis) }
+        this.axis = axis
 
-                var rMin = getMin(rightMin)
-                var rMax = getMax(rightMin)
+        val median = (children.size - 1).shr(1)
+        val leftMax = children[median]
+        val rightMin = children[median + 1]
 
-                // calculate bounds and split up children
-                val rightChildren = ArrayList<Data>(maxNumChildren)
-                for (i in children.size - 1 downTo median + 1) {
-                    val child = children.removeAt(i)
-                    rightChildren.add(child)
-                    rMin = min(rMin, getMin(child))
-                    rMax = max(rMax, getMax(child))
-                }
+        var lMin = getMin(leftMax)
+        var lMax = getMax(leftMax)
 
-                for (i in children.indices) {
-                    val child = children[i]
-                    lMin = min(lMin, getMin(child))
-                    lMax = max(lMax, getMax(child))
-                }
+        var rMin = getMin(rightMin)
+        var rMax = getMax(rightMin)
 
-                left = createChild(children, lMin, lMax)
-                right = createChild(rightChildren, rMin, rMax)
-
-                return add(d)
-            } else children.add(d)
+        // calculate bounds and split up children
+        val rightChildren = ArrayList<Value>(maxNumChildren)
+        repeat(children.size - (median + 1)) {
+            val child = children.removeLast()
+            rightChildren.add(child)
+            rMin = min(rMin, getMin(child))
+            rMax = max(rMax, getMax(child))
         }
 
-        size++
+        for (i in children.indices) {
+            val child = children[i]
+            lMin = min(lMin, getMin(child))
+            lMax = max(lMax, getMax(child))
+        }
+
+        left = createChild(children, lMin, lMax)
+        right = createChild(rightChildren, rMin, rMax)
     }
 
     /**
      * Calls callback on all overlapping children until true is returned by it.
      * Returns the first (any) child to return true.
      * */
-    fun query(min: Point, max: Point, hasFound: (Data) -> Boolean): Data? {
+    fun query(min: Point, max: Point, hasFound: (Value) -> Boolean): Value? {
         return Recursion.findRecursive(this) { node, remaining ->
             val left = node.left
             if (left != null && node.get(left.max, axis) >= node.get(min, node.axis)) {
@@ -159,7 +204,7 @@ abstract class KdTree<Point, Data>(
             if (right != null && get(right.min, axis) <= node.get(max, node.axis)) {
                 remaining.add(right)
             }
-            var found: Data? = null
+            var found: Value? = null
             val values = node.children
             if (values != null) {
                 for (i in values.indices) {
@@ -182,7 +227,7 @@ abstract class KdTree<Point, Data>(
      * Calls callback on all overlapping children-lists (and root) until true is returned by it.
      * Returns the first (any) child to return true.
      * */
-    fun queryLists(min: Point, max: Point, hasFound: (List<Data>) -> Boolean): List<Data>? {
+    fun queryLists(min: Point, max: Point, hasFound: (List<Value>) -> Boolean): List<Value>? {
         return Recursion.findRecursive(this) { node, remaining ->
             val left = node.left
             if (left != null && node.get(left.max, axis) >= node.get(min, node.axis)) {
@@ -205,12 +250,12 @@ abstract class KdTree<Point, Data>(
      *  we already know the leaf we're starting on,
      *  so just use it, and later ignore it
      * */
-    fun queryPairs(min: Point, max: Point, hasFound: (Data, Data) -> Boolean): Boolean {
-        var first: Data? = null // avoid allocations by creating the callback now
+    fun queryPairs(min: Point, max: Point, hasFound: (Value, Value) -> Boolean): Boolean {
+        var first: Value? = null // avoid allocations by creating the callback now
         val subCallback = { newMin: Point, newMax: Point ->
             query(newMin, newMax) { second ->
                 @Suppress("UNCHECKED_CAST")
-                hasFound(first as Data, second)
+                hasFound(first as Value, second)
             }
         }
         return query(min, max) { a ->
@@ -221,7 +266,7 @@ abstract class KdTree<Point, Data>(
         } != null
     }
 
-    fun find(hasFound: (Data) -> Boolean): Boolean {
+    fun find(hasFound: (Value) -> Boolean): Boolean {
         val left = left
         if (left != null && left.find(hasFound)) return true
         val right = right
@@ -237,7 +282,7 @@ abstract class KdTree<Point, Data>(
         return false
     }
 
-    fun sum(partialSum: (Data) -> Long): Long {
+    fun sum(partialSum: (Value) -> Long): Long {
         val left = left
         val right = right
         var sum = if (left != null && right != null) left.sum(partialSum) + right.sum(partialSum) else 0
@@ -250,14 +295,21 @@ abstract class KdTree<Point, Data>(
         return sum
     }
 
-    override fun iterator(): Iterator<Data> {
+    override fun iterator(): Iterator<Value> {
         return left.then(right).then(children) ?: emptyIterator()
     }
 
     /**
      * removes the element, and returns true on success
      * */
-    fun remove(d: Data, minI: Point = getMin(d), maxI: Point = getMax(d)): Boolean {
+    fun remove(d: Value): Boolean {
+        return remove(d, getMin(d), getMax(d))
+    }
+
+    /**
+     * removes the element, and returns true on success
+     * */
+    fun remove(d: Value, minI: Point, maxI: Point): Boolean {
         val left = left
         val right = right
         if (left != null && right != null) {
@@ -304,7 +356,7 @@ abstract class KdTree<Point, Data>(
     /**
      * returns whether it was found
      * */
-    fun update(d: Data, oldMin: Point, oldMax: Point = oldMin): Boolean {
+    fun update(d: Value, oldMin: Point, oldMax: Point = oldMin): Boolean {
         val left = left
         val right = right
         if (left != null && right != null) {
@@ -329,7 +381,7 @@ abstract class KdTree<Point, Data>(
     /**
      * returns the node, where d is contained
      * */
-    fun find(d: Data, oldMin: Point, oldMax: Point = oldMin): KdTree<Point, Data>? {
+    fun find(d: Value, oldMin: Point, oldMax: Point = oldMin): KdTree<Point, Value>? {
         val left = left
         val right = right
         if (left != null && right != null) {
@@ -364,7 +416,7 @@ abstract class KdTree<Point, Data>(
         this.max = max
     }
 
-    private fun recalculateBoundsLeftRight(left: KdTree<Point, Data>, right: KdTree<Point, Data>) {
+    private fun recalculateBoundsLeftRight(left: KdTree<Point, Value>, right: KdTree<Point, Value>) {
         min = min(left.min, right.min)
         max = max(left.max, right.max)
     }
@@ -389,7 +441,7 @@ abstract class KdTree<Point, Data>(
         }
     }
 
-    private fun copyFrom(src: KdTree<Point, Data>) {
+    private fun copyFrom(src: KdTree<Point, Value>) {
         left = src.left
         right = src.right
         children = src.children

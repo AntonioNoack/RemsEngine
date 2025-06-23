@@ -1,7 +1,7 @@
 package me.anno.bench
 
 import com.bulletphysics.linearmath.convexhull.HullDesc
-import com.bulletphysics.linearmath.convexhull.HullLibrary
+import com.bulletphysics.linearmath.convexhull.ConvexHulls
 import me.anno.utils.Clock
 import me.anno.utils.assertions.assertNotNull
 import me.anno.utils.structures.lists.Lists.createList
@@ -63,6 +63,6 @@ fun convexHullSphere(points: List<Vector3d>, n: Int) {
 
 fun convexHullSphereLimited(points: List<Vector3d>, n: Int, limit: Int) {
     val vertices = if (n == points.size) points else points.subList(0, n)
-    val hull = HullLibrary.createConvexHull(HullDesc(vertices, limit))
+    val hull = ConvexHulls.calculateConvexHull(HullDesc(vertices, limit))
     assertNotNull(hull)
 }

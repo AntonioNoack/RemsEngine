@@ -122,6 +122,27 @@ class AABBd(
             .setMax(max(maxX, x1), max(maxY, y1), max(maxZ, z1))
     }
 
+    fun union(points: List<Vector3d>, dst: AABBd = this): AABBd {
+        var minX = minX
+        var minY = minY
+        var minZ = minZ
+        var maxX = maxX
+        var maxY = maxY
+        var maxZ = maxZ
+        for (i in points.indices) {
+            val (x, y, z) = points[i]
+            minX = min(minX, x)
+            minY = min(minY, y)
+            minZ = min(minZ, z)
+            maxX = max(maxX, x)
+            maxY = max(maxY, y)
+            maxZ = max(maxZ, z)
+        }
+        return dst
+            .setMin(minX, minY, minZ)
+            .setMax(maxX, maxY, maxZ)
+    }
+
     fun testPoint(v: Vector3d): Boolean {
         return v.x in minX..maxX && v.y in minY..maxY && v.z in minZ..maxZ
     }

@@ -681,4 +681,15 @@ object Lists {
     fun <V> List<V>.mod(i: Int = 1): V {
         return this[posMod(i, size)]
     }
+
+    fun <V> MutableList<V>.swapRemove(value: V): Int {
+        val index = indexOf(value)
+        if (index >= 0) swapRemoveAt(index)
+        return index
+    }
+
+    fun <V> MutableList<V>.swapRemoveAt(i: Int): V {
+        swap(i, lastIndex)
+        return removeLast()
+    }
 }
