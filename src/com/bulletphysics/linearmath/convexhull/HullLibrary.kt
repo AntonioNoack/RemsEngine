@@ -2,10 +2,11 @@ package com.bulletphysics.linearmath.convexhull
 
 import com.bulletphysics.linearmath.convexhull.PackedNormalsCompressor.compressVertices
 import me.anno.maths.Maths.clamp
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.toIntOr
+import me.anno.utils.types.Floats.toLongOr
 import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBd
 import org.joml.Vector3d
@@ -13,7 +14,7 @@ import org.joml.Vector4i
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.cos
-import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -28,7 +29,7 @@ import kotlin.math.sqrt
  */
 class HullLibrary {
 
-    private val tris = ArrayList<Triangle?>()
+    private val triangles = ArrayList<Triangle?>()
 
     /**
      * Converts point cloud to polygonal representation.
@@ -38,37 +39,19 @@ class HullLibrary {
      */
     private fun createConvexHullImpl(desc: HullDesc): ConvexHull? {
 
-        val vertexCount = max(desc.vertices.size, 8)
-        val cleanVertices = createArrayList(vertexCount) { Vector3d() }
+        // normalize point cloud, remove duplicates, restore!
+        // originally was O(n²), now is O(n log n) (Java HashMap becomes O(n log n) if over capacity)
+        val cleanVertices = cleanupVertices(desc.vertices, desc.normalEpsilon)
+        if (cleanVertices.isEmpty()) return null
 
-        val scale = newVec()
+        val ok = calculateConvexHull(cleanVertices, desc.maxNumVertices)
+        if (!ok) return null
 
-        val numResultVertices = IntArray(1)
-        val ok = cleanupVertices(
-            desc.vertices, numResultVertices,
-            cleanVertices, desc.normalEpsilon, scale
-        ) // normalize point cloud, remove duplicates!
-        if (!ok) {
-            subVec(1)
-            return null
-        }
-
-        cleanVertices.subList(numResultVertices[0], cleanVertices.size).clear()
-        // scale vertices back to their original size.
-        for (i in cleanVertices.indices) {
-            cleanVertices[i].mul(scale)
-        }
-        subVec(1)
-
-        val triangles = calcHull(cleanVertices, desc.maxNumVertices)
-            ?: return null
+        val triangles = serializeTriangles()
 
         // re-index triangle mesh so it refers to only used vertices, rebuild a new vertex table.
         val resultVertices = ArrayList<Vector3d>(cleanVertices.size)
-        val finalNumVertices = compactVertices(
-            cleanVertices,
-            resultVertices, triangles
-        )
+        val finalNumVertices = compactVertices(cleanVertices, resultVertices, triangles)
 
         val result = ConvexHull(resultVertices, triangles)
         resultVertices.subList(finalNumVertices, resultVertices.size).clear()
@@ -77,14 +60,14 @@ class HullLibrary {
 
     private fun allocateTriangle(a: Int, b: Int, c: Int): Triangle {
         val tr = Triangle(a, b, c)
-        tr.id = tris.size
-        tris.add(tr)
+        tr.id = triangles.size
+        triangles.add(tr)
         return tr
     }
 
     private fun deAllocateTriangle(tri: Triangle) {
-        assert(tris[tri.id] === tri)
-        tris[tri.id] = null
+        assert(triangles[tri.id] === tri)
+        triangles[tri.id] = null
     }
 
     private fun b2bfix(s: Triangle, t: Triangle) {
@@ -94,10 +77,10 @@ class HullLibrary {
     }
 
     private fun b2bFixI(s: Triangle, t: Triangle, a: Int, b: Int) {
-        assert(tris[s.getNeighbor(a, b)]!!.getNeighbor(b, a) == s.id)
-        assert(tris[t.getNeighbor(a, b)]!!.getNeighbor(b, a) == t.id)
-        tris[s.getNeighbor(a, b)]!!.setNeighbor(b, a, t.getNeighbor(b, a))
-        tris[t.getNeighbor(b, a)]!!.setNeighbor(a, b, s.getNeighbor(a, b))
+        assert(triangles[s.getNeighbor(a, b)]!!.getNeighbor(b, a) == s.id)
+        assert(triangles[t.getNeighbor(a, b)]!!.getNeighbor(b, a) == t.id)
+        triangles[s.getNeighbor(a, b)]!!.setNeighbor(b, a, t.getNeighbor(b, a))
+        triangles[t.getNeighbor(b, a)]!!.setNeighbor(a, b, s.getNeighbor(a, b))
     }
 
     private fun removeB2b(s: Triangle, t: Triangle) {
@@ -107,7 +90,7 @@ class HullLibrary {
     }
 
     private fun checkIt(t: Triangle) {
-        assert(tris[t.id] === t)
+        assert(triangles[t.id] === t)
         checkItI(t, t.n.x, t.y, t.z)
         checkItI(t, t.n.y, t.z, t.x)
         checkItI(t, t.n.z, t.x, t.y)
@@ -115,37 +98,38 @@ class HullLibrary {
 
     private fun checkItI(t: Triangle, tni: Int, a: Int, b: Int) {
         assert(a != b)
-        assert(tris[tni]!!.getNeighbor(b, a) == t.id)
+        assert(triangles[tni]!!.getNeighbor(b, a) == t.id)
     }
 
-    private fun extrudable(epsilon: Double): Triangle? {
-        var t: Triangle? = null
-        for (i in 0 until tris.size) {
-            if (t == null || (tris[i] != null && t.rise < tris[i]!!.rise)) {
-                t = tris[i]
+    private fun findExtrudableTriangle(epsilon: Double): Triangle? {
+        var bestCandidate: Triangle? = null
+        var bestScore = epsilon
+        for (i in 0 until triangles.size) {
+            val candidate = triangles[i] ?: continue
+            val score = candidate.rise
+            if (score > bestScore) {
+                bestCandidate = candidate
+                bestScore = score
             }
         }
-        return if (t != null && (t.rise > epsilon)) t else null
+        return bestCandidate
     }
 
-    private fun calcHull(vertices: List<Vector3d>, vertexLimit: Int): IntArrayList? {
-        val rc = calcHullGen(vertices, vertexLimit)
-        if (rc == 0) return null
-        val ts = IntArrayList()
-        for (i in 0 until tris.size) {
-            val tri = tris[i] ?: continue
-            ts.add(tri.x)
-            ts.add(tri.y)
-            ts.add(tri.y)
-            deAllocateTriangle(tri)
+    private fun serializeTriangles(): IntArrayList {
+        val vertexIds = IntArrayList()
+        for (i in 0 until triangles.size) {
+            val triangle = triangles[i] ?: continue
+            vertexIds.add(triangle.x)
+            vertexIds.add(triangle.y)
+            vertexIds.add(triangle.y)
         }
-        tris.clear()
-        return ts
+        triangles.clear() // not strictly necessary, but might help GC
+        return vertexIds
     }
 
-    private fun calcHullGen(vertices: List<Vector3d>, vertexLimit: Int): Int {
+    private fun calculateConvexHull(vertices: List<Vector3d>, vertexLimit: Int): Boolean {
         var numRemainingVertices = vertexLimit
-        if (vertices.size < 4) return 0
+        if (vertices.size < 4) return false
 
         val tmp = newVec()
         val tmp1 = newVec()
@@ -156,14 +140,14 @@ class HullLibrary {
         predicate.fill(1)
 
         val bounds = JomlPools.aabbd.borrow()
-        calculateBounds(vertices, vertices.size, bounds)
+        calculateBounds(vertices, bounds)
         val epsilon = bounds.diagonal * 0.001
         assert(epsilon != 0.0)
 
         val p = findSimplex(vertices, predicate)
         if (p == null) { // simplex failed
             subVec(3)
-            return 0 // a valid interior point
+            return false // a valid interior point
         }
 
         val center = newVec()
@@ -194,8 +178,8 @@ class HullLibrary {
         val n = newVec()
 
         // todo this is O(n²), but could be optimized probably by nearest neighbors...
-        for (j in 0 until tris.size) {
-            val t = checkNotNull(tris[j])
+        for (j in 0 until triangles.size) {
+            val t = checkNotNull(triangles[j])
             assert(t.maxValue < 0)
             triNormal(vertices[t.x], vertices[t.y], vertices[t.z], n)
             t.maxValue = findMaxInDirForSimplex(vertices, n, predicate)
@@ -203,71 +187,57 @@ class HullLibrary {
             t.rise = n.dot(tmp)
         }
 
-        var te: Triangle? = null
         numRemainingVertices -= 4
-        while (numRemainingVertices > 0 && ((extrudable(epsilon).also { te = it }) != null)) {
-
-            val v = te!!.maxValue
+        while (numRemainingVertices > 0) {
+            val te = findExtrudableTriangle(epsilon) ?: break
+            val v = te.maxValue
             assert(v != -1)
             assert(isExtreme[v] == 0) // wtf we've already done this vertex
             isExtreme[v] = 1
             //if(v==p0 || v==p1 || v==p2 || v==p3) continue; // done these already
-            var j = tris.size
-            while ((j--) != 0) {
-                val tri = tris[j]
-                if (tri == null) {
-                    continue
-                }
-                val t = tri
-                if (isAbove(vertices, t, vertices[v], 0.01 * epsilon)) {
+
+            for (j in triangles.lastIndex downTo 0) {
+                val tri = triangles[j] ?: continue
+                if (isAbove(vertices, tri, vertices[v], 0.01 * epsilon)) {
                     extrude(tri, v)
                 }
             }
 
             // now check for those degenerate cases where we have a flipped triangle or a really skinny triangle
-            j = tris.size
+            var j = triangles.size
             while ((j--) != 0) {
-                if (tris[j] == null) {
-                    continue
-                }
-                if (!hasVertex(tris[j]!!, v)) {
-                    break
-                }
-                val nt = tris[j]!!
+                val nt = triangles[j] ?: continue
+                if (!hasVertex(nt, v)) break
+
                 vertices[nt.y].sub(vertices[nt.x], tmp1)
                 vertices[nt.z].sub(vertices[nt.y], tmp2)
                 tmp1.cross(tmp2, tmp)
                 if (isAbove(vertices, nt, center, 0.01 * epsilon) || tmp.length() < epsilon * epsilon * 0.1) {
-                    val nb = checkNotNull(tris[tris[j]!!.n.x])
+                    val nb = checkNotNull(triangles[triangles[j]!!.n.x])
                     assert(!hasVertex(nb, v))
                     assert(nb.id < j)
                     extrude(nb, v)
-                    j = tris.size
+                    j = triangles.size
                 }
             }
 
-            j = tris.size
-            while ((j--) != 0) {
-                val t = tris[j]
-                if (t == null) {
-                    continue
-                }
-                if (t.maxValue >= 0) {
-                    break
-                }
-                triNormal(vertices[t.x], vertices[t.y], vertices[t.z], n)
-                t.maxValue = findMaxInDirForSimplex(vertices, n, predicate)
-                if (isExtreme[t.maxValue] != 0) {
-                    t.maxValue = -1 // already done that vertex - algorithm needs to be able to terminate.
+            for (j in triangles.lastIndex downTo 0) {
+                val triangle = triangles[j] ?: continue
+                if (triangle.maxValue >= 0) break
+
+                triNormal(vertices[triangle.x], vertices[triangle.y], vertices[triangle.z], n)
+                triangle.maxValue = findMaxInDirForSimplex(vertices, n, predicate)
+                if (isExtreme[triangle.maxValue] != 0) {
+                    triangle.maxValue = -1 // already done that vertex - algorithm needs to be able to terminate.
                 } else {
-                    vertices[t.maxValue].sub(vertices[t.x], tmp)
-                    t.rise = n.dot(tmp)
+                    vertices[triangle.maxValue].sub(vertices[triangle.x], tmp)
+                    triangle.rise = n.dot(tmp)
                 }
             }
             numRemainingVertices--
         }
         subVec(5)
-        return 1
+        return true
     }
 
     private fun findSimplex(vertices: List<Vector3d>, predicate: IntArray): Vector4i? {
@@ -340,35 +310,35 @@ class HullLibrary {
         val tx = t0.x
         val ty = t0.y
         val tz = t0.z
-        val n = tris.size
+        val n = triangles.size
 
         val ta = allocateTriangle(v, ty, tz)
         ta.n.set(t0.n.x, n + 1, n + 2)
-        tris[t0.n.x]!!.setNeighbor(ty, tz, n)
+        triangles[t0.n.x]!!.setNeighbor(ty, tz, n)
 
         val tb = allocateTriangle(v, tz, tx)
         tb.n.set(t0.n.y, n + 2, n)
-        tris[t0.n.y]!!.setNeighbor(tz, tx, n + 1)
+        triangles[t0.n.y]!!.setNeighbor(tz, tx, n + 1)
 
         val tc = allocateTriangle(v, tx, ty)
         tc.n.set(t0.n.z, n, n + 1)
-        tris[t0.n.z]!!.setNeighbor(tx, ty, n + 2)
+        triangles[t0.n.z]!!.setNeighbor(tx, ty, n + 2)
 
         checkIt(ta)
         checkIt(tb)
         checkIt(tc)
 
-        val tax = tris[ta.n.x]!!
+        val tax = triangles[ta.n.x]!!
         if (hasVertex(tax, v)) {
             removeB2b(ta, tax)
         }
 
-        val tbx = tris[tb.n.x]!!
+        val tbx = triangles[tb.n.x]!!
         if (hasVertex(tbx, v)) {
             removeB2b(tb, tbx)
         }
 
-        val tcx = tris[tc.n.x]!!
+        val tcx = triangles[tc.n.x]!!
         if (hasVertex(tcx, v)) {
             removeB2b(tc, tcx)
         }
@@ -406,23 +376,14 @@ class HullLibrary {
         return numResultVertices
     }
 
-    private fun cleanupVertices(
-        inputVertices: List<Vector3d>,
-        vertexCount: IntArray,  // output number of vertices
-        vertices: List<Vector3d>,  // location to store the results.
-        normalEpsilon: Double,
-        scale: Vector3d
-    ): Boolean {
+    private fun cleanupVertices(inputVertices: List<Vector3d>, normalEpsilon: Double): List<Vector3d> {
+
         if (inputVertices.isEmpty()) {
-            return false
+            return inputVertices
         }
 
-        val recip = DoubleArray(3)
-
-        scale.set(1.0, 1.0, 1.0)
-
         val bounds = AABBd()
-        calculateBounds(inputVertices, inputVertices.size, bounds)
+        calculateBounds(inputVertices, bounds)
 
         var dx = bounds.deltaX
         var dy = bounds.deltaY
@@ -431,125 +392,121 @@ class HullLibrary {
         val center = Vector3d()
         bounds.getCenter(center)
 
-        if (dx < EPSILON || dy < EPSILON || dz < EPSILON || vertices.size < 3) {
-
-            var len = Double.MAX_VALUE
-
-            if (dx > EPSILON && dx < len) len = dx
-            if (dy > EPSILON && dy < len) len = dy
-            if (dz > EPSILON && dz < len) len = dz
-
-            if (len == Double.MAX_VALUE) {
-                dz = 0.01
-                dy = dz
-                dx = dy // one centimeter
-            } else {
-                if (dx < EPSILON) dx = len * 0.05 // 1/5th the shortest non-zero edge.
-                if (dy < EPSILON) dy = len * 0.05
-                if (dz < EPSILON) dz = len * 0.05
-            }
-
-            defineBox(vertexCount, vertices, center, dx, dy, dz)
-            return true // return cube
-        } else {
-            scale.x = dx
-            scale.y = dy
-            scale.z = dz
-
-            recip[0] = 1.0 / dx
-            recip[1] = 1.0 / dy
-            recip[2] = 1.0 / dz
-
-            center.x *= recip[0]
-            center.y *= recip[1]
-            center.z *= recip[2]
+        if (dx < EPSILON || dy < EPSILON || dz < EPSILON || inputVertices.size < 3) {
+            return defineSmallBox(center, dx, dy, dz) // return cube
         }
 
-        vertexCount[0] = 0
+        val invScale = Vector3d(1.0 / dx, 1.0 / dy, 1.0 / dz)
+        val cleanVertices = ArrayList<Vector3d>(inputVertices.size)
+
+        val limitI = (1 shl 21) - 1
+        val centerI = (1 shl 20)
+
+        val maxNormalScale = ((limitI - 2) * 0.999999).toLongOr()
+        val normalEpsilonScale = min((1.0 / normalEpsilon).toLongOr(-1), maxNormalScale)
+
+        val capacityGuess = clamp(inputVertices.size, 16, 65536)
+        val uniqueVertices = HashMap<Long, Vector3d>(capacityGuess)
+        val vertexToIndex = HashMap<Vector3d, Int>(capacityGuess)
         for (i in inputVertices.indices) {
-            val p = inputVertices[i]
+            val inputVertex = inputVertices[i]
 
-            var px = p.x
-            var py = p.y
-            var pz = p.z
+            // normalize into range [-0.5, +0.5]
+            val px = (inputVertex.x - center.x) * invScale.x
+            val py = (inputVertex.y - center.y) * invScale.y
+            val pz = (inputVertex.z - center.z) * invScale.z
 
-            px = px * recip[0] // normalize
-            py = py * recip[1] // normalize
-            pz = pz * recip[2] // normalize
+            // discretize the vertex, so we can hash it and compare it to its immediate neighbors
+            val ix = (px * normalEpsilonScale).toLongOr() + centerI
+            val iy = (py * normalEpsilonScale).toLongOr() + centerI
+            val iz = (pz * normalEpsilonScale).toLongOr() + centerI
+            assertTrue(ix in 1 until limitI)
+            assertTrue(iy in 1 until limitI)
+            assertTrue(iz in 1 until limitI)
 
-            var j = 0
-            while (j < vertexCount[0]) {
-                // XXX might be broken
-                val v = vertices[j]
-
-                dx = abs(v.x - px)
-                dy = abs(v.y - py)
-                dz = abs(v.z - pz)
-
-                if (dx < normalEpsilon && dy < normalEpsilon && dz < normalEpsilon) {
-                    // ok, it is close enough to the old one
-                    // now let us see if it is further from the center of the point cloud than the one we already recorded.
-                    // in which case we keep this one instead.
-                    if (center.distanceSquared(px, py, pz) > center.distanceSquared(v)) {
-                        v.x = px
-                        v.y = py
-                        v.z = pz
+            var found = false
+            val score = center.distanceSquared(inputVertex)
+            search@ for (dz in -1..1) {
+                for (dy in -1..1) {
+                    for (dx in -1..1) {
+                        val id = (ix + dx).shl(42) or (iy + dy).shl(21) or (iz + dz)
+                        val inResult = uniqueVertices[id] ?: continue
+                        // ok, it is close enough to the old one
+                        // now let us see if it is further from the center of the point cloud than the one we already recorded.
+                        // in which case we keep this one instead.
+                        if (score > center.distanceSquared(inResult)) {
+                            // this would modify the original set
+                            val indexInResult = vertexToIndex.remove(inResult)!!
+                            cleanVertices[indexInResult] = inputVertex
+                            vertexToIndex[inputVertex] = indexInResult
+                        }
+                        found = true
+                        break@search
                     }
-                    break
                 }
-                j++
             }
 
-            if (j == vertexCount[0]) {
-                vertices[vertexCount[0]++].set(px, py, pz)
+            if (!found) {
+                val id = ix.shl(42) or iy.shl(21) or iz
+                uniqueVertices[id] = inputVertex
+                vertexToIndex[inputVertex] = cleanVertices.size
+                cleanVertices.add(inputVertex)
             }
         }
 
         // ok... now make sure we didn't prune so many vertices it is now invalid.
-        calculateBounds(vertices, vertexCount[0], bounds)
+        calculateBounds(cleanVertices, bounds)
 
         dx = bounds.deltaX
         dy = bounds.deltaY
         dz = bounds.deltaZ
 
-        if (dx < EPSILON || dy < EPSILON || dz < EPSILON || vertexCount[0] < 3) {
+        if (dx < EPSILON || dy < EPSILON || dz < EPSILON || cleanVertices.size < 3) {
             bounds.getCenter(center)
-
-            var len = Double.MAX_VALUE
-
-            if (dx >= EPSILON && dx < len) len = dx
-            if (dy >= EPSILON && dy < len) len = dy
-            if (dz >= EPSILON && dz < len) len = dz
-
-            if (len == Double.MAX_VALUE) {
-                dz = 0.01
-                dy = dz
-                dx = dy // one centimeter
-            } else {
-                if (dx < EPSILON) dx = len * 0.05 // 1/5th the shortest non-zero edge.
-                if (dy < EPSILON) dy = len * 0.05
-                if (dz < EPSILON) dz = len * 0.05
-            }
-
-            defineBox(vertexCount, vertices, center, dx, dy, dz)
+            defineSmallBox(center, dx, dy, dz)
         }
 
-        return true
+        return cleanVertices
     }
 
-    private fun calculateBounds(vertices: List<Vector3d>, numVertices: Int, bounds: AABBd) {
+    private fun calculateBounds(vertices: List<Vector3d>, bounds: AABBd) {
         bounds.clear()
-        for (i in 0 until numVertices) {
+        for (i in vertices.indices) {
             bounds.union(vertices[i])
         }
     }
 
-    private fun defineBox(
-        vertexCount: IntArray, vertices: List<Vector3d>,
-        center: Vector3d, dx: Double, dy: Double, dz: Double
-    ) {
+    private fun defineSmallBox(
+        center: Vector3d,
+        dx: Double, dy: Double, dz: Double
+    ): List<Vector3d> {
 
-        vertexCount[0] = 0 // add box
+        var len = Double.MAX_VALUE
+        var dx = dx
+        var dy = dy
+        var dz = dz
+
+        if (dx >= EPSILON && dx < len) len = dx
+        if (dy >= EPSILON && dy < len) len = dy
+        if (dz >= EPSILON && dz < len) len = dz
+
+        if (len == Double.MAX_VALUE) {
+            dz = 0.01
+            dy = dz
+            dx = dy // one centimeter
+        } else {
+            if (dx < EPSILON) dx = len * 0.05 // 1/20th the shortest non-zero edge.
+            if (dy < EPSILON) dy = len * 0.05
+            if (dz < EPSILON) dz = len * 0.05
+        }
+
+        return defineBox(center, dx, dy, dz)
+    }
+
+    private fun defineBox(
+        center: Vector3d,
+        dx: Double, dy: Double, dz: Double
+    ): List<Vector3d> {
 
         val x1 = center.x - dx
         val x2 = center.x + dx
@@ -560,18 +517,20 @@ class HullLibrary {
         val z1 = center.z - dz
         val z2 = center.z + dz
 
-        addPoint(vertexCount, vertices, x1, y1, z1)
-        addPoint(vertexCount, vertices, x2, y1, z1)
-        addPoint(vertexCount, vertices, x2, y2, z1)
-        addPoint(vertexCount, vertices, x1, y2, z1)
-        addPoint(vertexCount, vertices, x1, y1, z2)
-        addPoint(vertexCount, vertices, x2, y1, z2)
-        addPoint(vertexCount, vertices, x2, y2, z2)
-        addPoint(vertexCount, vertices, x1, y2, z2)
+        val result = ArrayList<Vector3d>(8)
+        result.add(Vector3d(x1, y1, z1))
+        result.add(Vector3d(x2, y1, z1))
+        result.add(Vector3d(x2, y2, z1))
+        result.add(Vector3d(x1, y2, z1))
+        result.add(Vector3d(x1, y1, z2))
+        result.add(Vector3d(x2, y1, z2))
+        result.add(Vector3d(x2, y2, z2))
+        result.add(Vector3d(x1, y2, z2))
+        return result
     }
 
     companion object {
-        /** close enough to consider two btScalaring point numbers to be 'the same'. */
+        /** close enough to consider two numbers to be 'the same'. */
         private const val EPSILON = 0.000001
         private const val RADS_PER_DEG: Double = Math.PI * 180.0
 
@@ -703,10 +662,6 @@ class HullLibrary {
             p.sub(vertices[t.x], tmp)
             subVec(2)
             return n.dot(tmp) > minDistanceAbove
-        }
-
-        private fun addPoint(vertexCount: IntArray, vertices: List<Vector3d>, x: Double, y: Double, z: Double) {
-            vertices[vertexCount[0]++].set(x, y, z)
         }
 
         private val joml = JomlPools.vec3d

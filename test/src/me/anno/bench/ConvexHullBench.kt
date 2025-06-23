@@ -41,7 +41,7 @@ fun main() {
     for (n in sizes) {
         // O(n log n) for small n, O(n²) or worse for bigger n :/
         clock.benchmark(1, 3, n, "ConvexHull-$n") {
-            convexHullSphere(points, n)
+            convexHullSphere2(points, n)
         }
     }
 }
